@@ -1,0 +1,15 @@
+# Local configuration, credentials and runtime output
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules/
+dist/
+.vinext/
+.wrangler/
+coverage/
+*.tsbuildinfo
+supabase/.temp/
+supabase/.branches/
