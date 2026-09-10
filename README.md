@@ -6,6 +6,8 @@ En lokal arbetsversion med elevregister, studieplaner, undervisningsgrupper, sch
 
 GSD initieras den 10 september 2026 för att vidareutveckla den befintliga appen. Första milstolpen är **säker administration inför en pilot**: verklig inloggning, uppdragsbaserad behörighet, beständigt elevregister och en kommunintegration. Projektkontext finns i [.planning/PROJECT.md](.planning/PROJECT.md), nulägeskartan i [.planning/codebase/](.planning/codebase/) och detaljerade krav i [.planning/REQUIREMENTS.md](.planning/REQUIREMENTS.md). Färdplan och detaljomfattning är förslag tills granskningen är klar.
 
+[Färdplansförslaget](.planning/ROADMAP.md) har åtta faser och 42 krav. [Arbeta med GSD](docs/arbeta-med-gsd.md) beskriver hur projektet kartläggs, förändras fasvis och verifieras; [STATE.md](.planning/STATE.md) anger var arbetet står.
+
 ## Projektets delar
 
 - `web/` – React/TypeScript-gränssnitt med Vinext, Base UI/Shadcn och Lucide.

@@ -79,6 +79,8 @@ Viktiga dokument: `docs/kommunintegration-och-sakerhet.md`, `docs/schoolsoft/fun
 
 Säkerhetsdokumentet har efter det första underlaget utökats med ett förslag om allmänna handlingar och offentlighetsregister. Bevara texten som underlag men kontrollera rättsliga påståenden och skilj skyldigheter från föreslagen systemdesign. Gamla README/statusuppgifter motsäger delvis aktuell kod och får inte ensamma användas som verifiering.
 
+Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separat researchförslag inför eventuellt senare modulbeslut. Det är inte verifierat i denna initiering och ändrar inte pilotens valda omfattning. Rättsliga och marknadsmässiga påståenden där behöver egen granskning före kravställning.
+
 ## Constraints
 
 - **Befintlig produkt:** Vidareutveckla och bevara användarens uppskattade utbildningsflöden; motivera större ombyggnader.
