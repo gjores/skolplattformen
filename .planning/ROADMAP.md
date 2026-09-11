@@ -36,7 +36,7 @@ Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in 
 2. Pilotansvarig kan använda en avskild testmiljö där demoinloggning, installerad demoetablering och automatisk exempeldata inte ger åtkomst till skyddade driftvägar. (BASE-02)
 3. Pilotansvarig kan granska en daterad anslutningsprofil med organisation, elevfält, originalkälla, skrivansvar och volym; ännu ej valda kund- och leverantörsuppgifter framgår som öppna beroenden. (PILOT-01)
 
-**Plans**: 9 plans
+**Plans**: 10 plans
 
 Plans:
 - [ ] 01-01-PLAN.md — Git-baslinje med tagg `fas1-baslinje` och återställningsprov (verify-baseline.mjs)
@@ -46,8 +46,9 @@ Plans:
 - [ ] 01-05-PLAN.md — Disponibla lokala Supabase-mål med målskydd, karantänmigration och pgTAP-prov
 - [ ] 01-06-PLAN.md — Negativa API-prov (tre identiteter, rader oförändrade) och positiva baslinjeflöden mot baseline-målet
 - [ ] 01-07-PLAN.md — UI: blockerad start, Provmiljö-märkning, skolväljare Exempelskola, sann lagringsstatus, gatad telefonstart
-- [ ] 01-08-PLAN.md — Playwright (dator/telefon/blockerad/byggd), sparordningsreproducerare som KNOWN-ISSUE, sammanställare verify:phase1
-- [ ] 01-09-PLAN.md — Baslinjerapport docs/pilot/baseline.md, startanvisning, valideringskarta och användarens checkpoint på dator/telefon
+- [ ] 01-08-PLAN.md — Playwright 1.63.0 med projekt dator/telefon/blockerad/byggd; browserprov av bevarade flöden, skolföljande Elever-vy och isolering
+- [ ] 01-09-PLAN.md — Baslinjerapport docs/pilot/baseline.md, startanvisning, valideringskarta och användarens checkpoint på dator/telefon (kravstatus uppdateras först efter checkpointen)
+- [ ] 01-10-PLAN.md — Sparordningsreproducerare som KNOWN-ISSUE (ägare fas 5) och sammanställare verify:phase1
 
 **UI hint**: yes
 
@@ -184,7 +185,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Baslinje och avskild pilotmiljö | 0/9 | Planned | - |
+| 1. Baslinje och avskild pilotmiljö | 0/10 | Planned | - |
 | 2. Verifierad kontoåtkomst | 0/TBD | Not started | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
