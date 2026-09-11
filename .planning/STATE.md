@@ -4,15 +4,15 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Baslinje och avskild pilotmiljö
-current_plan: Not started
-status: planning
-stopped_at: "Fas 1: context insamlat och sparat. Redo för gsd-plan-phase 1; ingen fas genomförd."
-last_updated: "2026-09-11T06:50:11.551Z"
+current_plan: 01-01 (ej påbörjad)
+status: planned
+stopped_at: "Fas 1 planerad: 10 planer i 6 vågor, plankontroll godkänd (a992092). Nästa: /gsd:execute-phase 1."
+last_updated: "2026-09-11T12:30:00.000Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
+  total_plans: 10
   completed_plans: 0
   percent: 0
 ---
@@ -31,12 +31,12 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 **Current Phase:** 1
 **Current Phase Name:** Baslinje och avskild pilotmiljö
 **Total Phases:** 8
-**Current Plan:** Not started
-**Total Plans in Phase:** 0
-**Status:** Ready to plan
+**Current Plan:** 01-01 (ej påbörjad)
+**Total Plans in Phase:** 10
+**Status:** Planned — ready to execute
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-11
-**Last Activity Description:** Fas 1 diskuterad: fristående provmiljö, grundskola och gymnasium, några klasser per skola, användaren själv på dator och telefon. Nästa steg: gsd-plan-phase 1.
+**Last Activity Description:** Fas 1 planerad: 10 planer i 6 vågor (01-01 baslinje → 01-09 checkpoint), två kontrollvarv, sista varning åtgärdad inline. Nästa steg: /gsd:execute-phase 1.
 
 Progress: [░░░░░░░░░░] 0%
 Phases executed: 0 of 8
@@ -76,7 +76,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: gsd-plan-phase 1 med det färdiga fasunderlaget; diskussionen är slutförd.
+- Nästa steg: /gsd:execute-phase 1. Docker-daemonen svarade inte vid planeringen; planerna 01-05/01-06/01-10 rapporterar BLOCKED (exit 3) utan lokal Supabase, aldrig PASS.
 - Inga separata filer under .planning/todos/pending/.
 
 ## Blockers
@@ -98,5 +98,5 @@ Fullständiga beslut finns i PROJECT.md.
 ## Session
 
 **Last Date:** 2026-09-11
-**Stopped At:** Fas 1: context insamlat och sparat. Redo för gsd-plan-phase 1; ingen fas genomförd.
-**Resume File:** .planning/phases/01-baslinje-och-avskild-pilotmilj/01-CONTEXT.md
+**Stopped At:** Fas 1 planerad: 10 planer i 6 vågor, plankontroll godkänd (a992092). Nästa: /gsd:execute-phase 1.
+**Resume File:** .planning/phases/01-baslinje-och-avskild-pilotmilj/01-01-PLAN.md
