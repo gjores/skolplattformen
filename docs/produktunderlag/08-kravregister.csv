@@ -1,0 +1,75 @@
+﻿ID;Krav;Prioritet;Verifierbart resultat
+R01;Tidsatt regelprofil per organisation och handling;P0;2026-, 2027- och 2029-fall får rätt profil
+R02;Separat åtkomst, allmän-status och utlämnandeprövning;P0;En åtkomstetikett avgör inte utlämnandet
+R03;Begäran utan obligatorisk inloggning;P0;Anonym kontakt kan tas emot
+R04;Verklig mottagningstid och kontinuitet vid överlämning;P0;Omfördelning nollställer inte väntan
+R05;Sökning visar fullständighet och fel;P0;Avbruten källa syns i resultatet
+R06;Maskerad kopia utan återvinningsbara skyddade uppgifter;P0;Oberoende kontroll kan inte återskapa texten
+R07;Formellt beslut och rätt överklagandeväg;P0;Delavslag får korrekt dokumentation
+R08;Beslutad informationshanteringsregel;P0;Gallring saknar ingen beslutsgrund
+R09;Stopp för gallring under relevant pågående ärende;P0;Körningen hoppar över stoppad handling
+R10;Validerad och kvitterad arkivexport;P0;Återläsning bevarar samband och innehåll
+R11;Uppdragsstyrd och tidsbegränsad behörighet;P0;Avslutat uppdrag stänger åtkomst
+R12;Skyddade personuppgifter i alla kanaler;P0;Sökförslag och notiser röjer inte uppgifter
+R13;Avgränsad medicinsk elevhälsa;P0;Undervisningskonto når inte journal
+R14;Giltigt beslutsmandat;P0;Utgången delegation blockerar beslut
+R15;Akut anmälan utan onödiga formulärhinder;P0;Kan registreras och nå rätt mottagare direkt
+R16;Elevdelaktighet och kommunicering enligt ärendetyp;P0;Saknat obligatoriskt steg blir synligt
+R17;Insatser kopplas till utförande och uppföljning;P1;Beslut kan följas till faktisk aktivitet
+R18;EWS visar källor och datakvalitet;P0;Felaktig signal kan rättas och omprövas
+R19;Ingen automatisk elevpåföljd från riskindikator;P0;Signal skapar bedömningsuppgift
+R20;En gång registrerade grunduppgifter återanvänds;P1;Klassbyte behöver inte skrivas i tre moduler
+R21;Planerad, schemalagd och genomförd tid hålls isär;P0;Inställt pass räknas inte som utfört
+R22;Hårda schemavillkor och förklarad konflikt;P0;Olösbarhet ger begriplig orsak
+R23;Jämförbara schemaförslag med ändringsomfattning;P1;Planeraren kan välja med känd påverkan
+R24;Publicering med giltighet och mottagarkontroll;P0;Bara beslutad version blir gällande
+R25;Vikariebokning tål samtidiga försök;P0;En person dubbelbokas inte
+R26;Samlat lektionspaket för vikarie;P1;Material och nödvändiga instruktioner finns
+R27;Uppgift, inlämning och återkoppling hänger ihop;P1;Elev och lärare ser samma versionsstatus
+R28;Betyg skiljs från poäng och bedömningsutkast;P0;Inget betyg fastställs av en poängformel
+R29;Provlåsning verifieras på stödd enhet;P0;Okänd låsning kan inte visas som verifierad
+R30;Provsvar har tydlig spar- och kvittensstatus;P0;Nätavbrott ger ingen falsk inlämning
+R31;Återupptagning och tillgängliga hjälpmedel;P0;Testelev kan fortsätta enligt rätt villkor
+R32;Integrationer visar fel och undviker dubbletter;P0;Upprepat meddelande skapar inte extra post
+R33;Komplett leverantörsexport;P0;Skolan kan fortsätta hantera sina handlingar
+R34;Tangentbord, skärmläsare och responsivt omflöde;P0;Kritiska uppgifter kan utföras tillgängligt
+R35;Mätning av faktisk administrationsminskning;P1;Före/efter-mätning omfattar även felarbete
+R36;Källhänvisat AI-stöd som kan stängas av;P2;Arbetsflödet fungerar utan AI
+R37;Kommunikation fångas med originalmetadata och bilagor;P0;Händelseförlopp och innehåll kan återskapas
+R38;Ett meddelande kan kopplas till ett ärende utan kopiering;P1;Ursprung och åtkomst bevaras
+R39;Intern kommunikation bedöms utifrån sammanhang;P0;Kanalnamnet avgör inte handlingens status
+R40;Meddelandets version och relevant länkat underlag säkras;P0;Senare redigering ändrar inte historiskt beslutsunderlag
+R41;Leveransstatus skiljs från handläggning och delgivning;P0;Läskvitto blir inte formell delgivning automatiskt
+R42;Borttagning ur inkorgen respekterar hanteringsbeslut;P0;Bevarandepliktig handling försvinner inte
+R43;Svar och vidarebefordran har mottagar- och innehållskontroll;P0;Skyddad citathistorik följer inte med oavsiktligt
+R44;Avslutat konto bryter inte verksamhetens tillgång till handlingar;P0;Behörig funktion kan söka bevarad kommunikation
+R45;Samtal kan dokumenteras som tydlig tjänsteanteckning;P1;Uppgiftskälla och dokumenterare kan särskiljas
+R46;Kommunikationsanslutningar har avstämning och felkö;P0;Saknat meddelande eller bilaga blir synligt
+R47;Arbetsområde med rätt styrdokumentsversion;P0;Grupp, skolform, kurs eller nivå och källversion följer planeringen
+R48;Lektion och aktivitet skilda från formellt ärende;P1;Vanlig undervisning kan genomföras utan ärende eller beslut
+R49;Återkoppling knyts till arbete och bearbetning;P1;Elev kan jämföra utkast och använda respons i en ny version
+R50;Återkoppling kan förändra nästa undervisning;P1;Läraren kan omsätta gruppobservation i ändrad lektion
+R51;Saknat underlag skiljs från otillräckliga kunskaper;P0;Saknad inlämning ger inte automatiskt noll eller F
+R52;Individuell tilldelning och stöd utan exponering;P0;Andra elever ser inte privat variant eller stöduppgift
+R53;Muntliga och praktiska underlag kan användas;P1;Bedömning kräver inte fil eller kriterieklick vid varje lektion
+R54;Gy11 och Gy25 hanteras parallellt;P0;Utbildningskull och nivå styr betygslogik utan poängmedelvärde
+R55;IUP och dokumentationskrav styrs av tillämpning;P0;IUP och samtalsdokumentation krävs inte generellt av alla
+R56;Gemensamt arbete och individuell bedömning skiljs;P0;Gruppens produkt kan ge olika relevanta individuella underlag
+R57;APL kopplar mål, observation, uppföljning och lärarbedömning;P1;Saknat lärandemoment syns trots genomförd tid
+R58;Versionshanterad uppgift med kontrollerade ändringar;P0;Ny instruktion ersätter inte tyst elevens tidigare villkor
+R59;Återanvändning rensar elevdata och markerar gamla datum;P0;Kopierat arbetsområde innehåller inga gamla elevlösningar
+R60;Pedagogisk integration anger originalkälla och konflikt;P0;Motstridiga deadlines och statusar visas och löses kontrollerat
+R61;Övningsstöd skiljs från examination;P0;Ledtrådar och försök blir inte automatiskt betyg
+R62;Ärende har syfte, utlösande händelse och avslutsvillkor;P0;Inget skickat svar eller passerat datum stänger ensamt ärendet
+R63;Väntan har ansvar och bevakning;P0;Väntemarkering nollställer eller pausar inte automatiskt rättslig tid
+R64;Parallella processer har separata skyldigheter;P0;Ett avslut stänger inte andra spår eller utökar åtkomst
+R65;Beslut, genomförande och effekt är separata tillstånd;P0;Signerat beslut kan visas med pågående eller hindrad insats
+R66;Återöppning bevarar historik och tidigare beslut;P0;Ny arbetsperiod har orsak och ansvar utan att historik skrivs över
+R67;Kontrollerad ansvarsöverlämning med ersättare;P0;Ärende kan inte försvinna mellan två funktioner
+R68;Underlag skiljer påstående, sakuppgift och bedömning;P0;Motstridiga uppgifter och använda versioner kan granskas
+R69;Pedagogisk nytta prövas i första sammanhängande pilot;P1;Elevbearbetning och lärarens ändring av undervisning demonstreras
+R70;Studieplan med giltighet och IM-anpassad struktur;P0;Ändring visar påverkan på innehåll, grupper och tid före fastställande
+R71;Licens- och anslutningsbortfall har reservväg;P0;Elevens mottagna underlag blir inte tyst otillgängligt
+R72;Presentationsvy skyddar individuella uppgifter;P0;Projicerat material innehåller inga privata stödanteckningar
+R73;Kommunikation begränsas till beslutad verksamhetsomfattning;P0;Privat eller fackligt material massinsamlas inte
+R74;Övningsresultat kan leda till aktivitet utanför plattformen;P1;Läraren kan välja samtal eller praktisk övning som nästa steg

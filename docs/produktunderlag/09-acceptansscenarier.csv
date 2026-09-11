@@ -1,0 +1,57 @@
+﻿ID;Scenario och förväntat beteende
+A01;En anonym begäran kommer per telefon. Den tas emot utan krav på e-legitimation och får rätt mottagningstid.
+A02;En begäran innehåller både offentliga och skyddade uppgifter. Prövade delar kan hanteras separat och avslag får rätt beslutsväg.
+A03;"En maskerad fil innehåller OCR-text och kommentarer. Kopiekontrollen upptäcker risken; slutkopian röjer inte innehållet."
+A04;Ett externt arkiv svarar inte. Sökningen visar ofullständighet och skapar en ansvarig åtgärd.
+A05;Handläggaren blir sjuk. Ärendet övertas utan ny starttid eller onödig spridning av sökandens kontaktuppgifter.
+A06;En äldre friskolehandling importeras under 2027. Ursprungliga datum bevaras och den nya offentlighetsregeln tillämpas inte enbart på grund av importen.
+A07;Huvudmannen växer över storleksgränsen. Historiska handlingar och nya handlingar bedöms enligt rätt övergång och regelprofil.
+A08;En handling ska gallras men omfattas av en pågående begäran. Gallringen stoppas, med synlig orsak.
+A09;Arkivleveransen avvisas. Originalen finns kvar, felet blir en uppgift och exporten kan göras om.
+A10;En elev fyller 18 år eller vårdnaden ändras. Åtkomst omprövas och äldre relation ger inte fortsatt automatisk insyn.
+A11;En vikaries uppdrag avslutas. Tillgången upphör även till tidigare direktlänkar och sökresultat.
+A12;En uppgift om skyddad elev förekommer i en notis eller export. Samma skyddsregler tillämpas utanför huvudvyn.
+A13;En elevs frånvaro beror på fel schema. Rättningen uppdaterar signalen och lämnar spår utan att eleven får en varaktig risketikett.
+A14;En kränkningsanmälan saknar flera detaljer. Akut registrering och överlämning fungerar ändå.
+A15;En beslutsfattare har utgången delegation. Fastställande stoppas och rätt beslutsfattare kan ta över.
+A16;"En beslutad stödinsats saknar tillgänglig resurs. Hindret når ansvarig; ärendet blir inte automatiskt klart."
+A17;Ett schemaförslag bryter ett hårt villkor. Det kan inte publiceras som giltigt utan rättelse eller ett tillåtet, dokumenterat verksamhetsbeslut.
+A18;"Två samordnare bokar samma vikarie. En får bokningen; den andra får aktuell status och nya alternativ."
+A19;Ett prov tappar nät och klienten startas om. Svar återställs enligt verifierad rutin och kvittensstatus är sanningsenlig.
+A20;Provlåsningen kan inte bekräftas. Elev och provvakt ser detta och använder beslutad reservväg.
+A21;Eleven använder skärmläsare eller annan godkänd anpassning. Prov och inlämning kan genomföras utan att skyddet kringgås oavsiktligt.
+A22;En integration skickar samma ändring två gånger. Ingen extra elevplacering eller lektion skapas.
+A23;Ett AI-utkast saknar källa för en slutsats. Det kan inte presenteras som verifierat beslutsunderlag.
+A24;Systemet avvecklas. Ett komplett paket kan återläsas och en testbegäran om handling kan hanteras i mottagande miljö.
+A25;Ett mejl med bilaga blir ett ärende. Originalmetadata, bilaga och mottagningstid följer med utan manuell kopiering.
+A26;"En intern tråd får extern mottagare. Bedömningen tar hänsyn till ändrat sammanhang; ingen blankettrutin undantar allt internt."
+A27;Ett meddelande redigeras och tas bort ur inkorgen. Tidigare beslutsunderlag finns kvar enligt beslutad hantering.
+A28;En tråd gäller två elever. Koppling till respektive akt ger inte oavsiktlig tillgång till hela tråden.
+A29;Ett molndokument ändras efter att det använts som underlag. Den säkrade relevanta versionen kan fortfarande återges.
+A30;Medarbetaren slutar. Verksamhetens bevarade kommunikation kan sökas av behörig ersättare.
+A31;En meddelandeanslutning tappar en bilaga. Felet visas och kan återhämtas utan dubbletter.
+A32;"Läraren ger respons på utkast 1. Eleven använder den i utkast 2; båda versionerna och responsens ursprung kan jämföras."
+A33;Flera elever missförstår samma begrepp. Läraren ändrar nästa lektion utan att skapa elevärenden.
+A34;Elev saknar uppladdad fil men har visat kunnande muntligt. Underlaget kan användas och frånvaron av fil blir inte F.
+A35;Två utbildningskullar läser enligt Gy11 respektive Gy25. Rätt kurs eller nivå gäller och F på högre nivå raderar inte lägre godkända Gy25-betyg.
+A36;"Ett utvecklingssamtal genomförs för elev där IUP inte krävs. Plattformen kräver inte generell IUP eller protokoll som lagkrav; lokal rutin är märkt lokal."
+A37;"Handledaren bekräftar APL-tid men ett planerat lärandemoment saknas. Läraren ser behovet och beslutar nästa undervisning; tid blir inte ämnesbetyg."
+A38;En individuell uppgiftsvariant har tillgänglighetsstöd. Klasskamrat och presentationsvy ser inte privat information.
+A39;Två elever gör en gemensam produkt. Läraren kan använda olika individuella belägg utan att redigeringsantal avgör bedömningen.
+A40;Classroom och plattformen har motstridiga deadlines. Konflikten visas med originalkälla och kan lösas utan tyst överskrivning.
+A41;"Handledarens APL-uppdrag upphör. Äldre direktlänk ger inte fortsatt elevåtkomst; bevarade underlag finns kvar för behörig lärare."
+A42;Ett meddelande i stödärende besvaras. Ärendet kvarstår i genomförande och en öppen insats hindrar för tidigt avslut.
+A43;"Ärendet väntar på underlag. Annan uppgift kan fortsätta; mottagningstid och rättslig tidsregel är oförändrade."
+A44;Samma händelse har stöd- och trygghetsspår. Avslut av stödspår påverkar inte trygghetsskyldigheter eller dess åtkomst.
+A45;"Beslut finns men två stödtillfällen ställdes in. Faktiskt utförande och hinder visas; rektor får åtgärd och effekt anges inte som verifierad."
+A46;"Uppgift ändras efter elevens första inlämning. Tidigare instruktion och responsversion består; eleven får begriplig ändringsinformation."
+A47;APL-underlag visar att eleven behöver förklara arbetsval. Läraren planerar muntlig avstämning och återför saknat moment till skolundervisningen.
+A48;"Handläggare lämnar uppdraget innan överlämning accepterats. Ansvarig funktion och ersättare syns; ärendet blir inte ägarlöst."
+A49;Effekten är otillräcklig vid uppföljning. Processen kan fortsätta eller återöppnas med orsak, ansvar och bibehållen beslutshistorik.
+A50;Två uppgiftslämnare beskriver samma händelse olika. Påståenden, kontrollerade uppgifter och bedömning förblir åtskilda i beslutsunderlaget.
+A51;En IM-elev får ändrad studieplan. Giltighet, mål, innehåll och konsekvens för grupper och schema visas före ändringen.
+A52;"En pedagogisk tilläggslicens försvinner. Funktionen visar begränsning och reservväg; tidigare mottaget arbete försvinner inte tyst."
+A53;Ett arbetsområde återanvänds nästa läsår. Gamla elevarbeten följer inte med och datum samt styrdokumentsändring behöver kontrolleras.
+A54;Ett övningsverktyg underkänner ett korrekt alternativt svar. Läraren kan rätta responsen och se berörda försök utan automatisk betygseffekt.
+A55;En matematisk övning visar missförstånd. Nästa aktivitet kan vara lärarlett samtal med konkret material, utan digital inlämning.
+A56;En anslutning innehåller verksamhetsmeddelanden och material utanför beslutad omfattning. Fångsten följer avgränsningen och avvikelse hanteras utan massinsamling.

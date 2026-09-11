@@ -1,0 +1,4862 @@
+{
+  "date": "2026-09-05",
+  "sources": {
+    "EA": [
+      "SchoolSoft · Elevadministration",
+      "https://schoolsoft.se/produkter/elevadministration/",
+      "Odaterad produktsida",
+      "Leverantörsbeskrivning; inga funktionstester."
+    ],
+    "LP": [
+      "SchoolSoft · Lärplattform",
+      "https://schoolsoft.se/produkter/larplattform/",
+      "Odaterad produktsida",
+      "Läst sökindex; direkt hämtning gav 429."
+    ],
+    "GY": [
+      "SchoolSoft · Gymnasium",
+      "https://schoolsoft.se/skolform/gymnasium/",
+      "Odaterad produktsida",
+      "Leverantörsbeskrivning."
+    ],
+    "GR": [
+      "SchoolSoft · Grundskola",
+      "https://schoolsoft.se/skolform/grundskola/",
+      "Odaterad produktsida",
+      "Leverantörsbeskrivning."
+    ],
+    "AI": [
+      "SchoolSoft · AI Schema",
+      "https://schoolsoft.se/produkter/ai-schema/",
+      "Odaterad produktsida",
+      "Separat produkt med Royal Schedule; ingen optimering eller integration testad."
+    ],
+    "GYMAR": [
+      "SchoolSoft · Studieplaner i marslanseringen",
+      "https://schoolsoft.se/aktuellt/utrullningen-av-gy25-hojdpunkter-i-mars-lanseringen-av-studieplaner/",
+      "2025-02-27",
+      "Daterad lanseringsinformation, delvis framtidsform."
+    ],
+    "GYJUN": [
+      "SchoolSoft · Studie- och betygshantering i juni",
+      "https://schoolsoft.se/aktuellt/utrullningen-av-gy25-snart-lanseras-den-nya-betygshanteringen/",
+      "2025-06-16",
+      "Skiljer redan lanserade studieplansfunktioner från aviserade betygsfunktioner."
+    ],
+    "SUMMER": [
+      "SchoolSoft · Nytt pedagogiskt stöd",
+      "https://schoolsoft.se/aktuellt/sommarhalsning/",
+      "2025-06-19",
+      "Beskriver ersättning av äldre planerings- och uppgiftsverktyg."
+    ],
+    "START": [
+      "SchoolSoft · Skolstart",
+      "https://schoolsoft.se/aktuellt/tips-for-en-lyckad-skolstart-med-schoolsoft/",
+      "2024-07-29",
+      "Äldre anvisning; ordningsföljd måste stämmas av mot läsårshanteringen från 2025."
+    ],
+    "GROUPS": [
+      "AcadeMedia · Ny grupphantering",
+      "https://medarbetare.academedia.se/nyhetsbrev/februari-2025/nyheter-for-gymnasiet-februari/",
+      "Februari 2025",
+      "Huvudmannens publicerade information om ny gruppsida, massändring och läsår; lokal/versionerad."
+    ],
+    "PROTECT": [
+      "SchoolSoft · Skyddad identitet",
+      "https://schoolsoft.se/aktuellt/ny-funktion-for-hantering-av-elever-med-skyddad-identitet/",
+      "2024-02-01",
+      "Separat modul med särskild åtkomst; aktivering krävs enligt leverantören."
+    ],
+    "ABSENCE": [
+      "Sunne · Frånvaro och ledighet",
+      "https://www.sunne.se/kommun/utbildning-och-barnomsorg/gymnasieskola/franvaro-och-sjukanmalan/",
+      "2026-01-13",
+      "Lokal användarinstruktion; lokala tidsfrister är inte generella SchoolSoft-regler."
+    ],
+    "PROFILE": [
+      "Sunne · SchoolSoft-instruktioner",
+      "https://www.sunne.se/kommun/utbildning-och-barnomsorg/schoolsoft/schoolsoft-instruktioner/",
+      "2025-05-15",
+      "Lokal inloggning och profilhantering."
+    ],
+    "QUEUE": [
+      "SchoolSoft · Kömanual publicerad av Kunskapsskolan",
+      "https://www.kunskapsskolan.se/download/18.26f2326219ad87f5401418/1764600866896/manual%20elevko%CC%88%20(nya)%20VH%202024-09-17%20(1).pdf",
+      "2024-09-16 i dokumentet",
+      "11 sidor; text läst. Lokal aktivering och aktuell version behöver kontrolleras."
+    ],
+    "ACCESS": [
+      "SchoolSoft · Tillgänglighetsredogörelse",
+      "https://schoolsoft.se/tillganglighetsredogorelse/",
+      "2025-04-16",
+      "Leverantörens egen redogörelse; ingen ny tillgänglighetsrevision utförd."
+    ],
+    "APPS": [
+      "SchoolSoft · Appar",
+      "https://schoolsoft.se/app/",
+      "Odaterad produktsida",
+      "Elev- och vårdnadshavarappar för iOS/Android."
+    ],
+    "APPNEW": [
+      "SchoolSoft · Nya appar",
+      "https://schoolsoft.se/aktuellt/schoolsoft-slapper-nya-appar-for-elever-och-vardnadshavare/",
+      "2024-01-17",
+      "Lanseringsbeskrivning; bland annat mörkt läge."
+    ],
+    "TEAMS": [
+      "Eventful · SchoolSoft–Teams",
+      "https://support.eventful.se/support/solutions/articles/77000479617-schoolsoft-teams",
+      "Ändrad 2025-12-16; kontrollerad 2025-06-28 enligt sidan",
+      "Integrationspartens instruktion; beställning krävs, ingen anslutning provad."
+    ],
+    "LOCAL": [
+      "Lidingö · SchoolSoft-frågor och svar",
+      "https://sites.google.com/lidingo.se/digiguide/verktyg/schoolsoft/%C3%B6vrigt",
+      "Uppdateringsdatum saknas",
+      "Lokala exempel på bokning, kontaktlistor, lovtider och support. Inte generell aktuell begränsningslista."
+    ],
+    "SUB": [
+      "AcadeMedia · Behörighet och korttidsvikarier",
+      "https://medarbetare.academedia.se/nyhetsbrev/maj-2024/nyhetsbrev-april-5/",
+      "Maj 2024",
+      "Lokalt beskriven tidsbegränsad vikarieåtkomst; ingen fullständig vikariebank styrkt."
+    ],
+    "EDU": [
+      "SchoolSoft · Utbildning och administratörsguider",
+      "https://schoolsoft.se/utbildning/",
+      "Odaterad sida",
+      "Länkar till hjälpguider; filmkanalens innehåll kunde inte läsas i webbverktyget."
+    ],
+    "PRESCHOOL": [
+      "SchoolSoft · Förskola och Tyra",
+      "https://schoolsoft.se/skolform/forskola/",
+      "Odaterad produktsida",
+      "Produktgräns utanför första målgruppen."
+    ],
+    "O04": [
+      "Projektets tidigare granskning av Testskolan",
+      "observations-2026-09-04.md",
+      "2026-09-04",
+      "Tidigare observationsprotokoll, återläst nu. Roll Skolledare med Admin. Meny/formulär är inte funktionstest. Ingen ny inloggad granskning har genomförts i denna omgång."
+    ],
+    "O01": [
+      "Projektets tidigare funktionsinventering",
+      "baslinje-2026-09-04.md",
+      "2026-09-04",
+      "Baslinje SS01–SS60. Offentlig inventering, inte fullständigt leverantörsregister."
+    ],
+    "CODE": [
+      "Aktuell arbetsversion",
+      "/Users/petter.gjores/dev/skolplattform/web/app/admin-workspace.tsx",
+      "2026-09-05",
+      "Kodgranskning av app/admin-workspace.tsx, app/workspace-views.tsx, app/page.tsx samt lib/admin-model.ts och lib/school-model.ts."
+    ]
+  },
+  "items": [
+    {
+      "id": "E01",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Elevregister och elevsökning",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "EA",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Elevregister och elevfilter finns.",
+      "proposed_flow": "Sök elev, avgränsa skola och läsår och öppna elevkort med listans urval bevarat.",
+      "acceptance": "Två elever med samma namn kan särskiljas; inaktiv elev blir inte en dublett.",
+      "app_status": "Delvis",
+      "remaining": "Sökning och kort finns med exempeldata; identitetskontroll, beständig lagring och inaktiva elever saknas.",
+      "legacy_ids": [
+        "SS24"
+      ],
+      "menu_paths": [
+        "Admin → Underhåll → Elever",
+        "Admin → Export/Import → Elever"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E02",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Elevkort och sammanhållen översikt",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Elevkort är en egen ingång.",
+      "proposed_flow": "Samla kontakt, placering, studieplan, grupper och tillåtna dokument på elevkortet med tydliga källor.",
+      "acceptance": "En ändring i grupp visas på rätt elevkort; otillåtna dokument avslöjas inte.",
+      "app_status": "Delvis",
+      "remaining": "Kort med utbildning, grupper och sessionshistorik finns; övriga registerkopplingar och behörighet saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Elevkort",
+        "Skolledare → Elevkort → Elevkort"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E03",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Vårdnadshavare och kontaktrelationer",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "O04",
+        "PROFILE"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Vårdnadshavarregister och profiluppgifter förekommer.",
+      "proposed_flow": "Knyt varje kontakt till elev med relation, giltighet, kontaktväg och tillåten insyn.",
+      "acceptance": "Kontaktperson och vårdnadshavare förväxlas inte; ändrad relation slår igenom i mottagarlistan.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Vårdnadshavare"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E04",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Skyddade personuppgifter",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "PROTECT"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Separat aliasmodul med särskild åtkomst, tvåfaktor och aktivitetslogg beskrivs.",
+      "proposed_flow": "Håll ordinarie elevkort och skyddade uppgifter åtskilda; visa bara den identitet rollen får använda.",
+      "acceptance": "Sökning, listor, meddelanden och export röjer inte kopplingen till skyddad identitet.",
+      "app_status": "Saknas",
+      "remaining": "Modulens aktuella behörigheter, exportregler och logggranskning måste demonstreras med syntetiska uppgifter.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E05",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Folkbokföring och uppdatering från SPAR",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "EA",
+        "QUEUE"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Registeruppgifter kan hämtas från folkbokföring.",
+      "proposed_flow": "Visa källa och senaste uppdatering; granska ändrade relationer och adresser innan de skrivs över.",
+      "acceptance": "En lokal kontaktuppgift och en skyddad identitet skrivs inte tyst över vid import.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS25"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E06",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Antagnings- och elevimport",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "EA",
+        "START"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Import från kö, antagning och andra källor beskrivs.",
+      "proposed_flow": "Välj källa, matcha identiteter, kontrollera dubbletter och granska placeringar innan import bekräftas.",
+      "acceptance": "Felaktiga rader får åtgärd; samma fil kan hanteras igen utan dubbla elever.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS26"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E07",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Inskrivning, placering och skol- eller klassbyte",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "EA",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Placering i skola och klass ingår.",
+      "proposed_flow": "Ange giltighetsdatum och mottagande klass; visa följder för plan, grupper och åtkomst före beslut.",
+      "acceptance": "Framtida placering ändrar inte historisk närvaro. Ett klassbyte ändrar inte program automatiskt.",
+      "app_status": "Delvis",
+      "remaining": "Endast ny exempelpost med vald klass finns; fullständiga byten och datumsatta placeringar saknas.",
+      "legacy_ids": [
+        "SS27"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E08",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Avslut, inaktiva elever och återinskrivning",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "O04",
+        "START"
+      ],
+      "evidence": "M + L",
+      "schoolsoft": "Inaktiva elevkort och inaktivering beskrivs.",
+      "proposed_flow": "Avsluta placering med datum och orsak; bevara åtkomlig historik för rätt roll och erbjud återinskrivning.",
+      "acceptance": "Avslutad elev lämnar aktuella grupper utan att betygshistoriken försvinner.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Elevkort för inaktiva elever",
+        "Skolledare → Elevkort → Elevkort för inaktiva elever"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E09",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Skolkö och ansökan",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "EA",
+        "QUEUE"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Köansökan skiljs från registrering av barnet.",
+      "proposed_flow": "Visa barnet, sökt skola, årskurs, läsår, status och nästa steg i ett sammanhängande ansökningsflöde.",
+      "acceptance": "En sparad barnprofil visas inte som en färdig köansökan.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS34",
+        "SS60"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E10",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Platserbjudande, svar och köhistorik",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "QUEUE"
+      ],
+      "evidence": "K",
+      "schoolsoft": "Manualen beskriver erbjudande, signerat svar och köhistorik.",
+      "proposed_flow": "Visa svarande, återstående svar, tidsfrist och följd av ja, nej eller ändrat sökår.",
+      "acceptance": "Användaren förstår när platsen är accepterad och om ett borttagande påverkar ködatum.",
+      "app_status": "Saknas",
+      "remaining": "Köregler och krav på flera svar är lokala/versionerade; generalisera dem inte till alla skolor.",
+      "legacy_ids": [
+        "SS36"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E11",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Uppsägning av plats",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "EA"
+      ],
+      "evidence": "L",
+      "schoolsoft": "E-tjänst för uppsägning beskrivs.",
+      "proposed_flow": "Välj placering och slutdatum; granska följder och ge ett kvitto med faktisk status.",
+      "acceptance": "Uppsägning av fritidsplats avslutar inte automatiskt elevens skolplacering.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS35"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "E12",
+      "area": "01 · Organisation och elevens livscykel",
+      "title": "Klasslistor och kontaktlistor",
+      "roles": "Skoladministratör; rektor; huvudman efter uppdrag",
+      "sources": [
+        "O04",
+        "LOCAL"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Klass- och kontaktlistor är tillgängliga för olika målgrupper.",
+      "proposed_flow": "Välj klass och syfte; låt samma avgränsning styra skärm, utskrift och export.",
+      "acceptance": "Elev och vårdnadshavare ser endast tillåtna kontaktfält.",
+      "app_status": "Delvis",
+      "remaining": "Klassfilter och enkel CSV finns; fullständiga listmallar och fältbehörighet saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Grupper → Klasslistor"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P01",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Programutbud och programmallar",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR",
+        "GYJUN",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Program med ämnesnivåer och schabloner beskrivs.",
+      "proposed_flow": "Välj skolform och utbildningskull; bygg programstruktur med källversion och planerade perioder.",
+      "acceptance": "Ändring av en mall skriver inte över redan beslutade individuella avvikelser.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Kurs (GY11) → Program",
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P02",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Ämnen, kurser, nivåer och schabloner",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYJUN",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Register och återanvändbara studieinnehåll finns.",
+      "proposed_flow": "Sök kod och benämning; visa Gy11/Gy25 och håll poäng åtskilda från undervisningstid.",
+      "acceptance": "Samma benämning med olika regelverk kan inte väljas utan att skillnaden framgår.",
+      "app_status": "Delvis",
+      "remaining": "Exempelbenämningar finns; officiella register, koder och versionsuppdateringar saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Ämnen",
+        "Admin → Kurs (GY11) → Kurser",
+        "Admin → GY25 → Studiehantering (BETA)",
+        "Admin → Export/Import → Ämnen",
+        "Admin → Export/Import → Kurser"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P03",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Skapa individuella studieplaner",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR",
+        "GY",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Studieplan kan skapas individuellt eller för flera elever.",
+      "proposed_flow": "Utgå från rätt programmall, kontrollera urval och avvikelser och skapa separata elevplaner.",
+      "acceptance": "En batch med olika kullar får inte fel mall.",
+      "app_status": "Delvis",
+      "remaining": "Visning och terminsutkast finns; komplett utbildningsplan och mallbaserad masskapning saknas.",
+      "legacy_ids": [
+        "SS30"
+      ],
+      "menu_paths": [
+        "Admin → Kurs (GY11) → Studieplaner",
+        "Admin → GY25 → Studiehantering (BETA)",
+        "Admin → Export/Import → Program/Studieplaner"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P04",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Individuella val och programanpassningar",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR"
+      ],
+      "evidence": "R",
+      "schoolsoft": "Markering av anpassat innehåll och borttagna eller ersatta delar aviserades.",
+      "proposed_flow": "Visa obligatoriskt innehåll, individuellt val och avvikelse med orsak och beslutsreferens.",
+      "acceptance": "Borttaget innehåll syns i jämförelsen och försvinner inte ur historiken.",
+      "app_status": "Saknas",
+      "remaining": "Aktuella val, beslutstyper och regeltillämpning måste verifieras per skolform och kull.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P05",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Massändring av nivåer och kurser",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYJUN"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Sidan Nivå-Elever för massuppdatering anges som lanserad.",
+      "proposed_flow": "Filtrera på nivå, period och grupp; granska elevvisa ändringar och avvikelser innan gemensam tillämpning.",
+      "acceptance": "En elev med eget upplägg kan undantas utan att urvalet eller skälet går förlorat.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Kurs (GY11) → Kurs – Elev",
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P06",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Studieplanens grupp- och schemakoppling",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GY",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Studieplaner kopplas till grupper och schema.",
+      "proposed_flow": "Öppna gruppen från planraden; visa ofullständig placering och krockar direkt vid byte.",
+      "acceptance": "Planreferens, gruppmedlemskap och elevschema visar samma placering.",
+      "app_status": "Delvis",
+      "remaining": "Sambandet finns inom adminexemplet; giltighetsperioder och koppling till undervisningsvyerna saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P07",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Planversion, ändringsorsak och fastställande",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Anteckningsfält är belagda; komplett versions- och beslutsflöde är inte styrkt.",
+      "proposed_flow": "Skilj utkast, granskning och gällande plan; visa författare, orsak och exakt före/efter.",
+      "acceptance": "Gammalt utkast kan inte skriva över en nyare gällande plan utan ny granskning.",
+      "app_status": "Delvis",
+      "remaining": "Utkast, jämförelse och konfliktvarning finns; godkännande, fastställande och serverhistorik saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P08",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Introduktionsprogram",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR",
+        "GYJUN"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Särskild IM-dokumentation och programstruktur beskrivs.",
+      "proposed_flow": "Samla mål, längd, studieinnehåll, insatser och uppföljning utan att tvinga in IM i nationell standardplan.",
+      "acceptance": "Nästa utbildningssteg och elevens individuella mål går att hitta.",
+      "app_status": "Delvis",
+      "remaining": "Exempelmål och slutdatum visas; redigering och fullständig IM-plan saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P09",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "SYV-dokumentation",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR"
+      ],
+      "evidence": "R",
+      "schoolsoft": "Eget utrymme för vägledningsdokumentation aviserades.",
+      "proposed_flow": "Dokumentera vägledningsfråga, överenskommelse och nästa steg med tydlig mottagarkrets.",
+      "acceptance": "Intern anteckning publiceras inte som standard till alla planläsare.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P10",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "APL-dokumentation",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR"
+      ],
+      "evidence": "R",
+      "schoolsoft": "Dokumentation av arbetsplatsförlagt lärande aviserades.",
+      "proposed_flow": "Knyt plats, handledare, period och planerat innehåll till elevens plan och följ upp genomförandet.",
+      "acceptance": "Ändrad APL-period synliggör berörda lektioner och ansvariga.",
+      "app_status": "Saknas",
+      "remaining": "Källan belägger dokumentationsutrymme; avtal, handledarportal och närvarosynk är öppna frågor.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P11",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Utbildningskull och blandade regelverk",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "GYMAR",
+        "GYJUN",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Gy11/Gy25 är separerade; blandstudieplan beskrivs uttryckligen för VUX.",
+      "proposed_flow": "Visa elevens regelverk i kontexten och stöd relevanta övergångar med spårbara källversioner.",
+      "acceptance": "Stöd beskrivet för VUX antas inte automatiskt gälla gymnasiets alla planbyten.",
+      "app_status": "Delvis",
+      "remaining": "Gy11/Gy25 etiketter finns; övergångsregler och blandplaner saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → GY25 → Studiehantering (BETA)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "P12",
+      "area": "02 · Program, ämnen och studieplaner",
+      "title": "Programbyte och tillgodoräknat innehåll",
+      "roles": "Skoladministratör; SYV; rektor; elev för publicerad plan",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Program och planer är observerade, men programbytesflödet är inte granskat.",
+      "proposed_flow": "Jämför tidigare och nytt program; markera behållet, ersatt och saknat innehåll före ny plan.",
+      "acceptance": "Programbyte lämnar ursprungliga resultat och beslut spårbara.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "G01",
+      "area": "03 · Grupper och medlemskap",
+      "title": "Undervisningsgrupper och läsår",
+      "roles": "Skoladministratör; schemaläggare; mentor",
+      "sources": [
+        "GROUPS",
+        "O04"
+      ],
+      "evidence": "K + M",
+      "schoolsoft": "Ny gruppsida med läsår, filter och massändringar beskrivs.",
+      "proposed_flow": "Skapa grupp för rätt läsår med ämne, ansvarig och giltighet; håll framtida grupper åtskilda från aktiva.",
+      "acceptance": "Nästa års grupparbete förändrar inte årets lektioner.",
+      "app_status": "Delvis",
+      "remaining": "Gruppregister med kapacitet finns; skapa/avsluta och läsårshantering saknas.",
+      "legacy_ids": [
+        "SS27"
+      ],
+      "menu_paths": [
+        "Startsida → Grupper → Undervisningsgrupper",
+        "Admin → Underhåll → Undervisningsgrupper",
+        "Admin → Underhåll → Grupper",
+        "Admin → Export/Import → Undervisningsgrupper"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "G02",
+      "area": "03 · Grupper och medlemskap",
+      "title": "Elev–grupp och gruppbyte",
+      "roles": "Skoladministratör; schemaläggare; mentor",
+      "sources": [
+        "O04",
+        "GROUPS"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Elev-Grupper samt gruppvis masshantering finns som ingångar.",
+      "proposed_flow": "Välj elev eller flera elever, målgrupp och startdatum; granska konsekvens och tillämpa samlat.",
+      "acceptance": "Oförenligt innehåll eller full grupp stoppar hela ändringen utan delvis flytt.",
+      "app_status": "Delvis",
+      "remaining": "Batchbyte och modellkontroller finns; datum, ångra och varaktig historik saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Elev-Grupper"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "G03",
+      "area": "03 · Grupper och medlemskap",
+      "title": "Fria grupper",
+      "roles": "Skoladministratör; schemaläggare; mentor",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Fria grupper skiljs från undervisningsgrupper.",
+      "proposed_flow": "Skapa grupp för exempelvis arbetslag eller aktivitet; visa syftet och vilken åtkomst medlemskapet ger.",
+      "acceptance": "Fri grupp tillför inte oavsiktligt kurs, poäng eller betygsrätt.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Grupper → Fria grupper",
+        "Admin → Underhåll → Fria grupper",
+        "Admin → Export/Import → Fria grupper"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "G04",
+      "area": "03 · Grupper och medlemskap",
+      "title": "Klass, samläsning och delgrupper",
+      "roles": "Skoladministratör; schemaläggare; mentor",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Klass och undervisningsgrupp förekommer; komplett samläsningslogik är inte verifierad.",
+      "proposed_flow": "Visa elevernas klasser som information och låt undervisningsgrupper gå över klassgränser.",
+      "acceptance": "Samläsande elever dubbelräknas inte i kapacitet, tid eller rapporter.",
+      "app_status": "Delvis",
+      "remaining": "Exempelgrupper omfattar flera klasser; samläsningsplanering och delgruppsregler saknas.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "T01",
+      "area": "04 · Personal, uppdrag och vikarier",
+      "title": "Personalregister och roll",
+      "roles": "Personaladministratör; schemaläggare; rektor",
+      "sources": [
+        "O04",
+        "SUB"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Personal, typ och roll beskrivs.",
+      "proposed_flow": "Hantera person, uppdrag och konto separat med start/slut och ansvarig skola.",
+      "acceptance": "Ett avslutat uppdrag stänger relevant åtkomst men förstör inte tidigare undervisningshistorik.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Grupper → Personal",
+        "Admin → Underhåll → Personal",
+        "Admin → Export/Import → Personal"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "T02",
+      "area": "04 · Personal, uppdrag och vikarier",
+      "title": "Tjänstefördelning",
+      "roles": "Personaladministratör; schemaläggare; rektor",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Tjänstefördelning används som underlag till AI Schema.",
+      "proposed_flow": "Knyt lärare och planerad undervisningstid till uppdrag; visa ofördelade timmar och överbelastning.",
+      "acceptance": "Poäng, elevtid och personalens arbetstid redovisas med rätt enhet.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS42"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "T03",
+      "area": "04 · Personal, uppdrag och vikarier",
+      "title": "Lärarbehörighet och undervisningstid",
+      "roles": "Personaladministratör; schemaläggare; rektor",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Kontroll av undervisningstid och lämplig lärarbehörighet beskrivs.",
+      "proposed_flow": "Visa behörighetsunderlag, giltighet och planerad tid nära varje uppdrag.",
+      "acceptance": "Saknat underlag visas som okänt och får inte felaktigt grönt godkännande.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS48"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "T04",
+      "area": "04 · Personal, uppdrag och vikarier",
+      "title": "Korttidsvikarie och tillfällig åtkomst",
+      "roles": "Personaladministratör; schemaläggare; rektor",
+      "sources": [
+        "SUB"
+      ],
+      "evidence": "K",
+      "schoolsoft": "AcadeMedia beskriver tillfälligt konto med tillgång till ersatt lärares närvaro och planering.",
+      "proposed_flow": "Välj ersatt uppdrag och begränsad period; ge vikarien nödvändiga lektioner och instruktioner.",
+      "acceptance": "Åtkomsten upphör vid sluttiden; övriga elevärenden blir inte tillgängliga.",
+      "app_status": "Saknas",
+      "remaining": "Källans 14-dagarsgräns gäller den beskrivna lösningen 2024; aktuell konfiguration måste verifieras.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "T05",
+      "area": "04 · Personal, uppdrag och vikarier",
+      "title": "Vikariebank, matchning och bokning",
+      "roles": "Personaladministratör; schemaläggare; rektor",
+      "sources": [
+        "SUB"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Tillfällig vikarieåtkomst styrker inte en komplett boknings- eller rekryteringsmodul.",
+      "proposed_flow": "Samla behov, tillgänglighet, kompetens och accepterad bokning; visa olösta pass och reservväg.",
+      "acceptance": "Två beställare kan inte boka samma vikarie samtidigt utan en synlig konflikt.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S01",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Schemaöversikt och resursfilter",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Filter för klass, grupp, personal, sal, utrustning och ämne är dokumenterade.",
+      "proposed_flow": "Växla mellan veckoschema och lista, behåll period och urval och öppna passets resurser.",
+      "acceptance": "Samma urval ger samma pass i lista och kalender.",
+      "app_status": "Delvis",
+      "remaining": "Veckovy och gruppfilter finns; övriga resursfilter och verkliga perioder saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Aktuellt → Schema & Kalender",
+        "Startsida → Schema → Alla scheman",
+        "Admin → Underhåll → Scheman"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S02",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Skapa, ändra och kopiera lektion",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Formulär visar dag, ämne, tid, längd, resurser samt Spara och kopiera.",
+      "proposed_flow": "Ange tid och berörda resurser i ett formulär; granska ändring innan den påverkar publicerad vy.",
+      "acceptance": "Flera lärare och grupper kan anges där verksamheten kräver det.",
+      "app_status": "Delvis",
+      "remaining": "Befintliga pass kan flyttas och få ny sal/lärare; skapa, kopiera, längdredigering och flervalsresurser saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Export/Import → Lektioner"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S03",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Perioder, veckor och undantag",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Lektion har period-, vecko- och undantagsfält.",
+      "proposed_flow": "Visa vilka faktiska datum en regel ger; stöd lov, olika veckor och enstaka undantag.",
+      "acceptance": "En inställd lovlektion blir varken planerad undervisningstid eller oanmäld frånvaro.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Perioder",
+        "Admin → Export/Import → Perioder"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S04",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Salar och utrustning",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Gemensamt resursregister och schemaval finns.",
+      "proposed_flow": "Registrera kapacitet, tillgänglighet och utrustningsbehov och kontrollera dem vid bokning.",
+      "acceptance": "En ledig sal som saknar nödvändig utrustning får inte visas som fullt lämplig.",
+      "app_status": "Delvis",
+      "remaining": "Fasta salar och kapacitet finns; registerredigering, utrustning och tillgänglighet saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Salar & Utrustning",
+        "Admin → Export/Import → Sal"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S05",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Krockar och genomförbarhet",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "AI Schema beskriver genomförbarhetskontroll och dubbelbokningsvarning.",
+      "proposed_flow": "Visa exakt resurs, berörda pass och konfliktens orsak; skilj blockerande fel från önskemål.",
+      "acceptance": "Nya eller förvärrade elev-, lärar-, grupp- och lokalkrockar upptäcks.",
+      "app_status": "Delvis",
+      "remaining": "Kontroller finns för exempeldata; transporttid, datumundantag och större regelverk saknas.",
+      "legacy_ids": [
+        "SS44"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S06",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Regler och önskemål",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Skolans villkor och preferenser ingår i schemaunderlaget.",
+      "proposed_flow": "Ange regel, omfattning och prioritet; förklara hur ett önskemål påverkar möjligheten att skapa schema.",
+      "acceptance": "Motsägande krav upptäcks före beräkning med väg till berörda regler.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS43"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S07",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Automatisk schemaläggning",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "SchoolSoft AI Schema är framtaget tillsammans med Royal Schedule.",
+      "proposed_flow": "Skicka validerat underlag till vald motor, följ körningen och jämför förslag med beslutad basversion.",
+      "acceptance": "Misslyckad beräkning lämnar publicerat schema tillgängligt.",
+      "app_status": "Saknas",
+      "remaining": "Ingen optimeringsmotor eller SchoolSoft/Royal-integration är ansluten i vår app.",
+      "legacy_ids": [
+        "SS41"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S08",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Förslag till schemakorrigering",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Notiser och åtgärdsförslag beskrivs.",
+      "proposed_flow": "Visa lösningsalternativ med påverkan på elever, lärare, lokaler och undervisningstid.",
+      "acceptance": "Användaren ser vad alternativet löser och vilka nya problem det skapar.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS45"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S09",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Lokalutnyttjande",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Optimerad lokalanvändning är en beskriven förmåga.",
+      "proposed_flow": "Visa beläggning per tidsintervall och sal med kapacitet och faktiskt resursbehov.",
+      "acceptance": "Full sal skiljs från ledig sal; överkapacitet döljs inte i ett skolgenomsnitt.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS46"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S10",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Håltimmar och skoldagens längd",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Minimering av håltimmar är ett beskrivet optimeringsmål.",
+      "proposed_flow": "Jämför elev- och lärarscheman med antal glapp, restid och dagens början/slut.",
+      "acceptance": "En förbättring för en grupp får inte presenteras som en förbättring för alla.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS47"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S11",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Planerad och genomförd undervisningstid",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Garanterad undervisningstid finns som skolledaringång.",
+      "proposed_flow": "Visa tilldelad, schemalagd och faktiskt genomförd tid separat med avvikelsens förklaring.",
+      "acceptance": "Inställt och ersatt pass räknas korrekt och poäng används inte som minuter.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS48"
+      ],
+      "menu_paths": [
+        "Skolledare → Närvaro → Garanterad undervisningstid"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S12",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Publicera schema och ändringar",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "AI",
+        "O04"
+      ],
+      "evidence": "L + F",
+      "schoolsoft": "Publicering är ett separat moment efter schemaimport.",
+      "proposed_flow": "Granska version och mottagare; publicera med giltighetstid och visa ändringssammanfattning.",
+      "acceptance": "Uppladdat eller redigerat förslag blir inte automatiskt gällande för eleverna.",
+      "app_status": "Delvis",
+      "remaining": "Ändringar syns direkt i adminsessionen; utkast/publicering och gemensamt elevschema saknas.",
+      "legacy_ids": [
+        "SS49"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S13",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Schemaimport och källsystem",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Tidigare vy beskriver Novaschem .nst och Skola24 Procapita .txt i två steg.",
+      "proposed_flow": "Matcha grupper och resurser, kontrollera differens och publicera först efter avstämning.",
+      "acceptance": "Ofullständig matchning kan inte tyst ta bort befintliga lektioner.",
+      "app_status": "Saknas",
+      "remaining": "Format är tidigare lästa instruktioner; import, återföring och aktuell integration behöver verifieras.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Underhåll → Importera schema",
+        "Admin → Externt schema"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S14",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Schemautskrift och lektionsrapport",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Utskrift per klass, grupp, personal, sal och utrustning observerades.",
+      "proposed_flow": "Återanvänd skärmens urval och visa version och giltighet på utskriften.",
+      "acceptance": "Rapporten märker utkast tydligt och innehåller samma pass som valt schema.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "S15",
+      "area": "05 · Schema, tid och resurser",
+      "title": "Inställt pass, ersättning och schemaavvikelse",
+      "roles": "Schemaläggare; administratör; rektor; lärare för eget schema",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Fullständigt flöde för inställda och ersatta pass är inte verifierat.",
+      "proposed_flow": "Ändra ett tillfälle eller en serie uttryckligen; registrera orsak, ersättning och vilka som ska få besked.",
+      "acceptance": "Ändring av en dag ändrar inte alla framtida veckor utan ett tydligt val.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS49"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N01",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Frånvaroanmälan hel dag eller lektion",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "ABSENCE",
+        "O04"
+      ],
+      "evidence": "K + F",
+      "schoolsoft": "Separata hel- och deldagsflöden är beskrivna och tidigare lästa.",
+      "proposed_flow": "Välj rätt elev, datum och omfattning; visa kvitto och befintliga anmälningar.",
+      "acceptance": "Anmälan skiljs från lärarens faktiska närvaroregistrering.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS51"
+      ],
+      "menu_paths": [
+        "Närvaro → Frånvaroanmälan → Alla elever",
+        "Närvaro → Frånvaroanmälan → Visa anmälningar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N02",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Registrera och rätta lektionsnärvaro",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "SUB",
+        "O04"
+      ],
+      "evidence": "K + M",
+      "schoolsoft": "Närvarorapportering från lärarschema beskrivs.",
+      "proposed_flow": "Öppna aktuellt pass, markera närvaro och orsak och visa kvarvarande orapporterade elever.",
+      "acceptance": "Orapporterat pass räknas inte som full närvaro; rättelse visar tid och ansvarig.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N03",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Ledighetsansökan och beslut",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "ABSENCE"
+      ],
+      "evidence": "K",
+      "schoolsoft": "Vårdnadshavare ansöker via webb eller app; mentor/rektor hanterar enligt lokal rutin.",
+      "proposed_flow": "Visa period, skäl, berörda pass, beslutsansvarig och status. Besked återförs till närvaron.",
+      "acceptance": "Ansökt, beviljad och avslagen ledighet är tydligt olika lägen.",
+      "app_status": "Saknas",
+      "remaining": "Beslutsmandat och tidsgränser måste konfigureras och verksamhetsprövas; Sunnes rutin generaliseras inte.",
+      "legacy_ids": [
+        "SS52"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N04",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Oanmäld frånvaro och kontakt",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "PROFILE",
+        "O04"
+      ],
+      "evidence": "K + M",
+      "schoolsoft": "Oanmäld frånvaro och sms/e-postkontakt beskrivs.",
+      "proposed_flow": "Samla händelser med anmälan, rapportering och kontaktstatus utan att skapa dubbla aviseringar.",
+      "acceptance": "Rätt mottagare används; misslyckad leverans visas som misslyckad.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Närvaro → Elevrapporter → Oanmäld frånvaro"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N05",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Rapporteringsnivå och saknade rapporter",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Rapporteringsnivå är ett skolrapportval.",
+      "proposed_flow": "Visa vilka pass som saknar registrering och vem som ska färdigställa dem.",
+      "acceptance": "Andel rapporterade pass kan granskas mot underliggande pass.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Närvaro → Skolrapporter → Rapporteringsnivå"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N06",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Närvarorapporter för elev",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Vecka, orsak, ämne, procent och dagar finns som rapportval.",
+      "proposed_flow": "Samla rapporterna bakom tydliga vyval med period, underlag och beräkningssätt nära siffran.",
+      "acceptance": "Procent visar nämnare; filterbyte blandar inte dagar och minuter.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS14"
+      ],
+      "menu_paths": [
+        "Närvaro → Elevrapporter → Närvaro – Vecka",
+        "Närvaro → Elevrapporter → Närvaro – Orsak",
+        "Närvaro → Elevrapporter → Närvaro – Ämne",
+        "Närvaro → Elevrapporter → Närvaro – Procent",
+        "Närvaro → Elevrapporter → Närvaro – Dagar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "N07",
+      "area": "06 · Närvaro och ledighet",
+      "title": "Närvarorapporter för skola och undervisning",
+      "roles": "Lärare; mentor; administratör; elev/vårdnadshavare för anmälan",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Skolrapporter omfattar närvaro, dagar, undervisning och skola.",
+      "proposed_flow": "Jämför enheter med samma period och definition och öppna avvikelser på tillåten nivå.",
+      "acceptance": "Saknade rapporter visas så att lågt datainnehåll inte ser ut som god närvaro.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Närvaro → Skolrapporter → Närvaro",
+        "Närvaro → Skolrapporter → Närvaro – Dagar",
+        "Närvaro → Skolrapporter → Undervisning",
+        "Närvaro → Skolrapporter → Närvaro per skola"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B01",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Betygsämnen, betygsgrupper och betygslistor",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Grundskolan har särskilda register och betygsättningslistor.",
+      "proposed_flow": "Förbered rätt elev-, ämnes- och lärarunderlag för perioden; visa saknade kopplingar.",
+      "acceptance": "Elev med annat studieupplägg får rätt betygsunderlag utan dubbla rader.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Betygsämnen",
+        "Admin → Grundskolebetyg → Betygsgrupper",
+        "Admin → Grundskolebetyg → Betygsättningslistor"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B02",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Betygsperiod och betygsbehörighet",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "O04",
+        "GYJUN",
+        "SUB"
+      ],
+      "evidence": "M + R + K",
+      "schoolsoft": "Perioder och betygsadministratör finns; utökad periodhantering aviserades 2025.",
+      "proposed_flow": "Visa skolform, öppnings-/stängningstid, ansvariga och återstående moment innan perioden öppnas.",
+      "acceptance": "Obehörig kan inte sätta betyg; fel period ger begripligt besked.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Betygsperiod",
+        "Admin → Kurs → Betygsperiod"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B03",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Registrera betyg",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "EA",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Betygssättning finns för grundskola och gymnasium.",
+      "proposed_flow": "Välj korrekt lista, elev, kurs/nivå och period; skilj utkast från formellt registrerat betyg.",
+      "acceptance": "Betyg ändras inte genom en vanlig elev- eller gruppändring.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS05",
+        "SS31"
+      ],
+      "menu_paths": [
+        "Startsida → Ny betygsättning → Betyg",
+        "Admin → Grundskolebetyg → Betyg",
+        "Admin → Kurs (GY11) → Betyg",
+        "Admin → Export/Import → Grundskolebetyg"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B04",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Betygsöversikt och betygsatta kurser",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Översikter och betygsatta kurser finns som ingångar.",
+      "proposed_flow": "Visa registrerat betyg, datum, källa och återstående registreringar.",
+      "acceptance": "Saknat betyg, streck och registrerad bedömning förväxlas inte.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Kurs → Betygsatta kurser",
+        "Admin → Grundskolebetyg → Betygsöversikt"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B05",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Betygskataloger",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "EA",
+        "O04",
+        "GYJUN"
+      ],
+      "evidence": "L + M + R",
+      "schoolsoft": "Kataloger finns; ny filtrering och processuppföljning aviserades.",
+      "proposed_flow": "Visa katalogens version, saknade betyg, utskrifts-/signeringsstatus och ansvarig.",
+      "acceptance": "En ofullständig katalog kan inte framstå som färdig enbart för att den skrivits ut.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS32"
+      ],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Betygskataloger",
+        "Admin → Kurs (GY11) → Betygskataloger"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B06",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Betygsändring och rättelse",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "O04",
+        "GYJUN"
+      ],
+      "evidence": "M + R",
+      "schoolsoft": "Betygsändringar är observerat menyval; orsaksfält aviserades.",
+      "proposed_flow": "Öppna originalposten, ange behörigt ändringsslag och orsak och bevara före/efter.",
+      "acceptance": "Originalvärde och beslutsansvarig är spårbara efter rättelsen.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Betygsändringar",
+        "Admin → Kurs (GY11) → Betygsändringar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B07",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Prövningsbetyg och externa prövande",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "GYJUN"
+      ],
+      "evidence": "R",
+      "schoolsoft": "Separat hantering för egna och externa elevers prövning aviserades.",
+      "proposed_flow": "Skapa prövning med avgränsad personroll, innehåll, tillfälle och resultat.",
+      "acceptance": "Extern prövande får inte en vanlig skolplacering eller full elevåtkomst av misstag.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B08",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Betygsdokument, intyg och tidigare skolformer",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "O04",
+        "GYJUN"
+      ],
+      "evidence": "M + R",
+      "schoolsoft": "Betygsdokument och tidigare skolformer finns; nya intyg aviserades.",
+      "proposed_flow": "Välj dokumenttyp och regelversion, kontrollera underlaget och förhandsgranska före utfärdande.",
+      "acceptance": "Rätt dokument används för elevens skolform; tidigare dokument kan fortfarande återsökas.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS32"
+      ],
+      "menu_paths": [
+        "Startsida → Ny betygsättning → Betyg",
+        "Admin → Grundskolebetyg → Betyg",
+        "Admin → Grundskolebetyg → Tidigare skolformer",
+        "Admin → Kurs (GY11) → Betyg",
+        "Admin → Kurs (GY11) → Skapa betygsdokument"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B09",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Examens- och studiebeviskontroll",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "GY",
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Studieplaner och betygsdokument belagda; exakt examensvalidering inte granskad.",
+      "proposed_flow": "Förklara saknat innehåll och tillämplig regel före utfärdande, med mänsklig beslutsprövning.",
+      "acceptance": "Ofullständigt underlag ger inte ett falskt godkänt examensbesked.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B10",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Nationella prov och nationella kursprov",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Provresultat har separata grundskole- och gymnasieingångar.",
+      "proposed_flow": "Registrera tillfälle, delprov och resultat separat från ämnes-/kursbetyg.",
+      "acceptance": "Provresultatet blir inte automatiskt ett slutbetyg.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Kurs → Nationella kursprov",
+        "Admin → Grundskolebetyg → Nationella prov",
+        "Admin → Kurs → Nationella kursprov"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "B11",
+      "area": "07 · Betyg, provresultat och intyg",
+      "title": "Sammantagen bedömning",
+      "roles": "Betygssättande lärare; betygsadministratör; rektor",
+      "sources": [
+        "GR",
+        "O04",
+        "SUMMER"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Ny och äldre sammantagen bedömning förekommer parallellt.",
+      "proposed_flow": "Visa relevant underlag och lärarens bedömning med tydlig publiceringsstatus.",
+      "acceptance": "Systemet kräver inte ett matematiskt medelvärde av uppgiftsresultat som betyg.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Bedömning → Sammantagen bedömning (NY)",
+        "Startsida → Äldre funktioner → Sammantagen bedömning",
+        "Admin → Kurs (GY11) → Sammantagen bedömning",
+        "Skolledare → Kurser → Sammantagen bedömning (GY11)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "R01",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "SCB elev- och betygsrapportering",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA",
+        "GY"
+      ],
+      "evidence": "L",
+      "schoolsoft": "SCB-underlag ingår i rapportutbudet.",
+      "proposed_flow": "Välj rapport, period och mottagarspecifikation; rätta avvikelser och granska fil innan överföring.",
+      "acceptance": "Skapad fil skiljs från inskickad och mottagen rapport.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS33"
+      ],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Rapporter",
+        "Admin → Kurs (GY11) → Rapporter",
+        "Skolledare → Kurser → Rapporter (GY11)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R02",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "CSN elevrapportering",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "CSN har egen administrationsingång.",
+      "proposed_flow": "Visa händelser som ska rapporteras, period, kontrollfel och återkoppling från mottagare.",
+      "acceptance": "Rättad händelse kan följas till nytt underlag utan dubbel rapportering.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS33"
+      ],
+      "menu_paths": [
+        "Admin → Administration → Elevrapportering CSN",
+        "Admin → Grundskolebetyg → Rapporter",
+        "Admin → Kurs (GY11) → Rapporter",
+        "Skolledare → Kurser → Rapporter (GY11)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R03",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "UHR och betygsöverföring",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA",
+        "GY"
+      ],
+      "evidence": "L",
+      "schoolsoft": "UHR-rapporter beskrivs.",
+      "proposed_flow": "Knyt urvalet till fastställda betyg och aktuell filspecifikation; visa kontroll och leveransstatus.",
+      "acceptance": "En lokal ändring efter export flaggar att underlaget har ändrats.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS33"
+      ],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Rapporter",
+        "Admin → Kurs (GY11) → Rapporter",
+        "Skolledare → Kurser → Rapporter (GY11)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R04",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "Gymnasieantagning",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA",
+        "GY",
+        "START"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Koppling och underlag till gymnasieantagning beskrivs.",
+      "proposed_flow": "Visa in- och utgående flöden separat, med personmatchning, kull och felrapport.",
+      "acceptance": "Antagningsfil och betygsexport blandas inte ihop.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS33"
+      ],
+      "menu_paths": [
+        "Admin → Grundskolebetyg → Rapporter",
+        "Admin → Kurs (GY11) → Rapporter",
+        "Skolledare → Kurser → Rapporter (GY11)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R05",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "SCB pedagogisk personal",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "AI"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Rapport om pedagogisk personal beskrivs.",
+      "proposed_flow": "Samla uppdrag, omfattning och behörighetsunderlag för vald mätperiod.",
+      "acceptance": "En person på flera enheter hanteras enligt vald rapportdefinition utan dold dubbelräkning.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS50"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R06",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "Elevfilter, elevrapporter och rapportbeställning",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Rapportverktyg och sparade elevfilter finns som menyval.",
+      "proposed_flow": "Välj syfte och filter, visa urvalets storlek och följ beställning till färdig rapport.",
+      "acceptance": "Det framgår om rapporten bygger på sparat ögonblick eller aktuella uppgifter.",
+      "app_status": "Delvis",
+      "remaining": "Sökfilter och enkel elev-CSV finns; rapportdefinitioner, beställningar och sparade filter saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Administration → Elevfilter",
+        "Admin → Administration → Elevrapporter",
+        "Admin → Administration → Rapportbeställning"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R07",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "Kommunregister och kommunrapporter",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Kommuner och kommunrapporter är separata administrativa ingångar.",
+      "proposed_flow": "Hantera kommunkoder och rapporter med giltighet och ansvarig kontakt.",
+      "acceptance": "Fel kommunkod fångas före export och påverkar inte redan fastställt underlag tyst.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Administration → Kommuner",
+        "Admin → Administration → Kommunrapporter"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R08",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "Skolpliktsbevakning",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Skolpliktsbevakning erbjuds i elevadministrationen.",
+      "proposed_flow": "Samla placering, undantag och uppföljningsansvar i en arbetskö över barn som behöver kontrolleras.",
+      "acceptance": "Saknad placering är en granskningsuppgift, inte automatiskt ett beslut om skolpliktsbrott.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS28"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R09",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "Interkommunal ersättning",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Interkommunal ersättning ingår.",
+      "proposed_flow": "Avstäm elev, placeringsperiod och betalningsunderlag; visa differenser och godkänn rätt period.",
+      "acceptance": "Retroaktivt skolbyte ger spårbar korrigering av underlaget utan dubbel debitering.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS29"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "R10",
+      "area": "08 · Rapporter och huvudmannens administration",
+      "title": "Resursfördelning och ekonomiska underlag",
+      "roles": "Administratör; huvudman; rektor; utsedd rapportansvarig",
+      "sources": [
+        "EA"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Rapporter per enhet, kommun och skolform beskrivs.",
+      "proposed_flow": "Visa fördelningsgrund, period och summering med väg till underliggande poster.",
+      "acceptance": "Summan kan stämmas av mot underlaget och varje inkluderad placering.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS39"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U01",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Lektionsplanering",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "LP",
+        "SUMMER"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Lektionsplanering ingår i pedagogiskt stöd.",
+      "proposed_flow": "Planera mål, material och aktivitet från rätt schemapass.",
+      "acceptance": "Ändrad plan följer rätt lektion och grupp.",
+      "app_status": "Delvis",
+      "remaining": "Lektionsupplägg i undervisningsexemplet finns; full redigering och koppling till adminschema saknas.",
+      "legacy_ids": [
+        "SS01"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U02",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Veckoplanering",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "LP"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Veckoplanering beskrivs.",
+      "proposed_flow": "Samla veckans aktiviteter med målgrupp och tydligt elevperspektiv.",
+      "acceptance": "Elevens vy visar endast publicerat innehåll och rätt vecka.",
+      "app_status": "Delvis",
+      "remaining": "Exempelvecka visas; publicerbar veckoplan saknas.",
+      "legacy_ids": [
+        "SS02"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U03",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Läsårsplanering och arbetsområden",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "LP",
+        "SUMMER"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Övergripande planering över läsåret beskrivs.",
+      "proposed_flow": "Bygg återanvändbara arbetsområden med period, grupp och kopplade lektioner.",
+      "acceptance": "Kopiering lämnar föregående års elevresultat utanför den nya planeringen.",
+      "app_status": "Delvis",
+      "remaining": "Arbetsområden och nya sessionsutkast finns; läsårsstruktur och publicering saknas.",
+      "legacy_ids": [
+        "SS03"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U04",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Uppgifter, tilldelning och inlämning",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "LP",
+        "SUMMER",
+        "O04"
+      ],
+      "evidence": "L + F (äldre vy)",
+      "schoolsoft": "Uppgifter är belagda; äldre resultatvy granskades tidigare.",
+      "proposed_flow": "Skapa instruktion, välj elev/grupp, datum och inlämningssätt och publicera med mottagarkontroll.",
+      "acceptance": "Uppladdat arbete blir inte inlämnat utan tydligt kvitto.",
+      "app_status": "Delvis",
+      "remaining": "Exempeluppgifter och elevtexter finns; riktig tilldelning, uppladdning och inlämning saknas.",
+      "legacy_ids": [
+        "SS05"
+      ],
+      "menu_paths": [
+        "Startsida → Äldre funktioner → Uppgifter"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U05",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Centralt innehåll, kriterier och matriser",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "LP",
+        "ACCESS"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Styrdokument och matriser beskrivs.",
+      "proposed_flow": "Visa relevant skolform och version; knyt innehåll till undervisningen utan onödig obligatorisk matrisifyllnad.",
+      "acceptance": "Fel kriterieversion kan inte blandas in i en annan kulls underlag.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS10"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U06",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Bedömning och återkoppling",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "GR",
+        "SUMMER"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Undervisning, uppgifter och bedömning samlas.",
+      "proposed_flow": "Öppna rätt arbetsversion, dokumentera respons och låt eleven bearbeta arbetet.",
+      "acceptance": "Respons knyts till den version läraren faktiskt har läst.",
+      "app_status": "Delvis",
+      "remaining": "Versionsbunden respons finns för exempeltexter; elevmottagning och komplett bedömningsflöde saknas.",
+      "legacy_ids": [
+        "SS19"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U07",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Ämnesrum och pedagogiskt forum",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Ämnen och Forum finns under pedagogiskt stöd.",
+      "proposed_flow": "Samla gruppens material och samtal med tydlig ansvarig och publiceringskrets.",
+      "acceptance": "Material blir inte öppet för en annan grupp efter ett gruppbyte utan uttrycklig regel.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Pedagogiskt stöd → Ämnen",
+        "Startsida → Pedagogiskt stöd → Forum"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U08",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Resultatrapport per elev och grupp",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F (äldre vy)",
+      "schoolsoft": "Resultatrapporter och kolumnfilter observerades i äldre uppgifter.",
+      "proposed_flow": "Visa resultatens underlag, datum och publiceringsstatus med jämförbara avgränsningar.",
+      "acceptance": "Saknade resultat skiljs från låga resultat; aktuellt verktyg ersätter inte historiken tyst.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Äldre funktioner → Uppgifter"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U09",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Provschema och provbelastning",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Provschema finns som genväg.",
+      "proposed_flow": "Planera provtillfällen mot elevens samlade schema och visa samtidiga bedömningssituationer.",
+      "acceptance": "Två prov för samma elev visas som överlapp även om de tillhör olika grupper.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Pedagogiskt stöd → Provschema (Genväg)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "U10",
+      "area": "09 · Undervisning och pedagogiska resultat",
+      "title": "Äldre planeringar och arkiverade resultat",
+      "roles": "Lärare; elev; mentor; vårdnadshavare för publicerat innehåll",
+      "sources": [
+        "O04",
+        "SUMMER"
+      ],
+      "evidence": "F + L",
+      "schoolsoft": "Äldre verktyg och arkiverade resultat finns; nya pedagogiska stödet ersätter skapandet.",
+      "proposed_flow": "Gör äldre underlag sökbart med tydlig årgång och separat nyproduktion.",
+      "acceptance": "Historiskt material finns kvar när nytt läsår öppnas; gamla länkar får en begriplig ersättningsväg.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Äldre funktioner → Planeringsverktyg",
+        "Startsida → Äldre funktioner → Uppgifter",
+        "Startsida → Äldre funktioner → Sammantagen bedömning"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D01",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Individuell utvecklingsplan, IUP",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP",
+        "ACCESS"
+      ],
+      "evidence": "L",
+      "schoolsoft": "IUP är en dokumenttyp.",
+      "proposed_flow": "Samla mål och planerade insatser i relevant skolform med datum och ansvar.",
+      "acceptance": "IUP och gymnasiets individuella studieplan har olika namn, innehåll och ingångar.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS06"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D02",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Omdömen",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Lämna omdöme och tidigare omdömen förekommer.",
+      "proposed_flow": "Ge ämneslärare en avgränsad elevlista, sista datum och tydligt publiceringsval.",
+      "acceptance": "Omdöme visas inte som formellt betyg.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS07"
+      ],
+      "menu_paths": [
+        "Startsida → Elevdokument → Lämna omdöme"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D03",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Extra anpassningar",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Dokumentation av extra anpassningar ingår.",
+      "proposed_flow": "Beskriv konkret anpassning, ansvar, var den ska användas och när den följs upp.",
+      "acceptance": "Läraren ser tillåten undervisningsinstruktion utan att få hela elevärendet.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS08"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D04",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Särskilt stöd och åtgärdsprogram",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP",
+        "GY"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Särskilt stöd och åtgärdsprogram nämns; komplett ärendekedja är inte verifierad.",
+      "proposed_flow": "Länka utredning, beslut, insats och uppföljning med tydligt ansvar och behörighet.",
+      "acceptance": "Besvarat meddelande kan inte ensamt avsluta en stödprocess.",
+      "app_status": "Delvis",
+      "remaining": "Ett syntetiskt uppföljningsärende finns; utredning, beslut och formella dokumentflöden saknas.",
+      "legacy_ids": [
+        "SS09"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D05",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Frågor, formulär och dokumentmallar",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Mallformulär och rollflikar är tidigare lästa.",
+      "proposed_flow": "Bygg mall med syfte, frågor, ansvar, svarande och synlighet; förhandsgranska som varje berörd roll.",
+      "acceptance": "En intern fråga hamnar inte i elevens eller vårdnadshavarens formulär.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS11"
+      ],
+      "menu_paths": [
+        "Admin → Elevdokument → Frågor",
+        "Admin → Elevdokument → Formulär",
+        "Admin → Elevdokument → Mallar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D06",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Elevdokument, rapport och samlad dokumentation",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Samlad dokumentation och elevdokumentsrapporter finns.",
+      "proposed_flow": "Visa dokumenttyp, status, ansvarig och nästa steg från elevkortet; återanvänd samma dokumentreferens.",
+      "acceptance": "Sökresultat avslöjar inte namn eller innehåll på otillåtna dokument.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS12"
+      ],
+      "menu_paths": [
+        "Admin → Elevdokument → Rapport",
+        "Skolledare → Elevdokument → Elevdokument rapporter"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D07",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Samlad studiesituation och tidiga signaler",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP",
+        "GY"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Samlad vy över närvaro, varningar och anpassningar beskrivs.",
+      "proposed_flow": "Visa begripliga signaler med källa och datum; låt ansvarig bedöma nästa åtgärd.",
+      "acceptance": "Gammalt eller ofullständigt underlag skapar inte ett oförklarat automatiskt riskbetyg.",
+      "app_status": "Delvis",
+      "remaining": "Adminvyn har datakvalitetsuppgifter; pedagogisk studiesituationsanalys saknas.",
+      "legacy_ids": [
+        "SS13"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D08",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Kurs-/ämnesvarningar och lärarkommentarer",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "LP",
+        "GY",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Varningar och lärarkommentarer förekommer.",
+      "proposed_flow": "Ange vilken situation som behöver följas upp, relevant underlag och ansvarig.",
+      "acceptance": "En varning kan följas upp och avslutas med dokumenterad förändring, utan att historiken försvinner.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS15"
+      ],
+      "menu_paths": [
+        "Skolledare → Kurser → Kursvarningar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D09",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Elevavstämning och avstämningsperiod",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "GR",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Gy11/Gy25-avstämningar och perioder finns.",
+      "proposed_flow": "Öppna rätt period, samla berörda ämnen och visa saknade svar och publiceringsstatus.",
+      "acceptance": "Mentorn ser vad som saknas innan rapporten går till samtalet.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS20"
+      ],
+      "menu_paths": [
+        "Startsida → Elevdokument → Rapport Elevavstämning (GY11)",
+        "Startsida → Elevdokument → Rapport Elevavstämning (GY25)",
+        "Startsida → Kurs → Elevavstämning (GY11)",
+        "Startsida → Elevavstämning (GY25) → Elevavstämning (GY25)",
+        "Admin → Administration → Avstämningsperiod",
+        "Admin → Kurs → Avstämningsperiod",
+        "Skolledare → Kurser → Elevavstämning (GY11)",
+        "Skolledare → Kurser → Rapport elevavstämning (GY11)",
+        "Skolledare → Ämnesnivåer → Elevavstämning (GY25)",
+        "Skolledare → Ämnesnivåer → Rapport elevavstämning (GY25)"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D10",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Mentors- och utvecklingssamtal",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "O04",
+        "ACCESS"
+      ],
+      "evidence": "F + L",
+      "schoolsoft": "Mentorssamtal som malltyp och utvecklingssamtalsdokument är belagda.",
+      "proposed_flow": "Samla förberedelse från elev, hem och lärare, dokumentera överenskommelse och nästa uppföljning.",
+      "acceptance": "Mötet blir inte genomfört bara för att en bokning finns.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS21"
+      ],
+      "menu_paths": [
+        "Admin → Elevdokument → Mentorssamtal"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D11",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Dokumentsynlighet, låsdatum och avisering",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "Mallinställningar för rollsynlighet, låsdatum och mottagaravisering observerades.",
+      "proposed_flow": "Visa vem som får läsa och ändra varje del och när svar låses; ge förhandsgranskning före utskick.",
+      "acceptance": "Sent svar ger begripligt besked; intern anteckning följer inte med i aviseringen.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "D12",
+      "area": "10 · Elevstöd, dokument och uppföljning",
+      "title": "Flytta dokument med elev",
+      "roles": "Lärare; mentor; rektor; SYV; elev och vårdnadshavare efter dokumentets regler",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "F",
+      "schoolsoft": "En inställning för att flytta dokument med elev observerades.",
+      "proposed_flow": "Granska dokumenturval, mottagande verksamhet och tillåten åtkomst före överföring.",
+      "acceptance": "Skolbyte medför inte att samtliga dokument blir synliga för alla på mottagande skola.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K01",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Meddelanden mellan skola och hem",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "LP",
+        "O04"
+      ],
+      "evidence": "L + M",
+      "schoolsoft": "Meddelanden och hemkommunikation ingår.",
+      "proposed_flow": "Välj mottagare i aktuell elev-/gruppkontext; visa tråd, ansvar och leveransstatus.",
+      "acceptance": "Ett svar går till avsedd mottagare och skickas inte till en hel klass av misstag.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS16"
+      ],
+      "menu_paths": [
+        "Startsida → Aktuellt → Meddelanden"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K02",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Riktade mejl och sms",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "EA",
+        "SUB"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Riktade mejl samt särskild sms-behörighet beskrivs.",
+      "proposed_flow": "Förhandsgranska antal och faktiska mottagare; ange kanal och följ upp felaktiga adresser.",
+      "acceptance": "Utskick respekterar aktuella kontaktrelationer och skyddade uppgifter.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS37"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K03",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Skolinformation och nyheter",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Skolinfo, nyheter och publicerade nyheter finns.",
+      "proposed_flow": "Skriv en gång, välj målgrupp och publiceringstid och visa vad som är aktuellt respektive avslutat.",
+      "acceptance": "Eleven ser publicerade nyheter för rätt skola utan interna personalutkast.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Aktuellt → Skolinfo",
+        "Startsida → Aktuellt → Nyheter",
+        "Admin → Information → Publicerade nyheter",
+        "Admin → Information → Skolinformation"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K04",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Verksamhetslogg",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "LP"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Logg med bilder, länkar och bilagor beskrivs.",
+      "proposed_flow": "Publicera löpande information till tydlig målgrupp med datum och ansvarig.",
+      "acceptance": "En bildbilaga är tillgänglig och följer samma åtkomst som inlägget.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS17"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K05",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Skolkalender och personlig kalender",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "O04",
+        "ACCESS"
+      ],
+      "evidence": "M + L",
+      "schoolsoft": "Schema & Kalender och Skolkalender finns.",
+      "proposed_flow": "Visa lektioner, aktiviteter och viktiga datum tillsammans med ursprung och målgrupp.",
+      "acceptance": "Kalenderaktivitet räknas inte som undervisning eller närvaro utan sådan koppling.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS23"
+      ],
+      "menu_paths": [
+        "Startsida → Aktuellt → Schema & Kalender",
+        "Admin → Information → Skolkalender"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K06",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Bokningar och samtalstider",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "O04",
+        "LOCAL"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Bokningsfunktion och lokalt beskrivet bekräftelsesteg finns.",
+      "proposed_flow": "Erbjud lediga tider, visa bokningsstatus och en tydlig väg för ombokning och avbokning.",
+      "acceptance": "Två vårdnadshavare kan förstå vilket barn och vilken tid bokningen gäller.",
+      "app_status": "Saknas",
+      "remaining": "Lidingös beskrivna begränsning efter bekräftelse behöver kontrolleras i aktuell version.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Aktuellt → Bokningar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K07",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Filer, länkar, egna filer och forum",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "O04",
+        "LOCAL"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Filer & länkar, Mina filer och Forum finns.",
+      "proposed_flow": "Skilj personliga filer från publicerat material; visa mappens målgrupp, ägare och giltighet.",
+      "acceptance": "Byte av filversion lämnar publicerade hänvisningar begripliga.",
+      "app_status": "Delvis",
+      "remaining": "Inbyggt exempelmaterial finns; filbibliotek, uppladdning och forum saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Startsida → Aktuellt → Mina filer",
+        "Startsida → Filer & länkar → Alla filer & länkar",
+        "Admin → Information → Forum",
+        "Admin → Information → Filer & länkar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K08",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Byta barn, skola och roll",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "ABSENCE",
+        "O04"
+      ],
+      "evidence": "K + M",
+      "schoolsoft": "Barnval samt skol- och rollkontext är dokumenterade.",
+      "proposed_flow": "Låt aktuell person, skola och roll vara synliga före varje åtgärd och bevara separata arbetsutkast.",
+      "acceptance": "Efter barnbyte kan en gammal frånvaroansökan inte skickas för fel barn.",
+      "app_status": "Delvis",
+      "remaining": "Navigation växlar demonstrationskontext; verkligt barn-, skol- och rollbyte saknas.",
+      "legacy_ids": [
+        "SS53"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "K09",
+      "area": "11 · Kommunikation, information och bokning",
+      "title": "Matsedel",
+      "roles": "Personal; elev; vårdnadshavare; administratör för publicering",
+      "sources": [
+        "LP"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Matsedel är en tillgänglig informationsfunktion.",
+      "proposed_flow": "Visa dagens och veckans måltider med datum och ansvarig informationskälla.",
+      "acceptance": "Gammal meny märks som inaktuell och specialkostuppgifter exponeras inte som allmän information.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS18"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "Q01",
+      "area": "12 · Enkäter och kvalitetsuppföljning",
+      "title": "Enkätfrågor och frågebibliotek",
+      "roles": "Administratör; skolledare; lärare; utsedda svarande",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Frågor är en egen enkätfunktion.",
+      "proposed_flow": "Skapa återanvändbara frågor med begriplig svarsskala och tillgängliga fält.",
+      "acceptance": "Skalans ändpunkter är tydliga och obligatoriska frågor markeras före inskick.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Enkäter → Frågor"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "Q02",
+      "area": "12 · Enkäter och kvalitetsuppföljning",
+      "title": "Enkätformulär",
+      "roles": "Administratör; skolledare; lärare; utsedda svarande",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Formulär är skilt från utskick av enkät.",
+      "proposed_flow": "Samla frågor och instruktioner; förhandsgranska utan att aktivera ett utskick.",
+      "acceptance": "Redigering av mall ändrar inte betydelsen i redan mottagna svar.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Enkäter → Formulär"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "Q03",
+      "area": "12 · Enkäter och kvalitetsuppföljning",
+      "title": "Enkäter och svarshantering",
+      "roles": "Administratör; skolledare; lärare; utsedda svarande",
+      "sources": [
+        "O04",
+        "ACCESS"
+      ],
+      "evidence": "M + L",
+      "schoolsoft": "Enkäter finns för administration och skolledare.",
+      "proposed_flow": "Välj målgrupp, svarstid och hantering av identifierbarhet; visa inlämnat svar med kvitto.",
+      "acceptance": "Systemet kallar inte en enkät anonym om administratören kan identifiera svarande.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS22"
+      ],
+      "menu_paths": [
+        "Admin → Enkäter → Enkäter",
+        "Skolledare → Elevdokument → Enkäter"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "Q04",
+      "area": "12 · Enkäter och kvalitetsuppföljning",
+      "title": "Kursutvärderingar",
+      "roles": "Administratör; skolledare; lärare; utsedda svarande",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Kursutvärdering är ett särskilt menyval.",
+      "proposed_flow": "Knyt utvärderingen till rätt undervisningsgrupp och period och förklara användningen av svaren.",
+      "acceptance": "Elever som bytt grupp hanteras enligt dokumenterat urval, utan felaktig dubbeltilldelning.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Enkäter → Kursutvärderingar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "Q05",
+      "area": "12 · Enkäter och kvalitetsuppföljning",
+      "title": "Enkätrapporter",
+      "roles": "Administratör; skolledare; lärare; utsedda svarande",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Rapportval finns i enkätmodulen.",
+      "proposed_flow": "Visa svarsfrekvens, urval och jämförbar period med hantering av små grupper.",
+      "acceptance": "En sammanställning gör inte ett utlovat anonymt enskilt svar identifierbart.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Enkäter → Rapport"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I01",
+      "area": "13 · System, behörighet och integration",
+      "title": "Behörighetsgrupper och systembehörighet",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04",
+        "SUB"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Separata behörighetsgrupper och systembehörighet är dokumenterade.",
+      "proposed_flow": "Knyt åtkomst till uppdrag, verksamhet och giltighet; visa effektiv rättighet före tilldelning.",
+      "acceptance": "Administrera konto innebär inte automatiskt rätt att läsa elevstöd eller sätta betyg.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Systembehörighet",
+        "Admin → Behörighetsgrupper"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I02",
+      "area": "13 · System, behörighet och integration",
+      "title": "Import och export av grundregister",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Egna import/exportval finns för elever, grupper, lektioner, ämnen, salar, perioder och personal.",
+      "proposed_flow": "Återanvänd ett arbetsflöde men visa objektspecifik matchning, beroenden och radfel.",
+      "acceptance": "En gruppimport kan inte skapa medlemskap för okänd elev utan ett synligt fel.",
+      "app_status": "Delvis",
+      "remaining": "Enkel elev-CSV finns; samtliga registerimporter och fullständiga exporter saknas.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Export/Import → Fria grupper",
+        "Admin → Export/Import → Undervisningsgrupper",
+        "Admin → Export/Import → Lektioner",
+        "Admin → Export/Import → Ämnen",
+        "Admin → Export/Import → Sal",
+        "Admin → Export/Import → Perioder",
+        "Admin → Export/Import → Personal",
+        "Admin → Export/Import → Elever",
+        "Admin → Export/Import → Elever Admin",
+        "Admin → Export/Import → Fakturamottagare",
+        "Admin → Export/Import → Korthantering",
+        "Admin → Export/Import → Grundskolebetyg",
+        "Admin → Export/Import → Program/Studieplaner",
+        "Admin → Export/Import → Kurser"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I03",
+      "area": "13 · System, behörighet och integration",
+      "title": "Microsoft Teams och grupprum",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "TEAMS"
+      ],
+      "evidence": "K",
+      "schoolsoft": "Beställningsbar gruppkoppling, återföring och läsårshantering beskrivs.",
+      "proposed_flow": "Visa vilka grupper som synkas, riktning, senaste resultat och följd av arkivering.",
+      "acceptance": "Arkivering av grupprum sker först efter att följderna för synk och material har granskats.",
+      "app_status": "Saknas",
+      "remaining": "Eventful beskriver integrationen; API, licens och faktisk återföring behöver verifieras i vald miljö.",
+      "legacy_ids": [
+        "SS04"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I04",
+      "area": "13 · System, behörighet och integration",
+      "title": "Google-koppling och Classroom",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "GR"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Integration till Google Classroom och Microsofts lärmiljö nämns; fullständigt flöde är inte styrkt.",
+      "proposed_flow": "Visa systemansvar för konto, grupp, uppgift och bedömning samt fel och manuell reservväg.",
+      "acceptance": "En synkad länk presenteras inte som importerad uppgift eller mottagen inlämning.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS04"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I05",
+      "area": "13 · System, behörighet och integration",
+      "title": "Provisionering till digitala nationella prov",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "EA",
+        "SUMMER"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Överföring av elev- och personaluppgifter beskrivs av leverantören.",
+      "proposed_flow": "Separera beredskap, validering, överföring och mottagarkvitto; visa aktuellt stöd innan aktivering.",
+      "acceptance": "Korrekt person- och grupptillhörighet verifieras; provisionering innebär inte att ett prov är genomfört.",
+      "app_status": "Saknas",
+      "remaining": "Aktuell drift hos mottagaren och SchoolSofts aktivering är inte verifierade; äldre redo-besked räcker inte.",
+      "legacy_ids": [
+        "SS40"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I06",
+      "area": "13 · System, behörighet och integration",
+      "title": "Skol-, system- och användarinställningar",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Skola, Systeminställningar och Användarinställningar finns.",
+      "proposed_flow": "Skilj verksamhetsregler från personliga visningsval; förklara omfattning före sparande.",
+      "acceptance": "En användares sortering ändrar inte inställningen för hela skolan.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Alternativ → Skola",
+        "Admin → Alternativ → Systeminställningar",
+        "Admin → Alternativ → Användarinställningar"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I07",
+      "area": "13 · System, behörighet och integration",
+      "title": "Fälttyper, färgmarkering och bilder",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04",
+        "LOCAL"
+      ],
+      "evidence": "M + K",
+      "schoolsoft": "Fälttyper, färgmarkering och bilduppladdning finns.",
+      "proposed_flow": "Hantera egna fält med definition, ansvar och synlighet; komplettera färg med text.",
+      "acceptance": "Ny fälttyp ger begripliga etiketter och kan inte exponera skyddad information i export.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Information → Färgmarkering",
+        "Admin → Alternativ → Fälttyper",
+        "Admin → Alternativ → Bilduppladdning"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I08",
+      "area": "13 · System, behörighet och integration",
+      "title": "Dokumentmallar, systemfiler och filuppladdning",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Dokumentmallar och systemets filuppladdning är särskilda ingångar.",
+      "proposed_flow": "Visa mallens syfte, version, tillåtna fält och förhandsgranskning innan den aktiveras.",
+      "acceptance": "En ny mall påverkar inte redan utfärdade dokument.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Administration → Dokumentmallar",
+        "Admin → System → Filuppladdning"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I09",
+      "area": "13 · System, behörighet och integration",
+      "title": "Fakturamottagare och korthantering",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "M",
+      "schoolsoft": "Import/exportmenyerna innehåller dessa namn; innehållet är inte granskat.",
+      "proposed_flow": "Definiera först verksamhetens objekt och källa; använd sedan granskat importflöde med ansvar och fel.",
+      "acceptance": "En fakturamottagare får inte antas vara vårdnadshavare, och ett kort blir inte en identitet utan verifierad koppling.",
+      "app_status": "Saknas",
+      "remaining": "Menynamn är enda belägget. Exakta fält, korttyp, integration och användningsfall är öppna.",
+      "legacy_ids": [],
+      "menu_paths": [
+        "Admin → Export/Import → Fakturamottagare",
+        "Admin → Export/Import → Korthantering"
+      ],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I10",
+      "area": "13 · System, behörighet och integration",
+      "title": "Inloggning, session och kontoåterställning",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "PROFILE",
+        "O04"
+      ],
+      "evidence": "K + M",
+      "schoolsoft": "Lokala säkra inloggningsmetoder och utloggningstid beskrivs.",
+      "proposed_flow": "Visa valt konto och sammanhang, ge begriplig felåterhämtning och varna före sessionens slut.",
+      "acceptance": "Osparat arbete kan återtas enligt vald regel efter ny inloggning utan att data läcker mellan konton.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I11",
+      "area": "13 · System, behörighet och integration",
+      "title": "Hjälp, manualer och återkoppling till support",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "EDU",
+        "GYJUN",
+        "LOCAL"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Digital hjälp och feedback på nya sidor beskrivs.",
+      "proposed_flow": "Öppna hjälp för den aktuella uppgiften och versionen; bifoga endast godkänd teknisk kontext vid felanmälan.",
+      "acceptance": "Hjälpen förklarar nästa handling och skickar inte elevuppgifter automatiskt.",
+      "app_status": "Delvis",
+      "remaining": "Allmän demonstrationshjälp finns; funktionsanpassad hjälp och supportflöde saknas.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I12",
+      "area": "13 · System, behörighet och integration",
+      "title": "API, synkfel och informationsansvar",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "O04",
+        "TEAMS"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Vissa kopplingar är belagda; komplett API och SS12000-täckning är inte styrkta.",
+      "proposed_flow": "Bestäm källa per objekt och visa senaste synk, avvikelser och säkra omförsök.",
+      "acceptance": "Dubbel leverans skapar inte dubbla elever, grupper eller resultat.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "I13",
+      "area": "13 · System, behörighet och integration",
+      "title": "Ändringslogg, åtkomstlogg och återställning",
+      "roles": "Systemadministratör; integrationsansvarig; verksamhetsägare",
+      "sources": [
+        "PROTECT",
+        "O04"
+      ],
+      "evidence": "L för skyddad modul; Ö för generell täckning",
+      "schoolsoft": "Aktivitetslogg för skyddade uppgifter är beskriven; generell historik är inte verifierad.",
+      "proposed_flow": "Visa vem, vad och när samt tillåten rättelse; håll åtkomstgranskning skild från vanlig ändringshistorik.",
+      "acceptance": "En borttagen post eller nekad åtgärd kan följas upp av rätt ansvarig.",
+      "app_status": "Delvis",
+      "remaining": "Sessionshistorik för några adminändringar finns; serverlogg, åtkomstlogg och återställning saknas.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "L01",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Läsårsarkivering och uppflyttning",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "START",
+        "GROUPS",
+        "O04"
+      ],
+      "evidence": "L + K + M",
+      "schoolsoft": "Arkivering, uppflyttning och läsårsgrupper beskrivs i olika generationer.",
+      "proposed_flow": "Förbered nästa år, kontrollera elev-/gruppflyttar och bevara läsbara historiska vyer före aktivering.",
+      "acceptance": "Nästa läsår kan förberedas utan att pågående undervisning förändras.",
+      "app_status": "Saknas",
+      "remaining": "2024 års rensningsguide får inte användas som aktuell rutin utan kontroll mot 2025 års läsårsgrupper.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "L02",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Välkomstbrev och introduktion",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "START"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Mallar för välkomstbrev och introduktion av nya användare beskrivs.",
+      "proposed_flow": "Samla aktiveringsstatus, rätt kontaktkanal och enkel rollanpassad startguide.",
+      "acceptance": "Den nya användaren ser vilka steg som återstår; återkommande användare får inte dubbla konton.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "L03",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Ändrad vårdnadsrelation och myndighetsdag",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Fullständigt övergångsflöde är inte verifierat.",
+      "proposed_flow": "Pröva och uppdatera relationens åtkomst och aviseringar vid giltighetsändring; bevara beslutshistorik.",
+      "acceptance": "Gamla mottagarurval ger inte fortsatt otillåten insyn efter ändrad relation.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Nästa kärna"
+    },
+    {
+      "id": "M01",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Elevens mobilvy",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "APPS",
+        "APPNEW"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Separat elevapp för iOS/Android och mörkt läge beskrivs.",
+      "proposed_flow": "Prioritera nästa lektion, uppgifter, återkoppling och aktuella besked med tydliga fördjupningsvägar.",
+      "acceptance": "Samma uppgiftsstatus visas i mobil och webb.",
+      "app_status": "Delvis",
+      "remaining": "Responsiv personal/adminapp finns; elevroll och elevens arbetsflöden saknas.",
+      "legacy_ids": [
+        "SS54"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "M02",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Vårdnadshavarens mobilvy",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "APPS",
+        "ABSENCE"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Vårdnadshavarapp med barnval och frånvaroflöden beskrivs.",
+      "proposed_flow": "Visa valt barn före anmälan, bokning och meddelande; samla kvitton och besked.",
+      "acceptance": "En åtgärd kan inte utföras för fel barn efter kontextbyte.",
+      "app_status": "Saknas",
+      "remaining": "Fält, rättigheter, fel och fullständigt SchoolSoft-flöde behöver verifieras i Testskolan.",
+      "legacy_ids": [
+        "SS55"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "M03",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Personalens mobilvy",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "ACCESS",
+        "SUB"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Personalapp och närvaroåtkomst för vikarie beskrivs.",
+      "proposed_flow": "Gör elevsökning, närvaro och dagens ändringar snabba; behåll full granskning för större ändringar.",
+      "acceptance": "Telefonen ger samma blockerande kontroller som datorn.",
+      "app_status": "Delvis",
+      "remaining": "Lokal mobilanpassad adminyta finns; faktisk mobilprövning, närvaro och säker inloggning saknas.",
+      "legacy_ids": [
+        "SS56"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "M04",
+      "area": "14 · Läsårsbyte och vardag på telefon",
+      "title": "Tillgänglighet och begriplighet",
+      "roles": "Administratör; alla användarroller för sin arbetsyta",
+      "sources": [
+        "ACCESS"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Leverantören redovisar brister bland annat i fokus, felmeddelanden och mobilanpassning.",
+      "proposed_flow": "Använd begripliga etiketter, synligt fokus, läsbara statusar och återhämtning som behåller formulärdata.",
+      "acceptance": "Kärnuppgifter går med tangentbord, skärmläsare och förstoring, utan att färg ensam förmedlar status.",
+      "app_status": "Delvis",
+      "remaining": "Grundkomponenter och responsiv CSS finns; full användar- och tillgänglighetsprövning återstår.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    },
+    {
+      "id": "X01",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "Fritidstider och lovperioder",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "LP",
+        "LOCAL"
+      ],
+      "evidence": "L + K",
+      "schoolsoft": "Hämtning/lämning och särskilda lovperioder beskrivs.",
+      "proposed_flow": "Ange ordinarie tider och lovbehov för valt barn; visa giltiga datum och bemanningsunderlag.",
+      "acceptance": "Ändring av lovvecka skriver inte över ordinarie veckomönster.",
+      "app_status": "Omfattningsval",
+      "remaining": "Fritids behöver ett uttryckligt beslut inom grundskoleleveransen; inte byggt.",
+      "legacy_ids": [
+        "SS57"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X02",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "Barnomsorgsinkomst, avgift och fakturaunderlag",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "EA"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Inkomst och avgiftsunderlag ingår i elevadministrationens bredare erbjudande.",
+      "proposed_flow": "Samla inkomstens giltighet, hushåll och avgiftsgrund; granska beräkning och korrigering.",
+      "acceptance": "Retroaktiv inkomständring ger kontrollerbart underlag med period.",
+      "app_status": "Utanför kärnan",
+      "remaining": "Inte byggt; förskola och ekonomisystem ligger utanför den första kärnan.",
+      "legacy_ids": [
+        "SS36",
+        "SS38"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X03",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "In- och utcheckning på fritids",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "LP"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Personal kan checka in och ut barn.",
+      "proposed_flow": "Visa faktisk närvaro, planerad hämtning och ansvarig hämtare i dagens lista.",
+      "acceptance": "Planerad hämtning markeras inte som faktiskt utcheckad.",
+      "app_status": "Omfattningsval",
+      "remaining": "Inte byggt; pröva behovet med fritidsverksamheten.",
+      "legacy_ids": [
+        "SS58"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X04",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "Ansökningsmoduler för vux, kulturskola och folkhögskola",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "ACCESS"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Skolformsanpassade ansökningsmoduler nämns.",
+      "proposed_flow": "Använd gemensam ansökningsgrund med skolformens egna erbjudanden, fält och antagningsregler.",
+      "acceptance": "En skolforms villkor läcker inte in i en annan.",
+      "app_status": "Utanför kärnan",
+      "remaining": "Registrerat för att inte glömmas; första målgruppen är grundskola och gymnasium.",
+      "legacy_ids": [
+        "SS59"
+      ],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X05",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "VUX25-paket, blandplaner och delnivåer",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "GYJUN"
+      ],
+      "evidence": "L",
+      "schoolsoft": "VUX25-paket, blandplaner och delnivåer anges som lanserade.",
+      "proposed_flow": "Modellera vuxenutbildningens paket och individuella omfattning i ett separat regelverk.",
+      "acceptance": "VUX-specifikt upplägg används inte som gymnasiestandard.",
+      "app_status": "Utanför kärnan",
+      "remaining": "Inte byggt; får inte räknas som saknad kärnfunktion för gymnasiet.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X06",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "Tyra och förskolans pedagogiska arbete",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "PRESCHOOL"
+      ],
+      "evidence": "L",
+      "schoolsoft": "Tyra beskrivs som integrerad förskolelärplattform.",
+      "proposed_flow": "Bestäm vilka grunduppgifter som kommer från administrationen och var pedagogerna arbetar.",
+      "acceptance": "Gränssnittet lovar inte full förskolefunktion när endast en koppling finns.",
+      "app_status": "Utanför kärnan",
+      "remaining": "Inte byggt; separat produkt-/integrationsbeslut.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X07",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "Låst provläge och säker provgenomföring",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Provschema och resultat styrker inte ett låst provsystem.",
+      "proposed_flow": "Beskriv separat provstart, tillåtet stöd, övervakning, avbrott och återhämtning per enhetstyp.",
+      "acceptance": "En vanlig webbsida kan inte märkas säker provmiljö utan verifierat skydd.",
+      "app_status": "Omfattningsval",
+      "remaining": "Egen provplattform fanns i tidigare målbild; stöd i SchoolSoft är inte styrkt här.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Omfattningsbeslut"
+    },
+    {
+      "id": "X08",
+      "area": "15 · Närliggande produkter och uttryckliga omfattningsval",
+      "title": "Fullständig ärendehantering och arkiv",
+      "roles": "Verksamhetsägare; administratör i respektive skolform",
+      "sources": [
+        "O04"
+      ],
+      "evidence": "Ö",
+      "schoolsoft": "Dokumentmallar styrker inte komplett utredning, beslut eller arkivering.",
+      "proposed_flow": "Knyt process, underlag, ansvar, beslut, kommunicering och uppföljning till prövade informationsregler.",
+      "acceptance": "Arkiverat, avslutat och raderat är olika tillstånd.",
+      "app_status": "Delvis",
+      "remaining": "Ett sessionsbaserat uppföljningsärende finns; fullständiga processer, arkiv och regelpaket saknas.",
+      "legacy_ids": [],
+      "menu_paths": [],
+      "schoolsoft_flow_verified": false,
+      "acceptance_result": "Ej genomfört som användarprov",
+      "priority": "Efter beroenden"
+    }
+  ],
+  "coverage": {
+    "legacy": [
+      {
+        "id": "SS01",
+        "title": "Lektionsplanering",
+        "mapped_to": [
+          "U01"
+        ]
+      },
+      {
+        "id": "SS02",
+        "title": "Veckoplanering",
+        "mapped_to": [
+          "U02"
+        ]
+      },
+      {
+        "id": "SS03",
+        "title": "Läsårsplanering",
+        "mapped_to": [
+          "U03"
+        ]
+      },
+      {
+        "id": "SS04",
+        "title": "Planeringskopplingar till Google och Teams",
+        "mapped_to": [
+          "I03",
+          "I04"
+        ]
+      },
+      {
+        "id": "SS05",
+        "title": "Uppgifter och betyg",
+        "mapped_to": [
+          "U04",
+          "B03"
+        ]
+      },
+      {
+        "id": "SS06",
+        "title": "IUP",
+        "mapped_to": [
+          "D01"
+        ]
+      },
+      {
+        "id": "SS07",
+        "title": "Omdömen",
+        "mapped_to": [
+          "D02"
+        ]
+      },
+      {
+        "id": "SS08",
+        "title": "Dokumentation av extra anpassningar",
+        "mapped_to": [
+          "D03"
+        ]
+      },
+      {
+        "id": "SS09",
+        "title": "Stöd för dokumentation av särskilt stöd",
+        "mapped_to": [
+          "D04"
+        ]
+      },
+      {
+        "id": "SS10",
+        "title": "Kunskapsmatriser och centralt innehåll",
+        "mapped_to": [
+          "U05"
+        ]
+      },
+      {
+        "id": "SS11",
+        "title": "Mallar för uppföljning",
+        "mapped_to": [
+          "D05"
+        ]
+      },
+      {
+        "id": "SS12",
+        "title": "Samlad elevdokumentation",
+        "mapped_to": [
+          "D06"
+        ]
+      },
+      {
+        "id": "SS13",
+        "title": "Översikt över elever som riskerar att inte nå målen",
+        "mapped_to": [
+          "D07"
+        ]
+      },
+      {
+        "id": "SS14",
+        "title": "Närvaro i studiesituationsöversikten",
+        "mapped_to": [
+          "N06"
+        ]
+      },
+      {
+        "id": "SS15",
+        "title": "Kursvarningar och lärarkommentarer",
+        "mapped_to": [
+          "D08"
+        ]
+      },
+      {
+        "id": "SS16",
+        "title": "Kommunikation mellan skola och hem",
+        "mapped_to": [
+          "K01"
+        ]
+      },
+      {
+        "id": "SS17",
+        "title": "Verksamhetslogg med bilder, länkar och bilagor",
+        "mapped_to": [
+          "K04"
+        ]
+      },
+      {
+        "id": "SS18",
+        "title": "Matsedel",
+        "mapped_to": [
+          "K09"
+        ]
+      },
+      {
+        "id": "SS19",
+        "title": "Uppgifter, bedömning och betyg i ett sammanhängande flöde",
+        "mapped_to": [
+          "U06"
+        ]
+      },
+      {
+        "id": "SS20",
+        "title": "Elevavstämningar och uppföljning mot kriterier",
+        "mapped_to": [
+          "D09"
+        ]
+      },
+      {
+        "id": "SS21",
+        "title": "Dokument för utvecklingssamtal",
+        "mapped_to": [
+          "D10"
+        ]
+      },
+      {
+        "id": "SS22",
+        "title": "Enkäter",
+        "mapped_to": [
+          "Q03"
+        ]
+      },
+      {
+        "id": "SS23",
+        "title": "Kalender",
+        "mapped_to": [
+          "K05"
+        ]
+      },
+      {
+        "id": "SS24",
+        "title": "Elevregister",
+        "mapped_to": [
+          "E01"
+        ]
+      },
+      {
+        "id": "SS25",
+        "title": "Uppgifter från folkbokföring",
+        "mapped_to": [
+          "E05"
+        ]
+      },
+      {
+        "id": "SS26",
+        "title": "Import från kö eller andra källor",
+        "mapped_to": [
+          "E06"
+        ]
+      },
+      {
+        "id": "SS27",
+        "title": "Placering i skola, klass och grupp",
+        "mapped_to": [
+          "E07",
+          "G01"
+        ]
+      },
+      {
+        "id": "SS28",
+        "title": "Skolpliktsbevakning",
+        "mapped_to": [
+          "R08"
+        ]
+      },
+      {
+        "id": "SS29",
+        "title": "Interkommunal ersättning",
+        "mapped_to": [
+          "R09"
+        ]
+      },
+      {
+        "id": "SS30",
+        "title": "Studieplaner",
+        "mapped_to": [
+          "P03"
+        ]
+      },
+      {
+        "id": "SS31",
+        "title": "Betygssättning",
+        "mapped_to": [
+          "B03"
+        ]
+      },
+      {
+        "id": "SS32",
+        "title": "Betygskataloger och betygsutskrifter",
+        "mapped_to": [
+          "B05",
+          "B08"
+        ]
+      },
+      {
+        "id": "SS33",
+        "title": "Rapporter till SCB, UHR, CSN och gymnasieantagning",
+        "mapped_to": [
+          "R01",
+          "R02",
+          "R03",
+          "R04"
+        ]
+      },
+      {
+        "id": "SS34",
+        "title": "Kö och ansökan om plats",
+        "mapped_to": [
+          "E09"
+        ]
+      },
+      {
+        "id": "SS35",
+        "title": "Uppsägning av plats",
+        "mapped_to": [
+          "E11"
+        ]
+      },
+      {
+        "id": "SS36",
+        "title": "Val, inkomster och startdatum i e-tjänster",
+        "mapped_to": [
+          "E10",
+          "X02"
+        ]
+      },
+      {
+        "id": "SS37",
+        "title": "Riktade mejlutskick",
+        "mapped_to": [
+          "K02"
+        ]
+      },
+      {
+        "id": "SS38",
+        "title": "Beräkning av barnomsorgsavgift och fakturaunderlag",
+        "mapped_to": [
+          "X02"
+        ]
+      },
+      {
+        "id": "SS39",
+        "title": "Rapporter för resursfördelning",
+        "mapped_to": [
+          "R10"
+        ]
+      },
+      {
+        "id": "SS40",
+        "title": "Överföring av elever och personal till provtjänst, enligt leverantören",
+        "mapped_to": [
+          "I05"
+        ]
+      },
+      {
+        "id": "SS41",
+        "title": "Automatisk schemaläggning tillsammans med Royal Schedule",
+        "mapped_to": [
+          "S07"
+        ]
+      },
+      {
+        "id": "SS42",
+        "title": "Underlag från SchoolSofts tjänstefördelning",
+        "mapped_to": [
+          "T02"
+        ]
+      },
+      {
+        "id": "SS43",
+        "title": "Inställning av regler och önskemål",
+        "mapped_to": [
+          "S06"
+        ]
+      },
+      {
+        "id": "SS44",
+        "title": "Kontroll av genomförbarhet och dubbelbokningar",
+        "mapped_to": [
+          "S05"
+        ]
+      },
+      {
+        "id": "SS45",
+        "title": "Förslag till korrigeringar",
+        "mapped_to": [
+          "S08"
+        ]
+      },
+      {
+        "id": "SS46",
+        "title": "Optimering av lokaler",
+        "mapped_to": [
+          "S09"
+        ]
+      },
+      {
+        "id": "SS47",
+        "title": "Minskning av håltimmar",
+        "mapped_to": [
+          "S10"
+        ]
+      },
+      {
+        "id": "SS48",
+        "title": "Kontroll av fördelad undervisningstid och lärarbehörighet",
+        "mapped_to": [
+          "S11",
+          "T03"
+        ]
+      },
+      {
+        "id": "SS49",
+        "title": "Ändringar under terminen och publicering",
+        "mapped_to": [
+          "S12",
+          "S15"
+        ]
+      },
+      {
+        "id": "SS50",
+        "title": "Rapport för SCB pedagogisk personal",
+        "mapped_to": [
+          "R05"
+        ]
+      },
+      {
+        "id": "SS51",
+        "title": "Frånvaroanmälan för dag eller lektion",
+        "mapped_to": [
+          "N01"
+        ]
+      },
+      {
+        "id": "SS52",
+        "title": "Ledighetsansökan i webb och app",
+        "mapped_to": [
+          "N03"
+        ]
+      },
+      {
+        "id": "SS53",
+        "title": "Byte mellan barn vid ansökningar",
+        "mapped_to": [
+          "K08"
+        ]
+      },
+      {
+        "id": "SS54",
+        "title": "Elevapp för iOS och Android",
+        "mapped_to": [
+          "M01"
+        ]
+      },
+      {
+        "id": "SS55",
+        "title": "Vårdnadshavarapp för iOS och Android",
+        "mapped_to": [
+          "M02"
+        ]
+      },
+      {
+        "id": "SS56",
+        "title": "Personalapp beskriven i redogörelsen",
+        "mapped_to": [
+          "M03"
+        ]
+      },
+      {
+        "id": "SS57",
+        "title": "Registrering av fritidstider",
+        "mapped_to": [
+          "X01"
+        ]
+      },
+      {
+        "id": "SS58",
+        "title": "In- och utcheckning på fritids",
+        "mapped_to": [
+          "X03"
+        ]
+      },
+      {
+        "id": "SS59",
+        "title": "Ansökningsmoduler för kulturskola, vux och folkhögskola",
+        "mapped_to": [
+          "X04"
+        ]
+      },
+      {
+        "id": "SS60",
+        "title": "Elevkö för friskolor",
+        "mapped_to": [
+          "E09"
+        ]
+      }
+    ],
+    "menus": [
+      {
+        "path": "Startsida → Aktuellt → Skolinfo",
+        "mapped_to": [
+          "K03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Aktuellt → Nyheter",
+        "mapped_to": [
+          "K03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Aktuellt → Schema & Kalender",
+        "mapped_to": [
+          "S01",
+          "K05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Aktuellt → Bokningar",
+        "mapped_to": [
+          "K06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Aktuellt → Meddelanden",
+        "mapped_to": [
+          "K01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Aktuellt → Mina filer",
+        "mapped_to": [
+          "K07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Schema → Alla scheman",
+        "mapped_to": [
+          "S01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Pedagogiskt stöd → Ämnen",
+        "mapped_to": [
+          "U07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Pedagogiskt stöd → Forum",
+        "mapped_to": [
+          "U07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Pedagogiskt stöd → Provschema (Genväg)",
+        "mapped_to": [
+          "U09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Bedömning → Sammantagen bedömning (NY)",
+        "mapped_to": [
+          "B11"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Ny betygsättning → Betyg",
+        "mapped_to": [
+          "B03",
+          "B08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Grupper → Undervisningsgrupper",
+        "mapped_to": [
+          "G01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Grupper → Fria grupper",
+        "mapped_to": [
+          "G03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Grupper → Personal",
+        "mapped_to": [
+          "T01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Grupper → Klasslistor",
+        "mapped_to": [
+          "E12"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Elevdokument → Rapport Elevavstämning (GY11)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Elevdokument → Rapport Elevavstämning (GY25)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Elevdokument → Lämna omdöme",
+        "mapped_to": [
+          "D02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Kurs → Betygsatta kurser",
+        "mapped_to": [
+          "B04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Kurs → Nationella kursprov",
+        "mapped_to": [
+          "B10"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Kurs → Elevavstämning (GY11)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Elevavstämning (GY25) → Elevavstämning (GY25)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Filer & länkar → Alla filer & länkar",
+        "mapped_to": [
+          "K07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Äldre funktioner → Planeringsverktyg",
+        "mapped_to": [
+          "U10"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Äldre funktioner → Uppgifter",
+        "mapped_to": [
+          "U10",
+          "U04",
+          "U08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Startsida → Äldre funktioner → Sammantagen bedömning",
+        "mapped_to": [
+          "U10",
+          "B11"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Frånvaroanmälan → Alla elever",
+        "mapped_to": [
+          "N01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Frånvaroanmälan → Visa anmälningar",
+        "mapped_to": [
+          "N01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Skolrapporter → Rapporteringsnivå",
+        "mapped_to": [
+          "N05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Skolrapporter → Närvaro",
+        "mapped_to": [
+          "N07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Skolrapporter → Närvaro – Dagar",
+        "mapped_to": [
+          "N07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Skolrapporter → Undervisning",
+        "mapped_to": [
+          "N07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Skolrapporter → Närvaro per skola",
+        "mapped_to": [
+          "N07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Elevrapporter → Närvaro – Vecka",
+        "mapped_to": [
+          "N06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Elevrapporter → Närvaro – Orsak",
+        "mapped_to": [
+          "N06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Elevrapporter → Närvaro – Ämne",
+        "mapped_to": [
+          "N06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Elevrapporter → Närvaro – Procent",
+        "mapped_to": [
+          "N06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Elevrapporter → Närvaro – Dagar",
+        "mapped_to": [
+          "N06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Närvaro → Elevrapporter → Oanmäld frånvaro",
+        "mapped_to": [
+          "N04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Fria grupper",
+        "mapped_to": [
+          "G03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Undervisningsgrupper",
+        "mapped_to": [
+          "G01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Grupper",
+        "mapped_to": [
+          "G01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Elev-Grupper",
+        "mapped_to": [
+          "G02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Scheman",
+        "mapped_to": [
+          "S01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Ämnen",
+        "mapped_to": [
+          "P02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Salar & Utrustning",
+        "mapped_to": [
+          "S04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Perioder",
+        "mapped_to": [
+          "S03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Personal",
+        "mapped_to": [
+          "T01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Elever",
+        "mapped_to": [
+          "E01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Elevkort",
+        "mapped_to": [
+          "E02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Elevkort för inaktiva elever",
+        "mapped_to": [
+          "E08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Vårdnadshavare",
+        "mapped_to": [
+          "E03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Underhåll → Importera schema",
+        "mapped_to": [
+          "S13"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Information → Forum",
+        "mapped_to": [
+          "K07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Information → Skolkalender",
+        "mapped_to": [
+          "K05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Information → Publicerade nyheter",
+        "mapped_to": [
+          "K03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Information → Skolinformation",
+        "mapped_to": [
+          "K03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Information → Filer & länkar",
+        "mapped_to": [
+          "K07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Information → Färgmarkering",
+        "mapped_to": [
+          "I07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Elevdokument → Frågor",
+        "mapped_to": [
+          "D05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Elevdokument → Formulär",
+        "mapped_to": [
+          "D05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Elevdokument → Mallar",
+        "mapped_to": [
+          "D05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Elevdokument → Rapport",
+        "mapped_to": [
+          "D06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Elevdokument → Mentorssamtal",
+        "mapped_to": [
+          "D10"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Enkäter → Frågor",
+        "mapped_to": [
+          "Q01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Enkäter → Formulär",
+        "mapped_to": [
+          "Q02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Enkäter → Enkäter",
+        "mapped_to": [
+          "Q03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Enkäter → Kursutvärderingar",
+        "mapped_to": [
+          "Q04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Enkäter → Rapport",
+        "mapped_to": [
+          "Q05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Kommuner",
+        "mapped_to": [
+          "R07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Kommunrapporter",
+        "mapped_to": [
+          "R07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Elevfilter",
+        "mapped_to": [
+          "R06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Elevrapporter",
+        "mapped_to": [
+          "R06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Rapportbeställning",
+        "mapped_to": [
+          "R06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Avstämningsperiod",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Dokumentmallar",
+        "mapped_to": [
+          "I08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Administration → Elevrapportering CSN",
+        "mapped_to": [
+          "R02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygsämnen",
+        "mapped_to": [
+          "B01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygsgrupper",
+        "mapped_to": [
+          "B01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygsättningslistor",
+        "mapped_to": [
+          "B01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygsperiod",
+        "mapped_to": [
+          "B02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Nationella prov",
+        "mapped_to": [
+          "B10"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygsöversikt",
+        "mapped_to": [
+          "B04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygskataloger",
+        "mapped_to": [
+          "B05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betyg",
+        "mapped_to": [
+          "B03",
+          "B08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Rapporter",
+        "mapped_to": [
+          "R01",
+          "R02",
+          "R03",
+          "R04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Betygsändringar",
+        "mapped_to": [
+          "B06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Grundskolebetyg → Tidigare skolformer",
+        "mapped_to": [
+          "B08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs → Betygsperiod",
+        "mapped_to": [
+          "B02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs → Avstämningsperiod",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs → Nationella kursprov",
+        "mapped_to": [
+          "B10"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Sammantagen bedömning",
+        "mapped_to": [
+          "B11"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Kurser",
+        "mapped_to": [
+          "P02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Program",
+        "mapped_to": [
+          "P01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Studieplaner",
+        "mapped_to": [
+          "P03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Kurs – Elev",
+        "mapped_to": [
+          "P05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Betygskataloger",
+        "mapped_to": [
+          "B05"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Betyg",
+        "mapped_to": [
+          "B03",
+          "B08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Skapa betygsdokument",
+        "mapped_to": [
+          "B08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Rapporter",
+        "mapped_to": [
+          "R01",
+          "R02",
+          "R03",
+          "R04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Kurs (GY11) → Betygsändringar",
+        "mapped_to": [
+          "B06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → GY25 → Studiehantering (BETA)",
+        "mapped_to": [
+          "P01",
+          "P02",
+          "P03",
+          "P04",
+          "P05",
+          "P06",
+          "P07",
+          "P08",
+          "P09",
+          "P10",
+          "P11"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Alternativ → Skola",
+        "mapped_to": [
+          "I06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Alternativ → Systeminställningar",
+        "mapped_to": [
+          "I06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Alternativ → Användarinställningar",
+        "mapped_to": [
+          "I06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Alternativ → Fälttyper",
+        "mapped_to": [
+          "I07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Alternativ → Bilduppladdning",
+        "mapped_to": [
+          "I07"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → System → Filuppladdning",
+        "mapped_to": [
+          "I08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Fria grupper",
+        "mapped_to": [
+          "I02",
+          "G03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Undervisningsgrupper",
+        "mapped_to": [
+          "I02",
+          "G01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Lektioner",
+        "mapped_to": [
+          "I02",
+          "S02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Ämnen",
+        "mapped_to": [
+          "I02",
+          "P02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Sal",
+        "mapped_to": [
+          "I02",
+          "S04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Perioder",
+        "mapped_to": [
+          "I02",
+          "S03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Personal",
+        "mapped_to": [
+          "I02",
+          "T01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Elever",
+        "mapped_to": [
+          "I02",
+          "E01"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Elever Admin",
+        "mapped_to": [
+          "I02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Fakturamottagare",
+        "mapped_to": [
+          "I02",
+          "I09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Korthantering",
+        "mapped_to": [
+          "I02",
+          "I09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Grundskolebetyg",
+        "mapped_to": [
+          "I02",
+          "B03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Program/Studieplaner",
+        "mapped_to": [
+          "I02",
+          "P03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Export/Import → Kurser",
+        "mapped_to": [
+          "I02",
+          "P02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Närvaro → Garanterad undervisningstid",
+        "mapped_to": [
+          "S11"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Elevkort → Elevkort",
+        "mapped_to": [
+          "E02"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Elevkort → Elevkort för inaktiva elever",
+        "mapped_to": [
+          "E08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Elevdokument → Enkäter",
+        "mapped_to": [
+          "Q03"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Elevdokument → Elevdokument rapporter",
+        "mapped_to": [
+          "D06"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Kurser → Kursvarningar",
+        "mapped_to": [
+          "D08"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Kurser → Elevavstämning (GY11)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Kurser → Rapport elevavstämning (GY11)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Kurser → Sammantagen bedömning (GY11)",
+        "mapped_to": [
+          "B11"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Kurser → Rapporter (GY11)",
+        "mapped_to": [
+          "R01",
+          "R02",
+          "R03",
+          "R04"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Ämnesnivåer → Elevavstämning (GY25)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Skolledare → Ämnesnivåer → Rapport elevavstämning (GY25)",
+        "mapped_to": [
+          "D09"
+        ],
+        "evidence": "Meny enligt tidigare protokoll; inte fullständigt funktionstest"
+      },
+      {
+        "path": "Admin → Systembehörighet",
+        "mapped_to": [
+          "I01"
+        ],
+        "evidence": "Länk eller sektion enligt tidigare protokoll"
+      },
+      {
+        "path": "Admin → Behörighetsgrupper",
+        "mapped_to": [
+          "I01"
+        ],
+        "evidence": "Länk eller sektion enligt tidigare protokoll"
+      },
+      {
+        "path": "Admin → Externt schema",
+        "mapped_to": [
+          "S13"
+        ],
+        "evidence": "Länk eller sektion enligt tidigare protokoll"
+      }
+    ]
+  }
+}
