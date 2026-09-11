@@ -246,7 +246,7 @@ const baseGroups: Group[] = [
  * senaste timplanens läsårsplacering (Gymnasieförordningen 7 kap. 7 §).
  * Elevens egna val och avvikelser läggs ovanpå mallen; de finns inte i exemplet.
  */
-function studyPlanFromOffering(
+export function studyPlanFromOffering(
   organisation: OrganisationState,
   timplans: TimplanState,
   offeringId: string,
@@ -292,7 +292,7 @@ function studyPlanFromOffering(
  * startår. Går det inte att läsa ut lämnas fältet tomt och klassen visas utan
  * timplansjämförelse i stället för att gissa.
  */
-export function deriveClasses(state: AdminState) {
+export function deriveClasses(state: Pick<AdminState, 'pupils'>) {
   const byName = new Map<string, { name: string; kind: 'grundskola' | 'gymnasium' | 'introduktionsprogram'; educationId?: string; grade?: number; cohortYear?: number; programPrefix?: string; pupils: number }>();
   for (const p of state.pupils) {
     const kind =
