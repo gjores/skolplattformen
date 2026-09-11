@@ -39,7 +39,7 @@ Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in 
 **Plans**: 10 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Git-baslinje med tagg `fas1-baslinje` och återställningsprov (verify-baseline.mjs)
+- [x] 01-01-PLAN.md — Git-baslinje med tagg `fas1-baslinje` och återställningsprov (verify-baseline.mjs)
 - [ ] 01-02-PLAN.md — Daterad anslutningsprofil docs/pilot/connection-profile.md (PILOT-01)
 - [ ] 01-03-PLAN.md — Runtime-läge stängt som standard, klientgräns utan klient, laddare utan demoinloggning/seed, exempelskript med tom Supabase-miljö
 - [ ] 01-04-PLAN.md — Pilotfixtur: en huvudman, grundskola + gymnasium, 2 klasser × 6 elever per skola (TDD)

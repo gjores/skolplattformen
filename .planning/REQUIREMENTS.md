@@ -14,7 +14,7 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 
 ### Baslinje och pilotens kontrakt
 
-- [ ] **BASE-01**: Projektansvarig kan återgå till en versionshanterad baslinje för den befintliga appen och se vilka uppskattade arbetsflöden som passerar dokumenterade regressionsprov.
+- [x] **BASE-01**: Projektansvarig kan återgå till en versionshanterad baslinje för den befintliga appen och se vilka uppskattade arbetsflöden som passerar dokumenterade regressionsprov.
 - [ ] **BASE-02**: Pilotansvarig kan använda en avskild test-/pilotmiljö där anonym demoetablering och automatisk exempeldata inte kan ge åtkomst till skyddade driftvägar.
 - [ ] **PILOT-01**: Pilotansvarig kan granska en daterad anslutningsprofil med ansvarig organisation, valda elevuppgifter, originalkälla och skrivansvar, pilotvolym samt öppna kund- och leverantörsberoenden.
 
@@ -111,7 +111,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 1 | Pending |
+| BASE-01 | Phase 1 | Complete |
 | BASE-02 | Phase 1 | Pending |
 | PILOT-01 | Phase 1 | Pending |
 | IAM-01 | Phase 2 | Pending |
