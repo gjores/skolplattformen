@@ -45,3 +45,50 @@ Provmiljöns organisation, skolenhetskoder och elev-ID:n (`E-2001`–`E-2024`) �
 1. Inga verkliga elevuppgifter finns eller får läggas in i utvecklingsprojektet. Provmiljön arbetar enbart med syntetiska uppgifter (D-06, D-09); det gäller även när en pilotpartner senare är vald och tills kundens driftbeslut i fas 8 finns.
 2. Fiktiva namn, exempelroller och simulerade prov bevisar ingen verklig kommunanslutning, inget verkligt mandat och ingen pilotacceptans. Skolverkets uppslag verifierar skoluppgifter, inte rätten att företräda en huvudman, och den lokala rollväljaren är inget behörighetsbevis.
 3. Ett godkänt syntetiskt prov ändrar inte godkännandegränserna i fas 7 och 8. Fas 7 kräver vald pilotkund, IdP, kontokälla, registerleverantör, tilldelad åtkomst och överenskomna acceptansvillkor (IAM-02, IAM-06, INT-07); fas 8 kräver granskad drift och avtal (OPS-01). Saknas de förblir kraven öppna.
+
+## Föreslagna elev- och placeringsfält
+
+Fälten nedan är ett **förslag** för senare registerarbete i fas 4 (STU-01–STU-04) och fas 6 (INT-02); en framtida kommuns fältlista, skrivansvar och format är öppna (OB-05). Exemplen speglar den syntetiska provvärlden i plan 01-04 och dagens `Pupil`-typ i `web/lib/admin-model.ts`, inte ett fastställt informationskontrakt.
+
+| Fält | Exempel i provmiljön | Föreslaget skrivansvar | Status | Anmärkning |
+|------|----------------------|------------------------|--------|------------|
+| `Internt elev-ID` | `E-2001` | Appen (stabilt, skilt från inloggningskonto) | Förslag | STU-01 |
+| `Visningsnamn` | `Alma Berg` (fiktivt) | Källsystem | Förslag | Fiktiva namn i provet |
+| `Skolenhets-ID` | `99999902` | Källsystem/Skolverkets skolenhetskod | Förslag | Skolenhetskod är skoluppgift, inte mandat |
+| `Klassreferens` | `4A` vid 99999902 | Öppet: skola eller källsystem | Öppet | Samma klassnamn kan finnas på flera skolor (CONCERNS: klassidentitet) |
+| `Skolform` | `GR` / `GY` | Källsystem | Förslag | D-02 |
+| `Utbildningsreferens` | `sa25` (program SA25, inriktning SASAP) | Appen (huvudmannens utbud) | Förslag | ADMIN-02 |
+| `Placeringsstart` | `2026-08-17` | Källsystem | Förslag | STU-02 |
+| `Placeringsslut` | tomt eller `2027-06-11` | Källsystem | Förslag | STU-02 |
+| `Källsystemets namnrymd` | ej satt i provet | Integration | Öppet | INT-02; sätts när leverantör valts |
+| `Externt ID` | ej satt i provet | Källsystem | Öppet | INT-02; stabilt externt ID krävs |
+| `Personnummer`, `Adress`, `Kontaktuppgifter` | ingår inte i provmaterialet | Öppet | Öppet | Behövs inte för fas 1; skyddsfrågor i DATA-01 |
+
+Ingen rad ovan är en överenskommelse med en kund eller leverantör.
+
+## Öppna beroenden
+
+| ID | Beroende | Beslutsägare | Blockerar | Villkor för stängning |
+|----|----------|--------------|-----------|-----------------------|
+| OB-01 | Val av pilotpartner (skola, huvudman eller kommun) | Projektansvarig tillsammans med kandidatkund | Fas 7 (IAM-02, IAM-06, INT-07), fas 8 | Skriftlig avsikt och utsedd kontaktperson hos partnern |
+| OB-02 | Identitetsleverantör och autentiseringskrav | Pilotpartner / kommunens IT | IAM-02 | Utfärdare, inloggningsväg och testidentiteter tilldelade |
+| OB-03 | Kontokälla för tilldelning och avveckling | Pilotpartner / kommunens IT | IAM-06 | Överenskommen tidsgräns källa → spärr |
+| OB-04 | Elevregisterleverantör, kontraktsversion och testmiljö | Pilotpartner / leverantör | INT-02, INT-07 | Tilldelad test-/pilotåtkomst och dokumenterat kontrakt |
+| OB-05 | Fältlista, originalkälla och skrivansvar per fält | Pilotpartner | STU-04, INT-02, fas 4/6 | Fastställd fältmatris ersätter avsnittet Föreslagna elev- och placeringsfält |
+| OB-06 | Verklig pilotvolym och skolenheter | Pilotpartner | Fas 6–8 | Beslutat antal elever/klasser/skolenheter |
+| OB-07 | Drift, avtal, underleverantörer och bedömning av konsekvensbedömning | Projektansvarig / pilotpartner | OPS-01, fas 8 | Granskade underlag före verkliga elevuppgifter |
+| OB-08 | Skyddsfall och spärr-/återställningsmål | Pilotpartner | DATA-01, OPS-02 | Beslutade fall och tidsmål |
+
+**Så uppdateras profilen när ett beroende stängs**
+
+- Berörd rad i Profil byter status från Öppet till Bekräftat först när beslutsägaren har lämnat ett skriftligt besked; källkolumnen anger då beskedet i stället för enbart krav-ID.
+- Beroendet stryks inte ur tabellen utan får stängningsdatum i Ändringsloggen, så att spårbarheten från öppet läge till beslut bevaras.
+- Syntetiska exempel byter aldrig status till Bekräftat; de ersätts av kundens verkliga värden i en ny, daterad version av profilen.
+
+Inget av ovanstående hindrar planering eller syntetiska prov i fas 1–6. Saknade beroenden gör att berörda krav förblir öppna; de får inte markeras uppfyllda genom simulatorprov (INT-07) eller fiktiva exempel.
+
+## Ändringslogg
+
+| Datum | Ändring |
+|-------|---------|
+| 2026-09-11 | Första utkast i fas 1 (plan 01-02). |
