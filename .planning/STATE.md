@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Baslinje och avskild pilotmiljö
-current_plan: 3
+current_plan: 4
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-09-11T10:23:38.786Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-09-11T10:26:16.312Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 10
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 **Current Phase:** 1
 **Current Phase Name:** Baslinje och avskild pilotmiljö
 **Total Phases:** 8
-**Current Plan:** 3
+**Current Plan:** 4
 **Total Plans in Phase:** 10
 **Status:** Ready to execute
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
@@ -64,6 +64,7 @@ Phases executed: 0 of 8
 
 | Phase 01 P01 | 5min | 2 tasks | 3 files |
 | Phase 01 P02 | 6min | 2 tasks | 1 files |
+| Phase 01 P04 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 01]: Docs committades separat (383b3e0) före appbaslinjen; taggen fas1-baslinje (917313b) omfattar bara web/, supabase/config.toml, sex migrationer och work/
 - [Phase 01]: web/.openai/hosting.json spåras (importeras av vite.config.ts, endast null-värden); resultatfilen från verify-baseline.mjs har extra fält errors[]
 - [Phase 01]: Provmiljöns organisation och 24 elever står som Syntetiskt exempel i anslutningsprofilen; partner, volym, källa, IdP, kontokälla, leverantör och drift är öppna beroenden OB-01–OB-08 med beslutsägare
+- [Phase 01]: Pilotfixturens tillstånd anges som 'Huvudmannens beslut' (kommunal huvudman); likhetstestet jämför timplaner strukturellt eftersom timplan-model sätter ID:n med uid()
 
 ## Pending Todos
 
@@ -106,6 +108,6 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-11T10:23:38.782Z
-**Stopped At:** Completed 01-02-PLAN.md
+**Last Date:** 2026-09-11T10:26:16.307Z
+**Stopped At:** Completed 01-04-PLAN.md
 **Resume File:** None
