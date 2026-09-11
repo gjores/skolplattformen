@@ -17,7 +17,9 @@
     "dev:example:test": "node scripts/run-mode.mjs dev --mode example --port 5191 --hostname 127.0.0.1",
     "dev:blocked:test": "node scripts/run-mode.mjs dev --mode blocked-probe --port 5192 --hostname 127.0.0.1",
     "build:example": "node scripts/run-mode.mjs build --mode example",
-    "preview:example": "node scripts/run-mode.mjs preview --port 3011"
+    "preview:example": "node scripts/run-mode.mjs preview --port 3011",
+    "e2e": "playwright test",
+    "verify:phase1": "node scripts/verify-phase1.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
@@ -45,6 +47,7 @@
     "@cloudflare/vite-plugin": "^1.54.4",
     "@cloudflare/workers-types": "^5.20260903.1",
     "@openai/sites-vite-plugin": "0.2.0",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
