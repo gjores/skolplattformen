@@ -7,7 +7,7 @@
 // bara det som faktiskt ändrats skrivs. Radnivåskyddet i databasen avgör vad
 // som går igenom.
 
-import { supabase, signInDemo, type Client } from './supabase.ts';
+import { supabase, type Client } from './supabase.ts';
 import type { Database } from './database.types.ts';
 import {
   defaultCells,
@@ -85,20 +85,11 @@ function toTimplan(row: Row<'timplans'>, cells: Row<'timplan_cells'>[], events: 
   };
 }
 
-/**
- * Läser huvudmannens timplaner. Är tabellen tom seedas exempeltimplanerna för
- * de utbildningar som har en grund, så att förhandsversionen har något att visa.
- */
-export async function loadTimplans(educations: Education[]): Promise<Timplan[]> {
+/** Läser huvudmannens timplaner. Ren läsning: tom tabell ger tom lista. */
+export async function loadTimplans(_educations: Education[]): Promise<Timplan[]> {
   const db = client();
-  await signInDemo();
-  let plans = await db.from('timplans').select('*').order('version');
+  const plans = await db.from('timplans').select('*').order('version');
   if (plans.error) fail('läsa timplaner', plans.error.message);
-  if (!plans.data?.length && educations.length) {
-    await seedTimplans(db, educations);
-    plans = await db.from('timplans').select('*').order('version');
-    if (plans.error) fail('läsa timplaner', plans.error.message);
-  }
   const [cells, events] = await Promise.all([
     db.from('timplan_cells').select('*'),
     db.from('timplan_events').select('*').order('created_at', { ascending: false }),
@@ -109,11 +100,10 @@ export async function loadTimplans(educations: Education[]): Promise<Timplan[]> 
 }
 
 /**
- * Ett första utkast per utbildning med den nationella fördelningen som
- * utgångsvärde, så att förhandsversionen har något att arbeta vidare på.
- * Utkastet skickas och fastställs sedan i gränssnittet som vanligt.
+ * Uttrycklig etablering av exempeldata i en disponibel lokal provmiljö. Anropas aldrig av laddare.
+ * Ett första utkast per utbildning med den nationella fördelningen som utgångsvärde.
  */
-async function seedTimplans(db: Client, educations: Education[]) {
+export async function seedExampleTimplans(db: Client, educations: Education[]) {
   const organizerId = await currentOrganizer(db);
   for (const education of educations) {
     const row = await insertTimplan(db, organizerId, education.id, 1, education.basis, null);
@@ -241,17 +231,11 @@ function toSchoolYear(
   };
 }
 
-/** Läser läsåren för en skolenhet och seedar exempelläsår om det saknas. */
-export async function loadSchoolYears(unitId: string, schoolTypes: string[]): Promise<SchoolYear[]> {
+/** Läser läsåren för en skolenhet. Ren läsning: saknas läsår ges tom lista. */
+export async function loadSchoolYears(unitId: string, _schoolTypes: string[]): Promise<SchoolYear[]> {
   const db = client();
-  await signInDemo();
-  let years = await db.from('school_years').select('*').eq('unit_id', unitId).order('start_year');
+  const years = await db.from('school_years').select('*').eq('unit_id', unitId).order('start_year');
   if (years.error) fail('läsa läsår', years.error.message);
-  if (!years.data?.length) {
-    await seedSchoolYears(db, unitId, schoolTypes);
-    years = await db.from('school_years').select('*').eq('unit_id', unitId).order('start_year');
-    if (years.error) fail('läsa läsår', years.error.message);
-  }
   const ids = (years.data ?? []).map((y) => y.id);
   if (!ids.length) return [];
   const [days, groupDays, shortWeeks, events] = await Promise.all([
@@ -269,7 +253,8 @@ export async function loadSchoolYears(unitId: string, schoolTypes: string[]): Pr
   );
 }
 
-async function seedSchoolYears(db: Client, unitId: string, schoolTypes: string[]) {
+/** Uttrycklig etablering av exempeldata i en disponibel lokal provmiljö. Anropas aldrig av laddare. */
+export async function seedExampleSchoolYears(db: Client, unitId: string, schoolTypes: string[]) {
   const organizerId = await currentOrganizer(db);
   for (const year of createLasarState(unitId, schoolTypes).years) {
     const row = await insertSchoolYear(db, organizerId, unitId, year);

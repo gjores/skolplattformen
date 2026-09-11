@@ -6,7 +6,7 @@ import type { SchoolAddress } from './registry-address.ts';
 // mot databasen och läses tillbaka, så att radnivåskyddet är det som avgör
 // vad som faktiskt gick igenom.
 
-import { supabase, signInDemo, type Client } from './supabase.ts';
+import { supabase, type Client } from './supabase.ts';
 import type { Database } from './database.types.ts';
 import {
   createOrganisationState,
@@ -110,8 +110,8 @@ function toOffering(row: Row<'offerings'>, permits: Row<'permits'>[], plans: Row
   };
 }
 
-/** Skriver modellens exempeldata till en tom databas första gången. */
-async function seed(db: Client, organizerId: string) {
+/** Uttrycklig etablering av exempeldata i en disponibel lokal provmiljö. Anropas aldrig av laddare. */
+export async function seedExampleOrganisation(db: Client, organizerId: string) {
   const demo = createOrganisationState();
   const { data: user } = await db.auth.getUser();
   const actor = user.user?.id ?? null;
@@ -243,11 +243,10 @@ async function currentOrganizer(db: Client): Promise<string> {
   return data;
 }
 
-/** Läser hela huvudmannens grund. Seedar exempeldata om databasen är tom. */
+/** Läser hela huvudmannens grund. Ren läsning: tom databas ger tomt resultat. */
 export async function loadOrganisation(pupilCount = 0): Promise<OrganisationState> {
   const db = supabase();
   if (!db) throw new Error('Ingen backend konfigurerad.');
-  await signInDemo();
   const organizerId = await currentOrganizer(db);
 
   const { data: organizerRow, error: organizerError } = await db.from('organizers').select('*').eq('id', organizerId).single();
@@ -258,21 +257,8 @@ export async function loadOrganisation(pupilCount = 0): Promise<OrganisationStat
     type: organizerRow.type,
   };
 
-  let { data: units, error: unitError } = await db.from('school_units').select('*').order('created_at');
+  const { data: units, error: unitError } = await db.from('school_units').select('*').order('created_at');
   if (unitError) throw new Error(`Kunde inte läsa skolenheter: ${unitError.message}`);
-  if (!units?.length) {
-    // En avbruten seedning får inte lämna halva exempeldata kvar; nästa
-    // laddning ska kunna göra om den från början.
-    try {
-      await seed(db, organizerId);
-    } catch (e) {
-      await db.from('school_units').delete().eq('organizer_id', organizerId);
-      await db.from('assignments').delete().eq('organizer_id', organizerId);
-      throw e;
-    }
-    ({ data: units, error: unitError } = await db.from('school_units').select('*').order('created_at'));
-    if (unitError) throw new Error(`Kunde inte läsa skolenheter: ${unitError.message}`);
-  }
 
   const [types, offerings, permits, plans, events, assignments, assignmentUnits, log] = await Promise.all([
     db.from('school_unit_types').select('*'),
