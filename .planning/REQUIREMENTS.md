@@ -1,8 +1,11 @@
 # Requirements: Skolplattformen
 
-**Defined:** 2026-09-10  
-**Milestone:** v1.0 — Säker administration inför en pilot  
-**Core Value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.  
+**Defined:** 2026-09-10
+
+**Milestone:** v1.0 — Säker administration inför en pilot
+
+**Core Value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
+
 **Status:** Godkända av användaren 2026-09-11 tillsammans med färdplanens åtta faser. Samtliga krav inväntar genomförande och verifiering.
 
 ## v1 Requirements

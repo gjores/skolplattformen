@@ -2,8 +2,10 @@
 
 ## Overview
 
-**Milestone:** v1.0 — Säker administration inför en pilot  
-**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Genomförande återstår.  
+**Milestone:** v1.0 — Säker administration inför en pilot
+
+**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Genomförande återstår.
+
 **Granularity:** standard
 
 Den befintliga appen utvecklas stegvis till en avgränsad pilot: först en återställbar baslinje, därefter verifierad åtkomst och spårbara mandat, beständiga elever och en avstämd registerimport. Gymnasiets utbildningar, kurs-/nivåtillägg, kullkopiering och explicita klass–timplanskopplingar bevaras och prövas vid berörda förändringar. Faktisk kommunanslutning och beslut om verkliga elevuppgifter har egna godkännandegränser.
