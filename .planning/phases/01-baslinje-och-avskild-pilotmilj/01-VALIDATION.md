@@ -2,7 +2,7 @@
 phase: 1
 slug: baslinje-och-avskild-pilotmilj
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-11
 ---
@@ -54,7 +54,7 @@ Slutlig karta från planeringen 2026-09-11, reviderad efter plangranskning (plan
 | 01-08 | 2 | Fyra uppskattade flöden + GR-planflöde, Elever-vy följer vald skola (4A/7B vs SA26A/EK26A), skolbyte bevarar, omläsning börjar om, 44 px, 320 px, tangentbord | BASE-01 | Bevarade verksamhetsregler i browsern | e2e (projekt desktop + phone) | `npm run build:example && npx playwright test` (`web/e2e/phase1-baseline.spec.ts`, 12 tester) | Nej — 01-08 | pending |
 | 01-08 | 2 | Byggd exempelvy och blockerad start gör inga Supabase/Auth/RPC-anrop, ingen `sb-`-session | BASE-02 | V7/V13: miljörest och syntetiska molnvärden ignoreras | built e2e (projekt blocked + built) | samma kommando (`web/e2e/phase1-isolation.spec.ts`, 3 tester) | Nej — 01-08 | pending |
 | 01-10 | 1 | Konkurrerande sparningar: senaste avsikt ska nå lagret | BASE-01 | Tampering/dataförlust; ägare fas 5 | async regression (transport) | `node --test lib/save-order.repro.mjs` — förväntat röd; rapporteras `KNOWN-ISSUE`, aldrig PASS | Nej — 01-10 | pending |
-| 01-10 | 2 | Sammanställare som bevarar delresultat, kopierar pgTAP-filer till protected-målet och aldrig gör saknade säkerhetsprov gröna | BASE-01, BASE-02 | Phase gate: BLOCKED ≠ PASS | aggregator | `npm run verify:phase1` → `work/pilot/results/phase1-summary.json` (exit 0 PASS/PASS-PARTIAL / 3 BLOCKED / 1 FAIL); snabb: `node scripts/verify-phase1.mjs --skip-browser` | Nej — 01-10 | pending |
+| 01-10 | 2 | Sammanställare som bevarar delresultat, kopierar pgTAP-filer till protected-målet och aldrig gör saknade säkerhetsprov gröna | BASE-01, BASE-02 | Phase gate: BLOCKED ≠ PASS | aggregator | `npm run verify:phase1` → `work/pilot/results/phase1-summary.json` (exit 0 PASS/PASS-PARTIAL / 3 BLOCKED / 1 FAIL); snabb: `node scripts/verify-phase1.mjs --skip-browser --out <sökväg utanför arbetsträdet>` så att den committade fulla körningen inte skrivs över | Nej — 01-10 | pending |
 | 01-09 | 1–2 | Baslinjerapport med historik åtskild och kända fel med ägare; valideringskarta uppdaterad (REQUIREMENTS rörs inte här) | BASE-01 | Kända fel döljs inte | dokumentgranskning | `! grep -qE 'Konkurrerande sparningar.*\| *PASS *\|' docs/pilot/baseline.md` + grep på rubriker | Nej — 01-09 | pending |
 | 01-09 | 3 | Fysisk telefon, läslighet/tangentbord, dokumentgranskning; därefter REQUIREMENTS → "Genomförd — väntar verifiering" | BASE-01, BASE-02, PILOT-01 | Enhetsemulering bevisar inte LAN; kravstatus sätts aldrig till Verifierad av planen | checkpoint:human-verify | Manuell; resultat antecknas i tabellen nedan | — | pending |
 
