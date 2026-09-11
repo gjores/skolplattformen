@@ -1,0 +1,116 @@
+{
+  "kind": "phase1-summary",
+  "date": "2026-09-11T22:02:31.766Z",
+  "revision": "7c7c760",
+  "node": "v25.9.0",
+  "flags": {
+    "withRestore": false,
+    "skipBrowser": false
+  },
+  "durationMs": 58078,
+  "steps": [
+    {
+      "name": "modeller",
+      "command": "node --test lib/*.test.mjs (11 filer)",
+      "required": true,
+      "exit": 0,
+      "durationMs": 1040,
+      "status": "PASS"
+    },
+    {
+      "name": "typkontroll",
+      "command": "npx tsc --noEmit",
+      "required": true,
+      "exit": 0,
+      "durationMs": 1735,
+      "status": "PASS"
+    },
+    {
+      "name": "lint",
+      "command": "npx oxlint app lib scripts e2e",
+      "required": true,
+      "exit": 0,
+      "durationMs": 869,
+      "status": "PASS"
+    },
+    {
+      "name": "exempelbygge",
+      "command": "npm run build:example",
+      "required": true,
+      "exit": 0,
+      "durationMs": 4156,
+      "status": "PASS"
+    },
+    {
+      "name": "browser",
+      "command": "npx playwright test",
+      "required": true,
+      "exit": 1,
+      "durationMs": 45053,
+      "status": "FAIL"
+    },
+    {
+      "name": "sparordning",
+      "command": "node --test lib/save-order.repro.mjs",
+      "required": false,
+      "exit": 1,
+      "durationMs": 687,
+      "status": "KNOWN-ISSUE",
+      "detail": "KNOWN-ISSUE: 2 av 2 scenarier röda som väntat (samma cell=FAIL, nytt objekt=FAIL). Ägare: fas 5. Sparordning/id-mappning i persistTimplans är inte rättad."
+    },
+    {
+      "name": "mål-protected",
+      "command": "node work/pilot/verify-target.mjs --target protected",
+      "required": true,
+      "exit": 0,
+      "durationMs": 605,
+      "status": "PASS"
+    },
+    {
+      "name": "sql-karantän",
+      "command": "supabase --workdir <protected workdir> test db --local",
+      "required": true,
+      "exit": 0,
+      "durationMs": 1283,
+      "status": "PASS",
+      "detail": "pgTAP: 1 fil(er), All tests successful"
+    },
+    {
+      "name": "api-isolering",
+      "command": "node work/pilot/verify-isolation.mjs",
+      "required": true,
+      "exit": 0,
+      "durationMs": 1830,
+      "status": "PASS"
+    },
+    {
+      "name": "mål-baseline",
+      "command": "node work/pilot/verify-target.mjs --target baseline",
+      "required": true,
+      "exit": 0,
+      "durationMs": 161,
+      "status": "PASS"
+    },
+    {
+      "name": "baslinje-db",
+      "command": "node work/pilot/verify-baseline-db.mjs",
+      "required": true,
+      "exit": 0,
+      "durationMs": 613,
+      "status": "PASS"
+    },
+    {
+      "name": "återställning",
+      "command": "node work/pilot/verify-baseline.mjs",
+      "required": false,
+      "exit": null,
+      "durationMs": 0,
+      "status": "SKIPPED",
+      "detail": "kräver --with-restore"
+    }
+  ],
+  "knownIssues": [
+    "sparordning: KNOWN-ISSUE: 2 av 2 scenarier röda som väntat (samma cell=FAIL, nytt objekt=FAIL). Ägare: fas 5. Sparordning/id-mappning i persistTimplans är inte rättad."
+  ],
+  "status": "FAIL"
+}
