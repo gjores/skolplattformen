@@ -1,0 +1,20 @@
+{
+  "kind": "baseline-restore",
+  "ref": "fas1-baslinje",
+  "sha": "917313bac9b852a4e494ac5e63b5492f77cb0bb5",
+  "date": "2026-09-11T10:16:08.243Z",
+  "node": "v25.9.0",
+  "archiveDir": "/var/folders/z9/1jz3vw894ssfwwxkdkmms6sr0000gn/T/skolplattform-baslinje-UYCdS0",
+  "forbiddenPresent": [],
+  "npmCiExit": 0,
+  "tests": {
+    "pass": 85,
+    "fail": 0
+  },
+  "tscExit": 0,
+  "buildExit": 0,
+  "buildArtifact": "dist/server/wrangler.json",
+  "durationMs": 27911,
+  "status": "PASS",
+  "errors": []
+}
