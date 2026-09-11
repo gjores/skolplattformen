@@ -1,4 +1,5 @@
 import http from 'node:http';
+import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 import { networkInterfaces } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -6,6 +7,18 @@ import { fileURLToPath } from 'node:url';
 const project = fileURLToPath(new URL('../', import.meta.url));
 const upstreamPort = 3001;
 const phonePort = 3002;
+
+// Telefonvägen startar bara ett bygge som är märkt som exempelläge av
+// scripts/run-mode.mjs. Ett omärkt eller annat bygge vägras.
+const marker = new URL('../dist/build-mode.json', import.meta.url);
+let mode;
+try { mode = JSON.parse(fs.readFileSync(marker, 'utf8')); } catch { mode = null; }
+if (!mode || mode.mode !== 'example') {
+  console.error('Bygget saknar exempelläge. Kör npm run build:example först.');
+  process.exit(2);
+}
+console.log(`Telefonförhandsvisning: läge ${mode.mode}, revision ${mode.revision}`);
+
 const child = spawn(process.execPath, [
   'node_modules/wrangler/bin/wrangler.js', 'dev',
   '--config', 'dist/server/wrangler.json',
