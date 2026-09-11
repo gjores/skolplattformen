@@ -12,13 +12,15 @@ Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgif
 
 **v1.0 — Säker administration inför en pilot.** Användaren valde den 2026-09-10 inloggning, behörigheter, elevregister och en kommunintegration som första milstolpe. Hela produktvisionen finns kvar, men undervisning, fullständiga ärendeprocesser och alla leverantörsanslutningar ska inte färdigställas samtidigt.
 
+De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Projektinitieringen är slutförd; nästa steg är diskussion och planering av fas 1. Godkännandet avser planeringen, inte verifierad implementation eller beslut om verklig pilotdrift.
+
 Målet är en avgränsad och prövbar pilot för en huvudman, med syntetiska uppgifter tills kommunen har beslutat om verklig användning. Val av pilotkommun, identitetsleverantör, externt elevregister, avtal och drift är öppna beroenden. Dessa får inte ersättas med påhittade integrationsbesked.
 
 ## Requirements
 
 ### Validated
 
-Här avses befintliga funktioner i arbetsversionen, inte validering i kommunal produktion. Testresultaten nedan är historiska; ingen ny testkörning ingår automatiskt i projektinitieringen.
+Här avses befintliga funktioner i arbetsversionen, inte validering i kommunal produktion. Äldre användar-, databas- och byggprov är historik. Kodkartläggningen 2026-09-11 verifierade 85 lokala modelltester; omfattning och testluckor finns i `.planning/codebase/TESTING.md`.
 
 - ✓ Utbildningar och tillägg av kurser för gymnasiet — användaren är nöjd med detta arbetsflöde och det ska bevaras.
 - ✓ Skolenheter kan hämtas ur Skolverkets register med organisationsnummer eller skolenhetskod; adress och skolform förs in och huvudmannen utser rektor — befintlig implementation, se `docs/skolimport-och-rektor.md`.
@@ -66,7 +68,9 @@ Arbetskatalog: `/Users/petter.gjores/dev/skolplattform`. Webbappen finns i `web/
 
 `signInDemo` loggar in anonymt och kopplar kontot till samma demohuvudman med rollen huvudman. Rollväljaren i gränssnittet utgör inte verklig autentisering. Radnivåskydd finns, men flera policyer avgränsar till hela huvudmannen och rektorsuppdrag kontrolleras ännu inte mot den inloggades egna skolenheter. Elevadministrationen använder huvudsakligen syntetiska sessionsdata.
 
-Historiskt passerade 85 modelltester, typkontroll, riktad lint, bygge och roll-/layoutkontroller den 2026-09-08. Det bevisar inte produktionssäkerhet eller dagens skick efter senare ändringar. Granskningen `docs/granskning-2026-09-07.md` noterade bland annat konkurrerande timplanssparningar; aktuell status måste kontrolleras före ändring.
+Historiskt passerade 85 modelltester, typkontroll, riktad lint, bygge och roll-/layoutkontroller den 2026-09-08. Kodkartläggningen 2026-09-11 körde modellsviten på nytt: 85 tester passerade med Node 24.19.0. Typkontroll, lint, bygge, webbläsare och databas prövades inte på nytt i kartläggningen.
+
+Den aktuella kodkartan i `.planning/codebase/` är sparad i Git som `1a8e1e0`. `.planning/codebase/CONCERNS.md` belägger kvarvarande risker med konkurrerande timplans-/läsårssparningar, flerstegsskrivningar, demoåtkomst, breda databasmandat och klientstyrd historik. Appkällorna i `web/`, `supabase/` och `work/` är ännu inte inlagda i Git; en genomgången källkodsbaslinje ingår i BASE-01. Dessa fynd ska tas med när berörda faser planeras; kodläsning ersätter inte körprov av driftens beteende.
 
 ### Underlag och källordning
 
@@ -96,10 +100,11 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Första milstolpen är säker administration inför en pilot | Uttryckligt användarval 2026-09-10 | Confirmed |
+| 42 detaljkrav och åtta faser fastställs för v1.0 | Användaren godkände kravförslaget och färdplanen 2026-09-11 | Confirmed; genomförande återstår |
 | Bygg vidare i befintlig arbetsyta | Användaren har redan arbetat fram uppskattade funktioner | Confirmed |
 | HM utser rektor; rektor tilldelar läraruppdrag | Uttrycklig korrigering av ansvarsfördelning | Confirmed; produktionsbehörighet återstår |
 | Nästa elevkull får kopia av utbildningsupplägg | Uttryckligt svar om betydelsen av kopiera år | Confirmed; befintlig funktion |
-| Kommunens inloggning och avgränsade uppdrag före verkligt elevregister | Säkerhetsförutsättning för pilotens valda omfattning | Proposed implementation direction |
+| Verifierad kontoåtkomst och avgränsade uppdrag före beständigt elevregister | Godkänd fasordning 2026-09-11; faktisk kommunanslutning slutverifieras i fas 7 | Confirmed; val av IdP återstår |
 | En begränsad registerintegration först | Gör anslutning, felhantering och informationsansvar prövbara | Confirmed scope; leverantör öppen |
 | Gemensam app, konfigurerbara kundanslutningar | Flera kommuner ska kunna anslutas utan kundspecifika kodkopior | Proposed; driftgräns återstår |
 | Återanvänd befintlig research och komplettera identifierade luckor | Undvik att börja om; verifiera föränderliga och rättsliga antaganden | Working default |
@@ -109,4 +114,4 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dokumentera ändrade eller borttagna krav med skäl och uppdatera beslut och nuläge. Vid milstolpens slut: granska hela projektbeskrivningen, kärnvärdet, senarelagd omfattning och driftläget. Ett förslag blir inte beslutat enbart för att det står i filen.
 
 ---
-*Last updated: 2026-09-10 after GSD initialization and confirmed milestone scope. Detailed requirements and roadmap remain subject to review.*
+*Last updated: 2026-09-11 after user approval of 42 requirements and the eight-phase roadmap, with the refreshed codebase map as current evidence.*

@@ -4,9 +4,9 @@ En lokal arbetsversion med elevregister, studieplaner, undervisningsgrupper, sch
 
 ## Aktiv projektplanering
 
-GSD initieras den 10 september 2026 för att vidareutveckla den befintliga appen. Första milstolpen är **säker administration inför en pilot**: verklig inloggning, uppdragsbaserad behörighet, beständigt elevregister och en kommunintegration. Projektkontext finns i [.planning/PROJECT.md](.planning/PROJECT.md), nulägeskartan i [.planning/codebase/](.planning/codebase/) och detaljerade krav i [.planning/REQUIREMENTS.md](.planning/REQUIREMENTS.md). Färdplan och detaljomfattning är förslag tills granskningen är klar.
+GSD-initieringen slutfördes den 11 september 2026 när användaren godkände kraven och färdplanen för vidareutveckling av den befintliga appen. Första milstolpen är **säker administration inför en pilot**: verklig inloggning, uppdragsbaserad behörighet, beständigt elevregister och en kommunintegration. Projektkontext finns i [.planning/PROJECT.md](.planning/PROJECT.md), nulägeskartan i [.planning/codebase/](.planning/codebase/) och detaljerade krav i [.planning/REQUIREMENTS.md](.planning/REQUIREMENTS.md).
 
-[Färdplansförslaget](.planning/ROADMAP.md) har åtta faser och 42 krav. [Arbeta med GSD](docs/arbeta-med-gsd.md) beskriver hur projektet kartläggs, förändras fasvis och verifieras; [STATE.md](.planning/STATE.md) anger var arbetet står.
+[Den godkända färdplanen](.planning/ROADMAP.md) har åtta faser och 42 krav. Nästa steg är diskussionen inför fas 1; ingen fas är genomförd. [Arbeta med GSD](docs/arbeta-med-gsd.md) beskriver hur projektet kartläggs, förändras fasvis och verifieras; [STATE.md](.planning/STATE.md) anger var arbetet står.
 
 ## Projektets delar
 
