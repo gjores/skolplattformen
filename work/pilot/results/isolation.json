@@ -1,0 +1,404 @@
+{
+  "kind": "api-isolation",
+  "date": "2026-09-11T10:44:19.918Z",
+  "target": {
+    "projectId": "skolplattform-pilot-protected",
+    "apiUrl": "http://127.0.0.1:56321",
+    "migrations": 7
+  },
+  "revision": "3acf443",
+  "identities": [
+    "anon",
+    "gammalAnonym",
+    "provkonto"
+  ],
+  "checks": [
+    {
+      "identity": "anon",
+      "operation": "rest school_units.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rest school_units.insert",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rest school_units.update",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rest school_units.delete",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rest profiles.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rest registry_snapshots.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rest timplan_cells.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rpc bootstrap_demo_profile",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rpc current_organizer_id",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rpc current_app_role",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rpc copy_offering_cohort",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rpc appoint_school_principal",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "rpc import_school_unit",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "anon",
+      "operation": "storage tillstand.list",
+      "outcome": "DENIED",
+      "detail": "inget fel men tomt resultat (0 rader)"
+    },
+    {
+      "identity": "anon",
+      "operation": "storage tillstand.download",
+      "outcome": "DENIED",
+      "detail": "fel 400: Object not found"
+    },
+    {
+      "identity": "anon",
+      "operation": "storage tillstand.upload",
+      "outcome": "DENIED",
+      "detail": "fel 400: new row violates row-level security policy"
+    },
+    {
+      "identity": "anon",
+      "operation": "storage tillstand.remove",
+      "outcome": "DENIED",
+      "detail": "inget fel men tomt resultat (0 rader)"
+    },
+    {
+      "identity": "anon",
+      "operation": "graphql/v1 school_unitsCollection",
+      "outcome": "DENIED",
+      "detail": "HTTP 200, errors: Unknown field \"school_unitsCollection\" on type Query"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest school_units.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest school_units.insert",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest school_units.update",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest school_units.delete",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest profiles.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest registry_snapshots.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rest timplan_cells.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rpc bootstrap_demo_profile",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rpc current_organizer_id",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rpc current_app_role",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rpc copy_offering_cohort",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rpc appoint_school_principal",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "rpc import_school_unit",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "storage tillstand.list",
+      "outcome": "DENIED",
+      "detail": "inget fel men tomt resultat (0 rader)"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "storage tillstand.download",
+      "outcome": "DENIED",
+      "detail": "fel 400: Object not found"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "storage tillstand.upload",
+      "outcome": "DENIED",
+      "detail": "fel 400: new row violates row-level security policy"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "storage tillstand.remove",
+      "outcome": "DENIED",
+      "detail": "inget fel men tomt resultat (0 rader)"
+    },
+    {
+      "identity": "gammalAnonym",
+      "operation": "graphql/v1 school_unitsCollection",
+      "outcome": "DENIED",
+      "detail": "HTTP 200, errors: Unknown field \"school_unitsCollection\" on type Query"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "auth.signInWithPassword",
+      "outcome": "INFO",
+      "detail": "inloggning lyckades som 10000000-0000-4000-8000-000000000a02 (förutsättning för proven)"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest school_units.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest school_units.insert",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest school_units.update",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest school_units.delete",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest profiles.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest registry_snapshots.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rest timplan_cells.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rpc bootstrap_demo_profile",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rpc current_organizer_id",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rpc current_app_role",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rpc copy_offering_cohort",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rpc appoint_school_principal",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "rpc import_school_unit",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "storage tillstand.list",
+      "outcome": "DENIED",
+      "detail": "inget fel men tomt resultat (0 rader)"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "storage tillstand.download",
+      "outcome": "DENIED",
+      "detail": "fel 400: Object not found"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "storage tillstand.upload",
+      "outcome": "DENIED",
+      "detail": "fel 400: new row violates row-level security policy"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "storage tillstand.remove",
+      "outcome": "DENIED",
+      "detail": "inget fel men tomt resultat (0 rader)"
+    },
+    {
+      "identity": "provkonto",
+      "operation": "graphql/v1 school_unitsCollection",
+      "outcome": "DENIED",
+      "detail": "HTTP 200, errors: Unknown field \"school_unitsCollection\" on type Query"
+    },
+    {
+      "identity": "anon",
+      "operation": "auth.signInAnonymously",
+      "outcome": "DENIED",
+      "detail": "fel 422: Anonymous sign-ins are disabled"
+    },
+    {
+      "identity": "nyAnvandare",
+      "operation": "auth.signUp",
+      "outcome": "INFO",
+      "detail": "signup lyckades (användare 0e7ccd77-ab72-4bbf-b874-585c44451d4b); läsprov följer"
+    },
+    {
+      "identity": "nyAnvandare",
+      "operation": "rest school_units.select",
+      "outcome": "DENIED",
+      "detail": "fel 42501: permission denied for schema public"
+    },
+    {
+      "identity": "nyAnvandare",
+      "operation": "graphql/v1 school_unitsCollection",
+      "outcome": "DENIED",
+      "detail": "HTTP 200, errors: Unknown field \"school_unitsCollection\" on type Query"
+    },
+    {
+      "identity": "nyAnvandare",
+      "operation": "städning auth.users (postgres)",
+      "outcome": "INFO",
+      "detail": "1 signup-provanvändare borttagen"
+    },
+    {
+      "identity": "kontroll",
+      "operation": "storage-fil kvar och ingen intrångsfil",
+      "outcome": "DENIED",
+      "detail": "karantan-prov.txt finns: true; intrang.txt finns: false"
+    }
+  ],
+  "rowsBefore": {
+    "profiles": 1,
+    "school_units": 1,
+    "offerings": 1,
+    "class_timplans": 0,
+    "storage_tillstand": 1,
+    "auth_users": 2,
+    "profiles_md5": "c8136bb5e7a9118806fd17950e48fb62"
+  },
+  "rowsAfter": {
+    "profiles": 1,
+    "school_units": 1,
+    "offerings": 1,
+    "class_timplans": 0,
+    "storage_tillstand": 1,
+    "auth_users": 2,
+    "profiles_md5": "c8136bb5e7a9118806fd17950e48fb62"
+  },
+  "unchanged": true,
+  "setupFailure": null,
+  "status": "PASS"
+}
