@@ -1,0 +1,11 @@
+# 2026-09-11T10:38:17Z protected-mål, migrationer: 7, revision: 6fc7796
+# Kommando: supabase --workdir work/pilot/targets/protected test db --local (Supabase CLI 2.78.1, pg_prove 3.36, lokal PG17 på 127.0.0.1:56322, project_id skolplattform-pilot-protected)
+Using workdir /Users/petter.gjores/dev/skolplattform/work/pilot/targets/protected
+Connecting to local database...
+psql:/Users/petter.gjores/dev/skolplattform/work/pilot/targets/protected/supabase/tests/phase1_isolation.test.sql:11: NOTICE:  extension "pgtap" already exists, skipping
+psql:/Users/petter.gjores/dev/skolplattform/work/pilot/targets/protected/supabase/tests/phase1_isolation.test.sql:125: WARNING:  no privileges were granted for "grant_pg_net_access"
+psql:/Users/petter.gjores/dev/skolplattform/work/pilot/targets/protected/supabase/tests/phase1_isolation.test.sql:125: WARNING:  no privileges were granted for "grant_pg_cron_access"
+/Users/petter.gjores/dev/skolplattform/work/pilot/targets/protected/supabase/tests/phase1_isolation.test.sql .. ok
+All tests successful.
+Files=1, Tests=52,  0 wallclock secs ( 0.02 usr  0.02 sys +  0.01 cusr  0.01 csys =  0.06 CPU)
+Result: PASS
