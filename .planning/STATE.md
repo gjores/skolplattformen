@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Baslinje och avskild pilotmiljö
-current_plan: 9
+current_plan: 10
 status: executing
-stopped_at: Completed 01-08-PLAN.md
-last_updated: "2026-09-11T21:55:04.831Z"
+stopped_at: Completed 01-10-PLAN.md
+last_updated: "2026-09-11T22:05:58.650Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTING
-Plan: 9 of 10
+Plan: 10 of 10
 **Current Phase:** 1
 **Current Phase Name:** Baslinje och avskild pilotmiljö
 **Total Phases:** 8
-**Current Plan:** 9
+**Current Plan:** 10
 **Total Plans in Phase:** 10
 **Status:** Ready to execute
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
@@ -70,6 +70,7 @@ Phases executed: 0 of 8
 | Phase 01 P06 | 25min | 2 tasks | 4 files |
 | Phase 01 P07 | 48min | 3 tasks | 5 files |
 | Phase 01 P08 | 20min | 2 tasks | 6 files |
+| Phase 01 P10 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,8 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 01]: Playwright 1.63.0 med egna servrar per projekt (reuseExistingServer false) och VINEXT_NO_DEV_LOCK=1 för dev-servrarna; browserproven väntar in Reacts hydrering innan de interagerar
 - [Phase 01]: Isolering mäts som förbjudna sökvägar + inga främmande värdar + inga sb-nycklar; 'supabase' räknas bara på främmande värd i dev (modulen /lib/supabase.ts laddas från egen värd) men förbjuds helt i det byggda paketet
 - [Phase 01]: Pekyteprovet i phone lämnas rött: skolväljaren är 26 px i WebKit (appearance:auto på select); rättning i globals.css är uppskjuten till UI-arbete, prövas på fysisk telefon i 01-09
+- [Phase 01]: Sparordningsfelet reproduceras i save-order.repro.mjs (utanför testglobben) mot riktiga persistTimplans/loadTimplans med fake-PostgREST, fördröjd första upsert och FK-emulering; 2/2 scenarier röda, KNOWN-ISSUE med ägare fas 5
+- [Phase 01]: verify:phase1 committas med totalstatus FAIL: browsersteget är obligatoriskt och det kända pekyteprovet är rött; ingen filtrering eller KNOWN-ISSUE-väg för Playwright infördes — 01-09 avgör hanteringen
 
 ## Pending Todos
 
@@ -124,6 +127,6 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-11T21:55:04.828Z
-**Stopped At:** Completed 01-08-PLAN.md
+**Last Date:** 2026-09-11T22:05:58.648Z
+**Stopped At:** Completed 01-10-PLAN.md
 **Resume File:** None
