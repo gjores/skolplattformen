@@ -7,11 +7,16 @@
 // som kräver ett färskt exempelbygge: kör `npm run build:example` före
 // `npx playwright test`. Sammanställaren i plan 01-10 (verify-phase1.mjs)
 // gör detta automatiskt.
+//
+// Vinext håller en projektgemensam dev-låsfil (.vinext/dev/lock.json), så
+// exempel- och blockerad-servern kan inte starta samtidigt utan
+// VINEXT_NO_DEV_LOCK=1. Portarna är ändå skilda (5191/5192).
 import { defineConfig, devices } from '@playwright/test';
 
 const example = 'http://127.0.0.1:5191';
 const blocked = 'http://127.0.0.1:5192';
 const built = 'http://127.0.0.1:3011';
+const devEnv = { VINEXT_NO_DEV_LOCK: '1' };
 
 export default defineConfig({
   testDir: './e2e',
@@ -45,8 +50,8 @@ export default defineConfig({
     },
   ],
   webServer: [
-    { command: 'npm run dev:example:test', url: example, reuseExistingServer: false, timeout: 120_000 },
-    { command: 'npm run dev:blocked:test', url: blocked, reuseExistingServer: false, timeout: 120_000 },
+    { command: 'npm run dev:example:test', url: example, reuseExistingServer: false, timeout: 120_000, env: devEnv },
+    { command: 'npm run dev:blocked:test', url: blocked, reuseExistingServer: false, timeout: 120_000, env: devEnv },
     { command: 'npm run preview:example', url: built, reuseExistingServer: false, timeout: 120_000 },
   ],
 });
