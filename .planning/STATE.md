@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Baslinje och avskild pilotmiljö
-current_plan: 7
+current_plan: 8
 status: executing
-stopped_at: Completed 01-06-PLAN.md
-last_updated: "2026-09-11T21:30:21.523Z"
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-09-11T21:31:53.131Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 **Current Phase:** 1
 **Current Phase Name:** Baslinje och avskild pilotmiljö
 **Total Phases:** 8
-**Current Plan:** 7
+**Current Plan:** 8
 **Total Plans in Phase:** 10
 **Status:** Ready to execute
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
@@ -68,6 +68,7 @@ Phases executed: 0 of 8
 | Phase 01 P03 | 6min | 3 tasks | 10 files |
 | Phase 01 P05 | 18min | 3 tasks | 7 files |
 | Phase 01 P06 | 25min | 2 tasks | 4 files |
+| Phase 01 P07 | 48min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 01]: Karantänen 20260911120000 stänger anon/authenticated/PUBLIC i public och Storage-policyerna tillstand_* utan att radera rader; bevisad med 52 pgTAP-prov (All tests successful) mot protected-målet
 - [Phase 01]: API-provet tar bort sin egen signup-provanvändare som postgres före ögonblicksbilden; baseline-provets anonyma sessionsanvändare lämnas (refereras av organisation_events, loggrader raderas inte av prov)
 - [Phase 01]: Karantänen bevisad via API-vägen: 58 nekade/0 tillåtna för anon, gammal anonym HM-profil (mintad JWT) och provkonto; fyra baslinjeflöden PASS i baseline-målet
+- [Phase 01]: Laddnings- och sparstatus i provvyn använder <output> (implicit role=status) enligt lintregeln och .admin-notice-konventionen; ny elev måste få en klass vid vald exempelskola
+- [Phase 01]: Vald exempelskola ägs av sidan (activeUnitId); organisationsvyn rapporterar skolbyte uppåt och elevvyn filtrerar på unitId — ingen remount, ändringar bevaras vid byte
 
 ## Pending Todos
 
@@ -117,6 +120,6 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-11T21:30:21.521Z
-**Stopped At:** Completed 01-06-PLAN.md
+**Last Date:** 2026-09-11T21:31:53.128Z
+**Stopped At:** Completed 01-07-PLAN.md
 **Resume File:** None
