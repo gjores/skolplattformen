@@ -5,11 +5,9 @@ import {
   Building2,
   CheckCheck,
   CircleCheck,
-  Database,
   Download,
   ExternalLink,
   FileCheck2,
-  GraduationCap,
   History,
   Info,
   MessageSquareText,
@@ -38,7 +36,6 @@ import { copyCohort, cohortYear, type ClassTimplan } from '@/lib/cohort-model.ts
 import { copyCohortInDatabase, loadClassTimplans, saveClassTimplan, deleteClassTimplan } from '@/lib/cohort-store.ts';
 import { today } from '@/lib/common.ts';
 import {
-  createOrganisationState,
   schoolTypeNames,
   appointPrincipal,
   activeUnit,
@@ -80,7 +77,6 @@ import {
   type Role,
 } from '@/lib/organisation-model.ts';
 import {
-  createTimplanState,
   deriveEducations,
   currentPlan,
   openPlan,
@@ -97,7 +93,9 @@ import {
   loadSchoolYears,
   persistSchoolYears,
 } from '@/lib/planning-store.ts';
-import { hasBackend } from '@/lib/supabase.ts';
+import { supabase } from '@/lib/supabase.ts';
+import { schoolLabel } from '@/lib/pilot-fixtures.ts';
+import { deriveClasses, type Pupil } from '@/lib/admin-model';
 import {
   loadOrganisation,
   saveUnitFromRegistry,
@@ -158,37 +156,42 @@ export default function OrganisationWorkspace({
   view,
   role,
   schedule,
-  preview: groundExample = false,
-  onPreview,
+  initial,
+  pupils,
+  onUnitChange,
 }: {
   view: OrganisationView;
   role: Role;
-  schedule?: ScheduleSource;
-  preview?: boolean;
-  onPreview: () => void;
+  schedule?: Omit<ScheduleSource, 'classes'>;
+  /** Provmaterialet som sidan äger: organisation och timplaner för sessionen. */
+  initial: { organisation: OrganisationState; plans: TimplanState['plans'] };
+  /** Alla elever i sessionen; klasser härleds per vald skola. */
+  pupils: Pupil[];
+  /** Rapporterar skolbyte uppåt så att elev-, grupp- och klassvyer följer samma skola. */
+  onUnitChange: (unitId: string) => void;
 }) {
-  const backend = hasBackend && !groundExample;
-  const initialOrganisation = () => {
-    const initial = createOrganisationState();
-    return groundExample ? {...initial, units:initial.units.map(u=>({...u,schoolTypes:u.schoolTypes.filter(t=>t.code==='GR')})),offerings:initial.offerings.filter(o=>o.kind==='grundskola')} : initial;
-  };
+  // Fas 1: ingen klient skapas i appen, så databasvägen är stängd. Koden
+  // lämnas kvar men körs aldrig. Öppnas i fas 2 bakom verifierad kontoåtkomst.
+  const backend = supabase() !== null;
   const [copyYear,setCopyYear] = useState<number | null>(null);
   const [copyBusy,setCopyBusy] = useState(false);
   const copyPending = useRef(false);
   const [bindings,setBindings] = useState<ClassTimplan[]>([]);
   const [bindingsUnit,setBindingsUnit] = useState('');
-  const [org, setOrg] = useState<OrganisationState | null>(backend ? null : initialOrganisation);
+  const [org, setOrg] = useState<OrganisationState | null>(backend ? null : initial.organisation);
   const [loading, setLoading] = useState(backend);
   const [saving, setSaving] = useState(false);
   const [tp, setTp] = useState<{ plans: TimplanState['plans'] }>(() => ({
-    plans: backend ? [] : createTimplanState(initialOrganisation()).plans,
+    plans: backend ? [] : initial.plans,
   }));
   // Läsårets dagar ändras per skolenhet i sessionen; exemplet seedas per enhet
   // eftersom skolenheterna kommer ur databasen och inte har en fast kod.
   const [lyByUnit, setLyByUnit] = useState<Record<string, LasarState['years']>>({});
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
-  const [offeringId, setOfferingId] = useState('sa25');
+  const [offeringId, setOfferingId] = useState(
+    () => unitOfferings(initial.organisation, initial.organisation.activeUnitId)[0]?.id ?? '',
+  );
   const [planId, setPlanId] = useState<string | null>(null);
 
   // Skolenheter: uppslag i registret, för uppdatering och för ny skolenhet.
@@ -219,19 +222,33 @@ export default function OrganisationWorkspace({
   const [deciding, setDeciding] = useState(false);
   const [note, setNote] = useState('');
 
+  const [loadAttempt, setLoadAttempt] = useState(0);
   useEffect(() => {
     if (!backend) return;
     let alive = true;
     loadOrganisation(20)
       .then((state) => alive && setOrg(state))
-      .catch((e) => alive && setError(e instanceof Error ? e.message : 'Kunde inte läsa från databasen.'))
+      .catch((e) => alive && setError(e instanceof Error ? e.message : 'Provmaterialet kunde inte hämtas.'))
       .finally(() => alive && setLoading(false));
     return () => {
       alive = false;
     };
-  }, [backend]);
+  }, [backend, loadAttempt]);
+  /** Återförsök kör bara om den tillåtna läsningen; ingen seedning eller annan anslutning. */
+  const retry = () => {
+    if (!backend) return;
+    setError('');
+    setLoading(true);
+    setLoadAttempt((n) => n + 1);
+  };
 
   const lasarUnitId = org ? activeUnit(org).id : '';
+  // Klasser härleds ur elever vid vald skola, så elev-, grupp- och klassförslag
+  // följer samma skolkontext som organisationsvyerna.
+  const unitClasses = useMemo(
+    () => deriveClasses({ pupils: pupils.filter((p) => p.unitId === lasarUnitId) }),
+    [pupils, lasarUnitId],
+  );
   const bindingsLoading = backend && bindingsUnit !== lasarUnitId;
   const lasarUnitTypes = org ? activeUnit(org).schoolTypes.map((t) => t.code).join(',') : '';
   const seededYears = useMemo(
@@ -270,13 +287,32 @@ export default function OrganisationWorkspace({
     return ()=>{alive=false;};
   },[backend,lasarUnitId]);
 
-  if (loading || !org)
+  // Laddning, misslyckad läsning och tomt underlag hålls isär. Ingen av dem
+  // skapar exempeldata eller byter anslutning.
+  if (loading)
     return (
       <div className="admin-workspace">
-        <div className="admin-empty og-loading">
-          <Database size={28} />
-          <h2>{loading ? 'Läser huvudmannens uppgifter…' : 'Kunde inte läsa från databasen'}</h2>
-          <p>{loading ? 'Skolenheter, utbildningar och beslut hämtas från databasen.' : error}</p>
+        <output className="admin-empty og-loading" aria-busy="true">
+          <h2>Hämtar provmaterial…</h2>
+        </output>
+      </div>
+    );
+  if (!org)
+    return (
+      <div className="admin-workspace">
+        <div className="admin-empty" role="alert">
+          <AlertTriangle size={20} aria-hidden="true" />
+          <h2>Provmaterialet kunde inte hämtas. Kontrollera anslutningen och försök igen.</h2>
+          {backend && <Button onClick={retry}>Försök igen</Button>}
+        </div>
+      </div>
+    );
+  if (org.units.length === 0)
+    return (
+      <div className="admin-workspace">
+        <div className="admin-empty">
+          <h2>Inga exempelskolor att visa</h2>
+          <p>Provmaterialet saknas. Kontrollera att provmiljön är förberedd och försök igen.</p>
         </div>
       </div>
     );
@@ -570,7 +606,6 @@ export default function OrganisationWorkspace({
           <p>{titles[view].sub}</p>
         </div>
         <div className="admin-heading-actions">
-          <Button variant="outline" onClick={onPreview}>{groundExample ? 'Tillbaka till mina skolor' : 'Visa grundskoleexempel'}</Button>
           {view === 'unit' && isPrincipal && (
             <Button onClick={() => { setAdding(true); setSuggested(null); resetLookup(); setError(''); }}>
               <Plus size={17} /> Lägg till skolenhet
@@ -585,37 +620,34 @@ export default function OrganisationWorkspace({
       </div>
       <div className="admin-context">
         <span className="context-school">
-          <GraduationCap size={16} />
-          {unitsForRole(org, role).length > 1 ? (
-            <select
-              className="og-unit-switch"
-              aria-label="Skolenhet"
-              value={unit.id}
-              onChange={(e) => {
-                run((s) => selectUnit(s, e.target.value));
-                setOfferingId('');
-                setPlanId(null);
-              }}
-            >
-              {unitsForRole(org, role).map((u) => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
-          ) : (
-            unit.name
-          )}
+          <School size={16} aria-hidden="true" />
+          <label className="og-unit-label" htmlFor="exempelskola">Exempelskola</label>
+          <select
+            id="exempelskola"
+            name="exempelskola"
+            className="og-unit-switch"
+            value={unit.id}
+            onChange={(e) => {
+              run((s) => selectUnit(s, e.target.value));
+              setOfferingId(unitOfferings(org, e.target.value)[0]?.id ?? '');
+              setPlanId(null);
+              onUnitChange(e.target.value);
+            }}
+          >
+            {unitsForRole(org, role).map((u) => (
+              <option key={u.id} value={u.id}>{schoolLabel(u)}</option>
+            ))}
+          </select>
           <small className="og-code">{unit.code}</small>
         </span>
         <span>{unit.schoolTypes.map((t) => t.name).join(' & ') || 'Inga skolformer'}</span>
-        <span>{unit.organizer.type} huvudman</span>
         <span className="context-demo">
-          {saving ? (
-            <span className="og-saving">Sparar…</span>
-          ) : backend ? (
-            'Exempelroll utan behörighetskontroll · ändringar sparas i databasen'
-          ) : (
-            groundExample ? 'Grundskoleexempel · sparas inte i databasen' : 'Exempelroll utan behörighetskontroll · ändringar gäller denna session'
-          )}
+          <Info size={16} aria-hidden="true" /> Fiktiva skolor och elever.{' '}
+          {backend
+            ? saving
+              ? <output className="og-saving">Sparar…</output>
+              : 'Ändringar sparas i den anslutna provdatabasen'
+            : 'Ändringar gäller tills sidan laddas om'}
         </span>
       </div>
       {notice && (
@@ -719,7 +751,7 @@ export default function OrganisationWorkspace({
         <TimplanView state={tpState} apply={runTimplan} blocked={blocked} error={error} clearError={() => setError('')}
           renderClasses={(plan,education)=><TimplanClasses key={`${unit.id}:${education.id}:${plan.id}`} unitId={unit.id} plan={plan} education={education} plans={tp.plans}
             bindings={bindings.filter(b=>b.unitId===unit.id)} loading={bindingsLoading}
-            classNames={(schedule?.classes??[]).filter(c=>c.kind===education.kind).map(c=>c.name)}
+            classNames={unitClasses.filter(c=>c.kind===education.kind).map(c=>c.name)}
             onSave={async b=>{if(backend)await saveClassTimplan(b);setBindings(rows=>[...rows.filter(x=>!(x.unitId===b.unitId&&x.className===b.className&&x.startYear===b.startYear)),b]);}}
             onRemove={async b=>{if(backend)await deleteClassTimplan(b);setBindings(rows=>rows.filter(x=>!(x.unitId===b.unitId&&x.className===b.className&&x.startYear===b.startYear)));}}/>}
         />
@@ -738,8 +770,8 @@ export default function OrganisationWorkspace({
           schoolTypes={unit.schoolTypes.map((t) => t.code)}
           timplans={tpState}
           bindings={bindings.filter(b=>b.unitId===unit.id)}
-          classes={schedule?.classes ?? []}
-          schedule={schedule}
+          classes={unitClasses}
+          schedule={{ groups: schedule?.groups ?? [], slots: schedule?.slots ?? [], classes: unitClasses }}
           error={error}
           clearError={() => setError('')}
         />

@@ -6,7 +6,9 @@ import AdminWorkspace from './admin-workspace';
 import OrganisationWorkspace, {
   type OrganisationView,
 } from './organisation-workspace';
-import { createAdminState, deriveClasses, type AdminState, type AdminView } from '@/lib/admin-model';
+import { type AdminState, type AdminView } from '@/lib/admin-model';
+import { runtime } from '@/lib/runtime-mode.ts';
+import { createPilotFixture, PILOT_UNIT_GR, type PilotFixture } from '@/lib/pilot-fixtures.ts';
 import { roleLabel, type Role } from '@/lib/organisation-model.ts';
 import {
   Layers3,
@@ -207,7 +209,7 @@ function Navigation({
           </div>
         ))}
         <div className="nav-note">
-          <span className="tiny-dot" /> Demo med exempeldata
+          <span className="tiny-dot" /> Fiktiva skolor och elever.
         </div>
       </SidebarContent>
       <SidebarFooter className="profile profile-roles">
@@ -219,7 +221,7 @@ function Navigation({
           </div>
         </div>
         <fieldset className="role-switch">
-          <legend>Arbeta som</legend>
+          <legend>Prova som</legend>
           {roles.map((r) => (
             <button
               key={r}
@@ -238,12 +240,37 @@ function Navigation({
     </>
   );
 }
+/**
+ * Startgrind. Utanför det uttryckliga exempelläget visas bara en blockerad
+ * start: ingen sidomeny, inget rollval och ingen skoldata. Ingen teknisk
+ * lägesorsak, adress eller nyckel visas.
+ */
 export default function Home() {
-  const [previewGrundskola,setPreviewGrundskola] = useState(false);
+  if (runtime.mode !== 'example') return <BlockedStart />;
+  return <ExampleHome />;
+}
+function BlockedStart() {
+  return (
+    <main id="workspace" className="blocked-start">
+      <h1>Arbetsytan är inte tillgänglig ännu</h1>
+      <p>
+        Den här miljön är inte klar för åtkomst. Följ projektets startanvisning
+        för att öppna provmiljön.
+      </p>
+    </main>
+  );
+}
+function ExampleHome() {
+  // Provmaterialet skapas en gång per öppnad sida och hålls i sidans minne.
+  // Vid omläsning börjar exemplet om.
+  const [fixture] = useState<PilotFixture>(createPilotFixture);
   const [role, setRole] = useState<Role>('huvudman');
   // Administrationens sessionsdata ligger här så att läsårsvyn kan räkna på
   // samma exempelvecka som Schema & resurser visar.
-  const [admin, setAdmin] = useState<AdminState>(createAdminState);
+  const [admin, setAdmin] = useState<AdminState>(() => fixture.admin);
+  // Vald exempelskola ägs av sidan så att elev-, grupp- och klassvyer följer
+  // samma skolkontext som organisationsvyerna.
+  const [activeUnitId, setActiveUnitId] = useState<string>(PILOT_UNIT_GR);
   const [view, setView] = useState<View>('unit');
   const [course, setCourse] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Course[]>([]);
@@ -282,7 +309,7 @@ export default function Home() {
           {
             name: 'open_teaching_area',
             description:
-              'Öppna ett av förhandsversionens arbetsområden. Ändrar bara navigation; publicerar eller sparar inga uppgifter.',
+              'Öppna ett av provmiljöns arbetsområden. Ändrar bara navigation; publicerar eller sparar inga uppgifter.',
             inputSchema: {
               type: 'object',
               properties: {
@@ -342,11 +369,11 @@ export default function Home() {
             <strong>{navigation.find((n) => n.id === view)?.label}</strong>
           </div>
           <div className="top-actions">
-            <span className="demo-pill">Förhandsversion</span>
+            <span className="demo-pill">Provmiljö</span>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Om förhandsversionen"
+              aria-label="Om provmiljön"
               onClick={() => setHelp(true)}
             >
               <LifeBuoy size={19} />
@@ -367,20 +394,21 @@ export default function Home() {
               onNavigate={setView}
               state={admin}
               setState={setAdmin}
+              unitId={activeUnitId}
             />
           </div>
           <div hidden={!(organisationViews as string[]).includes(view)}>
             <OrganisationWorkspace
-              key={previewGrundskola?'grundskoleexempel':'skolor'}
-              preview={previewGrundskola}
-              onPreview={()=>{setPreviewGrundskola(v=>!v);setView('timplan');}}
               view={
                 ((organisationViews as string[]).includes(view)
                   ? view
                   : 'unit') as OrganisationView
               }
               role={role}
-              schedule={{ groups: admin.groups, slots: admin.slots, classes: deriveClasses(admin) }}
+              initial={{ organisation: fixture.organisation, plans: fixture.timplans.plans }}
+              pupils={admin.pupils}
+              onUnitChange={setActiveUnitId}
+              schedule={{ groups: admin.groups, slots: admin.slots }}
             />
           </div>
           <div hidden={view !== 'day'}>
@@ -623,13 +651,21 @@ export default function Home() {
       </Dialog>
       <Dialog open={help} onOpenChange={setHelp}>
         <DialogContent showCloseButton={false}>
-          <DialogTitle>En första arbetsversion</DialogTitle>
+          <DialogTitle>Om provmiljön</DialogTitle>
           <DialogDescription>
-            Alla namn, texter och scheman är syntetiska exempel. Ändringar
-            gäller denna session. Ingen information skickas till elever eller
-            skolsystem.
+            Här kan du prova administration med fiktiva skolor och elever.
+            Grundskola och gymnasium har varsin exempelskola.
           </DialogDescription>
-          <DialogClose render={<Button />}>Jag förstår</DialogClose>
+          <p>Ändringar gäller medan sidan är öppen. Vid omläsning börjar exemplet om.</p>
+          <p>
+            Elever, studieplaner, grupper, schema och planeringsunderlag är
+            exempel. Ändringar försvinner vid omläsning.
+          </p>
+          <p>
+            Du kan prova olika arbetsroller. Rollvalet är ett exempel och ger
+            ingen åtkomst till en verklig skola.
+          </p>
+          <DialogClose render={<Button />}>Stäng hjälpen</DialogClose>
         </DialogContent>
       </Dialog>
     </SidebarProvider>

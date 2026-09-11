@@ -165,12 +165,15 @@ export default function AdminWorkspace({
   onNavigate,
   state,
   setState,
+  unitId,
 }: {
   view: AdminView;
   onNavigate: (v: AdminView) => void;
   /** Sessionsdata ägs av sidan så att läsårsvyn kan räkna på samma schema. */
   state: AdminState;
   setState: React.Dispatch<React.SetStateAction<AdminState>>;
+  /** Vald exempelskola; elevlistor, filter och räkningar avser bara den skolan. */
+  unitId: string;
 }) {
   const [query, setQuery] = useState('');
   const [classFilter, setClassFilter] = useState('all');
@@ -195,9 +198,14 @@ export default function AdminWorkspace({
   const [resource, setResource] = useState('all');
   const [planSearch, setPlanSearch] = useState('');
   const conflicts = useMemo(() => scheduleConflicts(state), [state]);
-  const attention = state.pupils.filter((p) => pupilIssues(p).length);
-  const classNames = [...new Set(state.pupils.map((p) => p.className))];
-  const visible = state.pupils
+  // Elever vid vald skola. Id-uppslag, id-generering och skrivningar går
+  // fortfarande mot hela registret så att andra skolans elever bevaras.
+  const unitPupils = useMemo(() => state.pupils.filter((p) => p.unitId === unitId), [state.pupils, unitId]);
+  const attention = unitPupils.filter((p) => pupilIssues(p).length);
+  const classNames = [...new Set(unitPupils.map((p) => p.className))];
+  // Klassen för en ny elev måste finnas vid vald skola; annars väljs skolans första klass.
+  const pupilClass = classNames.includes(newClass) ? newClass : (classNames[0] ?? '');
+  const visible = unitPupils
     .filter(
       (p) =>
         (classFilter === 'all' || p.className === classFilter) &&
@@ -211,7 +219,7 @@ export default function AdminWorkspace({
     .sort((a, b) => (ascending ? 1 : -1) * a.name.localeCompare(b.name, 'sv'));
   const pupil = state.pupils.find((p) => p.id === pupilId);
   const planPupil =
-    state.pupils.find((p) => p.id === planId) ?? state.pupils[0];
+    state.pupils.find((p) => p.id === planId) ?? unitPupils[0];
   const group = state.groups.find((g) => g.id === groupId) ?? state.groups[0];
   const preview = batchIds ? groupPreview(state, batchIds, targetGroup) : null;
   const schedulePreview = editSlot ? slotPreview(state, editSlot) : null;
@@ -334,7 +342,7 @@ export default function AdminWorkspace({
                   clearSelection();
                 }}
               >
-                Alla elever <span>{state.pupils.length}</span>
+                Alla elever <span>{unitPupils.length}</span>
               </button>
               <button
                 className={filter === 'attention' ? 'active' : ''}
@@ -356,7 +364,7 @@ export default function AdminWorkspace({
                 Inskrivning{' '}
                 <span>
                   {
-                    state.pupils.filter((p) => p.status === 'Inskrivning')
+                    unitPupils.filter((p) => p.status === 'Inskrivning')
                       .length
                   }
                 </span>
@@ -568,7 +576,7 @@ export default function AdminWorkspace({
               )}
               <div className="table-summary">
                 <span>
-                  {visible.length} av {state.pupils.length} elever
+                  {visible.length} av {unitPupils.length} elever
                 </span>
                 <span>Sorterat på namn · {ascending ? 'A–Ö' : 'Ö–A'}</span>
               </div>
@@ -588,13 +596,13 @@ export default function AdminWorkspace({
               <button
                 className="rail-task"
                 onClick={() => {
-                  const p = state.pupils.find((p) =>
+                  const p = unitPupils.find((p) =>
                     p.plan.some((i) => i.points > 0 && !i.groupId),
                   );
                   if (p) openPlan(p.id);
                 }}
                 disabled={
-                  !state.pupils.some((p) =>
+                  !unitPupils.some((p) =>
                     p.plan.some((i) => i.points > 0 && !i.groupId),
                   )
                 }
@@ -605,7 +613,7 @@ export default function AdminWorkspace({
                 <span>
                   <strong>
                     {
-                      state.pupils.filter((p) =>
+                      unitPupils.filter((p) =>
                         p.plan.some((i) => i.points > 0 && !i.groupId),
                       ).length
                     }{' '}
@@ -618,17 +626,17 @@ export default function AdminWorkspace({
               <button
                 className="rail-task"
                 onClick={() => {
-                  const p = state.pupils.find((p) => p.draft);
+                  const p = unitPupils.find((p) => p.draft);
                   if (p) openPlan(p.id);
                 }}
-                disabled={!state.pupils.some((p) => p.draft)}
+                disabled={!unitPupils.some((p) => p.draft)}
               >
                 <span className="rail-task-icon">
                   <BookOpen size={19} />
                 </span>
                 <span>
                   <strong>
-                    {state.pupils.filter((p) => p.draft).length} planutkast att
+                    {unitPupils.filter((p) => p.draft).length} planutkast att
                     granska
                   </strong>
                   <small>Jämför ändringen med gällande plan</small>
@@ -680,7 +688,7 @@ export default function AdminWorkspace({
               />
             </div>
             <div className="directory-caption">GYMNASIET · TERMINSUTDRAG</div>
-            {state.pupils
+            {unitPupils
               .filter(
                 (p) =>
                   p.regime !== 'Grundskola' &&
@@ -984,7 +992,7 @@ export default function AdminWorkspace({
                 <Layers3 size={16} />
                 {[
                   ...new Set(
-                    state.pupils
+                    unitPupils
                       .filter((p) => group.members.includes(p.id))
                       .map((p) => p.className),
                   ),
@@ -1002,7 +1010,7 @@ export default function AdminWorkspace({
               </Button>
             </div>
             <div className="group-members">
-              {state.pupils
+              {unitPupils
                 .filter((p) => group.members.includes(p.id))
                 .map((p) => (
                   <div className="group-member" key={p.id}>
@@ -1461,7 +1469,7 @@ export default function AdminWorkspace({
               </div>
               <details className="eligible-pupils" open={!batchIds?.length}>
                 <summary>Lägg till elever i urvalet</summary>
-                {state.pupils
+                {unitPupils
                   .filter((p) => {
                     const target = state.groups.find(
                       (g) => g.id === targetGroup,
@@ -1864,9 +1872,13 @@ export default function AdminWorkspace({
                 setError('Fyll i elevens namn och klass.');
                 return;
               }
-              const basis = state.pupils.find(
+              const basis = unitPupils.find(
                 (p) => p.className === className,
-              )!;
+              );
+              if (!basis) {
+                setError('Välj en klass vid den valda exempelskolan.');
+                return;
+              }
               const id = `E-${Math.max(...state.pupils.map((p) => Number(p.id.slice(2)))) + 1}`;
               const p: Pupil = {
                 id,
@@ -1875,7 +1887,7 @@ export default function AdminWorkspace({
                 program: basis.program,
                 regime: basis.regime,
                 mentor: basis.mentor,
-                  unitId: state.pupils[0]?.unitId ?? '99999901',
+                unitId,
                 status: 'Inskrivning',
                 start: '2026-09-05',
                 plan: [],
@@ -1916,10 +1928,10 @@ export default function AdminWorkspace({
               placeholder="Förnamn Efternamn"
             />
             <span className="field-label">Klass i exemplet</span>
-            <input type="hidden" name="className" value={newClass} />
+            <input type="hidden" name="className" value={pupilClass} />
             <Pick
               label="Klass i exemplet"
-              value={newClass}
+              value={pupilClass}
               onChange={setNewClass}
               options={classNames.map((c) => ({ value: c, label: c }))}
             />
