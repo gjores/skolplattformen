@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Baslinje och avskild pilotmiljö
-current_plan: 4
+current_plan: 5
 status: executing
-stopped_at: Completed 01-04-PLAN.md
-last_updated: "2026-09-11T10:26:16.312Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-09-11T10:28:09.824Z"
 last_activity: 2026-09-11
 progress:
   total_phases: 8
   completed_phases: 0
   total_plans: 10
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -29,11 +29,11 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 ## Current Position
 
 Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 **Current Phase:** 1
 **Current Phase Name:** Baslinje och avskild pilotmiljö
 **Total Phases:** 8
-**Current Plan:** 4
+**Current Plan:** 5
 **Total Plans in Phase:** 10
 **Status:** Ready to execute
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
@@ -65,6 +65,7 @@ Phases executed: 0 of 8
 | Phase 01 P01 | 5min | 2 tasks | 3 files |
 | Phase 01 P02 | 6min | 2 tasks | 1 files |
 | Phase 01 P04 | 5min | 2 tasks | 3 files |
+| Phase 01 P03 | 6min | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 01]: web/.openai/hosting.json spåras (importeras av vite.config.ts, endast null-värden); resultatfilen från verify-baseline.mjs har extra fält errors[]
 - [Phase 01]: Provmiljöns organisation och 24 elever står som Syntetiskt exempel i anslutningsprofilen; partner, volym, källa, IdP, kontokälla, leverantör och drift är öppna beroenden OB-01–OB-08 med beslutsägare
 - [Phase 01]: Pilotfixturens tillstånd anges som 'Huvudmannens beslut' (kommunal huvudman); likhetstestet jämför timplaner strukturellt eftersom timplan-model sätter ID:n med uid()
+- [Phase 01]: Klientgränsen skapar ingen Supabase-klient i fas 1; hasBackend är konstant false och laddarna är rena läsningar utan demoinloggning eller seedning (seedExample* är den uttryckliga vägen)
+- [Phase 01]: Exempelläget startas/byggs via run-mode.mjs med tomma Supabase-strängar i miljön så att .env.local aldrig läcker in; bygget märks i dist/build-mode.json
 
 ## Pending Todos
 
@@ -108,6 +111,6 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-11T10:26:16.307Z
-**Stopped At:** Completed 01-04-PLAN.md
+**Last Date:** 2026-09-11T10:28:09.820Z
+**Stopped At:** Completed 01-03-PLAN.md
 **Resume File:** None
