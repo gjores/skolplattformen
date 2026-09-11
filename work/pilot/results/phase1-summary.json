@@ -1,20 +1,20 @@
 {
   "kind": "phase1-summary",
-  "date": "2026-09-11T22:02:31.766Z",
-  "revision": "7c7c760",
+  "date": "2026-09-11T22:08:29.836Z",
+  "revision": "7d289d5",
   "node": "v25.9.0",
   "flags": {
     "withRestore": false,
     "skipBrowser": false
   },
-  "durationMs": 58078,
+  "durationMs": 52946,
   "steps": [
     {
       "name": "modeller",
       "command": "node --test lib/*.test.mjs (11 filer)",
       "required": true,
       "exit": 0,
-      "durationMs": 1040,
+      "durationMs": 889,
       "status": "PASS"
     },
     {
@@ -22,7 +22,7 @@
       "command": "npx tsc --noEmit",
       "required": true,
       "exit": 0,
-      "durationMs": 1735,
+      "durationMs": 1256,
       "status": "PASS"
     },
     {
@@ -30,7 +30,7 @@
       "command": "npx oxlint app lib scripts e2e",
       "required": true,
       "exit": 0,
-      "durationMs": 869,
+      "durationMs": 757,
       "status": "PASS"
     },
     {
@@ -38,23 +38,23 @@
       "command": "npm run build:example",
       "required": true,
       "exit": 0,
-      "durationMs": 4156,
+      "durationMs": 4021,
       "status": "PASS"
     },
     {
       "name": "browser",
       "command": "npx playwright test",
       "required": true,
-      "exit": 1,
-      "durationMs": 45053,
-      "status": "FAIL"
+      "exit": 0,
+      "durationMs": 42109,
+      "status": "PASS"
     },
     {
       "name": "sparordning",
       "command": "node --test lib/save-order.repro.mjs",
       "required": false,
       "exit": 1,
-      "durationMs": 687,
+      "durationMs": 619,
       "status": "KNOWN-ISSUE",
       "detail": "KNOWN-ISSUE: 2 av 2 scenarier röda som väntat (samma cell=FAIL, nytt objekt=FAIL). Ägare: fas 5. Sparordning/id-mappning i persistTimplans är inte rättad."
     },
@@ -63,7 +63,7 @@
       "command": "node work/pilot/verify-target.mjs --target protected",
       "required": true,
       "exit": 0,
-      "durationMs": 605,
+      "durationMs": 537,
       "status": "PASS"
     },
     {
@@ -71,7 +71,7 @@
       "command": "supabase --workdir <protected workdir> test db --local",
       "required": true,
       "exit": 0,
-      "durationMs": 1283,
+      "durationMs": 740,
       "status": "PASS",
       "detail": "pgTAP: 1 fil(er), All tests successful"
     },
@@ -80,7 +80,7 @@
       "command": "node work/pilot/verify-isolation.mjs",
       "required": true,
       "exit": 0,
-      "durationMs": 1830,
+      "durationMs": 1331,
       "status": "PASS"
     },
     {
@@ -88,7 +88,7 @@
       "command": "node work/pilot/verify-target.mjs --target baseline",
       "required": true,
       "exit": 0,
-      "durationMs": 161,
+      "durationMs": 151,
       "status": "PASS"
     },
     {
@@ -96,7 +96,7 @@
       "command": "node work/pilot/verify-baseline-db.mjs",
       "required": true,
       "exit": 0,
-      "durationMs": 613,
+      "durationMs": 500,
       "status": "PASS"
     },
     {
@@ -112,5 +112,5 @@
   "knownIssues": [
     "sparordning: KNOWN-ISSUE: 2 av 2 scenarier röda som väntat (samma cell=FAIL, nytt objekt=FAIL). Ägare: fas 5. Sparordning/id-mappning i persistTimplans är inte rättad."
   ],
-  "status": "FAIL"
+  "status": "PASS"
 }

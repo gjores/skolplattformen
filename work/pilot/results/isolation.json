@@ -1,12 +1,12 @@
 {
   "kind": "api-isolation",
-  "date": "2026-09-11T10:44:19.918Z",
+  "date": "2026-09-11T22:08:29.181Z",
   "target": {
     "projectId": "skolplattform-pilot-protected",
     "apiUrl": "http://127.0.0.1:56321",
     "migrations": 7
   },
-  "revision": "3acf443",
+  "revision": "7d289d5",
   "identities": [
     "anon",
     "gammalAnonym",
@@ -353,7 +353,7 @@
       "identity": "nyAnvandare",
       "operation": "auth.signUp",
       "outcome": "INFO",
-      "detail": "signup lyckades (användare 0e7ccd77-ab72-4bbf-b874-585c44451d4b); läsprov följer"
+      "detail": "signup lyckades (användare 83cc2f32-f854-4542-838f-d55ad7a0644a); läsprov följer"
     },
     {
       "identity": "nyAnvandare",
