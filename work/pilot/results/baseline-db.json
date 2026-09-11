@@ -1,0 +1,33 @@
+{
+  "kind": "baseline-db",
+  "date": "2026-09-11T21:28:46.746Z",
+  "target": {
+    "projectId": "skolplattform-pilot-baseline",
+    "migrations": 6,
+    "baselineRef": "917313bac9b852a4e494ac5e63b5492f77cb0bb5"
+  },
+  "revision": "eead387",
+  "flows": [
+    {
+      "flow": "utbildning-och-kurs-niva",
+      "status": "PASS",
+      "detail": "gymnasieutbildning skapad, kurs/nivå tillagd (2 nivåer vid omläsning), fastställd, ändring av fastställd plan nekad"
+    },
+    {
+      "flow": "kullkopiering-fristaende",
+      "status": "PASS",
+      "detail": "kopia HT 2027 planerad med poängplan/timplan som utkast (decided_on null, samma nivåer/celler); dubblett och tidigare kull nekas; källan oförändrad; inga klasskopplingar skapade"
+    },
+    {
+      "flow": "klass-timplan-fast-version",
+      "status": "PASS",
+      "detail": "koppling nekas före beslut, sparas efter, ogiltig kolumn och annan skolenhet nekas, ersatt version behåller samma timplan_id, borttagning ger 0 rader"
+    },
+    {
+      "flow": "grundskola-timplan",
+      "status": "PASS",
+      "detail": "grundskoleutbildning (åk 1–9, ingen poängplan) med fastställd timplan; klass 4A kopplad till ak4; gymnasiekolumn ar1 nekas"
+    }
+  ],
+  "status": "PASS"
+}
