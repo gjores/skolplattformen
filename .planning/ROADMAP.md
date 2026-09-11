@@ -36,7 +36,19 @@ Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in 
 2. Pilotansvarig kan använda en avskild testmiljö där demoinloggning, installerad demoetablering och automatisk exempeldata inte ger åtkomst till skyddade driftvägar. (BASE-02)
 3. Pilotansvarig kan granska en daterad anslutningsprofil med organisation, elevfält, originalkälla, skrivansvar och volym; ännu ej valda kund- och leverantörsuppgifter framgår som öppna beroenden. (PILOT-01)
 
-**Plans**: TBD
+**Plans**: 9 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Git-baslinje med tagg `fas1-baslinje` och återställningsprov (verify-baseline.mjs)
+- [ ] 01-02-PLAN.md — Daterad anslutningsprofil docs/pilot/connection-profile.md (PILOT-01)
+- [ ] 01-03-PLAN.md — Runtime-läge stängt som standard, klientgräns utan klient, laddare utan demoinloggning/seed, exempelskript med tom Supabase-miljö
+- [ ] 01-04-PLAN.md — Pilotfixtur: en huvudman, grundskola + gymnasium, 2 klasser × 6 elever per skola (TDD)
+- [ ] 01-05-PLAN.md — Disponibla lokala Supabase-mål med målskydd, karantänmigration och pgTAP-prov
+- [ ] 01-06-PLAN.md — Negativa API-prov (tre identiteter, rader oförändrade) och positiva baslinjeflöden mot baseline-målet
+- [ ] 01-07-PLAN.md — UI: blockerad start, Provmiljö-märkning, skolväljare Exempelskola, sann lagringsstatus, gatad telefonstart
+- [ ] 01-08-PLAN.md — Playwright (dator/telefon/blockerad/byggd), sparordningsreproducerare som KNOWN-ISSUE, sammanställare verify:phase1
+- [ ] 01-09-PLAN.md — Baslinjerapport docs/pilot/baseline.md, startanvisning, valideringskarta och användarens checkpoint på dator/telefon
+
 **UI hint**: yes
 
 ### Phase 2: Verifierad kontoåtkomst
@@ -172,7 +184,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Baslinje och avskild pilotmiljö | 0/TBD | Not started | - |
+| 1. Baslinje och avskild pilotmiljö | 0/9 | Planned | - |
 | 2. Verifierad kontoåtkomst | 0/TBD | Not started | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
