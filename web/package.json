@@ -11,7 +11,13 @@
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "format": "oxfmt",
-    "phone": "node scripts/phone-preview.mjs"
+    "phone": "node scripts/phone-preview.mjs",
+    "test": "node --test lib/*.test.mjs",
+    "dev:example": "node scripts/run-mode.mjs dev --mode example",
+    "dev:example:test": "node scripts/run-mode.mjs dev --mode example --port 5191 --hostname 127.0.0.1",
+    "dev:blocked:test": "node scripts/run-mode.mjs dev --mode blocked-probe --port 5192 --hostname 127.0.0.1",
+    "build:example": "node scripts/run-mode.mjs build --mode example",
+    "preview:example": "node scripts/run-mode.mjs preview --port 3011"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
