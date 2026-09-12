@@ -28,6 +28,7 @@ Här avses befintliga funktioner i arbetsversionen, inte validering i kommunal p
 - ✓ Utbildningsupplägg kan kopieras till nästa elevkull och fastställda timplaner kan kopplas till klasser — befintlig implementation, se `docs/elevkullar-och-klasskopplingar.md`.
 - ✓ Rektorns arbetsflöde tilldelar läraruppdrag medan huvudmannens vy visar tilldelningen — funktion prövad 2026-09-08; databasens fullständiga uppdragsavgränsning återstår.
 - ✓ Mobilanpassade vyer och lokal telefonförhandsvisning finns — ingen separat mobilapp behövs för pilotens grundflöden.
+- ✓ Versionshanterad baslinje (`fas1-baslinje`) med återställningsprov, avskild provmiljö utan demoinloggning eller Supabase-klient (karantän bevisad med pgTAP 52/52 och 58 nekade API-anrop), syntetiska exempelskolor för grundskola och gymnasium, samt daterad anslutningsprofil med öppna beroenden — validerat i fas 1: Baslinje och avskild pilotmiljö (2026-09-12, `01-VERIFICATION.md`).
 
 ### Active
 
@@ -114,4 +115,4 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dokumentera ändrade eller borttagna krav med skäl och uppdatera beslut och nuläge. Vid milstolpens slut: granska hela projektbeskrivningen, kärnvärdet, senarelagd omfattning och driftläget. Ett förslag blir inte beslutat enbart för att det står i filen.
 
 ---
-*Last updated: 2026-09-11 after user approval of 42 requirements and the eight-phase roadmap, with the refreshed codebase map as current evidence.*
+*Last updated: 2026-09-12 — fas 1 (Baslinje och avskild pilotmiljö) klar och verifierad; nästa fas 2 Verifierad kontoåtkomst.*

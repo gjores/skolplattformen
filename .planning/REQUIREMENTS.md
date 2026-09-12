@@ -14,9 +14,9 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 
 ### Baslinje och pilotens kontrakt
 
-- [ ] **BASE-01**: Projektansvarig kan återgå till en versionshanterad baslinje för den befintliga appen och se vilka uppskattade arbetsflöden som passerar dokumenterade regressionsprov.
-- [ ] **BASE-02**: Pilotansvarig kan använda en avskild test-/pilotmiljö där anonym demoetablering och automatisk exempeldata inte kan ge åtkomst till skyddade driftvägar.
-- [ ] **PILOT-01**: Pilotansvarig kan granska en daterad anslutningsprofil med ansvarig organisation, valda elevuppgifter, originalkälla och skrivansvar, pilotvolym samt öppna kund- och leverantörsberoenden.
+- [x] **BASE-01**: Projektansvarig kan återgå till en versionshanterad baslinje för den befintliga appen och se vilka uppskattade arbetsflöden som passerar dokumenterade regressionsprov.
+- [x] **BASE-02**: Pilotansvarig kan använda en avskild test-/pilotmiljö där anonym demoetablering och automatisk exempeldata inte kan ge åtkomst till skyddade driftvägar.
+- [x] **PILOT-01**: Pilotansvarig kan granska en daterad anslutningsprofil med ansvarig organisation, valda elevuppgifter, originalkälla och skrivansvar, pilotvolym samt öppna kund- och leverantörsberoenden.
 
 ### Identitet och kontolivscykel
 
@@ -111,9 +111,9 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 1 | Genomförd — väntar verifiering (se docs/pilot/baseline.md) |
-| BASE-02 | Phase 1 | Genomförd — väntar verifiering (se docs/pilot/baseline.md) |
-| PILOT-01 | Phase 1 | Genomförd — väntar verifiering (se docs/pilot/connection-profile.md) |
+| BASE-01 | Phase 1 | Verifierad 2026-09-12 (01-VERIFICATION.md; docs/pilot/baseline.md) |
+| BASE-02 | Phase 1 | Verifierad 2026-09-12 (01-VERIFICATION.md; docs/pilot/baseline.md) |
+| PILOT-01 | Phase 1 | Verifierad 2026-09-12 (01-VERIFICATION.md; docs/pilot/connection-profile.md) |
 | IAM-01 | Phase 2 | Pending |
 | IAM-02 | Phase 7 | Pending |
 | IAM-03 | Phase 2 | Pending |
@@ -154,7 +154,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | OPS-03 | Phase 8 | Pending |
 | OPS-04 | Phase 8 | Pending |
 
-**Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. 39 krav är Pending; BASE-01, BASE-02 och PILOT-01 är genomförda i fas 1 och väntar på verifiering.
+**Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. 39 krav är Pending; BASE-01, BASE-02 och PILOT-01 är verifierade i fas 1.
 
 ## Acceptance Boundaries
 
@@ -165,4 +165,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-09-12 — BASE-01, BASE-02 och PILOT-01 genomförda i fas 1 (plan 01-09, användarens checkpoint godkänd); fasverifiering återstår. Övriga 39 krav Pending.*
+*Last updated: 2026-09-12 — BASE-01, BASE-02 och PILOT-01 verifierade i fas 1 (01-VERIFICATION.md status passed, användarens checkpoint godkänd). Övriga 39 krav Pending.*

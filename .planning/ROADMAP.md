@@ -185,7 +185,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Baslinje och avskild pilotmiljö | 10/10 | Complete   | 2026-09-12 |
+| 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 0/TBD | Not started | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
