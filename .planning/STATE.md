@@ -107,7 +107,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Pending Todos
 
 - Nästa steg: /gsd:execute-phase 1. Docker-daemonen svarade inte vid planeringen; planerna 01-05/01-06/01-10 rapporterar BLOCKED (exit 3) utan lokal Supabase, aldrig PASS.
-- 1 todo under .planning/todos/pending/: API för lärares behörigheter med statistisk uppföljning (area: api, 2026-09-12).
+- 2 todos under .planning/todos/pending/: API för lärares behörigheter med statistisk uppföljning (api, 2026-09-12); Läsårslins: ställa sig i ett läsår som i Plan Digital (ui, 2026-09-12, underlag docs/plan-digital-lasarsmodell.md).
 
 ## Blockers
 
