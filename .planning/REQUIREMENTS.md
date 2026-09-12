@@ -107,13 +107,13 @@ Senarelagda delar av visionen. De är inte borttagna produktmål och behöver eg
 
 ## Traceability
 
-Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdplanen. Varje v1-krav har exakt en ansvarig fas och status Pending, vilket avser återstående genomförande och verifiering. Länk till fasens verifiering läggs till när prov finns.
+Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdplanen. Varje v1-krav har exakt en ansvarig fas. Status Pending avser återstående genomförande och verifiering; "Genomförd — väntar verifiering" betyder att fasens planer är körda och användarens checkpoint godkänd, men att gsd-verifiers fasverifiering ännu inte satt Verifierad. Länk till fasens bevis läggs till när prov finns.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BASE-01 | Phase 1 | Pending |
-| BASE-02 | Phase 1 | Pending |
-| PILOT-01 | Phase 1 | Pending |
+| BASE-01 | Phase 1 | Genomförd — väntar verifiering (se docs/pilot/baseline.md) |
+| BASE-02 | Phase 1 | Genomförd — väntar verifiering (se docs/pilot/baseline.md) |
+| PILOT-01 | Phase 1 | Genomförd — väntar verifiering (se docs/pilot/connection-profile.md) |
 | IAM-01 | Phase 2 | Pending |
 | IAM-02 | Phase 7 | Pending |
 | IAM-03 | Phase 2 | Pending |
@@ -154,7 +154,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | OPS-03 | Phase 8 | Pending |
 | OPS-04 | Phase 8 | Pending |
 
-**Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. Samtliga 42 krav är Pending.
+**Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. 39 krav är Pending; BASE-01, BASE-02 och PILOT-01 är genomförda i fas 1 och väntar på verifiering.
 
 ## Acceptance Boundaries
 
@@ -165,4 +165,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-09-11 after user approval of all 42 requirements and their phase mapping. Implementation and verification remain pending.*
+*Last updated: 2026-09-12 — BASE-01, BASE-02 och PILOT-01 genomförda i fas 1 (plan 01-09, användarens checkpoint godkänd); fasverifiering återstår. Övriga 39 krav Pending.*
