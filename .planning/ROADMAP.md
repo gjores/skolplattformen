@@ -12,9 +12,9 @@ Den befintliga appen utvecklas stegvis till en avgränsad pilot: först en åter
 
 ## Phases
 
-Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Inga faser är genomförda.
+Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och väntar på gsd-verifiers fasverifiering; övriga faser är inte påbörjade.
 
-- [ ] **Phase 1: Baslinje och avskild pilotmiljö** - Befintliga arbetsflöden går att pröva och återställa inom en tydlig pilotgräns.
+- [x] **Phase 1: Baslinje och avskild pilotmiljö** - Befintliga arbetsflöden går att pröva och återställa inom en tydlig pilotgräns. (completed 2026-09-12)
 - [ ] **Phase 2: Verifierad kontoåtkomst** - Konton, arbetskontext och sessionsspärr styr den första spårbara skyddade operationen.
 - [ ] **Phase 3: Mandat och skyddade datavägar** - Huvudman, rektor och personal får endast sitt aktuella mandat med kontrollerbar säkerhetslogg.
 - [ ] **Phase 4: Beständigt och skyddat elevregister** - Behörig administration kan söka, ändra, följa och exportera rätt elever.
@@ -47,7 +47,7 @@ Plans:
 - [x] 01-06-PLAN.md — Negativa API-prov (tre identiteter, rader oförändrade) och positiva baslinjeflöden mot baseline-målet
 - [x] 01-07-PLAN.md — UI: blockerad start, Provmiljö-märkning, skolväljare Exempelskola, sann lagringsstatus, gatad telefonstart
 - [x] 01-08-PLAN.md — Playwright 1.63.0 med projekt dator/telefon/blockerad/byggd; browserprov av bevarade flöden, skolföljande Elever-vy och isolering
-- [ ] 01-09-PLAN.md — Baslinjerapport docs/pilot/baseline.md, startanvisning, valideringskarta och användarens checkpoint på dator/telefon (kravstatus uppdateras först efter checkpointen)
+- [x] 01-09-PLAN.md — Baslinjerapport docs/pilot/baseline.md, startanvisning, valideringskarta och användarens checkpoint på dator/telefon (kravstatus uppdateras först efter checkpointen)
 - [x] 01-10-PLAN.md — Sparordningsreproducerare som KNOWN-ISSUE (ägare fas 5) och sammanställare verify:phase1
 
 **UI hint**: yes
@@ -185,7 +185,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Baslinje och avskild pilotmiljö | 8/10 | In Progress | - |
+| 1. Baslinje och avskild pilotmiljö | 10/10 | Complete   | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 0/TBD | Not started | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
@@ -194,7 +194,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
 
-**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Inga krav eller faser är verifierade som genomförda.
+**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1 (BASE-01, BASE-02, PILOT-01) är genomförd och väntar på verifiering; inget krav är ännu markerat Verifierad.
 
 ---
-*Last updated: 2026-09-11 — färdplan och detaljomfattning godkända av användaren. Redo för diskussion inför fas 1.*
+*Last updated: 2026-09-12 — fas 1 genomförd (10/10 planer, verify:phase1 PASS, checkpoint godkänd); nästa steg är fasverifiering, därefter diskussion inför fas 2.*

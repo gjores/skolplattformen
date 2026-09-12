@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Baslinje och avskild pilotmiljö
 current_plan: 10
-status: executing
-stopped_at: Completed 01-10-PLAN.md
-last_updated: "2026-09-11T22:05:58.650Z"
-last_activity: 2026-09-11
+status: verifying
+stopped_at: Completed 01-09-PLAN.md — fas 1 alla 10 planer körda, checkpoint godkänd; väntar på gsd-verifier
+last_updated: "2026-09-12T16:23:43.405Z"
+last_activity: 2026-09-12
 progress:
   total_phases: 8
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -28,20 +28,20 @@ See: .planning/PROJECT.md (updated 2026-09-11)
 
 ## Current Position
 
-Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTING
+Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTED, väntar verifiering
 Plan: 10 of 10
 **Current Phase:** 1
 **Current Phase Name:** Baslinje och avskild pilotmiljö
 **Total Phases:** 8
 **Current Plan:** 10
 **Total Plans in Phase:** 10
-**Status:** Ready to execute
+**Status:** Phase complete — ready for verification
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-11
-**Last Activity Description:** Phase 1 execution started
+**Last Activity:** 2026-09-12
+**Last Activity Description:** Plan 01-09 avslutad: checkpoint godkänd, BASE-01/BASE-02/PILOT-01 "Genomförd — väntar verifiering"
 
-Progress: [░░░░░░░░░░] 0%
-Phases executed: 0 of 8
+Progress: [█░░░░░░░░░] 12%
+Phases executed: 1 of 8 (fas 1 väntar på verifiering)
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Phases executed: 0 of 8
 | Phase 01 P07 | 48min | 3 tasks | 5 files |
 | Phase 01 P08 | 20min | 2 tasks | 6 files |
 | Phase 01 P10 | 8min | 2 tasks | 3 files |
+| Phase 01 P09 | 10min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -103,10 +104,13 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 01]: Pekyteprovet i phone lämnas rött: skolväljaren är 26 px i WebKit (appearance:auto på select); rättning i globals.css är uppskjuten till UI-arbete, prövas på fysisk telefon i 01-09
 - [Phase 01]: Sparordningsfelet reproduceras i save-order.repro.mjs (utanför testglobben) mot riktiga persistTimplans/loadTimplans med fake-PostgREST, fördröjd första upsert och FK-emulering; 2/2 scenarier röda, KNOWN-ISSUE med ägare fas 5
 - [Phase 01]: verify:phase1 committas med totalstatus FAIL: browsersteget är obligatoriskt och det kända pekyteprovet är rött; ingen filtrering eller KNOWN-ISSUE-väg för Playwright infördes — 01-09 avgör hanteringen
+- [Phase 01]: Pekytefelet i WebKit rättades i globals.css (564d067) i stället för en KNOWN-ISSUE-väg för Playwright; verify:phase1 omkörd i sin helhet → PASS
+- [Phase 01]: Kravstatus går Pending → 'Genomförd — väntar verifiering' först efter användarens godkända checkpoint; Verifierad sätts bara av gsd-verifier
+- [Phase 01]: Konkurrerande sparningar och redigering efter skapande står som KNOWN-ISSUE med ägare fas 5 och stoppvillkor; grön fasgrind gör dem inte till godkänd funktion
 
 ## Pending Todos
 
-- Nästa steg: /gsd:execute-phase 1. Docker-daemonen svarade inte vid planeringen; planerna 01-05/01-06/01-10 rapporterar BLOCKED (exit 3) utan lokal Supabase, aldrig PASS.
+- Nästa steg: /gsd:verify-work 1 (gsd-verifier sätter Verifierad för BASE-01/BASE-02/PILOT-01 eller listar gap). verify:phase1 kräver Docker; utan lokal Supabase rapporteras BLOCKED (exit 3), aldrig PASS.
 - 2 todos under .planning/todos/pending/: API för lärares behörigheter med statistisk uppföljning (api, 2026-09-12); Läsårslins: ställa sig i ett läsår som i Plan Digital (ui, 2026-09-12, underlag docs/plan-digital-lasarsmodell.md).
 
 ## Blockers
@@ -127,6 +131,6 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-11T22:05:58.648Z
-**Stopped At:** Completed 01-10-PLAN.md
+**Last Date:** 2026-09-12T16:23:43.402Z
+**Stopped At:** Completed 01-09-PLAN.md — fas 1 alla 10 planer körda, checkpoint godkänd; väntar på gsd-verifier
 **Resume File:** None
