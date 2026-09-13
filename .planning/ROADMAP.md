@@ -65,7 +65,20 @@ Plans:
 4. En administratör kan spärra medlemskap eller avsluta uppdrag så att nästa skyddade anrop nekas med en redan utfärdad token. (IAM-05)
 5. Behörig granskare kan följa beständiga ändringar med serververifierad aktör, faktiskt uppdrag, tid, källa, objekt och resultat; manipulerad klientroll kan inte förfalska historiken. (AUDIT-01)
 
-**Plans**: TBD
+**Plans**: 12 planer i 11 vågor — granskade och redo att genomföras 2026-09-13
+
+- [ ] 02-01-PLAN.md — Lokal testidentitet och skyddad körmiljö
+- [ ] 02-02-PLAN.md — Databasens identitets- och sessionsgrund
+- [ ] 02-03-PLAN.md — Tidigt prov av databasanslutning och OIDC i Worker
+- [ ] 02-04-PLAN.md — Körbevis och kontrollpunkt för inloggningsflödet
+- [ ] 02-05-PLAN.md — Kund-, uppdrags- och loggmodell
+- [ ] 02-06-PLAN.md — Serverns behörighets- och sessionskontroller
+- [ ] 02-07-PLAN.md — Personbundna inbjudningar, spärr och avslut
+- [ ] 02-08-PLAN.md — Granskarlogg och första skyddade ändringen
+- [ ] 02-09-PLAN.md — API-prov av åtkomst och kundisolering
+- [ ] 02-10-PLAN.md — Uppdragsväljare, flikrensning och administrationsvyer
+- [ ] 02-11-PLAN.md — Webbläsarprov på dator och telefon
+- [ ] 02-12-PLAN.md — Samlad fasgrind, bevisrapport och användarbedömning
 **UI hint**: yes
 
 Prov mot en avskild testidentitet kan utveckla och verifiera appens kontrakt. Den faktiska IdP-anslutningen och fördröjningen från extern kontokälla godkänns i fas 7; de får inte markeras uppfyllda här. Sessions- och cookieflödet provas tidigt i byggd Worker innan elevlagringen bygger vidare på det.
@@ -186,7 +199,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
-| 2. Verifierad kontoåtkomst | 0/TBD | Not started | - |
+| 2. Verifierad kontoåtkomst | 0/12 | Redo att genomföras | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
@@ -197,4 +210,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1 (BASE-01, BASE-02, PILOT-01) är verifierad 2026-09-12. Övriga 39 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-13 — fas 1 verifierad; fas 2-planeringen slutförs och granskas.*
+*Last updated: 2026-09-13 — fas 1 verifierad; fas 2-planeringen är godkänd (12 planer, 11 vågor); nästa steg är gsd-execute-phase 2.*

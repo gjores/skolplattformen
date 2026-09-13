@@ -12,7 +12,7 @@ Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgif
 
 **v1.0 — Säker administration inför en pilot.** Användaren valde den 2026-09-10 inloggning, behörigheter, elevregister och en kommunintegration som första milstolpe. Hela produktvisionen finns kvar, men undervisning, fullständiga ärendeprocesser och alla leverantörsanslutningar ska inte färdigställas samtidigt.
 
-De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Fas 1 är genomförd och verifierad 2026-09-12. Fas 2 har beslutsunderlag, research och genomförandeplaner under slutgranskning. Godkännandet avser planeringen, inte verifierad implementation eller beslut om verklig pilotdrift.
+De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Fas 1 är genomförd och verifierad 2026-09-12. Fas 2 har beslutsunderlag, research och tolv genomförandeplaner som godkändes i plangranskning 2026-09-13; genomförandet återstår. Godkännandet avser planeringen, inte verifierad implementation eller beslut om verklig pilotdrift.
 
 Målet är en avgränsad och prövbar pilot för en huvudman, med syntetiska uppgifter tills kommunen har beslutat om verklig användning. Val av pilotkommun, identitetsleverantör, externt elevregister, avtal och drift är öppna beroenden. Dessa får inte ersättas med påhittade integrationsbesked.
 

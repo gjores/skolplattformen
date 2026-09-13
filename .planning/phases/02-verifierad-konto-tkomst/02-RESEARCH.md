@@ -557,22 +557,24 @@ export function onSessionMessage(handler: (msg: unknown) => void) { channel?.add
 
 **Utfasat/ej tillämpligt:** Supabase "third-party auth" (bara Cognito/Auth0/Firebase/Clerk); `GOTRUE_EXTERNAL_ALLOWED_ID_TOKEN_ISSUERS` (markerad deprecated i källan); Keycloaks `hostname:v1`-flaggor (v2 är standard i 26.x).
 
-## Open Questions
+## Open Questions — RESOLVED för planering, körbevis återstår
+
+**Planeringsavstämning 2026-09-13 — RESOLVED:** Besluten D-16–D-18 i CONTEXT är redan godkända och ska inte återfrågas. Planeringshanteringen är avgjord för alla sju punkter: 1 och 3 verifieras genom stoppande spik i 02-03/02-04; 2 är D-17; 4 genomförs i 02-07/02-08; 5 använder 15 min glidande och 8 h absolut med prov i 02-11; 6 följer det uttryckliga kontraktet nedan; 7 är senarelagd med ägare fas 7. RESOLVED betyder vald hantering, inte passerade körprov eller vald kommunleverantör. Ingen ny teknisk körverifiering har gjorts vid denna uppdatering.
 
 1. **Fungerar postgres.js mot 127.0.0.1:56322 från workerd i `vinext dev` och `wrangler dev`?**
    - Vet: Cloudflare listar postgres.js ≥ 3.4.5 med `nodejs_compat`; lokala sockets i Miniflare används brett. [VERIFIED delvis]
    - Oklart: uttrycklig dokumentation för lokal Postgres utan Hyperdrive saknas. [ASSUMED]
-   - Rekommendation: plan 02-01 spik `GET /api/health/db`; reserv PostgREST-med-mintad-JWT (sämre atomicitet) om det faller.
+   - Planerat bevis: 02-03 task 1 prövar `GET /api/health/db` i dev och byggd Worker; 02-04 granskar spikbeviset. Misslyckande är stoppande BLOCKED. Reservväg väljs uttryckligen och berörda planer revideras före fortsatt exekvering; ingen tyst fallback.
 
-2. **Är `/etc/hosts`-raden acceptabel för användaren?** Alternativet är att slopa GoTrue-steget (Worker ensam OIDC-klient), vilket rör D-01. Rekommendation: planen innehåller kontrollen och BLOCKED-meddelandet; om användaren avböjer sudo-steget lyfts D-01-frågan uttryckligen i stället för att tyst byta väg.
+2. **Hosts-raden är godkänd — D-17.** Detta är inte längre en öppen preferensfråga. 02-01 kontrollerar `127.0.0.1 host.docker.internal` och rapporterar BLOCKED om den saknas. Inget skript ändrar hosts-filen självt. Faktisk konfiguration verifieras vid exekvering.
 
-3. **Keycloaks exakta realm-JSON för LoA-flöde, AMR-referenser och TOTP-import.** Vet: funktionerna finns i 26.x [VERIFIED översikt]. Oklart: fältnamn i export/import. Rekommendation: bygg realmen en gång i admin-UI på det disponibla målet, exportera med `kc.sh export --realm`, lägg exporten (utan hemligheter, klientsekret som platshållare) som `work/pilot/idp/realm-template.json`. Verifiera faktiska `acr`/`amr`-värden i ID-token i spiket innan regeln i `requireMfa` låses.
+3. **Keycloaks exakta realm-JSON för LoA-flöde, AMR-referenser och TOTP-import.** Vet: funktionerna finns i 26.x [VERIFIED översikt]. Oklart: fältnamn i export/import. Rekommendation: bygg realmen en gång i admin-UI på det disponibla målet, exportera med `kc.sh export --realm`, lägg exporten (utan hemligheter, klientsekret som platshållare) som `work/pilot/idp/realm-template.json`. Verifiera faktiska `acr`/`amr`/`auth_time`-värden i ID-token i 02-03/02-04 innan administrativa vägar öppnas. Saknade eller oväntade anspråk får inte räknas som MFA; detta är ett stoppande körbevis, inte en redan verifierad egenskap.
 
 4. **Hur mycket av dagens stores ska öppnas i `protected` i fas 2?** Vet: fas 3 äger "skyddade datavägar", fas 5 bevarade flöden med verkliga identiteter. Rekommendation: fas 2 öppnar exakt kundadministrationens vägar (kund, inbjudan, medlemskap, uppdrag, huvudman via `organizers`, skolenhet via `import_school_unit`, rektor via `appoint_school_principal`, organisationens läsning) plus säkerhetslogg; övriga vyer visar "Stängt i denna fas" i `protected`. Detta räcker för alla sex krav och ger AUDIT-01 "första skyddade ändringen".
 
 5. **Sliding 15 min i praktiken.** Vet: D-11 tillåter Claude's discretion. Rekommendation: 15 min glidande + 8 h absolut; klienten pingar `/api/session` vid `visibilitychange` (inte periodiskt, för att inte hålla sessionen vid liv i bakgrunden). Mät i browserprov att en 16 minuters paus ger utloggat läge.
 
-6. **GoTrue-nonce: hex eller base64?** Vet: `sha256(params.Nonce)` jämförs med tokenens `nonce` [VERIFIED]. Oklart: kodning. Rekommendation: prova hex i spiket; reserv `skip_nonce_check = true` för providern (Workern validerar nonce själv).
+6. **GoTrue-nonce: hex eller base64?** Vet: `sha256(params.Nonce)` jämförs med tokenens `nonce` [VERIFIED]. Oklart: kodning. **RESOLVED — planeringskontrakt:** Enligt 02-01/02-03/02-04 är Workern OIDC-klient (D-16) och validerar nonce tillsammans med utfärdare, audience, state, PKCE och tokenens giltighet före GoTrue-anropet. Den separata GoTrue-providern använder avsiktligt `skip_nonce_check = true` för identitetsregistreringen och får inte bli en alternativ väg till appsession eller rättigheter. Detta är vald lokal konfiguration, inte en reserv som aktiveras när ett prov faller. 02-04 måste bevisa att fel nonce nekas i Workern, ingen appsession skapas och GoTrue-vägen ensam inte ger skyddad åtkomst. Saknat eller misslyckat bevis stoppar exekveringen; ingen noncevalidering i Workern får stängas av.
 
 7. **Fas 7 och SAML (Skolfederation).** Varken Worker-OIDC eller GoTrue-`id_token` ger SAML som ren konfiguration; Supabase SAML SSO är en molnfunktion utan lokal motsvarighet. Sannolik väg: Keycloak (eller kommunens IdP) som broker SAML→OIDC. Utanför fas 2; notera i `connection-profile.md` OB-02 när fas 7 planeras.
 
