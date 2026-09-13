@@ -111,7 +111,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Pending Todos
 
 - Nästa steg: gsd-execute-phase 2. Fas 1 är verifierad; fas 2-planeringen är granskad och klar. Inga nya app- eller databasprov kördes vid slutplaneringen.
-- 3 todos under .planning/todos/pending/: API för lärares behörigheter med statistisk uppföljning (api, 2026-09-12); Läsårslins som i Plan Digital (ui, 2026-09-12); Planera stark identitetskontroll och BankID (auth, 2026-09-13). BankID-punkten är utredning och planering, inte implementation eller verifierade lagkrav.
+- 4 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13).
 
 ## Blockers
 
