@@ -90,4 +90,4 @@ Kolumnen Resultat fylldes i av plan 01-09 task 3 efter användarens svar (`godk�
 - [x] Inga watch-lägen; snabb återkoppling har ett mätbart tidsmål.
 - [x] `nyquist_compliant: true` sattes av granskaren före exekvering (fältet rörs inte av 01-09). `wave_0_complete: true` satt 2026-09-12 när infrastrukturen faktiskt byggts och körts.
 
-**Approval:** plankartan är slutlig från plan-phase 2026-09-11; `nyquist_compliant` sattes av granskaren. Körstatus ifylld 2026-09-12 av plan 01-09; checkpointen (task 3) godkändes av användaren 2026-09-12. gsd-verifiers fasverifiering återstår innan något krav markeras Verifierad.
+**Approval:** plankartan är slutlig från plan-phase 2026-09-11; `nyquist_compliant` sattes av granskaren. Körstatus ifylld 2026-09-12 av plan 01-09; checkpointen (task 3) godkändes av användaren 2026-09-12. Fasverifieringen slutfördes 2026-09-12 med status passed i `01-VERIFICATION.md`; BASE-01, BASE-02 och PILOT-01 är markerade Verifierad i REQUIREMENTS.md. Uppgiftsraderna ovan bevarar status vid respektive genomförande.

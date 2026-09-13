@@ -7,14 +7,14 @@ current_phase_name: verifierad kontoåtkomst
 current_plan: Not started
 status: planning
 stopped_at: Phase 2 context gathered
-last_updated: "2026-09-12T18:29:10.349Z"
-last_activity: 2026-09-12
+last_updated: "2026-09-13T08:24:27.952Z"
+last_activity: 2026-09-13
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 10
+  total_plans: 21
   completed_plans: 10
-  percent: 12
+  percent: 48
 ---
 
 # Project State
@@ -24,30 +24,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-11)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Phase 1 — Baslinje och avskild pilotmiljö
+**Current focus:** Fas 2 — slutförande och granskning av planerna för verifierad kontoåtkomst.
 
 ## Current Position
 
-Phase: 1 (Baslinje och avskild pilotmiljö) — EXECUTED, väntar verifiering
-Plan: 10 of 10
+Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 **Current Phase:** 2
 **Current Phase Name:** verifierad kontoåtkomst
 **Total Phases:** 8
 **Current Plan:** Not started
 **Total Plans in Phase:** 10
-**Status:** Ready to plan
+**Status:** Planning
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-12
-**Last Activity Description:** Phase 1 complete, transitioned to Phase 2
+**Last Activity:** 2026-09-13
+**Last Activity Description:** Fas 1 verifierad. Fas 2-planerna kompletteras med slutkontroll och valideringskarta; oberoende plangranskning återstår.
 
 Progress: [█░░░░░░░░░] 12%
-Phases executed: 1 of 8 (fas 1 väntar på verifiering)
+Phases executed: 1 of 8 (fas 1 verifierad; fas 2 inte genomförd)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 10
 - Average duration: Ej tillämpligt
 - Total execution time: 0 timmar
 
@@ -59,7 +58,7 @@ Phases executed: 1 of 8 (fas 1 väntar på verifiering)
 
 **Recent Trend:**
 
-- Last 5 plans: Inga genomförda planer
+- Last 5 plans: Se fas 1:s SUMMARY-filer; samtliga tio planer genomförda.
 - Trend: Ej tillämpligt
 
 | Phase 01 P01 | 5min | 2 tasks | 3 files |
@@ -110,8 +109,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: /gsd:verify-work 1 (gsd-verifier sätter Verifierad för BASE-01/BASE-02/PILOT-01 eller listar gap). verify:phase1 kräver Docker; utan lokal Supabase rapporteras BLOCKED (exit 3), aldrig PASS.
-- 2 todos under .planning/todos/pending/: API för lärares behörigheter med statistisk uppföljning (api, 2026-09-12); Läsårslins: ställa sig i ett läsår som i Plan Digital (ui, 2026-09-12, underlag docs/plan-digital-lasarsmodell.md).
+- Nästa steg: Slutför och granska fas 2-planeringen. Fas 1 är redan verifierad; verify:phase1 kräver Docker vid omkörning och rapporterar BLOCKED utan lokal Supabase.
+- 3 todos under .planning/todos/pending/: API för lärares behörigheter med statistisk uppföljning (api, 2026-09-12); Läsårslins som i Plan Digital (ui, 2026-09-12); Planera stark identitetskontroll och BankID (auth, 2026-09-13). BankID-punkten är utredning och planering, inte implementation eller verifierade lagkrav.
 
 ## Blockers
 
@@ -120,8 +119,8 @@ Fullständiga beslut finns i PROJECT.md.
 - Drift, avtal, informationshantering och pilotbeslut krävs före verkliga elevuppgifter. Dessa externa beroenden hindrar inte planering eller avgränsade syntetiska utvecklingsprov.
 - Demoetablering, direkta datavägar och loggning måste verifieras tillsammans innan elevregistret öppnas.
 - Kodkartan 2026-09-11 belägger risker med överlappande sparningar, flerstegsskrivningar och breda databasmandat; ta med .planning/codebase/CONCERNS.md i berörd fasplanering.
-- Appkällorna saknar ännu Git-baslinje; detta ingår i BASE-01. Kodkartläggningen är versionshanterad i 1a8e1e0.
-- 85 modelltester passerade vid kartläggningen 2026-09-11. Bygg-, databas- och webbläsarprov från 2026-09-08 är historik; inga nya appkontroller kördes vid fastställandet av planeringen.
+- Git-baslinjen är verifierad: taggen fas1-baslinje (917313b). Kodkartläggningen i 1a8e1e0 är historik före fas 1.
+- Senaste sparade fasverifiering 2026-09-12 redovisar 108 modelltester, 52 pgTAP-prov och 58 nekade API-anrop samt tidigare full browserkörning och godkänd fysisk telefon. Dessa prov har inte körts om vid fas 2-planeringens statusuppdatering.
 
 ## Deferred Items
 

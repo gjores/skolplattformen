@@ -4,7 +4,7 @@
 
 **Milestone:** v1.0 — Säker administration inför en pilot
 
-**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Genomförande återstår.
+**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1 är genomförd och verifierad; fas 2 planeras.
 
 **Granularity:** standard
 
@@ -12,7 +12,7 @@ Den befintliga appen utvecklas stegvis till en avgränsad pilot: först en åter
 
 ## Phases
 
-Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och väntar på gsd-verifiers fasverifiering; övriga faser är inte påbörjade.
+Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och verifierades 2026-09-12 i `01-VERIFICATION.md`; fas 2 planeras och övriga faser är inte genomförda.
 
 - [x] **Phase 1: Baslinje och avskild pilotmiljö** - Befintliga arbetsflöden går att pröva och återställa inom en tydlig pilotgräns. (completed 2026-09-12)
 - [ ] **Phase 2: Verifierad kontoåtkomst** - Konton, arbetskontext och sessionsspärr styr den första spårbara skyddade operationen.
@@ -194,7 +194,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
 
-**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1 (BASE-01, BASE-02, PILOT-01) är genomförd och väntar på verifiering; inget krav är ännu markerat Verifierad.
+**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1 (BASE-01, BASE-02, PILOT-01) är verifierad 2026-09-12. Övriga 39 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-12 — fas 1 genomförd (10/10 planer, verify:phase1 PASS, checkpoint godkänd); nästa steg är fasverifiering, därefter diskussion inför fas 2.*
+*Last updated: 2026-09-13 — fas 1 verifierad; fas 2-planeringen slutförs och granskas.*
