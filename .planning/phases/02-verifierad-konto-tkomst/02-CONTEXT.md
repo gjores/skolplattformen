@@ -1,7 +1,7 @@
 # Phase 2: Verifierad kontoåtkomst - Context
 
 **Gathered:** 2026-09-12
-**Status:** Ready for planning
+**Status:** Planering klar och oberoende omgranskad 2026-09-13; redo för genomförande
 
 <domain>
 ## Phase Boundary
@@ -16,7 +16,7 @@ Fasen bygger appens kontrakt mot en **avskild testidentitet**. Den faktiska komm
 ## Implementation Decisions
 
 ### Inloggning och testidentitet
-- **D-01:** Inloggning i fas 2 sker mot en **lokal OIDC-testleverantör** (Keycloak eller motsvarande i Docker, i samma disponibla provmiljö som fas 1:s Supabase-mål) kopplad via Supabase Auth. Federationsvägen — utfärdare, anspråk, utloggning — ska provas nu så att fas 7 blir ett leverantörsbyte i konfiguration, inte ett nytt flöde. Ingen e-post/lösenord-inloggning byggs som huvudväg.
+- **D-01:** Inloggning i fas 2 sker mot en **lokal OIDC-testleverantör** (Keycloak eller motsvarande i Docker, i samma disponibla provmiljö som fas 1:s Supabase-mål) kopplad via Supabase Auth. Federationsvägen — utfärdare, anspråk, utloggning — ska provas nu för att återanvända appens sessions- och behörighetsflöde vid senare leverantörsbyte. Precisering 2026-09-13: ny leverantör måste stödja det avtalade protokollet och beviskontraktet; direkt BankID eller ändrad extern identitet är inte garanterat enbart ett konfigurationsbyte. Ingen e-post/lösenord-inloggning byggs som huvudväg.
 - **D-02:** En person identifieras av **(issuer, sub)**. E-post och namn är visningsuppgifter, aldrig nyckel. Samma person hos två kunder är två medlemskap på samma identitet. Ingen automatisk sammanslagning på namn eller e-post.
 - **D-03:** **MFA-bevis krävs för administrativa åtgärder** (etablering, inbjudan, spärr, avslut av uppdrag). Appen läser IdP:ns anspråk (amr/acr) och nekar utan bevis; test-IdP:n konfigureras med TOTP. Appen kör ingen egen TOTP.
 
@@ -41,6 +41,13 @@ Fasen bygger appens kontrakt mot en **avskild testidentitet**. Den faktiska komm
 - **D-17:** Den lokala provmiljön kräver en engångsrad `127.0.0.1 host.docker.internal` i `/etc/hosts` (användaren godkände detta). `prepare-local` kontrollerar raden och rapporterar BLOCKED om den saknas; inget skript ändrar `/etc/hosts` självt.
 - **D-18:** Inget UI-SPEC tas fram för fas 2; fas 2:s ytor (uppdragsväljare, inbjudan, spärr, granskarens loggvy) följer `01-UI-SPEC.md`:s regler för pekytor, fokus och kontrast och fas 1:s väljarmönster.
 
+### Beställd beredskapsgranskning 2026-09-13
+
+- **D-19:** Användaren har beställt beredskap för att kunna ansluta BankID senare när det behövs, inte full integration i fas 2. Granska befintlig kod och planer, dokumentera minsta nödvändiga förberedelser och komplettera berörda planer. Starta inte appimplementation under granskningen.
+- Identitetskontroll, MFA, behörighet/beslutsmandat och elektronisk underskrift är olika frågor. Lokalt TOTP-prov är inte bevis på viss personidentitetsnivå eller på godkänt myndighetsbeslut. Inga nya rättsliga krav eller tillitsnivåer fastställs av denna granskning.
+- Teknisk precisering inom uppdraget: leverantörsspecifik registrering och bevismappning hålls bakom små servergränser; bevis bedöms mot godkänd utfärdar-/klientprofil; extra verifiering binds till ursprunglig session och arbetskontext. Interna identitets-ID:n bevaras, och e-post, namn eller auth_user_id får aldrig automatiskt länka behörigheter.
+- Direkt BankID-anslutning, verklig kontolänkning, beslutsbunden engångsverifiering och elektronisk underskrift utreds separat före aktivering av respektive flöde. Inga nya person-/länktabeller eller generell policyplattform krävs nu. Rapporten `docs/pilot/bankid-readiness-review.md` skiljer förberedelser från senare integration.
+
 ### Redan beslutade ramar
 - **D-14:** Kundisolering enligt ACL-01 gäller innehåll, filer, sökträffar, exporter **och existensuppgifter**: ett känt objekt-ID från annan kund ger samma svar som ett obefintligt. Fas 1:s fynd att `registry_snapshots` läses över kundgränsen (`auth.uid() is not null`) rättas i denna fas.
 - **D-15:** Fas 1:s exempelläge (`example`) förblir helt utan backend. Läget `protected` öppnas i denna fas, men endast via serverlagret och den lokala provmiljön; inga molnnycklar och ingen `--linked`-drift. Demoetablering (`bootstrap_demo_profile`, demohuvudman) tas bort ur den körda databasen som del av att `protected` öppnas.
@@ -61,6 +68,7 @@ Fasen bygger appens kontrakt mot en **avskild testidentitet**. Den faktiska komm
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Säkerhets- och behörighetsmodell
+- `docs/pilot/bankid-readiness-review.md` — riktad granskning 2026-09-13; minsta beredskap nu, senare BankID-/underskriftsarbete och belägg.
 - `docs/kommunintegration-och-sakerhet.md` §1 (inloggning och kontolivscykel), §2 (behörighet följer uppdrag: identity → memberships → assignments → permissions), §3 (kund ≠ huvudman, isolering), §5 (säkerhetshändelser på servern), §7 (Supabase och serverlager), samt tabellen *Acceptansfall som gör kraven prövbara* — flera rader är direkta testfall för denna fas.
 - `.planning/REQUIREMENTS.md` — IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 (ordagrann lydelse).
 

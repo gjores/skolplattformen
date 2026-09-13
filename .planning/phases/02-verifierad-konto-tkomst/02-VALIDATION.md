@@ -10,7 +10,7 @@ updated: 2026-09-13
 
 # Fas 2 — Valideringskontrakt
 
-Detta är planerade kontroller, inte körresultat. Oberoende plangranskning godkänd 2026-09-13; inga nya krav är körverifierade genom detta dokument.
+Detta är planerade kontroller, inte körresultat. BankID-beredskapskomplettering 2026-09-13 har passerat oberoende plangranskning av samtliga 12 planer och 32 uppgiftskommandon. Inga nya krav är körverifierade genom detta dokument.
 
 ## Miljö och provverktyg
 
@@ -33,6 +33,8 @@ Snabba modellprov bör hållas under60s, browser/build har uppmätt faktisk tid;
 | phase2_access.test.sql | 02-02 task3 | Samma task efter skapande |
 | Protected Playwright + Keycloakhjälpare | 02-04 task1 | Samma task |
 | phase2_audit.test.sql | 02-05 task3 | Samma task |
+| identity-provider.test.mjs | 02-03 task2 | Samma task, injicerad testtransport |
+| auth-assurance.test.mjs | 02-06 task1 | RED→GREEN i samma task |
 | access-rules.test.mjs | 02-06 task1 | RED→GREEN i samma task |
 | invitation-rules.test.mjs | 02-07 task1 | RED→GREEN i samma task |
 | verify-access.mjs | 02-09 task1–2 | Samma task |
@@ -92,6 +94,17 @@ C-kommandona nedan är exakt taskens <automated>; PLAN innehåller också beteen
 | ACL-01 | RLS och relationsconstraints, främmande ID jämfört obefintligt, list/sök/CSV samt stängda PostgREST/GraphQL/Storage-vägar. |
 | AUDIT-01 | Aktör och faktiskt uppdrag från server, exakt en event per skrivning, immutable logg, kundgranskning/export, rollback vid loggfel och loggflödningsskydd. |
 
+## Beredskap för senare stark identitetskontroll — tillägg 2026-09-13
+
+| Behov | Ägare och bevis | Status |
+|---|---|---|
+| Lokal leverantör isolerad, stabil intern identities.id, ingen länkning via e-post/auth_user_id | 02-02 DDL/pgTAP; 02-03 adapterprov; 02-09 samma-epost; 02-11 browser | planerat |
+| MFA binds till exakt issuer/client/audience + versionerad lokal profil; ingen generell BankID-/personidentitetsnivå | 02-03 verifierad mapping; 02-04 spik; 02-06 auth-assurance.test; 02-09 mfa-kravs med proof-profile/issuer/audience/time/amr | planerat |
+| Step-up binds session/identity/kund/uppdrag/epoch; logout/spärr/byte/avbrott nekar; ingen automatisk POST | 02-03 callback; 02-04 negativt spik; 02-06 live uppdragskontroll; 02-10 återbekräftelse; 02-11 scenario 16–17 | planerat |
+| Skyddad proof-proveniens och resultat; klientförfalskning nekas | 02-06 events/deny; 02-09 audit-assertioner; 02-11 scenario 17 | planerat |
+
+Full BankID-integration, val av tillitsnivå för känsliga beslut, verifierad kontolänkning, bindning till beslutsunderlag/version och elektronisk underskrift är separata senare leveranser. Inga sådana flöden får anses aktiverade eller verifierade av dessa lokala prov. 02-12 måste kräva ovanstående namngivna beteendeprov, inte bara testantal/exitkod.
+
 ## Manual-Only Verifications
 
 | Plan | Task | Bedömning | Förvillkor | Resultat |
@@ -120,6 +133,7 @@ Fysisk telefonåtkomst är separat från automatiskt WebKit-telefonprov: nåbar 
 | CONTEXT | D-18 ärvt UI, inget nytt UI-SPEC | 10,11 | COVERED |
 | RESEARCH | Worker TCP/GoTrue/claims öppna tekniska frågor | 01–04 | COVERED via obligatoriskt spik |
 | RESEARCH | Cookie/CSRF/nonce, RLS/atomicitet/backfill, audit/CSV, flikar | 03–11 | COVERED |
+| RESEARCH | BankID-beredskap: lokal adapter, proof-profil, kontextbundet step-up, audit utan signaturbevis | 02–04,06,07,09–12 | COVERED, ny granskning väntar |
 | RESEARCH | Lokal setup, hemligheter, sanningsenlig slutgrind | 01,09,12 | COVERED |
 
 Verklig kommunanslutning/SCIM och senare mandat/elevregister ligger kvar i sina beslutade faser. Lokala simuleringar uppfyller inte IAM-02/IAM-06.
@@ -132,7 +146,7 @@ Verklig kommunanslutning/SCIM och senare mandat/elevregister ligger kvar i sina 
 - [ ] Kontrollerna genomförda efter implementation.
 - [ ] Faktiska användarsvar dokumenterade.
 
-Approval: approved 2026-09-13 — gsd-plan-checker: 0 blockerare, 0 åtgärdskrävande varningar. Se 02-PLAN-REVIEW.md. wave_0_complete är false tills infrastrukturen faktiskt genomförts.
+Approval: approved — oberoende gsd-plan-checker godkände BankID-beredskapskompletteringen 2026-09-13. wave_0_complete är false tills infrastrukturen faktiskt genomförts.
 
 ## Exakta C-kommandon
 
@@ -182,7 +196,7 @@ set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/
 ### C03.2
 
 ```sh
-set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/opt/homebrew/opt/node@25/bin:$PATH" && npx tsc --noEmit && npx oxlint app lib scripts && grep -q 'grant_type=id_token' app/api/auth/callback/route.ts && grep -q "provider: 'keycloak'" app/api/auth/callback/route.ts && grep -q 'idp_registration_failed' app/api/auth/callback/route.ts && grep -q 'on conflict (issuer, subject)' app/api/auth/callback/route.ts && grep -q 'SameSite=Lax' lib/server/session.ts && ! grep -q 'SameSite=Strict' lib/server/session.ts && grep -q 'export async function POST' app/api/auth/logout/route.ts && grep -q 'assertSameOrigin' app/api/auth/logout/route.ts && grep -q "scope: 'openid profile email'" lib/server/oidc.ts && grep -q 'allowInsecureRequests' lib/server/oidc.ts && (curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://annan.example' -H 'Sec-Fetch-Site: cross-site' http://127.0.0.1:5193/api/auth/logout | grep -qx 403)
+set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/opt/homebrew/opt/node@25/bin:$PATH" && npx tsc --noEmit && npx oxlint app lib scripts && node --test lib/identity-provider.test.mjs && grep -q 'grant_type=id_token' lib/server/identity-provider.ts && grep -q "provider: 'keycloak'" lib/server/identity-provider.ts && grep -q 'idp_registration_failed' app/api/auth/callback/route.ts && grep -q 'on conflict (issuer, subject)' app/api/auth/callback/route.ts && grep -q 'SameSite=Lax' lib/server/session.ts && ! grep -q 'SameSite=Strict' lib/server/session.ts && grep -q 'export async function POST' app/api/auth/logout/route.ts && grep -q 'assertSameOrigin' app/api/auth/logout/route.ts && grep -q "scope: 'openid profile email'" lib/server/oidc.ts && grep -q 'allowInsecureRequests' lib/server/oidc.ts && (curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Origin: https://annan.example' -H 'Sec-Fetch-Site: cross-site' http://127.0.0.1:5193/api/auth/logout | grep -qx 403)
 ```
 
 ### C03.3
@@ -194,7 +208,7 @@ set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/
 ### C04.1
 
 ```sh
-set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/opt/homebrew/opt/node@25/bin:$PATH" && npx tsc --noEmit && npx oxlint app lib scripts e2e && grep -q 'preview:protected' playwright.protected.config.ts && ! grep -q 'protected' playwright.config.ts && grep -q '"e2e:protected"' package.json && test -f ../work/pilot/results/spike.json && node -e "const r=require('../work/pilot/results/spike.json'); const s=JSON.stringify(r); if(/sp_session=|eyJ[A-Za-z0-9_-]{20,}|postgresql:\/\//.test(s)) process.exit(1); if(r.blocked.statusAfter!==403||r.logout.sessionAfter!==401||!(r.login.amr.includes('otp')||r.login.acr==='2')||!r.gotrue.authUserIdSet) process.exit(1)"
+set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/opt/homebrew/opt/node@25/bin:$PATH" && npx tsc --noEmit && npx oxlint app lib scripts e2e && grep -q 'preview:protected' playwright.protected.config.ts && ! grep -q 'protected' playwright.config.ts && grep -q '"e2e:protected"' package.json && test -f ../work/pilot/results/spike.json && node -e "const r=require('../work/pilot/results/spike.json'); const s=JSON.stringify(r); if(/sp_session=|eyJ[A-Za-z0-9_-]{20,}|postgresql:\/\//.test(s)) process.exit(1); if(r.blocked.statusAfter!==403||r.logout.sessionAfter!==401||!r.login.localProfileVerified||!r.gotrue.authUserIdSet) process.exit(1)"
 ```
 
 ### C04.2
@@ -224,7 +238,7 @@ cd /Users/petter.gjores/dev/skolplattform && node work/pilot/run-sql-tests.mjs
 ### C06.1
 
 ```sh
-set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/opt/homebrew/opt/node@25/bin:$PATH" && node --test lib/access-rules.test.mjs && npx tsc --noEmit && npx oxlint lib && grep -c "^test(" lib/access-rules.test.mjs | awk '{exit ($1>=12)?0:1}' && ! grep -qE "from '(react|\./server|postgres|openid-client)" lib/access-rules.ts
+set -o pipefail; cd /Users/petter.gjores/dev/skolplattform/web && export PATH="/opt/homebrew/opt/node@25/bin:$PATH" && node --test lib/access-rules.test.mjs lib/auth-assurance.test.mjs && npx tsc --noEmit && npx oxlint lib && grep -c "^test(" lib/access-rules.test.mjs | awk '{exit ($1>=12)?0:1}' && ! grep -qE "from '(react|\./server|postgres|openid-client)" lib/access-rules.ts
 ```
 
 ### C06.2

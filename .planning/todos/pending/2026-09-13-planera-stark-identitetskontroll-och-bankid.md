@@ -24,3 +24,7 @@ Plattformen ska kunna hantera särskilt känsliga personuppgifter och viktiga my
 - Granska upplägget med verksamhet, dataskydd och säkerhet; planera och testa ett helt känsligt beslutsflöde med syntetiska uppgifter innan verklig användning.
 
 Utredningen ska mynna ut i dokumenterade krav, alternativ, beroenden och provfall. Samordna med fas 2:s identitetsmodell, fas 3:s mandat samt fas 7–8:s faktiska anslutnings- och driftbeslut. Utöka inte deras godkända omfattning utan ett uttryckligt planeringsbeslut.
+
+## Uppföljning 2026-09-13
+
+Riktad granskning inför fas 2 beställd och dokumenterad i `docs/pilot/bankid-readiness-review.md`. Minsta generella beredskap förs in i fas 2-planerna och plangranskas. Ingen appimplementation eller BankID-integration startas. Punkten förblir öppen: verkliga identitetskrav per åtgärd, BankID-leverans, verifierad kontolänkning, beslutsbunden verifiering, underskrift, alternativ och verksamhets-/dataskydds-/säkerhetsgranskning återstår.

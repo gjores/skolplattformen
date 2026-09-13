@@ -672,3 +672,9 @@ export function onSessionMessage(handler: (msg: unknown) => void) { channel?.add
 
 **Researchdatum:** 2026-09-12
 **Giltig till:** 2026-10-12 (30 dagar) — kortare om Supabase CLI eller Keycloak-bilden byts (GoTrue-version följer CLI)
+
+## Riktad beredskapsgranskning 2026-09-13
+
+`docs/pilot/bankid-readiness-review.md` kompletterar denna research efter användarens beställning D-19. Fas 1-koden saknar fortfarande riktig autentisering; fas 2 är planerad, inte implementerad. Minsta komplettering av planeringen är små servergränser för leverantörsregistrering/bevismappning, utfärdar- och klientbunden policy, step-up bunden till ursprunglig session/arbetskontext samt minimal verifieringsmetadata i skyddad audit. Befintligt internt identitets-ID och separat mandatprövning behålls.
+
+Full BankID-anslutning, kontolänkning, beslutsbunden engångsverifiering och elektronisk underskrift återstår som separat arbete. Lokalt MFA-prov styrker inte viss personidentitetsnivå eller underskrift. Rapporten anger officiella källor och skillnaden mellan befintlig kod, plan och rekommendation. Detta tillägg är inte ett påstående om körverifierad integration.

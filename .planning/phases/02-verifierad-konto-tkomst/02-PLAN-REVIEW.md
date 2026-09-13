@@ -31,3 +31,14 @@ Slutgrinden i 02-12 kräver färska och fullständiga säkerhetsbevis. Saknade, 
 Detta är godkännande av planernas genomförbarhet, inte av fas 2:s implementation. Inga nya app-, databas- eller integrationsprov kördes under slutplaneringen. Kraven för fas 2 förblir öppna. Faktisk kommunanslutning och pilotdrift har fortsatt egna godkännandegränser.
 
 Nästa steg: `$gsd-execute-phase 2`.
+
+
+## BankID-beredskap — omgranskning 2026-09-13
+
+**Status:** VERIFICATION PASSED (planering), oberoende gsd-plan-checker. 12 planer, 32 uppgifter, 11 vågor; inga kvarstående blockerare eller åtgärdskrävande varningar inom granskningsområdet. Alla sex faskrav och D-19 täcks. Samtliga strukturkontroller passerar och de 32 automatiserade uppgiftskommandona matchar VALIDATION.
+
+Plan 02-01–04 och 02-06–12 har kompletterats med en liten leverantörsgräns, exakt profilbunden MFA, kontextbundet step-up, ny bekräftelse efter verifiering och serverhärledd bevismetadata med strikt projektion i logg/export. Fyra nya kod-/testfiler planeras. Identitetsarvsprov nekar medlemskap via delad auth_user_id eller ny extern identitet. Personidentitetsnivå och underskrift förblir uttryckligen okända. Framtida kontolänkning, beslutsbundet bevis och faktisk BankID-integration ligger utanför genomförandet.
+
+Plan 02-03 omfattar 14 källfiler och en genererad resultatrapport. Behåll dess tre tydliga uppgiftsgränser och stoppande spik vid genomförandet. Ingen app, databas eller BankID-anslutning har körverifierats vid denna omgranskning.
+
+Underlag: `docs/pilot/bankid-readiness-review.md`. Nästa steg är fortsatt `$gsd-execute-phase 2`.
