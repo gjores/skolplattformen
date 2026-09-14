@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-09-14T19:51:08Z",
+  "revision": "4339c4cecb40feccb1581219c413c1561f087f01",
+  "dev": {
+    "status": "PASS",
+    "http": 200,
+    "role": "skolplattform_worker"
+  },
+  "preview": {
+    "status": "PASS",
+    "http": 200,
+    "role": "skolplattform_worker"
+  },
+  "status": "PASS",
+  "decision": null
+}
