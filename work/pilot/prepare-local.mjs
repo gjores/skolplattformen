@@ -192,6 +192,10 @@ if (options.withIdp) {
   secrets = secretSet(previousManifest);
   const idpDir = path.join(workdir, 'idp');
   fs.mkdirSync(idpDir, { recursive: true });
+  if (options.fresh) {
+    fs.rmSync(path.join(idpDir, 'totp-users.json'), { force: true });
+    fs.rmSync(path.join(idpDir, 'totp-last-used.json'), { force: true });
+  }
   const realmPath = path.join(idpDir, 'realm.json');
   const realm = fs.readFileSync(realmTemplatePath, 'utf8').replaceAll('__CLIENT_SECRET__', secrets.clientSecret).replaceAll('__TOTP_SECRET__', secrets.totpSecret);
   fs.writeFileSync(realmPath, realm, { mode: 0o600 });
@@ -338,7 +342,12 @@ const manifest = {
   baselineRef: target === 'baseline' ? baselineSha : null, createdAt: new Date().toISOString(),
 };
 if (options.withIdp) {
-  const users = JSON.parse(fs.readFileSync(realmTemplatePath, 'utf8')).users.map(user => ({ username: user.username, subject: user.id, email: user.email, totp: user.credentials.some(credential => credential.type === 'otp') }));
+  const users = JSON.parse(fs.readFileSync(realmTemplatePath, 'utf8')).users.map(user => ({
+    username: user.username,
+    subject: user.id,
+    email: user.email,
+    totp: user.credentials.some(credential => credential.type === 'otp') || user.requiredActions?.includes('CONFIGURE_TOTP') === true,
+  }));
   manifest.idp = { containerName: idpContainer, issuer: idpIssuer, publicUrl: idpPublicUrl, clientId: 'skolplattform-worker', clientSecret: secrets.clientSecret, adminUser: 'admin', adminPassword: secrets.adminPassword, totpSecret: secrets.totpSecret, users };
   manifest.worker = { dbUrl: `postgresql://skolplattform_worker:${encodeURIComponent(secrets.workerPassword)}@127.0.0.1:${ports.db}/postgres` };
   manifest.sessionSecret = secrets.sessionSecret;

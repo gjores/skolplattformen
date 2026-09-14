@@ -67,7 +67,9 @@ export async function beginAuthorization(opts: {
     code_challenge_method: 'S256',
     state,
     nonce,
-    ...(opts.stepUp ? { acr_values: env.MFA_ACR_VALUES, prompt: 'login' } : {}),
+    ...(opts.stepUp
+      ? { acr_values: env.MFA_ACR_VALUES, prompt: 'login', max_age: '0' }
+      : {}),
   });
   return {
     url,

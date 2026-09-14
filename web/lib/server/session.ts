@@ -121,11 +121,11 @@ type RawSession = {
   assignment_id: string | null;
   context_epoch: number;
   acr: string | null;
-  amr: string[];
+  amr: unknown;
   auth_time: Date | null;
   proof_issuer: string | null;
   proof_client_id: string | null;
-  proof_audience: string[];
+  proof_audience: unknown;
   proof_profile_id: string | null;
   proof_profile_version: number | null;
   proof_checked_at: Date | null;
@@ -134,6 +134,36 @@ type RawSession = {
   revoked_at: Date | null;
   id_token_hint: string | null;
 };
+
+function textArray(value: unknown, column: string): string[] {
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) return value;
+  if (typeof value !== 'string' || !value.startsWith('{') || !value.endsWith('}')) {
+    throw new Error(`Ogiltig textarray i ${column}`);
+  }
+  if (value === '{}') return [];
+  const items: string[] = [];
+  let item = '';
+  let quoted = false;
+  let escaped = false;
+  for (const char of value.slice(1, -1)) {
+    if (escaped) {
+      item += char;
+      escaped = false;
+    } else if (char === '\\') {
+      escaped = true;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === ',' && !quoted) {
+      items.push(item);
+      item = '';
+    } else {
+      item += char;
+    }
+  }
+  if (quoted || escaped) throw new Error(`Ogiltig textarray i ${column}`);
+  items.push(item);
+  return items;
+}
 
 export async function readSession(
   request: Request,
@@ -169,11 +199,11 @@ export async function readSession(
       assignmentId: row.assignment_id,
       epoch: row.context_epoch,
       acr: row.acr,
-      amr: row.amr,
+      amr: textArray(row.amr, 'app_sessions.amr'),
       authTime: row.auth_time,
       proofIssuer: row.proof_issuer,
       proofClientId: row.proof_client_id,
-      proofAudience: row.proof_audience,
+      proofAudience: textArray(row.proof_audience, 'app_sessions.proof_audience'),
       proofProfileId: row.proof_profile_id,
       proofProfileVersion: row.proof_profile_version,
       proofCheckedAt: row.proof_checked_at,
@@ -203,8 +233,8 @@ export async function createSession(
      proof_issuer, proof_client_id, proof_audience, proof_profile_id,
      proof_profile_version, proof_checked_at, id_token_hint, expires_at, absolute_expires_at)
     values (${hash}, ${input.identityId}, ${input.membershipId}, ${input.claims.acr},
-      ${input.claims.amr}, ${input.claims.authTime}, ${input.claims.issuer},
-      ${input.claims.clientId}, ${input.claims.audience}, ${input.claims.profileId},
+      array(select jsonb_array_elements_text(${tx.json(input.claims.amr)})), ${input.claims.authTime}, ${input.claims.issuer},
+      ${input.claims.clientId}, array(select jsonb_array_elements_text(${tx.json(input.claims.audience)})), ${input.claims.profileId},
       ${input.claims.profileVersion}, ${input.claims.checkedAt}, ${input.claims.idToken},
       now() + make_interval(secs => ${input.idleSeconds}),
       now() + make_interval(secs => ${input.absoluteSeconds}))
@@ -263,9 +293,9 @@ export async function refreshMfa(
     throw new Deny('session_revoked', 401);
   }
   await tx`update public.app_sessions set
-      acr = ${claims.acr}, amr = ${claims.amr}, auth_time = ${claims.authTime},
+      acr = ${claims.acr}, amr = array(select jsonb_array_elements_text(${tx.json(claims.amr)})), auth_time = ${claims.authTime},
       proof_issuer = ${claims.issuer}, proof_client_id = ${claims.clientId},
-      proof_audience = ${claims.audience}, proof_profile_id = ${claims.profileId},
+      proof_audience = array(select jsonb_array_elements_text(${tx.json(claims.audience)})), proof_profile_id = ${claims.profileId},
       proof_profile_version = ${claims.profileVersion}, proof_checked_at = ${claims.checkedAt},
       id_token_hint = ${claims.idToken}
     where id = ${binding.sessionId}`;

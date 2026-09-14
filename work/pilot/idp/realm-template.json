@@ -62,30 +62,46 @@
       "builtIn": false,
       "authenticationExecutions": [
         { "authenticator": "auth-cookie", "requirement": "ALTERNATIVE", "priority": 10, "userSetupAllowed": false },
-        { "authenticator": "identity-provider-redirector", "requirement": "ALTERNATIVE", "priority": 25, "userSetupAllowed": false },
-        { "flowAlias": "forms-loa", "requirement": "ALTERNATIVE", "priority": 30, "userSetupAllowed": false }
+        { "flowAlias": "auth-flow-loa", "requirement": "ALTERNATIVE", "priority": 20, "userSetupAllowed": false, "authenticatorFlow": true }
       ]
     },
     {
-      "alias": "forms-loa",
-      "description": "Username, password and conditional LoA 2",
+      "alias": "auth-flow-loa",
+      "description": "Ordered conditional authentication levels",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        { "flowAlias": "loa-1-password", "requirement": "CONDITIONAL", "priority": 10, "userSetupAllowed": false, "authenticatorFlow": true },
+        { "flowAlias": "loa-2-otp", "requirement": "CONDITIONAL", "priority": 20, "userSetupAllowed": false, "authenticatorFlow": true }
+      ]
+    },
+    {
+      "alias": "loa-1-password",
+      "description": "First authentication level requires username and password",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
       "authenticationExecutions": [
         {
-          "authenticator": "auth-username-password-form",
+          "authenticator": "conditional-level-of-authentication",
           "requirement": "REQUIRED",
           "priority": 10,
           "userSetupAllowed": false,
-          "authenticatorConfig": "password-reference"
+          "authenticatorConfig": "loa-1-condition"
         },
-        { "flowAlias": "otp-loa2", "requirement": "CONDITIONAL", "priority": 20, "userSetupAllowed": false }
+        {
+          "authenticator": "auth-username-password-form",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "userSetupAllowed": false,
+          "authenticatorConfig": "password-reference"
+        }
       ]
     },
     {
-      "alias": "otp-loa2",
-      "description": "Require OTP for requested LoA 2",
+      "alias": "loa-2-otp",
+      "description": "Second authentication level requires a TOTP credential",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
@@ -113,6 +129,10 @@
       "config": { "default.reference.value": "pwd", "default.reference.maxAge": "28800" }
     },
     {
+      "alias": "loa-1-condition",
+      "config": { "loa-condition-level": "1", "loa-max-age": "28800" }
+    },
+    {
       "alias": "loa-2-condition",
       "config": { "loa-condition-level": "2", "loa-max-age": "28800" }
     },
@@ -123,15 +143,15 @@
   ],
   "browserFlow": "browser-loa",
   "users": [
-    { "username": "anna.admin", "id": "30000000-0000-4000-8000-000000000001", "email": "anna@example.test", "firstName": "Anna", "lastName": "Admin", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }, { "type": "otp", "userLabel": "prov-totp", "secretData": "{\"value\":\"__TOTP_SECRET__\"}", "credentialData": "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}" }] },
-    { "username": "bertil.granskare", "id": "30000000-0000-4000-8000-000000000002", "email": "bertil@example.test", "firstName": "Bertil", "lastName": "Granskare", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }, { "type": "otp", "userLabel": "prov-totp", "secretData": "{\"value\":\"__TOTP_SECRET__\"}", "credentialData": "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}" }] },
+    { "username": "anna.admin", "id": "30000000-0000-4000-8000-000000000001", "email": "anna@example.test", "firstName": "Anna", "lastName": "Admin", "enabled": true, "emailVerified": true, "requiredActions": ["CONFIGURE_TOTP"], "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
+    { "username": "bertil.granskare", "id": "30000000-0000-4000-8000-000000000002", "email": "bertil@example.test", "firstName": "Bertil", "lastName": "Granskare", "enabled": true, "emailVerified": true, "requiredActions": ["CONFIGURE_TOTP"], "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
     { "username": "cecilia.a", "id": "30000000-0000-4000-8000-000000000003", "email": "cecilia@example.test", "firstName": "Cecilia", "lastName": "Dubbel", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
     { "username": "cecilia.b", "id": "30000000-0000-4000-8000-000000000004", "email": "cecilia@example.test", "firstName": "Cecilia", "lastName": "Dubbel", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
-    { "username": "david.admin-b", "id": "30000000-0000-4000-8000-000000000005", "email": "david@example.test", "firstName": "David", "lastName": "Adminsson", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }, { "type": "otp", "userLabel": "prov-totp", "secretData": "{\"value\":\"__TOTP_SECRET__\"}", "credentialData": "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}" }] },
-    { "username": "erik.utan", "id": "30000000-0000-4000-8000-000000000006", "email": "erik@example.test", "firstName": "Erik", "lastName": "Utanmedlemskap", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }, { "type": "otp", "userLabel": "prov-totp", "secretData": "{\"value\":\"__TOTP_SECRET__\"}", "credentialData": "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}" }] },
+    { "username": "david.admin-b", "id": "30000000-0000-4000-8000-000000000005", "email": "david@example.test", "firstName": "David", "lastName": "Adminsson", "enabled": true, "emailVerified": true, "requiredActions": ["CONFIGURE_TOTP"], "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
+    { "username": "erik.utan", "id": "30000000-0000-4000-8000-000000000006", "email": "erik@example.test", "firstName": "Erik", "lastName": "Utanmedlemskap", "enabled": true, "emailVerified": true, "requiredActions": ["CONFIGURE_TOTP"], "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
     { "username": "frida.uppdrag", "id": "30000000-0000-4000-8000-000000000007", "email": "frida@example.test", "firstName": "Frida", "lastName": "Uppdrag", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
     { "username": "gustav.sparr", "id": "30000000-0000-4000-8000-000000000008", "email": "gustav@example.test", "firstName": "Gustav", "lastName": "Spärr", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
-    { "username": "hanna.tva", "id": "30000000-0000-4000-8000-000000000009", "email": "hanna@example.test", "firstName": "Hanna", "lastName": "Tvåkund", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }, { "type": "otp", "userLabel": "prov-totp", "secretData": "{\"value\":\"__TOTP_SECRET__\"}", "credentialData": "{\"subType\":\"totp\",\"digits\":6,\"counter\":0,\"period\":30,\"algorithm\":\"HmacSHA1\"}" }] },
+    { "username": "hanna.tva", "id": "30000000-0000-4000-8000-000000000009", "email": "hanna@example.test", "firstName": "Hanna", "lastName": "Tvåkund", "enabled": true, "emailVerified": true, "requiredActions": ["CONFIGURE_TOTP"], "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] },
     { "username": "ivar.utan-otp", "id": "30000000-0000-4000-8000-000000000010", "email": "ivar@example.test", "firstName": "Ivar", "lastName": "Utanotp", "enabled": true, "emailVerified": true, "credentials": [{ "type": "password", "value": "Provlosenord-1", "temporary": false }] }
   ]
 }

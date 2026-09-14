@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-09-14T20:58:00.602Z",
+  "revision": "3237de6",
+  "baseURL": "http://127.0.0.1:3012",
+  "login": {
+    "user": "anna.admin",
+    "acr": "2",
+    "amr": [
+      "pwd",
+      "otp"
+    ],
+    "authTimeWithinSeconds": null,
+    "localProfileVerified": true
+  },
+  "gotrue": {
+    "authUserIdSet": true,
+    "authUsersRow": true
+  },
+  "blocked": {
+    "statusBefore": 200,
+    "statusAfter": 403,
+    "code": "membership_blocked"
+  },
+  "logout": {
+    "redirectHost": "host.docker.internal:8180",
+    "sessionAfter": 401,
+    "code": "no_session"
+  },
+  "network": {
+    "foreignHosts": []
+  },
+  "negative": {
+    "missingSession": true,
+    "codeReplay": true,
+    "otherSubject": true,
+    "changedEpoch": true,
+    "blockedBeforeCallback": true,
+    "userAbort": true,
+    "logoutBeforeCallback": true,
+    "logoutDuringIdpOutage": true,
+    "proofUnchanged": true,
+    "businessRowsUnchanged": true
+  }
+}

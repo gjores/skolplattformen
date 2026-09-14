@@ -266,11 +266,20 @@ const protectedTarget = await pilotStep('mål-protected', 'verify-target.mjs', [
     } else {
       const sourceTests = path.join(root, 'supabase', 'tests');
       const targetTests = path.join(workdir, 'supabase', 'tests');
-      const sqlFiles = fs.existsSync(sourceTests) ? fs.readdirSync(sourceTests).filter((f) => f.endsWith('.sql')).sort() : [];
+      // Fasgrinden ska vara stabil även när senare faser lägger till egna pgTAP-filer.
+      const sqlFiles = fs.existsSync(sourceTests)
+        ? fs
+            .readdirSync(sourceTests)
+            .filter((f) => f.startsWith('phase1_') && f.endsWith('.sql'))
+            .sort()
+        : [];
       if (!sqlFiles.length) {
         record({ name: 'sql-karantän', command, required: true, exit: null, durationMs: 0, status: 'FAIL', detail: 'inga pgTAP-filer i supabase/tests/' });
       } else {
         fs.mkdirSync(targetTests, { recursive: true });
+        for (const file of fs.readdirSync(targetTests).filter((name) => name.endsWith('.sql'))) {
+          fs.rmSync(path.join(targetTests, file), { force: true });
+        }
         for (const f of sqlFiles) fs.copyFileSync(path.join(sourceTests, f), path.join(targetTests, f));
         console.log(`Kopierade ${sqlFiles.join(', ')} till ${path.relative(root, targetTests)}/`);
         const r = await run('supabase', ['--workdir', workdir, 'test', 'db', '--local'], { cwd: root });
