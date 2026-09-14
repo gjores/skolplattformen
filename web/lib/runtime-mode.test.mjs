@@ -20,10 +20,17 @@ test('saknat eller tomt läge är stängt', () => {
   }
 });
 
-test('skyddat läge är stängt i fas 1', () => {
-  const d = resolveRuntimeMode({ NEXT_PUBLIC_APP_MODE: 'protected' });
-  assert.equal(d.mode, 'blocked');
-  assert.equal(d.reason, 'protected-closed');
+test('skyddat läge öppnas bara med exakt NEXT_PUBLIC_APP_MODE=protected', () => {
+  assert.deepEqual(resolveRuntimeMode({ NEXT_PUBLIC_APP_MODE: 'protected' }), {
+    mode: 'protected',
+    reason: 'explicit-protected',
+    ignoredBackendConfig: false,
+  });
+  for (const value of [' protected', 'Protected', 'PROTECTED']) {
+    const d = resolveRuntimeMode({ NEXT_PUBLIC_APP_MODE: value });
+    assert.equal(d.mode, 'blocked');
+    assert.equal(d.reason, 'unknown-mode');
+  }
 });
 
 test('okända lägen och annat skiftläge är stängda', () => {
@@ -61,10 +68,13 @@ test('describeRuntime ger svensk beskrivning utan URL eller nycklar', () => {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'hemlig-nyckel',
   });
   assert.equal(describeRuntime(example), 'Provmiljö: exempelläge utan databasanslutning');
-  const blocked = resolveRuntimeMode({ NEXT_PUBLIC_APP_MODE: 'protected' });
-  assert.equal(describeRuntime(blocked), 'Stängd start (protected-closed)');
+  const protectedMode = resolveRuntimeMode({
+    NEXT_PUBLIC_APP_MODE: 'protected',
+    NEXT_PUBLIC_SUPABASE_URL: 'https://hemlig.example',
+  });
+  assert.equal(describeRuntime(protectedMode), 'Skyddad provmiljö: åtkomst via serverlagret');
   assert.equal(describeRuntime(resolveRuntimeMode({})), 'Stängd start (missing-mode)');
-  for (const text of [describeRuntime(example), describeRuntime(blocked)]) {
+  for (const text of [describeRuntime(example), describeRuntime(protectedMode)]) {
     assert.ok(!text.includes('hemlig'));
     assert.ok(!text.includes('http'));
   }

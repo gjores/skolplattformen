@@ -1,10 +1,10 @@
-// Lägeskontrakt för fas 1. Appen startar bara i ett uttryckligt exempelläge
-// utan databasanslutning. Saknat, okänt eller skyddat läge är stängt.
-// Förekomst av URL/nyckel i miljön är ingen behörighet och öppnar aldrig
-// något; den registreras bara som ignorerad konfiguration.
+// Lägeskontrakt för fas 2. Läget protected öppnas endast via serverlagret
+// (D-10, D-15); klienten får inga Supabase-värden. Förekomst av URL/nyckel
+// i klientmiljön är ingen behörighet och registreras bara som ignorerad
+// konfiguration.
 
-export type RuntimeMode = 'example' | 'blocked';
-export type RuntimeReason = 'explicit-example' | 'missing-mode' | 'unknown-mode' | 'protected-closed';
+export type RuntimeMode = 'example' | 'protected' | 'blocked';
+export type RuntimeReason = 'explicit-example' | 'explicit-protected' | 'missing-mode' | 'unknown-mode';
 export type RuntimeDecision = { mode: RuntimeMode; reason: RuntimeReason; ignoredBackendConfig: boolean };
 
 export const APP_MODE_VAR = 'NEXT_PUBLIC_APP_MODE';
@@ -18,14 +18,16 @@ export function resolveRuntimeMode(env: RuntimeEnv): RuntimeDecision {
   const ignoredBackendConfig = Boolean(env.NEXT_PUBLIC_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const mode = env.NEXT_PUBLIC_APP_MODE;
   if (mode === 'example') return { mode: 'example', reason: 'explicit-example', ignoredBackendConfig };
-  if (mode === 'protected') return { mode: 'blocked', reason: 'protected-closed', ignoredBackendConfig };
+  if (mode === 'protected') return { mode: 'protected', reason: 'explicit-protected', ignoredBackendConfig };
   if (mode === undefined || mode === '') return { mode: 'blocked', reason: 'missing-mode', ignoredBackendConfig };
   return { mode: 'blocked', reason: 'unknown-mode', ignoredBackendConfig };
 }
 
 /** Svensk beskrivning för loggar och vyer. Innehåller aldrig URL eller nycklar. */
 export function describeRuntime(d: RuntimeDecision): string {
-  return d.mode === 'example' ? 'Provmiljö: exempelläge utan databasanslutning' : `Stängd start (${d.reason})`;
+  if (d.mode === 'example') return 'Provmiljö: exempelläge utan databasanslutning';
+  if (d.mode === 'protected') return 'Skyddad provmiljö: åtkomst via serverlagret';
+  return `Stängd start (${d.reason})`;
 }
 
 /** Appens faktiska beslut. Literalerna nedan krävs för att Vinext ska bädda in värdena i klientbygget. */

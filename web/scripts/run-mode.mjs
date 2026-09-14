@@ -1,23 +1,32 @@
-// Deterministisk start/bygge/förhandsvisning av exempelläget med explicit miljö.
-//
-//   node scripts/run-mode.mjs dev     --mode example        [--port 3000] [--hostname localhost]
-//   node scripts/run-mode.mjs dev     --mode blocked-probe  [--port 5192] [--hostname 127.0.0.1]
-//   node scripts/run-mode.mjs build   --mode example
-//   node scripts/run-mode.mjs preview [--port 3001]
-//
-// Supabase-värdena sätts avsiktligt till tomma strängar i exempelläget: Vinext
-// skriver inte över redan satta miljövärden, så en gammal .env.local kan inte
-// fylla tillbaka dem. Skriptet skriver aldrig ut miljövärden.
+// Deterministisk start, bygge och förhandsvisning av example/protected.
+// Klientmiljön får aldrig Supabase-värden. Serverhemligheter hämtas endast
+// från det gitignorerade protected-manifestet och skrivs till privata filer.
 import { spawn } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
 const VINEXT = 'node_modules/vinext/dist/cli.js';
 const WRANGLER = 'node_modules/wrangler/bin/wrangler.js';
 const BUILD_MARK = 'dist/build-mode.json';
+const BUILD_MARK_PROTECTED = 'dist-protected/build-mode.json';
 const WRANGLER_CONFIG = 'dist/server/wrangler.json';
+const WRANGLER_CONFIG_PROTECTED = 'dist-protected/server/wrangler.json';
+const DEV_VARS = '.dev.vars';
+const DEV_VARS_PROTECTED_PREVIEW = 'dist-protected/server/.dev.vars';
+const MANIFEST = '../work/pilot/targets/protected/manifest.json';
 
 const [command, ...rest] = process.argv.slice(2);
 const options = parseOptions(rest);
@@ -46,29 +55,28 @@ function usage() {
     [
       'Användning:',
       '  node scripts/run-mode.mjs dev     --mode example        [--port 3000] [--hostname localhost]',
+      '  node scripts/run-mode.mjs dev     --mode protected      [--port 3000] [--hostname localhost]',
       '  node scripts/run-mode.mjs dev     --mode blocked-probe  [--port 5192] [--hostname 127.0.0.1]',
-      '  node scripts/run-mode.mjs build   --mode example',
-      '  node scripts/run-mode.mjs preview [--port 3001]',
+      '  node scripts/run-mode.mjs build   --mode example|protected',
+      '  node scripts/run-mode.mjs preview [--mode example|protected] [--port 3001]',
     ].join('\n'),
   );
 }
 
 const quiet = { WRANGLER_WRITE_LOGS: 'false', WRANGLER_SEND_METRICS: 'false' };
 
-/** Miljö per läge. Endast example och blocked-probe är tillåtna i fas 1. */
-function environmentFor(mode, { allowProbe }) {
-  if (mode === 'example') {
+/** Klientmiljö per läge. Protected får endast serverhemligheter via .dev.vars. */
+function environmentFor(mode, { allowProbe = false } = {}) {
+  if (mode === 'example' || mode === 'protected') {
     return {
       ...process.env,
-      NEXT_PUBLIC_APP_MODE: 'example',
+      NEXT_PUBLIC_APP_MODE: mode,
       NEXT_PUBLIC_SUPABASE_URL: '',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: '',
       ...quiet,
     };
   }
   if (mode === 'blocked-probe' && allowProbe) {
-    // Fasta syntetiska loopback-värden för provet av stängd start. Appen ska
-    // vara blockerad och får inte kontakta porten.
     return {
       ...process.env,
       NEXT_PUBLIC_APP_MODE: '',
@@ -77,8 +85,8 @@ function environmentFor(mode, { allowProbe }) {
       ...quiet,
     };
   }
-  const allowed = allowProbe ? 'example, blocked-probe' : 'example';
-  return fail(`Läget "${mode ?? ''}" är stängt i fas 1. Tillåtna: ${allowed}.`);
+  const allowed = allowProbe ? 'example, protected, blocked-probe' : 'example, protected';
+  return fail(`Läget "${mode ?? ''}" är inte tillåtet. Tillåtna: ${allowed}.`);
 }
 
 function port(fallback) {
@@ -88,10 +96,99 @@ function port(fallback) {
   return String(n);
 }
 
-/** Startar ett barn med process.execPath (aldrig shell) och vidarebefordrar signaler. */
+function file(name) {
+  return path.resolve(project, name);
+}
+
+function readJson(name) {
+  try {
+    return JSON.parse(readFileSync(file(name), 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function readProtectedManifest() {
+  const manifest = readJson(MANIFEST);
+  const fields = [
+    manifest?.idp?.issuer,
+    manifest?.idp?.clientId,
+    manifest?.idp?.clientSecret,
+    manifest?.apiUrl,
+    manifest?.anonKey,
+    manifest?.worker?.dbUrl,
+    manifest?.sessionSecret,
+    manifest?.mfa?.acrValues,
+  ];
+  if (!manifest?.idp || !manifest?.worker || !manifest?.sessionSecret ||
+      !Number.isInteger(manifest?.mfa?.maxAgeSeconds) ||
+      fields.some(value => typeof value !== 'string' || value.length === 0 || /[\r\n]/.test(value))) {
+    fail('BLOCKED: protected-målet är inte förberett med IdP. Kör node work/pilot/prepare-local.mjs --target protected --with-idp', 3);
+  }
+  if (!manifest.apiUrl.startsWith('http://127.0.0.1:') || !manifest.worker.dbUrl.includes('@127.0.0.1:')) {
+    fail('REFUSED: protected-manifestet pekar inte enbart på det lokala provmålet.', 1);
+  }
+  return manifest;
+}
+
+function devVarsFor(manifest, { hostname, port: serverPort }) {
+  return [
+    'APP_MODE=protected',
+    `OIDC_ISSUER=${manifest.idp.issuer}`,
+    `OIDC_CLIENT_ID=${manifest.idp.clientId}`,
+    `OIDC_CLIENT_SECRET=${manifest.idp.clientSecret}`,
+    `OIDC_REDIRECT_URI=http://${hostname}:${serverPort}/api/auth/callback`,
+    `OIDC_POST_LOGOUT_REDIRECT_URI=http://${hostname}:${serverPort}/`,
+    `SUPABASE_URL=${manifest.apiUrl}`,
+    `SUPABASE_ANON_KEY=${manifest.anonKey}`,
+    `DATABASE_URL=${manifest.worker.dbUrl}`,
+    `SESSION_SECRET=${manifest.sessionSecret}`,
+    `MFA_ACR_VALUES=${manifest.mfa.acrValues}`,
+    `MFA_MAX_AGE_SECONDS=${manifest.mfa.maxAgeSeconds}`,
+    'SESSION_IDLE_SECONDS=900',
+    'SESSION_ABSOLUTE_SECONDS=28800',
+    '',
+  ].join('\n');
+}
+
+/** Tar ett exklusivt lås så parallella servrar aldrig delar eller raderar filen. */
+function writePrivateVars(name, contents) {
+  const target = file(name);
+  const lock = `${target}.lock`;
+  mkdirSync(path.dirname(target), { recursive: true });
+  let descriptor;
+  try {
+    descriptor = openSync(lock, 'wx', 0o600);
+  } catch {
+    fail(`BLOCKED: ${name} används redan av en annan lokal server.`, 3);
+  }
+  closeSync(descriptor);
+  if (existsSync(target)) {
+    rmSync(lock, { force: true });
+    fail(`BLOCKED: ${name} finns utan aktivt ägarskap. Ta bort den privata restfilen och kör igen.`, 3);
+  }
+  try {
+    writeFileSync(target, contents, { mode: 0o600 });
+    chmodSync(target, 0o600);
+  } catch (error) {
+    rmSync(lock, { force: true });
+    throw error;
+  }
+  let active = true;
+  const cleanup = () => {
+    if (!active) return;
+    active = false;
+    rmSync(target, { force: true });
+    rmSync(lock, { force: true });
+  };
+  process.on('exit', cleanup);
+  return cleanup;
+}
+
+/** Startar ett barn utan skal och vidarebefordrar stoppsignaler. */
 function run(args, env) {
   const child = spawn(process.execPath, args, { cwd: project, env, stdio: 'inherit' });
-  const forward = (signal) => () => {
+  const forward = signal => () => {
     if (!child.killed) child.kill(signal);
   };
   process.on('SIGINT', forward('SIGINT'));
@@ -110,42 +207,98 @@ function revision() {
   }
 }
 
+function writeBuildMark(name, mode) {
+  const mark = { mode, revision: revision(), builtAt: new Date().toISOString(), node: process.version };
+  writeFileSync(file(name), JSON.stringify(mark, null, 2) + '\n');
+  console.log(`Bygge märkt: läge ${mark.mode}, revision ${mark.revision}`);
+}
+
 async function dev() {
   const env = environmentFor(options.mode, { allowProbe: true });
   const hostname = options.hostname ?? (options.mode === 'blocked-probe' ? '127.0.0.1' : 'localhost');
   const p = port(options.mode === 'blocked-probe' ? 5192 : 3000);
-  console.log(`Utvecklingsserver: läge ${options.mode} på ${hostname}:${p}`);
-  process.exit(await run([VINEXT, 'dev', '--port', p, '--hostname', hostname], env));
+  let cleanup = () => {};
+  if (options.mode === 'protected') {
+    if (!['localhost', '127.0.0.1'].includes(hostname)) fail('REFUSED: protected-läget får endast bindas till localhost.', 1);
+    const manifest = readProtectedManifest();
+    cleanup = writePrivateVars(DEV_VARS, devVarsFor(manifest, { hostname, port: p }));
+    console.log(`Utvecklingsserver: läge protected på ${hostname}:${p} (skyddad provmiljö, lokalt mål)`);
+  } else {
+    console.log(`Utvecklingsserver: läge ${options.mode} på ${hostname}:${p}`);
+  }
+  try {
+    process.exitCode = await run([VINEXT, 'dev', '--port', p, '--hostname', hostname], env);
+  } finally {
+    cleanup();
+  }
+}
+
+async function buildProtected() {
+  const dist = file('dist');
+  const protectedDist = file('dist-protected');
+  const keep = file('.dist-example-keep');
+  if (existsSync(file(DEV_VARS)) || existsSync(file(`${DEV_VARS}.lock`))) {
+    fail('REFUSED: skyddat bygge körs inte medan web/.dev.vars används.', 1);
+  }
+  if (existsSync(keep)) fail('REFUSED: .dist-example-keep finns redan; återställ eller ta bort den före nytt bygge.', 1);
+  const exampleMark = readJson(BUILD_MARK);
+  const preserveExample = existsSync(dist) && exampleMark?.mode === 'example';
+  if (preserveExample) renameSync(dist, keep);
+  else rmSync(dist, { recursive: true, force: true });
+  rmSync(protectedDist, { recursive: true, force: true });
+  let code = 1;
+  try {
+    code = await run([VINEXT, 'build'], environmentFor('protected'));
+    if (code !== 0) throw new Error(`protected-bygget avslutades med exit ${code}`);
+    if (!existsSync(file(WRANGLER_CONFIG))) throw new Error(`Bygget saknar ${WRANGLER_CONFIG}.`);
+    renameSync(dist, protectedDist);
+    writeBuildMark(BUILD_MARK_PROTECTED, 'protected');
+  } catch (error) {
+    rmSync(dist, { recursive: true, force: true });
+    if (preserveExample && existsSync(keep)) renameSync(keep, dist);
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(code === 0 ? 1 : code);
+  }
+  if (preserveExample) renameSync(keep, dist);
 }
 
 async function build() {
-  const env = environmentFor(options.mode, { allowProbe: false });
+  if (options.mode === 'protected') return buildProtected();
+  const env = environmentFor(options.mode);
   const code = await run([VINEXT, 'build'], env);
   if (code !== 0) process.exit(code);
-  if (!existsSync(new URL(WRANGLER_CONFIG, `file://${project}`))) {
-    fail(`Bygget saknar ${WRANGLER_CONFIG}.`, 1);
-  }
-  const mark = { mode: 'example', revision: revision(), builtAt: new Date().toISOString(), node: process.version };
-  writeFileSync(new URL(BUILD_MARK, `file://${project}`), JSON.stringify(mark, null, 2) + '\n');
-  console.log(`Bygge märkt: läge ${mark.mode}, revision ${mark.revision}`);
+  if (!existsSync(file(WRANGLER_CONFIG))) fail(`Bygget saknar ${WRANGLER_CONFIG}.`, 1);
+  writeBuildMark(BUILD_MARK, 'example');
 }
 
 async function preview() {
-  const markPath = new URL(BUILD_MARK, `file://${project}`);
-  let mark = null;
-  try {
-    mark = JSON.parse(readFileSync(markPath, 'utf8'));
-  } catch {
-    mark = null;
+  if (options.mode === 'protected') {
+    const mark = readJson(BUILD_MARK_PROTECTED);
+    if (!mark || mark.mode !== 'protected') fail('Bygget saknar skyddat läge. Kör npm run build:protected först.');
+    const manifest = readProtectedManifest();
+    const p = port(3012);
+    const cleanup = writePrivateVars(
+      DEV_VARS_PROTECTED_PREVIEW,
+      devVarsFor(manifest, { hostname: '127.0.0.1', port: p }),
+    );
+    console.log(`Förhandsvisning: läge protected, revision ${mark.revision}`);
+    try {
+      process.exitCode = await run(
+        [WRANGLER, 'dev', '--config', WRANGLER_CONFIG_PROTECTED, '--port', p, '--ip', '127.0.0.1', '--inspector-port', '0'],
+        { ...process.env, ...quiet },
+      );
+    } finally {
+      cleanup();
+    }
+    return;
   }
+  const mark = readJson(BUILD_MARK);
   if (!mark || mark.mode !== 'example') fail('Bygget saknar exempelläge. Kör npm run build:example först.');
   const p = port(3001);
   console.log(`Förhandsvisning: läge ${mark.mode}, revision ${mark.revision}`);
-  process.exit(
-    await run(
-      [WRANGLER, 'dev', '--config', WRANGLER_CONFIG, '--port', p, '--ip', '127.0.0.1', '--inspector-port', '0'],
-      { ...process.env, ...quiet },
-    ),
+  process.exitCode = await run(
+    [WRANGLER, 'dev', '--config', WRANGLER_CONFIG, '--port', p, '--ip', '127.0.0.1', '--inspector-port', '0'],
+    { ...process.env, ...quiet },
   );
 }
 
