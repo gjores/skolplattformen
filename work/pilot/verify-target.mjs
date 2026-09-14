@@ -30,6 +30,9 @@ const allowedTargets = ['baseline', 'protected'];
 const projectPrefix = 'skolplattform-pilot-';
 const forbiddenEnv = ['SUPABASE_ACCESS_TOKEN', 'SUPABASE_DB_URL', 'SUPABASE_PROJECT_REF'];
 const forbiddenFlags = ['--linked', '--db-url'];
+const idpContainer = 'skolplattform-pilot-idp';
+const idpIssuer = 'http://host.docker.internal:8180/realms/skolplattform-test';
+const hostsBlocked = 'BLOCKED: host.docker.internal löses inte till 127.0.0.1 på den här datorn. Lägg till raden "127.0.0.1 host.docker.internal" i /etc/hosts (kräver administratörsrättighet och görs en gång) och kör igen. Skriptet ändrar aldrig /etc/hosts.';
 
 function refused(message) {
   return new Error(`REFUSED: ${message}`);
@@ -62,7 +65,45 @@ function readStatus(workdir) {
   return JSON.parse(out.slice(start));
 }
 
-export async function assertTarget(name, { requireRunning = true } = {}) {
+function hostsReady() {
+  if (process.env.SKOLPLATTFORM_TEST_NO_HOSTS === '1') return false;
+  if (process.platform === 'darwin') {
+    try {
+      const out = execFileSync('dscacheutil', ['-q', 'host', '-a', 'name', 'host.docker.internal'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      return /^ip_address:\s*127\.0\.0\.1\s*$/m.test(out);
+    } catch {
+      return false;
+    }
+  }
+  try {
+    return /^\s*127\.0\.0\.1\s+.*\bhost\.docker\.internal\b/m.test(fs.readFileSync('/etc/hosts', 'utf8'));
+  } catch {
+    return false;
+  }
+}
+
+async function assertIdp(manifest) {
+  if (!hostsReady()) throw new Error(hostsBlocked);
+  if (!manifest.idp || manifest.idp.containerName !== idpContainer || manifest.idp.issuer !== idpIssuer) {
+    throw blocked('test-IdP:n kör inte (kör node work/pilot/prepare-local.mjs --target protected --with-idp)');
+  }
+  try {
+    const names = execFileSync('docker', ['ps', '--format', '{{.Names}}'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).split('\n');
+    if (!names.includes(idpContainer)) throw new Error('container saknas');
+    const response = await fetch(`${manifest.idp.publicUrl}/realms/skolplattform-test/.well-known/openid-configuration`);
+    if (!response.ok || (await response.json()).issuer !== idpIssuer) throw new Error('issuer saknas');
+  } catch {
+    throw blocked('test-IdP:n kör inte (kör node work/pilot/prepare-local.mjs --target protected --with-idp)');
+  }
+}
+
+export async function assertTarget(name, { requireRunning = true, requireIdp = false } = {}) {
   // 1. Molnvariabler och fjärrflaggor vägras alltid, oavsett mål.
   for (const key of forbiddenEnv) {
     if (process.env[key] !== undefined && process.env[key] !== '') {
@@ -135,18 +176,24 @@ export async function assertTarget(name, { requireRunning = true } = {}) {
     }
   }
 
+  if (requireIdp) {
+    if (name !== 'protected') throw refused('test-IdP får endast krävas för målet protected');
+    await assertIdp(manifest);
+  }
+
   return manifest;
 }
 
 function parseArgs(argv) {
-  const options = { target: null, requireRunning: true };
+  const options = { target: null, requireRunning: true, requireIdp: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--target') options.target = argv[++i];
     else if (arg.startsWith('--target=')) options.target = arg.slice('--target='.length);
     else if (arg === '--no-running') options.requireRunning = false;
+    else if (arg === '--with-idp') options.requireIdp = true;
     else if (arg === '--help' || arg === '-h') {
-      console.log('Användning: node work/pilot/verify-target.mjs --target baseline|protected [--no-running]');
+      console.log('Användning: node work/pilot/verify-target.mjs --target baseline|protected [--no-running] [--with-idp]');
       process.exit(0);
     }
     // Andra argument ignoreras här; --linked/--db-url vägras i assertTarget.
@@ -160,7 +207,10 @@ const invokedDirectly =
 if (invokedDirectly) {
   const options = parseArgs(process.argv.slice(2));
   try {
-    const manifest = await assertTarget(options.target ?? '', { requireRunning: options.requireRunning });
+    const manifest = await assertTarget(options.target ?? '', {
+      requireRunning: options.requireRunning,
+      requireIdp: options.requireIdp,
+    });
     console.log(JSON.stringify({
       target: manifest.target,
       projectId: manifest.projectId,

@@ -27,6 +27,8 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local environment
+.dev.vars
+.dev.vars.*
 .env*
 !.env.example
 
@@ -34,6 +36,7 @@ yarn-error.log*
 .vercel
 next-env.d.ts
 /dist/
+/dist-protected/
 /.wrangler/
 /outputs/
 /work/
