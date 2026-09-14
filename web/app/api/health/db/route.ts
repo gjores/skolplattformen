@@ -5,8 +5,9 @@ type HealthRow = { role: string; customers: string | number };
 
 export async function GET(_request: Request): Promise<Response> {
   const corr = correlationId();
+  const db = sql();
   try {
-    const rows = await sql()<HealthRow[]>`select current_user as role,
+    const rows = await db<HealthRow[]>`select current_user as role,
       (select count(*) from public.customers) as customers`;
     return json(
       {
@@ -23,5 +24,7 @@ export async function GET(_request: Request): Promise<Response> {
   } catch (error) {
     console.error('health/db', corr, error instanceof Error ? error.constructor.name : 'UnknownError');
     return fail('db_unreachable', 503, corr);
+  } finally {
+    await db.end({ timeout: 1 });
   }
 }
