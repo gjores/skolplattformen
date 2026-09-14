@@ -67,7 +67,7 @@ Plans:
 
 **Plans**: 12 planer i 11 vågor — granskade och redo att genomföras 2026-09-13
 
-- [ ] 02-01-PLAN.md — Lokal testidentitet och skyddad körmiljö
+- [x] 02-01-PLAN.md — Lokal testidentitet och skyddad körmiljö
 - [ ] 02-02-PLAN.md — Databasens identitets- och sessionsgrund
 - [ ] 02-03-PLAN.md — Tidigt prov av databasanslutning och OIDC i Worker
 - [ ] 02-04-PLAN.md — Körbevis och kontrollpunkt för inloggningsflödet
@@ -199,7 +199,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
-| 2. Verifierad kontoåtkomst | 0/12 | Redo att genomföras | - |
+| 2. Verifierad kontoåtkomst | 1/12 | Pågår | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
@@ -210,4 +210,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1 (BASE-01, BASE-02, PILOT-01) är verifierad 2026-09-12. Övriga 39 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-13 — fas 1 verifierad; fas 2-planeringen är godkänd (12 planer, 11 vågor); nästa steg är gsd-execute-phase 2.*
+*Last updated: 2026-09-14 — fas 1 verifierad; fas 2 genomförs och 1 av 12 planer är klar.*
