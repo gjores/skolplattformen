@@ -37,7 +37,7 @@
         "post.logout.redirect.uris": "http://localhost:3000/*##http://127.0.0.1:3000/*##http://127.0.0.1:5193/*##http://127.0.0.1:3012/*##http://127.0.0.1:3013/*",
         "pkce.code.challenge.method": "S256"
       },
-      "defaultClientScopes": ["profile", "email", "acr"],
+      "defaultClientScopes": ["basic", "profile", "email", "acr"],
       "protocolMappers": [
         {
           "name": "amr",
