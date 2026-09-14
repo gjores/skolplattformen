@@ -46,6 +46,68 @@ node work/pilot/prepare-local.mjs --target <mål> --stop    # stoppa målet
 
 Kommandona körs från projektroten. Målen är disponibla och loopback-bundna; `verify-target.mjs` vägrar molnvariabler, `--linked` och okända mål.
 
+## Skyddad provmiljö (fas 2, kräver Docker)
+
+### Engångsförberedelse
+
+GoTrue i containern och webbläsaren på datorn måste nå Keycloak under samma namn. Lägg därför till följande rad i `/etc/hosts` en gång:
+
+```bash
+sudo sh -c 'echo "127.0.0.1 host.docker.internal" >> /etc/hosts'
+```
+
+Inget skript i projektet ändrar `/etc/hosts`. Utan raden rapporterar `prepare-local --with-idp` **BLOCKED**.
+
+### Starta
+
+Kör först från projektroten:
+
+```bash
+node work/pilot/prepare-local.mjs --target protected --with-idp
+cd web && npm run dev:protected
+```
+
+Öppna `http://localhost:3000/`. Första körningen hämtar `quay.io/keycloak/keycloak:26.7.3`, vilket kräver nätanslutning.
+
+### Testpersoner
+
+Alla testpersoner använder det lokala provlösenordet `Provlosenord-1`. Det är ett syntetiskt provvärde och ingen drifthemlighet.
+
+| Användarnamn | E-post | TOTP krävs |
+|---|---|---|
+| `anna.admin` | anna@example.test | Ja |
+| `bertil.granskare` | bertil@example.test | Ja |
+| `cecilia.a` | cecilia@example.test | Nej |
+| `cecilia.b` | cecilia@example.test | Nej |
+| `david.admin-b` | david@example.test | Ja |
+| `erik.utan` | erik@example.test | Ja |
+| `frida.uppdrag` | frida@example.test | Nej |
+| `gustav.sparr` | gustav@example.test | Nej |
+| `hanna.tva` | hanna@example.test | Ja |
+| `ivar.utan-otp` | ivar@example.test | Nej |
+
+Hämta aktuell engångskod för en TOTP-person från projektroten:
+
+```bash
+node work/pilot/idp-otp.mjs --user anna.admin
+```
+
+Medlemskap och uppdrag för testpersonerna läggs av `work/pilot/sql/phase2-fixtures.sql` i plan 02-02, som kommer i en senare plan. Leverantörsinbjudan görs med `work/pilot/invite.mjs` i plan 02-06, som också kommer i en senare plan.
+
+### Byggt paket
+
+```bash
+npm run build:protected && npm run preview:protected
+```
+
+Öppna `http://127.0.0.1:3012/`. Det skyddade paketet ligger i `dist-protected/`. Kommandona `phone` och `preview:example` fortsätter att vägra ett protected-bygge.
+
+### Vad som inte påstås
+
+- Keycloak är en lokal testleverantör — inte kundens IdP. Anslutning till Skolfederation eller kommunens IdP godkänns i fas 7 för IAM-02 och är det öppna beroendet OB-02 i `connection-profile.md`.
+- Miljön använder inga molnnycklar och ingen `--linked`-anslutning.
+- Exempelläget (`npm run dev:example`) är fortsatt helt utan backend.
+
 ## Alla kontroller
 
 ```bash
@@ -61,3 +123,4 @@ Utan Docker blir databasstegen **BLOCKED** (exit 3), aldrig PASS. Sparordningsst
 - Köra `work/supabase/*.mjs` mot molnet — skripten är historik, flera skriver till ansluten databas och `reset.mjs` raderar demodata.
 - Lägga in verkliga elevuppgifter i provmiljön, fixturer eller resultatfiler.
 - Lägga nycklar, `.env.local` eller andra hemligheter i Git, planeringsdokument eller felsökningsutdata.
+- Redigera `/etc/hosts` från ett skript eller committa `web/.dev.vars`, `work/pilot/targets/` eller en genererad `realm.json`.
