@@ -1,12 +1,12 @@
 {
   "kind": "api-isolation",
-  "date": "2026-09-11T22:08:29.181Z",
+  "date": "2026-09-15T06:52:28.372Z",
   "target": {
     "projectId": "skolplattform-pilot-protected",
     "apiUrl": "http://127.0.0.1:56321",
-    "migrations": 7
+    "migrations": 9
   },
-  "revision": "7d289d5",
+  "revision": "61ad1c8",
   "identities": [
     "anon",
     "gammalAnonym",
@@ -59,7 +59,7 @@
       "identity": "anon",
       "operation": "rpc bootstrap_demo_profile",
       "outcome": "DENIED",
-      "detail": "fel 42501: permission denied for schema public"
+      "detail": "fel PGRST202: Could not find the function public.bootstrap_demo_profile(display_name) in the schema cache"
     },
     {
       "identity": "anon",
@@ -167,7 +167,7 @@
       "identity": "gammalAnonym",
       "operation": "rpc bootstrap_demo_profile",
       "outcome": "DENIED",
-      "detail": "fel 42501: permission denied for schema public"
+      "detail": "fel PGRST202: Could not find the function public.bootstrap_demo_profile(display_name) in the schema cache"
     },
     {
       "identity": "gammalAnonym",
@@ -281,7 +281,7 @@
       "identity": "provkonto",
       "operation": "rpc bootstrap_demo_profile",
       "outcome": "DENIED",
-      "detail": "fel 42501: permission denied for schema public"
+      "detail": "fel PGRST202: Could not find the function public.bootstrap_demo_profile(display_name) in the schema cache"
     },
     {
       "identity": "provkonto",
@@ -353,7 +353,7 @@
       "identity": "nyAnvandare",
       "operation": "auth.signUp",
       "outcome": "INFO",
-      "detail": "signup lyckades (användare 83cc2f32-f854-4542-838f-d55ad7a0644a); läsprov följer"
+      "detail": "signup lyckades (användare 243888cc-c53d-4739-a8dd-4f8f4ad20f8e); läsprov följer"
     },
     {
       "identity": "nyAnvandare",
@@ -382,7 +382,7 @@
   ],
   "rowsBefore": {
     "profiles": 1,
-    "school_units": 1,
+    "school_units": 4,
     "offerings": 1,
     "class_timplans": 0,
     "storage_tillstand": 1,
@@ -391,7 +391,7 @@
   },
   "rowsAfter": {
     "profiles": 1,
-    "school_units": 1,
+    "school_units": 4,
     "offerings": 1,
     "class_timplans": 0,
     "storage_tillstand": 1,

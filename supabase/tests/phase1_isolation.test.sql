@@ -17,7 +17,7 @@ select plan(52);
 select is(has_schema_privilege('anon', 'public', 'USAGE'), false, 'anon saknar USAGE på public');
 select is(has_schema_privilege('authenticated', 'public', 'USAGE'), false, 'authenticated saknar USAGE på public');
 select is(has_schema_privilege('service_role', 'public', 'USAGE'), true, 'service_role behåller USAGE');
-select alike(obj_description('public'::regnamespace, 'pg_namespace'), 'fas1-karantan:%', 'karantänmarkören är satt på schemat');
+select alike(obj_description('public'::regnamespace, 'pg_namespace'), 'fas2-kontext:%', 'fas 2-markör: karantänen för klientroller består');
 
 -- ---------------------------------------------------------------------------
 -- B. Alla tabeller och vyer i public: ingen SELECT/INSERT/UPDATE/DELETE
@@ -52,8 +52,8 @@ select is(
 -- ---------------------------------------------------------------------------
 -- D. Kända farliga funktioner, uttryckligt per roll
 -- ---------------------------------------------------------------------------
-select is(has_function_privilege('authenticated', 'public.bootstrap_demo_profile(text)', 'EXECUTE'), false, 'bootstrap_demo_profile stängd för authenticated');
-select is(has_function_privilege('anon', 'public.bootstrap_demo_profile(text)', 'EXECUTE'), false, 'bootstrap_demo_profile stängd för anon');
+select hasnt_function('public', 'bootstrap_demo_profile', array['text'], 'bootstrap_demo_profile är borttagen ur databasen (fas 2, D-15)');
+select is((select count(*) from pg_proc where proname = 'bootstrap_demo_profile')::int, 0, 'ingen variant av bootstrap_demo_profile finns');
 select is(has_function_privilege('authenticated', 'public.copy_offering_cohort(uuid, integer)', 'EXECUTE'), false, 'copy_offering_cohort stängd för authenticated');
 select is(has_function_privilege('anon', 'public.copy_offering_cohort(uuid, integer)', 'EXECUTE'), false, 'copy_offering_cohort stängd för anon');
 select is(has_function_privilege('authenticated', 'public.appoint_school_principal(uuid, uuid, text)', 'EXECUTE'), false, 'appoint_school_principal stängd för authenticated');
@@ -66,8 +66,8 @@ select is(has_function_privilege('authenticated', 'public.current_app_role()', '
 select is(has_function_privilege('anon', 'public.current_app_role()', 'EXECUTE'), false, 'current_app_role stängd för anon');
 select is(
   (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-    where n.nspname = 'public' and p.proname in ('bootstrap_demo_profile', 'copy_offering_cohort', 'appoint_school_principal', 'import_school_unit', 'current_organizer_id', 'current_app_role'))::int,
-  6, 'funktionerna finns kvar (inget raderat)');
+    where n.nspname = 'public' and p.proname in ('copy_offering_cohort', 'appoint_school_principal', 'import_school_unit', 'current_organizer_id', 'current_app_role'))::int,
+  5, 'övriga fem funktioner finns kvar (inget annat raderat)');
 
 -- ---------------------------------------------------------------------------
 -- E. Alla funktioner i public
@@ -129,7 +129,7 @@ select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-0000000
 select is(current_user, 'authenticated', 'kör som authenticated');
 select throws_ok('select * from public.profiles', '42501', null, 'profiles nekas som authenticated');
 select throws_ok('select public.current_organizer_id()', '42501', null, 'current_organizer_id nekas som authenticated');
-select throws_ok($$select public.bootstrap_demo_profile('x')$$, '42501', null, 'bootstrap nekas som authenticated');
+select throws_ok($$select public.bootstrap_demo_profile('x')$$, '42501', null, 'bootstrap är oåtkomlig bakom public-karantänen som authenticated');
 select throws_ok($$select public.copy_offering_cohort('10000000-0000-4000-8000-000000000201'::uuid, 2027)$$, '42501', null, 'kullkopiering nekas som authenticated');
 select throws_ok($$insert into public.school_units (organizer_id, code, name, municipality_code) values ('00000000-0000-4000-8000-000000000001', '99999998', 'x', '0000')$$, '42501', null, 'insert i school_units nekas som authenticated');
 select throws_ok('select * from public.registry_snapshots', '42501', null, 'registry_snapshots nekas som authenticated');
@@ -139,11 +139,11 @@ select set_config('request.jwt.claims', '{"role":"anon"}', true);
 set local role anon;
 select is(current_user, 'anon', 'kör som anon');
 select throws_ok('select * from public.school_units', '42501', null, 'school_units nekas som anon');
-select throws_ok($$select public.bootstrap_demo_profile('x')$$, '42501', null, 'bootstrap nekas som anon');
+select throws_ok($$select public.bootstrap_demo_profile('x')$$, '42501', null, 'bootstrap är oåtkomlig bakom public-karantänen som anon');
 reset role;
 
 -- Ingen dold skrivning: fixturraderna är oförändrade i antal efter proven.
-select is((select count(*) from public.school_units where code in ('99999998', '99999999'))::int, 1, 'inga nya skolenheter efter nekade prov');
+select is((select count(*) from public.school_units where code in ('99999998', '99999999'))::int, 3, 'inga nya skolenheter efter nekade prov');
 select is((select count(*) from public.profiles)::int, 1, 'inga nya profiler efter nekade prov');
 
 select * from finish();

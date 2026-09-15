@@ -327,7 +327,9 @@ const exclude = options.excludeExtra ? [...excludedServices, ...extraExcludedSer
 try {
   if (!effectiveRunning || options.fresh) {
     console.log(`Startar ${projectId} (api ${ports.api}, db ${ports.db}) …`);
-    supabase(['start', '-x', exclude.join(',')]);
+    // Supabase CLI:s startutskrift innehåller lokala nycklar. Fånga den och
+    // publicera bara vår egen säkra sammanfattning efter målverifieringen.
+    supabase(['start', '-x', exclude.join(',')], { capture: true });
   }
   console.log('Lägger migrationskedjan: db reset --local --no-seed …');
   supabase(['db', 'reset', '--local', '--no-seed']);

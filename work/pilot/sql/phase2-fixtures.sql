@@ -35,4 +35,39 @@ insert into public.memberships (id, identity_id, customer_id) values
   ('40000000-0000-4000-8000-000000000010', '30000000-0000-4000-8000-000000000010', '20000000-0000-4000-8000-0000000000a1')
 on conflict (identity_id, customer_id) do nothing;
 
--- Uppdrag (access_assignments) läggs till i denna fil av plan 02-04.
+-- Kundadministrativa och granskande uppdrag. Fridas tre rader provar dagens,
+-- kommande och avslutad giltighet; Hanna provar byte mellan två kunder.
+insert into public.access_assignments (
+  id, membership_id, customer_id, function, valid_from, valid_to, ended_at
+) values
+  ('50000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-0000000000a1', 'kundadmin', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000002', '40000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-0000000000a1', 'granskare', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000003', '40000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-0000000000a1', 'granskare', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000004', '40000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-0000000000a2', 'granskare', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000005', '40000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-0000000000a2', 'kundadmin', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000007', '40000000-0000-4000-8000-000000000007', '20000000-0000-4000-8000-0000000000a1', 'granskare', public.app_today() - 10, null, null),
+  ('50000000-0000-4000-8000-000000000017', '40000000-0000-4000-8000-000000000007', '20000000-0000-4000-8000-0000000000a1', 'kundadmin', public.app_today() + 30, null, null),
+  ('50000000-0000-4000-8000-000000000027', '40000000-0000-4000-8000-000000000007', '20000000-0000-4000-8000-0000000000a1', 'granskare', public.app_today() - 400, public.app_today() - 1, (public.app_today() - 1)::timestamptz),
+  ('50000000-0000-4000-8000-000000000008', '40000000-0000-4000-8000-000000000008', '20000000-0000-4000-8000-0000000000a1', 'granskare', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000009', '40000000-0000-4000-8000-000000000009', '20000000-0000-4000-8000-0000000000a1', 'granskare', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-00000000000a', '40000000-0000-4000-8000-00000000000a', '20000000-0000-4000-8000-0000000000a2', 'kundadmin', public.app_today() - 30, null, null),
+  ('50000000-0000-4000-8000-000000000010', '40000000-0000-4000-8000-000000000010', '20000000-0000-4000-8000-0000000000a1', 'kundadmin', public.app_today() - 30, null, null)
+on conflict (id) do nothing;
+
+insert into public.organizers (id, organization_number, name, type, customer_id)
+values (
+  '60000000-0000-4000-8000-000000000001', '2120009999',
+  'Provkommun A:s barn- och utbildningsnämnd', 'Kommun',
+  '20000000-0000-4000-8000-0000000000a1'
+)
+on conflict (id) do nothing;
+
+insert into public.school_units (
+  id, organizer_id, code, name, municipality_code, municipality_name, status, locality
+)
+values (
+  '60000000-0000-4000-8000-000000000101',
+  '60000000-0000-4000-8000-000000000001',
+  '99999904', 'Provskolan A', '0000', 'Exempelstad', 'Aktiv', 'Exempelstad'
+)
+on conflict (id) do nothing;
