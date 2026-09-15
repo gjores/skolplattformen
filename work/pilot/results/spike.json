@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-09-14T21:11:30.596Z",
-  "revision": "6f30ab9",
+  "checkedAt": "2026-09-15T07:03:30.674Z",
+  "revision": "22b90c8",
   "baseURL": "http://127.0.0.1:3012",
   "login": {
     "user": "anna.admin",
@@ -9,7 +9,7 @@
       "pwd",
       "otp"
     ],
-    "authTimeWithinSeconds": 0.562,
+    "authTimeWithinSeconds": 0.525,
     "localProfileVerified": true
   },
   "gotrue": {

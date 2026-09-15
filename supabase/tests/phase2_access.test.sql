@@ -117,11 +117,16 @@ select is((select count(*) from public.identities), 1::bigint, 'annan funktion s
 
 -- Kundadmin får läsa och återkalla sessioner i vald kund, men inte i kund B.
 select set_config('app.access_function', 'kundadmin', true);
-select is((select count(*) from public.app_sessions), 1::bigint, 'kundadmin ser endast vald kunds sessioner');
+select is(
+  (select count(*) from public.app_sessions
+    where token_hash in (extensions.digest('prov-a', 'sha256'), extensions.digest('prov-b', 'sha256'))),
+  1::bigint,
+  'kundadmin ser kund A:s provsession men inte kund B:s'
+);
 select results_eq(
   $$update public.app_sessions
        set revoked_at = now()
-     where membership_id = '40000000-0000-4000-8000-000000000001'
+     where token_hash = extensions.digest('prov-a', 'sha256')
     returning 1$$,
   array[1],
   'kundadmin kan återkalla en session i vald kund'
@@ -129,14 +134,14 @@ select results_eq(
 select results_eq(
   $$update public.app_sessions
        set revoked_at = now()
-     where membership_id = '40000000-0000-4000-8000-000000000005'
+     where token_hash = extensions.digest('prov-b', 'sha256')
     returning 1$$,
   array[]::integer[],
   'kundadmin kan inte återkalla en session i kund B'
 );
 reset role;
 select is(
-  (select revoked_at is null from public.app_sessions where membership_id = '40000000-0000-4000-8000-000000000005'),
+  (select revoked_at is null from public.app_sessions where token_hash = extensions.digest('prov-b', 'sha256')),
   true,
   'kund B:s session är oförändrad'
 );

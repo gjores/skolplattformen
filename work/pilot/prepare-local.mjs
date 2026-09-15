@@ -190,6 +190,14 @@ if (options.withIdp) {
       process.exit(3);
     }
   }
+  const canReuseIdpSecrets = Boolean(
+    !options.fresh &&
+    previousManifest?.idp?.clientSecret &&
+    previousManifest?.idp?.adminPassword &&
+    previousManifest?.idp?.totpSecret &&
+    previousManifest?.worker?.dbUrl &&
+    previousManifest?.sessionSecret,
+  );
   secrets = secretSet(previousManifest);
   const idpDir = path.join(workdir, 'idp');
   fs.mkdirSync(idpDir, { recursive: true });
@@ -204,7 +212,10 @@ if (options.withIdp) {
   const envPath = path.join(idpDir, 'runtime.env');
   fs.writeFileSync(envPath, `KC_BOOTSTRAP_ADMIN_USERNAME=admin\nKC_BOOTSTRAP_ADMIN_PASSWORD=${secrets.adminPassword}\n`, { mode: 0o600 });
   fs.chmodSync(envPath, 0o600);
-  if (!containerExists() || options.fresh) {
+  // The manifest is the source of the private realm credentials. If a
+  // non-IdP preparation replaced it, an existing container belongs to an
+  // older credential set and must be imported again instead of being reused.
+  if (!containerExists() || options.fresh || !canReuseIdpSecrets) {
     if (containerExists()) run('docker', ['rm', '-f', idpContainer], { allowFail: true });
     const proc = run('docker', ['run', '-d', '--name', idpContainer, '-p', '127.0.0.1:8180:8080', '--env-file', envPath,
       '-e', 'KC_HOSTNAME=http://host.docker.internal:8180', '-e', 'KC_HTTP_ENABLED=true', '-e', 'KC_HEALTH_ENABLED=true',
