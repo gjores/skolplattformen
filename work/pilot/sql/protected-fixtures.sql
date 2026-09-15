@@ -75,6 +75,27 @@ values ('10000000-0000-4000-8000-000000000101', '00000000-0000-4000-8000-0000000
         '99999999', 'Karantänskolan', '0000', 'Exempelstad', 'Aktiv', 'Exempelstad')
 on conflict (id) do nothing;
 
+-- Två namnlika huvudmän med samma skolenhetskod provar att fas 2:s backfill
+-- skapar en kund per huvudman och lämnar tvetydig registerproveniens okopplad.
+insert into public.organizers (id, organization_number, name, type) values
+  ('10000000-0000-4000-8000-000000000901', '5599999902', 'Namnlika huvudmannen', 'Enskild'),
+  ('10000000-0000-4000-8000-000000000902', '5599999903', 'Namnlika huvudmannen', 'Enskild')
+on conflict (id) do nothing;
+
+insert into public.school_units (
+  id, organizer_id, code, name, municipality_code, municipality_name, status, locality
+) values
+  ('10000000-0000-4000-8000-000000000911', '10000000-0000-4000-8000-000000000901', '99999998', 'Namnskola ett', '0000', 'Exempelstad', 'Aktiv', 'Exempelstad'),
+  ('10000000-0000-4000-8000-000000000912', '10000000-0000-4000-8000-000000000902', '99999998', 'Namnskola två', '0000', 'Exempelstad', 'Aktiv', 'Exempelstad')
+on conflict (id) do nothing;
+
+insert into public.registry_snapshots (id, unit_code, fetched_by, source_url, payload)
+values (
+  '10000000-0000-4000-8000-000000000921', '99999998',
+  '10000000-0000-4000-8000-000000000a01', 'https://example.test/tvetydig', '{}'
+)
+on conflict (id) do nothing;
+
 insert into public.school_unit_types (unit_id, school_type, programmes)
 values ('10000000-0000-4000-8000-000000000101', 'GY', '{SA}')
 on conflict do nothing;

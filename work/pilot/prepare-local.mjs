@@ -17,6 +17,7 @@ const sourceMigrations = path.join(root, 'supabase', 'migrations');
 const sourceTests = path.join(root, 'supabase', 'tests');
 const fixturesPath = path.join(root, 'work', 'pilot', 'sql', 'protected-fixtures.sql');
 const phase2FixturesPath = path.join(root, 'work', 'pilot', 'sql', 'phase2-fixtures.sql');
+const firstPhase2Migration = '20260913100000_phase2_worker_core.sql';
 const realmTemplatePath = path.join(root, 'work', 'pilot', 'idp', 'realm-template.json');
 const baselineRef = 'fas1-baslinje';
 const baselineMigrationCount = 6;
@@ -311,7 +312,11 @@ if (target === 'baseline') {
 } else {
   migrations = fs.readdirSync(sourceMigrations).filter(file => file.endsWith('.sql')).sort();
   if (migrations.length === 0) throw new Error('Inga migrationer i supabase/migrations');
-  for (const file of migrations) fs.copyFileSync(path.join(sourceMigrations, file), path.join(workMigrations, file));
+  // Lägg först bara fas 1-kedjan. Protected-fixturerna måste finnas när
+  // fas 2 migreras så att uppgraderingen verkligen bevisar databevarande.
+  for (const file of migrations.filter(file => file < firstPhase2Migration)) {
+    fs.copyFileSync(path.join(sourceMigrations, file), path.join(workMigrations, file));
+  }
   const workTests = path.join(workConfigDir, 'tests');
   fs.rmSync(workTests, { recursive: true, force: true });
   fs.mkdirSync(workTests, { recursive: true });
@@ -372,14 +377,22 @@ function runPsql(dbUrl, sqlOrFile, { file = false } = {}) {
 }
 if (target === 'protected') {
   if (!fs.existsSync(fixturesPath)) throw new Error(`Fixturfilen saknas: ${fixturesPath}`);
-  console.log('Lägger fixturer: work/pilot/sql/protected-fixtures.sql …');
+  console.log('Lägger fas 1-fixturer före fas 2-uppgraderingen …');
   runPsql(manifest.dbUrl, fixturesPath, { file: true });
+  const phase2Migrations = migrations.filter(file => file >= firstPhase2Migration);
+  for (const file of phase2Migrations) {
+    fs.copyFileSync(path.join(sourceMigrations, file), path.join(workMigrations, file));
+  }
+  if (phase2Migrations.length > 0) {
+    console.log(`Uppgraderar befintliga rader med ${phase2Migrations.length} fas 2-migrationer …`);
+    supabase(['migration', 'up', '--local']);
+  }
   if (options.withIdp) {
     const escapedWorkerPassword = secrets.workerPassword.replaceAll("'", "''");
     runPsql(manifest.dbUrl, `do $$ begin if exists (select 1 from pg_roles where rolname = 'skolplattform_worker') then execute format('alter role skolplattform_worker with login password %L', '${escapedWorkerPassword}'); end if; end $$;\n`);
-    if (fs.existsSync(phase2FixturesPath)) runPsql(manifest.dbUrl, phase2FixturesPath, { file: true });
-    else console.log('phase2-fixtures.sql saknas ännu');
   }
+  if (fs.existsSync(phase2FixturesPath)) runPsql(manifest.dbUrl, phase2FixturesPath, { file: true });
+  else console.log('phase2-fixtures.sql saknas ännu');
 }
 for (const dir of ownTmpDirs) fs.rmSync(dir, { recursive: true, force: true });
 console.log(JSON.stringify({ target, projectId, apiUrl, migrations: migrations.length, manifest: path.relative(root, manifestPath), ...(manifest.idp ? { idp: manifest.idp.issuer } : {}) }));
