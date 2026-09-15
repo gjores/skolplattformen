@@ -3,7 +3,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(40);
+select plan(66);
 
 -- ---------------------------------------------------------------------------
 -- A. Rollen och dess effektiva rättigheter
@@ -164,6 +164,166 @@ select is(
   1::bigint,
   'demohuvudmannen finns kvar som rad'
 );
+
+-- ---------------------------------------------------------------------------
+-- E. Uppdragsgiltighet på svensk kalenderdag
+-- ---------------------------------------------------------------------------
+select set_config('app.fake_today', to_char(current_date, 'YYYY-MM-DD'), true);
+select is(
+  (select count(*) from public.access_assignments a
+    where a.membership_id = '40000000-0000-4000-8000-000000000007'
+      and public.assignment_is_valid(a)),
+  1::bigint,
+  'frida har exakt ett giltigt uppdrag idag'
+);
+select set_config('app.fake_today', to_char(current_date + 31, 'YYYY-MM-DD'), true);
+select is(
+  (select count(*) from public.access_assignments a
+    where a.membership_id = '40000000-0000-4000-8000-000000000007'
+      and public.assignment_is_valid(a)),
+  2::bigint,
+  'det kommande uppdraget gäller om 31 dagar'
+);
+select set_config('app.fake_today', to_char(current_date - 5, 'YYYY-MM-DD'), true);
+select is(
+  (select count(*) from public.access_assignments a
+    where a.id = '50000000-0000-4000-8000-000000000027'
+      and public.assignment_is_valid(a)),
+  0::bigint,
+  'ett avslutat uppdrag blir aldrig giltigt igen'
+);
+select set_config('app.fake_today', '', true);
+
+-- ---------------------------------------------------------------------------
+-- F. Kundisolering i den utökade modellen som Worker
+-- ---------------------------------------------------------------------------
+set local role skolplattform_worker;
+select set_config('app.identity_id', '30000000-0000-4000-8000-000000000001', true);
+select set_config('app.customer_id', '20000000-0000-4000-8000-0000000000a1', true);
+select set_config('app.organizer_id', '60000000-0000-4000-8000-000000000001', true);
+select set_config('app.app_role', 'huvudman', true);
+select set_config('app.access_function', 'huvudman', true);
+select is((select count(*) from public.organizers), 1::bigint, 'bara kund A:s huvudman syns');
+select is(
+  (select count(*) from public.school_units where id = '10000000-0000-4000-8000-000000000101'),
+  0::bigint,
+  'Karantänskolan hos demokunden döljs'
+);
+select is(
+  (select count(*) from public.access_assignments where customer_id = '20000000-0000-4000-8000-0000000000a2'),
+  0::bigint,
+  'kund B:s uppdrag döljs'
+);
+select is((select count(*) from public.invitations), 0::bigint, 'inga inbjudningar utanför kunden syns');
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- G. Registerproveniens per huvudman
+-- ---------------------------------------------------------------------------
+insert into public.registry_snapshots (unit_code, source_url, payload, organizer_id) values
+  ('99999904', 'https://example.test/prov-a', '{}', '60000000-0000-4000-8000-000000000001'),
+  ('99999999', 'https://example.test/demo', '{}', '00000000-0000-4000-8000-000000000001');
+
+set local role skolplattform_worker;
+select set_config('app.organizer_id', '60000000-0000-4000-8000-000000000001', true);
+select is((select count(*) from public.registry_snapshots), 1::bigint, 'registry_snapshots läses bara inom egen huvudman (D-14)');
+select set_config('app.organizer_id', '', true);
+select is((select count(*) from public.registry_snapshots), 0::bigint, 'utan huvudmannakontext syns inga registry_snapshots');
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- H. Klientroller och Worker-funktioner
+-- ---------------------------------------------------------------------------
+select is(has_table_privilege('authenticated', 'public.access_assignments', 'SELECT'), false, 'authenticated saknar uppdragsåtkomst');
+select is(has_table_privilege('anon', 'public.invitations', 'SELECT'), false, 'anon saknar inbjudningsåtkomst');
+select is(has_table_privilege('authenticated', 'public.security_events', 'SELECT'), false, 'authenticated saknar loggåtkomst');
+select is(has_function_privilege('authenticated', 'public.import_school_unit(jsonb, jsonb, uuid, text)', 'EXECUTE'), false, 'authenticated kan inte importera skola');
+select is(has_function_privilege('skolplattform_worker', 'public.import_school_unit(jsonb, jsonb, uuid, text)', 'EXECUTE'), true, 'Worker får anropa serverns skolimport');
+
+-- ---------------------------------------------------------------------------
+-- I. Fas 1-funktion med serverstyrd GUC-aktör
+-- ---------------------------------------------------------------------------
+set local role skolplattform_worker;
+select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-000000000a02","role":"authenticated"}', true);
+select set_config('app.app_role', 'huvudman', true);
+select set_config('app.organizer_id', '60000000-0000-4000-8000-000000000001', true);
+select set_config('app.customer_id', '20000000-0000-4000-8000-0000000000a1', true);
+select lives_ok(
+  $$select public.appoint_school_principal('60000000-0000-4000-8000-000000000101', null, 'Rektor Prov')$$,
+  'appoint_school_principal fungerar som Worker med serverkontext'
+);
+reset role;
+select is(
+  (select actor_role::text from public.organisation_events
+    where organizer_id = '60000000-0000-4000-8000-000000000001'
+    order by created_at desc limit 1),
+  'huvudman',
+  'händelsen fick rollen ur GUC'
+);
+select is(
+  (select actor::text from public.organisation_events
+    where organizer_id = '60000000-0000-4000-8000-000000000001'
+    order by created_at desc limit 1),
+  '10000000-0000-4000-8000-000000000a02',
+  'händelsen fick aktören ur request.jwt.claims'
+);
+set local role skolplattform_worker;
+select set_config('app.app_role', '', true);
+select throws_like(
+  $$select public.appoint_school_principal('60000000-0000-4000-8000-000000000101', null, 'Saknar kontext')$$,
+  '%Bara huvudmannen%',
+  'utan serverroll nekas funktionen'
+);
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- J. Relationsgränser, backfill och sekvensåtkomst
+-- ---------------------------------------------------------------------------
+select throws_ok(
+  $$insert into public.access_assignments (membership_id, customer_id, function)
+    values ('40000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-0000000000a2', 'kundadmin')$$,
+  '23503', null, 'medlemskap kan inte korsas med annan kund'
+);
+select throws_ok(
+  $$insert into public.access_assignments (membership_id, customer_id, organizer_id, function)
+    values ('40000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-0000000000a2', '60000000-0000-4000-8000-000000000001', 'huvudman')$$,
+  '23503', null, 'huvudman kan inte korsas med annan kund'
+);
+select throws_ok(
+  $$insert into public.access_assignments (membership_id, customer_id, organizer_id, unit_id, function)
+    values ('40000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-0000000000a1', '60000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000101', 'rektor')$$,
+  '23503', null, 'skolenhet kan inte korsas med annan huvudman'
+);
+select throws_ok(
+  $$insert into public.app_sessions (token_hash, identity_id, membership_id, expires_at, absolute_expires_at)
+    values (extensions.digest('fel-identitet', 'sha256'), '30000000-0000-4000-8000-000000000005', '40000000-0000-4000-8000-000000000001', now() + interval '15 min', now() + interval '8 hours')$$,
+  '23503', null, 'sessionens medlemskap måste höra till identiteten'
+);
+select throws_ok(
+  $$insert into public.app_sessions (token_hash, identity_id, membership_id, assignment_id, expires_at, absolute_expires_at)
+    values (extensions.digest('fel-uppdrag', 'sha256'), '30000000-0000-4000-8000-000000000005', '40000000-0000-4000-8000-000000000005', '50000000-0000-4000-8000-000000000001', now() + interval '15 min', now() + interval '8 hours')$$,
+  '23503', null, 'sessionens uppdrag måste höra till medlemskapet'
+);
+select is(
+  (select count(distinct customer_id) from public.organizers
+    where id in ('10000000-0000-4000-8000-000000000901', '10000000-0000-4000-8000-000000000902')),
+  2::bigint,
+  'namnlika huvudmän fick varsin kund i backfillen'
+);
+select is(
+  (select organizer_id from public.registry_snapshots where id = '10000000-0000-4000-8000-000000000921'),
+  null::uuid,
+  'tvetydig registerproveniens lämnas okopplad och oåtkomlig'
+);
+set local role skolplattform_worker;
+select set_config('app.customer_id', '20000000-0000-4000-8000-0000000000a1', true);
+select set_config('app.access_function', 'granskare', true);
+select lives_ok(
+  $$insert into public.security_events (correlation_id, source, action, outcome, customer_id)
+    values (gen_random_uuid(), 'worker', 'sekvensprov', 'ok', '20000000-0000-4000-8000-0000000000a1')$$,
+  'Worker har sekvensåtkomst och kan skriva säkerhetshändelse'
+);
+reset role;
 
 select * from finish();
 rollback;
