@@ -5,7 +5,7 @@ status: approved
 nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-12
-updated: 2026-09-13
+updated: 2026-09-15
 ---
 
 # Fas 2 — Valideringskontrakt
@@ -59,8 +59,8 @@ C-kommandona nedan är exakt taskens <automated>; PLAN innehåller också beteen
 | 02-03-1 | 3 | IAM-04, IAM-05 | C03.1 | pending |
 | 02-03-2 | 3 | IAM-04, IAM-05 | C03.2 | pending |
 | 02-03-3 | 3 | IAM-04, IAM-05 | C03.3 | pending |
-| 02-04-1 | 4 | IAM-04, IAM-05 | C04.1 | pending |
-| 02-04-2 | 4 | IAM-04, IAM-05 | C04.2 | pending |
+| 02-04-1 | 4 | IAM-04, IAM-05 | C04.1 | passed 2026-09-14 — 5/5 browserprov; slutligt step-up-bevis `acr=2`, `amr=[pwd,otp]` |
+| 02-04-2 | 4 | IAM-04, IAM-05 | C04.2 | godkänt 2026-09-15 — standardinloggning observerad utan OTP; sessionen bar korrekt endast `acr=1`, `amr=[pwd]`, medan separat step-up gav profilbundet OTP-bevis |
 | 02-05-1 | 5 | IAM-03, ACL-01, AUDIT-01 | C05.1 | pending |
 | 02-05-2 | 5 | IAM-03, ACL-01, AUDIT-01 | C05.2 | pending |
 | 02-05-3 | 5 | IAM-03, ACL-01, AUDIT-01 | C05.3 | pending |
@@ -109,7 +109,7 @@ Full BankID-integration, val av tillitsnivå för känsliga beslut, verifierad k
 
 | Plan | Task | Bedömning | Förvillkor | Resultat |
 |---|---|---|---|---|
-| 02-04 | 2 | Spikets inloggning och tydlighet; reservbeslut vid verkligt tekniskt hinder | Aktuella spike-db/spike-resultat, förberedd visning | pending |
+| 02-04 | 2 | Spikets inloggning och tydlighet; reservbeslut vid verkligt tekniskt hinder | Aktuella spike-db/spike-resultat, förberedd visning | godkänt 2026-09-15 — kundöversikten visades; användaren noterade korrekt att standardinloggningen inte frågade efter OTP. Databasbevis visade låg assurance (`acr=1`, `amr=[pwd]`), inte återanvänt eller felmärkt MFA. Känsliga åtgärder ska kräva separat step-up enligt D-03/02-06. |
 | 02-12 | 2 | Uppdragsbyte, inbjudan/spärr, granskarlogg, mobil och tangentbord | Full verify:phase2 PASS, förberedd vy/testkonto | pending |
 
 Fysisk telefonåtkomst är separat från automatiskt WebKit-telefonprov: nåbar issuer/origin måste först vara provad. Inget godkännande antas. Checkpoint ersätter inte efterföljande fasverifiering.
