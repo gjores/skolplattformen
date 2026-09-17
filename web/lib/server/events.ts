@@ -16,6 +16,7 @@ type EventContext = SessionContext & {
 };
 
 const SAFE_DETAIL_KEYS = new Set([
+  'accessFunction',
   'action',
   'assignmentId',
   'authTime',
@@ -89,10 +90,12 @@ function eventDetails(
   details: Record<string, unknown> | undefined,
   proof: ProofAssessment | undefined,
   corr: string,
+  accessFunction?: SessionContext['accessFunction'],
 ): Record<string, SafeJson | undefined> {
   const source = { ...details };
   delete source.proof;
   const clean = (sanitizeValue(source) ?? {}) as Record<string, SafeJson | undefined>;
+  if (accessFunction) clean.accessFunction = accessFunction;
   if (proof) clean.proof = proofDetails(proof, corr);
   return clean;
 }
@@ -103,7 +106,12 @@ async function insertEvent(
   event: EventInput & { outcome: 'ok' | 'denied' | 'error' },
   ipHash?: Uint8Array | null,
 ): Promise<void> {
-  const details = eventDetails(event.details, ctx.proofAssessment, ctx.correlationId ?? '');
+  const details = eventDetails(
+    event.details,
+    ctx.proofAssessment,
+    ctx.correlationId ?? '',
+    ctx.accessFunction,
+  );
   const hash = ipHash === undefined && ctx.request ? await clientIpHash(ctx.request) : (ipHash ?? null);
   await tx`insert into public.security_events
     (correlation_id, source, actor_identity_id, actor_issuer, actor_subject,
