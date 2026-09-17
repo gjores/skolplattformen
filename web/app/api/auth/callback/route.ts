@@ -1,7 +1,14 @@
+import type { AccessFunction } from '../../../../lib/access-rules.ts';
+import { assessAdminProof } from '../../../../lib/auth-assurance.ts';
+import type { SessionContext } from '../../../../lib/server/db.ts';
 import { withLoginPhase } from '../../../../lib/server/db.ts';
 import { serverEnv } from '../../../../lib/server/env.ts';
+import { logDenied, logEvent } from '../../../../lib/server/events.ts';
 import { correlationId, fail } from '../../../../lib/server/http.ts';
-import { registerVerifiedIdentity } from '../../../../lib/server/identity-provider.ts';
+import {
+  localTrustProfile,
+  registerVerifiedIdentity,
+} from '../../../../lib/server/identity-provider.ts';
 import { completeAuthorization } from '../../../../lib/server/oidc.ts';
 import {
   createSession,
@@ -14,14 +21,20 @@ import {
   sessionCookie,
 } from '../../../../lib/server/session.ts';
 
-function redirectWithCookies(
-  location: string,
-  corr: string,
-  cookies: string[],
-): Response {
-  const headers = new Headers({ Location: location, 'X-Correlation-Id': corr, 'Cache-Control': 'no-store' });
+function redirectWithCookies(location: string, corr: string, cookies: string[]): Response {
+  const headers = new Headers({
+    Location: location,
+    'X-Correlation-Id': corr,
+    'Cache-Control': 'no-store',
+  });
   for (const cookie of cookies) headers.append('Set-Cookie', cookie);
   return new Response(null, { status: 302, headers });
+}
+
+function appRole(value: AccessFunction | null): SessionContext['appRole'] {
+  return value === 'huvudman' || value === 'rektor' || value === 'administrator' || value === 'larare'
+    ? value
+    : null;
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -30,6 +43,7 @@ export async function GET(request: Request): Promise<Response> {
   const sealed = parseCookies(request.headers.get('Cookie'))[LOGIN_COOKIE];
   const state = sealed ? await openLoginState(sealed) : null;
   if (!state) {
+    await logDenied({ code: 'login_state_invalid', action: 'login', corr, request });
     const response = fail('login_state_invalid', 400, corr);
     response.headers.append('Set-Cookie', clearLogin);
     return response;
@@ -38,7 +52,12 @@ export async function GET(request: Request): Promise<Response> {
   try {
     claims = await completeAuthorization(new URL(request.url), state);
   } catch (error) {
-    console.error('auth/callback', corr, error instanceof Error ? error.constructor.name : 'UnknownError');
+    console.error(
+      'auth/callback',
+      corr,
+      error instanceof Error ? error.constructor.name : 'UnknownError',
+    );
+    await logDenied({ code: 'login_state_invalid', action: 'login', corr, request });
     const response = fail('login_state_invalid', 400, corr);
     response.headers.append('Set-Cookie', clearLogin);
     return response;
@@ -47,11 +66,19 @@ export async function GET(request: Request): Promise<Response> {
   try {
     registration = await registerVerifiedIdentity(claims);
   } catch (error) {
-    console.error('auth/callback registration', corr, error instanceof Error ? error.constructor.name : 'UnknownError');
+    console.error(
+      'auth/callback registration',
+      corr,
+      error instanceof Error ? error.constructor.name : 'UnknownError',
+    );
+    await logDenied({ code: 'idp_registration_failed', action: 'login', corr, request });
     return redirectWithCookies('/?inloggning=nekad&kod=idp_registration_failed', corr, [clearLogin]);
   }
+
+  let current: Awaited<ReturnType<typeof readSession>> = null;
+  const proofAssessment = assessAdminProof(claims, localTrustProfile(serverEnv()), new Date());
   try {
-    const current = state.stepUp ? await readSession(request, corr) : null;
+    current = state.stepUp ? await readSession(request, corr) : null;
     const created = await withLoginPhase(corr, async (tx) => {
       const identities = await tx<{ id: string }[]>`insert into public.identities
           (issuer, subject, auth_user_id, display_name, email, last_login_at)
@@ -65,6 +92,7 @@ export async function GET(request: Request): Promise<Response> {
         returning id`;
       const identityId = identities[0].id;
       await tx`select set_config('app.identity_id', ${identityId}, true)`;
+
       if (state.stepUp) {
         if (
           !state.binding ||
@@ -74,22 +102,81 @@ export async function GET(request: Request): Promise<Response> {
         ) {
           throw new Error('Step-up-sessionen har ändrats');
         }
+        if (proofAssessment.result !== 'accepted') {
+          throw new Error('Step-up saknar godkänt MFA-bevis');
+        }
+        const active = current;
         await refreshMfa(tx, state.binding, claims);
-        return { token: current.token, absoluteExpiresAt: current.session.absoluteExpiresAt };
+        const ctx: SessionContext = {
+          sessionId: active.session.id,
+          identityId: active.session.identityId,
+          identity: {
+            issuer: active.session.issuer,
+            subject: active.session.subject,
+            authUserId: registration.authUserId,
+          },
+          membershipId: active.session.membershipId,
+          customerId: active.session.customerId,
+          assignmentId: active.session.assignmentId,
+          accessFunction: null,
+          organizerId: null,
+          unitId: null,
+          appRole: null,
+          correlationId: corr,
+        };
+        await logEvent(tx, { ...ctx, request, proofAssessment }, {
+          action: 'login',
+          outcome: 'ok',
+          details: { stepUp: true },
+        });
+        return { token: active.token, absoluteExpiresAt: active.session.absoluteExpiresAt };
       }
-      const active = await tx<{ id: string; customer_id: string }[]>`select m.id, m.customer_id
-        from public.memberships m
+
+      const active = await tx<{
+        id: string;
+        membership_id: string;
+        customer_id: string;
+        function: AccessFunction;
+        organizer_id: string | null;
+        unit_id: string | null;
+      }[]>`select a.id, a.membership_id, a.customer_id, a.function, a.organizer_id, a.unit_id
+        from public.access_assignments a
+        join public.memberships m on m.id = a.membership_id
         join public.customers c on c.id = m.customer_id
         where m.identity_id = ${identityId}
           and m.status = 'active'
-          and c.closed_at is null`;
-      const membershipId = active.length === 1 ? active[0].id : null;
+          and c.closed_at is null
+          and public.assignment_is_valid(a)`;
+      const selected = active.length === 1 ? active[0] : null;
       const session = await createSession(tx, {
         identityId,
-        membershipId,
+        membershipId: selected?.membership_id ?? null,
+        assignmentId: selected?.id ?? null,
         claims,
         idleSeconds: Number(serverEnv().SESSION_IDLE_SECONDS),
         absoluteSeconds: Number(serverEnv().SESSION_ABSOLUTE_SECONDS),
+      });
+      const ctx: SessionContext = {
+        sessionId: session.id,
+        identityId,
+        identity: {
+          issuer: claims.issuer,
+          subject: claims.subject,
+          authUserId: registration.authUserId,
+        },
+        membershipId: selected?.membership_id ?? null,
+        customerId: selected?.customer_id ?? null,
+        assignmentId: selected?.id ?? null,
+        accessFunction: selected?.function ?? null,
+        organizerId: selected?.organizer_id ?? null,
+        unitId: selected?.unit_id ?? null,
+        appRole: appRole(selected?.function ?? null),
+        correlationId: corr,
+      };
+      await logEvent(tx, { ...ctx, request, proofAssessment }, {
+        action: 'login',
+        outcome: 'ok',
+        details: { stepUp: false },
       });
       return { token: session.token, absoluteExpiresAt: undefined };
     });
@@ -98,7 +185,33 @@ export async function GET(request: Request): Promise<Response> {
       clearLogin,
     ]);
   } catch (error) {
-    console.error('auth/callback session', corr, error instanceof Error ? error.constructor.name : 'UnknownError');
+    console.error(
+      'auth/callback session',
+      corr,
+      error instanceof Error ? error.constructor.name : 'UnknownError',
+    );
+    const deniedProof = { ...proofAssessment, result: 'denied' as const, method: 'unknown' as const };
+    await logDenied({
+      code: state.stepUp ? 'step_up_failed' : 'login_state_invalid',
+      action: 'login',
+      corr,
+      request,
+      ctx: current
+        ? {
+            sessionId: current.session.id,
+            identityId: current.session.identityId,
+            identity: {
+              issuer: current.session.issuer,
+              subject: current.session.subject,
+              authUserId: registration.authUserId,
+            },
+            membershipId: current.session.membershipId,
+            customerId: current.session.customerId,
+            assignmentId: current.session.assignmentId,
+            proofAssessment: deniedProof,
+          }
+        : { proofAssessment: deniedProof },
+    });
     const response = fail('login_state_invalid', 400, corr);
     response.headers.append('Set-Cookie', clearLogin);
     return response;

@@ -1,4 +1,4 @@
-import type { Tx } from './db.ts';
+import type { SessionContext, Tx } from './db.ts';
 import { Deny, withLoginPhase } from './db.ts';
 import { isHttps, serverEnv } from './env.ts';
 import type { IdentityClaims, LoginState, StepUpBinding } from './oidc.ts';
@@ -221,6 +221,7 @@ export async function createSession(
   input: {
     identityId: string;
     membershipId: string | null;
+    assignmentId: string | null;
     claims: IdentityClaims;
     idleSeconds: number;
     absoluteSeconds: number;
@@ -229,10 +230,10 @@ export async function createSession(
   const token = newSessionToken();
   const hash = await tokenHash(token);
   const rows = await tx<{ id: string }[]>`insert into public.app_sessions
-    (token_hash, identity_id, membership_id, acr, amr, auth_time,
+    (token_hash, identity_id, membership_id, assignment_id, acr, amr, auth_time,
      proof_issuer, proof_client_id, proof_audience, proof_profile_id,
      proof_profile_version, proof_checked_at, id_token_hint, expires_at, absolute_expires_at)
-    values (${hash}, ${input.identityId}, ${input.membershipId}, ${input.claims.acr},
+    values (${hash}, ${input.identityId}, ${input.membershipId}, ${input.assignmentId}, ${input.claims.acr},
       array(select jsonb_array_elements_text(${tx.json(input.claims.amr)})), ${input.claims.authTime}, ${input.claims.issuer},
       ${input.claims.clientId}, array(select jsonb_array_elements_text(${tx.json(input.claims.audience)})), ${input.claims.profileId},
       ${input.claims.profileVersion}, ${input.claims.checkedAt}, ${input.claims.idToken},
@@ -247,6 +248,16 @@ export async function refreshMfa(
   binding: StepUpBinding,
   claims: IdentityClaims,
 ): Promise<void> {
+  type LockedContext = {
+    membership_id: string;
+    customer_id: string;
+    status: 'active' | 'blocked';
+    closed_at: Date | null;
+    assignment_id: string;
+    assignment_membership_id: string;
+    assignment_customer_id: string;
+    assignment_valid: boolean;
+  };
   const rows = await tx<{
     id: string;
     identity_id: string;
@@ -258,27 +269,71 @@ export async function refreshMfa(
     context_epoch: number;
     status: 'active' | 'blocked' | null;
     closed_at: Date | null;
+    assignment_membership_id: string | null;
+    assignment_customer_id: string | null;
+    assignment_valid: boolean | null;
     expires_at: Date;
     absolute_expires_at: Date;
     revoked_at: Date | null;
   }[]>`select s.id, s.identity_id, i.issuer, i.subject, s.membership_id,
       s.assignment_id, m.customer_id, s.context_epoch, m.status, c.closed_at,
+      a.membership_id as assignment_membership_id,
+      a.customer_id as assignment_customer_id,
+      case when a.id is null then null else public.assignment_is_valid(a) end as assignment_valid,
       s.expires_at, s.absolute_expires_at, s.revoked_at
     from public.app_sessions s
     join public.identities i on i.id = s.identity_id
     left join public.memberships m on m.id = s.membership_id
     left join public.customers c on c.id = m.customer_id
+    left join public.access_assignments a on a.id = s.assignment_id
     where s.id = ${binding.sessionId}
     for update of s`;
   const row = rows[0];
   const now = Date.now();
+  let lockedContext: LockedContext | null = null;
+  if (row?.membership_id && row.assignment_id && row.customer_id) {
+    // The session row is already locked. Its identity-owned membership supplies
+    // the customer RLS scope; the second statement locks and revalidates both rows.
+    await tx`select set_config('app.customer_id', ${row.customer_id}, true)`;
+    const contexts = await tx<LockedContext[]>`select
+        m.id as membership_id, m.customer_id, m.status, c.closed_at,
+        a.id as assignment_id, a.membership_id as assignment_membership_id,
+        a.customer_id as assignment_customer_id,
+        public.assignment_is_valid(a) as assignment_valid
+      from public.memberships m
+      join public.customers c on c.id = m.customer_id
+      join public.access_assignments a on a.id = ${row.assignment_id}
+      where m.id = ${row.membership_id}
+        and m.identity_id = ${row.identity_id}
+        and m.customer_id = ${row.customer_id}
+        and a.membership_id = m.id
+        and a.customer_id = m.customer_id
+      for update of m, a`;
+    lockedContext = contexts[0] ?? null;
+  }
+  const nullContext =
+    row?.membership_id === null &&
+    row.assignment_id === null &&
+    row.customer_id === null &&
+    binding.membershipId === null &&
+    binding.assignmentId === null &&
+    binding.customerId === null;
+  const validContext =
+    lockedContext !== null &&
+    lockedContext.status === 'active' &&
+    lockedContext.closed_at === null &&
+    lockedContext.assignment_valid === true &&
+    lockedContext.membership_id === row?.membership_id &&
+    lockedContext.customer_id === row.customer_id &&
+    lockedContext.assignment_id === row.assignment_id &&
+    lockedContext.assignment_membership_id === row.membership_id &&
+    lockedContext.assignment_customer_id === row.customer_id;
   if (
     !row ||
     row.revoked_at ||
     new Date(row.expires_at).getTime() <= now ||
     new Date(row.absolute_expires_at).getTime() <= now ||
-    row.status === 'blocked' ||
-    row.closed_at ||
+    (!nullContext && !validContext) ||
     row.id !== binding.sessionId ||
     row.identity_id !== binding.identityId ||
     row.issuer !== binding.issuer ||
@@ -301,10 +356,86 @@ export async function refreshMfa(
     where id = ${binding.sessionId}`;
 }
 
-export async function revokeSession(corr: string, sessionId: string): Promise<void> {
+export async function revokeSession(
+  corr: string,
+  sessionId: string,
+  onRevoked?: (tx: Tx, ctx: SessionContext) => Promise<void>,
+): Promise<void> {
   await withLoginPhase(corr, async (tx) => {
+    const rows = await tx<{
+      id: string;
+      identity_id: string;
+      issuer: string;
+      subject: string;
+      auth_user_id: string | null;
+      membership_id: string | null;
+      assignment_id: string | null;
+    }[]>`select s.id, s.identity_id, i.issuer, i.subject, i.auth_user_id,
+        s.membership_id, s.assignment_id
+      from public.app_sessions s
+      join public.identities i on i.id = s.identity_id
+      where s.id = ${sessionId}
+      for update of s`;
+    const row = rows[0];
+    if (!row) return;
+    await tx`select set_config('app.identity_id', ${row.identity_id}, true)`;
+    let customerId: string | null = null;
+    let assignment: {
+      function: SessionContext['accessFunction'];
+      organizer_id: string | null;
+      unit_id: string | null;
+    } | null = null;
+    if (row.membership_id) {
+      const visible = await tx<{ customer_id: string }[]>`select customer_id
+        from public.memberships
+        where id = ${row.membership_id} and identity_id = ${row.identity_id}`;
+      customerId = visible[0]?.customer_id ?? null;
+      if (customerId) {
+        await tx`select set_config('app.customer_id', ${customerId}, true)`;
+        const contexts = await tx<{
+          function: SessionContext['accessFunction'];
+          organizer_id: string | null;
+          unit_id: string | null;
+        }[]>`select a.function, a.organizer_id, a.unit_id
+          from public.memberships m
+          join public.access_assignments a on a.id = ${row.assignment_id}
+          where m.id = ${row.membership_id}
+            and m.identity_id = ${row.identity_id}
+            and m.customer_id = ${customerId}
+            and a.membership_id = m.id
+            and a.customer_id = m.customer_id
+          for update of m, a`;
+        assignment = contexts[0] ?? null;
+      }
+    }
     await tx`update public.app_sessions set revoked_at = now()
       where id = ${sessionId} and revoked_at is null`;
+    const appRole =
+      assignment?.function === 'huvudman' ||
+      assignment?.function === 'rektor' ||
+      assignment?.function === 'administrator' ||
+      assignment?.function === 'larare'
+        ? assignment.function
+        : null;
+    if (onRevoked) {
+      await onRevoked(tx, {
+        sessionId: row.id,
+        identityId: row.identity_id,
+        identity: {
+          issuer: row.issuer,
+          subject: row.subject,
+          authUserId: row.auth_user_id,
+        },
+        membershipId: row.membership_id,
+        customerId,
+        assignmentId: row.assignment_id,
+        accessFunction: assignment?.function ?? null,
+        organizerId: assignment?.organizer_id ?? null,
+        unitId: assignment?.unit_id ?? null,
+        appRole,
+        correlationId: corr,
+      });
+    }
   });
 }
 

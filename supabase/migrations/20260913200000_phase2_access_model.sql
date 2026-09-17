@@ -360,6 +360,28 @@ grant delete on public.assignment_units to skolplattform_worker;
 create policy organizers_customer_read on public.organizers
 for select to skolplattform_worker
 using (customer_id = public.current_customer_id());
+create policy organizers_own_assignment_read on public.organizers
+for select to skolplattform_worker
+using (
+  exists (
+    select 1
+    from public.access_assignments a
+    join public.memberships m on m.id = a.membership_id
+    where a.organizer_id = organizers.id
+      and m.identity_id = public.current_identity_id()
+  )
+);
+create policy school_units_own_assignment_read on public.school_units
+for select to skolplattform_worker
+using (
+  exists (
+    select 1
+    from public.access_assignments a
+    join public.memberships m on m.id = a.membership_id
+    where a.unit_id = school_units.id
+      and m.identity_id = public.current_identity_id()
+  )
+);
 create policy organizers_customer_insert on public.organizers
 for insert to skolplattform_worker
 with check (customer_id = public.current_customer_id());

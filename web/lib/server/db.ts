@@ -172,10 +172,21 @@ export async function withSessionContext<T>(
       }
       let membership: MembershipRow | null = null;
       if (row.membership_id) {
+        const visibleMemberships = await tx<MembershipRow[]>`select m.id, m.customer_id, m.status, c.closed_at
+          from public.memberships m
+          join public.customers c on c.id = m.customer_id
+          where m.id = ${row.membership_id} and m.identity_id = ${row.identity_id}`;
+        const visibleMembership = visibleMemberships[0];
+        if (!visibleMembership) throw new Deny('session_revoked', 401);
+        // UPDATE-RLS for the lock is customer scoped. Derive the customer only from
+        // the identity-owned membership before taking the common session -> membership lock.
+        await tx`select set_config('app.customer_id', ${visibleMembership.customer_id}, true)`;
         const memberships = await tx<MembershipRow[]>`select m.id, m.customer_id, m.status, c.closed_at
           from public.memberships m
           join public.customers c on c.id = m.customer_id
-          where m.id = ${row.membership_id} and m.identity_id = ${row.identity_id}
+          where m.id = ${row.membership_id}
+            and m.identity_id = ${row.identity_id}
+            and m.customer_id = ${visibleMembership.customer_id}
           for update of m`;
         membership = memberships[0] ?? null;
         if (!membership) throw new Deny('session_revoked', 401);
