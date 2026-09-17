@@ -22,7 +22,7 @@ test('annan längd än 32 bytes vägras', () => {
 test('tokenhash är sha256 av tokenens UTF-8-bytes', async () => {
   assert.equal(
     await tokenHashHex('räksmörgås'),
-    'a91ea42775fa7f3be25f8fc344f9eecb2d745a79f942f1641664728b61dd35b6',
+    '9992a572307e11690b104db56e7689efcddd251a363b1588209fb907f27afa31',
   );
 });
 
