@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 current_phase_name: Verifierad kontoåtkomst
-current_plan: 7
+current_plan: 8
 status: executing
 stopped_at: Fas 2 inklusive BankID-beredskap omgranskad; nästa steg gsd-execute-phase 2.
 last_updated: "2026-09-14T19:07:18.545Z"
@@ -13,8 +13,8 @@ progress:
   total_phases: 8
   completed_phases: 1
   total_plans: 22
-  completed_plans: 16
-  percent: 73
+  completed_plans: 17
+  percent: 77
 ---
 
 # Project State
@@ -24,25 +24,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 2, våg 7 — inbjudningar, spärr, granskarlogg och första skyddade ändringen
+**Current focus:** Fas 2, plan 08 — granskarlogg och första skyddade organisationsändringen
 
 ## Current Position
 
 Phase: 02 (Verifierad kontoåtkomst) — EXECUTING
-Plan: 7 of 12
+Plan: 8 of 12
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 **Current Phase:** 02
 **Current Phase Name:** Verifierad kontoåtkomst
 **Total Phases:** 8
-**Current Plan:** 7
+**Current Plan:** 8
 **Total Plans in Phase:** 12
 **Status:** Executing Phase 02
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-14
 **Last Activity Description:** Phase 02 execution started
 
-Progress: [███████░░░] 73%
-Planprogress: 16 av 22 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 1 av 8 faser är verifierad.
+Progress: [████████░░] 77%
+Planprogress: 17 av 22 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 1 av 8 faser är verifierad.
 Phases executed: 1 of 8 (fas 1 verifierad; fas 2 inte genomförd)
 
 ## Performance Metrics
