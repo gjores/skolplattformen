@@ -5,6 +5,15 @@ export type ErrorCode =
   | 'no_context'
   | 'membership_blocked'
   | 'customer_closed'
+  | 'mfa_required'
+  | 'forbidden'
+  | 'assignment_expired'
+  | 'assignment_ended'
+  | 'assignment_upcoming'
+  | 'invitation_invalid'
+  | 'conflict'
+  | 'context_changed'
+  | 'registry_unavailable'
   | 'db_unreachable'
   | 'csrf'
   | 'idp_registration_failed'
@@ -41,4 +50,15 @@ export function assertSameOrigin(request: Request): boolean {
     return fetchSite !== 'cross-site' && fetchSite !== 'same-site' && fetchSite !== 'none';
   }
   return fetchSite === 'same-origin';
+}
+
+export async function clientIpHash(request: Request): Promise<Uint8Array | null> {
+  // CF-Connecting-IP är bara betrodd när Cloudflare också har märkt begäran.
+  // Godtyckligt X-Forwarded-For från klienten får aldrig påverka spärrnyckeln.
+  const cloudflareIp = request.headers.get('CF-Ray')
+    ? request.headers.get('CF-Connecting-IP')
+    : null;
+  const source = cloudflareIp?.trim() || 'local';
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(source));
+  return new Uint8Array(digest);
 }
