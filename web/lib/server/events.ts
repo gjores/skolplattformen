@@ -50,12 +50,16 @@ const SAFE_DETAIL_KEYS = new Set([
 
 const FORBIDDEN_DETAIL_KEYS = new Set(['token', 'cookie', 'password', 'id_token', 'email']);
 
-function sanitizeValue(value: unknown): unknown {
+type SafeJson = null | boolean | number | string | Date | SafeJson[] | { [key: string]: SafeJson | undefined };
+
+function sanitizeValue(value: unknown): SafeJson | undefined {
   if (value === null || typeof value === 'boolean' || typeof value === 'number') return value;
   if (typeof value === 'string') return value.slice(0, 500);
-  if (Array.isArray(value)) return value.slice(0, 50).map(sanitizeValue);
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map(sanitizeValue).filter((item): item is SafeJson => item !== undefined);
+  }
   if (typeof value !== 'object') return undefined;
-  const clean: Record<string, unknown> = {};
+  const clean: Record<string, SafeJson | undefined> = {};
   for (const [key, nested] of Object.entries(value)) {
     if (FORBIDDEN_DETAIL_KEYS.has(key.toLowerCase()) || !SAFE_DETAIL_KEYS.has(key)) continue;
     const safe = sanitizeValue(nested);
@@ -64,7 +68,7 @@ function sanitizeValue(value: unknown): unknown {
   return clean;
 }
 
-function proofDetails(proof: ProofAssessment, corr: string): Record<string, unknown> {
+function proofDetails(proof: ProofAssessment, corr: string): Record<string, SafeJson | undefined> {
   return {
     policyId: proof.policyId,
     policyVersion: proof.policyVersion,
@@ -85,10 +89,10 @@ function eventDetails(
   details: Record<string, unknown> | undefined,
   proof: ProofAssessment | undefined,
   corr: string,
-): Record<string, unknown> {
+): Record<string, SafeJson | undefined> {
   const source = { ...details };
   delete source.proof;
-  const clean = (sanitizeValue(source) ?? {}) as Record<string, unknown>;
+  const clean = (sanitizeValue(source) ?? {}) as Record<string, SafeJson | undefined>;
   if (proof) clean.proof = proofDetails(proof, corr);
   return clean;
 }
@@ -109,7 +113,7 @@ async function insertEvent(
       ${ctx.identity?.subject ?? null}, ${ctx.sessionId ?? null}, ${ctx.membershipId ?? null},
       ${ctx.assignmentId ?? null}, ${ctx.customerId ?? null}, ${event.action},
       ${event.objectType ?? null}, ${event.objectId ?? null}, ${event.outcome},
-      ${JSON.stringify(details)}::jsonb, ${hash})`;
+      ${tx.json(details)}, ${hash})`;
 }
 
 export async function logEvent(
