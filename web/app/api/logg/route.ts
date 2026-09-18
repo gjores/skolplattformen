@@ -145,18 +145,11 @@ export async function GET(request: Request): Promise<Response> {
             'emailMismatch', e.details->'emailMismatch',
             'name', e.details->'name',
             'proof', case when jsonb_typeof(e.details->'proof') = 'object' then
-              jsonb_strip_nulls(jsonb_build_object(
-                'policyId', e.details->'proof'->'policyId',
-                'policyVersion', e.details->'proof'->'policyVersion',
-                'profileId', e.details->'proof'->'profileId',
-                'profileVersion', e.details->'proof'->'profileVersion',
-                'issuer', e.details->'proof'->'issuer',
-                'method', e.details->'proof'->'method',
-                'authTime', e.details->'proof'->'authTime',
-                'checkedAt', e.details->'proof'->'checkedAt',
-                'result', e.details->'proof'->'result',
-                'sourceCorrelationId', e.details->'proof'->'sourceCorrelationId'
-              ))
+              (select jsonb_object_agg(p.key, p.value)
+               from jsonb_each(e.details->'proof') p
+               where (p.key in ('policyId', 'profileId', 'issuer', 'method', 'authTime', 'checkedAt', 'result', 'sourceCorrelationId')
+                      and jsonb_typeof(p.value) = 'string')
+                  or (p.key in ('policyVersion', 'profileVersion') and jsonb_typeof(p.value) = 'number'))
             end
           )) as details
         from public.security_events e
