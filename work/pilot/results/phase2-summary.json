@@ -1,0 +1,363 @@
+{
+  "kind": "phase2-summary",
+  "startedAt": "2026-09-18T06:47:30.978Z",
+  "completedAt": "2026-09-18T06:55:31.475Z",
+  "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+  "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88",
+  "nodeVersion": "v25.9.0",
+  "target": "protected",
+  "flags": {
+    "skipBrowser": false
+  },
+  "steps": [
+    {
+      "required": true,
+      "name": "node25",
+      "command": "node --version",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "nodeVersion": "v25.9.0",
+        "producedAt": "2026-09-18T06:47:31.006Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "mål-protected",
+      "command": "assertTarget(protected,{requireIdp:true})",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "target": "protected",
+        "idp": "local-test-idp",
+        "producedAt": "2026-09-18T06:47:31.881Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "mål-baseline",
+      "command": "assertTarget(baseline)",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "target": "baseline",
+        "producedAt": "2026-09-18T06:47:32.003Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "modeller",
+      "command": "node --test lib/*.test.mjs (18 filer)",
+      "exit": 0,
+      "durationMs": 1203,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:47:33.206Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "fasgrind-unit",
+      "command": "node --test scripts/verify-phase2.test.mjs",
+      "exit": 0,
+      "durationMs": 152,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:47:33.358Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "typkontroll",
+      "command": "npx tsc --noEmit",
+      "exit": 0,
+      "durationMs": 1650,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:47:35.008Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "lint",
+      "command": "npx oxlint app lib scripts e2e",
+      "exit": 0,
+      "durationMs": 1230,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:47:36.239Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "exempelbygge",
+      "command": "npm run build:example",
+      "exit": 0,
+      "durationMs": 4712,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:47:40.951Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas1-browser",
+      "command": "npx playwright test -c playwright.config.ts",
+      "exit": 0,
+      "durationMs": 50889,
+      "status": "PASS",
+      "evidence": {
+        "expected": 26,
+        "unexpected": 0,
+        "producedAt": "2026-09-18T06:48:31.841Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "protected-bygge",
+      "command": "npm run build:protected",
+      "exit": 0,
+      "durationMs": 5173,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:48:37.014Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "sql",
+      "command": "node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase2-sql.json",
+      "exit": 0,
+      "durationMs": 2283,
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "files": [
+          "phase1_isolation.test.sql",
+          "phase2_access.test.sql",
+          "phase2_audit.test.sql"
+        ],
+        "producedAt": "2026-09-18T06:48:39.297Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "api-isolering",
+      "command": "node work/pilot/verify-isolation.mjs",
+      "exit": 0,
+      "durationMs": 2035,
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "denied": 39,
+        "producedAt": "2026-09-18T06:48:41.332Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "baslinje-db",
+      "command": "node work/pilot/verify-baseline-db.mjs",
+      "exit": 0,
+      "durationMs": 1179,
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "flows": [
+          "utbildning-och-kurs-niva",
+          "kullkopiering-fristaende",
+          "klass-timplan-fast-version",
+          "grundskola-timplan"
+        ],
+        "producedAt": "2026-09-18T06:48:42.511Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "access-api",
+      "command": "node work/pilot/verify-access.mjs --out work/pilot/results/access.json",
+      "exit": 0,
+      "durationMs": 9088,
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "cases": [
+          "sparr",
+          "uppdrag-avslut",
+          "uppdrag-utgatt",
+          "session",
+          "csrf",
+          "mfa-kravs",
+          "inbjudan",
+          "frammande-id",
+          "samma-epost",
+          "aktor-forfalskning",
+          "logg",
+          "logg-flod",
+          "context-race",
+          "audit-rollback"
+        ],
+        "checks": 63,
+        "mfaNegativeChecks": [
+          "lösenord utan OTP nekades utan skrivning",
+          "för gammalt bevis nekades",
+          "proof-profile",
+          "proof-issuer",
+          "proof-audience",
+          "proof-time",
+          "proof-amr",
+          "kundadmin utan TOTP nekades"
+        ],
+        "producedAt": "2026-09-18T06:48:51.600Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "protected-browser",
+      "command": "npm run e2e:protected",
+      "exit": 0,
+      "durationMs": 399127,
+      "status": "PASS",
+      "evidence": {
+        "expected": 37,
+        "unexpected": 0,
+        "scenarios": [
+          "inloggning med TOTP ger en httpOnly-session med profilbundet MFA-bevis",
+          "inloggning med engångskod ger arbetskontext i sidhuvudet",
+          "uppdragsväljaren skiljer giltiga, kommande och avslutade",
+          "byte i en flik låser och rensar andra flikar",
+          "utloggning låser andra flikar och avslutar sessionen",
+          "administrativ åtgärd utan engångskod erbjuder verifiering",
+          "spärr under öppen session stoppar nästa åtgärd",
+          "första skyddade ändringen är spårbar för granskaren",
+          "pekytor är minst 44 px på telefon",
+          "tangentbord når väljaren och låsets knapp",
+          "step-up binds till ursprungligt uppdrag och epok",
+          "avbruten verifiering återspelar ingen åtgärd"
+        ],
+        "producedAt": "2026-09-18T06:55:30.732Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": false,
+      "name": "sparordning",
+      "command": "node --test lib/save-order.repro.mjs",
+      "exit": 1,
+      "durationMs": 674,
+      "status": "KNOWN-ISSUE",
+      "evidence": {
+        "owner": "fas 5",
+        "result": "reproducerad",
+        "producedAt": "2026-09-18T06:55:31.406Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    },
+    {
+      "required": true,
+      "name": "källstabilitet",
+      "command": "git revision + source fingerprint",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-18T06:55:31.474Z",
+        "gitRevision": "89055a919acd8ab59221b8813c3142f2f319798d",
+        "sourceTreeFingerprint": "sha256:8c6b99ce53cd78b612b63f548b74affb81b817fe482100f90345e44f98e21c88"
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "IAM-01",
+      "evidence": [
+        "access-api:inbjudan",
+        "protected-browser:profilbundet proof"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "IAM-03",
+      "evidence": [
+        "access-api:uppdrag-utgatt/context-race",
+        "protected-browser:uppdragsväljare/flikbyte"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "IAM-04",
+      "evidence": [
+        "access-api:session",
+        "protected-browser:logout/flikrensning"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "IAM-05",
+      "evidence": [
+        "access-api:sparr/uppdrag-avslut/mfa-kravs",
+        "protected-browser:spärr/step-up"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "ACL-01",
+      "evidence": [
+        "sql",
+        "api-isolering",
+        "access-api:frammande-id/logg"
+      ],
+      "status": "PASS"
+    },
+    {
+      "id": "AUDIT-01",
+      "evidence": [
+        "sql",
+        "access-api:aktor-forfalskning/logg/logg-flod/audit-rollback",
+        "protected-browser:spårbar ändring"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "knownIssues": [
+    {
+      "id": "save-order",
+      "owner": "fas 5",
+      "status": "KNOWN-ISSUE",
+      "evidence": "KNOWN-ISSUE: 2 av 2 scenarier röda som väntat (samma cell=FAIL, nytt objekt=FAIL). Ägare: fas 5. Sparordning/id-mappning i persistTimplans är inte rättad."
+    }
+  ],
+  "status": "PASS"
+}

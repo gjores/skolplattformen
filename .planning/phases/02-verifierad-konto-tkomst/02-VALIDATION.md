@@ -80,7 +80,7 @@ C-kommandona nedan är exakt taskens <automated>; PLAN innehåller också beteen
 | 02-10-3 | 9 | IAM-03, IAM-04 | C10.3 | pending |
 | 02-11-1 | 10 | IAM-03, IAM-04, IAM-05 | C11.1 | pending |
 | 02-11-2 | 10 | IAM-03, IAM-04, IAM-05 | C11.2 | pending |
-| 02-12-1 | 11 | IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 | C12.1 | pending |
+| 02-12-1 | 11 | IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 | C12.1 | passed 2026-09-18 — full `verify:phase2` PASS på revision `89055a9`: 168 modellprov, 137 pgTAP, 39 nekade direkta vägar, 14/14 API-fall (63 kontroller), fas 1 browser 26/0 och protected browser 37/0 |
 | 02-12-2 | 11 | IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 | C12.2 | pending |
 
 ## Kravbevis för slutgrinden
@@ -143,7 +143,7 @@ Verklig kommunanslutning/SCIM och senare mandat/elevregister ligger kvar i sina 
 - [x] Alla tasks har automatisk kontroll/förvillkor och namngivna beroenden.
 - [x] Ingen skip/blocked räknas som ett verifierat krav.
 - [ ] Oberoende planchecker godkänner helheten.
-- [ ] Kontrollerna genomförda efter implementation.
+- [x] Kontrollerna genomförda efter implementation — full lokal `verify:phase2` PASS 2026-09-18; användarbedömning och separat fasverifiering återstår.
 - [ ] Faktiska användarsvar dokumenterade.
 
 Approval: approved — oberoende gsd-plan-checker godkände BankID-beredskapskompletteringen 2026-09-13. wave_0_complete är false tills infrastrukturen faktiskt genomförts.

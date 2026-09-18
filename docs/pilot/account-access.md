@@ -66,3 +66,9 @@ Resultatet skrivs till `work/pilot/results/phase2-summary.json`. PASS kräver f�
 Sparordningsreproduceraren körs separat och redovisas som `KNOWN-ISSUE`, ägd av fas 5. Den etiketten får inte användas för nya regressioner och betyder inte att felet är löst.
 
 Efter en grön automatisk körning återstår användarens bedömning och en separat GSD-verifiering. Rapportens PASS ändrar inte kravstatus till **Verifierad**.
+
+## Senaste fulla lokala körning
+
+Körningen `2026-09-18T06:47:30Z`–`06:55:31Z` på revision `89055a9` gav **PASS**. Den omfattade 168 modellprov, 7 negativa sammanställarprov, typkontroll, lint, båda byggena, fas 1:s 26 gröna browserprov, 137 pgTAP-prov, 39 nekade direkta datavägar, 4 bevarade baslinjeflöden, 14/14 serverkategorier med 63 kontroller samt protected-browser med 37 gröna och 0 oväntade fel. Fullständiga sanerade steg och kravlänkar finns i `work/pilot/results/phase2-summary.json`.
+
+Sparordningsreproduceraren var fortsatt röd i sina två kända scenarier och redovisas med ägare fas 5. Öppna kommunberoenden, verklig IdP, fysisk telefonanslutning och separat GSD-verifiering kvarstår.

@@ -13,3 +13,4 @@ coverage/
 *.tsbuildinfo
 supabase/.temp/
 supabase/.branches/
+work/pilot/results/phase2-sql.json
