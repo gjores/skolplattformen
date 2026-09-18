@@ -43,3 +43,14 @@ export function unblockMembership(manifest: PilotManifest, membershipId: string)
     `update public.memberships set status='active', blocked_at=null where id=${sqlLiteral(membershipId)};`,
   );
 }
+
+export function countEvents(manifest: PilotManifest, where: string): number {
+  if (!/^[\w\s.'=:_-]+$/u.test(where)) {
+    throw new Error('Ogiltigt villkor för händelseräkning.');
+  }
+  return Number(psql(manifest, `select count(*) from public.security_events where ${where};`));
+}
+
+export function cleanupOrganizersLike(manifest: PilotManifest, prefix: string): void {
+  psql(manifest, `delete from public.organizers where name like ${sqlLiteral(`${prefix}%`)};`);
+}

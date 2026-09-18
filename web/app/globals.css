@@ -1999,4 +1999,4 @@ textarea:disabled {
 .audit-details dt{font-size:.75rem;color:var(--muted-foreground)}
 .audit-details dd{overflow-wrap:anywhere;font-size:.75rem}
 .admin-dialog textarea,.admin-dialog input{width:100%;min-height:44px;border:1px solid var(--muted-foreground);border-radius:var(--radius);padding:8px 10px;background:var(--background);color:var(--foreground);font:inherit}
-@media(max-width:800px){.protected-counts,.protected-form,.protected-filter{grid-template-columns:1fr}.protected-card{padding:18px 14px}.protected-one-time{grid-template-columns:1fr}.protected-one-time button{width:100%}}
+@media(max-width:800px){.protected-counts,.protected-form,.protected-filter{grid-template-columns:1fr}.protected-admin .admin-heading>div{min-width:0;max-width:100%}.protected-admin .admin-heading h1{overflow-wrap:anywhere}.protected-card{padding:18px 14px}.protected-one-time{grid-template-columns:1fr}.protected-one-time button{width:100%}}
