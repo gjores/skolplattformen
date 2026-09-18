@@ -12,7 +12,7 @@ import {
 } from './db.ts';
 import { serverEnv } from './env.ts';
 import type { EventInput } from './events.ts';
-import { logDenied, logEvent } from './events.ts';
+import { logDenied, logError, logEvent } from './events.ts';
 import { assertSameOrigin, correlationId, fail, json } from './http.ts';
 import { localTrustProfile } from './identity-provider.ts';
 import { readSession } from './session.ts';
@@ -131,7 +131,7 @@ export async function denyResponse(
   if (error instanceof Deny) {
     try {
       await logDenied({ code: error.code, action, corr, request, ctx: ctxHint });
-      return fail(error.code, error.status, corr);
+      return fail(error.code, error.status, corr, error.details);
     } catch (logError) {
       console.error(
         'deny audit',
@@ -143,7 +143,7 @@ export async function denyResponse(
   }
   console.error('protected route', corr, error instanceof Error ? error.constructor.name : 'UnknownError');
   try {
-    await logDenied({ code: 'internal_error', action, corr, request, ctx: ctxHint });
+    await logError({ code: 'internal_error', action, corr, request, ctx: ctxHint });
   } catch (logError) {
     console.error(
       'error audit',

@@ -38,8 +38,16 @@ export function json(
   return new Response(JSON.stringify(body), { status: init.status ?? 200, headers });
 }
 
-export function fail(code: ErrorCode, status: number, corr: string): Response {
-  return json({ code, correlationId: corr }, { status, correlationId: corr });
+export function fail(
+  code: ErrorCode,
+  status: number,
+  corr: string,
+  details?: Record<string, unknown>,
+): Response {
+  return json(
+    { code, correlationId: corr, ...(details ? { details } : {}) },
+    { status, correlationId: corr },
+  );
 }
 
 export function assertSameOrigin(request: Request): boolean {

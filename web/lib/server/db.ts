@@ -61,6 +61,7 @@ export class Deny extends Error {
   constructor(
     public code: ErrorCode,
     public status: 400 | 401 | 403 | 404 | 409 | 503,
+    public details?: Record<string, unknown>,
   ) {
     super(code);
   }

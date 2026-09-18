@@ -132,6 +132,23 @@ export async function logEvent(
   await insertEvent(tx, ctx, event);
 }
 
+export async function logError(input: {
+  code: string;
+  action: string;
+  corr: string;
+  request: Request;
+  ctx?: Partial<SessionContext> & { proofAssessment?: ProofAssessment };
+}): Promise<void> {
+  const routeClass = new URL(input.request.url).pathname.split('/').slice(0, 4).join('/');
+  await withLoginPhase(input.corr, async (tx) => {
+    await insertEvent(tx, { ...input.ctx, correlationId: input.corr, request: input.request }, {
+      action: input.action,
+      outcome: 'error',
+      details: { code: input.code, path: routeClass },
+    });
+  });
+}
+
 export const DENIAL_LIMIT_PER_MINUTE = 20;
 
 function hex(value: Uint8Array): string {

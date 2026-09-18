@@ -1,80 +1,5 @@
-import { registryAddress, type SchoolAddress } from '../../../lib/registry-address.ts';
-// Läsväg mot Skolenhetsregistret (Skolverket, CC0). Registret saknar
-// CORS-huvuden, så webbläsaren kan inte anropa det direkt. Den här vägen
-// vidarebefordrar bara det produkten behöver; rektors e-post och telefon
-// förs inte vidare.
-//
-//   GET /api/skolenhet?kod=19207279
-//   GET /api/skolenhet?kommun=1480
-//   GET /api/skolenhet?huvudman=5563571248   (organisationsnummer)
-
-const BASE = 'https://api.skolverket.se/skolenhetsregistret/v2';
-const headers = { Accept: 'application/json' };
-
-type Raw = Record<string, unknown>;
-const obj = (v: unknown): Raw => (v && typeof v === 'object' ? (v as Raw) : {});
-const str = (v: unknown) => (typeof v === 'string' ? v : undefined);
-
-export type RegistryUnit = {
-  code: string;
-  name: string;
-  status: string;
-  municipalityCode: string;
-  municipalityName?: string;
-  schoolTypes: string[];
-  programmes: Record<string, string[]>;
-  headMaster?: string;
-  locality?: string;
-  address?: SchoolAddress;
-  organizer: { name: string; organizationNumber?: string; type: string };
-  modified?: string;
-  extractDate?: string;
-};
-
-function reduceUnit(payload: Raw): RegistryUnit {
-  const data = obj(payload.data);
-  const a = obj(data.attributes);
-  // Registret lämnar huvudmannen som ett enda inkluderat objekt, inte en lista.
-  const included = Array.isArray(payload.included)
-    ? payload.included
-    : payload.included
-      ? [payload.included]
-      : [];
-  const organizer = obj(included.find((i) => obj(i).type === 'organizer'));
-  const organizerAttributes = obj(organizer.attributes);
-  const props = obj(a.schoolTypeProperties);
-  const programmes: Record<string, string[]> = {};
-  for (const [type, value] of Object.entries(props)) {
-    const list = obj(value).programmes;
-    if (Array.isArray(list)) programmes[type] = list.map(String);
-  }
-  const address = registryAddress(a.addresses);
-  const municipalities = Array.isArray(organizerAttributes.municipalities)
-    ? organizerAttributes.municipalities.map(obj)
-    : [];
-  const municipalityCode = str(a.municipalityCode) ?? '';
-  return {
-    code: str(data.schoolUnitCode) ?? '',
-    name: str(a.displayName) ?? str(a.schoolName) ?? '',
-    status: str(a.status) ?? 'OKAND',
-    municipalityCode,
-    municipalityName: str(
-      municipalities.find((m) => m.municipalityCode === municipalityCode)?.displayName,
-    ),
-    schoolTypes: Array.isArray(a.schoolTypes) ? a.schoolTypes.map(String) : [],
-    programmes,
-    headMaster: str(a.headMaster),
-    locality: address?.locality,
-    address,
-    organizer: {
-      name: str(organizerAttributes.displayName) ?? '',
-      organizationNumber: str(organizer.organizationNumber),
-      type: str(organizerAttributes.organizerType) ?? '',
-    },
-    modified: str(obj(payload.meta).modified),
-    extractDate: str(obj(payload.meta).extractDate),
-  };
-}
+import { BASE, headers, obj, str, reduceUnit, type Raw } from '../../../lib/server/skolverket.ts';
+export type { RegistryUnit } from '../../../lib/server/skolverket.ts';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -99,7 +24,6 @@ export async function GET(request: Request) {
       if (!upstream.ok)
         return Response.json({ error: `Skolenhetsregistret svarade ${upstream.status}.` }, { status: 502 });
       const unit = reduceUnit((await upstream.json()) as Raw);
-      // Kommunens namn finns hos huvudmannen, inte på skolenheten.
       if (unit.organizer.organizationNumber && !unit.municipalityName) {
         const organizer = await fetch(`${BASE}/organizers/${unit.organizer.organizationNumber}`, { headers });
         if (organizer.ok) {
