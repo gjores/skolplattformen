@@ -1,5 +1,6 @@
 import postgres, { type Sql, type TransactionSql } from 'postgres';
 import type { AccessFunction } from '../access-rules.ts';
+import { invalidAssignmentCode } from '../access-rules.ts';
 import type { MfaClaims } from '../auth-assurance.ts';
 import type { ErrorCode } from './http.ts';
 import { serverEnv } from './env.ts';
@@ -200,7 +201,7 @@ export async function withSessionContext<T>(
         const assignments = await tx<AssignmentRow[]>`select
             a.id, a.membership_id, a.customer_id, a.organizer_id, a.unit_id, a.function,
             public.assignment_is_valid(a) as assignment_valid,
-            a.valid_from, a.valid_to, a.ended_at
+            a.valid_from::text, a.valid_to::text, a.ended_at
           from public.access_assignments a
           where a.id = ${row.assignment_id}
           for update of a`;
@@ -214,11 +215,12 @@ export async function withSessionContext<T>(
           throw new Deny('session_revoked', 401);
         }
         if (!assignment.assignment_valid) {
-          if (assignment.ended_at !== null) throw new Deny('assignment_ended', 403);
           const todayRows = await tx<{ today: string }[]>`select public.app_today()::text as today`;
           const today = todayRows[0].today;
-          if (assignment.valid_from > today) throw new Deny('assignment_upcoming', 403);
-          throw new Deny('assignment_expired', 403);
+          throw new Deny(invalidAssignmentCode({
+            validFrom: assignment.valid_from,
+            endedAt: assignment.ended_at,
+          }, today), 403);
         }
       }
 

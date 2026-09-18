@@ -4,9 +4,28 @@ import {
   assignmentState,
   contextLabel,
   epochChanged,
+  invalidAssignmentCode,
   selectableAssignments,
   todayInStockholm,
 } from './access-rules.ts';
+
+test('live-prövningen skiljer kommande uppdrag från utgångna', () => {
+  assert.equal(
+    invalidAssignmentCode({ validFrom: '2026-10-01', endedAt: null }, '2026-09-18'),
+    'assignment_upcoming',
+  );
+  assert.equal(
+    invalidAssignmentCode({ validFrom: '2026-08-01', endedAt: null }, '2026-09-18'),
+    'assignment_expired',
+  );
+  assert.equal(
+    invalidAssignmentCode(
+      { validFrom: '2026-10-01', endedAt: new Date('2026-09-17T10:00:00Z') },
+      '2026-09-18',
+    ),
+    'assignment_ended',
+  );
+});
 
 function assignment(overrides = {}) {
   return {

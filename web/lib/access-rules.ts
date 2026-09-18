@@ -6,6 +6,15 @@ export type AssignmentLike = {
 
 export type AssignmentState = 'giltigt' | 'kommande' | 'avslutat';
 
+export function invalidAssignmentCode(
+  assignment: { validFrom: string; endedAt: Date | null },
+  today: string,
+): 'assignment_ended' | 'assignment_upcoming' | 'assignment_expired' {
+  if (assignment.endedAt !== null) return 'assignment_ended';
+  if (assignment.validFrom > today) return 'assignment_upcoming';
+  return 'assignment_expired';
+}
+
 export type AccessFunction =
   | 'kundadmin'
   | 'granskare'
