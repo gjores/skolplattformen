@@ -1,6 +1,6 @@
 # Provmiljö — startanvisning
 
-Provmiljön är appen i **exempelläge**: två fiktiva skolor (Björkhagens grundskola, Exempelstads gymnasium) i sidans minne, utan databas, utan inloggning och utan anrop till någon Supabase-tjänst. Ändringar gäller tills sidan laddas om. Vad som är bevisat och vad som återstår står i [baseline.md](baseline.md); pilotens beslutsläge står i [connection-profile.md](connection-profile.md).
+Provmiljön är appen i **exempelläge**: två fiktiva skolor (Björkhagens grundskola, Exempelstads gymnasium) i sidans minne, utan databas, utan inloggning och utan anrop till någon Supabase-tjänst. Ändringar gäller tills sidan laddas om. Vad som är bevisat och vad som återstår står i [baseline.md](baseline.md); pilotens beslutsläge står i [connection-profile.md](connection-profile.md). Fas 2:s skyddade konto- och administrationsprov beskrivs separat i [account-access.md](account-access.md).
 
 ## Förutsättning
 
@@ -114,9 +114,10 @@ npm run build:protected && npm run preview:protected
 cd web && npm run verify:phase1                  # full grind: modeller, tsc, lint, bygge, Playwright, pgTAP, API, baslinje-db
 node scripts/verify-phase1.mjs --skip-browser --out /tmp/phase1.json   # snabb återkörning, högst PASS-PARTIAL
 node scripts/verify-phase1.mjs --with-restore   # inkluderar återställningsprovet av taggen
+npm run verify:phase2                           # full lokal fas 2-grind med test-IdP, databas och browser
 ```
 
-Utan Docker blir databasstegen **BLOCKED** (exit 3), aldrig PASS. Sparordningssteget är KNOWN-ISSUE med ägare fas 5 och räknas aldrig som PASS. Resultatet skrivs till `work/pilot/results/phase1-summary.json`; använd `--out` utanför arbetsträdet om den committade fulla körningen inte ska skrivas över.
+Utan Docker blir databasstegen **BLOCKED** (exit 3), aldrig PASS. Sparordningssteget är KNOWN-ISSUE med ägare fas 5 och räknas aldrig som löst. Fas 1-resultatet skrivs till `work/pilot/results/phase1-summary.json`; fas 2-resultatet till `work/pilot/results/phase2-summary.json`. Använd `--out` utanför arbetsträdet för en delkörning.
 
 ## Vad som aldrig ska göras
 
