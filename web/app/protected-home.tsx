@@ -44,6 +44,8 @@ import ContextSwitch, {
   type AssignmentGroups,
   type SessionAssignment,
 } from './context-switch';
+import KundWorkspace from './kund-workspace';
+import LoggWorkspace from './logg-workspace';
 
 type ProtectedView = 'kund' | 'logg' | 'stangt';
 
@@ -142,7 +144,7 @@ function ProtectedNavigation({
 }
 
 function LoginPanel() {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search);
   const returnToInvitation = params.get('till') === '/inbjudan';
   const denied = params.get('inloggning') === 'nekad';
   const code = params.get('kod') ?? 'okänd';
@@ -176,10 +178,11 @@ function SessionLock({ reason }: { reason: LockReason }) {
 }
 
 function ProtectedShell() {
-  const [session, setSession] = useState<SessionResponse | null | 'loading'>('loading');
+  const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
   const [lock, setLock] = useState<LockReason | null>(null);
   const [view, setView] = useState<ProtectedView>('stangt');
   const [help, setHelp] = useState(false);
+  const [mfaRequired, setMfaRequired] = useState(false);
   const hasUnsaved = useHasUnsaved();
   const epochRef = useRef<number | null>(null);
 
@@ -191,6 +194,7 @@ function ProtectedShell() {
       setKnownEpoch(loaded.epoch);
       setSession(loaded);
       setView(startView(loaded));
+      setMfaRequired(false);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         epochRef.current = null;
@@ -275,11 +279,12 @@ function ProtectedShell() {
           </div>
         </header>
         {!validContext ? (
-          <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 && <p>Du har inga uppdrag som gäller idag.</p>}{contextControl}<Button variant="outline" onClick={() => void logout()}>Logga ut</Button></section></main>
+          <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 ? <><p>Du har inga uppdrag som gäller idag.</p><Button variant="outline" onClick={() => void logout()}>Logga ut</Button></> : <p>Välj ett giltigt uppdrag i sidhuvudet för att öppna arbetsytan.</p>}</section></main>
         ) : (
           <main id="workspace" className="workspace protected-workspace" key={session.epoch}>
-            {view === 'kund' && <section className="admin-empty"><h1>Kundadministration</h1><p>Administrationsvyn öppnas i nästa del av planen.</p></section>}
-            {view === 'logg' && <section className="admin-empty"><h1>Säkerhetslogg</h1><p>Loggvyn öppnas i nästa del av planen.</p></section>}
+            {mfaRequired && <output role="alert" className="admin-notice mfa-notice"><span>Åtgärden kräver verifiering med engångskod.</span><Button onClick={() => window.location.assign('/api/auth/login?step_up=1&till=/')}>Verifiera med engångskod</Button></output>}
+            {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
+            {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={() => setSession(null)} />}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}
