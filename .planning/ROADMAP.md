@@ -76,7 +76,7 @@ Plans:
 - [x] 02-07-PLAN.md — Personbundna inbjudningar, spärr och avslut
 - [x] 02-08-PLAN.md — Granskarlogg och första skyddade ändringen
 - [x] 02-09-PLAN.md — API-prov av åtkomst och kundisolering
-- [ ] 02-10-PLAN.md — Uppdragsväljare, flikrensning och administrationsvyer
+- [x] 02-10-PLAN.md — Uppdragsväljare, flikrensning och administrationsvyer
 - [ ] 02-11-PLAN.md — Webbläsarprov på dator och telefon
 - [ ] 02-12-PLAN.md — Samlad fasgrind, bevisrapport och användarbedömning
 **UI hint**: yes
@@ -199,7 +199,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
-| 2. Verifierad kontoåtkomst | 9/12 | Pågår | - |
+| 2. Verifierad kontoåtkomst | 10/12 | Pågår | - |
 | 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
