@@ -72,8 +72,8 @@ async function request<T>(method: 'GET' | 'POST' | 'PATCH', path: string, body?:
       const code = typeof parsed.code === 'string' ? parsed.code : 'bad_request';
       const correlationId =
         typeof parsed.correlationId === 'string' ? parsed.correlationId : response.headers.get('X-Correlation-Id');
+      if (response.status === 401) invalidatePending(controller);
       if (
-        response.status === 401 ||
         code === 'membership_blocked' ||
         code === 'assignment_ended' ||
         code === 'assignment_expired' ||

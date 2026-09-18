@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import AdminWorkspace from './admin-workspace';
+import ProtectedHome from './protected-home';
 import OrganisationWorkspace, {
   type OrganisationView,
 } from './organisation-workspace';
@@ -246,8 +247,9 @@ function Navigation({
  * lägesorsak, adress eller nyckel visas.
  */
 export default function Home() {
-  if (runtime.mode !== 'example') return <BlockedStart />;
-  return <ExampleHome />;
+  if (runtime.mode === 'example') return <ExampleHome />;
+  if (runtime.mode === 'protected') return <ProtectedHome />;
+  return <BlockedStart />;
 }
 function BlockedStart() {
   return (

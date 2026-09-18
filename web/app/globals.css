@@ -1937,3 +1937,22 @@ textarea:disabled {
 .admin-empty button{margin-top:16px;min-height:44px}
 .admin-empty>svg{display:block;margin:0 auto 8px}
 @media(max-width:600px){.og-unit-switch{width:100%}.context-school{flex-wrap:wrap;width:100%}.context-demo{margin-left:0}.blocked-start{margin:32px 16px}}
+
+/* Fas 2: skyddad provmiljö */
+.context-label{display:flex;align-items:center;min-height:44px;font-size:1rem;line-height:1.4;color:var(--foreground);white-space:normal}
+.context-switch{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.context-switch output{font-size:.8125rem;color:var(--destructive)}
+.sr-only-or-visible{font-size:.875rem;font-weight:500;color:var(--foreground)}
+.session-lock{position:fixed;inset:0;z-index:60;background:var(--background);display:grid;place-items:center;padding:16px}
+.session-lock-card{max-width:520px!important}
+.top-actions .og-unit-switch{max-width:min(60vw,520px)}
+.top-actions optgroup,.top-actions option:disabled{color:var(--foreground);opacity:.72}
+.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:var(--radius);background:var(--primary);color:var(--primary-foreground);font-weight:500;text-decoration:none;margin-top:16px}
+.top-actions a:focus-visible,.session-lock button:focus-visible,#uppdrag:focus-visible,.button:focus-visible{outline:3px solid var(--ring);outline-offset:4px}
+.protected-topbar{height:auto;min-height:72px;padding-top:10px;padding-bottom:10px}
+.protected-topbar .top-actions{min-width:0;flex-wrap:wrap;justify-content:flex-end}
+.protected-school small{display:block;overflow-wrap:anywhere}
+.protected-workspace .admin-empty{max-width:720px}
+.blocked-start output{display:block;margin-top:16px;color:var(--destructive);line-height:1.5}
+.blocked-start button{min-height:44px;margin-top:16px}
+@media(max-width:600px){.protected-topbar{align-items:flex-start;flex-direction:column;padding:10px 14px}.protected-topbar .top-actions{width:100%;justify-content:flex-start}.protected-topbar .top-actions .context-switch{order:3;width:100%}.protected-topbar .top-actions .og-unit-switch{width:100%;max-width:none;white-space:normal}.protected-topbar .context-label{width:100%;max-width:none}.protected-topbar .demo-pill{white-space:nowrap}}
