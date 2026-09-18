@@ -231,10 +231,15 @@ await runProtectedOperations('anon', anon, manifest.anonKey);
 const oldJwt = mintOldAnonymousJwt();
 await runProtectedOperations('gammalAnonym', clientWithToken(oldJwt), oldJwt);
 
-// Identitet 3: vanligt provkonto med lösenord.
+// Identitet 3: vanligt provkonto med lösenord i fas 1. I fas 2 är den lokala
+// protected-miljön avsiktligt OIDC-only. Bara GoTrue:s exakta besked om att
+// e-postinloggning är avstängd räknas som ett säkert nekande; alla andra fel
+// betyder fortsatt att fixturen eller provmiljön är trasig.
 const provkonto = createClient(manifest.apiUrl, manifest.anonKey, clientOptions);
 const signIn = await provkonto.auth.signInWithPassword({ email: PROVKONTO_EMAIL, password: PROVKONTO_PASSWORD });
-if (signIn.error || !signIn.data?.session?.access_token) {
+if (signIn.error?.message === 'Email logins are disabled') {
+  record('provkonto', 'auth.signInWithPassword', 'DENIED', 'e-postinloggning är avstängd i OIDC-only protected');
+} else if (signIn.error || !signIn.data?.session?.access_token) {
   setupFailure = `SETUP-FAIL: provkontot kunde inte logga in (${signIn.error?.message ?? 'ingen session'}); fixturen är fel`;
   record('provkonto', 'auth.signInWithPassword', 'SETUP-FAIL', setupFailure);
 } else {
