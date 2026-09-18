@@ -112,6 +112,7 @@ const results = [];
 const restore = [];
 const sessions = new Set();
 let server = null;
+let serverErrors = '';
 let baseUrl = options.baseUrl;
 let pgpassPath = null;
 
@@ -189,15 +190,14 @@ async function call(session, method, route, body, headers = {}) {
   }
   if (body !== undefined) requestHeaders.set('Content-Type', 'application/json');
   const before = performance.now();
-  const response = await fetch(`${baseUrl}${route}`, {
-    method,
-    headers: requestHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  const init = { method, headers: requestHeaders };
+  if (body !== undefined) init.body = JSON.stringify(body);
+  const response = await fetch(`${baseUrl}${route}`, init);
   const text = await response.text();
   let parsed = text;
   try { parsed = text ? JSON.parse(text) : null; } catch { /* CSV/text */ }
-  const epoch = Number(response.headers.get('X-Context-Epoch'));
+  const epochHeader = response.headers.get('X-Context-Epoch');
+  const epoch = epochHeader === null ? null : Number(epochHeader);
   if (typeof session !== 'string' && Number.isInteger(epoch)) session.epoch = epoch;
   return { status: response.status, body: parsed, headers: Object.fromEntries(response.headers), elapsedMs: performance.now() - before };
 }
@@ -244,15 +244,15 @@ async function startServer() {
   server = spawn(process.execPath, ['scripts/run-mode.mjs', 'preview', '--mode', 'protected', '--port', String(options.port)], {
     cwd: web, env: process.env, stdio: ['ignore', 'pipe', 'pipe'],
   });
-  let stderr = '';
-  server.stderr.on('data', (chunk) => { stderr = `${stderr}${chunk}`.slice(-2000); });
+  server.stdout.on('data', () => {});
+  server.stderr.on('data', (chunk) => { serverErrors = `${serverErrors}${chunk}`.slice(-4000); });
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
     if (await health(baseUrl)) return;
     if (server.exitCode !== null) break;
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  throw new Error(`BLOCKED: protected-Workern startade inte${stderr ? ` (${stderr.slice(-300)})` : ''}`);
+  throw new Error(`BLOCKED: protected-Workern startade inte${serverErrors ? ` (${serverErrors.slice(-300)})` : ''}`);
 }
 
 function adminMint(overrides = {}) {
@@ -449,9 +449,9 @@ const cases = {
     check(checks, 'främmande skolenhet röjde inte existens', equalShape(foreignPrincipal, missingPrincipal), `HTTP ${foreignPrincipal.status}/${missingPrincipal.status}`);
     const foreignOrg = await call(david, 'GET', `/api/organisation?huvudman=${ID.organizerA}`);
     const members = await call(david, 'GET', '/api/kund/medlemmar');
-    const text = JSON.stringify(members.body ?? {});
+    const emails = (members.body?.members ?? []).map((member) => member.email).filter(Boolean);
     check(checks, 'främmande huvudman nekades', foreignOrg.status === 404 && foreignOrg.body?.code === 'not_found', `HTTP ${foreignOrg.status}/${foreignOrg.body?.code}`);
-    check(checks, 'listning läckte inga A-personer', members.status === 200 && !text.includes('anna@example.test') && !text.includes('bertil@example.test'), `HTTP ${members.status}`);
+    check(checks, 'listning läckte inga A-personer', members.status === 200 && !emails.includes('anna@example.test') && !emails.includes('bertil@example.test'), `HTTP ${members.status}; ${emails.join(',')}`);
     check(checks, 'främmande medlemskap ändrades inte', psql("select status::text from public.memberships where id=:'id'::uuid", { id: ID.memberDavid }) === 'active', 'status active');
     const foreignAssignment = psql("select id::text from public.assignments where organizer_id<>:'org'::uuid limit 1", { org: ID.organizerA });
     if (foreignAssignment) {
@@ -496,13 +496,21 @@ const cases = {
 
   async 'aktor-forfalskning'(checks) {
     const anna = await adminMint();
-    const response = await call(anna, 'POST', '/api/kund/rektor', {
-      organizerId: ID.organizerA, unitId: ID.unitA, principalName: 'Förfalskad Rektor', actorRole: 'larare', actor: ID.david,
-    }, { 'X-App-Role': 'larare', 'X-Actor': ID.david });
+    const originalAuth = psql("select coalesce(auth_user_id::text,'') from public.identities where id=:'id'::uuid", { id: ID.anna });
+    const authUser = originalAuth || psql('select id::text from auth.users order by created_at limit 1');
+    let response;
+    try {
+      psql("update public.identities set auth_user_id=:'auth'::uuid where id=:'id'::uuid", { auth: authUser, id: ID.anna });
+      response = await call(anna, 'POST', '/api/kund/rektor', {
+        organizerId: ID.organizerA, unitId: ID.unitA, principalName: 'Förfalskad Rektor', actorRole: 'larare', actor: ID.david,
+      }, { 'X-App-Role': 'larare', 'X-Actor': ID.david });
+    } finally {
+      psql("update public.identities set auth_user_id=nullif(:'auth','')::uuid where id=:'id'::uuid", { auth: originalAuth, id: ID.anna });
+    }
     const corr = response.headers['x-correlation-id'];
     const audit = response.status === 200 ? psql("select actor_identity_id::text||'|'||assignment_id::text||'|'||action from public.security_events where correlation_id=:'corr'::uuid", { corr }) : '';
     const actorRole = psql("select actor_role::text from public.organisation_events where organizer_id=:'org'::uuid order by created_at desc limit 1", { org: ID.organizerA });
-    check(checks, 'skrivningen lyckades', response.status === 200, `HTTP ${response.status}`);
+    check(checks, 'skrivningen lyckades', response.status === 200, `HTTP ${response.status}/${response.body?.code ?? ''}; ${serverErrors.slice(-220)}`);
     check(checks, 'aktör och uppdrag härleddes på servern', audit === `${ID.anna}|${ID.assignmentAnna}|principal_appointed`, audit || 'ingen audit');
     check(checks, 'verksamhetsloggen fick faktisk roll', actorRole === 'huvudman', actorRole);
   },
@@ -515,7 +523,14 @@ const cases = {
     const from = new Date(Date.now() - 1000).toISOString();
     await call(anna, 'POST', '/api/kund/medlemskap/sparr', { membershipId: ID.memberGustav, reason: 'loggprov' });
     await call(anna, 'PATCH', '/api/kund/medlemskap/sparr', { membershipId: ID.memberGustav, action: 'unblock' });
-    await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalName: 'Loggprov Rektor' });
+    const originalAuth = psql("select coalesce(auth_user_id::text,'') from public.identities where id=:'id'::uuid", { id: ID.anna });
+    const authUser = originalAuth || psql('select id::text from auth.users order by created_at limit 1');
+    try {
+      psql("update public.identities set auth_user_id=:'auth'::uuid where id=:'id'::uuid", { auth: authUser, id: ID.anna });
+      await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalName: 'Loggprov Rektor' });
+    } finally {
+      psql("update public.identities set auth_user_id=nullif(:'auth','')::uuid where id=:'id'::uuid", { auth: originalAuth, id: ID.anna });
+    }
     const jsonLog = await call(bertil, 'GET', `/api/logg?from=${encodeURIComponent(from)}`);
     const before = Number(psql("select count(*) from public.security_events where action='log_exported' and actor_identity_id=:'id'::uuid", { id: ID.bertil }));
     const csvLog = await call(bertil, 'GET', `/api/logg?format=csv&from=${encodeURIComponent(from)}`);
@@ -577,6 +592,10 @@ const cases = {
 let exitCode = 1;
 try {
   await startServer();
+  // Varje verifieringskörning får en egen deterministisk minutbucket. Tabellen
+  // innehåller bara flyktigt flödeskontrolltillstånd i det disponibla målet;
+  // säkerhetshändelserna lämnas oförändrade.
+  psql("delete from public.denial_buckets where bucket_start=date_trunc('minute',now())");
   for (const name of options.cases) await runCase(name, cases[name]);
   const report = {
     checkedAt,
