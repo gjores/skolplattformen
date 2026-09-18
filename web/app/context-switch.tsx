@@ -67,8 +67,9 @@ export default function ContextSwitch({ context, assignments, onChanged }: Props
     try {
       const result = await api.post<ContextResponse>('/api/context', { assignmentId });
       setKnownEpoch(result.epoch);
-      announce({ type: 'epoch', epoch: result.epoch });
       await onChanged(result.context, result.epoch);
+      // Läs in epoken före signalen; BroadcastChannel kan annars låsa avsändarfliken.
+      announce({ type: 'epoch', epoch: result.epoch });
     } catch (caught) {
       setShownValue(activeValue);
       if (caught instanceof ApiError) setError(messageText(caught.code));

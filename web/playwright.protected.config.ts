@@ -4,6 +4,7 @@
 // förutsättningar stoppar run-mode körningen som BLOCKED.
 import { defineConfig, devices } from '@playwright/test';
 
+const dev = 'http://127.0.0.1:5193';
 const built = 'http://127.0.0.1:3012';
 
 export default defineConfig({
@@ -13,12 +14,29 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  reporter: [['list'], ['json', { outputFile: 'test-results/phase2-e2e.json' }]],
+  reporter: [
+    ['list'],
+    ['json', { outputFile: 'test-results/phase2-e2e.json' }],
+  ],
   use: { trace: 'off', locale: 'sv-SE' },
   projects: [
     {
+      name: 'protected-desktop',
+      testMatch: /phase2-access\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: dev,
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: 'protected-phone',
+      testMatch: /phase2-access\.spec\.ts/,
+      use: { ...devices['iPhone 13'], baseURL: dev },
+    },
+    {
       name: 'protected-built',
-      testMatch: /phase2-spike\.spec\.ts/,
+      testMatch: /phase2-(?:spike|access)\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: built,
@@ -27,6 +45,13 @@ export default defineConfig({
     },
   ],
   webServer: [
+    {
+      command: 'npm run dev:protected:test',
+      url: `${dev}/api/health/db`,
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: { VINEXT_NO_DEV_LOCK: '1' },
+    },
     {
       command: 'npm run preview:protected',
       url: `${built}/api/health/db`,

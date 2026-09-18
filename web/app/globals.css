@@ -1944,7 +1944,7 @@ textarea:disabled {
 .context-switch output{font-size:.8125rem;color:var(--destructive)}
 .sr-only-or-visible{font-size:.875rem;font-weight:500;color:var(--foreground)}
 .session-lock{position:fixed;inset:0;z-index:60;background:var(--background);display:grid;place-items:center;padding:16px}
-.session-lock-card{max-width:520px!important}
+.session-lock-card{z-index:70!important;max-width:520px!important}
 .top-actions .og-unit-switch{max-width:min(60vw,520px)}
 .top-actions optgroup,.top-actions option:disabled{color:var(--foreground);opacity:.72}
 .button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:var(--radius);background:var(--primary);color:var(--primary-foreground);font-weight:500;text-decoration:none;margin-top:16px}

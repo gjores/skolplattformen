@@ -1,7 +1,7 @@
 import { chmodSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import * as OTP from 'otpauth';
-import type { Page } from '@playwright/test';
+import type { Browser, BrowserContext, Page } from '@playwright/test';
 
 export type PilotManifest = {
   dbUrl: string;
@@ -205,4 +205,29 @@ export async function loginViaKeycloak(
   if (new URL(page.url()).pathname.startsWith('/api/auth')) {
     throw new Error(`Inloggningscallback nekades: ${await page.locator('body').innerText()}`);
   }
+}
+
+export async function waitForHydration(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const candidates = [
+      document.getElementById('uppdrag'),
+      document.querySelector('.context-label'),
+      [...document.querySelectorAll('a')].find((link) => link.textContent?.trim() === 'Logga in') ?? null,
+    ];
+    return candidates.some((element) =>
+      element !== null && Object.keys(element).some((key) => key.startsWith('__reactProps')),
+    );
+  });
+}
+
+export async function loginInNewContext(
+  browser: Browser,
+  baseURL: string,
+  username: string,
+): Promise<{ context: BrowserContext; page: Page }> {
+  const context = await browser.newContext({ baseURL, locale: 'sv-SE' });
+  const page = await context.newPage();
+  await loginViaKeycloak(page, username);
+  await waitForHydration(page);
+  return { context, page };
 }
