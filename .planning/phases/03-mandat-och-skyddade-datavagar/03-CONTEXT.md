@@ -30,4 +30,4 @@ Fasens godkända krav är ACL-02–05 och AUDIT-02–03. Behörighetsgränser pr
 
 ## Arbetsram
 
-Användaren har begränsat fasdiskussionen till högst ytterligare 3 procentenheter av veckokvoten. Mätaren visade 3 procent använt vid diskussionens start. Håll diskussionen kort; ingen exakt hård kvotgräns kan ställas in här.
+Användaren utökade budgeten till totalt 5 procentenheter för diskussion och fortsatt planering. Mätaren visade 3 procent vid diskussionens start och 5 procent vid planeringens start; högst 8 procent på kontots veckomätare används som stoppgräns. Mätaren är kontogemensam och avrundad; ingen exakt hård kvotgräns kan ställas in här.
