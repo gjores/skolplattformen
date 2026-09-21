@@ -5,7 +5,7 @@ status: approved
 nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-12
-updated: 2026-09-15
+updated: 2026-09-21
 ---
 
 # Fas 2 — Valideringskontrakt
@@ -81,7 +81,7 @@ C-kommandona nedan är exakt taskens <automated>; PLAN innehåller också beteen
 | 02-11-1 | 10 | IAM-03, IAM-04, IAM-05 | C11.1 | pending |
 | 02-11-2 | 10 | IAM-03, IAM-04, IAM-05 | C11.2 | pending |
 | 02-12-1 | 11 | IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 | C12.1 | passed 2026-09-18 — full `verify:phase2` PASS på revision `89055a9`: 168 modellprov, 137 pgTAP, 39 nekade direkta vägar, 14/14 API-fall (63 kontroller), fas 1 browser 26/0 och protected browser 37/0 |
-| 02-12-2 | 11 | IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 | C12.2 | pending |
+| 02-12-2 | 11 | IAM-01, IAM-03, IAM-04, IAM-05, ACL-01, AUDIT-01 | C12.2 | godkänt 2026-09-21 — användaren bedömde de presenterade konto- och administrationsflödena och svarade: ”Jag har testat allt och det verkar korrekt.” |
 
 ## Kravbevis för slutgrinden
 
@@ -110,7 +110,7 @@ Full BankID-integration, val av tillitsnivå för känsliga beslut, verifierad k
 | Plan | Task | Bedömning | Förvillkor | Resultat |
 |---|---|---|---|---|
 | 02-04 | 2 | Spikets inloggning och tydlighet; reservbeslut vid verkligt tekniskt hinder | Aktuella spike-db/spike-resultat, förberedd visning | godkänt 2026-09-15 — kundöversikten visades; användaren noterade korrekt att standardinloggningen inte frågade efter OTP. Databasbevis visade låg assurance (`acr=1`, `amr=[pwd]`), inte återanvänt eller felmärkt MFA. Känsliga åtgärder ska kräva separat step-up enligt D-03/02-06. |
-| 02-12 | 2 | Uppdragsbyte, inbjudan/spärr, granskarlogg, mobil och tangentbord | Full verify:phase2 PASS, förberedd vy/testkonto | pending |
+| 02-12 | 2 | Uppdragsbyte, inbjudan/spärr, granskarlogg, mobil och tangentbord | Full verify:phase2 PASS, förberedd vy/testkonto | godkänt 2026-09-21 — användarens faktiska svar: ”Jag har testat allt och det verkar korrekt.” Automatiskt WebKit-prov för telefonvyn ingår i fasgrinden; detta godkännande gör fortfarande inget påstående om en verklig kommunanslutning. |
 
 Fysisk telefonåtkomst är separat från automatiskt WebKit-telefonprov: nåbar issuer/origin måste först vara provad. Inget godkännande antas. Checkpoint ersätter inte efterföljande fasverifiering.
 
@@ -143,8 +143,8 @@ Verklig kommunanslutning/SCIM och senare mandat/elevregister ligger kvar i sina 
 - [x] Alla tasks har automatisk kontroll/förvillkor och namngivna beroenden.
 - [x] Ingen skip/blocked räknas som ett verifierat krav.
 - [ ] Oberoende planchecker godkänner helheten.
-- [x] Kontrollerna genomförda efter implementation — full lokal `verify:phase2` PASS 2026-09-18; användarbedömning och separat fasverifiering återstår.
-- [ ] Faktiska användarsvar dokumenterade.
+- [x] Kontrollerna genomförda efter implementation — full lokal `verify:phase2` PASS 2026-09-18 och användarbedömning godkänd 2026-09-21; separat fasverifiering återstår.
+- [x] Faktiska användarsvar dokumenterade.
 
 Approval: approved — oberoende gsd-plan-checker godkände BankID-beredskapskompletteringen 2026-09-13. wave_0_complete är false tills infrastrukturen faktiskt genomförts.
 
