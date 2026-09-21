@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 02
-current_phase_name: Verifierad kontoåtkomst
-current_plan: 12
-status: verifying
-stopped_at: Plan 02-12 slutförd och användarkontroll godkänd; oberoende fasverifiering pågår.
-last_updated: "2026-09-21T00:00:00Z"
+current_phase: 03
+current_phase_name: Mandat och skyddade datavägar
+current_plan: null
+status: ready
+stopped_at: Fas 2 verifierad utan blockerande luckor; nästa steg gsd-discuss-phase 3.
+last_updated: "2026-09-21T13:46:42Z"
 last_activity: 2026-09-21
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 22
   completed_plans: 22
   percent: 100
@@ -24,26 +24,27 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 2 — oberoende målverifiering efter 12 genomförda planer
+**Current focus:** Fas 3 — diskutera mandat, uppdragsmatris och skyddade datavägar före planering
 
 ## Current Position
 
-Phase: 02 (Verifierad kontoåtkomst) — VERIFYING
-Plan: 12 of 12
+Phase: 03 (Mandat och skyddade datavägar) — READY FOR DISCUSSION
+Plan: Ej planerad
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
-**Current Phase:** 02
-**Current Phase Name:** Verifierad kontoåtkomst
+Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
+**Current Phase:** 03
+**Current Phase Name:** Mandat och skyddade datavägar
 **Total Phases:** 8
-**Current Plan:** 12
-**Total Plans in Phase:** 12
-**Status:** Verifying Phase 02
+**Current Plan:** Ej planerad
+**Total Plans in Phase:** TBD
+**Status:** Ready to discuss Phase 03
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-21
-**Last Activity Description:** Plan 02-12 slutförd; användarkontroll godkänd
+**Last Activity Description:** Fas 2 oberoende verifierad; 6 av 6 fasägda krav uppfyllda
 
 Progress: [██████████] 100%
-Planprogress: 22 av 22 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 1 av 8 faser är verifierad.
-Phases executed: 1 of 8 (fas 1 verifierad; fas 2 inte genomförd)
+Planprogress: 22 av 22 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
+Phases executed: 2 of 8 (fas 1–2 verifierade)
 
 ## Performance Metrics
 
@@ -112,7 +113,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: gsd-execute-phase 2. Fas 1 är verifierad; fas 2-planeringen är granskad och klar. Inga nya app- eller databasprov kördes vid slutplaneringen.
+- Nästa steg: `gsd-discuss-phase 3`. Fas 2 är verifierad; fas 3 har ännu inga planer.
 - 5 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14).
 
 ## Blockers
@@ -123,7 +124,7 @@ Fullständiga beslut finns i PROJECT.md.
 - Demoetablering, direkta datavägar och loggning måste verifieras tillsammans innan elevregistret öppnas.
 - Kodkartan 2026-09-11 belägger risker med överlappande sparningar, flerstegsskrivningar och breda databasmandat; ta med .planning/codebase/CONCERNS.md i berörd fasplanering.
 - Git-baslinjen är verifierad: taggen fas1-baslinje (917313b). Kodkartläggningen i 1a8e1e0 är historik före fas 1.
-- Senaste sparade fasverifiering 2026-09-12 redovisar 108 modelltester, 52 pgTAP-prov och 58 nekade API-anrop samt tidigare full browserkörning och godkänd fysisk telefon. Dessa prov har inte körts om vid fas 2-planeringens statusuppdatering.
+- Senaste sparade fasverifiering 2026-09-21 redovisar 175 riktade tester utan fel och binder fas 2 till den fulla PASS-grinden: 137 pgTAP-prov, 39 nekade direkta datavägar, 14/14 API-fall och 37 skyddade browserprov.
 
 ## Deferred Items
 
@@ -134,7 +135,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Session
 
 **Last Date:** 2026-09-21
-**Stopped At:** Plan 02-12 slutförd och användarkontroll godkänd; oberoende fasverifiering pågår.
+**Stopped At:** Fas 2 verifierad utan blockerande luckor; nästa steg gsd-discuss-phase 3.
 **Resume File:** None
 
 **Planned Phase:** 2 (Verifierad kontoåtkomst) — 12 plans — 2026-09-13T08:35:58.894Z

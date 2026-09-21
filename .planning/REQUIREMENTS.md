@@ -6,7 +6,7 @@
 
 **Core Value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
 
-**Status:** Godkända av användaren 2026-09-11 tillsammans med färdplanens åtta faser. Samtliga krav inväntar genomförande och verifiering.
+**Status:** Godkända av användaren 2026-09-11 tillsammans med färdplanens åtta faser. Nio krav är verifierade efter fas 1–2; övriga 33 inväntar genomförande och verifiering.
 
 ## v1 Requirements
 
@@ -20,16 +20,16 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 
 ### Identitet och kontolivscykel
 
-- [ ] **IAM-01**: En verifierad företrädare kan etablera kundens första medlemskap utan att enbart ett angivet organisationsnummer eller en e-postdomän ger rättigheter.
+- [x] **IAM-01**: En verifierad företrädare kan etablera kundens första medlemskap utan att enbart ett angivet organisationsnummer eller en e-postdomän ger rättigheter.
 - [ ] **IAM-02**: Personal kan logga in via pilotens godkända identitetsanslutning med avtalade autentiseringskrav; fel utfärdare, otillåten inloggningsväg och kontokollisioner ger ingen åtkomst.
-- [ ] **IAM-03**: Personal med flera giltiga uppdrag kan välja tillåten arbetskontext; varje uppdrag anger organisation, relevant skolenhet och giltighet utan att rättigheter blandas.
-- [ ] **IAM-04**: Personal kan logga ut så att skyddad åtkomst för den avslutade appsessionen upphör och föregående elevinnehåll rensas ur relevant klienttillstånd, även vid kontextbyte och flera flikar.
-- [ ] **IAM-05**: Behörig administratör kan spärra ett medlemskap eller avsluta ett uppdrag så att nästa skyddade anrop nekas även med tidigare utfärdad token.
+- [x] **IAM-03**: Personal med flera giltiga uppdrag kan välja tillåten arbetskontext; varje uppdrag anger organisation, relevant skolenhet och giltighet utan att rättigheter blandas.
+- [x] **IAM-04**: Personal kan logga ut så att skyddad åtkomst för den avslutade appsessionen upphör och föregående elevinnehåll rensas ur relevant klienttillstånd, även vid kontextbyte och flera flikar.
+- [x] **IAM-05**: Behörig administratör kan spärra ett medlemskap eller avsluta ett uppdrag så att nästa skyddade anrop nekas även med tidigare utfärdad token.
 - [ ] **IAM-06**: Pilotansvarig kan följa extern kontotilldelning och avveckling samt se uppmätt fördröjning från vald källa till appens spärr mot en överenskommen tidsgräns.
 
 ### Behörighet och ansvar
 
-- [ ] **ACL-01**: En användare nekas åtkomst till annan kunds objekt och röjande metadata via direkt anrop, vy, sökning, export och tillgängliga filvägar.
+- [x] **ACL-01**: En användare nekas åtkomst till annan kunds objekt och röjande metadata via direkt anrop, vy, sökning, export och tillgängliga filvägar.
 - [ ] **ACL-02**: Rektor kan tilldela och avsluta läraruppdrag endast vid de skolenheter rektorn leder under aktuell giltighet; huvudmannens vanliga roll kan inte göra samma tilldelning.
 - [ ] **ACL-03**: Huvudmannen kan utse rektor inom sin organisation; en rektor kan inte tilldela sig själv eller andra rektorsmandat.
 - [ ] **ACL-04**: Lärare och skoladministratör får endast de elev- och administrativa åtgärder som den fastställda uppdragsmatrisen medger; okända eller saknade rättigheter nekar åtkomst.
@@ -51,7 +51,7 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 
 ### Spårbarhet
 
-- [ ] **AUDIT-01**: Behörig granskare kan följa pilotens beständiga ändringar med serververifierad aktör, faktiskt uppdrag, tid, källa, objekt och resultat; klienten kan inte välja en annan loggad aktör eller roll.
+- [x] **AUDIT-01**: Behörig granskare kan följa pilotens beständiga ändringar med serververifierad aktör, faktiskt uppdrag, tid, källa, objekt och resultat; klienten kan inte välja en annan loggad aktör eller roll.
 - [ ] **AUDIT-02**: Behörig säkerhetsfunktion kan spåra de elevläsningar, exporter och nekade åtkomstförsök som pilotens loggpolicy kräver, även när någon försöker använda en alternativ direkt dataväg.
 - [ ] **AUDIT-03**: Pilotansvarig kan kontrollera att loggar har begränsad åtkomst, minimerat innehåll, beslutad lagringstid och ett provat beteende vid loggbortfall.
 
@@ -114,13 +114,13 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | BASE-01 | Phase 1 | Verifierad 2026-09-12 (01-VERIFICATION.md; docs/pilot/baseline.md) |
 | BASE-02 | Phase 1 | Verifierad 2026-09-12 (01-VERIFICATION.md; docs/pilot/baseline.md) |
 | PILOT-01 | Phase 1 | Verifierad 2026-09-12 (01-VERIFICATION.md; docs/pilot/connection-profile.md) |
-| IAM-01 | Phase 2 | Pending |
+| IAM-01 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
 | IAM-02 | Phase 7 | Pending |
-| IAM-03 | Phase 2 | Pending |
-| IAM-04 | Phase 2 | Pending |
-| IAM-05 | Phase 2 | Pending |
+| IAM-03 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
+| IAM-04 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
+| IAM-05 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
 | IAM-06 | Phase 7 | Pending |
-| ACL-01 | Phase 2 | Pending |
+| ACL-01 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
 | ACL-02 | Phase 3 | Pending |
 | ACL-03 | Phase 3 | Pending |
 | ACL-04 | Phase 3 | Pending |
@@ -133,7 +133,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | STU-06 | Phase 4 | Pending |
 | DATA-01 | Phase 4 | Pending |
 | DATA-02 | Phase 4 | Pending |
-| AUDIT-01 | Phase 2 | Pending |
+| AUDIT-01 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
 | AUDIT-02 | Phase 3 | Pending |
 | AUDIT-03 | Phase 3 | Pending |
 | INT-01 | Phase 6 | Pending |
