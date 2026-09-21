@@ -6,7 +6,7 @@ current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: null
 status: ready
-stopped_at: Fas 2 verifierad utan blockerande luckor; nästa steg gsd-discuss-phase 3.
+stopped_at: Fas 3 diskuterad; beslut i 03-CONTEXT.md. Nästa steg gsd-plan-phase 3.
 last_updated: "2026-09-21T13:46:42Z"
 last_activity: 2026-09-21
 progress:
@@ -24,11 +24,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 3 — diskutera mandat, uppdragsmatris och skyddade datavägar före planering
+**Current focus:** Fas 3 — planera utifrån godkänd grundfördelning, elevhälsa, support och loggpolicy
 
 ## Current Position
 
-Phase: 03 (Mandat och skyddade datavägar) — READY FOR DISCUSSION
+Phase: 03 (Mandat och skyddade datavägar) — READY FOR PLANNING
 Plan: Ej planerad
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
@@ -37,7 +37,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Total Phases:** 8
 **Current Plan:** Ej planerad
 **Total Plans in Phase:** TBD
-**Status:** Ready to discuss Phase 03
+**Status:** Ready to plan Phase 03
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-21
 **Last Activity Description:** Fas 2 oberoende verifierad; 6 av 6 fasägda krav uppfyllda
@@ -113,7 +113,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: `gsd-discuss-phase 3`. Fas 2 är verifierad; fas 3 har ännu inga planer.
+- Nästa steg: `gsd-plan-phase 3`. Fasdiskussionens beslut och öppna preciseringar finns i `phases/03-mandat-och-skyddade-datavagar/03-CONTEXT.md`; fas 3 har ännu inga planer.
 - 5 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14).
 
 ## Blockers
@@ -135,7 +135,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Session
 
 **Last Date:** 2026-09-21
-**Stopped At:** Fas 2 verifierad utan blockerande luckor; nästa steg gsd-discuss-phase 3.
+**Stopped At:** Fas 3 diskuterad; beslut i 03-CONTEXT.md. Nästa steg gsd-plan-phase 3.
 **Resume File:** None
 
 **Planned Phase:** 2 (Verifierad kontoåtkomst) — 12 plans — 2026-09-13T08:35:58.894Z
