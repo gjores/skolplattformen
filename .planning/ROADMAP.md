@@ -96,7 +96,7 @@ Prov mot en avskild testidentitet kan utveckla och verifiera appens kontrakt. De
 4. Kommunens IT-funktion kan hantera anslutningen utan generell elevinsyn; eventuell supportåtkomst upphör efter sin tilldelade tid och går att följa. (ACL-05)
 5. Behörig säkerhetsfunktion kan följa de syntetiska elevläsningar, exporter och nekade försök som loggpolicyn kräver, även genom alternativa datavägar. Pilotansvarig kan kontrollera loggarnas begränsade åtkomst, minimerade innehåll, beslutade lagringstid och provade beteende vid loggbortfall. (AUDIT-02, AUDIT-03)
 
-**Plans**: TBD
+**Plans**: 7 planer i 7 sekventiella vågor — granskade 2026-09-22. Se 03-PLAN-REVIEW.md och 03-EXECUTION-CONTRACT.md för verifieringsgrindar och kvarstående risker.
 **UI hint**: yes
 
 Den första syntetiska elevoperationen används för att bevisa hela skydds- och loggkedjan. Elevregistret i fas 4 får inte öppna en dataväg som saknar samma kontroller; kvarvarande direkt databasåtkomst måste omfattas eller stängas. Dessa kontroller följer varje senare ändring och import.
@@ -200,7 +200,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 |-------|----------------|--------|-----------|
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
-| 3. Mandat och skyddade datavägar | 0/TBD | Not started | - |
+| 3. Mandat och skyddade datavägar | 0/7 | Planned | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
@@ -210,4 +210,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Övriga 33 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-21 — fas 1–2 verifierade; nästa steg är diskussion och planering av fas 3.*
+*Last updated: 2026-09-22 — fas 1–2 verifierade; fas 3 planerad och granskad inför genomförande.*
