@@ -1,0 +1,4 @@
+:root { --ifm-color-primary: #315b76; --ifm-color-primary-dark: #2c526a; --ifm-color-primary-darker: #2a4d64; --ifm-color-primary-darkest: #224053; --ifm-color-primary-light: #366482; --ifm-color-primary-lighter: #386987; --ifm-color-primary-lightest: #40769a; --ifm-font-family-base: system-ui, sans-serif; }
+[data-theme='dark'] { --ifm-color-primary: #91bfdc; }
+.navbar__link, .menu__link { min-height: 44px; display: flex; align-items: center; }
+:focus-visible { outline: 3px solid var(--ifm-color-primary); outline-offset: 3px; }

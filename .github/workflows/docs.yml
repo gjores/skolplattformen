@@ -1,0 +1,20 @@
+name: Dokumentationsbygge
+on:
+  pull_request:
+    paths: ['docs/handbok/**', 'docs-site/**', 'package.json', '.github/workflows/docs.yml']
+  push:
+    paths: ['docs/handbok/**', 'docs-site/**', 'package.json', '.github/workflows/docs.yml']
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+      - run: npm run docs:install
+      - run: npm run docs:build

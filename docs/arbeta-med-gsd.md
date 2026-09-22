@@ -45,6 +45,8 @@ Om verifieringen hittar en lucka korrigeras eller omplaneras den innan fasen ang
 
 ## Var sanningen finns
 
+Handboken i `docs/handbok/` byggs med Docusaurus. Lägg berörda handbokssidor och `npm run docs:build` i fasplanen när användarflöden, API-kontrakt eller driftanvisningar ändras. Utgå från en källa per text; interna planeringsfiler och testkonton ingår inte i handboksbygget. Se [utvecklarguiden](handbok/utveckling.md).
+
 - [PROJECT.md](../.planning/PROJECT.md): syfte, beslut, befintligt värde och avgränsningar.
 - [REQUIREMENTS.md](../.planning/REQUIREMENTS.md): prövbara krav och deras fas.
 - `.planning/ROADMAP.md`: ordning, mål, beroenden och framsteg.

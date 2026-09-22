@@ -6,6 +6,8 @@
 *.pem
 *.key
 node_modules/
+docs-site/.docusaurus/
+docs-site/build/
 dist/
 .vinext/
 .wrangler/

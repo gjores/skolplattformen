@@ -17,6 +17,12 @@ Användaren godkände de 42 detaljkraven och färdplanens åtta faser 2026-09-11
 
 ## Struktur och kontroller
 
+### Dokumentation med Docusaurus
+
+- Handbokens källor finns i `docs/handbok/`, Docusaurus-appen i `docs-site/`. Kör `npm run docs:install`, `npm run docs:dev` och `npm run docs:build` från projektroten.
+- Vid ändrat användarbeteende, API-kontrakt eller driftflöde ska GSD-planen omfatta berörda handbokssidor och dokumentationsbygge. Ange verifierat beteende och begränsningar; duplicera inte hela interna planer.
+- Bara granskad handbokstext byggs. Importera inte `.planning/`, testkonton eller privata miljöfiler automatiskt. Publicering kräver separat beslut.
+
 Paketrot är `web/`; projekt- och GSD-rot är katalogen ovanför. React/TypeScript med Vinext/Vite används för appen. Domänmodeller ligger i `web/lib/*-model.ts`, datalager i `*-store.ts`, vyer i `web/app/` och databasmigrationer i `supabase/migrations/`.
 
 Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noEmit`, `npx oxlint app lib` och `npm run build`. Anpassa kontroller till ändringen; en dokumentändring kräver inte en ny appbyggnad. Vid UI-ändring prövas berört användarflöde på dator och telefon. Tidigare passerade tester är historik, inte bevis för nya ändringar.
