@@ -10,7 +10,7 @@ Följande konkreta åtgärder, fält och 60-minutersgräns är provförslag frå
 
 ## Matris
 
-Alla rader kräver samma kund och huvudman, aktivt medlemskap, valt giltigt uppdrag och giltig överordnad kedja. Ingen union mellan användarens uppdrag. Okända rättigheter, fält och scope nekas. Basfält är `id`, `display_name`, `unit_id`, `group_ids`; bara uttryckligen begärda tillåtna fält lämnas.
+Alla rader kräver samma kund och huvudman (kundadmin/granskare har kundomfattning med `organizerId=null` enligt befintlig databasmodell), aktivt medlemskap, valt giltigt uppdrag och giltig överordnad kedja. Ingen union mellan användarens uppdrag. Okända rättigheter, fält och scope nekas. Basfält är `id`, `display_name`, `unit_id`, `group_ids`; bara uttryckligen begärda tillåtna fält lämnas.
 
 | Funktion | Åtgärder | Fält | Relation | Delegation/avslut |
 |---|---|---|---|---|
@@ -22,8 +22,8 @@ Alla rader kräver samma kund och huvudman, aktivt medlemskap, valt giltigt uppd
 | elevhalsoansvarig | mandate.grant, mandate.revoke | inga elevfält | uttryckliga skolor | elevhälsa |
 | it | connection.read/enable/pause/test | enabled, version | tilldelad skola | ingen |
 | support | pupil.read | basfält | exakt en elev inom exakt en skola | ingen |
-| kundadmin | mandate.grant, mandate.revoke | inga elevfält | egen kund och huvudman, inom egen skolmängd | kundadmin, granskare; separat kontoadministration |
-| granskare | audit.read | event_id, action, occurred_at, outcome, assignment_id | egen kund och huvudman | ingen |
+| kundadmin | mandate.grant, mandate.revoke | inga elevfält | egen kund, ingen huvudman eller skolmängd krävs | kundadmin, granskare; separat kontoadministration |
+| granskare | audit.read | event_id, action, occurred_at, outcome, assignment_id | egen kund | ingen |
 
 Support kräver `purposeCode=synthetic-troubleshooting`, rektor som överordnad/godkännare, explicit elev samt `[startsAt, endsAt)` om högst 60 minuter. Varken export, skrivning eller delegation tillåts. IT:s test gäller lokal konfiguration, inte kommunanslutning. Ärendemandat ger inte andra ärenden för samma elev.
 

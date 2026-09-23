@@ -12,7 +12,7 @@ export type MandateAssignment = {
   id: string;
   identityId: string;
   customerId: string;
-  organizerId: string;
+  organizerId: string | null;
   function: MandateFunction;
   profileId: string;
   membershipActive: boolean;
@@ -33,7 +33,7 @@ export type MandateAssignment = {
 export type MandateRequest = {
   action: string;
   customerId: string;
-  organizerId: string;
+  organizerId: string | null;
   fields: string[];
   resource: {
     unitId: string;
@@ -106,7 +106,7 @@ function shape(a: MandateAssignment): boolean {
     !a.id ||
     !a.identityId ||
     !a.customerId ||
-    !a.organizerId ||
+    (!a.organizerId && !['kundadmin', 'granskare'].includes(a.function)) ||
     a.profileId !== 'synthetic-v1' ||
     !Object.hasOwn(ACTIONS, a.function) ||
     !['school', 'group', 'pupil', 'case'].includes(a.scopeKind) ||

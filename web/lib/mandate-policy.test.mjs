@@ -480,3 +480,43 @@ test('support-separate-assignments-do-not-extend-time', () =>
     }).allowed,
     false,
   ));
+
+for (const functionName of ['kundadmin', 'granskare']) {
+  test(`customer-only-${functionName}`, () => {
+    const account = make({
+      function: 'kundadmin',
+      organizerId: null,
+      unitIds: [],
+    });
+    const target = child({
+      function: functionName,
+      organizerId: null,
+      scopeKind: 'school',
+      groups: [],
+      unitIds: [],
+    });
+    assert.equal(
+      run(account, { ...grant(target), organizerId: null }).allowed,
+      true,
+    );
+    assert.equal(run(account, read({ organizerId: null })).allowed, false);
+  });
+}
+test('customer-only-audit', () =>
+  assert.equal(
+    run(
+      make({ function: 'granskare', organizerId: null, unitIds: [] }),
+      read({
+        action: 'audit.read',
+        organizerId: null,
+        fields: ['event_id'],
+        resource: null,
+      }),
+    ).allowed,
+    true,
+  ));
+test('business-requires-organizer', () =>
+  assert.equal(
+    run(make({ organizerId: null }), read({ organizerId: null })).allowed,
+    false,
+  ));
