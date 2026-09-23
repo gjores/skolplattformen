@@ -114,7 +114,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Pending Todos
 
 - Nästa steg: `gsd-execute-phase 3`, börja med 03-01. Sju planer och 03-EXECUTION-CONTRACT.md är granskade. Auditkällornas faktiska kapacitet måste bevisas i 03-04; saknat bevis blockerar fortsatt godkännande.
-- 5 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14).
+- 6 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23).
 
 ## Blockers
 
