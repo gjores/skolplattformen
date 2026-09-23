@@ -200,7 +200,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 |-------|----------------|--------|-----------|
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
-| 3. Mandat och skyddade datavägar | 1/7 | In progress | - |
+| 3. Mandat och skyddade datavägar | 1/7 | Paused — 03-02 partial | - |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
@@ -210,4 +210,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Övriga 33 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-22 — fas 1–2 verifierade; fas 3 planerad och granskad inför genomförande.*
+*Last updated: 2026-09-23 — fas 1–2 verifierade; fas 3 plan 01 klar, plan 02 delvis genomförd. Återupptagningsläge sparat.*

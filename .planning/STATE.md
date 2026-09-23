@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: 02
-status: executing
-stopped_at: 03-01 klar; genomförande av 03-02 pågår; startkvot 18 %, stopp före 28 % (2026-09-23).
-last_updated: "2026-09-22T15:31:22Z"
-last_activity: 2026-09-22
+status: paused
+stopped_at: 03-01 klar; 03-02 delvis genomförd. Återuppta återstående SQL-mandatkontroller enligt .continue-here.md.
+last_updated: "2026-09-23T14:52:31Z"
+last_activity: 2026-09-23
 progress:
   total_phases: 8
   completed_phases: 2
@@ -24,23 +24,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 3 — sju granskade planer, redo för genomförande med dokumenterade stoppvillkor
+**Current focus:** Fas 3 — 03-01 klar, 03-02 delvis genomförd; återstående databas- och serverkontroller innan nya mandat öppnas
 
 ## Current Position
 
 Phase: 03 (Mandat och skyddade datavägar) — IN PROGRESS
-Plan: 03-02, pågår
+Plan: 03-02, delvis genomförd
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 03
 **Current Phase Name:** Mandat och skyddade datavägar
 **Total Phases:** 8
-**Current Plan:** 03-02, pågår
+**Current Plan:** 03-02, delvis genomförd
 **Total Plans in Phase:** 7
-**Status:** Executing Phase 03
+**Status:** Paused within quota — resume Phase 03 plan 02
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-22
-**Last Activity Description:** Fas 3:s fem planfynd åtgärdade; Docusaurus byggd och browserkontrollerad
+**Last Activity:** 2026-09-23
+**Last Activity Description:** 03-01 verifierad beslutsmodell; 03-02 stängd schemagrund och intern kedjeprövning. Full mandatväg återstår.
 
 Progress: [████████░░] 79%
 Planprogress: 23 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
@@ -113,7 +113,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: `gsd-execute-phase 3`, börja med 03-01. Sju planer och 03-EXECUTION-CONTRACT.md är granskade. Auditkällornas faktiska kapacitet måste bevisas i 03-04; saknat bevis blockerar fortsatt godkännande.
+- Nästa steg: återuppta `gsd-execute-phase 3` från återstående delar av 03-02. Dess PARTIAL-summary innebär inte att planen är klar. Läs .continue-here.md och 03-02-SUMMARY.md. Auditkällornas faktiska kapacitet måste bevisas i 03-04; saknat bevis blockerar fortsatt godkännande.
 - 6 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23).
 
 ## Blockers
@@ -134,8 +134,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-22
-**Stopped At:** Fas 3 planerad och granskad; Docusaurus klar lokalt. Nästa steg: genomförande av 03-01.
-**Resume File:** None
+**Last Date:** 2026-09-23
+**Stopped At:** 03-01 klar; 03-02 delvis genomförd. Paus före nästa sammanhängande mutations-/serverväxling för att hålla kvotgränsen.
+**Resume File:** .planning/phases/03-mandat-och-skyddade-datavagar/.continue-here.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22
