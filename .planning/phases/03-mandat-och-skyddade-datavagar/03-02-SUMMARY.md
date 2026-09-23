@@ -4,7 +4,7 @@ plan: "02"
 subsystem: database
 status: partial
 requirements: [ACL-02, ACL-03, ACL-04, ACL-05]
-provides: ["Stängd mandat- och relationsgrund", "Intern kedjeprövning utan Worker-rättigheter", "185 SQL-prov av genomförd del"]
+provides: ["Stängd mandat- och relationsgrund", "Intern kedjeprövning utan Worker-rättigheter", "213 SQL-prov av genomförd del"]
 affects: ["03-02 fortsättning", "03-03", "03-05", "03-06"]
 completed: null
 last_updated: 2026-09-23
@@ -12,7 +12,7 @@ last_updated: 2026-09-23
 
 # Fas 3 plan 02 — PARTIAL
 
-**Stängd schemagrund och intern kedjeprövning är verifierade; den kompletta mandatvägen och planens båda uppgifters slutvillkor återstår. Inget ACL-krav markeras klart.**
+**Stängd schemagrund, intern kedjeprövning och separat personalbindning är verifierade; den kompletta mandatvägen och planens båda uppgifters slutvillkor återstår. Inget ACL-krav markeras klart.**
 
 ## Levererat och versionshanterat
 
@@ -31,18 +31,27 @@ Detta är **inte full modellöverensstämmelse eller ett behörighetsbeslut**. K
 
 ## Faktisk verifiering 2026-09-23
 
-- `assertTarget('protected')` kördes före varje tillämpning; endast lokalt `skolplattform-pilot-protected`. `supabase migration up --local` tillämpade de tre nya migrationerna. Ingen reset, inga rader raderade utanför rollback-proven och inga portar ändrade.
-- `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase3-sql-mandates.json`: **185 PASS**.
-- `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase3-schema-regression.json`: **322 PASS**, varav 137 befintliga fas 1/2-prov och 185 nya prov.
+- `assertTarget('protected')` kördes före varje tillämpning; endast lokalt `skolplattform-pilot-protected`. `supabase migration up --local` tillämpade de fyra nya migrationerna. Ingen reset, inga rader raderade utanför rollback-proven och inga portar ändrade.
+- `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase3-sql-mandates.json`: **213 PASS**.
+- `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase3-schema-regression.json`: **350 PASS**, varav 137 befintliga fas 1/2-prov och 213 nya prov.
 - Proven omfattar constraints, kund-/skol-FK, aktuellt minskat parentscope, giltighet, blockerad medlem, självutökning, försvagad parent, cykel, faktisk Worker-nekning, anon/authenticated-nekning och oförändrad rad efter nekad ändring.
 - Ingen API-, browser-, appbyggnads- eller full mandatmatrisverifiering gjordes i denna del. Inga verkliga uppgifter eller kommunanslutningar användes.
 
 ## Återstående arbete i 03-02
 
-1. Bygg full livegiltighet och kontrollerade tilldelnings-/avslutsfunktioner med låsordning/samtidighetsprov, staff–membership-bindning och atomiska `assignment_units`. Pröva aktuell parent även vid mutation.
+1. Bygg full livegiltighet och kontrollerade tilldelnings-/avslutsfunktioner med låsordning/samtidighetsprov, inkoppling av staff–membership-bindningen och atomiska `assignment_units`. Pröva aktuell parent även vid mutation.
 2. Inför kontrollerade inbjudningar med tilldelare och versionerat payload; pröva kedja/scope/tid vid utfärdande och inlösen. Kontoadministration ska vara separat.
 3. Byt servervägar och återkalla bred Worker-INSERT/UPDATE på access_assignments/invitations, personalvägar och gamla RPC tillsammans. **Befintliga fas 2-rättigheter/RPC finns kvar**; denna leverans stänger bara de nya fas 3-vägarna.
 4. Koppla färdig livekontroll till `assignment_is_valid` först när kompletta prov visar nekande standard. Ersätt interimstriggern då kontrollerade funktioner finns. Lägg nödvändiga läs-/funktionsprivilegier först därefter.
 5. Komplettera samtliga SQL-matrisfall och API-fixturer: lärargrupp, tre elevhälsoomfattningar, supportgodkännare, framtida/utgångna uppdrag, staffåterkallelse, inbjudningar och samtidighet. SQL använder `undervisning`/`mentor`; servern behöver explicit mappning till modellens gruppkind.
 
-Fortsätt i **nya migrationer efter 20260922110000**; redan tillämpade migrationer ska inte ändras retroaktivt. STATE/ROADMAP ägs av orchestrator. config.json och spike.json lämnades orörda. Avgränsningen följer användarens kvotstopp, inte godkännande av ofärdig funktion. Ingen handbok/UI ändrad, därför inget dokumentationsbygge i denna databasdel.
+Fortsätt i **nya migrationer efter 20260922120000**; redan tillämpade migrationer ska inte ändras retroaktivt. STATE/ROADMAP ägs av orchestrator. config.json och spike.json lämnades orörda. Avgränsningen följer användarens kvotstopp, inte godkännande av ofärdig funktion. Ingen handbok/UI ändrad, därför inget dokumentationsbygge i denna databasdel.
+
+
+## Fortsättning inom utökad kvot — personalbindning
+
+Commit `5a1dc66`, separat migration `20260922120000_phase3_staff_bindings.sql`, skapar `staff_assignment_bindings` med explicit personaluppdrag–medlemskap–kund–huvudman. Sammansatta FK nekar korsande medlemskund och huvudmannakund. Tabellen har FORCE RLS och saknar app-/klientprivilegier. `assignments.profile_id` (äldre auth-profil) används inte för matchningen; `access_assignments.profile_id` är en separat textprofil för mandatpolicyn.
+
+`phase3_staff_binding_is_valid(uuid)` är ett separat internt predikat utan EXECUTE för Worker/PUBLIC/klientroller. Det kräver rektor/lärare, samma aktiva medlemskap, rätt personalroll och att mandatets samtliga uttryckliga skolor finns i `assignment_units`. Saknad eller återkallad bindning nekar. Det ger inget självständigt behörighetsbeslut: kedja, datum, kundstatus, objektsscope, session och audit måste fortfarande kombineras i kommande skyddade väg. Det är avsiktligt inte inkopplat i `assignment_is_valid`.
+
+28 tillkommande prov omfattar positiva rektors-/lärarbindningar, annan mottagare, fel personalroll, saknad/otillräcklig skolkoppling, blockerad medlem, korsande kund, återkallelse och stängda privilegier. Slutresultatet ovan är omkört efter 12:00-migrationen: **213 riktade och 350 totala SQL-prov PASS**. Ingen objektscopefunktion, mutationsväg eller serverkoppling tillkom i denna fortsättning.
