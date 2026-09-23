@@ -12,7 +12,7 @@ Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgif
 
 **v1.0 — Säker administration inför en pilot.** Användaren valde den 2026-09-10 inloggning, behörigheter, elevregister och en kommunintegration som första milstolpe. Hela produktvisionen finns kvar, men undervisning, fullständiga ärendeprocesser och alla leverantörsanslutningar ska inte färdigställas samtidigt.
 
-De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Fas 1 är genomförd och verifierad 2026-09-12. Fas 2 har beslutsunderlag, research och tolv genomförandeplaner som godkändes i plangranskning 2026-09-13; genomförandet återstår. Godkännandet avser planeringen, inte verifierad implementation eller beslut om verklig pilotdrift.
+De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Fas 1 är genomförd och verifierad 2026-09-12. Fas 2:s tolv planer är genomförda och verifierade 2026-09-21 (02-VERIFICATION.md). Fas 3:s sju planer granskades 2026-09-22 och genomförandet inleddes 2026-09-23. Verifieringen gäller den lokala syntetiska provmiljön, inte verklig pilotdrift.
 
 Målet är en avgränsad och prövbar pilot för en huvudman, med syntetiska uppgifter tills kommunen har beslutat om verklig användning. Val av pilotkommun, identitetsleverantör, externt elevregister, avtal och drift är öppna beroenden. Dessa får inte ersättas med påhittade integrationsbesked.
 
@@ -67,7 +67,7 @@ Avgränsningarna nedan avser första milstolpen och ska kunna omprövas; de tar 
 
 Arbetskatalog: `/Users/petter.gjores/dev/skolplattform`. Webbappen finns i `web/` och bygger på React, TypeScript, Vinext/Vite och Supabase/Postgres. Lokal förhandsvisning har använt port 5188; telefonförhandsvisningen har separat startkommando. `web/package.json` och låsfilen är källor för exakta beroenden.
 
-Före fas 1 loggade `signInDemo` in anonymt och kopplade kontot till samma demohuvudman med rollen huvudman. I aktuell app är den vägen borttagen: provläget använder minnesdata utan Supabase-klient och skyddat läge är stängt tills fas 2 implementeras. Rollväljaren i gränssnittet utgör inte verklig autentisering. Radnivåskydd finns, men flera policyer avgränsar till hela huvudmannen och rektorsuppdrag kontrolleras ännu inte mot den inloggades egna skolenheter. Elevadministrationen använder huvudsakligen syntetiska sessionsdata.
+Före fas 1 loggade `signInDemo` in anonymt och kopplade kontot till samma demohuvudman med rollen huvudman. I aktuell app är den vägen borttagen: provläget använder minnesdata utan Supabase-klient och skyddat läge använder den i fas 2 verifierade lokala identitetsleverantören och serverstyrda kontoåtkomsten. Rollväljaren i gränssnittet utgör inte verklig autentisering. Radnivåskydd finns, men flera policyer avgränsar till hela huvudmannen och rektorsuppdrag kontrolleras ännu inte mot den inloggades egna skolenheter. Elevadministrationen använder huvudsakligen syntetiska sessionsdata.
 
 Historiskt passerade 85 modelltester, typkontroll, riktad lint, bygge och roll-/layoutkontroller den 2026-09-08. Kodkartläggningen 2026-09-11 körde modellsviten på nytt: 85 tester passerade med Node 24.19.0. Typkontroll, lint, bygge, webbläsare och databas prövades inte på nytt i kartläggningen.
 
@@ -115,4 +115,4 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dokumentera ändrade eller borttagna krav med skäl och uppdatera beslut och nuläge. Vid milstolpens slut: granska hela projektbeskrivningen, kärnvärdet, senarelagd omfattning och driftläget. Ett förslag blir inte beslutat enbart för att det står i filen.
 
 ---
-*Last updated: 2026-09-12 — fas 1 (Baslinje och avskild pilotmiljö) klar och verifierad; nästa fas 2 Verifierad kontoåtkomst.*
+*Last updated: 2026-09-23 — fas 1–2 verifierade; genomförande av fas 3 inlett.*

@@ -20,7 +20,7 @@ Användaren godkände de 42 detaljkraven och färdplanens åtta faser 2026-09-11
 ### Dokumentation med Docusaurus
 
 - Handbokens källor finns i `docs/handbok/`, Docusaurus-appen i `docs-site/`. Kör `npm run docs:install`, `npm run docs:dev` och `npm run docs:build` från projektroten.
-- Vid ändrat användarbeteende, API-kontrakt eller driftflöde ska GSD-planen omfatta berörda handbokssidor och dokumentationsbygge. Ange verifierat beteende och begränsningar; duplicera inte hela interna planer.
+- Docusaurus ska enligt användarbeslut 2026-09-23 endast innehålla användarinstruktioner och regler i systemen. Vid ändrat användarbeteende ska GSD-planen omfatta berörda handbokssidor och dokumentationsbygge. Tekniska API-kontrakt, driftanvisningar, GSD-processer och projektstatus hör till interna repodokument. Ange verifierat beteende och begränsningar.
 - Bara granskad handbokstext byggs. Importera inte `.planning/`, testkonton eller privata miljöfiler automatiskt. Publicering kräver separat beslut.
 
 Paketrot är `web/`; projekt- och GSD-rot är katalogen ovanför. React/TypeScript med Vinext/Vite används för appen. Domänmodeller ligger i `web/lib/*-model.ts`, datalager i `*-store.ts`, vyer i `web/app/` och databasmigrationer i `supabase/migrations/`.
