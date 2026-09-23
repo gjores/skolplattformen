@@ -11,3 +11,9 @@
 - Efter 03-01 kördes hela modellsviten: 259 PASS, 0 FAIL.
 - 03-02 delvis genomförd: stängd schemagrund och intern verksamhetskedja. Tre separata migrationer tillämpade i lokalt protected-mål utan reset. 185 nya SQL-prov PASS; hela SQL-sviten 322 PASS. Resultat i phase3-sql-mandates.json och phase3-schema-regression.json. Ingen API-/browserverifiering och ingen ny användaråtkomst.
 - Slutmätare 26 % (start18; cirka8 procentenheter). Paus vid verifierad delgräns med marginal före28. Återstående samordnade mutations-/serverbyte startas inte inom återstående lilla marginal. 1/7 planer komplett, 03-02 PARTIAL. Se .continue-here.md. Ingen fas3-kravstatus ändrad till verifierad.
+
+## Fortsättning till högst 30 %
+
+- Ny användarbudget: stoppgräns30 %, mätare27 % vid start av fortsättningen.
+- Ny12:00-migration för explicit personal–medlemskapsbindning och separat intern kontroll av rektor/lärare, aktiv medlem, roll och skolor. Inga app-/klienträttigheter öppnas; ingen identitetsmatchning på namn/e-post.
+- 28 ytterligare SQL-prov passerar: 213 fas3-prov, 350 totalt inklusive137 tidigare. Ingen reset. 03-02 förblir PARTIAL; nästa migration efter20260922120000. Full mutations-/inbjudnings-/serverkoppling och objektpolicy återstår.
