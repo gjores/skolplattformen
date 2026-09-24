@@ -300,6 +300,20 @@ const cases = {
     check(checks,'rektor tilldelar lärare i sin grupp',granted.status===201,`HTTP ${granted.status}/${granted.body?.code}`);
     const list=await call(rector,'GET','/api/kund/mandat');
     check(checks,'rektor kan lista sina mandat',list.status===200,`HTTP ${list.status}`);
+    let noAuditRead, noAuditDeny, noAuditExport;
+    const reviewer=await mint({identityId:ID.bertil,membershipId:ID.memberBertil,assignmentId:ID.assignmentBertil});
+    try {
+      psql('revoke insert on public.security_events from skolplattform_worker');
+      noAuditRead=await call(rector,'GET','/api/kund/mandat');
+      noAuditDeny=await call('invalid-audit-probe','GET','/api/kund/mandat');
+      noAuditExport=await call(reviewer,'GET','/api/logg?format=csv');
+    } finally {
+      psql('grant insert on public.security_events to skolplattform_worker');
+    }
+    check(checks,'loggfel stoppar mandatläsning utan innehåll',noAuditRead?.status===500&&!noAuditRead.body?.mandates,`HTTP ${noAuditRead?.status}`);
+    check(checks,'nekande utan beständig logg ger serverfel',noAuditDeny?.status===500,`HTTP ${noAuditDeny?.status}`);
+    check(checks,'loggfel stoppar export utan CSV-innehåll',noAuditExport?.status===500&&!noAuditExport.headers['content-type']?.includes('text/csv'),`HTTP ${noAuditExport?.status}`);
+
     if(granted.status===201){
       const teacherSession=await mint({identityId:teacher.identity,membershipId:teacher.membership,assignmentId:granted.body.assignmentId});
       const before=await call(teacherSession,'GET','/api/session');
@@ -334,6 +348,15 @@ const cases = {
       const denied=await call(hs,'POST','/api/kund/mandat',teacherPayload);
       check(checks,'elevhälsa kan inte delegera lärarmandat',denied.status===403,`HTTP ${denied.status}`);
     }
+    const lead=createPerson(),leadAssignment=crypto.randomUUID();
+    psql("insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind) values(:'id'::uuid,:'member'::uuid,:'customer'::uuid,:'organizer'::uuid,'elevhalsoansvarig','synthetic-v1','school'); insert into public.mandate_units values(:'id'::uuid,:'customer'::uuid,:'organizer'::uuid,:'unit'::uuid)",{id:leadAssignment,member:lead.membership,customer,organizer,unit});
+    const leadSession=await mint({identityId:lead.identity,membershipId:lead.membership,assignmentId:leadAssignment});
+    const assignedHealth=createPerson();
+    const withinHealth=await call(leadSession,'POST','/api/kund/mandat',{...payload,membershipId:assignedHealth.membership,function:'elevhalsa'});
+    const outsideHealth=await call(leadSession,'POST','/api/kund/mandat',{...payload,membershipId:assignedHealth.membership,function:'elevhalsa',unitIds:['33000000-0000-4000-8000-000000000112']});
+    const leadTeacher=await call(leadSession,'POST','/api/kund/mandat',teacherPayload);
+    check(checks,'elevhälsoansvarig delegerar bara inom sin skola',withinHealth.status===201&&outsideHealth.status===403,`inom ${withinHealth.status}, utanför ${outsideHealth.status}`);
+    check(checks,'elevhälsoansvarig kan inte delegera lärare',leadTeacher.status===403,`HTTP ${leadTeacher.status}`);
     const support=createPerson();
     const supportPayload={...payload,membershipId:support.membership,function:'support',scopeKind:'pupil',pupilIds:[pupil],purposeCode:'synthetic-troubleshooting',startsAt:new Date(Date.now()-1000).toISOString(),endsAt:new Date(Date.now()+600000).toISOString()};
     const tooLong=await call(rector,'POST','/api/kund/mandat',{...supportPayload,endsAt:new Date(Date.now()+7200000).toISOString()});
@@ -479,6 +502,14 @@ const cases = {
   },
 
   async inbjudan(checks) {
+    const accountAdmin=await adminMint();
+    const accountInvitation=await call(accountAdmin,'POST','/api/kund/inbjudan',{personName:'Syntetisk granskare',expectedIssuer:proof.issuer,expectedSubject:ID.erik,grants:['granskare']});
+    check(checks,'kundadmin kan bjuda in till kontoroll via webben',accountInvitation.status===201,`HTTP ${accountInvitation.status}`);
+    if(accountInvitation.status===201){
+      const accountSession=await mint({identityId:ID.erik});
+      const redeemed=await call(accountSession,'POST','/api/inbjudan/losen',{token:new URL(accountInvitation.body.link).hash.slice(1)});
+      check(checks,'webbinbjudan ger endast begärd kontoroll',redeemed.status===201&&redeemed.body?.assignments?.length===1&&redeemed.body.assignments[0].function==='granskare',`HTTP ${redeemed.status}`);
+    }
     const prefix = `Provkund C ${Date.now()}`;
     const issuedCustomers = [];
     const issue = (extra, suffix) => {
@@ -599,12 +630,15 @@ const cases = {
     await ensureActiveGustav();
     const anna = await adminMint();
     const response = await call(anna, 'POST', '/api/kund/medlemskap/sparr', {
-      membershipId: ID.memberGustav, reason: 'prov', actorRole: 'larare', actor: ID.david,
+      membershipId: ID.memberGustav, reason: 'Syntetisk elevuppgift får inte loggas', actorRole: 'larare', actor: ID.david,
     }, { 'X-App-Role':'larare', 'X-Actor':ID.david });
     const corr=response.headers['x-correlation-id'];
     const audit=psql("select actor_identity_id::text||'|'||assignment_id::text||'|'||action from public.security_events where correlation_id=:'corr'::uuid",{corr});
     check(checks,'tillåten kontoåtgärd lyckades',response.status===200,`HTTP ${response.status}`);
     check(checks,'förfalskade aktörsfält ignoreras',audit===`${ID.anna}|${ID.assignmentAnna}|membership_blocked`,audit);
+    const minimized=psql("select not(details ? 'reason') and position('Syntetisk elevuppgift' in details::text)=0 from public.security_events where correlation_id=:'corr'::uuid",{corr});
+    check(checks,'fritext sparas inte i den beständiga händelsen',minimized==='t','endast minimerade detaljfält');
+
     await call(anna,'PATCH','/api/kund/medlemskap/sparr',{membershipId:ID.memberGustav,action:'unblock'});
     const principal=await call(anna,'POST','/api/kund/rektor',{organizerId:ID.organizerA,unitId:ID.unitA,principalName:'Förfalskad Rektor'}, {'X-App-Role':'huvudman'});
     check(checks,'kundadmin kan inte ärva huvudmannens utnämningsrätt',principal.status===403&&principal.body?.code==='forbidden',`HTTP ${principal.status}`);
@@ -643,7 +677,6 @@ const cases = {
   },
 
   async 'logg-flod'(checks) {
-    psql("delete from public.denial_buckets where bucket_start=date_trunc('minute',now())");
     const from = new Date().toISOString();
     const statuses = [];
     for (let i = 0; i < 30; i += 1) {
@@ -653,8 +686,8 @@ const cases = {
     const denied = Number(psql("select count(*) from public.security_events where action='kund_oversikt' and outcome='denied' and occurred_at>=:'from'::timestamptz", { from }));
     const suppressed = Number(psql("select count(*) from public.security_events where action='denied_suppressed' and occurred_at>=:'from'::timestamptz", { from }));
     check(checks, 'alla ogiltiga sessioner nekades', statuses.every((status) => status === 401), `${statuses.filter((status) => status === 401).length}/30`);
-    check(checks, 'nekanden begränsades', denied <= 20, `${denied} fullständiga nekanden`);
-    check(checks, 'spoofad X-Forwarded-For skapade en suppression', suppressed === 1, `${suppressed} suppression`);
+    check(checks, 'varje nekande har en beständig händelse', denied === 30, `${denied} fullständiga nekanden`);
+    check(checks, 'ingen tyst undertryckning vid spoofad X-Forwarded-For', suppressed === 0, `${suppressed} suppression`);
   },
 
   async 'context-race'(checks) {

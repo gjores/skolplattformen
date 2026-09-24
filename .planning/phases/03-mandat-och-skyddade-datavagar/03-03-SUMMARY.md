@@ -1,13 +1,13 @@
 ---
 phase: 03-mandat-och-skyddade-datavagar
 plan: "03"
-status: partial
-completed: false
+status: complete
+completed: 2026-09-24
 requirements_completed: []
 updated: 2026-09-24
 ---
 
-# 03-03 — servervägar, delvis genomförd
+# 03-03 — servervägar, genomförd
 
 ## Genomfört
 
@@ -48,3 +48,11 @@ Commit fb6e6be rättar dubbel JSON-kodning i verksamhetsinbjudan: postgres-klien
 Tillkommande bevis: elevhälsa får explicit elevurval men kan inte delegera lärare; klienten kan inte ange parent; rektor får inte utse rektor; IT får varken verksamhetsdelegering eller läsa annan skolas anslutning; support över 60 minuter nekas och ett utgånget supportmandat blir ovalbart i befintlig session; personbunden verksamhetsinbjudan löses exakt en gång; avslutad utfärdare stoppar inlösen utan nytt mandat och spärrar underordnad elevhälsa.
 
 Supportprovet flyttar endast det egna slumpgenererade testmandatets tidsfönster till dåtid. Det bevisar omprövning vid nästa anrop, inte exakt millisekundgräns. Ändrad scope/tid mellan utfärdande och inlösen och elevhälsoansvarigs fulla API-matris återstår. PARTIAL-status kvarstår. Inga UI-ändringar eller nya browserbevis.
+
+## Slutbedömning av planens serverleverans 2026-09-24
+
+Plan03-03 är genomförd och kontrollerad som serverleverans. Tidigare PARTIAL-noter ovan är historik. Samlad SQL-matris/tid/samtidighet finns i03-02; senaste hela HTTP-regressionen ger15/15 PASS med24 mandat-/auditkontroller och11 inbjudningskontroller. Bland nya prov: elevhälsoansvarig får bara delegera elevhälsa i sin skola, inte lärare; kundadmins tidigare webbinbjudan/inlösen till kontoroll fungerar. Typkontroll, lint, protected-bygge och277 modell-/serverprov PASS efter auditkopplingen.
+
+Auktoritativ kontroll i dessa mutations-/sessionsvägar är den gemensamma SQL-policyn, med serverhärledd identitet, MFA/CSRF och lokal profilgrind. currentMandateDecision är förberedd för objekt-/fältbeslut i den ännu stängda elevvägen, inte ett ytterligare behörighetsbeslut i dessa mutationsrutter. Modellens fältval behöver kopplas när elevläsningen byggs i03-05; det är inte öppnat här.
+
+Detta godkänner ingen ny UI, full fasgrind eller ACL-krav. Plan04 är fortfarande PARTIAL på grund av auditkällorna;05–07 återstår. Inga fasägda krav markeras verifierade genom denna plansammanfattning.

@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-09-24T08:49:25.967Z",
-  "revision": "5af8ff59ae8373d398ba5885db270150404b3b27",
+  "checkedAt": "2026-09-24T09:03:54.843Z",
+  "revision": "707fbb1d2dc133e40cf536b24bac3318cae61852",
   "target": "protected",
   "baseUrl": "http://127.0.0.1:3013",
   "status": "PASS",
@@ -176,6 +176,16 @@
       "status": "PASS",
       "checks": [
         {
+          "check": "kundadmin kan bjuda in till kontoroll via webben",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "webbinbjudan ger endast begärd kontoroll",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
           "check": "giltig personbunden inbjudan gav kundadmin",
           "ok": true,
           "detail": "lösen 201, översikt 200"
@@ -229,7 +239,7 @@
         {
           "check": "främmande och obefintligt medlemskap har samma svar",
           "ok": true,
-          "detail": "HTTP 404/404, Δ 10 ms"
+          "detail": "HTTP 404/404, Δ 13 ms"
         },
         {
           "check": "främmande skolenhet röjde inte existens",
@@ -304,6 +314,11 @@
           "detail": "30000000-0000-4000-8000-000000000001|50000000-0000-4000-8000-000000000001|membership_blocked"
         },
         {
+          "check": "fritext sparas inte i den beständiga händelsen",
+          "ok": true,
+          "detail": "endast minimerade detaljfält"
+        },
+        {
           "check": "kundadmin kan inte ärva huvudmannens utnämningsrätt",
           "ok": true,
           "detail": "HTTP 403"
@@ -356,14 +371,14 @@
           "detail": "30/30"
         },
         {
-          "check": "nekanden begränsades",
+          "check": "varje nekande har en beständig händelse",
           "ok": true,
-          "detail": "20 fullständiga nekanden"
+          "detail": "30 fullständiga nekanden"
         },
         {
-          "check": "spoofad X-Forwarded-For skapade en suppression",
+          "check": "ingen tyst undertryckning vid spoofad X-Forwarded-For",
           "ok": true,
-          "detail": "1 suppression"
+          "detail": "0 suppression"
         }
       ]
     },
@@ -429,6 +444,21 @@
           "detail": "HTTP 200"
         },
         {
+          "check": "loggfel stoppar mandatläsning utan innehåll",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
+          "check": "nekande utan beständig logg ger serverfel",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
+          "check": "loggfel stoppar export utan CSV-innehåll",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
           "check": "återkallat mandat blir omedelbart ovalbart",
           "ok": true,
           "detail": "avslut 200"
@@ -474,6 +504,16 @@
           "detail": "HTTP 403"
         },
         {
+          "check": "elevhälsoansvarig delegerar bara inom sin skola",
+          "ok": true,
+          "detail": "inom 201, utanför 403"
+        },
+        {
+          "check": "elevhälsoansvarig kan inte delegera lärare",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
           "check": "support kräver högst 60 minuter",
           "ok": true,
           "detail": "för lång 400, avgränsad 201"
@@ -506,5 +546,5 @@
       ]
     }
   ],
-  "verificationNote": "Protected build with fb6e6be runtime fix (tx.json); built before commit. Final type-only annotation checked separately by tsc and lint. Synthetic minted sessions, not browser/OIDC acceptance."
+  "verificationNote": "Local protected build with current Worker audit implementation; built before 707fbb1 commit with same runtime source. Synthetic sessions, not OIDC/browser acceptance. 24 mandate/audit checks; 11 invitation checks."
 }
