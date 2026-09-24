@@ -316,6 +316,64 @@ const cases = {
     const tested=await call(itSession,'POST','/api/kund/anslutning',{unitId:unit,action:'test'});
     check(checks,'IT kan ändra och prova syntetisk anslutning',current.status===200&&changed.status===200&&tested.body?.result==='synthetic_ok',`GET ${current.status}, PATCH ${changed.status}, test ${tested.status}`);
     check(checks,'IT får versionskonflikt vid gammal ändring',conflict.status===409,`HTTP ${conflict.status}`);
+    const forged=await call(rector,'POST','/api/kund/mandat',{...teacherPayload,parentAssignmentId:'33000000-0000-4000-8000-000000000041'});
+    const selfPromotion=await call(rector,'POST','/api/kund/rektor',payload);
+    check(checks,'klienten kan inte ange överordnat mandat',forged.status===400,`HTTP ${forged.status}`);
+    check(checks,'rektor kan inte utse rektor',selfPromotion.status===403,`HTTP ${selfPromotion.status}`);
+    const itGrant=await call(itSession,'POST','/api/kund/mandat',teacherPayload);
+    const otherConnection=await call(itSession,'GET','/api/kund/anslutning?unitId=33000000-0000-4000-8000-000000000112');
+    const unknownConnection=await call(itSession,'GET',`/api/kund/anslutning?unitId=${crypto.randomUUID()}`);
+    check(checks,'IT kan inte delegera verksamhetsmandat',itGrant.status===403,`HTTP ${itGrant.status}`);
+    check(checks,'IT röjer inte annan skolas anslutning',otherConnection.status===404&&unknownConnection.status===404&&otherConnection.body?.code===unknownConnection.body?.code,`HTTP ${otherConnection.status}/${unknownConnection.status}`);
+    const pupil='33000000-0000-4000-8000-000000000211';
+    const health=createPerson();
+    const healthGrant=await call(rector,'POST','/api/kund/mandat',{...payload,membershipId:health.membership,function:'elevhalsa',scopeKind:'pupil',pupilIds:[pupil]});
+    check(checks,'rektor ger elevhälsa ett explicit elevurval',healthGrant.status===201,`HTTP ${healthGrant.status}`);
+    if(healthGrant.status===201){
+      const hs=await mint({identityId:health.identity,membershipId:health.membership,assignmentId:healthGrant.body.assignmentId});
+      const denied=await call(hs,'POST','/api/kund/mandat',teacherPayload);
+      check(checks,'elevhälsa kan inte delegera lärarmandat',denied.status===403,`HTTP ${denied.status}`);
+    }
+    const support=createPerson();
+    const supportPayload={...payload,membershipId:support.membership,function:'support',scopeKind:'pupil',pupilIds:[pupil],purposeCode:'synthetic-troubleshooting',startsAt:new Date(Date.now()-1000).toISOString(),endsAt:new Date(Date.now()+600000).toISOString()};
+    const tooLong=await call(rector,'POST','/api/kund/mandat',{...supportPayload,endsAt:new Date(Date.now()+7200000).toISOString()});
+    const supportGrant=await call(rector,'POST','/api/kund/mandat',supportPayload);
+    check(checks,'support kräver högst 60 minuter',tooLong.status===400&&supportGrant.status===201,`för lång ${tooLong.status}, avgränsad ${supportGrant.status}`);
+    if(supportGrant.status===201){
+      const ss=await mint({identityId:support.identity,membershipId:support.membership,assignmentId:supportGrant.body.assignmentId});
+      const valid=await call(ss,'GET','/api/session');
+      // Force only this random fixture past its deadline, keeping its duration valid.
+      psql("update public.access_assignments set starts_at=clock_timestamp()-interval '10 minutes',ends_at=clock_timestamp()-interval '1 second' where id=:'id'::uuid",{id:supportGrant.body.assignmentId});
+      const ended=await call(ss,'GET','/api/session');
+      check(checks,'utgången support blir ovalbar i samma session',valid.body?.context?.valid===true&&ended.body?.context?.valid===false,`före ${valid.status}, efter ${ended.status}`);
+    }
+    const invitee=createPerson();
+    const {membershipId:_recipient,...invitationMandate}=teacherPayload;
+    const invitationBody={personName:'Syntetisk inbjuden',expectedIssuer:'https://phase3.example.test',expectedSubject:invitee.identity,mandates:[invitationMandate]};
+    const invitation=await call(rector,'POST','/api/kund/inbjudan',invitationBody);
+    check(checks,'rektor utfärdar personbunden verksamhetsinbjudan',invitation.status===201,`HTTP ${invitation.status}`);
+    if(invitation.status===201){
+      const inviteSession=await mint({identityId:invitee.identity});
+      const token=new URL(invitation.body.link).hash.slice(1);
+      const accepted=await call(inviteSession,'POST','/api/inbjudan/losen',{token});
+      const replay=await call(inviteSession,'POST','/api/inbjudan/losen',{token});
+      check(checks,'verksamhetsinbjudan kan lösas exakt en gång',accepted.status===201&&accepted.body?.assignments?.[0]?.function==='larare'&&replay.status===404,`första ${accepted.status}, andra ${replay.status}`);
+    }
+    const pending=createPerson();
+    const pendingInvitation=await call(rector,'POST','/api/kund/inbjudan',{...invitationBody,expectedSubject:pending.identity});
+    const closePrincipal=await call(hm,'POST','/api/kund/uppdrag/avsluta',{assignmentId:principal.body.assignmentId});
+    if(pendingInvitation.status===201){
+      const pendingSession=await mint({identityId:pending.identity});
+      const rejected=await call(pendingSession,'POST','/api/inbjudan/losen',{token:new URL(pendingInvitation.body.link).hash.slice(1)});
+      const count=psql("select count(*) from public.access_assignments where membership_id=:'id'::uuid",{id:pending.membership});
+      check(checks,'avslutad utfärdare stoppar inlösen utan nytt mandat',closePrincipal.status===200&&rejected.status===404&&count==='0',`avslut ${closePrincipal.status}, inlösen ${rejected.status}, mandat ${count}`);
+    }else check(checks,'inbjudan före avslut kunde skapas',false,`HTTP ${pendingInvitation.status}`);
+    if(healthGrant.status===201){
+      const hs=await mint({identityId:health.identity,membershipId:health.membership,assignmentId:healthGrant.body.assignmentId});
+      const inherited=await call(hs,'GET','/api/session');
+      check(checks,'rektorsavslut spärrar underordnat elevhälsomandat',closePrincipal.status===200&&inherited.body?.context?.valid===false,`HTTP ${inherited.status}`);
+    }
+
   },
 
   async sparr(checks) {

@@ -43,7 +43,10 @@ function bodyValues(body: InvitationBody | null) {
     const issuer = new URL(body.expectedIssuer);
     if (issuer.protocol !== 'http:' && issuer.protocol !== 'https:')
       throw new Error('protocol');
-    let mandates: Record<string, unknown>[];
+    let mandates: Array<
+      | Omit<ReturnType<typeof parseMandatePayload>, 'membershipId'>
+      | { function: string; scopeKind: string; unitIds: string[] }
+    >;
     if (body.grants !== undefined) {
       if (
         !Array.isArray(body.grants) ||
@@ -112,7 +115,7 @@ export async function POST(request: Request): Promise<Response> {
         () =>
           tx<
             { id: string }[]
-          >`select public.phase3_issue_invitation(${JSON.stringify(payload)}::jsonb) as id`,
+          >`select public.phase3_issue_invitation(${tx.json(payload)}) as id`,
       );
       const invitationId = rows[0].id;
       return {
