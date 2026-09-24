@@ -43,7 +43,7 @@ export async function GET(request: Request): Promise<Response> {
   return protectedRoute(
     request,
     'mandate_list',
-    { mutating: false, functions: ['huvudman', 'rektor', 'elevhalsoansvarig'] },
+    { mutating: false, audit: 'required', functions: ['huvudman', 'rektor', 'elevhalsoansvarig'] },
     async (_ctx, tx) => {
       const rows = await mandateOperation(
         () =>
@@ -51,7 +51,7 @@ export async function GET(request: Request): Promise<Response> {
             { mandates: unknown }[]
           >`select public.phase3_list_mandates() as mandates`,
       );
-      return { body: { mandates: rows[0].mandates }, event: null };
+      return { body: { mandates: rows[0].mandates }, event: { action: 'mandate_listed', objectType: 'access_assignment', details: {} } };
     },
   );
 }

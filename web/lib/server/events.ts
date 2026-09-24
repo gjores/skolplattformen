@@ -2,6 +2,7 @@ import type { ProofAssessment } from '../auth-assurance.ts';
 import type { SessionContext, Tx } from './db.ts';
 import { withLoginPhase } from './db.ts';
 import { clientIpHash } from './http.ts';
+import { auditRoute, sanitizeAuditDetails, type AuditJson as SafeJson } from './audit-details.ts';
 
 export type EventInput = {
   action: string;
@@ -14,60 +15,6 @@ type EventContext = SessionContext & {
   request?: Request;
   proofAssessment?: ProofAssessment;
 };
-
-const SAFE_DETAIL_KEYS = new Set([
-  'accessFunction',
-  'action',
-  'assignmentId',
-  'authTime',
-  'checkedAt',
-  'code',
-  'count',
-  'emailMismatch',
-  'format',
-  'from',
-  'grants',
-  'identityAssurance',
-  'issuer',
-  'key',
-  'method',
-  'organizerId',
-  'path',
-  'policyId',
-  'policyVersion',
-  'principalNamed',
-  'profileId',
-  'profileVersion',
-  'proof',
-  'reason',
-  'result',
-  'revokedSessions',
-  'signature',
-  'sourceCorrelationId',
-  'status',
-  'stepUp',
-  'to',
-]);
-
-const FORBIDDEN_DETAIL_KEYS = new Set(['token', 'cookie', 'password', 'id_token', 'email']);
-
-type SafeJson = null | boolean | number | string | Date | SafeJson[] | { [key: string]: SafeJson | undefined };
-
-function sanitizeValue(value: unknown): SafeJson | undefined {
-  if (value === null || typeof value === 'boolean' || typeof value === 'number') return value;
-  if (typeof value === 'string') return value.slice(0, 500);
-  if (Array.isArray(value)) {
-    return value.slice(0, 50).map(sanitizeValue).filter((item): item is SafeJson => item !== undefined);
-  }
-  if (typeof value !== 'object') return undefined;
-  const clean: Record<string, SafeJson | undefined> = {};
-  for (const [key, nested] of Object.entries(value)) {
-    if (FORBIDDEN_DETAIL_KEYS.has(key.toLowerCase()) || !SAFE_DETAIL_KEYS.has(key)) continue;
-    const safe = sanitizeValue(nested);
-    if (safe !== undefined) clean[key] = safe;
-  }
-  return clean;
-}
 
 function proofDetails(proof: ProofAssessment, corr: string): Record<string, SafeJson | undefined> {
   return {
@@ -94,7 +41,7 @@ function eventDetails(
 ): Record<string, SafeJson | undefined> {
   const source = { ...details };
   delete source.proof;
-  const clean = (sanitizeValue(source) ?? {}) as Record<string, SafeJson | undefined>;
+  const clean = sanitizeAuditDetails(source) as Record<string, SafeJson | undefined>;
   if (accessFunction) clean.accessFunction = accessFunction;
   if (proof) clean.proof = proofDetails(proof, corr);
   return clean;
@@ -139,7 +86,7 @@ export async function logError(input: {
   request: Request;
   ctx?: Partial<SessionContext> & { proofAssessment?: ProofAssessment };
 }): Promise<void> {
-  const routeClass = new URL(input.request.url).pathname.split('/').slice(0, 4).join('/');
+  const routeClass = auditRoute(input.request.url);
   await withLoginPhase(input.corr, async (tx) => {
     await insertEvent(tx, { ...input.ctx, correlationId: input.corr, request: input.request }, {
       action: input.action,
@@ -147,17 +94,6 @@ export async function logError(input: {
       details: { code: input.code, path: routeClass },
     });
   });
-}
-
-export const DENIAL_LIMIT_PER_MINUTE = 20;
-
-function hex(value: Uint8Array): string {
-  return Array.from(value, (byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
-async function denialKey(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return hex(new Uint8Array(digest));
 }
 
 export async function logDenied(input: {
@@ -168,41 +104,12 @@ export async function logDenied(input: {
   ctx?: Partial<SessionContext> & { proofAssessment?: ProofAssessment };
 }): Promise<void> {
   const ipHash = await clientIpHash(input.request);
-  const routeClass = new URL(input.request.url).pathname.split('/').slice(0, 4).join('/');
-  const key = await denialKey(
-    `${input.ctx?.identityId ?? 'anon'}|${ipHash ? hex(ipHash) : 'none'}|${routeClass}`,
-  );
+  const routeClass = auditRoute(input.request.url);
   await withLoginPhase(input.corr, async (tx) => {
-    const buckets = await tx<{ count: number; bucket_start: Date }[]>`insert into public.denial_buckets
-      (bucket_start, key, count)
-      values (date_trunc('minute', now()), ${key}, 1)
-      on conflict (bucket_start, key) do update
-      set count = public.denial_buckets.count + 1
-      returning count, bucket_start`;
-    const bucket = buckets[0];
-    const ctx = { ...input.ctx, correlationId: input.corr, request: input.request };
-    if (bucket.count <= DENIAL_LIMIT_PER_MINUTE) {
-      await insertEvent(
-        tx,
-        ctx,
-        {
-          action: input.action,
-          outcome: 'denied',
-          details: { code: input.code, path: routeClass },
-        },
-        ipHash,
-      );
-    } else if (bucket.count === DENIAL_LIMIT_PER_MINUTE + 1) {
-      await insertEvent(
-        tx,
-        ctx,
-        {
-          action: 'denied_suppressed',
-          outcome: 'denied',
-          details: { key, from: new Date(bucket.bucket_start).toISOString() },
-        },
-        ipHash,
-      );
-    }
+    await insertEvent(tx, { ...input.ctx, correlationId: input.corr, request: input.request }, {
+      action: input.action,
+      outcome: 'denied',
+      details: { code: input.code, path: routeClass },
+    }, ipHash);
   });
 }

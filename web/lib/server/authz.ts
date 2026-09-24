@@ -1,3 +1,4 @@
+import { requiresAudit } from './audit-details.ts';
 import { legacyAppRole } from '../access-rules.ts';
 import type { AccessFunction } from '../access-rules.ts';
 import { epochChanged } from '../access-rules.ts';
@@ -182,7 +183,7 @@ function responseFromResult(result: ProtectedResult, corr: string, epoch: number
 export async function protectedRoute(
   request: Request,
   action: string,
-  opts: { mutating: boolean; mfa?: boolean; functions?: AccessFunction[] },
+  opts: { mutating: boolean; mfa?: boolean; functions?: AccessFunction[]; audit?: 'required' },
   handler: (ctx: Context, tx: Tx, live: LiveSession) => Promise<ProtectedResult>,
 ): Promise<Response> {
   const corr = correlationId();
@@ -203,8 +204,8 @@ export async function protectedRoute(
       if (opts.functions) requireFunction(ctx, opts.functions);
       if (opts.mfa) requireMfa(ctx);
       const handled = await handler(ctx, tx, live);
-      if (opts.mutating && !handled.event) {
-        throw new Error('Muterande route saknar säkerhetshändelse');
+      if (requiresAudit(opts.mutating, opts.audit) && !handled.event) {
+        throw new Error('Skyddad route saknar obligatorisk säkerhetshändelse');
       }
       if (handled.event) {
         await logEvent(tx, ctx, { ...handled.event, outcome: 'ok' });
