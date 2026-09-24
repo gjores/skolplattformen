@@ -4,54 +4,60 @@ plan: "02"
 subsystem: database
 status: partial
 requirements: [ACL-02, ACL-03, ACL-04, ACL-05]
-provides: ["Stängd mandat- och relationsgrund", "Intern kedjeprövning utan Worker-rättigheter", "213 SQL-prov av genomförd del"]
-affects: ["03-02 fortsättning", "03-03", "03-05", "03-06"]
+provides: ["Scope-FK och explicit personalbindning", "Livekedja och kontrollerade mutationer/inbjudningar", "Samordnad privilegieväxling", "SQL- och samtidighetsbevis för genomförd del"]
+affects: ["03-02 slutprov", "03-03", "03-04", "03-05", "03-06"]
 completed: null
-last_updated: 2026-09-23
+last_updated: 2026-09-24
 ---
 
 # Fas 3 plan 02 — PARTIAL
 
-**Stängd schemagrund, intern kedjeprövning och separat personalbindning är verifierade; den kompletta mandatvägen och planens båda uppgifters slutvillkor återstår. Inget ACL-krav markeras klart.**
+**Databasens mandatvägar och den samordnade privilegieväxlingen är genomförda. 410 SQL-prov och ett verkligt tvåanslutningsprov passerar. Full namngiven mandatmatris, slutliga API-fixturer och samlad server-/API-verifiering återstår; inget ACL-krav markeras klart.**
 
-## Levererat och versionshanterat
+## Levererat
 
-- `d8d3237`: separata migrationer för nya enumvärden (09:00) och schemagrund (10:00). Enumvärden commit:as innan efterföljande migration använder dem. Befintliga rader bevaras.
-- Separat 11:00-migration: `phase3_mandate_chain_is_valid(uuid)` är en intern, stabil invokerfunktion utan EXECUTE för PUBLIC, anon, authenticated eller Worker. Commit: `17e104f`.
-- `access_assignments` har profil, scope, parent/tilldelare/godkännare, profession, syfte och tidsfält. Befintligt `staff_assignment_id` återanvänds. Hårda constraints nekar okända värden, felaktiga/oändliga tidsintervall, support över 60 minuter, saknat supportsyfte/godkännande samt kundkorsande referenser.
-- Nio nya tabeller för skol-/grupp-/elev-/ärendescope, syntetiska resurser och lokal anslutningskonfiguration har sammansatta kund-/huvudman-/skol-FK, FORCE RLS och inga Worker- eller klienträttigheter. Extra `organizer_id` på skolrelationerna behövs för integritet mot befintliga skolnycklar.
-- `phase3-fixtures.sql` innehåller två syntetiska kunder, två skolor per kund och explicita elev/grupp/ärenderelationer. Den är endast en relationsgrund, inte färdiga API-fixturer för hela matrisen. SQL-testet innehåller egna rollback-fixturer och laddar inte filen externt.
-- En tillfällig trigger nekar Worker att skapa, ändra eller omvandla fas 3-mandat. `assignment_is_valid` nekar samtliga rader med fas 3-profil. Positivt prov visar att befintlig fas 2-giltighet bevaras.
+- 09:00/10:00: nya enumvärden i separat transaktion, mandatfält, skol-/grupp-/elev-/ärendescope, syntetiska elevresurser och lokal anslutningskonfiguration. Sammansatta FK håller kund/huvudman/skola ihop. Nya tabeller har FORCE RLS och inga direkta Worker-/klienträttigheter. Befintliga rader har bevarats.
+- 11:00/12:00: separata interna kedje-/personalpredikat. `staff_assignment_bindings` binder personaluppdrag till exakt medlemskap; namn, e-post och äldre `assignments.profile_id` används inte som identitetsbevis. Rektor/lärare kräver rätt personalroll och alla mandatets skolor i `assignment_units`.
+- 13:00–17:00: `phase3_mandate_is_valid` kombinerar form, scope, medlems-/kundstatus, aktuella föräldrar, tilldelarroll, identitet, giltighet och personalbindning. Max 64 led; cykler och saknade led nekar. Framtida mottagarmandat kan tilldelas men inte användas i förtid. Tidskontrollen läser färsk serverklocka efter låsväntan. Äldre kundadmin/granskare stöds; äldre verksamhetsmandat utan explicit scope nekar.
+- `phase3_grant_mandate(jsonb)` härleder kund, huvudman, parent/tilldelare och supportgodkännare från det valda serveruppdraget. Personalbindning och skolkopplingar skapas atomärt. `phase3_revoke_mandate(uuid)` prövar aktuellt överordnat mandat; en snäv separat gren låter kundadmin avsluta äldre kontoroller inom kunden, aldrig egen identitet eller verksamhetsroller.
+- `phase3_mandate_context()` lämnar valt mandat och föräldrar i modellens format; SQL `undervisning` mappas till `teaching`. `phase3_list_mandates()` visar direkt underställda, fortfarande administrerbara mandat, inklusive framtida.
+- `phase3_read_pupils(uuid,uuid,boolean)` filtrerar kund/skola/grupp/elev/ärende före resultat. Lärarens `group_ids` begränsas till tilldelade grupper. Export tillåts bara skoladministratör. **Funktionen saknar fortfarande Worker-EXECUTE: elevvägen ska inte öppnas före obligatorisk audit i 03-04/05.**
+- Inbjudningar har versionerat payload och tilldelar-ID. Utfärdandet provar samma verkliga SQL-regler i en rollback-subtransaktion, som inte lämnar identiteter, medlemskap eller personalrader. Datum fryses vid utfärdandet. Inlösen binder faktisk issuer/subject, prövar utfärdaren på nytt och skapar mandat atomärt. TTL högst 30 dygn bevarar befintligt kontrakt. Endast leverantörens gamla `leverantor:cli`-bootstrap får sakna utfärdarmandat, och då enbart för kundadmin/granskare. Gamla webbinbjudningar utan spårbart utfärdarmandat nekar.
+- 19:00 samordnades med rootens omskrivna servervägar: återkallad INSERT/UPDATE/DELETE på access_assignments/invitations/assignments/assignment_units samt EXECUTE på äldre appoint_school_principal. `assignment_is_valid(a)` slår upp verkligt uppdrag via ID och använder full livekontroll. Worker får bara avsedda kontrollerade funktioner; privata hjälpfunktioner och elevläsning förblir stängda. Session-/medlemsradlås kompletteras med kundadvisory före uppdragskontroll.
 
-## Kedjefunktionens exakta gräns
+IT-funktionens 18:00-migration och dess 13 prov ägs/versionshanteras av root inom 03-03; de ingår i SQL-regressionen nedan.
 
-Prövar verksamhetsmandat genom parentkedjan: aktiv medlem/öppen kund, aktuell giltighet, kund/huvudman, parentrollmatris, skilda identiteter, skolsubset och underordnad giltighet inom parent. Avslutad/försvagad parent, cykel eller saknad rad nekar. Loopen nekar vid 64 besökta uppdrag. Funktionens rotroller är huvudman, förseedad elevhälsoansvarig och IT.
+## Faktisk verifiering
 
-Detta är **inte full modellöverensstämmelse eller ett behörighetsbeslut**. Kundadmin/granskare ingår inte i denna verksamhetskedja. Funktionen prövar inte staff-bindning, `issued_by_assignment_id`, professions-/objektscope, sessionslås, MFA eller audit. Ingen serverväg anropar funktionen. Skolscope kan i nuläget förseedas även på profile-null uppdrag av postgres; det aktiverar ingen ny dataväg. Exakt samtidighet och exakta sekundgränser behöver kompletterande prov; körda tidsprov visar påbörjat intervall respektive passerad sluttid.
+2026-09-23: schemagrund/personalbindning gav 213 riktade och 350 totala SQL-prov PASS.
 
-## Faktisk verifiering 2026-09-23
+2026-09-24, efter nya migrationer och serverkoordinerad cutover:
 
-- `assertTarget('protected')` kördes före varje tillämpning; endast lokalt `skolplattform-pilot-protected`. `supabase migration up --local` tillämpade de fyra nya migrationerna. Ingen reset, inga rader raderade utanför rollback-proven och inga portar ändrade.
-- `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase3-sql-mandates.json`: **213 PASS**.
-- `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase3-schema-regression.json`: **350 PASS**, varav 137 befintliga fas 1/2-prov och 213 nya prov.
-- Proven omfattar constraints, kund-/skol-FK, aktuellt minskat parentscope, giltighet, blockerad medlem, självutökning, försvagad parent, cykel, faktisk Worker-nekning, anon/authenticated-nekning och oförändrad rad efter nekad ändring.
-- Ingen API-, browser-, appbyggnads- eller full mandatmatrisverifiering gjordes i denna del. Inga verkliga uppgifter eller kommunanslutningar användes.
+- `assertTarget('protected')` före varje migration/runner; endast lokalt protected-mål. Ingen reset, inga fjärrdata, inga portändringar.
+- `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase3-schema-regression.json`: **410 PASS**, sex filer: 52 isolering, 67 fas2-access, 19 fas2-audit, 213 schema/personal, 46 policy/mutation/inbjudan och 13 IT.
+- Policyproven visar positiva rektors-/lärar-/skoladmin-/supportmandat och tre elevhälsoomfattningar, negativ självutökning/roll/skola, gruppfältfiltrering, ingen union med annat mandat, avslutad parent, issuer/subject/engångstoken samt verklig Worker-inlösen.
+- `node work/pilot/verify-mandate-locks.mjs`: **PASS**. Två riktiga Worker-anslutningar: ett kontrollanrop observeras vänta på kundlåset; efter avslutets commit nekas det med 42501. Runnern skapar slump-UUID-fixturer och rensar bara dessa. Minimerat resultat sparas i `phase3-mandate-locks.json`.
+- `git diff --check`: PASS före commit. Serverbygge och HTTP-regression ägs av root och är inte bevisade av denna SQL-sammanfattning.
 
-## Återstående arbete i 03-02
+Ingen verklig elevdata eller kommunanslutning har använts. SQL-resultatens PASS betyder bara att de faktiskt upptäckta fallen passerade, inte att saknade matrisfall är godkända.
 
-1. Bygg full livegiltighet och kontrollerade tilldelnings-/avslutsfunktioner med låsordning/samtidighetsprov, inkoppling av staff–membership-bindningen och atomiska `assignment_units`. Pröva aktuell parent även vid mutation.
-2. Inför kontrollerade inbjudningar med tilldelare och versionerat payload; pröva kedja/scope/tid vid utfärdande och inlösen. Kontoadministration ska vara separat.
-3. Byt servervägar och återkalla bred Worker-INSERT/UPDATE på access_assignments/invitations, personalvägar och gamla RPC tillsammans. **Befintliga fas 2-rättigheter/RPC finns kvar**; denna leverans stänger bara de nya fas 3-vägarna.
-4. Koppla färdig livekontroll till `assignment_is_valid` först när kompletta prov visar nekande standard. Ersätt interimstriggern då kontrollerade funktioner finns. Lägg nödvändiga läs-/funktionsprivilegier först därefter.
-5. Komplettera samtliga SQL-matrisfall och API-fixturer: lärargrupp, tre elevhälsoomfattningar, supportgodkännare, framtida/utgångna uppdrag, staffåterkallelse, inbjudningar och samtidighet. SQL använder `undervisning`/`mentor`; servern behöver explicit mappning till modellens gruppkind.
+## Upptäckt och rättad avvikelse
 
-Fortsätt i **nya migrationer efter 20260922120000**; redan tillämpade migrationer ska inte ändras retroaktivt. STATE/ROADMAP ägs av orchestrator. config.json och spike.json lämnades orörda. Avgränsningen följer användarens kvotstopp, inte godkännande av ofärdig funktion. Ingen handbok/UI ändrad, därför inget dokumentationsbygge i denna databasdel.
+Rootgranskning fann tvetydig SQL-parameter `assignment_id` i objektscope. Ett nytt prov med två skilda giltiga mandat reproducerade att andra uppdrag breddade elevurvalet (RED, fyra fel före avbrutet prov). Ny 15:00-migration ersatte referenserna med `$1/$2/$3`. Samma prov och hela sviten blev gröna. Redan tillämpad 13:00-migration ändrades inte retroaktivt.
 
+Fas2-provet som tidigare godkände den gamla rektors-RPC:n provar nu att den nekas trots huvudman i GUC. Händelsetriggerns aktörs-/rollprov finns kvar separat; antal fas2-access ökade från 66 till 67. Ett gammalt klockprov kontrollerar nu att manipulerad provklocka inte aktiverar ett framtida mandat, eftersom livekontrollen använder faktisk serverklocka.
 
-## Fortsättning inom utökad kvot — personalbindning
+## Kvar innan 03-02 får markeras klar
 
-Commit `5a1dc66`, separat migration `20260922120000_phase3_staff_bindings.sql`, skapar `staff_assignment_bindings` med explicit personaluppdrag–medlemskap–kund–huvudman. Sammansatta FK nekar korsande medlemskund och huvudmannakund. Tabellen har FORCE RLS och saknar app-/klientprivilegier. `assignments.profile_id` (äldre auth-profil) används inte för matchningen; `access_assignments.profile_id` är en separat textprofil för mandatpolicyn.
+1. Komplettera den fulla namngivna SQL-matrisen: elevhälsoansvarigs skolmängd, explicit supportgodkännare, exakt start/slut på kontrollerad klocka, ändrad scope/tid mellan utfärdande och inlösen, framtida tilldelning/avslut och fler samtidighetsordningar. Befintliga prov täcker delar men är inte komplett motsvarighet till alla modellfall.
+2. Utöka `phase3-fixtures.sql` från relationsgrund till hela API-falluppsättningen med identiteter/uppdrag. SQL-testet har egna rollback-fixturer; API-runnern får inte anta att alla dessa finns beständigt.
+3. Granska samlad server-/SQL-växling och kör relevanta API-fall. Elevläsning ska förbli utan Worker-GRANT tills audit före svar/commit är implementerad och verifierad.
+4. Revidera den historiska 11:00-kedjefunktionen/12:00-personalpredikatets dokumentation vid slutstädning: de är interna delpredikat, full giltighet avgörs av 13/17-versionen, inte av dem var för sig.
 
-`phase3_staff_binding_is_valid(uuid)` är ett separat internt predikat utan EXECUTE för Worker/PUBLIC/klientroller. Det kräver rektor/lärare, samma aktiva medlemskap, rätt personalroll och att mandatets samtliga uttryckliga skolor finns i `assignment_units`. Saknad eller återkallad bindning nekar. Det ger inget självständigt behörighetsbeslut: kedja, datum, kundstatus, objektsscope, session och audit måste fortfarande kombineras i kommande skyddade väg. Det är avsiktligt inte inkopplat i `assignment_is_valid`.
+Fortsätt i **nya migrationer efter 20260924190000**. STATE/ROADMAP ägs av root. Användarens config.json/spike.json lämnades orörda. Ingen UI/handbok ändrades av databasdelen.
 
-28 tillkommande prov omfattar positiva rektors-/lärarbindningar, annan mottagare, fel personalroll, saknad/otillräcklig skolkoppling, blockerad medlem, korsande kund, återkallelse och stängda privilegier. Slutresultatet ovan är omkört efter 12:00-migrationen: **213 riktade och 350 totala SQL-prov PASS**. Ingen objektscopefunktion, mutationsväg eller serverkoppling tillkom i denna fortsättning.
+## Commits
+
+- `d8d3237`, `17e104f`, `24887d3`: schemagrund, intern kedja och första PARTIAL-status.
+- `5a1dc66`, `bfc815b`: explicit personalbindning och dess verifiering.
+- `df87ca6`: fullare livepolicy, kontrollerade mutationer/inbjudningar, parameterfix, samordnad cutover och SQL-/samtidighetsbevis.
