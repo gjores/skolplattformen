@@ -1,0 +1,450 @@
+{
+  "checkedAt": "2026-09-24T07:50:23.893Z",
+  "revision": "93ce97afc381ad38ee965535f3ad827f4c7449a0",
+  "target": "protected",
+  "baseUrl": "http://127.0.0.1:3013",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "sparr",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "befintlig session fungerade före spärr",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "spärr återkallade utfärdad session",
+          "ok": true,
+          "detail": "spärr 200, nästa 401/session_revoked"
+        },
+        {
+          "check": "öppning kräver ny session",
+          "ok": true,
+          "detail": "öppna 200, ny 200"
+        }
+      ]
+    },
+    {
+      "name": "uppdrag-avslut",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "uppdrag avslutades",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "redan utfärdad session nekades",
+          "ok": true,
+          "detail": "HTTP 403/assignment_ended"
+        },
+        {
+          "check": "assignment-id bevarades i audit",
+          "ok": true,
+          "detail": "nekandet är bundet till uppdraget"
+        }
+      ]
+    },
+    {
+      "name": "uppdrag-utgatt",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "utgånget uppdrag nekades",
+          "ok": true,
+          "detail": "HTTP 403/assignment_ended"
+        },
+        {
+          "check": "kommande uppdrag nekades",
+          "ok": true,
+          "detail": "HTTP 403/assignment_upcoming"
+        },
+        {
+          "check": "sessionen visar alla giltighetslägen",
+          "ok": true,
+          "detail": "{\"50000000-0000-4000-8000-000000000017\":\"kommande\",\"50000000-0000-4000-8000-000000000007\":\"giltigt\",\"50000000-0000-4000-8000-000000000027\":\"avslutat\"}"
+        }
+      ]
+    },
+    {
+      "name": "session",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "utgången session nekades",
+          "ok": true,
+          "detail": "HTTP 401/session_expired"
+        },
+        {
+          "check": "återkallad session nekades",
+          "ok": true,
+          "detail": "HTTP 401/session_revoked"
+        },
+        {
+          "check": "okänd cookie nekades",
+          "ok": true,
+          "detail": "HTTP 401/no_session"
+        },
+        {
+          "check": "glidande livstid förlängdes",
+          "ok": true,
+          "detail": "HTTP 200"
+        }
+      ]
+    },
+    {
+      "name": "csrf",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "cross-site nekades",
+          "ok": true,
+          "detail": "HTTP 403/csrf"
+        },
+        {
+          "check": "egen origin passerade CSRF-gränsen",
+          "ok": true,
+          "detail": "HTTP 404/not_found"
+        }
+      ]
+    },
+    {
+      "name": "mfa-kravs",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "lösenord utan OTP nekades utan skrivning",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "för gammalt bevis nekades",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "proof-profile",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "proof-issuer",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "proof-audience",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "proof-time",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "proof-amr",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "kundadmin utan TOTP nekades",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "serverhärledd proof-audit för nekad och godkänd åtgärd",
+          "ok": true,
+          "detail": "HTTP 200; resultat accepted,denied"
+        },
+        {
+          "check": "klientens proof och aktör ignorerades",
+          "ok": true,
+          "detail": "audit innehåller endast serverbedömt bevis"
+        },
+        {
+          "check": "giltigt exakt bevis kunde återställa",
+          "ok": true,
+          "detail": "HTTP 200"
+        }
+      ]
+    },
+    {
+      "name": "inbjudan",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "giltig personbunden inbjudan gav kundadmin",
+          "ok": true,
+          "detail": "lösen 201, översikt 200"
+        },
+        {
+          "check": "återanvändning nekades",
+          "ok": true,
+          "detail": "HTTP 404/invitation_invalid"
+        },
+        {
+          "check": "fel issuer nekades",
+          "ok": true,
+          "detail": "HTTP 404/invitation_invalid"
+        },
+        {
+          "check": "utgången inbjudan nekades",
+          "ok": true,
+          "detail": "HTTP 404/invitation_invalid"
+        },
+        {
+          "check": "organisationsnummer gav ingen rättighet",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "check": "okänd token har samma 404-form",
+          "ok": true,
+          "detail": "HTTP 404/invitation_invalid"
+        },
+        {
+          "check": "samma issuer och e-post men fel subject nekades",
+          "ok": true,
+          "detail": "HTTP 404/invitation_invalid"
+        },
+        {
+          "check": "otillräcklig MFA nekades",
+          "ok": true,
+          "detail": "HTTP 403/mfa_required"
+        },
+        {
+          "check": "samtidig inlösen gav exakt en vinnare",
+          "ok": true,
+          "detail": "201,404"
+        }
+      ]
+    },
+    {
+      "name": "frammande-id",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "främmande och obefintligt medlemskap har samma svar",
+          "ok": true,
+          "detail": "HTTP 404/404, Δ 4 ms"
+        },
+        {
+          "check": "främmande skolenhet röjde inte existens",
+          "ok": true,
+          "detail": "HTTP 403/403"
+        },
+        {
+          "check": "främmande huvudman nekades",
+          "ok": true,
+          "detail": "HTTP 404/not_found"
+        },
+        {
+          "check": "listning läckte inga A-personer",
+          "ok": true,
+          "detail": "HTTP 200; cecilia@example.test,david@example.test,hanna@example.test"
+        },
+        {
+          "check": "främmande medlemskap ändrades inte",
+          "ok": true,
+          "detail": "status active"
+        },
+        {
+          "check": "kundadmin nekas rektorsvägen utan att röja främmande uppdrag",
+          "ok": true,
+          "detail": "HTTP 403/403"
+        }
+      ]
+    },
+    {
+      "name": "samma-epost",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "två identiteter med samma e-post finns",
+          "ok": true,
+          "detail": "antal 2"
+        },
+        {
+          "check": "kunderna hålls isär",
+          "ok": true,
+          "detail": "Provkund A/Provkund B"
+        },
+        {
+          "check": "vardera identiteten har ett uppdrag",
+          "ok": true,
+          "detail": "1/1"
+        },
+        {
+          "check": "delad auth-referens gav inte delat medlemskap",
+          "ok": true,
+          "detail": "Provkund A/Provkund B"
+        },
+        {
+          "check": "ny extern subject ärvde ingen kund",
+          "ok": true,
+          "detail": "session 200, översikt 403/no_context"
+        }
+      ]
+    },
+    {
+      "name": "aktor-forfalskning",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "tillåten kontoåtgärd lyckades",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "förfalskade aktörsfält ignoreras",
+          "ok": true,
+          "detail": "30000000-0000-4000-8000-000000000001|50000000-0000-4000-8000-000000000001|membership_blocked"
+        },
+        {
+          "check": "kundadmin kan inte ärva huvudmannens utnämningsrätt",
+          "ok": true,
+          "detail": "HTTP 403"
+        }
+      ]
+    },
+    {
+      "name": "logg",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "granskare såg bara kund A:s logg",
+          "ok": true,
+          "detail": "HTTP 200, 6 händelser"
+        },
+        {
+          "check": "loggen innehöll serverhärledd spärr och nekad rektorsutnämning",
+          "ok": true,
+          "detail": "båda audittyperna hittades"
+        },
+        {
+          "check": "CSV-export loggades exakt en gång",
+          "ok": true,
+          "detail": "HTTP 200, Δ 1"
+        },
+        {
+          "check": "kundadmin nekades granskarlogg",
+          "ok": true,
+          "detail": "HTTP 403/forbidden"
+        },
+        {
+          "check": "kund B såg inga A-rader",
+          "ok": true,
+          "detail": "HTTP 200, 0 händelser"
+        },
+        {
+          "check": "exporterade detaljer är minimerade",
+          "ok": true,
+          "detail": "inga token/e-postnycklar"
+        }
+      ]
+    },
+    {
+      "name": "logg-flod",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "alla ogiltiga sessioner nekades",
+          "ok": true,
+          "detail": "30/30"
+        },
+        {
+          "check": "nekanden begränsades",
+          "ok": true,
+          "detail": "20 fullständiga nekanden"
+        },
+        {
+          "check": "spoofad X-Forwarded-For skapade en suppression",
+          "ok": true,
+          "detail": "1 suppression"
+        }
+      ]
+    },
+    {
+      "name": "context-race",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "kontextbyte ökade epoch",
+          "ok": true,
+          "detail": "1→2"
+        },
+        {
+          "check": "gammal epoch nekades utan data",
+          "ok": true,
+          "detail": "HTTP 409/context_changed"
+        },
+        {
+          "check": "ny epoch gav vald kund",
+          "ok": true,
+          "detail": "HTTP 200/Provkund B"
+        }
+      ]
+    },
+    {
+      "name": "audit-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "auditfel gav serverfel",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
+          "check": "verksamhetsändringen rullades tillbaka",
+          "ok": true,
+          "detail": "status active"
+        }
+      ]
+    },
+    {
+      "name": "phase3-mandates",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "huvudman tilldelar personbundet rektorsmandat",
+          "ok": true,
+          "detail": "HTTP 201/undefined"
+        },
+        {
+          "check": "huvudman nekas lärartilldelning",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "rektor tilldelar lärare i sin grupp",
+          "ok": true,
+          "detail": "HTTP 201/undefined"
+        },
+        {
+          "check": "rektor kan lista sina mandat",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "återkallat mandat blir omedelbart ovalbart",
+          "ok": true,
+          "detail": "avslut 200"
+        },
+        {
+          "check": "IT kan ändra och prova syntetisk anslutning",
+          "ok": true,
+          "detail": "GET 200, PATCH 200, test 200"
+        },
+        {
+          "check": "IT får versionskonflikt vid gammal ändring",
+          "ok": true,
+          "detail": "HTTP 409"
+        }
+      ]
+    }
+  ],
+  "verificationNote": "Built protected artifact created before commit 93ce97a; same server source as commit. Runner includes subsequent crypto.randomUUID fix. Local synthetic sessions; not OIDC/browser acceptance."
+}

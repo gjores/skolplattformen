@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-09-24T07:51:22.421Z",
+  "revision": "93ce97afc381ad38ee965535f3ad827f4c7449a0",
+  "target": "protected",
+  "baseUrl": "http://localhost:3000",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "csrf",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "cross-site nekades",
+          "ok": true,
+          "detail": "HTTP 403/csrf"
+        },
+        {
+          "check": "egen origin passerade CSRF-gränsen",
+          "ok": true,
+          "detail": "HTTP 404/not_found"
+        }
+      ]
+    }
+  ]
+}

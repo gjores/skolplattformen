@@ -498,7 +498,7 @@ const cases = {
     const foreignAssignment = psql("select id::text from public.assignments where organizer_id<>:'org'::uuid limit 1", { org: ID.organizerA });
     if (foreignAssignment) {
       const principal = await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalAssignmentId: foreignAssignment });
-      const missingPrincipal = await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalAssignmentId: randomUUID() });
+      const missingPrincipal = await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalAssignmentId: crypto.randomUUID() });
       check(checks, 'kundadmin nekas rektorsvägen utan att röja främmande uppdrag', principal.status === 403 && principal.body?.code === 'forbidden' && missingPrincipal.status === 403 && missingPrincipal.body?.code === 'forbidden', `HTTP ${principal.status}/${missingPrincipal.status}`);
     } else check(checks, 'rektorsuppdrag från annan huvudman nekades', true, 'ingen sådan syntetisk rad; slump-id-vägen täcks ovan');
   },

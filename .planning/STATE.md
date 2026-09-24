@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: 02
-status: paused
-stopped_at: 03-01 klar; 03-02 delvis genomförd. Återuppta återstående SQL-mandatkontroller enligt .continue-here.md.
-last_updated: "2026-09-23T14:55:33Z"
-last_activity: 2026-09-23
+status: executing
+stopped_at: 03-02 och 03-03 delvis genomförda; SQL/servervägar inkopplade. Full matris och audit återstår. Kvotgräns 50 % förbrukat.
+last_updated: "2026-09-24T08:00:00Z"
+last_activity: 2026-09-24
 progress:
   total_phases: 8
   completed_phases: 2
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 3 — 03-01 klar, 03-02 delvis genomförd; återstående databas- och serverkontroller innan nya mandat öppnas
+**Current focus:** Fas 3 — 03-01 klar; 03-02/03-03 delvis genomförda med lokala SQL/servervägar, full mandatmatris återstår
 
 ## Current Position
 
@@ -37,10 +37,10 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Total Phases:** 8
 **Current Plan:** 03-02, delvis genomförd
 **Total Plans in Phase:** 7
-**Status:** Paused within quota — resume Phase 03 plan 02
+**Status:** Executing Phase 03 — SQL/server cutover applied; verification incomplete
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-23
-**Last Activity Description:** 03-01 verifierad beslutsmodell; 03-02 stängd schemagrund, intern kedjeprövning och explicit personalbindning. 350 SQL-prov passerar; full mandatväg återstår.
+**Last Activity:** 2026-09-24
+**Last Activity Description:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 410 SQL-prov och verkligt samtidighetsprov PASS; 272 modell-/serverprov och 15/15 isolerade API-fall PASS. Läs 03-02/03-03-SUMMARY för kvarvarande verifieringsluckor.
 
 Progress: [████████░░] 79%
 Planprogress: 23 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
@@ -134,8 +134,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-23
-**Stopped At:** 03-01 klar; 03-02 delvis genomförd. Paus före nästa sammanhängande mutations-/serverväxling för att hålla kvotgränsen.
+**Last Date:** 2026-09-24
+**Stopped At:** 03-02/03-03 delvis genomförda; återuppta full mandatmatris före godkännande. Budgetstopp vid högst 50 % veckoförbrukning.
 **Resume File:** .planning/phases/03-mandat-och-skyddade-datavagar/.continue-here.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22
