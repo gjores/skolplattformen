@@ -42,6 +42,8 @@ insert into public.access_assignments(id,membership_id,customer_id,organizer_id,
 values('33004000-0000-4000-8000-000000000099','33004000-0000-4000-8000-000000000031','33004000-0000-4000-8000-000000000001','33004000-0000-4000-8000-000000000011','it','synthetic-v1','school');
 insert into public.mandate_units select '33004000-0000-4000-8000-000000000099',customer_id,organizer_id,unit_id from public.mandate_units where assignment_id='33004000-0000-4000-8000-000000000041' and unit_id='33004000-0000-4000-8000-000000000111';
 select set_config('app.customer_id','33004000-0000-4000-8000-000000000001',true),set_config('app.identity_id','33004000-0000-4000-8000-000000000021',true),set_config('app.membership_id','33004000-0000-4000-8000-000000000031',true),set_config('app.assignment_id','33004000-0000-4000-8000-000000000099',true);
+select is(jsonb_array_length(public.phase3_connection_schools()),1,'IT ser bara sin namngivna skola');
+select is(public.phase3_connection_schools()->0->>'id','33004000-0000-4000-8000-000000000111','främmande skolnamn lämnas inte ut');
 select is((public.phase3_connection('33004000-0000-4000-8000-000000000111')->>'version')::integer,0,'ny lokal konfiguration har version noll');
 select is(public.phase3_connection('33004000-0000-4000-8000-000000000111','test')->>'result','paused','inaktiv anslutning provas utan extern trafik');
 select is(public.phase3_connection('33004000-0000-4000-8000-000000000111','update',true,0)->>'enabled','true','aktivering sparas');
@@ -53,6 +55,7 @@ select throws_ok($$select public.phase3_connection('33004000-0000-4000-8000-0000
 select throws_ok($$select public.phase3_connection('33004000-0000-4000-8000-000000000121')$$,'P0002',null,'annan kund nekas likadant');
 select throws_ok($$select public.phase3_connection('33004000-0000-4000-8000-000000000111','update',null,2)$$,'22023',null,'ogiltigt värde nekas');
 select set_config('app.assignment_id','33004000-0000-4000-8000-000000000041',true);
+select throws_ok($$select public.phase3_connection_schools()$$,'42501',null,'huvudman får inte IT-skolurval');
 select throws_ok($$select public.phase3_connection('33004000-0000-4000-8000-000000000111')$$,'42501',null,'huvudman har inte IT-rätt');
 select is(has_function_privilege('anon','public.phase3_connection(uuid,text,boolean,integer)','EXECUTE'),false,'anon saknar rätt');
 select is(has_function_privilege('authenticated','public.phase3_connection(uuid,text,boolean,integer)','EXECUTE'),false,'direkt klient saknar rätt');

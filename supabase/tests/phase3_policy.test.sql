@@ -127,6 +127,7 @@ select lives_ok($t$select public.phase3_redeem_invitation(decode(repeat('cd',32)
 reset role;
 -- Kontrollerade funktionsrättigheter består efter samordnad cutover.
 select pg_temp.actor((select id from results where name='principal'),'33002000-0000-4000-8000-000000000061','33002000-0000-4000-8000-000000000071');
+select ok((select bool_and(item ? 'displayName' and item ? 'schools' and item ? 'status') from jsonb_array_elements(public.phase3_list_mandates()) item),'mandatlistan ger namn och scope för administrerbara uppdrag');
 select lives_ok($t$select public.phase3_revoke_mandate((select id from results where name='teacher'))$t$,'rektor avslutar eget lärarmandat');
 select is(public.phase3_mandate_is_valid((select id from results where name='teacher')),false,'avslutat lärarmandat ogiltigt');
 select pg_temp.actor('33002000-0000-4000-8000-000000000041'::uuid,'33002000-0000-4000-8000-000000000031','33002000-0000-4000-8000-000000000021');

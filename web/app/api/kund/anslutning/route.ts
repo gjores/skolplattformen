@@ -16,6 +16,11 @@ async function handle(
       functions: ['it'],
     },
     async (_ctx, tx) => {
+      if (operation === 'read' && !new URL(request.url).searchParams.has('unitId')) {
+        const rows = await mandateOperation(() => tx<{ schools: unknown }[]>`
+          select public.phase3_connection_schools() as schools`);
+        return { body: { schools: rows[0].schools }, event: null };
+      }
       const body = (
         operation === 'read'
           ? { unitId: new URL(request.url).searchParams.get('unitId') }

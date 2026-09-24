@@ -1,0 +1,9 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import MandateWorkspace from '../../app/mandate-workspace';
+import { setKnownEpoch } from '../../lib/server-client';
+import '../../app/globals.css';
+setKnownEpoch(1);
+const it=new URLSearchParams(location.search).get('role')==='it';
+const context={assignmentId:'33000000-0000-4000-8000-000000000041',membershipId:'33000000-0000-4000-8000-000000000031',customerId:'33000000-0000-4000-8000-000000000001',customerName:'Syntetisk kund',organizerId:null,organizerName:null,unitId:null,unitName:null,function:it?'it' as const:'rektor' as const,label:'Syntetiskt uppdrag',blocked:false,valid:true};
+createRoot(document.getElementById('root')!).render(<main className="protected-workspace" style={{padding:24}}><MandateWorkspace context={context} epoch={1} onMfaRequired={()=>{}} onSessionLost={()=>{}} /></main>);
