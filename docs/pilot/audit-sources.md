@@ -22,3 +22,11 @@ Hela källkedjan returnerar alltid **BLOCKED** och exitkod 3. `kongProbe: OBSERV
 - Ingen synkron driftsgaranti ges av denna asynkrona lokala insamling. Verklig drift och kommunanslutning omfattas inte.
 
 Nästa arbete är att fullfölja dessa källor och felprov enligt `03-EXECUTION-CONTRACT.md`; det krävs före plan 04 kan godkännas. Den lokala konfiguratorn lämnar övrig stack och direktvägarnas behörigheter oförändrade.
+
+## Fortsättning: korrelation och faktiskt källavbrott
+
+Kollektorn kräver nu att ett servergenererat request-id i svarshuvudet `X-Phase3-Audit-Id` matchar exakt en logghändelse med rätt route/status. Ett id kan bara matcha ett prov; enbart samma route/status räcker inte. Konfiguratorn kan uppgradera tidigare minimerat format med Nginx-headern. Tio enhetstester passerar, inklusive falsk korrelation, återanvänt id och uppgradering. Denna headerändring är **inte ännu verifierad i körande Kong**.
+
+Vid fortsatt verkligt prov misslyckades målverifieringen även med förhöjd åtkomst: Docker-daemon var inte tillgänglig. Inget provanrop eller källkonfigurationsbyte utfördes efter avvisningen. Körningen gav `BLOCKED`, `kongProbe: UNVERIFIED` och noll händelser. Rapportfilen ersattes med det aktuella källfelet, vilket hindrar att den tidigare observationen av tre händelser förväxlas med ett nytt prov. Råa undantag eller anslutningsuppgifter sparas inte.
+
+Detta är belägg för hur verktyget hanterar **källan otillgänglig vid start**, inte för avbrott mitt i pågående insamling eller återhämtning utan bortfall. Storage/SQL, verklig headerkorrelation, cursorlucka och återhämtning återstår. Docker behöver åter vara tillgänglig innan dessa lokala prov kan fortsätta; inget nytt kommun-/pilotgodkännande krävs för de redan planerade syntetiska proven.

@@ -40,3 +40,33 @@ test('unknown flags and output escape refused', () => {
   for(const args of [['--linked'],['--target','baseline'],['--out','/tmp/private.json'],['--probe','--probe']]) assert.throws(()=>parseArgs(args));
   assert.equal(parseArgs(['--probe']).probe,true);
 });
+
+test('correlation requires unique server id, not route/status coincidence', async () => {
+  const { correlateKong } = await import('./collect-denials.mjs');
+  const event=normalizeKong(JSON.stringify(row),source);
+  const request={route:'rest',status:401,requestId:row.requestId};
+  assert.equal(correlateKong([request],[event],source)[0].sourceObserved,true);
+  assert.equal(correlateKong([{...request,requestId:'c'.repeat(32)}],[event],source)[0].sourceObserved,false);
+  assert.equal(correlateKong([{...request,requestId:'untrusted-client-marker'}],[event],source)[0].sourceObserved,false);
+  assert.deepEqual(correlateKong([request,request],[event],source).map(x=>x.sourceObserved),[true,false]);
+  assert.equal(correlateKong([request],[event,event],source)[0].sourceObserved,false);
+});
+test('source failure replaces previous observation and omits raw exception', async () => {
+  const fs=await import('node:fs');const os=await import('node:os');const path=await import('node:path');
+  const {runCollection}=await import('./collect-denials.mjs');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'phase3-audit-test-'));
+  try {
+    const out=path.join(dir,'report.json');
+    fs.writeFileSync(out,JSON.stringify({kongProbe:'OBSERVED',events:[row]}));
+    const report=await runCollection({out},async()=>{throw new Error('secret-credential');});
+    assert.equal(report.status,'BLOCKED');assert.equal(report.kongProbe,'UNVERIFIED');
+    assert.deepEqual(JSON.parse(fs.readFileSync(out,'utf8')).events,[]);
+    assert.doesNotMatch(fs.readFileSync(out,'utf8'),/secret-credential|OBSERVED/);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('upgrade legacy minimized Kong config with server correlation header once',()=>{
+  const current=kongConfig('server {\n access_log logs/access.log;\n}');
+  const legacy=current.replace('\n    add_header X-Phase3-Audit-Id $request_id always;','');
+  assert.equal(kongConfig(legacy),current);
+  assert.equal((current.match(/add_header X-Phase3-Audit-Id/g)||[]).length,1);
+});

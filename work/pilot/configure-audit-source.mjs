@@ -23,8 +23,14 @@ export async function sources() {
   return result;
 }
 const marker = '# phase3 minimized ingress v1';
+const responseHeader = 'add_header X-Phase3-Audit-Id $request_id always;';
 export function kongConfig(original) {
-  if (original.startsWith(marker)) return original;
+  if (original.startsWith(marker)) {
+    if (original.includes(responseHeader)) return original;
+    const needle = 'access_log /dev/stdout phase3_audit;';
+    if (original.split(needle).length !== 2) throw new Error('BLOCKED: unsupported minimized Kong configuration');
+    return original.replace(needle, `${needle}\n    ${responseHeader}`);
+  }
   const needle = 'access_log logs/access.log;';
   if (original.split(needle).length !== 2) throw new Error('BLOCKED: unsupported Kong configuration');
   return `${marker}
@@ -35,7 +41,7 @@ map $request_uri $phase3_route {
   ~^/storage/v1/ storage;
 }
 log_format phase3_audit escape=json '{"schema":"phase3-ingress-v1","requestId":"$request_id","time":"$time_iso8601","status":$status,"route":"$phase3_route"}';
-${original.replace(needle, 'access_log /dev/stdout phase3_audit;')}`;
+${original.replace(needle, `access_log /dev/stdout phase3_audit;\n    ${responseHeader}`)}`;
 }
 export async function configure() {
   const source = (await sources()).kong;

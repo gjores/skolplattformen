@@ -27,6 +27,17 @@ export function collectKong(raw, sourceId) {
   }
   return { events: [...events.values()], malformed };
 }
+export function correlateKong(requests, events, sourceId) {
+  const seen = new Set();
+  return requests.map(r => {
+    const validId = typeof r.requestId === 'string' && /^[a-f0-9]{32}$/.test(r.requestId);
+    const sourceEventId = validId ? `${sourceId}:${r.requestId}` : null;
+    const matches = events.filter(e => e.sourceEventId === sourceEventId && e.route === r.route && e.status === r.status && e.outcome === 'rejected');
+    const sourceObserved = validId && !seen.has(sourceEventId) && matches.length === 1;
+    if (sourceEventId) seen.add(sourceEventId);
+    return { route: r.route, status: r.status, sourceEventId, sourceObserved };
+  });
+}
 function readLogs(source, since) {
   const r = spawnSync('docker', ['logs', '--since', since, source.id], { encoding: 'utf8', timeout: 30000, maxBuffer: 16 * 1024 * 1024 });
   if (r.status !== 0 || r.error) throw new Error('BLOCKED: source read unavailable');
@@ -48,7 +59,7 @@ export async function collect({ probe = false } = {}) {
     for (const [route, endpoint] of [['rest','/rest/v1/phase3_probe_pupils'], ['rpc','/rest/v1/rpc/phase3_unavailable'], ['storage','/storage/v1/object/phase3-probe']]) {
       const response = await fetch(target.apiUrl + endpoint, { headers: { 'X-Correlation-Id': 'untrusted-client-marker' }, signal: AbortSignal.timeout(10000), redirect: 'error' });
       await response.arrayBuffer();
-      requests.push({ route, status: response.status });
+      requests.push({ route, status: response.status, requestId: response.headers.get('x-phase3-audit-id') });
     }
     // Nginx emits at request completion; bounded delay is only for local log delivery.
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -57,11 +68,11 @@ export async function collect({ probe = false } = {}) {
   const parsed = collectKong(readLogs(before.kong, since), before.kong.id);
   const events = parsed.events.filter(e => !baseline.has(e.sourceEventId));
   const changed = before.kong.id !== after.kong.id || before.kong.startedAt !== after.kong.startedAt;
-  const observations = requests.map(r => ({ ...r, sourceObserved: events.some(e => e.route === r.route && e.status === r.status && e.outcome === 'rejected') }));
+  const observations = correlateKong(requests, events, before.kong.id);
   return { status: 'BLOCKED', scope: 'local-synthetic-only', coverage: { from: since, to: new Date().toISOString(), continuity: 'unproven' },
     kongProbe: probe && !changed && !parsed.malformed && observations.every(r => r.sourceObserved) ? 'OBSERVED' : 'UNVERIFIED',
     observations, events, malformed: parsed.malformed,
-    blockers: [...(changed ? ['source-restarted'] : []), 'storage-upstream-denials-unverified', 'direct-sql-denials-unverified', 'outage-restart-cursor-recovery-unverified', 'individual-probe-correlation-unverified'] };
+    blockers: [...(changed ? ['source-restarted'] : []), 'storage-upstream-denials-unverified', 'direct-sql-denials-unverified', 'outage-restart-cursor-recovery-unverified', ...(observations.length === 3 && observations.every(r => r.sourceObserved) ? [] : ['individual-probe-correlation-unverified'])] };
 }
 export function parseArgs(args) {
   const result = { probe: false, out: null };
@@ -74,11 +85,22 @@ export function parseArgs(args) {
   if (result.out && (!result.out.startsWith(results) || path.dirname(result.out) !== results.slice(0,-1) || !result.out.endsWith('.json') || (fs.existsSync(result.out) && fs.lstatSync(result.out).isSymbolicLink()))) throw new Error('REFUSED: output must be a JSON file directly in work/pilot/results');
   return result;
 }
+export async function runCollection(options, collector = collect) {
+  let report;
+  try { report = await collector(options); }
+  catch {
+    // Replace an older report after any failed attempt. Never leave stale observations
+    // looking like evidence from the current run, and never persist raw exception text.
+    report = { status: 'BLOCKED', scope: 'local-synthetic-only', attemptedAt: new Date().toISOString(),
+      kongProbe: 'UNVERIFIED', events: [], blockers: ['source-collection-unavailable'] };
+  }
+  if (options.out) fs.writeFileSync(options.out, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 });
+  return report;
+}
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const options = parseArgs(process.argv.slice(2));
-    const report = await collect(options);
-    if (options.out) fs.writeFileSync(options.out, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 });
+    const report = await runCollection(options);
     console.log(JSON.stringify({ status: report.status, kongProbe: report.kongProbe, eventCount: report.events.length, blockers: report.blockers }));
     process.exitCode = 3;
   } catch { console.error('BLOCKED: source collection failed; no audit approval'); process.exitCode = 3; }
