@@ -2,6 +2,7 @@ export type AssignmentLike = {
   validFrom: string;
   validTo: string | null;
   endedAt: string | null;
+  serverValid?: boolean;
 };
 
 export type AssignmentState = 'giltigt' | 'kommande' | 'avslutat';
@@ -21,7 +22,11 @@ export type AccessFunction =
   | 'huvudman'
   | 'rektor'
   | 'administrator'
-  | 'larare';
+  | 'larare'
+  | 'elevhalsa'
+  | 'elevhalsoansvarig'
+  | 'it'
+  | 'support';
 
 export const FUNCTION_LABEL: Record<AccessFunction, string> = {
   kundadmin: 'Kundadministration',
@@ -30,6 +35,10 @@ export const FUNCTION_LABEL: Record<AccessFunction, string> = {
   rektor: 'Rektor',
   administrator: 'Administratör',
   larare: 'Lärare',
+  elevhalsa: 'Elevhälsa',
+  elevhalsoansvarig: 'Elevhälsoansvarig',
+  it: 'IT-administration',
+  support: 'Tidsbegränsad support',
 };
 
 export type AssignmentView = AssignmentLike & {
@@ -49,6 +58,7 @@ export function assignmentState(a: AssignmentLike, today: string): AssignmentSta
   if (a.endedAt !== null) return 'avslutat';
   if (a.validFrom > today) return 'kommande';
   if (a.validTo !== null && a.validTo < today) return 'avslutat';
+  if (a.serverValid === false) return 'avslutat';
   return 'giltigt';
 }
 
@@ -116,4 +126,10 @@ export function todayInStockholm(now: Date = new Date()): string {
     month: '2-digit',
     day: '2-digit',
   }).format(now);
+}
+
+/** Compatibility with legacy business RLS; scoped functions never inherit it. */
+export function legacyAppRole(value: AccessFunction | null): 'huvudman' | 'rektor' | 'administrator' | 'larare' | null {
+  return value === 'huvudman' || value === 'rektor' || value === 'administrator' || value === 'larare'
+    ? value : null;
 }

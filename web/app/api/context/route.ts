@@ -1,3 +1,4 @@
+import { legacyAppRole } from '../../../lib/access-rules.ts';
 import { assignmentState, contextLabel, todayInStockholm } from '../../../lib/access-rules.ts';
 import type { AccessFunction } from '../../../lib/access-rules.ts';
 import { denyResponse, requireSameOrigin } from '../../../lib/server/authz.ts';
@@ -27,11 +28,6 @@ type AssignmentRow = {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
-function appRole(value: AccessFunction): SessionContext['appRole'] {
-  return value === 'huvudman' || value === 'rektor' || value === 'administrator' || value === 'larare'
-    ? value
-    : null;
-}
 
 export async function POST(request: Request): Promise<Response> {
   const corr = correlationId();
@@ -126,7 +122,7 @@ export async function POST(request: Request): Promise<Response> {
         accessFunction: selected.function,
         organizerId: selected.organizer_id,
         unitId: selected.unit_id,
-        appRole: appRole(selected.function),
+        appRole: legacyAppRole(selected.function),
       };
       if (selected.status !== 'active') throw new Deny('membership_blocked', 403);
       if (selected.closed_at !== null) throw new Deny('customer_closed', 403);
@@ -143,7 +139,7 @@ export async function POST(request: Request): Promise<Response> {
         if (state === 'kommande') throw new Deny('assignment_upcoming', 403);
         throw new Deny('assignment_expired', 403);
       }
-      const role = appRole(selected.function);
+      const role = legacyAppRole(selected.function);
       await tx`select
         set_config('app.phase', '', true),
         set_config('app.customer_id', ${selected.customer_id}, true),

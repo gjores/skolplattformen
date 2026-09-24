@@ -1,3 +1,4 @@
+import { legacyAppRole } from '../../../../lib/access-rules.ts';
 import type { AccessFunction } from '../../../../lib/access-rules.ts';
 import { assessAdminProof } from '../../../../lib/auth-assurance.ts';
 import type { SessionContext } from '../../../../lib/server/db.ts';
@@ -31,11 +32,6 @@ function redirectWithCookies(location: string, corr: string, cookies: string[]):
   return new Response(null, { status: 302, headers });
 }
 
-function appRole(value: AccessFunction | null): SessionContext['appRole'] {
-  return value === 'huvudman' || value === 'rektor' || value === 'administrator' || value === 'larare'
-    ? value
-    : null;
-}
 
 export async function GET(request: Request): Promise<Response> {
   const corr = correlationId();
@@ -170,7 +166,7 @@ export async function GET(request: Request): Promise<Response> {
         accessFunction: selected?.function ?? null,
         organizerId: selected?.organizer_id ?? null,
         unitId: selected?.unit_id ?? null,
-        appRole: appRole(selected?.function ?? null),
+        appRole: legacyAppRole(selected?.function ?? null),
         correlationId: corr,
       };
       await logEvent(tx, { ...ctx, request, proofAssessment }, {

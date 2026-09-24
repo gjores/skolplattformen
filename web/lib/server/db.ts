@@ -1,3 +1,4 @@
+import { legacyAppRole } from '../access-rules.ts';
 import postgres, { type Sql, type TransactionSql } from 'postgres';
 import type { AccessFunction } from '../access-rules.ts';
 import { invalidAssignmentCode } from '../access-rules.ts';
@@ -121,11 +122,6 @@ function textArray(value: unknown, column: string): string[] {
   return value.slice(1, -1).split(',').map((item) => item.replace(/^"|"$/gu, ''));
 }
 
-function appRoleFor(value: AccessFunction | null): LiveSession['appRole'] {
-  return value === 'huvudman' || value === 'rektor' || value === 'administrator' || value === 'larare'
-    ? value
-    : null;
-}
 
 export async function withSessionContext<T>(
   ctx: SessionContextHint,
@@ -225,7 +221,7 @@ export async function withSessionContext<T>(
       }
 
       const accessFunction = assignment?.function ?? null;
-      const appRole = appRoleFor(accessFunction);
+      const appRole = legacyAppRole(accessFunction);
       await tx`select
         set_config('app.phase', '', true),
         set_config('app.identity_id', ${row.identity_id}, true),

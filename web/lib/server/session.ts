@@ -1,3 +1,4 @@
+import { legacyAppRole } from '../access-rules.ts';
 import type { SessionContext, Tx } from './db.ts';
 import { Deny, withLoginPhase } from './db.ts';
 import { isHttps, serverEnv } from './env.ts';
@@ -410,13 +411,7 @@ export async function revokeSession(
     }
     await tx`update public.app_sessions set revoked_at = now()
       where id = ${sessionId} and revoked_at is null`;
-    const appRole =
-      assignment?.function === 'huvudman' ||
-      assignment?.function === 'rektor' ||
-      assignment?.function === 'administrator' ||
-      assignment?.function === 'larare'
-        ? assignment.function
-        : null;
+    const appRole = legacyAppRole(assignment?.function ?? null);
     if (onRevoked) {
       await onRevoked(tx, {
         sessionId: row.id,

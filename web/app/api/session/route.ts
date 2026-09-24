@@ -34,6 +34,7 @@ type AssignmentRow = {
   valid_to: string | null;
   ended_at: Date | null;
   membership_status: AssignmentView['membershipStatus'];
+  server_valid: boolean;
 };
 
 type SessionAssignment = AssignmentView & {
@@ -56,6 +57,7 @@ function view(row: AssignmentRow): SessionAssignment {
     validTo: row.valid_to,
     endedAt: row.ended_at ? new Date(row.ended_at).toISOString() : null,
     membershipStatus: row.membership_status,
+    serverValid: row.server_valid,
   };
 }
 
@@ -79,7 +81,8 @@ async function loadSessionView(
       a.id, a.membership_id, a.customer_id, c.name as customer_name,
       a.organizer_id, o.name as organizer_name, a.unit_id, u.name as unit_name,
       a.function, a.valid_from::text, a.valid_to::text, a.ended_at,
-      m.status as membership_status
+      m.status as membership_status,
+      (public.assignment_is_valid(a) and c.closed_at is null) as server_valid
     from public.access_assignments a
     join public.memberships m on m.id = a.membership_id
     join public.customers c on c.id = a.customer_id

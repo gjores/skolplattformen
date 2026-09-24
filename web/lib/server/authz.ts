@@ -1,3 +1,4 @@
+import { legacyAppRole } from '../access-rules.ts';
 import type { AccessFunction } from '../access-rules.ts';
 import { epochChanged } from '../access-rules.ts';
 import type { MfaClaims, ProofAssessment } from '../auth-assurance.ts';
@@ -65,13 +66,7 @@ export async function requireContext(request: Request, corr: string): Promise<Co
   });
   if (!hint) throw new Deny('session_revoked', 401);
   const accessFunction = hint.function;
-  const appRole =
-    accessFunction === 'huvudman' ||
-    accessFunction === 'rektor' ||
-    accessFunction === 'administrator' ||
-    accessFunction === 'larare'
-      ? accessFunction
-      : null;
+  const appRole = legacyAppRole(accessFunction);
   return {
     sessionId: current.session.id,
     identityId: current.session.identityId,

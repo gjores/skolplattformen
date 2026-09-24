@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   assignmentState,
+  legacyAppRole,
+  FUNCTION_LABEL,
   contextLabel,
   epochChanged,
   invalidAssignmentCode,
@@ -137,4 +139,22 @@ test('kontextetikett innehåller huvudman, skola och funktion', () => {
 
 test('svenskt datum följer Europe/Stockholm över UTC-dygnsgränsen', () => {
   assert.equal(todayInStockholm(new Date('2026-06-30T22:30:00Z')), '2026-07-01');
+});
+
+for (const role of ['elevhalsa', 'elevhalsoansvarig', 'it', 'support', 'kundadmin', 'granskare']) {
+  test(`${role} behålls som åtkomstfunktion men ger ingen äldre verksamhetsroll`, () => {
+    assert.equal(legacyAppRole(role), null);
+    assert.ok(FUNCTION_LABEL[role]);
+  });
+}
+test('etablerade verksamhetsroller behåller uttrycklig bakåtkompatibilitet', () => {
+  for (const role of ['huvudman', 'rektor', 'administrator', 'larare']) assert.equal(legacyAppRole(role), role);
+  assert.equal(legacyAppRole(null), null);
+  assert.equal(legacyAppRole('unknown'), null);
+});
+
+test('servernekad livekedja är inte valbar trots giltiga kalenderdatum', () => {
+  const item = assignment({serverValid: false});
+  assert.equal(assignmentState(item, '2026-09-24'), 'avslutat');
+  assert.equal(selectableAssignments([item], '2026-09-24').valid.length, 0);
 });
