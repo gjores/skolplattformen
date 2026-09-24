@@ -46,8 +46,9 @@ import ContextSwitch, {
 } from './context-switch';
 import KundWorkspace from './kund-workspace';
 import LoggWorkspace from './logg-workspace';
+import MandateWorkspace from './mandate-workspace';
 
-type ProtectedView = 'kund' | 'logg' | 'stangt';
+type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'stangt';
 
 export type SessionResponse = {
   identity: {
@@ -77,6 +78,8 @@ const closedItems = [
 function startView(session: SessionResponse): ProtectedView {
   if (session.context?.function === 'granskare') return 'logg';
   if (session.context?.function === 'kundadmin') return 'kund';
+  if (session.context?.function === 'it') return 'anslutning';
+  if (session.context && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(session.context.function)) return 'mandat';
   return 'stangt';
 }
 
@@ -123,6 +126,13 @@ function ProtectedNavigation({
             <SidebarMenuItem>
               <SidebarMenuButton isActive={view === 'logg'} aria-current={view === 'logg' ? 'page' : undefined} onClick={() => go('logg')} className="nav-button">
                 <ScrollText size={19} /><span>Säkerhetslogg</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {session.context && ['huvudman', 'rektor', 'elevhalsoansvarig', 'it'].includes(session.context.function) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive={view === 'mandat' || view === 'anslutning'} aria-current={view === 'mandat' || view === 'anslutning' ? 'page' : undefined} onClick={() => go(session.context?.function === 'it' ? 'anslutning' : 'mandat')} className="nav-button">
+                <ShieldCheck size={19} /><span>{session.context.function === 'it' ? 'Lokal anslutning' : 'Mandat'}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
@@ -260,7 +270,7 @@ function ProtectedShell() {
     <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => loadSession()} />
   );
   const validContext = session.context?.valid && !session.context.blocked;
-  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : 'Kommande funktion';
+  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : 'Kommande funktion';
 
   return (
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
@@ -285,6 +295,7 @@ function ProtectedShell() {
             {mfaRequired && <output role="alert" className="admin-notice mfa-notice"><span>Åtgärden kräver verifiering med engångskod.</span><Button onClick={() => window.location.assign('/api/auth/login?step_up=1&till=/')}>Verifiera med engångskod</Button></output>}
             {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={() => setSession(null)} />}
+            {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}

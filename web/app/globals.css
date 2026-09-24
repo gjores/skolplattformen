@@ -2000,3 +2000,13 @@ textarea:disabled {
 .audit-details dd{overflow-wrap:anywhere;font-size:.75rem}
 .admin-dialog textarea,.admin-dialog input{width:100%;min-height:44px;border:1px solid var(--muted-foreground);border-radius:var(--radius);padding:8px 10px;background:var(--background);color:var(--foreground);font:inherit}
 @media(max-width:800px){.protected-counts,.protected-form,.protected-filter{grid-template-columns:1fr}.protected-admin .admin-heading>div{min-width:0;max-width:100%}.protected-admin .admin-heading h1{overflow-wrap:anywhere}.protected-card{padding:18px 14px}.protected-one-time{grid-template-columns:1fr}.protected-one-time button{width:100%}}
+
+/* Mandat och lokal anslutning i den skyddade provmiljön. */
+.mandate-list{display:grid;gap:16px}
+.mandate-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+.mandate-facts dt{font-weight:600}.mandate-facts dd{margin:4px 0;overflow-wrap:anywhere}
+.mandate-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.mandate-workspace button,.mandate-dialog button{min-height:44px;white-space:normal;height:auto}
+.mandate-workspace button:focus-visible,.mandate-workspace select:focus-visible,.mandate-dialog button:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+.mandate-dialog{max-height:90dvh;overflow-y:auto;overflow-wrap:anywhere}
+@media(max-width:700px){.mandate-facts{grid-template-columns:1fr}.mandate-actions>*{width:100%}}
