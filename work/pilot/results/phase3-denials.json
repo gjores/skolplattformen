@@ -1,63 +1,10 @@
 {
   "status": "BLOCKED",
   "scope": "local-synthetic-only",
-  "coverage": {
-    "from": "2026-09-24T09:01:42.525Z",
-    "to": "2026-09-24T09:01:44.631Z",
-    "continuity": "unproven"
-  },
-  "kongProbe": "OBSERVED",
-  "observations": [
-    {
-      "route": "rest",
-      "status": 401,
-      "sourceObserved": true
-    },
-    {
-      "route": "rpc",
-      "status": 404,
-      "sourceObserved": true
-    },
-    {
-      "route": "storage",
-      "status": 404,
-      "sourceObserved": true
-    }
-  ],
-  "events": [
-    {
-      "source": "kong",
-      "sourceEventId": "d91d96b915bf80f2f2c15f2feb697fb716ce30f36a1c63be76396dde3dda30af:2851d680458370c0915fa26c43c70d52",
-      "time": "2026-09-24T09:01:43+00:00",
-      "route": "rest",
-      "status": 401,
-      "actor": null,
-      "outcome": "rejected"
-    },
-    {
-      "source": "kong",
-      "sourceEventId": "d91d96b915bf80f2f2c15f2feb697fb716ce30f36a1c63be76396dde3dda30af:a3a0cbcf4125725765db9ad36b634aff",
-      "time": "2026-09-24T09:01:43+00:00",
-      "route": "rpc",
-      "status": 404,
-      "actor": null,
-      "outcome": "rejected"
-    },
-    {
-      "source": "kong",
-      "sourceEventId": "d91d96b915bf80f2f2c15f2feb697fb716ce30f36a1c63be76396dde3dda30af:ada27eda388367a9b50432a4112302d8",
-      "time": "2026-09-24T09:01:43+00:00",
-      "route": "storage",
-      "status": 404,
-      "actor": null,
-      "outcome": "rejected"
-    }
-  ],
-  "malformed": 0,
+  "attemptedAt": "2026-09-24T16:34:11.529Z",
+  "kongProbe": "UNVERIFIED",
+  "events": [],
   "blockers": [
-    "storage-upstream-denials-unverified",
-    "direct-sql-denials-unverified",
-    "outage-restart-cursor-recovery-unverified",
-    "individual-probe-correlation-unverified"
+    "source-collection-unavailable"
   ]
 }

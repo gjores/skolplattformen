@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "scope": "isolated-component-mocked-api-not-backend-verification",
+  "passed": 4,
+  "failed": 0,
+  "projects": [
+    "desktop",
+    "phone"
+  ]
+}

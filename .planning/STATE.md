@@ -6,7 +6,7 @@ current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: 04
 status: executing
-stopped_at: 03-01–03 genomförda; 03-04 delvis klar. Alternativa auditkällor återstår. Kvotgräns 70 % förbrukat (30 % återstår).
+stopped_at: 03-01–03 genomförda; 03-04 delvis klar. Alternativa auditkällor återstår. Ny budget: ytterligare 10 procentenheter, från69 till79 % förbrukat.
 last_updated: "2026-09-24T08:00:00Z"
 last_activity: 2026-09-24
 progress:
@@ -40,7 +40,9 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Executing Phase 03 — SQL/server cutover applied; verification incomplete
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-24
-**Last Activity Description:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade; källrapport BLOCKED för återstående källor och kontinuitet.
+**Last Activity Description:** Senare: avgränsad03-05UI, fyra isolerade mockade dator/telefonprov PASS. Tidigare Dockerstack saknas; användaren godkände återskapad syntetisk miljö med nya testkonton, etablering pågår. Äldre prov nedan är historik.
+
+**Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade; källrapport BLOCKED för återstående källor och kontinuitet.
 
 Progress: [████████░░] 86%
 Planprogress: 25 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
