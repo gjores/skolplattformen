@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-09-24T07:50:23.893Z",
-  "revision": "93ce97afc381ad38ee965535f3ad827f4c7449a0",
+  "checkedAt": "2026-09-24T08:49:25.967Z",
+  "revision": "5af8ff59ae8373d398ba5885db270150404b3b27",
   "target": "protected",
   "baseUrl": "http://127.0.0.1:3013",
   "status": "PASS",
@@ -229,7 +229,7 @@
         {
           "check": "främmande och obefintligt medlemskap har samma svar",
           "ok": true,
-          "detail": "HTTP 404/404, Δ 4 ms"
+          "detail": "HTTP 404/404, Δ 10 ms"
         },
         {
           "check": "främmande skolenhet röjde inte existens",
@@ -442,9 +442,69 @@
           "check": "IT får versionskonflikt vid gammal ändring",
           "ok": true,
           "detail": "HTTP 409"
+        },
+        {
+          "check": "klienten kan inte ange överordnat mandat",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "check": "rektor kan inte utse rektor",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "IT kan inte delegera verksamhetsmandat",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "IT röjer inte annan skolas anslutning",
+          "ok": true,
+          "detail": "HTTP 404/404"
+        },
+        {
+          "check": "rektor ger elevhälsa ett explicit elevurval",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "elevhälsa kan inte delegera lärarmandat",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "support kräver högst 60 minuter",
+          "ok": true,
+          "detail": "för lång 400, avgränsad 201"
+        },
+        {
+          "check": "utgången support blir ovalbar i samma session",
+          "ok": true,
+          "detail": "före 200, efter 200"
+        },
+        {
+          "check": "rektor utfärdar personbunden verksamhetsinbjudan",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "verksamhetsinbjudan kan lösas exakt en gång",
+          "ok": true,
+          "detail": "första 201, andra 404"
+        },
+        {
+          "check": "avslutad utfärdare stoppar inlösen utan nytt mandat",
+          "ok": true,
+          "detail": "avslut 200, inlösen 404, mandat 0"
+        },
+        {
+          "check": "rektorsavslut spärrar underordnat elevhälsomandat",
+          "ok": true,
+          "detail": "HTTP 200"
         }
       ]
     }
   ],
-  "verificationNote": "Built protected artifact created before commit 93ce97a; same server source as commit. Runner includes subsequent crypto.randomUUID fix. Local synthetic sessions; not OIDC/browser acceptance."
+  "verificationNote": "Protected build with fb6e6be runtime fix (tx.json); built before commit. Final type-only annotation checked separately by tsc and lint. Synthetic minted sessions, not browser/OIDC acceptance."
 }

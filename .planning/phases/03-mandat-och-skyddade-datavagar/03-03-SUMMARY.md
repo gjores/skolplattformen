@@ -40,3 +40,11 @@ Tekniska auditobservationer ligger i docs/pilot/phase3-audit-source-notes.md. Do
 Kodcommits: 4706843, 93ce97a. SQL-agentens commits: df87ca6, b71412b. Användarens config.json/spike.json lämnades utanför.
 
 Appen kör som byggd protected-preview på port 3000. Startsidan gav HTTP 200 och ett separat CSRF-prov på exakt http://localhost:3000 gav 2/2 PASS. Dev-originfrågan kvarstår separat.
+
+## Komplettering efter utökad budget 2026-09-24
+
+Commit fb6e6be rättar dubbel JSON-kodning i verksamhetsinbjudan: postgres-klienten får nu objektet via tx.json. Nytt API-prov var rött för giltig utfärdning före rättningen och grönt efter. Full API-svit 15/15 PASS, mandatfallet nu 19/19 kontroller. Bygge, typkontroll och lint PASS.
+
+Tillkommande bevis: elevhälsa får explicit elevurval men kan inte delegera lärare; klienten kan inte ange parent; rektor får inte utse rektor; IT får varken verksamhetsdelegering eller läsa annan skolas anslutning; support över 60 minuter nekas och ett utgånget supportmandat blir ovalbart i befintlig session; personbunden verksamhetsinbjudan löses exakt en gång; avslutad utfärdare stoppar inlösen utan nytt mandat och spärrar underordnad elevhälsa.
+
+Supportprovet flyttar endast det egna slumpgenererade testmandatets tidsfönster till dåtid. Det bevisar omprövning vid nästa anrop, inte exakt millisekundgräns. Ändrad scope/tid mellan utfärdande och inlösen och elevhälsoansvarigs fulla API-matris återstår. PARTIAL-status kvarstår. Inga UI-ändringar eller nya browserbevis.

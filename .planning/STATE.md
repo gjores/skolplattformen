@@ -6,7 +6,7 @@ current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: 02
 status: executing
-stopped_at: 03-02 och 03-03 delvis genomförda; SQL/servervägar inkopplade. Full matris och audit återstår. Kvotgräns 50 % förbrukat.
+stopped_at: 03-02 och 03-03 delvis genomförda; SQL/servervägar inkopplade. Full matris och audit återstår. Kvotgräns 55 % förbrukat (45 % återstår).
 last_updated: "2026-09-24T08:00:00Z"
 last_activity: 2026-09-24
 progress:
@@ -40,7 +40,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Executing Phase 03 — SQL/server cutover applied; verification incomplete
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-24
-**Last Activity Description:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 410 SQL-prov och verkligt samtidighetsprov PASS; 272 modell-/serverprov och 15/15 isolerade API-fall PASS. Läs 03-02/03-03-SUMMARY för kvarvarande verifieringsluckor.
+**Last Activity Description:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 410 SQL-prov och verkligt samtidighetsprov PASS; 272 modell-/serverprov och 15/15 isolerade API-fall PASS, mandatfallet utökat till 19 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-02/03-03-SUMMARY för kvarvarande verifieringsluckor.
 
 Progress: [████████░░] 79%
 Planprogress: 23 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
@@ -135,7 +135,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Session
 
 **Last Date:** 2026-09-24
-**Stopped At:** 03-02/03-03 delvis genomförda; återuppta full mandatmatris före godkännande. Budgetstopp vid högst 50 % veckoförbrukning.
+**Stopped At:** 03-02/03-03 delvis genomförda; återuppta full mandatmatris före godkännande. Budgetstopp vid högst 55 % veckoförbrukning.
 **Resume File:** .planning/phases/03-mandat-och-skyddade-datavagar/.continue-here.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22
