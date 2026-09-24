@@ -2,17 +2,17 @@
 phase: 03-mandat-och-skyddade-datavagar
 plan: "02"
 subsystem: database
-status: partial
+status: complete
 requirements: [ACL-02, ACL-03, ACL-04, ACL-05]
 provides: ["Scope-FK och explicit personalbindning", "Livekedja och kontrollerade mutationer/inbjudningar", "Samordnad privilegieväxling", "SQL- och samtidighetsbevis för genomförd del"]
 affects: ["03-02 slutprov", "03-03", "03-04", "03-05", "03-06"]
-completed: null
+completed: 2026-09-24
 last_updated: 2026-09-24
 ---
 
-# Fas 3 plan 02 — PARTIAL
+# Fas 3 plan 02 — genomförd
 
-**Databasens mandatvägar och den samordnade privilegieväxlingen är genomförda. 410 SQL-prov och ett verkligt tvåanslutningsprov passerar. Full namngiven mandatmatris, slutliga API-fixturer och samlad server-/API-verifiering återstår; inget ACL-krav markeras klart.**
+**Planens båda databasuppgifter är genomförda. Slutkörningen ger 510 SQL-prov PASS, inklusive 18 exakta tidsprov och 37 kompletterande matrisprov; tre verkliga samtidighetsordningar passerar. Detta slutför 03-02, inte fasens ACL-/auditkrav eller verklig drift.**
 
 ## Levererat
 
@@ -47,14 +47,14 @@ Rootgranskning fann tvetydig SQL-parameter `assignment_id` i objektscope. Ett ny
 
 Fas2-provet som tidigare godkände den gamla rektors-RPC:n provar nu att den nekas trots huvudman i GUC. Händelsetriggerns aktörs-/rollprov finns kvar separat; antal fas2-access ökade från 66 till 67. Ett gammalt klockprov kontrollerar nu att manipulerad provklocka inte aktiverar ett framtida mandat, eftersom livekontrollen använder faktisk serverklocka.
 
-## Kvar innan 03-02 får markeras klar
+## Planens slutvillkor och nästa gräns
 
-1. Komplettera den fulla namngivna SQL-matrisen: elevhälsoansvarigs skolmängd, explicit supportgodkännare, exakt start/slut på kontrollerad klocka, ändrad scope/tid mellan utfärdande och inlösen, framtida tilldelning/avslut och fler samtidighetsordningar. Befintliga prov täcker delar men är inte komplett motsvarighet till alla modellfall.
-2. Utöka `phase3-fixtures.sql` från relationsgrund till hela API-falluppsättningen med identiteter/uppdrag. SQL-testet har egna rollback-fixturer; API-runnern får inte anta att alla dessa finns beständigt.
-3. Granska samlad server-/SQL-växling och kör relevanta API-fall. Elevläsning ska förbli utan Worker-GRANT tills audit före svar/commit är implementerad och verifierad.
-4. Revidera den historiska 11:00-kedjefunktionen/12:00-personalpredikatets dokumentation vid slutstädning: de är interna delpredikat, full giltighet avgörs av 13/17-versionen, inte av dem var för sig.
+1. Aktuellt mandat krävs i kontrollerade databasvägar: kund/skola, delegation, personalbindning, parent, giltighet och självutökning är verifierade. Bred Worker-skrivning och äldre rektors-RPC är stängda.
+2. Databasens matrisansvar är spårat i `03-02-SQL-MATRIX.md`, med positiva/negativa fall, oförändrade rader vid nekande och isolerade rollback-fixturer. Exakta tidsgränser och tre samtidighetsordningar är nu verifierade.
+3. API-fixturkravet uppfylls av `phase3-fixtures.sql` som relationsgrund och `verify-access.mjs` som efter målverifiering skapar egna slump-ID:n för provens mandat/identiteter. Ett komplett extra permanent mandatregister i fixturefilen behövs inte.
+4. Fältbegäran, lokal profilgrind och audit-/HTTP-policyn verifieras i sina server-/auditplaner. Privata elevläsfunktioner får fortfarande inga Worker-rättigheter före audit. Spårningskartan markerar den gränsen uttryckligen; inget senare fasprov räknas bort.
 
-Fortsätt i **nya migrationer efter 20260924190000**. STATE/ROADMAP ägs av root. Användarens config.json/spike.json lämnades orörda. Ingen UI/handbok ändrades av databasdelen.
+Historiska 11:00/12:00-funktioner är interna delpredikat, medan full livegiltighet avgörs av 13/17 och den publika wrappern i 19. Inga tidigare tillämpade migrationer har skrivits om. STATE/ROADMAP ägs av root; användarens config/spike lämnades orörda.
 
 ## Commits
 
@@ -68,4 +68,16 @@ Senaste fulla SQL-körning: **442 PASS i sju filer** (`phase3-schema-regression.
 
 API-provens beständiga fixturer blottlade tidigare delade UUID/issuer-nycklar och globalt mandatantal i SQL-proven. SQL-filerna har nu egna UUID-prefix och issuer, och mandatantalet avser provets egen kund. Ingen beständig API-fixtur raderades eller återställdes. Mellanliggande körningar med fixturkollisioner var FAIL; slutkörningen ovan är grön. Inga nya migrationer behövdes.
 
-Luckorna i punkt 1 ovan är därmed till stor del prövade; **exakt styrd start/slutgräns och fler samtidighetsordningar kvarstår**, liksom full spårning till hela modellmatrisen. API-provens aktuella resultat dokumenteras separat av root. Planstatus förblir PARTIAL tills den samlade kontrollen är färdig.
+Vid denna mellanleverans återstod exakt tidsgräns, fler samtidighetsordningar och matrisens spårning. De är slutförda nedan; API-provens resultat dokumenteras separat av root.
+
+
+## Slutverifiering 2026-09-24
+
+- `phase3_temporal.test.sql`: **18 PASS**, före/vid start, sista mikrosekunden före/vid/efter exklusivt slut, parentgräns och Stockholms midnatt. Provet läser den verkliga funktionsdefinitionen och byter endast klockinitialiseringen i en rollback-transaktion. Runtimefunktionen, dess privilegier och serverklocka ändras inte beständigt; ingen produktbakdörr eller extra migration infördes.
+- `phase3_matrix.test.sql`: **37 PASS**, bland annat mentorgrupp, tomt scope, annan elev i samma skola, fel ärendeelev, full parentkontroll, kundkontoroller, stängda direkta skriver och exakt SQL-returtyp.
+- `verify-mandate-locks.mjs`: **3/3 PASS** med riktiga Worker-anslutningar och observerat advisory-lås. Avslut först/commit nekar väntande kontroll; läsning först gör att avslut väntar och nästa kontroll nekar; återkallat avslut/rollback låter väntande kontroll lyckas. Alla egna slump-ID-fixturer rensades.
+- Planens namngivna `phase3_mandates.test.sql`: **213 PASS**, omkörd.
+- Sista `run-sql-tests.mjs --out work/pilot/results/phase3-schema-regression.json`: **510 PASS i tio filer**, inklusive den separat ägda auditplanens 13 aktuella SQL-prov. Två mellanliggande helkörningar var FAIL när auditplanens nya migration/prov ännu höll på att färdigställas; slutkörningen inkluderar och passerar dem.
+- `03-02-SQL-MATRIX.md` binder modellens regelgrupper till SQL-invarianter eller uttryckligt server-/auditansvar. Detta är inte ett obestyrkt påstående om identiska modell-/SQL-signaturer eller full fasverifiering.
+
+Inga nya produktmigrationer behövdes för slutproven. Ingen app-/handboksändring ingår i denna slutleverans. Båda uppgifterna i 03-02 har verifieringsbevis; planstatus är complete medan senare planer och fasens gemensamma verifiering återstår.

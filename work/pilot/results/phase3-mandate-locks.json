@@ -1,6 +1,22 @@
 {
   "target": "protected",
   "status": "PASS",
-  "waitingObserved": true,
-  "revokedContextDenied": true
+  "cases": [
+    {
+      "name": "revoke-first-commit",
+      "waitingObserved": true,
+      "outcome": "42501"
+    },
+    {
+      "name": "read-first",
+      "waitingObserved": true,
+      "readBeforeRevoke": true,
+      "nextReadDenied": true
+    },
+    {
+      "name": "revoke-first-rollback",
+      "waitingObserved": true,
+      "outcome": "allowed"
+    }
+  ]
 }

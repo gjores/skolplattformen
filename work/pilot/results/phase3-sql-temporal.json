@@ -1,0 +1,8 @@
+{
+  "target": "protected",
+  "files": [
+    "phase3_temporal.test.sql"
+  ],
+  "status": "PASS",
+  "exitCode": 0
+}

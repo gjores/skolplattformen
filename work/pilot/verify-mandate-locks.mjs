@@ -11,8 +11,9 @@ if (process.argv.length > 2) throw new Error('REFUSED: inga flaggor tillåtna');
 const target = await assertTarget('protected');
 const db = postgres(target.dbUrl, { max: 3, prepare: false, onnotice: () => {} });
 const ids = Object.fromEntries(['customer', 'identity1', 'identity2', 'member1', 'member2', 'root'].map(k => [k, randomUUID()]));
-let a, b, child;
-let waiting = false, denied = false, completed = false;
+let a, b;
+const children = [], cases = [];
+let completed = false;
 const context = async (sql, assignment, member, identity) => {
   await sql`select set_config('app.customer_id',${ids.customer},true),
     set_config('app.assignment_id',${assignment},true),set_config('app.membership_id',${member},true),
@@ -28,29 +29,53 @@ try {
     await tx`insert into public.access_assignments(id,membership_id,customer_id,function)
       values(${ids.root},${ids.member1},${ids.customer},'kundadmin')`;
     await context(tx, ids.root, ids.member1, ids.identity1);
-    const rows = await tx`select public.phase3_grant_mandate(${tx.json({membershipId:ids.member2,function:'kundadmin',scopeKind:'school',unitIds:[]})}) as id`;
-    child = rows[0].id;
+    for (let i=0; i<3; i++) {
+      const rows = await tx`select public.phase3_grant_mandate(${tx.json({membershipId:ids.member2,function:'kundadmin',scopeKind:'school',unitIds:[]})}) as id`;
+      children.push(rows[0].id);
+    }
   });
   a = await db.reserve(); b = await db.reserve();
-  await a`begin`; await b`begin`;
-  await a`set local role skolplattform_worker`; await b`set local role skolplattform_worker`;
-  await a`set local statement_timeout='10s'`; await b`set local statement_timeout='10s'`;
-  await context(a, ids.root, ids.member1, ids.identity1);
-  await context(b, child, ids.member2, ids.identity2);
-  const [{pid}] = await b`select pg_backend_pid() as pid`;
-  await a`select public.phase3_revoke_mandate(${child})`;
-  // Convert error immediately to result so the pending Promise cannot reject unhandled.
-  const pending = b`select public.phase3_mandate_context()`.then(() => 'allowed', error => error.code);
-  for (let attempt=0; attempt<100; attempt++) {
-    const [row] = await db`select exists(select 1 from pg_locks where pid=${pid} and locktype='advisory' and not granted) as waiting`;
-    if (row.waiting) { waiting=true; break; }
-    await new Promise(resolve=>setTimeout(resolve,20));
+  const waitForLock = async pid => {
+    for (let attempt=0; attempt<100; attempt++) {
+      const [row] = await db`select exists(select 1 from pg_locks where pid=${pid} and locktype='advisory' and not granted) as waiting`;
+      if (row.waiting) return;
+      await new Promise(resolve=>setTimeout(resolve,20));
+    }
+    throw new Error('Förväntad väntan på kundlåset observerades inte');
+  };
+  for (const [index,name] of ['revoke-first-commit','read-first','revoke-first-rollback'].entries()) {
+    const child=children[index];
+    await a`begin`; await b`begin`;
+    await a`set local role skolplattform_worker`; await b`set local role skolplattform_worker`;
+    await a`set local statement_timeout='10s'`; await b`set local statement_timeout='10s'`;
+    await context(a,ids.root,ids.member1,ids.identity1);
+    await context(b,child,ids.member2,ids.identity2);
+    if (name==='read-first') {
+      await b`select public.phase3_mandate_context()`;
+      const [{pid}]=await a`select pg_backend_pid() as pid`;
+      const pending=a`select public.phase3_revoke_mandate(${child})`.then(()=> 'revoked',error=>error.code);
+      await waitForLock(pid);
+      await b`commit`;
+      if (await pending !== 'revoked') throw new Error('Avslut efter färdig läsning misslyckades');
+      await a`commit`;
+      await b`begin`; await b`set local role skolplattform_worker`;
+      await context(b,child,ids.member2,ids.identity2);
+      const outcome=await b`select public.phase3_mandate_context()`.then(()=> 'allowed',error=>error.code);
+      if(outcome!=='42501') throw new Error('Ny läsning efter avslut måste nekas');
+      await b`rollback`;
+      cases.push({name,waitingObserved:true,readBeforeRevoke:true,nextReadDenied:true});
+    } else {
+      const [{pid}]=await b`select pg_backend_pid() as pid`;
+      await a`select public.phase3_revoke_mandate(${child})`;
+      const pending=b`select public.phase3_mandate_context()`.then(()=> 'allowed',error=>error.code);
+      await waitForLock(pid);
+      if(name==='revoke-first-commit') await a`commit`; else await a`rollback`;
+      const expected=name==='revoke-first-commit'?'42501':'allowed';
+      if(await pending!==expected) throw new Error('Fel utfall efter avslutets commit/rollback');
+      await b`rollback`;
+      cases.push({name,waitingObserved:true,outcome:expected});
+    }
   }
-  if (!waiting) throw new Error('Skyddad kontroll väntade inte på avslutets kundlås');
-  await a`commit`;
-  denied = (await pending) === '42501';
-  if (!denied) throw new Error('Väntande anrop nekades inte efter avslutets commit');
-  await b`rollback`;
   completed = true;
 } finally {
   for (const connection of [a,b]) {
@@ -58,14 +83,14 @@ try {
   }
   // Radera enbart fixtur-ID:n som detta körningstillfälle skapade.
   await db.begin(async tx => {
-    if (child) await tx`delete from public.access_assignments where id=${child}`;
+    for (const child of children) await tx`delete from public.access_assignments where id=${child}`;
     await tx`delete from public.access_assignments where id=${ids.root}`;
     await tx`delete from public.memberships where id in (${ids.member1},${ids.member2})`;
     await tx`delete from public.identities where id in (${ids.identity1},${ids.identity2})`;
     await tx`delete from public.customers where id=${ids.customer}`;
   });
   await db.end();
-  const result={target:'protected',status:completed?'PASS':'FAIL',waitingObserved:waiting,revokedContextDenied:denied};
+  const result={target:'protected',status:completed?'PASS':'FAIL',cases};
   fs.writeFileSync(new URL('./results/phase3-mandate-locks.json',import.meta.url),JSON.stringify(result,null,2)+'\n');
   console.log(JSON.stringify(result));
 }
