@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
-current_plan: 02
+current_plan: 04
 status: executing
-stopped_at: 03-02 och 03-03 delvis genomförda; SQL/servervägar inkopplade. Full matris och audit återstår. Kvotgräns 55 % förbrukat (45 % återstår).
+stopped_at: 03-01–03 genomförda; 03-04 delvis klar. Alternativa auditkällor återstår. Kvotgräns 70 % förbrukat (30 % återstår).
 last_updated: "2026-09-24T08:00:00Z"
 last_activity: 2026-09-24
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 29
-  completed_plans: 23
-  percent: 79
+  completed_plans: 25
+  percent: 86
 ---
 
 # Project State
@@ -24,33 +24,33 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 3 — 03-01 klar; 03-02/03-03 delvis genomförda med lokala SQL/servervägar, full mandatmatris återstår
+**Current focus:** Fas 3 — 03-01–03 genomförda; 03-04 partiell. Alternativa auditkällor och deras avbrottsprov är nästa steg
 
 ## Current Position
 
 Phase: 03 (Mandat och skyddade datavägar) — IN PROGRESS
-Plan: 03-02, delvis genomförd
+Plan: 03-04, delvis genomförd
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 03
 **Current Phase Name:** Mandat och skyddade datavägar
 **Total Phases:** 8
-**Current Plan:** 03-02, delvis genomförd
+**Current Plan:** 03-04, delvis genomförd
 **Total Plans in Phase:** 7
 **Status:** Executing Phase 03 — SQL/server cutover applied; verification incomplete
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-24
-**Last Activity Description:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 442 SQL-prov och verkligt samtidighetsprov PASS; 272 modell-/serverprov och 15/15 isolerade API-fall PASS, mandatfallet utökat till 19 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-02/03-03-SUMMARY för kvarvarande verifieringsluckor.
+**Last Activity Description:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade; källrapport BLOCKED för återstående källor och kontinuitet.
 
-Progress: [████████░░] 79%
-Planprogress: 23 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
+Progress: [████████░░] 86%
+Planprogress: 25 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
 Phases executed: 2 of 8 (fas 1–2 verifierade)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 23
+- Total plans completed: 25
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -113,7 +113,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: återuppta `gsd-execute-phase 3` från återstående delar av 03-02. Dess PARTIAL-summary innebär inte att planen är klar. Läs .continue-here.md och 03-02-SUMMARY.md. Auditkällornas faktiska kapacitet måste bevisas i 03-04; saknat bevis blockerar fortsatt godkännande.
+- Nästa steg: återuppta `gsd-execute-phase 3` från 03-04. Komplettera Storage/direkt SQL, säker individuell korrelation och avbrott/rotation/cursor/återhämtning. Läs .continue-here.md och 03-04-SUMMARY.md; elevvägen förblir stängd tills auditbevis finns.
 - 6 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23).
 
 ## Blockers
@@ -135,7 +135,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Session
 
 **Last Date:** 2026-09-24
-**Stopped At:** 03-02/03-03 delvis genomförda; återuppta full mandatmatris före godkännande. Budgetstopp vid högst 55 % veckoförbrukning.
+**Stopped At:** 03-01–03 genomförda. 03-04 partiell; återuppta auditkällor. Budgetstopp vid högst 70 % veckoförbrukning.
 **Resume File:** .planning/phases/03-mandat-och-skyddade-datavagar/.continue-here.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22
