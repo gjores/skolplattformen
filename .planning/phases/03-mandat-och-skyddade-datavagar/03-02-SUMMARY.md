@@ -61,3 +61,11 @@ Fortsätt i **nya migrationer efter 20260924190000**. STATE/ROADMAP ägs av root
 - `d8d3237`, `17e104f`, `24887d3`: schemagrund, intern kedja och första PARTIAL-status.
 - `5a1dc66`, `bfc815b`: explicit personalbindning och dess verifiering.
 - `df87ca6`: fullare livepolicy, kontrollerade mutationer/inbjudningar, parameterfix, samordnad cutover och SQL-/samtidighetsbevis.
+
+## Kompletterande gränsprov 2026-09-24
+
+Senaste fulla SQL-körning: **442 PASS i sju filer** (`phase3-schema-regression.json`). Ny `phase3_boundaries.test.sql` ger 32 prov inklusive egna etableringsfall: elevhälsoansvarig tilldelar inom två skolor men saknar egen elevläsning, minskad skolmängd och självutökning nekar; supportgodkännare/tilldelare härleds från rektor och kan inte väljas av klient; framtida uppdrag kan tilldelas/avslutas utan förtida åtkomst; inlösen återprövar minskad skolmängd och förkortad giltighet även när utfärdaren fortfarande är aktuell. Nekad inlösen lämnar token orörd. Inbjudningsproven omfattar nu även servernormaliserade nullfält/tomma listor.
+
+API-provens beständiga fixturer blottlade tidigare delade UUID/issuer-nycklar och globalt mandatantal i SQL-proven. SQL-filerna har nu egna UUID-prefix och issuer, och mandatantalet avser provets egen kund. Ingen beständig API-fixtur raderades eller återställdes. Mellanliggande körningar med fixturkollisioner var FAIL; slutkörningen ovan är grön. Inga nya migrationer behövdes.
+
+Luckorna i punkt 1 ovan är därmed till stor del prövade; **exakt styrd start/slutgräns och fler samtidighetsordningar kvarstår**, liksom full spårning till hela modellmatrisen. API-provens aktuella resultat dokumenteras separat av root. Planstatus förblir PARTIAL tills den samlade kontrollen är färdig.
