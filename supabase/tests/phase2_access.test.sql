@@ -3,7 +3,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(66);
+select plan(67);
 
 -- ---------------------------------------------------------------------------
 -- A. Rollen och dess effektiva rättigheter
@@ -186,8 +186,8 @@ select is(
   (select count(*) from public.access_assignments a
     where a.membership_id = '40000000-0000-4000-8000-000000000007'
       and public.assignment_is_valid(a)),
-  2::bigint,
-  'det kommande uppdraget gäller om 31 dagar'
+  1::bigint,
+  'en klientliknande provklocka får inte aktivera kommande mandat'
 );
 select set_config('app.fake_today', to_char(current_date - 5, 'YYYY-MM-DD'), true);
 select is(
@@ -253,9 +253,13 @@ select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-0000000
 select set_config('app.app_role', 'huvudman', true);
 select set_config('app.organizer_id', '60000000-0000-4000-8000-000000000001', true);
 select set_config('app.customer_id', '20000000-0000-4000-8000-0000000000a1', true);
-select lives_ok(
+select throws_ok(
   $$select public.appoint_school_principal('60000000-0000-4000-8000-000000000101', null, 'Rektor Prov')$$,
-  'appoint_school_principal fungerar som Worker med serverkontext'
+  '42501',null,'äldre rektors-RPC nekas även med huvudman i GUC'
+);
+select lives_ok(
+  $$insert into public.organisation_events(organizer_id,actor,actor_role,action) values ('60000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000a02','huvudman','Syntetiskt aktörsprov')$$,
+  'befintlig händelsetrigger använder serverkontext'
 );
 reset role;
 select is(
@@ -276,8 +280,8 @@ set local role skolplattform_worker;
 select set_config('app.app_role', '', true);
 select throws_like(
   $$select public.appoint_school_principal('60000000-0000-4000-8000-000000000101', null, 'Saknar kontext')$$,
-  '%Bara huvudmannen%',
-  'utan serverroll nekas funktionen'
+  '%permission denied%',
+  'utan serverroll nekas äldre funktionen också'
 );
 reset role;
 

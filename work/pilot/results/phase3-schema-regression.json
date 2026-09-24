@@ -4,7 +4,9 @@
     "phase1_isolation.test.sql",
     "phase2_access.test.sql",
     "phase2_audit.test.sql",
-    "phase3_mandates.test.sql"
+    "phase3_connections.test.sql",
+    "phase3_mandates.test.sql",
+    "phase3_policy.test.sql"
   ],
   "status": "PASS",
   "exitCode": 0

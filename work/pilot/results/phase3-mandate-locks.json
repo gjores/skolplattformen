@@ -1,0 +1,6 @@
+{
+  "target": "protected",
+  "status": "PASS",
+  "waitingObserved": true,
+  "revokedContextDenied": true
+}
