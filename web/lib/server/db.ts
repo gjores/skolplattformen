@@ -179,6 +179,7 @@ export async function withSessionContext<T>(
         // UPDATE-RLS for the lock is customer scoped. Derive the customer only from
         // the identity-owned membership before taking the common session -> membership lock.
         await tx`select set_config('app.customer_id', ${visibleMembership.customer_id}, true)`;
+        await tx`select public.phase3_lock_customer(${visibleMembership.customer_id})`;
         const memberships = await tx<MembershipRow[]>`select m.id, m.customer_id, m.status, c.closed_at
           from public.memberships m
           join public.customers c on c.id = m.customer_id
@@ -200,7 +201,7 @@ export async function withSessionContext<T>(
             a.valid_from::text, a.valid_to::text, a.ended_at
           from public.access_assignments a
           where a.id = ${row.assignment_id}
-          for update of a`;
+          `;
         assignment = assignments[0] ?? null;
         if (
           !assignment ||

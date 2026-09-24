@@ -91,6 +91,7 @@ export async function POST(request: Request): Promise<Response> {
       // The lock policy is customer scoped. Set it only from the identity-owned
       // candidate, then lock and re-read the exact same assignment authoritatively.
       await tx`select set_config('app.customer_id', ${candidate.customer_id}, true)`;
+      await tx`select public.phase3_lock_customer(${candidate.customer_id})`;
       const rows = await tx<AssignmentRow[]>`select
           a.id, a.membership_id, a.customer_id, c.name as customer_name,
           a.organizer_id, o.name as organizer_name, a.unit_id, u.name as unit_name,
@@ -106,7 +107,7 @@ export async function POST(request: Request): Promise<Response> {
         where a.id = ${body.assignmentId}
           and m.identity_id = public.current_identity_id()
           and a.customer_id = ${candidate.customer_id}
-        for update of a, m`;
+        for update of m`;
       const selected = rows[0];
       if (!selected) throw new Deny('not_found', 404);
       hint = {

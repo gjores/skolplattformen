@@ -20,7 +20,7 @@ const checkedAt = startedAt.toISOString();
 const ALL_CASES = [
   'sparr', 'uppdrag-avslut', 'uppdrag-utgatt', 'session', 'csrf', 'mfa-kravs',
   'inbjudan', 'frammande-id', 'samma-epost', 'aktor-forfalskning', 'logg',
-  'logg-flod', 'context-race', 'audit-rollback',
+  'logg-flod', 'context-race', 'audit-rollback', 'phase3-mandates',
 ];
 
 const ID = {
@@ -276,6 +276,48 @@ async function ensureActiveGustav() {
 }
 
 const cases = {
+  async 'phase3-mandates'(checks) {
+    psql(fs.readFileSync(path.join(root,'work/pilot/sql/phase3-fixtures.sql'),'utf8'));
+    const customer='33000000-0000-4000-8000-000000000001', organizer='33000000-0000-4000-8000-000000000011';
+    const unit='33000000-0000-4000-8000-000000000111', group='33000000-0000-4000-8000-000000000311';
+    const hm=await mint({identityId:'33000000-0000-4000-8000-000000000021',membershipId:'33000000-0000-4000-8000-000000000031',assignmentId:'33000000-0000-4000-8000-000000000041'});
+    const createPerson=()=>{
+      const identity=crypto.randomUUID(),membership=crypto.randomUUID();
+      psql("insert into public.identities(id,issuer,subject,display_name) values(:'identity'::uuid,'https://phase3.example.test',:'identity','Syntetisk personal'); insert into public.memberships(id,identity_id,customer_id) values(:'member'::uuid,:'identity'::uuid,:'customer'::uuid)",{identity,member:membership,customer});
+      return {identity,membership};
+    };
+    const person=createPerson(), teacher=createPerson();
+    const today=psql('select public.app_today()::text');
+    const payload={membershipId:person.membership,function:'rektor',unitIds:[unit],scopeKind:'school',validFrom:today};
+    const principal=await call(hm,'POST','/api/kund/rektor',payload);
+    check(checks,'huvudman tilldelar personbundet rektorsmandat',principal.status===201,`HTTP ${principal.status}/${principal.body?.code}`);
+    if(principal.status!==201)return;
+    const rector=await mint({identityId:person.identity,membershipId:person.membership,assignmentId:principal.body.assignmentId});
+    const teacherPayload={...payload,membershipId:teacher.membership,function:'larare',scopeKind:'group',groups:[{id:group,kind:'teaching'}]};
+    const forbidden=await call(hm,'POST','/api/kund/mandat',teacherPayload);
+    check(checks,'huvudman nekas lärartilldelning',forbidden.status===403,`HTTP ${forbidden.status}`);
+    const granted=await call(rector,'POST','/api/kund/mandat',teacherPayload);
+    check(checks,'rektor tilldelar lärare i sin grupp',granted.status===201,`HTTP ${granted.status}/${granted.body?.code}`);
+    const list=await call(rector,'GET','/api/kund/mandat');
+    check(checks,'rektor kan lista sina mandat',list.status===200,`HTTP ${list.status}`);
+    if(granted.status===201){
+      const teacherSession=await mint({identityId:teacher.identity,membershipId:teacher.membership,assignmentId:granted.body.assignmentId});
+      const before=await call(teacherSession,'GET','/api/session');
+      const revoked=await call(rector,'POST','/api/kund/uppdrag/avsluta',{assignmentId:granted.body.assignmentId});
+      const after=await call(teacherSession,'GET','/api/session');
+      check(checks,'återkallat mandat blir omedelbart ovalbart',before.body?.context?.valid===true&&revoked.status===200&&after.body?.context?.valid===false,`avslut ${revoked.status}`);
+    }
+    const it=createPerson(),assignment=crypto.randomUUID();
+    psql("insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind) values(:'id'::uuid,:'member'::uuid,:'customer'::uuid,:'organizer'::uuid,'it','synthetic-v1','school'); insert into public.mandate_units values(:'id'::uuid,:'customer'::uuid,:'organizer'::uuid,:'unit'::uuid)",{id:assignment,member:it.membership,customer,organizer,unit});
+    const itSession=await mint({identityId:it.identity,membershipId:it.membership,assignmentId:assignment});
+    const current=await call(itSession,'GET',`/api/kund/anslutning?unitId=${unit}`);
+    const changed=await call(itSession,'PATCH','/api/kund/anslutning',{unitId:unit,enabled:true,expectedVersion:current.body?.version});
+    const conflict=await call(itSession,'PATCH','/api/kund/anslutning',{unitId:unit,enabled:false,expectedVersion:current.body?.version});
+    const tested=await call(itSession,'POST','/api/kund/anslutning',{unitId:unit,action:'test'});
+    check(checks,'IT kan ändra och prova syntetisk anslutning',current.status===200&&changed.status===200&&tested.body?.result==='synthetic_ok',`GET ${current.status}, PATCH ${changed.status}, test ${tested.status}`);
+    check(checks,'IT får versionskonflikt vid gammal ändring',conflict.status===409,`HTTP ${conflict.status}`);
+  },
+
   async sparr(checks) {
     await ensureActiveGustav();
     const gustav = await mint({ identityId: ID.gustav, membershipId: ID.memberGustav, assignmentId: ID.assignmentGustav });
@@ -456,7 +498,8 @@ const cases = {
     const foreignAssignment = psql("select id::text from public.assignments where organizer_id<>:'org'::uuid limit 1", { org: ID.organizerA });
     if (foreignAssignment) {
       const principal = await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalAssignmentId: foreignAssignment });
-      check(checks, 'rektorsuppdrag från annan huvudman nekades', principal.status === 404, `HTTP ${principal.status}`);
+      const missingPrincipal = await call(anna, 'POST', '/api/kund/rektor', { organizerId: ID.organizerA, unitId: ID.unitA, principalAssignmentId: randomUUID() });
+      check(checks, 'kundadmin nekas rektorsvägen utan att röja främmande uppdrag', principal.status === 403 && principal.body?.code === 'forbidden' && missingPrincipal.status === 403 && missingPrincipal.body?.code === 'forbidden', `HTTP ${principal.status}/${missingPrincipal.status}`);
     } else check(checks, 'rektorsuppdrag från annan huvudman nekades', true, 'ingen sådan syntetisk rad; slump-id-vägen täcks ovan');
   },
 
@@ -495,24 +538,18 @@ const cases = {
   },
 
   async 'aktor-forfalskning'(checks) {
+    await ensureActiveGustav();
     const anna = await adminMint();
-    const originalAuth = psql("select coalesce(auth_user_id::text,'') from public.identities where id=:'id'::uuid", { id: ID.anna });
-    const authUser = originalAuth || psql('select id::text from auth.users order by created_at limit 1');
-    let response;
-    try {
-      psql("update public.identities set auth_user_id=:'auth'::uuid where id=:'id'::uuid", { auth: authUser, id: ID.anna });
-      response = await call(anna, 'POST', '/api/kund/rektor', {
-        organizerId: ID.organizerA, unitId: ID.unitA, principalName: 'Förfalskad Rektor', actorRole: 'larare', actor: ID.david,
-      }, { 'X-App-Role': 'larare', 'X-Actor': ID.david });
-    } finally {
-      psql("update public.identities set auth_user_id=nullif(:'auth','')::uuid where id=:'id'::uuid", { auth: originalAuth, id: ID.anna });
-    }
-    const corr = response.headers['x-correlation-id'];
-    const audit = response.status === 200 ? psql("select actor_identity_id::text||'|'||assignment_id::text||'|'||action from public.security_events where correlation_id=:'corr'::uuid", { corr }) : '';
-    const actorRole = psql("select actor_role::text from public.organisation_events where organizer_id=:'org'::uuid order by created_at desc limit 1", { org: ID.organizerA });
-    check(checks, 'skrivningen lyckades', response.status === 200, `HTTP ${response.status}/${response.body?.code ?? ''}; ${serverErrors.slice(-220)}`);
-    check(checks, 'aktör och uppdrag härleddes på servern', audit === `${ID.anna}|${ID.assignmentAnna}|principal_appointed`, audit || 'ingen audit');
-    check(checks, 'verksamhetsloggen fick faktisk roll', actorRole === 'huvudman', actorRole);
+    const response = await call(anna, 'POST', '/api/kund/medlemskap/sparr', {
+      membershipId: ID.memberGustav, reason: 'prov', actorRole: 'larare', actor: ID.david,
+    }, { 'X-App-Role':'larare', 'X-Actor':ID.david });
+    const corr=response.headers['x-correlation-id'];
+    const audit=psql("select actor_identity_id::text||'|'||assignment_id::text||'|'||action from public.security_events where correlation_id=:'corr'::uuid",{corr});
+    check(checks,'tillåten kontoåtgärd lyckades',response.status===200,`HTTP ${response.status}`);
+    check(checks,'förfalskade aktörsfält ignoreras',audit===`${ID.anna}|${ID.assignmentAnna}|membership_blocked`,audit);
+    await call(anna,'PATCH','/api/kund/medlemskap/sparr',{membershipId:ID.memberGustav,action:'unblock'});
+    const principal=await call(anna,'POST','/api/kund/rektor',{organizerId:ID.organizerA,unitId:ID.unitA,principalName:'Förfalskad Rektor'}, {'X-App-Role':'huvudman'});
+    check(checks,'kundadmin kan inte ärva huvudmannens utnämningsrätt',principal.status===403&&principal.body?.code==='forbidden',`HTTP ${principal.status}`);
   },
 
   async logg(checks) {
@@ -539,7 +576,7 @@ const cases = {
     const other = await call(ceciliaB, 'GET', `/api/logg?from=${encodeURIComponent(from)}`);
     const events = jsonLog.body?.events ?? [];
     check(checks, 'granskare såg bara kund A:s logg', jsonLog.status === 200 && events.length > 0 && events.every((event) => event.customerId === ID.customerA), `HTTP ${jsonLog.status}, ${events.length} händelser`);
-    check(checks, 'loggen innehöll serverhärledd spärr och rektor', events.some((event) => event.action === 'membership_blocked' && event.actorSubject === ID.anna) && events.some((event) => event.action === 'principal_appointed' && event.actorSubject === ID.anna), 'båda audittyperna hittades');
+    check(checks, 'loggen innehöll serverhärledd spärr och nekad rektorsutnämning', events.some((event) => event.action === 'membership_blocked' && event.actorSubject === ID.anna) && events.some((event) => event.action === 'principal_appointed' && event.actorSubject === ID.anna && event.outcome === 'denied'), 'båda audittyperna hittades');
     check(checks, 'CSV-export loggades exakt en gång', csvLog.status === 200 && String(csvLog.headers['content-type']).startsWith('text/csv') && after === before + 1, `HTTP ${csvLog.status}, Δ ${after - before}`);
     check(checks, 'kundadmin nekades granskarlogg', denied.status === 403 && denied.body?.code === 'forbidden', `HTTP ${denied.status}/${denied.body?.code}`);
     check(checks, 'kund B såg inga A-rader', other.status === 200 && (other.body?.events ?? []).every((event) => event.customerId === ID.customerB), `HTTP ${other.status}, ${(other.body?.events ?? []).length} händelser`);

@@ -296,6 +296,7 @@ export async function refreshMfa(
     // The session row is already locked. Its identity-owned membership supplies
     // the customer RLS scope; the second statement locks and revalidates both rows.
     await tx`select set_config('app.customer_id', ${row.customer_id}, true)`;
+    await tx`select public.phase3_lock_customer(${row.customer_id})`;
     const contexts = await tx<LockedContext[]>`select
         m.id as membership_id, m.customer_id, m.status, c.closed_at,
         a.id as assignment_id, a.membership_id as assignment_membership_id,
@@ -309,7 +310,7 @@ export async function refreshMfa(
         and m.customer_id = ${row.customer_id}
         and a.membership_id = m.id
         and a.customer_id = m.customer_id
-      for update of m, a`;
+      for update of m`;
     lockedContext = contexts[0] ?? null;
   }
   const nullContext =
@@ -405,7 +406,7 @@ export async function revokeSession(
             and m.customer_id = ${customerId}
             and a.membership_id = m.id
             and a.customer_id = m.customer_id
-          for update of m, a`;
+          for update of m`;
         assignment = contexts[0] ?? null;
       }
     }
