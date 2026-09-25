@@ -5,6 +5,7 @@
     "docs:install": "npm ci --prefix docs-site",
     "docs:dev": "npm --prefix docs-site start",
     "docs:build": "npm --prefix docs-site run build",
-    "docs:serve": "npm --prefix docs-site run serve"
+    "docs:serve": "npm --prefix docs-site run serve",
+    "docs:preview": "npm --prefix docs-site run preview"
   }
 }

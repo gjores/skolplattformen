@@ -5,7 +5,8 @@
   "scripts": {
     "start": "docusaurus start --host 127.0.0.1 --port 3003 --no-open",
     "build": "docusaurus build",
-    "serve": "docusaurus serve --host 127.0.0.1 --port 3003 --no-open"
+    "serve": "docusaurus serve --host 127.0.0.1 --port 3003 --no-open",
+    "preview": "docusaurus serve --host 127.0.0.1 --no-open --port ${PORT:-3003}"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",

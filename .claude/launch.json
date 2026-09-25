@@ -17,9 +17,9 @@
     {
       "name": "handbok",
       "runtimeExecutable": "/bin/zsh",
-      "runtimeArgs": ["-c", "npm run docs:serve"],
+      "runtimeArgs": ["-c", "npm run docs:preview"],
       "port": 3003,
-      "url": "http://127.0.0.1:3003"
+      "autoPort": true
     }
   ]
 }
