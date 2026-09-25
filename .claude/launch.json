@@ -13,6 +13,13 @@
       "runtimeArgs": ["-c", "export PATH=/opt/homebrew/opt/node@25/bin:$PATH && cd web && npm run dev:blocked:test"],
       "port": 5192,
       "url": "http://127.0.0.1:5192"
+    },
+    {
+      "name": "handbok",
+      "runtimeExecutable": "/bin/zsh",
+      "runtimeArgs": ["-c", "npm run docs:serve"],
+      "port": 3003,
+      "url": "http://127.0.0.1:3003"
     }
   ]
 }
