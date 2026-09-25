@@ -20,6 +20,7 @@ Saknas läge, eller anges ett okänt läge, öppnas ingen arbetsyta alls. Det ä
 
 - [Exempelläget](exempelmiljo.md): planera utbildningar, timplaner och läsår utan inloggning.
 - [Logga in och arbeta](anvandning.md): inloggning, uppdrag, kontextbyte och extra verifiering.
+- [Inloggningsmetoder](inloggningsmetoder.md): vad som godtas som bevis, och vad som inte är beslutat.
 - [Kundadministration](kundadministration.md): inbjudningar, medlemmar, spärrar och organisationens uppbyggnad.
 - [Mandat och avgränsad åtkomst](mandat.md): vem får se vad, och varför.
 - [Säkerhetslogg](sakerhetslogg.md): följa ändringar och exportera underlag.

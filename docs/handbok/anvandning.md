@@ -8,7 +8,7 @@ Den skyddade provmiljön kontrollerar varje åtgärd på servern. Din inloggning
 
 ## Logga in
 
-Startsidan visar *Logga in för att arbeta i den skyddade provmiljön*. Inloggningen sker hos den lokala testleverantören — ingen kommunanslutning är godkänd i denna fas. Lyckas inte inloggningen visas en felkod att uppge för pilotansvarig.
+Startsidan visar *Logga in för att arbeta i den skyddade provmiljön*. Inloggningen sker hos den lokala testleverantören med lösenord och engångskod — ingen kommunanslutning är godkänd i denna fas. Lyckas inte inloggningen visas en felkod att uppge för pilotansvarig. Se [Inloggningsmetoder](inloggningsmetoder.md) för vad plattformen godtar som bevis.
 
 Du identifieras av utfärdaren och ett stabilt konto-ID hos den. E-postadress och namn är visningsuppgifter och används aldrig för att knyta ihop konton. Samma person hos två kunder får två skilda medlemskap.
 
@@ -33,6 +33,8 @@ Har du plattformen öppen i flera flikar låses de övriga med meddelandet *Kont
 Känsliga administrativa åtgärder — inbjudan, spärr, avslut av uppdrag och etablering — kräver att du styrker din identitet en extra gång med engångskod. Kravet prövas mot beviset från inloggningen, inte mot något appen själv utfärdar.
 
 Efter verifieringen måste du bekräfta åtgärden på nytt. Det är avsiktligt: en extra verifiering är inget tyst godkännande av åtgärden. Avbryter du flödet genomförs ingenting.
+
+Ett godtaget bevis gäller i upp till åtta timmar och är knutet till din session och ditt uppdrag. Vad som krävs för att ett bevis ska godtas beskrivs i [Inloggningsmetoder](inloggningsmetoder.md).
 
 ## Lösa in en inbjudan
 

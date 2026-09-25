@@ -61,4 +61,4 @@ Kund och huvudman är skilda nivåer. En kund kan ha flera huvudmän, och varje 
 
 ## Extra verifiering
 
-Administrativa åtgärder kräver ett färskt bevis på extra verifiering från inloggningen. Beviset prövas mot förväntad utfärdare och klient och får inte vara för gammalt. Efter verifieringen krävs en ny bekräftelse av själva åtgärden.
+Administrativa åtgärder kräver ett färskt bevis på extra verifiering från inloggningen. Beviset prövas mot förväntad utfärdare, mottagare, metod och ålder, gäller i upp till åtta timmar och är knutet till sessionen och uppdraget. Samma anspråk från en annan utfärdare godtas inte. Efter verifieringen krävs en ny bekräftelse av själva åtgärden. Se [Inloggningsmetoder](inloggningsmetoder.md).
