@@ -163,6 +163,8 @@ select pg_temp.actor((select id from results where name='admin'),'33002000-0000-
 select throws_ok($t$select * from public.phase3_read_pupils()$t$,'42501',null,'gammal kontext nekar efter parentavslut');
 select is(has_function_privilege('skolplattform_worker','public.phase3_grant_mandate(jsonb)','EXECUTE'),true,'kontrollerad grant öppen efter cutover');
 select is(has_function_privilege('skolplattform_worker','public.phase3_mandate_context()','EXECUTE'),true,'kontrollerad kontext öppen efter cutover');
-select is(has_function_privilege('skolplattform_worker','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),false,'phase3_read_pupils(uuid,uuid,boolean) förblir stängd före cutover');
+select is(has_function_privilege('skolplattform_worker','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),true,'phase3_read_pupils öppen för Worker efter verifierad obligatorisk audit (03-05)');
+select is(has_function_privilege('authenticated','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),false,'klientroll saknar elevläsning');
+select is(has_function_privilege('anon','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),false,'anonym roll saknar elevläsning');
 select * from finish();
 rollback;

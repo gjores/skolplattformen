@@ -1,0 +1,150 @@
+{
+  "checkedAt": "2026-09-26T12:30:28.168Z",
+  "revision": "13f3a367b3950d532333806de4cea2862c1703d9",
+  "target": "protected",
+  "baseUrl": "http://127.0.0.1:3013",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "phase3-pupils",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "huvudman utser rektor för provet",
+          "ok": true,
+          "detail": "HTTP 201/undefined"
+        },
+        {
+          "check": "tilldelningsurvalet är begränsat till rektorns skola",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "tilldelningsurvalet är auditerat",
+          "ok": true,
+          "detail": "mandate_options_read|ok|1||"
+        },
+        {
+          "check": "huvudman får inget elevurval",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "rektor tilldelar lärare, skoladministratör, elevhälsa och support via API",
+          "ok": true,
+          "detail": "4 × 201"
+        },
+        {
+          "check": "lärarens lista gäller endast egen grupp",
+          "ok": true,
+          "detail": "HTTP 200/undefined"
+        },
+        {
+          "check": "endast explicit fältlista lämnas",
+          "ok": true,
+          "detail": "[\"id\",\"displayName\",\"unitId\",\"groupIds\"]"
+        },
+        {
+          "check": "läsning är no-store",
+          "ok": true,
+          "detail": "no-store"
+        },
+        {
+          "check": "listläsning har committad händelse med samma korrelation",
+          "ok": true,
+          "detail": "pupil_probe_listed|ok|1|list|"
+        },
+        {
+          "check": "direkt ID-läsning inom scope loggas",
+          "ok": true,
+          "detail": "HTTP 200; pupil_probe_read|ok|1|pupil|"
+        },
+        {
+          "check": "annan skolas, annan kunds och okänd elev ger samma nekande",
+          "ok": true,
+          "detail": "HTTP 404/404/404"
+        },
+        {
+          "check": "nekad ID-läsning loggas som nekande",
+          "ok": true,
+          "detail": "pupil_probe_read|denied|||not_found / pupil_probe_read|denied|||not_found"
+        },
+        {
+          "check": "okända frågeparametrar nekas",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "check": "ärendescope kräver exakt ärende",
+          "ok": true,
+          "detail": "lista 200"
+        },
+        {
+          "check": "exakt ärende ger ärendets elev och loggas",
+          "ok": true,
+          "detail": "HTTP 200; pupil_probe_case_read|ok|1|case|"
+        },
+        {
+          "check": "annat ärende och fel elev nekas lika",
+          "ok": true,
+          "detail": "HTTP 404/404"
+        },
+        {
+          "check": "skoladministratören exporterar samma kontrollerade urval",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "exporten har committad händelse",
+          "ok": true,
+          "detail": "pupil_probe_exported|ok|1|export|"
+        },
+        {
+          "check": "lärare, support och huvudman saknar export/elevinsyn",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "nekad export loggas",
+          "ok": true,
+          "detail": "pupil_probe_export|denied|||forbidden"
+        },
+        {
+          "check": "support ser en elev med godkännare, syfte och sluttid",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "händelserna innehåller inga elevnamn",
+          "ok": true,
+          "detail": "details kontrollerade"
+        },
+        {
+          "check": "loggfel stoppar lista, ID, ärende, export, nekande och urval med audit_unavailable",
+          "ok": true,
+          "detail": "500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable"
+        },
+        {
+          "check": "loggfel lämnar inget elevinnehåll",
+          "ok": true,
+          "detail": "inga namn eller CSV"
+        },
+        {
+          "check": "loggfel lämnar ingen ok-händelse",
+          "ok": true,
+          "detail": ",,,,,"
+        },
+        {
+          "check": "läsningen fungerar igen när loggen är åter",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "avslutat supportuppdrag nekar genast utan innehåll",
+          "ok": true,
+          "detail": "avslut 200, läsning 403/assignment_ended"
+        }
+      ]
+    }
+  ]
+}
