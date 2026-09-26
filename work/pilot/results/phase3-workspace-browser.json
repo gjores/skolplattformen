@@ -1,0 +1,119 @@
+{
+  "checkedAt": "2026-09-26T12:45:33.295Z",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "worker": "byggd protected-Worker (dist-protected)",
+  "buildRevision": "2c27916dfa8cdb32c81d5734d0bb2c002cc54dc9",
+  "login": "OIDC via lokal Keycloak-testrealm, syntetiska konton",
+  "status": "PASS",
+  "tests": [
+    {
+      "project": "phase3-desktop",
+      "test": "rektor tilldelar och avslutar uppdrag via formuläret",
+      "status": "passed",
+      "durationMs": 2517
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "rektor godkänner tidsbegränsad support för en elev",
+      "status": "passed",
+      "durationMs": 6793
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "support ser godkännare och sluttid, innehållet töms vid utgång",
+      "status": "passed",
+      "durationMs": 6963
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "lärare ser endast egen grupp och loggfel stoppar läsningen",
+      "status": "passed",
+      "durationMs": 932
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "elevhälsa med ärendescope ser elev endast genom tilldelat ärende",
+      "status": "passed",
+      "durationMs": 711
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "skoladministratör exporterar det kontrollerade urvalet",
+      "status": "passed",
+      "durationMs": 581
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "IT pausar, aktiverar och provar anslutningen utan elevdata",
+      "status": "passed",
+      "durationMs": 1330
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "huvudman ser rektorsmandatet och kan bara tilldela rektor",
+      "status": "passed",
+      "durationMs": 1430
+    },
+    {
+      "project": "phase3-desktop",
+      "test": "utloggning i en flik rensar elevprovet i andra flikar",
+      "status": "passed",
+      "durationMs": 991
+    },
+    {
+      "project": "phase3-phone",
+      "test": "rektor tilldelar och avslutar uppdrag via formuläret",
+      "status": "passed",
+      "durationMs": 17087
+    },
+    {
+      "project": "phase3-phone",
+      "test": "rektor godkänner tidsbegränsad support för en elev",
+      "status": "passed",
+      "durationMs": 29876
+    },
+    {
+      "project": "phase3-phone",
+      "test": "support ser godkännare och sluttid, innehållet töms vid utgång",
+      "status": "passed",
+      "durationMs": 7794
+    },
+    {
+      "project": "phase3-phone",
+      "test": "lärare ser endast egen grupp och loggfel stoppar läsningen",
+      "status": "passed",
+      "durationMs": 1645
+    },
+    {
+      "project": "phase3-phone",
+      "test": "elevhälsa med ärendescope ser elev endast genom tilldelat ärende",
+      "status": "passed",
+      "durationMs": 1433
+    },
+    {
+      "project": "phase3-phone",
+      "test": "skoladministratör exporterar det kontrollerade urvalet",
+      "status": "passed",
+      "durationMs": 1428
+    },
+    {
+      "project": "phase3-phone",
+      "test": "IT pausar, aktiverar och provar anslutningen utan elevdata",
+      "status": "passed",
+      "durationMs": 2738
+    },
+    {
+      "project": "phase3-phone",
+      "test": "huvudman ser rektorsmandatet och kan bara tilldela rektor",
+      "status": "passed",
+      "durationMs": 2769
+    },
+    {
+      "project": "phase3-phone",
+      "test": "utloggning i en flik rensar elevprovet i andra flikar",
+      "status": "passed",
+      "durationMs": 1810
+    }
+  ]
+}

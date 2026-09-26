@@ -325,7 +325,7 @@ const cases = {
 
     const list=await call(teacher.session,'GET','/api/prov/elev');
     check(checks,'lärarens lista gäller endast egen grupp',list.status===200&&JSON.stringify(list.body?.pupils?.map((p)=>p.id))===JSON.stringify([pupil]),`HTTP ${list.status}/${list.body?.code}`);
-    check(checks,'endast explicit fältlista lämnas',list.body?.pupils?.every((p)=>JSON.stringify(Object.keys(p).sort())===FIELDS),JSON.stringify(Object.keys(list.body?.pupils?.[0]??{})));
+    check(checks,'endast explicit fältlista lämnas',list.body?.pupils?.every((p)=>JSON.stringify(Object.keys(p).sort())===FIELDS)&&JSON.stringify(list.body?.pupils?.[0]?.groupIds)===JSON.stringify([group]),JSON.stringify(Object.keys(list.body?.pupils?.[0]??{})));
     check(checks,'läsning är no-store',list.headers['cache-control']==='no-store',list.headers['cache-control']);
     check(checks,'listläsning har committad händelse med samma korrelation',events(list)==='pupil_probe_listed|ok|1|list|',events(list));
     const byId=await call(teacher.session,'GET',`/api/prov/elev?elev=${pupil}`);
