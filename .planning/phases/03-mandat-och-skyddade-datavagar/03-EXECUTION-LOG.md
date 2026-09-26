@@ -31,3 +31,11 @@
   - **Andra grindkörningen:** FAIL. Alla sex krav BLOCKED, eftersom mandatbrowsern saknas och baseline, port 5192 och fas 2-OTP inte är klara.
   - **Commits:** 6a730c3, 93296ec, c7a113d, 440bcb0.
   - **Nästa:** 03-07.
+- 03-07 uppgift 1 är genomförd (executor, huvudkatalogen, master). Planen står vid den blockerande användarcheckpointen.
+  - **OTP:** fas 2:s OTP-fel berodde på en TOTP-uppgift för `anna.admin` som inte matchade den sparade hemligheten. Rättat med fixturen `phase2-otp-fixtures.mjs`, som ingår i grinden. MFA-kravet är oförändrat.
+  - **Mandatspec:** 12 flöden × 3 projekt = 36 PASS.
+  - **Rättade UI-fel:** dialogfokus, loggvyns svarsordning och hängande sessionskontroll.
+  - **Handboken:** mandat, användning, säkerhetslogg och regler är uppdaterade. Status står som byggt och automatiskt prövat.
+  - **Färsk grind:** PASS på 7d4ec8d, med alla sex krav PASS (lokalt och syntetiskt).
+  - **Commits:** 7b10da7, 2cf7f38, e243b4a, 7d4ec8d, 0338c7c.
+  - **Väntar på:** användarens bedömning.
