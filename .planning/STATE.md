@@ -6,15 +6,15 @@ current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: 04
 status: executing
-stopped_at: 03-01–03 genomförda; 03-04 delvis klar. Alternativa auditkällor återstår. Ny budget: ytterligare 10 procentenheter, från69 till79 % förbrukat.
-last_updated: "2026-09-24T08:00:00Z"
-last_activity: 2026-09-24
+stopped_at: 03-01–04 genomförda. 03-04 klar 2026-09-26 med källbevis på återskapad stack; nästa 03-05 (resterande arbetsyta och riktig verifiering).
+last_updated: "2026-09-26T12:20:00Z"
+last_activity: 2026-09-26
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 29
-  completed_plans: 25
-  percent: 86
+  completed_plans: 26
+  percent: 90
 ---
 
 # Project State
@@ -24,35 +24,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 3 — 03-01–03 genomförda; 03-04 partiell. Alternativa auditkällor och deras avbrottsprov är nästa steg
+**Current focus:** Fas 3 — 03-01–04 genomförda; 03-05 (delvis: begränsad UI klar) är nästa steg
 
 ## Current Position
 
 Phase: 03 (Mandat och skyddade datavägar) — IN PROGRESS
-Plan: 03-04, delvis genomförd
+Plan: 03-05, delvis genomförd (03-04 genomförd 2026-09-26)
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 03
 **Current Phase Name:** Mandat och skyddade datavägar
 **Total Phases:** 8
-**Current Plan:** 03-04, delvis genomförd
+**Current Plan:** 03-05, delvis genomförd
 **Total Plans in Phase:** 7
 **Status:** Executing Phase 03 — SQL/server cutover applied; verification incomplete
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-24
-**Last Activity Description:** Senare: avgränsad03-05UI, fyra isolerade mockade dator/telefonprov PASS. Tidigare Dockerstack saknas; användaren godkände återskapad syntetisk miljö med nya testkonton, etablering pågår. Äldre prov nedan är historik.
+**Last Activity:** 2026-09-26
+**Last Activity Description:** 03-04 slutförd på återskapad syntetisk stack: källrapport phase3-denials.json PASS (local-synthetic-only) med individuella Kong-/Storage-/Postgres-bevis för REST, RPC, Storage-upstream och direkt SQL samt avbrott/omstart/återhämtning för alla tre källor. Alla 10 SQL-filer PASS efter Postgres-omstart; 277 modell-/serverprov, tsc och lint PASS. Worker-API-prov ej omkörda på ny stack (03-06). Ingen AUDIT-02/03 verifierad.
 
-**Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade; källrapport BLOCKED för återstående källor och kontinuitet.
+**Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
-Progress: [████████░░] 86%
-Planprogress: 25 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
+Progress: [█████████░] 90%
+Planprogress: 26 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
 Phases executed: 2 of 8 (fas 1–2 verifierade)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -77,6 +77,7 @@ Phases executed: 2 of 8 (fas 1–2 verifierade)
 | Phase 01 P08 | 20min | 2 tasks | 6 files |
 | Phase 01 P10 | 8min | 2 tasks | 3 files |
 | Phase 01 P09 | 10min | 3 tasks | 4 files |
+| Phase 03 P04 (fortsättning 2026-09-26) | 20min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,7 @@ Fullständiga beslut finns i PROJECT.md.
 | 3 | Huvudmannen utser rektor; rektor tilldelar läraruppdrag inom sitt mandat | Användarens ansvarsfördelning |
 | 7–8 | Syntetiska prov ersätter inte faktisk kommunanslutning eller beslut om verklig användning | Godkänd färdplans avgränsningar; etablerad informationshantering kan användas utan egen publik diarietjänst |
 
+- [Phase 03]: Storage-källan korreleras via Kong-tvingad X-Client-Trace-Id (Storage allowlistar headern); Postgres-källan konfigureras lokalt med ALTER SYSTEM (SQLSTATE/PID/session/rad/roll, ingen statementtext); Kong-konfigurationsförlust efter omstart rapporteras som lucka men förhindras inte
 - [Phase 01]: Docs committades separat (383b3e0) före appbaslinjen; taggen fas1-baslinje (917313b) omfattar bara web/, supabase/config.toml, sex migrationer och work/
 - [Phase 01]: web/.openai/hosting.json spåras (importeras av vite.config.ts, endast null-värden); resultatfilen från verify-baseline.mjs har extra fält errors[]
 - [Phase 01]: Provmiljöns organisation och 24 elever står som Syntetiskt exempel i anslutningsprofilen; partner, volym, källa, IdP, kontokälla, leverantör och drift är öppna beroenden OB-01–OB-08 med beslutsägare
@@ -115,7 +117,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: återuppta `gsd-execute-phase 3` från 03-04. Komplettera Storage/direkt SQL, säker individuell korrelation och avbrott/rotation/cursor/återhämtning. Läs .continue-here.md och 03-04-SUMMARY.md; elevvägen förblir stängd tills auditbevis finns.
+- Nästa steg: fortsätt `gsd-execute-phase 3` med 03-05 (tilldelningsformulär, elevprov, protected-bygge, riktig API-/browserverifiering, återstart på 3000), sedan 03-06/07. Läs .continue-here.md och 03-05-SUMMARY.md. Elevläsningsfunktionen saknar fortfarande Worker-EXECUTE; öppna den inte förrän Worker-auditprov körts om på nya stacken.
 - 7 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23); Utred Sverige-id och integration i appen (auth, 09-26).
 
 ## Blockers
@@ -136,8 +138,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-24
-**Stopped At:** 03-01–03 genomförda. 03-04 partiell; återuppta auditkällor. Budgetstopp vid högst 70 % veckoförbrukning.
+**Last Date:** 2026-09-26
+**Stopped At:** Completed 03-04-PLAN.md (2026-09-26). Nästa: 03-05.
 **Resume File:** .planning/phases/03-mandat-och-skyddade-datavagar/.continue-here.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22
