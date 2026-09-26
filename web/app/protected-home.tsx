@@ -208,24 +208,35 @@ function ProtectedShell() {
   const hasUnsaved = useHasUnsaved();
   const epochRef = useRef<number | null>(null);
 
+  const sessionLoad = useRef(0);
   const loadSession = useCallback(async () => {
+    const current = ++sessionLoad.current;
     setSession('loading');
-    try {
-      const loaded = await api.get<SessionResponse>('/api/session');
-      epochRef.current = loaded.epoch;
-      setKnownEpoch(loaded.epoch);
-      setSession(loaded);
-      setView(startView(loaded));
-      setMfaRequired(false);
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        epochRef.current = null;
-        setKnownEpoch(null);
+    // En annan begäran som får 401 eller ny epok avbryter pågående begäranden,
+    // även denna sessionskontroll. Den senaste kontrollen görs då om i stället för
+    // att vyn blir kvar i laddningsläget.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const loaded = await api.get<SessionResponse>('/api/session');
+        if (current !== sessionLoad.current) return;
+        epochRef.current = loaded.epoch;
+        setKnownEpoch(loaded.epoch);
+        setSession(loaded);
+        setView(startView(loaded));
+        setMfaRequired(false);
+        return;
+      } catch (error) {
+        if (current !== sessionLoad.current) return;
+        if (error instanceof DOMException && error.name === 'AbortError') continue;
+        if (error instanceof ApiError && error.status === 401) {
+          epochRef.current = null;
+          setKnownEpoch(null);
+        }
         setSession(null);
-      } else if (!(error instanceof DOMException && error.name === 'AbortError')) {
-        setSession(null);
+        return;
       }
     }
+    if (current === sessionLoad.current) setSession(null);
   }, []);
 
   useEffect(() => {

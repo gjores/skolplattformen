@@ -73,6 +73,10 @@ export default function MandateGrantDialog(props: Props) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const generation = useRef(0);
+  // Fokus flyttas till dialogen när den öppnas. Standardvalet (första fokuserbara
+  // elementet) blev stängknappen, som döljs medan urvalet hämtas; då föll fokus
+  // tillbaka till sidan bakom dialogen.
+  const popup = useRef<HTMLDivElement>(null);
   const callbacks = useRef(props);
   useEffect(() => { callbacks.current = props; });
   const dirty = draft.fn !== '' || draft.recipient !== '' || draft.schoolIds.length > 0 || draft.groupIds.length > 0
@@ -192,7 +196,7 @@ export default function MandateGrantDialog(props: Props) {
 
   return (
     <Dialog open={props.open} onOpenChange={(open) => { if (!busy) props.onOpenChange(open); }}>
-      <DialogContent className="mandate-dialog mandate-grant-dialog" showCloseButton={!busy}>
+      <DialogContent ref={popup} initialFocus={popup} className="mandate-dialog mandate-grant-dialog" showCloseButton={!busy}>
         <DialogTitle>Tilldela uppdrag</DialogTitle>
         <DialogDescription>Mottagare, skolor och urval kommer från ditt aktuella uppdrag. Servern prövar tilldelningen igen när du sparar.</DialogDescription>
         {serverError && <output role="alert" className="validation-warning">{serverError}</output>}

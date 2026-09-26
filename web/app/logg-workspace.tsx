@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -68,9 +68,15 @@ export default function LoggWorkspace({ epoch, onSessionLost }: Props) {
   const [status, setStatus] = useState<string | null>(null);
   const dirty = JSON.stringify(filters) !== JSON.stringify(applied);
   useUnsavedChanges(`log-filter-${epoch}`, dirty);
+  // Endast den senast startade hämtningen får visa sitt resultat. Annars kan ett
+  // äldre svar för ett annat filter skriva över listan efter ett nyare.
+  const generation = useRef(0);
+  const appliedRef = useRef(applied);
+  const sessionLost = useRef(onSessionLost);
+  useEffect(() => { sessionLost.current = onSessionLost; appliedRef.current = applied; });
 
   const handleError = useCallback((caught: unknown) => {
-    if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+    if (caught instanceof ApiError && caught.status === 401) { sessionLost.current(); return; }
     if (caught instanceof ApiError && caught.status === 403) { setError('Loggen kräver granskaruppdraget.'); return; }
     if (caught instanceof DOMException && caught.name === 'AbortError') return;
     if (caught instanceof ApiError) {
@@ -78,21 +84,29 @@ export default function LoggWorkspace({ epoch, onSessionLost }: Props) {
       return;
     }
     setError('Loggen kunde inte läsas. Försök igen.');
-  }, [onSessionLost]);
+  }, []);
 
-  const load = useCallback(async (next: Filters) => {
+  const load = useCallback(async (next: Filters): Promise<boolean> => {
+    const current = ++generation.current;
     setBusy(true); setError(null); setStatus(null);
     try {
       const result = await api.get<{ events: AuditEvent[] }>(query(next));
+      if (current !== generation.current) return false;
       setEvents(result.events);
       setApplied(next);
-    } catch (caught) { handleError(caught); }
-    finally { setBusy(false); }
+      return true;
+    } catch (caught) { if (current === generation.current) handleError(caught); return false; }
+    finally { if (current === generation.current) setBusy(false); }
   }, [handleError]);
 
-  useEffect(() => { queueMicrotask(() => void load(applied)); }, [applied, epoch, load]);
+  // Hämta vid start och när kontexten (epoken) byts; filterbyten hämtas via formuläret.
+  useEffect(() => {
+    queueMicrotask(() => void load(appliedRef.current));
+    return () => { generation.current += 1; };
+  }, [epoch, load]);
 
   async function exportCsv() {
+    const current = ++generation.current;
     setBusy(true); setError(null); setStatus(null);
     try {
       const result = await api.download(query(applied, true));
@@ -102,10 +116,10 @@ export default function LoggWorkspace({ epoch, onSessionLost }: Props) {
       anchor.download = result.filename ?? 'sakerhetslogg.csv';
       anchor.click();
       URL.revokeObjectURL(url);
-      await load(applied);
-      setStatus('CSV-exporten har laddats ner och registrerats i loggen.');
-    } catch (caught) { handleError(caught); }
-    finally { setBusy(false); }
+      if (current !== generation.current) return;
+      if (await load(applied)) setStatus('CSV-exporten har laddats ner och registrerats i loggen.');
+    } catch (caught) { if (current === generation.current) handleError(caught); }
+    finally { if (current === generation.current) setBusy(false); }
   }
 
   const rows = useMemo(() => events, [events]);
