@@ -25,7 +25,8 @@
     "e2e": "playwright test",
     "e2e:protected": "playwright test -c playwright.protected.config.ts",
     "verify:phase1": "node scripts/verify-phase1.mjs",
-    "verify:phase2": "node scripts/verify-phase2.mjs"
+    "verify:phase2": "node scripts/verify-phase2.mjs",
+    "verify:phase3": "node scripts/verify-phase3.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
