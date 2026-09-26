@@ -300,10 +300,12 @@ test('administrativ åtgärd utan engångskod erbjuder verifiering', async ({ pa
   expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   await page.getByLabel('Orsak').fill('Browserprov utan MFA');
   await page.getByRole('button', { name: 'Spärra', exact: true }).last().click();
-  await expect(page.getByRole('alert')).toContainText(
+  // Både dialogens felruta och arbetsytans verifieringsruta annonseras; provet
+  // gäller rutan som erbjuder verifieringen (annars strikt-lägeskrock i tid).
+  const verify = page.getByRole('button', { name: 'Verifiera med engångskod' });
+  await expect(page.getByRole('alert').filter({ has: verify })).toContainText(
     'Åtgärden kräver verifiering med engångskod.',
   );
-  const verify = page.getByRole('button', { name: 'Verifiera med engångskod' });
   await expect(verify).toBeVisible();
   expect(
     psql(manifest, `select status from public.memberships where id='${MEMBERSHIP.gustav}';`),

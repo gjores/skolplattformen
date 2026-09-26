@@ -149,3 +149,20 @@ test('krav blir PASS först när deras bevis och hela grinden är PASS', () => {
   const failed = [...green.filter((s) => s.name !== 'mandat-api'), { name: 'mandat-api', status: 'FAIL', exit: 1 }];
   assert.ok(requirementResults(failed, 'FAIL').every((r) => r.status === 'FAIL'));
 });
+
+test('regressionsbrowsern godtar bara redovisade hopp', async () => {
+  const { validateRegressionReport, DESIGNED_SKIPS } = await import('./verify-phase3.mjs');
+  const run = (status, reason) => ({ projectName: 'p', status, annotations: reason ? [{ type: 'skip', description: reason }] : [{ type: 'serial' }], results: [] });
+  const report = (runs, stats) => ({ stats, suites: [{ specs: runs.map((r, i) => ({ title: `t${i}`, tests: [r] })), suites: [] }] });
+  const ok = report([run('expected'), run('skipped', 'Provas i devprojekten.')], { expected: 30, unexpected: 0, skipped: 1, flaky: 0 });
+  assert.deepEqual(validateRegressionReport(ok, { minExpected: 30, allowedSkips: DESIGNED_SKIPS.fas2, label: 'fas 2' }), { expected: 30, designedSkips: 1 });
+  // Seriellt fall som inte kördes efter ett fel har inget redovisat skäl.
+  const didNotRun = report([run('skipped', null)], { expected: 30, unexpected: 0, skipped: 1, flaky: 0 });
+  assert.throws(() => validateRegressionReport(didNotRun, { minExpected: 30, allowedSkips: DESIGNED_SKIPS.fas2, label: 'fas 2' }), /utan redovisat skäl/u);
+  const otherReason = report([run('skipped', 'hoppar tillfälligt')], { expected: 30, unexpected: 0, skipped: 1, flaky: 0 });
+  assert.throws(() => validateRegressionReport(otherReason, { minExpected: 30, allowedSkips: DESIGNED_SKIPS.fas2, label: 'fas 2' }), /utan redovisat skäl/u);
+  const hidden = report([], { expected: 30, unexpected: 0, skipped: 2, flaky: 0 });
+  assert.throws(() => validateRegressionReport(hidden, { minExpected: 30, allowedSkips: DESIGNED_SKIPS.fas2, label: 'fas 2' }), /stämmas av/u);
+  assert.throws(() => validateRegressionReport(report([], { expected: 29, unexpected: 0, skipped: 0 }), { minExpected: 30, allowedSkips: [], label: 'fas 2' }), /expected=29/u);
+  assert.throws(() => validateRegressionReport(report([], { expected: 40, unexpected: 1, skipped: 0 }), { minExpected: 30, allowedSkips: [], label: 'fas 2' }), /unexpected=1/u);
+});

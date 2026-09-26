@@ -198,6 +198,42 @@ export function validateBrowserReport(report, { titles, projects, builtProject =
   return { passed: outcomes.length, projects: [...projects, ...(builtProject ? [builtProject] : [])], titles: titles.length };
 }
 
+// Fas 1/2-specarna hoppar avsiktligt över vissa fall i vissa projekt (t.ex. devfall i
+// byggd Worker, pekytor utanför telefonprojektet). Endast dessa redovisade skäl godtas;
+// ett fall som hoppas av annat skäl, t.ex. för att ett seriellt fall före det
+// misslyckades ("did not run"), gör regressionen FAIL.
+export const DESIGNED_SKIPS = {
+  fas1: ['Pekytor mäts bara i telefonprojektet'],
+  fas2: ['Provas i devprojekten.', 'Provas mot byggd Worker.', 'Pekytor provas i telefonprojektet.'],
+};
+
+/** Regressionsrapport: inga oväntade/flaky fall, minsta antal gröna och bara redovisade hopp. */
+export function validateRegressionReport(report, { minExpected, allowedSkips, label }) {
+  const stats = report?.stats;
+  if (!stats) throw new Error(`${label}: saknad rapport`);
+  if (stats.unexpected !== 0 || (stats.flaky ?? 0) !== 0 || !(stats.expected >= minExpected)) {
+    throw new Error(`${label}: expected=${stats.expected}, unexpected=${stats.unexpected}, flaky=${stats.flaky ?? 0}`);
+  }
+  const undesigned = [];
+  let skipped = 0;
+  const walk = (suite) => {
+    for (const spec of suite?.specs ?? []) {
+      for (const run of spec.tests ?? []) {
+        if (run.status !== 'skipped') continue;
+        skipped += 1;
+        const reasons = [...(run.annotations ?? []), ...(run.results ?? []).flatMap((result) => result.annotations ?? [])]
+          .filter((annotation) => annotation.type === 'skip').map((annotation) => annotation.description);
+        if (!reasons.length || !reasons.every((reason) => allowedSkips.includes(reason))) undesigned.push(`${run.projectName}: ${spec.title}`);
+      }
+    }
+    for (const child of suite?.suites ?? []) walk(child);
+  };
+  for (const suite of report.suites ?? []) walk(suite);
+  if (skipped !== stats.skipped) throw new Error(`${label}: hoppade fall kunde inte stämmas av (${skipped}/${stats.skipped})`);
+  if (undesigned.length) throw new Error(`${label}: fall hoppades utan redovisat skäl: ${undesigned.slice(0, 4).join('; ')}${undesigned.length > 4 ? ` (+${undesigned.length - 4})` : ''}`);
+  return { expected: stats.expected, designedSkips: skipped };
+}
+
 /** SQL-runnern saknar tidsstämpel i rapporten; färskheten avgörs av filens mtime (freshJson). */
 export function validateSqlReport(report) {
   if (!report || report.status !== 'PASS' || report.exitCode !== 0) throw new Error(`SQL: status ${report?.status}`);
@@ -361,7 +397,7 @@ async function main() {
   await commandStep('grind-unit', process.execPath, ['--test', 'scripts/verify-phase3.test.mjs', 'scripts/verify-phase2.test.mjs', path.join(pilot, 'collect-denials.test.mjs')], { command: 'node --test scripts/verify-phase3.test.mjs scripts/verify-phase2.test.mjs ../work/pilot/collect-denials.test.mjs' });
   await commandStep('typkontroll', process.execPath, [path.join(web, 'node_modules/typescript/bin/tsc'), '--noEmit'], { command: 'npx tsc --noEmit' });
   await commandStep('lint', process.execPath, [path.join(web, 'node_modules/oxlint/bin/oxlint'), 'app', 'lib', 'scripts', 'e2e'], { command: 'npx oxlint app lib scripts e2e' });
-  const pilotScripts = ['verify-mandates.mjs', 'verify-access.mjs', 'collect-denials.mjs', 'configure-audit-source.mjs', 'phase3-browser-fixtures.mjs'].map((f) => path.join('work/pilot', f));
+  const pilotScripts = ['verify-mandates.mjs', 'verify-access.mjs', 'collect-denials.mjs', 'configure-audit-source.mjs', 'phase3-browser-fixtures.mjs', 'phase2-otp-fixtures.mjs'].map((f) => path.join('work/pilot', f));
   await commandStep('lint-pilot', path.join(web, 'node_modules/.bin/oxlint'), pilotScripts, { cwd: root, command: `oxlint ${pilotScripts.join(' ')}` });
   await commandStep('normalt-bygge', process.execPath, ['scripts/run-mode.mjs', 'build', '--mode', 'example'], { command: 'npm run build:example' });
   if (!previewFree) blocked('protected-bygge', 'npm run build:protected', 'dist-protected är låst av en körande preview');
@@ -441,19 +477,21 @@ async function main() {
     command: 'npx playwright test -c playwright.config.ts',
     validate: () => {
       const report = freshJson(path.join(web, 'test-results/phase1-e2e.json'), startedMs);
-      if (report.stats?.unexpected !== 0 || report.stats?.skipped !== 0 || report.stats?.expected < 20) throw new Error(`fas 1: expected=${report.stats?.expected}, unexpected=${report.stats?.unexpected}`);
-      return { expected: report.stats.expected };
+      return validateRegressionReport(report, { minExpected: 20, allowedSkips: DESIGNED_SKIPS.fas1, label: 'fas 1' });
     },
   });
   const protectedBrowserBlock = async () => (!protectedReady ? 'protected-målet är inte klart' : environmentBlock([5193, 3012], true));
+  // Test-IdP:ns TOTP-registrering för fas 2-kontona återställs så att browserprovet
+  // registrerar och använder en känd hemlighet (MFA-kravet ändras inte).
+  if (!protectedReady) blocked('fas2-fixturer', 'node work/pilot/phase2-otp-fixtures.mjs --target protected', 'protected-målet är inte klart');
+  else await commandStep('fas2-fixturer', process.execPath, [path.join(pilot, 'phase2-otp-fixtures.mjs'), '--target', 'protected'], { cwd: root, command: 'node work/pilot/phase2-otp-fixtures.mjs --target protected' });
   const fas2Block = await protectedBrowserBlock();
   if (fas2Block) blocked('fas2-browser', 'npm run e2e:protected', fas2Block);
   else await commandStep('fas2-browser', process.execPath, [playwright, 'test', '-c', 'playwright.protected.config.ts', 'phase2-'], {
     command: 'npx playwright test -c playwright.protected.config.ts phase2-',
     validate: () => {
       const report = freshJson(path.join(web, 'test-results/phase2-e2e.json'), startedMs);
-      if (report.stats?.unexpected !== 0 || report.stats?.skipped !== 0 || report.stats?.expected < 30) throw new Error(`fas 2: expected=${report.stats?.expected}, unexpected=${report.stats?.unexpected}`);
-      return { expected: report.stats.expected };
+      return validateRegressionReport(report, { minExpected: 30, allowedSkips: DESIGNED_SKIPS.fas2, label: 'fas 2' });
     },
   });
 
