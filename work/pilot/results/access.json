@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-09-18T05:32:24.655Z",
-  "revision": "f3947f8931ea1ce45f9a33647bc1ff5d45ccea1a",
+  "checkedAt": "2026-09-26T13:10:17.858Z",
+  "revision": "9fa3baed312d676dbc89b4ed7101bc9f88a3e92d",
   "target": "protected",
-  "baseUrl": "http://127.0.0.1:3013",
+  "baseUrl": "http://127.0.0.1:3000",
   "status": "PASS",
   "cases": [
     {
@@ -176,6 +176,16 @@
       "status": "PASS",
       "checks": [
         {
+          "check": "kundadmin kan bjuda in till kontoroll via webben",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "webbinbjudan ger endast begärd kontoroll",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
           "check": "giltig personbunden inbjudan gav kundadmin",
           "ok": true,
           "detail": "lösen 201, översikt 200"
@@ -229,12 +239,12 @@
         {
           "check": "främmande och obefintligt medlemskap har samma svar",
           "ok": true,
-          "detail": "HTTP 404/404, Δ 8 ms"
+          "detail": "HTTP 404/404, Δ 73 ms"
         },
         {
           "check": "främmande skolenhet röjde inte existens",
           "ok": true,
-          "detail": "HTTP 404/404"
+          "detail": "HTTP 403/403"
         },
         {
           "check": "främmande huvudman nekades",
@@ -252,9 +262,9 @@
           "detail": "status active"
         },
         {
-          "check": "rektorsuppdrag från annan huvudman nekades",
+          "check": "kundadmin nekas rektorsvägen utan att röja främmande uppdrag",
           "ok": true,
-          "detail": "ingen sådan syntetisk rad; slump-id-vägen täcks ovan"
+          "detail": "HTTP 403/403"
         }
       ]
     },
@@ -294,19 +304,24 @@
       "status": "PASS",
       "checks": [
         {
-          "check": "skrivningen lyckades",
+          "check": "tillåten kontoåtgärd lyckades",
           "ok": true,
-          "detail": "HTTP 200/; "
+          "detail": "HTTP 200"
         },
         {
-          "check": "aktör och uppdrag härleddes på servern",
+          "check": "förfalskade aktörsfält ignoreras",
           "ok": true,
-          "detail": "30000000-0000-4000-8000-000000000001|50000000-0000-4000-8000-000000000001|principal_appointed"
+          "detail": "30000000-0000-4000-8000-000000000001|50000000-0000-4000-8000-000000000001|membership_blocked"
         },
         {
-          "check": "verksamhetsloggen fick faktisk roll",
+          "check": "fritext sparas inte i den beständiga händelsen",
           "ok": true,
-          "detail": "huvudman"
+          "detail": "endast minimerade detaljfält"
+        },
+        {
+          "check": "kundadmin kan inte ärva huvudmannens utnämningsrätt",
+          "ok": true,
+          "detail": "HTTP 403"
         }
       ]
     },
@@ -317,10 +332,10 @@
         {
           "check": "granskare såg bara kund A:s logg",
           "ok": true,
-          "detail": "HTTP 200, 4 händelser"
+          "detail": "HTTP 200, 6 händelser"
         },
         {
-          "check": "loggen innehöll serverhärledd spärr och rektor",
+          "check": "loggen innehöll serverhärledd spärr och nekad rektorsutnämning",
           "ok": true,
           "detail": "båda audittyperna hittades"
         },
@@ -356,14 +371,14 @@
           "detail": "30/30"
         },
         {
-          "check": "nekanden begränsades",
+          "check": "varje nekande har en beständig händelse",
           "ok": true,
-          "detail": "20 fullständiga nekanden"
+          "detail": "30 fullständiga nekanden"
         },
         {
-          "check": "spoofad X-Forwarded-For skapade en suppression",
+          "check": "ingen tyst undertryckning vid spoofad X-Forwarded-For",
           "ok": true,
-          "detail": "1 suppression"
+          "detail": "0 suppression"
         }
       ]
     },
@@ -401,6 +416,273 @@
           "check": "verksamhetsändringen rullades tillbaka",
           "ok": true,
           "detail": "status active"
+        }
+      ]
+    },
+    {
+      "name": "phase3-mandates",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "huvudman tilldelar personbundet rektorsmandat",
+          "ok": true,
+          "detail": "HTTP 201/undefined"
+        },
+        {
+          "check": "huvudman nekas lärartilldelning",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "rektor tilldelar lärare i sin grupp",
+          "ok": true,
+          "detail": "HTTP 201/undefined"
+        },
+        {
+          "check": "rektor kan lista sina mandat",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "loggfel stoppar mandatläsning utan innehåll",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
+          "check": "nekande utan beständig logg ger serverfel",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
+          "check": "loggfel stoppar export utan CSV-innehåll",
+          "ok": true,
+          "detail": "HTTP 500"
+        },
+        {
+          "check": "återkallat mandat blir omedelbart ovalbart",
+          "ok": true,
+          "detail": "avslut 200"
+        },
+        {
+          "check": "IT kan ändra och prova syntetisk anslutning",
+          "ok": true,
+          "detail": "GET 200, PATCH 200, test 200"
+        },
+        {
+          "check": "IT får versionskonflikt vid gammal ändring",
+          "ok": true,
+          "detail": "HTTP 409"
+        },
+        {
+          "check": "klienten kan inte ange överordnat mandat",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "check": "rektor kan inte utse rektor",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "IT kan inte delegera verksamhetsmandat",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "IT röjer inte annan skolas anslutning",
+          "ok": true,
+          "detail": "HTTP 404/404"
+        },
+        {
+          "check": "rektor ger elevhälsa ett explicit elevurval",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "elevhälsa kan inte delegera lärarmandat",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "elevhälsoansvarig delegerar bara inom sin skola",
+          "ok": true,
+          "detail": "inom 201, utanför 403"
+        },
+        {
+          "check": "elevhälsoansvarig kan inte delegera lärare",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "support kräver högst 60 minuter",
+          "ok": true,
+          "detail": "för lång 400, avgränsad 201"
+        },
+        {
+          "check": "utgången support blir ovalbar i samma session",
+          "ok": true,
+          "detail": "före 200, efter 200"
+        },
+        {
+          "check": "rektor utfärdar personbunden verksamhetsinbjudan",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "verksamhetsinbjudan kan lösas exakt en gång",
+          "ok": true,
+          "detail": "första 201, andra 404"
+        },
+        {
+          "check": "avslutad utfärdare stoppar inlösen utan nytt mandat",
+          "ok": true,
+          "detail": "avslut 200, inlösen 404, mandat 0"
+        },
+        {
+          "check": "rektorsavslut spärrar underordnat elevhälsomandat",
+          "ok": true,
+          "detail": "HTTP 200"
+        }
+      ]
+    },
+    {
+      "name": "phase3-pupils",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "huvudman utser rektor för provet",
+          "ok": true,
+          "detail": "HTTP 201/undefined"
+        },
+        {
+          "check": "tilldelningsurvalet är begränsat till rektorns skola",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "tilldelningsurvalet är auditerat",
+          "ok": true,
+          "detail": "mandate_options_read|ok|1||"
+        },
+        {
+          "check": "huvudman får inget elevurval",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "rektor tilldelar lärare, skoladministratör, elevhälsa och support via API",
+          "ok": true,
+          "detail": "4 × 201"
+        },
+        {
+          "check": "lärarens lista gäller endast egen grupp",
+          "ok": true,
+          "detail": "HTTP 200/undefined"
+        },
+        {
+          "check": "endast explicit fältlista lämnas",
+          "ok": true,
+          "detail": "[\"id\",\"displayName\",\"unitId\",\"groupIds\"]"
+        },
+        {
+          "check": "läsning är no-store",
+          "ok": true,
+          "detail": "no-store"
+        },
+        {
+          "check": "listläsning har committad händelse med samma korrelation",
+          "ok": true,
+          "detail": "pupil_probe_listed|ok|1|list|"
+        },
+        {
+          "check": "direkt ID-läsning inom scope loggas",
+          "ok": true,
+          "detail": "HTTP 200; pupil_probe_read|ok|1|pupil|"
+        },
+        {
+          "check": "annan skolas, annan kunds och okänd elev ger samma nekande",
+          "ok": true,
+          "detail": "HTTP 404/404/404"
+        },
+        {
+          "check": "nekad ID-läsning loggas som nekande",
+          "ok": true,
+          "detail": "pupil_probe_read|denied|||not_found / pupil_probe_read|denied|||not_found"
+        },
+        {
+          "check": "okända frågeparametrar nekas",
+          "ok": true,
+          "detail": "HTTP 400"
+        },
+        {
+          "check": "ärendescope kräver exakt ärende",
+          "ok": true,
+          "detail": "lista 200"
+        },
+        {
+          "check": "exakt ärende ger ärendets elev och loggas",
+          "ok": true,
+          "detail": "HTTP 200; pupil_probe_case_read|ok|1|case|"
+        },
+        {
+          "check": "annat ärende och fel elev nekas lika",
+          "ok": true,
+          "detail": "HTTP 404/404"
+        },
+        {
+          "check": "skoladministratören exporterar samma kontrollerade urval",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "exporten har committad händelse",
+          "ok": true,
+          "detail": "pupil_probe_exported|ok|1|export|"
+        },
+        {
+          "check": "lärare, support och huvudman saknar export/elevinsyn",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "nekad export loggas",
+          "ok": true,
+          "detail": "pupil_probe_export|denied|||forbidden"
+        },
+        {
+          "check": "support ser en elev med godkännare, syfte och sluttid",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "händelserna innehåller inga elevnamn",
+          "ok": true,
+          "detail": "details kontrollerade"
+        },
+        {
+          "check": "loggfel stoppar lista, ID, ärende, export, nekande och urval med audit_unavailable",
+          "ok": true,
+          "detail": "500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable"
+        },
+        {
+          "check": "loggfel lämnar inget elevinnehåll",
+          "ok": true,
+          "detail": "inga namn eller CSV"
+        },
+        {
+          "check": "loggfel lämnar ingen ok-händelse",
+          "ok": true,
+          "detail": ",,,,,"
+        },
+        {
+          "check": "läsningen fungerar igen när loggen är åter",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "avslutat supportuppdrag nekar genast utan innehåll",
+          "ok": true,
+          "detail": "avslut 200, läsning 403/assignment_ended"
         }
       ]
     }

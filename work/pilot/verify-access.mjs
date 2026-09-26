@@ -3,6 +3,13 @@
 // Sessionerna mintas direkt i det disponibla målet för att pröva spärr och
 // uppdragsändringar med redan utfärdade sessionsbevis. Keycloak behövs därför
 // inte under just dessa API-prov; den verkliga OIDC-kedjan provas i 02-04/11.
+//
+// Fas 3-regler i fas 2-regressionerna (03-03/03-04, bekräftade i 03-06):
+//  - kundadmin nekas rektorsvägen (403 forbidden); endast huvudman utser rektor
+//    (frammande-id, aktor-forfalskning, logg).
+//  - logg-flod: varje nekande får en egen beständig händelse; undertryckningen
+//    efter 20 försök är borttagen (denied_suppressed = 0).
+// De samlade fas 3-fallen med källbevis ligger i verify-mandates.mjs.
 
 import { execFileSync, spawn } from 'node:child_process';
 import crypto from 'node:crypto';

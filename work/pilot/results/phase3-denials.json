@@ -2,10 +2,10 @@
   "status": "PASS",
   "scope": "local-synthetic-only",
   "guarantee": "asynchronous local collector; no synchronous operational guarantee; not a municipal/production log chain",
-  "checkedAt": "2026-09-26T12:12:10.570Z",
+  "checkedAt": "2026-09-26T13:08:47.423Z",
   "coverage": {
-    "from": "2026-09-26T12:09:37.477Z",
-    "to": "2026-09-26T12:12:10.570Z"
+    "from": "2026-09-26T13:06:13.966Z",
+    "to": "2026-09-26T13:08:47.423Z"
   },
   "probes": [
     {
@@ -13,7 +13,7 @@
       "gateway": {
         "route": "rest",
         "status": 401,
-        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:b03fdc018d1b2228a401d91753b378d6",
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:f0bab15ad0d5665cd5ee15c197ee5894",
         "sourceObserved": true
       },
       "status": "PASS"
@@ -23,7 +23,7 @@
       "gateway": {
         "route": "rpc",
         "status": 401,
-        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ed49968e555c62b6fb7f8cfb4f9ca40b",
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:192bc077814ce94a821972632e41021f",
         "sourceObserved": true
       },
       "status": "PASS"
@@ -33,13 +33,13 @@
       "gateway": {
         "route": "storage",
         "status": 400,
-        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ca4a4bb35df5290fd1b7c9feb1ee9511",
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:1fe7390d88a1af6e1f3cee36bfabfffe",
         "sourceObserved": true
       },
       "upstream": {
         "route": "storage",
         "status": 400,
-        "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:ca4a4bb35df5290fd1b7c9feb1ee9511",
+        "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:1fe7390d88a1af6e1f3cee36bfabfffe",
         "observedRole": "anon",
         "sourceObserved": true
       },
@@ -49,14 +49,14 @@
       "id": "direct-sql",
       "loginFailed": false,
       "postgres": {
-        "sessionId": "6ab7b602.84",
+        "sessionId": "6ab7c347.bb",
         "expectedSqlstate": "42501",
         "attempts": 3,
         "clientDenied": 3,
         "sourceEventIds": [
-          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:1",
-          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:2",
-          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:3"
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.bb:1",
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.bb:2",
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.bb:3"
         ],
         "observedRole": "authenticator",
         "sourceObserved": true
@@ -83,24 +83,6 @@
   },
   "outages": [
     {
-      "source": "storage",
-      "preOutageObserved": true,
-      "collectorBlockedDuringOutage": true,
-      "duringOutage": {
-        "status": 502
-      },
-      "dataServedDuringOutage": false,
-      "outageAttemptLogged": true,
-      "healthyAfterRestart": true,
-      "restartDetected": true,
-      "configLostAfterRestart": false,
-      "configActiveAfterRecovery": true,
-      "postRecoveryObserved": true,
-      "preOutageEventRetained": true,
-      "status": "PASS",
-      "reasons": []
-    },
-    {
       "source": "kong",
       "preOutageObserved": true,
       "collectorBlockedDuringOutage": true,
@@ -112,6 +94,24 @@
       "restartDetected": true,
       "configLostAfterRestart": true,
       "gapReported": true,
+      "configActiveAfterRecovery": true,
+      "postRecoveryObserved": true,
+      "preOutageEventRetained": true,
+      "status": "PASS",
+      "reasons": []
+    },
+    {
+      "source": "storage",
+      "preOutageObserved": true,
+      "collectorBlockedDuringOutage": true,
+      "duringOutage": {
+        "status": 502
+      },
+      "dataServedDuringOutage": false,
+      "outageAttemptLogged": true,
+      "healthyAfterRestart": true,
+      "restartDetected": true,
+      "configLostAfterRestart": false,
       "configActiveAfterRecovery": true,
       "postRecoveryObserved": true,
       "preOutageEventRetained": true,
@@ -144,8 +144,8 @@
   "events": [
     {
       "source": "kong",
-      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:b03fdc018d1b2228a401d91753b378d6",
-      "time": "2026-09-26T12:09:38+00:00",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:f0bab15ad0d5665cd5ee15c197ee5894",
+      "time": "2026-09-26T13:06:15+00:00",
       "route": "rest",
       "status": 401,
       "actor": null,
@@ -153,8 +153,8 @@
     },
     {
       "source": "kong",
-      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ed49968e555c62b6fb7f8cfb4f9ca40b",
-      "time": "2026-09-26T12:09:38+00:00",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:192bc077814ce94a821972632e41021f",
+      "time": "2026-09-26T13:06:15+00:00",
       "route": "rpc",
       "status": 401,
       "actor": null,
@@ -162,8 +162,8 @@
     },
     {
       "source": "kong",
-      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ca4a4bb35df5290fd1b7c9feb1ee9511",
-      "time": "2026-09-26T12:09:38+00:00",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:1fe7390d88a1af6e1f3cee36bfabfffe",
+      "time": "2026-09-26T13:06:15+00:00",
       "route": "storage",
       "status": 400,
       "actor": null,
@@ -171,9 +171,9 @@
     },
     {
       "source": "storage",
-      "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:ca4a4bb35df5290fd1b7c9feb1ee9511",
-      "gatewayRequestId": "ca4a4bb35df5290fd1b7c9feb1ee9511",
-      "time": "2026-09-26T12:09:38.670Z",
+      "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:1fe7390d88a1af6e1f3cee36bfabfffe",
+      "gatewayRequestId": "1fe7390d88a1af6e1f3cee36bfabfffe",
+      "time": "2026-09-26T13:06:15.152Z",
       "route": "storage",
       "status": 400,
       "operation": "storage.bucket.create",
@@ -183,10 +183,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.82:1",
-      "time": "2026-09-26T12:09:38.634Z",
-      "pid": 130,
-      "sessionId": "6ab7b602.82",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.b9:1",
+      "time": "2026-09-26T13:06:15.117Z",
+      "pid": 185,
+      "sessionId": "6ab7c347.b9",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -195,10 +195,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.82:2",
-      "time": "2026-09-26T12:09:38.640Z",
-      "pid": 130,
-      "sessionId": "6ab7b602.82",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.b9:2",
+      "time": "2026-09-26T13:06:15.122Z",
+      "pid": 185,
+      "sessionId": "6ab7c347.b9",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -207,10 +207,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.83:1",
-      "time": "2026-09-26T12:09:38.668Z",
-      "pid": 131,
-      "sessionId": "6ab7b602.83",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.ba:1",
+      "time": "2026-09-26T13:06:15.150Z",
+      "pid": 186,
+      "sessionId": "6ab7c347.ba",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "supabase_storage_admin",
@@ -219,10 +219,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:1",
-      "time": "2026-09-26T12:09:38.693Z",
-      "pid": 132,
-      "sessionId": "6ab7b602.84",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.bb:1",
+      "time": "2026-09-26T13:06:15.176Z",
+      "pid": 187,
+      "sessionId": "6ab7c347.bb",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -231,10 +231,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:2",
-      "time": "2026-09-26T12:09:38.694Z",
-      "pid": 132,
-      "sessionId": "6ab7b602.84",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.bb:2",
+      "time": "2026-09-26T13:06:15.177Z",
+      "pid": 187,
+      "sessionId": "6ab7c347.bb",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -243,10 +243,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:3",
-      "time": "2026-09-26T12:09:38.695Z",
-      "pid": 132,
-      "sessionId": "6ab7b602.84",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7c347.bb:3",
+      "time": "2026-09-26T13:06:15.178Z",
+      "pid": 187,
+      "sessionId": "6ab7c347.bb",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",

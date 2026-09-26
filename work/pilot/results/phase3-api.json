@@ -1,0 +1,842 @@
+{
+  "kind": "phase3-api",
+  "scope": "local-synthetic-only",
+  "proof": "lokalt mintade sessionsbevis i verifierat protected-mål; ingen verklig IdP- eller kommunanslutning",
+  "startedAt": "2026-09-26T13:06:13.992Z",
+  "completedAt": "2026-09-26T13:09:12.946Z",
+  "revision": "9fa3baed312d676dbc89b4ed7101bc9f88a3e92d",
+  "workerBuildRevision": "2c27916dfa8cdb32c81d5734d0bb2c002cc54dc9",
+  "target": "protected",
+  "baseUrl": "http://127.0.0.1:3000",
+  "requiredCases": [
+    "principal-chain",
+    "teacher-group",
+    "school-admin",
+    "health-school",
+    "health-pupil",
+    "health-case",
+    "support-boundary",
+    "it-admin",
+    "self-escalation",
+    "parent-revoked",
+    "invitation-recheck",
+    "foreign-object",
+    "concurrent-revoke",
+    "direct-rest",
+    "direct-rpc",
+    "direct-storage",
+    "direct-sql",
+    "audit-read-fail",
+    "audit-export-fail",
+    "audit-write-rollback",
+    "audit-deny-fail",
+    "audit-flood",
+    "audit-source-outage",
+    "audit-minimization",
+    "audit-retention"
+  ],
+  "complete": true,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "principal-chain",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "huvudman utser rektor och händelsen committas med samma korrelation",
+          "ok": true,
+          "detail": "principal_appointed|ok|||"
+        },
+        {
+          "check": "rektor och kundadmin kan inte utse rektor (inte heller sig själv)",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "nekad utnämning loggas som nekande",
+          "ok": true,
+          "detail": "principal_appointed|denied|forbidden|| ; principal_appointed|denied|forbidden||"
+        },
+        {
+          "check": "huvudman kan inte utse rektor för annan huvudmans skola",
+          "ok": true,
+          "detail": "HTTP 404"
+        },
+        {
+          "check": "rektor ger läraruppdrag inom egen skola med committad händelse",
+          "ok": true,
+          "detail": "mandate_granted|ok|||"
+        },
+        {
+          "check": "rektor utanför egen skola och huvudman som lärartilldelare nekas",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "direkt RPC som rektor ger samma nekande som API (42501)",
+          "ok": true,
+          "detail": "42501"
+        },
+        {
+          "check": "gammal utnämningsväg och direkt INSERT är stängda för Workern",
+          "ok": true,
+          "detail": "42501/42501"
+        },
+        {
+          "check": "rektor avslutar läraruppdraget omedelbart",
+          "ok": true,
+          "detail": "avslut 200"
+        }
+      ]
+    },
+    {
+      "name": "teacher-group",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "undervisningslärare ser bara egen grupp, inte annan grupp i samma skola",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000211\"]"
+        },
+        {
+          "check": "explicit fältlista och egen grupp i groupIds",
+          "ok": true,
+          "detail": "fält kontrollerade"
+        },
+        {
+          "check": "listningen har committad händelse",
+          "ok": true,
+          "detail": "pupil_probe_listed|ok||1|list"
+        },
+        {
+          "check": "elev i annan grupp, annan skola och okänd ger samma 404 utan innehåll",
+          "ok": true,
+          "detail": "404/404/404"
+        },
+        {
+          "check": "nekade läsningar loggas",
+          "ok": true,
+          "detail": "pupil_probe_read|denied|not_found||"
+        },
+        {
+          "check": "mentor ser bara sin mentorsgrupp",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000212\"]"
+        },
+        {
+          "check": "lärare saknar export och tilldelning",
+          "ok": true,
+          "detail": "403/403"
+        }
+      ]
+    },
+    {
+      "name": "school-admin",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "skoladministratör ser hela egna skolan men inte andra skolor",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000211\",\"33000000-0000-4000-8000-000000000219\"]"
+        },
+        {
+          "check": "annan skola och annan kund ger samma 404",
+          "ok": true,
+          "detail": "404/404"
+        },
+        {
+          "check": "export innehåller endast egen skola och är no-store",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "exporten har committad händelse med antal",
+          "ok": true,
+          "detail": "pupil_probe_exported|ok||2|export"
+        },
+        {
+          "check": "skoladministratör kan inte tilldela eller ändra anslutning",
+          "ok": true,
+          "detail": "403/403"
+        }
+      ]
+    },
+    {
+      "name": "health-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "elevhälsa med skolscope ser egna skolans elever",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000211\",\"33000000-0000-4000-8000-000000000219\"]; pupil_probe_listed|ok||2|list"
+        },
+        {
+          "check": "annan skola nekas",
+          "ok": true,
+          "detail": "HTTP 404"
+        },
+        {
+          "check": "elevhälsa saknar export och delegering",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "elevhälsoansvarig tilldelar bara inom sina skolor och har ingen egen elevläsning",
+          "ok": true,
+          "detail": "201/403/403"
+        }
+      ]
+    },
+    {
+      "name": "health-pupil",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "elevscope ger exakt tilldelad elev, inte övriga i skolan",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000211\"]"
+        },
+        {
+          "check": "tilldelad elev läses med committad händelse",
+          "ok": true,
+          "detail": "pupil_probe_read|ok||1|pupil"
+        },
+        {
+          "check": "otilldelad elev i samma skola ger samma 404 som okänd",
+          "ok": true,
+          "detail": "404/404"
+        },
+        {
+          "check": "rektor kan inte ge elevscope för elev i annan skola",
+          "ok": true,
+          "detail": "HTTP 404"
+        }
+      ]
+    },
+    {
+      "name": "health-case",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "ärendescope ger ingen lista utan valt ärende",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "exakt ärende ger ärendets elev med committad händelse",
+          "ok": true,
+          "detail": "pupil_probe_case_read|ok||1|case"
+        },
+        {
+          "check": "annat ärende (samma skola, annan skola, annan kund) och fel elev nekas lika",
+          "ok": true,
+          "detail": "404/404/404/404"
+        },
+        {
+          "check": "ärendescope ger inte direkt elevläsning utan ärende",
+          "ok": true,
+          "detail": "HTTP 404"
+        }
+      ]
+    },
+    {
+      "name": "support-boundary",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "support kräver syfte, högst 60 minuter och exakt en skola",
+          "ok": true,
+          "detail": "400/400/403"
+        },
+        {
+          "check": "endast rektor godkänner support",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "servern sätter rektorn som godkännare",
+          "ok": true,
+          "detail": "godkännare från serverns mandat"
+        },
+        {
+          "check": "före start: nekad utan innehåll",
+          "ok": true,
+          "detail": "403/assignment_expired"
+        },
+        {
+          "check": "under giltig tid: en elev med godkännare, syfte och sluttid",
+          "ok": true,
+          "detail": "pupil_probe_listed|ok||1|list"
+        },
+        {
+          "check": "support har inget export-, delegerings- eller skrivmandat",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "vid och efter sluttid (halvöppet intervall): nekad utan innehåll",
+          "ok": true,
+          "detail": "403/403"
+        }
+      ]
+    },
+    {
+      "name": "it-admin",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "IT ser bara sina skolor",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "IT pausar/aktiverar och provar lokal anslutning",
+          "ok": true,
+          "detail": "200/200/paused"
+        },
+        {
+          "check": "ändring och prov har committade händelser",
+          "ok": true,
+          "detail": "connection_update|ok||| ; connection_test|ok|||"
+        },
+        {
+          "check": "gammal version ger 409 utan överskrivning",
+          "ok": true,
+          "detail": "409; connection_update|denied|conflict||"
+        },
+        {
+          "check": "annan skola, annan kund och okänd ger samma 404",
+          "ok": true,
+          "detail": "404/404/404"
+        },
+        {
+          "check": "IT har ingen elevinsyn, export eller delegering",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "ursprungligt anslutningsläge återställt",
+          "ok": true,
+          "detail": "HTTP 200"
+        }
+      ]
+    },
+    {
+      "name": "self-escalation",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "rektor kan inte ge sig själv nya uppdrag",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "rektor kan inte ge större skolmängd än sin egen",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "klientangiven överordning och rollhuvud ignoreras",
+          "ok": true,
+          "detail": "400/403"
+        },
+        {
+          "check": "lärare kan inte utöka sig eller byta till annans uppdrag",
+          "ok": true,
+          "detail": "403/404"
+        },
+        {
+          "check": "elevhälsoansvarig kan inte ge sig själv elevhälsouppdrag",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "nekade självutökningar loggas",
+          "ok": true,
+          "detail": "mandate_granted|denied|forbidden|| ; mandate_granted|denied|forbidden||"
+        }
+      ]
+    },
+    {
+      "name": "parent-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "underordnat uppdrag fungerar före avslut",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "huvudmannens avslut av rektor nekar omedelbart underordnade sessioner utan innehåll",
+          "ok": true,
+          "detail": "200: 403/403"
+        },
+        {
+          "check": "nekandet kräver inget bakgrundsjobb (underordnade rader är orörda)",
+          "ok": true,
+          "detail": "avslutade barnrader 0"
+        },
+        {
+          "check": "avslutad rektor nekas själv",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "check": "nekandena loggas med underordnat uppdrag",
+          "ok": true,
+          "detail": "pupil_probe_read|denied|assignment_expired||"
+        },
+        {
+          "check": "sessionen visar kontexten som ogiltig",
+          "ok": true,
+          "detail": "HTTP 200"
+        }
+      ]
+    },
+    {
+      "name": "invitation-recheck",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "rektor utfärdar personbunden verksamhetsinbjudan",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "inlösen ger ett mandat under utfärdaren och kan inte återanvändas",
+          "ok": true,
+          "detail": "201/404"
+        },
+        {
+          "check": "avslutad utfärdare stoppar inlösen utan nytt mandat",
+          "ok": true,
+          "detail": "200/404"
+        },
+        {
+          "check": "ny rektorsutnämning återupplivar inte inbjudan från det avslutade mandatet",
+          "ok": true,
+          "detail": "201/404"
+        },
+        {
+          "check": "nekade inlösen loggas",
+          "ok": true,
+          "detail": "invitation_redeem|denied|invitation_invalid|| ; invitation_redeem|denied|invitation_invalid||"
+        }
+      ]
+    },
+    {
+      "name": "foreign-object",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "främmande elev ger samma 404 som okänd, utan antal",
+          "ok": true,
+          "detail": "404/404"
+        },
+        {
+          "check": "främmande uppdrag kan inte avslutas och röjs inte",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "tilldelning till främmande medlemskap ger samma svar som okänt",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "urval och mandatlista innehåller inga främmande ID:n",
+          "ok": true,
+          "detail": "200/200"
+        },
+        {
+          "check": "främmande ärende ger samma 404 som okänt",
+          "ok": true,
+          "detail": "404/404"
+        },
+        {
+          "check": "okända frågefält nekas (ingen metadata/antal via frågan)",
+          "ok": true,
+          "detail": "HTTP 400"
+        }
+      ]
+    },
+    {
+      "name": "concurrent-revoke",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "inga serverfel under samtidigt avslut och läsning",
+          "ok": true,
+          "detail": "läsningar 1 ok/15 nekade; avslut 200/403"
+        },
+        {
+          "check": "varje lyckad läsning har exakt en committad ok-händelse",
+          "ok": true,
+          "detail": "1 ok"
+        },
+        {
+          "check": "varje nekad läsning har nekandehändelse och inget innehåll",
+          "ok": true,
+          "detail": "15 nekade"
+        },
+        {
+          "check": "efter avslutets commit nekas alla nya läsningar",
+          "ok": true,
+          "detail": "403/403/403"
+        },
+        {
+          "check": "ingen lyckad läsning har transaktionstid efter avslutet",
+          "ok": true,
+          "detail": "0 efter avslut"
+        },
+        {
+          "check": "tre verkliga låsordningar i databasen (verify-mandate-locks)",
+          "ok": true,
+          "detail": "exit 0; revoke-first-commit,read-first,revoke-first-rollback"
+        }
+      ]
+    },
+    {
+      "name": "direct-rest",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "anon REST mot elevtabell nekas med individuellt Kong-källbevis",
+          "ok": true,
+          "detail": "PASS/401"
+        },
+        {
+          "check": "elev-, mandat- och loggtabeller nekas utan antal eller innehåll",
+          "ok": true,
+          "detail": "401:-,401:-,401:-"
+        },
+        {
+          "check": "varje extra REST-försök har exakt en Kong-händelse med servergenererat id",
+          "ok": true,
+          "detail": "true,true,true"
+        },
+        {
+          "check": "kontinuitet i Kong-källan under provfönstret",
+          "ok": true,
+          "detail": "[]"
+        }
+      ]
+    },
+    {
+      "name": "direct-rpc",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "anon RPC phase3_read_pupils nekas med individuellt Kong-källbevis",
+          "ok": true,
+          "detail": "PASS/401"
+        },
+        {
+          "check": "gamla och nya mandat-RPC:er samt gallring nekas för anon",
+          "ok": true,
+          "detail": "404,401,404,401"
+        },
+        {
+          "check": "varje RPC-försök har exakt en Kong-händelse",
+          "ok": true,
+          "detail": "true,true,true,true"
+        },
+        {
+          "check": "RPC-rapporten redovisar kontinuitet",
+          "ok": true,
+          "detail": "PASS"
+        }
+      ]
+    },
+    {
+      "name": "direct-storage",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "anon Storage-skrivning nekas och syns i både Kong och Storage med samma id",
+          "ok": true,
+          "detail": "400/400"
+        },
+        {
+          "check": "Storage verifierade rollen själv (anon), ingen klientpåstådd aktör",
+          "ok": true,
+          "detail": "anon"
+        },
+        {
+          "check": "ingen bucket skapades",
+          "ok": true,
+          "detail": "antal 0"
+        },
+        {
+          "check": "Storage-källans kontinuitet",
+          "ok": true,
+          "detail": "[]"
+        }
+      ]
+    },
+    {
+      "name": "direct-sql",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "direkt SQL som authenticator/anon/authenticated ger 42501 i exakt den serverrapporterade sessionen",
+          "ok": true,
+          "detail": "3 försök, 3 källhändelser"
+        },
+        {
+          "check": "klientroller saknar elevfunktion och ärendetabell",
+          "ok": true,
+          "detail": "42501/42501"
+        },
+        {
+          "check": "Workern kan inte radera/ändra audit, gallra eller använda gammal utnämningsväg",
+          "ok": true,
+          "detail": "42501/42501/42501/42501"
+        },
+        {
+          "check": "Postgres-källans kontinuitet",
+          "ok": true,
+          "detail": "[]"
+        }
+      ]
+    },
+    {
+      "name": "audit-read-fail",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "loggfel stoppar lista, elev-ID, ärende, mandatlista och urval med audit_unavailable",
+          "ok": true,
+          "detail": "500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable,500/audit_unavailable"
+        },
+        {
+          "check": "inga elevbytes eller mandatdata lämnas",
+          "ok": true,
+          "detail": "svaren innehåller endast felkod och korrelation"
+        },
+        {
+          "check": "ingen ok-händelse finns för de stoppade läsningarna",
+          "ok": true,
+          "detail": ",,,,"
+        },
+        {
+          "check": "läsningen återhämtar sig när loggen är åter",
+          "ok": true,
+          "detail": "pupil_probe_listed|ok||1|list"
+        }
+      ]
+    },
+    {
+      "name": "audit-export-fail",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "loggfel stoppar elevexport och loggexport",
+          "ok": true,
+          "detail": "500/500"
+        },
+        {
+          "check": "ingen CSV eller elevdata lämnas",
+          "ok": true,
+          "detail": "inga CSV-svar"
+        },
+        {
+          "check": "ingen ok-händelse för stoppad export",
+          "ok": true,
+          "detail": ","
+        },
+        {
+          "check": "export fungerar igen med committad händelse",
+          "ok": true,
+          "detail": "pupil_probe_exported|ok||2|export"
+        }
+      ]
+    },
+    {
+      "name": "audit-write-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "loggfel ger audit_unavailable för tilldelning, avslut, utnämning, anslutning, prov och inbjudan",
+          "ok": true,
+          "detail": "500/500/500/500/500/500"
+        },
+        {
+          "check": "inga mutationer committades",
+          "ok": true,
+          "detail": "lärare öppen true, version 25→25, inbjudningar 0→0"
+        },
+        {
+          "check": "inga ok-händelser för de rullade mutationerna",
+          "ok": true,
+          "detail": ",,,,,"
+        },
+        {
+          "check": "samma mutation lyckas och loggas när loggen är åter",
+          "ok": true,
+          "detail": "HTTP 201"
+        }
+      ]
+    },
+    {
+      "name": "audit-deny-fail",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "nekande utan beständig logg ger generiskt audit_unavailable",
+          "ok": true,
+          "detail": "500/500/500/500/500"
+        },
+        {
+          "check": "nekandesvaren röjer inget innehåll eller nekandeorsak",
+          "ok": true,
+          "detail": "code,correlationId"
+        },
+        {
+          "check": "nekad mutation ändrade inget",
+          "ok": true,
+          "detail": "true"
+        },
+        {
+          "check": "nekande loggas igen när loggen är åter",
+          "ok": true,
+          "detail": "pupil_probe_export|denied|forbidden||"
+        }
+      ]
+    },
+    {
+      "name": "audit-flood",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "28 nekanden (>20) gav förväntade svar",
+          "ok": true,
+          "detail": "401,401,401,401,401,401,401,401,401,401,403,403,403,403,403,403,404,404,404,404,404,404,403,403,403,403,403,403"
+        },
+        {
+          "check": "varje försök avstäms mot exakt en beständig nekandehändelse med samma kod",
+          "ok": true,
+          "detail": "0 avvikande"
+        },
+        {
+          "check": "ingen undertryckning eller sammanslagning",
+          "ok": true,
+          "detail": "suppression 0"
+        },
+        {
+          "check": "granskaren ser varje autentiserat nekande i kundens logg",
+          "ok": true,
+          "detail": "18/18"
+        }
+      ]
+    },
+    {
+      "name": "audit-source-outage",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "kong: avbrott upptäcks, ingen data under avbrott, omstart och återhämtning utan tyst bortfall",
+          "ok": true,
+          "detail": "PASS []"
+        },
+        {
+          "check": "storage: avbrott upptäcks, ingen data under avbrott, omstart och återhämtning utan tyst bortfall",
+          "ok": true,
+          "detail": "PASS []"
+        },
+        {
+          "check": "postgres: avbrott upptäcks, ingen data under avbrott, omstart och återhämtning utan tyst bortfall",
+          "ok": true,
+          "detail": "PASS []"
+        },
+        {
+          "check": "samlad källrapport är PASS",
+          "ok": true,
+          "detail": "[]"
+        },
+        {
+          "check": "Kongs minimerade format är aktivt efter återhämtningen",
+          "ok": true,
+          "detail": "true"
+        },
+        {
+          "check": "Workerns auditerade läsning fungerar efter Postgres-omstarten",
+          "ok": true,
+          "detail": "pupil_probe_listed|ok||1|list"
+        }
+      ]
+    },
+    {
+      "name": "audit-minimization",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "namn i fråga och fritext i kropp nekas",
+          "ok": true,
+          "detail": "400/400"
+        },
+        {
+          "check": "körningens 218 Worker-händelser saknar namn, anteckningar och fritext",
+          "ok": true,
+          "detail": "218 korrelationer"
+        },
+        {
+          "check": "detaljnycklar är allowlistade",
+          "ok": true,
+          "detail": "accessFunction,assignmentId,code,count,emailMismatch,format,grants,path,principalNamed,proof,readForm"
+        },
+        {
+          "check": "granskaren ser elevläsningen men inga namn i JSON eller CSV",
+          "ok": true,
+          "detail": "8 händelser"
+        },
+        {
+          "check": "granskarens logg är begränsad till egen kund",
+          "ok": true,
+          "detail": "kund-id kontrollerat"
+        },
+        {
+          "check": "annan kunds granskare ser ingen av fas 3-kundens händelser",
+          "ok": true,
+          "detail": "HTTP 200"
+        },
+        {
+          "check": "källhändelser (Kong/Storage/Postgres) har bara allowlistade fält",
+          "ok": true,
+          "detail": "source,sourceEventId,time,route,status,actor,outcome,gatewayRequestId,operation,observedRole,pid,sessionId,sqlstate,severity"
+        }
+      ]
+    },
+    {
+      "name": "audit-retention",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "gallring tar bort endast äldre än serverberäknad 30-dygnsgräns",
+          "ok": true,
+          "detail": "removed=1"
+        },
+        {
+          "check": "händelse vid och efter gränsen finns kvar",
+          "ok": true,
+          "detail": "left=retention_probe_cutoff,retention_probe_new"
+        },
+        {
+          "check": "kund utan konfigurerad syntetisk profil kan inte gallras",
+          "ok": true,
+          "detail": "42501; policy 0"
+        },
+        {
+          "check": "Worker, klientroll och underhållsroll kan inte ändra eller radera audit direkt",
+          "ok": true,
+          "detail": "42501/42501/42501/42501"
+        },
+        {
+          "check": "provet lämnar inga rader kvar (transaktionen rullades tillbaka)",
+          "ok": true,
+          "detail": "0"
+        }
+      ]
+    }
+  ]
+}
