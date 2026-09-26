@@ -1,10 +1,258 @@
 {
-  "status": "BLOCKED",
+  "status": "PASS",
   "scope": "local-synthetic-only",
-  "attemptedAt": "2026-09-24T16:34:11.529Z",
-  "kongProbe": "UNVERIFIED",
-  "events": [],
-  "blockers": [
-    "source-collection-unavailable"
-  ]
+  "guarantee": "asynchronous local collector; no synchronous operational guarantee; not a municipal/production log chain",
+  "checkedAt": "2026-09-26T12:12:10.570Z",
+  "coverage": {
+    "from": "2026-09-26T12:09:37.477Z",
+    "to": "2026-09-26T12:12:10.570Z"
+  },
+  "probes": [
+    {
+      "id": "direct-rest",
+      "gateway": {
+        "route": "rest",
+        "status": 401,
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:b03fdc018d1b2228a401d91753b378d6",
+        "sourceObserved": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "direct-rpc",
+      "gateway": {
+        "route": "rpc",
+        "status": 401,
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ed49968e555c62b6fb7f8cfb4f9ca40b",
+        "sourceObserved": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "direct-storage",
+      "gateway": {
+        "route": "storage",
+        "status": 400,
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ca4a4bb35df5290fd1b7c9feb1ee9511",
+        "sourceObserved": true
+      },
+      "upstream": {
+        "route": "storage",
+        "status": 400,
+        "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:ca4a4bb35df5290fd1b7c9feb1ee9511",
+        "observedRole": "anon",
+        "sourceObserved": true
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "direct-sql",
+      "loginFailed": false,
+      "postgres": {
+        "sessionId": "6ab7b602.84",
+        "expectedSqlstate": "42501",
+        "attempts": 3,
+        "clientDenied": 3,
+        "sourceEventIds": [
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:1",
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:2",
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:3"
+        ],
+        "observedRole": "authenticator",
+        "sourceObserved": true
+      },
+      "status": "PASS"
+    }
+  ],
+  "continuity": {
+    "kong": {
+      "source": "kong",
+      "status": "PASS",
+      "reasons": []
+    },
+    "storage": {
+      "source": "storage",
+      "status": "PASS",
+      "reasons": []
+    },
+    "postgres": {
+      "source": "postgres",
+      "status": "PASS",
+      "reasons": []
+    }
+  },
+  "outages": [
+    {
+      "source": "storage",
+      "preOutageObserved": true,
+      "collectorBlockedDuringOutage": true,
+      "duringOutage": {
+        "status": 502
+      },
+      "dataServedDuringOutage": false,
+      "outageAttemptLogged": true,
+      "healthyAfterRestart": true,
+      "restartDetected": true,
+      "configLostAfterRestart": false,
+      "configActiveAfterRecovery": true,
+      "postRecoveryObserved": true,
+      "preOutageEventRetained": true,
+      "status": "PASS",
+      "reasons": []
+    },
+    {
+      "source": "kong",
+      "preOutageObserved": true,
+      "collectorBlockedDuringOutage": true,
+      "duringOutage": {
+        "failure": "refused"
+      },
+      "dataServedDuringOutage": false,
+      "healthyAfterRestart": true,
+      "restartDetected": true,
+      "configLostAfterRestart": true,
+      "gapReported": true,
+      "configActiveAfterRecovery": true,
+      "postRecoveryObserved": true,
+      "preOutageEventRetained": true,
+      "status": "PASS",
+      "reasons": []
+    },
+    {
+      "source": "postgres",
+      "preOutageObserved": true,
+      "collectorBlockedDuringOutage": true,
+      "duringOutage": {
+        "loginFailed": true,
+        "clientDenied": 0
+      },
+      "dataServedDuringOutage": false,
+      "healthyAfterRestart": true,
+      "restartDetected": true,
+      "configLostAfterRestart": false,
+      "configActiveAfterRecovery": true,
+      "postRecoveryObserved": true,
+      "preOutageEventRetained": true,
+      "status": "PASS",
+      "reasons": []
+    }
+  ],
+  "notCovered": [
+    "postgrest-upstream-postgres-errors-are-pooled-and-not-individually-correlated",
+    "worker-events-are-verified-by-verify-access.mjs-not-this-collector"
+  ],
+  "events": [
+    {
+      "source": "kong",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:b03fdc018d1b2228a401d91753b378d6",
+      "time": "2026-09-26T12:09:38+00:00",
+      "route": "rest",
+      "status": 401,
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "kong",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ed49968e555c62b6fb7f8cfb4f9ca40b",
+      "time": "2026-09-26T12:09:38+00:00",
+      "route": "rpc",
+      "status": 401,
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "kong",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:ca4a4bb35df5290fd1b7c9feb1ee9511",
+      "time": "2026-09-26T12:09:38+00:00",
+      "route": "storage",
+      "status": 400,
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "storage",
+      "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:ca4a4bb35df5290fd1b7c9feb1ee9511",
+      "gatewayRequestId": "ca4a4bb35df5290fd1b7c9feb1ee9511",
+      "time": "2026-09-26T12:09:38.670Z",
+      "route": "storage",
+      "status": 400,
+      "operation": "storage.bucket.create",
+      "observedRole": "anon",
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "postgres",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.82:1",
+      "time": "2026-09-26T12:09:38.634Z",
+      "pid": 130,
+      "sessionId": "6ab7b602.82",
+      "sqlstate": "42501",
+      "severity": "ERROR",
+      "observedRole": "authenticator",
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "postgres",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.82:2",
+      "time": "2026-09-26T12:09:38.640Z",
+      "pid": 130,
+      "sessionId": "6ab7b602.82",
+      "sqlstate": "42501",
+      "severity": "ERROR",
+      "observedRole": "authenticator",
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "postgres",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.83:1",
+      "time": "2026-09-26T12:09:38.668Z",
+      "pid": 131,
+      "sessionId": "6ab7b602.83",
+      "sqlstate": "42501",
+      "severity": "ERROR",
+      "observedRole": "supabase_storage_admin",
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "postgres",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:1",
+      "time": "2026-09-26T12:09:38.693Z",
+      "pid": 132,
+      "sessionId": "6ab7b602.84",
+      "sqlstate": "42501",
+      "severity": "ERROR",
+      "observedRole": "authenticator",
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "postgres",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:2",
+      "time": "2026-09-26T12:09:38.694Z",
+      "pid": 132,
+      "sessionId": "6ab7b602.84",
+      "sqlstate": "42501",
+      "severity": "ERROR",
+      "observedRole": "authenticator",
+      "actor": null,
+      "outcome": "rejected"
+    },
+    {
+      "source": "postgres",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7b602.84:3",
+      "time": "2026-09-26T12:09:38.695Z",
+      "pid": 132,
+      "sessionId": "6ab7b602.84",
+      "sqlstate": "42501",
+      "severity": "ERROR",
+      "observedRole": "authenticator",
+      "actor": null,
+      "outcome": "rejected"
+    }
+  ],
+  "blockers": []
 }

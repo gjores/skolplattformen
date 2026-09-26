@@ -171,11 +171,11 @@ async function configState(target, current) {
 
 // ---- Probes ------------------------------------------------------------------------------------
 // agent:false gives one fresh connection per request, so no pooled socket can outlive a restart.
-function httpProbe(target, method, endpoint, body, headers = {}) {
+function httpProbe(target, method, endpoint, body, headers = {}, timeoutMs = 10000) {
   const url = new URL(endpoint, target.apiUrl);
   const payload = body === undefined ? undefined : JSON.stringify(body);
   return new Promise((resolve, reject) => {
-    const req = http.request(url, { method, agent: false, timeout: 10000, headers: {
+    const req = http.request(url, { method, agent: false, timeout: timeoutMs, headers: {
       apikey: target.anonKey, Authorization: `Bearer ${target.anonKey}`,
       // Hostile client values: Kong must overwrite the trace header and never trust these.
       'X-Correlation-Id': 'untrusted-client-marker', 'X-Client-Trace-Id': 'f'.repeat(32),
@@ -183,8 +183,10 @@ function httpProbe(target, method, endpoint, body, headers = {}) {
       res.resume();
       res.on('end', () => resolve({ status: res.statusCode, requestId: res.headers['x-phase3-audit-id'] ?? null }));
     });
-    req.on('timeout', () => req.destroy(new Error('timeout')));
-    req.on('error', () => reject(new Error('BLOCKED: probe connection failed')));
+    // Only fixed failure kinds leave this function; never raw error text.
+    let timedOut = false;
+    req.on('timeout', () => { timedOut = true; req.destroy(); reject(new Error('timeout')); });
+    req.on('error', error => reject(new Error(timedOut ? 'timeout' : error?.code === 'ECONNREFUSED' ? 'refused' : 'connection-error')));
     req.end(payload);
   });
 }
@@ -194,8 +196,8 @@ const httpProbes = [
   { id: 'direct-rpc', route: 'rpc', method: 'POST', endpoint: '/rest/v1/rpc/phase3_read_pupils', body: {} },
   { id: 'direct-storage', route: 'storage', method: 'POST', endpoint: '/storage/v1/bucket', body: { name: 'phase3-probe', public: false } },
 ];
-async function runHttpProbe(target, probe) {
-  const r = await httpProbe(target, probe.method, probe.endpoint, probe.body);
+async function runHttpProbe(target, probe, timeoutMs) {
+  const r = await httpProbe(target, probe.method, probe.endpoint, probe.body, {}, timeoutMs);
   return { id: probe.id, route: probe.route, status: r.status, requestId: r.requestId };
 }
 function loadPostgres() {
@@ -289,9 +291,9 @@ async function retry(fn, ok, attempts = 20) {
   return last;
 }
 const outageProbe = { kong: 'direct-rest', storage: 'direct-storage', db: 'direct-sql' };
-async function probeOnce(target, kind) {
+async function probeOnce(target, kind, timeoutMs) {
   if (kind === 'db') return { sql: await runSqlProbe(target) };
-  return { http: await runHttpProbe(target, httpProbes.find(p => p.id === outageProbe[kind])) };
+  return { http: await runHttpProbe(target, httpProbes.find(p => p.id === outageProbe[kind]), timeoutMs) };
 }
 function observedIn(kind, result, current, since) {
   if (!result) return { observed: false, ids: [] };
@@ -310,6 +312,7 @@ export function outageVerdict(r) {
   if (!r.preOutageObserved) reasons.push('pre-outage-event-not-observed');
   if (!r.collectorBlockedDuringOutage) reasons.push('outage-not-detected');
   if (r.dataServedDuringOutage) reasons.push('path-served-during-outage');
+  if (r.outageAttemptLogged === false) reasons.push('outage-attempt-not-logged-by-gateway');
   if (!r.restartDetected) reasons.push('restart-not-detected');
   if (r.configLostAfterRestart && !r.gapReported) reasons.push('silent-configuration-gap');
   if (!r.configActiveAfterRecovery) reasons.push('configuration-not-restored');
@@ -329,10 +332,17 @@ async function outage(target, kind) {
   docker(['stop', '-t', '15', source.id]);
   try { await sources(); r.collectorBlockedDuringOutage = false; } catch { r.collectorBlockedDuringOutage = true; }
   // Attempt the same closed path during the outage: success would mean unlogged access.
-  let during = null;
-  try { during = await probeOnce(target, kind); } catch { during = null; }
-  r.duringOutage = during?.http ? { status: during.http.status } : during?.sql ? { loginFailed: Boolean(during.sql.loginFailed), clientDenied: during.sql.clientDenied } : { connection: 'refused' };
+  // Storage outage: Kong stays up, so wait past its upstream timeout for a logged answer.
+  let during = null, failure = null;
+  try { during = await probeOnce(target, kind, kind === 'storage' ? 90000 : 10000); }
+  catch (error) { failure = ['timeout', 'refused', 'connection-error'].includes(error?.message) ? error.message : 'probe-error'; }
+  r.duringOutage = during?.http ? { status: during.http.status } : during?.sql ? { loginFailed: Boolean(during.sql.loginFailed), clientDenied: during.sql.clientDenied } : { failure };
   r.dataServedDuringOutage = Boolean(during?.http && during.http.status < 400) || Boolean(during?.sql && !during.sql.loginFailed && during.sql.clientDenied !== during.sql.attempts);
+  if (kind === 'storage') {
+    // The gateway must itself record the failed attempt against the stopped upstream.
+    await sleep(1500);
+    r.outageAttemptLogged = Boolean(during?.http) && correlateKong([{ ...during.http, route: 'storage' }], collectKong(readLogs(start.kong, since), start.kong.id).events, start.kong.id)[0].sourceObserved;
+  }
   docker(['start', source.id]);
   r.healthyAfterRestart = await waitHealthy(source.id);
   const restarted = await retry(() => sources(), () => true, 60);

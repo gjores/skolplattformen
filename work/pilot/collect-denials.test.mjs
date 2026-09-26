@@ -143,6 +143,8 @@ test('postgres settings must match exactly and have no overrides', () => {
 test('outage verdict: silent gap, lost event or served data can never pass', () => {
   const ok = {preOutageObserved:true,collectorBlockedDuringOutage:true,dataServedDuringOutage:false,restartDetected:true,configLostAfterRestart:true,gapReported:true,configActiveAfterRecovery:true,preOutageEventRetained:true,postRecoveryObserved:true};
   assert.equal(outageVerdict(ok).status,'PASS');
+  assert.ok(outageVerdict({...ok,outageAttemptLogged:false}).reasons.includes('outage-attempt-not-logged-by-gateway'));
+  assert.equal(outageVerdict({...ok,outageAttemptLogged:true}).status,'PASS');
   for (const [k,v,reason] of [['gapReported',false,'silent-configuration-gap'],['preOutageEventRetained',false,'pre-outage-event-lost'],['dataServedDuringOutage',true,'path-served-during-outage'],['collectorBlockedDuringOutage',false,'outage-not-detected'],['restartDetected',false,'restart-not-detected'],['postRecoveryObserved',false,'post-recovery-event-not-observed']]) {
     const verdict = outageVerdict({...ok,[k]:v});
     assert.equal(verdict.status,'BLOCKED'); assert.ok(verdict.reasons.includes(reason));
