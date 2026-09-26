@@ -33,7 +33,7 @@ export type ProbeScope = {
   serverNow: string;
 };
 
-export type ProbeRow = { id: string; display_name: string; unit_id: string; group_ids: string[] | null };
+export type ProbeRow = { id: string; display_name: string; unit_id: string; group_ids: unknown };
 
 /** Endast `elev` och `arende`, en gång var, som UUID. Allt annat ger null (400). */
 export function parseProbeQuery(url: string): ProbeRead | null {
@@ -58,7 +58,8 @@ export function toProbePupil(row: ProbeRow): ProbePupil {
     id: row.id,
     displayName: row.display_name,
     unitId: row.unit_id,
-    groupIds: [...(row.group_ids ?? [])],
+    // Endast en verklig lista av ID-strängar godtas; allt annat ger tom lista.
+    groupIds: Array.isArray(row.group_ids) ? row.group_ids.filter((value) => typeof value === 'string') : [],
   };
 }
 

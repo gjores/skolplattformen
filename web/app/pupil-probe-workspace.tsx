@@ -113,7 +113,7 @@ export default function PupilProbeWorkspace(props: Props) {
 
   return (
     <div className="admin-workspace protected-admin probe-workspace" aria-busy={busy}>
-      <div className="admin-heading"><div><p className="admin-kicker">SKYDDAD PROVMILJÖ · SYNTETISKA UPPGIFTER</p><h1>Syntetiskt elevprov</h1><p>{props.context.customerName} · {props.context.label}</p></div></div>
+      <div className="admin-heading"><div><p className="admin-kicker">SKYDDAD PROVMILJÖ · SYNTETISKA UPPGIFTER</p><h1>Syntetiskt elevprov</h1><p>{props.context.label}</p></div></div>
       <p>Provet visar endast syntetiska elever som ditt aktuella uppdrag får läsa. Varje läsning och export registreras i säkerhetsloggen.</p>
       {scope && <dl className="mandate-facts probe-scope">
         <div><dt>Uppdrag</dt><dd>{FUNCTION_LABEL[scope.function as keyof typeof FUNCTION_LABEL] ?? scope.function}</dd></div>
@@ -143,14 +143,14 @@ export default function PupilProbeWorkspace(props: Props) {
         {!busy && !error && scope?.scopeKind === 'case' && !selected && <p>Välj ett tilldelat ärende för att se den elev ärendet gäller.</p>}
         <ul className="mandate-list probe-list">{pupils.map((pupil) => <li className="protected-card" key={pupil.id}>
           <h2>{pupil.displayName}</h2>
-          <p>{schoolName(pupil.unitId)} · {pupil.groupIds.length} {pupil.groupIds.length === 1 ? 'grupp' : 'grupper'} i ditt urval</p>
+          <p>{schoolName(pupil.unitId)} · {pupil.groupIds.length} {pupil.groupIds.length === 1 ? 'grupp' : 'grupper'}</p>
           <Button variant="outline" disabled={busy} onClick={() => void read(`?elev=${encodeURIComponent(pupil.id)}`, (result) => setSelected(result.pupils[0] ?? null))}>Visa {pupil.displayName}</Button>
         </li>)}</ul>
         {selected && <article className="protected-card probe-detail" aria-live="polite">
           <h2>{selected.displayName}</h2>
           <dl className="mandate-facts">
             <div><dt>Skola</dt><dd>{schoolName(selected.unitId)}</dd></div>
-            <div><dt>Grupper i ditt urval</dt><dd>{selected.groupIds.length}</dd></div>
+            <div><dt>Grupper</dt><dd>{selected.groupIds.length}</dd></div>
             <div><dt>Elev-ID (syntetiskt)</dt><dd>{selected.id}</dd></div>
           </dl>
         </article>}

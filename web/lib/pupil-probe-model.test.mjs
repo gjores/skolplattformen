@@ -20,6 +20,8 @@ test('endast explicit fältlista följer med från SQL-raden', () => {
   const pupil = toProbePupil({ id, display_name: 'Syntetisk elev', unit_id: caseId, group_ids: null, personnummer: 'x', notes: 'y' });
   assert.deepEqual(Object.keys(pupil), [...PROBE_FIELDS]);
   assert.deepEqual(pupil.groupIds, []);
+  assert.deepEqual(toProbePupil({ id, display_name: 'x', unit_id: id, group_ids: `{${id}}` }).groupIds, []);
+  assert.deepEqual(toProbePupil({ id, display_name: 'x', unit_id: id, group_ids: [id] }).groupIds, [id]);
 });
 
 test('export neutraliserar formler och har fast rubrik', () => {

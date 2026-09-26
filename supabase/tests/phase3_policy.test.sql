@@ -135,6 +135,9 @@ reset role;
 -- Kontrollerade funktionsrättigheter består efter samordnad cutover.
 select pg_temp.actor((select id from results where name='principal'),'33002000-0000-4000-8000-000000000061','33002000-0000-4000-8000-000000000071');
 select ok((select bool_and(item ? 'displayName' and item ? 'schools' and item ? 'status') from jsonb_array_elements(public.phase3_list_mandates()) item),'mandatlistan ger namn och scope för administrerbara uppdrag');
+select ok(exists(select 1 from jsonb_array_elements(public.phase3_list_mandates()) item where item->>'id'=(select id::text from results where name='support')),'pågående support listas');
+update public.access_assignments set starts_at=clock_timestamp()-interval '20 minutes',ends_at=clock_timestamp()-interval '1 second' where id=(select id from results where name='support');
+select ok(not exists(select 1 from jsonb_array_elements(public.phase3_list_mandates()) item where item->>'id'=(select id::text from results where name='support')),'utgånget supportuppdrag listas inte som giltigt');
 select is(public.phase3_mandate_options()->'functions','["larare","administrator","elevhalsa","support"]'::jsonb,'rektor erbjuds endast delegerbara funktioner');
 select ok(not exists(select 1 from jsonb_array_elements(public.phase3_mandate_options()->'recipients') r where r->>'membershipId'='33002000-0000-4000-8000-000000000061'),'eget medlemskap erbjuds inte som mottagare');
 select ok(exists(select 1 from jsonb_array_elements(public.phase3_mandate_options()->'recipients') r where r->>'membershipId'='33002000-0000-4000-8000-000000000062'),'aktiv personal i kunden erbjuds som mottagare');

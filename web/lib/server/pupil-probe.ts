@@ -36,7 +36,7 @@ export async function readProbePupils(
   const pupilId = read.form === 'list' ? null : read.pupilId;
   const caseId = read.form === 'case' ? read.caseId : null;
   const rows = await mandateOperation(
-    () => tx<ProbeRow[]>`select id, display_name, unit_id, group_ids
+    () => tx<ProbeRow[]>`select id, display_name, unit_id, to_jsonb(group_ids) as group_ids
       from public.phase3_read_pupils(${pupilId}::uuid, ${caseId}::uuid, ${forExport})`,
   );
   return rows.map(toProbePupil);
