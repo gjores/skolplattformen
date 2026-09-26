@@ -2010,3 +2010,18 @@ textarea:disabled {
 .mandate-workspace button:focus-visible,.mandate-workspace select:focus-visible,.mandate-dialog button:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
 .mandate-dialog{max-height:90dvh;overflow-y:auto;overflow-wrap:anywhere}
 @media(max-width:700px){.mandate-facts{grid-template-columns:1fr}.mandate-actions>*{width:100%}}
+.mandate-grant-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mandate-grant-form .mandate-actions,.mandate-grant-form .mandate-choice{grid-column:1/-1}
+.mandate-choice{border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:grid;gap:4px;min-width:0}
+.mandate-choice legend{padding:0 6px;font-size:.875rem}
+.mandate-check{flex-direction:row!important;align-items:center;gap:12px!important;min-height:44px}
+.mandate-check input{width:22px;height:22px;min-height:22px!important;flex-shrink:0}
+.mandate-check input:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+.field-error{color:#8a3b12;font-size:.875rem}
+.mandate-grant-form [aria-invalid=true]{border-color:#b45309;border-width:2px}
+.probe-list{list-style:none;padding:0;margin:16px 0}
+.probe-list .protected-card>p{margin:6px 0 12px}
+.probe-scope{margin:12px 0 18px}
+.probe-workspace button{min-height:44px;white-space:normal;height:auto}
+.probe-workspace button:focus-visible,.probe-workspace select:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+@media(max-width:700px){.mandate-grant-form{grid-template-columns:1fr}.probe-workspace .mandate-actions>*{width:100%}}

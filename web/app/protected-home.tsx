@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Building2,
   CalendarClock,
+  FlaskConical,
   GraduationCap,
   LifeBuoy,
   ListChecks,
@@ -47,8 +48,11 @@ import ContextSwitch, {
 import KundWorkspace from './kund-workspace';
 import LoggWorkspace from './logg-workspace';
 import MandateWorkspace from './mandate-workspace';
+import PupilProbeWorkspace from './pupil-probe-workspace';
 
-type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'stangt';
+type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elevprov' | 'stangt';
+
+const PROBE_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
 export type SessionResponse = {
   identity: {
@@ -80,6 +84,7 @@ function startView(session: SessionResponse): ProtectedView {
   if (session.context?.function === 'kundadmin') return 'kund';
   if (session.context?.function === 'it') return 'anslutning';
   if (session.context && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(session.context.function)) return 'mandat';
+  if (session.context && PROBE_FUNCTIONS.includes(session.context.function)) return 'elevprov';
   return 'stangt';
 }
 
@@ -133,6 +138,13 @@ function ProtectedNavigation({
             <SidebarMenuItem>
               <SidebarMenuButton isActive={view === 'mandat' || view === 'anslutning'} aria-current={view === 'mandat' || view === 'anslutning' ? 'page' : undefined} onClick={() => go(session.context?.function === 'it' ? 'anslutning' : 'mandat')} className="nav-button">
                 <ShieldCheck size={19} /><span>{session.context.function === 'it' ? 'Lokal anslutning' : 'Mandat'}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {session.context && PROBE_FUNCTIONS.includes(session.context.function) && (
+            <SidebarMenuItem>
+              <SidebarMenuButton isActive={view === 'elevprov'} aria-current={view === 'elevprov' ? 'page' : undefined} onClick={() => go('elevprov')} className="nav-button">
+                <FlaskConical size={19} /><span>Syntetiskt elevprov</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
@@ -270,7 +282,7 @@ function ProtectedShell() {
     <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => loadSession()} />
   );
   const validContext = session.context?.valid && !session.context.blocked;
-  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : 'Kommande funktion';
+  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elevprov' ? 'Syntetiskt elevprov' : 'Kommande funktion';
 
   return (
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
@@ -296,6 +308,7 @@ function ProtectedShell() {
             {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={() => setSession(null)} />}
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
+            {view === 'elevprov' && <PupilProbeWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={() => setSession(null)} />}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}

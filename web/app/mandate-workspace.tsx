@@ -6,13 +6,14 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } fr
 import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
 import type { ActiveContext } from './context-switch';
+import MandateGrantDialog from './mandate-grant-dialog';
 
 type School = { id: string; name: string };
 type Mandate = {
   id: string; displayName: string; function: AccessFunction; schools: School[];
   scopeKind: 'school' | 'group' | 'pupil' | 'case';
   validFrom: string; validTo: string | null; startsAt: string | null; endsAt: string | null;
-  status: 'giltigt' | 'kommande'; approverName: string | null;
+  status: 'giltigt' | 'kommande'; approverName: string | null; purposeCode: string | null;
 };
 type Connection = { unitId: string; enabled: boolean; version: number; result: string | null };
 type Props = { context: ActiveContext; epoch: number; onMfaRequired: () => void; onSessionLost: () => void };
@@ -30,6 +31,7 @@ export default function MandateWorkspace(props: Props) {
   const [schoolId, setSchoolId] = useState('');
   const [connection, setConnection] = useState<Connection | null>(null);
   const [ending, setEnding] = useState<Mandate | null>(null);
+  const [granting, setGranting] = useState(false);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -127,7 +129,7 @@ export default function MandateWorkspace(props: Props) {
       <p>{isIT ? 'Inställningar och syntetiskt test för skolorna i ditt IT-uppdrag.' : 'Giltiga och kommande uppdrag som du har tilldelat genom ditt aktuella mandat.'}</p>
       {status && <output className="admin-notice">{status}</output>}
       {error && <output role="alert" className="validation-warning">{error}</output>}
-      <div><Button variant="outline" disabled={busy} onClick={() => void load(isIT ? schoolId : undefined)}>Hämta aktuellt läge</Button></div>
+      <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => void load(isIT ? schoolId : undefined)}>Hämta aktuellt läge</Button>{!isIT && <Button disabled={busy} onClick={() => { setError(null); setGranting(true); }}>Tilldela uppdrag</Button>}</div>
       {busy && <output>Hämtar eller sparar uppgifter…</output>}
       {isIT ? <section className="protected-card">
         <h2>Skolans lokala anslutning</h2>
@@ -137,10 +139,11 @@ export default function MandateWorkspace(props: Props) {
       </section> : <section aria-label="Tilldelade mandat">
         {!busy && !error && mandates.length === 0 && <p>Du har inga giltiga eller kommande tilldelningar i detta uppdrag.</p>}
         <div className="mandate-list">{mandates.map((row) => <article className="protected-card" key={row.id}>
-          <h2>{row.displayName}</h2><dl className="mandate-facts"><div><dt>Funktion</dt><dd>{FUNCTION_LABEL[row.function]}</dd></div><div><dt>Omfattning</dt><dd>{scopeLabels[row.scopeKind]} · {row.schools.map((school) => school.name).join(', ')}</dd></div><div><dt>Giltighet</dt><dd>{validity(row)}</dd></div>{row.function === 'support' && <div><dt>Godkännare</dt><dd>{row.approverName ?? 'Namn saknas'}</dd></div>}<div><dt>Status</dt><dd>{row.status === 'kommande' ? 'Kommande' : 'Giltigt'}</dd></div></dl>
+          <h2>{row.displayName}</h2><dl className="mandate-facts"><div><dt>Funktion</dt><dd>{FUNCTION_LABEL[row.function]}</dd></div><div><dt>Omfattning</dt><dd>{scopeLabels[row.scopeKind]} · {row.schools.map((school) => school.name).join(', ')}</dd></div><div><dt>Giltighet</dt><dd>{validity(row)}</dd></div>{row.function === 'support' && <><div><dt>Syfte</dt><dd>{row.purposeCode === 'synthetic-troubleshooting' ? 'Syntetisk felsökning' : 'Ej angivet'}</dd></div><div><dt>Godkännare</dt><dd>{row.approverName ?? 'Namn saknas'}</dd></div></>}<div><dt>Status</dt><dd>{row.status === 'kommande' ? 'Kommande' : 'Giltigt'}</dd></div></dl>
           <Button variant="outline" disabled={busy} onClick={() => { setError(null); setEnding(row); }}>Avsluta uppdrag för {row.displayName}</Button>
         </article>)}</div>
       </section>}
+      {!isIT && <MandateGrantDialog open={granting} epoch={props.epoch} onOpenChange={setGranting} onMfaRequired={() => callbacks.current.onMfaRequired()} onSessionLost={() => callbacks.current.onSessionLost()} onGranted={(name) => { setGranting(false); void load().then(() => setStatus(`Uppdraget har tilldelats ${name}.`)); }} />}
       <Dialog open={ending !== null} onOpenChange={(open) => { if (!open && !busy) setEnding(null); }}>
         <DialogContent className="mandate-dialog" showCloseButton={!busy}>
           <DialogTitle>Avsluta uppdrag?</DialogTitle>
