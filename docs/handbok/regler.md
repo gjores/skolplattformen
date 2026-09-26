@@ -13,11 +13,11 @@ Sammanställning av de regler servern tillämpar. Reglerna prövas på servern v
 | Huvudman | Läsa organisationen, utse rektor | Automatisk insyn i elevärenden |
 | Rektor | Läsa elever inom sina skolenheter, delegera uppdrag | Gå utanför sina skolenheter |
 | Administratör | Läsa och exportera elever inom räckvidden | Delegera uppdrag |
-| Lärare | Läsa elever i sina undervisnings- och mentorsgrupper | Nå elever utanför grupperna |
-| Elevhälsa | Läsa elever inom tilldelad räckvidd | Nå elever utanför räckvidden |
+| Lärare | Läsa elever i sina undervisnings- och mentorsgrupper | Nå elever utanför grupperna, exportera |
+| Elevhälsa | Läsa elever inom tilldelad räckvidd | Nå elever utanför räckvidden, exportera, delegera |
 | Elevhälsoansvarig | Delegera elevhälsouppdrag | Läsa elevuppgifter på eget mandat |
 | IT-administration | Se, aktivera, pausa och prova anslutningen | All elevinsyn |
-| Tidsbegränsad support | Läsa en namngiven elev under angiven tid | Allt efter sluttiden |
+| Tidsbegränsad support | Läsa en namngiven elev under angiven tid | Exportera, delegera, ändra; allt efter sluttiden |
 
 ## Uppdragets giltighet
 
@@ -48,6 +48,7 @@ En person kan inte delegera till sig själv, och en kedja kan aldrig gå i cirke
 | Utanför räckvidden | Skolenheten, gruppen, eleven eller ärendet ligger utanför mandatet |
 | Uppgifterna är för många | Fler fält begärdes än åtgärden tillåter |
 | Delegeringen tillåts inte | Mottagaren, räckvidden eller tiden ryms inte i det egna mandatet |
+| Säkerhetsloggen är otillgänglig | Händelsen kan inte sparas, så inget innehåll lämnas ut och ingen ändring genomförs |
 
 Nekandet avslöjar inte om objektet finns. Ett känt objekt-ID från en annan kund ger samma svar som ett obefintligt.
 

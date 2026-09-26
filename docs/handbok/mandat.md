@@ -4,11 +4,31 @@ title: Mandat och avgränsad åtkomst
 
 Ett mandat är ett uppdrag med en bestämd räckvidd och en bestämd giltighetstid. Servern prövar mandatet vid varje åtgärd: vem du är, vilket uppdrag du arbetar i, vilket objekt du försöker nå och vilka uppgifter du begär.
 
-**Status:** Byggt. Reglerna finns i databasen och serverlagret och är prövade med syntetiska uppgifter; hela användarflödet på dator och telefon är ännu inte färdigverifierat. Inga verkliga elevuppgifter förekommer.
+**Status:** Byggt. Flödena på den här sidan är prövade automatiskt på dator och telefon i den lokala provmiljön med syntetiska uppgifter (september 2026). Granskningen av resultatet återstår innan de räknas som verifierade. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
 
 ## Mandatarbetsytan
 
-Rektor och motsvarande funktioner ser sina tilldelade mandat i arbetsytan **Mandat**. *Hämta aktuellt läge* läser om listan från servern. Varje rad kan avslutas med *Avsluta uppdrag för …*, vilket kräver en bekräftelse. Ett avslutat uppdrag upphör att gälla vid nästa anrop.
+Huvudman, rektor och elevhälsoansvarig öppnar arbetsytan **Mandat**. Den listar de giltiga och kommande uppdrag du själv har tilldelat genom ditt aktuella mandat. Varje kort visar mottagare, funktion, omfattning med skolenhet, giltighet och status. För tidsbegränsad support visas också syfte och godkännare.
+
+*Hämta aktuellt läge* läser om listan från servern. Uppdrag som har löpt ut eller avslutats visas inte i listan.
+
+## Tilldela ett uppdrag
+
+1. Välj *Tilldela uppdrag*. Dialogen hämtar det urval ditt eget mandat tillåter: funktioner, mottagare, skolenheter, grupper, elever och ärenden. Du kan inte välja något utanför ditt mandat, och du finns inte själv bland mottagarna.
+2. Välj **Uppdrag** och **Mottagare**.
+3. Välj **Omfattning** och markera skolor, grupper, elever eller ärenden. Omfattningen går bara att ändra när funktionen har flera möjliga räckvidder, till exempel elevhälsa.
+4. Ange giltighet. Uppdraget kan inte gälla längre än ditt eget mandat.
+5. Välj *Tilldela uppdraget*. Arbetsytan bekräftar *Uppdraget har tilldelats …* och kortet visas i listan.
+
+Tilldelning kräver att du har verifierat dig med engångskod. Har du inte gjort det visas *Tilldelning kräver verifiering med engångskod* i dialogen, och sidan erbjuder *Verifiera med engångskod*. Verifieringen tar dig till inloggningen, och formuläret fylls inte i igen efteråt. Verifiera därför innan du fyller i en längre tilldelning.
+
+Saknas ett val markeras fältet och felet står vid fältet, till exempel *Välj mottagare.* eller *Välj minst en grupp.* Det du redan har fyllt i finns kvar när servern avvisar en tilldelning. Dialogen kan skötas helt med tangentbordet: fokus flyttas in i dialogen när den öppnas, Tab stannar i dialogen och Esc stänger den utan att något sparas.
+
+## Avsluta ett uppdrag
+
+Välj *Avsluta uppdrag för …* på kortet. Bekräftelsen namnger personen, funktionen och skolenheten och säger att uppdrag som bygger på mandatet också upphör. Välj *Ja, avsluta uppdraget*. Avslutet gäller direkt vid nästa anrop, även i sessioner som redan är öppna.
+
+Avslut kräver verifiering med engångskod, precis som tilldelning.
 
 ## Vem får delegera till vem
 
@@ -16,7 +36,7 @@ Mandat delas ut i linjen. Den som delegerar måste själv ha ett giltigt mandat,
 
 | Delegerar | Kan ge |
 |---|---|
-| Huvudman | Rektor |
+| Huvudman | Rektor, för en eller flera av huvudmannens skolenheter |
 | Rektor | Lärare, administratör, elevhälsa, tidsbegränsad support |
 | Elevhälsoansvarig | Elevhälsa |
 | Kundadministration | Kundadministration, granskning |
@@ -40,6 +60,23 @@ Räckvidden avgör vilka objekt mandatet når.
 
 **Lärare** har alltid gruppräckvidd och når elever genom sina undervisnings- eller mentorsgrupper. **Elevhälsa** kan ges skol-, elev- eller ärenderäckvidd, så att insatsen kan avgränsas till just de elever eller ärenden den gäller. Övriga verksamhetsfunktioner har skolräckvidd.
 
+## Syntetiskt elevprov
+
+Arbetsytan **Syntetiskt elevprov** visar hur räckvidden fungerar med syntetiska elever. Den finns för rektor, lärare, administratör, elevhälsa och tidsbegränsad support. Överst står uppdraget och omfattningen. Listan innehåller bara de elever servern har lämnat ut för ditt uppdrag. Ingen större lista hämtas och filtreras i webbläsaren.
+
+| Uppdrag | Vad du ser |
+|---|---|
+| Lärare | Eleverna i dina grupper, inte andra elever på skolan |
+| Administratör | Skolenhetens elever. *Exportera urvalet (CSV)* laddar ned samma urval |
+| Elevhälsa, skolräckvidd | Skolenhetens elever |
+| Elevhälsa, elevräckvidd | Endast de tilldelade eleverna |
+| Elevhälsa, ärenderäckvidd | Ingen lista. Välj ett tilldelat ärende och *Visa ärendets elev* |
+| Tidsbegränsad support | Den namngivna eleven, med godkännare, syfte och sluttid |
+
+Bara administratören kan exportera.
+
+Elever utanför räckvidden syns inte, och ett direkt anrop om dem ger samma svar som om eleven inte fanns. Varje läsning och export registreras i säkerhetsloggen. Går loggen inte att skriva visas *Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.* med en referens, och ingen elevuppgift visas.
+
 ## Tidsbegränsad support
 
 Supportmandat är avsiktligt smalt och kan bara ges av rektor. Det gäller
@@ -50,11 +87,17 @@ Supportmandat är avsiktligt smalt och kan bara ges av rektor. Det gäller
 - med angivet ändamål,
 - godkänt av den rektor som gav det.
 
-När sluttiden passerats nekas nästa anrop. Support är ingen stående åtkomst.
+Rektor tilldelar support i samma dialog. Välj *Tidsbegränsad support*, mottagare, exakt en elev och **Varaktighet från nu**: 15, 30 eller 60 minuter. Syftet är i provmiljön alltid syntetisk felsökning. Rektor som tilldelar registreras som godkännare.
+
+Supportpersonen ser godkännare, syfte och sluttid ovanför eleven. Vid sluttiden töms vyn och ersätts av *Uppdraget har upphört vid sin sluttid.* Servern nekar också nästa anrop. Support är ingen stående åtkomst, och det finns ingen export.
 
 ## IT-administration
 
-IT-funktionen ser arbetsytan **Lokal anslutning** i stället för Mandat. Där kan anslutningen aktiveras, pausas och prövas med ett syntetiskt test. IT-funktionen ger ingen elevinsyn: den når bara anslutningens läge, aldrig elevuppgifter.
+IT-funktionen ser arbetsytan **Lokal anslutning** i stället för Mandat. Välj skola och använd *Pausa anslutningen* eller *Aktivera anslutningen*. *Kör syntetiskt test* bekräftar *Det syntetiska testet lyckades. Ingen verklig kommunanslutning har testats.* När anslutningen är pausad svarar testet att den måste aktiveras först. Ändringar och test kräver verifiering med engångskod.
+
+Har någon annan hunnit ändra anslutningen skriver servern inte över den ändringen.
+
+IT-funktionen ger ingen elevinsyn. Den når bara anslutningens läge, aldrig elevuppgifter, och arbetsytan Syntetiskt elevprov finns inte i menyn.
 
 ## Minsta nödvändiga uppgifter
 

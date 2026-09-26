@@ -4,7 +4,7 @@ title: Logga in och arbeta
 
 Den skyddade provmiljön kontrollerar varje åtgärd på servern. Din inloggning avgör vem du är; ditt uppdrag avgör vad du får göra. Uppgifterna är syntetiska.
 
-**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering och utloggning. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
+**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering och utloggning. Arbetsytorna för mandat, elevprov och lokal anslutning är byggda och automatiskt prövade på dator och telefon (september 2026); granskningen återstår. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
 
 ## Logga in
 
@@ -22,15 +22,31 @@ Sidhuvudet visar vilket uppdrag du arbetar i. Har du flera väljer du bland dem 
 
 Har du inga uppdrag som gäller idag öppnas ingen arbetsyta. Du kan bara logga ut. Giltigheten prövas av servern vid varje anrop, inte bara när du väljer — ett uppdrag som löper ut mitt i din session stoppar nästa åtgärd.
 
+## Arbetsytan för ditt uppdrag
+
+Efter inloggningen öppnas den arbetsyta som hör till ditt uppdrag. Menyn visar bara det uppdraget får använda, men det är servern som prövar varje åtgärd.
+
+| Uppdrag | Arbetsyta |
+|---|---|
+| Kundadministration | Kundadministration |
+| Granskning | Säkerhetslogg |
+| Huvudman, rektor, elevhälsoansvarig | Mandat: tilldela och avsluta uppdrag |
+| Rektor, lärare, administratör, elevhälsa, tidsbegränsad support | Syntetiskt elevprov |
+| IT-administration | Lokal anslutning |
+
+Rektorn har både Mandat och Syntetiskt elevprov i menyn. Huvudmannen utser rektor och rektorn tilldelar uppdrag inom sina egna skolenheter. Hur det går till beskrivs i [Mandat och avgränsad åtkomst](mandat.md). Följ läsningar, exporter och nekanden i [Säkerhetsloggen](sakerhetslogg.md).
+
+Arbetsytorna fungerar på telefon i en spalt, utan sidledes rullning. Knappar och val är minst 44 pixlar höga.
+
 ## Byta uppdrag och flera flikar
 
 Uppdraget byts i sidhuvudet utan ny inloggning. Vid byte rensas innehållet i arbetsytan så att inget från föregående uppdrag ligger kvar.
 
-Har du plattformen öppen i flera flikar låses de övriga med meddelandet *Kontexten ändrades i en annan flik* eller *Du har loggats ut i en annan flik*, och innehållet rensas. Ladda om fliken för att fortsätta i den aktuella kontexten. Har du osparade ändringar varnas du innan bytet genomförs.
+Har du plattformen öppen i flera flikar låses de övriga med meddelandet *Kontexten ändrades i en annan flik* eller *Du har loggats ut i en annan flik*, och innehållet rensas. Det gäller även elevuppgifter i Syntetiskt elevprov. Ladda om fliken för att fortsätta i den aktuella kontexten. Har du osparade ändringar varnas du innan bytet genomförs.
 
 ## Extra verifiering
 
-Känsliga administrativa åtgärder — inbjudan, spärr, avslut av uppdrag och etablering — kräver att du styrker din identitet en extra gång med engångskod. Kravet prövas mot beviset från inloggningen, inte mot något appen själv utfärdar.
+Känsliga administrativa åtgärder — inbjudan, spärr, tilldelning och avslut av uppdrag, ändring av den lokala anslutningen och etablering — kräver att du styrker din identitet en extra gång med engångskod. Kravet prövas mot beviset från inloggningen, inte mot något appen själv utfärdar.
 
 Efter verifieringen måste du bekräfta åtgärden på nytt. Det är avsiktligt: en extra verifiering är inget tyst godkännande av åtgärden. Avbryter du flödet genomförs ingenting.
 

@@ -4,7 +4,7 @@ title: Säkerhetslogg
 
 Säkerhetsloggen visar vad som faktiskt hänt i kundens skyddade miljö. Den skrivs av servern, inte av webbläsaren: aktör och uppdrag härleds ur den prövade sessionen och kan inte väljas av den som utför åtgärden.
 
-**Status:** Verifierat för läsning, filtrering och export. Gallring och kontinuitetskontroll är byggda och delvis prövade.
+**Status:** Verifierat för läsning, filtrering och export av ändringar och nekanden. Att följa elevläsningar och elevexporter i det syntetiska elevprovet är byggt och automatiskt prövat på dator och telefon (september 2026); granskningen återstår. Gallring och kontinuitetskontroll är byggda och delvis prövade.
 
 ## Vem får läsa
 
@@ -31,13 +31,17 @@ Detaljfältet är avsiktligt kortfattat. Loggen är ett spår över vem som gjor
 
 ## Vad som loggas
 
-Beständiga ändringar loggas: inbjudningar och inlösen, spärrar och hävda spärrar, tilldelade och avslutade uppdrag, organisationsändringar och anslutningsändringar. Även **nekade försök** loggas, liksom inloggning, utloggning och kontextbyte.
+Beständiga ändringar loggas: inbjudningar och inlösen, spärrar och hävda spärrar, rektorsutnämningar, tilldelade och avslutade uppdrag, organisationsändringar samt ändringar och test av den lokala anslutningen. Även **nekade försök** loggas, liksom inloggning, utloggning och kontextbyte.
 
-Läsningar av elevinnehåll får en egen loggningsstrategi när elevregistret öppnas i en senare fas.
+I det syntetiska elevprovet loggas varje läsning och export: listan, en enskild elev, ett ärendes elev och exporten. Raden visar vem som läste, i vilket uppdrag och hur många elever svaret gällde, men inga elevnamn. Ett nekat försök att läsa en elev utanför uppdraget syns som en egen rad med resultat skilt från *ok*.
+
+Loggen skrivs innan svaret lämnas. Kan händelsen inte sparas får användaren inget innehåll och ingen ändring genomförs. I stället visas *Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.* med en referens.
+
+Så följer du en läsning: skriv åtgärden, till exempel `pupil_probe_read`, i fältet **Åtgärd** och välj *Visa*. Korrelationen är samma referens som användaren ser vid ett fel. Under *Detaljer* finns hela korrelations-id:t.
 
 ## Exportera
 
-*Exportera CSV* laddar ned de träffar filtret visar. Exporten är i sig en åtgärd och registreras i loggen med samma spårbarhet som övriga händelser.
+*Exportera CSV* laddar ned de träffar filtret visar. Exporten är i sig en åtgärd och registreras i loggen med samma spårbarhet som övriga händelser. Därefter bekräftas *CSV-exporten har laddats ner och registrerats i loggen.* Exporten innehåller inga elevnamn.
 
 ## Skydd och gallring
 
