@@ -1,0 +1,527 @@
+{
+  "kind": "phase3-summary",
+  "scope": "local-synthetic-only",
+  "startedAt": "2026-09-26T13:27:34.095Z",
+  "completedAt": "2026-09-26T13:34:52.299Z",
+  "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+  "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c",
+  "nodeVersion": "v25.9.0",
+  "target": "protected",
+  "steps": [
+    {
+      "required": true,
+      "name": "node25",
+      "command": "node --version",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "nodeVersion": "v25.9.0",
+        "producedAt": "2026-09-26T13:27:34.172Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "mål-protected",
+      "command": "assertTarget(protected,{requireIdp:true})",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "target": "protected",
+        "producedAt": "2026-09-26T13:27:34.885Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "mål-baseline",
+      "command": "assertTarget(baseline)",
+      "exit": null,
+      "durationMs": 0,
+      "status": "BLOCKED",
+      "evidence": {
+        "reason": "BLOCKED: målet baseline är inte startat. Kör node work/pilot/prepare-local.mjs --target baseline. Starta med node work/pilot/prepare-local.mjs --target baseline",
+        "producedAt": "2026-09-26T13:27:34.927Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "preview-lås",
+      "command": "dist-protected/server/.dev.vars.lock",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "free": true,
+        "producedAt": "2026-09-26T13:27:34.927Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "modeller",
+      "command": "node --test lib/*.test.mjs lib/server/*.test.mjs (22 filer)",
+      "exit": 0,
+      "durationMs": 1606,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:36.535Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "grind-unit",
+      "command": "node --test scripts/verify-phase3.test.mjs scripts/verify-phase2.test.mjs ../work/pilot/collect-denials.test.mjs",
+      "exit": 0,
+      "durationMs": 228,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:36.763Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "typkontroll",
+      "command": "npx tsc --noEmit",
+      "exit": 0,
+      "durationMs": 1842,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:38.606Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "lint",
+      "command": "npx oxlint app lib scripts e2e",
+      "exit": 0,
+      "durationMs": 1284,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:39.890Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "lint-pilot",
+      "command": "oxlint work/pilot/verify-mandates.mjs work/pilot/verify-access.mjs work/pilot/collect-denials.mjs work/pilot/configure-audit-source.mjs work/pilot/phase3-browser-fixtures.mjs",
+      "exit": 0,
+      "durationMs": 88,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:39.979Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "normalt-bygge",
+      "command": "npm run build:example",
+      "exit": 0,
+      "durationMs": 5185,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:45.164Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "protected-bygge",
+      "command": "npm run build:protected",
+      "exit": 0,
+      "durationMs": 5252,
+      "status": "PASS",
+      "evidence": {
+        "mode": "protected",
+        "revision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "producedAt": "2026-09-26T13:27:50.416Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "docs-bygge",
+      "command": "npm run docs:build (projektroten)",
+      "exit": 0,
+      "durationMs": 2643,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:27:53.060Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "sql",
+      "command": "node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase3-sql-all.json",
+      "exit": 0,
+      "durationMs": 2416,
+      "status": "PASS",
+      "evidence": {
+        "files": 10,
+        "producedAt": "2026-09-26T13:27:55.476Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "api-isolering",
+      "command": "node work/pilot/verify-isolation.mjs",
+      "exit": 0,
+      "durationMs": 1374,
+      "status": "PASS",
+      "evidence": {
+        "status": "PASS",
+        "producedAt": "2026-09-26T13:27:56.851Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "baslinje-db",
+      "command": "node work/pilot/verify-baseline-db.mjs",
+      "exit": null,
+      "durationMs": 0,
+      "status": "BLOCKED",
+      "evidence": {
+        "reason": "baseline-målet är inte klart",
+        "producedAt": "2026-09-26T13:27:56.852Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "access-api",
+      "command": "node work/pilot/verify-access.mjs --out work/pilot/results/access.json",
+      "exit": 0,
+      "durationMs": 20098,
+      "status": "PASS",
+      "evidence": {
+        "cases": 16,
+        "producedAt": "2026-09-26T13:28:16.953Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "mandat-api",
+      "command": "node work/pilot/verify-mandates.mjs --out work/pilot/results/phase3-api.json",
+      "exit": 0,
+      "durationMs": 206875,
+      "status": "PASS",
+      "evidence": {
+        "cases": 25,
+        "checks": 130,
+        "producedAt": "2026-09-26T13:31:43.831Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "källbevis",
+      "command": "work/pilot/results/phase3-denials.json (skriven av mandat-api)",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "probes": [
+          "direct-rest",
+          "direct-rpc",
+          "direct-storage",
+          "direct-sql"
+        ],
+        "outages": [
+          "kong",
+          "storage",
+          "postgres"
+        ],
+        "events": 10,
+        "producedAt": "2026-09-26T13:31:43.832Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas1-browser",
+      "command": "npx playwright test -c playwright.config.ts",
+      "exit": null,
+      "durationMs": 0,
+      "status": "BLOCKED",
+      "evidence": {
+        "reason": "port 5192 används redan av en annan process; stoppa den (grinden stoppar aldrig andras servrar)",
+        "producedAt": "2026-09-26T13:31:43.834Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas2-browser",
+      "command": "npx playwright test -c playwright.protected.config.ts phase2-",
+      "exit": 1,
+      "durationMs": 91734,
+      "status": "FAIL",
+      "evidence": {
+        "producedAt": "2026-09-26T13:33:15.568Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas3-fixturer",
+      "command": "node work/pilot/phase3-browser-fixtures.mjs --target protected",
+      "exit": 0,
+      "durationMs": 2133,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:33:17.702Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas3-arbetsyta-browser",
+      "command": "npx playwright test -c playwright.phase3.config.ts",
+      "exit": 0,
+      "durationMs": 94490,
+      "status": "PASS",
+      "evidence": {
+        "passed": 18,
+        "projects": [
+          "phase3-desktop",
+          "phase3-phone"
+        ],
+        "titles": 9,
+        "producedAt": "2026-09-26T13:34:52.194Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas3-mandat-browser",
+      "command": "npm run e2e:protected -- phase3-mandates.spec.ts",
+      "exit": null,
+      "durationMs": 0,
+      "status": "BLOCKED",
+      "evidence": {
+        "reason": "e2e/phase3-mandates.spec.ts saknas; fas 3-mandatflödena på dator/telefon/byggd Worker skapas i 03-07",
+        "producedAt": "2026-09-26T13:34:52.195Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    },
+    {
+      "required": true,
+      "name": "källstabilitet",
+      "command": "git revision + källfingeravtryck",
+      "exit": 0,
+      "durationMs": 0,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T13:34:52.299Z",
+        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
+        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+      }
+    }
+  ],
+  "status": "FAIL",
+  "validationErrors": [
+    "mål-baseline är BLOCKED",
+    "mål-baseline har exit null",
+    "baslinje-db är BLOCKED",
+    "baslinje-db har exit null",
+    "fas1-browser är BLOCKED",
+    "fas1-browser har exit null",
+    "fas2-browser är FAIL",
+    "fas2-browser har exit 1",
+    "fas3-mandat-browser är BLOCKED",
+    "fas3-mandat-browser har exit null"
+  ],
+  "requirements": [
+    {
+      "id": "ACL-02",
+      "evidence": [
+        {
+          "step": "sql",
+          "status": "PASS"
+        },
+        {
+          "step": "access-api",
+          "status": "PASS"
+        },
+        {
+          "step": "mandat-api",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-arbetsyta-browser",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-mandat-browser",
+          "status": "BLOCKED"
+        }
+      ],
+      "status": "BLOCKED"
+    },
+    {
+      "id": "ACL-03",
+      "evidence": [
+        {
+          "step": "sql",
+          "status": "PASS"
+        },
+        {
+          "step": "access-api",
+          "status": "PASS"
+        },
+        {
+          "step": "mandat-api",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-arbetsyta-browser",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-mandat-browser",
+          "status": "BLOCKED"
+        }
+      ],
+      "status": "BLOCKED"
+    },
+    {
+      "id": "ACL-04",
+      "evidence": [
+        {
+          "step": "modeller",
+          "status": "PASS"
+        },
+        {
+          "step": "sql",
+          "status": "PASS"
+        },
+        {
+          "step": "mandat-api",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-arbetsyta-browser",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-mandat-browser",
+          "status": "BLOCKED"
+        }
+      ],
+      "status": "BLOCKED"
+    },
+    {
+      "id": "ACL-05",
+      "evidence": [
+        {
+          "step": "modeller",
+          "status": "PASS"
+        },
+        {
+          "step": "sql",
+          "status": "PASS"
+        },
+        {
+          "step": "mandat-api",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-arbetsyta-browser",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-mandat-browser",
+          "status": "BLOCKED"
+        }
+      ],
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AUDIT-02",
+      "evidence": [
+        {
+          "step": "sql",
+          "status": "PASS"
+        },
+        {
+          "step": "access-api",
+          "status": "PASS"
+        },
+        {
+          "step": "mandat-api",
+          "status": "PASS"
+        },
+        {
+          "step": "källbevis",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-arbetsyta-browser",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-mandat-browser",
+          "status": "BLOCKED"
+        }
+      ],
+      "status": "BLOCKED"
+    },
+    {
+      "id": "AUDIT-03",
+      "evidence": [
+        {
+          "step": "sql",
+          "status": "PASS"
+        },
+        {
+          "step": "mandat-api",
+          "status": "PASS"
+        },
+        {
+          "step": "källbevis",
+          "status": "PASS"
+        },
+        {
+          "step": "fas3-mandat-browser",
+          "status": "BLOCKED"
+        }
+      ],
+      "status": "BLOCKED"
+    }
+  ]
+}
