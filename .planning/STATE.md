@@ -116,7 +116,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Pending Todos
 
 - Nästa steg: återuppta `gsd-execute-phase 3` från 03-04. Komplettera Storage/direkt SQL, säker individuell korrelation och avbrott/rotation/cursor/återhämtning. Läs .continue-here.md och 03-04-SUMMARY.md; elevvägen förblir stängd tills auditbevis finns.
-- 6 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23).
+- 7 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23); Utred Sverige-id och integration i appen (auth, 09-26).
 
 ## Blockers
 
