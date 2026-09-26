@@ -1,12 +1,12 @@
 {
   "kind": "api-isolation",
-  "date": "2026-09-26T13:27:56.846Z",
+  "date": "2026-09-26T14:42:28.209Z",
   "target": {
     "projectId": "skolplattform-pilot-protected",
     "apiUrl": "http://127.0.0.1:56321",
     "migrations": 27
   },
-  "revision": "c7a113d",
+  "revision": "7d4ec8d",
   "identities": [
     "anon",
     "gammalAnonym",
@@ -266,7 +266,7 @@
     "offerings": 1,
     "class_timplans": 0,
     "storage_tillstand": 1,
-    "auth_users": 10,
+    "auth_users": 20,
     "profiles_md5": "c8136bb5e7a9118806fd17950e48fb62"
   },
   "rowsAfter": {
@@ -275,7 +275,7 @@
     "offerings": 1,
     "class_timplans": 0,
     "storage_tillstand": 1,
-    "auth_users": 10,
+    "auth_users": 20,
     "profiles_md5": "c8136bb5e7a9118806fd17950e48fb62"
   },
   "unchanged": true,

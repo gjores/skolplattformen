@@ -1,6 +1,6 @@
 ---
 phase: 03
-status: planned
+status: automated-pass-awaiting-user-check
 nyquist_compliant: false
 wave_0_complete: false
 ---
@@ -33,3 +33,20 @@ Testinfrastruktur tillkommer i plan 01 (modell), 02/04 (SQL), 06 (API/grind) och
 Använd syntetiska data och målskydd från verify-target.mjs. Resultat ska innehålla revision/fingeravtryck, tid, namngivna fall och faktisk status; inga cookies, tokens, elevinnehåll eller fria SQL-loggar med hemligheter i Git. Kontrollera logginsamlarens minimering före sparande. Källans otillgänglighet, miljöfel eller ett hoppat obligatoriskt steg betyder BLOCKED/FAIL. Testklientens egna nekanderapporter ersätter aldrig serverlogg.
 
 Manuellt efter grön automatisk grind: användarprov av tilldelning, elevhälsa, support och loggfel på dator/telefon. En ännu ej fastställd verklig rättighetsmatris eller lagringstid ska kvarstå som kundberoende; syntetiskt prov godkänner inte verklig drift. Nyquist-status ändras först när provkoppling och körbevis faktiskt är kompletta.
+
+## Körresultat 2026-09-26 (plan 03-07)
+
+Färsk fasgrind `cd web && npm run verify:phase3` på revision `7d4ec8d` (14:42–14:58 UTC): **PASS**, inga valideringsfel. Rapport: `work/pilot/results/phase3-summary.json`. Detaljer och rättade fel: `docs/pilot/phase3-mandates.md`.
+
+| Krav | Bevissteg i körningen | Automatiskt resultat | Återstår |
+|---|---|---|---|
+| ACL-02 | sql (540), access-api (16), mandat-api (25/130), fas3-arbetsyta-browser (18), fas3-mandat-browser (36) | PASS | Användarprov 03-07, gsd-verify-work |
+| ACL-03 | som ACL-02 | PASS | som ovan |
+| ACL-04 | modeller (281), sql, mandat-api, fas3-arbetsyta-browser, fas3-mandat-browser | PASS | som ovan |
+| ACL-05 | som ACL-04 | PASS | som ovan |
+| AUDIT-02 | sql, access-api, mandat-api, källbevis (4 vägar, 3 avbrott), båda fas 3-browsersviterna | PASS | som ovan |
+| AUDIT-03 | sql, mandat-api, källbevis, fas3-mandat-browser | PASS | som ovan |
+
+Regressioner i samma körning: baslinje-db PASS (utbildning och kurs-/nivåtillägg, kullkopiering, klass–timplan, grundskolans timplan), fas 1-browser 26 PASS, fas 2-browser 37 PASS. Endast redovisade projekthopp förekom (1 respektive 19).
+
+Allt är lokalt och syntetiskt. Ingen verklig IdP, lagringstid eller kommunanslutning är prövad. Mandatbrowserns telefonbevis är WebKit i iPhone-storlek; en fysisk telefon når inte den lokala miljön. Kraven markeras inte som verifierade i REQUIREMENTS.md förrän användarprovet och gsd-verify-work är gjorda. Nyquist-status ändras inte av denna körning, eftersom det manuella steget återstår.

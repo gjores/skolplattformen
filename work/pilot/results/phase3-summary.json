@@ -1,10 +1,10 @@
 {
   "kind": "phase3-summary",
   "scope": "local-synthetic-only",
-  "startedAt": "2026-09-26T13:27:34.095Z",
-  "completedAt": "2026-09-26T13:34:52.299Z",
-  "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-  "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c",
+  "startedAt": "2026-09-26T14:42:07.238Z",
+  "completedAt": "2026-09-26T14:58:55.570Z",
+  "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+  "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9",
   "nodeVersion": "v25.9.0",
   "target": "protected",
   "steps": [
@@ -17,9 +17,9 @@
       "status": "PASS",
       "evidence": {
         "nodeVersion": "v25.9.0",
-        "producedAt": "2026-09-26T13:27:34.172Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:07.324Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -31,23 +31,23 @@
       "status": "PASS",
       "evidence": {
         "target": "protected",
-        "producedAt": "2026-09-26T13:27:34.885Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:07.979Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
       "required": true,
       "name": "mål-baseline",
       "command": "assertTarget(baseline)",
-      "exit": null,
+      "exit": 0,
       "durationMs": 0,
-      "status": "BLOCKED",
+      "status": "PASS",
       "evidence": {
-        "reason": "BLOCKED: målet baseline är inte startat. Kör node work/pilot/prepare-local.mjs --target baseline. Starta med node work/pilot/prepare-local.mjs --target baseline",
-        "producedAt": "2026-09-26T13:27:34.927Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "target": "baseline",
+        "producedAt": "2026-09-26T14:42:08.079Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -59,9 +59,9 @@
       "status": "PASS",
       "evidence": {
         "free": true,
-        "producedAt": "2026-09-26T13:27:34.927Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:08.079Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -69,12 +69,12 @@
       "name": "modeller",
       "command": "node --test lib/*.test.mjs lib/server/*.test.mjs (22 filer)",
       "exit": 0,
-      "durationMs": 1606,
+      "durationMs": 1298,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:36.535Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:09.377Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -82,12 +82,12 @@
       "name": "grind-unit",
       "command": "node --test scripts/verify-phase3.test.mjs scripts/verify-phase2.test.mjs ../work/pilot/collect-denials.test.mjs",
       "exit": 0,
-      "durationMs": 228,
+      "durationMs": 189,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:36.763Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:09.566Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -95,12 +95,12 @@
       "name": "typkontroll",
       "command": "npx tsc --noEmit",
       "exit": 0,
-      "durationMs": 1842,
+      "durationMs": 1777,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:38.606Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:11.343Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -108,25 +108,25 @@
       "name": "lint",
       "command": "npx oxlint app lib scripts e2e",
       "exit": 0,
-      "durationMs": 1284,
+      "durationMs": 1275,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:39.890Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:12.618Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
       "required": true,
       "name": "lint-pilot",
-      "command": "oxlint work/pilot/verify-mandates.mjs work/pilot/verify-access.mjs work/pilot/collect-denials.mjs work/pilot/configure-audit-source.mjs work/pilot/phase3-browser-fixtures.mjs",
+      "command": "oxlint work/pilot/verify-mandates.mjs work/pilot/verify-access.mjs work/pilot/collect-denials.mjs work/pilot/configure-audit-source.mjs work/pilot/phase3-browser-fixtures.mjs work/pilot/phase2-otp-fixtures.mjs",
       "exit": 0,
-      "durationMs": 88,
+      "durationMs": 75,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:39.979Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:12.693Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -134,12 +134,12 @@
       "name": "normalt-bygge",
       "command": "npm run build:example",
       "exit": 0,
-      "durationMs": 5185,
+      "durationMs": 4915,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:45.164Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:17.608Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -147,14 +147,14 @@
       "name": "protected-bygge",
       "command": "npm run build:protected",
       "exit": 0,
-      "durationMs": 5252,
+      "durationMs": 4582,
       "status": "PASS",
       "evidence": {
         "mode": "protected",
-        "revision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "producedAt": "2026-09-26T13:27:50.416Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "revision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "producedAt": "2026-09-26T14:42:22.191Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -162,12 +162,12 @@
       "name": "docs-bygge",
       "command": "npm run docs:build (projektroten)",
       "exit": 0,
-      "durationMs": 2643,
+      "durationMs": 2214,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:27:53.060Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:24.405Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -175,13 +175,13 @@
       "name": "sql",
       "command": "node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase3-sql-all.json",
       "exit": 0,
-      "durationMs": 2416,
+      "durationMs": 2216,
       "status": "PASS",
       "evidence": {
         "files": 10,
-        "producedAt": "2026-09-26T13:27:55.476Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:26.622Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -189,27 +189,33 @@
       "name": "api-isolering",
       "command": "node work/pilot/verify-isolation.mjs",
       "exit": 0,
-      "durationMs": 1374,
+      "durationMs": 1592,
       "status": "PASS",
       "evidence": {
         "status": "PASS",
-        "producedAt": "2026-09-26T13:27:56.851Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:28.214Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
       "required": true,
       "name": "baslinje-db",
       "command": "node work/pilot/verify-baseline-db.mjs",
-      "exit": null,
-      "durationMs": 0,
-      "status": "BLOCKED",
+      "exit": 0,
+      "durationMs": 606,
+      "status": "PASS",
       "evidence": {
-        "reason": "baseline-målet är inte klart",
-        "producedAt": "2026-09-26T13:27:56.852Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "status": "PASS",
+        "flows": [
+          "utbildning-och-kurs-niva",
+          "kullkopiering-fristaende",
+          "klass-timplan-fast-version",
+          "grundskola-timplan"
+        ],
+        "producedAt": "2026-09-26T14:42:28.820Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -217,13 +223,13 @@
       "name": "access-api",
       "command": "node work/pilot/verify-access.mjs --out work/pilot/results/access.json",
       "exit": 0,
-      "durationMs": 20098,
+      "durationMs": 14944,
       "status": "PASS",
       "evidence": {
         "cases": 16,
-        "producedAt": "2026-09-26T13:28:16.953Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:42:43.766Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -231,14 +237,14 @@
       "name": "mandat-api",
       "command": "node work/pilot/verify-mandates.mjs --out work/pilot/results/phase3-api.json",
       "exit": 0,
-      "durationMs": 206875,
+      "durationMs": 202433,
       "status": "PASS",
       "evidence": {
         "cases": 25,
         "checks": 130,
-        "producedAt": "2026-09-26T13:31:43.831Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:46:06.199Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -261,36 +267,52 @@
           "postgres"
         ],
         "events": 10,
-        "producedAt": "2026-09-26T13:31:43.832Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:46:06.200Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
       "required": true,
       "name": "fas1-browser",
       "command": "npx playwright test -c playwright.config.ts",
-      "exit": null,
-      "durationMs": 0,
-      "status": "BLOCKED",
+      "exit": 0,
+      "durationMs": 49631,
+      "status": "PASS",
       "evidence": {
-        "reason": "port 5192 används redan av en annan process; stoppa den (grinden stoppar aldrig andras servrar)",
-        "producedAt": "2026-09-26T13:31:43.834Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "expected": 26,
+        "designedSkips": 1,
+        "producedAt": "2026-09-26T14:46:55.835Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
+      }
+    },
+    {
+      "required": true,
+      "name": "fas2-fixturer",
+      "command": "node work/pilot/phase2-otp-fixtures.mjs --target protected",
+      "exit": 0,
+      "durationMs": 2093,
+      "status": "PASS",
+      "evidence": {
+        "producedAt": "2026-09-26T14:46:57.928Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
       "required": true,
       "name": "fas2-browser",
       "command": "npx playwright test -c playwright.protected.config.ts phase2-",
-      "exit": 1,
-      "durationMs": 91734,
-      "status": "FAIL",
+      "exit": 0,
+      "durationMs": 422827,
+      "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:33:15.568Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "expected": 37,
+        "designedSkips": 19,
+        "producedAt": "2026-09-26T14:54:00.758Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -298,12 +320,12 @@
       "name": "fas3-fixturer",
       "command": "node work/pilot/phase3-browser-fixtures.mjs --target protected",
       "exit": 0,
-      "durationMs": 2133,
+      "durationMs": 3109,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:33:17.702Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:54:03.867Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -311,7 +333,7 @@
       "name": "fas3-arbetsyta-browser",
       "command": "npx playwright test -c playwright.phase3.config.ts",
       "exit": 0,
-      "durationMs": 94490,
+      "durationMs": 107950,
       "status": "PASS",
       "evidence": {
         "passed": 18,
@@ -320,23 +342,29 @@
           "phase3-phone"
         ],
         "titles": 9,
-        "producedAt": "2026-09-26T13:34:52.194Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:55:51.819Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
       "required": true,
       "name": "fas3-mandat-browser",
-      "command": "npm run e2e:protected -- phase3-mandates.spec.ts",
-      "exit": null,
-      "durationMs": 0,
-      "status": "BLOCKED",
+      "command": "npx playwright test -c playwright.protected.config.ts phase3-mandates.spec.ts",
+      "exit": 0,
+      "durationMs": 183157,
+      "status": "PASS",
       "evidence": {
-        "reason": "e2e/phase3-mandates.spec.ts saknas; fas 3-mandatflödena på dator/telefon/byggd Worker skapas i 03-07",
-        "producedAt": "2026-09-26T13:34:52.195Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "passed": 36,
+        "projects": [
+          "protected-desktop",
+          "protected-phone",
+          "protected-built"
+        ],
+        "titles": 12,
+        "producedAt": "2026-09-26T14:58:55.471Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     },
     {
@@ -347,25 +375,13 @@
       "durationMs": 0,
       "status": "PASS",
       "evidence": {
-        "producedAt": "2026-09-26T13:34:52.299Z",
-        "gitRevision": "c7a113d0be800d49217f528970ab952c329afdf8",
-        "sourceTreeFingerprint": "sha256:d62f2b128fd17c8dca36febb4dcebc8ce83373e0c7f86668a7605b10c0feaf6c"
+        "producedAt": "2026-09-26T14:58:55.570Z",
+        "gitRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+        "sourceTreeFingerprint": "sha256:9cdfec5b6dfe89157d25f51f8b45d3008512cd918a7a07741d56a73a001a0da9"
       }
     }
   ],
-  "status": "FAIL",
-  "validationErrors": [
-    "mål-baseline är BLOCKED",
-    "mål-baseline har exit null",
-    "baslinje-db är BLOCKED",
-    "baslinje-db har exit null",
-    "fas1-browser är BLOCKED",
-    "fas1-browser har exit null",
-    "fas2-browser är FAIL",
-    "fas2-browser har exit 1",
-    "fas3-mandat-browser är BLOCKED",
-    "fas3-mandat-browser har exit null"
-  ],
+  "status": "PASS",
   "requirements": [
     {
       "id": "ACL-02",
@@ -388,10 +404,10 @@
         },
         {
           "step": "fas3-mandat-browser",
-          "status": "BLOCKED"
+          "status": "PASS"
         }
       ],
-      "status": "BLOCKED"
+      "status": "PASS"
     },
     {
       "id": "ACL-03",
@@ -414,10 +430,10 @@
         },
         {
           "step": "fas3-mandat-browser",
-          "status": "BLOCKED"
+          "status": "PASS"
         }
       ],
-      "status": "BLOCKED"
+      "status": "PASS"
     },
     {
       "id": "ACL-04",
@@ -440,10 +456,10 @@
         },
         {
           "step": "fas3-mandat-browser",
-          "status": "BLOCKED"
+          "status": "PASS"
         }
       ],
-      "status": "BLOCKED"
+      "status": "PASS"
     },
     {
       "id": "ACL-05",
@@ -466,10 +482,10 @@
         },
         {
           "step": "fas3-mandat-browser",
-          "status": "BLOCKED"
+          "status": "PASS"
         }
       ],
-      "status": "BLOCKED"
+      "status": "PASS"
     },
     {
       "id": "AUDIT-02",
@@ -496,10 +512,10 @@
         },
         {
           "step": "fas3-mandat-browser",
-          "status": "BLOCKED"
+          "status": "PASS"
         }
       ],
-      "status": "BLOCKED"
+      "status": "PASS"
     },
     {
       "id": "AUDIT-03",
@@ -518,10 +534,10 @@
         },
         {
           "step": "fas3-mandat-browser",
-          "status": "BLOCKED"
+          "status": "PASS"
         }
       ],
-      "status": "BLOCKED"
+      "status": "PASS"
     }
   ]
 }
