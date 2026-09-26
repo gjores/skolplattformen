@@ -17,3 +17,9 @@
 - Ny användarbudget: stoppgräns30 %, mätare27 % vid start av fortsättningen.
 - Ny12:00-migration för explicit personal–medlemskapsbindning och separat intern kontroll av rektor/lärare, aktiv medlem, roll och skolor. Inga app-/klienträttigheter öppnas; ingen identitetsmatchning på namn/e-post.
 - 28 ytterligare SQL-prov passerar: 213 fas3-prov, 350 totalt inklusive137 tidigare. Ingen reset. 03-02 förblir PARTIAL; nästa migration efter20260922120000. Full mutations-/inbjudnings-/serverkoppling och objektpolicy återstår.
+
+## 2026-09-26 — fortsättning till fasens slut eller checkpoint
+
+- Användaren valde: kör tills fas 3 är klar eller en checkpoint nås. Veckomätare 25 % vid start (nytt veckofönster), 5-timmarsfönster 13 %. Extra användning avstängd och månadsgräns nådd — kvottak stoppar agenter tvärt; mätaren kontrolleras mellan planerna.
+- Återskapad provmiljö bekräftad: etableringen 2026-09-24 slutförd (protected-målet 24 migrationer, IdP uppe, ingen pågående etablering). Gamla testresultat gäller föregående miljö och återanvänds inte.
+- Ordning: 03-04 (auditkällor på nya stacken) → 03-05 (återstående arbetsyta och riktig verifiering) → 03-06 → 03-07 (användarprov, checkpoint).
