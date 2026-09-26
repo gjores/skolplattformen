@@ -1,6 +1,6 @@
 # Loggpolicy i syntetisk provmiljö
 
-Status 2026-09-24: Worker-del och gallringsfunktion införda. Hela AUDIT-02/03 är inte verifierad; se fasens SUMMARY för faktiska prov och kvarvarande alternativa källor.
+Status 2026-09-26: Worker-del, gallringsfunktion och lokal källinsamling för alternativa vägar införda. Hela AUDIT-02/03 är inte verifierad; Worker-proven ska köras om på den återskapade stacken i plan 03-06.
 
 ## Händelser före svar
 
@@ -21,3 +21,5 @@ Händelsen har serveridentitet, vald kund och uppdrag, korrelation, tid, kontrol
 ## Källor utanför Worker
 
 Direkta REST/RPC/Storage/SQL-vägar förblir stängda. Deras faktiska serverloggar måste ge minimerat, korrelerbart underlag. En testklients egen rapport är inte en källhändelse. Källavbrott, återhämtning och luckor behöver egna bevis; insamlaren måste rapportera BLOCKED om underlag saknas. Asynkron Docker-insamling ersätter inte synkron loggning före elevsvar i en verklig driftmiljö.
+
+2026-09-26 gav den lokala insamlingen på den återskapade syntetiska stacken individuella källbevis för REST, RPC, Storage-upstream och direkt SQL samt avbrotts-/omstartsprov för Kong, Storage och Postgres. Fält, konfiguration och kvarvarande begränsningar (bland annat ingen automatisk Kong-omkonfigurering efter omstart och ingen cursor mellan körningar) finns i `docs/pilot/audit-sources.md`.

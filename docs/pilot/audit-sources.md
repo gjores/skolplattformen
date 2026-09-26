@@ -1,34 +1,56 @@
-# Auditkällor i lokalt syntetiskt mål — delimplementation
+# Auditkällor i lokalt syntetiskt mål
 
-Verifierat 2026-09-24. Detta är intern teknisk dokumentation, inte användarhandbok eller godkännande av AUDIT-02.
+Verifierat 2026-09-26 på den återskapade lokala provmiljön (protected-målet, enbart syntetiska data). Detta är intern teknisk dokumentation. Den är inte användarhandbok och inte godkännande av AUDIT-02/03 eller av någon verklig drift- eller kommunanslutning.
 
-## Verifierat
+## Vad som är verifierat
 
-`configure-audit-source.mjs --target protected` verifierar målet med `assertTarget` och identifierar körande Kong, Storage och Postgres genom Docker-inspektion mot verifierat projekt-ID. Okänd loggdrivrutin eller saknad källa blockerar. Verktyget ändrar enbart Kongs genererade Nginx-konfiguration i den disponibla containern. Nginx valideras före reload; fel återställer tidigare konfiguration i minnet. Inga credentials/configkopior sparas i repot.
+Rapport: `work/pilot/results/phase3-denials.json`. Kommando från projektroten:
 
-Kong skriver ett avgränsat JSON-accessformat till stdout: servergenererat Nginx-request-id, tid, status och fast kategori rest/rpc/storage/other. Ingen rå URL, query, requestheader eller body finns i det formatet. Andra befintliga tjänste-/felloggar är inte därmed minimerade. Körning efter containeråterskapande krävs; automatisk återställning av konfiguration efter omstart är inte verifierad.
+```
+node work/pilot/configure-audit-source.mjs --target protected
+node work/pilot/collect-denials.mjs --probe --outage storage,kong,db --out work/pilot/results/phase3-denials.json
+```
 
-`collect-denials.mjs --probe --out work/pilot/results/phase3-denials.json` gav tre verkliga Kong-händelser för tre syntetiska anrop utan API-nyckel till REST, RPC och Storage. Dessa nekas vid gateway; provet bevisar inte ett nekande i Storage eller Postgres. Klientsvar används endast som jämförelse, medan händelserna kommer från Docker-loggar. Den klientvalda korrelationsheadern används inte som identitet.
+Rapportens status är `PASS` med räckvidd `local-synthetic-only`. PASS gäller bara att de fyra direktvägsproven, provfönstrets kontinuitet och avbrottsproven för alla tre källor gav individuella källbevis i just denna körning. Varje källa bedöms för sig, och en saknad del ger `BLOCKED` med skäl.
 
-Kollektorn läser stdout och stderr endast i minnet och sparar ett explicit fältschema. Okänd aktör blir null, framgångsrik ingress blir `received` och får inte beskrivas som ett behörighetsnekande. Dubbletter identifieras med container-id och servergenererat request-id. Samma sekund eller anonym aktör slår inte samman olika händelser. Sju enhetstester kontrollerar dessa begränsningar, felaktig indata, argument och konfigurationsformat.
+| Väg | Källa | Bevis |
+|-----|-------|-------|
+| REST (`/rest/v1/…`, anon-nyckel) | Kong-accesslogg | 401, servergenererat request-id i svar och logg, exakt en händelse |
+| RPC (`/rest/v1/rpc/phase3_read_pupils`) | Kong-accesslogg | 401, individuell korrelation som ovan |
+| Storage-upstream (`POST /storage/v1/bucket`) | Kong + Storage-serverns logg | Kong 400 och Storage-nekande (RLS) med samma gateway-id; Storage har själv verifierat rollen `anon` |
+| Direkt SQL (login `authenticator`, sedan `anon`/`authenticated`) | Postgres-serverns logg | 3 försök, 3 × SQLSTATE 42501 i exakt den serverrapporterade sessionen (PID + sessions-id), inloggningsroll `authenticator` |
 
-## Blockerande luckor
+## Källkonfiguration
 
-Hela källkedjan returnerar alltid **BLOCKED** och exitkod 3. `kongProbe: OBSERVED` betyder endast att motsvarande route/status observerades i provfönstret; individuell säker korrelation mellan varje klientprov och serverhändelse återstår.
+`configure-audit-source.mjs` kör `assertTarget('protected')` och hittar containrarna via Docker-inspektion av det verifierade projekt-ID:t. Verktyget ändrar bara den disponibla lokala stacken.
 
-- Storage har befintliga breda JSON-loggar. Egen minimerad konfiguration, verifierat ursprung för request-id/roll och faktiska upstream-nekanden återstår.
-- Postgres loggar finns på stderr. Observerad konfigurationsfil hade `log_statement=ddl` och prefix utan explicit SQLSTATE/session-id. Minimerad konfiguration, kontroll av effektiva inställningar och verkliga SQL-nekanden återstår.
-- Avbrott, loggrotation, omstart, cursorluckor och återhämtning utan bortfall är inte verifierade. Docker `--since` är ett provfönster, ingen beständig cursor. En ren tidsstämpel ger ingen kontinuitetsgaranti. Kollektorn får därför aldrig godkänna full täckning.
-- Ingen synkron driftsgaranti ges av denna asynkrona lokala insamling. Verklig drift och kommunanslutning omfattas inte.
+- **Kong:** minimerat JSON-accessformat med request-id, tid, status och fast routekategori. Formatet har ingen URL, query, header eller body. Svarshuvudet `X-Phase3-Audit-Id` bär request-id:t. Kong tvingar samma id som `X-Client-Trace-Id` mot upstream. Klientens värde på headern skrivs över, vilket provet kontrollerar med ett förfalskat värde. En reload räknas som aktiv först när alla workers från före reload har avslutats. Utan den spärren hann ett prov 2026-09-26 hanteras av en gammal worker med okonfigurerat format.
+- **Storage:** avbildens egen JSON-logg används. Den allowlistar `x-client-trace-id`, så gatewayns id ger en individuell koppling. Kollektorn sparar bara id, tid, status, fast operationsnamn och Storage-verifierad roll (`anon`/`authenticated`/`service_role`, annars null). URL, felmeddelande och SQL kastas.
+- **Postgres:** `ALTER SYSTEM` och reload i det lokala målet ger prefixet `phase3pg|%m|%p|%c|%l|%u|%e|`. Dessutom sätts `log_min_error_statement=panic`, `log_error_verbosity=terse` och `log_statement=none`. Effektiva värden kontrolleras i en ny session, och per roll/databas får inga avvikande loggvärden finnas. Inställningarna ligger kvar efter omstart. Kollektorn sparar SQLSTATE, PID, sessions-id, radnummer och inloggningsroll. Vid klass 28/08 blir rollen null eftersom användarnamnet då bara är påstått.
 
-Nästa arbete är att fullfölja dessa källor och felprov enligt `03-EXECUTION-CONTRACT.md`; det krävs före plan 04 kan godkännas. Den lokala konfiguratorn lämnar övrig stack och direktvägarnas behörigheter oförändrade.
+Rå loggrader, SQL-text och undantagstext skrivs aldrig till rapport eller Git.
 
-## Fortsättning: korrelation och faktiskt källavbrott
+## Kontinuitet, avbrott och återhämtning
 
-Kollektorn kräver nu att ett servergenererat request-id i svarshuvudet `X-Phase3-Audit-Id` matchar exakt en logghändelse med rätt route/status. Ett id kan bara matcha ett prov; enbart samma route/status räcker inte. Konfiguratorn kan uppgradera tidigare minimerat format med Nginx-headern. Tio enhetstester passerar, inklusive falsk korrelation, återanvänt id och uppgradering. Denna headerändring är **inte ännu verifierad i körande Kong**.
+Ett provfönster räknas som kontinuerligt bara om fyra villkor gäller: samma containerkörning (id + starttid) täcker fönstret, `json-file` saknar `max-size`/`max-file` så att loggen inte kan roteras, konfigurationen är aktiv i fönstrets båda ändar, och inga omnimerade, ospårade eller felaktiga rader finns. Kong-rader i standardformat, Storage-anrop utan gateway-id, Postgres-rader utan prefix och STATEMENT-/DETAIL-rader räknas som luckor.
 
-Vid fortsatt verkligt prov misslyckades målverifieringen även med förhöjd åtkomst: Docker-daemon var inte tillgänglig. Inget provanrop eller källkonfigurationsbyte utfördes efter avvisningen. Körningen gav `BLOCKED`, `kongProbe: UNVERIFIED` och noll händelser. Rapportfilen ersattes med det aktuella källfelet, vilket hindrar att den tidigare observationen av tre händelser förväxlas med ett nytt prov. Råa undantag eller anslutningsuppgifter sparas inte.
+Avbrottsprovet stoppar och startar varje källa i tur och ordning:
 
-Detta är belägg för hur verktyget hanterar **källan otillgänglig vid start**, inte för avbrott mitt i pågående insamling eller återhämtning utan bortfall. Storage/SQL, verklig headerkorrelation, cursorlucka och återhämtning återstår. Docker behöver åter vara tillgänglig innan dessa lokala prov kan fortsätta; inget nytt kommun-/pilotgodkännande krävs för de redan planerade syntetiska proven.
+- **Storage stoppad:** kollektorn blockerar. Anropet under avbrottet får 502 från Kong och loggas individuellt av Kong. Ingen data serveras.
+- **Kong stoppad:** kollektorn blockerar och anslutningen nekas. Efter omstart har Kong genererat om sin konfiguration, så minimeringen är borta. Ett anrop i det okonfigurerade fönstret loggas i standardformat och rapporteras som lucka, inte tyst. Konfigurationen återställs sedan och verifieras.
+- **Postgres stoppad:** kollektorn blockerar och SQL-inloggning misslyckas. Efter omstart är loggkonfigurationen kvar.
 
-Efter att Docker startats igen svarar både de befintliga kontexterna `default` och `desktop-linux`, men båda listar **noll containrar**. `assertTarget('protected')` blockerar fortfarande eftersom det tidigare protected-målet saknas. Ett nytt insamlingsförsök gav fortsatt `BLOCKED`, `UNVERIFIED`, noll händelser. Ingen prepare/reset eller ny databas skapades. Tidigare faktiska källobservationer är historik och kan inte användas som bevis för den aktuella körmiljön. För fortsatt verifiering behövs återställd befintlig syntetisk stack eller ett separat beslutat återuppbyggnadssteg som även etablerar migrationer och fixtures.
+För alla tre upptäcks omstarten via ändrad starttid. Händelsen före avbrottet finns kvar i källan, och en ny händelse korreleras efter återhämtningen.
+
+## Begränsningar som kvarstår
+
+- **Ingen automatisk omkonfigurering av Kong efter omstart.** Luckan upptäcks och rapporteras, men förhindras inte. Anrop i luckan hamnar i Kongs standardformat, med rå URL, i containerns logg. Kollektorn sparar dem inte.
+- **Ingen beständig cursor mellan separata insamlingskörningar.** Varje körning bevisar sitt eget fönster. Tid mellan körningar är inte täckt.
+- **PostgREST-anrop gör Postgres-fel i poolade sessioner.** De korreleras inte individuellt med Kong-händelsen. REST/RPC-beviset kommer från Kong.
+- **Worker-händelser ingår inte i denna kollektor.** De ligger i `security_events` och provas av Worker-/API-proven. Dessa har ännu inte körts om på den återskapade stacken (plan 03-06).
+- **Loggen är inte bunden i storlek.** Utan rotation är det lokala provet kontinuerligt, men en verklig drift kräver annan logginfrastruktur.
+- **Kollektorn är asynkron och lokal.** Den ger ingen synkron driftsgaranti. Fail-closed före elevsvar gäller Worker-vägen. Verklig ingress, verklig lagringstid och kommunanslutning omfattas inte.
+
+## Historik
+
+Före 2026-09-26 gav källrapporten `BLOCKED`. Tidigare saknades Storage-upstream, direkt SQL, individuell korrelation och avbrottsprov. Därefter gick den tidigare lokala stacken förlorad, och rapporten visade källan som otillgänglig. Observationer från den tidigare miljön används inte som bevis här.
