@@ -14,6 +14,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { assertTarget } from '../../work/pilot/verify-target.mjs';
@@ -271,6 +272,25 @@ function freshJson(file, startedMs) {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { throw new Error(`${path.relative(root, file)} är inte giltig JSON`); }
 }
 
+function portBusy(port) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host: '127.0.0.1', port });
+    const done = (busy) => { socket.destroy(); resolve(busy); };
+    socket.once('connect', () => done(true));
+    socket.once('error', () => done(false));
+    socket.setTimeout(1000, () => done(false));
+  });
+}
+
+/** Miljöhinder före ett steg: upptagna portar eller kvarlämnat preview-lås ger BLOCKED, inte FAIL. */
+async function environmentBlock(ports, needsProtectedBuild) {
+  const busy = [];
+  for (const port of ports) if (await portBusy(port)) busy.push(port);
+  if (busy.length) return `port ${busy.join(', ')} används redan av en annan process; stoppa den (grinden stoppar aldrig andras servrar)`;
+  if (needsProtectedBuild && fs.existsSync(path.join(web, 'dist-protected/server/.dev.vars.lock'))) return 'dist-protected är låst av en körande eller avbruten preview';
+  return null;
+}
+
 const statusFromExit = (result) => (result.exit === 0 ? 'PASS' : result.exit === 3 ? 'BLOCKED' : 'FAIL');
 
 async function main() {
@@ -386,8 +406,9 @@ async function main() {
     },
   });
 
-  const apiReady = protectedReady && previewFree;
-  const apiReason = !protectedReady ? 'protected-målet är inte klart' : 'dist-protected är låst av en körande preview';
+  const apiBlock = !protectedReady ? 'protected-målet är inte klart' : await environmentBlock([3013, 3014], true);
+  const apiReady = apiBlock === null;
+  const apiReason = apiBlock ?? '';
   const accessOut = path.join(results, 'access.json');
   if (!apiReady) blocked('access-api', 'node work/pilot/verify-access.mjs', apiReason);
   else await commandStep('access-api', process.execPath, [path.join(pilot, 'verify-access.mjs'), '--out', accessOut], {
@@ -414,7 +435,9 @@ async function main() {
   }
 
   const playwright = path.join(web, 'node_modules/@playwright/test/cli.js');
-  await commandStep('fas1-browser', process.execPath, [playwright, 'test', '-c', 'playwright.config.ts'], {
+  const fas1Block = await environmentBlock([5191, 5192, 3011], false);
+  if (fas1Block) blocked('fas1-browser', 'npx playwright test -c playwright.config.ts', fas1Block);
+  else await commandStep('fas1-browser', process.execPath, [playwright, 'test', '-c', 'playwright.config.ts'], {
     command: 'npx playwright test -c playwright.config.ts',
     validate: () => {
       const report = freshJson(path.join(web, 'test-results/phase1-e2e.json'), startedMs);
@@ -422,7 +445,9 @@ async function main() {
       return { expected: report.stats.expected };
     },
   });
-  if (!apiReady) blocked('fas2-browser', 'npm run e2e:protected', apiReason);
+  const protectedBrowserBlock = async () => (!protectedReady ? 'protected-målet är inte klart' : environmentBlock([5193, 3012], true));
+  const fas2Block = await protectedBrowserBlock();
+  if (fas2Block) blocked('fas2-browser', 'npm run e2e:protected', fas2Block);
   else await commandStep('fas2-browser', process.execPath, [playwright, 'test', '-c', 'playwright.protected.config.ts', 'phase2-'], {
     command: 'npx playwright test -c playwright.protected.config.ts phase2-',
     validate: () => {
@@ -432,10 +457,10 @@ async function main() {
     },
   });
 
-  const idpReady = protectedReady && previewFree;
-  if (!idpReady) blocked('fas3-fixturer', 'node work/pilot/phase3-browser-fixtures.mjs --target protected', apiReason);
+  if (!protectedReady) blocked('fas3-fixturer', 'node work/pilot/phase3-browser-fixtures.mjs --target protected', 'protected-målet är inte klart');
   else await commandStep('fas3-fixturer', process.execPath, [path.join(pilot, 'phase3-browser-fixtures.mjs'), '--target', 'protected'], { cwd: root, command: 'node work/pilot/phase3-browser-fixtures.mjs --target protected' });
-  if (!idpReady) blocked('fas3-arbetsyta-browser', 'npx playwright test -c playwright.phase3.config.ts', apiReason);
+  const workspaceBlock = await protectedBrowserBlock();
+  if (workspaceBlock) blocked('fas3-arbetsyta-browser', 'npx playwright test -c playwright.phase3.config.ts', workspaceBlock);
   else await commandStep('fas3-arbetsyta-browser', process.execPath, [playwright, 'test', '-c', 'playwright.phase3.config.ts'], {
     command: 'npx playwright test -c playwright.phase3.config.ts',
     validate: () => validateBrowserReport(freshJson(path.join(web, 'test-results/phase3-workspace.json'), startedMs), WORKSPACE_BROWSER),
@@ -444,7 +469,7 @@ async function main() {
   const mandateSpec = path.join(web, 'e2e', MANDATE_BROWSER.spec);
   const mandateJson = path.join(web, 'test-results/phase3-mandates-e2e.json');
   if (!fs.existsSync(mandateSpec)) blocked('fas3-mandat-browser', `npm run e2e:protected -- ${MANDATE_BROWSER.spec}`, `e2e/${MANDATE_BROWSER.spec} saknas; fas 3-mandatflödena på dator/telefon/byggd Worker skapas i 03-07`);
-  else if (!idpReady) blocked('fas3-mandat-browser', `npm run e2e:protected -- ${MANDATE_BROWSER.spec}`, apiReason);
+  else if (await protectedBrowserBlock()) blocked('fas3-mandat-browser', `npm run e2e:protected -- ${MANDATE_BROWSER.spec}`, await protectedBrowserBlock());
   else {
     const listed = await run(process.execPath, [playwright, 'test', '-c', 'playwright.protected.config.ts', '--list', MANDATE_BROWSER.spec]);
     const discovered = MANDATE_BROWSER.projects.every((project) => listed.output.includes(`[${project}]`)) && listed.output.includes(`[${MANDATE_BROWSER.builtProject}]`);

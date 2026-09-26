@@ -624,6 +624,9 @@ const cases = {
     const accountAdmin=await adminMint();
     const accountInvitation=await call(accountAdmin,'POST','/api/kund/inbjudan',{personName:'Syntetisk granskare',expectedIssuer:proof.issuer,expectedSubject:ID.erik,grants:['granskare']});
     check(checks,'kundadmin kan bjuda in till kontoroll via webben',accountInvitation.status===201,`HTTP ${accountInvitation.status}`);
+    // Webbinbjudan hamnar i kund A; den tas bort i finally så att SQL-provet
+    // phase2_access (inga inbjudningar i kund A) inte påverkas av tidigare körningar.
+    const accountHash=accountInvitation.status===201?crypto.createHash('sha256').update(new URL(accountInvitation.body.link).hash.slice(1)).digest('hex'):null;
     if(accountInvitation.status===201){
       const accountSession=await mint({identityId:ID.erik});
       const redeemed=await call(accountSession,'POST','/api/inbjudan/losen',{token:new URL(accountInvitation.body.link).hash.slice(1)});
@@ -684,7 +687,8 @@ const cases = {
         delete from public.memberships where identity_id=:'identity'::uuid;
         delete from public.invitations where customer_id in (select id from public.customers where name like :'prefix');
         delete from public.organizers where customer_id in (select id from public.customers where name like :'prefix');
-        delete from public.customers where name like :'prefix';`, { identity: ID.erik, prefix: `${prefix}%` });
+        delete from public.customers where name like :'prefix';
+        delete from public.invitations where token_hash=decode(nullif(:'account',''),'hex');`, { identity: ID.erik, prefix: `${prefix}%`, account: accountHash ?? '' });
     }
   },
 

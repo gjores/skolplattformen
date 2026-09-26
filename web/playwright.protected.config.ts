@@ -51,12 +51,16 @@ export default defineConfig({
       reuseExistingServer: false,
       timeout: 120_000,
       env: { VINEXT_NO_DEV_LOCK: '1' },
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
     {
       command: 'npm run preview:protected',
       url: `${built}/api/health/db`,
       reuseExistingServer: false,
       timeout: 120_000,
+      // run-mode städar sin privata dist-protected/server/.dev.vars och låset
+      // endast vid ordnat avslut; annars blockeras nästa skyddade server.
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
   ],
 });
