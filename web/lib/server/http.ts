@@ -19,7 +19,8 @@ export type ErrorCode =
   | 'idp_registration_failed'
   | 'login_state_invalid'
   | 'not_found'
-  | 'bad_request';
+  | 'bad_request'
+  | 'audit_unavailable';
 
 export function correlationId(): string {
   return crypto.randomUUID();

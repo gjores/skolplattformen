@@ -28,6 +28,7 @@ const ERROR_TEXT: Record<string, string> = {
   login_state_invalid: 'Inloggningen kunde inte slutföras. Försök igen.',
   not_found: 'Objektet finns inte eller är inte tillgängligt i din kontext.',
   bad_request: 'Uppgifterna kunde inte behandlas. Kontrollera formuläret.',
+  audit_unavailable: 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.',
 };
 
 function isSessionMessage(value: unknown): value is SessionMessage {

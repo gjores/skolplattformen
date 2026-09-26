@@ -117,6 +117,14 @@ export function requireSameOrigin(request: Request): void {
   if (!assertSameOrigin(request)) throw new Deny('csrf', 403);
 }
 
+/** Obligatorisk säkerhetshändelse kunde inte skrivas; skyddad åtgärd stoppas. */
+export class AuditUnavailable extends Error {
+  constructor() {
+    super('Säkerhetsloggen är inte tillgänglig');
+    this.name = 'AuditUnavailable';
+  }
+}
+
 export async function denyResponse(
   error: unknown,
   request: Request,
@@ -134,8 +142,17 @@ export async function denyResponse(
         corr,
         logError instanceof Error ? logError.constructor.name : 'UnknownError',
       );
-      return fail('bad_request', 500, corr);
+      return fail('audit_unavailable', 500, corr);
     }
+  }
+  if (error instanceof AuditUnavailable) {
+    console.error('audit unavailable', corr);
+    try {
+      await logError({ code: 'audit_unavailable', action, corr, request, ctx: ctxHint });
+    } catch {
+      // Samma källa är sannolikt otillgänglig; svaret innehåller inga data.
+    }
+    return fail('audit_unavailable', 500, corr);
   }
   console.error('protected route', corr, error instanceof Error ? error.constructor.name : 'UnknownError');
   try {
@@ -208,7 +225,12 @@ export async function protectedRoute(
         throw new Error('Skyddad route saknar obligatorisk säkerhetshändelse');
       }
       if (handled.event) {
-        await logEvent(tx, ctx, { ...handled.event, outcome: 'ok' });
+        try {
+          await logEvent(tx, ctx, { ...handled.event, outcome: 'ok' });
+        } catch {
+          // Transaktionen rullas tillbaka och inget innehåll lämnar servern.
+          throw new AuditUnavailable();
+        }
       }
       return { handled, epoch: live.epoch };
     });
