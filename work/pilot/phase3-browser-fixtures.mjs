@@ -4,8 +4,9 @@
 // Skapar/uppdaterar Keycloak-användare i testrealmen och binder dem till den
 // syntetiska fas 3-kunden med servergiltiga mandat: huvudman, rektor (utsedd av
 // huvudman), lärare, skoladministratör och elevhälsa med ärendescope (tilldelade
-// av rektor) samt IT. Supportuppdrag skapas INTE här; browserprovet låter
-// rektorn tilldela det via formuläret.
+// av rektor) samt IT. För 03-07 tillkommer elevhälsa med skolscope respektive
+// elevscope (tilldelade av rektor) och en granskare för kunden. Supportuppdrag
+// skapas INTE här; browserprovet låter rektorn tilldela det via formuläret.
 //
 // Lösenord slumpas och sparas endast i work/pilot/targets/protected/idp/
 // phase3-users.json (0600, gitignorerad). Inga lösenord eller tokens skrivs ut.
@@ -42,6 +43,7 @@ const UNIT = '33000000-0000-4000-8000-000000000111';
 const OTHER_UNIT = '33000000-0000-4000-8000-000000000112';
 const GROUP = '33000000-0000-4000-8000-000000000311';
 const CASE = '33000000-0000-4000-8000-000000000411';
+const PUPIL = '33000000-0000-4000-8000-000000000211';
 export const PHASE3_USERS = [
   { key: 'huvudman', username: 'p3.huvudman', firstName: 'Hedda', lastName: 'Huvudman', totp: true },
   { key: 'rektor', username: 'p3.rektor', firstName: 'Rut', lastName: 'Rektor', totp: true },
@@ -50,6 +52,9 @@ export const PHASE3_USERS = [
   { key: 'elevhalsa', username: 'p3.elevhalsa', firstName: 'Elin', lastName: 'Elevhälsa', totp: false },
   { key: 'support', username: 'p3.support', firstName: 'Sam', lastName: 'Support', totp: false },
   { key: 'it', username: 'p3.it', firstName: 'Ivo', lastName: 'It', totp: true },
+  { key: 'elevhalsa-skola', username: 'p3.elevhalsa.skola', firstName: 'Siri', lastName: 'Skolhälsa', totp: false },
+  { key: 'elevhalsa-elev', username: 'p3.elevhalsa.elev', firstName: 'Ebba', lastName: 'Elevstöd', totp: false },
+  { key: 'granskare', username: 'p3.granskare', firstName: 'Greta', lastName: 'Granskare', totp: false },
 ];
 
 const secretsPath = path.join(manifest.workdir, 'idp', 'phase3-users.json');
@@ -149,7 +154,18 @@ try {
   assignments.larare = delegated(assignments.rektor, 'larare', { function: 'larare', scopeKind: 'group', unitIds: [UNIT], groups: [{ id: GROUP, kind: 'teaching' }] });
   assignments.admin = delegated(assignments.rektor, 'admin', { function: 'administrator', scopeKind: 'school', unitIds: [UNIT] });
   assignments.elevhalsa = delegated(assignments.rektor, 'elevhalsa', { function: 'elevhalsa', scopeKind: 'case', unitIds: [UNIT], caseIds: [CASE] });
+  assignments['elevhalsa-skola'] = delegated(assignments.rektor, 'elevhalsa-skola', { function: 'elevhalsa', scopeKind: 'school', unitIds: [UNIT] });
+  assignments['elevhalsa-elev'] = delegated(assignments.rektor, 'elevhalsa-elev', { function: 'elevhalsa', scopeKind: 'pupil', unitIds: [UNIT], pupilIds: [PUPIL] });
+  // Granskaren har kundomfattande loggläsning och saknar publik tilldelningsväg (som i verify-mandates).
+  // Samma form som i verify-mandates: kunduppdrag utan skolprofil.
+  assignments.granskare = psql(`select a.id::text from public.access_assignments a where a.membership_id=:'membership'::uuid
+    and a.function='granskare' and a.ended_at is null and (a.valid_to is null or a.valid_to>=public.app_today()) order by a.created_at desc nulls last limit 1`, { membership: bound.granskare.membership }) || (() => {
+    const id = crypto.randomUUID();
+    psql("insert into public.access_assignments(id,membership_id,customer_id,function) values(:'id'::uuid,:'membership'::uuid,:'customer'::uuid,'granskare')", { id, membership: bound.granskare.membership, customer: CUSTOMER });
+    return id;
+  })();
   for (const [key, id] of Object.entries(assignments)) {
+    if (key === 'granskare') continue;
     if (psql("select public.phase3_mandate_is_valid(:'id'::uuid)::text", { id }) !== 'true') throw new Error(`mandatet för ${key} är inte giltigt`);
   }
 

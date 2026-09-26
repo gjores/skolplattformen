@@ -2,6 +2,12 @@
 // Worker: kör `node work/pilot/prepare-local.mjs --target protected --with-idp`
 // från projektroten och `npm run build:protected` i web/ först. Utan dessa
 // förutsättningar stoppar run-mode körningen som BLOCKED.
+//
+// Fas 3-mandatflödena (e2e/phase3-mandates.spec.ts) körs i samma tre projekt och
+// kräver dessutom `node work/pilot/phase3-browser-fixtures.mjs --target protected`.
+// Fas 2:s TOTP-konton återställs med `node work/pilot/phase2-otp-fixtures.mjs
+// --target protected` när test-IdP:n har återskapats. Fasgrinden (verify:phase3)
+// kör fas 3-specen separat med egen JSON-rapport via PLAYWRIGHT_JSON_OUTPUT_NAME.
 import { defineConfig, devices } from '@playwright/test';
 
 const dev = 'http://127.0.0.1:5193';
@@ -9,7 +15,7 @@ const built = 'http://127.0.0.1:3012';
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /phase2-.*\.spec\.ts/,
+  testMatch: /(?:phase2-.*|phase3-mandates)\.spec\.ts/,
   timeout: 90_000,
   fullyParallel: false,
   workers: 1,
@@ -22,7 +28,7 @@ export default defineConfig({
   projects: [
     {
       name: 'protected-desktop',
-      testMatch: /phase2-access\.spec\.ts/,
+      testMatch: /(?:phase2-access|phase3-mandates)\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: dev,
@@ -31,12 +37,12 @@ export default defineConfig({
     },
     {
       name: 'protected-phone',
-      testMatch: /phase2-access\.spec\.ts/,
+      testMatch: /(?:phase2-access|phase3-mandates)\.spec\.ts/,
       use: { ...devices['iPhone 13'], baseURL: dev },
     },
     {
       name: 'protected-built',
-      testMatch: /phase2-(?:spike|access)\.spec\.ts/,
+      testMatch: /(?:phase2-(?:spike|access)|phase3-mandates)\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: built,
