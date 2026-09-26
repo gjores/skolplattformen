@@ -28,3 +28,7 @@ Användaren vill läsa på om Sveriges statliga e-legitimation Sverige-id och hu
 - [Polisen: Sverige-id för förlitande parter](https://polisen.se/samverkan/sverige-id-forlitande-parter/): beskriver successiv anslutning och hänvisar till Sweden Connect. Detaljerade anslutnings- och säkerhetsvillkor återstår att granska.
 
 Status: registrerad och källor översiktligt kontrollerade; teknisk utredning och anslutningsprov återstår.
+
+## Teknisk komplettering 2026-09-26
+
+Se [utvecklarunderlaget](../../../docs/pilot/sverige-id-developer-review.md) för officiell OIDC-profil, anslutningsbegränsningar, kodjämförelse och konkret arbetslista. En skillnad är appens nuvarande klientautentisering jämfört med Sweden Connect-profilens krav. Underlaget är en första granskning; full profilmatris, attributkontrakt, anslutningsrätt och verkliga prov återstår.
