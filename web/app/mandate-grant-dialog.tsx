@@ -54,9 +54,16 @@ const emptyDraft = (validFrom = ''): Draft => ({
   pupilIds: [], caseIds: [], validFrom, validTo: '', supportMinutes: '30',
 });
 
+// Tidsbegränsad support gäller en namngiven elev eller en eller flera grupper på
+// en skola (användarbeslut 2026-09-27). Servern prövar samma regler.
+const supportScopeText: Partial<Record<Scope, string>> = {
+  pupil: 'En namngiven elev',
+  group: 'En eller flera grupper på en skola',
+};
+
 function scopesFor(fn: AccessFunction | '', options: Options | null): Scope[] {
   if (fn === 'larare') return ['group'];
-  if (fn === 'support') return ['pupil'];
+  if (fn === 'support') return ['pupil', ...(options?.groups.length ? ['group' as const] : [])];
   if (fn === 'elevhalsa') {
     return ['school', ...(options?.pupils.length ? ['pupil' as const] : []), ...(options?.cases.length ? ['case' as const] : [])];
   }
@@ -149,7 +156,11 @@ export default function MandateGrantDialog(props: Props) {
     if (!draft.recipient) found.recipient = 'Välj mottagare.';
     const selected = scope === 'school' ? draft.schoolIds : scope === 'group' ? draft.groupIds : scope === 'pupil' ? draft.pupilIds : draft.caseIds;
     if (selected.length === 0) found.selection = scope === 'school' ? 'Välj minst en skola.' : scope === 'group' ? 'Välj minst en grupp.' : scope === 'pupil' ? 'Välj elev.' : 'Välj minst ett ärende.';
-    if (draft.fn === 'support' && draft.pupilIds.length !== 1) found.selection = 'Supportuppdrag gäller exakt en elev.';
+    if (draft.fn === 'support' && scope === 'pupil' && draft.pupilIds.length !== 1) found.selection = 'Supportuppdrag gäller exakt en elev.';
+    if (draft.fn === 'support' && scope === 'group' && draft.groupIds.length > 0) {
+      const schools = unique((options?.groups ?? []).filter((item) => draft.groupIds.includes(item.id)).map((item) => item.unitId));
+      if (schools.length > 1) found.selection = 'Support kan bara gälla grupper på en skola åt gången.';
+    }
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(draft.validFrom)) found.validFrom = 'Ange startdatum.';
     else if (options && draft.validFrom < options.validFrom) found.validFrom = `Uppdraget kan börja tidigast ${options.validFrom}.`;
     if (draft.fn !== 'support' && draft.validTo) {
@@ -175,7 +186,9 @@ export default function MandateGrantDialog(props: Props) {
         : scope === 'group' ? unitsOf(options.groups, draft.groupIds)
         : scope === 'pupil' ? unitsOf(options.pupils, draft.pupilIds)
         : unitsOf(options.cases, draft.caseIds),
-      groups: scope === 'group' ? draft.groupIds.map((id) => ({ id, kind: draft.groupKind })) : [],
+      // Support har ingen grupproll; relationen lagras med standardvärdet och
+      // används endast för att avgränsa vilka elever supporten får se.
+      groups: scope === 'group' ? draft.groupIds.map((id) => ({ id, kind: draft.fn === 'support' ? 'teaching' as const : draft.groupKind })) : [],
       pupilIds: scope === 'pupil' ? draft.pupilIds : [],
       caseIds: scope === 'case' ? draft.caseIds : [],
       validFrom: draft.validFrom,
@@ -227,18 +240,18 @@ export default function MandateGrantDialog(props: Props) {
             {options.recipients.length === 0 && <small>Det finns ingen annan aktiv personal hos kunden att tilldela.</small>}
           </label>
           <label>Omfattning
-            <select value={scope} disabled={busy || scopes.length < 2} onChange={(event) => update({ scope: event.target.value as Scope })}>
-              {scopes.map((value) => <option key={value} value={value}>{scopeText[value]}</option>)}
+            <select value={scope} disabled={busy || scopes.length < 2} onChange={(event) => { update({ scope: event.target.value as Scope, groupIds: [], pupilIds: [], caseIds: [] }); setErrors((previous) => ({ ...previous, selection: undefined })); }}>
+              {scopes.map((value) => <option key={value} value={value}>{(draft.fn === 'support' ? supportScopeText[value] : undefined) ?? scopeText[value]}</option>)}
             </select>
           </label>
           <fieldset className="mandate-choice" aria-describedby={errors.selection ? 'grant-selection-error' : undefined}>
             <legend>{scope === 'school' ? 'Skolor' : scope === 'group' ? 'Grupper' : scope === 'pupil' ? 'Elever (syntetiska)' : 'Ärenden (syntetiska)'}</legend>
             {scope === 'school' && options.schools.map((school) => <label key={school.id} className="mandate-check"><input type="checkbox" checked={draft.schoolIds.includes(school.id)} disabled={busy} onChange={() => toggle('schoolIds', school.id)} />{school.name}</label>)}
-            {scope !== 'school' && items.map((item) => <label key={item.id} className="mandate-check"><input type={draft.fn === 'support' ? 'radio' : 'checkbox'} name={`grant-${scope}`} checked={draft[itemKey].includes(item.id)} disabled={busy} onChange={() => toggle(itemKey, item.id, draft.fn === 'support')} />{item.label}{scope === 'pupil' && <small> · {schoolName(item.unitId)}</small>}</label>)}
+            {scope !== 'school' && items.map((item) => <label key={item.id} className="mandate-check"><input type={draft.fn === 'support' && scope === 'pupil' ? 'radio' : 'checkbox'} name={`grant-${scope}`} checked={draft[itemKey].includes(item.id)} disabled={busy} onChange={() => toggle(itemKey, item.id, draft.fn === 'support' && scope === 'pupil')} />{item.label}{scope === 'pupil' && <small> · {schoolName(item.unitId)}</small>}</label>)}
             {scope !== 'school' && items.length === 0 && <p>Det finns inget sådant urval i ditt uppdrag.</p>}
             {fieldError('selection')}
           </fieldset>
-          {scope === 'group' && <label>Grupproll
+          {scope === 'group' && draft.fn !== 'support' && <label>Grupproll
             <select value={draft.groupKind} disabled={busy} onChange={(event) => update({ groupKind: event.target.value as Draft['groupKind'] })}>
               <option value="teaching">Undervisning</option><option value="mentor">Mentor</option>
             </select>
@@ -248,7 +261,7 @@ export default function MandateGrantDialog(props: Props) {
               <select value={draft.supportMinutes} disabled={busy} onChange={(event) => update({ supportMinutes: event.target.value as Draft['supportMinutes'] })}>
                 <option value="15">15 minuter</option><option value="30">30 minuter</option><option value="60">60 minuter</option>
               </select>
-              <small>Syfte: syntetisk felsökning. Du godkänner uppdraget; det upphör automatiskt.</small>
+              <small>Syfte: syntetisk felsökning. Du godkänner uppdraget; det upphör automatiskt. Supporten ser bara den valda eleven eller eleverna i de valda grupperna och kan inte exportera.</small>
             </label>
           </> : <>
             <label>Gäller från

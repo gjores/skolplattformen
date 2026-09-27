@@ -32,7 +32,7 @@ const startedAt = new Date().toISOString();
 
 export const REQUIRED_CASES = [
   'principal-chain', 'teacher-group', 'school-admin', 'health-school', 'health-pupil', 'health-case',
-  'support-boundary', 'it-admin', 'self-escalation', 'parent-revoked', 'invitation-recheck',
+  'support-boundary', 'support-groups', 'it-admin', 'self-escalation', 'parent-revoked', 'invitation-recheck',
   'foreign-object', 'concurrent-revoke', 'direct-rest', 'direct-rpc', 'direct-storage', 'direct-sql',
   'audit-read-fail', 'audit-export-fail', 'audit-write-rollback', 'audit-deny-fail', 'audit-flood',
   'audit-source-outage', 'audit-minimization', 'audit-retention',
@@ -434,6 +434,52 @@ async function main() {
       const after = await call(support.session, 'GET', '/api/prov/elev');
       const session = await call(support.session, 'GET', '/api/session');
       check(checks, 'vid och efter sluttid (halvöppet intervall): nekad utan innehåll', atEnd.status === 403 && after.status === 403 && !hasName(atEnd, after) && session.body?.context?.valid === false, `${atEnd.status}/${after.status}`);
+    },
+
+    // Användarbeslut 2026-09-27: support kan gälla en namngiven elev ELLER en eller
+    // flera grupper på EN skola. Övriga villkor är desamma som för elevsupport.
+    async 'support-groups'(checks) {
+      const rector = await appointRector([U11]);
+      const rectorBoth = await appointRector([U11, U12]);
+      const now = Date.now();
+      const one = { function: 'support', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }], purposeCode: 'synthetic-troubleshooting', startsAt: new Date(now - 1000).toISOString(), endsAt: new Date(now + 20 * 60_000).toISOString() };
+      const attempt = (granter, body, units = [U11]) => call(granter.session, 'POST', '/api/kund/mandat', { ...base(units), membershipId: createPerson().membership, ...one, ...body });
+      const mixed = await attempt(rector, { pupilIds: [P11] });
+      const empty = await attempt(rector, { groups: [] });
+      const tooLong = await attempt(rector, { endsAt: new Date(now + 2 * 3600_000).toISOString() });
+      const noPurpose = await attempt(rector, { purposeCode: null });
+      const twoSchools = await attempt(rectorBoth, { groups: [{ id: G11, kind: 'teaching' }, { id: G12, kind: 'teaching' }] }, [U11, U12]);
+      const statuses = [mixed, empty, tooLong, noPurpose, twoSchools].map((r) => r.status);
+      check(checks, 'gruppsupport kräver grupper utan elev, syfte, högst 60 minuter och en enda skola', statuses.every((status) => [400, 403].includes(status)) && tooLong.status === 400 && noPurpose.status === 400, statuses.join('/'));
+      const oneSchool = await attempt(rectorBoth, { groups: [{ id: G12, kind: 'teaching' }] }, [U12]);
+      check(checks, 'rektor med två skolor kan ge gruppsupport på en av dem', oneSchool.status === 201, `HTTP ${oneSchool.status}`);
+      const lead = await insertRoot('elevhalsoansvarig', [U11]);
+      const byLead = await attempt(lead, {});
+      const byHm = await call(await hm(), 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, ...one });
+      check(checks, 'endast rektor godkänner gruppsupport', byLead.status === 403 && byHm.status === 403, `${byLead.status}/${byHm.status}`);
+
+      const support = await grant(rector, one);
+      const approver = psql("select coalesce(approved_by_assignment_id::text,'') from public.access_assignments where id=:'id'::uuid", { id: support.assignmentId });
+      check(checks, 'servern sätter rektorn som godkännare för gruppsupport', approver === rector.assignmentId, 'godkännare från serverns mandat');
+      const during = await call(support.session, 'GET', '/api/prov/elev');
+      const scopeGroups = JSON.stringify((during.body?.scope?.groups ?? []).map((group) => group.id));
+      check(checks, 'gruppsupport ser endast elever i gruppen, med godkännare, syfte och sluttid', during.status === 200 && pupilIds(during) === JSON.stringify([P11]) && !leaks(during).includes(P19) && during.body?.scope?.scopeKind === 'group' && scopeGroups === JSON.stringify([G11]) && during.body?.scope?.purposeCode === 'synthetic-troubleshooting' && Boolean(during.body?.scope?.endsAt) && Boolean(during.body?.scope?.approverName) && events(during) === 'pupil_probe_listed|ok||1|list', `${pupilIds(during)}; ${events(during)}`);
+      const sameSchool = await call(support.session, 'GET', `/api/prov/elev?elev=${P19}`);
+      const otherSchool = await call(support.session, 'GET', `/api/prov/elev?elev=${P12}`);
+      check(checks, 'elev utanför gruppen (samma och annan skola) nekas utan innehåll', sameSchool.status === 404 && otherSchool.status === 404 && !hasName(sameSchool, otherSchool), `${sameSchool.status}/${otherSchool.status}`);
+      const exported = await call(support.session, 'GET', '/api/prov/export');
+      const delegate = await call(support.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'elevhalsa' });
+      check(checks, 'gruppsupport har inget export- eller delegeringsmandat', exported.status === 403 && delegate.status === 403, `${exported.status}/${delegate.status}`);
+
+      const both = await grant(rector, { ...one, groups: [{ id: G11, kind: 'teaching' }, { id: G19, kind: 'teaching' }] });
+      const bothList = await call(both.session, 'GET', '/api/prov/elev');
+      check(checks, 'support för två grupper på samma skola ser elever i båda', bothList.status === 200 && pupilIds(bothList) === JSON.stringify([P11, P19].sort()), pupilIds(bothList));
+
+      setSupportWindow(support.assignmentId, "clock_timestamp()-interval '10 minutes'", 'clock_timestamp()');
+      const atEnd = await call(support.session, 'GET', '/api/prov/elev');
+      setSupportWindow(support.assignmentId, "clock_timestamp()-interval '10 minutes'", "clock_timestamp()-interval '1 second'");
+      const after = await call(support.session, 'GET', '/api/prov/elev');
+      check(checks, 'gruppsupport vid och efter sluttid: nekad utan innehåll', atEnd.status === 403 && after.status === 403 && !hasName(atEnd, after), `${atEnd.status}/${after.status}`);
     },
 
     async 'it-admin'(checks) {

@@ -139,9 +139,17 @@ function shape(a: MandateAssignment): boolean {
           a.cases.every((r) => !!r.pupilId);
   if (a.function === 'support')
     return (
-      a.scopeKind === 'pupil' &&
+      // En namngiven elev ELLER en eller flera grupper, alltid på en enda skola
+      // (användarbeslut 2026-09-27). Övriga villkor är oförändrade.
+      ((a.scopeKind === 'pupil' &&
+        a.pupils.length === 1 &&
+        a.groups.length === 0) ||
+        (a.scopeKind === 'group' &&
+          a.groups.length > 0 &&
+          a.pupils.length === 0 &&
+          a.groups.every((r) => ['teaching', 'mentor'].includes(r.kind)))) &&
+      a.cases.length === 0 &&
       a.unitIds.length === 1 &&
-      a.pupils.length === 1 &&
       a.startsAt !== null &&
       a.endsAt !== null &&
       end - start <= 60 * 60 * 1000 &&

@@ -67,6 +67,20 @@ const support = () =>
     approvedByAssignmentId: 'a1',
   });
 
+// Support för en eller flera grupper på en skola (användarbeslut 2026-09-27).
+const supportGroups = (groups = [{ unitId: 's1', id: 'g1', kind: 'teaching' }], changes = {}) =>
+  child({
+    function: 'support',
+    scopeKind: 'group',
+    groups,
+    pupils: [],
+    startsAt: now,
+    endsAt: '2026-09-23T11:00:00Z',
+    purposeCode: 'synthetic-troubleshooting',
+    approvedByAssignmentId: 'a1',
+    ...changes,
+  });
+
 const cases = [
   ['principal-school', make(), read(), true],
   ['unknown-action', make(), read({ action: 'godmode' }), false],
@@ -267,6 +281,76 @@ const cases = [
     grant({ ...support(), approvedByAssignmentId: null }),
     false,
   ],
+  ['principal-support-group', make(), grant(supportGroups()), true],
+  [
+    'principal-support-two-groups',
+    make(),
+    grant(supportGroups([
+      { unitId: 's1', id: 'g1', kind: 'teaching' },
+      { unitId: 's1', id: 'g2', kind: 'teaching' },
+    ])),
+    true,
+  ],
+  [
+    'support-group-empty',
+    make(),
+    grant(supportGroups([])),
+    false,
+  ],
+  [
+    'support-group-and-pupil',
+    make(),
+    grant(supportGroups(undefined, { pupils: [{ unitId: 's1', id: 'p1' }] })),
+    false,
+  ],
+  [
+    'support-pupil-and-group',
+    make(),
+    grant({ ...support(), groups: [{ unitId: 's1', id: 'g1', kind: 'teaching' }] }),
+    false,
+  ],
+  [
+    'support-group-two-schools',
+    make({ unitIds: ['s1', 's2'] }),
+    grant(supportGroups(
+      [
+        { unitId: 's1', id: 'g1', kind: 'teaching' },
+        { unitId: 's2', id: 'g2', kind: 'teaching' },
+      ],
+      { unitIds: ['s1', 's2'] },
+    )),
+    false,
+  ],
+  [
+    'support-group-too-long',
+    make(),
+    grant(supportGroups(undefined, { endsAt: '2026-09-23T11:00:01Z' })),
+    false,
+  ],
+  [
+    'support-group-no-purpose',
+    make(),
+    grant(supportGroups(undefined, { purposeCode: '' })),
+    false,
+  ],
+  [
+    'support-group-no-approval',
+    make(),
+    grant(supportGroups(undefined, { approvedByAssignmentId: null })),
+    false,
+  ],
+  [
+    'support-group-from-huvudman',
+    make({ function: 'huvudman' }),
+    grant(supportGroups()),
+    false,
+  ],
+  [
+    'support-group-case-scope',
+    make(),
+    grant(supportGroups(undefined, { cases: [{ unitId: 's1', id: 'k1', pupilId: 'p1' }] })),
+    false,
+  ],
 ];
 for (const [name, assignment, request, allowed] of cases) {
   test(name, () => {
@@ -455,6 +539,68 @@ test('audit-no-pupil-fields', () =>
   assert.equal(
     run(make({ function: 'granskare' }), read({ action: 'audit.read' }))
       .allowed,
+    false,
+  ));
+for (const [time, allowed] of [
+  ['2026-09-23T09:59:59Z', false],
+  [now, true],
+  ['2026-09-23T10:59:59Z', true],
+  ['2026-09-23T11:00:00Z', false],
+]) {
+  test(`support-group-boundary-${time}`, () =>
+    assert.equal(
+      run(supportGroups(), read(), { ancestors: [make()], serverNow: time }).allowed,
+      allowed,
+    ));
+}
+for (const action of ['pupil.export', 'pupil.write', 'mandate.grant']) {
+  test(`support-group-no-${action}`, () =>
+    assert.equal(
+      run(supportGroups(), read({ action }), { ancestors: [make()] }).allowed,
+      false,
+    ));
+}
+test('support-group-pupil-in-group', () =>
+  assert.equal(
+    run(supportGroups(), read(), { ancestors: [make()] }).allowed,
+    true,
+  ));
+test('support-group-pupil-in-second-group', () =>
+  assert.equal(
+    run(
+      supportGroups([
+        { unitId: 's1', id: 'g1', kind: 'teaching' },
+        { unitId: 's1', id: 'g2', kind: 'teaching' },
+      ]),
+      read({ resource: { ...pupil, pupilId: 'p9', groupIds: ['g2'] } }),
+      { ancestors: [make()] },
+    ).allowed,
+    true,
+  ));
+test('support-group-pupil-outside-groups', () =>
+  assert.equal(
+    run(supportGroups(), read({ resource: { ...pupil, pupilId: 'p2', groupIds: ['g3'] } }), {
+      ancestors: [make()],
+    }).allowed,
+    false,
+  ));
+test('support-group-pupil-without-group', () =>
+  assert.equal(
+    run(supportGroups(), read({ resource: { ...pupil, pupilId: 'p3', groupIds: [] } }), {
+      ancestors: [make()],
+    }).allowed,
+    false,
+  ));
+test('support-group-other-school', () =>
+  assert.equal(
+    run(supportGroups(), read({ resource: { ...pupil, unitId: 's2' } }), {
+      ancestors: [make()],
+    }).allowed,
+    false,
+  ));
+test('support-group-parent-ended', () =>
+  assert.equal(
+    run(supportGroups(), read(), { ancestors: [make({ endedAt: now })] }).allowed,
     false,
   ));
 test('support-other-pupil', () =>

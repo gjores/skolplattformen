@@ -25,6 +25,8 @@ export type ProbeScope = {
   scopeKind: 'school' | 'group' | 'pupil' | 'case';
   schools: { id: string; name: string }[];
   cases: { id: string; unitId: string; label: string }[];
+  /** Egna grupper vid gruppscope (lärare eller support); saknas i äldre svar. */
+  groups?: { id: string; unitId: string; label: string }[];
   startsAt: string | null;
   endsAt: string | null;
   purposeCode: string | null;

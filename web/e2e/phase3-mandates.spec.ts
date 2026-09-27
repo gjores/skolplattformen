@@ -21,6 +21,8 @@ const K11 = '33000000-0000-4000-8000-000000000411';
 const K12 = '33000000-0000-4000-8000-000000000412';
 // Tillfällig elev i skola 11 utan grupp och ärende; skapas och tas bort av specen.
 const P18 = '33000000-0000-4000-8000-000000000218';
+// Tillfällig grupp 2 i skola 11 med elev 18; skapas och tas bort av gruppsupportprovet.
+const G18 = '33000000-0000-4000-8000-000000000318';
 const OWN_PUPIL = 'Syntetisk elev 11';
 const SCHOOL_ONLY_PUPIL = 'Syntetisk elev 18';
 const FOREIGN_PUPILS = ['Syntetisk elev 12', 'Syntetisk elev 21', 'Syntetisk elev 22'];
@@ -44,7 +46,21 @@ function endRecipientMandates(): void {
       and a.customer_id='${CUSTOMER}' and a.ended_at is null;`);
 }
 
+function removeTemporaryGroup(): void {
+  psql(manifest, `delete from public.mandate_groups where group_id='${G18}';
+    delete from public.phase3_probe_group_members where group_id='${G18}';
+    delete from public.phase3_probe_groups where id='${G18}';`);
+}
+
+/** Avslutar kvarvarande supportuppdrag för provets supportkonto (ett uppdrag i taget). */
+function endSupportMandates(): void {
+  psql(manifest, `update public.access_assignments a set ended_at=clock_timestamp()
+    from public.memberships m join public.identities i on i.id=m.identity_id
+    where a.membership_id=m.id and i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null;`);
+}
+
 function removeTemporaryPupil(): void {
+  removeTemporaryGroup();
   psql(manifest, `delete from public.mandate_pupils where pupil_id='${P18}';
     delete from public.phase3_probe_group_members where pupil_id='${P18}';
     delete from public.phase3_probe_pupils where id='${P18}';`);
@@ -392,6 +408,88 @@ test('rektor godkänner support som upphör vid sluttid', async ({ page, browser
   await page.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
   await expect(page.getByRole('heading', { name: 'Lars Lärare' })).toBeVisible();
   await expect(mandateCard(page, 'Sam Support', 'Tidsbegränsad support')).toHaveCount(0);
+});
+
+test('rektor ger support till grupper som upphör vid sluttid', async ({ page, browser }, testInfo) => {
+  // Användarbeslut 2026-09-27: support kan gälla en eller flera grupper på en skola.
+  const since = dbNow();
+  endSupportMandates();
+  removeTemporaryGroup();
+  psql(manifest, `insert into public.phase3_probe_groups values ('${G18}','${CUSTOMER}','${ORGANIZER}','${UNIT}');
+    insert into public.phase3_probe_group_members values ('${G18}','${P18}','${CUSTOMER}','${UNIT}');`);
+  try {
+    await login(page, 'p3.rektor', true);
+    const dialog = await openGrantDialog(page);
+    await dialog.locator('select').first().selectOption({ label: 'Tidsbegränsad support' });
+    await dialog.locator('select').nth(1).selectOption({ label: 'Sam Support' });
+    const scopeSelect = dialog.getByLabel('Omfattning');
+    await expect(scopeSelect.locator('option')).toHaveText(['En namngiven elev', 'En eller flera grupper på en skola']);
+    await scopeSelect.selectOption({ label: 'En eller flera grupper på en skola' });
+    await expect(dialog.getByLabel('Grupproll')).toHaveCount(0);
+    // Tom gruppselektion nekas i formuläret innan något skickas.
+    await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).click();
+    await expect(dialog.locator('#grant-selection-error')).toHaveText('Välj minst en grupp.');
+    await dialog.getByLabel(/Grupp 1 · Syntetisk skola 11/u).check();
+    await dialog.getByLabel(/Grupp 2 · Syntetisk skola 11/u).check();
+    await dialog.getByLabel('Varaktighet från nu').selectOption('15');
+    await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).click();
+    await expect(page.getByText('Uppdraget har tilldelats Sam Support.')).toBeVisible();
+    const card = mandateCard(page, 'Sam Support', 'Tidsbegränsad support');
+    await expect(card).toHaveCount(1);
+    await expect(card).toContainText('Tilldelade grupper · Syntetisk skola 11');
+    await expect(card).toContainText('Syntetisk felsökning');
+    await expect(card).toContainText('Rut Rektor');
+    expect(eventCount('mandate_granted', 'ok', since)).toBe(1);
+    // Grupperna sparas som gruppscope på en skola, utan elev- eller ärendekoppling.
+    expect(psql(manifest, `select a.scope_kind||'|'||(select count(*) from public.mandate_groups g where g.assignment_id=a.id)
+      ||'|'||(select count(*) from public.mandate_pupils p where p.assignment_id=a.id)||'|'||(select count(*) from public.mandate_units u where u.assignment_id=a.id)
+      from public.access_assignments a join public.memberships m on m.id=a.membership_id join public.identities i on i.id=m.identity_id
+      where i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`)).toBe('group|2|0|1');
+
+    const support = await otherUser(browser, testInfo, 'p3.support');
+    try {
+      const view = support.page;
+      await expect(view.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
+      const scope = view.locator('.probe-scope');
+      await expect(scope).toContainText('Tilldelade grupper · Syntetisk skola 11');
+      await expect(scope).toContainText('Grupp 1 · Syntetisk skola 11, Grupp 2 · Syntetisk skola 11');
+      await expect(scope).toContainText('Rut Rektor');
+      await expect(scope).toContainText('Syntetisk felsökning');
+      const list = view.locator('.probe-list');
+      await expect(list.getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
+      await expect(list.getByRole('heading', { name: SCHOOL_ONLY_PUPIL })).toBeVisible();
+      await expect(view.locator('.probe-list > li')).toHaveCount(2);
+      await expect(view.getByRole('button', { name: 'Exportera urvalet (CSV)' })).toHaveCount(0);
+      const exported = await view.request.get('/api/prov/export');
+      expect(exported.status()).toBe(403);
+
+      // Elev 18 lämnar grupp 2: supporten ser då bara elever i de valda grupperna.
+      psql(manifest, `delete from public.phase3_probe_group_members where group_id='${G18}' and pupil_id='${P18}';`);
+      await view.getByRole('button', { name: 'Hämta aktuellt urval' }).click();
+      await expect(view.locator('.probe-list > li')).toHaveCount(1);
+      await expect(list.getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
+      const outside = await view.request.get(`/api/prov/elev?elev=${P18}`);
+      expect(outside.status()).toBe(404);
+      expect(await outside.text()).not.toMatch(ANY_PUPIL);
+
+      // Kortar endast detta syntetiska supportuppdrag så att sluttiden kan prövas i provet.
+      psql(manifest, `update public.access_assignments a set ends_at=clock_timestamp()+interval '6 seconds'
+        from public.memberships m join public.identities i on i.id=m.identity_id
+        where a.membership_id=m.id and i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`);
+      await view.getByRole('button', { name: 'Hämta aktuellt urval' }).click();
+      await expect(view.getByRole('alert')).toContainText('Uppdraget har upphört vid sin sluttid', { timeout: 20_000 });
+      expect(await view.content()).not.toContain(OWN_PUPIL);
+      const after = await view.request.get('/api/prov/elev');
+      expect(after.status()).toBe(403);
+      expect(await after.text()).not.toMatch(ANY_PUPIL);
+      await expectAbsent(view, support.bodies, FOREIGN_PUPILS);
+    } finally {
+      await support.context.close();
+    }
+  } finally {
+    endSupportMandates();
+    removeTemporaryGroup();
+  }
 });
 
 test('IT pausar och provar anslutning utan elevinsyn', async ({ page }, testInfo) => {

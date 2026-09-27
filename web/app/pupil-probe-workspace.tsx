@@ -118,6 +118,7 @@ export default function PupilProbeWorkspace(props: Props) {
       {scope && <dl className="mandate-facts probe-scope">
         <div><dt>Uppdrag</dt><dd>{FUNCTION_LABEL[scope.function as keyof typeof FUNCTION_LABEL] ?? scope.function}</dd></div>
         <div><dt>Omfattning</dt><dd>{scopeLabels[scope.scopeKind]} · {scope.schools.map((school) => school.name).join(', ')}</dd></div>
+        {scope.scopeKind === 'group' && (scope.groups?.length ?? 0) > 0 && <div><dt>Grupper</dt><dd>{scope.groups!.map((group) => group.label).join(', ')}</dd></div>}
         {scope.approverName && <div><dt>Godkänt av</dt><dd>{scope.approverName}</dd></div>}
         {scope.purposeCode && <div><dt>Syfte</dt><dd>{scope.purposeCode === 'synthetic-troubleshooting' ? 'Syntetisk felsökning' : 'Ej angivet'}</dd></div>}
         {scope.endsAt && <div><dt>Upphör</dt><dd><time dateTime={scope.endsAt}>{timeText(scope.endsAt)}</time></dd></div>}

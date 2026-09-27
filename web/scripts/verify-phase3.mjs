@@ -68,6 +68,7 @@ export const MANDATE_BROWSER = {
     'elevhälsa med elevscope',
     'elevhälsa med ärendescope',
     'rektor godkänner support som upphör vid sluttid',
+    'rektor ger support till grupper som upphör vid sluttid',
     'IT pausar och provar anslutning utan elevinsyn',
     'granskaren följer elevläsning, export och nekande',
     'tangentbord och fältfel i tilldelningen',
