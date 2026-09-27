@@ -230,7 +230,7 @@ try {
 
   const update = { browserFlow: template.browserFlow };
   for (const field of REALM_FIELDS) update[field] = template[field];
-  if (loaMap !== undefined) update.attributes = { ...(realm.attributes ?? {}), 'acr.loa.map': loaMap };
+  if (loaMap !== undefined) update.attributes = { ...realm.attributes, 'acr.loa.map': loaMap };
   await keycloak(`/admin/realms/${REALM}`, { method: 'PUT', body: JSON.stringify(update) });
 
   const verified = sameStructure(unmask(await liveFlow(template.browserFlow), expected), expected);

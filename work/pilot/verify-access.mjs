@@ -120,6 +120,9 @@ const restore = [];
 const sessions = new Set();
 let server = null;
 let serverErrors = '';
+// Workerns utskrift sparas privat (gitignorerad målkatalog, 0600) för felsökning av
+// intermittenta Worker-stopp (deferred-items punkt 2 och 6). Hamnar aldrig i rapporten.
+let serverLog = '';
 let baseUrl = options.baseUrl;
 let pgpassPath = null;
 
@@ -251,8 +254,12 @@ async function startServer() {
   server = spawn(process.execPath, ['scripts/run-mode.mjs', 'preview', '--mode', 'protected', '--port', String(options.port)], {
     cwd: web, env: process.env, stdio: ['ignore', 'pipe', 'pipe'],
   });
-  server.stdout.on('data', () => {});
-  server.stderr.on('data', (chunk) => { serverErrors = `${serverErrors}${chunk}`.slice(-4000); });
+  server.stdout.on('data', (chunk) => { serverLog = `${serverLog}${chunk}`.slice(-20_000); });
+  server.stderr.on('data', (chunk) => {
+    serverErrors = `${serverErrors}${chunk}`.slice(-4000);
+    serverLog = `${serverLog}${chunk}`.slice(-20_000);
+  });
+  server.once('exit', (code, signal) => { serverLog = `${serverLog}\n[verify-access] Workern avslutades: code=${code} signal=${signal}\n`; });
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
     if (await health(baseUrl)) return;
@@ -876,5 +883,13 @@ try {
     if (server.exitCode === null) server.kill('SIGKILL');
   }
   if (pgpassPath) fs.rmSync(pgpassPath, { force: true });
+  if (server) {
+    try {
+      const logPath = path.join(root, 'work/pilot/targets/protected/logs/verify-access-worker.log');
+      fs.mkdirSync(path.dirname(logPath), { recursive: true });
+      fs.writeFileSync(logPath, serverLog, { mode: 0o600 });
+      fs.chmodSync(logPath, 0o600);
+    } catch { /* felsökningsloggen är frivillig */ }
+  }
 }
 process.exit(exitCode);
