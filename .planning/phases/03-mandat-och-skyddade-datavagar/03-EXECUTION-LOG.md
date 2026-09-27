@@ -39,3 +39,12 @@
   - **Färsk grind:** PASS på 7d4ec8d, med alla sex krav PASS (lokalt och syntetiskt).
   - **Commits:** 7b10da7, 2cf7f38, e243b4a, 7d4ec8d, 0338c7c.
   - **Väntar på:** användarens bedömning.
+
+## 2026-09-27 — användarprovet 03-07: avvikelser och beslut
+
+Användaren provade 03-07 och rapporterade:
+1. **Återvändsgränd vid engångskod.** Tilldelningsdialogen visar "Tilldelning kräver verifiering med engångskod", men knappen *Verifiera med engångskod* ligger på sidan bakom den modala dialogen och går inte att nå. Användaren kommer inte vidare (rektor→lärare och rektor→support). Bugg.
+2. **Engångskoden ska frågas vid inloggning**, inte vid åtgärd. Användarbeslut 2026-09-27: vid inloggning för den som har engångskod registrerad; övriga loggar in med lösenord. Beviset gäller 8 h som tidigare. Bekräftat två gånger av användaren.
+3. **Tidsbegränsad support ska kunna ges för grupper.** Användarbeslut 2026-09-27: en namngiven elev eller en eller flera grupper på en skola; övrigt oförändrat (högst 60 minuter, angivet syfte, godkänt av rektor, ingen export).
+
+Checkpointen är inte godkänd. Avvikelserna rättas inom 03-07 och användarprovet görs om.
