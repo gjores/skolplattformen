@@ -48,3 +48,17 @@ Användaren provade 03-07 och rapporterade:
 3. **Tidsbegränsad support ska kunna ges för grupper.** Användarbeslut 2026-09-27: en namngiven elev eller en eller flera grupper på en skola; övrigt oförändrat (högst 60 minuter, angivet syfte, godkänt av rektor, ingen export).
 
 Checkpointen är inte godkänd. Avvikelserna rättas inom 03-07 och användarprovet görs om.
+
+## 2026-09-27 — rättning av avvikelserna inom 03-07
+
+- **Avvikelse 1 (fel), 43c6b79.** Verifieringsknappen visas nu i tilldelnings- och avslutsdialogen. Proven gör step-up inifrån dialogen med tangentbord respektive pekskärm, och åtgärden lyckas därefter. Den gamla sviten missade felet eftersom den bara kontrollerade att texten syntes och verifierade i förväg via direktlänk.
+- **Avvikelse 2 (beslut), d9499dc.** Engångskod anges vid inloggningen för konton med registrerad kod (villkoret `conditional-user-configured` i nivå 2-flödet och `acr_values=2` vid varje inloggning). Konton utan kod loggar in med lösenord. Serverns beviskontroll är oförändrad. Den körande IdP:n uppdaterades på plats med `idp-realm-sync.mjs`. Verklig inloggning: p3.rektor gav [lösenord, kod] och acr 2; p3.larare gav [lösenord] och acr 1.
+- **Avvikelse 3 (beslut), 2d17d4c.** Support för en elev eller en eller flera grupper på en skola. Ny migration 20260927090000 är tillämpad lokalt utan reset.
+- **Handbok (4fb5773):** inloggningsmetoder, användning, mandat och regler. docs:build PASS.
+- **Grind:**
+  - 4fb5773 gav FAIL (access-api: Workern stannade; fristående 16/16).
+  - Workerns utskrift sparas nu privat (278f235).
+  - 278f235 gav PASS: alla steg och alla sex krav PASS (lokalt och syntetiskt).
+- **Miljö:** Kong startades om av källavbrottsprovet; `configure-audit-source` kördes efter varje grind. Previewn på 3000 kör bygget från 278f235.
+- **Engångskoder:** p3-kontonas registrerade koder är orörda. Fas 2-kontona registrerades om av grindens fixtur, som tidigare.
+- **Läge:** planen står åter vid användarcheckpointen. Kraven är inte markerade som verifierade.

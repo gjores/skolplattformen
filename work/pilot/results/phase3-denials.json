@@ -2,10 +2,10 @@
   "status": "PASS",
   "scope": "local-synthetic-only",
   "guarantee": "asynchronous local collector; no synchronous operational guarantee; not a municipal/production log chain",
-  "checkedAt": "2026-09-26T14:45:38.530Z",
+  "checkedAt": "2026-09-27T11:47:04.461Z",
   "coverage": {
-    "from": "2026-09-26T14:42:43.678Z",
-    "to": "2026-09-26T14:45:38.530Z"
+    "from": "2026-09-27T11:44:29.719Z",
+    "to": "2026-09-27T11:47:04.461Z"
   },
   "probes": [
     {
@@ -13,7 +13,7 @@
       "gateway": {
         "route": "rest",
         "status": 401,
-        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:e30522307fe097cb1d9f606f650efabf",
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:5c27dd6a18fa220b6573ff2a27031864",
         "sourceObserved": true
       },
       "status": "PASS"
@@ -23,7 +23,7 @@
       "gateway": {
         "route": "rpc",
         "status": 401,
-        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:80663029272b4910db6ba6f92b348edb",
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:c4fd5d50dc533a83c6de2035fc417d6f",
         "sourceObserved": true
       },
       "status": "PASS"
@@ -33,13 +33,13 @@
       "gateway": {
         "route": "storage",
         "status": 400,
-        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:7221d17e00e8d60b06c9354a17b67555",
+        "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:8174910888cf084fa0dc316ff5b4388f",
         "sourceObserved": true
       },
       "upstream": {
         "route": "storage",
         "status": 400,
-        "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:7221d17e00e8d60b06c9354a17b67555",
+        "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:8174910888cf084fa0dc316ff5b4388f",
         "observedRole": "anon",
         "sourceObserved": true
       },
@@ -49,14 +49,14 @@
       "id": "direct-sql",
       "loginFailed": false,
       "postgres": {
-        "sessionId": "6ab7d9e4.3721",
+        "sessionId": "6ab9019e.21a2",
         "expectedSqlstate": "42501",
         "attempts": 3,
         "clientDenied": 3,
         "sourceEventIds": [
-          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9e4.3721:1",
-          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9e4.3721:2",
-          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9e4.3721:3"
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9019e.21a2:1",
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9019e.21a2:2",
+          "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9019e.21a2:3"
         ],
         "observedRole": "authenticator",
         "sourceObserved": true
@@ -144,8 +144,8 @@
   "events": [
     {
       "source": "kong",
-      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:e30522307fe097cb1d9f606f650efabf",
-      "time": "2026-09-26T14:42:44+00:00",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:5c27dd6a18fa220b6573ff2a27031864",
+      "time": "2026-09-27T11:44:30+00:00",
       "route": "rest",
       "status": 401,
       "actor": null,
@@ -153,8 +153,8 @@
     },
     {
       "source": "kong",
-      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:80663029272b4910db6ba6f92b348edb",
-      "time": "2026-09-26T14:42:44+00:00",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:c4fd5d50dc533a83c6de2035fc417d6f",
+      "time": "2026-09-27T11:44:30+00:00",
       "route": "rpc",
       "status": 401,
       "actor": null,
@@ -162,8 +162,8 @@
     },
     {
       "source": "kong",
-      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:7221d17e00e8d60b06c9354a17b67555",
-      "time": "2026-09-26T14:42:44+00:00",
+      "sourceEventId": "50a71c75f3bacca826d928dca792fbd9c9d9790dc08405ddfac59ba15aecd6ed:8174910888cf084fa0dc316ff5b4388f",
+      "time": "2026-09-27T11:44:30+00:00",
       "route": "storage",
       "status": 400,
       "actor": null,
@@ -171,9 +171,9 @@
     },
     {
       "source": "storage",
-      "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:7221d17e00e8d60b06c9354a17b67555",
-      "gatewayRequestId": "7221d17e00e8d60b06c9354a17b67555",
-      "time": "2026-09-26T14:42:44.874Z",
+      "sourceEventId": "67c16d1af026af81c681a0770d8afece1fd301d520744359cfebbe9a73ce6dd6:8174910888cf084fa0dc316ff5b4388f",
+      "gatewayRequestId": "8174910888cf084fa0dc316ff5b4388f",
+      "time": "2026-09-27T11:44:30.891Z",
       "route": "storage",
       "status": 400,
       "operation": "storage.bucket.create",
@@ -183,10 +183,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9d2.3392:25",
-      "time": "2026-09-26T14:42:44.855Z",
-      "pid": 13202,
-      "sessionId": "6ab7d9d2.3392",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9018e.1e10:25",
+      "time": "2026-09-27T11:44:30.873Z",
+      "pid": 7696,
+      "sessionId": "6ab9018e.1e10",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -195,10 +195,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9d2.3392:26",
-      "time": "2026-09-26T14:42:44.860Z",
-      "pid": 13202,
-      "sessionId": "6ab7d9d2.3392",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9018e.1e10:26",
+      "time": "2026-09-27T11:44:30.876Z",
+      "pid": 7696,
+      "sessionId": "6ab9018e.1e10",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -207,10 +207,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9d3.33aa:3",
-      "time": "2026-09-26T14:42:44.872Z",
-      "pid": 13226,
-      "sessionId": "6ab7d9d3.33aa",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9018e.1e21:3",
+      "time": "2026-09-27T11:44:30.887Z",
+      "pid": 7713,
+      "sessionId": "6ab9018e.1e21",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "supabase_storage_admin",
@@ -219,10 +219,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9e4.3721:1",
-      "time": "2026-09-26T14:42:44.894Z",
-      "pid": 14113,
-      "sessionId": "6ab7d9e4.3721",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9019e.21a2:1",
+      "time": "2026-09-27T11:44:30.910Z",
+      "pid": 8610,
+      "sessionId": "6ab9019e.21a2",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -231,10 +231,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9e4.3721:2",
-      "time": "2026-09-26T14:42:44.895Z",
-      "pid": 14113,
-      "sessionId": "6ab7d9e4.3721",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9019e.21a2:2",
+      "time": "2026-09-27T11:44:30.911Z",
+      "pid": 8610,
+      "sessionId": "6ab9019e.21a2",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",
@@ -243,10 +243,10 @@
     },
     {
       "source": "postgres",
-      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab7d9e4.3721:3",
-      "time": "2026-09-26T14:42:44.895Z",
-      "pid": 14113,
-      "sessionId": "6ab7d9e4.3721",
+      "sourceEventId": "4cecdbe124d7e99a8d7bfea79e03d99a601dc757d6a88a10b1cdefac2621c498:6ab9019e.21a2:3",
+      "time": "2026-09-27T11:44:30.912Z",
+      "pid": 8610,
+      "sessionId": "6ab9019e.21a2",
       "sqlstate": "42501",
       "severity": "ERROR",
       "observedRole": "authenticator",

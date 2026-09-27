@@ -8,3 +8,8 @@
 4. **Främmande process på port 5192** (`run-mode.mjs dev --mode blocked-probe`, startad 11:55 UTC av en annan session) gör att fas 1-browsern inte kan starta sina servrar. Grinden redovisar detta som BLOCKED och stoppar inte processen.
 5. **Tidigare kvarlämnade lås.** Vid första grindkörningen dödades Playwrights protected-servrar utan ordnat avslut. `web/.dev.vars` och `dist-protected/server/.dev.vars` blev kvar tillsammans med sina lås och blockerade följande steg. Rättat med `gracefulShutdown` (c7a113d), och restfilerna från körningen är borttagna.
 6. **`fetch failed` i access-regressionen under första grindkörningen** (fallen `session` och `inbjudan`, egen Worker på 3013). Felet gick inte att återskapa: två fristående körningar mot 3000 och 3013 gav 16/16. Det kan hänga ihop med punkt 2.
+
+## Från 03-07, rättning efter användarprovet (2026-09-27)
+
+7. **Workern i access-regressionen stannade igen** i grindkörningen på 4fb5773. Fallet `mfa-kravs` fick HTTP 500, och därefter gav alla fall `fetch failed`. Fristående körning direkt efteråt gav 16/16, och nästa hela grindkörning (278f235) gav PASS. Mönstret är detsamma som i punkt 2 och 6. Workerns utskrift sparas nu privat i `work/pilot/targets/protected/logs/verify-access-worker.log` (gitignorerad) och kan granskas nästa gång felet uppträder. Orsaken är inte fastställd.
+8. **Konton utan engångskod kan inte registrera en kod från plattformen.** Efter användarbeslutet 2026-09-27 tvingar IdP:n inte fram registrering. Ett administrativt konto utan kod får vid step-up beskedet att koden saknas. Hur registrering ska ordnas för sådana konton i piloten (kommunens IdP) är ett öppet beslut.

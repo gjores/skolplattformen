@@ -1,6 +1,6 @@
 ---
 phase: 03
-status: automated-pass-awaiting-user-check
+status: automated-pass-awaiting-user-recheck
 nyquist_compliant: false
 wave_0_complete: false
 ---
@@ -50,3 +50,26 @@ Färsk fasgrind `cd web && npm run verify:phase3` på revision `7d4ec8d` (14:42�
 Regressioner i samma körning: baslinje-db PASS (utbildning och kurs-/nivåtillägg, kullkopiering, klass–timplan, grundskolans timplan), fas 1-browser 26 PASS, fas 2-browser 37 PASS. Endast redovisade projekthopp förekom (1 respektive 19).
 
 Allt är lokalt och syntetiskt. Ingen verklig IdP, lagringstid eller kommunanslutning är prövad. Mandatbrowserns telefonbevis är WebKit i iPhone-storlek; en fysisk telefon når inte den lokala miljön. Kraven markeras inte som verifierade i REQUIREMENTS.md förrän användarprovet och gsd-verify-work är gjorda. Nyquist-status ändras inte av denna körning, eftersom det manuella steget återstår.
+
+## Körresultat 2026-09-27 (plan 03-07, efter användarprovets avvikelser)
+
+Användarprovet 2026-09-26/27 godkändes inte. Tre avvikelser rättades inom 03-07:
+- Verifieringen gick inte att nå inifrån dialogen (43c6b79).
+- Engångskod ska anges vid inloggningen för den som har registrerad kod (d9499dc).
+- Support ska kunna ges för grupper (2d17d4c).
+
+Handboken är uppdaterad (4fb5773).
+
+- Färsk grind på `4fb5773` (11:13–11:42 UTC): **FAIL**. access-api fick HTTP 500 och därefter `fetch failed` när provets Worker slutade svara. Samma prov fristående gav 16/16. Resultatet står kvar som FAIL för den körningen.
+- Färsk grind på `278f235` (11:43–12:13 UTC): **PASS**, alla steg och inga valideringsfel. Rapport: `work/pilot/results/phase3-summary.json`.
+
+| Krav | Bevissteg i körningen | Automatiskt resultat | Återstår |
+|---|---|---|---|
+| ACL-02 | sql (565), access-api (16), mandat-api (26/139), fas3-arbetsyta-browser (18), fas3-mandat-browser (45) | PASS | Nytt användarprov 03-07, gsd-verify-work |
+| ACL-03 | som ACL-02 | PASS | som ovan |
+| ACL-04 | modeller (305), sql, mandat-api, fas3-arbetsyta-browser, fas3-mandat-browser | PASS | som ovan |
+| ACL-05 | som ACL-04 (inklusive support-groups och gruppsupport i browsern) | PASS | som ovan |
+| AUDIT-02 | sql, access-api, mandat-api, källbevis (4 vägar, 3 avbrott), båda fas 3-browsersviterna | PASS | som ovan |
+| AUDIT-03 | sql, mandat-api, källbevis, fas3-mandat-browser | PASS | som ovan |
+
+Regressioner i samma körning: baslinje-db PASS, fas 1-browser 26 PASS (1 redovisat hopp), fas 2-browser 37 PASS (19 redovisade hopp). Allt är lokalt och syntetiskt. Kraven är inte markerade som verifierade.

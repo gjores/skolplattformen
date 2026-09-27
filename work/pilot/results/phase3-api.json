@@ -2,10 +2,10 @@
   "kind": "phase3-api",
   "scope": "local-synthetic-only",
   "proof": "lokalt mintade sessionsbevis i verifierat protected-mål; ingen verklig IdP- eller kommunanslutning",
-  "startedAt": "2026-09-26T14:42:43.835Z",
-  "completedAt": "2026-09-26T14:46:06.011Z",
-  "revision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
-  "workerBuildRevision": "7d4ec8db7495db53f0b288ad1dc4582aeea7202e",
+  "startedAt": "2026-09-27T11:44:30.077Z",
+  "completedAt": "2026-09-27T11:47:40.613Z",
+  "revision": "278f235bd8c915d5a33fab26e2f4f1a9f6f970bb",
+  "workerBuildRevision": "278f235bd8c915d5a33fab26e2f4f1a9f6f970bb",
   "target": "protected",
   "baseUrl": "http://127.0.0.1:3014",
   "requiredCases": [
@@ -16,6 +16,7 @@
     "health-pupil",
     "health-case",
     "support-boundary",
+    "support-groups",
     "it-admin",
     "self-escalation",
     "parent-revoked",
@@ -275,6 +276,57 @@
         },
         {
           "check": "vid och efter sluttid (halvöppet intervall): nekad utan innehåll",
+          "ok": true,
+          "detail": "403/403"
+        }
+      ]
+    },
+    {
+      "name": "support-groups",
+      "status": "PASS",
+      "checks": [
+        {
+          "check": "gruppsupport kräver grupper utan elev, syfte, högst 60 minuter och en enda skola",
+          "ok": true,
+          "detail": "403/403/400/400/403"
+        },
+        {
+          "check": "rektor med två skolor kan ge gruppsupport på en av dem",
+          "ok": true,
+          "detail": "HTTP 201"
+        },
+        {
+          "check": "endast rektor godkänner gruppsupport",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "servern sätter rektorn som godkännare för gruppsupport",
+          "ok": true,
+          "detail": "godkännare från serverns mandat"
+        },
+        {
+          "check": "gruppsupport ser endast elever i gruppen, med godkännare, syfte och sluttid",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000211\"]; pupil_probe_listed|ok||1|list"
+        },
+        {
+          "check": "elev utanför gruppen (samma och annan skola) nekas utan innehåll",
+          "ok": true,
+          "detail": "404/404"
+        },
+        {
+          "check": "gruppsupport har inget export- eller delegeringsmandat",
+          "ok": true,
+          "detail": "403/403"
+        },
+        {
+          "check": "support för två grupper på samma skola ser elever i båda",
+          "ok": true,
+          "detail": "[\"33000000-0000-4000-8000-000000000211\",\"33000000-0000-4000-8000-000000000219\"]"
+        },
+        {
+          "check": "gruppsupport vid och efter sluttid: nekad utan innehåll",
           "ok": true,
           "detail": "403/403"
         }
@@ -664,7 +716,7 @@
         {
           "check": "inga mutationer committades",
           "ok": true,
-          "detail": "lärare öppen true, version 59→59, inbjudningar 0→0"
+          "detail": "lärare öppen true, version 85→85, inbjudningar 0→0"
         },
         {
           "check": "inga ok-händelser för de rullade mutationerna",
@@ -776,9 +828,9 @@
           "detail": "400/400"
         },
         {
-          "check": "körningens 218 Worker-händelser saknar namn, anteckningar och fritext",
+          "check": "körningens 238 Worker-händelser saknar namn, anteckningar och fritext",
           "ok": true,
-          "detail": "218 korrelationer"
+          "detail": "238 korrelationer"
         },
         {
           "check": "detaljnycklar är allowlistade",
