@@ -129,7 +129,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Pending Todos
 
 - Nästa steg: fortsätt `gsd-execute-phase 3` med 03-06 (kör om samlad Worker-audit/API inkl. nekandeflod och loggfelsinjektion på nya stacken; phase3-pupils ingår), sedan 03-07 (fasgrind, användarprov, handbok). Browserkonton: `node work/pilot/phase3-browser-fixtures.mjs --target protected`; prov: `npx playwright test -c playwright.phase3.config.ts` i web/.
-- 7 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); SPAR-synk för elever och vårdnadshavare (integration, 09-14); Docusaurus endast instruktioner och regler i systemen (docs, 09-23); Utred Sverige-id och integration i appen (auth, 09-26).
+- 5 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); Leverantörens systemadministration i gränssnittet (auth, 09-27).
 
 ## Blockers
 
