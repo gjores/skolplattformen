@@ -10,7 +10,7 @@ Allt nedan gäller den återskapade lokala provmiljön: protected-målet `skolpl
 |---|---|
 | Implementation | Klar för fasens sex krav (ACL-02–05, AUDIT-02–03) i lokal provmiljö |
 | Automatiskt syntetiskt bevis | Fasgrinden `verify:phase3` gav **PASS** 2026-09-27 11:43–12:13 UTC på revision `278f235`, efter rättning av användarprovets tre avvikelser. En körning före denna, på `4fb5773`, gav FAIL i access-api (se nedan) |
-| Användarens granskning (checkpoint 03-07) | Första provet 2026-09-26/27 godkändes inte (tre avvikelser, rättade). Nytt användarprov återstår |
+| Användarens granskning (checkpoint 03-07) | Första provet 2026-09-26/27 godkändes inte (tre avvikelser, rättade). Förnyat prov godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit, ingen fysisk telefon eftersom stacken bara nås på localhost) |
 | Fasverifiering (`gsd-verify-work`) | Återstår. Kraven är inte markerade som verifierade i REQUIREMENTS.md |
 | Verklig drift, verklig IdP, kommunanslutning, verklig lagringstid | Inte prövat och inte påstått |
 

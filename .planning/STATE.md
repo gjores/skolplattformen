@@ -4,17 +4,17 @@ milestone: v1.0
 current_phase: 03
 current_phase_name: Mandat och skyddade datavägar
 current_plan: 07
-status: executing
-stopped_at: 03-01–06 genomförda. 03-06 klar 2026-09-26 (25/25 API-fall med källbevis; verify:phase3 vägrar PASS, krav BLOCKED tills 03-07); nästa 03-07.
-last_updated: "2026-09-26T13:36:48.938Z"
-last_activity: 2026-09-26
-last_activity_desc: "03-06 slutförd: verify-mandates.mjs kör 25 namngivna API-/kringgående-/loggfelsfall mot byggd Worker på återskapad stack, 25/25 PASS (130 kontroller) inklusive 28 avstämda nekanden, loggfel vid läsning/export/mutation/nekande och källavbrott Kong/Storage/Postgres; access-regression 16/16. verify:phase3 (fail-closed, färskhet, kravtabell) kördes vid c7a113d: totalstatus FAIL, alla sex fas 3-krav BLOCKED (fas 3-mandatbrowser saknas till 03-07; baseline ej startat; port 5192 upptagen; fas 2-browserns OTP-inloggning FAIL). Byggd preview omstartad på localhost:3000 (c7a113d). Inga fas 3-krav markerade verifierade."
+status: executed-awaiting-phase-verification
+stopped_at: 03-01–07 genomförda. 03-07 klar 2026-09-27 (användarprov godkänt, verify:phase3 PASS på 278f235); nästa fasverifiering (gsd-verify-work).
+last_updated: "2026-09-27T20:30:00.000Z"
+last_activity: 2026-09-27
+last_activity_desc: "03-07 slutförd: förnyat användarprov godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) efter rättning av tre avvikelser (verifiering inifrån dialogen 43c6b79, engångskod vid inloggning d9499dc, support för grupper 2d17d4c). Färsk verify:phase3 PASS på 278f235, alla sex fas 3-krav PASS lokalt och syntetiskt (föregående körning på 4fb5773 FAIL: access-Workern stannade, oförklarat). Fas 3: 7/7 planer genomförda, väntar fasverifiering. Inga krav markerade verifierade."
 state_head: 440bcb0616588b9fa7a5f84fc3bde5cf31f8aa28
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 29
-  completed_plans: 28
+  completed_plans: 29
 milestone_name: milestone
 ---
 
@@ -25,12 +25,12 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-13)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 3 — 03-01–06 genomförda; 03-07 (mandatbrowser, fasgrind, användarprov, handbok) är nästa steg
+**Current focus:** Fas 3 — alla sju planer genomförda; fasverifiering (gsd-verify-work) är nästa steg
 
 ## Current Position
 
-Phase: 03 (Mandat och skyddade datavägar) — IN PROGRESS
-Plan: 03-07 nästa (03-06 genomförd 2026-09-26)
+Phase: 03 (Mandat och skyddade datavägar) — EXECUTED, väntar fasverifiering
+Plan: 7 av 7 genomförda (03-07 genomförd 2026-09-27)
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 03
@@ -38,22 +38,22 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Total Phases:** 8
 **Current Plan:** 03-07
 **Total Plans in Phase:** 7
-**Status:** Executing Phase 03 — SQL/server cutover applied; verification incomplete
+**Status:** Phase 03 executed — awaiting phase verification (gsd-verify-work)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-26
-**Last Activity Description:** 03-06 slutförd: verify-mandates.mjs kör 25 namngivna API-/kringgående-/loggfelsfall mot byggd Worker på återskapad stack, 25/25 PASS (130 kontroller) inklusive 28 avstämda nekanden, loggfel vid läsning/export/mutation/nekande och källavbrott Kong/Storage/Postgres; access-regression 16/16. verify:phase3 (fail-closed, färskhet, kravtabell) kördes vid c7a113d: totalstatus FAIL, alla sex fas 3-krav BLOCKED (fas 3-mandatbrowser saknas till 03-07; baseline ej startat; port 5192 upptagen; fas 2-browserns OTP-inloggning FAIL). Byggd preview omstartad på localhost:3000 (c7a113d). Inga fas 3-krav markerade verifierade.
+**Last Activity:** 2026-09-27
+**Last Activity Description:** 03-07 slutförd: förnyat användarprov godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) efter rättning av tre avvikelser (verifiering inifrån dialogen 43c6b79, engångskod vid inloggning d9499dc, support för grupper 2d17d4c). Färsk verify:phase3 PASS på 278f235, alla sex fas 3-krav PASS lokalt och syntetiskt (föregående körning på 4fb5773 FAIL: access-Workern stannade, oförklarat). Fas 3: 7/7 planer genomförda, väntar fasverifiering. Inga krav markerade verifierade.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
-Progress: [█████████░] 90%
-Planprogress: 28 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
-Phases executed: 2 of 8 (fas 1–2 verifierade)
+Progress: [██████████] 100%
+Planprogress: 29 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
+Phases executed: 3 of 8 (fas 1–2 verifierade; fas 3 genomförd, väntar fasverifiering)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 26
+- Total plans completed: 29
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -85,6 +85,7 @@ Phases executed: 2 of 8 (fas 1–2 verifierade)
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 03 P06 | 50min | 2 tasks | 11 files |
+| Phase 03 P07 | ca 3h exkl. användarprov | 2 tasks | 43 files |
 
 ## Accumulated Context
 
@@ -125,10 +126,13 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 01]: Konkurrerande sparningar och redigering efter skapande står som KNOWN-ISSUE med ägare fas 5 och stoppvillkor; grön fasgrind gör dem inte till godkänd funktion
 - [Phase 03]: 03-06: verify-mandates kör exakt 25 namngivna fall med källbevis; delurval ger PARTIAL, aldrig PASS
 - [Phase 03]: 03-06: verify:phase3 är fail-closed; miljöhinder (stoppat mål, upptagen port, kvarlämnat lås) ger BLOCKED, fas 3-mandatspecen i 03-07 måste ha titlarna i MANDATE_BROWSER
+- [Phase 03]: 03-07: engångskod anges vid inloggning för den som har registrerad kod; övriga loggar in med lösenord; beviset gäller 8 h och step-up är reserv (användarbeslut 2026-09-27)
+- [Phase 03]: 03-07: tidsbegränsad support kan gälla en namngiven elev eller en eller flera grupper på en skola; högst 60 minuter, syfte, rektorsgodkännande och ingen export oförändrat (användarbeslut 2026-09-27)
+- [Phase 03]: 03-07: användarprovet 2026-09-27 godkänt som syntetiskt användarprov (dator; telefon i enhetsläge/WebKit); det godkänner inte verklig drift, IdP eller kommunanslutning
 
 ## Pending Todos
 
-- Nästa steg: fortsätt `gsd-execute-phase 3` med 03-06 (kör om samlad Worker-audit/API inkl. nekandeflod och loggfelsinjektion på nya stacken; phase3-pupils ingår), sedan 03-07 (fasgrind, användarprov, handbok). Browserkonton: `node work/pilot/phase3-browser-fixtures.mjs --target protected`; prov: `npx playwright test -c playwright.phase3.config.ts` i web/.
+- Nästa steg: fasverifiering av fas 3 med gsd-verify-work (gsd-verifier). Kraven ACL-02–05 och AUDIT-02–03 markeras verifierade först där. Öppna verksamhetsbeslut från 03-07 finns i 03-07-SUMMARY.md.
 - 5 todos under .planning/todos/pending/: API för lärares behörigheter (api, 09-12); Läsårslins som i Plan Digital (ui, 09-12); Planera stark identitetskontroll och BankID (auth, 09-13); RACI-matris för kommun-/organisationsadmin (auth, 09-13); Leverantörens systemadministration i gränssnittet (auth, 09-27).
 
 ## Blockers
@@ -149,8 +153,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Session
 
-**Last Date:** 2026-09-26T13:36:48.832Z
-**Stopped At:** Completed 03-06-PLAN.md (2026-09-26). Nästa: 03-07.
+**Last Date:** 2026-09-27T20:30:00.000Z
+**Stopped At:** Completed 03-07-PLAN.md (2026-09-27). Nästa: fasverifiering av fas 3 (gsd-verify-work).
 **Resume File:** .planning/phases/03-mandat-och-skyddade-datavagar/.continue-here.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22

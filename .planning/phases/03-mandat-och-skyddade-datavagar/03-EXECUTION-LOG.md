@@ -62,3 +62,10 @@ Checkpointen är inte godkänd. Avvikelserna rättas inom 03-07 och användarpro
 - **Miljö:** Kong startades om av källavbrottsprovet; `configure-audit-source` kördes efter varje grind. Previewn på 3000 kör bygget från 278f235.
 - **Engångskoder:** p3-kontonas registrerade koder är orörda. Fas 2-kontona registrerades om av grindens fixtur, som tidigare.
 - **Läge:** planen står åter vid användarcheckpointen. Kraven är inte markerade som verifierade.
+
+## 2026-09-27 — förnyat användarprov godkänt, 03-07 slutförd
+
+- Användaren provade på dator i den byggda previewn (bygget från 278f235): p3.rektor med engångskod vid inloggning och tilldelning av lärare utan extra verifieringsfråga, support för grupper och för en namngiven elev, p3.support, p3.larare med bara lösenord och p3.huvudman med engångskod. Svar: "allt verkar funka bra". Inga avvikelser.
+- Registrerat som godkänt syntetiskt användarprov (dator; telefon i enhetsläge/automatiskt WebKit). Ingen fysisk telefon, eftersom stacken bara nås på localhost.
+- Användaren saknar en leverantörens systemadministration för att sätta upp kunder och huvudmän i gränssnittet. Det är ingen avvikelse i fas 3; registrerat som todo (aa5c0f8) med koppling till fas 2 D-04/D-12 och fas 6.
+- 03-07-SUMMARY skriven. Fas 3: 7 av 7 planer genomförda. Nästa steg är fasverifiering (gsd-verify-work). Inga krav är markerade som verifierade.

@@ -1,6 +1,6 @@
 ---
 phase: 03
-status: automated-pass-awaiting-user-recheck
+status: automated-pass-user-approved-awaiting-phase-verification
 nyquist_compliant: false
 wave_0_complete: false
 ---
@@ -73,3 +73,18 @@ Handboken är uppdaterad (4fb5773).
 | AUDIT-03 | sql, mandat-api, källbevis, fas3-mandat-browser | PASS | som ovan |
 
 Regressioner i samma körning: baslinje-db PASS, fas 1-browser 26 PASS (1 redovisat hopp), fas 2-browser 37 PASS (19 redovisade hopp). Allt är lokalt och syntetiskt. Kraven är inte markerade som verifierade.
+
+## Manuellt användarprov (checkpoint 03-07)
+
+Första provet 2026-09-26/27 godkändes inte; de tre avvikelserna är rättade ovan. Förnyat prov i den byggda protected-previewn (http://127.0.0.1:3000, bygget från `278f235`), användarens svar 2026-09-27: "allt verkar funka bra".
+
+| Manuellt prov | Krav | Resultat |
+|---|---|---|
+| Rektor tilldelar lärare (inloggning med lösenord och engångskod, ingen extra verifieringsfråga vid tilldelningen) | ACL-02, ACL-03 | godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) |
+| Lärare loggar in med lösenord och får bara sitt uppdrag; huvudman loggar in med engångskod | ACL-02, ACL-04 | godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) |
+| Tidsbegränsad support för grupper och för en namngiven elev; supportens vy | ACL-05 | godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) |
+| Elevhälsoavgränsning, IT:s pausa/aktivera och loggfelssituationen | ACL-04, ACL-05, AUDIT-02, AUDIT-03 | Ingick i den övergripande bedömningen utan avvikelser, men nämndes inte uttryckligen i användarens svar. Automatiskt bevis: fas3-mandat-browser (dator, telefon i enhetsläge/WebKit, byggd Worker) PASS på `278f235` |
+
+Telefon: en fysisk telefon användes inte. Den skyddade stacken (preview och lokal Keycloak) nås bara på localhost, och att göra den nåbar från en annan enhet är ett öppet beslut. Telefonbeviset är mandatbrowserns WebKit i iPhone-storlek (protected-phone).
+
+Godkännandet gäller ett syntetiskt användarprov. Det godkänner inte verklig drift, verklig IdP, verklig lagringstid eller kommunanslutning. Kraven markeras som verifierade först av gsd-verify-work. Nyquist-status ändras inte här.
