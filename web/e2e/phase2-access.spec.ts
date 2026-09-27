@@ -310,8 +310,20 @@ test('administrativ åtgärd utan engångskod erbjuder verifiering', async ({ pa
   expect(
     psql(manifest, `select status from public.memberships where id='${MEMBERSHIP.gustav}';`),
   ).toBe('active');
+  const appOrigin = new URL(page.url()).origin;
   await verify.click();
   await page.waitForURL((url) => url.pathname.includes('/realms/skolplattform-test/'));
+  // Kontot saknar registrerad engångskod: IdP:n frågar bara efter lösenord och
+  // tvingar inte fram registrering. Servern godtar inget bevis och användaren får
+  // ett begripligt besked i stället för en felsida.
+  expect(await fillKeycloakLogin(page, 'ivar.utan-otp')).toEqual(['password']);
+  await page.waitForURL((url) => url.origin === appOrigin && !url.pathname.startsWith('/api/'));
+  await expect(page.getByRole('alert').filter({ hasText: 'saknar registrerad engångskod' })).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('verifiering')).toBeNull();
+  expect((await session(page)).mfa.amr).not.toContain('otp');
+  expect(
+    psql(manifest, `select status from public.memberships where id='${MEMBERSHIP.gustav}';`),
+  ).toBe('active');
 });
 
 test('spärr under öppen session stoppar nästa åtgärd', async ({ browser }, testInfo) => {

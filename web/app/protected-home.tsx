@@ -206,6 +206,8 @@ function ProtectedShell() {
   const [view, setView] = useState<ProtectedView>('stangt');
   const [help, setHelp] = useState(false);
   const [mfaRequired, setMfaRequired] = useState(false);
+  // Återkomst från en step-up där kontot saknar registrerad engångskod.
+  const [stepUpWithoutOtp, setStepUpWithoutOtp] = useState(false);
   const hasUnsaved = useHasUnsaved();
   const epochRef = useRef<number | null>(null);
 
@@ -238,6 +240,15 @@ function ProtectedShell() {
       }
     }
     if (current === sessionLoad.current) setSession(null);
+  }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('verifiering') === 'saknar-engangskod') {
+      queueMicrotask(() => setStepUpWithoutOtp(true));
+      url.searchParams.delete('verifiering');
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
   }, []);
 
   useEffect(() => {
@@ -316,7 +327,8 @@ function ProtectedShell() {
           <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 ? <><p>Du har inga uppdrag som gäller idag.</p><Button variant="outline" onClick={() => void logout()}>Logga ut</Button></> : <p>Välj ett giltigt uppdrag i sidhuvudet för att öppna arbetsytan.</p>}</section></main>
         ) : (
           <main id="workspace" className="workspace protected-workspace" key={session.epoch}>
-            {mfaRequired && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
+            {stepUpWithoutOtp && <output role="alert" className="validation-warning">Verifieringen gav inget bevis med engångskod eftersom ditt konto saknar registrerad engångskod hos inloggningstjänsten. Du kan fortsätta arbeta, men åtgärder som kräver engångskod går inte att göra. Kontakta den som administrerar din inloggning.</output>}
+            {mfaRequired && !stepUpWithoutOtp && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
             {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={() => setSession(null)} />}
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}

@@ -112,6 +112,15 @@ function ageMfaProof(email: string): void {
   expect(changed.split('\n').filter(Boolean).length, 'minst en aktiv session fick äldre bevis').toBeGreaterThan(0);
 }
 
+/** Registrerar navigeringar till step-up (verifiering med engångskod). */
+function recordStepUps(page: Page): string[] {
+  const seen: string[] = [];
+  page.on('request', (request) => {
+    if (request.isNavigationRequest() && request.url().includes('step_up=1')) seen.push(request.url());
+  });
+  return seen;
+}
+
 function contextOptions(testInfo: TestInfo, phone = false) {
   const use = testInfo.project.use;
   const device = phone ? devices['iPhone 13'] : {
@@ -228,8 +237,14 @@ test('huvudman utser rektor', async ({ page }) => {
 
 test('rektor ger och avslutar läraruppdrag', async ({ page }) => {
   const bodies = recordApi(page);
+  const stepUps = recordStepUps(page);
   const since = dbNow();
-  await login(page, 'p3.rektor', true);
+  // Rektorn har registrerad engångskod: koden efterfrågas vid inloggningen och
+  // beviset räcker för tilldelningen utan separat verifiering.
+  const steps = await login(page, 'p3.rektor', true);
+  expect(steps).toEqual(['password', 'otp']);
+  const mfa = await sessionMfa(page);
+  expect(mfa).toMatchObject({ acr: '2', amr: ['pwd', 'otp'], proof: true });
   await expect(page.getByRole('heading', { name: 'Mandat', exact: true })).toBeVisible();
   const dialog = await openGrantDialog(page);
   const fn = dialog.locator('select').first();
@@ -260,7 +275,19 @@ test('rektor ger och avslutar läraruppdrag', async ({ page }) => {
   expect(eventCount('assignment_ended', 'ok', since)).toBe(1);
   expect(Number(psql(manifest, `select count(*) from public.access_assignments a join public.memberships m on m.id=a.membership_id
     join public.identities i on i.id=m.identity_id where i.subject='browser-recipient' and public.phase3_mandate_is_valid(a.id);`))).toBe(0);
+  expect(stepUps, 'ingen separat verifiering behövdes').toEqual([]);
   await expectAbsent(page, bodies, FOREIGN_PUPILS);
+});
+
+test('lärare loggar in utan engångskod', async ({ page }) => {
+  // Konton utan registrerad engångskod loggar in med lösenord; ingen kod och
+  // ingen tvingad registrering (användarbeslut 2026-09-27).
+  const steps = await login(page, 'p3.larare');
+  expect(steps).toEqual(['password']);
+  const mfa = await sessionMfa(page);
+  expect(mfa).toMatchObject({ acr: '1', amr: ['pwd'], proof: false });
+  await expect(page.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
+  await expect(page.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
 });
 
 test('elevhälsa med skolscope', async ({ page }) => {

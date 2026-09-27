@@ -67,9 +67,12 @@ export async function beginAuthorization(opts: {
     code_challenge_method: 'S256',
     state,
     nonce,
-    ...(opts.stepUp
-      ? { acr_values: env.MFA_ACR_VALUES, prompt: 'login', max_age: '0' }
-      : {}),
+    // Varje inloggning begär nivå 2 (frivilligt acr-anspråk). Test-IdP:ns flöde frågar
+    // då efter engångskod endast om kontot har en registrerad kod; övriga loggar in
+    // med lösenord och får nivå 1. Servern prövar beviset oförändrat (hasMfaProof).
+    acr_values: env.MFA_ACR_VALUES,
+    // Step-up kräver ny autentisering även om IdP-sessionen redan har nivå 2.
+    ...(opts.stepUp ? { prompt: 'login', max_age: '0' } : {}),
   });
   return {
     url,

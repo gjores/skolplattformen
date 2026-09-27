@@ -63,6 +63,7 @@ export const MANDATE_BROWSER = {
   titles: [
     'huvudman utser rektor',
     'rektor ger och avslutar läraruppdrag',
+    'lärare loggar in utan engångskod',
     'elevhälsa med skolscope',
     'elevhälsa med elevscope',
     'elevhälsa med ärendescope',

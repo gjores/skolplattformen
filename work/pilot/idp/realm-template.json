@@ -101,7 +101,7 @@
     },
     {
       "alias": "loa-2-otp",
-      "description": "Second authentication level requires a TOTP credential",
+      "description": "Second authentication level: TOTP for accounts with a registered TOTP credential; accounts without one stay at level 1",
       "providerId": "basic-flow",
       "topLevel": false,
       "builtIn": false,
@@ -112,6 +112,12 @@
           "priority": 10,
           "userSetupAllowed": false,
           "authenticatorConfig": "loa-2-condition"
+        },
+        {
+          "authenticator": "conditional-user-configured",
+          "requirement": "REQUIRED",
+          "priority": 15,
+          "userSetupAllowed": false
         },
         {
           "authenticator": "auth-otp-form",

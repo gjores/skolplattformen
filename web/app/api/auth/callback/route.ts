@@ -22,6 +22,15 @@ import {
   sessionCookie,
 } from '../../../../lib/server/session.ts';
 
+/** Step-up gav inget bevis med engångskod: kontot saknar registrerad kod hos IdP:n. */
+class StepUpWithoutOtp extends Error {}
+
+function withNotice(returnTo: string, notice: string): string {
+  const url = new URL(returnTo, 'http://app.invalid');
+  url.searchParams.set('verifiering', notice);
+  return url.pathname + url.search + url.hash;
+}
+
 function redirectWithCookies(location: string, corr: string, cookies: string[]): Response {
   const headers = new Headers({
     Location: location,
@@ -99,6 +108,9 @@ export async function GET(request: Request): Promise<Response> {
           throw new Error('Step-up-sessionen har ändrats');
         }
         if (proofAssessment.result !== 'accepted') {
+          // Konton utan registrerad engångskod loggar in med lösenord även vid
+          // step-up (IdP:n tvingar inte fram registrering). Beviset godtas inte.
+          if (!claims.amr.includes('otp')) throw new StepUpWithoutOtp('Step-up utan engångskod');
           throw new Error('Step-up saknar godkänt MFA-bevis');
         }
         const active = current;
@@ -208,6 +220,10 @@ export async function GET(request: Request): Promise<Response> {
           }
         : { proofAssessment: deniedProof },
     });
+    if (error instanceof StepUpWithoutOtp) {
+      // Sessionen är oförändrad (inget nytt bevis); användaren får ett begripligt besked.
+      return redirectWithCookies(withNotice(state.returnTo, 'saknar-engangskod'), corr, [clearLogin]);
+    }
     const response = fail('login_state_invalid', 400, corr);
     response.headers.append('Set-Cookie', clearLogin);
     return response;
