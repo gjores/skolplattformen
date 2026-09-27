@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { devices, expect, test, type Browser, type BrowserContext, type Locator, type Page, type TestInfo } from '@playwright/test';
-import { loginViaKeycloak, readPilotManifest, waitForHydration, type PilotManifest } from './helpers/keycloak.ts';
+import { fillKeycloakLogin, loginViaKeycloak, readPilotManifest, waitForHydration, type KeycloakStep, type PilotManifest } from './helpers/keycloak.ts';
 import { psql } from './helpers/pilot-db.ts';
 
 const CUSTOMER = '33000000-0000-4000-8000-000000000001';
@@ -80,16 +80,36 @@ function eventCount(action: string, outcome: string, since: string, extra = ''):
     where customer_id='${CUSTOMER}' and action=${sql(action)} and outcome=${sql(outcome)} and occurred_at>=${sql(since)}::timestamptz ${extra};`));
 }
 
-async function login(page: Page, username: string, requireMfa = false): Promise<void> {
-  await loginViaKeycloak(page, username, { password: passwords[username] });
+type SessionMfa = { mfa: { acr: string | null; amr: string[]; proof: boolean } };
+
+async function sessionMfa(page: Page): Promise<SessionMfa['mfa']> {
+  return ((await (await page.request.get('/api/session')).json()) as SessionMfa).mfa;
+}
+
+/**
+ * Konton med registrerad engångskod anger koden redan vid inloggningen
+ * (användarbeslut 2026-09-27); då finns beviset och ingen step-up görs.
+ * Step-up görs bara som reserv om beviset saknas.
+ */
+async function login(page: Page, username: string, requireMfa = false): Promise<KeycloakStep[]> {
+  const steps = await loginViaKeycloak(page, username, { password: passwords[username] });
   await waitForHydration(page);
-  if (!requireMfa) return;
+  if (!requireMfa) return steps;
   const session = await (await page.request.get('/api/session')).json() as { mfa: { amr: string[] } };
-  if (session.mfa.amr.includes('otp')) return;
+  if (session.mfa.amr.includes('otp')) return steps;
   await loginViaKeycloak(page, username, { password: passwords[username], stepUp: true });
   await waitForHydration(page);
   const after = await (await page.request.get('/api/session')).json() as { mfa: { amr: string[] } };
   expect(after.mfa.amr).toContain('otp');
+  return steps;
+}
+
+/** Låter serverns MFA-bevis bli äldre än 8 timmar (samma läge som efter en lång arbetsdag). */
+function ageMfaProof(email: string): void {
+  const changed = psql(manifest, `update public.app_sessions s set auth_time=s.auth_time-interval '9 hours'
+    from public.identities i where i.id=s.identity_id and i.email=${sql(email)} and s.revoked_at is null and s.auth_time is not null
+    returning s.id;`);
+  expect(changed.split('\n').filter(Boolean).length, 'minst en aktiv session fick äldre bevis').toBeGreaterThan(0);
 }
 
 function contextOptions(testInfo: TestInfo, phone = false) {
@@ -462,7 +482,11 @@ test('granskaren följer elevläsning, export och nekande', async ({ page, brows
 
 test('tangentbord och fältfel i tilldelningen', async ({ page }) => {
   const since = dbNow();
+  const dialogs: string[] = [];
+  page.on('dialog', (browserDialog) => { dialogs.push(browserDialog.type()); void browserDialog.dismiss(); });
   await login(page, 'p3.rektor');
+  // Beviset från inloggningen görs äldre än 8 timmar: då krävs verifiering igen.
+  ageMfaProof('rektor@phase3.example.test');
   await expect(page.getByRole('heading', { name: 'Mandat', exact: true })).toBeVisible();
   const open = page.getByRole('button', { name: 'Tilldela uppdrag' });
   const dialog = await openGrantDialog(page, true);
@@ -495,20 +519,97 @@ test('tangentbord och fältfel i tilldelningen', async ({ page }) => {
   await page.keyboard.press('Space');
   await expect(group).toBeChecked();
 
-  // Servern kräver engångskod för tilldelning: felet visas i dialogen och inmatningen finns kvar.
+  // Servern kräver engångskod för tilldelning: verifieringen erbjuds INUTI dialogen
+  // (sidan bakom är oåtkomlig medan dialogen är öppen) och inmatningen finns kvar.
   await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).focus();
   await page.keyboard.press('Enter');
-  await expect(dialog.getByRole('alert')).toContainText('Tilldelning kräver verifiering med engångskod.');
+  const notice = dialog.getByRole('alert').filter({ hasText: 'Tilldelning kräver verifiering med engångskod.' });
+  await expect(notice).toBeVisible();
+  const verify = notice.getByRole('button', { name: 'Verifiera med engångskod' });
+  await expect(verify).toBeVisible();
   await expect(fn).toHaveValue('larare');
   await expect(recipient.locator('option:checked')).toHaveText(RECIPIENT);
   await expect(group).toBeChecked();
-  await expect(page.getByText('Åtgärden kräver verifiering med engångskod.')).toBeVisible();
-
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
-  await expect(open).toBeFocused();
-  await expect(mandateCard(page, RECIPIENT)).toHaveCount(0);
   expect(eventCount('mandate_granted', 'ok', since)).toBe(0);
+
+  // Verifieringsknappen nås med Tab inom fokusfällan och aktiveras med Enter.
+  for (let index = 0; index < 20 && !(await verify.evaluate((element) => element === document.activeElement)); index += 1) {
+    await page.keyboard.press('Tab');
+    await expectFocusInside(page, dialog);
+  }
+  await expect(verify).toBeFocused();
+  const appOrigin = new URL(page.url()).origin;
+  await page.keyboard.press('Enter');
+  await page.waitForURL((url) => url.pathname.includes('/realms/skolplattform-test/'));
+  expect(await fillKeycloakLogin(page, 'p3.rektor', passwords['p3.rektor'])).toEqual(['password', 'otp']);
+  await page.waitForURL((url) => url.origin === appOrigin && !url.pathname.startsWith('/api/'));
+  await waitForHydration(page);
+  expect((await sessionMfa(page)).proof).toBe(true);
+  expect(dialogs, 'ingen lämna-sidan-fråga stoppade verifieringen').toEqual([]);
+
+  // Tillbaka i arbetsytan: tilldelningen görs om med tangentbordet och lyckas.
+  await expect(page.getByRole('heading', { name: 'Mandat', exact: true })).toBeVisible();
+  const again = await openGrantDialog(page, true);
+  await again.locator('select').first().selectOption({ label: 'Lärare' });
+  await again.locator('select').nth(1).selectOption({ label: RECIPIENT });
+  const groupAgain = again.getByLabel(/Grupp 1 · Syntetisk skola 11/u);
+  await groupAgain.focus();
+  await page.keyboard.press('Space');
+  await again.getByRole('button', { name: 'Tilldela uppdraget' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(again).toBeHidden();
+  await expect(page.getByText(`Uppdraget har tilldelats ${RECIPIENT}.`)).toBeVisible();
+  expect(eventCount('mandate_granted', 'ok', since)).toBe(1);
+  // Escape stänger dialogen och fokus återgår till öppningsknappen.
+  const closing = await openGrantDialog(page, true);
+  await page.keyboard.press('Escape');
+  await expect(closing).toBeHidden();
+  await expect(open).toBeFocused();
+  endRecipientMandates();
+});
+
+test('verifiering nås med pekskärm i avslutsdialogen', async ({ page, browser }, testInfo) => {
+  const phone = testInfo.project.name === 'protected-phone';
+  const context = phone ? null : await browser.newContext(contextOptions(testInfo, true));
+  const view = phone ? page : await context!.newPage();
+  const since = dbNow();
+  try {
+    await login(view, 'p3.rektor', true);
+    const dialog = await openGrantDialog(view);
+    await dialog.locator('select').first().selectOption({ label: 'Lärare' });
+    await dialog.locator('select').nth(1).selectOption({ label: RECIPIENT });
+    await dialog.getByLabel(/Grupp 1 · Syntetisk skola 11/u).tap();
+    await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).tap();
+    await expect(view.getByText(`Uppdraget har tilldelats ${RECIPIENT}.`)).toBeVisible();
+
+    ageMfaProof('rektor@phase3.example.test');
+    await mandateCard(view, RECIPIENT, 'Lärare').getByRole('button', { name: `Avsluta uppdrag för ${RECIPIENT}` }).tap();
+    const confirm = view.getByRole('dialog', { name: 'Avsluta uppdrag?' });
+    await confirm.getByRole('button', { name: 'Ja, avsluta uppdraget' }).tap();
+    const notice = confirm.getByRole('alert').filter({ hasText: 'Att avsluta uppdrag kräver verifiering med engångskod.' });
+    await expect(notice).toBeVisible();
+    await expectTouchTargets(view, confirm);
+    expect(eventCount('assignment_ended', 'ok', since)).toBe(0);
+    const appOrigin = new URL(view.url()).origin;
+    await notice.getByRole('button', { name: 'Verifiera med engångskod' }).tap();
+    await view.waitForURL((url) => url.pathname.includes('/realms/skolplattform-test/'));
+    expect(await fillKeycloakLogin(view, 'p3.rektor', passwords['p3.rektor'])).toEqual(['password', 'otp']);
+    await view.waitForURL((url) => url.origin === appOrigin && !url.pathname.startsWith('/api/'));
+    await waitForHydration(view);
+    expect((await sessionMfa(view)).proof).toBe(true);
+
+    // Uppdraget finns kvar tills användaren avslutar det igen efter verifieringen.
+    const card = mandateCard(view, RECIPIENT, 'Lärare');
+    await expect(card).toHaveCount(1);
+    await card.getByRole('button', { name: `Avsluta uppdrag för ${RECIPIENT}` }).tap();
+    await view.getByRole('dialog', { name: 'Avsluta uppdrag?' }).getByRole('button', { name: 'Ja, avsluta uppdraget' }).tap();
+    await expect(view.getByText(/Uppdraget är avslutat/u)).toBeVisible();
+    await expect(mandateCard(view, RECIPIENT)).toHaveCount(0);
+    expect(eventCount('assignment_ended', 'ok', since)).toBe(1);
+  } finally {
+    endRecipientMandates();
+    await context?.close();
+  }
 });
 
 test('pekytor är minst 44 px på telefon', async ({ page, browser }, testInfo) => {

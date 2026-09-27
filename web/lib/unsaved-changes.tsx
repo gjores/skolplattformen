@@ -17,6 +17,14 @@ type UnsavedRegistry = {
 
 const UnsavedContext = createContext<UnsavedRegistry | null>(null);
 
+// Sätts när användaren uttryckligen väljer att lämna sidan (t.ex. verifiering med
+// engångskod) så att webbläsarens egen lämna-sidan-fråga inte stoppar valet.
+let leavingByChoice = false;
+
+export function leaveWithoutPrompt(): void {
+  leavingByChoice = true;
+}
+
 export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(() => new Set());
   const setDirty = useCallback((id: string, dirty: boolean) => {
@@ -29,8 +37,16 @@ export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Återkomst via webbläsarens bakåtknapp (bfcache) ska åter skydda osparat innehåll.
+    const reset = () => { leavingByChoice = false; };
+    window.addEventListener('pageshow', reset);
+    return () => window.removeEventListener('pageshow', reset);
+  }, []);
+
+  useEffect(() => {
     if (dirtyIds.size === 0) return;
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (leavingByChoice) return;
       event.preventDefault();
     };
     window.addEventListener('beforeunload', onBeforeUnload);

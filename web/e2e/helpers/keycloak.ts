@@ -121,11 +121,15 @@ export function totpCode(manifest: PilotManifest): string {
   }).generate();
 }
 
+/** Steg som Keycloak faktiskt visade: lösenord, engångskod och/eller registrering av engångskod. */
+export type KeycloakStep = 'password' | 'otp' | 'enroll';
+
 export async function fillKeycloakLogin(
   page: Page,
   username: string,
   password = 'Provlosenord-1',
-): Promise<void> {
+): Promise<KeycloakStep[]> {
+  const steps: KeycloakStep[] = [];
   const manifest = readPilotManifest();
   const keycloakOrigin = new URL(page.url()).origin;
   const user = manifest.idp.users.find((candidate) => candidate.username === username);
@@ -144,11 +148,12 @@ export async function fillKeycloakLogin(
   if (first === 'otp') {
     await otp.fill(await freshCodeForUser(manifest, username));
     await page.getByRole('button', { name: /Logga in|Sign In/i }).click();
-    return;
+    return ['otp'];
   }
   if (await usernameField.isVisible()) await usernameField.fill(username);
   await passwordField.fill(password);
   await page.getByRole('button', { name: /Logga in|Sign In/i }).click();
+  steps.push('password');
 
   if (user?.totp) {
     const next = await Promise.race([
@@ -161,7 +166,7 @@ export async function fillKeycloakLogin(
     ]).catch(async () => {
       throw new Error(`Okänt steg efter lösenord: ${await safePageDiagnostic(page)}`);
     });
-    if (next === 'returned') return;
+    if (next === 'returned') return steps;
     if (next === 'manual') {
       await manualEnrollment.click();
       await enrollmentSecret.waitFor({ state: 'visible' });
@@ -175,18 +180,20 @@ export async function fillKeycloakLogin(
       const label = page.locator('input[name="userLabel"]');
       if (await label.isVisible()) await label.fill('browserprov');
       await page.getByRole('button', { name: /Skicka|Spara|Logga in|Submit/i }).click();
-      return;
+      return [...steps, 'enroll'];
     }
     await otp.fill(await freshCodeForUser(manifest, username));
     await page.getByRole('button', { name: /Logga in|Sign In/i }).click();
+    steps.push('otp');
   }
+  return steps;
 }
 
 export async function loginViaKeycloak(
   page: Page,
   username: string,
   opts: { password?: string; stepUp?: boolean; returnTo?: string } = {},
-): Promise<void> {
+): Promise<KeycloakStep[]> {
   const query = new URLSearchParams();
   if (opts.stepUp) query.set('step_up', '1');
   if (opts.returnTo) query.set('till', opts.returnTo);
@@ -196,7 +203,7 @@ export async function loginViaKeycloak(
 
   await page.goto(`/api/auth/login${suffix}`);
   await page.waitForURL((url) => url.pathname.includes('/realms/skolplattform-test/'));
-  await fillKeycloakLogin(page, username, opts.password);
+  const steps = await fillKeycloakLogin(page, username, opts.password);
   await page
     .waitForURL((url) => url.origin === appOrigin, { timeout: 15_000 })
     .catch(async () => {
@@ -205,6 +212,7 @@ export async function loginViaKeycloak(
   if (new URL(page.url()).pathname.startsWith('/api/auth')) {
     throw new Error(`Inloggningscallback nekades: ${await page.locator('body').innerText()}`);
   }
+  return steps;
 }
 
 export async function waitForHydration(page: Page): Promise<void> {

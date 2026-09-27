@@ -7,6 +7,7 @@ import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
 import type { ActiveContext } from './context-switch';
 import MandateGrantDialog from './mandate-grant-dialog';
+import MfaStepUpNotice from './mfa-step-up';
 
 type School = { id: string; name: string };
 type Mandate = {
@@ -36,6 +37,7 @@ export default function MandateWorkspace(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
+  const [mfaNeeded, setMfaNeeded] = useState(false);
   const lifecycle = useRef(0);
   const callbacks = useRef(props);
   useEffect(() => { callbacks.current = props; });
@@ -44,10 +46,14 @@ export default function MandateWorkspace(props: Props) {
     if (caught instanceof DOMException && caught.name === 'AbortError') return;
     if (caught instanceof ApiError) {
       if (caught.status === 401) { callbacks.current.onSessionLost(); return; }
-      if (caught.code === 'mfa_required') callbacks.current.onMfaRequired();
+      if (caught.code === 'mfa_required') {
+        // Arbetsytans ruta syns inte bakom en öppen dialog; bekräftelsedialogen visar egen åtgärd.
+        callbacks.current.onMfaRequired();
+        setMfaNeeded(true);
+        return;
+      }
       if (caught.status === 409) setConflict(true);
-      const message = caught.code === 'mfa_required' ? 'Verifiera med engångskod och försök sedan igen.'
-        : caught.status === 409 ? 'Uppgifterna har ändrats. Hämta aktuellt läge innan du fortsätter.'
+      const message = caught.status === 409 ? 'Uppgifterna har ändrats. Hämta aktuellt läge innan du fortsätter.'
         : caught.code === 'audit_unavailable' ? 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.'
         : caught.status === 403 ? 'Ditt aktuella uppdrag tillåter inte åtgärden.'
         : caught.status === 404 ? 'Uppgiften finns inte längre eller är inte tillgänglig i ditt uppdrag.'
@@ -60,7 +66,7 @@ export default function MandateWorkspace(props: Props) {
 
   const load = useCallback(async (unitId?: string) => {
     const generation = lifecycle.current;
-    setBusy(true); setError(null); setStatus(null); setConflict(false);
+    setBusy(true); setError(null); setStatus(null); setConflict(false); setMfaNeeded(false);
     setEnding(null); setMandates([]); setConnection(null);
     try {
       if (isIT) {
@@ -97,7 +103,7 @@ export default function MandateWorkspace(props: Props) {
   async function endMandate() {
     if (!ending || busy) return;
     const generation = lifecycle.current;
-    setBusy(true); setError(null); setStatus(null);
+    setBusy(true); setError(null); setStatus(null); setMfaNeeded(false);
     try {
       const result = await api.post<{ selfEnded: boolean }>('/api/kund/uppdrag/avsluta', { assignmentId: ending.id });
       if (generation !== lifecycle.current) return;
@@ -111,7 +117,7 @@ export default function MandateWorkspace(props: Props) {
   async function changeConnection(test: boolean) {
     if (!connection || busy || conflict) return;
     const generation = lifecycle.current;
-    setBusy(true); setError(null); setStatus(null);
+    setBusy(true); setError(null); setStatus(null); setMfaNeeded(false);
     try {
       const result = test
         ? await api.post<Connection>('/api/kund/anslutning', { unitId: schoolId, action: 'test' })
@@ -140,7 +146,7 @@ export default function MandateWorkspace(props: Props) {
         {!busy && !error && mandates.length === 0 && <p>Du har inga giltiga eller kommande tilldelningar i detta uppdrag.</p>}
         <div className="mandate-list">{mandates.map((row) => <article className="protected-card" key={row.id}>
           <h2>{row.displayName}</h2><dl className="mandate-facts"><div><dt>Funktion</dt><dd>{FUNCTION_LABEL[row.function]}</dd></div><div><dt>Omfattning</dt><dd>{scopeLabels[row.scopeKind]} · {row.schools.map((school) => school.name).join(', ')}</dd></div><div><dt>Giltighet</dt><dd>{validity(row)}</dd></div>{row.function === 'support' && <><div><dt>Syfte</dt><dd>{row.purposeCode === 'synthetic-troubleshooting' ? 'Syntetisk felsökning' : 'Ej angivet'}</dd></div><div><dt>Godkännare</dt><dd>{row.approverName ?? 'Namn saknas'}</dd></div></>}<div><dt>Status</dt><dd>{row.status === 'kommande' ? 'Kommande' : 'Giltigt'}</dd></div></dl>
-          <Button variant="outline" disabled={busy} onClick={() => { setError(null); setEnding(row); }}>Avsluta uppdrag för {row.displayName}</Button>
+          <Button variant="outline" disabled={busy} onClick={() => { setError(null); setMfaNeeded(false); setEnding(row); }}>Avsluta uppdrag för {row.displayName}</Button>
         </article>)}</div>
       </section>}
       {!isIT && <MandateGrantDialog open={granting} epoch={props.epoch} onOpenChange={setGranting} onMfaRequired={() => callbacks.current.onMfaRequired()} onSessionLost={() => callbacks.current.onSessionLost()} onGranted={(name) => { setGranting(false); void load().then(() => setStatus(`Uppdraget har tilldelats ${name}.`)); }} />}
@@ -149,6 +155,7 @@ export default function MandateWorkspace(props: Props) {
           <DialogTitle>Avsluta uppdrag?</DialogTitle>
           <DialogDescription>{ending && `${ending.displayName} förlorar uppdraget ${FUNCTION_LABEL[ending.function]} för ${ending.schools.map((school) => school.name).join(', ')}. Även uppdrag som bygger på detta mandat upphör att gälla.`}</DialogDescription>
           {error && <output role="alert" className="validation-warning">{error}</output>}
+          {mfaNeeded && <MfaStepUpNotice message="Att avsluta uppdrag kräver verifiering med engångskod." detail="Efter verifieringen kommer du tillbaka till arbetsytan och avslutar uppdraget igen." />}
           <div className="mandate-actions"><DialogClose render={<Button variant="outline" disabled={busy} />}>Avbryt</DialogClose><Button disabled={busy} onClick={() => void endMandate()}>Ja, avsluta uppdraget</Button></div>
         </DialogContent>
       </Dialog>

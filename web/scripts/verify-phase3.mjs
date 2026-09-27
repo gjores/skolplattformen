@@ -70,6 +70,7 @@ export const MANDATE_BROWSER = {
     'IT pausar och provar anslutning utan elevinsyn',
     'granskaren följer elevläsning, export och nekande',
     'tangentbord och fältfel i tilldelningen',
+    'verifiering nås med pekskärm i avslutsdialogen',
     'pekytor är minst 44 px på telefon',
     'utloggning rensar andra flikar',
     'nätverkssvar innehåller inga främmande elever',

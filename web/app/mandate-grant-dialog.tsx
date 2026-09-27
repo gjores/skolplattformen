@@ -6,6 +6,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } fr
 import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import MfaStepUpNotice from './mfa-step-up';
 
 type Item = { id: string; unitId: string; label: string };
 type Options = {
@@ -71,7 +72,11 @@ export default function MandateGrantDialog(props: Props) {
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [mfaNeeded, setMfaNeeded] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Stängning spärras bara medan tilldelningen sparas; en pågående hämtning av
+  // urvalet avbryts i stället när dialogen stängs.
+  const [saving, setSaving] = useState(false);
   const generation = useRef(0);
   // Fokus flyttas till dialogen när den öppnas. Standardvalet (första fokuserbara
   // elementet) blev stängknappen, som döljs medan urvalet hämtas; då föll fokus
@@ -87,9 +92,14 @@ export default function MandateGrantDialog(props: Props) {
     if (caught instanceof DOMException && caught.name === 'AbortError') return;
     if (!(caught instanceof ApiError)) { setServerError('Tjänsten kunde inte nås. Dina uppgifter finns kvar; försök igen.'); return; }
     if (caught.status === 401) { callbacks.current.onSessionLost(); return; }
-    if (caught.code === 'mfa_required') callbacks.current.onMfaRequired();
-    const message = caught.code === 'mfa_required' ? 'Tilldelning kräver verifiering med engångskod. Verifiera och försök sedan igen.'
-      : caught.code === 'audit_unavailable' ? 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.'
+    if (caught.code === 'mfa_required') {
+      // Verifieringen erbjuds i dialogen: sidan bakom är oåtkomlig så länge dialogen är öppen.
+      callbacks.current.onMfaRequired();
+      setServerError(null);
+      setMfaNeeded(true);
+      return;
+    }
+    const message = caught.code === 'audit_unavailable' ? 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.'
       : caught.code === 'context_changed' ? 'Uppdraget har ändrats. Ladda om arbetsytan.'
       : caught.status === 400 ? 'Tilldelningen godtogs inte. Kontrollera mottagare, omfattning och giltighet mot ditt eget uppdrag.'
       : caught.status === 403 ? 'Ditt aktuella uppdrag tillåter inte den här tilldelningen.'
@@ -101,7 +111,7 @@ export default function MandateGrantDialog(props: Props) {
 
   const loadOptions = useCallback(async () => {
     const current = ++generation.current;
-    setBusy(true); setServerError(null);
+    setBusy(true); setServerError(null); setMfaNeeded(false);
     try {
       const loaded = await api.get<Options>('/api/kund/mandat/urval');
       if (current !== generation.current) return;
@@ -124,7 +134,7 @@ export default function MandateGrantDialog(props: Props) {
 
   const scopes = scopesFor(draft.fn, options);
   const scope = scopes.includes(draft.scope) ? draft.scope : scopes[0];
-  const update = (patch: Partial<Draft>) => { setDraft((previous) => ({ ...previous, ...patch })); setServerError(null); };
+  const update = (patch: Partial<Draft>) => { setDraft((previous) => ({ ...previous, ...patch })); setServerError(null); setMfaNeeded(false); };
   const toggle = (key: 'schoolIds' | 'groupIds' | 'pupilIds' | 'caseIds', id: string, single = false) => {
     setDraft((previous) => ({
       ...previous,
@@ -177,7 +187,7 @@ export default function MandateGrantDialog(props: Props) {
       } : {}),
     };
     const current = ++generation.current;
-    setBusy(true); setServerError(null);
+    setBusy(true); setSaving(true); setServerError(null); setMfaNeeded(false);
     try {
       await api.post<{ assignmentId: string }>(draft.fn === 'rektor' ? '/api/kund/rektor' : '/api/kund/mandat', payload);
       if (current !== generation.current) return;
@@ -185,7 +195,7 @@ export default function MandateGrantDialog(props: Props) {
       setDraft(emptyDraft(options.validFrom)); setErrors({});
       callbacks.current.onGranted(name);
     } catch (caught) { if (current === generation.current) fail(caught); }
-    finally { if (current === generation.current) setBusy(false); }
+    finally { setSaving(false); if (current === generation.current) setBusy(false); }
   }
 
   const fieldError = (field: Field) => errors[field] ? <small id={`grant-${field}-error`} className="field-error">{errors[field]}</small> : null;
@@ -195,11 +205,12 @@ export default function MandateGrantDialog(props: Props) {
   const schoolName = (unitId: string) => options?.schools.find((school) => school.id === unitId)?.name ?? '';
 
   return (
-    <Dialog open={props.open} onOpenChange={(open) => { if (!busy) props.onOpenChange(open); }}>
-      <DialogContent ref={popup} initialFocus={popup} className="mandate-dialog mandate-grant-dialog" showCloseButton={!busy}>
+    <Dialog open={props.open} onOpenChange={(open) => { if (!saving) props.onOpenChange(open); }}>
+      <DialogContent ref={popup} initialFocus={popup} className="mandate-dialog mandate-grant-dialog" showCloseButton={!saving}>
         <DialogTitle>Tilldela uppdrag</DialogTitle>
         <DialogDescription>Mottagare, skolor och urval kommer från ditt aktuella uppdrag. Servern prövar tilldelningen igen när du sparar.</DialogDescription>
         {serverError && <output role="alert" className="validation-warning">{serverError}</output>}
+        {mfaNeeded && <MfaStepUpNotice message="Tilldelning kräver verifiering med engångskod." detail="Efter verifieringen kommer du tillbaka till arbetsytan och gör tilldelningen igen; det du fyllt i här sparas inte." />}
         {!options && busy && <output>Hämtar tillåtet urval…</output>}
         {options && <form className="protected-form mandate-grant-form" noValidate onSubmit={(event) => void submit(event)}>
           <label>Uppdrag

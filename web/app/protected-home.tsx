@@ -48,6 +48,7 @@ import ContextSwitch, {
 import KundWorkspace from './kund-workspace';
 import LoggWorkspace from './logg-workspace';
 import MandateWorkspace from './mandate-workspace';
+import MfaStepUpNotice from './mfa-step-up';
 import PupilProbeWorkspace from './pupil-probe-workspace';
 
 type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elevprov' | 'stangt';
@@ -315,7 +316,7 @@ function ProtectedShell() {
           <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 ? <><p>Du har inga uppdrag som gäller idag.</p><Button variant="outline" onClick={() => void logout()}>Logga ut</Button></> : <p>Välj ett giltigt uppdrag i sidhuvudet för att öppna arbetsytan.</p>}</section></main>
         ) : (
           <main id="workspace" className="workspace protected-workspace" key={session.epoch}>
-            {mfaRequired && <output role="alert" className="admin-notice mfa-notice"><span>Åtgärden kräver verifiering med engångskod.</span><Button onClick={() => window.location.assign('/api/auth/login?step_up=1&till=/')}>Verifiera med engångskod</Button></output>}
+            {mfaRequired && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
             {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={() => setSession(null)} />}
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
