@@ -4,7 +4,7 @@ title: Mandat och avgränsad åtkomst
 
 Ett mandat är ett uppdrag med en bestämd räckvidd och en bestämd giltighetstid. Servern prövar mandatet vid varje åtgärd: vem du är, vilket uppdrag du arbetar i, vilket objekt du försöker nå och vilka uppgifter du begär.
 
-**Status:** Byggt. Flödena på den här sidan är prövade automatiskt på dator och telefon i den lokala provmiljön med syntetiska uppgifter (september 2026). Granskningen av resultatet återstår innan de räknas som verifierade. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
+**Status:** Byggt. Flödena på den här sidan är prövade automatiskt på dator och telefon i den lokala provmiljön med syntetiska uppgifter (september 2026). Det gäller även verifieringen inifrån dialogerna och support för grupper, som ändrades 27 september 2026. Granskningen av resultatet återstår innan de räknas som verifierade. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
 
 ## Mandatarbetsytan
 
@@ -20,7 +20,7 @@ Huvudman, rektor och elevhälsoansvarig öppnar arbetsytan **Mandat**. Den lista
 4. Ange giltighet. Uppdraget kan inte gälla längre än ditt eget mandat.
 5. Välj *Tilldela uppdraget*. Arbetsytan bekräftar *Uppdraget har tilldelats …* och kortet visas i listan.
 
-Tilldelning kräver att du har verifierat dig med engångskod. Har du inte gjort det visas *Tilldelning kräver verifiering med engångskod* i dialogen, och sidan erbjuder *Verifiera med engångskod*. Verifieringen tar dig till inloggningen, och formuläret fylls inte i igen efteråt. Verifiera därför innan du fyller i en längre tilldelning.
+Tilldelning kräver ett bevis på verifiering med engångskod. Har du angett engångskoden vid inloggningen de senaste åtta timmarna görs tilldelningen direkt. Annars visar dialogen *Tilldelning kräver verifiering med engångskod.* tillsammans med knappen *Verifiera med engångskod*. Knappen finns i dialogen och nås med Tab eller genom att trycka på den. Verifieringen tar dig till inloggningen och sedan tillbaka till Mandat. Formuläret fylls inte i igen, så gör om tilldelningen.
 
 Saknas ett val markeras fältet och felet står vid fältet, till exempel *Välj mottagare.* eller *Välj minst en grupp.* Det du redan har fyllt i finns kvar när servern avvisar en tilldelning. Dialogen kan skötas helt med tangentbordet: fokus flyttas in i dialogen när den öppnas, Tab stannar i dialogen och Esc stänger den utan att något sparas.
 
@@ -28,7 +28,7 @@ Saknas ett val markeras fältet och felet står vid fältet, till exempel *Välj
 
 Välj *Avsluta uppdrag för …* på kortet. Bekräftelsen namnger personen, funktionen och skolenheten och säger att uppdrag som bygger på mandatet också upphör. Välj *Ja, avsluta uppdraget*. Avslutet gäller direkt vid nästa anrop, även i sessioner som redan är öppna.
 
-Avslut kräver verifiering med engångskod, precis som tilldelning.
+Avslut kräver verifiering med engångskod, precis som tilldelning. Saknas beviset visas *Att avsluta uppdrag kräver verifiering med engångskod.* och knappen *Verifiera med engångskod* i bekräftelsedialogen. Efter verifieringen finns uppdraget kvar tills du avslutar det igen.
 
 ## Vem får delegera till vem
 
@@ -58,11 +58,11 @@ Räckvidden avgör vilka objekt mandatet når.
 | Elev | Namngivna elever |
 | Ärende | Ett angivet ärende för en angiven elev |
 
-**Lärare** har alltid gruppräckvidd och når elever genom sina undervisnings- eller mentorsgrupper. **Elevhälsa** kan ges skol-, elev- eller ärenderäckvidd, så att insatsen kan avgränsas till just de elever eller ärenden den gäller. Övriga verksamhetsfunktioner har skolräckvidd.
+**Lärare** har alltid gruppräckvidd och når elever genom sina undervisnings- eller mentorsgrupper. **Elevhälsa** kan ges skol-, elev- eller ärenderäckvidd, så att insatsen kan avgränsas till just de elever eller ärenden den gäller. **Tidsbegränsad support** ges antingen för en namngiven elev eller för en eller flera grupper på en skola. Övriga verksamhetsfunktioner har skolräckvidd.
 
 ## Syntetiskt elevprov
 
-Arbetsytan **Syntetiskt elevprov** visar hur räckvidden fungerar med syntetiska elever. Den finns för rektor, lärare, administratör, elevhälsa och tidsbegränsad support. Överst står uppdraget och omfattningen. Listan innehåller bara de elever servern har lämnat ut för ditt uppdrag. Ingen större lista hämtas och filtreras i webbläsaren.
+Arbetsytan **Syntetiskt elevprov** visar hur räckvidden fungerar med syntetiska elever. Den finns för rektor, lärare, administratör, elevhälsa och tidsbegränsad support. Överst står uppdraget och omfattningen. Vid gruppräckvidd visas också vilka grupper uppdraget gäller. Listan innehåller bara de elever servern har lämnat ut för ditt uppdrag. Ingen större lista hämtas och filtreras i webbläsaren.
 
 | Uppdrag | Vad du ser |
 |---|---|
@@ -71,7 +71,8 @@ Arbetsytan **Syntetiskt elevprov** visar hur räckvidden fungerar med syntetiska
 | Elevhälsa, skolräckvidd | Skolenhetens elever |
 | Elevhälsa, elevräckvidd | Endast de tilldelade eleverna |
 | Elevhälsa, ärenderäckvidd | Ingen lista. Välj ett tilldelat ärende och *Visa ärendets elev* |
-| Tidsbegränsad support | Den namngivna eleven, med godkännare, syfte och sluttid |
+| Tidsbegränsad support, elev | Den namngivna eleven, med godkännare, syfte och sluttid |
+| Tidsbegränsad support, grupper | Eleverna i de tilldelade grupperna, inte andra elever på skolan, med godkännare, syfte och sluttid |
 
 Bara administratören kan exportera.
 
@@ -81,13 +82,16 @@ Elever utanför räckvidden syns inte, och ett direkt anrop om dem ger samma sva
 
 Supportmandat är avsiktligt smalt och kan bara ges av rektor. Det gäller
 
-- en skolenhet och en namngiven elev,
+- en skolenhet,
+- antingen en namngiven elev eller en eller flera grupper på skolenheten,
 - med angiven start- och sluttid,
 - i högst en timme,
 - med angivet ändamål,
 - godkänt av den rektor som gav det.
 
-Rektor tilldelar support i samma dialog. Välj *Tidsbegränsad support*, mottagare, exakt en elev och **Varaktighet från nu**: 15, 30 eller 60 minuter. Syftet är i provmiljön alltid syntetisk felsökning. Rektor som tilldelar registreras som godkännare.
+Rektor tilldelar support i samma dialog. Välj *Tidsbegränsad support* och mottagare. Under **Omfattning** väljer du *En namngiven elev* och markerar exakt en elev, eller *En eller flera grupper på en skola* och markerar grupperna. Grupper på olika skolor kan inte kombineras i samma supportuppdrag. Välj sedan **Varaktighet från nu**: 15, 30 eller 60 minuter. Syftet är i provmiljön alltid syntetisk felsökning. Rektor som tilldelar registreras som godkännare.
+
+Support för grupper når de elever som är med i grupperna när supporten läser. En elev som lämnar gruppen syns inte längre.
 
 Supportpersonen ser godkännare, syfte och sluttid ovanför eleven. Vid sluttiden töms vyn och ersätts av *Uppdraget har upphört vid sin sluttid.* Servern nekar också nästa anrop. Support är ingen stående åtkomst, och det finns ingen export.
 

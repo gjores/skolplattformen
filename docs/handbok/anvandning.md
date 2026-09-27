@@ -4,11 +4,11 @@ title: Logga in och arbeta
 
 Den skyddade provmiljön kontrollerar varje åtgärd på servern. Din inloggning avgör vem du är; ditt uppdrag avgör vad du får göra. Uppgifterna är syntetiska.
 
-**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering och utloggning. Arbetsytorna för mandat, elevprov och lokal anslutning är byggda och automatiskt prövade på dator och telefon (september 2026); granskningen återstår. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
+**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering och utloggning. Arbetsytorna för mandat, elevprov och lokal anslutning är byggda och automatiskt prövade på dator och telefon (september 2026). Detsamma gäller ändringarna 27 september 2026: engångskod vid inloggningen för den som har registrerad kod, verifiering inifrån dialoger och support för grupper. Granskningen återstår. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
 
 ## Logga in
 
-Startsidan visar *Logga in för att arbeta i den skyddade provmiljön*. Inloggningen sker hos den lokala testleverantören med lösenord och engångskod — ingen kommunanslutning är godkänd i denna fas. Lyckas inte inloggningen visas en felkod att uppge för pilotansvarig. Se [Inloggningsmetoder](inloggningsmetoder.md) för vad plattformen godtar som bevis.
+Startsidan visar *Logga in för att arbeta i den skyddade provmiljön*. Inloggningen sker hos den lokala testleverantören med lösenord. Har ditt konto en registrerad engångskod anger du också koden direkt efter lösenordet. Ingen kommunanslutning är godkänd i denna fas. Lyckas inte inloggningen visas en felkod att uppge för pilotansvarig. Se [Inloggningsmetoder](inloggningsmetoder.md) för vad plattformen godtar som bevis.
 
 Du identifieras av utfärdaren och ett stabilt konto-ID hos den. E-postadress och namn är visningsuppgifter och används aldrig för att knyta ihop konton. Samma person hos två kunder får två skilda medlemskap.
 
@@ -46,11 +46,11 @@ Har du plattformen öppen i flera flikar låses de övriga med meddelandet *Kont
 
 ## Extra verifiering
 
-Känsliga administrativa åtgärder — inbjudan, spärr, tilldelning och avslut av uppdrag, ändring av den lokala anslutningen och etablering — kräver att du styrker din identitet en extra gång med engångskod. Kravet prövas mot beviset från inloggningen, inte mot något appen själv utfärdar.
+Känsliga administrativa åtgärder kräver ett bevis på att du har styrkt din identitet med engångskod. Det gäller inbjudan, spärr, tilldelning och avslut av uppdrag, ändring av den lokala anslutningen och etablering. Kravet prövas mot beviset från inloggningen, inte mot något appen själv utfärdar.
 
-Efter verifieringen måste du bekräfta åtgärden på nytt. Det är avsiktligt: en extra verifiering är inget tyst godkännande av åtgärden. Avbryter du flödet genomförs ingenting.
+Har du angett engångskoden vid inloggningen har du redan beviset och gör åtgärderna direkt. Beviset gäller i upp till åtta timmar och är knutet till din session och ditt uppdrag. Är det äldre, eller saknas det, nekas åtgärden och *Verifiera med engångskod* visas där beskedet står, även inne i en öppen dialog. Efter verifieringen kommer du tillbaka till arbetsytan. Det du hade fyllt i en dialog sparas inte.
 
-Ett godtaget bevis gäller i upp till åtta timmar och är knutet till din session och ditt uppdrag. Vad som krävs för att ett bevis ska godtas beskrivs i [Inloggningsmetoder](inloggningsmetoder.md).
+Efter verifieringen måste du bekräfta åtgärden på nytt. Det är avsiktligt: en extra verifiering är inget tyst godkännande av åtgärden. Avbryter du flödet genomförs ingenting. Vad som krävs för att ett bevis ska godtas beskrivs i [Inloggningsmetoder](inloggningsmetoder.md).
 
 ## Lösa in en inbjudan
 

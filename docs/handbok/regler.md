@@ -17,7 +17,7 @@ Sammanställning av de regler servern tillämpar. Reglerna prövas på servern v
 | Elevhälsa | Läsa elever inom tilldelad räckvidd | Nå elever utanför räckvidden, exportera, delegera |
 | Elevhälsoansvarig | Delegera elevhälsouppdrag | Läsa elevuppgifter på eget mandat |
 | IT-administration | Se, aktivera, pausa och prova anslutningen | All elevinsyn |
-| Tidsbegränsad support | Läsa en namngiven elev under angiven tid | Exportera, delegera, ändra; allt efter sluttiden |
+| Tidsbegränsad support | Läsa en namngiven elev, eller eleverna i tilldelade grupper på en skola, under angiven tid (högst 60 minuter, godkänt av rektor) | Exportera, delegera, ändra, nå elever utanför eleven eller grupperna; allt efter sluttiden |
 
 ## Uppdragets giltighet
 
@@ -62,4 +62,4 @@ Kund och huvudman är skilda nivåer. En kund kan ha flera huvudmän, och varje 
 
 ## Extra verifiering
 
-Administrativa åtgärder kräver ett färskt bevis på extra verifiering från inloggningen. Beviset prövas mot förväntad utfärdare, mottagare, metod och ålder, gäller i upp till åtta timmar och är knutet till sessionen och uppdraget. Samma anspråk från en annan utfärdare godtas inte. Efter verifieringen krävs en ny bekräftelse av själva åtgärden. Se [Inloggningsmetoder](inloggningsmetoder.md).
+Administrativa åtgärder kräver ett färskt bevis på extra verifiering från inloggningen. Konton med registrerad engångskod anger koden vid inloggningen och har då beviset direkt. Konton utan registrerad kod loggar in med lösenord och får inget bevis. Beviset prövas mot förväntad utfärdare, mottagare, metod och ålder, gäller i upp till åtta timmar och är knutet till sessionen och uppdraget. Saknas beviset eller är det för gammalt erbjuds verifiering med engångskod där åtgärden nekades. Samma anspråk från en annan utfärdare godtas inte. Efter verifieringen krävs en ny bekräftelse av själva åtgärden. Se [Inloggningsmetoder](inloggningsmetoder.md).
