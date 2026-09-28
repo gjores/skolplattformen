@@ -2,6 +2,38 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- 04-14: relationsgrunden är portad till det beständiga elevregistret. Samma elev-,
+-- grupp- och ärende-ID som tidigare; utbildning, placering och klassmedlemskap får
+-- deterministiska ID via phase4_probe_uuid (samma schema som migreringen
+-- 20260929110000). Inga rader skapas i phase3_probe_pupils/-groups/-group_members;
+-- elevläsning prövas via fas 4:s lista, kort och export. Endast syntetiska data i rollback.
+create function pg_temp.school_year() returns integer language sql stable as $$
+ select extract(year from public.app_today())::integer-case when extract(month from public.app_today())<7 then 1 else 0 end $$;
+create function pg_temp.register_offering(o uuid,u uuid,y integer default null) returns uuid language plpgsql as $$begin
+ insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,start_year)
+ values(public.phase4_probe_uuid('offering:'||u),o,u,'grundskola','Syntetisk provutbildning','Syntetisk migrering',coalesce(y,pg_temp.school_year()))
+ on conflict(id) do nothing;
+ return public.phase4_probe_uuid('offering:'||u);
+end $$;
+create function pg_temp.register_pupil(p uuid,c uuid,o uuid,u uuid,name text) returns void language plpgsql as $$begin
+ perform pg_temp.register_offering(o,u);
+ insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name)
+ select p,c,o,name,n.personal_number,'Elev '||right(p::text,3) from public.synthetic_pupil_numbers n
+ where not exists(select 1 from public.pupils x where x.customer_id=c and x.personal_number=n.personal_number)
+ order by n.personal_number limit 1;
+ insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on)
+ values(public.phase4_probe_uuid('placement:'||p),c,o,p,u,public.phase4_probe_uuid('offering:'||u),make_date(pg_temp.school_year(),7,1));
+end $$;
+create function pg_temp.register_class(g uuid,c uuid,o uuid,u uuid) returns void language plpgsql as $$begin
+ insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year)
+ values(g,c,o,u,pg_temp.register_offering(o,u),'PROV-'||upper(g::text),pg_temp.school_year());
+end $$;
+create function pg_temp.register_member(g uuid,p uuid,c uuid,u uuid) returns void language plpgsql as $$begin
+ insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on)
+ select public.phase4_probe_uuid('member:'||g||':'||p),c,pp.organizer_id,p,u,g,pp.id,pp.starts_on
+ from public.pupil_placements pp where pp.id=public.phase4_probe_uuid('placement:'||p);
+ if not found then raise exception 'Synthetic placement missing' using errcode='23503'; end if;
+end $$;
 -- Syntetisk relationsgrund för 03-02; inga API-mandat aktiveras.
 -- Kör endast efter assertTarget(protected), som postgres. Inga rader raderas.
 insert into public.customers(id,name) values ('33001000-0000-4000-8000-000000000001','Syntetisk fas 3 kund 1') on conflict do nothing;
@@ -11,15 +43,15 @@ insert into public.memberships(id,identity_id,customer_id) values ('33001000-000
 insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind) values ('33001000-0000-4000-8000-000000000041','33001000-0000-4000-8000-000000000031','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','huvudman','synthetic-v1','school') on conflict do nothing;
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('33001000-0000-4000-8000-000000000111','33001000-0000-4000-8000-000000000011','33000011','Syntetisk skola 11','0000') on conflict do nothing;
 insert into public.mandate_units values ('33001000-0000-4000-8000-000000000041','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111') on conflict do nothing;
-insert into public.phase3_probe_pupils values ('33001000-0000-4000-8000-000000000211','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111','Syntetisk elev 11') on conflict do nothing;
-insert into public.phase3_probe_groups values ('33001000-0000-4000-8000-000000000311','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111') on conflict do nothing;
-insert into public.phase3_probe_group_members values ('33001000-0000-4000-8000-000000000311','33001000-0000-4000-8000-000000000211','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111') on conflict do nothing;
+select pg_temp.register_pupil('33001000-0000-4000-8000-000000000211','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111','Syntetisk elev 11');
+select pg_temp.register_class('33001000-0000-4000-8000-000000000311','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111');
+select pg_temp.register_member('33001000-0000-4000-8000-000000000311','33001000-0000-4000-8000-000000000211','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111');
 insert into public.phase3_probe_cases values ('33001000-0000-4000-8000-000000000411','33001000-0000-4000-8000-000000000211','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111') on conflict do nothing;
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('33001000-0000-4000-8000-000000000112','33001000-0000-4000-8000-000000000011','33000012','Syntetisk skola 12','0000') on conflict do nothing;
 insert into public.mandate_units values ('33001000-0000-4000-8000-000000000041','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000112') on conflict do nothing;
-insert into public.phase3_probe_pupils values ('33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000112','Syntetisk elev 12') on conflict do nothing;
-insert into public.phase3_probe_groups values ('33001000-0000-4000-8000-000000000312','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000112') on conflict do nothing;
-insert into public.phase3_probe_group_members values ('33001000-0000-4000-8000-000000000312','33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000112') on conflict do nothing;
+select pg_temp.register_pupil('33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000112','Syntetisk elev 12');
+select pg_temp.register_class('33001000-0000-4000-8000-000000000312','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000112');
+select pg_temp.register_member('33001000-0000-4000-8000-000000000312','33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000112');
 insert into public.phase3_probe_cases values ('33001000-0000-4000-8000-000000000412','33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000112') on conflict do nothing;
 insert into public.customers(id,name) values ('33001000-0000-4000-8000-000000000002','Syntetisk fas 3 kund 2') on conflict do nothing;
 insert into public.organizers(id,customer_id,name,type) values ('33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000002','Syntetisk huvudman 2','Kommun') on conflict do nothing;
@@ -28,15 +60,15 @@ insert into public.memberships(id,identity_id,customer_id) values ('33001000-000
 insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind) values ('33001000-0000-4000-8000-000000000042','33001000-0000-4000-8000-000000000032','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','huvudman','synthetic-v1','school') on conflict do nothing;
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('33001000-0000-4000-8000-000000000121','33001000-0000-4000-8000-000000000012','33000021','Syntetisk skola 21','0000') on conflict do nothing;
 insert into public.mandate_units values ('33001000-0000-4000-8000-000000000042','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000121') on conflict do nothing;
-insert into public.phase3_probe_pupils values ('33001000-0000-4000-8000-000000000221','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000121','Syntetisk elev 21') on conflict do nothing;
-insert into public.phase3_probe_groups values ('33001000-0000-4000-8000-000000000321','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000121') on conflict do nothing;
-insert into public.phase3_probe_group_members values ('33001000-0000-4000-8000-000000000321','33001000-0000-4000-8000-000000000221','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000121') on conflict do nothing;
+select pg_temp.register_pupil('33001000-0000-4000-8000-000000000221','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000121','Syntetisk elev 21');
+select pg_temp.register_class('33001000-0000-4000-8000-000000000321','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000121');
+select pg_temp.register_member('33001000-0000-4000-8000-000000000321','33001000-0000-4000-8000-000000000221','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000121');
 insert into public.phase3_probe_cases values ('33001000-0000-4000-8000-000000000421','33001000-0000-4000-8000-000000000221','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000121') on conflict do nothing;
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('33001000-0000-4000-8000-000000000122','33001000-0000-4000-8000-000000000012','33000022','Syntetisk skola 22','0000') on conflict do nothing;
 insert into public.mandate_units values ('33001000-0000-4000-8000-000000000042','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000122') on conflict do nothing;
-insert into public.phase3_probe_pupils values ('33001000-0000-4000-8000-000000000222','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000122','Syntetisk elev 22') on conflict do nothing;
-insert into public.phase3_probe_groups values ('33001000-0000-4000-8000-000000000322','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000122') on conflict do nothing;
-insert into public.phase3_probe_group_members values ('33001000-0000-4000-8000-000000000322','33001000-0000-4000-8000-000000000222','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000122') on conflict do nothing;
+select pg_temp.register_pupil('33001000-0000-4000-8000-000000000222','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000122','Syntetisk elev 22');
+select pg_temp.register_class('33001000-0000-4000-8000-000000000322','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000012','33001000-0000-4000-8000-000000000122');
+select pg_temp.register_member('33001000-0000-4000-8000-000000000322','33001000-0000-4000-8000-000000000222','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000122');
 insert into public.phase3_probe_cases values ('33001000-0000-4000-8000-000000000422','33001000-0000-4000-8000-000000000222','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000122') on conflict do nothing;
 select throws_ok($test$insert into public.access_assignments select r.* from public.access_assignments a cross join lateral jsonb_populate_record(null::public.access_assignments, to_jsonb(a) || '{"id": "33001000-0000-4000-8000-000000000999", "profile_id": "real"}'::jsonb) r where a.id='33001000-0000-4000-8000-000000000041'$test$, '23514', null, 'okänd profil nekas');
 select throws_ok($test$insert into public.access_assignments select r.* from public.access_assignments a cross join lateral jsonb_populate_record(null::public.access_assignments, to_jsonb(a) || '{"id": "33001000-0000-4000-8000-000000000999", "scope_kind": "all"}'::jsonb) r where a.id='33001000-0000-4000-8000-000000000041'$test$, '23514', null, 'okänt scope nekas');
@@ -63,8 +95,12 @@ select lives_ok($test$insert into public.access_assignments select r.* from publ
 select throws_ok($test$insert into public.access_assignments select r.* from public.access_assignments a cross join lateral jsonb_populate_record(null::public.access_assignments, to_jsonb(a) || '{"id": "33001000-0000-4000-8000-000000005a02", "function": "support", "scope_kind": "case", "unit_id": "33001000-0000-4000-8000-000000000111", "starts_at": "2026-01-01T00:00:00Z", "ends_at": "2026-01-01T01:00:00Z", "parent_assignment_id": "33001000-0000-4000-8000-000000000041", "approved_by_assignment_id": "33001000-0000-4000-8000-000000000041", "purpose_code": "synthetic-troubleshooting"}'::jsonb) r where a.id='33001000-0000-4000-8000-000000000041'$test$, '23514', null, 'support med ärendescope nekas');
 select throws_ok($test$insert into public.access_assignments select r.* from public.access_assignments a cross join lateral jsonb_populate_record(null::public.access_assignments, to_jsonb(a) || '{"id": "33001000-0000-4000-8000-000000005a03", "function": "support", "scope_kind": "group", "unit_id": "33001000-0000-4000-8000-000000000111", "starts_at": "2026-01-01T00:00:00Z", "ends_at": "2026-01-01T01:00:01Z", "parent_assignment_id": "33001000-0000-4000-8000-000000000041", "approved_by_assignment_id": "33001000-0000-4000-8000-000000000041", "purpose_code": "synthetic-troubleshooting"}'::jsonb) r where a.id='33001000-0000-4000-8000-000000000041'$test$, '23514', null, 'gruppsupport över 60 minuter nekas');
 select throws_ok($test$insert into public.mandate_units values ('33001000-0000-4000-8000-000000000041','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000121')$test$, '23503', null, 'främmande skola nekas även med egen kund');
-select throws_ok($test$insert into public.phase3_probe_pupils values ('33001000-0000-4000-8000-000000000900','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111','Syntetisk')$test$, '23503', null, 'elev får inte korsa huvudmannens kund');
-select throws_ok($test$insert into public.phase3_probe_group_members values ('33001000-0000-4000-8000-000000000311','33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111')$test$, '23503', null, 'gruppmedlemskap över skolgräns nekas');
+-- 04-14: kund-/skolgränserna prövas på registrets tabeller. Oanvänt syntetnummer och
+-- icke överlappande datum gör att det är FK-villkoret, inte unikhet/uteslutning, som nekar.
+select throws_ok($test$insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name) select '33001000-0000-4000-8000-000000000900','33001000-0000-4000-8000-000000000002','33001000-0000-4000-8000-000000000011','Syntetisk',max(personal_number),'Elev X' from public.synthetic_pupil_numbers$test$, '23503', null, 'elev får inte korsa huvudmannens kund');
+select throws_ok($test$insert into public.pupil_placements(customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on,ends_on) values ('33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000211','33001000-0000-4000-8000-000000000121',public.phase4_probe_uuid('offering:33001000-0000-4000-8000-000000000121'),make_date(pg_temp.school_year()-1,7,1),make_date(pg_temp.school_year()-1,7,2))$test$, '23503', null, 'placering vid annan huvudmans skola nekas');
+select throws_ok($test$insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year) values ('33001000-0000-4000-8000-000000000390','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000111',public.phase4_probe_uuid('offering:33001000-0000-4000-8000-000000000112'),'PROV-KORS',pg_temp.school_year())$test$, '23503', null, 'klass får inte använda annan skolas utbildning');
+select throws_ok($test$insert into public.pupil_class_memberships(customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on,ends_on) values ('33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000011','33001000-0000-4000-8000-000000000212','33001000-0000-4000-8000-000000000111','33001000-0000-4000-8000-000000000311',public.phase4_probe_uuid('placement:33001000-0000-4000-8000-000000000212'),make_date(pg_temp.school_year()-1,7,1),make_date(pg_temp.school_year()-1,7,2))$test$, '23503', null, 'gruppmedlemskap över skolgräns nekas');
 select throws_ok($test$insert into public.phase3_probe_cases values ('33001000-0000-4000-8000-000000000900','33001000-0000-4000-8000-000000000221','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111')$test$, '23503', null, 'ärende får inte referera främmande elev');
 select lives_ok($test$insert into public.mandate_groups values ('33001000-0000-4000-8000-000000000041','33001000-0000-4000-8000-000000000311','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111','mentor')$test$, 'korrekt group-scope accepteras');
 select throws_ok($test$insert into public.mandate_groups values ('33001000-0000-4000-8000-000000000041','33001000-0000-4000-8000-000000000321','33001000-0000-4000-8000-000000000001','33001000-0000-4000-8000-000000000111','mentor')$test$, '23503', null, 'group-scope får inte korsa kund');
@@ -180,6 +216,12 @@ select is(has_table_privilege('skolplattform_worker','public.phase3_probe_cases'
 select is(has_table_privilege('skolplattform_worker','public.phase3_probe_cases','INSERT'),false,'skolplattform_worker saknar INSERT på phase3_probe_cases');
 select is(has_table_privilege('skolplattform_worker','public.phase3_probe_cases','UPDATE'),false,'skolplattform_worker saknar UPDATE på phase3_probe_cases');
 select is(has_table_privilege('skolplattform_worker','public.phase3_probe_cases','DELETE'),false,'skolplattform_worker saknar DELETE på phase3_probe_cases');
+-- 04-14: samma stängda tabellgräns gäller registertabellerna som ersätter elevprovet.
+select ok(c.relrowsecurity and c.relforcerowsecurity, t||' har FORCE RLS') from unnest(array['pupils','school_classes','pupil_placements','pupil_class_memberships']) t join pg_class c on c.oid=('public.'||t)::regclass;
+select is(has_table_privilege(r,'public.'||t,p),false,r||' saknar '||p||' på '||t) from unnest(array['anon','authenticated','skolplattform_worker']) r cross join unnest(array['pupils','school_classes','pupil_placements','pupil_class_memberships']) t cross join unnest(array['SELECT','INSERT','UPDATE','DELETE']) p;
+select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_pupils'::regclass and confrelid='public.pupils'::regclass and contype='f'),'pupil-scope refererar registrets stabila elev-ID');
+select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_groups'::regclass and confrelid='public.school_classes'::regclass and contype='f'),'group-scope refererar registrets klass i samma skola');
+select ok(not exists(select 1 from pg_constraint where conrelid in ('public.mandate_pupils'::regclass,'public.mandate_groups'::regclass,'public.phase3_probe_cases'::regclass) and confrelid in ('public.phase3_probe_pupils'::regclass,'public.phase3_probe_groups'::regclass) and contype='f'),'inga mandat- eller ärendenycklar pekar på gamla elevprovet');
 select ok(relrowsecurity and relforcerowsecurity, 'local_connection_configs har FORCE RLS') from pg_class where oid='public.local_connection_configs'::regclass;
 select is(has_table_privilege('anon','public.local_connection_configs','SELECT'),false,'anon saknar SELECT på local_connection_configs');
 select is(has_table_privilege('anon','public.local_connection_configs','INSERT'),false,'anon saknar INSERT på local_connection_configs');
@@ -213,12 +255,18 @@ select throws_ok($test$select * from public.phase3_probe_groups$test$, '42501', 
 select throws_ok($test$select * from public.phase3_probe_group_members$test$, '42501', null, 'faktisk worker nekas phase3_probe_group_members');
 select throws_ok($test$select * from public.phase3_probe_cases$test$, '42501', null, 'faktisk worker nekas phase3_probe_cases');
 select throws_ok($test$select * from public.local_connection_configs$test$, '42501', null, 'faktisk worker nekas local_connection_configs');
+select throws_ok($test$select * from public.pupils$test$, '42501', null, 'faktisk worker nekas pupils');
+select throws_ok($test$select * from public.school_classes$test$, '42501', null, 'faktisk worker nekas school_classes');
+select throws_ok($test$select * from public.pupil_placements$test$, '42501', null, 'faktisk worker nekas pupil_placements');
+select throws_ok($test$select * from public.pupil_class_memberships$test$, '42501', null, 'faktisk worker nekas pupil_class_memberships');
 reset role;
 set local role anon;
 select throws_ok($test$select * from public.phase3_probe_pupils$test$, '42501', null, 'faktisk anon nekas elevprovet');
+select throws_ok($test$select * from public.pupils$test$, '42501', null, 'faktisk anon nekas elevregistret');
 reset role;
 set local role authenticated;
 select throws_ok($test$select * from public.phase3_probe_pupils$test$, '42501', null, 'faktisk authenticated nekas elevprovet');
+select throws_ok($test$select * from public.pupils$test$, '42501', null, 'faktisk authenticated nekas elevregistret');
 reset role;
 select is((select count(*) from public.access_assignments where id='33001000-0000-4000-8000-000000000041' and profile_id='synthetic-v1'),1::bigint,'nekad ändring lämnar mandatet oförändrat');
 -- Intern kedjeprövning är separat från full mandatgiltighet och öppnar ingen väg.
