@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
+import { expandSqlTestSource } from './sql-test-source.mjs';
 
 const root = path.resolve(fileURLToPath(import.meta.url), '../../..');
 const sourceTests = path.join(root, 'supabase', 'tests');
@@ -42,10 +43,15 @@ if (selected.length === 0 || selected.some(file => !available.includes(file) || 
 }
 const targetTests = path.join(manifest.workdir, 'supabase', 'tests');
 fs.mkdirSync(targetTests, { recursive: true });
-for (const file of selected) fs.copyFileSync(path.join(sourceTests, file), path.join(targetTests, file));
+for (const file of selected) {
+  const source = fs.readFileSync(path.join(sourceTests, file), 'utf8');
+  const expanded = expandSqlTestSource(source, name =>
+    fs.readFileSync(path.join(root, 'supabase', 'migrations', name), 'utf8'));
+  fs.writeFileSync(path.join(targetTests, file), expanded);
+}
 
 const args = ['--workdir', manifest.workdir, 'test', 'db', '--local'];
-if (options.file) args.push(path.join('supabase', 'tests', selected[0]));
+args.push(...selected.map(file => path.join(targetTests, file)));
 const proc = spawnSync('supabase', args, {
   cwd: root,
   env: { ...process.env },
