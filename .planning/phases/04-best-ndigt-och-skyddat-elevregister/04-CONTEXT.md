@@ -41,6 +41,12 @@ Fasen innehåller också en avgränsad del av läsårslinsen (vikt todo, se neda
 ### Fakturering till hemkommuner
 - **D-16:** Användaren vill ha fakturering till hemkommuner. Den är en **ny förmåga utanför fas 4**; fas 4 levererar bara underlaget (D-04, D-06). Fakturering blir egen todo/fas.
 
+### Beslut efter research (användaren 2026-09-28)
+- **D-17:** **Huvudmannen** ger administratörens uttryckliga behörighet att se elever med skyddade personuppgifter, per skola. Rektor kan inte ge den. Tilldelning och återkallelse loggas som behörighetsändring. — **Reversibility:** costly — rationale: behörigheten ingår i mandatmodellen (`phase3_mandate_shape`) och i projektionsfunktionen.
+- **D-18:** **Läsåret** gäller 1 juli–30 juni (`[Y-07-01, Y+1-07-01)`). Elevlistan visar elever med placering som överlappar valt läsår. Status räknas mot dagens datum om det ligger i valt läsår, annars mot läsårets startdatum.
+- **D-19:** En administratör **utan** skyddsbehörighet ser en skyddad elev vid sin skola som **anonymt visningsnamn utan åtgärder**: inget födelsedatum, personnummer eller hemkommun, ingen ändring eller export — samma projektion som för lärare. Preciserar D-03 för administratörer.
+- **D-20:** Administratören får **ändra** en elev endast om eleven har en pågående eller framtida placering vid någon av administratörens skolor. Elever med bara avslutade placeringar där kan läsas med historik men inte ändras.
+
 ### Redan beslutade ramar (från tidigare faser)
 - Mandaten från fas 3 styr all elevåtkomst: lärare egna undervisnings-/mentorsgrupper, skoladministratör tilldelade skolor, huvudman ingen elevinsyn utan separat uppdrag, elevhälsa skola/elev/ärende enligt uppdrag, tidsbegränsad support en elev eller grupper på en skola i högst 60 min, IT ingen elevinsyn.
 - Loggpolicyn från fas 3: läsning, ändring, export, behörighetsändring och nekande loggas med aktör, faktiskt uppdrag, tid, objekt och resultat, **innan** svaret lämnas; loggfel ger inget innehåll och ingen ändring. Loggen innehåller inga elevuppgifter eller anteckningar.
@@ -54,6 +60,9 @@ Fasen innehåller också en avgränsad del av läsårslinsen (vikt todo, se neda
 - Maskeringsformat för födelsedatum/personnummer i listor; syntetiska personnummer ska följa Skatteverkets testpersonnummer eller tydligt fiktivt format.
 - Sidindelning och prestanda för elevlistan.
 - Hur den simulerade externa källan för D-09 byggs (fixtur/skript), så länge den tydligt är syntetisk.
+- Klasser räcker som grupp för lärarmandat i fas 4 (inga separata undervisningsgrupper).
+- Kommunlistan hämtas från SCB:s öppna kommunkoder.
+- Syntetiska personnummer i ett tydligt fiktivt format med korrekt kontrollsiffra; servern kontrollerar mot en tillåten lista.
 
 ### Folded Todos
 - **Läsårslins: ställa sig i ett läsår som i Plan Digital** (`.planning/todos/pending/2026-09-12-l-s-rslins-st-lla-sig-i-ett-l-s-r-som-i-plan-digital.md`) — vikt i avgränsad form enligt D-07: läsårsväljare, startår som heltal och härledd årskurs för elevlistan. Resterande steg i todon (läsårsstatus/lås, flikar, terminskolumner, automatisk klass→timplan-koppling, tjänsterader) ligger kvar i todon.
