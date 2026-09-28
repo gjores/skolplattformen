@@ -38,7 +38,7 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04, 04-05, 04-06, 04-07, 04-08, 04-09, 04-11 och 04-12 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter våg 6 är FAIL (16 filer, 607 passerade assertions): sex äldre fas 3-fixturer behöver portning enligt 04-14/15; se 04-WAVE-06-SUMMARY.md och 04-06-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04, 04-05, 04-06, 04-07, 04-08, 04-09, 04-10, 04-11, 04-12 och 04-14 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter 04-14 är FAIL (16 filer, 1081 passerade assertions): två äldre fas 3-fixturer (`phase3_boundaries`, `phase3_connections`) behöver portning enligt 04-15; se 04-14-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
@@ -68,8 +68,8 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04,
 | 04-12-02 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/pupil-register-model.test.mjs lib/server-client.test.mjs && npx tsc --noEmit` | PASS 35/35 modell/transport + typkontroll; bootstrap SQL 20/20, adapter/route 13/13 |
 | 04-13-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
 | 04-13-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/pupil-register-model.test.mjs && npx tsc --noEmit` | Ej kört |
-| 04-14-01 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase4-regression-mandates.json && node work/pilot/run-sql-tests.mjs --file phase3_matrix.test.sql --out work/pilot/results/phase4-regression-matrix.json` | Ej kört |
-| 04-14-02 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_policy.test.sql --out work/pilot/results/phase4-regression-policy.json && node work/pilot/run-sql-tests.mjs --file phase3_temporal.test.sql --out work/pilot/results/phase4-regression-temporal.json` | Ej kört |
+| 04-14-01 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase4-regression-mandates.json && node work/pilot/run-sql-tests.mjs --file phase3_matrix.test.sql --out work/pilot/results/phase4-regression-matrix.json` | PASS mandates 279/279, matrix 56/56 mot registret; se 04-14-SUMMARY |
+| 04-14-02 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_policy.test.sql --out work/pilot/results/phase4-regression-policy.json && node work/pilot/run-sql-tests.mjs --file phase3_temporal.test.sql --out work/pilot/results/phase4-regression-temporal.json` | PASS policy 105/105, temporal 34/34 mot registret; se 04-14-SUMMARY |
 | 04-15-01 | DATA-01, DATA-02, STU-01 | `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-all-sql.json` | Ej kört |
 | 04-15-02 | DATA-01, DATA-02, STU-01 | `node work/pilot/phase3-browser-fixtures.mjs --target protected && node work/pilot/phase3-browser-fixtures.mjs --target protected` | Ej kört |
 | 04-16-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `node work/pilot/phase4-browser-fixtures.mjs --target protected` | Ej kört |
