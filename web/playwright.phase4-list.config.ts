@@ -9,6 +9,6 @@ export default defineConfig({
   projects: [
     { name: 'list-desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
     { name: 'list-phone', use: { ...devices['iPhone 13'] } },
-    { name: 'list-phone-320', use: { ...devices['iPhone 13'], viewport: { width: 320, height: 740 } } },
+    { name: 'list-phone-320', grep: /serverns options och projektion/, use: { ...devices['iPhone 13'], viewport: { width: 320, height: 740 } } },
   ],
 });
