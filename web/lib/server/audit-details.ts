@@ -43,7 +43,7 @@ export function sanitizeAuditDetails(input: Record<string, unknown> | undefined)
     else if (key === 'status' && (value === 'active' || value === 'blocked')) clean[key] = value;
     else if (key === 'format' && value === 'csv') clean[key] = value;
     else if (key === 'readForm' && typeof value === 'string' && ['list','pupil','case','history','conflict','personal-number','export-preview','export'].includes(value)) clean[key] = value;
-    else if (key === 'schoolYear' && typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 9999) clean[key] = value;
+    else if (key === 'schoolYear' && typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 9998) clean[key] = value;
     else if (key === 'action' && typeof value === 'string' && REGISTER_ACTIONS.has(value)) clean[key] = value;
     else if (key === 'field' && typeof value === 'string' && REGISTER_FIELDS.has(value)) clean[key] = value;
     else if (key === 'fields' && Array.isArray(value) && value.length <= PUPIL_REGISTER_FIELDS.length && value.every(v => typeof v === 'string' && REGISTER_FIELDS.has(v))) clean[key] = [...new Set(value)];
