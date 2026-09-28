@@ -184,7 +184,7 @@ export function mandateSqlFailure(
     return { code: 'conflict', status: 409 };
   if (
     typeof code === 'string' &&
-    (code.startsWith('22') || code === '23514' || code === '23502')
+    (code.startsWith('22') || code === '23514' || code === '23502' || code === '23P01')
   )
     return { code: 'bad_request', status: 400 };
   if (code === '23503') return { code: 'not_found', status: 404 };
