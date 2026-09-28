@@ -1,13 +1,19 @@
 import { messageText, reduceEpochHeader } from './session-channel.ts';
 
 export class ApiError extends Error {
+  public code: string;
+  public status: number;
+  public correlationId: string | null;
   constructor(
-    public code: string,
-    public status: number,
-    public correlationId: string | null,
+    code: string,
+    status: number,
+    correlationId: string | null,
   ) {
     super(messageText(code));
     this.name = 'ApiError';
+    this.code = code;
+    this.status = status;
+    this.correlationId = correlationId;
   }
 }
 
