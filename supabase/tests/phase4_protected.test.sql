@@ -203,6 +203,22 @@ select ok(not (public.phase4_pupil_card(pg_temp.card(1))->'body' ?| array['birth
 select is(public.phase4_pupil_card(pg_temp.card(1))->'body'->'capabilities'->>'canEdit','false','anonymous has no actions');
 select is((public.phase4_list_pupils(pg_temp.req()||'{"search":"Hemligt"}')->'body'->>'count')::integer,0,'secret search cannot reveal protected pupil');
 select is((public.phase4_list_pupils(pg_temp.req()||'{"search":"Elev anonym"}')->'body'->>'count')::integer,0,'even anonymous-name search omits protected pupils');
+-- 04-24: listans skyddsform. Obehöriga får exakt 04-04:s form; behörig
+-- administratör får protectedIdentity på skyddad rad och protectedIds för hela urvalet.
+create function pg_temp.list_page(n integer,extra jsonb default '{}') returns jsonb language sql as $$select public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,page}',to_jsonb(n))||extra)$$;
+create function pg_temp.assert_plain_list(who text) returns setof text language plpgsql as $$
+declare p jsonb; n integer;
+begin
+ foreach n in array array[1,2] loop
+  p:=pg_temp.list_page(n);
+  return next is((select array_agg(k order by k) from jsonb_object_keys(p->'body')k),array['capabilities','count','options','page','pageSize','pupils','scope']::text[],who||': page '||n||' body keys unchanged, no protectedIds');
+  return next ok(not exists(select 1 from jsonb_array_elements(p->'body'->'pupils')r where r ? 'protectedIdentity'),who||': page '||n||' rows carry no protectedIdentity');
+  return next is(p->'auditRefs','[]'::jsonb,who||': page '||n||' has no protected audit references');
+ end loop;
+ return next is((public.phase4_list_pupils(pg_temp.req()||'{"search":"Hemligt"}')->'body'->>'count')::integer,0,who||': protected name search still 0');
+ return next is((public.phase4_list_pupils(pg_temp.req()||'{"search":"Elev anonym"}')->'body'->>'count')::integer,0,who||': anonymous name search still 0');
+end$$;
+select * from pg_temp.assert_plain_list('admin before grant');
 select throws_ok($q$select public.phase4_pupil_card(pg_temp.card(65))$q$,'P0002','Pupil not found','outside school same not found');
 select throws_ok($q$select public.phase4_pupil_card(pg_temp.card(999))$q$,'P0002','Pupil not found','unknown same not found');
 select throws_ok($q$select public.phase4_reveal_personal_number(pg_temp.card(1))$q$,'P0002','Pupil not found','anonymous reveal does not disclose existence');
@@ -218,8 +234,25 @@ select ok(position('Hemligt' in public.phase3_mandate_options()::text)=0,'mandat
 select is(public.phase3_mandate_options()->'pupils'->0->>'label','Elev anonym 1','mandate options use projected sort/name');
 select pg_temp.read_actor(1);
 select throws_ok($q$select public.phase4_list_pupils(pg_temp.req())$q$,'42501',null,'HM no register access');
-select public.phase4_grant_protected_permission(pg_temp.rid(803),pg_temp.rid(101));
+select set_config('test.list_grant',public.phase4_grant_protected_permission(pg_temp.rid(803),pg_temp.rid(101))::text,true);
 select pg_temp.read_actor(3);
+-- 04-24 (b): behörig administratör efter huvudmannens uttryckliga beslut (D-17).
+select is((select r->>'displayName' from jsonb_array_elements(pg_temp.list_page(1)->'body'->'pupils')r where r->>'id'=pg_temp.rid(401)::text),'Hemligt namn','entitled list row shows protected name');
+select is((select r->'protectedIdentity' from jsonb_array_elements(pg_temp.list_page(1)->'body'->'pupils')r where r->>'id'=pg_temp.rid(401)::text),'true'::jsonb,'protected row flagged protectedIdentity true');
+select is((select count(*)::integer from jsonb_array_elements(pg_temp.list_page(1)->'body'->'pupils')r where r ? 'protectedIdentity'),1,'only the protected row carries protectedIdentity');
+select ok(not exists(select 1 from jsonb_array_elements(pg_temp.list_page(1)->'body'->'pupils')r where r->'protectedIdentity'='false'::jsonb),'protectedIdentity never false');
+select is((select array_agg(k order by k) from jsonb_object_keys(pg_temp.list_page(1)->'body')k),array['capabilities','count','options','page','pageSize','protectedIds','pupils','scope']::text[],'entitled body adds only protectedIds');
+select is(pg_temp.list_page(1)->'body'->'protectedIds',jsonb_build_array(pg_temp.rid(401)),'page 1 protectedIds exactly the protected pupil');
+select is(pg_temp.list_page(2)->'body'->'protectedIds',jsonb_build_array(pg_temp.rid(401)),'page 2 protectedIds covers whole selection');
+select ok(not exists(select 1 from jsonb_array_elements(pg_temp.list_page(2)->'body'->'pupils')r where r->>'id'=pg_temp.rid(401)::text),'page 2 does not contain the protected row');
+select is(pg_temp.list_page(2)->'auditRefs',jsonb_build_array(jsonb_build_object('kind','protected','pupilId',pg_temp.rid(401))),'page 2 audits the disclosed protected id');
+select is(pg_temp.list_page(1,'{"search":"Namn 002"}')->'body'->'protectedIds','[]'::jsonb,'search excluding protected pupil gives empty protectedIds');
+select is(pg_temp.list_page(1,jsonb_build_object('selection',pg_temp.sel()||'{"status":"avslutad"}'))->'body'->'protectedIds','[]'::jsonb,'filter excluding protected pupil gives empty protectedIds');
+select is(pg_temp.list_page(1,jsonb_build_object('selection',pg_temp.sel()||'{"status":"avslutad"}'))->'auditRefs','[]'::jsonb,'filter excluding protected pupil gives no protected reference');
+select ok(not exists(select 1 from jsonb_array_elements_text(p->'body'->'protectedIds')i where (select count(*) from jsonb_array_elements(p->'auditRefs')r where r->>'kind'='protected' and r->>'pupilId'=i)<>1)
+ and jsonb_array_length(p->'auditRefs')=jsonb_array_length(p->'body'->'protectedIds'),'every protectedIds entry has exactly one protected reference')
+from (select pg_temp.list_page(n) p from generate_series(1,2)n)x;
+select is((pg_temp.list_page(1)->'body'->>'count')::integer,64,'entitled count unchanged');
 select is(public.phase4_pupil_card(pg_temp.card(1))->'body'->>'displayName','Hemligt namn','explicit admin permission reveals name');
 select is(public.phase4_pupil_card(pg_temp.card(1))->'auditRefs'->0->>'kind','protected','protected read separately auditable');
 select ok(not (public.phase4_pupil_card(pg_temp.card(1))->'body'->'capabilities' ? 'canReadProtected'),'no row-specific protection capability');
@@ -228,6 +261,7 @@ select is(public.phase4_pupil_history(pg_temp.card(1)||'{"page":1}')->'body'->'e
 select ok(position('TEST-' in public.phase4_pupil_history(pg_temp.card(1)||'{"page":1}')::text)=0,'history never includes any identity number');
 select pg_temp.read_actor(4);
 select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,3,'teacher exact dated class');
+select * from pg_temp.assert_plain_list('teacher');
 select ok(not(public.phase4_pupil_card(pg_temp.card(2))->'body' ? 'birthDate'),'teacher no administrative fields');
 select throws_ok($q$select public.phase4_reveal_personal_number(pg_temp.card(2))$q$,'P0002','Pupil not found','teacher cannot reveal number');
 update public.pupil_class_memberships set ends_on=public.app_today()-1 where pupil_id=pg_temp.rid(403);
@@ -239,6 +273,7 @@ select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,
 select is((public.phase4_list_pupils(pg_temp.req()||jsonb_build_object('caseId',pg_temp.rid(700)))->'body'->>'count')::integer,1,'health explicit case only');
 select pg_temp.read_actor(7);
 select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,64,'school health scope');
+select * from pg_temp.assert_plain_list('school health');
 -- 04-09: only the three audited HTTP readers are executable by Worker.
 select is(has_function_privilege(role_name,entrypoint,'EXECUTE'),role_name='skolplattform_worker',entrypoint||' privilege for '||role_name)
 from unnest(array['anon','authenticated','skolplattform_worker']) role_name
@@ -259,7 +294,8 @@ select is(public.phase4_pupil_card(pg_temp.card(64)||'{"schoolYear":2025}')->'bo
 select is(jsonb_array_length(public.phase4_pupil_card(pg_temp.card(2))->'body'->'placements'),1,'card hides other school historical placement');
 select is((public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,page}','2'))->'body'->>'count')::integer,64,'second page has same safe total');
 select is(jsonb_array_length(public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,page}','2'))->'body'->'pupils'),14,'second page remainder');
-select ok(not exists(select 1 from jsonb_array_elements(public.phase4_list_pupils(pg_temp.req())->'body'->'pupils')p where p ?|array['personalNumber','protectedIdentity','projection'] or p->'capabilities' ? 'canReadProtected'),'list has no protected or identity discriminator');
+select ok(not exists(select 1 from jsonb_array_elements(public.phase4_list_pupils(pg_temp.req())->'body'->'pupils')p where p ?|array['personalNumber','projection'] or p->'capabilities' ? 'canReadProtected'),'entitled list has no identity number, projection or row protection capability');
+select ok(not exists(select 1 from jsonb_array_elements(public.phase4_list_pupils(pg_temp.req())->'body'->'pupils')p where p ? 'protectedIdentity' and (p->>'id'<>pg_temp.rid(401)::text or p->'protectedIdentity'<>'true'::jsonb)),'protectedIdentity only on the protected pupil and only true');
 insert into public.pupil_source_values(customer_id,organizer_id,pupil_id,field,source,actor_id,source_value)values
 (pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(401),'personalNumber','simulated',pg_temp.rid(33),'"TEST-20100101-0014"'),
 (pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(401),'placement','simulated',pg_temp.rid(33),'{"personalNumber":"TEST-20100101-0014"}');
@@ -273,6 +309,7 @@ select lives_ok($q$select public.phase3_grant_mandate(jsonb_build_object('member
 update public.access_assignments set id=id where membership_id=pg_temp.rid(38);
 select set_config('app.assignment_id',(select id::text from public.access_assignments where membership_id=pg_temp.rid(38)),true),set_config('app.membership_id',pg_temp.rid(38)::text,true),set_config('app.identity_id',pg_temp.rid(18)::text,true);
 select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,2,'support current group only');
+select * from pg_temp.assert_plain_list('support');
 select is(jsonb_array_length(public.phase3_probe_scope()->'groups'),1,'legacy scope uses register class');
 select throws_ok($q$select public.phase4_reveal_personal_number(pg_temp.card(2))$q$,'P0002','Pupil not found','support cannot reveal number');
 update public.access_assignments set starts_at=clock_timestamp()-interval '20 minutes',ends_at=clock_timestamp()-interval '1 minute' where membership_id=pg_temp.rid(38);
@@ -311,5 +348,10 @@ select is(public.phase4_pupil_card(pg_temp.card(3)||'{"schoolYear":2025}')->'bod
 update public.pupil_placements set starts_on=public.app_today()+1 where pupil_id=pg_temp.rid(463);
 select is(public.phase4_pupil_card(pg_temp.card(63))->'body'->'capabilities'->>'canEdit','true','future own placement permits editing');
 select is(public.phase4_pupil_card(pg_temp.card(63))->'body'->>'status','framtida','future status uses today within selected year');
+-- 04-24 (d): huvudmannen återkallar; administratören får åter obehörigs form.
+select pg_temp.read_actor(1);
+select lives_ok($q$select public.phase4_revoke_protected_permission(current_setting('test.list_grant')::uuid)$q$,'HM revokes list protection permission');
+select pg_temp.read_actor(3);
+select * from pg_temp.assert_plain_list('admin after revoke');
 select * from finish();
 rollback;

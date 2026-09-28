@@ -54,6 +54,10 @@ select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||'{"fields"
 select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||'{"schoolYear":2025}',true)$q$,'22023',null,'filter and envelope year must agree');
 select throws_ok($q$select public.phase4_export_pupils((pg_temp.exp()-'selection'-'search')||jsonb_build_object('mode','ids','ids',jsonb_build_array(pg_temp.rid(402),pg_temp.rid(465))),false)$q$,'P0002','Pupil not found','one foreign id rejects entire export');
 select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(401))),true)$q$,'P0002','Pupil not found','explicit protected selection requires permission');
+-- 04-24: för obehörig ger skyddat och okänt ID samma fel i preview och download.
+select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(401))),false)$q$,'P0002','Pupil not found','unentitled download with protected id: not found');
+select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(999))),true)$q$,'P0002','Pupil not found','unentitled preview with unknown id: same not found');
+select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(999))),false)$q$,'P0002','Pupil not found','unentitled download with unknown id: same not found');
 select pg_temp.read_actor(1);
 select public.phase4_grant_protected_permission(pg_temp.rid(803),pg_temp.rid(101));
 select pg_temp.read_actor(3);
@@ -64,6 +68,9 @@ select pg_temp.read_actor(1);
 select public.phase4_revoke_protected_permission((select id from public.protected_identity_permissions where assignment_id=pg_temp.rid(803) and revoked_at is null));
 select pg_temp.read_actor(3);
 select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(401))),false)$q$,'P0002','Pupil not found','download rechecks permission after preview');
+select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(401))),true)$q$,'P0002','Pupil not found','preview after revoke with protected id: not found');
+select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(999))),true)$q$,'P0002','Pupil not found','preview after revoke with unknown id: same not found');
+select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp()||jsonb_build_object('protectedIds',jsonb_build_array(pg_temp.rid(999))),false)$q$,'P0002','Pupil not found','download after revoke with unknown id: same not found');
 update public.pupils set protected_identity=true where id=pg_temp.rid(402);
 select is((public.phase4_export_pupils(pg_temp.exp(),false)->'body'->>'count')::integer,62,'download rechecks newly protected pupil');
 update public.access_assignments set ended_at=clock_timestamp() where id=pg_temp.rid(803);

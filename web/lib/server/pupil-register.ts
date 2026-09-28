@@ -62,14 +62,18 @@ export function parsePupilExportRequest(value:unknown):ExportSelection {
 }
 const caps={canEdit:boolean,canExport:boolean,canRevealPersonalNumber:boolean,canReadHistory:boolean};
 const rowFields={id:uuid,displayName:text,unitId:uuid,unitName:text,classId:nullable(uuid),className:nullable(text),educationId:uuid,educationName:text,grade,status,capabilities:shape(caps)};
-const pupilRow:Parser=value=>{const r=object(value);return shape({...rowFields,...(Object.hasOwn(r,'birthDate')?{birthDate:date,municipalityCode:nullable(municipality)}:{})})(r);};
+// 04-24: protectedIdentity finns bara som true och bara för behörig administratör (prövas i listPupils).
+const pupilRow:Parser=value=>{const r=object(value);return shape({...rowFields,...(Object.hasOwn(r,'birthDate')?{birthDate:date,municipalityCode:nullable(municipality)}:{}),...(Object.hasOwn(r,'protectedIdentity')?{protectedIdentity:enumeration([true])}:{})})(r);};
 const named={id:uuid,name:text};
 const origin=shape({source:enumeration(['manual','ss12000','spar','simulated']),actorId:nullable(uuid),changedAt:time,localCorrection:boolean});
 const originFields=['displayName','personalNumber','protectedIdentity','municipality','placement','education','class'];
 const safeValue:Parser=v=>v===null||typeof v==='boolean'||(typeof v==='string'&&v.length<=10000)?v:bad();
 const sourceConflict:Parser=v=>{const r=object(v);return shape({id:uuid,field:enumeration(originFields),origin,...(r.field==='personalNumber'?{}:{local:safeValue,incoming:safeValue})})(r);};
 const cardBody:Parser=v=>{const r=object(v);return shape({...rowFields,...(Object.hasOwn(r,'birthDate')?{birthDate:date,municipalityCode:nullable(municipality)}:{}),version:integer(1),placements:array(periodShape({id:uuid,unitId:uuid,educationId:uuid})),classes:array(periodShape({id:uuid,placementId:uuid,classId:uuid})),...(Object.hasOwn(r,'protectedIdentity')?{protectedIdentity:boolean,municipalities:array(periodShape({id:uuid,municipalityCode:municipality,origin:nullable(origin)})),origins:v=>{const o=object(v);if(Object.keys(o).some(k=>!originFields.includes(k)))bad();return shape(Object.fromEntries(Object.keys(o).map(k=>[k,origin])))(o);},sourceConflicts:array(sourceConflict)}:{})})(r);};
-const listBody=shape({pupils:array(pupilRow),scope:shape({schools:array(shape(named)),groups:array(shape({...named,unitId:uuid})),cases:array(shape({...named,unitId:uuid}))}),options:shape({schools:array(shape(named)),classes:array(shape({...named,unitId:uuid,educationId:nullable(uuid)})),educations:array(shape({...named,unitId:uuid,startYear:nullable(year)})),grades:array(integer(-9996,9998)),statuses:array(status)}),capabilities:shape({...caps,canReadProtected:boolean}),count:integer(0),page,pageSize:enumeration([50])});
+const listBody:Parser=v=>{const r=object(v);const parsed=shape({...listFields,...(Object.hasOwn(r,'protectedIds')?{protectedIds:array(uuid)}:{})})(r) as Row;
+ if(Array.isArray(parsed.protectedIds)){const ids=(parsed.protectedIds as string[]).map(x=>x.toLowerCase());if(new Set(ids).size!==ids.length||ids.length>(parsed.count as number))bad();}
+ return parsed;};
+const listFields={pupils:array(pupilRow),scope:shape({schools:array(shape(named)),groups:array(shape({...named,unitId:uuid})),cases:array(shape({...named,unitId:uuid}))}),options:shape({schools:array(shape(named)),classes:array(shape({...named,unitId:uuid,educationId:nullable(uuid)})),educations:array(shape({...named,unitId:uuid,startYear:nullable(year)})),grades:array(integer(-9996,9998)),statuses:array(status)}),capabilities:shape({...caps,canReadProtected:boolean}),count:integer(0),page,pageSize:enumeration([50])};
 const historyBody=shape({entries:array(v=>{const r=object(v);return shape({id:uuid,field:enumeration(originFields),before:r.field==='personalNumber'?enumeration([null]):safeValue,after:r.field==='personalNumber'?enumeration([null]):safeValue,changedBy:nullable(uuid),changedAt:time,origin,...(Object.hasOwn(r,'resolution')?{resolution:nullable(enumeration(['local','source']))}:{})})(r);}),count:integer(0),page,pageSize:enumeration([20])});
 function projectedResult(value:unknown, body:Parser, allowConflict=false):PupilAuditedResult<unknown> {
  try {const r=object(value);if(r.kind==='conflict'&&allowConflict){shape({kind:enumeration(['conflict']),details:v=>v,auditRefs:v=>v})(r);const details=parseConflictDetails(r.details);if(!details)throw new AuditUnavailable();return {kind:'conflict',details,auditRefs:r.auditRefs as never};}
@@ -80,7 +84,25 @@ async function auditRows(tx:Tx,ctx:Context,rows:{result:unknown}[],body:Parser,o
  if(rows.length!==1)throw new AuditUnavailable(); const result=projectedResult(rows[0].result,body,allowConflict);
  return auditPupilRegisterResult(tx,ctx,result,{...operation,...(result.kind==='success'&&typeof (result.body as Row).count==='number'?{count:(result.body as Row).count as number}:{})});
 }
-export async function listPupils(tx:Tx,ctx:Context,input:ListRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_list_pupils(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,listBody,{action:'pupil_list_read',schoolYear:input.selection.schoolYear});}
+/** 04-24: skyddsuppgifter i listan godtas bara i behörig form. Flagga eller protectedIds utan
+ * canReadProtected, flaggad rad utanför protectedIds eller skyddat ID utan SQL:s egen
+ * skyddsreferens stoppar svaret (fail-closed). Referenser härleds aldrig ur body. */
+function assertListProtection(result:PupilAuditedResult<unknown>):asserts result is Extract<PupilAuditedResult<unknown>,{kind:'success'}>{
+ if(result.kind!=='success')throw new AuditUnavailable();
+ const body=result.body as {pupils:Row[];capabilities:{canReadProtected:boolean};protectedIds?:string[]};
+ const flagged=body.pupils.filter(p=>Object.hasOwn(p,'protectedIdentity')).map(p=>String(p.id).toLowerCase());
+ const hasIds=Object.hasOwn(body,'protectedIds');
+ if(!body.capabilities.canReadProtected&&(flagged.length>0||hasIds))throw new AuditUnavailable();
+ const ids=new Set((body.protectedIds??[]).map(x=>x.toLowerCase()));
+ if(flagged.some(x=>!ids.has(x)))throw new AuditUnavailable();
+ const refs=new Set((Array.isArray(result.auditRefs)?result.auditRefs:[]).filter(r=>r&&r.kind==='protected'&&typeof r.pupilId==='string').map(r=>r.pupilId.toLowerCase()));
+ for(const x of ids) if(!refs.has(x))throw new AuditUnavailable();
+}
+export async function listPupils(tx:Tx,ctx:Context,input:ListRequest){
+ const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_list_pupils(${tx.json(input)}) as result`);
+ if(rows.length!==1)throw new AuditUnavailable(); const result=projectedResult(rows[0].result,listBody); assertListProtection(result);
+ return auditPupilRegisterResult(tx,ctx,result,{action:'pupil_list_read',schoolYear:input.selection.schoolYear,count:(result.body as Row).count as number});
+}
 export async function readPupil(tx:Tx,ctx:Context,input:CardRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_pupil_card(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,cardBody,{action:'pupil_read',pupilId:input.pupilId,schoolYear:input.schoolYear});}
 export async function readPupilHistory(tx:Tx,ctx:Context,input:HistoryRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_pupil_history(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,historyBody,{action:'pupil_history_read',pupilId:input.pupilId,schoolYear:input.schoolYear});}
 export async function revealPupilPersonalNumber(tx:Tx,ctx:Context,input:CardRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_reveal_personal_number(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,shape({pupilId:uuid,personalNumber}),{action:'pupil_personal_number_read',pupilId:input.pupilId,schoolYear:input.schoolYear});}

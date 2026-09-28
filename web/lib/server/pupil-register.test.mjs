@@ -112,6 +112,42 @@ test('second protected object event failure rolls back the first object event',a
  const r=await POST(req());assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
 });
 
+// 04-24: skyddsform i listsvaret. Bara behörig form godtas; allt annat stoppas utan body.
+const other='33000000-0000-4000-8000-000000000002';
+const entitled=()=>{const b=list();b.capabilities.canReadProtected=true;b.pupils=[{...pupil(),protectedIdentity:true}];b.protectedIds=[id,other];b.count=51;return b;};
+const refs=(...ids)=>ids.map(pupilId=>({kind:'protected',pupilId}));
+test('entitled list form is accepted and audits every protected id, also outside the page',async()=>{
+ reset(entitled());state.result.auditRefs=refs(id,other);
+ const r=await POST(req());assert.equal(r.status,200);const body=await r.json();
+ assert.deepEqual(body,entitled());assert.equal('auditRefs' in body,false);
+ assert.deepEqual(state.events.filter(e=>e.action==='pupil_protected_read').length,2);
+ assert.equal(state.events.at(-1).action,'pupil_list_read');
+});
+test('unentitled list form stays unchanged and carries no protection keys',async()=>{
+ reset();const r=await POST(req());assert.equal(r.status,200);const body=await r.json();
+ assert.equal('protectedIds' in body,false);assert.equal(body.pupils.some(p=>'protectedIdentity' in p),false);
+ assert.equal(state.events.some(e=>e.action==='pupil_protected_read'),false);
+});
+test('deviating protected list form fails closed with audit_unavailable and no body',async()=>{
+ const cases={
+  'flag false':()=>{const b=entitled();b.pupils[0].protectedIdentity=false;return [b,refs(id,other)];},
+  'flag without permission':()=>{const b=list();b.pupils=[{...pupil(),protectedIdentity:true}];return [b,refs(id)];},
+  'ids without permission':()=>{const b=list();b.protectedIds=[id];return [b,refs(id)];},
+  'flagged row missing from ids':()=>{const b=entitled();b.protectedIds=[other];return [b,refs(other)];},
+  'id without reference':()=>[entitled(),refs(id)],
+  'duplicate ids':()=>{const b=entitled();b.protectedIds=[id,id];return [b,refs(id)];},
+  'duplicate ids by case':()=>{const b=entitled();b.protectedIds=[id,id.toUpperCase()];return [b,refs(id)];},
+  'more ids than count':()=>{const b=entitled();b.count=1;return [b,refs(id,other)];},
+  'ids not uuid':()=>{const b=entitled();b.protectedIds=[id,'Hemligt namn'];return [b,refs(id)];},
+ };
+ for(const [name,build] of Object.entries(cases)){
+  const [body,auditRefs]=build();reset(body);state.result.auditRefs=auditRefs;
+  const r=await POST(req());assert.equal(r.status,500,name);const json=await r.json();
+  assert.equal(json.code,'audit_unavailable',name);assert.equal('pupils' in json,false,name);assert.equal(JSON.stringify(json).includes(id),false,name);
+  assert.equal(state.events.filter(e=>e.outcome==='ok').length,0,name);
+ }
+});
+
 const bootstrap=()=>({schoolYears:[2025,2026,2027],currentSchoolYear:2026,scope:{schools:[{id,name:'Provskola'}],groups:[],cases:[]},endsAt:null,approverName:null,purposeCode:null,serverNow:'2026-09-28T10:00:00Z'});
 test('register selection is closed, audited, no-store and denies other functions and query input',async()=>{
  reset();state.result=bootstrap();
