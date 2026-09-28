@@ -15,6 +15,13 @@ Användaren godkände de 42 detaljkraven och färdplanens åtta faser 2026-09-11
 - Hantera vanlig dialog, statusfrågor och avgränsade rättningar proportionerligt. Ställ inte frågor som användaren redan har besvarat. Senare användarbeslut går före dokumentförslag.
 - Versionshantera avgränsade ändringar och uppdatera planeringen när omfattningen ändras. Blanda inte in andra pågående ändringar i en commit.
 
+## Löpande push till GitHub
+
+- Användaren har 2026-09-28 godkänt löpande push till `origin` (`gjores/skolplattformen`). Pusha aktuell arbetsgren efter varje färdig och relevant kontrollerad GSD-plan, efter avslutad våg och innan arbetspasset avslutas när det finns nya commits. Nytt godkännande behövs inte för dessa pushar.
+- Vid längre arbete: sikta på högst cirka en timme mellan pushar när nya kontrollerade commits finns. Pusha vid nästa naturliga delsteg; skapa inte ofärdiga commits enbart för att hålla intervallet.
+- Kontrollera vilka commits som ska skickas. Ta inte med orelaterade arbetskopieändringar, hemligheter eller personuppgifter. Pusha bara aktuell gren, utan force-push eller automatisk publicering/driftsättning.
+- Verifiera efter push att fjärrgrenen har avsedd commit. Vid nätverks-/behörighetsfel eller avvikande fjärrhistorik: bevara lokalt arbete och redovisa vad som ännu inte är pushat; skriv aldrig över fjärrhistorik för att få igenom överföringen.
+
 ## Struktur och kontroller
 
 ### Dokumentation med Docusaurus
@@ -40,4 +47,4 @@ Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noE
 
 Skriv på svenska med tydliga verksamhetsord. Beskriv vad användaren kan göra, vad som faktiskt är verifierat och vad som återstår. Förslag, implementation, test mot syntetiska data och godkänd verklig anslutning är olika status.
 
-*Skapad vid GSD-initiering 2026-09-10; uppdaterad efter godkänd färdplan 2026-09-11.*
+*Skapad vid GSD-initiering 2026-09-10; senast uppdaterad med löpande GitHub-push 2026-09-28.*
