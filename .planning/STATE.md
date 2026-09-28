@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
-current_plan: Not started
-status: ready
-stopped_at: Fas 4 planerad och granskad — 22 planer i 15 vågor. Nästa steg är gsd-execute-phase 4.
-last_updated: "2026-09-28T09:11:06Z"
+current_plan: 04-02
+status: awaiting_checkpoint
+stopped_at: Våg 1 klar (04-01). Kontrollpunkt mellan vågor enligt gsd-execute-phase; därefter våg 2 (04-02, 04-07, 04-08).
+last_updated: "2026-09-28T09:30:33Z"
 last_activity: 2026-09-28
-last_activity_desc: Fas 4 planerad och granskad; 22 planer redo att genomföras
+last_activity_desc: 04-01 genomförd; 17 modellprov, typkontroll och lint godkända. Väntar vågkontrollpunkt.
 state_head: 796a93431a71f4897190d082d7cdb2aeb7412ece
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 51
-  completed_plans: 29
+  completed_plans: 30
 milestone_name: milestone
 ---
 
@@ -25,35 +25,35 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 4 — planerna är granskade; nästa steg är genomförande med gsd-execute-phase 4.
+**Current focus:** Fas 4 — första vågen genomförd; kontrollpunkt före våg 2.
 
 ## Current Position
 
-Phase: 04 (Beständigt och skyddat elevregister) — planerad, genomförande inte påbörjat
-Plan: 04-01 är nästa plan
+Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 1 av 22 planer klar
+Plan: 04-01 klar; våg 2 omfattar 04-02, 04-07 och 04-08
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 04
 **Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** Not started
+**Current Plan:** 04-02 (nästa våg)
 **Total Plans in Phase:** 22
-**Status:** Ready to execute (fas 4, planer granskade)
+**Status:** Awaiting wave checkpoint (våg 1 klar, våg 2 förberedd)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-28
-**Last Activity Description:** Fas 4 planerad och granskad; 22 planer i 15 vågor
+**Last Activity Description:** 04-01 klar med 17 godkända modellprov, typkontroll och lint
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 29 av 51 hittills skrivna planer genomförda; fas 4 har 0 av 22. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 30 av 51 hittills skrivna planer genomförda; fas 4 har 1 av 22. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 29
+- Total plans completed: 30
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -133,7 +133,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: `gsd-execute-phase 4`, med start i `04-01-PLAN.md`. Fas 3 är stängd med `03-VERIFICATION.md` och `03-HUMAN-UAT.md` (2026-09-28); ACL-02–05 och AUDIT-02–03 är verifierade lokalt syntetiskt. Öppna externa beroenden kvarstår.
+- Nästa steg: vågkontrollpunkt enligt `04-WAVE-01-CHECKPOINT.md`, därefter våg 2: `04-02`, `04-07`, `04-08`. 04-01 ska inte göras om. Fas 3 är stängd med `03-VERIFICATION.md` och `03-HUMAN-UAT.md` (2026-09-28); ACL-02–05 och AUDIT-02–03 är verifierade lokalt syntetiskt. Öppna externa beroenden kvarstår.
 - 8 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 
 ## Blockers
@@ -158,8 +158,8 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-09-28T09:11:06Z
-**Stopped At:** Phase 4 plans reviewed, implementation not started
-**Resume File:** .planning/phases/04-best-ndigt-och-skyddat-elevregister/04-01-PLAN.md
+**Last Date:** 2026-09-28T09:30:33Z
+**Stopped At:** Wave 1 complete; wave checkpoint before wave 2
+**Resume File:** .planning/phases/04-best-ndigt-och-skyddat-elevregister/04-WAVE-01-CHECKPOINT.md
 
 **Planned Phase:** 4 (Beständigt och skyddat elevregister) — 22 planer i 15 vågor — 2026-09-28

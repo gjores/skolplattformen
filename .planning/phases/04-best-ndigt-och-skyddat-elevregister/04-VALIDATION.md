@@ -38,12 +38,12 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan anger planerade kontroller. Inga fas 4-prov har körts vid planeringen; alla resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan anger planerade kontroller. 04-01 är genomförd: 17 modellprov, typkontroll och lint godkända. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
-| 04-01-01 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs` | Ej kört |
-| 04-01-02 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-01-01 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs` | RED verifierad, därefter GREEN 17/17; se 04-01-SUMMARY |
+| 04-01-02 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs && npx tsc --noEmit` | GREEN 17/17 + typkontroll; se 04-01-SUMMARY |
 | 04-02-01 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-periods.json` | Ej kört |
 | 04-02-02 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-register-schema.json` | Ej kört |
 | 04-03-01 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-migration.json` | Ej kört |
@@ -105,7 +105,7 @@ Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. Äldre behörigh
 
 ## Wave 0 Requirements
 
-- [ ] `web/lib/pupil-register-model.test.mjs`
+- [x] `web/lib/pupil-register-model.test.mjs` — 17/17, 04-01-SUMMARY
 - [ ] `web/lib/server/pupil-register.test.mjs`
 - [ ] utökat `web/lib/server/events.test.mjs` (`/api/elever` i `ROUTES`, nya detaljnycklar)
 - [ ] `supabase/tests/phase4_{register,periods,protected,conflicts,export}.test.sql` + uppdaterade fas 3-fixturer

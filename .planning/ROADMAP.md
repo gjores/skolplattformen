@@ -4,7 +4,7 @@
 
 **Milestone:** v1.0 — Säker administration inför en pilot
 
-**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 är planerad och väntar genomförande.
+**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 genomförs (1 av 22 planer klar).
 
 **Granularity:** standard
 
@@ -118,7 +118,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 
 **Plans**: 22 planer i 15 vågor — planstrukturen granskad 2026-09-28; genomförande och beteendeverifiering återstår.
 
-- [ ] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
+- [x] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
 - [ ] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
 - [ ] 04-03-PLAN.md — Flytta provrelationer och inför huvudmannens skyddsbehörighet (våg 3)
 - [ ] 04-04-PLAN.md — Implementera serverurval och fältprojektion (våg 4)
@@ -228,7 +228,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 0/22 | Planned | - |
+| 4. Beständigt och skyddat elevregister | 1/22 | In progress — wave checkpoint | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
@@ -237,4 +237,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-28 — fas 1–3 verifierade lokalt syntetiskt; fas 4 är planerad och väntar genomförande.*
+*Last updated: 2026-09-28 — fas 1–3 verifierade lokalt syntetiskt; fas 4 genomförs (1 av 22 planer klar).*
