@@ -25,3 +25,24 @@ test('läsning kan kräva audit oberoende av mutation', () => {
   assert.equal(requiresAudit(true),true);
   assert.equal(requiresAudit(false),false);
 });
+
+test('registerrutter och slutna metadata bevarar varje definierad åtgärd', async () => {
+  const { PUPIL_REGISTER_ACTIONS, PUPIL_REGISTER_FIELDS } = await import('./audit-details.ts');
+  assert.equal(auditRoute('https://example.test/api/elever/namn?search=Hemlig'), '/api/elever');
+  for (const action of PUPIL_REGISTER_ACTIONS) {
+    const input = { action, path: '/api/elever', schoolYear: 2026, count: 2, fields: [...PUPIL_REGISTER_FIELDS] };
+    assert.deepEqual(sanitizeAuditDetails(input), input, action);
+  }
+  for (const field of PUPIL_REGISTER_FIELDS) assert.deepEqual(sanitizeAuditDetails({ field }), { field });
+  for (const readForm of ['list', 'pupil', 'history', 'conflict', 'personal-number', 'export-preview', 'export'])
+    assert.deepEqual(sanitizeAuditDetails({ readForm }), { readForm });
+});
+
+test('registermetadata tillåter varken värden, skyddsmarkörer eller felaktiga antal/läsår', () => {
+  for (const secret of ['Syntetisk Hemlig', 'TEST-20100101-1234', '/api/elever/id?search=namn', true, { displayName: 'Hemlig' }]) {
+    assert.deepEqual(sanitizeAuditDetails({ action: secret, field: secret, fields: ['displayName', secret], protectedIdentity: secret, value: secret, search: secret, source: secret }), {});
+  }
+  for (const schoolYear of [2026.5, -1, 0, 10000, '2026', Infinity]) assert.deepEqual(sanitizeAuditDetails({ schoolYear }), {});
+  for (const count of [-1, 1.2, Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.deepEqual(sanitizeAuditDetails({ count }), {});
+  assert.deepEqual(sanitizeAuditDetails({ fields: Array(100).fill('displayName') }), {});
+});

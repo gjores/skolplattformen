@@ -3,7 +3,25 @@ export type AuditJson = null | boolean | number | string | AuditJson[] | { [key:
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const FUNCTIONS = new Set(['kundadmin','granskare','huvudman','rektor','administrator','larare','elevhalsa','elevhalsoansvarig','it','support']);
 const CODES = new Set(['no_session','session_expired','session_revoked','no_context','membership_blocked','customer_closed','mfa_required','forbidden','assignment_expired','assignment_ended','assignment_upcoming','invitation_invalid','conflict','context_changed','registry_unavailable','db_unreachable','csrf','idp_registration_failed','login_state_invalid','not_found','bad_request','internal_error','audit_unavailable']);
-const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/other']);
+const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/elever','/api/other']);
+// Event names and field names describe operations, never the values involved.
+export const PUPIL_REGISTER_ACTIONS = [
+  'pupil_list_read', 'pupil_read', 'pupil_history_read', 'pupil_conflict_read',
+  'pupil_created', 'pupil_updated', 'pupil_municipality_changed', 'pupil_transferred',
+  'pupil_education_changed', 'pupil_placement_ended', 'pupil_class_changed',
+  'pupil_source_resolved', 'pupil_protected_read', 'pupil_personal_number_read',
+  'pupil_export_preview', 'pupil_exported', 'pupil_personal_number_exported',
+] as const;
+export type PupilRegisterAction = (typeof PUPIL_REGISTER_ACTIONS)[number];
+export const PUPIL_REGISTER_FIELDS = [
+  'id', 'displayName', 'birthDate', 'personalNumber', 'protectedIdentity',
+  'municipality', 'placement', 'education', 'class', 'municipalityCode',
+  'unitId', 'educationId', 'classId', 'startsOn', 'endsOn',
+  'unitName', 'className', 'educationName', 'grade', 'status',
+] as const;
+export type PupilRegisterField = (typeof PUPIL_REGISTER_FIELDS)[number];
+const REGISTER_ACTIONS: ReadonlySet<string> = new Set(PUPIL_REGISTER_ACTIONS);
+const REGISTER_FIELDS: ReadonlySet<string> = new Set(PUPIL_REGISTER_FIELDS);
 function isoTime(value: unknown): value is string {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)
     && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
@@ -24,7 +42,11 @@ export function sanitizeAuditDetails(input: Record<string, unknown> | undefined)
     else if (key === 'accessFunction' && typeof value === 'string' && FUNCTIONS.has(value)) clean[key] = value;
     else if (key === 'status' && (value === 'active' || value === 'blocked')) clean[key] = value;
     else if (key === 'format' && value === 'csv') clean[key] = value;
-    else if (key === 'readForm' && (value === 'list' || value === 'pupil' || value === 'case' || value === 'export')) clean[key] = value;
+    else if (key === 'readForm' && typeof value === 'string' && ['list','pupil','case','history','conflict','personal-number','export-preview','export'].includes(value)) clean[key] = value;
+    else if (key === 'schoolYear' && typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 9999) clean[key] = value;
+    else if (key === 'action' && typeof value === 'string' && REGISTER_ACTIONS.has(value)) clean[key] = value;
+    else if (key === 'field' && typeof value === 'string' && REGISTER_FIELDS.has(value)) clean[key] = value;
+    else if (key === 'fields' && Array.isArray(value) && value.length <= PUPIL_REGISTER_FIELDS.length && value.every(v => typeof v === 'string' && REGISTER_FIELDS.has(v))) clean[key] = [...new Set(value)];
     else if (key === 'path' && typeof value === 'string' && ROUTES.has(value)) clean[key] = value;
     else if (key === 'grants' && Array.isArray(value) && value.length <= 10 && value.every(v => typeof v === 'string' && FUNCTIONS.has(v))) clean[key] = [...value];
   }
