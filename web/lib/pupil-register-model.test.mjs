@@ -310,3 +310,58 @@ test('Konfliktnamn följer databasens gräns på 240 tecken', () => {
   assert.deepEqual(call('parseConflictDetails', value),value);
   assert.equal(call('parseConflictDetails',{...value,fields:[{...value.fields[0],current:'B'.repeat(241)}]}),null);
 });
+
+test('Exportkroppen speglar serverns {mode, export} och sidan skickas inte vidare', () => {
+  const ids = ['20000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001'];
+  const marked = call('exportPost', 'preview', {
+    schoolYear: 2026, caseId: null, fields: ['displayName', 'id'], includePersonalNumber: false,
+    protectedIds: [], target: { kind: 'marked', ids },
+  });
+  assert.deepEqual(marked, { ok: true, post: { mode: 'preview', export: {
+    schoolYear: 2026, caseId: null, fields: ['id', 'displayName'], protectedIds: [],
+    includePersonalNumber: false, mode: 'ids', ids: [ids[0]],
+  } } });
+  const filtered = call('exportPost', 'download', {
+    schoolYear: 2026, caseId: null, fields: ['id'], includePersonalNumber: true,
+    protectedIds: [], target: { kind: 'selection', selection: { ...defaults, page: 4 }, search: 'Test' },
+  });
+  assert.equal(filtered.ok, true);
+  assert.equal(filtered.post.mode, 'download');
+  assert.equal(filtered.post.export.mode, 'filter');
+  assert.equal(filtered.post.export.selection.page, 1);
+  assert.equal(filtered.post.export.includePersonalNumber, true);
+  assert.deepEqual(Object.keys(filtered.post).sort(), ['export', 'mode']);
+});
+
+test('Tomt exporturval stoppas före anrop och förval är bara Elev-ID och Namn', () => {
+  const base = { schoolYear: 2026, caseId: null, includePersonalNumber: false, protectedIds: [] };
+  assert.deepEqual(call('exportPost', 'preview', { ...base, fields: [], target: { kind: 'marked', ids: ['20000000-0000-4000-8000-000000000001'] } }), { ok: false, reason: 'fields' });
+  assert.deepEqual(call('exportPost', 'preview', { ...base, fields: ['id'], target: { kind: 'marked', ids: [] } }), { ok: false, reason: 'pupils' });
+  assert.deepEqual(model.DEFAULT_EXPORT_FIELDS, ['id', 'displayName']);
+  assert.throws(() => call('exportPost', 'preview', { ...base, fields: ['id'], target: { kind: 'selection', selection: { ...defaults, schoolYear: 2025 }, search: '' } }));
+});
+
+test('Placeringar grupperas som aktuell, framtida och avslutad mot referensdatum', () => {
+  const groups = call('groupPlacements', [
+    { id: 'c', startsOn: '2027-08-15', endsOn: null },
+    { id: 'a', startsOn: '2024-08-15', endsOn: '2025-06-30' },
+    { id: 'b', startsOn: '2025-07-01', endsOn: '2027-08-14' },
+    { id: 'z', startsOn: '2022-08-15', endsOn: '2024-06-30' },
+  ], '2026-09-28');
+  assert.deepEqual(groups.aktuell.map((p) => p.id), ['b']);
+  assert.deepEqual(groups.framtida.map((p) => p.id), ['c']);
+  assert.deepEqual(groups.avslutad.map((p) => p.id), ['a', 'z']);
+});
+
+test('Maskerat personnummer visar bara födelsedatum', () => {
+  assert.equal(call('maskedPersonalNumber', '2012-03-04'), '20120304-••••');
+  assert.throws(() => call('maskedPersonalNumber', '2012-02-30'));
+});
+
+test('Konfliktval: sparat värde skickas inte, eget värde bara vid uttryckligt val', () => {
+  const submitted = { displayName: 'Test Ny', personalNumber: 'TEST-20120304-0000', protectedIdentity: true };
+  assert.deepEqual(call('resolvedBasics', submitted, ['displayName'], {}), { personalNumber: 'TEST-20120304-0000', protectedIdentity: true });
+  assert.deepEqual(call('resolvedBasics', submitted, ['displayName'], { displayName: 'mine' }), submitted);
+  assert.deepEqual(call('resolvedBasics', { displayName: 'Test Ny' }, ['displayName'], { displayName: 'saved' }), {});
+  assert.deepEqual(call('resolvedBasics', submitted, ['personalNumber', 'displayName'], { personalNumber: 'mine', displayName: 'saved' }), { personalNumber: 'TEST-20120304-0000', protectedIdentity: true });
+});

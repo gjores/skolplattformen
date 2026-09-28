@@ -568,3 +568,106 @@ export function registerCsv(
     throw new Error('Ogiltiga exportfält');
   return `\uFEFF${[csvRow(fields.map((field) => CSV_LABELS[field])), ...rows.map((row) => csvRow(fields.map((field) => row[field])))].join('\r\n')}\r\n`;
 }
+
+/* ---- Klientkontrakt för elevkort, konflikt och export (04-13) ---- */
+
+export type PupilExportMode = 'preview' | 'download';
+/** Speglar serverns `PupilExportPost` (04-10): `{mode, export: ExportSelection}`. */
+export type PupilExportPost = { mode: PupilExportMode; export: ExportSelection };
+/** Förval i exportdialogen. Personnummer och skyddade elever är aldrig förvalda. */
+export const DEFAULT_EXPORT_FIELDS: readonly ExportField[] = ['id', 'displayName'];
+export type ExportTarget =
+  | { kind: 'marked'; ids: readonly string[] }
+  | { kind: 'selection'; selection: Selection; search: string };
+export type ExportDraft = {
+  schoolYear: number;
+  caseId: string | null;
+  fields: readonly ExportField[];
+  includePersonalNumber: boolean;
+  protectedIds: readonly string[];
+  target: ExportTarget;
+};
+
+/** Bygger exportanropets kropp. Fältordningen följer EXPORT_FIELDS och sidnumret
+ * skickas aldrig vidare (servern räknar hela urvalet). Tomt urval stoppas här. */
+export function exportPost(
+  mode: PupilExportMode,
+  draft: ExportDraft,
+):
+  | { ok: true; post: PupilExportPost }
+  | { ok: false; reason: 'fields' | 'pupils' } {
+  const fields = EXPORT_FIELDS.filter((field) => draft.fields.includes(field));
+  if (fields.length === 0) return { ok: false, reason: 'fields' };
+  const base = {
+    schoolYear: draft.schoolYear,
+    caseId: draft.caseId,
+    fields,
+    protectedIds: [...new Set(draft.protectedIds)],
+    includePersonalNumber: draft.includePersonalNumber === true,
+  };
+  if (draft.target.kind === 'marked') {
+    const ids = [...new Set(draft.target.ids)];
+    if (ids.length === 0) return { ok: false, reason: 'pupils' };
+    return { ok: true, post: { mode, export: { ...base, mode: 'ids', ids } } };
+  }
+  const { selection, search } = draft.target;
+  if (selection.schoolYear !== draft.schoolYear)
+    throw new Error('Urvalet gäller ett annat läsår');
+  return {
+    ok: true,
+    post: {
+      mode,
+      export: {
+        ...base,
+        mode: 'filter',
+        selection: { ...selection, page: 1 },
+        search,
+      },
+    },
+  };
+}
+
+/** Grupperar placeringar för elevkortet mot ett uttryckligt referensdatum. */
+export function groupPlacements<T extends Period>(
+  placements: readonly T[],
+  at: string,
+): Record<PupilStatus, T[]> {
+  const groups: Record<PupilStatus, T[]> = {
+    aktuell: [],
+    framtida: [],
+    avslutad: [],
+  };
+  const sorted = [...placements].sort((a, b) =>
+    a.startsOn < b.startsOn ? -1 : a.startsOn > b.startsOn ? 1 : 0,
+  );
+  for (const placement of sorted)
+    groups[placementStatus(placement, at)].push(placement);
+  groups.avslutad.reverse();
+  return groups;
+}
+
+/** Maskerat personnummer ur födelsedatum; de fyra sista siffrorna visas aldrig. */
+export function maskedPersonalNumber(birthDate: string): string {
+  if (!isValidDate(birthDate)) throw new Error('Ogiltigt datum');
+  return `${birthDate.replaceAll('-', '')}-••••`;
+}
+
+export type ConflictChoiceField = 'displayName' | 'protectedIdentity' | 'personalNumber';
+export type ConflictChoice = 'mine' | 'saved';
+
+/** Nästa sparning efter konflikt. En uppgift i konflikten skickas bara om
+ * användaren uttryckligen valt sitt eget värde; saknat val betyder sparat värde.
+ * Övriga inskickade ändringar behålls oförändrade. Tomt resultat = inget skrivs. */
+export function resolvedBasics(
+  submitted: BasicsChange,
+  conflictFields: readonly ConflictChoiceField[],
+  choices: Partial<Record<ConflictChoiceField, ConflictChoice>>,
+): BasicsChange {
+  const next: BasicsChange = {};
+  for (const key of ['displayName', 'personalNumber', 'protectedIdentity'] as const) {
+    if (submitted[key] === undefined) continue;
+    if (conflictFields.includes(key) && choices[key] !== 'mine') continue;
+    (next as Record<string, unknown>)[key] = submitted[key];
+  }
+  return next;
+}
