@@ -153,5 +153,95 @@ select ok(not has_function_privilege('skolplattform_worker','public.phase4_has_p
 select ok(not has_function_privilege('anon','public.phase4_protected_permission_is_valid(uuid)','EXECUTE'),'phase4_protected_permission_is_valid closed to anon until audit integration');
 select ok(not has_function_privilege('authenticated','public.phase4_protected_permission_is_valid(uuid)','EXECUTE'),'phase4_protected_permission_is_valid closed to authenticated until audit integration');
 select ok(not has_function_privilege('skolplattform_worker','public.phase4_protected_permission_is_valid(uuid)','EXECUTE'),'phase4_protected_permission_is_valid closed to skolplattform_worker until audit integration');
+
+-- 04-04: independent register/read fixtures; all identities and values synthetic.
+create function pg_temp.rid(n bigint) returns uuid language sql immutable as $$select ('44004000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid$$;
+insert into public.customers(id,name) values(pg_temp.rid(1),'Read test');
+insert into public.organizers(id,customer_id,name,type) values(pg_temp.rid(2),pg_temp.rid(1),'Read test','Kommun');
+insert into public.identities(id,issuer,subject) select pg_temp.rid(10+n),'https://read.example.test',n::text from generate_series(1,10)n;
+insert into public.memberships(id,customer_id,identity_id) select pg_temp.rid(30+n),pg_temp.rid(1),pg_temp.rid(10+n) from generate_series(1,10)n;
+insert into public.school_units(id,organizer_id,code,name,municipality_code) select pg_temp.rid(100+n),pg_temp.rid(2),'4400400'||n,'Skola '||n,'0000' from generate_series(1,2)n;
+insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,start_year) select pg_temp.rid(200+n),pg_temp.rid(2),pg_temp.rid(100+n),'grundskola','Utbildning '||n,'Syntetisk',2026 from generate_series(1,2)n;
+insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year) select pg_temp.rid(300+n),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(100+n),pg_temp.rid(200+n),'KLASS '||n,2026 from generate_series(1,2)n;
+insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name,protected_identity)
+select pg_temp.rid(400+n),pg_temp.rid(1),pg_temp.rid(2),case when n=1 then 'Hemligt namn' else 'Namn '||lpad(n::text,3,'0') end,personal_number,'Elev anonym '||n,n=1 from (select personal_number,row_number()over(order by personal_number)n from public.synthetic_pupil_numbers limit 65)x;
+insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on,ends_on)
+select pg_temp.rid(500+n),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(400+n),pg_temp.rid(case when n=65 then 102 else 101 end),pg_temp.rid(case when n=65 then 202 else 201 end),date '2026-07-01',case when n=64 then public.app_today()-1 else null end from generate_series(1,65)n;
+insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on)
+select pg_temp.rid(600+n),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(400+n),pg_temp.rid(101),pg_temp.rid(301),pg_temp.rid(500+n),date '2026-07-01' from generate_series(1,3)n;
+insert into public.phase3_probe_cases values(pg_temp.rid(700),pg_temp.rid(402),pg_temp.rid(1),pg_temp.rid(101));
+insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind)
+values(pg_temp.rid(801),pg_temp.rid(31),pg_temp.rid(1),pg_temp.rid(2),'huvudman','synthetic-v1','school');
+insert into public.mandate_units select pg_temp.rid(801),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(100+n) from generate_series(1,2)n;
+create function pg_temp.read_actor(n integer) returns void language plpgsql as $$begin
+perform set_config('app.assignment_id',pg_temp.rid(800+n)::text,true),set_config('app.membership_id',pg_temp.rid(30+n)::text,true),set_config('app.identity_id',pg_temp.rid(10+n)::text,true),set_config('app.customer_id',pg_temp.rid(1)::text,true);end$$;
+-- Explicit valid parent chain, unrelated memberships prevent self delegation.
+insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind,parent_assignment_id,issued_by_assignment_id,unit_id)
+values(pg_temp.rid(802),pg_temp.rid(32),pg_temp.rid(1),pg_temp.rid(2),'rektor','synthetic-v1','school',pg_temp.rid(801),pg_temp.rid(801),pg_temp.rid(101));
+insert into public.mandate_units values(pg_temp.rid(802),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(101));
+insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind,parent_assignment_id,issued_by_assignment_id,unit_id)
+select pg_temp.rid(800+n),pg_temp.rid(30+n),pg_temp.rid(1),pg_temp.rid(2),(case n when 3 then 'administrator' when 4 then 'larare' else 'elevhalsa' end)::public.access_function,'synthetic-v1',case n when 3 then 'school' when 4 then 'group' when 5 then 'pupil' when 6 then 'case' else 'school' end,pg_temp.rid(802),pg_temp.rid(802),pg_temp.rid(101) from generate_series(3,7)n;
+insert into public.mandate_units select pg_temp.rid(800+n),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(101) from generate_series(3,7)n;
+insert into public.mandate_groups values(pg_temp.rid(804),pg_temp.rid(301),pg_temp.rid(1),pg_temp.rid(101),'undervisning');
+insert into public.mandate_pupils values(pg_temp.rid(805),pg_temp.rid(402),pg_temp.rid(1),pg_temp.rid(101));
+insert into public.mandate_cases values(pg_temp.rid(806),pg_temp.rid(700),pg_temp.rid(1),pg_temp.rid(101));
+insert into public.assignments(id,organizer_id,name,role) values(pg_temp.rid(902),pg_temp.rid(2),'Rektor','rektor'),(pg_temp.rid(904),pg_temp.rid(2),'Lärare','larare');
+insert into public.assignment_units values(pg_temp.rid(902),pg_temp.rid(101)),(pg_temp.rid(904),pg_temp.rid(101));
+insert into public.staff_assignment_bindings values(pg_temp.rid(902),pg_temp.rid(32),pg_temp.rid(1),pg_temp.rid(2)),(pg_temp.rid(904),pg_temp.rid(34),pg_temp.rid(1),pg_temp.rid(2));
+update public.access_assignments set staff_assignment_id=pg_temp.rid(902) where id=pg_temp.rid(802);
+update public.access_assignments set staff_assignment_id=pg_temp.rid(904) where id=pg_temp.rid(804);
+create function pg_temp.sel() returns jsonb language sql as $$select jsonb_build_object('schoolYear',2026,'unitId',pg_temp.rid(101),'classId',null,'educationId',null,'grade',null,'status',null,'page',1)$$;
+create function pg_temp.req() returns jsonb language sql as $$select jsonb_build_object('selection',pg_temp.sel(),'search','','caseId',null)$$;
+create function pg_temp.card(n integer) returns jsonb language sql as $$select jsonb_build_object('pupilId',pg_temp.rid(400+n),'schoolYear',2026,'caseId',null)$$;
+select pg_temp.read_actor(3);
+
+select has_function('public','phase4_list_pupils',array['jsonb'],'read entrypoint exists');
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,64,'count scoped before page');
+select is(jsonb_array_length(public.phase4_list_pupils(pg_temp.req())->'body'->'pupils'),50,'page size 50');
+select is(public.phase4_pupil_card(pg_temp.card(1))->'body'->>'displayName','Elev anonym 1','admin without explicit permission receives anonymous name');
+select ok(not (public.phase4_pupil_card(pg_temp.card(1))->'body' ?| array['birthDate','municipalityCode','protectedIdentity','projection','origins']),'anonymous card omits sensitive metadata and flags');
+select is(public.phase4_pupil_card(pg_temp.card(1))->'body'->'capabilities'->>'canEdit','false','anonymous has no actions');
+select is((public.phase4_list_pupils(pg_temp.req()||'{"search":"Hemligt"}')->'body'->>'count')::integer,0,'secret search cannot reveal protected pupil');
+select is((public.phase4_list_pupils(pg_temp.req()||'{"search":"Elev anonym"}')->'body'->>'count')::integer,0,'even anonymous-name search omits protected pupils');
+select throws_ok($q$select public.phase4_pupil_card(pg_temp.card(65))$q$,'P0002','Pupil not found','outside school same not found');
+select throws_ok($q$select public.phase4_pupil_card(pg_temp.card(999))$q$,'P0002','Pupil not found','unknown same not found');
+select throws_ok($q$select public.phase4_reveal_personal_number(pg_temp.card(1))$q$,'P0002','Pupil not found','anonymous reveal does not disclose existence');
+select throws_ok($q$select public.phase4_pupil_history(pg_temp.card(1)||'{"page":1}')$q$,'P0002','Pupil not found','anonymous history does not disclose existence');
+select is(public.phase4_pupil_card(pg_temp.card(64))->'body'->'capabilities'->>'canEdit','false','ended placement is read only');
+select is(public.phase4_pupil_card(pg_temp.card(2))->'body'->'capabilities'->>'canEdit','true','current placement editable');
+select ok(not (public.phase4_pupil_card(pg_temp.card(2))->'body' ? 'personalNumber'),'card never includes number');
+select is(public.phase4_reveal_personal_number(pg_temp.card(2))->'auditRefs'->0->>'kind','personal-number','explicit reveal has own audit reference');
+select throws_ok($q$select public.phase4_list_pupils(pg_temp.req()||'{"extra":true}')$q$,'22023',null,'unknown list field rejected');
+select throws_ok($q$select public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,unitId}',to_jsonb(pg_temp.rid(102))))$q$,'42501',null,'foreign school filter denied');
+select pg_temp.read_actor(2);
+select ok(position('Hemligt' in public.phase3_mandate_options()::text)=0,'mandate options never leak protected name');
+select is(public.phase3_mandate_options()->'pupils'->0->>'label','Elev anonym 1','mandate options use projected sort/name');
+select pg_temp.read_actor(1);
+select throws_ok($q$select public.phase4_list_pupils(pg_temp.req())$q$,'42501',null,'HM no register access');
+select public.phase4_grant_protected_permission(pg_temp.rid(803),pg_temp.rid(101));
+select pg_temp.read_actor(3);
+select is(public.phase4_pupil_card(pg_temp.card(1))->'body'->>'displayName','Hemligt namn','explicit admin permission reveals name');
+select is(public.phase4_pupil_card(pg_temp.card(1))->'auditRefs'->0->>'kind','protected','protected read separately auditable');
+select ok(not (public.phase4_pupil_card(pg_temp.card(1))->'body'->'capabilities' ? 'canReadProtected'),'no row-specific protection capability');
+insert into public.pupil_field_history(customer_id,organizer_id,pupil_id,field,source,actor_id,before_value,after_value,revision) select pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(401),'personalNumber','manual',pg_temp.rid(33),'"TEST-20100101-0014"','"TEST-20100101-0022"',1;
+select is(public.phase4_pupil_history(pg_temp.card(1)||'{"page":1}')->'body'->'entries'->0->'before','null'::jsonb,'history old identity masked');
+select ok(position('TEST-' in public.phase4_pupil_history(pg_temp.card(1)||'{"page":1}')::text)=0,'history never includes any identity number');
+select pg_temp.read_actor(4);
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,3,'teacher exact dated class');
+select ok(not(public.phase4_pupil_card(pg_temp.card(2))->'body' ? 'birthDate'),'teacher no administrative fields');
+select throws_ok($q$select public.phase4_reveal_personal_number(pg_temp.card(2))$q$,'P0002','Pupil not found','teacher cannot reveal number');
+update public.pupil_class_memberships set ends_on=public.app_today()-1 where pupil_id=pg_temp.rid(403);
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,2,'ended teaching relation loses access');
+select pg_temp.read_actor(5);
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,1,'health explicit pupil only');
+select pg_temp.read_actor(6);
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,0,'case context required');
+select is((public.phase4_list_pupils(pg_temp.req()||jsonb_build_object('caseId',pg_temp.rid(700)))->'body'->>'count')::integer,1,'health explicit case only');
+select pg_temp.read_actor(7);
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,64,'school health scope');
+select ok(not has_function_privilege('skolplattform_worker','public.phase4_list_pupils(jsonb)','EXECUTE'),'new list closed until audited route');
+set local role skolplattform_worker;
+select throws_ok($q$select public.phase4_list_pupils('{}')$q$,'42501',null,'worker cannot call unaudited entrypoint');
+reset role;
 select * from finish();
 rollback;
