@@ -100,3 +100,29 @@ test('kontextbyte medan ett avsiktligt kontextbytes kropp läses avbryter även 
   setKnownEpoch(null); late.resolve({ selected: true });
   await assert.rejects(result, { name: 'AbortError' });
 });
+
+test('fördröjt exportfel efter utloggning avbryts före details', async () => {
+  setKnownEpoch(1); const late = deferred();
+  globalThis.fetch = async () => late.promise;
+  const result = api.downloadPost('/api/elever/export', {});
+  setKnownEpoch(null); late.resolve(response({ code: 'conflict', details }, 409));
+  await assert.rejects(result, { name: 'AbortError' });
+});
+
+test('401 behåller ApiError och avbryter andra pågående svar', async () => {
+  setKnownEpoch(1); const late = deferred();
+  globalThis.fetch = async path => path === '/api/current' ? response({ code: 'session_expired' }, 401) : late.promise;
+  const old = api.get('/api/old');
+  await assert.rejects(api.get('/api/current'), e => e instanceof ApiError && e.status === 401);
+  late.resolve(response({ pupil: 'Test' }));
+  await assert.rejects(old, { name: 'AbortError' });
+});
+
+test('första epoch accepteras och fel utan objektkropp blir generiska', async () => {
+  globalThis.fetch = async () => response({ ready: true });
+  assert.deepEqual(await api.get('/api/test'), { ready: true });
+  for (const body of [null, 'private value']) {
+    globalThis.fetch = async () => response(body, 400);
+    await assert.rejects(api.get('/api/test'), e => e instanceof ApiError && e.code === 'bad_request' && e.details === null);
+  }
+});
