@@ -4,7 +4,7 @@
 
 **Milestone:** v1.0 — Säker administration inför en pilot
 
-**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1 är genomförd och verifierad; fas 2 planeras.
+**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 är planerad och väntar genomförande.
 
 **Granularity:** standard
 
@@ -12,10 +12,10 @@ Den befintliga appen utvecklas stegvis till en avgränsad pilot: först en åter
 
 ## Phases
 
-Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och verifierades 2026-09-12 i `01-VERIFICATION.md`; fas 2 planeras och övriga faser är inte genomförda.
+Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och verifierades 2026-09-12 i `01-VERIFICATION.md`; fas 2 verifierades 2026-09-21 och fas 3 stängdes efter mänsklig verifiering 2026-09-28. Fas 4 planeras; fas 4–8 är inte genomförda.
 
 - [x] **Phase 1: Baslinje och avskild pilotmiljö** - Befintliga arbetsflöden går att pröva och återställa inom en tydlig pilotgräns. (completed 2026-09-12)
-- [ ] **Phase 2: Verifierad kontoåtkomst** - Konton, arbetskontext och sessionsspärr styr den första spårbara skyddade operationen.
+- [x] **Phase 2: Verifierad kontoåtkomst** - Konton, arbetskontext och sessionsspärr styr den första spårbara skyddade operationen.
 - [x] **Phase 3: Mandat och skyddade datavägar** - Huvudman, rektor och personal får endast sitt aktuella mandat med kontrollerbar säkerhetslogg. (completed 2026-09-28)
 - [ ] **Phase 4: Beständigt och skyddat elevregister** - Behörig administration kan söka, ändra, följa och exportera rätt elever.
 - [ ] **Phase 5: Bevarade utbildnings- och klassflöden** - Uppskattade skol-, utbildnings- och kullflöden fungerar med den nya säkerhetsgrunden.
@@ -116,7 +116,32 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 4. Behörig personal kan genomföra pilotens fastställda arbetsfall med en skyddad syntetisk elev. Obehöriga läsvägar, sökträffar, fel och aviseringar röjer varken skyddade uppgifter eller metadata. (DATA-01)
 5. Administratören kan exportera ett uttryckligt elevurval med endast tillåtna fält. Serverns behörighetskontroll, aktuella spärrar, skyddsregler och loggning gäller även om exporten anropas direkt. (DATA-02)
 
-**Plans**: TBD
+**Plans**: 22 planer i 15 vågor — planstrukturen granskad 2026-09-28; genomförande och beteendeverifiering återstår.
+
+- [ ] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
+- [ ] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
+- [ ] 04-03-PLAN.md — Flytta provrelationer och inför huvudmannens skyddsbehörighet (våg 3)
+- [ ] 04-04-PLAN.md — Implementera serverurval och fältprojektion (våg 4)
+- [ ] 04-05-PLAN.md — Spara datumändringar med konflikter och historik (våg 5)
+- [ ] 04-06-PLAN.md — Skydda lokal rättelse mot simulerad källa (våg 6)
+- [ ] 04-07-PLAN.md — Transportera säkra fel och stoppa gamla svar (våg 2)
+- [ ] 04-08-PLAN.md — Utöka obligatorisk minimerad registerlogg (våg 2)
+- [ ] 04-09-PLAN.md — Koppla läs-API till registerprojektionen (våg 5)
+- [ ] 04-10-PLAN.md — Öppna ändring, personnummer och export via skyddat API (våg 7)
+- [ ] 04-11-PLAN.md — Gör skyddsbehörighet hanterbar för huvudmannen (våg 4)
+- [ ] 04-12-PLAN.md — Bygg lista, läsår och säkert urval (våg 6)
+- [ ] 04-13-PLAN.md — Bygg elevkort och ändringsdialoger (våg 8)
+- [ ] 04-14-PLAN.md — Porta första delen av SQL-regressionen (våg 7)
+- [ ] 04-15-PLAN.md — Porta resterande SQL och lokala fixturer (våg 8)
+- [ ] 04-16-PLAN.md — Skapa fullständiga registerprov och syntetiska scenarion (våg 10)
+- [ ] 04-17-PLAN.md — Avveckla elevprovet utan alternativa datavägar (våg 9)
+- [ ] 04-18-PLAN.md — Porta tidigare API- och browserbevis (våg 11)
+- [ ] 04-19-PLAN.md — Verifiera hela elevflödet i webbläsare (våg 12)
+- [ ] 04-20-PLAN.md — Bygg fullständig fasgrind och beviskarta (våg 13)
+- [ ] 04-21-PLAN.md — Uppdatera handboken med prövat registerbeteende (våg 14)
+- [ ] 04-22-PLAN.md — Genomför användarprov och redovisa fasens gräns (våg 15)
+
+Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 **UI hint**: yes
 
 ### Phase 5: Bevarade utbildnings- och klassflöden
@@ -203,13 +228,13 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
+| 4. Beständigt och skyddat elevregister | 0/22 | Planned | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
 
-**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Övriga 33 krav inväntar genomförande och verifiering.
+**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-27 — fas 1–2 verifierade; fas 3 har alla sju planer genomförda och väntar fasverifiering.*
+*Last updated: 2026-09-28 — fas 1–3 verifierade lokalt syntetiskt; fas 4 är planerad och väntar genomförande.*

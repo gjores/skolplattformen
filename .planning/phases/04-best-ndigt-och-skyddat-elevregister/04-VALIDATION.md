@@ -38,22 +38,68 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Fylls i av planerna (Task ID → kommando). Kravkarta från research:
+Verifieringskartan nedan anger planerade kontroller. Inga fas 4-prov har körts vid planeringen; alla resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
-| Requirement | Test Type | Automated Command | File Exists | Status |
-|-------------|-----------|-------------------|-------------|--------|
-| STU-01 | API + browser + pgTAP | `verify-register.mjs --case register-reload`; `phase4_register.test.sql` | ❌ W0 | ⬜ pending |
-| STU-02 | modell + pgTAP + API | `pupil-register-model.test.mjs`; `phase4_periods.test.sql`; `--case placement-change` | ❌ W0 | ⬜ pending |
-| STU-03 | pgTAP + API + browser | `phase4_periods.test.sql`; `--case class-change` | ❌ W0 | ⬜ pending |
-| STU-04 | pgTAP + API + browser | `phase4_register.test.sql`; `phase4-simulated-source.mjs`; `--case source-discrepancy` | ❌ W0 | ⬜ pending |
-| STU-05 | modell + API + browser | `pupil-register-model.test.mjs`; `--case search-filter` | ❌ W0 | ⬜ pending |
-| STU-06 | modell + pgTAP + två anslutningar + browser | `verify-register-locks.mjs`; `phase4_conflicts.test.sql`; `--case concurrent-edit` | ❌ W0 | ⬜ pending |
-| DATA-01 | pgTAP + API + browser | `phase4_protected.test.sql`; `--case protected-*` | ❌ W0 | ⬜ pending |
-| DATA-02 | modell + pgTAP + API + browser | `phase4_export.test.sql`; `--case export-*` | ❌ W0 | ⬜ pending |
-| Fas 3-regression | SQL + API + browser | `run-sql-tests.mjs` (alla), `verify-mandates.mjs` (portade fall) | ✅ måste portas | ⬜ pending |
-| Bevarandeflöden | DB-regression | `node work/pilot/verify-baseline-db.mjs` | ✅ | ⬜ pending |
+| Uppgift | Krav | Planerat kommando | Status |
+|---|---|---|---|
+| 04-01-01 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs` | Ej kört |
+| 04-01-02 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-02-01 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-periods.json` | Ej kört |
+| 04-02-02 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-register-schema.json` | Ej kört |
+| 04-03-01 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-migration.json` | Ej kört |
+| 04-03-02 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-permission.json` | Ej kört |
+| 04-04-01 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-projection.json` | Ej kört |
+| 04-04-02 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-export.json` | Ej kört |
+| 04-05-01 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-period-mutations.json` | Ej kört |
+| 04-05-02 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_conflicts.test.sql --out work/pilot/results/phase4-conflicts.json && node work/pilot/verify-register-locks.mjs` | Ej kört |
+| 04-06-01 | STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-source.json` | Ej kört |
+| 04-06-02 | STU-04, STU-06 | `node work/pilot/phase4-simulated-source.mjs --target protected && node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-source-cli.json` | Ej kört |
+| 04-07-01 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/mandates.test.mjs` | Ej kört |
+| 04-07-02 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/server/mandates.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-08-01 | DATA-01, DATA-02 | `cd web && node --test lib/server/events.test.mjs` | Ej kört |
+| 04-08-02 | DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register-audit.test.mjs lib/server/events.test.mjs` | Ej kört |
+| 04-09-01 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-09-02 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
+| 04-10-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-10-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-11-01 | DATA-01 | `cd web && node --test lib/server/protected-permission.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-11-02 | DATA-01 | `cd web && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
+| 04-12-01 | STU-01, STU-02, STU-05, DATA-01 | `cd web && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
+| 04-12-02 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/pupil-register-model.test.mjs lib/server-client.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-13-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
+| 04-13-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/pupil-register-model.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-14-01 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase4-regression-mandates.json && node work/pilot/run-sql-tests.mjs --file phase3_matrix.test.sql --out work/pilot/results/phase4-regression-matrix.json` | Ej kört |
+| 04-14-02 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_policy.test.sql --out work/pilot/results/phase4-regression-policy.json && node work/pilot/run-sql-tests.mjs --file phase3_temporal.test.sql --out work/pilot/results/phase4-regression-temporal.json` | Ej kört |
+| 04-15-01 | DATA-01, DATA-02, STU-01 | `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-all-sql.json` | Ej kört |
+| 04-15-02 | DATA-01, DATA-02, STU-01 | `node work/pilot/phase3-browser-fixtures.mjs --target protected && node work/pilot/phase3-browser-fixtures.mjs --target protected` | Ej kört |
+| 04-16-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `node work/pilot/phase4-browser-fixtures.mjs --target protected` | Ej kört |
+| 04-16-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `node --test work/pilot/verify-register.test.mjs && node work/pilot/verify-register.mjs --out work/pilot/results/phase4-api.json` | Ej kört |
+| 04-17-01 | DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-retire-sql.json` | Ej kört |
+| 04-17-02 | DATA-01, DATA-02 | `cd web && npx tsc --noEmit && npx oxlint app lib && npm run build:protected` | Ej kört |
+| 04-18-01 | DATA-01, DATA-02 | `node work/pilot/verify-mandates.mjs --out work/pilot/results/phase4-mandates-regression.json && node work/pilot/verify-access.mjs --out work/pilot/results/phase4-access-regression.json` | Ej kört |
+| 04-18-02 | DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.phase3.config.ts phase3-workspace --list && npx playwright test --config playwright.phase3.config.ts phase3-workspace && npx playwright test --config playwright.protected.config.ts phase3-mandates --list && npx playwright test --config playwright.protected.config.ts phase3-mandates --project=protected-desktop --project=protected-phone --project=protected-built` | Ej kört |
+| 04-19-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-desktop --project=protected-phone --project=protected-built` | Ej kört |
+| 04-19-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-phone` | Ej kört |
+| 04-20-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && node --test scripts/verify-phase4.test.mjs && npm run verify:phase4` | Ej kört |
+| 04-20-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npm run verify:phase4` | Ej kört |
+| 04-21-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build` | Ej kört |
+| 04-21-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build && cd web && npm run verify:phase4` | Ej kört |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+`04-22` är en separat mänsklig checkpoint efter full grön grind. Slutlig kravverifiering följer därefter genom gsd-verify-work. Saknad miljö eller underkänt prov är aldrig PASS.
+
+### Krav till bevis
+
+| Krav | Huvudsakliga bevisplaner |
+|---|---|
+| STU-01 | 04-02, 04-09, 04-16, 04-19 |
+| STU-02, STU-03 | 04-05, 04-13, 04-16, 04-19 |
+| STU-04 | 04-06, 04-13, 04-16, 04-19 |
+| STU-05 | 04-04, 04-12, 04-16, 04-19 |
+| STU-06 | 04-05, 04-07, 04-13, 04-16, 04-19 |
+| DATA-01 | 04-03, 04-04, 04-08, 04-11, 04-16–19 |
+| DATA-02 | 04-04, 04-10, 04-13, 04-16, 04-19 |
+
+Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. Äldre behörighets- och bevarandefall måste köras om, inte tillgodoräknas historiska gröna resultat.
 
 ---
 

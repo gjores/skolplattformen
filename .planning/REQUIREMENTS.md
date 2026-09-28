@@ -154,7 +154,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | OPS-03 | Phase 8 | Pending |
 | OPS-04 | Phase 8 | Pending |
 
-**Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. 39 krav är Pending; BASE-01, BASE-02 och PILOT-01 är verifierade i fas 1.
+**Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. 27 krav är Pending; 15 krav är verifierade i fas 1–3 (lokal syntetisk nivå, se respektive VERIFICATION.md).
 
 ## Acceptance Boundaries
 
