@@ -34,7 +34,7 @@ requirements-finally-verified: []
 |---|---|
 | RED: arbetsytans egna AbortSignal | Förväntat rött före transportändring |
 | `node --test lib/pupil-register-model.test.mjs lib/server-client.test.mjs` | PASS 35/35 efter ändring |
-| `npx tsc --noEmit && npx oxlint app lib` | PASS under implementation; slutkontroll efter sista livscykelrättningar pågår hos orkestrator |
+| `npx tsc --noEmit && npx oxlint app lib` | PASS efter livscykelrättningar; sista avgränsade fix för läsårsbyte från annan vy följs av orkestratorns slutkontroll |
 | Browser, dator/telefon | Väntar orkestratorns riktade prov; inte PASS |
 | Full fasgrind/UI-grind | Kvarstår i 04-19/04-21 |
 

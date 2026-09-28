@@ -32,6 +32,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { contextLabel } from '@/lib/access-rules.ts';
+import { selectionFromQuery, selectionToQuery } from '@/lib/pupil-register-model.ts';
 import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client.ts';
 import { announce, onSessionMessage, shouldLock, type LockReason } from '@/lib/session-channel.ts';
 import {
@@ -360,7 +361,14 @@ function ProtectedShell() {
           <div className="breadcrumbs"><SidebarTrigger aria-label="Visa eller dölj navigation" /><span>Arbetsyta</span><strong>{currentTitle}</strong></div>
           <div className="top-actions">
             <span className="demo-pill">Skyddad provmiljö</span>
-            {validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={setSchoolYear} />}
+            {validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
+              setSchoolYear(year);
+              if (view !== 'elever' && registerSetup.scope.schools[0]) {
+                const defaults = { schoolYear: year, unitId: registerSetup.scope.schools[0].id, classId: null, educationId: null, grade: null, status: null, page: 1 };
+                const current = selectionFromQuery(window.location.search, defaults) ?? defaults;
+                window.history.pushState(null, '', selectionToQuery({ ...current, schoolYear: year, page: 1 }));
+              }
+            }} />}
             {contextControl}
             <Button variant="ghost" onClick={() => void logout()}>Logga ut</Button>
             <Button variant="ghost" size="icon" aria-label="Om den skyddade provmiljön" onClick={() => setHelp(true)}><LifeBuoy size={19} /></Button>
