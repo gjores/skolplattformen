@@ -38,7 +38,7 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04, 04-05, 04-06, 04-07, 04-08, 04-09, 04-10, 04-11, 04-12 och 04-14 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter 04-14 är FAIL (16 filer, 1081 passerade assertions): två äldre fas 3-fixturer (`phase3_boundaries`, `phase3_connections`) behöver portning enligt 04-15; se 04-14-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04, 04-05, 04-06, 04-07, 04-08, 04-09, 04-10, 04-11, 04-12, 04-13, 04-14, 04-15 och 04-23 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter 04-15 är PASS (16/16 filer, 1161 assertions, lokalt protected-mål, syntetiska data); se 04-15-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
@@ -70,8 +70,8 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04,
 | 04-13-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/pupil-register-model.test.mjs && npx tsc --noEmit` | PASS 41/41 modell/transport + typkontroll; alla node-prov 389/389; export/MFA i dialog browserprovat till mfa_required, konfliktvy (409) endast typ-/modellprovad; se 04-13-SUMMARY |
 | 04-14-01 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_mandates.test.sql --out work/pilot/results/phase4-regression-mandates.json && node work/pilot/run-sql-tests.mjs --file phase3_matrix.test.sql --out work/pilot/results/phase4-regression-matrix.json` | PASS mandates 279/279, matrix 56/56 mot registret; se 04-14-SUMMARY |
 | 04-14-02 | DATA-01, STU-01 | `node work/pilot/run-sql-tests.mjs --file phase3_policy.test.sql --out work/pilot/results/phase4-regression-policy.json && node work/pilot/run-sql-tests.mjs --file phase3_temporal.test.sql --out work/pilot/results/phase4-regression-temporal.json` | PASS policy 105/105, temporal 34/34 mot registret; se 04-14-SUMMARY |
-| 04-15-01 | DATA-01, DATA-02, STU-01 | `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-all-sql.json` | Ej kört |
-| 04-15-02 | DATA-01, DATA-02, STU-01 | `node work/pilot/phase3-browser-fixtures.mjs --target protected && node work/pilot/phase3-browser-fixtures.mjs --target protected` | Ej kört |
+| 04-15-01 | DATA-01, DATA-02, STU-01 | `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-all-sql.json` | PASS 2026-09-28: 16/16 filer, 1161 assertions (boundaries 41, connections 19, audit 19); före: FAIL, 1095 assertions, 2 avbrutna filer |
+| 04-15-02 | DATA-01, DATA-02, STU-01 | `node work/pilot/phase3-browser-fixtures.mjs --target protected && node work/pilot/phase3-browser-fixtures.mjs --target protected` | PASS 2026-09-28: båda körningarna exit 0 med identisk utdata (registerrelationer 2/2/2/2/2, 10 aktiva uppdrag, 0 skyddsbehörigheter); inga nya elevprovsrader |
 | 04-16-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `node work/pilot/phase4-browser-fixtures.mjs --target protected` | Ej kört |
 | 04-16-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `node --test work/pilot/verify-register.test.mjs && node work/pilot/verify-register.mjs --out work/pilot/results/phase4-api.json` | Ej kört |
 | 04-17-01 | DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-retire-sql.json` | Ej kört |

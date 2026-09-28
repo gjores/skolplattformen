@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
-current_plan: 04-15
+current_plan: 04-17
 status: executing
-stopped_at: Completed 04-13-PLAN.md
-last_updated: "2026-09-28T14:07:24.012Z"
+stopped_at: Completed 04-15-PLAN.md
+last_updated: "2026-09-28T14:16:29.529Z"
 last_activity: 2026-09-28
-last_activity_desc: 04-13 genomförd — elevkort, ändringsdialoger, konfliktvy, källavvikelse och exportdialog; riktat browserprov 9/9 dator/telefon mot byggd Worker (utan lyckade mutationer); nästa 04-15 i våg 8.
-state_head: 6e9a6098741ddc25e676c99533c4d94ae5b0414d
+last_activity_desc: 04-15 genomförd — phase3_audit/boundaries/connections portade; full SQL 16/16 filer, 1161 assertions PASS; fas 3-fixturerna återkörbara mot registret (två identiska körningar); våg 8 klar, nästa 04-17 i våg 9.
+state_head: ba6276d59f6e0fd3a57f6debcb9a0fd3838191de
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 52
-  completed_plans: 44
+  completed_plans: 45
 milestone_name: milestone
 ---
 
@@ -25,35 +25,35 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 4 — våg 8 pågår. 04-13 klar: elevkort, ändringsdialoger, konflikt och export är byggda och riktat browserprovade. Nästa: 04-15. Full SQL-grind är röd på två äldre fixturer tills 04-15 är klar.
+**Current focus:** Fas 4 — våg 8 klar (04-13, 04-15). Full SQL-regression är grön igen (16/16 filer, 1161 assertions, lokalt syntetiskt). Nästa: 04-17 i våg 9 (avveckla elevprovet).
 
 ## Current Position
 
-Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 15 av 23 planer klara
-Plan: 04-01–04-14 och 04-23 klara; nästa i våg 8: 04-15
+Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 16 av 23 planer klara
+Plan: 04-01–04-15 och 04-23 klara; våg 8 klar; nästa i våg 9: 04-17
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 04
 **Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** 04-15 (våg 8)
+**Current Plan:** 04-17 (våg 9)
 **Total Plans in Phase:** 23
-**Status:** Executing (04-13 klar; boundaries/connections-fixturerna återstår att porta i 04-15)
+**Status:** Executing (våg 8 klar; full SQL-grind grön; nästa 04-17)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-28
-**Last Activity Description:** 04-13 genomförd: elevkort i samma main, sex ändringsdialoger med sann sparstatus, konfliktval per uppgift, periodkonflikt, källavvikelse och exportdialog med serverns förhandsprövning; node 389/389, tsc/lint/build PASS, riktat browserprov 9/9 (dator, telefon 390 och 320 px) och listregression 13/13 mot byggd Worker. Lyckad sparning, verklig 409 och nedladdad fil ej browserprovade (p3.admin saknar engångskod) — 04-16/04-19. Skyddade elever utelämnas alltid ur exporten tills listan får skyddsflagga per rad. Tidigare: 04-23 genomförd: migration 20260929170000 ger Worker EXECUTE på exakt de fyra registerfunktionerna; ACL-fixturer register 162, periods 101, export 22 PASS; full SQL 14/16 filer ok (kvar phase3_boundaries/connections, 04-15); verkligt Worker-prov 9/9 PASS (lokalt mintade sessioner, testrealmens bevisprofil). Icke-deterministiskt Wrangler-avbrott på nekade anrop (5 av 11 körningar) står i fasens deferred-items. Tidigare: 04-14 genomförd: fas 3-fixturerna mandates 279, matrix 56, policy 105 och temporal 34 assertions PASS mot registret (lokalt, syntetiskt). Full SQL 1081 passerade men FAIL på phase3_boundaries/phase3_connections (04-15). Worker-EXECUTE för ändring/källa/personnummer/export öppnades därefter i 04-23.
+**Last Activity Description:** 04-15 genomförd: phase3_boundaries (41), phase3_connections (19) och phase3_audit (19) portade till registret med nya fas 4-gränser (elevhälsoansvarig/IT utan registerläsning, support bara namngiven elev, underhållsrollen utan registeråtkomst, gallring rör inte registerhistorik); full SQL 16/16 filer, 1161 assertions PASS. phase3-fixtures.sql och phase3-browser-fixtures.mjs skriver till registret med samma ID, läser referensdata efter assertTarget och gav identiska antal i två körningar utan ny skyddsbehörighet. Inga kontraktsändringar. Tidigare: 04-13 genomförd: elevkort i samma main, sex ändringsdialoger med sann sparstatus, konfliktval per uppgift, periodkonflikt, källavvikelse och exportdialog med serverns förhandsprövning; node 389/389, tsc/lint/build PASS, riktat browserprov 9/9 (dator, telefon 390 och 320 px) och listregression 13/13 mot byggd Worker. Lyckad sparning, verklig 409 och nedladdad fil ej browserprovade (p3.admin saknar engångskod) — 04-16/04-19. Skyddade elever utelämnas alltid ur exporten tills listan får skyddsflagga per rad. Tidigare: 04-23 genomförd: migration 20260929170000 ger Worker EXECUTE på exakt de fyra registerfunktionerna; ACL-fixturer register 162, periods 101, export 22 PASS; full SQL 14/16 filer ok (kvar phase3_boundaries/connections, 04-15); verkligt Worker-prov 9/9 PASS (lokalt mintade sessioner, testrealmens bevisprofil). Icke-deterministiskt Wrangler-avbrott på nekade anrop (5 av 11 körningar) står i fasens deferred-items. Tidigare: 04-14 genomförd: fas 3-fixturerna mandates 279, matrix 56, policy 105 och temporal 34 assertions PASS mot registret (lokalt, syntetiskt). Full SQL 1081 passerade men FAIL på phase3_boundaries/phase3_connections (04-15). Worker-EXECUTE för ändring/källa/personnummer/export öppnades därefter i 04-23.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 44 av 52 hittills skrivna planer genomförda; fas 4 har 15 av 23. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 45 av 52 hittills skrivna planer genomförda; fas 4 har 16 av 23. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 43
+- Total plans completed: 44
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -91,6 +91,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 | Phase 04 P14 | ca 35min | 2 tasks | 4 files |
 | Phase 04 P23 | ca 35min | 2 tasks | 5 files |
 | Phase 04 P13 | 22min | 2 tasks | 10 files |
+| Phase 04 P15 | 20min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -143,10 +144,12 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 04]: 04-13: Elevkortet hålls i arbetsytans minne; elev-ID aldrig i adressen
 - [Phase 04]: 04-13: Konfliktval skickar bara uttryckligt valt eget värde; sparat värde förvalt och skrivs inte
 - [Phase 04]: 04-13: Export skickar protectedIds=[] tills listan får skyddsflagga per rad; skyddade elever utelämnas
+- [Phase 04]: 04-15: phase3_boundaries/-connections/-audit portade utan kontraktsändringar; nya fas 4-gränsprov är tillägg
+- [Phase 04]: 04-15: phase3-fixtures.sql skriver inte i phase3_probe_pupils/-groups/-group_members; placering/klassmedlemskap skapas bara för elev utan sådan rad, inget raderas
 
 ## Pending Todos
 
-- Nästa steg: våg 8, `04-15` (04-13 klar: elevkort/dialoger/export, se `04-13-SUMMARY.md`; 04-23 klar: Worker-körrätt öppnad och Worker-provad 9/9; se `04-23-SUMMARY.md` och `deferred-items.md` om Wrangler-avbrott på nekade anrop). Våg 1–7 är genomförda och ska inte göras om; se `04-WAVE-06-SUMMARY.md`, `04-10-SUMMARY.md` och `04-14-SUMMARY.md`. 04-14: mandates/matrix/policy/temporal PASS mot registret; full SQL 1081 passerade men FAIL på `phase3_boundaries` och `phase3_connections` (04-15). Modell/server 372/372, riktade registerbrowserfall 13/13 samt auth 2/2 och utloggningsomprov 1/1 PASS. Efter 04-14 är två äldre fas 3-fixturer övergångsröda och ägs av 04-15; full fasgrind är inte godkänd. Huvudmannens dialog är lokalt prövad på dator och telefon; samlad användarverifiering återstår enligt fasplanen. Fas 3 är stängd med `03-VERIFICATION.md` och `03-HUMAN-UAT.md` (2026-09-28); ACL-02–05 och AUDIT-02–03 är verifierade lokalt syntetiskt. Öppna externa beroenden kvarstår.
+- Nästa steg: våg 9, `04-17` (avveckla elevprovet utan alternativa datavägar). Våg 1–8 är genomförda och ska inte göras om; se `04-WAVE-07-SUMMARY.md`, `04-13-SUMMARY.md`, `04-15-SUMMARY.md` och `04-23-SUMMARY.md` (Wrangler-avbrott på nekade anrop i `deferred-items.md`). 04-15: full SQL-regression PASS 16/16 filer, 1161 assertions; fas 3-fixturerna återkörbara mot registret. `verify-mandates.mjs` lägger fortfarande egna tillfälliga rader i elevprovet (`setupTemporary`) och dess API-fall ägs av 04-18. Full fasgrind (04-21), E2E (04-16), UI-grind (04-19) och samlad användarverifiering återstår. Fas 3 är stängd med `03-VERIFICATION.md` och `03-HUMAN-UAT.md` (2026-09-28); ACL-02–05 och AUDIT-02–03 är verifierade lokalt syntetiskt. Öppna externa beroenden kvarstår.
 - 8 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 
 ## Blockers
@@ -172,7 +175,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-09-28T14:07:23.811Z
-**Stopped At:** Completed 04-13-PLAN.md
+**Stopped At:** Completed 04-15-PLAN.md
 **Resume File:** None
 
 **Planned Phase:** 4 (Beständigt och skyddat elevregister) — 22 planer i 15 vågor — 2026-09-28
