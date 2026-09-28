@@ -10,6 +10,12 @@
 //
 // Lösenord slumpas och sparas endast i work/pilot/targets/protected/idp/
 // phase3-users.json (0600, gitignorerad). Inga lösenord eller tokens skrivs ut.
+//
+// 04-15: relationsgrunden ligger i det beständiga elevregistret (pupils,
+// school_classes, daterade placeringar och klassmedlemskap) med samma ID som i
+// fas 3. Gemensam referensdata (kommuner, syntetnummer) läses in efter målskyddet.
+// Skriptet är idempotent: befintliga mandat återanvänds, inget raderas och inga
+// konton får skyddsbehörighet. Utdata innehåller bara antal, aldrig elevvärden.
 // Kör: node work/pilot/phase3-browser-fixtures.mjs --target protected
 
 import { execFileSync } from 'node:child_process';
@@ -87,7 +93,12 @@ function readSecrets() {
 }
 
 try {
+  psql(fs.readFileSync(path.join(root, 'work/pilot/sql/phase4-reference-data.sql'), 'utf8'));
   psql(fs.readFileSync(path.join(root, 'work/pilot/sql/phase3-fixtures.sql'), 'utf8'));
+  // Skyddsbehörighet ges bara av huvudmannen i registret, aldrig av fixturen.
+  const protectedPermissions = () => Number(psql(`select count(*) from public.protected_identity_permissions p
+    join public.access_assignments a on a.id=p.assignment_id where a.customer_id=:'customer'::uuid and p.revoked_at is null`, { customer: CUSTOMER }));
+  const protectedBefore = protectedPermissions();
   const admin = await keycloak('/realms/master/protocol/openid-connect/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -169,6 +180,29 @@ try {
     if (psql("select public.phase3_mandate_is_valid(:'id'::uuid)::text", { id }) !== 'true') throw new Error(`mandatet för ${key} är inte giltigt`);
   }
 
+  // Registerrelationerna ska vara oförändrade mellan körningar (endast antal, inga värden).
+  const count = (sql, vars = {}) => Number(psql(sql, { customer: CUSTOMER, ...vars }));
+  const relations = {
+    pupils: count("select count(*) from public.pupils where customer_id=:'customer'::uuid and id::text like '33000000-%'"),
+    placements: count("select count(*) from public.pupil_placements where customer_id=:'customer'::uuid and pupil_id::text like '33000000-%'"),
+    classes: count("select count(*) from public.school_classes where customer_id=:'customer'::uuid and id::text like '33000000-%'"),
+    classMemberships: count("select count(*) from public.pupil_class_memberships where customer_id=:'customer'::uuid and pupil_id::text like '33000000-%'"),
+    cases: count("select count(*) from public.phase3_probe_cases where customer_id=:'customer'::uuid and id::text like '33000000-%'"),
+    assignments: count(`select count(*) from public.access_assignments a join public.memberships m on m.id=a.membership_id
+      where a.customer_id=:'customer'::uuid and m.id=any(string_to_array(:'members',',')::uuid[]) and a.ended_at is null`, { members: Object.values(bound).map((user) => user.membership).join(',') }),
+  };
+  // Mandatens objekt ska vara registerobjekt: lärarens klass och elevhälsans elev.
+  const registerBound = count(`select (select count(*) from public.mandate_groups g join public.school_classes c on c.id=g.group_id and c.unit_id=g.unit_id
+      where g.assignment_id=:'teacher'::uuid and g.group_id=:'group'::uuid)
+    + (select count(*) from public.mandate_pupils p join public.pupils r on r.id=p.pupil_id and r.customer_id=p.customer_id
+      where p.assignment_id=:'pupilScope'::uuid and p.pupil_id=:'pupil'::uuid)
+    + (select count(*) from public.pupil_placements pp where pp.pupil_id=:'pupil'::uuid and pp.unit_id=:'unit'::uuid
+      and pp.starts_on<=public.app_today() and (pp.ends_on is null or pp.ends_on>=public.app_today()))`,
+    { teacher: assignments.larare, group: GROUP, pupilScope: assignments['elevhalsa-elev'], pupil: PUPIL, unit: UNIT });
+  if (registerBound !== 3) throw new Error('fixturens mandat är inte bundna till aktuella registerobjekt');
+  const protectedAfter = protectedPermissions();
+  if (protectedAfter > protectedBefore) throw new Error('fixturen gav skyddsbehörighet');
+
   // Playwright-hjälparen läser TOTP-kravet ur manifestets användarlista.
   const manifestPath = path.join(manifest.workdir, 'manifest.json');
   const stored = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -177,7 +211,7 @@ try {
     ...Object.values(bound).map((user) => ({ username: user.username, subject: user.subject, email: user.email, totp: user.totp })),
   ];
   fs.writeFileSync(manifestPath, `${JSON.stringify(stored, null, 2)}\n`, { mode: 0o600 });
-  console.log(JSON.stringify({ status: 'OK', target: 'protected', customer: CUSTOMER, users: PHASE3_USERS.map((user) => user.username), assignments: Object.keys(assignments) }));
+  console.log(JSON.stringify({ status: 'OK', target: 'protected', customer: CUSTOMER, users: PHASE3_USERS.map((user) => user.username), assignments: Object.keys(assignments), relations, protectedPermissions: protectedAfter }));
 } finally {
   if (pgpass) fs.rmSync(pgpass, { force: true });
 }
