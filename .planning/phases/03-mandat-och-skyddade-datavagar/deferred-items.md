@@ -13,3 +13,8 @@
 
 7. **Workern i access-regressionen stannade igen** i grindkörningen på 4fb5773. Fallet `mfa-kravs` fick HTTP 500, och därefter gav alla fall `fetch failed`. Fristående körning direkt efteråt gav 16/16, och nästa hela grindkörning (278f235) gav PASS. Mönstret är detsamma som i punkt 2 och 6. Workerns utskrift sparas nu privat i `work/pilot/targets/protected/logs/verify-access-worker.log` (gitignorerad) och kan granskas nästa gång felet uppträder. Orsaken är inte fastställd.
 8. **Konton utan engångskod kan inte registrera en kod från plattformen.** Efter användarbeslutet 2026-09-27 tvingar IdP:n inte fram registrering. Ett administrativt konto utan kod får vid step-up beskedet att koden saknas. Hur registrering ska ordnas för sådana konton i piloten (kommunens IdP) är ett öppet beslut.
+
+## 2026-09-28 — fynd vid användarens loggfelsprov
+
+- **Inloggning från localhost ger `login_state_invalid`.** Återkomst-URI är `http://127.0.0.1:3000/api/auth/callback`; inloggningskakan `sp_login` sätts på den värd där inloggningen startade. Startar användaren på `localhost:3000` saknas kakan vid återkomsten. Rättning: `/api/auth/login` omdirigerar till den konfigurerade origin (`OIDC_REDIRECT_URI`) innan state och kaka skapas; prov för localhost→127.0.0.1. Ägare: nästa arbetsomgång (fas 4 eller separat snabbfix).
+- **Förhandsvisningen avvisade sin egen giltiga inloggningskaka** efter ~17 h drift (återskapat med curl: rätt kaka → state null). Omstart löste det. Orsak okänd. Hör till samma utredning som Workern som slutat svara (punkt 2 och 6).
