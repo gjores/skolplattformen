@@ -13,8 +13,9 @@ const fixture = globalThis.__registerTest = {
   async context(_ctx, fn) {
     const before = state.granted;
     const count = state.events.length;
+    const mutations = state.mutations.length;
     try { return await fn(fixture.tx, { sessionId:id, identityId:id, assignmentId:id, membershipId:id, customerId:id, correlationId:id, identity:{issuer,subject:'synthetic'}, accessFunction:state.fn, epoch:1, mfa:{issuer,clientId,audience:[clientId],profileId:'local-keycloak-admin',profileVersion:1,acr:'2',amr:state.mfa ? ['pwd','otp'] : ['pwd'],authTime:new Date(Date.now()-1000),checkedAt:new Date(Date.now()-500)} }); }
-    catch (error) { state.granted=before; state.events.length=count; throw error; }
+    catch (error) { state.granted=before; state.events.length=count; state.mutations.length=mutations; throw error; }
   },
   tx: async (strings,...values) => {
     const sql=strings.join('?');
@@ -24,7 +25,7 @@ const fixture = globalThis.__registerTest = {
       state.events.push({action:values[8],outcome:values[11],details:values[12]}); return [];
     }
     state.calls.push({sql,values});
-    if (sql.includes('phase4_')) { if(state.sqlError) throw state.sqlError; return [{result:state.result}]; }
+    if (sql.includes('phase4_')) { if(state.sqlError) throw state.sqlError; if(/phase4_(change_pupil|resolve_source)/u.test(sql)) state.mutations.push(values[0]); return [{result:state.result}]; }
     throw new Error('unexpected test query');
   },
 };
@@ -41,12 +42,14 @@ const {POST} = await import('../../app/api/elever/lista/route.ts');
 const {GET:card} = await import('../../app/api/elever/elev/route.ts');
 const {GET:selectionRoute} = await import('../../app/api/elever/urval/route.ts');
 const {GET:history} = await import('../../app/api/elever/historik/route.ts');
+const {POST:change} = await import('../../app/api/elever/andra/route.ts');
+const {POST:reveal} = await import('../../app/api/elever/personnummer/route.ts');
 const selection={schoolYear:2026,unitId:id,classId:null,educationId:null,grade:null,status:null,page:1};
 const input=()=>({selection:{...selection},search:'',caseId:null});
 const caps={canEdit:false,canExport:false,canRevealPersonalNumber:false,canReadHistory:false};
 const pupil=()=>({id,displayName:'Anonym elev',unitId:id,unitName:'Provskola',classId:null,className:null,educationId:id,educationName:'Provutbildning',grade:1,status:'aktuell',capabilities:{...caps}});
 const list=()=>({pupils:[pupil()],scope:{schools:[{id,name:'Provskola'}],groups:[],cases:[]},options:{schools:[{id,name:'Provskola'}],classes:[],educations:[],grades:[1],statuses:['aktuell']},capabilities:{...caps,canReadProtected:false},count:1,page:1,pageSize:50});
-function reset(body=list()) { state={fn:'administrator',mfa:true,granted:false,auditFails:false,calls:[],events:[],result:{kind:'success',body,auditRefs:[]}}; }
+function reset(body=list()) { state={fn:'administrator',mfa:true,granted:false,auditFails:false,calls:[],events:[],mutations:[],result:{kind:'success',body,auditRefs:[]}}; }
 function req(body=input(),origin='http://localhost') {return new Request('http://localhost/api/elever/lista',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Context-Epoch':'1'},body:JSON.stringify(body)});}
 function get(path='elev',extra='') {return new Request(`http://localhost/api/elever/${path}?pupilId=${id}&schoolYear=2026${extra}`,{headers:{'X-Context-Epoch':'1'}});}
 test('closed parsers reject actor, extra nested fields, bad dates/UUID/year/page and duplicate query',()=>{
@@ -77,14 +80,16 @@ test('same origin, functions, epoch and unknown/foreign SQL errors deny without 
 test('extra event and main event failure roll back the simulated transaction with no body',async()=>{
  for(const failAction of ['pupil_protected_read','pupil_list_read']) {reset();state.failAction=failAction;state.result.auditRefs=[{kind:'protected',pupilId:id}]; const r=await POST(req());assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);}
 });
-test('mutation adapter returns a typed audited conflict and never dispatches uninstalled resolve SQL',async()=>{
+test('mutation adapter returns a typed audited conflict and dispatches source resolution to its own SQL',async()=>{
  reset(); const input={pupilId:id,schoolYear:2026,caseId:null,expectedVersion:1,kind:'basics',payload:{displayName:'Ny elev'}};
  const details={kind:'fields',currentVersion:2,changedBy:id,changedAt:'2026-09-28T10:00:00Z',fields:[{field:'displayName',submitted:'Ny elev',current:'Aktuell elev'}]};
  state.result={kind:'conflict',details,auditRefs:[{kind:'protected',pupilId:id}]};
  const result=await fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,adapter.parsePupilChangeRequest(input)));
  assert.equal(result.status,409);assert.deepEqual(result.body,{code:'conflict',details});assert.equal(result.event.action,'pupil_conflict_read');assert.equal(state.events[0].outcome,'denied');assert.equal(state.events[1].action,'pupil_protected_read');
  state.result.details={...details,raw:'secret'};await assert.rejects(()=>fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,input)));
- state.calls=[];await assert.rejects(()=>fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,{...input,kind:'resolve-source',payload:{conflictId:id,choice:'source'}})));assert.equal(state.calls.length,0);
+ reset();state.result={kind:'success',body:{pupilId:id,version:3,warnings:[]},auditRefs:[]};
+ const resolved=await fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,{...input,kind:'resolve-source',payload:{conflictId:id,choice:'source'}}));
+ assert.equal(resolved.event.action,'pupil_source_resolved');assert.equal(state.calls.length,1);assert.match(state.calls[0].sql,/phase4_resolve_source/u);assert.doesNotMatch(state.calls[0].sql,/phase4_change_pupil/u);
 });
 test('response source conflicts mask identity and reject arbitrary nested values',async()=>{
  const origin={source:'manual',actorId:id,changedAt:'2026-09-28T10:00:00Z',localCorrection:false};
@@ -132,4 +137,84 @@ test('source decision history exposes only the explicit closed resolution value'
  }
  reset({entries:[{id,field:'displayName',before:null,after:null,changedBy:id,changedAt:origin.changedAt,origin,resolution:'secret'}],count:1,page:1,pageSize:20});
  assert.equal((await history(get('historik','&page=1'))).status,500);
+});
+
+// 04-10: skrivväg och uttrycklig personnummervisning.
+const changeInput=(extra={})=>({pupilId:id,schoolYear:2026,caseId:null,expectedVersion:1,kind:'basics',payload:{displayName:'Ny elev',personalNumber:'TEST-20100101-0006'},...extra});
+function post(path,body,origin='http://localhost') {return new Request(`http://localhost/api/elever/${path}`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Context-Epoch':'1'},body:typeof body==='string'?body:JSON.stringify(body)});}
+const saved=(version=2)=>({pupilId:id,version,warnings:[]});
+const fieldConflict={kind:'fields',currentVersion:2,changedBy:id,changedAt:'2026-09-28T10:00:00Z',fields:[{field:'displayName',submitted:'Ny elev',current:'Aktuell elev'}]};
+
+test('ändring sparas via stängd union med MFA, returnerar bara version och loggar ändringstyp före svar',async()=>{
+ reset(saved());const response=await change(post('andra',changeInput()));
+ assert.equal(response.status,200);const body=await response.json();assert.deepEqual(body,saved());
+ assert.equal(JSON.stringify(body).includes('TEST-'),false);assert.equal(response.headers.get('cache-control'),'no-store');
+ assert.equal(state.calls.length,1);assert.match(state.calls[0].sql,/phase4_change_pupil/u);assert.deepEqual(state.calls[0].values,[changeInput()]);
+ assert.deepEqual(state.events.map(e=>[e.action,e.outcome]),[['pupil_updated','ok']]);assert.equal(state.mutations.length,1);
+ for(const [kind,payload,action] of [['class',{placementId:id,classId:id,startsOn:'2026-08-15',endsOn:null},'pupil_class_changed'],['end-placement',{placementId:id,endsOn:'2027-06-30'},'pupil_placement_ended'],['resolve-source',{conflictId:id,choice:'local'},'pupil_source_resolved']]){
+  reset(saved(3));const r=await change(post('andra',changeInput({kind,payload})));assert.equal(r.status,200);assert.equal(state.events.at(-1).action,action);
+ }
+ reset({...saved(),warnings:['class-education-mismatch']});assert.deepEqual((await (await change(post('andra',changeInput()))).json()).warnings,['class-education-mismatch']);
+});
+
+test('ändring nekas utan MFA, främmande ursprung, rätt funktion eller stängt schema och når aldrig SQL',async()=>{
+ reset(saved());state.mfa=false;let r=await change(post('andra',changeInput()));assert.equal(r.status,403);assert.equal((await r.json()).code,'mfa_required');assert.equal(state.calls.length,0);
+ reset(saved());r=await change(post('andra',changeInput(),'https://foreign.example'));assert.equal(r.status,403);assert.equal(state.calls.length,0);
+ for(const fn of ['rektor','larare','elevhalsa','support','huvudman']){reset(saved());state.fn=fn;assert.equal((await change(post('andra',changeInput()))).status,403);assert.equal(state.calls.length,0);}
+ for(const body of [{...changeInput(),actorId:id},changeInput({kind:'create'}),changeInput({payload:{displayName:'Ny',source:'manual'}}),changeInput({expectedVersion:0}),'{not json']){reset(saved());r=await change(post('andra',body));assert.equal(r.status,400);assert.equal(state.calls.length,0);assert.equal(state.mutations.length,0);}
+});
+
+test('levande spärr och skydd prövas i SQL-transaktionen: nekande ger inga värden och ingen mutation',async()=>{
+ for(const [code,status,expected] of [['42501',403,'forbidden'],['P0002',404,'not_found'],['22023',400,'bad_request']]){
+  reset(saved());state.sqlError={code,detail:'Aktuell elev TEST-20100101-0006'};const r=await change(post('andra',changeInput()));
+  assert.equal(r.status,status);const text=await r.text();assert.equal(JSON.parse(text).code,expected);assert.equal(text.includes('Aktuell'),false);assert.equal(text.includes('TEST-'),false);
+  assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
+ }
+});
+
+test('versionskonflikt ger 409 med code och details, nekad skrivning och tillåten konfliktläsning, aldrig lyckad ändring',async()=>{
+ reset();state.result={kind:'conflict',details:fieldConflict,auditRefs:[{kind:'protected',pupilId:id}]};
+ const r=await change(post('andra',changeInput()));assert.equal(r.status,409);assert.deepEqual(await r.json(),{code:'conflict',details:fieldConflict});
+ assert.deepEqual(state.events.map(e=>[e.action,e.outcome]),[['pupil_updated','denied'],['pupil_protected_read','ok'],['pupil_conflict_read','ok']]);
+ assert.equal(state.events.some(e=>e.action==='pupil_updated'&&e.outcome==='ok'),false);assert.equal(JSON.stringify(state.events).includes('Aktuell'),false);
+ const system={...fieldConflict,changedBy:'Simulerad källa'};reset();state.result={kind:'conflict',details:system,auditRefs:[]};
+ assert.deepEqual(await (await change(post('andra',changeInput({kind:'resolve-source',payload:{conflictId:id,choice:'source'}})))).json(),{code:'conflict',details:system});
+ assert.deepEqual(state.events.map(e=>[e.action,e.outcome]),[['pupil_source_resolved','denied'],['pupil_conflict_read','ok']]);
+ for(const failAt of [1,2,3]){reset();state.failEventAt=failAt;state.result={kind:'conflict',details:fieldConflict,auditRefs:[{kind:'protected',pupilId:id}]};const denied=await change(post('andra',changeInput()));assert.equal(denied.status,500);const text=await denied.text();assert.equal(JSON.parse(text).code,'audit_unavailable');assert.equal(text.includes('Aktuell'),false);assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);}
+ reset();state.result={kind:'conflict',details:{...fieldConflict,raw:'Aktuell elev'},auditRefs:[]};const raw=await change(post('andra',changeInput()));assert.equal(raw.status,500);assert.equal((await raw.text()).includes('Aktuell'),false);
+});
+
+test('loggfel efter sparad SQL-ändring återställer mutation, historik och version i samma transaktion',async()=>{
+ for(const failAt of [1,2]){
+  reset(saved());state.failEventAt=failAt;state.result.auditRefs=failAt===2?[{kind:'protected',pupilId:id}]:[];
+  const r=await change(post('andra',changeInput()));assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');
+  assert.equal(state.calls.length,1);assert.equal(state.mutations.length,0);assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
+ }
+ reset(saved());state.result.body={...saved(),displayName:'Ny elev'};const extra=await change(post('andra',changeInput()));assert.equal(extra.status,500);assert.equal(state.mutations.length,0);
+});
+
+const revealBody=()=>({pupilId:id,schoolYear:2026,caseId:null});
+test('personnummer lämnas bara efter uttryckligt POST med MFA och egen visningshändelse varje gång',async()=>{
+ reset({pupilId:id,personalNumber:'TEST-20100101-0006'});state.result.auditRefs=[{kind:'personal-number',pupilId:id}];
+ for(const round of [1,2]){
+  const r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,200);assert.deepEqual(await r.json(),{pupilId:id,personalNumber:'TEST-20100101-0006'});assert.equal(r.headers.get('cache-control'),'no-store');
+  assert.equal(state.calls.length,round);assert.match(state.calls.at(-1).sql,/phase4_reveal_personal_number/u);
+ }
+ assert.deepEqual(state.events.map(e=>[e.action,e.outcome]),[['pupil_personal_number_read','ok'],['pupil_personal_number_read','ok'],['pupil_personal_number_read','ok'],['pupil_personal_number_read','ok']]);
+ assert.equal(JSON.stringify(state.events).includes('TEST-'),false);
+ reset({...pupil(),version:1,placements:[],classes:[],personalNumber:'TEST-20100101-0006'});const opened=await card(get());assert.equal(opened.status,500);assert.equal((await opened.text()).includes('TEST-'),false);
+ assert.equal(state.events.some(e=>e.action==='pupil_personal_number_read'),false);
+});
+
+test('personnummer nekas utan MFA, same-origin, administratör eller visningslogg och läcker inget nummer',async()=>{
+ const ready=()=>{reset({pupilId:id,personalNumber:'TEST-20100101-0006'});state.result.auditRefs=[{kind:'personal-number',pupilId:id}];};
+ ready();state.mfa=false;let r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,403);assert.equal((await r.json()).code,'mfa_required');assert.equal(state.calls.length,0);
+ ready();r=await reveal(post('personnummer',revealBody(),'https://foreign.example'));assert.equal(r.status,403);assert.equal(state.calls.length,0);
+ for(const fn of ['rektor','larare','elevhalsa','support']){ready();state.fn=fn;assert.equal((await reveal(post('personnummer',revealBody()))).status,403);assert.equal(state.calls.length,0);}
+ for(const body of [{...revealBody(),actorId:id},{pupilId:id},{...revealBody(),schoolYear:'2026'}]){ready();assert.equal((await reveal(post('personnummer',body))).status,400);assert.equal(state.calls.length,0);}
+ for(const failAt of [1,2]){ready();state.failEventAt=failAt;r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,500);assert.equal((await r.text()).includes('TEST-'),false);assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);}
+ ready();state.result.auditRefs=[];r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,500);assert.equal((await r.text()).includes('TEST-'),false);
+ ready();state.result.auditRefs=[{kind:'personal-number',pupilId:'33000000-0000-4000-8000-000000000002'}];r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,500);assert.equal((await r.text()).includes('TEST-'),false);
+ ready();state.result.body.personalNumber='19121212-1212';r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,500);assert.equal((await r.text()).includes('1212'),false);
+ ready();state.sqlError={code:'P0002'};r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,404);assert.equal((await r.json()).code,'not_found');
 });

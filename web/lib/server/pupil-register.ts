@@ -90,11 +90,16 @@ export async function exportPupils(tx:Tx,ctx:Context,input:ExportSelection,previ
  return auditRows(tx,ctx,rows,body,{action:preview?'pupil_export_preview':'pupil_exported',schoolYear:input.schoolYear,fields:input.fields});
 }
 
-/** No resolve-source/create dispatch until their SQL is installed by 04-06. */
+/** Closed ChangeRequest union only. Pupil creation has no SQL entrypoint in this
+ * phase and is rejected by the parser. SQL rechecks live mandate, block, protection
+ * and expectedVersion under the pupil lock; a typed conflict is returned (not
+ * thrown) so the denied write and the allowed conflict read commit together. */
 export async function changePupil(tx:Tx,ctx:Context,input:ChangeRequest){
- if(input.kind==='resolve-source')throw new Deny('bad_request',400);
- const actions={basics:'pupil_updated',municipality:'pupil_municipality_changed',transfer:'pupil_transferred',education:'pupil_education_changed','end-placement':'pupil_placement_ended',class:'pupil_class_changed'} as const;
- const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_change_pupil(${tx.json(input)}) as result`);
+ const actions={basics:'pupil_updated',municipality:'pupil_municipality_changed',transfer:'pupil_transferred',education:'pupil_education_changed','end-placement':'pupil_placement_ended',class:'pupil_class_changed','resolve-source':'pupil_source_resolved'} as const;
+ if(!Object.hasOwn(actions,input.kind))throw new Deny('bad_request',400);
+ const rows=await mandateOperation(()=>input.kind==='resolve-source'
+  ? tx<{result:unknown}[]>`select public.phase4_resolve_source(${tx.json(input)}) as result`
+  : tx<{result:unknown}[]>`select public.phase4_change_pupil(${tx.json(input)}) as result`);
  return auditRows(tx,ctx,rows,shape({pupilId:uuid,version:integer(1),warnings:array(enumeration(['class-education-mismatch']))}),{action:actions[input.kind],pupilId:input.pupilId,schoolYear:input.schoolYear},true);
 }
 
