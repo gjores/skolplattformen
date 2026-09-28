@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 const id = '33000000-0000-4000-8000-000000000001';
-const permissionId = '33000000-0000-4000-8000-000000000002';
 const issuer = 'http://host.docker.internal:8180/realms/skolplattform-test';
 const clientId = 'skolplattform-worker';
 const env = { APP_MODE: 'protected', DATABASE_URL: 'postgres://test@127.0.0.1:56322/postgres', SUPABASE_URL: 'http://127.0.0.1:56321', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: clientId, MFA_MAX_AGE_SECONDS: '28800', SESSION_SECRET: 'synthetic-test-only-secret' };
@@ -21,7 +20,7 @@ const fixture = globalThis.__registerTest = {
     const sql=strings.join('?');
     if (sql.includes('select i.auth_user_id')) return [{function:state.fn}];
     if (sql.includes('insert into public.security_events')) {
-      if (state.auditFails || state.failAction === values[8]) throw new Error('private audit details');
+      if (state.auditFails || state.failAction === values[8] || state.failEventAt===state.events.length+1) throw new Error('private audit details');
       state.events.push({action:values[8],outcome:values[11],details:values[12]}); return [];
     }
     state.calls.push({sql,values});
@@ -74,6 +73,34 @@ test('same origin, functions, epoch and unknown/foreign SQL errors deny without 
  reset(); const stale=req();stale.headers.set('X-Context-Epoch','0');assert.equal((await POST(stale)).status,409);assert.equal(state.calls.length,0);
  for(const code of ['P0002']) {reset();state.sqlError={code,detail:'secret'};const r=await card(get());assert.equal(r.status,404);assert.equal((await r.json()).code,'not_found');}
 });
-test('first/second extra event and main event failure roll back the simulated transaction with no body',async()=>{
+test('extra event and main event failure roll back the simulated transaction with no body',async()=>{
  for(const failAction of ['pupil_protected_read','pupil_list_read']) {reset();state.failAction=failAction;state.result.auditRefs=[{kind:'protected',pupilId:id}]; const r=await POST(req());assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);}
+});
+test('mutation adapter returns a typed audited conflict and never dispatches uninstalled resolve SQL',async()=>{
+ reset(); const input={pupilId:id,schoolYear:2026,caseId:null,expectedVersion:1,kind:'basics',payload:{displayName:'Ny elev'}};
+ const details={kind:'fields',currentVersion:2,changedBy:id,changedAt:'2026-09-28T10:00:00Z',fields:[{field:'displayName',submitted:'Ny elev',current:'Aktuell elev'}]};
+ state.result={kind:'conflict',details,auditRefs:[{kind:'protected',pupilId:id}]};
+ const result=await fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,adapter.parsePupilChangeRequest(input)));
+ assert.equal(result.status,409);assert.deepEqual(result.body,{code:'conflict',details});assert.equal(result.event.action,'pupil_conflict_read');assert.equal(state.events[0].outcome,'denied');assert.equal(state.events[1].action,'pupil_protected_read');
+ state.result.details={...details,raw:'secret'};await assert.rejects(()=>fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,input)));
+ state.calls=[];await assert.rejects(()=>fixture.context({},(tx,ctx)=>adapter.changePupil(tx,ctx,{...input,kind:'resolve-source',payload:{conflictId:id,choice:'source'}})));assert.equal(state.calls.length,0);
+});
+test('response source conflicts mask identity and reject arbitrary nested values',async()=>{
+ const origin={source:'manual',actorId:id,changedAt:'2026-09-28T10:00:00Z',localCorrection:false};
+ const body={...pupil(),version:1,placements:[],classes:[],protectedIdentity:false,municipalities:[],origins:{displayName:origin},sourceConflicts:[{id,field:'personalNumber',origin}]};
+ reset(body);assert.equal((await card(get())).status,200);
+ for(const conflict of [{id,field:'personalNumber',origin,local:'secret'},{id,field:'displayName',origin,local:null,incoming:{personalNumber:'secret'}}]){reset({...body,sourceConflicts:[conflict]});assert.equal((await card(get())).status,500);}
+});
+test('export preview parser refuses hidden columns and never accepts rows or identity from SQL',async()=>{
+ const input={schoolYear:2026,caseId:null,fields:['displayName'],protectedIds:[],includePersonalNumber:false,mode:'ids',ids:[id]};
+ assert.deepEqual(adapter.parsePupilExportRequest(input),input);
+ assert.throws(()=>adapter.parsePupilExportRequest({...input,fields:['personalNumber']}));
+ assert.throws(()=>adapter.parsePupilExportRequest({...input,ids:[id,id]}));
+ reset({count:1,fields:['displayName'],includePersonalNumber:false});const result=await fixture.context({},(tx,ctx)=>adapter.exportPupils(tx,ctx,input,true));assert.equal(result.event.action,'pupil_export_preview');
+ state.result.body.rows=[{displayName:'secret'}];await assert.rejects(()=>fixture.context({},(tx,ctx)=>adapter.exportPupils(tx,ctx,input,true)));
+});
+
+test('second protected object event failure rolls back the first object event',async()=>{
+ reset();state.failEventAt=2;state.result.auditRefs=[{kind:'protected',pupilId:id},{kind:'protected',pupilId:'33000000-0000-4000-8000-000000000002'}];
+ const r=await POST(req());assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
 });

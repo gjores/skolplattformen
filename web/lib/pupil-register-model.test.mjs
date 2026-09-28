@@ -304,3 +304,9 @@ test('Konfliktfält validerar datatyp och avvisar dubbla fält', () => {
   );
   assert.equal(call('parseConflictDetails', { ...base, fields: [] }), null);
 });
+
+test('Konfliktnamn följer databasens gräns på 240 tecken', () => {
+  const value = {kind:'fields',currentVersion:2,changedBy:'Administratör',changedAt:'2026-09-28T10:00:00Z',fields:[{field:'displayName',submitted:'A'.repeat(240),current:'B'.repeat(240)}]};
+  assert.deepEqual(call('parseConflictDetails', value),value);
+  assert.equal(call('parseConflictDetails',{...value,fields:[{...value.fields[0],current:'B'.repeat(241)}]}),null);
+});

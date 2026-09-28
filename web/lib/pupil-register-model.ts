@@ -453,7 +453,7 @@ function conflictValue(field: string, value: unknown): boolean {
   switch (field) {
     case 'displayName':
       return (
-        typeof value === 'string' && value.length > 0 && value.length <= 200
+        typeof value === 'string' && value.length > 0 && value.length <= 240
       );
     case 'protectedIdentity':
       return typeof value === 'boolean';
