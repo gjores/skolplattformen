@@ -116,7 +116,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 4. Behörig personal kan genomföra pilotens fastställda arbetsfall med en skyddad syntetisk elev. Obehöriga läsvägar, sökträffar, fel och aviseringar röjer varken skyddade uppgifter eller metadata. (DATA-01)
 5. Administratören kan exportera ett uttryckligt elevurval med endast tillåtna fält. Serverns behörighetskontroll, aktuella spärrar, skyddsregler och loggning gäller även om exporten anropas direkt. (DATA-02)
 
-**Plans**: 25 planer i 15 vågor, 17 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); 04-24 och 04-25 tillagda efter våg 8 för luckorna skyddad export och Worker-avbrott; genomförande och beteendeverifiering återstår.
+**Plans**: 25 planer i 15 vågor, 18 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); 04-24 och 04-25 tillagda efter våg 8 för luckorna skyddad export och Worker-avbrott; genomförande och beteendeverifiering återstår.
 
 - [x] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
 - [x] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
@@ -141,7 +141,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 - [ ] 04-21-PLAN.md — Uppdatera handboken med prövat registerbeteende (våg 14)
 - [ ] 04-22-PLAN.md — Genomför användarprov och redovisa fasens gräns (våg 15)
 - [x] 04-23-PLAN.md — Öppna Worker-körrätt för registrets skriv-, personnummer- och exportfunktioner (våg 8, körs först i vågen)
-- [ ] 04-24-PLAN.md — Visa skyddade elever för behörig administratör i lista och export (våg 9, efter 04-25 och före 04-17)
+- [x] 04-24-PLAN.md — Visa skyddade elever för behörig administratör i lista och export (våg 9, efter 04-25 och före 04-17)
 - [x] 04-25-PLAN.md — Utred och åtgärda lokala Worker-avbrott på nekade anrop (våg 9, körs först i vågen)
 
 Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
@@ -231,7 +231,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 17/25 | In progress — våg 9: 04-25 klar (nekade anrop fäller inte längre lokal Worker, 25/25 PASS, lokalt syntetiskt); nästa 04-24, 04-17 | - |
+| 4. Beständigt och skyddat elevregister | 18/25 | In progress — våg 9: 04-25 och 04-24 klara (skyddsmärke och uttryckligt skyddsval i export för behörig administratör, lokalt syntetiskt); nästa 04-17 | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
