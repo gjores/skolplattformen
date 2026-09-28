@@ -2,7 +2,7 @@
 phase: 04-best-ndigt-och-skyddat-elevregister
 plan: "12"
 subsystem: register-list-ui
-status: implemented-awaiting-browser
+status: complete
 completed: 2026-09-28
 requires: [04-09, 04-11]
 provides:
@@ -34,11 +34,11 @@ requirements-finally-verified: []
 |---|---|
 | RED: arbetsytans egna AbortSignal | Förväntat rött före transportändring |
 | `node --test lib/pupil-register-model.test.mjs lib/server-client.test.mjs` | PASS 35/35 efter ändring |
-| `npx tsc --noEmit && npx oxlint app lib` | PASS efter livscykelrättningar; sista avgränsade fix för läsårsbyte från annan vy följs av orkestratorns slutkontroll |
-| Browser, dator/telefon | Väntar orkestratorns riktade prov; inte PASS |
+| `npx tsc --noEmit && npx oxlint app lib` | PASS efter sista inloggningsrättningen d3b9ee6 |
+| Browser, dator/telefon | PASS 13/13 unika registerfall över riktade körningar: dator 6, telefon 390 px 6 och 320 px layout 1; se vågrapport för byggrevisioner och avbrutna körningar |
 | Full fasgrind/UI-grind | Kvarstår i 04-19/04-21 |
 
-STU-01/STU-02/STU-05 kopplas till serverstyrt listurval, läsår, stabila ID och säker URL-parser i modellproven. DATA-01 kopplas till transportens abort/epoch-prov samt projektion och minnesbegränsningar. DOM, nätverk, faktisk layout och livscykel måste dessutom beläggas i browserprov. Ingen kravstatus är slutverifierad här.
+STU-01/STU-02/STU-05 kopplas till serverstyrt listurval, läsår, stabila ID och säker URL-parser i modellproven. DATA-01 kopplas till transportens abort/epoch-prov samt projektion och minnesbegränsningar. DOM, nätverk, faktisk layout och livscykel är dessutom belagda i de riktade browserproven; den anonyma radens UI-fall använder uttryckligt simulerad projektion. Ingen kravstatus är slutverifierad här.
 
 ## Avvikelser och avgränsningar
 
@@ -46,10 +46,24 @@ STU-01/STU-02/STU-05 kopplas till serverstyrt listurval, läsår, stabila ID och
 2. **Rule 2 — faktisk avbrytning:** `server-client.ts` fick frivillig signal för get/post; befintlig global epokhantering kvarstår. Riktat RED→GREEN-prov belägger att sent innehåll stoppas utan att andra aktuella anrop låses.
 3. **Rule 1 — livscykel:** Den äldre shellen avmonterade vid varje synlighetskontroll och kunde därmed rensa fritext trots oförändrat uppdrag. Sessionsjämförelse och bootstrapnyckel är rättade.
 4. Läsårskomponenten inkluderas i första uppgiftscommit för att listans typberoende ska vara komplett. Shellintegration ligger i egen uppgiftscommit.
-5. Elevkort kopplas i 04-13 via `onOpenPupil` och valt elev-ID enbart i minnet. Förberett history.state innehåller bara `{pupilCard:true}` och samma adress. Nuvarande shell skickar ingen kortcallback, därför visas namnet som text och ingen låtsaskortvy. Exportdialog/-åtgärd kopplas i 04-17; inget ännu stängt export-API erbjuds som fungerande knapp. Samlade kort-/exportflöden är inte verifierade i denna plan.
-6. Handbok, bootstrap och samlade browser-/byggkontroller ägs av orkestratorn. Inga verkliga elevregister ansluts och syntetiska prov godkänner ingen verklig drift.
+5. Elevkort kopplas i 04-13 via `onOpenPupil` och valt elev-ID enbart i minnet. Förberett history.state innehåller bara `{pupilCard:true}` och samma adress. Nuvarande shell skickar ingen kortcallback, därför visas namnet som text och ingen låtsaskortvy. Exportdialog/-åtgärd kopplas i 04-13; inget ännu stängt export-API erbjuds som fungerande knapp. Samlade kort-/exportflöden är inte verifierade i denna plan.
+6. **Rule 1 — WebKit-pekyta:** Verkligt telefonprov mätte läsårsväljaren under 44 px trots min-height. `c33fd5b` anger uttrycklig höjd 44 px och tar bort native appearance inom läsårsväljarens egen CSS. Omprov PASS på 390 och 320 px efter nytt bygge, båda visuellt granskade; se vågrapporten.
+7. Handbok, bootstrap och samlade browser-/byggkontroller ägs av orkestratorn. Inga verkliga elevregister ansluts och syntetiska prov godkänner ingen verklig drift.
+
+8. **Rule 1 — inloggningsretur:** Initial oinloggad sessionskontroll rensade även inbjudans returväg och inloggningsfel. Två isolerade browserprov gav RED. d3b9ee6 bevarar en smal allowlist bara vid första oinloggade kontrollen; faktisk sessionsförlust fortsätter full rensning. GREEN 2/2 på slutbygget och verklig sessionsrensning 1/1 PASS redovisas i vågrapporten.
+
+## Kompletterande serverkontrakt
+
+Ny auditerad startkontext med egna referensår/skolor/supportmetadata är genomförd i `d7ecf1f`: `GET /api/elever/urval` och migration 161000. SQL-prov 20/20 PASS; 13 adapter-/routeprov PASS inklusive källhistorikens nullable systemaktör och explicita beslut. Den oberoende kodgranskningen hittade inga kvarstående fel i bootstrapkontraktet. Se vågrapporten för slutlig samlad körning.
 
 ## Commits
 
 - `35d1863` — serverprojicerad lista, läsårskomponent, scoped layout och avbrytbar klienttransport.
 - `1e6653a` — navigation, läsår, bootstrapkonsumtion och sessionslivscykel.
+
+- `fcb4ab9` — bevarat läsårsbyte från annan arbetsvy.
+- `d7ecf1f` — auditerad startkontext och källhistorik.
+- `c33fd5b` — WebKit-pekyta 44 px.
+- `d3b9ee6` — inbjudans returväg vid första oinloggade sidvisning.
+- `d338430` — byggkontrollerad användarhandbok.
+- `d18c2e8` — verifierade browserfall och regression för inloggningsretur.
