@@ -39,6 +39,7 @@ select is((select display_name from public.pupils where id=pg_temp.mid(70)),'PrÃ
 select is(public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Annat namn"}',1))->'details'->'fields'->0->>'current','PrÃ¶vat nytt namn','conflict contains only currently authorized field value');
 select is(public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Annat namn"}',1))->'details'->>'changedBy',pg_temp.mid(22)::text,'conflict identifies original server actor');
 select is(public.phase4_change_pupil(pg_temp.mreq('basics','{"personalNumber":"TEST-20100101-0022"}',1))->>'kind','success','stale independent field can merge after lock');
+select is(public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Annat namn"}',1))->'details'->>'changedBy',pg_temp.mid(22)::text,'conflict actor follows overlapping field, not later independent edit');
 select is(public.phase4_change_pupil(pg_temp.mreq('basics','{"personalNumber":"TEST-20100101-0014"}',1))->'details'->>'kind','identity','identity conflict does not disclose either number');
 select ok(public.phase4_change_pupil(pg_temp.mreq('basics','{"personalNumber":"TEST-20100101-0014"}',1))::text not like '%TEST-%','identity conflict carries no number');
 select is(public.phase4_change_pupil(pg_temp.mreq('municipality',jsonb_build_object('municipalityCode','0180','startsOn',public.app_today()+1,'endsOn',null),1))->'details'->>'kind','period','stale date relation always requires reread');
@@ -50,6 +51,15 @@ select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('basics','{"d
 update public.pupils set protected_identity=false where id=pg_temp.mid(70);
 update public.memberships set status='blocked',blocked_at=clock_timestamp() where id=pg_temp.mid(23);
 select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Hemligt"}',1))$q$,'42501',null,'blocked actor receives no conflict values');
+
+
+update public.memberships set status='active',blocked_at=null where id=pg_temp.mid(23);
+select pg_temp.ma('hm');
+select public.phase4_grant_protected_permission((select id from mutation_roles where name='admin2'),pg_temp.mid(30));
+select pg_temp.ma('admin2');
+update public.pupils set protected_identity=true where id=pg_temp.mid(70);
+select is(public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Omval"}',1))->'auditRefs',jsonb_build_array(jsonb_build_object('kind','protected','pupilId',pg_temp.mid(70))),'authorized protected conflict requires its own protected read audit');
+select ok(public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Omval"}',1))->'details' ?& array['currentVersion','changedBy','changedAt','kind','fields'],'typed conflict has complete field contract');
 
 select * from finish();
 rollback;
