@@ -239,9 +239,14 @@ select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,
 select is((public.phase4_list_pupils(pg_temp.req()||jsonb_build_object('caseId',pg_temp.rid(700)))->'body'->>'count')::integer,1,'health explicit case only');
 select pg_temp.read_actor(7);
 select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,64,'school health scope');
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_list_pupils(jsonb)','EXECUTE'),'new list closed until audited route');
+-- 04-09: only the three audited HTTP readers are executable by Worker.
+select is(has_function_privilege(role_name,entrypoint,'EXECUTE'),role_name='skolplattform_worker',entrypoint||' privilege for '||role_name)
+from unnest(array['anon','authenticated','skolplattform_worker']) role_name
+cross join unnest(array['public.phase4_list_pupils(jsonb)','public.phase4_pupil_card(jsonb)','public.phase4_pupil_history(jsonb)']) entrypoint;
+select set_config('test.phase4_request',pg_temp.req()::text,true);
 set local role skolplattform_worker;
-select throws_ok($q$select public.phase4_list_pupils('{}')$q$,'42501',null,'worker cannot call unaudited entrypoint');
+select throws_ok($q$select public.phase4_list_pupils('{}')$q$,'22023',null,'Worker read retains strict request contract');
+select lives_ok($q$select public.phase4_list_pupils(current_setting('test.phase4_request')::jsonb)$q$,'audited Worker entrypoint accepts live school mandate');
 reset role;
 -- Date lens never upgrades historical-only pupils to writable; histories cannot
 -- expose foreign-school periods or identities embedded in arbitrary JSON.
@@ -278,7 +283,6 @@ insert into public.access_assignments(id,membership_id,customer_id,organizer_id,
 insert into public.mandate_units values(pg_temp.rid(810),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(101));
 select pg_temp.read_actor(10);
 select throws_ok($q$select public.phase4_list_pupils(pg_temp.req())$q$,'42501',null,'IT cannot read register');
-select ok(not has_function_privilege(role_name,'public.phase4_pupil_card(jsonb)','EXECUTE'),'card closed to '||role_name)from unnest(array['anon','authenticated','skolplattform_worker'])role_name;
 select pg_temp.read_actor(3);
 insert into public.pupil_home_municipalities(id,customer_id,organizer_id,pupil_id,municipality_code,starts_on)values(pg_temp.rid(9101),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(402),'0180','2026-07-01');
 select is(public.phase4_pupil_card(pg_temp.card(2))->'body'->'municipalities'->0->'origin','null'::jsonb,'missing period provenance explicitly unknown');
