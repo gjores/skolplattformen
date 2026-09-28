@@ -16,7 +16,7 @@ Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in 
 
 - [x] **Phase 1: Baslinje och avskild pilotmiljö** - Befintliga arbetsflöden går att pröva och återställa inom en tydlig pilotgräns. (completed 2026-09-12)
 - [ ] **Phase 2: Verifierad kontoåtkomst** - Konton, arbetskontext och sessionsspärr styr den första spårbara skyddade operationen.
-- [ ] **Phase 3: Mandat och skyddade datavägar** - Huvudman, rektor och personal får endast sitt aktuella mandat med kontrollerbar säkerhetslogg.
+- [x] **Phase 3: Mandat och skyddade datavägar** - Huvudman, rektor och personal får endast sitt aktuella mandat med kontrollerbar säkerhetslogg. (completed 2026-09-28)
 - [ ] **Phase 4: Beständigt och skyddat elevregister** - Behörig administration kan söka, ändra, följa och exportera rätt elever.
 - [ ] **Phase 5: Bevarade utbildnings- och klassflöden** - Uppskattade skol-, utbildnings- och kullflöden fungerar med den nya säkerhetsgrunden.
 - [ ] **Phase 6: Avstämd registerimport** - En begränsad anslutning kan granskas, köras om och följas i användbara dator- och telefonflöden.
@@ -39,6 +39,7 @@ Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in 
 **Plans**: 10 plans
 
 Plans:
+
 - [x] 01-01-PLAN.md — Git-baslinje med tagg `fas1-baslinje` och återställningsprov (verify-baseline.mjs)
 - [x] 01-02-PLAN.md — Daterad anslutningsprofil docs/pilot/connection-profile.md (PILOT-01)
 - [x] 01-03-PLAN.md — Runtime-läge stängt som standard, klientgräns utan klient, laddare utan demoinloggning/seed, exempelskript med tom Supabase-miljö
@@ -79,6 +80,7 @@ Plans:
 - [x] 02-10-PLAN.md — Uppdragsväljare, flikrensning och administrationsvyer
 - [x] 02-11-PLAN.md — Webbläsarprov på dator och telefon
 - [x] 02-12-PLAN.md — Samlad fasgrind, bevisrapport och användarbedömning
+
 **UI hint**: yes
 
 Prov mot en avskild testidentitet kan utveckla och verifiera appens kontrakt. Den faktiska IdP-anslutningen och fördröjningen från extern kontokälla godkänns i fas 7; de får inte markeras uppfyllda här. Sessions- och cookieflödet provas tidigt i byggd Worker innan elevlagringen bygger vidare på det.
@@ -200,7 +202,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 |-------|----------------|--------|-----------|
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
-| 3. Mandat och skyddade datavägar | 7/7 | Executed — awaiting phase verification (verify:phase3 PASS på 278f235 lokalt och syntetiskt; användarprov godkänt 2026-09-27) | - |
+| 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 0/TBD | Not started | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |

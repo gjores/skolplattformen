@@ -30,6 +30,8 @@ Här avses befintliga funktioner i arbetsversionen, inte validering i kommunal p
 - ✓ Mobilanpassade vyer och lokal telefonförhandsvisning finns — ingen separat mobilapp behövs för pilotens grundflöden.
 - ✓ Versionshanterad baslinje (`fas1-baslinje`) med återställningsprov, avskild provmiljö utan demoinloggning eller Supabase-klient (karantän bevisad med pgTAP 52/52 och 58 nekade API-anrop), syntetiska exempelskolor för grundskola och gymnasium, samt daterad anslutningsprofil med öppna beroenden — validerat i fas 1: Baslinje och avskild pilotmiljö (2026-09-12, `01-VERIFICATION.md`).
 
+- ✓ Mandat och skyddade datavägar: huvudman utser rektor, rektor tilldelar lärare/administratör/elevhälsa/tidsbegränsad support (elev eller grupper, högst 60 min) inom egna skolenheter, IT utan elevinsyn, engångskod vid inloggning för konton med registrerad kod, varje läsning/export/ändring/nekande loggas före svar och stoppas vid loggfel — validerat i fas 3 (2026-09-28, `03-VERIFICATION.md`, lokal syntetisk miljö).
+
 ### Active
 
 - [ ] Ersätta demoinloggning med verifierade konton, kommunanslutning och avslutbar åtkomst.
@@ -115,4 +117,4 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dokumentera ändrade eller borttagna krav med skäl och uppdatera beslut och nuläge. Vid milstolpens slut: granska hela projektbeskrivningen, kärnvärdet, senarelagd omfattning och driftläget. Ett förslag blir inte beslutat enbart för att det står i filen.
 
 ---
-*Last updated: 2026-09-23 — fas 1–2 verifierade; genomförande av fas 3 inlett.*
+*Last updated: 2026-09-28 — fas 3 (Mandat och skyddade datavägar) verifierad och stängd; nästa fas 4 Beständigt och skyddat elevregister.*

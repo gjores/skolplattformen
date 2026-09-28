@@ -30,10 +30,10 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 ### Behörighet och ansvar
 
 - [x] **ACL-01**: En användare nekas åtkomst till annan kunds objekt och röjande metadata via direkt anrop, vy, sökning, export och tillgängliga filvägar.
-- [ ] **ACL-02**: Rektor kan tilldela och avsluta läraruppdrag endast vid de skolenheter rektorn leder under aktuell giltighet; huvudmannens vanliga roll kan inte göra samma tilldelning.
-- [ ] **ACL-03**: Huvudmannen kan utse rektor inom sin organisation; en rektor kan inte tilldela sig själv eller andra rektorsmandat.
-- [ ] **ACL-04**: Lärare och skoladministratör får endast de elev- och administrativa åtgärder som den fastställda uppdragsmatrisen medger; okända eller saknade rättigheter nekar åtkomst.
-- [ ] **ACL-05**: Kommunens IT-funktion kan administrera anslutningen utan generell elevinsyn, och eventuell supportåtkomst är separat tilldelad, tidsbegränsad och spårbar.
+- [x] **ACL-02**: Rektor kan tilldela och avsluta läraruppdrag endast vid de skolenheter rektorn leder under aktuell giltighet; huvudmannens vanliga roll kan inte göra samma tilldelning.
+- [x] **ACL-03**: Huvudmannen kan utse rektor inom sin organisation; en rektor kan inte tilldela sig själv eller andra rektorsmandat.
+- [x] **ACL-04**: Lärare och skoladministratör får endast de elev- och administrativa åtgärder som den fastställda uppdragsmatrisen medger; okända eller saknade rättigheter nekar åtkomst.
+- [x] **ACL-05**: Kommunens IT-funktion kan administrera anslutningen utan generell elevinsyn, och eventuell supportåtkomst är separat tilldelad, tidsbegränsad och spårbar.
 
 ### Beständigt elevregister
 
@@ -52,8 +52,8 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 ### Spårbarhet
 
 - [x] **AUDIT-01**: Behörig granskare kan följa pilotens beständiga ändringar med serververifierad aktör, faktiskt uppdrag, tid, källa, objekt och resultat; klienten kan inte välja en annan loggad aktör eller roll.
-- [ ] **AUDIT-02**: Behörig säkerhetsfunktion kan spåra de elevläsningar, exporter och nekade åtkomstförsök som pilotens loggpolicy kräver, även när någon försöker använda en alternativ direkt dataväg.
-- [ ] **AUDIT-03**: Pilotansvarig kan kontrollera att loggar har begränsad åtkomst, minimerat innehåll, beslutad lagringstid och ett provat beteende vid loggbortfall.
+- [x] **AUDIT-02**: Behörig säkerhetsfunktion kan spåra de elevläsningar, exporter och nekade åtkomstförsök som pilotens loggpolicy kräver, även när någon försöker använda en alternativ direkt dataväg.
+- [x] **AUDIT-03**: Pilotansvarig kan kontrollera att loggar har begränsad åtkomst, minimerat innehåll, beslutad lagringstid och ett provat beteende vid loggbortfall.
 
 ### En kommunintegration
 
@@ -121,10 +121,10 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | IAM-05 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
 | IAM-06 | Phase 7 | Pending |
 | ACL-01 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
-| ACL-02 | Phase 3 | Pending |
-| ACL-03 | Phase 3 | Pending |
-| ACL-04 | Phase 3 | Pending |
-| ACL-05 | Phase 3 | Pending |
+| ACL-02 | Phase 3 | Complete |
+| ACL-03 | Phase 3 | Complete |
+| ACL-04 | Phase 3 | Complete |
+| ACL-05 | Phase 3 | Complete |
 | STU-01 | Phase 4 | Pending |
 | STU-02 | Phase 4 | Pending |
 | STU-03 | Phase 4 | Pending |
@@ -134,8 +134,8 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | DATA-01 | Phase 4 | Pending |
 | DATA-02 | Phase 4 | Pending |
 | AUDIT-01 | Phase 2 | Verifierad 2026-09-21 (02-VERIFICATION.md; phase2-summary.json) |
-| AUDIT-02 | Phase 3 | Pending |
-| AUDIT-03 | Phase 3 | Pending |
+| AUDIT-02 | Phase 3 | Complete |
+| AUDIT-03 | Phase 3 | Complete |
 | INT-01 | Phase 6 | Pending |
 | INT-02 | Phase 6 | Pending |
 | INT-03 | Phase 6 | Pending |

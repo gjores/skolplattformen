@@ -1,7 +1,7 @@
 ---
 phase: 03-mandat-och-skyddade-datavagar
 verified: 2026-09-27T20:22:48Z
-status: human_needed
+status: passed
 score: 12/12 must-haves verified
 covered_files:
   - .planning/REQUIREMENTS.md
@@ -264,3 +264,14 @@ Kvar är tre korta användarbekräftelser ur checkpointen 03-07 och dokumentvår
 
 _Verifierad: 2026-09-27T20:22:48Z_
 _Verifierare: Claude (gsd-verifier)_
+
+
+## Mänsklig verifiering — genomförd 2026-09-28
+
+De tre punkter som gav `human_needed` är bekräftade av användaren i den lokala syntetiska miljön (se `03-HUMAN-UAT.md`):
+
+1. Elevhälsans avgränsning till skola, elev och ärende — godkänd.
+2. IT:s pausa/aktivera och syntetiskt test, utan elevinsyn — godkänd.
+3. Loggfelssituationen — godkänd live: utan skrivrätt till säkerhetsloggen visades felbeskedet med referens och inga elevuppgifter; även inloggning nekades (fail-closed). Skrivrätten återställdes direkt.
+
+Status ändrad till **passed**. Omfattningen är fortsatt lokal och syntetisk; verklig IdP/kommunanslutning, fysisk telefon, verkliga supportsyften och lagringstid är öppna beslut. Två fynd från provet (inloggning från localhost, förhandsvisning som avvisade sin egen inloggningskaka) ligger i `deferred-items.md`.

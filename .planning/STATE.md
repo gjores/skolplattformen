@@ -1,20 +1,21 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: 03
-current_phase_name: Mandat och skyddade datavägar
-current_plan: 07
-status: executed-awaiting-phase-verification
-stopped_at: Fas 3 verifierad med status human_needed (03-VERIFICATION.md, 5d63a5f) — väntar på användarens bekräftelse av elevhälsans avgränsning, IT:s pausa/aktivera och loggfelssituationen. Fas 4 kontext insamlad (04-CONTEXT.md, d51aaee).
-last_updated: "2026-09-27T21:26:25.847Z"
-last_activity: 2026-09-27
-last_activity_desc: "03-07 slutförd: förnyat användarprov godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) efter rättning av tre avvikelser (verifiering inifrån dialogen 43c6b79, engångskod vid inloggning d9499dc, support för grupper 2d17d4c). Färsk verify:phase3 PASS på 278f235, alla sex fas 3-krav PASS lokalt och syntetiskt (föregående körning på 4fb5773 FAIL: access-Workern stannade, oförklarat). Fas 3: 7/7 planer genomförda, väntar fasverifiering. Inga krav markerade verifierade."
-state_head: d51aaee5b89671d164d1f81cecb3dac94998a872
+current_phase: 04
+current_phase_name: Beständigt och skyddat elevregister
+current_plan: Not started
+status: planning
+stopped_at: Fas 3 verifierad och stängd 2026-09-28 (03-VERIFICATION passed efter användarens bekräftelse, 03-HUMAN-UAT 3/3). Fas 4 kontext klar (04-CONTEXT.md, d51aaee). Nästa: gsd-plan-phase 4.
+last_updated: "2026-09-28T05:56:15.752Z"
+last_activity: 2026-09-28
+last_activity_desc: Fas 3 stängd efter mänsklig verifiering; fas 4 redo att planeras
+state_head: af6ffc2f226b596f4ef9b42ead34ba6106fa30af
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 29
   completed_plans: 29
+  percent: 38
 milestone_name: milestone
 ---
 
@@ -33,19 +34,19 @@ Phase: 03 (Mandat och skyddade datavägar) — EXECUTED, väntar fasverifiering
 Plan: 7 av 7 genomförda (03-07 genomförd 2026-09-27)
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
-**Current Phase:** 03
-**Current Phase Name:** Mandat och skyddade datavägar
+**Current Phase:** 04
+**Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** 03-07
+**Current Plan:** Not started
 **Total Plans in Phase:** 7
-**Status:** Phase 03 executed — awaiting phase verification (gsd-verify-work)
+**Status:** Ready to plan (fas 4, kontext klar)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-27
-**Last Activity Description:** 03-07 slutförd: förnyat användarprov godkänt 2026-09-27 (syntetiskt användarprov, dator; telefon i enhetsläge/automatiskt WebKit) efter rättning av tre avvikelser (verifiering inifrån dialogen 43c6b79, engångskod vid inloggning d9499dc, support för grupper 2d17d4c). Färsk verify:phase3 PASS på 278f235, alla sex fas 3-krav PASS lokalt och syntetiskt (föregående körning på 4fb5773 FAIL: access-Workern stannade, oförklarat). Fas 3: 7/7 planer genomförda, väntar fasverifiering. Inga krav markerade verifierade.
+**Last Activity:** 2026-09-28
+**Last Activity Description:** Fas 3 stängd efter mänsklig verifiering; fas 4 redo att planeras
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
-Progress: [██████████] 100%
+Progress: [████░░░░░░] 38%
 Planprogress: 29 av 29 hittills skrivna planer genomförda. Detta är inte procent färdig produkt; 2 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–2 verifierade; fas 3 genomförd, väntar fasverifiering)
 
@@ -62,6 +63,7 @@ Phases executed: 3 of 8 (fas 1–2 verifierade; fas 3 genomförd, väntar fasver
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | - | 0 | - | - |
+| 3 | 7 | - | - |
 
 **Recent Trend:**
 
@@ -154,7 +156,7 @@ Fullständiga beslut finns i PROJECT.md.
 ## Session
 
 **Last Date:** 2026-09-27T21:26:25.543Z
-**Stopped At:** Fas 3 verifierad med status human_needed (03-VERIFICATION.md, 5d63a5f) — väntar på användarens bekräftelse av elevhälsans avgränsning, IT:s pausa/aktivera och loggfelssituationen. Fas 4 kontext insamlad (04-CONTEXT.md, d51aaee).
+**Stopped At:** Fas 3 stängd 2026-09-28; fas 4 kontext klar. Nästa: gsd-plan-phase 4.
 **Resume File:** .planning/phases/04-best-ndigt-och-skyddat-elevregister/04-CONTEXT.md
 
 **Planned Phase:** 3 (Mandat och skyddade datavägar) — 7 planer — 2026-09-22

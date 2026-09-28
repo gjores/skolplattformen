@@ -1,24 +1,24 @@
 ---
-status: partial
+status: passed
 phase: 03-mandat-och-skyddade-datavagar
 source: [03-VERIFICATION.md]
 started: 2026-09-28T06:00:00Z
-updated: 2026-09-28T06:30:00Z
+updated: 2026-09-28T07:10:00Z
 ---
 
 ## Current Test
 
-Elevhälsans avgränsning och IT:s pausa/aktivera väntar på användarens bekräftelse.
+Alla tre punkter bekräftade av användaren 2026-09-28.
 
 ## Tests
 
 ### 1. Elevhälsans avgränsning (skola / elev / ärende)
 expected: p3.elevhalsa.skola ser skolans elever; p3.elevhalsa.elev bara den tilldelade eleven; p3.elevhalsa eleven endast via tilldelat ärende.
-result: [pending]
+result: passed — användaren bekräftade 2026-09-28 ("bäda testen ok")
 
 ### 2. IT:s pausa/aktivera och syntetiskt test
 expected: p3.it pausar/aktiverar anslutningen och kör syntetiskt test; inget elevprov i menyn.
-result: [pending]
+result: passed — användaren bekräftade 2026-09-28 ("bäda testen ok")
 
 ### 3. Loggfelssituationen
 expected: När Workern saknar skrivrätt till säkerhetsloggen visas "Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig." med referens och inga elevuppgifter.
@@ -27,9 +27,9 @@ result: passed — användaren bekräftade live 2026-09-28 som p3.larare i Synte
 ## Summary
 
 total: 3
-passed: 1
+passed: 3
 issues: 0
-pending: 2
+pending: 0
 skipped: 0
 blocked: 0
 
