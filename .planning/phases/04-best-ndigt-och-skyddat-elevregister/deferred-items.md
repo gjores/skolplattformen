@@ -39,3 +39,15 @@
 - **Påverkan:** Avslagen orsakade inte Worker-avbrotten (A/B ovan). De ger brus i Workerns logg och kan dölja verkliga fel.
 - **Varför inte rättat här:** Utanför 04-25:s orsak. Rättningen hör sannolikt till hur postgres-klientens Cloudflare-socket stängs i `db.ts` eller till beroendet, och ett beroendebyte kräver användarbeslut.
 - **Förslag:** Egen avgränsad utredning av `db.end()`-förloppet i workerd före pilotdrift.
+
+## 04-17: Kvarvarande konsumenter av det avvecklade elevprovet (överlämnas till 04-18)
+
+- **Upptäckt:** 2026-09-28 vid referenssökningen i 04-17. Elevprovets tabeller, `phase3_read_pupils` och `/api/prov/*` är borttagna. Följande prov anropar dem fortfarande och är därför **övergångsröda** tills 04-18 portar dem. De har inte körts i 04-17.
+  - `work/pilot/verify-mandates.mjs`: `/api/prov/elev` och `/api/prov/export` (rad cirka 326–364), Kong-probe mot `/rest/v1/phase3_probe_pupils` (cirka 630), `phase3_read_pupils` som anon/authenticated (cirka 643, 672) och `setupTemporary`, som skriver i `phase3_probe_pupils/-groups/-group_members` (cirka 896–907). Tabellerna finns inte längre, så `setupTemporary` fallerar.
+  - `work/pilot/verify-access.mjs`: `/api/prov/elev` och `/api/prov/export` (rad cirka 340–400).
+  - `web/e2e/phase3-mandates.spec.ts`: `/api/prov/*` och `insert/delete` i `phase3_probe_pupils/-groups/-group_members`.
+  - `web/e2e/phase3-workspace.spec.ts`: `/api/prov/elev` (rad cirka 166).
+- **Inte i 04-18:s `files_modified`:** `work/pilot/collect-denials.mjs` (anropas från `verify-mandates.mjs` och ingår i `verify-phase3`). Dess direktprov `direct-rest` (`/rest/v1/phase3_probe_pupils`) och `direct-rpc` (`/rest/v1/rpc/phase3_read_pupils`) riktas nu mot objekt som inte finns. Kong räknar alla svar ≥ 400 som nekade, så provet blir troligen fortsatt nekat, men mot en saknad väg i stället för en stängd. Det är inte kört efter avvecklingen. SQL-provet (`select … from public.phase3_probe_pupils` som authenticator/anon) ger fortfarande 42501, eftersom rollerna saknar schemaåtkomst. Det är kontrollerat mot målet.
+- **Förslag:** 04-18 tar med `collect-denials.mjs` och riktar direktproven mot registrets stängda vägar (`public.pupils`, `rpc/phase4_list_pupils`). Gamla elevläsaren ska inte återinföras. Interna dokument som `docs/pilot/phase3-mandates.md` och `docs/pilot/audit-sources.md` beskriver fortfarande elevprovet och uppdateras med 04-18/04-20.
+- **Död CSS:** `.probe-workspace` i `web/app/globals.css` saknar användare. Planen begränsade borttagningen till sex filer, så regeln är kvar och kan tas bort vid nästa CSS-städning.
+
