@@ -1,7 +1,7 @@
 ---
 phase: 04
 wave: 1
-status: awaiting_user
+status: passed
 completed_plans: [04-01]
 next_plans: [04-02, 04-07, 04-08]
 ---
@@ -16,7 +16,7 @@ Underlag att granska: `docs/pilot/phase4-register.md`. Datum följer 1 juli–30
 
 Kontrollpunkten följer uttryckliga instruktionen “Request checkpoint verification between waves” i `/Users/petter.gjores/.codex/skills/gsd/commands/execute-phase/SKILL.md`. Inga tidigare krav- eller gränssnittsbeslut behöver godkännas igen.
 
-Efter bekräftelse genomförs våg 2 parallellt: 04-02 registerschema/referensdata, 04-07 säker fel- och nedladdningstransport, 04-08 minimerad obligatorisk loggning. Kontrollera aktuell kod och SUMMARY; kör inte 04-01 igen.
+Användaren bad 2026-09-28 att fortsätta med våg 2. Våg 1 har ingen ny användarvy och kräver därför ingen manuell funktionsbedömning; teknisk granskning är genomförd. Våg 2 genomförs parallellt: 04-02 registerschema/referensdata, 04-07 säker fel- och nedladdningstransport, 04-08 minimerad obligatorisk loggning. Kontrollera aktuell kod och SUMMARY; kör inte 04-01 igen.
 
 Praktiska förutsättningar: Node 25.9.0, lokalt protected-mål och test-IdP kontrollerade. Docker/prov kräver verktygets sandboxeskalering. Använd inte `prepare-local.mjs` för rutinmässig återanslutning: skriptet innehåller databasreset. Använd granskad lokal migrationsväg och assertTarget. SCB:s 2026-lista hämtad från officiella kodnummerförteckningen; 290 unika kommunkoder. Tillfälligt underlag finns i `/tmp/skolplattform-scb-2026.html` och `/tmp/skolplattform-municipalities-2026.json` men ska återhämtas om det saknas.
 

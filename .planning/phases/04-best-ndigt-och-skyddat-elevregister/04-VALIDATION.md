@@ -38,14 +38,14 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan anger planerade kontroller. 04-01 är genomförd: 17 modellprov, typkontroll och lint godkända. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-07 och 04-08 är genomförda; resultat nedan och i 04-WAVE-02-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
 | 04-01-01 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs` | RED verifierad, därefter GREEN 17/17; se 04-01-SUMMARY |
 | 04-01-02 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs && npx tsc --noEmit` | GREEN 17/17 + typkontroll; se 04-01-SUMMARY |
-| 04-02-01 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-periods.json` | Ej kört |
-| 04-02-02 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-register-schema.json` | Ej kört |
+| 04-02-01 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-periods.json` | GREEN 43/43 period-/relationsprov; se 04-02-SUMMARY |
+| 04-02-02 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-register-schema.json` | GREEN 78/78 registerprov; se 04-02-SUMMARY |
 | 04-03-01 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-migration.json` | Ej kört |
 | 04-03-02 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-permission.json` | Ej kört |
 | 04-04-01 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-projection.json` | Ej kört |
@@ -54,10 +54,10 @@ Verifieringskartan nedan anger planerade kontroller. 04-01 är genomförd: 17 mo
 | 04-05-02 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_conflicts.test.sql --out work/pilot/results/phase4-conflicts.json && node work/pilot/verify-register-locks.mjs` | Ej kört |
 | 04-06-01 | STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-source.json` | Ej kört |
 | 04-06-02 | STU-04, STU-06 | `node work/pilot/phase4-simulated-source.mjs --target protected && node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-source-cli.json` | Ej kört |
-| 04-07-01 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/mandates.test.mjs` | Ej kört |
-| 04-07-02 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/server/mandates.test.mjs && npx tsc --noEmit` | Ej kört |
-| 04-08-01 | DATA-01, DATA-02 | `cd web && node --test lib/server/events.test.mjs` | Ej kört |
-| 04-08-02 | DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register-audit.test.mjs lib/server/events.test.mjs` | Ej kört |
+| 04-07-01 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/mandates.test.mjs` | GREEN 6/6 mandatprov; se 04-07-SUMMARY |
+| 04-07-02 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/server/mandates.test.mjs && npx tsc --noEmit` | GREEN 22/22 klient-/mandatprov + typkontroll; se 04-07-SUMMARY |
+| 04-08-01 | DATA-01, DATA-02 | `cd web && node --test lib/server/events.test.mjs` | GREEN 7/7 metadataprov; se 04-08-SUMMARY |
+| 04-08-02 | DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register-audit.test.mjs lib/server/events.test.mjs` | GREEN 16/16 loggprov, simulerad transaktionsgräns; se 04-08-SUMMARY |
 | 04-09-01 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | Ej kört |
 | 04-09-02 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
 | 04-10-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | Ej kört |
@@ -107,7 +107,7 @@ Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. Äldre behörigh
 
 - [x] `web/lib/pupil-register-model.test.mjs` — 17/17, 04-01-SUMMARY
 - [ ] `web/lib/server/pupil-register.test.mjs`
-- [ ] utökat `web/lib/server/events.test.mjs` (`/api/elever` i `ROUTES`, nya detaljnycklar)
+- [x] utökat `web/lib/server/events.test.mjs` (`/api/elever` i `ROUTES`, nya detaljnycklar)
 - [ ] `supabase/tests/phase4_{register,periods,protected,conflicts,export}.test.sql` + uppdaterade fas 3-fixturer
 - [ ] `work/pilot/sql/phase4-fixtures.sql`, `work/pilot/phase4-browser-fixtures.mjs`
 - [ ] `work/pilot/verify-register.mjs`, `work/pilot/verify-register-locks.mjs`

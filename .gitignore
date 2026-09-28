@@ -16,3 +16,4 @@ coverage/
 supabase/.temp/
 supabase/.branches/
 work/pilot/results/phase2-sql.json
+work/pilot/results/phase4-*.json
