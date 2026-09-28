@@ -163,7 +163,10 @@ test('simulerad anonym serverprojektion får ingen markering eller elevåtgärd'
   const row = page.locator(selector).filter({ hasText: 'Anonym syntetisk elev' });
   await expect(row).toBeVisible();
   await expect(row.getByRole('checkbox')).toHaveCount(0);
-  await expect(row.getByRole('button')).toHaveCount(0);
+  // Sedan 04-13 öppnar namnknappen elevkortet för alla rader; servern avgör kortets
+  // innehåll. Ingen annan knapp (markering, ändring, export) får finnas på raden.
+  await expect(row.getByRole('button')).toHaveCount(1);
+  await expect(row.getByRole('button', { name: 'Anonym syntetisk elev, öppna elevkortet', exact: true })).toBeVisible();
 });
 
 test('huvudman utan elevinsyn nekas även registermetadata', async ({ page }) => {
