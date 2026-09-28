@@ -86,6 +86,12 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04,
 | 04-21-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build && cd web && npm run verify:phase4` | Ej kört |
 | 04-23-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-23-register.json && node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-23-periods.json && node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-23-export.json && node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-23-all-sql.json` | PASS efter RED: register 162/162, periods 101/101, export 22/22 mot protected-målet efter migration `20260929170000`; full SQL FAIL endast `phase3_boundaries`/`phase3_connections` (04-15), 14/16 filer ok, alla fas 4-filer PASS; se 04-23-SUMMARY |
 | 04-23-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `node work/pilot/phase4-worker-execute-probe.mjs --target protected --out work/pilot/results/phase4-23-worker-probe.json` | PASS 9/9 fall (slutkörning på d7ca458, Worker-bygge c69361e), lokalt mintade sessioner med testrealmens bevisprofil; icke-deterministiskt Wrangler-avbrott på nekat anrop i 5 av 11 körningar under planen (deferred-items) |
+| 04-24-01 | DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-24-protected.json && node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-24-export.json && node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-24-all-sql.json && cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit` | Ej kört |
+| 04-24-02 | DATA-01, DATA-02 | `cd web && node --test lib/pupil-register-model.test.mjs lib/server-client.test.mjs lib/server/pupil-register.test.mjs && npx tsc --noEmit && npx oxlint app lib && npm run build` | Ej kört |
+| 04-24-03 | DATA-01, DATA-02 | `cd web && npm run build:protected && npx playwright test --config playwright.phase4-protected.config.ts && npx playwright test --config playwright.phase4-card.config.ts && npx playwright test --config playwright.phase4-list.config.ts` | Ej kört |
+| 04-25-01 | DATA-01, DATA-02 | `node --test work/pilot/phase4-worker-stability.test.mjs && node work/pilot/phase4-worker-stability.mjs --target protected --runs 20 --flood-runs 5 --flood-calls 200 --baseline --out work/pilot/results/phase4-25-baseline.json` | Ej kört |
+| 04-25-02 | DATA-01, DATA-02 | `cd web && node --test lib/server/deny-path.test.mjs lib/server/pupil-register.test.mjs lib/server/events.test.mjs lib/server/mandates.test.mjs lib/server/protected-permission.test.mjs && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
+| 04-25-03 | DATA-01, DATA-02 | `node work/pilot/phase4-worker-stability.mjs --target protected --runs 20 --flood-runs 5 --flood-calls 200 --out work/pilot/results/phase4-25-stability.json && node work/pilot/phase4-worker-execute-probe.mjs --target protected --out work/pilot/results/phase4-25-worker-probe.json && cd web && node --test lib/*.test.mjs lib/server/*.test.mjs && npx tsc --noEmit && npx oxlint app lib && npm run build` | Ej kört |
 
 `04-22` är en separat mänsklig checkpoint efter full grön grind. Slutlig kravverifiering följer därefter genom gsd-verify-work. Saknad miljö eller underkänt prov är aldrig PASS.
 
@@ -98,10 +104,10 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04,
 | STU-04 | 04-06, 04-13, 04-16, 04-19 |
 | STU-05 | 04-04, 04-12, 04-16, 04-19 |
 | STU-06 | 04-05, 04-07, 04-13, 04-16, 04-19 |
-| DATA-01 | 04-03, 04-04, 04-08, 04-11, 04-16–19 |
-| DATA-02 | 04-04, 04-10, 04-13, 04-16, 04-19, 04-23 |
+| DATA-01 | 04-03, 04-04, 04-08, 04-11, 04-16–19, 04-24 |
+| DATA-02 | 04-04, 04-10, 04-13, 04-16, 04-19, 04-23, 04-24 |
 
-Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. Äldre behörighets- och bevarandefall måste köras om, inte tillgodoräknas historiska gröna resultat.
+Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. 04-25 ger inget eget kravbevis. Den gör nekade anrop mot lokal Worker tillförlitliga, vilket 04-16 och 04-18–04-21 förutsätter. Äldre behörighets- och bevarandefall måste köras om, inte tillgodoräknas historiska gröna resultat.
 
 ---
 

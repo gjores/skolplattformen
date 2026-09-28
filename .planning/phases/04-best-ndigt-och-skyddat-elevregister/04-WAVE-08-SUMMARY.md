@@ -3,7 +3,7 @@ phase: 04
 wave: 8
 status: complete
 completed_plans: [04-23, 04-13, 04-15]
-next_plans: [04-17]
+next_plans: [04-25, 04-24, 04-17]
 ---
 
 # Fas 4 — våg 8
@@ -19,8 +19,8 @@ Vågen öppnar Worker-körrätt för registrets skrivfunktioner (04-23, tillagd 
 
 ## Kvarstår
 
-- **Lokala Worker-avbrott på nekade anrop.** I 04-23 stannade den lokala Workern i 5 av 11 körningar efter ett nekat anrop (500, sedan inget svar). Inga uppgifter läckte och inget ändrades. Problemet är beskrivet i `deferred-items.md` och bör utredas före E2E och grindar (04-16, 04-19, 04-21). Under 04-13:s körningar inträffade inga avbrott.
-- **Skyddade elever utelämnas alltid ur exporten.** Listans API markerar inte vilka elever som är skyddade, så varken valet att ta med dem eller skyddsmärket i listan kan visas. Det kräver en ändring i serverns listsvar, och ingen plan äger den ännu.
+- **Lokala Worker-avbrott på nekade anrop.** I 04-23 stannade den lokala Workern i 5 av 11 körningar efter ett nekat anrop (500, sedan inget svar). Inga uppgifter läckte och inget ändrades. Problemet är beskrivet i `deferred-items.md` och bör utredas före E2E och grindar (04-16, 04-19, 04-21). Under 04-13:s körningar inträffade inga avbrott. **Ägs nu av 04-25** (våg 9, körs först i vågen). Planen reproducerar felet, fastställer orsaken och åtgärdar den där den sitter, med 20 raka körningar som bevis. Är orsaken bara verktygsbunden dokumenteras det tillsammans med en grindrutin.
+- **Skyddade elever utelämnas alltid ur exporten.** Listans API markerar inte vilka elever som är skyddade, så varken valet att ta med dem eller skyddsmärket i listan kan visas. Det kräver en ändring i serverns listsvar. **Ägs nu av 04-24** (våg 9, efter 04-25 och före 04-17). Listsvaret ger skyddsflagga och skyddade elev-ID bara till behörig administratör, och exportdialogen får det uttryckliga valet enligt UI-SPEC. Migrationen är 20260929180000.
 - **Ej provat i webbläsare:** lyckad sparning, konflikt mellan två administratörer, avvikelsepanelen och nedladdad fil, eftersom provkontot saknar engångskod. Detta ägs av 04-16 och 04-19.
 - **Avvikelser från UI-SPEC som API:et inte räcker till för:** ett namnfält i stället för förnamn och efternamn, kommunkod i stället för kommunnamn, inget aktörsnamn i historiken, inget klassval vid skolbyte och ingen brödsmula "Elevkort". Tolkningen av den anonyma listraden (endast namnknapp) behöver bekräftas mot D-19 i 04-19.
 - `verify-mandates.mjs` skriver fortfarande tillfälliga rader i det gamla elevprovet. Detta ägs av 04-18.
@@ -28,4 +28,4 @@ Vågen öppnar Worker-körrätt för registrets skrivfunktioner (04-23, tillagd 
 
 ## Nästa steg
 
-Fas 4 har 16 av 23 planer genomförda. Våg 9 är 04-17, som avvecklar elevprovet utan att lämna alternativa datavägar.
+Fas 4 har 16 av 25 planer genomförda. Våg 9 körs i ordningen 04-25 (Worker-avbrott på nekade anrop), 04-24 (skyddade elever i lista och export) och 04-17, som avvecklar elevprovet utan att lämna alternativa datavägar. 04-16 beror nu även på 04-24 och 04-25.
