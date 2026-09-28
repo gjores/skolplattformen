@@ -8,6 +8,7 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import type { ActiveContext } from './context-switch';
 import MandateGrantDialog from './mandate-grant-dialog';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedPermissionDialog from './protected-permission-dialog';
 
 type School = { id: string; name: string };
 type Mandate = {
@@ -33,6 +34,7 @@ export default function MandateWorkspace(props: Props) {
   const [connection, setConnection] = useState<Connection | null>(null);
   const [ending, setEnding] = useState<Mandate | null>(null);
   const [granting, setGranting] = useState(false);
+  const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -135,7 +137,7 @@ export default function MandateWorkspace(props: Props) {
       <p>{isIT ? 'Inställningar och syntetiskt test för skolorna i ditt IT-uppdrag.' : 'Giltiga och kommande uppdrag som du har tilldelat genom ditt aktuella mandat.'}</p>
       {status && <output className="admin-notice">{status}</output>}
       {error && <output role="alert" className="validation-warning">{error}</output>}
-      <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => void load(isIT ? schoolId : undefined)}>Hämta aktuellt läge</Button>{!isIT && <Button disabled={busy} onClick={() => { setError(null); setGranting(true); }}>Tilldela uppdrag</Button>}</div>
+      <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => void load(isIT ? schoolId : undefined)}>Hämta aktuellt läge</Button>{!isIT && <Button disabled={busy} onClick={() => { setError(null); setGranting(true); }}>Tilldela uppdrag</Button>}{props.context.function === 'huvudman' && <Button variant="outline" disabled={busy} onClick={() => setPermissionsOpen(true)}>Hantera skyddsbehörighet</Button>}</div>
       {busy && <output>Hämtar eller sparar uppgifter…</output>}
       {isIT ? <section className="protected-card">
         <h2>Skolans lokala anslutning</h2>
@@ -150,6 +152,7 @@ export default function MandateWorkspace(props: Props) {
         </article>)}</div>
       </section>}
       {!isIT && <MandateGrantDialog open={granting} epoch={props.epoch} onOpenChange={setGranting} onMfaRequired={() => callbacks.current.onMfaRequired()} onSessionLost={() => callbacks.current.onSessionLost()} onGranted={(name) => { setGranting(false); void load().then(() => setStatus(`Uppdraget har tilldelats ${name}.`)); }} />}
+      {props.context.function === 'huvudman' && <ProtectedPermissionDialog key={props.epoch} open={permissionsOpen} epoch={props.epoch} onOpenChange={setPermissionsOpen} onMfaRequired={() => callbacks.current.onMfaRequired()} onSessionLost={() => callbacks.current.onSessionLost()} />}
       <Dialog open={ending !== null} onOpenChange={(open) => { if (!open && !busy) setEnding(null); }}>
         <DialogContent className="mandate-dialog" showCloseButton={!busy}>
           <DialogTitle>Avsluta uppdrag?</DialogTitle>
