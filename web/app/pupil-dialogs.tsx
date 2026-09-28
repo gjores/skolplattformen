@@ -5,7 +5,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import {
-  csvDataRowCount, DEFAULT_EXPORT_FIELDS, EXPORT_FIELDS, exportPost, groupPlacements, isValidDate, luhnOk, maskedPersonalNumber, resolvedBasics,
+  csvDataRowCount, DEFAULT_EXPORT_FIELDS, EXPORT_FIELDS, exportPost, groupPlacements, protectedExportChoice, isValidDate, luhnOk, maskedPersonalNumber, resolvedBasics,
   type BasicsChange, type ChangeRequest, type ConflictChoice, type ConflictChoiceField, type ConflictDetails, type ExportDraft,
   type ExportField, type ExportPreview, type FieldOrigin, type NamedOption, type Placement, type PupilCard, type RegisterOptions, type Selection,
 } from '@/lib/pupil-register-model.ts';
@@ -488,6 +488,8 @@ export type ExportDialogProps = {
   marked: string[];
   total: number;
   canReadProtected: boolean;
+  /** Skyddade elev-ID ur serverns lista; tom för den som inte får se skyddade elever. */
+  protectedIds: readonly string[];
   returnTo: string;
   onClose: () => void;
   onDone: (message: string) => void;
@@ -496,10 +498,14 @@ export type ExportDialogProps = {
 
 /** Uttryckligt exporturval. Antalet kommer från serverns förhandsprövning; filen
  * begärs först därefter och servern prövar och loggar urvalet igen. */
+const notInMandate = 'En elev i urvalet ingår inte längre i ditt uppdrag. Stäng dialogen, hämta aktuellt läge och välj igen.';
+
 export function PupilExportDialog(props: ExportDialogProps) {
   const [target, setTarget] = useState<'marked' | 'selection'>(props.marked.length > 0 ? 'marked' : 'selection');
   const [fields, setFields] = useState<ExportField[]>([...DEFAULT_EXPORT_FIELDS]);
   const [includePersonalNumber, setIncludePersonalNumber] = useState(false);
+  // Skyddade elever tas bara med efter uttryckligt val; valet återställs vid byte av elevurval.
+  const [includeProtected, setIncludeProtected] = useState(false);
   const [preview, setPreview] = useState<number | null>(null);
   const [previewing, setPreviewing] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -512,18 +518,22 @@ export function PupilExportDialog(props: ExportDialogProps) {
   const callbacks = useRef(props);
   useEffect(() => { callbacks.current = props; });
 
+  const choice = protectedExportChoice({ capabilities: { canReadProtected: props.canReadProtected }, protectedIds: props.protectedIds },
+    target === 'marked' ? { kind: 'marked', ids: props.marked } : { kind: 'selection' });
+  const choiceKey = choice.ids.join(',');
   const draft = (chosen: ExportField[]): ExportDraft => ({
     schoolYear: props.schoolYear, caseId: props.caseId, fields: chosen, includePersonalNumber,
-    // Listan anger inte vilka elever som har skyddade personuppgifter; de utelämnas därför alltid.
-    protectedIds: [],
+    includeProtected: includeProtected && choice.count > 0, protectedIds: choice.ids,
     target: target === 'marked' ? { kind: 'marked', ids: props.marked } : { kind: 'selection', selection: props.selection, search: props.search },
   });
 
-  // Förhandsprövningen gäller elevurvalet; antalet beror inte på fältvalet.
+  // Förhandsprövningen gäller elevurvalet och skyddsvalet; antalet beror inte på fältvalet.
+  // När skyddsvalet ändras görs prövningen om med de uttryckliga ID:na.
   useEffect(() => {
     let active = true;
     const built = exportPost('preview', {
-      schoolYear: callbacks.current.schoolYear, caseId: callbacks.current.caseId, fields: ['id'], includePersonalNumber: false, protectedIds: [],
+      schoolYear: callbacks.current.schoolYear, caseId: callbacks.current.caseId, fields: ['id'], includePersonalNumber: false,
+      includeProtected: includeProtected && choiceKey !== '', protectedIds: choiceKey === '' ? [] : choiceKey.split(','),
       target: target === 'marked' ? { kind: 'marked', ids: callbacks.current.marked } : { kind: 'selection', selection: callbacks.current.selection, search: callbacks.current.search },
     });
     queueMicrotask(() => { if (active) { setPreview(null); setPreviewing(true); setError(null); } });
@@ -541,10 +551,10 @@ export function PupilExportDialog(props: ExportDialogProps) {
       if (!result) return;
       if (result.kind === 'session') callbacks.current.onSessionLost();
       else if (result.kind === 'mfa') setMfa(true);
-      else if (result.kind === 'message') setError(result.status === 400 ? 'Urvalet innehåller inga elever att exportera.' : result.text);
+      else if (result.kind === 'message') setError(result.status === 400 ? 'Urvalet innehåller inga elever att exportera.' : result.status === 404 ? notInMandate : result.text);
     }).finally(() => { if (active) setPreviewing(false); });
     return () => { active = false; };
-  }, [target]);
+  }, [target, includeProtected, choiceKey]);
 
   useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
   useEffect(() => { if (fieldError) firstField.current?.focus(); }, [fieldError]);
@@ -583,7 +593,7 @@ export function PupilExportDialog(props: ExportDialogProps) {
       if (!result) return;
       if (result.kind === 'session') { callbacks.current.onSessionLost(); return; }
       if (result.kind === 'mfa') { setMfa(true); return; }
-      setError(result.kind === 'message' ? result.status === 404 ? 'En elev i urvalet ingår inte längre i ditt uppdrag. Stäng dialogen, hämta aktuellt läge och välj igen.' : result.text : 'Exporten kunde inte slutföras. Försök igen.');
+      setError(result.kind === 'message' ? result.status === 404 ? notInMandate : result.text : 'Exporten kunde inte slutföras. Försök igen.');
     } finally { setBusy(false); }
   }
 
@@ -598,9 +608,12 @@ export function PupilExportDialog(props: ExportDialogProps) {
         <form className="protected-form pupil-dialog-form" noValidate onSubmit={event => void download(event)} aria-busy={busy || previewing}>
           <fieldset className="mandate-choice">
             <legend>Elever</legend>
-            <label className="mandate-check"><input type="radio" name="export-target" checked={target === 'marked'} disabled={busy || props.marked.length === 0} onChange={() => setTarget('marked')} />Markerade elever ({props.marked.length})</label>
-            <label className="mandate-check"><input type="radio" name="export-target" checked={target === 'selection'} disabled={busy} onChange={() => setTarget('selection')} />Alla elever i urvalet ({props.total})</label>
-            {props.canReadProtected && <small>Elever med skyddade personuppgifter utelämnas ur exporten.</small>}
+            <label className="mandate-check"><input type="radio" name="export-target" checked={target === 'marked'} disabled={busy || props.marked.length === 0} onChange={() => { setTarget('marked'); setIncludeProtected(false); }} />Markerade elever ({props.marked.length})</label>
+            <label className="mandate-check"><input type="radio" name="export-target" checked={target === 'selection'} disabled={busy} onChange={() => { setTarget('selection'); setIncludeProtected(false); }} />Alla elever i urvalet ({props.total})</label>
+            {choice.count > 0 && <>
+              <label className="mandate-check"><input type="checkbox" checked={includeProtected} disabled={busy} aria-describedby="export-protected-help" onChange={event => setIncludeProtected(event.target.checked)} />Ta med elever med skyddade personuppgifter ({choice.count})</label>
+              <small id="export-protected-help">Utan detta val utelämnas de ur exporten.</small>
+            </>}
           </fieldset>
           <fieldset className="mandate-choice" aria-describedby={fieldError ? 'export-fields-error' : undefined}>
             <legend>Uppgifter</legend>

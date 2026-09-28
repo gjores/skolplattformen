@@ -59,7 +59,7 @@ type PupilRowBase = {
   status: PupilStatus;
   capabilities: Omit<Capabilities, 'canReadProtected'>;
 };
-export type PupilListItem = PupilRowBase &
+type PupilProjection = PupilRowBase &
   (
     | { birthDate?: never; municipalityCode?: never }
     | {
@@ -67,6 +67,10 @@ export type PupilListItem = PupilRowBase &
         municipalityCode: string | null;
       }
   );
+export type PupilListItem = PupilProjection & {
+    /** 04-24: finns bara, och bara som true, för administratör med skyddsbehörighet på skolan. */
+    protectedIdentity?: true;
+  };
 export type PupilList = {
   pupils: PupilListItem[];
   scope: RegisterScope;
@@ -75,6 +79,8 @@ export type PupilList = {
   count: number;
   page: number;
   pageSize: typeof PUPIL_PAGE_SIZE;
+  /** 04-24: skyddade elev-ID i hela urvalet; saknas för den som inte får se skyddade elever. */
+  protectedIds?: string[];
 };
 export type OriginField =
   | 'displayName'
@@ -115,7 +121,7 @@ export type SourceConflict =
       origin: FieldOrigin;
     }
   | { id: string; field: 'personalNumber'; origin: FieldOrigin };
-export type PupilCard = PupilListItem & {
+export type PupilCard = PupilProjection & {
   version: number;
   placements: Placement[];
   classes: ClassMembership[];
@@ -585,8 +591,27 @@ export type ExportDraft = {
   fields: readonly ExportField[];
   includePersonalNumber: boolean;
   protectedIds: readonly string[];
+  /** Uttryckligt val att ta med skyddade elever. Saknas = inte valt. */
+  includeProtected?: boolean;
   target: ExportTarget;
 };
+
+/** 04-24: vilka skyddade elever exportdialogen kan erbjuda. Bara ur serverns lista och
+ * bara för behörig: markerade elever ger snittet med protectedIds, hela urvalet ger alla.
+ * Obehörig eller lista utan protectedIds ger alltid inget val. */
+export function protectedExportChoice(
+  list: { capabilities: Pick<Capabilities, 'canReadProtected'>; protectedIds?: readonly string[] },
+  target: { kind: 'marked'; ids: readonly string[] } | { kind: 'selection' },
+): { count: number; ids: string[] } {
+  if (list.capabilities.canReadProtected !== true || !Array.isArray(list.protectedIds))
+    return { count: 0, ids: [] };
+  const all = [...new Set(list.protectedIds)];
+  const ids =
+    target.kind === 'marked'
+      ? all.filter((id) => target.ids.includes(id))
+      : all;
+  return { count: ids.length, ids };
+}
 
 /** Bygger exportanropets kropp. Fältordningen följer EXPORT_FIELDS och sidnumret
  * skickas aldrig vidare (servern räknar hela urvalet). Tomt urval stoppas här. */
@@ -602,7 +627,8 @@ export function exportPost(
     schoolYear: draft.schoolYear,
     caseId: draft.caseId,
     fields,
-    protectedIds: [...new Set(draft.protectedIds)],
+    // Skyddade elever skickas bara efter uttryckligt val; servern prövar dem igen.
+    protectedIds: draft.includeProtected === true ? [...new Set(draft.protectedIds)] : [],
     includePersonalNumber: draft.includePersonalNumber === true,
   };
   if (draft.target.kind === 'marked') {

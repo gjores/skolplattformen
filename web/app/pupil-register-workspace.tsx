@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, ShieldAlert } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FUNCTION_LABEL } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -181,7 +182,9 @@ export default function PupilRegisterWorkspace(props: Props) {
     props.onOpenPupil?.(pupil.id, selection, caseId);
   };
   const buttonRef = (id: string) => (element: HTMLButtonElement | null) => { if (element) nameButtons.current.set(id, element); else nameButtons.current.delete(id); };
-  const name = (pupil: PupilListItem, layout: 'table' | 'card') => <><span className="pupil-name"><button type="button" ref={layout === 'table' ? buttonRef(pupil.id) : buttonRef(`${pupil.id}-card`)} aria-label={`${pupil.displayName}, öppna elevkortet`} onClick={() => openCard(pupil)}>{pupil.displayName}</button></span><small>{distinguish(pupil)}</small></>;
+  // Märket visas bara när servern flaggat raden, alltså bara för behörig administratör (D-17, D-19).
+  const protectedBadge = (pupil: PupilListItem) => pupil.protectedIdentity === true && <span className="pupil-badges"><Badge variant="outline" className="pupil-badge"><ShieldAlert size={16} aria-hidden="true" />Skyddade personuppgifter</Badge></span>;
+  const name = (pupil: PupilListItem, layout: 'table' | 'card') => <><span className="pupil-name"><button type="button" ref={layout === 'table' ? buttonRef(pupil.id) : buttonRef(`${pupil.id}-card`)} aria-label={`${pupil.displayName}, öppna elevkortet`} onClick={() => openCard(pupil)}>{pupil.displayName}</button></span><small>{distinguish(pupil)}</small>{protectedBadge(pupil)}</>;
   const mark = (pupil: PupilListItem) => pupil.capabilities.canExport && <label className="pupil-mark"><input type="checkbox" aria-label={`Markera ${pupil.displayName}`} checked={marked.includes(pupil.id)} onChange={event => setMarked(ids => event.target.checked ? [...ids, pupil.id] : ids.filter(id => id !== pupil.id))} /><span className="sr-only">Markera {pupil.displayName}</span></label>;
   const options = list?.options;
   const returnTo = `/${selectionToQuery(selection)}`;
@@ -235,7 +238,8 @@ export default function PupilRegisterWorkspace(props: Props) {
       </>}
     </section>
     {exporting && list && <PupilExportDialog schoolYear={selection.schoolYear} caseId={caseId} selection={selection} search={search} marked={marked}
-      total={list.count} canReadProtected={list.capabilities.canReadProtected} returnTo={returnTo}
+      total={list.count} canReadProtected={list.capabilities.canReadProtected}
+      protectedIds={list.capabilities.canReadProtected ? list.protectedIds ?? [] : []} returnTo={returnTo}
       onClose={() => setExporting(false)} onDone={message => { setExporting(false); setNotice(message); }} onSessionLost={props.onSessionLost} />}
   </div>;
 }

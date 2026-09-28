@@ -375,3 +375,26 @@ test('CSV-radräkning ignorerar rubrik, BOM och radbrytning i citerad cell', () 
   assert.equal(call('csvDataRowCount', '﻿elev_id\r\n'), 0);
   assert.equal(call('csvDataRowCount', 'a\r\nb'), 1);
 });
+
+// 04-24: skyddsval i exporten ur serverns lista, aldrig förvalt.
+const p1 = '20000000-0000-4000-8000-000000000001';
+const p2 = '20000000-0000-4000-8000-000000000002';
+const p3 = '20000000-0000-4000-8000-000000000003';
+const caps = (canReadProtected) => ({ canEdit: true, canExport: true, canRevealPersonalNumber: true, canReadHistory: true, canReadProtected });
+test('Skyddsvalet i exporten kommer ur serverns protectedIds och är tomt för obehörig', () => {
+  const entitled = { capabilities: caps(true), protectedIds: [p1, p2, p1] };
+  assert.deepEqual(call('protectedExportChoice', entitled, { kind: 'selection' }), { count: 2, ids: [p1, p2] });
+  assert.deepEqual(call('protectedExportChoice', entitled, { kind: 'marked', ids: [p3, p2, p2] }), { count: 1, ids: [p2] });
+  assert.deepEqual(call('protectedExportChoice', entitled, { kind: 'marked', ids: [p3] }), { count: 0, ids: [] });
+  // Obehörig får alltid tomt, även om ett avvikande svar skulle innehålla ID.
+  assert.deepEqual(call('protectedExportChoice', { capabilities: caps(false), protectedIds: [p1] }, { kind: 'selection' }), { count: 0, ids: [] });
+  assert.deepEqual(call('protectedExportChoice', { capabilities: caps(false) }, { kind: 'marked', ids: [p1] }), { count: 0, ids: [] });
+  assert.deepEqual(call('protectedExportChoice', { capabilities: caps(true) }, { kind: 'selection' }), { count: 0, ids: [] });
+});
+test('Exportkroppen tar med skyddade ID bara efter uttryckligt val', () => {
+  const base = { schoolYear: 2026, caseId: null, fields: ['id'], includePersonalNumber: false, protectedIds: [p1, p1, p2], target: { kind: 'marked', ids: [p1, p2, p3] } };
+  assert.deepEqual(call('exportPost', 'preview', base).post.export.protectedIds, []);
+  assert.deepEqual(call('exportPost', 'preview', { ...base, includeProtected: false }).post.export.protectedIds, []);
+  assert.deepEqual(call('exportPost', 'download', { ...base, includeProtected: true }).post.export.protectedIds, [p1, p2]);
+  assert.deepEqual(call('exportPost', 'download', { ...base, includeProtected: 'true' }).post.export.protectedIds, []);
+});
