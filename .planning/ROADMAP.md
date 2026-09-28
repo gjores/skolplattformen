@@ -116,7 +116,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 4. Behörig personal kan genomföra pilotens fastställda arbetsfall med en skyddad syntetisk elev. Obehöriga läsvägar, sökträffar, fel och aviseringar röjer varken skyddade uppgifter eller metadata. (DATA-01)
 5. Administratören kan exportera ett uttryckligt elevurval med endast tillåtna fält. Serverns behörighetskontroll, aktuella spärrar, skyddsregler och loggning gäller även om exporten anropas direkt. (DATA-02)
 
-**Plans**: 23 planer i 15 vågor, 14 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); genomförande och beteendeverifiering återstår.
+**Plans**: 23 planer i 15 vågor, 15 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); genomförande och beteendeverifiering återstår.
 
 - [x] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
 - [x] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
@@ -130,7 +130,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 - [x] 04-10-PLAN.md — Öppna ändring, personnummer och export via skyddat API (våg 7)
 - [x] 04-11-PLAN.md — Gör skyddsbehörighet hanterbar för huvudmannen (våg 4)
 - [x] 04-12-PLAN.md — Bygg lista, läsår och säkert urval (våg 6)
-- [ ] 04-13-PLAN.md — Bygg elevkort och ändringsdialoger (våg 8)
+- [x] 04-13-PLAN.md — Bygg elevkort och ändringsdialoger (våg 8)
 - [x] 04-14-PLAN.md — Porta första delen av SQL-regressionen (våg 7)
 - [ ] 04-15-PLAN.md — Porta resterande SQL och lokala fixturer (våg 8)
 - [ ] 04-16-PLAN.md — Skapa fullständiga registerprov och syntetiska scenarion (våg 10)
@@ -229,7 +229,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 14/23 | In progress — 04-23 klar (Worker-körrätt öppnad, verkligt Worker-prov 9/9); nästa i våg 8: 04-13 och 04-15; full SQL röd på två äldre fixturer (04-15) | - |
+| 4. Beständigt och skyddat elevregister | 15/23 | In progress — 04-13 klar (elevkort, dialoger, konflikt och export; riktat browserprov 9/9 dator/telefon); nästa i våg 8: 04-15; full SQL röd på två äldre fixturer (04-15) | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
