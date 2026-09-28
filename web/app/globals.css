@@ -2025,3 +2025,44 @@ textarea:disabled {
 .probe-workspace button{min-height:44px;white-space:normal;height:auto}
 .probe-workspace button:focus-visible,.probe-workspace select:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
 @media(max-width:700px){.mandate-grant-form{grid-template-columns:1fr}.probe-workspace .mandate-actions>*{width:100%}}
+
+/* Fas 4: enbart skyddade elevregistret och dess läsårsväljare. */
+.pupil-register { min-width: 0; }
+.pupil-register .admin-heading h1 { font-weight: 500; }
+.pupil-register .protected-filter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.pupil-register .protected-filter label { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pupil-register .protected-filter .mandate-actions { grid-column: 1 / -1; }
+.pupil-register input:not([type="checkbox"]), .pupil-register select, .pupil-school-year select { min-height: 44px; min-width: 44px; width: 100%; padding: 8px; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--foreground); }
+.pupil-register button, .pupil-school-year button { min-width: 44px; min-height: 44px; white-space: normal; }
+.pupil-register :is(button, input, select):focus-visible, .pupil-school-year :is(button, select):focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.pupil-register section { margin-top: 24px; }
+.pupil-register section > h2 { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
+.pupil-register-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 16px 0; }
+.pupil-register-table th, .pupil-register-table td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.pupil-register-table th { font-weight: 500; }
+.pupil-register-table th:has(.sr-only) { width: 60px; }
+.pupil-register-table th:nth-last-child(2) { width: 64px; }
+.pupil-register-table th:last-child { width: 88px; }
+.pupil-register-table td:has(.pupil-name) { width: 30%; }
+.pupil-register .pupil-name { display: block; font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+.pupil-register .pupil-name button { text-align: left; color: inherit; background: transparent; border: 0; padding: 8px 0; }
+.pupil-register small { display: block; font-size: 14px; font-weight: 400; color: var(--muted-foreground); overflow-wrap: anywhere; }
+.pupil-register .pupil-mark { display: flex; width: 44px; min-height: 44px; align-items: center; justify-content: center; cursor: pointer; }
+.pupil-register .pupil-mark input { width: 22px; height: 22px; }
+.pupil-register-cards { display: none; }
+.pupil-school-year { display: flex; align-items: center; gap: 8px; max-width: 100%; }
+.pupil-school-year select { width: auto; }
+.pupil-school-year label { font-size: 14px; }
+@media (max-width: 800px) {
+  .pupil-register .protected-filter { grid-template-columns: minmax(0, 1fr); }
+  .pupil-register-table { display: none; }
+  .pupil-register-cards { display: grid; gap: 16px; padding: 0; margin: 16px 0; list-style: none; }
+  .pupil-register-cards .protected-card { padding: 16px; min-width: 0; overflow-wrap: anywhere; }
+  .pupil-register-cards .pupil-mark { float: left; margin-right: 8px; }
+}
+@media (max-width: 600px) {
+  .protected-topbar .pupil-school-year { flex-basis: 100%; }
+  .pupil-school-year select { flex: 1; min-width: 0; }
+}
+.pupil-register .pupil-search-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pupil-school-year { margin: 0; padding: 0; border: 0; }

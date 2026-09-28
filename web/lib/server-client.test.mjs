@@ -126,3 +126,14 @@ test('första epoch accepteras och fel utan objektkropp blir generiska', async (
     await assert.rejects(api.get('/api/test'), e => e instanceof ApiError && e.code === 'bad_request' && e.details === null);
   }
 });
+
+test('arbetsytans abortsignal stoppar sena resultat utan att låsa andra begäranden', async () => {
+  setKnownEpoch(1); const late = deferred(); const controller = new AbortController(); let signal;
+  globalThis.fetch = async (_path, options) => { signal = options.signal; return late.promise; };
+  const result = api.post('/api/elever/lista', {}, controller.signal);
+  controller.abort(); assert.equal(signal.aborted, true);
+  late.resolve(response({ pupils: ['late'] }));
+  await assert.rejects(result, { name: 'AbortError' });
+  globalThis.fetch = async () => response({ ok: true });
+  assert.deepEqual(await api.get('/api/current'), { ok: true });
+});

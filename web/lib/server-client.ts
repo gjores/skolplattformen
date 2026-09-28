@@ -56,8 +56,12 @@ async function request<T>(
   path: string,
   body?: unknown,
   download = false,
+  signal?: AbortSignal,
 ): Promise<T> {
   const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  if (signal?.aborted) controller.abort();
   let acceptedGeneration = generation;
   const requestEpoch = knownEpoch;
   let acceptedEpoch = requestEpoch;
@@ -68,6 +72,7 @@ async function request<T>(
   };
   pending.add(controller);
   try {
+    assertCurrent();
     const headers = new Headers({ Accept: download ? 'text/csv' : 'application/json' });
     if (body !== undefined) headers.set('Content-Type', 'application/json');
     if (requestEpoch !== null) headers.set('X-Context-Epoch', String(requestEpoch));
@@ -128,15 +133,16 @@ async function request<T>(
     return parsed as T;
   } finally {
     pending.delete(controller);
+    signal?.removeEventListener('abort', abort);
   }
 }
 
 export const api = {
-  get<T>(path: string): Promise<T> {
-    return request<T>('GET', path);
+  get<T>(path: string, signal?: AbortSignal): Promise<T> {
+    return request<T>('GET', path, undefined, false, signal);
   },
-  post<T>(path: string, body: unknown): Promise<T> {
-    return request<T>('POST', path, body);
+  post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+    return request<T>('POST', path, body, false, signal);
   },
   patch<T>(path: string, body: unknown): Promise<T> {
     return request<T>('PATCH', path, body);
