@@ -4,7 +4,7 @@ title: Mandat och avgränsad åtkomst
 
 Ett mandat är ett uppdrag med en bestämd räckvidd och en bestämd giltighetstid. Servern prövar mandatet vid varje åtgärd: vem du är, vilket uppdrag du arbetar i, vilket objekt du försöker nå och vilka uppgifter du begär.
 
-**Status:** Verifierat. Flödena på den här sidan är prövade på dator och i telefonläge i den lokala provmiljön med syntetiska uppgifter och granskade i september 2026, inklusive verifiering inifrån dialogerna och support för grupper. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
+**Status:** Lokal provmiljö med syntetiska uppgifter. De tidigare mandatflödena granskades i september 2026. Skyddsbehörighetens dialog har prövats på dator och i telefonstorlek; se begränsningen för elevläsning nedan. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
 
 ## Mandatarbetsytan
 
@@ -29,6 +29,20 @@ Saknas ett val markeras fältet och felet står vid fältet, till exempel *Välj
 Välj *Avsluta uppdrag för …* på kortet. Bekräftelsen namnger personen, funktionen och skolenheten och säger att uppdrag som bygger på mandatet också upphör. Välj *Ja, avsluta uppdraget*. Avslutet gäller direkt vid nästa anrop, även i sessioner som redan är öppna.
 
 Avslut kräver verifiering med engångskod, precis som tilldelning. Saknas beviset visas *Att avsluta uppdrag kräver verifiering med engångskod.* och knappen *Verifiera med engångskod* i bekräftelsedialogen. Efter verifieringen finns uppdraget kvar tills du avslutar det igen.
+
+## Skyddsbehörighet för administratör
+
+Huvudmannen öppnar **Hantera skyddsbehörighet** i arbetsytan **Mandat**. Rektor kan ge det vanliga administratörsuppdraget, men kan inte ge skyddsbehörigheten.
+
+1. Välj **Skola** och **Administratörsuppdrag**. Endast giltiga uppdrag på skolorna i ditt eget mandat visas.
+2. Kontrollera aktuell status och välj **Ge skyddsbehörighet** eller **Återkalla skyddsbehörighet**.
+3. Kontrollera mottagare och skola och välj **Bekräfta tilldelning** eller **Bekräfta återkallelse**. Dialogen hämtar sedan aktuellt läge från servern.
+
+Rätten gäller bara det valda administratörsuppdraget på den valda skolan. Den följer inte automatiskt personen till ett annat uppdrag eller eleven till en annan skola. Återkallelse gäller vid nästa skyddade anrop. Rätten gäller inte heller om administratörens eller den tilldelande huvudmannens uppdragskedja har upphört eller spärrats. Huvudmannen får ingen egen elevinsyn genom att tilldela rätten.
+
+Ändringen kräver verifiering med engångskod. Saknas ett giltigt bevis finns **Verifiera med engångskod** inne i dialogen. Efter verifieringen öppnar du dialogen och väljer åtgärden igen. Osparade val lagras inte under inloggningen.
+
+**Ångra val** avbryter bekräftelsen utan att ändra behörigheten. Om du stänger dialogen eller byter val med en obekräftad ändring får du först bekräfta att den ska kastas. Vid ett sparfel finns valen kvar. Om säkerhetsloggen inte kan skrivas sparas ingen behörighetsändring.
 
 ## Vem får delegera till vem
 
@@ -60,23 +74,11 @@ Räckvidden avgör vilka objekt mandatet når.
 
 **Lärare** har alltid gruppräckvidd och når elever genom sina undervisnings- eller mentorsgrupper. **Elevhälsa** kan ges skol-, elev- eller ärenderäckvidd, så att insatsen kan avgränsas till just de elever eller ärenden den gäller. **Tidsbegränsad support** ges antingen för en namngiven elev eller för en eller flera grupper på en skola. Övriga verksamhetsfunktioner har skolräckvidd.
 
-## Syntetiskt elevprov
+## Tillgång till elevuppgifter
 
-Arbetsytan **Syntetiskt elevprov** visar hur räckvidden fungerar med syntetiska elever. Den finns för rektor, lärare, administratör, elevhälsa och tidsbegränsad support. Överst står uppdraget och omfattningen. Vid gruppräckvidd visas också vilka grupper uppdraget gäller. Listan innehåller bara de elever servern har lämnat ut för ditt uppdrag. Ingen större lista hämtas och filtreras i webbläsaren.
+Elevläsning och elevexport är tillfälligt stängda i den skyddade provmiljön. En eventuell meny för det äldre syntetiska elevprovet ger därför ingen elevlista. Hanteringen av administratörens skyddsbehörighet kan användas separat, men visar inga elever.
 
-| Uppdrag | Vad du ser |
-|---|---|
-| Lärare | Eleverna i dina grupper, inte andra elever på skolan |
-| Administratör | Skolenhetens elever. *Exportera urvalet (CSV)* laddar ned samma urval |
-| Elevhälsa, skolräckvidd | Skolenhetens elever |
-| Elevhälsa, elevräckvidd | Endast de tilldelade eleverna |
-| Elevhälsa, ärenderäckvidd | Ingen lista. Välj ett tilldelat ärende och *Visa ärendets elev* |
-| Tidsbegränsad support, elev | Den namngivna eleven, med godkännare, syfte och sluttid |
-| Tidsbegränsad support, grupper | Eleverna i de tilldelade grupperna, inte andra elever på skolan, med godkännare, syfte och sluttid |
-
-Bara administratören kan exportera.
-
-Elever utanför räckvidden syns inte, och ett direkt anrop om dem ger samma svar som om eleven inte fanns. Varje läsning och export registreras i säkerhetsloggen. Går loggen inte att skriva visas *Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.* med en referens, och ingen elevuppgift visas.
+När elevuppgifter visas ska servern alltid pröva ditt aktuella mandat och begränsa uppgifterna till dess räckvidd. Huvudman och IT får ingen elevinsyn genom sina ordinarie funktioner. Medicinska elevhälsojournaler ingår inte.
 
 ## Tidsbegränsad support
 
@@ -93,7 +95,7 @@ Rektor tilldelar support i samma dialog. Välj *Tidsbegränsad support* och mott
 
 Support för grupper når de elever som är med i grupperna när supporten läser. En elev som lämnar gruppen syns inte längre.
 
-Supportpersonen ser godkännare, syfte och sluttid ovanför eleven. Vid sluttiden töms vyn och ersätts av *Uppdraget har upphört vid sin sluttid.* Servern nekar också nästa anrop. Support är ingen stående åtkomst, och det finns ingen export.
+Supportens elevläsning omfattas av det tillfälliga stoppet ovan. Uppdragets start, sluttid och räckvidd gäller fortfarande; ett utgånget uppdrag ger ingen åtkomst. Support har ingen export.
 
 ## IT-administration
 
@@ -105,7 +107,7 @@ IT-funktionen ger ingen elevinsyn. Den når bara anslutningens läge, aldrig ele
 
 ## Minsta nödvändiga uppgifter
 
-Servern lämnar bara ut de fält åtgärden faktiskt kräver, och bara om de begärts uttryckligen. En elevläsning ger identitet, visningsnamn, skolenhet och grupptillhörighet — inte hela elevbilden. Begärs ett fält utanför det tillåtna nekas hela anropet i stället för att svaret tystas ned.
+Vilka elevuppgifter som får visas beror på ditt aktuella uppdrag och den åtgärd du utför. Skyddsbehörighetens dialog visar bara administratörsuppdrag, skolor och behörighetens status. Den visar inga elevuppgifter.
 
 ## När åtkomst nekas
 

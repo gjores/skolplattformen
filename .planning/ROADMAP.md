@@ -4,7 +4,7 @@
 
 **Milestone:** v1.0 — Säker administration inför en pilot
 
-**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 genomförs (5 av 22 planer klara).
+**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 genomförs (7 av 22 planer klara).
 
 **Granularity:** standard
 
@@ -121,14 +121,14 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 - [x] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
 - [x] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
 - [x] 04-03-PLAN.md — Flytta provrelationer och inför huvudmannens skyddsbehörighet (våg 3)
-- [ ] 04-04-PLAN.md — Implementera serverurval och fältprojektion (våg 4)
+- [x] 04-04-PLAN.md — Implementera serverurval och fältprojektion (våg 4)
 - [ ] 04-05-PLAN.md — Spara datumändringar med konflikter och historik (våg 5)
 - [ ] 04-06-PLAN.md — Skydda lokal rättelse mot simulerad källa (våg 6)
 - [x] 04-07-PLAN.md — Transportera säkra fel och stoppa gamla svar (våg 2)
 - [x] 04-08-PLAN.md — Utöka obligatorisk minimerad registerlogg (våg 2)
 - [ ] 04-09-PLAN.md — Koppla läs-API till registerprojektionen (våg 5)
 - [ ] 04-10-PLAN.md — Öppna ändring, personnummer och export via skyddat API (våg 7)
-- [ ] 04-11-PLAN.md — Gör skyddsbehörighet hanterbar för huvudmannen (våg 4)
+- [x] 04-11-PLAN.md — Gör skyddsbehörighet hanterbar för huvudmannen (våg 4)
 - [ ] 04-12-PLAN.md — Bygg lista, läsår och säkert urval (våg 6)
 - [ ] 04-13-PLAN.md — Bygg elevkort och ändringsdialoger (våg 8)
 - [ ] 04-14-PLAN.md — Porta första delen av SQL-regressionen (våg 7)
@@ -228,7 +228,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 5/22 | In progress — wave 3 complete; legacy SQL fixtures pending | - |
+| 4. Beständigt och skyddat elevregister | 7/22 | In progress — wave 4 complete; legacy SQL fixtures pending | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
@@ -237,4 +237,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav inväntar genomförande och verifiering.
 
 ---
-*Last updated: 2026-09-28 — fas 1–3 verifierade lokalt syntetiskt; fas 4 genomförs (5 av 22 planer klara).*
+*Last updated: 2026-09-28 — fas 1–3 verifierade lokalt syntetiskt; fas 4 genomförs (7 av 22 planer klara).*
