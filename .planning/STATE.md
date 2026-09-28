@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
-current_plan: 04-13
+current_plan: 04-23
 status: executing
-stopped_at: Completed 04-14-PLAN.md
+stopped_at: Planned 04-23 (Worker-körrätt) efter våg 7
 last_updated: "2026-09-28T13:15:00.000Z"
 last_activity: 2026-09-28
 last_activity_desc: Våg 7 genomförd (04-10, 04-14). Fyra äldre fas 3-SQL-fixturer portade till registret och PASS lokalt; boundaries/connections återstår i 04-15.
@@ -13,7 +13,7 @@ state_head: 9c7bd22
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 51
+  total_plans: 52
   completed_plans: 42
 milestone_name: milestone
 ---
@@ -25,19 +25,19 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 4 — våg 7 genomförd (skyddade skriv-/export-API:er och första delen av SQL-portningen). Nästa våg 8 är 04-13 och 04-15. Full SQL-grind är röd på två äldre fixturer tills 04-15 är klar.
+**Current focus:** Fas 4 — våg 7 genomförd (skyddade skriv-/export-API:er och första delen av SQL-portningen). Nästa våg 8: 04-23 (Worker-körrätt för skriv-/personnummer-/exportfunktionerna) körs först, därefter 04-13 och 04-15. Full SQL-grind är röd på två äldre fixturer tills 04-15 är klar.
 
 ## Current Position
 
-Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 13 av 22 planer klara
-Plan: 04-01–04-12 och 04-14 klara; nästa är våg 8: 04-13 och 04-15
+Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 13 av 23 planer klara
+Plan: 04-01–04-12 och 04-14 klara; nästa är våg 8: 04-23 först, sedan 04-13 och 04-15
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 04
 **Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** 04-13 (våg 8, tillsammans med 04-15)
-**Total Plans in Phase:** 22
+**Current Plan:** 04-23 (våg 8, körs före 04-13 och 04-15)
+**Total Plans in Phase:** 23
 **Status:** Executing (våg 7 klar; boundaries/connections-fixturerna återstår att porta i 04-15)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-28
