@@ -207,6 +207,53 @@ begin
  return jsonb_build_object('kind','success','body',jsonb_build_object('pupilId',r.pupil_id,'personalNumber',(select p.personal_number from public.pupils p where p.id=r.pupil_id)),
  'auditRefs',r.audit_refs||jsonb_build_array(jsonb_build_object('kind','personal-number','pupilId',r.pupil_id)));
 end$$;
+create function public.phase4_export_pupils(request jsonb,preview boolean default false) returns jsonb
+language plpgsql volatile security definer set search_path=pg_catalog,public as $$
+declare a public.access_assignments; selected jsonb; r record; rows jsonb:='[]'; refs jsonb:='[]'; fields text[]; ids uuid[]; protected_ids uuid[]; seen uuid[]:='{}'; row_value jsonb; include_number boolean; y integer; c uuid; total integer:=0;
+begin
+ a:=public.phase3_actor(); if a.function<>'administrator' then raise exception 'Export denied' using errcode='42501'; end if;
+ if request->>'mode'='filter' then perform public.phase4_keys(request,array['mode','selection','search','schoolYear','caseId','fields','protectedIds','includePersonalNumber']);
+ elsif request->>'mode'='ids' then perform public.phase4_keys(request,array['mode','ids','schoolYear','caseId','fields','protectedIds','includePersonalNumber']);
+ else raise exception 'Invalid export' using errcode='22023'; end if;
+ if preview is null or jsonb_typeof(request->'schoolYear') is distinct from 'number' or (request->>'schoolYear')!~'^[0-9]+$'
+ or (request->>'schoolYear')::numeric not between 1 and 9998
+ or jsonb_typeof(request->'fields') is distinct from 'array' or jsonb_typeof(request->'protectedIds') is distinct from 'array'
+ or jsonb_typeof(request->'includePersonalNumber') is distinct from 'boolean' then raise exception 'Invalid export' using errcode='22023'; end if;
+ y:=(request->>'schoolYear')::integer; perform public.phase4_year(y); c:=(request->>'caseId')::uuid;
+ fields:=array(select jsonb_array_elements_text(request->'fields')); protected_ids:=array(select jsonb_array_elements_text(request->'protectedIds')::uuid);
+ if cardinality(fields)=0 or exists(select 1 from unnest(fields)f where f not in ('id','displayName','birthDate','unitName','className','educationName','grade','status','municipalityCode')) or cardinality(fields)<>(select count(distinct f)from unnest(fields)f)
+ or cardinality(protected_ids)<>(select count(distinct f)from unnest(protected_ids)f) then raise exception 'Invalid export fields' using errcode='22023'; end if;
+ include_number:=(request->>'includePersonalNumber')::boolean;
+ if request->>'mode'='filter' then
+ if request->'selection'->>'schoolYear' is distinct from request->>'schoolYear' or jsonb_typeof(request->'search') is distinct from 'string' then raise exception 'Invalid export filter' using errcode='22023'; end if;
+ select coalesce(jsonb_agg(to_jsonb(x)order by x.item->>'displayName',x.pupil_id),'[]') into selected from public.phase4_filtered(request->'selection',request->>'search',c)x;
+ else
+ if jsonb_typeof(request->'ids') is distinct from 'array' or jsonb_array_length(request->'ids')=0 then raise exception 'Invalid export ids' using errcode='22023'; end if;
+ ids:=array(select jsonb_array_elements_text(request->'ids')::uuid);
+ if cardinality(ids)<>(select count(distinct f)from unnest(ids)f) then raise exception 'Invalid export ids' using errcode='22023'; end if;
+ select coalesce(jsonb_agg(to_jsonb(x)order by x.item->>'displayName',x.pupil_id),'[]') into selected from public.phase4_projection(y,null,c)x where x.pupil_id=any(ids);
+ if jsonb_array_length(selected)<>cardinality(ids) then raise exception 'Pupil not found' using errcode='P0002'; end if;
+ end if;
+ for r in select * from jsonb_to_recordset(selected)as x(pupil_id uuid,unit_id uuid,is_protected boolean,full_access boolean,item jsonb,audit_refs jsonb) loop
+ if r.pupil_id=any(protected_ids) then
+ if not r.is_protected or not r.full_access then raise exception 'Pupil not found' using errcode='P0002'; end if;
+ seen:=array_append(seen,r.pupil_id);
+ elsif r.is_protected then continue; end if;
+ if not r.full_access then raise exception 'Pupil not found' using errcode='P0002'; end if;
+ total:=total+1;
+ if not preview then
+ select coalesce(jsonb_object_agg(k,v),'{}') into row_value from jsonb_each(r.item)as x(k,v) where k=any(fields);
+ if include_number then
+ row_value:=row_value||jsonb_build_object('personalNumber',(select p.personal_number from public.pupils p where p.id=r.pupil_id));
+ refs:=refs||jsonb_build_array(jsonb_build_object('kind','personal-number-export','pupilId',r.pupil_id));
+ end if;
+ rows:=rows||jsonb_build_array(row_value); refs:=refs||r.audit_refs;
+ end if;
+ end loop;
+ if cardinality(seen)<>cardinality(protected_ids) then raise exception 'Pupil not found' using errcode='P0002'; end if;
+ return jsonb_build_object('kind','success','body',jsonb_build_object('count',total,'fields',to_jsonb(fields),'includePersonalNumber',include_number)||case when preview then '{}'::jsonb else jsonb_build_object('rows',rows)end,'auditRefs',refs);
+end$$;
+
 -- Existing auditable mandate mutation now uses register relations.
 create or replace function public.phase3_insert_mandate(actor_id uuid,payload jsonb) returns uuid
 language plpgsql volatile security invoker set search_path=pg_catalog,public as $$
@@ -365,5 +412,6 @@ revoke all on function public.phase4_history_value(text,jsonb,uuid) from public,
 revoke all on function public.phase4_pupil_card(jsonb) from public,anon,authenticated,skolplattform_worker;
 revoke all on function public.phase4_pupil_history(jsonb) from public,anon,authenticated,skolplattform_worker;
 revoke all on function public.phase4_reveal_personal_number(jsonb) from public,anon,authenticated,skolplattform_worker;
+revoke all on function public.phase4_export_pupils(jsonb,boolean) from public,anon,authenticated,skolplattform_worker;
 
 commit;
