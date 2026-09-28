@@ -38,7 +38,7 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04, 04-07, 04-08 och 04-11 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter våg 4 är FAIL (14 filer, 454 passerade assertions): sex äldre fas 3-fixturer behöver portning enligt 04-14/15; se 04-WAVE-04-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04, 04-05, 04-07, 04-08, 04-09 och 04-11 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter våg 5 är FAIL (15 filer, 537 passerade assertions inklusive separat omprov av äldre auditfixturens pgTAP-förberedelse): sex äldre fas 3-fixturer behöver portning enligt 04-14/15; se 04-WAVE-05-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
@@ -50,16 +50,16 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04,
 | 04-03-02 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-permission.json` | GREEN 69/69 skyddsbehörighetsprov; nya entrypoints ännu stängda för Worker |
 | 04-04-01 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-projection.json` | PASS 140/140; se 04-04-SUMMARY |
 | 04-04-02 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-export.json` | PASS 20/20; se 04-04-SUMMARY |
-| 04-05-01 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-period-mutations.json` | Ej kört |
-| 04-05-02 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_conflicts.test.sql --out work/pilot/results/phase4-conflicts.json && node work/pilot/verify-register-locks.mjs` | Ej kört |
+| 04-05-01 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-period-mutations.json` | PASS 101/101 SQL efter permanent migration 150; kandidat först prövad i rollback |
+| 04-05-02 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_conflicts.test.sql --out work/pilot/results/phase4-conflicts.json && node work/pilot/verify-register-locks.mjs` | PASS 19/19 SQL och 6/6 verkliga samtidighetsfall; kundlås och separat elevradlås observerade |
 | 04-06-01 | STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-source.json` | Ej kört |
 | 04-06-02 | STU-04, STU-06 | `node work/pilot/phase4-simulated-source.mjs --target protected && node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-source-cli.json` | Ej kört |
 | 04-07-01 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/mandates.test.mjs` | GREEN 6/6 mandatprov; se 04-07-SUMMARY |
 | 04-07-02 | STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server-client.test.mjs lib/server/mandates.test.mjs && npx tsc --noEmit` | GREEN 22/22 klient-/mandatprov + typkontroll; se 04-07-SUMMARY |
 | 04-08-01 | DATA-01, DATA-02 | `cd web && node --test lib/server/events.test.mjs` | GREEN 7/7 metadataprov; se 04-08-SUMMARY |
 | 04-08-02 | DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register-audit.test.mjs lib/server/events.test.mjs` | GREEN 16/16 loggprov, simulerad transaktionsgräns; se 04-08-SUMMARY |
-| 04-09-01 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | Ej kört |
-| 04-09-02 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit && npx oxlint app lib` | Ej kört |
+| 04-09-01 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | PASS 10 adapterprov, 18 modellprov och typkontroll |
+| 04-09-02 | STU-01, STU-02, STU-05, DATA-01 | `cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit && npx oxlint app lib` | PASS 10 adapterprov + 9 auditprov, typkontroll/lint; dessutom 5/5 verkliga OIDC/Worker/DB-fall och 146/146 projektions-/ACL-prov efter migration 141 |
 | 04-10-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register.test.mjs && npx tsc --noEmit` | Ej kört |
 | 04-10-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit` | Ej kört |
 | 04-11-01 | DATA-01 | `cd web && node --test lib/server/protected-permission.test.mjs && npx tsc --noEmit` | PASS 7/7 snabbprov + 8 verkliga API-/rollfall; se 04-11-SUMMARY |
