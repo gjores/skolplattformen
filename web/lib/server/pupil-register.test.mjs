@@ -39,6 +39,7 @@ registerHooks({ load(url, context, next) {
 const adapter = await import('./pupil-register.ts');
 const {POST} = await import('../../app/api/elever/lista/route.ts');
 const {GET:card} = await import('../../app/api/elever/elev/route.ts');
+const {GET:selectionRoute} = await import('../../app/api/elever/urval/route.ts');
 const {GET:history} = await import('../../app/api/elever/historik/route.ts');
 const selection={schoolYear:2026,unitId:id,classId:null,educationId:null,grade:null,status:null,page:1};
 const input=()=>({selection:{...selection},search:'',caseId:null});
@@ -103,4 +104,32 @@ test('export preview parser refuses hidden columns and never accepts rows or ide
 test('second protected object event failure rolls back the first object event',async()=>{
  reset();state.failEventAt=2;state.result.auditRefs=[{kind:'protected',pupilId:id},{kind:'protected',pupilId:'33000000-0000-4000-8000-000000000002'}];
  const r=await POST(req());assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
+});
+
+const bootstrap=()=>({schoolYears:[2025,2026,2027],currentSchoolYear:2026,scope:{schools:[{id,name:'Provskola'}],groups:[],cases:[]},endsAt:null,approverName:null,purposeCode:null,serverNow:'2026-09-28T10:00:00Z'});
+test('register selection is closed, audited, no-store and denies other functions and query input',async()=>{
+ reset();state.result=bootstrap();
+ const request=()=>new Request('http://localhost/api/elever/urval',{headers:{'X-Context-Epoch':'1'}});
+ const response=await selectionRoute(request());assert.equal(response.status,200);assert.deepEqual(await response.json(),bootstrap());assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(state.events.at(-1).action,'pupil_selection_read');
+ for(const fn of ['huvudman','it','kundadmin','elevhalsoansvarig']){reset();state.fn=fn;assert.equal((await selectionRoute(request())).status,403);assert.equal(state.calls.length,0);}
+ reset();state.result={...bootstrap(),pupils:['secret']};assert.equal((await selectionRoute(request())).status,500);
+ reset();state.result=bootstrap();state.auditFails=true;const denied=await selectionRoute(request());assert.equal(denied.status,500);assert.equal((await denied.json()).code,'audit_unavailable');
+ reset();state.result=bootstrap();assert.equal((await selectionRoute(new Request(request().url+'?schoolYear=2020'))).status,400);assert.equal(state.calls.length,0);
+ reset();state.result={...bootstrap(),schoolYears:[2025]};assert.equal((await selectionRoute(request())).status,500);
+});
+
+test('system source history carries null actor without fabricated personnel',async()=>{
+ const origin={source:'simulated',actorId:null,changedAt:'2026-09-28T10:00:00Z',localCorrection:true};
+ const body={entries:[{id,field:'displayName',before:'Lokalt namn',after:'Lokalt namn',changedBy:null,changedAt:origin.changedAt,origin}],count:1,page:1,pageSize:20};
+ reset(body);const response=await history(get('historik','&page=1'));assert.equal(response.status,200);assert.deepEqual(await response.json(),body);
+});
+
+test('source decision history exposes only the explicit closed resolution value',async()=>{
+ const origin={source:'simulated',actorId:id,changedAt:'2026-09-28T10:00:00Z',localCorrection:false};
+ for(const resolution of [null,'local','source']) {
+  const body={entries:[{id,field:'displayName',before:'Lokalt',after:'Källvärde',changedBy:id,changedAt:origin.changedAt,origin,resolution}],count:1,page:1,pageSize:20};
+  reset(body);const response=await history(get('historik','&page=1'));assert.equal(response.status,200);assert.deepEqual(await response.json(),body);
+ }
+ reset({entries:[{id,field:'displayName',before:null,after:null,changedBy:id,changedAt:origin.changedAt,origin,resolution:'secret'}],count:1,page:1,pageSize:20});
+ assert.equal((await history(get('historik','&page=1'))).status,500);
 });

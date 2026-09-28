@@ -131,7 +131,8 @@ export type PupilCard = PupilListItem & {
 export type PersonalNumberResult = { pupilId: string; personalNumber: string };
 export type HistoryEntry = {
   id: string;
-  changedBy: string;
+  resolution?: 'local' | 'source' | null;
+  changedBy: string | null;
   changedAt: string;
   origin: FieldOrigin;
 } & (

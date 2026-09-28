@@ -69,7 +69,7 @@ const safeValue:Parser=v=>v===null||typeof v==='boolean'||(typeof v==='string'&&
 const sourceConflict:Parser=v=>{const r=object(v);return shape({id:uuid,field:enumeration(originFields),origin,...(r.field==='personalNumber'?{}:{local:safeValue,incoming:safeValue})})(r);};
 const cardBody:Parser=v=>{const r=object(v);return shape({...rowFields,...(Object.hasOwn(r,'birthDate')?{birthDate:date,municipalityCode:nullable(municipality)}:{}),version:integer(1),placements:array(periodShape({id:uuid,unitId:uuid,educationId:uuid})),classes:array(periodShape({id:uuid,placementId:uuid,classId:uuid})),...(Object.hasOwn(r,'protectedIdentity')?{protectedIdentity:boolean,municipalities:array(periodShape({id:uuid,municipalityCode:municipality,origin:nullable(origin)})),origins:v=>{const o=object(v);if(Object.keys(o).some(k=>!originFields.includes(k)))bad();return shape(Object.fromEntries(Object.keys(o).map(k=>[k,origin])))(o);},sourceConflicts:array(sourceConflict)}:{})})(r);};
 const listBody=shape({pupils:array(pupilRow),scope:shape({schools:array(shape(named)),groups:array(shape({...named,unitId:uuid})),cases:array(shape({...named,unitId:uuid}))}),options:shape({schools:array(shape(named)),classes:array(shape({...named,unitId:uuid,educationId:nullable(uuid)})),educations:array(shape({...named,unitId:uuid,startYear:nullable(year)})),grades:array(integer(-9996,9998)),statuses:array(status)}),capabilities:shape({...caps,canReadProtected:boolean}),count:integer(0),page,pageSize:enumeration([50])});
-const historyBody=shape({entries:array(v=>{const r=object(v);return shape({id:uuid,field:enumeration(originFields),before:r.field==='personalNumber'?enumeration([null]):safeValue,after:r.field==='personalNumber'?enumeration([null]):safeValue,changedBy:uuid,changedAt:time,origin})(r);}),count:integer(0),page,pageSize:enumeration([20])});
+const historyBody=shape({entries:array(v=>{const r=object(v);return shape({id:uuid,field:enumeration(originFields),before:r.field==='personalNumber'?enumeration([null]):safeValue,after:r.field==='personalNumber'?enumeration([null]):safeValue,changedBy:nullable(uuid),changedAt:time,origin,...(Object.hasOwn(r,'resolution')?{resolution:nullable(enumeration(['local','source']))}:{})})(r);}),count:integer(0),page,pageSize:enumeration([20])});
 function projectedResult(value:unknown, body:Parser, allowConflict=false):PupilAuditedResult<unknown> {
  try {const r=object(value);if(r.kind==='conflict'&&allowConflict){shape({kind:enumeration(['conflict']),details:v=>v,auditRefs:v=>v})(r);const details=parseConflictDetails(r.details);if(!details)throw new AuditUnavailable();return {kind:'conflict',details,auditRefs:r.auditRefs as never};}
  return shape({kind:enumeration(['success']),body,auditRefs:v=>v})(r) as PupilAuditedResult<unknown>;
@@ -96,4 +96,15 @@ export async function changePupil(tx:Tx,ctx:Context,input:ChangeRequest){
  const actions={basics:'pupil_updated',municipality:'pupil_municipality_changed',transfer:'pupil_transferred',education:'pupil_education_changed','end-placement':'pupil_placement_ended',class:'pupil_class_changed'} as const;
  const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_change_pupil(${tx.json(input)}) as result`);
  return auditRows(tx,ctx,rows,shape({pupilId:uuid,version:integer(1),warnings:array(enumeration(['class-education-mismatch']))}),{action:actions[input.kind],pupilId:input.pupilId,schoolYear:input.schoolYear},true);
+}
+
+/** Reference choices only: no pupil-derived options and no pupil contents. */
+export async function readPupilSelection(tx: Tx) {
+ const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_register_selection() as result`);
+ try {
+  if(rows.length!==1)throw new AuditUnavailable();
+  const body=shape({schoolYears:array(year),currentSchoolYear:year,scope:shape({schools:array(shape(named)),groups:array(shape({...named,unitId:uuid})),cases:array(shape({...named,unitId:uuid}))}),endsAt:nullable(time),approverName:nullable(text),purposeCode:nullable(text),serverNow:time})(rows[0].result) as {schoolYears:number[];currentSchoolYear:number};
+  if(!body.schoolYears.includes(body.currentSchoolYear)||new Set(body.schoolYears).size!==body.schoolYears.length)throw new AuditUnavailable();
+  return body;
+ }catch{throw new AuditUnavailable();}
 }
