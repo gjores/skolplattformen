@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Building2,
   CalendarClock,
-  FlaskConical,
   GraduationCap,
   LifeBuoy,
   ListChecks,
@@ -49,11 +48,12 @@ import KundWorkspace from './kund-workspace';
 import LoggWorkspace from './logg-workspace';
 import MandateWorkspace from './mandate-workspace';
 import MfaStepUpNotice from './mfa-step-up';
-import PupilProbeWorkspace from './pupil-probe-workspace';
+import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-workspace';
+import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 
-type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elevprov' | 'stangt';
+type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'stangt';
 
-const PROBE_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
+const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
 export type SessionResponse = {
   identity: {
@@ -77,15 +77,14 @@ const closedItems = [
   ['Poängplaner', ListChecks],
   ['Timplaner', CalendarClock],
   ['Klasser och läsår', GraduationCap],
-  ['Elever', Users],
 ] as const;
 
 function startView(session: SessionResponse): ProtectedView {
   if (session.context?.function === 'granskare') return 'logg';
   if (session.context?.function === 'kundadmin') return 'kund';
   if (session.context?.function === 'it') return 'anslutning';
-  if (session.context && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(session.context.function)) return 'mandat';
-  if (session.context && PROBE_FUNCTIONS.includes(session.context.function)) return 'elevprov';
+  if (session.context && ['huvudman', 'elevhalsoansvarig'].includes(session.context.function)) return 'mandat';
+  if (session.context && PUPIL_FUNCTIONS.includes(session.context.function)) return 'elever';
   return 'stangt';
 }
 
@@ -142,10 +141,10 @@ function ProtectedNavigation({
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          {session.context && PROBE_FUNCTIONS.includes(session.context.function) && (
+          {session.context && PUPIL_FUNCTIONS.includes(session.context.function) && (
             <SidebarMenuItem>
-              <SidebarMenuButton isActive={view === 'elevprov'} aria-current={view === 'elevprov' ? 'page' : undefined} onClick={() => go('elevprov')} className="nav-button">
-                <FlaskConical size={19} /><span>Syntetiskt elevprov</span>
+              <SidebarMenuButton isActive={view === 'elever'} aria-current={view === 'elever' ? 'page' : undefined} onClick={() => go('elever')} className="nav-button">
+                <Users size={19} /><span>Elever</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
@@ -166,7 +165,7 @@ function ProtectedNavigation({
   );
 }
 
-function LoginPanel() {
+function LoginPanel({ error }: { error?: string | null }) {
   const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search);
   const returnToInvitation = params.get('till') === '/inbjudan';
   const denied = params.get('inloggning') === 'nekad';
@@ -176,13 +175,14 @@ function LoginPanel() {
     <main id="workspace" className="blocked-start">
       <h1>Logga in för att arbeta i den skyddade provmiljön</h1>
       <p>Inloggningen sker hos den lokala testleverantören. Ingen kommunanslutning är godkänd i denna fas.</p>
+      {error && <output role="alert">{error}</output>}
       {denied && <output role="alert">Inloggningen kunde inte slutföras. Kontakta pilotansvarig (kod: {code}).</output>}
       <a className="button" href={href}>Logga in</a>
     </main>
   );
 }
 
-function SessionLock({ reason }: { reason: LockReason }) {
+function SessionLock({ reason, expired }: { reason: LockReason; expired?: boolean }) {
   const reload = useRef<HTMLButtonElement>(null);
   useEffect(() => reload.current?.focus(), []);
   return (
@@ -190,9 +190,9 @@ function SessionLock({ reason }: { reason: LockReason }) {
       <Dialog open modal>
         <DialogContent role="alertdialog" aria-modal="true" showCloseButton={false} className="session-lock-card">
           <DialogTitle id="lock-title">
-            {reason === 'context' ? 'Kontexten ändrades i en annan flik' : 'Du har loggats ut i en annan flik'}
+            {expired ? 'Uppdraget har upphört vid sin sluttid' : reason === 'context' ? 'Kontexten ändrades i en annan flik' : 'Du har loggats ut i en annan flik'}
           </DialogTitle>
-          <DialogDescription>Innehållet i den här fliken har rensats.</DialogDescription>
+          <DialogDescription>{expired ? 'Elevuppgifterna har tagits bort från vyn och kan inte läsas längre.' : 'Innehållet i den här fliken har rensats.'}</DialogDescription>
           <Button ref={reload} onClick={() => window.location.assign('/')}>Ladda om</Button>
         </DialogContent>
       </Dialog>
@@ -202,8 +202,14 @@ function SessionLock({ reason }: { reason: LockReason }) {
 
 function ProtectedShell() {
   const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
   const [lock, setLock] = useState<LockReason | null>(null);
   const [view, setView] = useState<ProtectedView>('stangt');
+  const [registerSetup, setRegisterSetup] = useState<RegisterSetup | null>(null);
+  const [schoolYear, setSchoolYear] = useState<number | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [registerRetry, setRegisterRetry] = useState(0);
   const [help, setHelp] = useState(false);
   const [mfaRequired, setMfaRequired] = useState(false);
   // Återkomst från en step-up där kontot saknar registrerad engångskod.
@@ -212,9 +218,14 @@ function ProtectedShell() {
   const epochRef = useRef<number | null>(null);
 
   const sessionLoad = useRef(0);
+  const sessionRef = useRef<SessionResponse | null>(null);
+  const clearSession = useCallback(() => {
+    sessionLoad.current += 1; sessionRef.current = null;
+    clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
+  }, []);
   const loadSession = useCallback(async () => {
     const current = ++sessionLoad.current;
-    setSession('loading');
+    if (!sessionRef.current) setSession('loading');
     // En annan begäran som får 401 eller ny epok avbryter pågående begäranden,
     // även denna sessionskontroll. Den senaste kontrollen görs då om i stället för
     // att vyn blir kvar i laddningsläget.
@@ -224,8 +235,12 @@ function ProtectedShell() {
         if (current !== sessionLoad.current) return;
         epochRef.current = loaded.epoch;
         setKnownEpoch(loaded.epoch);
+        const previous = sessionRef.current;
+        const changed = previous !== null && (previous.epoch !== loaded.epoch || previous.context?.assignmentId !== loaded.context?.assignmentId);
+        if (changed) { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false); }
+        sessionRef.current = loaded;
         setSession(loaded);
-        setView(startView(loaded));
+        if (!previous || changed) setView(startView(loaded));
         setMfaRequired(false);
         return;
       } catch (error) {
@@ -235,12 +250,12 @@ function ProtectedShell() {
           epochRef.current = null;
           setKnownEpoch(null);
         }
-        setSession(null);
+        clearSession();
         return;
       }
     }
-    if (current === sessionLoad.current) setSession(null);
-  }, []);
+    if (current === sessionLoad.current) clearSession();
+  }, [clearSession]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -256,12 +271,12 @@ function ProtectedShell() {
     const stopMessages = onSessionMessage((message) => {
       const result = shouldLock({ knownEpoch: epochRef.current }, message);
       if (result.lock && result.reason) {
-        setSession(null);
+        clearSession();
         setLock(result.reason);
       }
     });
     const stopEpoch = onEpochChange(() => {
-      setSession(null);
+      clearSession();
       setLock('context');
     });
     const revalidate = () => {
@@ -276,36 +291,63 @@ function ProtectedShell() {
       document.removeEventListener('visibilitychange', revalidate);
       window.removeEventListener('pageshow', pageShow);
     };
-  }, [loadSession]);
+  }, [loadSession, clearSession]);
+
+  const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.assignmentId}` : null;
+  useEffect(() => {
+    const currentSession = sessionRef.current;
+    if (!currentSession || !currentSession.context?.valid || !PUPIL_FUNCTIONS.includes(currentSession.context.function)) return;
+    const abort = new AbortController();
+    let timer: number | undefined;
+    queueMicrotask(() => { if (!abort.signal.aborted) { setRegisterSetup(null); setRegisterError(null); } });
+    void api.get<RegisterSetup>('/api/elever/urval', abort.signal).then(setup => {
+      if (abort.signal.aborted) return;
+      const requested = Number(new URLSearchParams(window.location.search).get('lasar'));
+      setSchoolYear(setup.schoolYears.includes(requested) ? requested : setup.currentSchoolYear);
+      setRegisterSetup(setup);
+      if (setup.endsAt) {
+        const remaining = Date.parse(setup.endsAt) - Date.parse(setup.serverNow);
+        timer = window.setTimeout(() => {
+          clearSession(); setExpired(true); setLock('context');
+        }, Math.max(0, Math.min(remaining, 2_147_000_000)));
+      }
+    }).catch(caught => {
+      if (abort.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
+      if (caught instanceof ApiError && caught.status === 401) { clearSession(); return; }
+      setRegisterError(caught instanceof ApiError && caught.code === 'audit_unavailable' ? 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.' : 'Elevregistrets urval kunde inte hämtas. Försök igen.');
+    });
+    return () => { abort.abort(); if (timer !== undefined) window.clearTimeout(timer); };
+  }, [registerContextKey, registerRetry, clearSession]);
 
   async function logout() {
     if (hasUnsaved && !confirmDiscard()) return;
+    clearSession();
     try {
       const result = await api.post<{ redirect: string }>('/api/auth/logout', {});
-      window.sessionStorage.removeItem('sp_invite');
+      try { window.sessionStorage.removeItem('sp_invite'); } catch { /* Storage kan vara avstängd. */ }
       announce({ type: 'logged-out' });
       window.location.assign(result.redirect);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        window.sessionStorage.removeItem('sp_invite');
+        try { window.sessionStorage.removeItem('sp_invite'); } catch { /* Storage kan vara avstängd. */ }
         announce({ type: 'logged-out' });
         window.location.assign('/');
-      }
+      } else setLogoutError('Utloggningen kunde inte slutföras. Ladda om sidan och försök igen. Elevinnehållet i den här fliken har rensats.');
     }
   }
 
-  if (lock) return <SessionLock reason={lock} />;
+  if (lock) return <SessionLock reason={lock} expired={expired} />;
   if (session === 'loading') return <main id="workspace" className="blocked-start" aria-busy="true"><h1>Öppnar arbetsytan</h1><output>Kontrollerar session och uppdrag…</output></main>;
-  if (session === null) return <LoginPanel />;
+  if (session === null) return <LoginPanel error={logoutError} />;
 
   const assignmentCount = session.assignments.length;
   const contextControl = assignmentCount === 1 ? (
     <span className="context-label">{contextLabel(session.assignments[0])}</span>
   ) : (
-    <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => loadSession()} />
+    <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); return loadSession(); }} />
   );
   const validContext = session.context?.valid && !session.context.blocked;
-  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elevprov' ? 'Syntetiskt elevprov' : 'Kommande funktion';
+  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : 'Kommande funktion';
 
   return (
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
@@ -318,6 +360,7 @@ function ProtectedShell() {
           <div className="breadcrumbs"><SidebarTrigger aria-label="Visa eller dölj navigation" /><span>Arbetsyta</span><strong>{currentTitle}</strong></div>
           <div className="top-actions">
             <span className="demo-pill">Skyddad provmiljö</span>
+            {validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={setSchoolYear} />}
             {contextControl}
             <Button variant="ghost" onClick={() => void logout()}>Logga ut</Button>
             <Button variant="ghost" size="icon" aria-label="Om den skyddade provmiljön" onClick={() => setHelp(true)}><LifeBuoy size={19} /></Button>
@@ -329,10 +372,10 @@ function ProtectedShell() {
           <main id="workspace" className="workspace protected-workspace" key={session.epoch}>
             {stepUpWithoutOtp && <output role="alert" className="validation-warning">Verifieringen gav inget bevis med engångskod eftersom ditt konto saknar registrerad engångskod hos inloggningstjänsten. Du kan fortsätta arbeta, men åtgärder som kräver engångskod går inte att göra. Kontakta den som administrerar din inloggning.</output>}
             {mfaRequired && !stepUpWithoutOtp && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
-            {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
-            {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={() => setSession(null)} />}
-            {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={() => setSession(null)} />}
-            {view === 'elevprov' && <PupilProbeWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={() => setSession(null)} />}
+            {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
+            {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={clearSession} />}
+            {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
+            {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={setSchoolYear} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}
@@ -340,7 +383,7 @@ function ProtectedShell() {
       <Dialog open={help} onOpenChange={setHelp}>
         <DialogContent>
           <DialogTitle>Om den skyddade provmiljön</DialogTitle>
-          <DialogDescription>Det valda uppdraget styr vilken kund, huvudman, skolenhet och funktion du får arbeta med. Ett byte rensar innehållet i alla öppna flikar. Den lokala testleverantören är inte en godkänd anslutning till en kommuns identitetsleverantör.</DialogDescription>
+          <DialogDescription>Läsåret i sidhuvudet styr vilka elever som visas i elevlistan. Det valda uppdraget styr vilken kund, huvudman, skolenhet och funktion du får arbeta med. Ett byte rensar innehållet i alla öppna flikar. Den lokala testleverantören är inte en godkänd anslutning till en kommuns identitetsleverantör.</DialogDescription>
           <DialogClose render={<Button variant="outline" />}>Stäng hjälpen</DialogClose>
         </DialogContent>
       </Dialog>
