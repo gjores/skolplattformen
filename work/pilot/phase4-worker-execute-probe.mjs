@@ -32,23 +32,64 @@ const FUNCTIONS = ['public.phase4_change_pupil(jsonb)', 'public.phase4_resolve_s
 const REQUIRED_CASES = ['worker-role', 'admin-change', 'admin-reveal', 'admin-export', 'no-mfa', 'other-role', 'outside-mandate', 'direct-client-roles', 'persistent-audit'];
 const leakPattern = /TEST-\d{8}-\d{4}|Syntetisk elev|sp_session=|postgres(?:ql)?:\/\/|eyJ[A-Za-z0-9_-]{20,}/u;
 
+const inTmp = (file) => file.startsWith(os.tmpdir()) || file.startsWith('/private/tmp/') || file.startsWith('/tmp/');
+
+// 04-25: valfria diagnosflöden. Utan dem är fallistan, rapportformatet och 04-23:s
+// verifieringskommando oförändrade.
+//   --deny-flood N        N extra anrop efter de 9 fallen mot samma Worker (standard 0 = av)
+//   --flood-kind denied|allowed  nekade anropstyper (standard) eller tillåtna kontrollanrop
+//   --trace FIL           anropsspår (ordning, fall, route, status, tider, processläge) i 0600-fil i tmp
+//   --worker-log FIL      hela wrangler/workerd-utdatan i 0600-fil i tmp
 export function parseArgs(argv) {
-  const options = { target: null, out: null, port: 3023 };
+  const options = { target: null, out: null, port: 3023, denyFlood: 0, floodKind: 'denied', trace: null, workerLog: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     const value = () => { const next = argv[++i]; if (next === undefined) throw new Error(`${arg} saknar värde`); return next; };
     if (arg === '--target') options.target = value();
     else if (arg === '--out') options.out = path.resolve(process.cwd(), value());
     else if (arg === '--port') options.port = Number(value());
+    else if (arg === '--deny-flood') options.denyFlood = Number(value());
+    else if (arg === '--flood-kind') options.floodKind = value();
+    else if (arg === '--trace') options.trace = path.resolve(process.cwd(), value());
+    else if (arg === '--worker-log') options.workerLog = path.resolve(process.cwd(), value());
     else throw new Error(`okänt argument ${arg}`);
   }
   if (options.target !== 'protected') throw new Error('--target protected krävs');
   if (!options.out) throw new Error('--out krävs');
-  if (path.dirname(options.out) !== results && !options.out.startsWith(os.tmpdir()) && !options.out.startsWith('/private/tmp/')) {
+  if (path.dirname(options.out) !== results && !inTmp(options.out)) {
     throw new Error('--out måste ligga direkt i work/pilot/results eller i en temporär katalog');
   }
   if (!Number.isInteger(options.port) || options.port < 1024 || options.port > 65535) throw new Error('ogiltig port');
+  if (!Number.isInteger(options.denyFlood) || options.denyFlood < 0 || options.denyFlood > 5000) throw new Error('ogiltigt --deny-flood');
+  if (!['denied', 'allowed'].includes(options.floodKind)) throw new Error('ogiltigt --flood-kind');
+  for (const [flag, file] of [['--trace', options.trace], ['--worker-log', options.workerLog]]) {
+    if (file !== null && !inTmp(file)) throw new Error(`${flag} måste ligga i en temporär katalog`);
+  }
   return options;
+}
+
+/** Lever wrangler respektive workerd under run-mode-processen? Endast ja/nej, inga argument skrivs ut. */
+export function workerProcesses(rootPid) {
+  if (!rootPid) return { runMode: false, wrangler: false, workerd: false };
+  let rows = [];
+  try {
+    rows = execFileSync('ps', ['-A', '-o', 'pid=,ppid=,args='], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split('\n').map((line) => line.trim().match(/^(\d+)\s+(\d+)\s+(.*)$/u)).filter(Boolean)
+      .map(([, pid, ppid, args]) => ({ pid: Number(pid), ppid: Number(ppid), args }));
+  } catch { return { runMode: null, wrangler: null, workerd: null }; }
+  const tree = new Set([rootPid]);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const row of rows) if (tree.has(row.ppid) && !tree.has(row.pid)) { tree.add(row.pid); grew = true; }
+  }
+  const inTree = rows.filter((row) => tree.has(row.pid));
+  const workerd = inTree.filter((row) => /\bworkerd\b/u.test(row.args)).map((row) => row.pid).sort((a, b) => a - b);
+  return {
+    runMode: inTree.some((row) => row.pid === rootPid),
+    wrangler: inTree.some((row) => /wrangler(?:\.js|-dist)/u.test(row.args)),
+    workerd: workerd.length > 0,
+    workerdPids: workerd,
+  };
 }
 
 const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -62,6 +103,9 @@ async function main() {
   const cases = [];
   const sessions = new Set();
   let manifest, db, server = null, serverErrors = '', baseUrl = null, ready = false, exitCode = 1, fatal = null;
+  // 04-25: anropsspår utan värden (fall, route, förväntan, status, om kod/korrelation finns, tider).
+  const trace = { workerReady: false, complete: false, processesAtStart: null, calls: [] };
+  let currentCase = null, lastCallEnd = null, workerLog = null;
   const prefix = crypto.randomUUID().slice(0, 8);
   const id = (n) => `${prefix}-0000-4000-8000-${String(n).padStart(12, '0')}`;
   const revision = () => { try { return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return 'okänd'; } };
@@ -127,14 +171,27 @@ async function main() {
       sessions.add(row.id);
       return { token, epoch: Number(row.epoch) };
     };
-    const call = async (session, route, body) => {
+    const call = async (session, route, body, expect = 'allow') => {
       const headers = new Headers({ Cookie: `sp_session=${session.token}`, 'Sec-Fetch-Site': 'same-origin', 'Content-Type': 'application/json' });
       if (Number.isInteger(session.epoch)) headers.set('X-Context-Epoch', String(session.epoch));
-      const response = await fetch(`${baseUrl}${route}`, { method: 'POST', headers, body: JSON.stringify(body) });
-      const text = await response.text();
-      let parsed = null;
-      try { parsed = text ? JSON.parse(text) : null; } catch { /* CSV */ }
-      return { status: response.status, body: parsed, text, headers: Object.fromEntries(response.headers), corr: response.headers.get('x-correlation-id') };
+      const startedAt = Date.now();
+      const entry = { n: trace.calls.length + 1, caseId: currentCase, route, expect, gapMs: lastCallEnd === null ? null : startedAt - lastCallEnd, at: new Date(startedAt).toISOString() };
+      trace.calls.push(entry);
+      try {
+        const response = await fetch(`${baseUrl}${route}`, { method: 'POST', headers, body: JSON.stringify(body) });
+        const text = await response.text();
+        let parsed = null;
+        try { parsed = text ? JSON.parse(text) : null; } catch { /* CSV */ }
+        const corr = response.headers.get('x-correlation-id');
+        Object.assign(entry, { status: response.status, code: typeof parsed?.code === 'string' && /^[a-z_]{1,40}$/u.test(parsed.code) ? parsed.code : null, hasCorr: Boolean(corr), ms: Date.now() - startedAt });
+        if (response.status >= 500 && (!entry.code || !entry.hasCorr)) entry.processes = workerProcesses(server?.pid);
+        return { status: response.status, body: parsed, text, headers: Object.fromEntries(response.headers), corr };
+      } catch (error) {
+        Object.assign(entry, { error: error?.constructor?.name ?? 'Error', cause: error?.cause?.code ?? error?.cause?.constructor?.name ?? null, ms: Date.now() - startedAt, processes: workerProcesses(server?.pid) });
+        throw error;
+      } finally {
+        lastCallEnd = Date.now();
+      }
     };
     const correlations = { allowed: [], denied: [] };
     const events = async (response) => {
@@ -144,6 +201,7 @@ async function main() {
     const summary = (list) => list.map((e) => `${e.action}|${e.outcome}`);
     const check = (list, name, ok, detail = '') => list.push({ check: name, ok: Boolean(ok), detail: String(detail).slice(0, 200) });
     const run = async (caseId, fn) => {
+      currentCase = caseId;
       const checks = [];
       try { await fn(checks); }
       catch (error) { check(checks, 'fallet kunde köras', false, `${error instanceof Error ? error.constructor.name : 'fel'}${server && server.exitCode !== null ? ' (Workern har avslutats)' : ''}`); }
@@ -166,14 +224,18 @@ async function main() {
     baseUrl = `http://127.0.0.1:${options.port}`;
     if (await health(baseUrl)) throw new Error(`BLOCKED: port ${options.port} är redan upptagen`);
     server = spawn(process.execPath, ['scripts/run-mode.mjs', 'preview', '--mode', 'protected', '--port', String(options.port)], { cwd: web, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
-    server.stdout.on('data', (chunk) => { serverErrors = `${serverErrors}${chunk}`.slice(-40000); });
-    server.stderr.on('data', (chunk) => { serverErrors = `${serverErrors}${chunk}`.slice(-2000); });
+    if (options.workerLog) workerLog = fs.openSync(options.workerLog, 'w', 0o600);
+    const keep = (chunk) => { if (workerLog !== null) { try { fs.writeSync(workerLog, chunk); } catch { /* loggfil stängd */ } } };
+    server.stdout.on('data', (chunk) => { keep(chunk); serverErrors = `${serverErrors}${chunk}`.slice(-40000); });
+    server.stderr.on('data', (chunk) => { keep(chunk); serverErrors = `${serverErrors}${chunk}`.slice(-2000); });
     let up = false;
     for (const deadline = Date.now() + 90_000; Date.now() < deadline && server.exitCode === null;) {
       if (await health(baseUrl)) { up = true; break; }
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     if (!up) throw new Error('BLOCKED: protected-Workern startade inte');
+    trace.workerReady = true;
+    trace.processesAtStart = workerProcesses(server.pid);
 
     await run('worker-role', async (checks) => {
       check(checks, 'Workern ansluter som skolplattform_worker', await health(baseUrl));
@@ -221,9 +283,9 @@ async function main() {
     const noMfa = await mint(actor('admin', 12, 22), noMfaProof);
     await run('no-mfa', async (checks) => {
       const before = await pupilVersion();
-      const changed = await call(noMfa, '/api/elever/andra', await change('Syntetisk elev nekad'));
-      const revealed = await call(noMfa, '/api/elever/personnummer', card());
-      const download = await call(noMfa, '/api/elever/export', exportBody('download', true));
+      const changed = await call(noMfa, '/api/elever/andra', await change('Syntetisk elev nekad'), 'deny');
+      const revealed = await call(noMfa, '/api/elever/personnummer', card(), 'deny');
+      const download = await call(noMfa, '/api/elever/export', exportBody('download', true), 'deny');
       const preview = await call(noMfa, '/api/elever/export', exportBody('preview', false));
       const denied = [changed, revealed, download];
       correlations.denied.push(...denied.map((r) => r.corr));
@@ -236,7 +298,7 @@ async function main() {
     const principal = await mint(actor('principal', 11, 21));
     await run('other-role', async (checks) => {
       const before = await pupilVersion();
-      const list = [await call(principal, '/api/elever/andra', await change('Syntetisk elev nekad')), await call(principal, '/api/elever/personnummer', card()), await call(principal, '/api/elever/export', exportBody('preview', false)), await call(principal, '/api/elever/export', exportBody('download', true))];
+      const list = [await call(principal, '/api/elever/andra', await change('Syntetisk elev nekad'), 'deny'), await call(principal, '/api/elever/personnummer', card(), 'deny'), await call(principal, '/api/elever/export', exportBody('preview', false), 'deny'), await call(principal, '/api/elever/export', exportBody('download', true), 'deny')];
       correlations.denied.push(...list.map((r) => r.corr));
       check(checks, 'rektor (annan funktion) nekas på alla skrivvägar', list.every((r) => r.status === 403 && r.body?.code === 'forbidden'), list.map((r) => `${r.status}/${r.body?.code}`).join(' '));
       check(checks, 'inget elevinnehåll och ingen ändring', list.every((r) => !leakPattern.test(r.text)) && await pupilVersion() === before, 'kontrollerat');
@@ -245,7 +307,7 @@ async function main() {
     const outside = await mint(actor('outside', 14, 24));
     await run('outside-mandate', async (checks) => {
       const before = await pupilVersion();
-      const list = [await call(outside, '/api/elever/andra', await change('Syntetisk elev nekad')), await call(outside, '/api/elever/personnummer', card()), await call(outside, '/api/elever/export', exportBody('preview', false)), await call(outside, '/api/elever/export', exportBody('download', true))];
+      const list = [await call(outside, '/api/elever/andra', await change('Syntetisk elev nekad'), 'deny'), await call(outside, '/api/elever/personnummer', card(), 'deny'), await call(outside, '/api/elever/export', exportBody('preview', false), 'deny'), await call(outside, '/api/elever/export', exportBody('download', true), 'deny')];
       correlations.denied.push(...list.map((r) => r.corr));
       check(checks, 'administratör utan mandat på elevens skola nekas', list.every((r) => [403, 404].includes(r.status)), list.map((r) => `${r.status}/${r.body?.code}`).join(' '));
       check(checks, 'inget elevinnehåll och ingen ändring', list.every((r) => !leakPattern.test(r.text)) && await pupilVersion() === before, 'kontrollerat');
@@ -291,19 +353,67 @@ async function main() {
       check(checks, 'loggdetaljer saknar elevnamn och personnummer', l.leak === false, 'kontrollerat');
     });
 
+    // ---- 04-25: valfritt flöde mot samma Worker efter de 9 fallen -----------------------------
+    let flood = null;
+    if (options.denyFlood > 0) {
+      currentCase = options.floodKind === 'allowed' ? 'allowed-flood' : 'deny-flood';
+      const version = await pupilVersion();
+      const denyChange = { ...card(), expectedVersion: version, kind: 'basics', payload: { displayName: 'Syntetisk elev nekad' } };
+      const kinds = options.floodKind === 'allowed'
+        ? [
+            { session: admin, route: '/api/elever/export', body: exportBody('preview', false), status: [200], expect: 'allow' },
+            // Tillåten visning lämnar legitimt det syntetiska numret; läckkontrollen gäller inte här.
+            { session: admin, route: '/api/elever/personnummer', body: card(), status: [200], expect: 'allow', revealsNumber: true },
+          ]
+        : [
+            { session: noMfa, route: '/api/elever/personnummer', body: card(), status: [403], code: 'mfa_required' },
+            { session: noMfa, route: '/api/elever/export', body: exportBody('download', true), status: [403], code: 'mfa_required' },
+            { session: principal, route: '/api/elever/export', body: exportBody('preview', false), status: [403], code: 'forbidden' },
+            { session: principal, route: '/api/elever/export', body: exportBody('download', true), status: [403], code: 'forbidden' },
+            { session: outside, route: '/api/elever/andra', body: denyChange, status: [403, 404] },
+            { session: outside, route: '/api/elever/personnummer', body: card(), status: [403, 404] },
+            { session: outside, route: '/api/elever/export', body: exportBody('preview', false), status: [403, 404] },
+            { session: outside, route: '/api/elever/export', body: exportBody('download', true), status: [403, 404] },
+          ].map((k) => ({ ...k, expect: 'deny' }));
+      flood = { kind: options.floodKind, requested: options.denyFlood, completed: 0, ok: false, failure: null, nextAfterFailure: null, audit: null };
+      const floodCorr = [];
+      const good = (k, r) => k.status.includes(r.status) && (!k.code || r.body?.code === k.code) && Boolean(r.corr) && (k.revealsNumber ? typeof r.body?.personalNumber === 'string' : !leakPattern.test(r.text));
+      for (let i = 0; i < options.denyFlood; i += 1) {
+        const k = kinds[i % kinds.length];
+        let r = null, error = null;
+        try { r = await call(k.session, k.route, k.body, k.expect); } catch (e) { error = e; }
+        if (r && good(k, r)) { flood.completed += 1; floodCorr.push(r.corr); continue; }
+        flood.failure = { n: i + 1, route: k.route, status: r?.status ?? null, code: r?.body?.code ?? null, hasCorr: Boolean(r?.corr), error: error ? error.constructor.name : null };
+        // Fungerar nästa anrop? (Registreras, räknas aldrig som godkänt.)
+        const next = kinds[(i + 1) % kinds.length];
+        try { const n = await call(next.session, next.route, next.body, next.expect); flood.nextAfterFailure = { status: n.status, code: n.body?.code ?? null, hasCorr: Boolean(n.corr) }; }
+        catch (e) { flood.nextAfterFailure = { error: e.constructor.name }; }
+        break;
+      }
+      const outcome = options.floodKind === 'allowed' ? 'ok' : 'denied';
+      const [fa] = floodCorr.length
+        ? await db`select count(distinct correlation_id)::int as n from public.security_events where correlation_id=any(${floodCorr}::uuid[]) and outcome=${outcome}`
+        : [{ n: 0 }];
+      flood.audit = { expected: floodCorr.length, logged: fa.n };
+      flood.ok = flood.failure === null && flood.completed === options.denyFlood && fa.n === floodCorr.length;
+      console.log(`${flood.ok ? 'ok ' : 'FEL'} ${currentCase} (${flood.completed}/${options.denyFlood}, logg ${fa.n}/${floodCorr.length})`);
+    }
+
     const complete = REQUIRED_CASES.every((name) => cases.some((c) => c.caseId === name));
-    const status = complete && cases.every((c) => c.status === 'PASS') ? 'PASS' : 'FAIL';
+    const status = complete && cases.every((c) => c.status === 'PASS') && (flood === null || flood.ok) ? 'PASS' : 'FAIL';
     const report = {
       kind: 'phase4-worker-execute', scope: 'local-synthetic-only',
       proof: 'lokalt mintade sessioner med testrealmens bevisprofil mot byggd protected-Worker och verifierat protected-mål; ingen interaktiv IdP-inloggning eller kommunanslutning',
       startedAt, completedAt: new Date().toISOString(), revision: revision(), workerBuildRevision: buildMark()?.revision ?? null,
       target: 'protected', requiredCases: REQUIRED_CASES, complete, status, cases,
+      ...(flood ? { flood } : {}),
     };
     if (leakPattern.test(JSON.stringify(report))) { report.status = 'FAIL'; report.validationErrors = ['rapporten innehåller elevvärde eller hemlighet']; }
     fs.mkdirSync(path.dirname(options.out), { recursive: true });
     fs.writeFileSync(options.out, `${JSON.stringify(report, null, 2)}\n`);
     console.log(`Totalstatus: ${report.status} (${cases.filter((c) => c.status === 'PASS').length}/${REQUIRED_CASES.length} fall)`);
     exitCode = report.status === 'PASS' ? 0 : 1;
+    trace.complete = true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     fatal = message.startsWith('BLOCKED:') || message.startsWith('REFUSED:') ? message.slice(0, 200) : (error?.code && /^[A-Z0-9_]{1,40}$/u.test(error.code) ? error.code : 'FAILED');
@@ -315,6 +425,9 @@ async function main() {
       fs.writeFileSync(options.out, `${JSON.stringify({ kind: 'phase4-worker-execute', status: blocked ? 'BLOCKED' : 'FAIL', startedAt, completedAt: new Date().toISOString(), revision: revision(), complete: false, cases, error: fatal }, null, 2)}\n`);
     } catch { /* rapporten kan inte skrivas */ }
   } finally {
+    if (options.trace) {
+      try { fs.writeFileSync(options.trace, `${JSON.stringify({ ...trace, exitCode }, null, 2)}\n`, { mode: 0o600 }); } catch { console.error('Anropsspåret kunde inte skrivas'); }
+    }
     // Felsökning: Workerns stderr går aldrig till rapporten, bara till en 0600-fil i tmp.
     if (exitCode !== 0 && serverErrors) {
       const log = path.join(os.tmpdir(), `phase4-23-worker-stderr-${process.pid}.log`);
@@ -325,6 +438,7 @@ async function main() {
       await new Promise((resolve) => { server.once('exit', resolve); setTimeout(resolve, 3000); });
       if (server.exitCode === null) server.kill('SIGKILL');
     }
+    if (workerLog !== null) { try { fs.closeSync(workerLog); } catch { /* redan stängd */ } }
     if (db) {
       try { if (sessions.size) await db`delete from public.app_sessions where id=any(${[...sessions]}::uuid[])`; }
       catch { console.error('Städning av sessioner misslyckades'); exitCode = exitCode || 1; }
