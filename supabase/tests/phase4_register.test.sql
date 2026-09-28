@@ -103,5 +103,55 @@ set local role skolplattform_worker;
 select throws_ok('select * from public.pupils','42501',null,'actual direct table read denied');
 reset role;
 select ok(not has_function_privilege('skolplattform_worker','public.phase4_synthetic_birth_date(text)','EXECUTE'),'helper not exposed as worker RPC');
+-- 04-03: rättighetsgränsen ska redan vara stängd innan registervägarna öppnas.
+select ok(not has_function_privilege('skolplattform_worker','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),'old Worker pupil reader closed');
+select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_pupils'::regclass and confrelid='public.pupils'::regclass),'pupil mandates reference stable register ID');
+select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_groups'::regclass and confrelid='public.school_classes'::regclass),'group mandates reference persistent school class');
+
+-- Verklig före/efter-fixtur: återställ ENDAST tre FK i denna rollback-transaktion.
+-- Kör samma versionshanterade migrationsfil, inte en testkopia av dess logik.
+alter table public.mandate_pupils drop constraint mandate_pupils_pupil_id_customer_id_unit_id_fkey;
+alter table public.mandate_pupils add constraint mandate_pupils_pupil_id_customer_id_unit_id_fkey foreign key(pupil_id,customer_id,unit_id) references public.phase3_probe_pupils(id,customer_id,unit_id);
+alter table public.mandate_groups drop constraint mandate_groups_group_id_customer_id_unit_id_fkey;
+alter table public.mandate_groups add constraint mandate_groups_group_id_customer_id_unit_id_fkey foreign key(group_id,customer_id,unit_id) references public.phase3_probe_groups(id,customer_id,unit_id);
+alter table public.phase3_probe_cases drop constraint phase3_probe_cases_pupil_id_customer_id_unit_id_fkey;
+alter table public.phase3_probe_cases add constraint phase3_probe_cases_pupil_id_customer_id_unit_id_fkey foreign key(pupil_id,customer_id,unit_id) references public.phase3_probe_pupils(id,customer_id,unit_id);
+insert into public.phase3_probe_pupils values ('44002000-0000-4000-8000-000000000701','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000011','44002000-0000-4000-8000-000000000101','Syntetisk migreringselev');
+insert into public.phase3_probe_groups values ('44002000-0000-4000-8000-000000000702','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000011','44002000-0000-4000-8000-000000000101');
+insert into public.phase3_probe_group_members values ('44002000-0000-4000-8000-000000000702','44002000-0000-4000-8000-000000000701','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000101');
+insert into public.phase3_probe_cases values ('44002000-0000-4000-8000-000000000703','44002000-0000-4000-8000-000000000701','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000101');
+insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind) values ('44002000-0000-4000-8000-000000000704','44002000-0000-4000-8000-000000000601','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000011','huvudman','synthetic-v1','school');
+insert into public.mandate_units values ('44002000-0000-4000-8000-000000000704','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000011','44002000-0000-4000-8000-000000000101');
+-- Relationsmandat räcker för FK-beviset; uppdragens giltighet bevisas separat i skyddsprovet.
+insert into public.mandate_pupils values ('44002000-0000-4000-8000-000000000704','44002000-0000-4000-8000-000000000701','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000101');
+insert into public.mandate_groups values ('44002000-0000-4000-8000-000000000704','44002000-0000-4000-8000-000000000702','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000101','mentor');
+insert into public.mandate_cases values ('44002000-0000-4000-8000-000000000704','44002000-0000-4000-8000-000000000703','44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000101');
+create temporary table migration_before as select 'pupil' kind,to_jsonb(m) row from public.mandate_pupils m union all select 'group',to_jsonb(m) from public.mandate_groups m union all select 'case',to_jsonb(m) from public.mandate_cases m;
+create temporary table events_before as select count(*) n from public.security_events;
+select is((select count(*) from public.pupils where id='44002000-0000-4000-8000-000000000701'),0::bigint,'before: new probe pupil is not a register pupil');
+\ir ../migrations/20260929110000_phase4_register_migrate_probe.sql
+select is((select id from public.pupils where id='44002000-0000-4000-8000-000000000701'),'44002000-0000-4000-8000-000000000701'::uuid,'after: same pupil UUID');
+select is((select id from public.school_classes where id='44002000-0000-4000-8000-000000000702'),'44002000-0000-4000-8000-000000000702'::uuid,'after: same group UUID');
+select is((select class_id from public.pupil_class_memberships where pupil_id='44002000-0000-4000-8000-000000000701'),'44002000-0000-4000-8000-000000000702'::uuid,'after: class membership preserved');
+select is((select count(*) from ((select 'pupil' kind,to_jsonb(m) row from public.mandate_pupils m union all select 'group',to_jsonb(m) from public.mandate_groups m union all select 'case',to_jsonb(m) from public.mandate_cases m) except select * from migration_before) d),0::bigint,'all original mandate rows unchanged');
+select is((select count(*) from public.security_events),(select n from events_before),'security history unchanged');
+select is((select starts_on from public.pupil_placements where pupil_id='44002000-0000-4000-8000-000000000701'),make_date(extract(year from public.app_today())::int-case when extract(month from public.app_today())<7 then 1 else 0 end,7,1),'placement dates relative to current school year');
+select ok(not (select protected_identity from public.pupils where id='44002000-0000-4000-8000-000000000701'),'migration grants no implicit protection permission');
+set local role skolplattform_worker;
+select throws_ok('select * from public.phase3_read_pupils()','42501',null,'old route truly denied to Worker');
+select throws_ok('select * from public.phase3_probe_pupils','42501',null,'old direct table truly denied to Worker');
+reset role;
+-- Skolbyte ändrar inte elev-ID och flyttar inte gammalt elev-/ärendemandat.
+insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('44002000-0000-4000-8000-000000000103','44002000-0000-4000-8000-000000000011','44002003','Syntetisk annan skola','0180');
+insert into public.offerings(id,organizer_id,unit_id,kind,name) values ('44002000-0000-4000-8000-000000000203','44002000-0000-4000-8000-000000000011','44002000-0000-4000-8000-000000000103','grundskola','Syntetisk annan utbildning');
+update public.pupil_class_memberships set ends_on=public.app_today() where pupil_id='44002000-0000-4000-8000-000000000701';
+update public.pupil_placements set ends_on=public.app_today() where pupil_id='44002000-0000-4000-8000-000000000701';
+insert into public.pupil_placements(customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on) values ('44002000-0000-4000-8000-000000000001','44002000-0000-4000-8000-000000000011','44002000-0000-4000-8000-000000000701','44002000-0000-4000-8000-000000000103','44002000-0000-4000-8000-000000000203',public.app_today()+1);
+select is((select count(*) from public.pupils where id='44002000-0000-4000-8000-000000000701'),1::bigint,'same stable pupil after transfer');
+select is((select unit_id from public.mandate_pupils where pupil_id='44002000-0000-4000-8000-000000000701'),'44002000-0000-4000-8000-000000000101'::uuid,'pupil mandate remains at original school');
+select is((select unit_id from public.phase3_probe_cases where id='44002000-0000-4000-8000-000000000703'),'44002000-0000-4000-8000-000000000101'::uuid,'case scope remains at original school');
+select throws_ok($q$update public.phase3_probe_cases set unit_id='44002000-0000-4000-8000-000000000102' where id='44002000-0000-4000-8000-000000000703'$q$,'23503',null,'case cannot cross customer school boundary');
+
+select ok((select bool_and(id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') from (select id from public.pupil_placements union all select id from public.pupil_class_memberships union all select id from public.offerings where name='Syntetisk provutbildning') ids),'generated UUIDs satisfy shared register contract');
 select * from finish();
 rollback;
