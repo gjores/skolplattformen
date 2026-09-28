@@ -4,7 +4,7 @@ title: Logga in och arbeta
 
 Den skyddade provmiljön kontrollerar varje åtgärd på servern. Din inloggning avgör vem du är; ditt uppdrag avgör vad du får göra. Uppgifterna är syntetiska.
 
-**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering och utloggning. Arbetsytorna för mandat, elevprov och lokal anslutning är byggda och automatiskt prövade på dator och telefon (september 2026). Detsamma gäller ändringarna 27 september 2026: engångskod vid inloggningen för den som har registrerad kod, verifiering inifrån dialoger och support för grupper. Granskningen återstår. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
+**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering, utloggning och arbetsytorna för mandat, syntetiskt elevprov och lokal anslutning. Prövat på dator och i telefonläge i den lokala provmiljön med syntetiska uppgifter och granskat i september 2026. Ingen verklig kommun är ansluten. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
 
 ## Logga in
 

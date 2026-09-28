@@ -4,7 +4,7 @@ title: Inloggningsmetoder
 
 Sidan beskriver hur du styrker vem du är, vad plattformen godtar som bevis och vad som ännu inte är beslutat.
 
-**Status:** Verifierat för den metod som finns. Inga andra inloggningsmetoder är byggda. Engångskod redan vid inloggningen för konton med registrerad kod (ändrat 27 september 2026) är byggt och automatiskt prövat i den lokala provmiljön. Granskningen återstår.
+**Status:** Verifierat för den metod som finns, inklusive engångskod redan vid inloggningen för konton med registrerad kod (granskat september 2026, lokal provmiljö). Inga andra inloggningsmetoder är byggda.
 
 ## Metoden som används i dag
 

@@ -4,7 +4,7 @@ title: Säkerhetslogg
 
 Säkerhetsloggen visar vad som faktiskt hänt i kundens skyddade miljö. Den skrivs av servern, inte av webbläsaren: aktör och uppdrag härleds ur den prövade sessionen och kan inte väljas av den som utför åtgärden.
 
-**Status:** Verifierat för läsning, filtrering och export av ändringar och nekanden. Att följa elevläsningar och elevexporter i det syntetiska elevprovet är byggt och automatiskt prövat på dator och telefon (september 2026); granskningen återstår. Gallring och kontinuitetskontroll är byggda och delvis prövade.
+**Status:** Verifierat för läsning, filtrering och export av ändringar och nekanden, för spår av elevläsningar och elevexporter i det syntetiska elevprovet och för att åtgärder stoppas när loggen inte kan skrivas (granskat september 2026, lokal provmiljö). Gallring och kontinuitetskontroll är byggda och delvis prövade.
 
 ## Vem får läsa
 

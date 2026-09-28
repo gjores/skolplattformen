@@ -4,7 +4,7 @@ title: Mandat och avgränsad åtkomst
 
 Ett mandat är ett uppdrag med en bestämd räckvidd och en bestämd giltighetstid. Servern prövar mandatet vid varje åtgärd: vem du är, vilket uppdrag du arbetar i, vilket objekt du försöker nå och vilka uppgifter du begär.
 
-**Status:** Byggt. Flödena på den här sidan är prövade automatiskt på dator och telefon i den lokala provmiljön med syntetiska uppgifter (september 2026). Det gäller även verifieringen inifrån dialogerna och support för grupper, som ändrades 27 september 2026. Granskningen av resultatet återstår innan de räknas som verifierade. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
+**Status:** Verifierat. Flödena på den här sidan är prövade på dator och i telefonläge i den lokala provmiljön med syntetiska uppgifter och granskade i september 2026, inklusive verifiering inifrån dialogerna och support för grupper. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
 
 ## Mandatarbetsytan
 
