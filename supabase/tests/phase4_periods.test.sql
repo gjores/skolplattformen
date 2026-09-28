@@ -145,7 +145,7 @@ select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('transfer',js
 select pg_temp.ma('principal');
 select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Nekat"}'))$q$,'42501',null,'principal has no register mutation authority');
 rollback to mutation_start;
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_change_pupil(jsonb)','EXECUTE'),'mutation stays Worker-closed until audited API');
+select ok(has_function_privilege('skolplattform_worker','public.phase4_change_pupil(jsonb)','EXECUTE'),'mutation open to Worker after 04-23 audited API grant');
 
 
 -- Future plans must survive attempts to insert an overlapping relation.
@@ -173,15 +173,14 @@ select is((select version from public.pupils where id=pg_temp.mid(70)),1,'histor
 select is((select display_name from public.pupils where id=pg_temp.mid(70)),'Syntetisk elev','history failure retains original field');
 drop trigger phase4_mutation_history_failure on public.pupil_field_history;
 rollback to mutation_start;
--- Test an actual Worker invocation with a transaction-local test grant.
+-- Test an actual Worker invocation through the migration grant (04-23); no test-local grant.
 create temp table worker_mutation_request as select pg_temp.mreq('basics','{"displayName":"Workerprov"}') as request;
 grant select on worker_mutation_request to skolplattform_worker;
-grant execute on function public.phase4_change_pupil(jsonb) to skolplattform_worker;
 set local role skolplattform_worker;
 select is(public.phase4_change_pupil((select request from worker_mutation_request))->>'kind','success','direct Worker invocation enforces server-context mutation');
 reset role;
 rollback to mutation_start;
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_change_pupil(jsonb)','EXECUTE'),'test grant is rolled back');
+select ok(has_function_privilege('skolplattform_worker','public.phase4_change_pupil(jsonb)','EXECUTE'),'Worker execute comes from the migration and survives rollback');
 
 
 rollback to mutation_start;

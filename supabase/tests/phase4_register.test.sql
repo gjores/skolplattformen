@@ -234,7 +234,18 @@ select pg_temp.ma('admin');
 select throws_ok($q$select pg_temp.deliver('personalNumber','"191001010000"')$q$,'22023',null,'non-synthetic identity refused');
 select throws_ok($q$select public.phase4_simulated_source_deliver(jsonb_build_object('pupilId',pg_temp.mid(70),'field','displayName','value','Name','actorId',pg_temp.mid(22)))$q$,'22023',null,'source caller cannot spoof actor');
 select ok(not has_function_privilege(r,'public.phase4_simulated_source_deliver(jsonb)','execute'),'delivery denied for '||r) from unnest(array['anon','authenticated','skolplattform_worker'])r;
-select ok(not has_function_privilege(r,'public.phase4_resolve_source(jsonb)','execute'),'resolution remains closed for '||r) from unnest(array['anon','authenticated','skolplattform_worker'])r;
+-- 04-23 ACL contract: the audited Worker routes execute exactly the four register write/reveal/export
+-- entrypoints; client roles and PUBLIC never do. The functions still recheck mandate, block, protection and version.
+select is(has_function_privilege(r,f,'execute'),r='skolplattform_worker',f||' execute for '||r)
+ from unnest(array['public.phase4_change_pupil(jsonb)','public.phase4_resolve_source(jsonb)','public.phase4_reveal_personal_number(jsonb)','public.phase4_export_pupils(jsonb,boolean)'])f
+ cross join unnest(array['anon','authenticated','skolplattform_worker'])r;
+select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner)))x
+ where p.oid=any(array['public.phase4_change_pupil(jsonb)'::regprocedure,'public.phase4_resolve_source(jsonb)'::regprocedure,'public.phase4_reveal_personal_number(jsonb)'::regprocedure,'public.phase4_export_pupils(jsonb,boolean)'::regprocedure])
+ and x.grantee=0 and x.privilege_type='EXECUTE'),'PUBLIC has no execute on the four register entrypoints');
+select is(array(select p.proname||'('||oidvectortypes(p.proargtypes)||')' collate "C" from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase4\_%' and has_function_privilege('skolplattform_worker',p.oid,'execute') order by 1),
+ array['phase4_change_pupil(jsonb)','phase4_export_pupils(jsonb, boolean)','phase4_grant_protected_permission(uuid, uuid)','phase4_list_protected_permissions()','phase4_list_pupils(jsonb)','phase4_pupil_card(jsonb)','phase4_pupil_history(jsonb)','phase4_register_selection()','phase4_resolve_source(jsonb)','phase4_reveal_personal_number(jsonb)','phase4_revoke_protected_permission(uuid)']::text[],
+ 'Worker executes exactly the audited phase4 entrypoints; helpers and source delivery stay closed');
+select is(array(select r||':'||p.proname collate "C" from pg_proc p cross join unnest(array['anon','authenticated'])r where p.pronamespace='public'::regnamespace and p.proname like 'phase4\_%' and has_function_privilege(r,p.oid,'execute') order by 1),'{}'::text[],'no phase4 function is executable by anon or authenticated');
 select ok(not exists(select 1 from public.security_events where customer_id=pg_temp.mid(1) and action='pupil.source.deliver' and (actor_identity_id is not null or membership_id is not null or details::text like '%Källnamn%' or details::text like '%TEST-%')),'source log has no values or forged actor');
 create function pg_temp.reject_source_audit() returns trigger language plpgsql as $$begin if new.action='pupil.source.deliver' then raise exception 'test audit unavailable' using errcode='55000'; end if; return new; end$$;
 create trigger test_reject_source_audit before insert on public.security_events for each row execute function pg_temp.reject_source_audit();

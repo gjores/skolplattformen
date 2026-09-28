@@ -74,6 +74,6 @@ insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id
 select is((public.phase4_export_pupils(jsonb_set(pg_temp.exp()||'{"schoolYear":2025}','{selection,schoolYear}','2025'),true)->'body'->>'count')::integer,1,'historical export honors actual school-year overlap');
 select pg_temp.read_actor(4);
 select throws_ok($q$select public.phase4_export_pupils(pg_temp.exp(),false)$q$,'42501',null,'teacher cannot export');
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_export_pupils(jsonb,boolean)','EXECUTE'),'export stays closed until audited route');
+select is(has_function_privilege(r,'public.phase4_export_pupils(jsonb,boolean)','EXECUTE'),r='skolplattform_worker','export execute for '||r||' after 04-23 audited route grant') from unnest(array['anon','authenticated','skolplattform_worker'])r;
 select * from finish();
 rollback;
