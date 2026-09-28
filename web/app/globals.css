@@ -2051,7 +2051,7 @@ textarea:disabled {
 .pupil-register .pupil-mark input { width: 22px; height: 22px; }
 .pupil-register-cards { display: none; }
 .pupil-school-year { display: flex; align-items: center; gap: 8px; max-width: 100%; }
-.pupil-school-year select { width: auto; }
+.pupil-school-year select { width: auto; height: 44px; appearance: none; -webkit-appearance: none; }
 .pupil-school-year label { font-size: 14px; }
 @media (max-width: 800px) {
   .pupil-register .protected-filter { grid-template-columns: minmax(0, 1fr); }
