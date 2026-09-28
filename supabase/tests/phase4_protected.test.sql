@@ -44,14 +44,14 @@ perform set_config('app.assignment_id',a::text,true),set_config('app.membership_
 select pg_temp.actor('44003000-0000-4000-8000-000000000041'::uuid,'44003000-0000-4000-8000-000000000031','44003000-0000-4000-8000-000000000021');
 
 select has_function('public','phase4_grant_protected_permission',array['uuid','uuid'],'HM grant entrypoint exists');
-select is((select count(*) from public.protected_identity_permissions),0::bigint,'no implicit protected grants from migration');
+select is((select count(*) from public.protected_identity_permissions where customer_id='44003000-0000-4000-8000-000000000001'),0::bigint,'no implicit protected grants from migration');
 select lives_ok($q$insert into results values ('principal',public.phase3_grant_mandate('{"membershipId":"44003000-0000-4000-8000-000000000061","function":"rektor","scopeKind":"school","unitIds":["44003000-0000-4000-8000-000000000111","44003000-0000-4000-8000-000000000112"]}'))$q$,'HM appoints principal at two schools');
 select pg_temp.actor((select id from results where name='principal'),'44003000-0000-4000-8000-000000000061','44003000-0000-4000-8000-000000000071');
 select lives_ok($q$insert into results values ('admin',public.phase3_grant_mandate('{"membershipId":"44003000-0000-4000-8000-000000000062","function":"administrator","scopeKind":"school","unitIds":["44003000-0000-4000-8000-000000000111","44003000-0000-4000-8000-000000000112"]}'))$q$,'principal grants ordinary admin at two schools');
 select lives_ok($q$insert into results values ('admin2',public.phase3_grant_mandate('{"membershipId":"44003000-0000-4000-8000-000000000062","function":"administrator","scopeKind":"school","unitIds":["44003000-0000-4000-8000-000000000111"]}'))$q$,'same person can have a second independent admin mandate');
 select throws_ok($q$select public.phase4_grant_protected_permission((select id from results where name='admin'),'44003000-0000-4000-8000-000000000111')$q$,'42501',null,'principal cannot grant protection');
 select throws_ok('select public.phase4_list_protected_permissions()','42501',null,'principal cannot list protected grants');
-insert into public.offerings(id,organizer_id,unit_id,kind,name) values ('44003000-0000-4000-8000-000000000801','44003000-0000-4000-8000-000000000011','44003000-0000-4000-8000-000000000111','grundskola','Syntetisk utbildning'),('44003000-0000-4000-8000-000000000802','44003000-0000-4000-8000-000000000011','44003000-0000-4000-8000-000000000112','grundskola','Syntetisk utbildning');
+insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort) values ('44003000-0000-4000-8000-000000000801','44003000-0000-4000-8000-000000000011','44003000-0000-4000-8000-000000000111','grundskola','Syntetisk utbildning','Syntetisk migrering'),('44003000-0000-4000-8000-000000000802','44003000-0000-4000-8000-000000000011','44003000-0000-4000-8000-000000000112','grundskola','Syntetisk utbildning','Syntetisk migrering');
 insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name,protected_identity) values ('44003000-0000-4000-8000-000000000211','44003000-0000-4000-8000-000000000001','44003000-0000-4000-8000-000000000011','Syntetiskt skyddat namn','TEST-20100101-0014','Elev A',true);
 insert into public.pupil_placements(customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on,ends_on) values ('44003000-0000-4000-8000-000000000001','44003000-0000-4000-8000-000000000011','44003000-0000-4000-8000-000000000211','44003000-0000-4000-8000-000000000111','44003000-0000-4000-8000-000000000801',public.app_today()-10,public.app_today()),('44003000-0000-4000-8000-000000000001','44003000-0000-4000-8000-000000000011','44003000-0000-4000-8000-000000000211','44003000-0000-4000-8000-000000000112','44003000-0000-4000-8000-000000000802',public.app_today()+1,null);
 select pg_temp.actor('44003000-0000-4000-8000-000000000041','44003000-0000-4000-8000-000000000031','44003000-0000-4000-8000-000000000021');
@@ -71,12 +71,12 @@ select throws_ok($q$select public.phase4_grant_protected_permission((select id f
 select pg_temp.actor((select id from results where name='admin2'),'44003000-0000-4000-8000-000000000062','44003000-0000-4000-8000-000000000072');
 select is(public.phase4_can_read_protected('44003000-0000-4000-8000-000000000211','44003000-0000-4000-8000-000000000111'),false,'same person different mandate inherits no protection');
 
-update public.memberships set status='blocked' where id='44003000-0000-4000-8000-000000000062';
+update public.memberships set status='blocked',blocked_at=clock_timestamp() where id='44003000-0000-4000-8000-000000000062';
 select is(public.phase4_protected_permission_is_valid((select id from results where name='grant')),false,'admin membership blocked immediately breaks permission');
-update public.memberships set status='active' where id='44003000-0000-4000-8000-000000000062';
-update public.memberships set status='blocked' where id='44003000-0000-4000-8000-000000000031';
+update public.memberships set status='active',blocked_at=null where id='44003000-0000-4000-8000-000000000062';
+update public.memberships set status='blocked',blocked_at=clock_timestamp() where id='44003000-0000-4000-8000-000000000031';
 select is(public.phase4_protected_permission_is_valid((select id from results where name='grant')),false,'giver membership blocked immediately breaks permission');
-update public.memberships set status='active' where id='44003000-0000-4000-8000-000000000031';
+update public.memberships set status='active',blocked_at=null where id='44003000-0000-4000-8000-000000000031';
 update public.access_assignments set ended_at=clock_timestamp() where id=(select id from results where name='admin');
 select is(public.phase4_protected_permission_is_valid((select id from results where name='grant')),false,'admin ended immediately breaks permission');
 update public.access_assignments set ended_at=null where id=(select id from results where name='admin');
@@ -101,6 +101,9 @@ select throws_ok($q$select public.phase4_grant_protected_permission((select id f
 select is(jsonb_array_length(public.phase4_list_protected_permissions()),2,'limited HM sees only staff at their school');
 select lives_ok($q$select public.phase4_revoke_protected_permission((select id from results where name='grant'))$q$,'authorized HM can revoke');
 select is(public.phase4_protected_permission_is_valid((select id from results where name='grant')),false,'revocation immediately effective');
+select pg_temp.actor((select id from results where name='admin'),'44003000-0000-4000-8000-000000000062','44003000-0000-4000-8000-000000000072');
+select is(public.phase4_can_read_protected('44003000-0000-4000-8000-000000000211','44003000-0000-4000-8000-000000000111'),false,'next protected entrypoint immediately loses revoked right');
+select pg_temp.actor('44003000-0000-4000-8000-000000000043','44003000-0000-4000-8000-000000000064','44003000-0000-4000-8000-000000000074');
 select lives_ok($q$insert into results values ('grant2',public.phase4_grant_protected_permission((select id from results where name='admin'),'44003000-0000-4000-8000-000000000111'))$q$,'new explicit decision after revoke');
 select isnt((select id from results where name='grant'),(select id from results where name='grant2'),'regrant creates distinct permission history');
 select is(public.phase4_protected_permission_is_valid((select id from results where name='grant')),false,'old grant is never revived');
