@@ -10,8 +10,19 @@ import type { RegisterSetup } from './school-year-picker';
 
 const fallbackText = 'Urvalet i adressen gäller inte ditt uppdrag. Listan visar läsåret för din första skola.';
 const statusLabels = { aktuell: 'Aktiv', framtida: 'Kommande', avslutad: 'Avslutad' };
-export function clearRegisterLocation() {
-  window.history.replaceState(null, '', window.location.pathname);
+export function clearRegisterLocation(preserveAuthentication = false) {
+  const retained = new URLSearchParams();
+  if (preserveAuthentication) {
+    const current = new URLSearchParams(window.location.search);
+    if (current.get('till') === '/inbjudan') retained.set('till', '/inbjudan');
+    if (current.get('inloggning') === 'nekad') {
+      retained.set('inloggning', 'nekad');
+      const code = current.get('kod');
+      if (code) retained.set('kod', code);
+    }
+  }
+  const query = retained.toString();
+  window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : ''));
   for (const kind of ['sessionStorage', 'localStorage'] as const) {
     try { const storage = window[kind]; for (const key of Object.keys(storage)) if (key.startsWith('sp_elevsok')) storage.removeItem(key); } catch { /* Storage kan vara avstängd. */ }
   }

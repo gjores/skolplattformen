@@ -220,9 +220,9 @@ function ProtectedShell() {
 
   const sessionLoad = useRef(0);
   const sessionRef = useRef<SessionResponse | null>(null);
-  const clearSession = useCallback(() => {
+  const clearSession = useCallback((preserveAuthentication = false) => {
     sessionLoad.current += 1; sessionRef.current = null;
-    clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
+    clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
   }, []);
   const loadSession = useCallback(async () => {
     const current = ++sessionLoad.current;
@@ -251,11 +251,13 @@ function ProtectedShell() {
           epochRef.current = null;
           setKnownEpoch(null);
         }
-        clearSession();
+        // Första oinloggade kontrollen måste behålla inbjudans returväg och IdP-felet.
+        // Efter en faktiskt laddad session gäller alltid fullständig rensning.
+        clearSession(sessionRef.current === null);
         return;
       }
     }
-    if (current === sessionLoad.current) clearSession();
+    if (current === sessionLoad.current) clearSession(sessionRef.current === null);
   }, [clearSession]);
 
   useEffect(() => {
