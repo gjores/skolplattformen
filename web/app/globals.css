@@ -2066,3 +2066,52 @@ textarea:disabled {
 }
 .pupil-register .pupil-search-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .pupil-school-year { margin: 0; padding: 0; border: 0; }
+
+/* Elevkort, ändrings-, konflikt- och exportdialoger (04-13). Endast inom registret och dess dialoger. */
+.pupil-register .mandate-actions { gap: 16px; }
+.pupil-register .admin-notice { display: flex; align-items: flex-start; gap: 8px; padding: 16px; margin-bottom: 0; overflow-wrap: anywhere; }
+.pupil-register .validation-warning, .pupil-register-dialog .validation-warning { color: var(--foreground); padding: 16px; overflow-wrap: anywhere; }
+.pupil-warning { display: flex; gap: 8px; align-items: flex-start; }
+.pupil-warning > svg { flex-shrink: 0; margin-top: 4px; }
+.pupil-warning > div { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; }
+.pupil-card { display: grid; gap: 24px; max-width: 960px; min-width: 0; }
+.pupil-card > button { justify-self: start; }
+.pupil-card .admin-heading { margin-bottom: 0; }
+.pupil-card .admin-kicker { font-size: 14px; color: var(--muted-foreground); }
+.pupil-card .admin-heading h1 { overflow-wrap: anywhere; }
+.pupil-card .pupil-id { font-size: 14px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pupil-card .protected-card { padding: 24px; min-width: 0; }
+.pupil-card .protected-card > h2 { margin-bottom: 16px; }
+.pupil-card .protected-card h3 { margin: 16px 0 8px; }
+.pupil-card .mandate-facts dt { font-weight: 500; }
+.pupil-card .mandate-facts > div { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.pupil-card .mandate-facts dd { margin: 0; overflow-wrap: anywhere; }
+.pupil-number { font-variant-numeric: tabular-nums; }
+.pupil-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.pupil-register .pupil-badge { height: auto; min-height: 28px; padding: 4px 8px; gap: 8px; font-size: 14px; font-weight: 500; white-space: normal; color: var(--foreground); border-color: var(--muted-foreground); background: var(--card); }
+.pupil-protection { margin: 0; padding: 16px; border-radius: 8px; background: var(--muted); color: var(--foreground); }
+.pupil-rows { list-style: none; margin: 0; padding: 0; }
+.pupil-register .protected-assignment { gap: 8px 16px; padding: 8px 0; min-width: 0; overflow-wrap: anywhere; }
+.pupil-history { display: grid; gap: 8px; margin: 16px 0; padding: 0; list-style: none; }
+.pupil-history li { display: flex; flex-direction: column; gap: 4px; padding: 8px 16px; border-radius: 8px; background: var(--muted); color: var(--foreground); overflow-wrap: anywhere; min-width: 0; }
+.pupil-register .pupil-history li small { color: var(--foreground); }
+.pupil-card [data-slot=collapsible-content] > div { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.pupil-card [data-slot=collapsible-content] .pupil-history { align-self: stretch; }
+.pupil-card :is(button, [role=button]):focus-visible, .pupil-card h1:focus-visible, .pupil-card h2:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.pupil-register-dialog { font-size: 16px; color: var(--foreground); }
+.pupil-register-dialog [data-slot=dialog-title] { padding-right: 48px; overflow-wrap: anywhere; }
+.pupil-register-dialog .protected-form { grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 24px; padding-top: 24px; }
+.pupil-register-dialog .protected-form label { gap: 8px; font-size: 14px; font-weight: 500; }
+.pupil-register-dialog .protected-form small { font-weight: 400; }
+.pupil-register-dialog :is(input:not([type=checkbox]):not([type=radio]), select) { width: 100%; min-height: 44px; font-size: 16px; font-weight: 400; }
+.pupil-register-dialog button { min-height: 44px; min-width: 44px; height: auto; white-space: normal; }
+.pupil-register-dialog :is(button, input, select, h3):focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.pupil-register-dialog [aria-invalid=true] { border-color: #b45309; border-width: 2px; }
+.pupil-register-dialog .mandate-choice { padding: 16px; }
+.pupil-register-dialog .mandate-check { gap: 16px !important; font-weight: 400 !important; font-size: 16px !important; }
+.pupil-register-dialog .mandate-check input { width: 22px; height: 22px; flex-shrink: 0; }
+.pupil-register-dialog .mandate-actions { gap: 16px; }
+.pupil-register-dialog h3 { font-size: 16px; font-weight: 500; margin: 0; }
+@media (max-width: 800px) {
+  .pupil-card .protected-card { padding: 16px; }
+}

@@ -365,3 +365,13 @@ test('Konfliktval: sparat värde skickas inte, eget värde bara vid uttryckligt 
   assert.deepEqual(call('resolvedBasics', { displayName: 'Test Ny' }, ['displayName'], { displayName: 'saved' }), {});
   assert.deepEqual(call('resolvedBasics', submitted, ['personalNumber', 'displayName'], { personalNumber: 'mine', displayName: 'saved' }), { personalNumber: 'TEST-20120304-0000', protectedIdentity: true });
 });
+
+test('CSV-radräkning ignorerar rubrik, BOM och radbrytning i citerad cell', () => {
+  const csv = call('registerCsv', ['id', 'displayName'], [
+    { id: '20000000-0000-4000-8000-000000000001', displayName: 'Test\r\nElev' },
+    { id: '20000000-0000-4000-8000-000000000002', displayName: '=Test' },
+  ]);
+  assert.equal(call('csvDataRowCount', csv), 2);
+  assert.equal(call('csvDataRowCount', '﻿elev_id\r\n'), 0);
+  assert.equal(call('csvDataRowCount', 'a\r\nb'), 1);
+});

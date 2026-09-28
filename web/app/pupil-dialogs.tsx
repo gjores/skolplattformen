@@ -5,9 +5,9 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import {
-  groupPlacements, isValidDate, luhnOk, maskedPersonalNumber, resolvedBasics,
-  type BasicsChange, type ChangeRequest, type ConflictChoice, type ConflictChoiceField, type ConflictDetails,
-  type FieldOrigin, type NamedOption, type Placement, type PupilCard, type RegisterOptions,
+  csvDataRowCount, DEFAULT_EXPORT_FIELDS, EXPORT_FIELDS, exportPost, groupPlacements, isValidDate, luhnOk, maskedPersonalNumber, resolvedBasics,
+  type BasicsChange, type ChangeRequest, type ConflictChoice, type ConflictChoiceField, type ConflictDetails, type ExportDraft,
+  type ExportField, type ExportPreview, type FieldOrigin, type NamedOption, type Placement, type PupilCard, type RegisterOptions, type Selection,
 } from '@/lib/pupil-register-model.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
@@ -457,6 +457,156 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
             {kind !== 'end-placement' && <DialogClose render={<Button type="button" variant="outline" disabled={saving} />}>Stäng utan att spara</DialogClose>}
           </div>
         </form>}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ---------- Export ---------- */
+
+const exportLabels: Record<ExportField, string> = {
+  id: 'Elev-ID', displayName: 'Namn', birthDate: 'Födelsedatum', unitName: 'Skola', educationName: 'Utbildning',
+  className: 'Klass', grade: 'Årskurs', municipalityCode: 'Hemkommun (kommunkod)', status: 'Status',
+};
+const pupils = (n: number) => n === 1 ? '1 elev' : `${n} elever`;
+
+export type ExportDialogProps = {
+  schoolYear: number;
+  caseId: string | null;
+  selection: Selection;
+  search: string;
+  marked: string[];
+  total: number;
+  canReadProtected: boolean;
+  returnTo: string;
+  onClose: () => void;
+  onDone: (message: string) => void;
+  onSessionLost: () => void;
+};
+
+/** Uttryckligt exporturval. Antalet kommer från serverns förhandsprövning; filen
+ * begärs först därefter och servern prövar och loggar urvalet igen. */
+export function PupilExportDialog(props: ExportDialogProps) {
+  const [target, setTarget] = useState<'marked' | 'selection'>(props.marked.length > 0 ? 'marked' : 'selection');
+  const [fields, setFields] = useState<ExportField[]>([...DEFAULT_EXPORT_FIELDS]);
+  const [includePersonalNumber, setIncludePersonalNumber] = useState(false);
+  const [preview, setPreview] = useState<number | null>(null);
+  const [previewing, setPreviewing] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [mfa, setMfa] = useState(false);
+  const popup = useRef<HTMLDivElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const callbacks = useRef(props);
+  useEffect(() => { callbacks.current = props; });
+
+  const draft = (chosen: ExportField[]): ExportDraft => ({
+    schoolYear: props.schoolYear, caseId: props.caseId, fields: chosen, includePersonalNumber,
+    // Listan anger inte vilka elever som har skyddade personuppgifter; de utelämnas därför alltid.
+    protectedIds: [],
+    target: target === 'marked' ? { kind: 'marked', ids: props.marked } : { kind: 'selection', selection: props.selection, search: props.search },
+  });
+
+  // Förhandsprövningen gäller elevurvalet; antalet beror inte på fältvalet.
+  useEffect(() => {
+    let active = true;
+    const built = exportPost('preview', {
+      schoolYear: callbacks.current.schoolYear, caseId: callbacks.current.caseId, fields: ['id'], includePersonalNumber: false, protectedIds: [],
+      target: target === 'marked' ? { kind: 'marked', ids: callbacks.current.marked } : { kind: 'selection', selection: callbacks.current.selection, search: callbacks.current.search },
+    });
+    queueMicrotask(() => { if (active) { setPreview(null); setPreviewing(true); setError(null); } });
+    if (!built.ok) {
+      queueMicrotask(() => { if (active) { setPreviewing(false); setError('Urvalet innehåller inga elever att exportera.'); } });
+      return () => { active = false; };
+    }
+    api.post<ExportPreview>('/api/elever/export', built.post).then(result => {
+      if (!active) return;
+      setPreview(result.count);
+      if (result.count === 0) setError('Urvalet innehåller inga elever att exportera.');
+    }).catch(caught => {
+      if (!active) return;
+      const result = failure(caught, 'export');
+      if (!result) return;
+      if (result.kind === 'session') callbacks.current.onSessionLost();
+      else if (result.kind === 'mfa') setMfa(true);
+      else if (result.kind === 'message') setError(result.status === 400 ? 'Urvalet innehåller inga elever att exportera.' : result.text);
+    }).finally(() => { if (active) setPreviewing(false); });
+    return () => { active = false; };
+  }, [target]);
+
+  const toggle = (field: ExportField) => {
+    setFields(previous => previous.includes(field) ? previous.filter(item => item !== field) : [...previous, field]);
+    setFieldError(null);
+  };
+
+  async function download(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy || previewing) return;
+    const built = exportPost('download', draft(fields));
+    if (!built.ok) {
+      if (built.reason === 'fields') setFieldError('Välj minst en uppgift att exportera.');
+      else setError('Urvalet innehåller inga elever att exportera.');
+      requestAnimationFrame(() => errorRef.current?.focus());
+      return;
+    }
+    if (!preview) { setError('Urvalet innehåller inga elever att exportera.'); return; }
+    setBusy(true); setError(null); setMfa(false);
+    try {
+      const file = await api.downloadPost('/api/elever/export', built.post);
+      const rows = csvDataRowCount(await file.blob.text());
+      const url = URL.createObjectURL(file.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.filename ?? 'syntetiskt-elevurval.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Blob-URL:en återkallas så att filinnehållet inte ligger kvar i sidan.
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const count = built.post.export.fields.length + (built.post.export.includePersonalNumber ? 1 : 0);
+      callbacks.current.onDone(`Exporten är klar: ${pupils(rows)} och ${count} fält. Exporten är registrerad i säkerhetsloggen.`);
+    } catch (caught) {
+      const result = failure(caught, 'export');
+      if (!result) return;
+      if (result.kind === 'session') { callbacks.current.onSessionLost(); return; }
+      if (result.kind === 'mfa') { setMfa(true); return; }
+      setError(result.kind === 'message' ? result.status === 404 ? 'En elev i urvalet ingår inte längre i ditt uppdrag. Stäng dialogen, hämta aktuellt läge och välj igen.' : result.text : 'Exporten kunde inte slutföras. Försök igen.');
+      requestAnimationFrame(() => errorRef.current?.focus());
+    } finally { setBusy(false); }
+  }
+
+  const label = previewing ? 'Hämtar antal…' : busy ? 'Exporterar…' : preview ? `Exportera ${pupils(preview)} (CSV)` : 'Exportera (CSV)';
+  return (
+    <Dialog open onOpenChange={open => { if (!open && !busy) props.onClose(); }}>
+      <DialogContent ref={popup} initialFocus={popup} className="mandate-dialog pupil-register-dialog sm:max-w-xl" showCloseButton={!busy}>
+        <DialogTitle>Exportera elevurval</DialogTitle>
+        <DialogDescription>Välj elever och uppgifter. Du kan bara välja uppgifter som ditt uppdrag tillåter. Servern prövar exporten igen och registrerar den i säkerhetsloggen.</DialogDescription>
+        {error && <Warning focusRef={errorRef}>{error}</Warning>}
+        {mfa && <MfaStepUpNotice className="pupil-warning" returnTo={props.returnTo} message="Export kräver verifiering med engångskod." detail="Efter verifieringen kommer du tillbaka till elevlistan och väljer exporten igen." />}
+        <form className="protected-form pupil-dialog-form" noValidate onSubmit={event => void download(event)} aria-busy={busy || previewing}>
+          <fieldset className="mandate-choice">
+            <legend>Elever</legend>
+            <label className="mandate-check"><input type="radio" name="export-target" checked={target === 'marked'} disabled={busy || props.marked.length === 0} onChange={() => setTarget('marked')} />Markerade elever ({props.marked.length})</label>
+            <label className="mandate-check"><input type="radio" name="export-target" checked={target === 'selection'} disabled={busy} onChange={() => setTarget('selection')} />Alla elever i urvalet ({props.total})</label>
+            {props.canReadProtected && <small>Elever med skyddade personuppgifter utelämnas ur exporten.</small>}
+          </fieldset>
+          <fieldset className="mandate-choice" aria-describedby={fieldError ? 'export-fields-error' : undefined}>
+            <legend>Uppgifter</legend>
+            {EXPORT_FIELDS.map(field => <label key={field} className="mandate-check"><input type="checkbox" checked={fields.includes(field)} disabled={busy} onChange={() => toggle(field)} />{exportLabels[field]}</label>)}
+            {fieldError && <small id="export-fields-error" className="field-error">{fieldError}</small>}
+          </fieldset>
+          <fieldset className="mandate-choice">
+            <legend>Personnummer</legend>
+            <label className="mandate-check"><input type="checkbox" checked={includePersonalNumber} disabled={busy} aria-describedby="export-number-help" onChange={event => setIncludePersonalNumber(event.target.checked)} />Ta med personnummer</label>
+            <small id="export-number-help">Personnummer exporteras bara om du väljer det. Exporten registreras som personnummerexport.</small>
+          </fieldset>
+          {preview !== null && !previewing && <output>Servern har prövat urvalet: {pupils(preview)}.</output>}
+          <div className="mandate-actions">
+            <Button type="submit" disabled={busy || previewing || !preview}>{label}</Button>
+            <DialogClose render={<Button type="button" variant="outline" disabled={busy} />}>Avbryt exporten</DialogClose>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

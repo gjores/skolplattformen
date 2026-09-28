@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FUNCTION_LABEL } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { schoolYearLabel, selectionFromQuery, selectionToQuery, type PupilList, type PupilListItem, type RegisterOptions, type Selection } from '@/lib/pupil-register-model.ts';
 import type { ActiveContext } from './context-switch';
 import PupilCard from './pupil-card';
-import { stockholmToday } from './pupil-dialogs';
+import { PupilExportDialog, stockholmToday } from './pupil-dialogs';
 import type { RegisterSetup } from './school-year-picker';
 
 const fallbackText = 'Urvalet i adressen gäller inte ditt uppdrag. Listan visar läsåret för din första skola.';
@@ -72,12 +73,13 @@ export default function PupilRegisterWorkspace(props: Props) {
   const nameButtons = useRef(new Map<string, HTMLButtonElement>());
   const returnFocus = useRef<string | null>(null);
   const changedInCard = useRef(false);
+  const [exporting, setExporting] = useState(false);
   const selectionRef = useRef(selection);
   useEffect(() => { callbacks.current = props; });
 
   const move = useCallback((next: Selection, mode: 'push' | 'replace' = 'push') => {
     controller.current?.abort(); setList(null); setBusy(true); setError(null); setMarked([]);
-    selectedPupil.current = null; setOpenPupil(null); returnFocus.current = null;
+    selectedPupil.current = null; setOpenPupil(null); returnFocus.current = null; setExporting(false);
     callbacks.current.onOpenPupil?.(null, next, null);
     window.history[mode === 'push' ? 'pushState' : 'replaceState'](null, '', selectionToQuery(next));
     setSelection(next); callbacks.current.onSchoolYear(next.schoolYear); focusResults.current = true;
@@ -118,7 +120,8 @@ export default function PupilRegisterWorkspace(props: Props) {
   useEffect(() => {
     if (openPupil !== null || busy || !list || !returnFocus.current) return;
     const id = returnFocus.current; returnFocus.current = null;
-    requestAnimationFrame(() => (nameButtons.current.get(id) ?? resultHeading.current)?.focus());
+    // Tabell på dator, kortlista på telefon: fokus till den synliga namnknappen.
+    requestAnimationFrame(() => ([nameButtons.current.get(id), nameButtons.current.get(`${id}-card`)].find(element => element && element.offsetParent !== null) ?? resultHeading.current)?.focus());
   }, [openPupil, busy, list]);
 
   useEffect(() => {
@@ -219,7 +222,7 @@ export default function PupilRegisterWorkspace(props: Props) {
       <label>Status<select value={selection.status ?? ''} disabled={busy} onChange={event => filter({ status: event.target.value as Selection['status'] || null })}><option value="">Alla statusar</option>{options?.statuses.map(status => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></label>
       <div className="mandate-actions"><Button type="submit" disabled={busy}>Sök elever</Button>{search && <Button variant="outline" onClick={() => submitSearch('')}>Rensa sökningen</Button>}{hasFilters && <Button variant="outline" onClick={() => filter({ classId: null, educationId: null, grade: null, status: null })}>Rensa filter</Button>}</div>
     </form>}
-    <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => setRevision(n => n + 1)}>{error ? 'Försök igen' : 'Hämta aktuellt läge'}</Button>{marked.length > 0 && <><output>{marked.length} elever markerade</output><Button variant="outline" onClick={() => setMarked([])}>Avmarkera alla</Button></>}</div>
+    <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => setRevision(n => n + 1)}>{error ? 'Försök igen' : 'Hämta aktuellt läge'}</Button>{list?.capabilities.canExport && list.count > 0 && <Button variant="outline" disabled={busy} onClick={() => { setNotice(null); setExporting(true); }}><Download size={16} aria-hidden="true" />Exportera urval…</Button>}{marked.length > 0 && <><output>{marked.length} elever markerade</output><Button variant="outline" onClick={() => setMarked([])}>Avmarkera alla</Button></>}</div>
     <section aria-label="Elevlista"><h2 ref={resultHeading} tabIndex={-1}>Elever läsåret {schoolYearLabel(selection.schoolYear)}</h2>
       {busy && <output>Hämtar elever…</output>}
       {!busy && !caseId && props.setup.scope.cases.length > 0 && <p>Välj ett tilldelat ärende för att se den elev ärendet gäller.</p>}
@@ -231,5 +234,8 @@ export default function PupilRegisterWorkspace(props: Props) {
         <nav className="mandate-actions" aria-label="Elevlistans sidor"><Button variant="outline" disabled={busy || list.page <= 1} onClick={() => move({ ...selection, page: list.page - 1 })}>Föregående sida</Button><span>Sida {list.page} av {pages}</span><Button variant="outline" disabled={busy || list.page >= pages} onClick={() => move({ ...selection, page: list.page + 1 })}>Nästa sida</Button></nav>
       </>}
     </section>
+    {exporting && list && <PupilExportDialog schoolYear={selection.schoolYear} caseId={caseId} selection={selection} search={search} marked={marked}
+      total={list.count} canReadProtected={list.capabilities.canReadProtected} returnTo={returnTo}
+      onClose={() => setExporting(false)} onDone={message => { setExporting(false); setNotice(message); }} onSessionLost={props.onSessionLost} />}
   </div>;
 }

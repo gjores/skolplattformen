@@ -671,3 +671,17 @@ export function resolvedBasics(
   }
   return next;
 }
+
+/** Antal datarader i serverns CSV (rubrikrad räknas inte). Radbrytningar inom
+ * citerade celler räknas inte som nya rader. */
+export function csvDataRowCount(csv: string): number {
+  let inQuotes = false;
+  let lines = 0;
+  let pending = false;
+  for (const char of csv.replace(/^﻿/u, '')) {
+    if (char === '"') inQuotes = !inQuotes;
+    if (char === '\n' && !inQuotes) { lines += 1; pending = false; }
+    else if (char !== '\r') pending = true;
+  }
+  return Math.max(0, lines + (pending ? 1 : 0) - 1);
+}
