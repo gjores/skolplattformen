@@ -1,6 +1,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select no_plan();
+-- Scenario savepoints intentionally restore fixture state and pgTAP's result
+-- table. An upfront TAP plan counts every emitted assertion across those saves;
+-- finish() would instead count only result rows surviving the last rollback.
+select plan(101);
 -- Syntetisk provgrund, endast assertTarget(protected); allt återställs med rollback.
 insert into public.customers(id,name) values ('44002000-0000-4000-8000-000000000001','Syntetisk provkund');
 insert into public.organizers(id,customer_id,name,type) values ('44002000-0000-4000-8000-000000000011','44002000-0000-4000-8000-000000000001','Syntetisk huvudman','Kommun');
@@ -144,5 +147,55 @@ select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('basics','{"d
 rollback to mutation_start;
 select ok(not has_function_privilege('skolplattform_worker','public.phase4_change_pupil(jsonb)','EXECUTE'),'mutation stays Worker-closed until audited API');
 
-select * from finish();
+
+-- Future plans must survive attempts to insert an overlapping relation.
+rollback to mutation_start;
+update public.pupil_placements set ends_on=public.app_today()+29 where id=pg_temp.mid(80);
+update public.pupil_class_memberships set ends_on=public.app_today()+29 where id=pg_temp.mid(90);
+insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on) values(pg_temp.mid(81),pg_temp.mid(1),pg_temp.mid(2),pg_temp.mid(70),pg_temp.mid(31),pg_temp.mid(41),public.app_today()+30);
+select is(public.phase4_change_pupil(pg_temp.mreq('transfer',jsonb_build_object('placementId',pg_temp.mid(80),'unitId',pg_temp.mid(31),'educationId',pg_temp.mid(41),'startsOn',public.app_today()+10,'endsOn',null)))->>'kind','conflict','transfer cannot destroy future placement');
+select is((select ends_on from public.pupil_placements where id=pg_temp.mid(80)),public.app_today()+29,'conflicting transfer leaves original period unchanged');
+select is((select count(*) from public.pupil_field_history where pupil_id=pg_temp.mid(70)),0::bigint,'period conflict writes no history');
+select is(public.phase4_change_pupil(pg_temp.mreq('class',jsonb_build_object('placementId',pg_temp.mid(80),'classId',pg_temp.mid(53),'startsOn',public.app_today()+1,'endsOn',null)))->'details'->>'reason','outside-placement','open class cannot exceed finite placement');
+rollback to mutation_start;
+update public.pupil_class_memberships set ends_on=public.app_today()+9 where id=pg_temp.mid(90);
+insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on) values(pg_temp.mid(91),pg_temp.mid(1),pg_temp.mid(2),pg_temp.mid(70),pg_temp.mid(30),pg_temp.mid(53),pg_temp.mid(80),public.app_today()+10);
+select is(public.phase4_change_pupil(pg_temp.mreq('class',jsonb_build_object('placementId',pg_temp.mid(80),'classId',pg_temp.mid(53),'startsOn',public.app_today()+1,'endsOn',null)))->>'kind','conflict','new class cannot overwrite scheduled future class');
+select is(public.phase4_change_pupil(pg_temp.mreq('end-placement',jsonb_build_object('placementId',pg_temp.mid(80),'endsOn',public.app_today()+2)))->>'kind','conflict','ending placement cannot erase future class');
+select is(public.phase4_change_pupil(pg_temp.mreq('education',jsonb_build_object('placementId',pg_temp.mid(80),'educationId',pg_temp.mid(43),'startsOn',public.app_today()+1)))->>'kind','success','education split preserves future class');
+select ok(exists(select 1 from public.pupil_class_memberships where id=pg_temp.mid(91) and starts_on=public.app_today()+10 and class_id=pg_temp.mid(53)),'scheduled class retains stable identity and dates');
+rollback to mutation_start;
+-- A late history failure rolls back pupil fields, revision and origin together.
+create function pg_temp.fail_history() returns trigger language plpgsql as $$begin if new.pupil_id=pg_temp.mid(70) then raise exception 'synthetic history failure' using errcode='P0001'; end if; return new; end$$;
+create trigger phase4_mutation_history_failure before insert on public.pupil_field_history for each row execute function pg_temp.fail_history();
+select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Återställ"}'))$q$,'P0001',null,'history failure stops mutation');
+select is((select version from public.pupils where id=pg_temp.mid(70)),1,'history failure retains version');
+select is((select display_name from public.pupils where id=pg_temp.mid(70)),'Syntetisk elev','history failure retains original field');
+drop trigger phase4_mutation_history_failure on public.pupil_field_history;
+rollback to mutation_start;
+-- Test an actual Worker invocation with a transaction-local test grant.
+create temp table worker_mutation_request as select pg_temp.mreq('basics','{"displayName":"Workerprov"}') as request;
+grant select on worker_mutation_request to skolplattform_worker;
+grant execute on function public.phase4_change_pupil(jsonb) to skolplattform_worker;
+set local role skolplattform_worker;
+select is(public.phase4_change_pupil((select request from worker_mutation_request))->>'kind','success','direct Worker invocation enforces server-context mutation');
+reset role;
+rollback to mutation_start;
+select ok(not has_function_privilege('skolplattform_worker','public.phase4_change_pupil(jsonb)','EXECUTE'),'test grant is rolled back');
+
+
+rollback to mutation_start;
+insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name) values(pg_temp.mid(71),pg_temp.mid(1),pg_temp.mid(2),'Annan syntetisk elev','TEST-20100101-0022','Elev andra');
+select throws_ok($q$select public.phase4_change_pupil(pg_temp.mreq('basics','{"displayName":"Får inte sparas","personalNumber":"TEST-20100101-0022"}'))$q$,'22023','Invalid register change','duplicate identity has generic error without raw constraint values');
+select is((select count(*) from public.pupil_field_history where pupil_id=pg_temp.mid(70)),0::bigint,'late constraint failure rolls back all field history');
+select is((select version from public.pupils where id=pg_temp.mid(70)),1,'late constraint failure rolls back aggregate version');
+select is((select display_name from public.pupils where id=pg_temp.mid(70)),'Syntetisk elev','late constraint failure rolls back other field');
+rollback to mutation_start;
+
+
+insert into public.pupil_field_state(customer_id,organizer_id,pupil_id,field,source,actor_id,revision) values(pg_temp.mid(1),pg_temp.mid(2),pg_temp.mid(70),'placement','simulated',pg_temp.mid(22),1);
+select is(public.phase4_change_pupil(pg_temp.mreq('class',jsonb_build_object('placementId',pg_temp.mid(80),'classId',pg_temp.mid(53),'startsOn',public.app_today()+1,'endsOn',null)))->>'kind','success','source-owned placement does not block independently app-owned class');
+select is((select source from public.pupil_field_state where pupil_id=pg_temp.mid(70) and field='placement'),'simulated','class change leaves placement ownership unchanged');
+rollback to mutation_start;
+
 rollback;
