@@ -202,7 +202,9 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
     return () => { active = false; };
   }, [kind, values.unitId]);
 
-  useEffect(() => { if (conflict || period) requestAnimationFrame(() => conflictHeading.current?.focus()); }, [conflict, period]);
+  // Fokus flyttas efter commit, så att WebKit inte hinner köra fokus före renderingen.
+  useEffect(() => { if (conflict || period) conflictHeading.current?.focus(); }, [conflict, period]);
+  useEffect(() => { if (summary) summaryRef.current?.focus(); }, [summary]);
 
   const update = (field: Field, value: string) => {
     setValues(previous => ({ ...previous, [field]: value }));
@@ -321,7 +323,6 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
             setSummary(details.reason === 'outside-placement' && placement ? `Datumet ligger utanför elevens placering (${periodText(placement.startsOn, placement.endsOn)}).`
               : details.period === 'placement' ? `Eleven har redan en placering ${date}. En elev kan bara ha en aktiv placering per dag.`
               : `Eleven har redan en ${details.period === 'class' ? 'klasstillhörighet' : 'hemkommun'} ${date} som krockar med ändringen.`);
-            requestAnimationFrame(() => summaryRef.current?.focus());
           } else setPeriod(details);
           return;
         }
@@ -336,7 +337,7 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
         return;
       }
       setSummary(result.text);
-      requestAnimationFrame(() => summaryRef.current?.focus());
+     
     } finally {
       if (current === generation.current) setSaving(false);
     }
@@ -349,11 +350,11 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
     setErrors(found);
     if (Object.keys(found).length > 0) {
       setSummary('Formuläret innehåller fel. Rätta de markerade fälten.');
-      requestAnimationFrame(() => summaryRef.current?.focus());
+     
       return;
     }
     const request = buildRequest();
-    if (request === 'unchanged') { setSummary('Du har inte ändrat någon uppgift.'); requestAnimationFrame(() => summaryRef.current?.focus()); return; }
+    if (request === 'unchanged') { setSummary('Du har inte ändrat någon uppgift.'); return; }
     if (!request) { setSummary('Eleven har ingen aktuell eller framtida placering att ändra.'); return; }
     await send(request, request.kind === 'basics' ? request.payload : null, false);
   }
@@ -382,12 +383,21 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
       classId: classes.some(item => item.id === previous.classId) ? previous.classId : '',
       educationId: previous.educationId,
     }));
-    requestAnimationFrame(() => popup.current?.focus());
+    popup.current?.focus();
   }
 
   const close = (reload: boolean) => { if (!saving) { generation.current += 1; callbacks.current.onClose(reload); } };
-  const fieldError = (field: Field) => errors[field] ? <small id={`pupil-${field}-error`} className="field-error">{errors[field]}</small> : null;
-  const invalid = (field: Field) => errors[field] ? { 'aria-invalid': true, 'aria-describedby': `pupil-${field}-error` } as const : {};
+  // Etikett, hjälptext och fältfel ligger utanför kontrollen; fältfel och hjälptext
+  // kopplas med aria-describedby så att det tillgängliga namnet bara är etiketten.
+  const control = (field: Field, help = false) => {
+    const described = [help ? `pupil-${field}-help` : '', errors[field] ? `pupil-${field}-error` : ''].filter(Boolean).join(' ');
+    return { id: `pupil-${field}`, ...(errors[field] ? { 'aria-invalid': true as const } : {}), ...(described ? { 'aria-describedby': described } : {}) };
+  };
+  const box = (field: Field, label: string, input: ReactNode, help?: string) => <div className="pupil-field">
+    <label htmlFor={`pupil-${field}`}>{label}</label>{input}
+    {help && <small id={`pupil-${field}-help`}>{help}</small>}
+    {errors[field] && <small id={`pupil-${field}-error`} className="field-error">{errors[field]}</small>}
+  </div>;
   const busy = saving || refreshing;
   const selectedClass = classes.find(item => item.id === values.classId);
   const classWarning = kind === 'class' && selectedClass && placement && selectedClass.educationId !== null && selectedClass.educationId !== placement.educationId
@@ -427,28 +437,28 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
           {period && <Warning><h3 ref={conflictHeading} tabIndex={-1}>{period.changedBy} ändrade elevens {periodWords[period.period]} {formatTime(period.changedAt)}. Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.</h3>
             <Button type="button" variant="outline" disabled={busy} onClick={() => void reloadAfterPeriod()}>{refreshing ? 'Hämtar…' : 'Hämta aktuellt läge'}</Button></Warning>}
           {kind === 'basics' && <>
-            {nameEditable ? <label>Namn<input type="text" autoComplete="off" spellCheck={false} maxLength={240} value={values.displayName} disabled={busy} {...invalid('displayName')} onChange={event => update('displayName', event.target.value)} />{fieldError('displayName')}</label>
+            {nameEditable ? box('displayName', 'Namn', <input type="text" autoComplete="off" spellCheck={false} maxLength={240} value={values.displayName} disabled={busy} {...control('displayName')} onChange={event => update('displayName', event.target.value)} />)
               : <p>Uppgiften ägs av {sourceName(origins.displayName!)}. Rätta den där; ändringen syns här efter nästa leverans.</p>}
-            {numberEditable && <label>Nytt personnummer (tomt = oförändrat)<input type="text" inputMode="numeric" autoComplete="off" spellCheck={false} maxLength={18} value={values.personalNumber} disabled={busy} {...invalid('personalNumber')} onChange={event => update('personalNumber', event.target.value)} /><small>I provmiljön används bara syntetiska testpersonnummer.</small>{fieldError('personalNumber')}</label>}
+            {numberEditable && box('personalNumber', 'Nytt personnummer (tomt = oförändrat)', <input type="text" inputMode="numeric" autoComplete="off" spellCheck={false} maxLength={18} value={values.personalNumber} disabled={busy} {...control('personalNumber', true)} onChange={event => update('personalNumber', event.target.value)} />, 'ÅÅÅÅMMDD-NNNN. I provmiljön används bara syntetiska testpersonnummer.')}
           </>}
           {kind === 'municipality' && <>
-            <label>Kommunkod<input type="text" inputMode="numeric" autoComplete="off" maxLength={4} value={values.municipalityCode} disabled={busy} {...invalid('municipalityCode')} onChange={event => update('municipalityCode', event.target.value)} /><small>Fyra siffror, till exempel 0180.</small>{fieldError('municipalityCode')}</label>
-            <label>Gäller från<input type="date" value={values.startsOn} disabled={busy} {...invalid('startsOn')} onChange={event => update('startsOn', event.target.value)} />{fieldError('startsOn')}</label>
+            {box('municipalityCode', 'Kommunkod', <input type="text" inputMode="numeric" autoComplete="off" maxLength={4} value={values.municipalityCode} disabled={busy} {...control('municipalityCode', true)} onChange={event => update('municipalityCode', event.target.value)} />, 'Fyra siffror, till exempel 0180.')}
+            {box('startsOn', 'Gäller från', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
           </>}
           {kind === 'transfer' && <>
-            <label>Ny skola<select value={values.unitId} disabled={busy} {...invalid('unitId')} onChange={event => { update('unitId', event.target.value); update('educationId', ''); }}><option value="">Välj skola</option>{otherSchools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}</select>{fieldError('unitId')}</label>
-            <label>Utbildning<select value={values.educationId} disabled={busy || !values.unitId || !unitOptions} {...invalid('educationId')} onChange={event => update('educationId', event.target.value)}><option value="">{values.unitId && !unitOptions ? 'Hämtar utbud…' : 'Välj utbildning'}</option>{transferEducations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>{fieldError('educationId')}</label>
-            <label>Startdatum<input type="date" value={values.startsOn} disabled={busy} {...invalid('startsOn')} onChange={event => update('startsOn', event.target.value)} />{fieldError('startsOn')}</label>
+            {box('unitId', 'Ny skola', <select value={values.unitId} disabled={busy} {...control('unitId')} onChange={event => { update('unitId', event.target.value); update('educationId', ''); }}><option value="">Välj skola</option>{otherSchools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}</select>)}
+            {box('educationId', 'Utbildning', <select value={values.educationId} disabled={busy || !values.unitId || !unitOptions} {...control('educationId')} onChange={event => update('educationId', event.target.value)}><option value="">{values.unitId && !unitOptions ? 'Hämtar utbud…' : 'Välj utbildning'}</option>{transferEducations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>)}
+            {box('startsOn', 'Startdatum', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
             <p>Klass på den nya skolan väljs efter skolbytet med Byt klass.</p>
           </>}
           {kind === 'education' && <>
-            <label>Ny utbildning<select value={values.educationId} disabled={busy} {...invalid('educationId')} onChange={event => update('educationId', event.target.value)}><option value="">Välj utbildning</option>{educations.filter(item => item.id !== placement?.educationId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>{fieldError('educationId')}</label>
-            <label>Gäller från<input type="date" value={values.startsOn} disabled={busy} {...invalid('startsOn')} onChange={event => update('startsOn', event.target.value)} />{fieldError('startsOn')}</label>
+            {box('educationId', 'Ny utbildning', <select value={values.educationId} disabled={busy} {...control('educationId')} onChange={event => update('educationId', event.target.value)}><option value="">Välj utbildning</option>{educations.filter(item => item.id !== placement?.educationId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>)}
+            {box('startsOn', 'Gäller från', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
           </>}
-          {kind === 'end-placement' && <label>Slutdatum (sista dag)<input type="date" value={values.endsOn} disabled={busy} {...invalid('endsOn')} onChange={event => update('endsOn', event.target.value)} />{fieldError('endsOn')}</label>}
+          {kind === 'end-placement' && box('endsOn', 'Slutdatum (sista dag)', <input type="date" value={values.endsOn} disabled={busy} {...control('endsOn')} onChange={event => update('endsOn', event.target.value)} />)}
           {kind === 'class' && <>
-            <label>Ny klass<select value={values.classId} disabled={busy} {...invalid('classId')} onChange={event => update('classId', event.target.value)}><option value="">Välj klass</option>{classes.filter(item => item.id !== currentClass?.classId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>{fieldError('classId')}</label>
-            <label>Gäller från<input type="date" value={values.startsOn} disabled={busy} {...invalid('startsOn')} onChange={event => update('startsOn', event.target.value)} />{fieldError('startsOn')}</label>
+            {box('classId', 'Ny klass', <select value={values.classId} disabled={busy} {...control('classId')} onChange={event => update('classId', event.target.value)}><option value="">Välj klass</option>{classes.filter(item => item.id !== currentClass?.classId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>)}
+            {box('startsOn', 'Gäller från', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
             {classWarning && <Warning>{classWarning}</Warning>}
           </>}
           <div className="mandate-actions">
@@ -498,6 +508,7 @@ export function PupilExportDialog(props: ExportDialogProps) {
   const [mfa, setMfa] = useState(false);
   const popup = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
+  const firstField = useRef<HTMLInputElement>(null);
   const callbacks = useRef(props);
   useEffect(() => { callbacks.current = props; });
 
@@ -535,6 +546,8 @@ export function PupilExportDialog(props: ExportDialogProps) {
     return () => { active = false; };
   }, [target]);
 
+  useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
+  useEffect(() => { if (fieldError) firstField.current?.focus(); }, [fieldError]);
   const toggle = (field: ExportField) => {
     setFields(previous => previous.includes(field) ? previous.filter(item => item !== field) : [...previous, field]);
     setFieldError(null);
@@ -547,7 +560,6 @@ export function PupilExportDialog(props: ExportDialogProps) {
     if (!built.ok) {
       if (built.reason === 'fields') setFieldError('Välj minst en uppgift att exportera.');
       else setError('Urvalet innehåller inga elever att exportera.');
-      requestAnimationFrame(() => errorRef.current?.focus());
       return;
     }
     if (!preview) { setError('Urvalet innehåller inga elever att exportera.'); return; }
@@ -572,7 +584,6 @@ export function PupilExportDialog(props: ExportDialogProps) {
       if (result.kind === 'session') { callbacks.current.onSessionLost(); return; }
       if (result.kind === 'mfa') { setMfa(true); return; }
       setError(result.kind === 'message' ? result.status === 404 ? 'En elev i urvalet ingår inte längre i ditt uppdrag. Stäng dialogen, hämta aktuellt läge och välj igen.' : result.text : 'Exporten kunde inte slutföras. Försök igen.');
-      requestAnimationFrame(() => errorRef.current?.focus());
     } finally { setBusy(false); }
   }
 
@@ -593,7 +604,7 @@ export function PupilExportDialog(props: ExportDialogProps) {
           </fieldset>
           <fieldset className="mandate-choice" aria-describedby={fieldError ? 'export-fields-error' : undefined}>
             <legend>Uppgifter</legend>
-            {EXPORT_FIELDS.map(field => <label key={field} className="mandate-check"><input type="checkbox" checked={fields.includes(field)} disabled={busy} onChange={() => toggle(field)} />{exportLabels[field]}</label>)}
+            {EXPORT_FIELDS.map((field, index) => <label key={field} className="mandate-check"><input ref={index === 0 ? firstField : undefined} type="checkbox" aria-describedby={fieldError ? 'export-fields-error' : undefined} checked={fields.includes(field)} disabled={busy} onChange={() => toggle(field)} />{exportLabels[field]}</label>)}
             {fieldError && <small id="export-fields-error" className="field-error">{fieldError}</small>}
           </fieldset>
           <fieldset className="mandate-choice">

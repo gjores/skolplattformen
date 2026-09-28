@@ -79,7 +79,6 @@ export default function PupilCard(props: Props) {
       const loaded = await api.get<PupilCardData>(`/api/elever/elev?${query()}`);
       if (current !== generation.current) return null;
       setCard(loaded); setStale(null); setPersonalNumber(null);
-      if (!focusedOnce.current) { focusedOnce.current = true; requestAnimationFrame(() => heading.current?.focus()); }
       return loaded;
     } catch (caught) {
       if (current !== generation.current) return null;
@@ -100,6 +99,12 @@ export default function PupilCard(props: Props) {
       if (current === generation.current) setLoading(false);
     }
   }, [query]);
+
+  // Fokus till elevens namn när kortet första gången har renderats (efter commit,
+  // inte i en animationsram som i WebKit kan köras före React-renderingen).
+  useEffect(() => {
+    if (card && !focusedOnce.current) { focusedOnce.current = true; heading.current?.focus(); }
+  }, [card]);
 
   useEffect(() => {
     queueMicrotask(() => void load('initial'));
