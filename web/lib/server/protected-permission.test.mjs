@@ -17,7 +17,7 @@ const fixture = globalThis.__permissionTest = {
     try { return await fn(fixture.tx, { sessionId:id, identityId:id, assignmentId:id, membershipId:id, customerId:id, correlationId:id, identity:{issuer,subject:'synthetic'}, accessFunction:state.fn, epoch:1, mfa:{issuer,clientId,audience:[clientId],profileId:'local-keycloak-admin',profileVersion:1,acr:'2',amr:state.mfa ? ['pwd','otp'] : ['pwd'],authTime:new Date(Date.now()-1000),checkedAt:new Date(Date.now()-500)} }); }
     catch (error) { state.granted=before; state.events.length=count; throw error; }
   },
-  async tx(strings,...values) {
+  tx: async (strings,...values) => {
     const sql=strings.join('?');
     if (sql.includes('select i.auth_user_id')) return [{function:state.fn}];
     if (sql.includes('insert into public.security_events')) {
