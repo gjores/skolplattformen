@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
-current_plan: 04-17
+current_plan: 04-16
 status: executing
-stopped_at: Completed 04-24-PLAN.md
-last_updated: "2026-09-28T19:41:07.181Z"
+stopped_at: Completed 04-17-PLAN.md
+last_updated: "2026-09-28T19:54:34.806Z"
 last_activity: 2026-09-28
-last_activity_desc: "04-24 genomförd: migration 20260929180000 (tillämpad efter 170000, före 04-17:s 20260930100000) ger listan protectedIdentity:true och protectedIds för hela urvalet bara för administratör med skyddsbehörighet på skolan; auditRefs ur hela urvalet (en committad pupil_protected_read per utlämnat ID); obehörigas svar oförändrat. Adaptern stoppar avvikande skyddsform (audit_unavailable). Märket Skyddade personuppgifter i listan och kryssrutan Ta med elever med skyddade personuppgifter ({p}) i exporten, aldrig förvald, återställs vid målbyte, serverprövat antal. SQL 16/16 filer 1224 PASS, nod 399/399, tsc/lint/build PASS, browserprov 3/3 (dator, iPhone 13 WebKit, 320 px) + regression kort 9/9 och lista 13/13; nedladdning ej browserprovad (p3.admin saknar engångskod). Lokalt syntetiskt. Nästa i våg 9: 04-17."
-state_head: 4b67e59349cdb4f03ad179962e46e80b34025299
+last_activity_desc: "04-17 genomförd: migration 20260930100000 släpper phase3_read_pupils och phase3_probe_pupils/-groups/-group_members utan CASCADE (spärr mot kvarvarande funktionskällor och mot provrader utan registerpost); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope kvar och läser bara registret; historiska händelser orörda. /api/prov/*, elevprovets vy, serverkod och modell borttagna; byggd protected-Worker ger 404 på /api/prov. SQL 17/17 (1216 assertions), nodprov 395/395, tsc/oxlint/build:protected PASS, lokalt syntetiskt. Fas 3:s API-/browserprov och collect-denials mot elevprovet övergångsröda till 04-18"
+state_head: b57f20224fa02a6359d0c8377d8b335eaf340a50
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 54
-  completed_plans: 47
+  completed_plans: 48
 milestone_name: milestone
 ---
 
@@ -25,28 +25,28 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 4 — våg 9 pågår. 04-25 och 04-24 klara: nekade anrop fäller inte längre den lokala Workern, och behörig administratör ser skyddsmärke och kan uttryckligen ta med skyddade elever i exporten (lokalt syntetiskt). Nästa: 04-17 (avveckla elevprovet).
+**Current focus:** Fas 4 — våg 9 klar. 04-25, 04-24 och 04-17 genomförda: nekade anrop fäller inte längre den lokala Workern, behörig administratör kan uttryckligen ta med skyddade elever i exporten och elevprovet är avvecklat så att registret är enda elevdatavägen (lokalt syntetiskt). Nästa: våg 10, 04-16 (fullständiga registerprov och syntetiska scenarion).
 
 ## Current Position
 
-Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 18 av 25 planer klara
-Plan: 04-01–04-15, 04-23, 04-24 och 04-25 klara; våg 9 pågår; nästa 04-17
+Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 19 av 25 planer klara
+Plan: 04-01–04-15, 04-17, 04-23, 04-24 och 04-25 klara; våg 9 klar; nästa våg 10: 04-16
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 04
 **Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** 04-17 (våg 9)
+**Current Plan:** 04-16 (våg 10)
 **Total Plans in Phase:** 25
-**Status:** Executing (våg 9: 04-25 och 04-24 klara; nästa 04-17)
+**Status:** Executing (våg 9 klar: 04-25, 04-24 och 04-17; nästa våg 10: 04-16)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-28
-**Last Activity Description:** 04-24 genomförd: migration 20260929180000 (tillämpad efter 170000, före 04-17:s 20260930100000) ger listan protectedIdentity:true och protectedIds för hela urvalet bara för administratör med skyddsbehörighet på skolan; auditRefs ur hela urvalet (en committad pupil_protected_read per utlämnat ID); obehörigas svar oförändrat. Adaptern stoppar avvikande skyddsform (audit_unavailable). Märket Skyddade personuppgifter i listan och kryssrutan Ta med elever med skyddade personuppgifter ({p}) i exporten, aldrig förvald, återställs vid målbyte, serverprövat antal. SQL 16/16 filer 1224 PASS, nod 399/399, tsc/lint/build PASS, browserprov 3/3 (dator, iPhone 13 WebKit, 320 px) + regression kort 9/9 och lista 13/13; nedladdning ej browserprovad (p3.admin saknar engångskod). Lokalt syntetiskt. Nästa i våg 9: 04-17. Tidigare: 04-25 genomförd: Worker-avbrotten på nekade anrop orsakades av att nekandet svarade med oläst begärandekropp, så att wranglers lokala proxy tappade nästa anrop och avslutades (A/B: med kropp 5/5 avbrott, utan kropp 0/5, läst kropp 0/10). denyResponse loggar nu först, läser kroppen till slut (högst 1 MiB, ingen buffring) och svarar sist (ee00e31). Stabilitet: baslinje 16/25 avbrott, efter rättningen 25/25 PASS (20 prov à 9/9, 5 nekandeflöden à 200), 0 avbrott; nod 394/394, tsc/lint/build PASS; lokalt syntetiskt. Separat fynd: ett ohanterat avslag per postgres-klient (deferred-items). Nästa i våg 9: 04-24, 04-17. Tidigare: 04-24 och 04-25 planerade för luckorna från våg 8: 04-24 ger behörig administratör skyddsmärke och uttryckligt skyddsval i exporten (migration 20260929180000, obehörigas listsvar oförändrat); 04-25 utreder och åtgärdar Worker-avbrott på nekade anrop. 04-16 beror nu på båda. Tidigare: 04-15 genomförd: phase3_boundaries (41), phase3_connections (19) och phase3_audit (19) portade till registret med nya fas 4-gränser (elevhälsoansvarig/IT utan registerläsning, support bara namngiven elev, underhållsrollen utan registeråtkomst, gallring rör inte registerhistorik); full SQL 16/16 filer, 1161 assertions PASS. phase3-fixtures.sql och phase3-browser-fixtures.mjs skriver till registret med samma ID, läser referensdata efter assertTarget och gav identiska antal i två körningar utan ny skyddsbehörighet. Inga kontraktsändringar. Tidigare: 04-13 genomförd: elevkort i samma main, sex ändringsdialoger med sann sparstatus, konfliktval per uppgift, periodkonflikt, källavvikelse och exportdialog med serverns förhandsprövning; node 389/389, tsc/lint/build PASS, riktat browserprov 9/9 (dator, telefon 390 och 320 px) och listregression 13/13 mot byggd Worker. Lyckad sparning, verklig 409 och nedladdad fil ej browserprovade (p3.admin saknar engångskod) — 04-16/04-19. Skyddade elever utelämnas alltid ur exporten tills listan får skyddsflagga per rad. Tidigare: 04-23 genomförd: migration 20260929170000 ger Worker EXECUTE på exakt de fyra registerfunktionerna; ACL-fixturer register 162, periods 101, export 22 PASS; full SQL 14/16 filer ok (kvar phase3_boundaries/connections, 04-15); verkligt Worker-prov 9/9 PASS (lokalt mintade sessioner, testrealmens bevisprofil). Icke-deterministiskt Wrangler-avbrott på nekade anrop (5 av 11 körningar) står i fasens deferred-items. Tidigare: 04-14 genomförd: fas 3-fixturerna mandates 279, matrix 56, policy 105 och temporal 34 assertions PASS mot registret (lokalt, syntetiskt). Full SQL 1081 passerade men FAIL på phase3_boundaries/phase3_connections (04-15). Worker-EXECUTE för ändring/källa/personnummer/export öppnades därefter i 04-23.
+**Last Activity Description:** 04-17 genomförd: migration 20260930100000 släpper phase3_read_pupils och phase3_probe_pupils/-groups/-group_members utan CASCADE (spärr mot kvarvarande funktionskällor och mot provrader utan registerpost); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope kvar och läser bara registret; historiska händelser orörda. /api/prov/*, elevprovets vy, serverkod och modell borttagna; byggd protected-Worker ger 404 på /api/prov. SQL 17/17 (1216 assertions), nodprov 395/395, tsc/oxlint/build:protected PASS, lokalt syntetiskt. Fas 3:s API-/browserprov och collect-denials mot elevprovet övergångsröda till 04-18
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 47 av 54 hittills skrivna planer genomförda; fas 4 har 18 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 48 av 54 hittills skrivna planer genomförda; fas 4 har 19 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
@@ -94,6 +94,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 | Phase 04 P15 | 20min | 2 tasks | 5 files |
 | Phase 04 P25 | 50min | 3 tasks | 6 files |
 | Phase 04 P24 | ca 30min | 3 tasks | 11 files |
+| Phase 04 P17 | 20min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,7 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 04]: 04-25: Worker-avbrotten orsakades av nekande med oläst begärandekropp; denyResponse loggar först, läser sedan kroppen till slut (högst 1 MiB, ingen buffring) och svarar sist. Grindar klassar avbrott med phase4-worker-stability.mjs; avbrott blir aldrig PASS.
 - [Phase 04]: Listan ger skyddsflagga och protectedIds (hela urvalet) bara till administratör med skyddsbehörighet på skolan; obehörigas svar oförändrat (04-24, migration 20260929180000)
 - [Phase 04]: Exportens skyddsval är aldrig förvalt, återställs vid målbyte och prövas om av servern (användarbeslut 2026-09-28)
+- [Phase 04]: 04-17: Elevprovet avvecklat (migration 20260930100000); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope behålls och läser bara registret; /api/prov borttagen men kvar som loggklass
 
 ## Pending Todos
 
@@ -179,8 +181,8 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-09-28T19:41:07.057Z
-**Stopped At:** Completed 04-24-PLAN.md
+**Last Date:** 2026-09-28T19:54:34.672Z
+**Stopped At:** Completed 04-17-PLAN.md
 **Resume File:** None
 
 **Planned Phase:** 4 (Beständigt och skyddat elevregister) — 25 planer i 15 vågor — 2026-09-28
