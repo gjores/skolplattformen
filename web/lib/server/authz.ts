@@ -125,7 +125,58 @@ export class AuditUnavailable extends Error {
   }
 }
 
+/** Största olästa begärandekropp som läses till slut vid nekande (04-25). */
+export const DENY_BODY_DRAIN_LIMIT = 1024 * 1024;
+
+/**
+ * Läser en oläst begärandekropp till slut och kastar innehållet, del för del.
+ *
+ * 04-25: ett nekande som svarade innan kroppen var läst gjorde att den lokala
+ * Worker-körningen inte kunde återanvända anslutningen. Wranglers proxy tappade då
+ * nästa anrop på samma anslutning ("Network connection lost") och avslutades.
+ * Innehållet buffras, tolkas eller loggas aldrig. Över gränsen avbryts läsningen
+ * (anslutningen återanvänds då inte), och ett klientavbrott ignoreras – nekandet
+ * är redan loggat och besvaras ändå.
+ */
+export async function discardUnreadBody(request: Request, limit = DENY_BODY_DRAIN_LIMIT): Promise<void> {
+  if (!request.body || request.bodyUsed || request.body.locked) return;
+  const reader = request.body.getReader();
+  let read = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      read += value?.byteLength ?? 0;
+      if (read > limit) {
+        await reader.cancel();
+        return;
+      }
+    }
+  } catch {
+    // Klienten avbröt överföringen; inget innehåll används.
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+/**
+ * Nekande- och felsvar för skyddade vägar. Nekandet (eller felet) loggas och
+ * committas först; därefter läses en oläst begärandekropp till slut, och först
+ * sedan lämnas svaret med kod och X-Correlation-Id.
+ */
 export async function denyResponse(
+  error: unknown,
+  request: Request,
+  corr: string,
+  action: string,
+  ctxHint?: Partial<SessionContext> & { proofAssessment?: ProofAssessment },
+): Promise<Response> {
+  const response = await deniedOrFailed(error, request, corr, action, ctxHint);
+  await discardUnreadBody(request);
+  return response;
+}
+
+async function deniedOrFailed(
   error: unknown,
   request: Request,
   corr: string,
