@@ -103,7 +103,8 @@ export type ClassMembership = Period & {
 export type MunicipalityPeriod = Period & {
   id: string;
   municipalityCode: string;
-  origin: FieldOrigin;
+  // Null means no period-specific provenance has been recorded.
+  origin: FieldOrigin | null;
 };
 export type SourceConflict =
   | {

@@ -137,13 +137,13 @@ select ok(not has_table_privilege('authenticated','public.protected_identity_per
 select ok(not has_table_privilege('skolplattform_worker','public.protected_identity_permissions','SELECT,INSERT,UPDATE,DELETE'),'permissions closed to skolplattform_worker');
 select ok(not has_function_privilege('anon','public.phase4_grant_protected_permission(uuid,uuid)','EXECUTE'),'phase4_grant_protected_permission closed to anon until audit integration');
 select ok(not has_function_privilege('authenticated','public.phase4_grant_protected_permission(uuid,uuid)','EXECUTE'),'phase4_grant_protected_permission closed to authenticated until audit integration');
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_grant_protected_permission(uuid,uuid)','EXECUTE'),'phase4_grant_protected_permission closed to skolplattform_worker until audit integration');
+select ok(has_function_privilege('skolplattform_worker','public.phase4_grant_protected_permission(uuid,uuid)','EXECUTE'),'phase4_grant_protected_permission open only to audited Worker route after 04-11 integration');
 select ok(not has_function_privilege('anon','public.phase4_revoke_protected_permission(uuid)','EXECUTE'),'phase4_revoke_protected_permission closed to anon until audit integration');
 select ok(not has_function_privilege('authenticated','public.phase4_revoke_protected_permission(uuid)','EXECUTE'),'phase4_revoke_protected_permission closed to authenticated until audit integration');
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_revoke_protected_permission(uuid)','EXECUTE'),'phase4_revoke_protected_permission closed to skolplattform_worker until audit integration');
+select ok(has_function_privilege('skolplattform_worker','public.phase4_revoke_protected_permission(uuid)','EXECUTE'),'phase4_revoke_protected_permission open only to audited Worker route after 04-11 integration');
 select ok(not has_function_privilege('anon','public.phase4_list_protected_permissions()','EXECUTE'),'phase4_list_protected_permissions closed to anon until audit integration');
 select ok(not has_function_privilege('authenticated','public.phase4_list_protected_permissions()','EXECUTE'),'phase4_list_protected_permissions closed to authenticated until audit integration');
-select ok(not has_function_privilege('skolplattform_worker','public.phase4_list_protected_permissions()','EXECUTE'),'phase4_list_protected_permissions closed to skolplattform_worker until audit integration');
+select ok(has_function_privilege('skolplattform_worker','public.phase4_list_protected_permissions()','EXECUTE'),'phase4_list_protected_permissions open only to audited Worker route after 04-11 integration');
 select ok(not has_function_privilege('anon','public.phase4_can_read_protected(uuid,uuid,date)','EXECUTE'),'phase4_can_read_protected closed to anon until audit integration');
 select ok(not has_function_privilege('authenticated','public.phase4_can_read_protected(uuid,uuid,date)','EXECUTE'),'phase4_can_read_protected closed to authenticated until audit integration');
 select ok(not has_function_privilege('skolplattform_worker','public.phase4_can_read_protected(uuid,uuid,date)','EXECUTE'),'phase4_can_read_protected closed to skolplattform_worker until audit integration');
@@ -243,5 +243,69 @@ select ok(not has_function_privilege('skolplattform_worker','public.phase4_list_
 set local role skolplattform_worker;
 select throws_ok($q$select public.phase4_list_pupils('{}')$q$,'42501',null,'worker cannot call unaudited entrypoint');
 reset role;
+-- Date lens never upgrades historical-only pupils to writable; histories cannot
+-- expose foreign-school periods or identities embedded in arbitrary JSON.
+select pg_temp.read_actor(3);
+insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on,ends_on)
+values(pg_temp.rid(9001),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(464),pg_temp.rid(101),pg_temp.rid(201),'2025-08-01','2026-06-30'),
+(pg_temp.rid(9002),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(402),pg_temp.rid(102),pg_temp.rid(202),'2025-07-01','2026-06-30');
+select is(public.phase4_pupil_card(pg_temp.card(64)||'{"schoolYear":2025}')->'body'->'capabilities'->>'canEdit','false','changing school year never upgrades ended placement');
+select is(public.phase4_pupil_card(pg_temp.card(64)||'{"schoolYear":2025}')->'body'->>'status','framtida','past-year status uses July first not today');
+select is(jsonb_array_length(public.phase4_pupil_card(pg_temp.card(2))->'body'->'placements'),1,'card hides other school historical placement');
+select is((public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,page}','2'))->'body'->>'count')::integer,64,'second page has same safe total');
+select is(jsonb_array_length(public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,page}','2'))->'body'->'pupils'),14,'second page remainder');
+select ok(not exists(select 1 from jsonb_array_elements(public.phase4_list_pupils(pg_temp.req())->'body'->'pupils')p where p ?|array['personalNumber','protectedIdentity','projection'] or p->'capabilities' ? 'canReadProtected'),'list has no protected or identity discriminator');
+insert into public.pupil_source_values(customer_id,organizer_id,pupil_id,field,source,actor_id,source_value)values
+(pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(401),'personalNumber','simulated',pg_temp.rid(33),'"TEST-20100101-0014"'),
+(pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(401),'placement','simulated',pg_temp.rid(33),'{"personalNumber":"TEST-20100101-0014"}');
+select ok(position('TEST-' in public.phase4_pupil_card(pg_temp.card(1))::text)=0,'source conflicts mask identity and nested values');
+insert into public.pupil_field_history(customer_id,organizer_id,pupil_id,field,source,actor_id,before_value,after_value,revision)values
+(pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(401),'placement','manual',pg_temp.rid(33),'{"personalNumber":"TEST-20100101-0014"}','{"unitId":"foreign"}',2);
+select ok(position('TEST-' in public.phase4_pupil_history(pg_temp.card(1)||'{"page":1}')::text)=0,'history masks identity embedded in period object');
+-- A fresh mandate uses real classes and pupil placements, never old probe tables.
+select pg_temp.read_actor(2);
+select lives_ok($q$select public.phase3_grant_mandate(jsonb_build_object('membershipId',pg_temp.rid(38),'function','support','scopeKind','group','unitIds',jsonb_build_array(pg_temp.rid(101)),'groups',jsonb_build_array(jsonb_build_object('id',pg_temp.rid(301),'kind','teaching')),'purposeCode','synthetic-troubleshooting','startsAt',clock_timestamp()-interval '1 minute','endsAt',clock_timestamp()+interval '10 minutes'))$q$,'new register group support mandate can be granted');
+update public.access_assignments set id=id where membership_id=pg_temp.rid(38);
+select set_config('app.assignment_id',(select id::text from public.access_assignments where membership_id=pg_temp.rid(38)),true),set_config('app.membership_id',pg_temp.rid(38)::text,true),set_config('app.identity_id',pg_temp.rid(18)::text,true);
+select is((public.phase4_list_pupils(pg_temp.req())->'body'->>'count')::integer,2,'support current group only');
+select is(jsonb_array_length(public.phase3_probe_scope()->'groups'),1,'legacy scope uses register class');
+select throws_ok($q$select public.phase4_reveal_personal_number(pg_temp.card(2))$q$,'P0002','Pupil not found','support cannot reveal number');
+update public.access_assignments set starts_at=clock_timestamp()-interval '20 minutes',ends_at=clock_timestamp()-interval '1 minute' where membership_id=pg_temp.rid(38);
+select throws_ok($q$select public.phase4_list_pupils(pg_temp.req())$q$,'42501',null,'expired support mandate fails immediately');
+select pg_temp.read_actor(2);
+select lives_ok($q$select public.phase3_grant_mandate(jsonb_build_object('membershipId',pg_temp.rid(39),'function','elevhalsa','scopeKind','pupil','unitIds',jsonb_build_array(pg_temp.rid(101)),'pupilIds',jsonb_build_array(pg_temp.rid(402))))$q$,'new pupil mandate binds register placement');
+insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind)values(pg_temp.rid(810),pg_temp.rid(40),pg_temp.rid(1),pg_temp.rid(2),'it','synthetic-v1','school');
+insert into public.mandate_units values(pg_temp.rid(810),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(101));
+select pg_temp.read_actor(10);
+select throws_ok($q$select public.phase4_list_pupils(pg_temp.req())$q$,'42501',null,'IT cannot read register');
+select ok(not has_function_privilege(role_name,'public.phase4_pupil_card(jsonb)','EXECUTE'),'card closed to '||role_name)from unnest(array['anon','authenticated','skolplattform_worker'])role_name;
+select pg_temp.read_actor(3);
+insert into public.pupil_home_municipalities(id,customer_id,organizer_id,pupil_id,municipality_code,starts_on)values(pg_temp.rid(9101),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(402),'0180','2026-07-01');
+select is(public.phase4_pupil_card(pg_temp.card(2))->'body'->'municipalities'->0->'origin','null'::jsonb,'missing period provenance explicitly unknown');
+insert into public.pupil_field_history(customer_id,organizer_id,pupil_id,field,source,actor_id,after_value,revision)values(pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(402),'municipality','simulated',pg_temp.rid(33),jsonb_build_object('id',pg_temp.rid(9101),'municipalityCode','0180','startsOn','2026-07-01'),1);
+select is(public.phase4_pupil_card(pg_temp.card(2))->'body'->'municipalities'->0->'origin'->>'source','simulated','municipality period receives actual matched history source');
+select is((public.phase4_list_pupils(pg_temp.req()||jsonb_build_object('search',(select personal_number from public.pupils where id=pg_temp.rid(402))))->'body'->>'count')::integer,1,'admin can search exact identity without number in response');
+select ok((public.phase4_list_pupils(pg_temp.req()||'{"search":"2010-01-01"}')->'body'->>'count')::integer>0,'admin searches birth date');
+select pg_temp.read_actor(4);
+select is((public.phase4_list_pupils(pg_temp.req()||jsonb_build_object('search',(select personal_number from public.pupils where id=pg_temp.rid(402))))->'body'->>'count')::integer,0,'teacher identity search not exposed');
+select pg_temp.read_actor(2);
+insert into public.phase3_probe_cases values(pg_temp.rid(701),pg_temp.rid(401),pg_temp.rid(1),pg_temp.rid(101));
+select ok(position('Hemligt' in public.phase3_mandate_options()::text)=0,'protected case label also projected');
+set local role skolplattform_worker;
+select lives_ok('select public.phase3_mandate_options()','existing auditable metadata route works as actual Worker');
+select ok(position('Hemligt' in public.phase3_mandate_options()::text)=0,'actual Worker metadata cannot bypass projection');
+reset role;
+select pg_temp.read_actor(3);
+select is(public.phase4_history_value('education',to_jsonb(pg_temp.rid(201)),pg_temp.rid(101)),'"Utbildning 1"'::jsonb,'safe own-school education history remains useful');
+select is(public.phase4_history_value('education',to_jsonb(pg_temp.rid(202)),pg_temp.rid(101)),'null'::jsonb,'foreign-school history value is masked');
+select throws_ok($q$select public.phase4_list_pupils(jsonb_set(pg_temp.req(),'{selection,schoolYear}','99999999999999999999'))$q$,'22023',null,'out of range year is request error');
+select is(public.phase4_pupil_history(pg_temp.card(2)||'{"page":1}')->'body'->'entries'->0->>'after','0180 · 2026-07-01–','municipality period history keeps code and dates');
+select is(public.phase4_history_value('municipality','{"municipalityCode":"0180","personalNumber":"TEST-20100101-0014"}',pg_temp.rid(101)),'null'::jsonb,'municipality extra identity field masked');
+select is(public.phase4_history_value('municipality',jsonb_build_object('id',pg_temp.rid(9101),'municipalityCode','0180','startsOn','2026-07-01'),pg_temp.rid(102)),'null'::jsonb,'municipality period outside school pupil time masked');
+insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on,ends_on)values(pg_temp.rid(9201),pg_temp.rid(1),pg_temp.rid(2),pg_temp.rid(403),pg_temp.rid(101),pg_temp.rid(201),'2025-07-01','2026-06-30');
+select is(public.phase4_pupil_card(pg_temp.card(3)||'{"schoolYear":2025}')->'body'->'capabilities'->>'canEdit','true','actual current placement permits edit even from historical year');
+update public.pupil_placements set starts_on=public.app_today()+1 where pupil_id=pg_temp.rid(463);
+select is(public.phase4_pupil_card(pg_temp.card(63))->'body'->'capabilities'->>'canEdit','true','future own placement permits editing');
+select is(public.phase4_pupil_card(pg_temp.card(63))->'body'->>'status','framtida','future status uses today within selected year');
 select * from finish();
 rollback;
