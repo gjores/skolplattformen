@@ -38,7 +38,7 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-07 och 04-08 är genomförda; resultat nedan och i 04-WAVE-02-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-07 och 04-08 är genomförda; resultat nedan och i vågrapporterna. Full SQL-regression efter våg 3 är FAIL: sex äldre fas 3-fixturer behöver portning enligt 04-14/15; se 04-WAVE-03-SUMMARY.md. Övriga resultat är väntande. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
@@ -46,8 +46,8 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-07 och 04-
 | 04-01-02 | STU-01, STU-02, STU-03, STU-05, STU-06 | `cd web && node --test lib/pupil-register-model.test.mjs && npx tsc --noEmit` | GREEN 17/17 + typkontroll; se 04-01-SUMMARY |
 | 04-02-01 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-periods.json` | GREEN 43/43 period-/relationsprov; se 04-02-SUMMARY |
 | 04-02-02 | STU-01, STU-02, STU-03, STU-04 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-register-schema.json` | GREEN 78/78 registerprov; se 04-02-SUMMARY |
-| 04-03-01 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-migration.json` | Ej kört |
-| 04-03-02 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-permission.json` | Ej kört |
+| 04-03-01 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-migration.json` | GREEN 100/100 inklusive faktisk före/efter-migrering; se 04-03-SUMMARY |
+| 04-03-02 | STU-01, DATA-01 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-permission.json` | GREEN 69/69 skyddsbehörighetsprov; nya entrypoints ännu stängda för Worker |
 | 04-04-01 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-projection.json` | Ej kört |
 | 04-04-02 | STU-02, STU-05, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-export.json` | Ej kört |
 | 04-05-01 | STU-01, STU-02, STU-03, STU-04, STU-06 | `node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-period-mutations.json` | Ej kört |
