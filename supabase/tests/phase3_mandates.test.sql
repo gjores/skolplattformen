@@ -164,45 +164,11 @@ select is(has_table_privilege('skolplattform_worker','public.mandate_cases','SEL
 select is(has_table_privilege('skolplattform_worker','public.mandate_cases','INSERT'),false,'skolplattform_worker saknar INSERT på mandate_cases');
 select is(has_table_privilege('skolplattform_worker','public.mandate_cases','UPDATE'),false,'skolplattform_worker saknar UPDATE på mandate_cases');
 select is(has_table_privilege('skolplattform_worker','public.mandate_cases','DELETE'),false,'skolplattform_worker saknar DELETE på mandate_cases');
-select ok(relrowsecurity and relforcerowsecurity, 'phase3_probe_pupils har FORCE RLS') from pg_class where oid='public.phase3_probe_pupils'::regclass;
-select is(has_table_privilege('anon','public.phase3_probe_pupils','SELECT'),false,'anon saknar SELECT på phase3_probe_pupils');
-select is(has_table_privilege('anon','public.phase3_probe_pupils','INSERT'),false,'anon saknar INSERT på phase3_probe_pupils');
-select is(has_table_privilege('anon','public.phase3_probe_pupils','UPDATE'),false,'anon saknar UPDATE på phase3_probe_pupils');
-select is(has_table_privilege('anon','public.phase3_probe_pupils','DELETE'),false,'anon saknar DELETE på phase3_probe_pupils');
-select is(has_table_privilege('authenticated','public.phase3_probe_pupils','SELECT'),false,'authenticated saknar SELECT på phase3_probe_pupils');
-select is(has_table_privilege('authenticated','public.phase3_probe_pupils','INSERT'),false,'authenticated saknar INSERT på phase3_probe_pupils');
-select is(has_table_privilege('authenticated','public.phase3_probe_pupils','UPDATE'),false,'authenticated saknar UPDATE på phase3_probe_pupils');
-select is(has_table_privilege('authenticated','public.phase3_probe_pupils','DELETE'),false,'authenticated saknar DELETE på phase3_probe_pupils');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_pupils','SELECT'),false,'skolplattform_worker saknar SELECT på phase3_probe_pupils');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_pupils','INSERT'),false,'skolplattform_worker saknar INSERT på phase3_probe_pupils');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_pupils','UPDATE'),false,'skolplattform_worker saknar UPDATE på phase3_probe_pupils');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_pupils','DELETE'),false,'skolplattform_worker saknar DELETE på phase3_probe_pupils');
-select ok(relrowsecurity and relforcerowsecurity, 'phase3_probe_groups har FORCE RLS') from pg_class where oid='public.phase3_probe_groups'::regclass;
-select is(has_table_privilege('anon','public.phase3_probe_groups','SELECT'),false,'anon saknar SELECT på phase3_probe_groups');
-select is(has_table_privilege('anon','public.phase3_probe_groups','INSERT'),false,'anon saknar INSERT på phase3_probe_groups');
-select is(has_table_privilege('anon','public.phase3_probe_groups','UPDATE'),false,'anon saknar UPDATE på phase3_probe_groups');
-select is(has_table_privilege('anon','public.phase3_probe_groups','DELETE'),false,'anon saknar DELETE på phase3_probe_groups');
-select is(has_table_privilege('authenticated','public.phase3_probe_groups','SELECT'),false,'authenticated saknar SELECT på phase3_probe_groups');
-select is(has_table_privilege('authenticated','public.phase3_probe_groups','INSERT'),false,'authenticated saknar INSERT på phase3_probe_groups');
-select is(has_table_privilege('authenticated','public.phase3_probe_groups','UPDATE'),false,'authenticated saknar UPDATE på phase3_probe_groups');
-select is(has_table_privilege('authenticated','public.phase3_probe_groups','DELETE'),false,'authenticated saknar DELETE på phase3_probe_groups');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_groups','SELECT'),false,'skolplattform_worker saknar SELECT på phase3_probe_groups');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_groups','INSERT'),false,'skolplattform_worker saknar INSERT på phase3_probe_groups');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_groups','UPDATE'),false,'skolplattform_worker saknar UPDATE på phase3_probe_groups');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_groups','DELETE'),false,'skolplattform_worker saknar DELETE på phase3_probe_groups');
-select ok(relrowsecurity and relforcerowsecurity, 'phase3_probe_group_members har FORCE RLS') from pg_class where oid='public.phase3_probe_group_members'::regclass;
-select is(has_table_privilege('anon','public.phase3_probe_group_members','SELECT'),false,'anon saknar SELECT på phase3_probe_group_members');
-select is(has_table_privilege('anon','public.phase3_probe_group_members','INSERT'),false,'anon saknar INSERT på phase3_probe_group_members');
-select is(has_table_privilege('anon','public.phase3_probe_group_members','UPDATE'),false,'anon saknar UPDATE på phase3_probe_group_members');
-select is(has_table_privilege('anon','public.phase3_probe_group_members','DELETE'),false,'anon saknar DELETE på phase3_probe_group_members');
-select is(has_table_privilege('authenticated','public.phase3_probe_group_members','SELECT'),false,'authenticated saknar SELECT på phase3_probe_group_members');
-select is(has_table_privilege('authenticated','public.phase3_probe_group_members','INSERT'),false,'authenticated saknar INSERT på phase3_probe_group_members');
-select is(has_table_privilege('authenticated','public.phase3_probe_group_members','UPDATE'),false,'authenticated saknar UPDATE på phase3_probe_group_members');
-select is(has_table_privilege('authenticated','public.phase3_probe_group_members','DELETE'),false,'authenticated saknar DELETE på phase3_probe_group_members');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_group_members','SELECT'),false,'skolplattform_worker saknar SELECT på phase3_probe_group_members');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_group_members','INSERT'),false,'skolplattform_worker saknar INSERT på phase3_probe_group_members');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_group_members','UPDATE'),false,'skolplattform_worker saknar UPDATE på phase3_probe_group_members');
-select is(has_table_privilege('skolplattform_worker','public.phase3_probe_group_members','DELETE'),false,'skolplattform_worker saknar DELETE på phase3_probe_group_members');
+-- 04-17: elevprovets tabeller är avvecklade (20260930100000). Ingen roll kan läsa eller
+-- skriva ett objekt som inte finns; tidigare RLS-/behörighetsrader ersätts av frånvaro.
+select is(to_regclass('public.phase3_probe_pupils'),null,'phase3_probe_pupils avvecklad: ingen roll kan läsa eller skriva');
+select is(to_regclass('public.phase3_probe_groups'),null,'phase3_probe_groups avvecklad: ingen roll kan läsa eller skriva');
+select is(to_regclass('public.phase3_probe_group_members'),null,'phase3_probe_group_members avvecklad: ingen roll kan läsa eller skriva');
 select ok(relrowsecurity and relforcerowsecurity, 'phase3_probe_cases har FORCE RLS') from pg_class where oid='public.phase3_probe_cases'::regclass;
 select is(has_table_privilege('anon','public.phase3_probe_cases','SELECT'),false,'anon saknar SELECT på phase3_probe_cases');
 select is(has_table_privilege('anon','public.phase3_probe_cases','INSERT'),false,'anon saknar INSERT på phase3_probe_cases');
@@ -221,7 +187,7 @@ select ok(c.relrowsecurity and c.relforcerowsecurity, t||' har FORCE RLS') from 
 select is(has_table_privilege(r,'public.'||t,p),false,r||' saknar '||p||' på '||t) from unnest(array['anon','authenticated','skolplattform_worker']) r cross join unnest(array['pupils','school_classes','pupil_placements','pupil_class_memberships']) t cross join unnest(array['SELECT','INSERT','UPDATE','DELETE']) p;
 select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_pupils'::regclass and confrelid='public.pupils'::regclass and contype='f'),'pupil-scope refererar registrets stabila elev-ID');
 select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_groups'::regclass and confrelid='public.school_classes'::regclass and contype='f'),'group-scope refererar registrets klass i samma skola');
-select ok(not exists(select 1 from pg_constraint where conrelid in ('public.mandate_pupils'::regclass,'public.mandate_groups'::regclass,'public.phase3_probe_cases'::regclass) and confrelid in ('public.phase3_probe_pupils'::regclass,'public.phase3_probe_groups'::regclass) and contype='f'),'inga mandat- eller ärendenycklar pekar på gamla elevprovet');
+select ok(not exists(select 1 from pg_constraint where conrelid in ('public.mandate_pupils'::regclass,'public.mandate_groups'::regclass,'public.phase3_probe_cases'::regclass) and confrelid::regclass::text ~ 'phase3_probe_(pupils|groups|group_members)' and contype='f'),'inga mandat- eller ärendenycklar pekar på gamla elevprovet');
 select ok(relrowsecurity and relforcerowsecurity, 'local_connection_configs har FORCE RLS') from pg_class where oid='public.local_connection_configs'::regclass;
 select is(has_table_privilege('anon','public.local_connection_configs','SELECT'),false,'anon saknar SELECT på local_connection_configs');
 select is(has_table_privilege('anon','public.local_connection_configs','INSERT'),false,'anon saknar INSERT på local_connection_configs');
@@ -250,9 +216,10 @@ select throws_ok($test$select * from public.mandate_units$test$, '42501', null, 
 select throws_ok($test$select * from public.mandate_groups$test$, '42501', null, 'faktisk worker nekas mandate_groups');
 select throws_ok($test$select * from public.mandate_pupils$test$, '42501', null, 'faktisk worker nekas mandate_pupils');
 select throws_ok($test$select * from public.mandate_cases$test$, '42501', null, 'faktisk worker nekas mandate_cases');
-select throws_ok($test$select * from public.phase3_probe_pupils$test$, '42501', null, 'faktisk worker nekas phase3_probe_pupils');
-select throws_ok($test$select * from public.phase3_probe_groups$test$, '42501', null, 'faktisk worker nekas phase3_probe_groups');
-select throws_ok($test$select * from public.phase3_probe_group_members$test$, '42501', null, 'faktisk worker nekas phase3_probe_group_members');
+-- 04-17: avvecklade tabeller ger 42P01, inte 42501; ärendetabellen finns kvar och är stängd.
+select throws_ok($test$select * from public.phase3_probe_pupils$test$, '42P01', null, 'faktisk worker når inte avvecklade phase3_probe_pupils');
+select throws_ok($test$select * from public.phase3_probe_groups$test$, '42P01', null, 'faktisk worker når inte avvecklade phase3_probe_groups');
+select throws_ok($test$select * from public.phase3_probe_group_members$test$, '42P01', null, 'faktisk worker når inte avvecklade phase3_probe_group_members');
 select throws_ok($test$select * from public.phase3_probe_cases$test$, '42501', null, 'faktisk worker nekas phase3_probe_cases');
 select throws_ok($test$select * from public.local_connection_configs$test$, '42501', null, 'faktisk worker nekas local_connection_configs');
 select throws_ok($test$select * from public.pupils$test$, '42501', null, 'faktisk worker nekas pupils');
@@ -261,6 +228,7 @@ select throws_ok($test$select * from public.pupil_placements$test$, '42501', nul
 select throws_ok($test$select * from public.pupil_class_memberships$test$, '42501', null, 'faktisk worker nekas pupil_class_memberships');
 reset role;
 set local role anon;
+-- 04-17: anon/authenticated saknar schemaåtkomst, så 42501 kommer före namnuppslaget.
 select throws_ok($test$select * from public.phase3_probe_pupils$test$, '42501', null, 'faktisk anon nekas elevprovet');
 select throws_ok($test$select * from public.pupils$test$, '42501', null, 'faktisk anon nekas elevregistret');
 reset role;

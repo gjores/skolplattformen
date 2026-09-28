@@ -262,16 +262,17 @@ select is(has_function_privilege('skolplattform_worker','public.phase3_grant_man
 select is(has_function_privilege('skolplattform_worker','public.phase3_mandate_context()','EXECUTE'),true,'kontrollerad kontext öppen efter cutover');
 -- 04-14: avsiktlig ändring. Fas 4 (migrering 20260929110000) stängde gamla elevprovsläsaren;
 -- motsvarande Worker-läsning går nu via phase4_list_pupils med obligatorisk audit i API:t.
-select is(has_function_privilege('skolplattform_worker','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),false,'phase3_read_pupils stängd för Worker efter fas 4-cutover (tidigare öppen efter 03-05)');
+-- 04-17: därefter släpptes den helt (20260930100000).
+select is(to_regprocedure('public.phase3_read_pupils(uuid,uuid,boolean)'),null,'phase3_read_pupils avvecklad efter fas 4-cutover (tidigare öppen efter 03-05, stängd 04-03)');
 select is(has_function_privilege('skolplattform_worker','public.phase4_list_pupils(jsonb)','EXECUTE'),true,'phase4_list_pupils öppen för Worker i stället för phase3_read_pupils');
-select is(has_function_privilege('authenticated','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),false,'klientroll saknar elevläsning');
-select is(has_function_privilege('anon','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),false,'anonym roll saknar elevläsning');
+select is((select count(*) from pg_proc p where p.proname like 'phase3_read%' and has_function_privilege('authenticated',p.oid,'EXECUTE')),0::bigint,'klientroll saknar elevläsning');
+select is((select count(*) from pg_proc p where p.proname like 'phase3_read%' and has_function_privilege('anon',p.oid,'EXECUTE')),0::bigint,'anonym roll saknar elevläsning');
 select is(has_function_privilege('authenticated','public.phase4_list_pupils(jsonb)','EXECUTE'),false,'klientroll saknar registerläsning');
 select is(has_function_privilege('anon','public.phase4_list_pupils(jsonb)','EXECUTE'),false,'anonym roll saknar registerläsning');
 -- Faktisk Worker med ett fortfarande giltigt skolmandat (admin2, skola 112).
 select pg_temp.actor((select id from results where name='admin2'),'33002000-0000-4000-8000-000000000068','33002000-0000-4000-8000-000000000078');
 set local role skolplattform_worker;
-select throws_ok($t$select * from public.phase3_read_pupils()$t$,'42501',null,'faktisk Worker nekas gamla elevläsaren');
+select throws_ok($t$select * from public.phase3_read_pupils()$t$,'42883',null,'faktisk Worker når ingen gammal elevläsare (avvecklad)');
 select is((select array_agg(p->>'id') from jsonb_array_elements(public.phase4_list_pupils(jsonb_build_object('selection',jsonb_build_object('schoolYear',extract(year from public.app_today())::integer-case when extract(month from public.app_today())<7 then 1 else 0 end,'unitId','33002000-0000-4000-8000-000000000112','classId',null,'educationId',null,'grade',null,'status',null,'page',1),'search','','caseId',null))->'body'->'pupils') p),array['33002000-0000-4000-8000-000000000212'],'faktisk Worker läser egen skola via registerlistan');
 select throws_ok($t$select public.phase4_list_pupils(jsonb_build_object('selection',jsonb_build_object('schoolYear',2026,'unitId','33002000-0000-4000-8000-000000000111','classId',null,'educationId',null,'grade',null,'status',null,'page',1),'search','','caseId',null))$t$,'42501',null,'faktisk Worker nekas annan skolas registerlista');
 reset role;

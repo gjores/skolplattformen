@@ -112,7 +112,8 @@ insert into results values('lead','33003000-0000-4000-8000-000000000600');
 select pg_temp.actor((select id from results where name='lead'),'33003000-0000-4000-8000-000000000068','33003000-0000-4000-8000-000000000078');
 select lives_ok($t$insert into results values('leadhealth',public.phase3_grant_mandate('{"membershipId": "33003000-0000-4000-8000-000000000062", "function": "elevhalsa", "scopeKind": "school", "unitIds": ["33003000-0000-4000-8000-000000000111", "33003000-0000-4000-8000-000000000112"]}'::jsonb))$t$,'bevilja leadhealth');
 select is(public.phase3_mandate_is_valid((select id from results where name='leadhealth')),true,'elevhälsoansvarig kan tilldela två egna skolor');
-select throws_ok($t$select * from public.phase3_read_pupils()$t$,'42501',null,'elevhälsoansvarig har ingen egen elevläsning');
+-- 04-17: gamla läsaren är avvecklad; anropet når inget objekt. Registrets gränser prövas nedan.
+select throws_ok($t$select * from public.phase3_read_pupils()$t$,'42883',null,'elevhälsoansvarig har ingen egen elevläsning (gamla läsaren avvecklad)');
 select throws_ok($t$select pg_temp.list('33003000-0000-4000-8000-000000000111')$t$,'42501',null,'elevhälsoansvarig har ingen registerlista (fas 4)');
 select throws_ok($t$select pg_temp.card('33003000-0000-4000-8000-000000000211')$t$,'42501',null,'elevhälsoansvarig har inget elevkort (fas 4)');
 select throws_ok($t$select public.phase3_grant_mandate('{"membershipId": "33003000-0000-4000-8000-000000000068", "function": "elevhalsa", "scopeKind": "school", "unitIds": ["33003000-0000-4000-8000-000000000111", "33003000-0000-4000-8000-000000000112"]}')$t$,'42501',null,'elevhälsoansvarig får inte utöka sig själv');
@@ -159,6 +160,7 @@ select is((select used_at is null from public.invitations where id=(select id fr
 -- 04-15: mandaten binds till registerobjekt; det gamla elevprovet återinförs inte.
 select is((select count(*) from public.mandate_groups g join public.school_classes c on c.id=g.group_id and c.unit_id=g.unit_id where g.assignment_id=(select id from results where name='teacher')),1::bigint,'lärarmandatets grupp är en registerklass');
 select is((select count(*) from public.mandate_pupils m join public.pupils p on p.id=m.pupil_id and p.customer_id=m.customer_id where m.assignment_id=(select id from results where name='healthpupil')),1::bigint,'elevmandatet pekar på registerelev');
-select is((select count(*) from public.phase3_probe_pupils where customer_id in ('33003000-0000-4000-8000-000000000001','33003000-0000-4000-8000-000000000002'))+(select count(*) from public.phase3_probe_groups where customer_id in ('33003000-0000-4000-8000-000000000001','33003000-0000-4000-8000-000000000002'))+(select count(*) from public.phase3_probe_group_members where customer_id in ('33003000-0000-4000-8000-000000000001','33003000-0000-4000-8000-000000000002')),0::bigint,'fixturen skapar inga rader i det gamla elevprovet');
+-- 04-17: elevprovets tabeller är avvecklade, så fixturen kan inte skapa rader där.
+select ok(to_regclass('public.phase3_probe_pupils') is null and to_regclass('public.phase3_probe_groups') is null and to_regclass('public.phase3_probe_group_members') is null,'fixturen skapar inga rader i det gamla elevprovet (tabellerna avvecklade)');
 select * from finish();
 rollback;

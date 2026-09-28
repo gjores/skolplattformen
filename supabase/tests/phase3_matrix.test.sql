@@ -197,9 +197,10 @@ select is(has_table_privilege('skolplattform_worker','public.assignments','DELET
 select is(has_table_privilege('skolplattform_worker','public.assignment_units','INSERT'),false,'direct-assignment_units-INSERT: generella skriver stängda');
 select is(has_table_privilege('skolplattform_worker','public.assignment_units','UPDATE'),false,'direct-assignment_units-UPDATE: generella skriver stängda');
 select is(has_table_privilege('skolplattform_worker','public.assignment_units','DELETE'),false,'direct-assignment_units-DELETE: generella skriver stängda');
-select is(pg_get_function_result('public.phase3_read_pupils(uuid,uuid,boolean)'::regprocedure),'TABLE(id uuid, display_name text, unit_id uuid, group_ids uuid[])'::text,'fields-are-exact: SQLreturen innehåller bara fyra basfält');
+-- 04-17: gamla SQL-läsaren med fyra basfält är avvecklad; registerlistans exakta fält prövas nedan.
+select is(to_regprocedure('public.phase3_read_pupils(uuid,uuid,boolean)'),null,'fields-are-exact: gamla SQL-läsaren finns inte kvar');
 select pg_temp.actor((select id from results where name='principal'),'33006000-0000-4000-8000-000000000061','33006000-0000-4000-8000-000000000071');
 select is((select array_agg(k order by k collate "C") from jsonb_object_keys(pg_temp.list('33006000-0000-4000-8000-000000000111')->'pupils'->0) k),array['capabilities','classId','className','displayName','educationId','educationName','grade','id','status','unitId','unitName'],'fields-are-exact-register: registerlistan ger bara basfält utan personnummer, födelsedatum eller hemkommun');
-select is((select count(*) from public.phase3_read_pupils()),0::bigint,'legacy-reader-no-source: gamla läsaren har ingen elevdatakälla för registerelever');
+select is(to_regclass('public.phase3_probe_pupils'),null,'legacy-reader-no-source: gamla elevdatakällan finns inte kvar');
 select * from finish();
 rollback;

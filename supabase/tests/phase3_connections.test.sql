@@ -94,6 +94,7 @@ select throws_ok($$select public.phase3_connection_schools()$$,'42501',null,'huv
 select throws_ok($$select public.phase3_connection('33004000-0000-4000-8000-000000000111')$$,'42501',null,'huvudman har inte IT-rätt');
 select is(has_function_privilege('anon','public.phase3_connection(uuid,text,boolean,integer)','EXECUTE'),false,'anon saknar rätt');
 select is(has_function_privilege('authenticated','public.phase3_connection(uuid,text,boolean,integer)','EXECUTE'),false,'direkt klient saknar rätt');
-select is((select count(*) from public.phase3_probe_pupils where customer_id in ('33004000-0000-4000-8000-000000000001','33004000-0000-4000-8000-000000000002'))+(select count(*) from public.phase3_probe_groups where customer_id in ('33004000-0000-4000-8000-000000000001','33004000-0000-4000-8000-000000000002'))+(select count(*) from public.phase3_probe_group_members where customer_id in ('33004000-0000-4000-8000-000000000001','33004000-0000-4000-8000-000000000002')),0::bigint,'fixturen skapar inga rader i det gamla elevprovet');
+-- 04-17: elevprovets tabeller är avvecklade, så fixturen kan inte skapa rader där.
+select ok(to_regclass('public.phase3_probe_pupils') is null and to_regclass('public.phase3_probe_groups') is null and to_regclass('public.phase3_probe_group_members') is null,'fixturen skapar inga rader i det gamla elevprovet (tabellerna avvecklade)');
 select * from finish();
 rollback;

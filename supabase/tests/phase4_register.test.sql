@@ -104,12 +104,54 @@ select throws_ok('select * from public.pupils','42501',null,'actual direct table
 reset role;
 select ok(not has_function_privilege('skolplattform_worker','public.phase4_synthetic_birth_date(text)','EXECUTE'),'helper not exposed as worker RPC');
 -- 04-03: rättighetsgränsen ska redan vara stängd innan registervägarna öppnas.
-select ok(not has_function_privilege('skolplattform_worker','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),'old Worker pupil reader closed');
+-- 04-17: därefter släpptes läsaren helt (20260930100000).
+select ok(to_regprocedure('public.phase3_read_pupils(uuid,uuid,boolean)') is null,'old Worker pupil reader removed');
 select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_pupils'::regclass and confrelid='public.pupils'::regclass),'pupil mandates reference stable register ID');
 select ok(exists(select 1 from pg_constraint where conrelid='public.mandate_groups'::regclass and confrelid='public.school_classes'::regclass),'group mandates reference persistent school class');
 
 -- Verklig före/efter-fixtur: återställ ENDAST tre FK i denna rollback-transaktion.
 -- Kör samma versionshanterade migrationsfil, inte en testkopia av dess logik.
+-- 04-17: elevprovet är avvecklat (20260930100000). Återskapa de historiska objekten ENDAST
+-- i denna rollback-transaktion, med samma definition och stängning som 20260922100000,
+-- så att den versionshanterade migreringen 20260929110000 kan återspelas oförändrad.
+-- Läsarens kropp är tom: den finns bara för att migreringens REVOKE ska ha ett mål.
+create table public.phase3_probe_pupils (
+  id uuid primary key default gen_random_uuid(), customer_id uuid not null, organizer_id uuid not null,
+  unit_id uuid not null, display_name text not null check (length(display_name) between 1 and 120),
+  unique (id, customer_id, unit_id),
+  foreign key (organizer_id, customer_id) references public.organizers(id, customer_id),
+  foreign key (unit_id, organizer_id) references public.school_units(id, organizer_id));
+create table public.phase3_probe_groups (
+  id uuid primary key default gen_random_uuid(), customer_id uuid not null, organizer_id uuid not null,
+  unit_id uuid not null, unique (id, customer_id, unit_id),
+  foreign key (organizer_id, customer_id) references public.organizers(id, customer_id),
+  foreign key (unit_id, organizer_id) references public.school_units(id, organizer_id));
+create table public.phase3_probe_group_members (
+  group_id uuid not null, pupil_id uuid not null, customer_id uuid not null, unit_id uuid not null,
+  primary key (group_id, pupil_id),
+  foreign key (group_id, customer_id, unit_id) references public.phase3_probe_groups(id, customer_id, unit_id),
+  foreign key (pupil_id, customer_id, unit_id) references public.phase3_probe_pupils(id, customer_id, unit_id));
+alter table public.phase3_probe_pupils enable row level security;
+alter table public.phase3_probe_pupils force row level security;
+alter table public.phase3_probe_groups enable row level security;
+alter table public.phase3_probe_groups force row level security;
+alter table public.phase3_probe_group_members enable row level security;
+alter table public.phase3_probe_group_members force row level security;
+revoke all on public.phase3_probe_pupils,public.phase3_probe_groups,public.phase3_probe_group_members from public,anon,authenticated,skolplattform_worker;
+-- Befintliga mandat- och ärenderader i målet pekade på elevprovet före 110000. Återställ
+-- exakt de prov-ID som de gamla FK nedan kräver, hämtade ur registret (inga nya personer).
+insert into public.phase3_probe_pupils(id,customer_id,organizer_id,unit_id,display_name)
+select distinct on (d.pupil_id) d.pupil_id,d.customer_id,p.organizer_id,d.unit_id,p.display_name
+from (select pupil_id,customer_id,unit_id from public.mandate_pupils union select pupil_id,customer_id,unit_id from public.phase3_probe_cases) d
+join public.pupils p on p.id=d.pupil_id and p.customer_id=d.customer_id order by d.pupil_id;
+insert into public.phase3_probe_groups(id,customer_id,organizer_id,unit_id)
+select distinct on (g.group_id) g.group_id,g.customer_id,c.organizer_id,g.unit_id
+from public.mandate_groups g join public.school_classes c on c.id=g.group_id and c.customer_id=g.customer_id order by g.group_id;
+create function public.phase3_read_pupils(pupil_id uuid default null,case_id uuid default null,for_export boolean default false)
+returns table(id uuid,display_name text,unit_id uuid,group_ids uuid[]) language sql security definer set search_path=pg_catalog,public
+as $f$ select null::uuid,null::text,null::uuid,null::uuid[] where false $f$;
+grant execute on function public.phase3_read_pupils(uuid,uuid,boolean) to skolplattform_worker;
+select ok(has_function_privilege('skolplattform_worker','public.phase3_read_pupils(uuid,uuid,boolean)','EXECUTE'),'replay fixture: restored legacy reader starts open to Worker');
 drop trigger if exists phase4_case_school_scope on public.phase3_probe_cases;
 alter table public.mandate_pupils drop constraint mandate_pupils_pupil_id_customer_id_unit_id_fkey;
 alter table public.mandate_pupils add constraint mandate_pupils_pupil_id_customer_id_unit_id_fkey foreign key(pupil_id,customer_id,unit_id) references public.phase3_probe_pupils(id,customer_id,unit_id);
@@ -145,8 +187,8 @@ select is((select count(*) from public.security_events),(select n from events_be
 select is((select starts_on from public.pupil_placements where pupil_id='44002000-0000-4000-8000-000000000701'),make_date(extract(year from public.app_today())::int-case when extract(month from public.app_today())<7 then 1 else 0 end,7,1),'placement dates relative to current school year');
 select ok(not (select protected_identity from public.pupils where id='44002000-0000-4000-8000-000000000701'),'migration adds no implicit protection marker');
 set local role skolplattform_worker;
-select throws_ok('select * from public.phase3_read_pupils()','42501',null,'old route truly denied to Worker');
-select throws_ok('select * from public.phase3_probe_pupils','42501',null,'old direct table truly denied to Worker');
+select throws_ok('select * from public.phase3_read_pupils()','42501',null,'replay: migration closes restored legacy reader for Worker');
+select throws_ok('select * from public.phase3_probe_pupils','42501',null,'replay: restored legacy table denied to Worker');
 reset role;
 -- Skolbyte ändrar inte elev-ID och flyttar inte gammalt elev-/ärendemandat.
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('44002000-0000-4000-8000-000000000103','44002000-0000-4000-8000-000000000011','44002003','Syntetisk annan skola','0180');
