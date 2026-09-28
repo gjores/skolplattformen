@@ -12,7 +12,7 @@ Sammanställning av de regler servern tillämpar. Reglerna prövas på servern v
 | Granskning | Läsa och exportera kundens säkerhetslogg | Läsa elevuppgifter |
 | Huvudman | Läsa organisationen, utse rektor | Automatisk insyn i elevärenden |
 | Rektor | Läsa elever inom sina skolenheter, delegera uppdrag | Gå utanför sina skolenheter |
-| Administratör | Läsa och exportera elever inom räckvidden | Delegera uppdrag |
+| Administratör | Läsa elever inom räckvidden; skyddade uppgifter kräver särskild skolbehörighet | Delegera uppdrag; ändra eller exportera en anonymiserad elev |
 | Lärare | Läsa elever i sina undervisnings- och mentorsgrupper | Nå elever utanför grupperna, exportera |
 | Elevhälsa | Läsa elever inom tilldelad räckvidd | Nå elever utanför räckvidden, exportera, delegera |
 | Elevhälsoansvarig | Delegera elevhälsouppdrag | Läsa elevuppgifter på eget mandat |

@@ -4,7 +4,7 @@ title: Säkerhetslogg
 
 Säkerhetsloggen visar vad som faktiskt hänt i kundens skyddade miljö. Den skrivs av servern, inte av webbläsaren: aktör och uppdrag härleds ur den prövade sessionen och kan inte väljas av den som utför åtgärden.
 
-**Status:** Verifierat för läsning, filtrering och export av ändringar och nekanden, för spår av elevläsningar och elevexporter i det syntetiska elevprovet och för att åtgärder stoppas när loggen inte kan skrivas (granskat september 2026, lokal provmiljö). Gallring och kontinuitetskontroll är byggda och delvis prövade.
+**Status:** Verifierat för läsning, filtrering och export av ändringar och nekanden, för spår av elevläsningar i elevregistret och tidigare elevexporter i det syntetiska elevprovet och för att åtgärder stoppas när loggen inte kan skrivas (granskat september 2026, lokal provmiljö). Gallring och kontinuitetskontroll är byggda och delvis prövade.
 
 ## Vem får läsa
 
@@ -33,11 +33,11 @@ Detaljfältet är avsiktligt kortfattat. Loggen är ett spår över vem som gjor
 
 Beständiga ändringar loggas: inbjudningar och inlösen, spärrar och hävda spärrar, rektorsutnämningar, tilldelade och avslutade uppdrag, organisationsändringar samt ändringar och test av den lokala anslutningen. Även **nekade försök** loggas, liksom inloggning, utloggning och kontextbyte.
 
-I det syntetiska elevprovet loggas varje läsning och export: listan, en enskild elev, ett ärendes elev och exporten. Raden visar vem som läste, i vilket uppdrag och hur många elever svaret gällde, men inga elevnamn. Ett nekat försök att läsa en elev utanför uppdraget syns som en egen rad med resultat skilt från *ok*.
+I elevregistret loggas hämtningen av tillåtna urval och varje läsning av elevlistan. Läsning av elevkort och historik har egna händelser. Tidigare händelser från det syntetiska elevprovet finns kvar i loggen. Raden visar vem som läste, i vilket uppdrag och hur många elever svaret gällde, men inga elevnamn. Ett nekat försök att läsa en elev utanför uppdraget syns som en egen rad med resultat skilt från *ok*.
 
 Loggen skrivs innan svaret lämnas. Kan händelsen inte sparas får användaren inget innehåll och ingen ändring genomförs. I stället visas *Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.* med en referens.
 
-Så följer du en läsning: skriv åtgärden, till exempel `pupil_probe_read`, i fältet **Åtgärd** och välj *Visa*. Korrelationen är samma referens som användaren ser vid ett fel. Under *Detaljer* finns hela korrelations-id:t.
+Så följer du en läsning: skriv åtgärden, till exempel `pupil_list_read`, i fältet **Åtgärd** och välj *Visa*. Korrelationen är samma referens som användaren ser vid ett fel. Under *Detaljer* finns hela korrelations-id:t.
 
 ## Exportera
 

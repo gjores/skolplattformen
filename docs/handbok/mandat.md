@@ -76,9 +76,9 @@ Räckvidden avgör vilka objekt mandatet når.
 
 ## Tillgång till elevuppgifter
 
-Elevläsning och elevexport är tillfälligt stängda i den skyddade provmiljön. En eventuell meny för det äldre syntetiska elevprovet ger därför ingen elevlista. Hanteringen av administratörens skyddsbehörighet kan användas separat, men visar inga elever.
+Arbetsytan **Elever** visar elevlistan inom ditt uppdrags räckvidd. Skola, läsår och filter styr urvalet. Elevkort och elevexport är ännu inte öppnade i arbetsytan. Hanteringen av administratörens skyddsbehörighet visar inga elever. Se [Hitta elever](anvandning.md#hitta-elever).
 
-När elevuppgifter visas ska servern alltid pröva ditt aktuella mandat och begränsa uppgifterna till dess räckvidd. Huvudman och IT får ingen elevinsyn genom sina ordinarie funktioner. Medicinska elevhälsojournaler ingår inte.
+När elevuppgifter visas prövar servern alltid ditt aktuella mandat och begränsar uppgifterna till dess räckvidd. Huvudman och IT får ingen elevinsyn genom sina ordinarie funktioner. Medicinska elevhälsojournaler ingår inte.
 
 ## Tidsbegränsad support
 

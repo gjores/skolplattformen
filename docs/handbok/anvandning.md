@@ -4,7 +4,7 @@ title: Logga in och arbeta
 
 Den skyddade provmiljön kontrollerar varje åtgärd på servern. Din inloggning avgör vem du är; ditt uppdrag avgör vad du får göra. Uppgifterna är syntetiska.
 
-**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering, utloggning och arbetsytorna för mandat, syntetiskt elevprov och lokal anslutning. Prövat på dator och i telefonläge i den lokala provmiljön med syntetiska uppgifter och granskat i september 2026. Ingen verklig kommun är ansluten. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
+**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering, utloggning och arbetsytorna för mandat och lokal anslutning. Prövat på dator och i telefonläge i den lokala provmiljön med syntetiska uppgifter och granskat i september 2026. Ingen verklig kommun är ansluten. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
 
 ## Logga in
 
@@ -31,18 +31,30 @@ Efter inloggningen öppnas den arbetsyta som hör till ditt uppdrag. Menyn visar
 | Kundadministration | Kundadministration |
 | Granskning | Säkerhetslogg |
 | Huvudman, rektor, elevhälsoansvarig | Mandat: tilldela och avsluta uppdrag |
-| Rektor, lärare, administratör, elevhälsa, tidsbegränsad support | Syntetiskt elevprov |
+| Rektor, lärare, administratör, elevhälsa, tidsbegränsad support | Elever inom uppdragets räckvidd |
 | IT-administration | Lokal anslutning |
 
-Rektorn har både Mandat och Syntetiskt elevprov i menyn. Huvudmannen utser rektor och rektorn tilldelar uppdrag inom sina egna skolenheter. Hur det går till beskrivs i [Mandat och avgränsad åtkomst](mandat.md). Följ läsningar, exporter och nekanden i [Säkerhetsloggen](sakerhetslogg.md).
+Rektorn har både Mandat och Elever i menyn. Huvudmannen utser rektor och rektorn tilldelar uppdrag inom sina egna skolenheter. Hur det går till beskrivs i [Mandat och avgränsad åtkomst](mandat.md). Följ läsningar, exporter och nekanden i [Säkerhetsloggen](sakerhetslogg.md).
 
 Arbetsytorna fungerar på telefon i en spalt, utan sidledes rullning. Knappar och val är minst 44 pixlar höga.
+
+## Hitta elever
+
+I **Elever** väljer du skola och läsår. Läsårsväljaren sitter före uppdragsväljaren i sidhuvudet. Läsåret gäller från 1 juli till 30 juni. Listan omfattar elever med en skolplacering som överlappar det valda läsåret och som ditt uppdrag ger dig rätt att läsa.
+
+Skriv i sökfältet och välj **Sök elever**, eller tryck Enter. Klass, utbildning, årskurs och status hämtas från servern; ändrade filter hämtar ett nytt urval. Listan visar högst 50 elever per sida. På dator visas en tabell och på telefon en kortlista. Namnlika elever särskiljs med de uppgifter ditt uppdrag får se.
+
+Filtren kan återställas med webbläsarens bakåtknapp och vid omladdning. Söktext sparas bara i den öppna arbetsytans minne och rensas vid omladdning. Markeringar rensas när urvalet ändras. Ett ogiltigt eller otillåtet filter återgår till ett tillåtet starturval med ett generellt besked.
+
+En skyddad elev visas utan särskild skyddsbehörighet bara med anonymt visningsnamn och begränsade skoluppgifter. Raden ger ingen möjlighet att ändra eller exportera eleven. Huvudmannen hanterar administratörens skolbundna skyddsbehörighet enligt [Mandat och avgränsad åtkomst](mandat.md).
+
+**Begränsning:** Elevkort, ändringsdialoger, visning av personnummer och elevexport öppnas i kommande steg. Listans markering innebär inte att en export har genomförts. Miljön innehåller endast syntetiska uppgifter.
 
 ## Byta uppdrag och flera flikar
 
 Uppdraget byts i sidhuvudet utan ny inloggning. Vid byte rensas innehållet i arbetsytan så att inget från föregående uppdrag ligger kvar.
 
-Har du plattformen öppen i flera flikar låses de övriga med meddelandet *Kontexten ändrades i en annan flik* eller *Du har loggats ut i en annan flik*, och innehållet rensas. Det gäller även elevuppgifter i Syntetiskt elevprov. Ladda om fliken för att fortsätta i den aktuella kontexten. Har du osparade ändringar varnas du innan bytet genomförs.
+Har du plattformen öppen i flera flikar låses de övriga med meddelandet *Kontexten ändrades i en annan flik* eller *Du har loggats ut i en annan flik*, och innehållet rensas. Det gäller även elevlistan, söktext och markerade elever. Ladda om fliken för att fortsätta i den aktuella kontexten. Har du osparade ändringar varnas du innan bytet genomförs.
 
 ## Extra verifiering
 
