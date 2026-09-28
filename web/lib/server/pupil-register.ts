@@ -1,6 +1,7 @@
-import { isValidDate, isValidPeriod, luhnOk, parseConflictDetails, EXPORT_FIELDS, type ListRequest, type CardRequest, type HistoryRequest, type ChangeRequest, type CreatePupilRequest, type ExportSelection } from '../pupil-register-model.ts';
+import { isValidDate, isValidPeriod, luhnOk, parseConflictDetails, registerCsv, EXPORT_FIELDS, type ExportField, type ListRequest, type CardRequest, type HistoryRequest, type ChangeRequest, type CreatePupilRequest, type ExportSelection } from '../pupil-register-model.ts';
 import { AuditUnavailable, type Context } from './authz.ts';
 import { Deny, type Tx } from './db.ts';
+import type { EventInput } from './events.ts';
 import { mandateOperation } from './mandate-route.ts';
 import { auditPupilRegisterResult, type PupilAuditOperation, type PupilAuditedResult } from './pupil-register-audit.ts';
 
@@ -83,11 +84,39 @@ export async function listPupils(tx:Tx,ctx:Context,input:ListRequest){const rows
 export async function readPupil(tx:Tx,ctx:Context,input:CardRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_pupil_card(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,cardBody,{action:'pupil_read',pupilId:input.pupilId,schoolYear:input.schoolYear});}
 export async function readPupilHistory(tx:Tx,ctx:Context,input:HistoryRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_pupil_history(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,historyBody,{action:'pupil_history_read',pupilId:input.pupilId,schoolYear:input.schoolYear});}
 export async function revealPupilPersonalNumber(tx:Tx,ctx:Context,input:CardRequest){const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_reveal_personal_number(${tx.json(input)}) as result`);return auditRows(tx,ctx,rows,shape({pupilId:uuid,personalNumber}),{action:'pupil_personal_number_read',pupilId:input.pupilId,schoolYear:input.schoolYear});}
+export type PupilExportMode = 'preview' | 'download';
+export type PupilExportPost = { mode: PupilExportMode; export: ExportSelection };
+/** POST /api/elever/export body: {mode:'preview'|'download', export: ExportSelection}. */
+export function parsePupilExportPost(value:unknown):PupilExportPost {
+ const r=object(value);if(Object.keys(r).length!==2||!Object.hasOwn(r,'mode')||!Object.hasOwn(r,'export'))bad();
+ return {mode:enumeration(['preview','download'])(r.mode) as PupilExportMode,export:parsePupilExportRequest(r.export)};
+}
+type ExportCell = string | number | null;
+export type PupilExportBody = { count: number; fields: ExportSelection['fields']; includePersonalNumber: boolean; rows?: Partial<Record<ExportField | 'personalNumber', ExportCell>>[] };
+/** Both preview and download are recomputed by SQL from the explicit selection.
+ * Preview is count-only: SQL never selects personal numbers and a returned row is
+ * rejected. Download rows are validated against exactly the requested columns and
+ * the recomputed count. An empty result is a generic error without other counts. */
 export async function exportPupils(tx:Tx,ctx:Context,input:ExportSelection,preview:boolean){
  const rows=await mandateOperation(()=>tx<{result:unknown}[]>`select public.phase4_export_pupils(${tx.json(input)},${preview}) as result`);
+ const columns=[...input.fields,...(input.includePersonalNumber?['personalNumber' as const]:[])];
  const fieldParsers:Record<string,Parser>={id:uuid,displayName:text,birthDate:date,unitName:text,className:nullable(text),educationName:text,grade,status,municipalityCode:nullable(municipality),personalNumber};
- const body:Parser=v=>{const r=shape({count:integer(0),fields:array(enumeration(EXPORT_FIELDS)),includePersonalNumber:boolean,...(preview?{}:{rows:array(shape(Object.fromEntries([...input.fields,...(input.includePersonalNumber?['personalNumber']:[])].map(k=>[k,fieldParsers[k]]))))})})(v) as Row;if(JSON.stringify(r.fields)!==JSON.stringify(input.fields)||r.includePersonalNumber!==input.includePersonalNumber)bad();return r;};
- return auditRows(tx,ctx,rows,body,{action:preview?'pupil_export_preview':'pupil_exported',schoolYear:input.schoolYear,fields:input.fields});
+ const body:Parser=v=>{const r=shape({count:integer(0),fields:array(enumeration(EXPORT_FIELDS)),includePersonalNumber:boolean,...(preview?{}:{rows:array(shape(Object.fromEntries(columns.map(k=>[k,fieldParsers[k]]))))})})(v) as Row;
+  if(JSON.stringify(r.fields)!==JSON.stringify(input.fields)||r.includePersonalNumber!==input.includePersonalNumber||(!preview&&(r.rows as unknown[]).length!==r.count))bad();return r;};
+ if(rows.length!==1)throw new AuditUnavailable();
+ const result=projectedResult(rows[0].result,body) as PupilAuditedResult<PupilExportBody>;
+ if(result.kind!=='success')throw new AuditUnavailable();
+ if(result.body.count===0)throw new Deny('bad_request',400,{reason:'empty-selection'});
+ return auditPupilRegisterResult(tx,ctx,result,{action:preview?'pupil_export_preview':'pupil_exported',schoolYear:input.schoolYear,count:result.body.count,fields:columns}) as Promise<{body:PupilExportBody;event:EventInput}>;
+}
+const two=(n:number)=>String(n%100).padStart(2,'0');
+/** Buffered in memory only. Generic synthetic filename without school, class or pupil data. */
+export function pupilExportFile(input:ExportSelection,body:PupilExportBody,now=new Date()):{filename:string;csv:string} {
+ if(!body.rows||body.rows.length!==body.count)throw new AuditUnavailable();
+ const columns=[...input.fields,...(input.includePersonalNumber?['personalNumber' as const]:[])];
+ const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Stockholm',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
+ if(!isValidDate(day))throw new AuditUnavailable();
+ return {filename:`syntetiskt-elevurval-${two(input.schoolYear)}-${two(input.schoolYear+1)}-${day}.csv`,csv:registerCsv(columns,body.rows)};
 }
 
 /** Closed ChangeRequest union only. Pupil creation has no SQL entrypoint in this

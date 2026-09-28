@@ -44,6 +44,7 @@ const {GET:selectionRoute} = await import('../../app/api/elever/urval/route.ts')
 const {GET:history} = await import('../../app/api/elever/historik/route.ts');
 const {POST:change} = await import('../../app/api/elever/andra/route.ts');
 const {POST:reveal} = await import('../../app/api/elever/personnummer/route.ts');
+const {POST:exportRoute} = await import('../../app/api/elever/export/route.ts');
 const selection={schoolYear:2026,unitId:id,classId:null,educationId:null,grade:null,status:null,page:1};
 const input=()=>({selection:{...selection},search:'',caseId:null});
 const caps={canEdit:false,canExport:false,canRevealPersonalNumber:false,canReadHistory:false};
@@ -217,4 +218,55 @@ test('personnummer nekas utan MFA, same-origin, administratör eller visningslog
  ready();state.result.auditRefs=[{kind:'personal-number',pupilId:'33000000-0000-4000-8000-000000000002'}];r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,500);assert.equal((await r.text()).includes('TEST-'),false);
  ready();state.result.body.personalNumber='19121212-1212';r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,500);assert.equal((await r.text()).includes('1212'),false);
  ready();state.sqlError={code:'P0002'};r=await reveal(post('personnummer',revealBody()));assert.equal(r.status,404);assert.equal((await r.json()).code,'not_found');
+});
+
+// 04-10: buffrad export med separat serverpreview.
+const second='33000000-0000-4000-8000-000000000002';
+const exportSelection=(extra={})=>({schoolYear:2026,caseId:null,fields:['displayName','className','grade'],protectedIds:[],includePersonalNumber:false,mode:'ids',ids:[id,second],...extra});
+const exportRows=()=>[{displayName:'=HYPERLINK("x")',className:'7A;B',grade:7},{displayName:'Elev "Två"',className:null,grade:-1}];
+function readyExport(preview,extra={}){const input=exportSelection(extra);reset({count:2,fields:input.fields,includePersonalNumber:input.includePersonalNumber,...(preview?{}:{rows:exportRows().map(r=>input.includePersonalNumber?{...r,personalNumber:'TEST-20100101-0006'}:r)})});return input;}
+
+test('exportpreview prövar urvalet i SQL utan MFA-krav, lämnar bara antal och hämtar aldrig personnummer',async()=>{
+ const input=readyExport(true,{includePersonalNumber:true});state.mfa=false;
+ const r=await exportRoute(post('export',{mode:'preview',export:input}));assert.equal(r.status,200);const text=await r.text();
+ assert.deepEqual(JSON.parse(text),{count:2,fields:input.fields,includePersonalNumber:true});assert.equal(text.includes('TEST-'),false);assert.equal(r.headers.get('cache-control'),'no-store');
+ assert.equal(state.calls.length,1);assert.match(state.calls[0].sql,/phase4_export_pupils/u);assert.deepEqual(state.calls[0].values,[input,true]);
+ assert.deepEqual(state.events.map(e=>[e.action,e.outcome]),[['pupil_export_preview','ok']]);assert.deepEqual(state.events[0].details.fields,[...input.fields,'personalNumber']);
+ readyExport(true);state.result.body.rows=[{displayName:'Elev'}];const leaked=await exportRoute(post('export',{mode:'preview',export:exportSelection()}));assert.equal(leaked.status,500);assert.equal((await leaked.text()).includes('Elev'),false);
+ readyExport(true,{includePersonalNumber:true});state.result.auditRefs=[{kind:'personal-number-export',pupilId:id}];assert.equal((await exportRoute(post('export',{mode:'preview',export:exportSelection({includePersonalNumber:true})}))).status,500);
+});
+
+test('exportnedladdning kräver MFA, räknar om urvalet och lämnar buffrad CSV först efter loggning',async()=>{
+ let input=readyExport(false);state.mfa=false;let r=await exportRoute(post('export',{mode:'download',export:input}));assert.equal(r.status,403);assert.equal((await r.json()).code,'mfa_required');assert.equal(state.calls.length,0);
+ input=readyExport(false);r=await exportRoute(post('export',{mode:'download',export:input}));assert.equal(r.status,200);
+ assert.deepEqual(state.calls[0].values,[input,false]);assert.equal(r.headers.get('cache-control'),'no-store');assert.match(r.headers.get('content-type'),/^text\/csv; charset=utf-8/u);
+ assert.match(r.headers.get('content-disposition'),/^attachment; filename="syntetiskt-elevurval-26-27-\d{4}-\d{2}-\d{2}\.csv"$/u);assert.equal(r.headers.get('x-content-type-options'),'nosniff');
+ const bytes=new Uint8Array(await r.arrayBuffer());assert.deepEqual(Array.from(bytes.subarray(0,3)),[0xef,0xbb,0xbf]);
+ assert.equal(new TextDecoder().decode(bytes),'namn;klass;årskurs\r\n"\'=HYPERLINK(""x"")";"7A;B";7\r\n"Elev ""Två""";;\'-1\r\n');
+ assert.deepEqual(state.events.map(e=>[e.action,e.outcome]),[['pupil_exported','ok']]);assert.deepEqual(state.events[0].details,{schoolYear:2026,count:2,fields:input.fields,accessFunction:'administrator',proof:state.events[0].details.proof});
+ assert.equal(JSON.stringify(state.events).includes('HYPERLINK'),false);
+});
+
+test('personnummerexport och skyddade elever får egna objekthändelser; loggfel lämnar inga bytes',async()=>{
+ const input=readyExport(false,{includePersonalNumber:true,protectedIds:[second]});state.result.auditRefs=[{kind:'personal-number-export',pupilId:id},{kind:'personal-number-export',pupilId:second},{kind:'protected',pupilId:second}];
+ const r=await exportRoute(post('export',{mode:'download',export:input}));assert.equal(r.status,200);const csv=await r.text();assert.ok(csv.startsWith('namn;klass;årskurs;personnummer\r\n'));assert.equal(csv.split('TEST-20100101-0006').length,3);
+ assert.deepEqual(state.events.map(e=>e.action),['pupil_personal_number_exported','pupil_personal_number_exported','pupil_protected_read','pupil_exported']);
+ assert.deepEqual(state.events.at(-1).details.fields,[...input.fields,'personalNumber']);assert.equal(JSON.stringify(state.events).includes('TEST-'),false);
+ for(const failAt of [1,3,4]){readyExport(false,{includePersonalNumber:true,protectedIds:[second]});state.result.auditRefs=[{kind:'personal-number-export',pupilId:id},{kind:'personal-number-export',pupilId:second},{kind:'protected',pupilId:second}];state.failEventAt=failAt;
+  const denied=await exportRoute(post('export',{mode:'download',export:input}));assert.equal(denied.status,500);assert.match(denied.headers.get('content-type'),/json/u);const text=await denied.text();assert.equal(JSON.parse(text).code,'audit_unavailable');assert.equal(text.includes('TEST-')||text.includes('HYPERLINK'),false);assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);}
+});
+
+test('export nekar otillåtet eller tomt urval generiskt och stoppar dolda kolumner eller felaktigt antal',async()=>{
+ for(const fn of ['rektor','larare','elevhalsa','support','huvudman']){readyExport(false);state.fn=fn;assert.equal((await exportRoute(post('export',{mode:'download',export:exportSelection()}))).status,403);assert.equal(state.calls.length,0);}
+ readyExport(false);assert.equal((await exportRoute(post('export',{mode:'download',export:exportSelection()},'https://foreign.example'))).status,403);assert.equal(state.calls.length,0);
+ for(const body of [{mode:'stream',export:exportSelection()},{mode:'download'},{mode:'download',export:exportSelection({fields:['personalNumber']})},{mode:'download',export:exportSelection({fields:[]})},{mode:'download',export:exportSelection(),actorId:id},{mode:'download',export:{...exportSelection(),filename:'x.csv'}},'{bad']){
+  readyExport(false);const r=await exportRoute(post('export',body));assert.equal(r.status,400);assert.equal(state.calls.length,0);
+ }
+ for(const mode of ['preview','download']){
+  reset({count:0,fields:exportSelection().fields,includePersonalNumber:false,...(mode==='download'?{rows:[]}:{})});const r=await exportRoute(post('export',{mode,export:exportSelection()}));assert.equal(r.status,400);const body=await r.json();assert.equal(body.code,'bad_request');assert.deepEqual(body.details,{reason:'empty-selection'});assert.equal('count' in body,false);assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
+  readyExport(mode==='preview');state.sqlError={code:'P0002',detail:'33000000 skyddad'};const foreign=await exportRoute(post('export',{mode,export:exportSelection()}));assert.equal(foreign.status,404);const text=await foreign.text();assert.equal(JSON.parse(text).code,'not_found');assert.equal(text.includes('skyddad'),false);
+ }
+ for(const change of [b=>b.rows[0].personalNumber='TEST-20100101-0006',b=>b.rows.pop(),b=>b.fields=['displayName'],b=>b.rows[0].birthDate='2010-01-01']){
+  readyExport(false);change(state.result.body);const r=await exportRoute(post('export',{mode:'download',export:exportSelection()}));assert.equal(r.status,500);const text=await r.text();assert.equal(text.includes('TEST-')||text.includes('HYPERLINK'),false);assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
+ }
 });
