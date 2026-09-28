@@ -77,3 +77,18 @@ test('SQL-fel översätts utan att databasdetaljer röjs', async () => {
   assert.equal(mandateSqlFailure({ code: '22P02' }).status, 400);
   assert.equal(mandateSqlFailure({ code: '08006' }), null);
 });
+
+
+test('period- och samtidighetsfel minimeras även med elevvärden i SQL-felet', async () => {
+  const { mandateSqlFailure } = await import('./mandates.ts');
+  for (const [code, expected] of [
+    ['23P01', { code: 'bad_request', status: 400 }],
+    ['40001', { code: 'conflict', status: 409 }],
+    ['23505', { code: 'conflict', status: 409 }],
+  ]) {
+    assert.deepEqual(mandateSqlFailure({
+      code, message: 'Syntetisk elev', detail: 'TEST-20100101-0010',
+      query: 'private values', constraint: 'private constraint',
+    }), expected);
+  }
+});
