@@ -47,7 +47,13 @@ async function search(page: Page, value: string) {
   return result.json() as Promise<PupilList>;
 }
 async function assertNoSearchPersistence(page: Page, value: string) {
-  expect(await page.evaluate(() => JSON.stringify({ url: location.href, state: history.state, local: { ...localStorage }, session: { ...sessionStorage } }))).not.toContain(value);
+  expect(await page.evaluate(() => {
+    const entries = (storage: Storage) => Array.from({ length: storage.length }, (_, index) => {
+      const key = storage.key(index);
+      return [key, key === null ? null : storage.getItem(key)];
+    });
+    return JSON.stringify({ url: location.href, state: history.state, local: entries(localStorage), session: entries(sessionStorage) });
+  })).not.toContain(value);
 }
 
 test('serverns options och projektion visas responsivt med minst 44 px tryckytor', async ({ page }, info) => {

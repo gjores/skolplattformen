@@ -11,7 +11,13 @@ test('första oinloggade sidvisningen bevarar inbjudans returväg', async ({ pag
   await page.goto('/?till=%2Finbjudan&vy=elever&lasar=2026&sok=syntetisk-testtext');
   await expect(page.getByRole('link', { name: 'Logga in', exact: true })).toHaveAttribute('href', '/api/auth/login?till=/inbjudan');
   expect([...new URL(page.url()).searchParams.keys()]).toEqual(['till']);
-  expect(await page.evaluate(() => JSON.stringify({ state: history.state, local: { ...localStorage }, session: { ...sessionStorage } }))).not.toContain('syntetisk-testtext');
+  expect(await page.evaluate(() => {
+    const entries = (storage: Storage) => Array.from({ length: storage.length }, (_, index) => {
+      const key = storage.key(index);
+      return [key, key === null ? null : storage.getItem(key)];
+    });
+    return JSON.stringify({ state: history.state, local: entries(localStorage), session: entries(sessionStorage) });
+  })).not.toContain('syntetisk-testtext');
 });
 test('första oinloggade sidvisningen bevarar nekad inloggnings felkod', async ({ page }) => {
   await page.goto('/?inloggning=nekad&kod=test-denied');
