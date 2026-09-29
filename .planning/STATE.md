@@ -5,7 +5,7 @@ current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
 current_plan: 04-22
 status: executing
-stopped_at: Completed 04-21-PLAN.md
+stopped_at: 04-22 human-verify checkpoint prepared; awaiting observations
 last_updated: "2026-09-29"
 last_activity: 2026-09-29
 last_activity_desc: "Våg 14 och 04-21 genomförda: handbok byggd och förnyad lokal syntetisk fasgrind PASS på 8923529; SQL 17/17, browser 39/39 och samtliga åtta automatiska kravkedjor PASS. Nästa 04-22 mänskligt användarprov och separat fasverifiering."
@@ -158,6 +158,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 04-22: användarprovet förberett i lokal skyddad app på 3012. Se `04-HUMAN-UAT.md`; mänskliga resultat och godkännande väntar. Planen är inte slutförd.
+
 - Nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
 - 8 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 
@@ -184,7 +186,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-09-29
-**Stopped At:** Completed 04-21-PLAN.md
+**Stopped At:** 04-22 användarprov förberett; väntar faktiska observationer
 **Resume File:** None
 
 **Planned Phase:** 4 (Beständigt och skyddat elevregister) — 25 planer i 15 vågor — 2026-09-28
