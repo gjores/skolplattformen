@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BROWSER_TITLES, BASELINE_FLOWS, LOCK_CASES, PHASE4_SQL, REQUIREMENT_STEPS,
-  summarize, validateBaseline, validateLocks, validatePhase4Browser, validateRegister, validateSql } from './verify-phase4.mjs';
+  summarize, validateBaseline, validateLocks, validatePhase4Browser, validateProjectBrowser, validateRegister, validateSql } from './verify-phase4.mjs';
 import { REQUIRED_SQL_FILES as PHASE3_SQL } from './verify-phase3.mjs';
 import { REQUIRED_CASES as REGISTER_CASES } from '../../work/pilot/verify-register.mjs';
 
@@ -57,6 +57,12 @@ test('browser kräver 13 fall i alla tre projekt utan skip eller extra fall', ()
     title, file: 'phase4-register.spec.ts', tests: projects.map(projectName => ({ projectName, status: 'expected', results: [{ status: 'passed' }] })),
   })) }] };
   assert.equal(validatePhase4Browser(report).passed, 39);
+  for (const project of projects) {
+    const one = copy(report);
+    for (const spec of one.suites[0].specs) spec.tests = spec.tests.filter(item => item.projectName === project);
+    assert.equal(validateProjectBrowser(one, project).passed, 13);
+    assert.throws(() => validateProjectBrowser(one, projects.find(item => item !== project)));
+  }
   for (const mutate of [r => r.suites[0].specs[0].tests.pop(), r => { r.stats.skipped = 1; },
     r => { r.suites[0].specs[0].tests[0].projectName = 'wrong'; }, r => { r.suites[0].specs.push(copy(r.suites[0].specs[0])); }]) {
     const bad = copy(report); mutate(bad); assert.throws(() => validatePhase4Browser(bad));

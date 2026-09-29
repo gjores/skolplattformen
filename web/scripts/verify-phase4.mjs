@@ -94,6 +94,12 @@ export function validatePhase4Browser(report) {
   if (evidence.passed !== BROWSER_TITLES.length * 3) throw new Error('browser: extra eller dubbla fall');
   return evidence;
 }
+export function validateProjectBrowser(report, project) {
+  if (!['protected-desktop', 'protected-phone', 'protected-built'].includes(project)) throw new Error('browser: okänt projekt');
+  const evidence = validateBrowserReport(report, { file: 'phase4-register.spec.ts', projects: [project], titles: BROWSER_TITLES });
+  if (evidence.passed !== BROWSER_TITLES.length) throw new Error('browser: extra eller dubbla fall');
+  return evidence;
+}
 export function summarize(steps, head, fingerprint, startedAt, completedAt) {
   const required = Object.keys(REQUIREMENT_STEPS);
   const names = steps.map(item => item.name);
@@ -197,10 +203,31 @@ async function main() {
   // Starta då inga nya provservrar, men redovisa uttryckligen att browserbevis saknas.
   if (steps.some(item => item.status !== 'PASS')) blocked('register-browser', 'tidigare obligatoriskt steg saknar PASS');
   else if (browserReason) blocked('register-browser', browserReason);
-  else await step('register-browser', process.execPath, [path.join(web, 'node_modules/@playwright/test/cli.js'), 'test', '-c', 'playwright.protected.config.ts', 'phase4-register.spec.ts', '--project=protected-desktop', '--project=protected-phone', '--project=protected-built', '--reporter=list,json'], {
-    env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: path.join(web, 'test-results/phase4-gate.json') },
-    validate: () => validatePhase4Browser(fresh(path.join(web, 'test-results/phase4-gate.json'), start)),
-  });
+  else {
+    // Varje projekt får en ny lokal preview och en egen färsk JSON-rapport.
+    // Det skyddar långa körningar mot kvarvarande Worker-/browser-tillstånd.
+    for (const project of ['protected-desktop', 'protected-phone', 'protected-built']) {
+      const reportFile = path.join(web, `test-results/phase4-gate-${project}.json`);
+      if (steps.some(item => item.name.startsWith('register-browser-') && item.status !== 'PASS')) {
+        blocked(`register-browser-${project}`, 'föregående browserprojekt saknar PASS');
+        continue;
+      }
+      const occupied = await portsFree([5193, 3012]);
+      if (occupied || fs.existsSync(path.join(web, 'dist-protected/server/.dev.vars.lock'))) {
+        blocked(`register-browser-${project}`, occupied ?? 'preview-lås');
+        continue;
+      }
+      await step(`register-browser-${project}`, process.execPath, [path.join(web, 'node_modules/@playwright/test/cli.js'),
+        'test', '-c', 'playwright.protected.config.ts', 'phase4-register.spec.ts', `--project=${project}`, '--reporter=list,json'], {
+        env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: reportFile },
+        validate: () => validateProjectBrowser(fresh(reportFile, start), project),
+      });
+    }
+    const browserSteps = steps.filter(item => item.name.startsWith('register-browser-'));
+    if (browserSteps.length === 3 && browserSteps.every(item => item.status === 'PASS')) {
+      add('register-browser', 'PASS', 0, { passed: 39, projects: browserSteps.map(item => item.name.slice('register-browser-'.length)) });
+    } else blocked('register-browser', 'något browserprojekt saknar fullständigt PASS');
+  }
   const endHead = revision(), endFingerprint = sourceTreeFingerprint();
   if (endHead === head && endFingerprint === fingerprint) add('källstabilitet', 'PASS', 0);
   else add('källstabilitet', 'FAIL', 1, { reason: 'källträdet ändrades under körningen' });
