@@ -204,11 +204,22 @@ export async function loginViaKeycloak(
   await page.goto(`/api/auth/login${suffix}`);
   await page.waitForURL((url) => url.pathname.includes('/realms/skolplattform-test/'));
   const steps = await fillKeycloakLogin(page, username, opts.password);
-  await page
-    .waitForURL((url) => url.origin === appOrigin, { timeout: 15_000 })
-    .catch(async () => {
-      throw new Error(`Keycloak återvände inte till appen: ${await safePageDiagnostic(page)}`);
-    });
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await page.waitForURL((url) => url.origin === appOrigin, { timeout: 20_000 });
+      break;
+    } catch {
+      const otp = page.getByLabel(/Engångskod|Engångslösenord|One-time code/i);
+      if (attempt === 2 || !(await otp.isVisible().catch(() => false))) {
+        throw new Error(`Keycloak återvände inte till appen: ${await safePageDiagnostic(page)}`);
+      }
+      // En kod som skickas precis vid ett 30-sekundersskifte kan nekas.
+      // Pröva då en ny kod; en bestående IdP-/inloggningsstörning förblir röd.
+      await otp.fill(await freshCodeForUser(readPilotManifest(), username));
+      await page.getByRole('button', { name: /Logga in|Sign In/i }).click();
+      steps.push('otp');
+    }
+  }
   if (new URL(page.url()).pathname.startsWith('/api/auth')) {
     throw new Error(`Inloggningscallback nekades: ${await page.locator('body').innerText()}`);
   }
