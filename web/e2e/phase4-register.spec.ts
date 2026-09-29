@@ -289,6 +289,11 @@ test('huvudmannens beviljande och återkallelse styr skyddad vy och anonym rad',
     original = row.permissionId;
     permission = original;
     const change = (data: object) => hm.request.post('/api/kund/skyddsbehorighet', { data, headers: { Origin: origin } });
+    if (!permission) {
+      const initial = await change({ action: 'grant', assignmentId: assignment, unitId: PHASE4_IDS.unit });
+      expect(initial.status()).toBe(201);
+      permission = (await initial.json()).permissionId;
+    }
     if (permission) {
       expect((await change({ action: 'revoke', permissionId: permission })).status()).toBe(200);
       permission = null;
@@ -311,8 +316,9 @@ test('huvudmannens beviljande och återkallelse styr skyddad vy och anonym rad',
     await noLeakInStorage(page, [trueName]);
     await responsive(page, info, 'anonym-skyddad-lista');
     const granted = await change({ action: 'grant', assignmentId: assignment, unitId: PHASE4_IDS.unit });
-    expect(granted.status()).toBe(201);
-    permission = (await granted.json()).permissionId;
+    const grantedBody = await granted.json();
+    expect(granted.status(), JSON.stringify({ original: Boolean(original), error: grantedBody.error })).toBe(201);
+    permission = grantedBody.permissionId;
     const visible = await search(page, trueName);
     expect(visible.pupils.some((item: { id: string; protectedIdentity?: boolean }) => item.id === PHASE4_IDS.protected && item.protectedIdentity === true)).toBe(true);
     expect(visible.protectedIds).toContain(PHASE4_IDS.protected);
