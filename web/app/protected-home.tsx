@@ -224,6 +224,25 @@ function ProtectedShell() {
     sessionLoad.current += 1; sessionRef.current = null;
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
   }, []);
+  const lockChangedContext = useCallback(() => {
+    const wasSupport = sessionRef.current?.context?.function === 'support';
+    clearSession();
+    setLock('context');
+    if (!wasSupport) return;
+
+    // En ändrad epok kan komma före den lokala sluttidstimern. Kontrollera
+    // serverns orsak efter att innehållet rensats; ett annat kontextbyte får
+    // aldrig visas som ett utgånget uppdrag. Läs inga elevuppgifter ur svaret.
+    const lockedLoad = sessionLoad.current;
+    void fetch('/api/elever/urval', {
+      credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' },
+    }).then(async response => {
+      if (response.status !== 403) return;
+      const body: unknown = await response.json().catch(() => null);
+      if (lockedLoad === sessionLoad.current && body && typeof body === 'object' &&
+          'code' in body && body.code === 'assignment_expired') setExpired(true);
+    }).catch(() => { /* Den generiska låstexten kvarstår om servern inte kan nås. */ });
+  }, [clearSession]);
   const loadSession = useCallback(async () => {
     const current = ++sessionLoad.current;
     if (!sessionRef.current) setSession('loading');
@@ -274,13 +293,12 @@ function ProtectedShell() {
     const stopMessages = onSessionMessage((message) => {
       const result = shouldLock({ knownEpoch: epochRef.current }, message);
       if (result.lock && result.reason) {
-        clearSession();
-        setLock(result.reason);
+        if (result.reason === 'context') lockChangedContext();
+        else { clearSession(); setLock(result.reason); }
       }
     });
     const stopEpoch = onEpochChange(() => {
-      clearSession();
-      setLock('context');
+      lockChangedContext();
     });
     const revalidate = () => {
       if (document.visibilityState === 'visible') void loadSession();
@@ -294,7 +312,7 @@ function ProtectedShell() {
       document.removeEventListener('visibilitychange', revalidate);
       window.removeEventListener('pageshow', pageShow);
     };
-  }, [loadSession, clearSession]);
+  }, [loadSession, clearSession, lockChangedContext]);
 
   const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.assignmentId}` : null;
   useEffect(() => {
