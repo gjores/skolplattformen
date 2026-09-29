@@ -222,6 +222,8 @@ function ProtectedShell() {
   const sessionRef = useRef<SessionResponse | null>(null);
   const clearSession = useCallback((preserveAuthentication = false) => {
     sessionLoad.current += 1; sessionRef.current = null;
+    // Avbryt även redan hämtade men ännu inte levererade elev-/CSV-svar.
+    setKnownEpoch(null);
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
   }, []);
   const lockChangedContext = useCallback(() => {

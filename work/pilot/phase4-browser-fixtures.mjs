@@ -32,6 +32,7 @@ export const PHASE4_IDS = Object.freeze({
 });
 export const PHASE4_USERS = Object.freeze({
   protectedAdmin: 'p4.admin.skyddad',
+  concurrentAdmin: 'p4.admin.samtidig',
   unprotectedAdmin: 'p3.admin',
   teacherInClass: 'p3.larare',
   teacherOutsideGroup: 'p4.larare.utanfor',
@@ -83,6 +84,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === here) {
     try { secrets = JSON.parse(fs.readFileSync(secretsPath, 'utf8')); } catch { /* första körningen */ }
     const specs = [
       ['protectedAdmin', 'Ada', 'Skyddsadmin', PHASE4_IDS.customer, 'administrator', PHASE4_IDS.unit, true],
+      ['concurrentAdmin', 'Bertil', 'Samtidig', PHASE4_IDS.customer, 'administrator', PHASE4_IDS.unit, true],
       ['teacherOutsideGroup', 'Lena', 'Utomklass', PHASE4_IDS.customer, 'larare', PHASE4_IDS.unit],
       ['principalOtherSchool', 'Runa', 'AnnanSkola', PHASE4_IDS.customer, 'rektor', PHASE4_IDS.otherUnit],
       ['adminOtherSchool', 'Olle', 'AnnanSkola', PHASE4_IDS.customer, 'administrator', PHASE4_IDS.otherUnit],

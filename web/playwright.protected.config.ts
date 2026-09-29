@@ -15,7 +15,7 @@ const built = 'http://127.0.0.1:3012';
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /(?:phase2-.*|phase3-mandates)\.spec\.ts/,
+  testMatch: /(?:phase2-.*|phase3-mandates|phase4-register)\.spec\.ts/,
   timeout: 90_000,
   fullyParallel: false,
   workers: 1,
@@ -28,7 +28,7 @@ export default defineConfig({
   projects: [
     {
       name: 'protected-desktop',
-      testMatch: /(?:phase2-access|phase3-mandates)\.spec\.ts/,
+      testMatch: /(?:phase2-access|phase3-mandates|phase4-register)\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: dev,
@@ -37,12 +37,12 @@ export default defineConfig({
     },
     {
       name: 'protected-phone',
-      testMatch: /(?:phase2-access|phase3-mandates)\.spec\.ts/,
+      testMatch: /(?:phase2-access|phase3-mandates|phase4-register)\.spec\.ts/,
       use: { ...devices['iPhone 13'], baseURL: dev },
     },
     {
       name: 'protected-built',
-      testMatch: /(?:phase2-(?:spike|access)|phase3-mandates)\.spec\.ts/,
+      testMatch: /(?:phase2-(?:spike|access)|phase3-mandates|phase4-register)\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         baseURL: built,

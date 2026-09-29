@@ -465,7 +465,7 @@ test('rektor godkänner support som upphör vid sluttid', async ({ page, browser
       where a.membership_id=m.id and i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`);
     await expect.poll(() => psql(manifest, `select count(*) from public.access_assignments a join public.memberships m on m.id=a.membership_id join public.identities i on i.id=m.identity_id where i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`), { timeout: 20_000 }).toBe('0');
     if (await view.getByRole('button', { name: 'Hämta aktuellt läge' }).isVisible()) await view.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
-    await expect(view.getByRole('alertdialog')).toContainText(/Uppdraget har upphört vid sin sluttid|Kontexten ändrades i en annan flik/u);
+    await expect(view.getByRole('alertdialog')).toContainText('Uppdraget har upphört vid sin sluttid');
     expect(await view.content()).not.toContain(OWN_PUPIL);
     const after = await cardRequest(view, P11);
     expect(after.status()).toBe(403);
@@ -532,7 +532,7 @@ test('rektor ger support till grupper som upphör vid sluttid', async ({ page, b
         where a.membership_id=m.id and i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`);
       await expect.poll(() => psql(manifest, `select count(*) from public.access_assignments a join public.memberships m on m.id=a.membership_id join public.identities i on i.id=m.identity_id where i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`), { timeout: 20_000 }).toBe('0');
       if (await view.getByRole('button', { name: 'Hämta aktuellt läge' }).isVisible()) await view.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
-      await expect(view.getByRole('alertdialog')).toContainText(/Uppdraget har upphört vid sin sluttid|Kontexten ändrades i en annan flik/u);
+      await expect(view.getByRole('alertdialog')).toContainText('Uppdraget har upphört vid sin sluttid');
       expect(await view.content()).not.toContain(OWN_PUPIL);
       const after = await cardRequest(view, P11);
       expect(after.status()).toBe(403);
