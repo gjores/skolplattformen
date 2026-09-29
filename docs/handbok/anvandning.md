@@ -4,7 +4,7 @@ title: Logga in och arbeta
 
 Den skyddade provmiljön kontrollerar varje åtgärd på servern. Din inloggning avgör vem du är; ditt uppdrag avgör vad du får göra. Uppgifterna är syntetiska.
 
-**Status:** Verifierat för inloggning, uppdragsval, kontextbyte, extra verifiering, utloggning och arbetsytorna för mandat och lokal anslutning. Prövat på dator och i telefonläge i den lokala provmiljön med syntetiska uppgifter och granskat i september 2026. Ingen verklig kommun är ansluten. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
+**Provstatus:** Inloggning, uppdragsval, kontextbyte, extra verifiering, utloggning och arbetsytorna för mandat, lokal anslutning och elevregister har prövats i en lokal miljö med syntetiska uppgifter. Elevflödet har automatiskt prövats i datorläge, telefonstorlek och byggd app samt i ett separat telefonlikt webbläsarläge, september 2026. Det är inte ett användarprov med verkliga elever, fysisk telefon eller kommunanslutning. Mandatens innehåll beskrivs i [Mandat och avgränsad åtkomst](mandat.md).
 
 ## Logga in
 
@@ -42,13 +42,25 @@ Arbetsytorna fungerar på telefon i en spalt, utan sidledes rullning. Knappar oc
 
 I **Elever** väljer du skola och läsår. Läsårsväljaren sitter före uppdragsväljaren i sidhuvudet. Läsåret gäller från 1 juli till 30 juni. Listan omfattar elever med en skolplacering som överlappar det valda läsåret och som ditt uppdrag ger dig rätt att läsa.
 
-Skriv i sökfältet och välj **Sök elever**, eller tryck Enter. Klass, utbildning, årskurs och status hämtas från servern; ändrade filter hämtar ett nytt urval. Listan visar högst 50 elever per sida. På dator visas en tabell och på telefon en kortlista. Namnlika elever särskiljs med de uppgifter ditt uppdrag får se.
+Sök på namn och välj **Sök elever**, eller tryck Enter. Administratörer kan också söka på födelsedatum eller personnummer. Filtrera på klass, utbildning, årskurs och status. Listan visar högst 50 elever per sida; välj **Föregående sida** eller **Nästa sida** för att bläddra. På dator visas en tabell och på telefon en kortlista. Namnlika elever skiljs åt med de uppgifter ditt uppdrag får se, till exempel födelsedatum, klass och skola.
 
-Filtren kan återställas med webbläsarens bakåtknapp och vid omladdning. Söktext sparas bara i den öppna arbetsytans minne och rensas vid omladdning. Markeringar rensas när urvalet ändras. Ett ogiltigt eller otillåtet filter återgår till ett tillåtet starturval med ett generellt besked.
+Skola, läsår, filter och sida kan återställas med webbläsarens bakåtknapp och ligger kvar vid omladdning. Söktext och elevmarkeringar sparas inte vid omladdning; söktexten finns bara i den öppna arbetsytan. När du går tillbaka från ett elevkort kommer du till samma lista. Markeringar rensas när urvalet ändras. Ett ogiltigt eller otillåtet filter återgår till ett tillåtet starturval med ett generellt besked.
 
-En skyddad elev visas utan särskild skyddsbehörighet bara med anonymt visningsnamn och begränsade skoluppgifter. Raden ger ingen möjlighet att ändra eller exportera eleven. Huvudmannen hanterar administratörens skolbundna skyddsbehörighet enligt [Mandat och avgränsad åtkomst](mandat.md).
+En skyddad elev visas utan särskild skyddsbehörighet bara med anonymt visningsnamn och begränsade skoluppgifter. Personnummer, födelsedatum och hemkommun visas inte, och eleven kan inte ändras eller tas med i en export. Huvudmannen hanterar administratörens skyddsbehörighet för varje skola enligt [Mandat och avgränsad åtkomst](mandat.md).
 
-**Begränsning:** Elevkort, ändringsdialoger, visning av personnummer och elevexport öppnas i kommande steg. Listans markering innebär inte att en export har genomförts. Miljön innehåller endast syntetiska uppgifter.
+### Öppna och arbeta med ett elevkort
+
+Välj elevens namn för att öppna elevkortet. Där visas basuppgifter, skola, klass, utbildning, årskurs och hemkommun enligt ditt uppdrag. Administratörer med rätt räckvidd ser även skolplaceringar, klasstillhörighet och hemkommun över tid. Datum visar när placeringar och klasstillhörigheter gäller. En elev som bara har avslutade placeringar kan läsas med sin historik men inte ändras. Administratören kan ändra eleven när det finns en aktuell eller framtida placering på en skola som uppdraget omfattar.
+
+Personnummer är maskerat i elevkortet. Välj **Visa personnummer** när du behöver det; visningen kräver extra verifiering med engångskod när ett aktuellt bevis saknas och registreras i säkerhetsloggen. Personnummer i provmiljön är alltid syntetiskt.
+
+Uppgifterna visar också sitt ursprung, till exempel manuell registrering eller en simulerad källa. Den simulerade källan är syntetisk och inte en riktig kommunanslutning. Om en ny källeverans skiljer sig från en lokal rättelse visas båda som en avvikelse. Rättelsen skrivs inte över automatiskt: välj om den lokala rättelsen eller källans värde ska gälla. Ändringshistoriken visar tidigare värden, tid och uppgiftens ursprung; personnumret återges inte där.
+
+### Exportera ett elevurval
+
+Välj **Exportera urval…** när du uttryckligen behöver en fil. Välj markerade elever eller alla elever i det aktuella urvalet, och välj vilka uppgifter som ska tas med. Personnummer följer bara med om du särskilt markerar **Ta med personnummer**. Servern prövar urvalet och uppgifterna igen innan filen lämnas ut. Exporten kräver extra verifiering när ett aktuellt bevis saknas och registreras i säkerhetsloggen. En markering i listan laddar inte ned någon fil.
+
+Alla uppgifter i den här provmiljön är syntetiska. Varken en verklig elevkälla eller en kommun är ansluten, och provresultaten innebär inte att tjänsten är godkänd för verkliga elevuppgifter.
 
 ## Byta uppdrag och flera flikar
 

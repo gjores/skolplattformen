@@ -4,7 +4,7 @@ title: Mandat och avgränsad åtkomst
 
 Ett mandat är ett uppdrag med en bestämd räckvidd och en bestämd giltighetstid. Servern prövar mandatet vid varje åtgärd: vem du är, vilket uppdrag du arbetar i, vilket objekt du försöker nå och vilka uppgifter du begär.
 
-**Status:** Lokal provmiljö med syntetiska uppgifter. De tidigare mandatflödena granskades i september 2026. Skyddsbehörighetens dialog har prövats på dator och i telefonstorlek; se begränsningen för elevläsning nedan. Inga verkliga elevuppgifter förekommer, och ingen verklig kommun är ansluten.
+**Provstatus:** Mandat och skyddsbehörighet har prövats i en lokal miljö med syntetiska uppgifter. Elevregistret har prövats i datorläge, telefonstorlek och byggd app, samt i ett separat telefonlikt webbläsarläge i september 2026. Det är automatisk provning, inte användarprov med verkliga elever. Ingen verklig kommun är ansluten.
 
 ## Mandatarbetsytan
 
@@ -76,9 +76,13 @@ Räckvidden avgör vilka objekt mandatet når.
 
 ## Tillgång till elevuppgifter
 
-Arbetsytan **Elever** visar elevlistan inom ditt uppdrags räckvidd. Skola, läsår och filter styr urvalet. Elevkort och elevexport är ännu inte öppnade i arbetsytan. Hanteringen av administratörens skyddsbehörighet visar inga elever. Se [Hitta elever](anvandning.md#hitta-elever).
+Arbetsytan **Elever** visar listan inom ditt uppdrags räckvidd. Skola, läsår, sökning och filter styr urvalet. Tillgängliga funktioner för elevkort, ändring och export beror på uppdraget. Se [Hitta elever](anvandning.md#hitta-elever).
 
-När elevuppgifter visas prövar servern alltid ditt aktuella mandat och begränsar uppgifterna till dess räckvidd. Huvudman och IT får ingen elevinsyn genom sina ordinarie funktioner. Medicinska elevhälsojournaler ingår inte.
+När elevuppgifter visas prövar servern alltid ditt aktuella mandat och begränsar uppgifterna till dess räckvidd. Huvudman och IT får ingen elevinsyn genom sina ordinarie funktioner. Huvudmannen kan ge eller återkalla skyddsbehörighet för ett administratörsuppdrag på en viss skola. Rektor kan inte ge den behörigheten, och huvudmannen får ingen egen elevinsyn genom att tilldela den.
+
+En administratör utan skyddsbehörighet ser en skyddad elev med anonymt visningsnamn och begränsade skoluppgifter. Personnummer, födelsedatum och hemkommun lämnas inte ut; eleven kan inte ändras eller exporteras. En administratör med rätt skyddsbehörighet kan se eleven inom det aktuella uppdragets räckvidd.
+
+Administratören kan bara ändra en elev som har en aktuell eller framtida placering på någon av administratörens skolor. Elever med enbart avslutade placeringar kan läsas med sin historik, men inte ändras. Medicinska elevhälsojournaler ingår inte.
 
 ## Tidsbegränsad support
 
@@ -95,7 +99,7 @@ Rektor tilldelar support i samma dialog. Välj *Tidsbegränsad support* och mott
 
 Support för grupper når de elever som är med i grupperna när supporten läser. En elev som lämnar gruppen syns inte längre.
 
-Supportens elevläsning omfattas av det tillfälliga stoppet ovan. Uppdragets start, sluttid och räckvidd gäller fortfarande; ett utgånget uppdrag ger ingen åtkomst. Support har ingen export.
+Supportens elevläsning är begränsad till den angivna eleven eller de tilldelade grupperna och upphör när uppdraget löper ut. Support har ingen export eller ändringsrätt.
 
 ## IT-administration
 

@@ -60,6 +60,20 @@ En person identifieras av utfärdaren och ett stabilt konto-ID hos utfärdaren. 
 
 Kund och huvudman är skilda nivåer. En kund kan ha flera huvudmän, och varje huvudman flera skolenheter. Åtkomst begränsas alltid till den kund uppdraget tillhör — i vyer, sökningar, exporter och filvägar.
 
+## Elevregister och elevuppgifter
+
+Elevlistan begränsas av ditt aktuella uppdrag, vald skola och läsår. Sökning och filter ändrar urvalet, men ger aldrig åtkomst till en elev utanför uppdragets räckvidd. Listan visar högst 50 elever per sida. Namnlika elever skiljs åt med de uppgifter rollen får se.
+
+Skyddade personuppgifter kräver en särskild behörighet som huvudmannen ger till ett administratörsuppdrag för en viss skola. Rektor kan inte ge behörigheten. Utan den visas ett anonymt visningsnamn och begränsade skoluppgifter; personnummer, födelsedatum och hemkommun lämnas inte ut. Eleven kan inte ändras eller exporteras. Huvudmannen får inte elevinsyn genom att ge behörigheten.
+
+Personnummer visas först efter en uttrycklig begäran. I elevexport tas det bara med om den som exporterar väljer det särskilt. Sökning, visning och export begränsas fortfarande av uppdraget, och åtgärderna registreras i säkerhetsloggen.
+
+Uppgifter visar sitt ursprung. En lokal rättelse ersätts inte tyst av en ny leverans från den simulerade, syntetiska källan. Om värdena skiljer sig visas en avvikelse; behörig administratör väljer om rättelsen eller källans värde ska gälla. Ändringshistoriken visar tidigare värden och ursprung. Säkerhetsloggen är ett separat spår över vem som läste eller ändrade, när och i vilket uppdrag; den innehåller inte elevvärden.
+
+Placeringar och klasstillhörigheter har start- och slutdatum och ligger kvar i historiken när de avslutas. En administratör får läsa historiska elever men får bara ändra en elev med en aktuell eller framtida placering på en skola i sitt uppdrag.
+
+Provningen använder endast syntetiska uppgifter och en simulerad källa. Verklig kommun- eller elevregisteranslutning och användning med riktiga elevuppgifter är inte godkänd.
+
 ## Extra verifiering
 
 Administrativa åtgärder kräver ett färskt bevis på extra verifiering från inloggningen. Konton med registrerad engångskod anger koden vid inloggningen och har då beviset direkt. Konton utan registrerad kod loggar in med lösenord och får inget bevis. Beviset prövas mot förväntad utfärdare, mottagare, metod och ålder, gäller i upp till åtta timmar och är knutet till sessionen och uppdraget. Saknas beviset eller är det för gammalt erbjuds verifiering med engångskod där åtgärden nekades. Samma anspråk från en annan utfärdare godtas inte. Efter verifieringen krävs en ny bekräftelse av själva åtgärden. Se [Inloggningsmetoder](inloggningsmetoder.md).

@@ -4,7 +4,7 @@ title: Säkerhetslogg
 
 Säkerhetsloggen visar vad som faktiskt hänt i kundens skyddade miljö. Den skrivs av servern, inte av webbläsaren: aktör och uppdrag härleds ur den prövade sessionen och kan inte väljas av den som utför åtgärden.
 
-**Status:** Verifierat för läsning, filtrering och export av ändringar och nekanden, för spår av elevläsningar i elevregistret och tidigare elevexporter i det syntetiska elevprovet och för att åtgärder stoppas när loggen inte kan skrivas (granskat september 2026, lokal provmiljö). Gallring och kontinuitetskontroll är byggda och delvis prövade.
+**Provstatus:** Läsning, filtrering och export av logghändelser, spår av elevregisterläsningar och stopp när en händelse inte kan loggas har prövats i en lokal miljö med syntetiska uppgifter, september 2026. Gallring och kontinuitetskontroll är byggda och delvis prövade. Inga verkliga elevuppgifter eller kommunanslutningar ingår.
 
 ## Vem får läsa
 
@@ -33,15 +33,15 @@ Detaljfältet är avsiktligt kortfattat. Loggen är ett spår över vem som gjor
 
 Beständiga ändringar loggas: inbjudningar och inlösen, spärrar och hävda spärrar, rektorsutnämningar, tilldelade och avslutade uppdrag, organisationsändringar samt ändringar och test av den lokala anslutningen. Även **nekade försök** loggas, liksom inloggning, utloggning och kontextbyte.
 
-I elevregistret loggas hämtningen av tillåtna urval och varje läsning av elevlistan. Läsning av elevkort och historik har egna händelser. Tidigare händelser från det syntetiska elevprovet finns kvar i loggen. Raden visar vem som läste, i vilket uppdrag och hur många elever svaret gällde, men inga elevnamn. Ett nekat försök att läsa en elev utanför uppdraget syns som en egen rad med resultat skilt från *ok*.
+I elevregistret loggas läsning av listan, elevkortet och ändringshistoriken. Export och nekade försök loggas också. Raden visar vem som agerade, vilket uppdrag som användes, när det skedde och resultatet; vid en listläsning visas antalet elever i svaret. Säkerhetsloggen innehåller inte elevnamn, personnummer, födelsedatum, hemkommun eller andra elevvärden. Ändringshistoriken i elevkortet är ett separat verksamhetsspår och innehåller tidigare värden och deras ursprung; personnummer visas inte där.
 
-Loggen skrivs innan svaret lämnas. Kan händelsen inte sparas får användaren inget innehåll och ingen ändring genomförs. I stället visas *Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.* med en referens.
+Loggen skrivs innan svaret lämnas. Kan händelsen inte sparas får användaren inget elevinnehåll eller någon export och ingen ändring genomförs. I stället visas *Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.* med en referens.
 
-Så följer du en läsning: skriv åtgärden, till exempel `pupil_list_read`, i fältet **Åtgärd** och välj *Visa*. Korrelationen är samma referens som användaren ser vid ett fel. Under *Detaljer* finns hela korrelations-id:t.
+För att följa en händelse filtrerar du på datum och väljer åtgärd i fältet **Åtgärd**. Korrelationen är samma referens som användaren ser vid ett fel. Under *Detaljer* finns hela korrelations-id:t.
 
 ## Exportera
 
-*Exportera CSV* laddar ned de träffar filtret visar. Exporten är i sig en åtgärd och registreras i loggen med samma spårbarhet som övriga händelser. Därefter bekräftas *CSV-exporten har laddats ner och registrerats i loggen.* Exporten innehåller inga elevnamn.
+*Exportera CSV* laddar ned de säkerhetsloggshändelser som filtret visar. Exporten registreras i loggen med samma spårbarhet som övriga händelser. Därefter bekräftas *CSV-exporten har laddats ner och registrerats i loggen.* Säkerhetsloggens export innehåller inga elevvärden. En elevregisterexport är en separat åtgärd från elevvyn och får endast lämnas ut efter att servern har prövat och loggat den.
 
 ## Skydd och gallring
 
