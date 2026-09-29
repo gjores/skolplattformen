@@ -212,6 +212,14 @@ async function main() {
         blocked(`register-browser-${project}`, 'föregående browserprojekt saknar PASS');
         continue;
       }
+      // API-regressionerna ändrar mandat och skyddsbeslut. Ge varje browserprojekt
+      // samma kända syntetiska utgångsläge och låt även återställningsfel stoppa grinden.
+      await step(`browser-fixturer-${project}`, process.execPath,
+        [path.join(pilot, 'phase4-browser-fixtures.mjs'), '--target', 'protected'], { cwd: root });
+      if (steps.at(-1).status !== 'PASS') {
+        blocked(`register-browser-${project}`, 'browserfixturen kunde inte återställas');
+        continue;
+      }
       const occupied = await portsFree([5193, 3012]);
       if (occupied || fs.existsSync(path.join(web, 'dist-protected/server/.dev.vars.lock'))) {
         blocked(`register-browser-${project}`, occupied ?? 'preview-lås');
