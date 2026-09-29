@@ -280,6 +280,7 @@ test('huvudmannens beviljande och återkallelse styr skyddad vy och anonym rad',
   let assignment: string | null = null;
   try {
     await loginViaKeycloak(hm, PHASE4_USERS.organizer, { password: passwords[PHASE4_USERS.organizer] });
+    await loginViaKeycloak(hm, PHASE4_USERS.organizer, { password: passwords[PHASE4_USERS.organizer], stepUp: true });
     await waitForHydration(hm);
     const rights = await hm.request.get('/api/kund/skyddsbehorighet');
     expect(rights.status()).toBe(200);
@@ -291,8 +292,9 @@ test('huvudmannens beviljande och återkallelse styr skyddad vy och anonym rad',
     const change = (data: object) => hm.request.post('/api/kund/skyddsbehorighet', { data, headers: { Origin: origin } });
     if (!permission) {
       const initial = await change({ action: 'grant', assignmentId: assignment, unitId: PHASE4_IDS.unit });
-      expect(initial.status()).toBe(201);
-      permission = (await initial.json()).permissionId;
+      const initialBody = await initial.json();
+      expect(initial.status(), JSON.stringify({ error: initialBody.error })).toBe(201);
+      permission = initialBody.permissionId;
     }
     if (permission) {
       expect((await change({ action: 'revoke', permissionId: permission })).status()).toBe(200);
