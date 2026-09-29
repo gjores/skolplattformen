@@ -193,7 +193,10 @@ async function main() {
   await fileStep('register-api', process.execPath, [path.join(pilot, 'verify-register.mjs'), '--out', path.join(results, 'phase4-api.json')], path.join(results, 'phase4-api.json'), report => validateRegister(report, { start, head }), { reason: apiReason });
   await fileStep('register-lås', process.execPath, [path.join(pilot, 'verify-register-locks.mjs')], path.join(results, 'phase4-register-locks.json'), validateLocks, { reason: !protectedTarget && 'protected-målet saknas' });
   const browserReason = !protectedTarget ? 'protected-målet saknas' : locked ? 'preview-lås' : await portsFree([5193, 3012]);
-  if (browserReason) blocked('register-browser', browserReason);
+  // Ett redan rött obligatoriskt steg kan inte räddas av browserprovet.
+  // Starta då inga nya provservrar, men redovisa uttryckligen att browserbevis saknas.
+  if (steps.some(item => item.status !== 'PASS')) blocked('register-browser', 'tidigare obligatoriskt steg saknar PASS');
+  else if (browserReason) blocked('register-browser', browserReason);
   else await step('register-browser', process.execPath, [path.join(web, 'node_modules/@playwright/test/cli.js'), 'test', '-c', 'playwright.protected.config.ts', 'phase4-register.spec.ts', '--project=protected-desktop', '--project=protected-phone', '--project=protected-built', '--reporter=list,json'], {
     env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: path.join(web, 'test-results/phase4-gate.json') },
     validate: () => validatePhase4Browser(fresh(path.join(web, 'test-results/phase4-gate.json'), start)),
