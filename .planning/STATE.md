@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
-current_plan: 04-16
+current_plan: 04-18
 status: executing
-stopped_at: Completed 04-17-PLAN.md
-last_updated: "2026-09-28T19:54:34.806Z"
-last_activity: 2026-09-28
-last_activity_desc: "04-17 genomförd: migration 20260930100000 släpper phase3_read_pupils och phase3_probe_pupils/-groups/-group_members utan CASCADE (spärr mot kvarvarande funktionskällor och mot provrader utan registerpost); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope kvar och läser bara registret; historiska händelser orörda. /api/prov/*, elevprovets vy, serverkod och modell borttagna; byggd protected-Worker ger 404 på /api/prov. SQL 17/17 (1216 assertions), nodprov 395/395, tsc/oxlint/build:protected PASS, lokalt syntetiskt. Fas 3:s API-/browserprov och collect-denials mot elevprovet övergångsröda till 04-18"
-state_head: b57f20224fa02a6359d0c8377d8b335eaf340a50
+stopped_at: Completed 04-16-PLAN.md
+last_updated: "2026-09-29"
+last_activity: 2026-09-29
+last_activity_desc: "04-16 och våg 10 genomförda: syntetiska registerfixturer, 18/18 API-fall med beständiga kontroller, faktisk minimerad Kong-källkorrelation och 1/1 riktat Keycloak-/CSV-browserprov. Node-kontrakt 3/3, tsc och oxlint PASS. Fas 3:s gamla API-/browserprov återstår att porta i 04-18; 04-19–04-22 och fasverifiering återstår."
+state_head: abb531d
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 54
-  completed_plans: 48
+  completed_plans: 49
 milestone_name: milestone
 ---
 
@@ -25,35 +25,35 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-28)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 4 — våg 9 klar. 04-25, 04-24 och 04-17 genomförda: nekade anrop fäller inte längre den lokala Workern, behörig administratör kan uttryckligen ta med skyddade elever i exporten och elevprovet är avvecklat så att registret är enda elevdatavägen (lokalt syntetiskt). Nästa: våg 10, 04-16 (fullständiga registerprov och syntetiska scenarion).
+**Current focus:** Fas 4 — våg 10 klar. 04-16 gav 18/18 syntetiska API-fall och riktat browserprov med Keycloak och CSV. Nästa: våg 11, 04-18 (porta äldre API- och browserbevis).
 
 ## Current Position
 
-Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 19 av 25 planer klara
-Plan: 04-01–04-15, 04-17, 04-23, 04-24 och 04-25 klara; våg 9 klar; nästa våg 10: 04-16
+Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 20 av 25 planer klara
+Plan: 04-01–04-17, 04-23, 04-24 och 04-25 klara; våg 10 klar; nästa våg 11: 04-18
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 04
 **Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** 04-16 (våg 10)
+**Current Plan:** 04-18 (våg 11)
 **Total Plans in Phase:** 25
-**Status:** Executing (våg 9 klar: 04-25, 04-24 och 04-17; nästa våg 10: 04-16)
+**Status:** Executing (våg 10 klar: 04-16; nästa våg 11: 04-18)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-28
-**Last Activity Description:** 04-17 genomförd: migration 20260930100000 släpper phase3_read_pupils och phase3_probe_pupils/-groups/-group_members utan CASCADE (spärr mot kvarvarande funktionskällor och mot provrader utan registerpost); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope kvar och läser bara registret; historiska händelser orörda. /api/prov/*, elevprovets vy, serverkod och modell borttagna; byggd protected-Worker ger 404 på /api/prov. SQL 17/17 (1216 assertions), nodprov 395/395, tsc/oxlint/build:protected PASS, lokalt syntetiskt. Fas 3:s API-/browserprov och collect-denials mot elevprovet övergångsröda till 04-18
+**Last Activity:** 2026-09-29
+**Last Activity Description:** 04-16 genomförd: syntetiska fixturer, 18/18 API-fall, faktisk Kong-källkorrelation och 1/1 riktat Keycloak-/CSV-browserprov; nästa 04-18 portar äldre prov.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 48 av 54 hittills skrivna planer genomförda; fas 4 har 19 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 49 av 54 hittills skrivna planer genomförda; fas 4 har 20 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 44
+- Total plans completed: 49
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -156,7 +156,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: våg 9 i ordningen `04-25` (utred och åtgärda Worker-avbrott på nekade anrop), `04-24` (skyddade elever i lista och export för behörig; migrationen 20260929180000 ska tillämpas före 04-17:s) och `04-17` (avveckla elevprovet utan alternativa datavägar). Våg 1–8 är genomförda och ska inte göras om; se `04-WAVE-07-SUMMARY.md`, `04-13-SUMMARY.md`, `04-15-SUMMARY.md` och `04-23-SUMMARY.md` (Wrangler-avbrott på nekade anrop i `deferred-items.md`). 04-15: full SQL-regression PASS 16/16 filer, 1161 assertions; fas 3-fixturerna återkörbara mot registret. `verify-mandates.mjs` lägger fortfarande egna tillfälliga rader i elevprovet (`setupTemporary`) och dess API-fall ägs av 04-18. Full fasgrind (04-21), E2E (04-16), UI-grind (04-19) och samlad användarverifiering återstår. Fas 3 är stängd med `03-VERIFICATION.md` och `03-HUMAN-UAT.md` (2026-09-28); ACL-02–05 och AUDIT-02–03 är verifierade lokalt syntetiskt. Öppna externa beroenden kvarstår.
+- Nästa steg: våg 11, 04-18, portar de äldre fas 3-API-/browserproven från avvecklat elevprov till registret och uppdaterar insamlarens direktrutter. Våg 10:s 04-16 är genomförd med 18/18 syntetiska API-fall och riktad Keycloak-/CSV-nedladdning; se `04-16-SUMMARY.md` och `04-WAVE-10-SUMMARY.md`. 04-19:s hela UI-flöde, 04-20:s samlade kravgrind, 04-21:s handbok/slutgrind och 04-22:s användarprov återstår. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
 - 8 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 
 ## Blockers

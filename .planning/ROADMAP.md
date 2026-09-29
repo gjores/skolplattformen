@@ -133,7 +133,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 - [x] 04-13-PLAN.md — Bygg elevkort och ändringsdialoger (våg 8)
 - [x] 04-14-PLAN.md — Porta första delen av SQL-regressionen (våg 7)
 - [x] 04-15-PLAN.md — Porta resterande SQL och lokala fixturer (våg 8)
-- [ ] 04-16-PLAN.md — Skapa fullständiga registerprov och syntetiska scenarion (våg 10)
+- [x] 04-16-PLAN.md — Skapa fullständiga registerprov och syntetiska scenarion (våg 10)
 - [x] 04-17-PLAN.md — Avveckla elevprovet utan alternativa datavägar (våg 9, körs sist i vågen)
 - [ ] 04-18-PLAN.md — Porta tidigare API- och browserbevis (våg 11)
 - [ ] 04-19-PLAN.md — Verifiera hela elevflödet i webbläsare (våg 12)
@@ -231,7 +231,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 19/25 | In progress — våg 9 klar: 04-25, 04-24 och 04-17 (elevprovet avvecklat, registret enda elevdatavägen, lokalt syntetiskt); nästa våg 10: 04-16 | - |
+| 4. Beständigt och skyddat elevregister | 20/25 | In progress — våg 10 klar: 04-16 (18/18 lokala syntetiska API-fall, riktat Keycloak-/CSV-browserprov); nästa våg 11: 04-18 | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
