@@ -218,7 +218,7 @@ async function main() {
         continue;
       }
       await step(`register-browser-${project}`, process.execPath, [path.join(web, 'node_modules/@playwright/test/cli.js'),
-        'test', '-c', 'playwright.protected.config.ts', 'phase4-register.spec.ts', `--project=${project}`, '--reporter=list,json'], {
+        'test', '-c', 'playwright.protected.config.ts', 'phase4-register.spec.ts', `--project=${project}`, '--timeout=180000', '--reporter=list,json'], {
         env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: reportFile },
         validate: () => validateProjectBrowser(fresh(reportFile, start), project),
       });

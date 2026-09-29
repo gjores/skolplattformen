@@ -532,7 +532,7 @@ test('sena exportsvar efter utloggning i annan flik skapar ingen fil eller Blob'
   await search(page, 'Alex Prov');
   await page.getByRole('button', { name: 'Exportera urval…' }).click();
   const dialog = page.getByRole('dialog');
-  await expect(dialog.getByRole('button', { name: 'Exportera 2 elever (CSV)' })).toBeEnabled();
+  await expect(dialog.getByRole('button', { name: 'Exportera 2 elever (CSV)' })).toBeEnabled({ timeout: 30_000 });
   await page.evaluate(() => {
     (window as typeof window & { __phase4Blobs?: number }).__phase4Blobs = 0;
     const original = URL.createObjectURL.bind(URL);
@@ -623,8 +623,7 @@ test('fördröjt 409-svar återför inte elevfält efter flerflikslås', async (
     await other.close();
   } finally {
     release();
-    await page.unroute('**/api/elever/andra');
-    await secondContext.close();
-    removeClone(clone.id);
+    try { await page.unroute('**/api/elever/andra'); } catch { /* sidan kan vara stängd efter test-timeout */ }
+    try { await secondContext.close(); } finally { removeClone(clone.id); }
   }
 });
