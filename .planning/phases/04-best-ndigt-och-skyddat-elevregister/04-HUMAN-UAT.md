@@ -1,6 +1,6 @@
 # Fas 4 — mänskligt användarprov
 
-Status: **Förberett, väntar användarens observationer.** Plan 04-22 är inte slutförd och inget mänskligt godkännande har registrerats.
+Status: **Användaren har meddelat ”klart” efter första provdelen; omfattningen av återkopplingen behöver preciseras.** Plan 04-22 är inte slutförd.
 
 ## Underlag och miljö
 
@@ -21,6 +21,10 @@ Lokala Chromium-fönster förbereds med syntetisk skoladministratör och söknin
 | Skydd | Huvudmannen tilldelar och återkallar skyddsbehörighet; administratör utan denna ser anonym vy. Rollsessionerna förbereds vid detta moment. | Väntar |
 | Export och personnummer | Markera ett urval, granska exportdialog och uttryckliga val. Bedöm separat visning av personnummer och eventuell förnyad verifiering. | Väntar |
 | Dator och telefonvy | Bedöm om listan, kortet och dialogerna är begripliga och går att använda. | Väntar |
+
+## Återkoppling 2026-09-29
+
+Användaren svarade ”klart” på instruktionen att skilja Alex Prov åt, öppna och ändra ett kort, kontrollera lista/historik samt pröva exportdialogen i dator- och telefonvy. Inga fel rapporterades. Svaret registreras som återkoppling på den presenterade första provdelen, utan att tillskriva användaren ytterligare observationer. Ny inloggning, separat personnummer­visning och de fyra återstående scenarierna är inte uttryckligen bekräftade. Faktiskt använd browser/enhet har inte specificerats av användaren. Den omgivande browserinformationen visar localhost:3000, vilket i sig inte belägger vilket provmål som granskades. Förtydligande av omfattningen efterfrågat.
 
 ## Fortsättning
 
