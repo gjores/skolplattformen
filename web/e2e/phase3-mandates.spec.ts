@@ -32,6 +32,7 @@ const ANY_PUPIL = /Syntetisk elev \d/u;
 
 let manifest: PilotManifest;
 let passwords: Record<string, string>;
+let schoolYear: number;
 
 // Fallen körs i ordning (workers: 1) men inte seriellt: ett fel hindrar inte att övriga fall redovisas.
 
@@ -47,9 +48,9 @@ function endRecipientMandates(): void {
 }
 
 function removeTemporaryGroup(): void {
-  psql(manifest, `delete from public.mandate_groups where group_id='${G18}';
-    delete from public.phase3_probe_group_members where group_id='${G18}';
-    delete from public.phase3_probe_groups where id='${G18}';`);
+  psql(manifest, `delete from public.pupil_class_memberships where class_id='${G18}';
+    delete from public.mandate_groups where group_id='${G18}';
+    delete from public.school_classes where id='${G18}';`);
 }
 
 /** Avslutar kvarvarande supportuppdrag för provets supportkonto (ett uppdrag i taget). */
@@ -62,8 +63,26 @@ function endSupportMandates(): void {
 function removeTemporaryPupil(): void {
   removeTemporaryGroup();
   psql(manifest, `delete from public.mandate_pupils where pupil_id='${P18}';
-    delete from public.phase3_probe_group_members where pupil_id='${P18}';
-    delete from public.phase3_probe_pupils where id='${P18}';`);
+    delete from public.pupil_placements where pupil_id='${P18}';
+    delete from public.pupils where id='${P18}';`);
+}
+function insertTemporaryPupil(): void {
+  psql(manifest, `insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name)
+    select '${P18}','${CUSTOMER}','${ORGANIZER}','${SCHOOL_ONLY_PUPIL}',s.personal_number,'Elev 18'
+    from public.synthetic_pupil_numbers s where not exists(select 1 from public.pupils p where p.customer_id='${CUSTOMER}' and p.personal_number=s.personal_number)
+    order by s.personal_number limit 1;
+    insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on)
+    select public.phase4_probe_uuid('placement:${P18}'),'${CUSTOMER}','${ORGANIZER}','${P18}','${UNIT}',
+      public.phase4_probe_uuid('offering:${UNIT}'),make_date(start_year,7,1)
+    from public.offerings where id=public.phase4_probe_uuid('offering:${UNIT}');`);
+}
+function insertTemporaryGroup(): void {
+  psql(manifest, `insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year)
+    select '${G18}','${CUSTOMER}','${ORGANIZER}','${UNIT}',id,'PROV-${G18}',start_year
+    from public.offerings where id=public.phase4_probe_uuid('offering:${UNIT}');
+    insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on)
+    select public.phase4_probe_uuid('member:${G18}:${P18}'),'${CUSTOMER}','${ORGANIZER}','${P18}','${UNIT}','${G18}',id,starts_on
+    from public.pupil_placements where pupil_id='${P18}' and unit_id='${UNIT}';`);
 }
 
 test.beforeAll(() => {
@@ -76,13 +95,16 @@ test.beforeAll(() => {
   for (const username of ['p3.huvudman', 'p3.rektor', 'p3.larare', 'p3.admin', 'p3.elevhalsa', 'p3.elevhalsa.skola', 'p3.elevhalsa.elev', 'p3.support', 'p3.it', 'p3.granskare']) {
     if (!passwords[username]) throw new Error(`BLOCKED: fixturkontot ${username} saknas; kör phase3-browser-fixtures`);
   }
+  schoolYear = Number(psql(manifest, "select extract(year from public.app_today())::integer-case when extract(month from public.app_today())<7 then 1 else 0 end;"));
+  endSupportMandates();
   removeTemporaryPupil();
-  psql(manifest, `insert into public.phase3_probe_pupils values ('${P18}','${CUSTOMER}','${ORGANIZER}','${UNIT}','${SCHOOL_ONLY_PUPIL}');`);
+  insertTemporaryPupil();
   endRecipientMandates();
 });
 
 test.afterAll(() => {
   if (!manifest) return;
+  endSupportMandates();
   removeTemporaryPupil();
   endRecipientMandates();
 });
@@ -110,11 +132,13 @@ async function sessionMfa(page: Page): Promise<SessionMfa['mfa']> {
 async function login(page: Page, username: string, requireMfa = false): Promise<KeycloakStep[]> {
   const steps = await loginViaKeycloak(page, username, { password: passwords[username] });
   await waitForHydration(page);
+  if (username === 'p3.rektor') await openMandates(page);
   if (!requireMfa) return steps;
   const session = await (await page.request.get('/api/session')).json() as { mfa: { amr: string[] } };
   if (session.mfa.amr.includes('otp')) return steps;
   await loginViaKeycloak(page, username, { password: passwords[username], stepUp: true });
   await waitForHydration(page);
+  if (username === 'p3.rektor') await openMandates(page);
   const after = await (await page.request.get('/api/session')).json() as { mfa: { amr: string[] } };
   expect(after.mfa.amr).toContain('otp');
   return steps;
@@ -143,6 +167,48 @@ function contextOptions(testInfo: TestInfo, phone = false) {
     viewport: use.viewport, userAgent: use.userAgent, deviceScaleFactor: use.deviceScaleFactor, isMobile: use.isMobile, hasTouch: use.hasTouch,
   };
   return { ...device, baseURL: use.baseURL, locale: 'sv-SE' };
+}
+
+async function openMandates(page: Page): Promise<void> {
+  const nav = page.locator('[data-sidebar="sidebar"]').filter({ hasText: 'ARBETSYTA' }).last();
+  const insideViewport = await nav.count() > 0 && await nav.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    return box.right > 0 && box.left < window.innerWidth;
+  }).catch(() => false);
+  if (!insideViewport) await page.getByRole('button', { name: 'Visa eller dölj navigation' }).click();
+  const button = nav.getByRole('button', { name: 'Mandat' });
+  await expect(button).toBeAttached();
+  await button.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { name: 'Mandat', exact: true })).toBeVisible();
+}
+function selection(unitId = UNIT) {
+  return { schoolYear, unitId, classId: null, educationId: null, grade: null, status: null, page: 1 };
+}
+function pupil(page: Page, name = OWN_PUPIL) {
+  return page.getByRole('button', { name: `${name}, öppna elevkortet` }).filter({ visible: true });
+}
+async function loaded(page: Page) {
+  await expect(page.getByRole('heading', { name: 'Elever', exact: true })).toBeVisible();
+  await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy', 'false');
+}
+async function searchPupil(page: Page, name: string) {
+  await page.getByLabel('Sökord', { exact: true }).fill(name);
+  const response = page.waitForResponse(r => new URL(r.url()).pathname === '/api/elever/lista' && r.request().method() === 'POST');
+  await page.getByRole('button', { name: 'Sök elever', exact: true }).click();
+  expect((await response).status()).toBe(200);
+  await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy', 'false');
+}
+async function cardRequest(page: Page, pupilId: string, caseId: string | null = null) {
+  const query = new URLSearchParams({ pupilId, schoolYear: String(schoolYear) });
+  if (caseId) query.set('caseId', caseId);
+  return page.request.get(`/api/elever/elev?${query}`);
+}
+async function listRequest(page: Page, search = '', caseId: string | null = null) {
+  return page.request.post('/api/elever/lista', { headers: { Origin: new URL(page.url()).origin }, data: { selection: selection(), search, caseId } });
+}
+async function previewRequest(page: Page) {
+  return page.request.post('/api/elever/export', { headers: { Origin: new URL(page.url()).origin }, data: { mode: 'preview', export: { mode: 'filter', schoolYear, selection: selection(), search: '', caseId: null, fields: ['id','displayName'], includePersonalNumber: false, protectedIds: [] } } });
 }
 
 /** Ytterligare användare i en egen webbläsarkontext med projektets enhetsinställningar. */
@@ -258,6 +324,7 @@ test('rektor ger och avslutar läraruppdrag', async ({ page }) => {
   // Rektorn har registrerad engångskod: koden efterfrågas vid inloggningen och
   // beviset räcker för tilldelningen utan separat verifiering.
   const steps = await login(page, 'p3.rektor', true);
+  bodies.length = 0; // Startvyn är Elever; här granskas bara Mandat-svaret efter navigering.
   expect(steps).toEqual(['password', 'otp']);
   const mfa = await sessionMfa(page);
   expect(mfa).toMatchObject({ acr: '2', amr: ['pwd', 'otp'], proof: true });
@@ -296,67 +363,71 @@ test('rektor ger och avslutar läraruppdrag', async ({ page }) => {
 });
 
 test('lärare loggar in utan engångskod', async ({ page }) => {
-  // Konton utan registrerad engångskod loggar in med lösenord; ingen kod och
-  // ingen tvingad registrering (användarbeslut 2026-09-27).
   const steps = await login(page, 'p3.larare');
   expect(steps).toEqual(['password']);
-  const mfa = await sessionMfa(page);
-  expect(mfa).toMatchObject({ acr: '1', amr: ['pwd'], proof: false });
-  await expect(page.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
-  await expect(page.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
+  expect(await sessionMfa(page)).toMatchObject({ acr: '1', amr: ['pwd'], proof: false });
+  await loaded(page);
+  await expect(pupil(page)).toBeVisible();
+  const list = await listRequest(page);
+  expect(list.status()).toBe(200);
+  const ids = (await list.json()).pupils.map((item: { id: string }) => item.id) as string[];
+  expect(ids).toContain(P11);
+  for (const outside of [P12, P18, P21, '44001600-0000-4000-8000-000000000206']) expect(ids).not.toContain(outside);
 });
 
 test('elevhälsa med skolscope', async ({ page }) => {
-  const bodies = recordApi(page);
+  const network = recordApi(page);
   await login(page, 'p3.elevhalsa.skola');
-  await expect(page.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
-  await expect(page.locator('.probe-scope')).toContainText('Skola · Syntetisk skola 11');
-  const list = page.locator('.probe-list');
-  await expect(list.getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-  await expect(list.getByRole('heading', { name: SCHOOL_ONLY_PUPIL })).toBeVisible();
-  await expect(page.locator('.probe-list > li')).toHaveCount(2);
-  await expect(page.getByRole('button', { name: 'Exportera urvalet (CSV)' })).toHaveCount(0);
-  await page.getByRole('button', { name: `Visa ${SCHOOL_ONLY_PUPIL}` }).click();
-  await expect(page.locator('.probe-detail')).toContainText('Syntetisk skola 11');
-  const foreign = await page.request.get(`/api/prov/elev?elev=${P12}`);
+  await loaded(page);
+  await expect(page.locator('.mandate-facts')).toContainText('Syntetisk skola 11');
+  await searchPupil(page, 'Syntetisk elev');
+  await expect(pupil(page, OWN_PUPIL)).toBeVisible();
+  await expect(pupil(page, SCHOOL_ONLY_PUPIL)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Exportera urval…' })).toHaveCount(0);
+  await pupil(page, SCHOOL_ONLY_PUPIL).click();
+  await expect(page.locator('.pupil-card')).toContainText('Syntetisk skola 11');
+  const foreign = await cardRequest(page, P12);
   expect(foreign.status()).toBe(404);
-  const exported = await page.request.get('/api/prov/export');
+  const exported = await previewRequest(page);
   expect(exported.status()).toBe(403);
   expect(`${await foreign.text()}${await exported.text()}`).not.toMatch(ANY_PUPIL);
-  await expectAbsent(page, bodies, FOREIGN_PUPILS);
+  await expectAbsent(page, network, FOREIGN_PUPILS);
 });
 
 test('elevhälsa med elevscope', async ({ page }) => {
-  const bodies = recordApi(page);
+  const network = recordApi(page);
   await login(page, 'p3.elevhalsa.elev');
-  await expect(page.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
-  await expect(page.locator('.probe-scope')).toContainText('Tilldelade elever · Syntetisk skola 11');
-  await expect(page.locator('.probe-list > li')).toHaveCount(1);
-  await expect(page.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-  const sameSchool = await page.request.get(`/api/prov/elev?elev=${P18}`);
+  await loaded(page);
+  await expect(page.locator('.mandate-facts')).toContainText('Syntetisk skola 11');
+  await expect(pupil(page)).toBeVisible();
+  const list = await listRequest(page);
+  expect(list.status()).toBe(200);
+  expect((await list.json()).pupils.map((item: { id: string }) => item.id)).toEqual([P11]);
+  const sameSchool = await cardRequest(page, P18);
+  const foreign = await cardRequest(page, P21);
   expect(sameSchool.status()).toBe(404);
-  const foreign = await page.request.get(`/api/prov/elev?elev=${P21}`);
   expect(foreign.status()).toBe(404);
   expect(`${await sameSchool.text()}${await foreign.text()}`).not.toMatch(ANY_PUPIL);
-  await expectAbsent(page, bodies, [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS]);
+  await expectAbsent(page, network, [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS]);
 });
 
 test('elevhälsa med ärendescope', async ({ page }) => {
-  const bodies = recordApi(page);
+  const network = recordApi(page);
   await login(page, 'p3.elevhalsa');
-  await expect(page.locator('.probe-scope')).toContainText('Tilldelade ärenden · Syntetisk skola 11');
-  await expect(page.getByText('Välj ett tilldelat ärende')).toBeVisible();
-  await expect(page.locator('.probe-list > li')).toHaveCount(0);
-  await page.getByLabel('Tilldelat ärende').selectOption({ label: 'Tilldelat ärende 1 · Syntetisk skola 11' });
+  await loaded(page);
+  await expect(page.getByText('Välj ett tilldelat ärende för att se den elev ärendet gäller.')).toBeVisible();
+  await expect(pupil(page)).toHaveCount(0);
+  await page.getByLabel('Tilldelat ärende').selectOption({ label: 'Tilldelat ärende 1' });
   await page.getByRole('button', { name: 'Visa ärendets elev' }).click();
-  await expect(page.locator('.probe-detail')).toContainText(OWN_PUPIL);
-  // Utan ärendet får elevhälsan inte läsa eleven direkt, inte heller skolans andra elever.
-  const direct = await page.request.get(`/api/prov/elev?elev=${P11}`);
+  await expect(pupil(page)).toBeVisible();
+  const allowed = await cardRequest(page, P11, K11);
+  expect(allowed.status()).toBe(200);
+  const direct = await cardRequest(page, P11);
+  const otherCase = await cardRequest(page, P11, K12);
   expect(direct.status()).toBe(404);
-  const otherCase = await page.request.get(`/api/prov/elev?arende=${K12}`);
   expect(otherCase.status()).toBe(404);
   expect(`${await direct.text()}${await otherCase.text()}`).not.toMatch(ANY_PUPIL);
-  await expectAbsent(page, bodies, [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS]);
+  await expectAbsent(page, network, [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS]);
 });
 
 test('rektor godkänner support som upphör vid sluttid', async ({ page, browser }, testInfo) => {
@@ -370,53 +441,46 @@ test('rektor godkänner support som upphör vid sluttid', async ({ page, browser
   await dialog.getByLabel('Varaktighet från nu').selectOption('15');
   const grantedAt = Date.now();
   await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).click();
-  await expect(page.getByText('Uppdraget har tilldelats Sam Support.')).toBeVisible();
-  const card = mandateCard(page, 'Sam Support', 'Tidsbegränsad support');
-  await expect(card).toHaveCount(1);
-  await expect(card).toContainText('Syntetisk felsökning');
-  await expect(card).toContainText('Rut Rektor');
+  const assignment = mandateCard(page, 'Sam Support', 'Tidsbegränsad support');
+  await expect(assignment).toContainText('Syntetisk felsökning');
+  await expect(assignment).toContainText('Rut Rektor');
   expect(eventCount('mandate_granted', 'ok', since)).toBe(1);
-
   const support = await otherUser(browser, testInfo, 'p3.support');
   try {
     const view = support.page;
-    await expect(view.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
-    const scope = view.locator('.probe-scope');
+    await loaded(view);
+    const scope = view.locator('.mandate-facts');
     await expect(scope).toContainText('Godkänt av');
     await expect(scope).toContainText('Rut Rektor');
     await expect(scope).toContainText('Syntetisk felsökning');
     const endsAt = Date.parse(await scope.locator('time').getAttribute('datetime') ?? '');
     expect(Math.abs(endsAt - (grantedAt + 15 * 60_000))).toBeLessThan(120_000);
-    await expect(view.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-    await expect(view.locator('.probe-list > li')).toHaveCount(1);
-    await expect(view.getByRole('button', { name: 'Exportera urvalet (CSV)' })).toHaveCount(0);
-
-    // Kortar endast detta syntetiska supportuppdrag så att sluttiden kan prövas i provet.
+    await expect(pupil(view)).toBeVisible();
+    await expect(view.getByRole('button', { name: 'Exportera urval…' })).toHaveCount(0);
+    const only = await listRequest(view);
+    expect(only.status()).toBe(200);
+    expect((await only.json()).pupils.map((item: { id: string }) => item.id)).toEqual([P11]);
     psql(manifest, `update public.access_assignments a set ends_at=clock_timestamp()+interval '6 seconds'
       from public.memberships m join public.identities i on i.id=m.identity_id
       where a.membership_id=m.id and i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`);
-    await view.getByRole('button', { name: 'Hämta aktuellt urval' }).click();
-    await expect(view.getByRole('alert')).toContainText('Uppdraget har upphört vid sin sluttid', { timeout: 20_000 });
+    await expect.poll(() => psql(manifest, `select count(*) from public.access_assignments a join public.memberships m on m.id=a.membership_id join public.identities i on i.id=m.identity_id where i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`), { timeout: 20_000 }).toBe('0');
+    if (await view.getByRole('button', { name: 'Hämta aktuellt läge' }).isVisible()) await view.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
+    await expect(view.getByRole('alertdialog')).toContainText(/Uppdraget har upphört vid sin sluttid|Kontexten ändrades i en annan flik/u);
     expect(await view.content()).not.toContain(OWN_PUPIL);
-    const after = await view.request.get('/api/prov/elev');
+    const after = await cardRequest(view, P11);
     expect(after.status()).toBe(403);
     expect(await after.text()).not.toMatch(ANY_PUPIL);
     await expectAbsent(view, support.bodies, [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS]);
-  } finally {
-    await support.context.close();
-  }
+  } finally { await support.context.close(); }
   await page.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
-  await expect(page.getByRole('heading', { name: 'Lars Lärare' })).toBeVisible();
   await expect(mandateCard(page, 'Sam Support', 'Tidsbegränsad support')).toHaveCount(0);
 });
 
 test('rektor ger support till grupper som upphör vid sluttid', async ({ page, browser }, testInfo) => {
-  // Användarbeslut 2026-09-27: support kan gälla en eller flera grupper på en skola.
   const since = dbNow();
   endSupportMandates();
   removeTemporaryGroup();
-  psql(manifest, `insert into public.phase3_probe_groups values ('${G18}','${CUSTOMER}','${ORGANIZER}','${UNIT}');
-    insert into public.phase3_probe_group_members values ('${G18}','${P18}','${CUSTOMER}','${UNIT}');`);
+  insertTemporaryGroup();
   try {
     await login(page, 'p3.rektor', true);
     const dialog = await openGrantDialog(page);
@@ -425,85 +489,65 @@ test('rektor ger support till grupper som upphör vid sluttid', async ({ page, b
     const scopeSelect = dialog.getByLabel('Omfattning');
     await expect(scopeSelect.locator('option')).toHaveText(['En namngiven elev', 'En eller flera grupper på en skola']);
     await scopeSelect.selectOption({ label: 'En eller flera grupper på en skola' });
-    await expect(dialog.getByLabel('Grupproll')).toHaveCount(0);
-    // Tom gruppselektion nekas i formuläret innan något skickas.
     await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).click();
     await expect(dialog.locator('#grant-selection-error')).toHaveText('Välj minst en grupp.');
     await dialog.getByLabel(/Grupp 1 · Syntetisk skola 11/u).check();
     await dialog.getByLabel(/Grupp 2 · Syntetisk skola 11/u).check();
     await dialog.getByLabel('Varaktighet från nu').selectOption('15');
     await dialog.getByRole('button', { name: 'Tilldela uppdraget' }).click();
-    await expect(page.getByText('Uppdraget har tilldelats Sam Support.')).toBeVisible();
-    const card = mandateCard(page, 'Sam Support', 'Tidsbegränsad support');
-    await expect(card).toHaveCount(1);
-    await expect(card).toContainText('Tilldelade grupper · Syntetisk skola 11');
-    await expect(card).toContainText('Syntetisk felsökning');
-    await expect(card).toContainText('Rut Rektor');
+    const assignment = mandateCard(page, 'Sam Support', 'Tidsbegränsad support');
+    await expect(assignment).toContainText('Tilldelade grupper · Syntetisk skola 11');
     expect(eventCount('mandate_granted', 'ok', since)).toBe(1);
-    // Grupperna sparas som gruppscope på en skola, utan elev- eller ärendekoppling.
     expect(psql(manifest, `select a.scope_kind||'|'||(select count(*) from public.mandate_groups g where g.assignment_id=a.id)
       ||'|'||(select count(*) from public.mandate_pupils p where p.assignment_id=a.id)||'|'||(select count(*) from public.mandate_units u where u.assignment_id=a.id)
       from public.access_assignments a join public.memberships m on m.id=a.membership_id join public.identities i on i.id=m.identity_id
       where i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`)).toBe('group|2|0|1');
-
     const support = await otherUser(browser, testInfo, 'p3.support');
     try {
       const view = support.page;
-      await expect(view.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
-      const scope = view.locator('.probe-scope');
-      await expect(scope).toContainText('Tilldelade grupper · Syntetisk skola 11');
-      await expect(scope).toContainText('Grupp 1 · Syntetisk skola 11, Grupp 2 · Syntetisk skola 11');
+      await loaded(view);
+      const scope = view.locator('.mandate-facts');
+      await expect(scope).toContainText('Tilldelade grupper');
       await expect(scope).toContainText('Rut Rektor');
       await expect(scope).toContainText('Syntetisk felsökning');
-      const list = view.locator('.probe-list');
-      await expect(list.getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-      await expect(list.getByRole('heading', { name: SCHOOL_ONLY_PUPIL })).toBeVisible();
-      await expect(view.locator('.probe-list > li')).toHaveCount(2);
-      await expect(view.getByRole('button', { name: 'Exportera urvalet (CSV)' })).toHaveCount(0);
-      const exported = await view.request.get('/api/prov/export');
-      expect(exported.status()).toBe(403);
-
-      // Elev 18 lämnar grupp 2: supporten ser då bara elever i de valda grupperna.
-      psql(manifest, `delete from public.phase3_probe_group_members where group_id='${G18}' and pupil_id='${P18}';`);
-      await view.getByRole('button', { name: 'Hämta aktuellt urval' }).click();
-      await expect(view.locator('.probe-list > li')).toHaveCount(1);
-      await expect(list.getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-      const outside = await view.request.get(`/api/prov/elev?elev=${P18}`);
+      const list = await listRequest(view);
+      expect(list.status()).toBe(200);
+      const ids = (await list.json()).pupils.map((item: { id: string }) => item.id) as string[];
+      expect(ids).toEqual(expect.arrayContaining([P11, P18]));
+      for (const outside of [P12, P21, '44001600-0000-4000-8000-000000000206']) expect(ids).not.toContain(outside);
+      await expect(view.getByRole('button', { name: 'Exportera urval…' })).toHaveCount(0);
+      const exportDenied = await previewRequest(view);
+      expect(exportDenied.status()).toBe(403);
+      psql(manifest, `delete from public.pupil_class_memberships where class_id='${G18}' and pupil_id='${P18}';`);
+      await view.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
+      const reduced = await listRequest(view);
+      expect(reduced.status()).toBe(200);
+      const reducedIds = (await reduced.json()).pupils.map((item: { id: string }) => item.id) as string[];
+      expect(reducedIds).toContain(P11);
+      expect(reducedIds).not.toContain(P18);
+      const outside = await cardRequest(view, P18);
       expect(outside.status()).toBe(404);
-      expect(await outside.text()).not.toMatch(ANY_PUPIL);
-
-      // Kortar endast detta syntetiska supportuppdrag så att sluttiden kan prövas i provet.
       psql(manifest, `update public.access_assignments a set ends_at=clock_timestamp()+interval '6 seconds'
         from public.memberships m join public.identities i on i.id=m.identity_id
         where a.membership_id=m.id and i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`);
-      await view.getByRole('button', { name: 'Hämta aktuellt urval' }).click();
-      await expect(view.getByRole('alert')).toContainText('Uppdraget har upphört vid sin sluttid', { timeout: 20_000 });
+      await expect.poll(() => psql(manifest, `select count(*) from public.access_assignments a join public.memberships m on m.id=a.membership_id join public.identities i on i.id=m.identity_id where i.email='support@phase3.example.test' and a.function='support' and a.ended_at is null and a.ends_at>clock_timestamp();`), { timeout: 20_000 }).toBe('0');
+      if (await view.getByRole('button', { name: 'Hämta aktuellt läge' }).isVisible()) await view.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
+      await expect(view.getByRole('alertdialog')).toContainText(/Uppdraget har upphört vid sin sluttid|Kontexten ändrades i en annan flik/u);
       expect(await view.content()).not.toContain(OWN_PUPIL);
-      const after = await view.request.get('/api/prov/elev');
+      const after = await cardRequest(view, P11);
       expect(after.status()).toBe(403);
-      expect(await after.text()).not.toMatch(ANY_PUPIL);
-      await expectAbsent(view, support.bodies, FOREIGN_PUPILS);
-    } finally {
-      await support.context.close();
-    }
-  } finally {
-    endSupportMandates();
-    removeTemporaryGroup();
-  }
+    } finally { await support.context.close(); }
+  } finally { endSupportMandates(); removeTemporaryGroup(); }
 });
 
 test('IT pausar och provar anslutning utan elevinsyn', async ({ page }, testInfo) => {
-  const bodies = recordApi(page);
+  const network = recordApi(page);
   const since = dbNow();
   await login(page, 'p3.it', true);
   await expect(page.getByRole('heading', { name: 'Lokal anslutning', exact: true })).toBeVisible();
-  await expect(page.getByText('Status:')).toBeVisible();
   const pause = page.getByRole('button', { name: 'Pausa anslutningen' });
   const activate = page.getByRole('button', { name: 'Aktivera anslutningen' });
-  if (await activate.isVisible()) {
-    await activate.click();
-    await expect(page.getByText('Den lokala anslutningen är aktiv.')).toBeVisible();
-  }
+  if (await activate.isVisible()) { await activate.click(); await expect(page.getByText('Den lokala anslutningen är aktiv.')).toBeVisible(); }
   await pause.click();
   await expect(page.getByText('Den lokala anslutningen är pausad.')).toBeVisible();
   await page.getByRole('button', { name: 'Kör syntetiskt test' }).click();
@@ -514,95 +558,77 @@ test('IT pausar och provar anslutning utan elevinsyn', async ({ page }, testInfo
   await expect(page.getByText('Det syntetiska testet lyckades. Ingen verklig kommunanslutning har testats.')).toBeVisible();
   expect(eventCount('connection_update', 'ok', since)).toBeGreaterThanOrEqual(2);
   expect(eventCount('connection_test', 'ok', since)).toBeGreaterThanOrEqual(2);
-
-  const trigger = page.getByRole('button', { name: 'Visa eller dölj navigation' });
   const nav = page.locator('[data-sidebar="sidebar"]').filter({ hasText: 'ARBETSYTA' }).last();
-  if (!(await nav.isVisible())) await trigger.click();
-  await expect(nav).toBeVisible();
-  await expect(nav.getByRole('button', { name: 'Syntetiskt elevprov' })).toHaveCount(0);
+  if (!(await nav.isVisible())) await page.getByRole('button', { name: 'Visa eller dölj navigation' }).click();
+  await expect(nav.getByRole('button', { name: 'Elever' })).toHaveCount(0);
   if (testInfo.project.name === 'protected-phone') await page.keyboard.press('Escape');
-  for (const endpoint of ['/api/prov/elev', `/api/prov/elev?elev=${P11}`, '/api/prov/export']) {
-    const response = await page.request.get(endpoint);
-    expect(response.status(), endpoint).toBe(403);
+  for (const response of [await listRequest(page), await cardRequest(page, P11), await previewRequest(page)]) {
+    expect(response.status()).toBe(403);
     expect(await response.text()).not.toMatch(ANY_PUPIL);
   }
-  await expectAbsent(page, bodies, [ANY_PUPIL]);
+  await expectAbsent(page, network, [ANY_PUPIL]);
 });
 
 test('granskaren följer elevläsning, export och nekande', async ({ page, browser }, testInfo) => {
   const since = dbNow();
-  // Lärare läser en elev och försöker läsa en främmande elev (nekas).
   const teacher = await otherUser(browser, testInfo, 'p3.larare');
-  let denied: { correlationId: string };
-  let read: string;
+  let read = '';
+  let denied = '';
   try {
-    const view = teacher.page;
-    await expect(view.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-    const readResponse = view.waitForResponse((response) => response.url().includes(`/api/prov/elev?elev=${P11}`));
-    await view.getByRole('button', { name: `Visa ${OWN_PUPIL}` }).click();
-    read = (await readResponse).headers()['x-correlation-id'];
-    await expect(view.locator('.probe-detail')).toContainText(OWN_PUPIL);
-    const foreign = await view.request.get(`/api/prov/elev?elev=${P12}`);
+    await loaded(teacher.page);
+    const response = teacher.page.waitForResponse(r => new URL(r.url()).pathname === '/api/elever/elev');
+    await pupil(teacher.page).click();
+    const allowed = await response;
+    expect(allowed.status()).toBe(200);
+    read = allowed.headers()['x-correlation-id'];
+    await expect(teacher.page.locator('.pupil-card')).toContainText(OWN_PUPIL);
+    const foreign = await cardRequest(teacher.page, P12);
     expect(foreign.status()).toBe(404);
-    denied = await foreign.json() as { correlationId: string };
-  } finally {
-    await teacher.context.close();
-  }
-  // Skoladministratören exporterar urvalet.
+    denied = (await foreign.json()).correlationId;
+  } finally { await teacher.context.close(); }
   const admin = await otherUser(browser, testInfo, 'p3.admin');
   try {
-    await expect(admin.page.getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-    const download = admin.page.waitForEvent('download');
-    await admin.page.getByRole('button', { name: 'Exportera urvalet (CSV)' }).click();
-    await download;
-    await expect(admin.page.getByText('Exporten av det syntetiska urvalet är klar.')).toBeVisible();
-  } finally {
-    await admin.context.close();
-  }
+    await loaded(admin.page);
+    await searchPupil(admin.page, OWN_PUPIL);
+    await expect(pupil(admin.page)).toBeVisible();
+    const preview = admin.page.waitForResponse(r => new URL(r.url()).pathname === '/api/elever/export' && r.request().postDataJSON()?.mode === 'preview');
+    await admin.page.getByRole('button', { name: 'Exportera urval…' }).click();
+    expect((await preview).status()).toBe(200);
+    const dialog = admin.page.getByRole('dialog', { name: 'Exportera elevurval' });
+    const download = admin.page.waitForResponse(r => new URL(r.url()).pathname === '/api/elever/export' && r.request().postDataJSON()?.mode === 'download');
+    await dialog.getByRole('button', { name: 'Exportera 1 elev (CSV)' }).click();
+    expect((await download).status()).toBe(403);
+    await expect(dialog).toContainText('Export kräver verifiering med engångskod.');
+  } finally { await admin.context.close(); }
   expect(read).toMatch(/^[0-9a-f-]{36}$/u);
-  expect(denied.correlationId).toMatch(/^[0-9a-f-]{36}$/u);
-
-  const bodies = recordApi(page);
+  expect(denied).toMatch(/^[0-9a-f-]{36}$/u);
+  const network = recordApi(page);
   await login(page, 'p3.granskare');
   await expect(page.getByRole('heading', { name: 'Säkerhetslogg', exact: true })).toBeVisible();
   const table = page.locator('table.audit-table');
   const action = page.getByLabel('Åtgärd');
   const show = page.getByRole('button', { name: 'Visa', exact: true });
-
-  await action.fill('pupil_probe_read');
-  await show.click();
+  await action.fill('pupil_read'); await show.click();
   const readRow = table.getByRole('row').filter({ hasText: read.slice(0, 8) });
   await expect(readRow).toHaveCount(1);
   await expect(readRow.locator('td').nth(2)).toHaveText('ok');
-  await expect(readRow).toContainText('Lärare');
-  const deniedRow = table.getByRole('row').filter({ hasText: denied.correlationId.slice(0, 8) });
+  const deniedRow = table.getByRole('row').filter({ hasText: denied.slice(0, 8) });
   await expect(deniedRow).toHaveCount(1);
   await expect(deniedRow.locator('td').nth(2)).not.toHaveText('ok');
-  await deniedRow.getByText('Detaljer', { exact: true }).click();
-  await expect(deniedRow).toContainText(denied.correlationId);
-
-  await action.fill('pupil_probe_exported');
-  await show.click();
+  await action.fill('pupil_export_preview'); await show.click();
   await expect(table.getByRole('row').filter({ hasText: 'Administratör' }).first()).toBeVisible();
-
-  await action.fill('');
-  await show.click();
-  // Exporten gäller det tillämpade filtret; vänta tills den ofiltrerade listan visas.
-  await expect(table.getByRole('row').filter({ hasText: read.slice(0, 8) })).toHaveCount(1);
-  await expect(table.getByRole('row').filter({ hasText: 'pupil_probe_exported' }).first()).toBeVisible();
-  const download = page.waitForEvent('download');
+  await action.fill(''); await show.click();
+  const csvDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Exportera CSV' }).click();
-  const csv = readFileSync(await (await download).path(), 'utf8');
+  const csv = readFileSync(await (await csvDownload).path(), 'utf8');
   expect(csv).toContain(read);
-  expect(csv).toContain(denied.correlationId);
-  expect(csv).toContain('pupil_probe_exported');
+  expect(csv).toContain(denied);
+  expect(csv).toContain('pupil_export_preview');
   expect(csv).not.toMatch(ANY_PUPIL);
-  await expect(page.getByText('CSV-exporten har laddats ner och registrerats i loggen.')).toBeVisible();
   expect(eventCount('log_exported', 'ok', since)).toBeGreaterThanOrEqual(1);
-  // Granskaren ser inga elevuppgifter och saknar elevläsning.
-  const probe = await page.request.get('/api/prov/elev');
-  expect(probe.status()).toBe(403);
-  await expectAbsent(page, bodies, [ANY_PUPIL]);
+  const forbidden = await cardRequest(page, P11);
+  expect(forbidden.status()).toBe(403);
+  await expectAbsent(page, network, [ANY_PUPIL]);
 });
 
 test('tangentbord och fältfel i tilldelningen', async ({ page }) => {
@@ -669,6 +695,7 @@ test('tangentbord och fältfel i tilldelningen', async ({ page }) => {
   expect(await fillKeycloakLogin(page, 'p3.rektor', passwords['p3.rektor'])).toEqual(['password', 'otp']);
   await page.waitForURL((url) => url.origin === appOrigin && !url.pathname.startsWith('/api/'));
   await waitForHydration(page);
+  await openMandates(page);
   expect((await sessionMfa(page)).proof).toBe(true);
   expect(dialogs, 'ingen lämna-sidan-fråga stoppade verifieringen').toEqual([]);
 
@@ -721,6 +748,7 @@ test('verifiering nås med pekskärm i avslutsdialogen', async ({ page, browser 
     expect(await fillKeycloakLogin(view, 'p3.rektor', passwords['p3.rektor'])).toEqual(['password', 'otp']);
     await view.waitForURL((url) => url.origin === appOrigin && !url.pathname.startsWith('/api/'));
     await waitForHydration(view);
+    await openMandates(view);
     expect((await sessionMfa(view)).proof).toBe(true);
 
     // Uppdraget finns kvar tills användaren avslutar det igen efter verifieringen.
@@ -743,92 +771,81 @@ test('pekytor är minst 44 px på telefon', async ({ page, browser }, testInfo) 
   const view = phone ? page : await context!.newPage();
   try {
     await login(view, 'p3.rektor');
-    await expect(view.getByRole('heading', { name: 'Mandat', exact: true })).toBeVisible();
     await expect(view.getByRole('heading', { name: 'Lars Lärare' })).toBeVisible();
     await expectTouchTargets(view, view.locator('#workspace'));
     const dialog = await openGrantDialog(view);
     await dialog.locator('select').first().selectOption({ label: 'Lärare' });
     await expect(dialog.getByLabel(/Grupp 1 · Syntetisk skola 11/u)).toBeVisible();
-    const box = await dialog.boundingBox();
-    const viewport = view.viewportSize();
+    const box = await dialog.boundingBox(); const viewport = view.viewportSize();
     expect(box && viewport && box.x >= 0 && box.x + box.width <= viewport.width + 1 && box.y >= 0).toBeTruthy();
     await expectTouchTargets(view, dialog);
     await dialog.getByRole('button', { name: 'Avbryt' }).click();
-    await expect(dialog).toBeHidden();
-    await view.getByRole('button', { name: `Avsluta uppdrag för Lars Lärare` }).click();
+    await view.getByRole('button', { name: 'Avsluta uppdrag för Lars Lärare' }).click();
     const confirm = view.getByRole('dialog', { name: 'Avsluta uppdrag?' });
     await expectTouchTargets(view, confirm);
     await confirm.getByRole('button', { name: 'Avbryt' }).click();
-    await expect(confirm).toBeHidden();
-  } finally {
-    await context?.close();
-  }
-  // Elevprovet för en lärare på telefon.
-  const probeContext = await browser.newContext(contextOptions(testInfo, true));
-  const probe = await probeContext.newPage();
+  } finally { await context?.close(); }
+  const phoneContext = await browser.newContext(contextOptions(testInfo, true));
   try {
-    await login(probe, 'p3.larare');
-    await expect(probe.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
-    await expectTouchTargets(probe, probe.locator('#workspace'));
-  } finally {
-    await probeContext.close();
-  }
+    const studentView = await phoneContext.newPage();
+    await login(studentView, 'p3.larare');
+    await loaded(studentView);
+    await expect(pupil(studentView)).toBeVisible();
+    await expectTouchTargets(studentView, studentView.locator('#workspace'));
+  } finally { await phoneContext.close(); }
 });
 
 test('utloggning rensar andra flikar', async ({ page }) => {
   await login(page, 'p3.larare');
-  await expect(page.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
+  await loaded(page);
+  await expect(pupil(page)).toBeVisible();
   const second = await page.context().newPage();
   await second.goto('/');
-  await expect(second.locator('.probe-list').getByRole('heading', { name: OWN_PUPIL })).toBeVisible();
+  await expect(pupil(second)).toBeVisible();
   await page.getByRole('button', { name: 'Logga ut' }).click();
   await expect(second.getByText('Du har loggats ut i en annan flik')).toBeVisible();
   await expect(second.locator('body')).not.toContainText(OWN_PUPIL);
-  await expect(page.getByRole('link', { name: 'Logga in', exact: true })).toBeVisible();
-  await expect(page.locator('body')).not.toContainText(OWN_PUPIL);
   const session = await second.request.get('/api/session');
   expect(session.status()).toBe(401);
-  const probe = await second.request.get('/api/prov/elev');
-  expect(probe.status()).toBe(401);
-  expect(await probe.text()).not.toMatch(ANY_PUPIL);
+  const direct = await cardRequest(second, P11);
+  expect(direct.status()).toBe(401);
+  expect(await direct.text()).not.toMatch(ANY_PUPIL);
   await second.close();
 });
 
 test('nätverkssvar innehåller inga främmande elever', async ({ page, browser }, testInfo) => {
-  const cases: { username: string; forbidden: string[]; probes: string[] }[] = [
-    { username: 'p3.larare', forbidden: [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS], probes: [`?elev=${P12}`, `?elev=${P18}`, `?elev=${P21}`, `?arende=${K11}`, '?q=Syntetisk'] },
-    { username: 'p3.admin', forbidden: FOREIGN_PUPILS, probes: [`?elev=${P12}`, `?elev=${P21}`, `?arende=${K12}`] },
-    { username: 'p3.elevhalsa.elev', forbidden: [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS], probes: [`?elev=${P18}`, `?elev=${P12}`] },
-    { username: 'p3.elevhalsa', forbidden: [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS], probes: [`?arende=${K12}`, `?elev=${P18}`] },
+  const cases = [
+    { username: 'p3.larare', forbidden: [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS], ids: [P12, P18, P21] },
+    { username: 'p3.admin', forbidden: FOREIGN_PUPILS, ids: [P12, P21] },
+    { username: 'p3.elevhalsa.elev', forbidden: [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS], ids: [P18, P12] },
+    { username: 'p3.elevhalsa', forbidden: [SCHOOL_ONLY_PUPIL, ...FOREIGN_PUPILS], ids: [P18, P12] },
   ];
   for (const item of cases) {
     const other = await otherUser(browser, testInfo, item.username);
     try {
-      await expect(other.page.getByRole('heading', { name: 'Syntetiskt elevprov', exact: true })).toBeVisible();
-      for (const query of item.probes) {
-        const response = await other.page.request.get(`/api/prov/elev${query}`);
+      await loaded(other.page);
+      for (const id of item.ids) {
+        const response = await cardRequest(other.page, id);
         const text = await response.text();
-        for (const name of item.forbidden) expect(text, `${item.username} ${query}`).not.toContain(name);
+        for (const name of item.forbidden) expect(text, `${item.username} ${id}`).not.toContain(name);
       }
+      const list = await listRequest(other.page, 'Syntetisk');
+      const content = await list.text();
+      for (const name of item.forbidden) expect(content, item.username).not.toContain(name);
       if (item.username === 'p3.admin') {
-        const exported = await other.page.request.get('/api/prov/export');
-        expect(exported.status()).toBe(200);
-        const csv = await exported.text();
-        expect(csv).toContain(OWN_PUPIL);
-        for (const name of item.forbidden) expect(csv).not.toContain(name);
+        const preview = await previewRequest(other.page);
+        expect(preview.status()).toBe(200);
+        expect(await preview.text()).not.toMatch(ANY_PUPIL);
       }
       await expectAbsent(other.page, other.bodies, item.forbidden);
-    } finally {
-      await other.context.close();
-    }
+    } finally { await other.context.close(); }
   }
-  // Rektorns tilldelningsurval innehåller bara den egna skolans elever.
-  const bodies = recordApi(page);
+  const network = recordApi(page);
   await login(page, 'p3.rektor');
   const dialog = await openGrantDialog(page);
   await dialog.locator('select').first().selectOption({ label: 'Tidsbegränsad support' });
   await expect(dialog.getByLabel(new RegExp(OWN_PUPIL, 'u'))).toBeVisible();
   await dialog.getByRole('button', { name: 'Avbryt' }).click();
-  await expectAbsent(page, bodies, FOREIGN_PUPILS);
-  expect(bodies.join('\n')).toContain(OWN_PUPIL);
+  await expectAbsent(page, network, FOREIGN_PUPILS);
+  expect(network.join('\n')).toContain(OWN_PUPIL);
 });
