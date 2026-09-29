@@ -158,6 +158,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- SPAR-synk för elever och vårdnadshavare: befintlig todo kompletterad 2026-09-29 med möjlig Skatteverkskälla, utredning av faktisk anslutningsväg och uttrycklig hantering av källavvikelse mot lokal rättelse. Ingen ny anslutning eller utökning av fas 4 beslutad genom todo-posten.
+
 - 04-22: användarprovet förberett i lokal skyddad app på 3012. Se `04-HUMAN-UAT.md`; mänskliga resultat och godkännande väntar. Planen är inte slutförd.
 
 - Nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
