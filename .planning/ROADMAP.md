@@ -4,7 +4,7 @@
 
 **Milestone:** v1.0 — Säker administration inför en pilot
 
-**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 genomförs (11 av 22 planer klara).
+**Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 genomförs (24 av 25 planer klara; mänskligt användarprov och fasverifiering återstår).
 
 **Granularity:** standard
 
@@ -12,7 +12,7 @@ Den befintliga appen utvecklas stegvis till en avgränsad pilot: först en åter
 
 ## Phases
 
-Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och verifierades 2026-09-12 i `01-VERIFICATION.md`; fas 2 verifierades 2026-09-21 och fas 3 stängdes efter mänsklig verifiering 2026-09-28. Fas 4 planeras; fas 4–8 är inte genomförda.
+Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in mellan sina omgivande heltal. Fas 1 är genomförd (alla 10 planer körda, användarens checkpoint godkänd 2026-09-12) och verifierades 2026-09-12 i `01-VERIFICATION.md`; fas 2 verifierades 2026-09-21 och fas 3 stängdes efter mänsklig verifiering 2026-09-28. Fas 4 genomförs; faserna 5–8 är inte genomförda.
 
 - [x] **Phase 1: Baslinje och avskild pilotmiljö** - Befintliga arbetsflöden går att pröva och återställa inom en tydlig pilotgräns. (completed 2026-09-12)
 - [x] **Phase 2: Verifierad kontoåtkomst** - Konton, arbetskontext och sessionsspärr styr den första spårbara skyddade operationen.
@@ -116,7 +116,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 4. Behörig personal kan genomföra pilotens fastställda arbetsfall med en skyddad syntetisk elev. Obehöriga läsvägar, sökträffar, fel och aviseringar röjer varken skyddade uppgifter eller metadata. (DATA-01)
 5. Administratören kan exportera ett uttryckligt elevurval med endast tillåtna fält. Serverns behörighetskontroll, aktuella spärrar, skyddsregler och loggning gäller även om exporten anropas direkt. (DATA-02)
 
-**Plans**: 25 planer i 15 vågor, 22 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); 04-24 och 04-25 tillagda efter våg 8 för luckorna skyddad export och Worker-avbrott; samlad kravgrind, handbok och användarprov återstår.
+**Plans**: 25 planer i 15 vågor, 24 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); 04-24 och 04-25 tillagda efter våg 8 för luckorna skyddad export och Worker-avbrott. 04-21:s handbok och förnyade fullgrind är klara; 04-22:s användarprov och separat fasverifiering återstår.
 
 - [x] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
 - [x] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
@@ -138,7 +138,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 - [x] 04-18-PLAN.md — Porta tidigare API- och browserbevis (våg 11)
 - [x] 04-19-PLAN.md — Verifiera hela elevflödet i webbläsare (våg 12)
 - [x] 04-20-PLAN.md — Bygg fullständig fasgrind och beviskarta (våg 13)
-- [ ] 04-21-PLAN.md — Uppdatera handboken med prövat registerbeteende (våg 14)
+- [x] 04-21-PLAN.md — Uppdatera handboken med prövat registerbeteende (våg 14)
 - [ ] 04-22-PLAN.md — Genomför användarprov och redovisa fasens gräns (våg 15)
 - [x] 04-23-PLAN.md — Öppna Worker-körrätt för registrets skriv-, personnummer- och exportfunktioner (våg 8, körs först i vågen)
 - [x] 04-24-PLAN.md — Visa skyddade elever för behörig administratör i lista och export (våg 9, efter 04-25 och före 04-17)
@@ -231,13 +231,13 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 23/25 | In progress — våg 13 klar: 04-20 (samlad lokal syntetisk fasgrind PASS, browser 39/39, SQL 17 filer); nästa våg 14: 04-21 | - |
+| 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
 
-**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav inväntar genomförande och verifiering.
+**Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav väntar på genomförande eller slutverifiering. Fas 4:s åtta krav har gröna automatiska syntetiska bevis, men mänskligt användarprov och separat fasverifiering återstår.
 
 ---
-*Last updated: 2026-09-28 — fas 1–3 verifierade lokalt syntetiskt; fas 4 genomförs (11 av 22 planer klara).*
+*Last updated: 2026-09-29 — fas 1–3 verifierade lokalt syntetiskt; fas 4 våg 14 genomförd (24 av 25 planer klara).*

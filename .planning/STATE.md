@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 04
 current_phase_name: Beständigt och skyddat elevregister
-current_plan: 04-21
+current_plan: 04-22
 status: executing
-stopped_at: Completed 04-20-PLAN.md
+stopped_at: Completed 04-21-PLAN.md
 last_updated: "2026-09-29"
 last_activity: 2026-09-29
-last_activity_desc: "04-20 och våg 13 genomförda: samlad lokal syntetisk fasgrind PASS på e5d7a61; browser 39/39, SQL 17 filer, access 16/16, mandat 26/26, register-API 18/18 och lås 6/6. Nästa 04-21 uppdaterar handbok och kör om grinden."
-state_head: e5d7a61
+last_activity_desc: "Våg 14 och 04-21 genomförda: handbok byggd och förnyad lokal syntetisk fasgrind PASS på 8923529; SQL 17/17, browser 39/39 och samtliga åtta automatiska kravkedjor PASS. Nästa 04-22 mänskligt användarprov och separat fasverifiering."
+state_head: 8923529
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 54
-  completed_plans: 52
+  completed_plans: 53
 milestone_name: milestone
 ---
 
@@ -25,35 +25,35 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-29)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 4 — våg 13 klar. Samlad lokal syntetisk kravgrind PASS för åtta krav med browser 39/39, SQL 17 filer, access 16/16, mandat 26/26, register-API 18/18 och lås 6/6. Nästa: våg 14, 04-21 (handbok och förnyad slutgrind).
+**Current focus:** Fas 4 — våg 14 klar. Handboken är byggd och den förnyade lokala syntetiska kravgrinden är PASS för åtta krav på 8923529, med browser 39/39, SQL 17/17, access 16/16, mandat 26/26, register-API 18/18 och lås 6/6. Nästa: våg 15, 04-22 (mänskligt användarprov och separat fasverifiering).
 
 ## Current Position
 
-Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 23 av 25 planer klara
-Plan: 04-01–04-20, 04-23, 04-24 och 04-25 klara; våg 13 klar; nästa våg 14: 04-21
+Phase: 04 (Beständigt och skyddat elevregister) — genomförande pågår, 24 av 25 planer klara
+Plan: 04-01–04-21, 04-23, 04-24 och 04-25 klara; våg 14 klar; nästa våg 15: 04-22
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 04
 **Current Phase Name:** Beständigt och skyddat elevregister
 **Total Phases:** 8
-**Current Plan:** 04-21 (våg 14)
+**Current Plan:** 04-22 (våg 15)
 **Total Plans in Phase:** 25
-**Status:** Executing (våg 13 klar: 04-20; nästa våg 14: 04-21)
+**Status:** Executing (våg 14 klar: 04-21; nästa våg 15: 04-22)
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-29
-**Last Activity Description:** 04-20 genomförd: samlad lokal syntetisk fasgrind PASS på e5d7a61 med browser 39/39, SQL 17 filer och åtta kravkedjor; nästa 04-21 uppdaterar handbok och kör förnyad fullgrind.
+**Last Activity Description:** 04-21 genomförd: handboken byggd och förnyad lokal syntetisk fasgrind PASS på 8923529, browser 39/39 och åtta automatiska kravkedjor; nästa 04-22 användarprov och separat fasverifiering.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 52 av 54 hittills skrivna planer genomförda; fas 4 har 23 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 53 av 54 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 52
+- Total plans completed: 53
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -158,7 +158,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
-- Nästa steg: våg 14, 04-21, uppdaterar granskad användarhandbok och kör dokumentationsbygge samt förnyad full fasgrind. Våg 13:s 04-20 är genomförd mot lokal syntetisk miljö med samlad PASS-rapport; se `04-20-SUMMARY.md` och `04-WAVE-13-SUMMARY.md`. 04-22:s mänskliga användarprov och separat fasverifiering återstår. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
+- Nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
 - 8 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 
 ## Blockers
@@ -184,7 +184,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-09-29
-**Stopped At:** Completed 04-20-PLAN.md
+**Stopped At:** Completed 04-21-PLAN.md
 **Resume File:** None
 
 **Planned Phase:** 4 (Beständigt och skyddat elevregister) — 25 planer i 15 vågor — 2026-09-28

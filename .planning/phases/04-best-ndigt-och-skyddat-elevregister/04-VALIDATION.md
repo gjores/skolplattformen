@@ -38,7 +38,7 @@ created: "2026-09-28"
 
 ## Per-Task Verification Map
 
-Verifieringskartan nedan visar körda och återstående kontroller. Plan 04-01–04-20 samt 04-23–04-25 är genomförda; resultat finns här och i plan-/vågrapporterna. 04-20:s samlade grind är PASS på e5d7a61 med 17/17 SQL-filer och 39/39 browserfall, lokalt syntetiskt. Handbok/slutgrind i 04-21 och mänskligt prov i 04-22 återstår. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
+Verifieringskartan nedan visar körda och återstående kontroller. Plan 04-01–04-21 samt 04-23–04-25 är genomförda; resultat finns här och i plan-/vågrapporterna. 04-21:s dokumentationsbygge och förnyade fulla fasgrind är PASS på `8923529`, lokalt syntetiskt. Mänskligt användarprov i 04-22 och separat fasverifiering återstår. `<automated>` i respektive plan är den körbara källan. Testunderlaget skapas i sin ägarplan innan funktionen ändras, inte som en separat påstått färdig våg 0.
 
 | Uppgift | Krav | Planerat kommando | Status |
 |---|---|---|---|
@@ -82,8 +82,8 @@ Verifieringskartan nedan visar körda och återstående kontroller. Plan 04-01�
 | 04-19-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-phone` | PASS 2026-09-29: separat WebKit-enhetsläge 13/13, 390×844 och 320×740; ingen fysisk telefon; se 04-19-SUMMARY |
 | 04-20-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && node --test scripts/verify-phase4.test.mjs && npm run verify:phase4` | PASS 2026-09-29 på e5d7a61: grindens 6 rena validatorprov PASS; full slutrapport PASS med 395 modell-/serverprov, 29 grind-/registerprov, 17 SQL-filer, fyra baslinjeflöden, access 16/16, mandat 26/26, register-API 18/18, lås 6/6, källbevis och browser 39/39 utan hopp. Se 04-20-SUMMARY |
 | 04-20-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npm run verify:phase4` | PASS 2026-09-29: åtta kravkedjor PASS i `phase4-summary.json` på e5d7a61 med oförändrat källfingeravtryck; intern beviskarta i `docs/pilot/phase4-register.md`. Endast lokala syntetiska automatbevis; handbok/UAT/fasverifiering återstår |
-| 04-21-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build` | Ej kört |
-| 04-21-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build && cd web && npm run verify:phase4` | Ej kört |
+| 04-21-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build` | PASS 2026-09-29: Docusaurus byggde de fyra granskade handbokssidorna; se 04-21-SUMMARY |
+| 04-21-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build && cd web && npm run verify:phase4` | PASS 2026-09-29 på `8923529`: full grind med 395 modell-/serverprov, 29 grindprov, SQL 17/17 (1 216 kontroller), baslinje 4/4, access 16/16, mandat 26/26 (139 kontroller), källbevis, register-API 18/18, lås 6/6, browser 39/39 och åtta automatiska kravkedjor; lokalt syntetiskt. Docs-bygget kördes separat före grinden mot samma handboksversion. Se 04-21-SUMMARY |
 | 04-23-01 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_register.test.sql --out work/pilot/results/phase4-23-register.json && node work/pilot/run-sql-tests.mjs --file phase4_periods.test.sql --out work/pilot/results/phase4-23-periods.json && node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-23-export.json && node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-23-all-sql.json` | PASS efter RED: register 162/162, periods 101/101, export 22/22 mot protected-målet efter migration `20260929170000`; full SQL FAIL endast `phase3_boundaries`/`phase3_connections` (04-15), 14/16 filer ok, alla fas 4-filer PASS; se 04-23-SUMMARY |
 | 04-23-02 | STU-01, STU-02, STU-03, STU-04, STU-06, DATA-01, DATA-02 | `node work/pilot/phase4-worker-execute-probe.mjs --target protected --out work/pilot/results/phase4-23-worker-probe.json` | PASS 9/9 fall (slutkörning på d7ca458, Worker-bygge c69361e), lokalt mintade sessioner med testrealmens bevisprofil; icke-deterministiskt Wrangler-avbrott på nekat anrop i 5 av 11 körningar under planen (deferred-items) |
 | 04-24-01 | DATA-01, DATA-02 | `node work/pilot/run-sql-tests.mjs --file phase4_protected.test.sql --out work/pilot/results/phase4-24-protected.json && node work/pilot/run-sql-tests.mjs --file phase4_export.test.sql --out work/pilot/results/phase4-24-export.json && node work/pilot/run-sql-tests.mjs --out work/pilot/results/phase4-24-all-sql.json && cd web && node --test lib/server/pupil-register.test.mjs lib/server/pupil-register-audit.test.mjs && npx tsc --noEmit` | PASS (migration 20260929180000 tillämpad efter 170000; 04-17:s 20260930100000 ej tillämpad): RED före migration phase4_protected 10/203 (b och c); export låst redan grön. Efter: phase4_protected 203/203, phase4_export 28/28, full SQL 16/16 filer 1224 assertions; nod pupil-register + audit 36/36 (behörig form RED först); tsc utan fel. Lokalt, syntetiskt |
@@ -99,15 +99,15 @@ Verifieringskartan nedan visar körda och återstående kontroller. Plan 04-01�
 
 | Krav | Huvudsakliga bevisplaner |
 |---|---|
-| STU-01 | 04-02, 04-09, 04-16, 04-19 |
-| STU-02, STU-03 | 04-05, 04-13, 04-16, 04-19 |
-| STU-04 | 04-06, 04-13, 04-16, 04-19 |
-| STU-05 | 04-04, 04-12, 04-16, 04-19 |
-| STU-06 | 04-05, 04-07, 04-13, 04-16, 04-19 |
-| DATA-01 | 04-03, 04-04, 04-08, 04-11, 04-16–19, 04-24 |
-| DATA-02 | 04-04, 04-10, 04-13, 04-16, 04-19, 04-23, 04-24 |
+| STU-01 | 04-02, 04-09, 04-16, 04-19, 04-21 |
+| STU-02, STU-03 | 04-05, 04-13, 04-16, 04-19, 04-21 |
+| STU-04 | 04-06, 04-13, 04-16, 04-19, 04-21 |
+| STU-05 | 04-04, 04-12, 04-16, 04-19, 04-21 |
+| STU-06 | 04-05, 04-07, 04-13, 04-16, 04-19, 04-21 |
+| DATA-01 | 04-03, 04-04, 04-08, 04-11, 04-16–19, 04-21, 04-24 |
+| DATA-02 | 04-04, 04-10, 04-13, 04-16, 04-19, 04-21, 04-23, 04-24 |
 
-Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. 04-25 ger inget eget kravbevis. Den gör nekade anrop mot lokal Worker tillförlitliga, vilket 04-16 och 04-18–04-21 förutsätter. Äldre behörighets- och bevarandefall måste köras om, inte tillgodoräknas historiska gröna resultat.
+Samlad kravgrind inför handboksarbetet: 04-20; granskad handbok och förnyad fullgrind: 04-21. 04-25 ger inget eget kravbevis. Den gör nekade anrop mot lokal Worker tillförlitliga, vilket 04-16 och 04-18–04-21 förutsätter. Äldre behörighets- och bevarandefall måste köras om, inte tillgodoräknas historiska gröna resultat.
 
 ---
 
@@ -120,7 +120,7 @@ Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. 04-25 ger inget 
 - [ ] `work/pilot/sql/phase4-fixtures.sql`, `work/pilot/phase4-browser-fixtures.mjs`
 - [ ] `work/pilot/verify-register.mjs`, `work/pilot/verify-register-locks.mjs`
 - [x] `web/e2e/phase4-register.spec.ts` (protected-desktop, -phone, -built; 39/39, 04-19)
-- [x] `web/scripts/verify-phase4.mjs` + `.test.mjs`, `npm run verify:phase4` — 04-20-SUMMARY, full lokal syntetisk PASS på e5d7a61
+- [x] `web/scripts/verify-phase4.mjs` + `.test.mjs`, `npm run verify:phase4` — 04-21-SUMMARY, förnyad full lokal syntetisk PASS på 8923529
 
 ---
 
