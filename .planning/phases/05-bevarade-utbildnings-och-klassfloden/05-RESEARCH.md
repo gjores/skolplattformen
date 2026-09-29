@@ -32,3 +32,5 @@ Ny migration per avgränsad domän, ändra aldrig tillämpade migrationer. Inven
 Den skyddade pilotdatabasens hela grants måste verifieras vid genomförande; kodläsning bevisar inte ansluten drift. Läsårsmodellens skrivroller är kodkontrollerade i 05-01; aktuell SQL-auktoritet och klassnamnens entydighet återstår att verifiera i genomförandet. Modulformatet följer befintlig Vinext; inga produktversioner eller externa API-regler behöver uppdateras i denna fas. Bred UI-ombyggnad och SPAR/Skatteverket ligger i separata TODOs.
 
 Färska startprov och källförankrad rollmatris finns i `05-CURRENT-EVIDENCE.md`: 30 modellprov PASS, två sparordnings-/ID-prov FAIL.
+
+Uppföljning 05-02: båda ursprungliga lokala lagringsfel rättade och införda som obligatorisk regression; se 05-02-SUMMARY.md. Server-/SQL-/UI-bevis inför öppnande återstår.

@@ -30,3 +30,7 @@ Detta är klient-/äldre SQL-regler att föra över till aktuell mandatkontroll,
 Kullkopieringens befintliga SQL skapar ny utbildning och planutkast/version 1 med nya ID:n samt en ny kopieringshändelse. Den kopierar inte elever, klasser, tillstånd eller gamla beslutshändelser. Klasskopplingens gamla nyckel består av skola, namn och startår; övergång till beständigt klass-ID får endast mappa entydiga befintliga kopplingar och måste redovisa tvetydigheter.
 
 Fas 4 är fortsatt öppen: partialt mänskligt användarprov, datumanmärkning och separat fasverifiering återstår. Användarens instruktion att gå vidare till fas 5 är inte en uppgift om att dessa prov har utförts. Förberedelser kan genomföras nu; slutligt bevis måste hålla fasernas status isär.
+
+## Uppföljning 05-02
+
+Startproven ovan är historik före rättning. 05-02 rättade lokalt lager/kö/ID-mappning på 174f6d8, med 346/346 ordinarie tester PASS inklusive 9 lager- och 3 köprov. Den nya skyddade datavägen och UI-omläsningssvar är fortfarande obevisade. Se 05-02-SUMMARY.md för faktisk prov-/bygggräns.

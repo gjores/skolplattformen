@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-01
+current_plan: 05-02
 status: planning
-stopped_at: Completed 05-01; Phase 5 implementation planning next; Phase 4 checkpoint open
+stopped_at: Completed 05-02; protected planning implementation plans next; Phase 4 checkpoint open
 last_updated: "2026-09-29"
 last_activity: 2026-09-29
-last_activity_desc: "Fas 5: 05-01 genomförd, kontrakt och valideringskarta skrivna. Modeller PASS30/30, äldre sparprov FAIL2/2; fas 4 fortsatt öppen."
-state_head: 8923529
+last_activity_desc: "05-02 klar på 174f6d8: lokal sparordning och ID-mappning rättade,346/346 tester samt typ/lint/bygge PASS. Skyddad planering och fas4-verifiering återstår."
+state_head: 174f6d8
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 55
-  completed_plans: 54
+  total_plans: 56
+  completed_plans: 55
 milestone_name: milestone
 ---
 
@@ -25,28 +25,28 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-29)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5 förbereds på användarens instruktion 2026-09-29. Befintliga utbildnings-/kull-/timplansmodeller PASS 30/30; båda äldre sparordnings-/ID-prov fortfarande röda. Fas 4 är inte slutverifierad och dess återstående användarprov/datumanmärkning behålls öppna.
+**Current focus:** Fas 5: 05-01–05-02 genomförda. Lokala sparordnings-/ID-prov nu gröna; ordinarie svit 346/346, typ/lint/bygge PASS på arbetskopiekod committad 174f6d8. Nästa: avgränsade server-/SQL-/UI-planer för skyddad planering. Fas4 är inte slutverifierad och kvarstående användarprov/datumanmärkning behålls öppna.
 
 ## Current Position
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01 förberedelse genomförd; implementationsplanering återstår. Fas 4 kvarstår på 24 av 25 planer.
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-02 förberedelser genomförda; skyddad implementationsplanering återstår. Fas 4 kvarstår på 24 av 25 planer.
 Plan: 04-01–04-21, 04-23, 04-24 och 04-25 klara; våg 14 klar; nästa våg 15: 04-22
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-01 klar; nästa detaljerad implementationsplanering
-**Total Plans in Phase:** 1 skriven förberedelseplan; implementationsplaner återstår
+**Current Plan:** 05-02 klar; nästa planer för skyddad planering
+**Total Plans in Phase:** 2 genomförda förberedelseplaner; skyddade implementationsplaner återstår
 **Status:** Planning fas 5; fas 4:s användarprov och fasverifiering fortfarande öppna
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-29
-**Last Activity Description:** 04-21 genomförd: handboken byggd och förnyad lokal syntetisk fasgrind PASS på 8923529, browser 39/39 och åtta automatiska kravkedjor; nästa 04-22 användarprov och separat fasverifiering.
+**Last Activity Description:** 05-02 genomförd: lokal sparordning/databas-ID rättade och 346/346 tester PASS; nya skyddade planeringsvägar återstår.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 54 av 55 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 55 av 56 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
@@ -194,7 +194,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-09-29
-**Stopped At:** 05-01 klar; implementationsplanering för fas 5 nästa; fas 4:s checkpoint kvarstår separat
+**Stopped At:** 05-02 klar; skyddad implementationsplanering för fas 5 nästa; fas 4:s checkpoint kvarstår separat
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01 klar; fortsatta genomförandeplaner återstår — 2026-09-29
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01–05-02 klara; skyddade genomförandeplaner återstår — 2026-09-29
