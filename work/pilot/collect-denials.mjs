@@ -192,8 +192,8 @@ function httpProbe(target, method, endpoint, body, headers = {}, timeoutMs = 100
 }
 // Uses the public local anon key only. These paths must stay closed for anon.
 const httpProbes = [
-  { id: 'direct-rest', route: 'rest', method: 'GET', endpoint: '/rest/v1/phase3_probe_pupils?select=id' },
-  { id: 'direct-rpc', route: 'rpc', method: 'POST', endpoint: '/rest/v1/rpc/phase3_read_pupils', body: {} },
+  { id: 'direct-rest', route: 'rest', method: 'GET', endpoint: '/rest/v1/pupils?select=id' },
+  { id: 'direct-rpc', route: 'rpc', method: 'POST', endpoint: '/rest/v1/rpc/phase4_list_pupils', body: { request: {} } },
   { id: 'direct-storage', route: 'storage', method: 'POST', endpoint: '/storage/v1/bucket', body: { name: 'phase3-probe', public: false } },
 ];
 async function runHttpProbe(target, probe, timeoutMs) {
@@ -214,9 +214,9 @@ async function runSqlProbe(target) {
   const sql = postgres({ host: url.hostname, port: Number(url.port), database: url.pathname.slice(1), username: 'authenticator',
     password: decodeURIComponent(url.password), max: 1, prepare: false, onnotice: () => {}, connect_timeout: 10, idle_timeout: 5 });
   const statements = [
-    'select id from public.phase3_probe_pupils limit 1',
+    'select id from public.pupils limit 1',
     'set role anon',
-    'select id from public.phase3_probe_pupils limit 1',
+    'select id from public.pupils limit 1',
     'reset role',
     'set role authenticated',
     'select count(*) from public.security_events',

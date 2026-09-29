@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Fas 3: namngivna API-, kringgående- och loggfelsprov mot byggd protected-Worker
-// i det lokala, syntetiska protected-målet (03-EXECUTION-CONTRACT, plan 06).
+// Fas 3:s namngivna API-, kringgående- och loggfelsprov, portade till fas 4:s
+// elevregister mot byggd protected-Worker i det lokala syntetiska målet.
 //
 // Sessionerna mintas direkt i målet med samma bevisprofil som verify-access.mjs.
 // Det provar serverns mandat- och auditgränser men bevisar INTE en verklig
@@ -11,7 +11,7 @@
 //  - Direkta vägar: Kong/Storage/Postgres-loggar via collect-denials.mjs
 //    (minimerade, i minnet) samt extra Kong-korrelerade prov för gamla RPC:er.
 //
-//   node work/pilot/verify-mandates.mjs --out work/pilot/results/phase3-api.json
+//   node work/pilot/verify-mandates.mjs --out work/pilot/results/phase4-mandates-regression.json
 //   node work/pilot/verify-mandates.mjs --case teacher-group [--case ...]   (felsökning)
 //
 // Ett delurval ger aldrig status PASS (endast PARTIAL). Saknat fall, krasch eller
@@ -39,7 +39,7 @@ export const REQUIRED_CASES = [
 ];
 const SOURCE_CASES = ['direct-rest', 'direct-rpc', 'direct-storage', 'direct-sql', 'audit-source-outage', 'audit-minimization'];
 
-// Syntetiska fixturer (work/pilot/sql/phase3-fixtures.sql) och tillfälliga provrader.
+// Syntetiska registerfixturer (work/pilot/sql/phase3-fixtures.sql) och tillfälliga provrader.
 const C1 = '33000000-0000-4000-8000-000000000001', C2 = '33000000-0000-4000-8000-000000000002';
 const ORG1 = '33000000-0000-4000-8000-000000000011';
 const U11 = '33000000-0000-4000-8000-000000000111', U12 = '33000000-0000-4000-8000-000000000112', U21 = '33000000-0000-4000-8000-000000000121';
@@ -52,11 +52,12 @@ const HM1 = { identity: '33000000-0000-4000-8000-000000000021', membership: '330
 const HM2 = { membership: '33000000-0000-4000-8000-000000000032', assignment: '33000000-0000-4000-8000-000000000042' };
 const BERTIL = { identity: '30000000-0000-4000-8000-000000000002', membership: '40000000-0000-4000-8000-000000000002', assignment: '50000000-0000-4000-8000-000000000002' };
 const NAME_MARKERS = ['Syntetisk elev', 'Syntetisk rektor', 'Syntetisk personal', 'Syntetisk anteckning', 'Syntetisk inbjuden'];
-const FIELDS = JSON.stringify(['displayName', 'groupIds', 'id', 'unitId']);
+const REGISTER_ROW_FIELDS = new Set(['id','displayName','unitId','unitName','classId','className','educationId',
+  'educationName','grade','status','capabilities','birthDate','municipalityCode']);
 const secretPattern = /sp_session=|postgres(?:ql)?:\/\/|eyJ[A-Za-z0-9_-]{20,}|BEGIN (?:RSA |EC )?PRIVATE KEY|sb_(?:secret|service)_|Syntetisk elev/iu;
 
 export function parseArgs(argv) {
-  const options = { cases: [], port: 3014, baseUrl: null, out: path.join(root, 'work/pilot/results/phase3-api.json') };
+  const options = { cases: [], port: 3014, baseUrl: null, out: path.join(root, 'work/pilot/results/phase4-mandates-regression.json') };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     const value = () => {
@@ -178,6 +179,34 @@ async function main() {
   };
 
   const call = async (session, method, route, body, headers = {}) => {
+    // Fas 4 har explicita läsårs- och urvalskontrakt. Välj skola från det
+    // faktiskt utfärdade mandatet; frågesträngens elev/ärende är enbart objektval.
+    if (method === 'GET' && route.startsWith('/api/elever/')) {
+      const url = new URL(route, 'http://127.0.0.1');
+      const registerPath = url.pathname;
+      if (['/api/elever/lista', '/api/elever/elev', '/api/elever/export'].includes(registerPath)) {
+        const schoolYear = Number(today.slice(0, 4)) - (Number(today.slice(5, 7)) < 7 ? 1 : 0);
+        const assignment = typeof session === 'string' ? null : psql("select assignment_id::text from public.app_sessions where id=:'id'::uuid", { id: session.sessionId });
+        const units = assignment ? psql("select coalesce(string_agg(unit_id::text,',' order by unit_id),'') from public.mandate_units where assignment_id=:'id'::uuid", { id: assignment }).split(',').filter(Boolean) : [];
+        const unitId = units.includes(U11) ? U11 : units[0] ?? U11;
+        const selection = { schoolYear, unitId, classId: null, educationId: null, grade: null, status: null, page: 1 };
+        const caseId = url.searchParams.get('arende');
+        if (registerPath === '/api/elever/elev' || url.searchParams.has('elev')) {
+          const pupilId = url.searchParams.get('elev');
+          url.searchParams.delete('elev'); url.searchParams.delete('arende');
+          url.searchParams.set('pupilId', pupilId ?? ''); url.searchParams.set('schoolYear', String(schoolYear));
+          if (caseId) url.searchParams.set('caseId', caseId);
+          route = `${registerPath === '/api/elever/lista' ? '/api/elever/elev' : registerPath}${url.search}`;
+        } else if (registerPath === '/api/elever/lista') {
+          route = registerPath; method = 'POST';
+          body = { selection, search: 'Syntetisk elev', caseId };
+        } else {
+          route = registerPath; method = 'POST';
+          body = { mode: 'download', export: { schoolYear, caseId: null, fields: ['id', 'displayName'], protectedIds: [], includePersonalNumber: false,
+            mode: 'filter', selection, search: 'Syntetisk elev' } };
+        }
+      }
+    }
     const token = typeof session === 'string' ? session : session.token;
     const requestHeaders = new Headers(headers);
     requestHeaders.set('Cookie', `sp_session=${token}`);
@@ -281,7 +310,7 @@ async function main() {
     } catch {
       sourceReport = { status: 'BLOCKED', probes: [], outages: [], events: [], blockers: ['source-collection-unavailable'] };
     }
-    const denialsOut = path.join(root, 'work/pilot/results/phase3-denials.json');
+    const denialsOut = path.join(root, 'work/pilot/results/phase4-denials-regression.json');
     if (!options.subset) fs.writeFileSync(denialsOut, `${JSON.stringify(sourceReport, null, 2)}\n`, { mode: 0o600 });
     return sourceReport;
   };
@@ -323,18 +352,20 @@ async function main() {
       const rector = await appointRector([U11, U12]);
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       const mentor = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G12, kind: 'mentor' }] }, [U12]);
-      const list = await call(teacher.session, 'GET', '/api/prov/elev');
+      const list = await call(teacher.session, 'GET', '/api/elever/lista');
       check(checks, 'undervisningslärare ser bara egen grupp, inte annan grupp i samma skola', list.status === 200 && pupilIds(list) === JSON.stringify([P11]) && !leaks(list).includes(P19), pupilIds(list));
-      check(checks, 'explicit fältlista och egen grupp i groupIds', list.body?.pupils?.every((p) => JSON.stringify(Object.keys(p).sort()) === FIELDS) && JSON.stringify(list.body?.pupils?.[0]?.groupIds) === JSON.stringify([G11]), 'fält kontrollerade');
-      check(checks, 'listningen har committad händelse', events(list) === 'pupil_probe_listed|ok||1|list', events(list));
-      const sameSchool = await call(teacher.session, 'GET', `/api/prov/elev?elev=${P19}`);
-      const otherSchool = await call(teacher.session, 'GET', `/api/prov/elev?elev=${P12}`);
-      const unknown = await call(teacher.session, 'GET', `/api/prov/elev?elev=${crypto.randomUUID()}`);
+      check(checks, 'explicit registerfältlista och egen klass', list.body?.pupils?.every((p) =>
+        Object.keys(p).every((field) => REGISTER_ROW_FIELDS.has(field)) && !Object.hasOwn(p, 'personalNumber')) &&
+        list.body?.pupils?.[0]?.classId === G11, 'fält kontrollerade');
+      check(checks, 'listningen har committad händelse', events(list) === 'pupil_list_read|ok||1|', events(list));
+      const sameSchool = await call(teacher.session, 'GET', `/api/elever/elev?elev=${P19}`);
+      const otherSchool = await call(teacher.session, 'GET', `/api/elever/elev?elev=${P12}`);
+      const unknown = await call(teacher.session, 'GET', `/api/elever/elev?elev=${crypto.randomUUID()}`);
       check(checks, 'elev i annan grupp, annan skola och okänd ger samma 404 utan innehåll', sameSchool.status === 404 && equalShape(sameSchool, otherSchool) && equalShape(sameSchool, unknown) && !hasName(sameSchool, otherSchool, unknown), `${sameSchool.status}/${otherSchool.status}/${unknown.status}`);
-      check(checks, 'nekade läsningar loggas', events(sameSchool) === 'pupil_probe_read|denied|not_found||', events(sameSchool));
-      const mentorList = await call(mentor.session, 'GET', '/api/prov/elev');
+      check(checks, 'nekade läsningar loggas', events(sameSchool) === 'pupil_read|denied|not_found||', events(sameSchool));
+      const mentorList = await call(mentor.session, 'GET', '/api/elever/lista');
       check(checks, 'mentor ser bara sin mentorsgrupp', mentorList.status === 200 && pupilIds(mentorList) === JSON.stringify([P12]), pupilIds(mentorList));
-      const exported = await call(teacher.session, 'GET', '/api/prov/export');
+      const exported = await call(teacher.session, 'GET', '/api/elever/export');
       const granted = await call(teacher.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       check(checks, 'lärare saknar export och tilldelning', exported.status === 403 && granted.status === 403 && !exported.headers['content-type']?.includes('text/csv'), `${exported.status}/${granted.status}`);
     },
@@ -342,15 +373,15 @@ async function main() {
     async 'school-admin'(checks) {
       const rector = await appointRector([U11]);
       const admin = await grant(rector, { function: 'administrator' });
-      const list = await call(admin.session, 'GET', '/api/prov/elev');
+      const list = await call(admin.session, 'GET', '/api/elever/lista');
       check(checks, 'skoladministratör ser hela egna skolan men inte andra skolor', list.status === 200 && pupilIds(list) === JSON.stringify([P11, P19].sort()), pupilIds(list));
-      const other = await call(admin.session, 'GET', `/api/prov/elev?elev=${P12}`);
-      const foreign = await call(admin.session, 'GET', `/api/prov/elev?elev=${P21}`);
+      const other = await call(admin.session, 'GET', `/api/elever/elev?elev=${P12}`);
+      const foreign = await call(admin.session, 'GET', `/api/elever/elev?elev=${P21}`);
       check(checks, 'annan skola och annan kund ger samma 404', other.status === 404 && equalShape(other, foreign) && !hasName(other, foreign), `${other.status}/${foreign.status}`);
-      const exported = await call(admin.session, 'GET', '/api/prov/export');
+      const exported = await call(admin.session, 'GET', '/api/elever/export');
       const csv = typeof exported.body === 'string' ? exported.body : '';
       check(checks, 'export innehåller endast egen skola och är no-store', exported.status === 200 && csv.includes(P11) && csv.includes(P19) && !csv.includes(P12) && !csv.includes(P21) && exported.headers['cache-control'] === 'no-store', `HTTP ${exported.status}`);
-      check(checks, 'exporten har committad händelse med antal', events(exported) === 'pupil_probe_exported|ok||2|export', events(exported));
+      check(checks, 'exporten har committad händelse med antal', events(exported) === 'pupil_exported|ok||2|', events(exported));
       const grantTry = await call(admin.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       const connection = await call(admin.session, 'PATCH', '/api/kund/anslutning', { unitId: U11, enabled: true, expectedVersion: 0 });
       check(checks, 'skoladministratör kan inte tilldela eller ändra anslutning', grantTry.status === 403 && connection.status === 403, `${grantTry.status}/${connection.status}`);
@@ -359,29 +390,29 @@ async function main() {
     async 'health-school'(checks) {
       const rector = await appointRector([U11]);
       const health = await grant(rector, { function: 'elevhalsa' });
-      const list = await call(health.session, 'GET', '/api/prov/elev');
-      check(checks, 'elevhälsa med skolscope ser egna skolans elever', list.status === 200 && pupilIds(list) === JSON.stringify([P11, P19].sort()) && events(list) === 'pupil_probe_listed|ok||2|list', `${pupilIds(list)}; ${events(list)}`);
-      const other = await call(health.session, 'GET', `/api/prov/elev?elev=${P12}`);
+      const list = await call(health.session, 'GET', '/api/elever/lista');
+      check(checks, 'elevhälsa med skolscope ser egna skolans elever', list.status === 200 && pupilIds(list) === JSON.stringify([P11, P19].sort()) && events(list) === 'pupil_list_read|ok||2|', `${pupilIds(list)}; ${events(list)}`);
+      const other = await call(health.session, 'GET', `/api/elever/elev?elev=${P12}`);
       check(checks, 'annan skola nekas', other.status === 404 && !hasName(other), `HTTP ${other.status}`);
-      const exported = await call(health.session, 'GET', '/api/prov/export');
+      const exported = await call(health.session, 'GET', '/api/elever/export');
       const delegate = await call(health.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'elevhalsa' });
       check(checks, 'elevhälsa saknar export och delegering', exported.status === 403 && delegate.status === 403, `${exported.status}/${delegate.status}`);
       const lead = await insertRoot('elevhalsoansvarig', [U11]);
       const leadGrant = await call(lead.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'elevhalsa' });
       const leadOutside = await call(lead.session, 'POST', '/api/kund/mandat', { ...base([U12]), membershipId: createPerson().membership, function: 'elevhalsa' });
-      const leadRead = await call(lead.session, 'GET', '/api/prov/elev');
+      const leadRead = await call(lead.session, 'GET', '/api/elever/lista');
       check(checks, 'elevhälsoansvarig tilldelar bara inom sina skolor och har ingen egen elevläsning', leadGrant.status === 201 && leadOutside.status === 403 && leadRead.status === 403, `${leadGrant.status}/${leadOutside.status}/${leadRead.status}`);
     },
 
     async 'health-pupil'(checks) {
       const rector = await appointRector([U11]);
       const health = await grant(rector, { function: 'elevhalsa', scopeKind: 'pupil', pupilIds: [P11] });
-      const list = await call(health.session, 'GET', '/api/prov/elev');
+      const list = await call(health.session, 'GET', '/api/elever/lista');
       check(checks, 'elevscope ger exakt tilldelad elev, inte övriga i skolan', list.status === 200 && pupilIds(list) === JSON.stringify([P11]), pupilIds(list));
-      const own = await call(health.session, 'GET', `/api/prov/elev?elev=${P11}`);
-      const sameSchool = await call(health.session, 'GET', `/api/prov/elev?elev=${P19}`);
-      const unknown = await call(health.session, 'GET', `/api/prov/elev?elev=${crypto.randomUUID()}`);
-      check(checks, 'tilldelad elev läses med committad händelse', own.status === 200 && events(own) === 'pupil_probe_read|ok||1|pupil', events(own));
+      const own = await call(health.session, 'GET', `/api/elever/elev?elev=${P11}`);
+      const sameSchool = await call(health.session, 'GET', `/api/elever/elev?elev=${P19}`);
+      const unknown = await call(health.session, 'GET', `/api/elever/elev?elev=${crypto.randomUUID()}`);
+      check(checks, 'tilldelad elev läses med committad händelse', own.status === 200 && events(own) === 'pupil_read|ok|||', events(own));
       check(checks, 'otilldelad elev i samma skola ger samma 404 som okänd', sameSchool.status === 404 && equalShape(sameSchool, unknown) && !hasName(sameSchool, unknown), `${sameSchool.status}/${unknown.status}`);
       const outsideGrant = await call(rector.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'elevhalsa', scopeKind: 'pupil', pupilIds: [P12] });
       check(checks, 'rektor kan inte ge elevscope för elev i annan skola', [403, 404].includes(outsideGrant.status), `HTTP ${outsideGrant.status}`);
@@ -390,16 +421,19 @@ async function main() {
     async 'health-case'(checks) {
       const rector = await appointRector([U11]);
       const health = await grant(rector, { function: 'elevhalsa', scopeKind: 'case', caseIds: [K11] });
-      const list = await call(health.session, 'GET', '/api/prov/elev');
+      const list = await call(health.session, 'GET', '/api/elever/lista');
       check(checks, 'ärendescope ger ingen lista utan valt ärende', list.status === 200 && list.body?.pupils?.length === 0 && JSON.stringify(list.body?.scope?.cases?.map((c) => c.id)) === JSON.stringify([K11]), `HTTP ${list.status}`);
-      const own = await call(health.session, 'GET', `/api/prov/elev?arende=${K11}`);
-      check(checks, 'exakt ärende ger ärendets elev med committad händelse', own.status === 200 && pupilIds(own) === JSON.stringify([P11]) && events(own) === 'pupil_probe_case_read|ok||1|case', events(own));
-      const sameSchool = await call(health.session, 'GET', `/api/prov/elev?arende=${K19}`);
-      const otherSchool = await call(health.session, 'GET', `/api/prov/elev?arende=${K12}`);
-      const foreign = await call(health.session, 'GET', `/api/prov/elev?arende=${K21}`);
-      const mismatch = await call(health.session, 'GET', `/api/prov/elev?arende=${K11}&elev=${P19}`);
-      check(checks, 'annat ärende (samma skola, annan skola, annan kund) och fel elev nekas lika', [sameSchool, otherSchool, foreign, mismatch].every((r) => r.status === 404 && equalShape(r, sameSchool)) && !hasName(sameSchool, otherSchool, foreign, mismatch), [sameSchool, otherSchool, foreign, mismatch].map((r) => r.status).join('/'));
-      const byPupil = await call(health.session, 'GET', `/api/prov/elev?elev=${P11}`);
+      const own = await call(health.session, 'GET', `/api/elever/lista?arende=${K11}`);
+      check(checks, 'exakt ärende ger ärendets elev med committad händelse', own.status === 200 && pupilIds(own) === JSON.stringify([P11]) && events(own) === 'pupil_list_read|ok||1|', events(own));
+      const sameSchool = await call(health.session, 'GET', `/api/elever/lista?arende=${K19}`);
+      const otherSchool = await call(health.session, 'GET', `/api/elever/lista?arende=${K12}`);
+      const foreign = await call(health.session, 'GET', `/api/elever/lista?arende=${K21}`);
+      const mismatch = await call(health.session, 'GET', `/api/elever/lista?arende=${K11}&elev=${P19}`);
+      check(checks, 'annat ärende ger samma tomma registerlista och fel elev nekas utan innehåll',
+        [sameSchool, otherSchool, foreign].every((r) => r.status === 200 && r.body?.count === 0 && r.body?.pupils?.length === 0 && events(r) === 'pupil_list_read|ok||0|') &&
+        mismatch.status === 404 && !hasName(sameSchool, otherSchool, foreign, mismatch),
+        [sameSchool, otherSchool, foreign, mismatch].map((r) => r.status).join('/'));
+      const byPupil = await call(health.session, 'GET', `/api/elever/elev?elev=${P11}`);
       check(checks, 'ärendescope ger inte direkt elevläsning utan ärende', byPupil.status === 404 && !hasName(byPupil), `HTTP ${byPupil.status}`);
     },
 
@@ -419,19 +453,23 @@ async function main() {
       const approver = psql("select coalesce(approved_by_assignment_id::text,'') from public.access_assignments where id=:'id'::uuid", { id: support.assignmentId });
       check(checks, 'servern sätter rektorn som godkännare', approver === rector.assignmentId, 'godkännare från serverns mandat');
       setSupportWindow(support.assignmentId, "clock_timestamp()+interval '5 minutes'", "clock_timestamp()+interval '20 minutes'");
-      const before = await call(support.session, 'GET', '/api/prov/elev');
-      check(checks, 'före start: nekad utan innehåll', before.status === 403 && !hasName(before) && events(before).startsWith('pupil_probe_read|denied|'), `${before.status}/${before.body?.code}`);
+      const before = await call(support.session, 'GET', '/api/elever/lista');
+      check(checks, 'före start: nekad utan innehåll', before.status === 403 && !hasName(before) && events(before).startsWith('pupil_list_read|denied|'), `${before.status}/${before.body?.code}`);
       setSupportWindow(support.assignmentId, "clock_timestamp()-interval '1 second'", "clock_timestamp()+interval '10 minutes'");
-      const during = await call(support.session, 'GET', '/api/prov/elev');
-      check(checks, 'under giltig tid: en elev med godkännare, syfte och sluttid', during.status === 200 && pupilIds(during) === JSON.stringify([P11]) && during.body?.scope?.purposeCode === 'synthetic-troubleshooting' && Boolean(during.body?.scope?.endsAt) && Boolean(during.body?.scope?.approverName) && events(during) === 'pupil_probe_listed|ok||1|list', events(during));
-      const exported = await call(support.session, 'GET', '/api/prov/export');
+      const during = await call(support.session, 'GET', '/api/elever/lista');
+      const supportSelection = await call(support.session, 'GET', '/api/elever/urval');
+      check(checks, 'under giltig tid: en elev med godkännare, syfte och sluttid', during.status === 200 && pupilIds(during) === JSON.stringify([P11]) &&
+        supportSelection.status === 200 && supportSelection.body?.purposeCode === 'synthetic-troubleshooting' &&
+        Boolean(supportSelection.body?.endsAt) && Boolean(supportSelection.body?.approverName) &&
+        events(during) === 'pupil_list_read|ok||1|', events(during));
+      const exported = await call(support.session, 'GET', '/api/elever/export');
       const delegate = await call(support.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'elevhalsa' });
       const itCall = await call(support.session, 'PATCH', '/api/kund/anslutning', { unitId: U11, enabled: true, expectedVersion: 0 });
       check(checks, 'support har inget export-, delegerings- eller skrivmandat', exported.status === 403 && delegate.status === 403 && itCall.status === 403, `${exported.status}/${delegate.status}/${itCall.status}`);
       setSupportWindow(support.assignmentId, "clock_timestamp()-interval '10 minutes'", 'clock_timestamp()');
-      const atEnd = await call(support.session, 'GET', '/api/prov/elev');
+      const atEnd = await call(support.session, 'GET', '/api/elever/lista');
       setSupportWindow(support.assignmentId, "clock_timestamp()-interval '10 minutes'", "clock_timestamp()-interval '1 second'");
-      const after = await call(support.session, 'GET', '/api/prov/elev');
+      const after = await call(support.session, 'GET', '/api/elever/lista');
       const session = await call(support.session, 'GET', '/api/session');
       check(checks, 'vid och efter sluttid (halvöppet intervall): nekad utan innehåll', atEnd.status === 403 && after.status === 403 && !hasName(atEnd, after) && session.body?.context?.valid === false, `${atEnd.status}/${after.status}`);
     },
@@ -461,24 +499,28 @@ async function main() {
       const support = await grant(rector, one);
       const approver = psql("select coalesce(approved_by_assignment_id::text,'') from public.access_assignments where id=:'id'::uuid", { id: support.assignmentId });
       check(checks, 'servern sätter rektorn som godkännare för gruppsupport', approver === rector.assignmentId, 'godkännare från serverns mandat');
-      const during = await call(support.session, 'GET', '/api/prov/elev');
+      const during = await call(support.session, 'GET', '/api/elever/lista');
+      const supportSelection = await call(support.session, 'GET', '/api/elever/urval');
       const scopeGroups = JSON.stringify((during.body?.scope?.groups ?? []).map((group) => group.id));
-      check(checks, 'gruppsupport ser endast elever i gruppen, med godkännare, syfte och sluttid', during.status === 200 && pupilIds(during) === JSON.stringify([P11]) && !leaks(during).includes(P19) && during.body?.scope?.scopeKind === 'group' && scopeGroups === JSON.stringify([G11]) && during.body?.scope?.purposeCode === 'synthetic-troubleshooting' && Boolean(during.body?.scope?.endsAt) && Boolean(during.body?.scope?.approverName) && events(during) === 'pupil_probe_listed|ok||1|list', `${pupilIds(during)}; ${events(during)}`);
-      const sameSchool = await call(support.session, 'GET', `/api/prov/elev?elev=${P19}`);
-      const otherSchool = await call(support.session, 'GET', `/api/prov/elev?elev=${P12}`);
+      check(checks, 'gruppsupport ser endast elever i gruppen, med godkännare, syfte och sluttid', during.status === 200 && pupilIds(during) === JSON.stringify([P11]) &&
+        !leaks(during).includes(P19) && scopeGroups === JSON.stringify([G11]) && supportSelection.status === 200 &&
+        supportSelection.body?.purposeCode === 'synthetic-troubleshooting' && Boolean(supportSelection.body?.endsAt) &&
+        Boolean(supportSelection.body?.approverName) && events(during) === 'pupil_list_read|ok||1|', `${pupilIds(during)}; ${events(during)}`);
+      const sameSchool = await call(support.session, 'GET', `/api/elever/elev?elev=${P19}`);
+      const otherSchool = await call(support.session, 'GET', `/api/elever/elev?elev=${P12}`);
       check(checks, 'elev utanför gruppen (samma och annan skola) nekas utan innehåll', sameSchool.status === 404 && otherSchool.status === 404 && !hasName(sameSchool, otherSchool), `${sameSchool.status}/${otherSchool.status}`);
-      const exported = await call(support.session, 'GET', '/api/prov/export');
+      const exported = await call(support.session, 'GET', '/api/elever/export');
       const delegate = await call(support.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'elevhalsa' });
       check(checks, 'gruppsupport har inget export- eller delegeringsmandat', exported.status === 403 && delegate.status === 403, `${exported.status}/${delegate.status}`);
 
       const both = await grant(rector, { ...one, groups: [{ id: G11, kind: 'teaching' }, { id: G19, kind: 'teaching' }] });
-      const bothList = await call(both.session, 'GET', '/api/prov/elev');
+      const bothList = await call(both.session, 'GET', '/api/elever/lista');
       check(checks, 'support för två grupper på samma skola ser elever i båda', bothList.status === 200 && pupilIds(bothList) === JSON.stringify([P11, P19].sort()), pupilIds(bothList));
 
       setSupportWindow(support.assignmentId, "clock_timestamp()-interval '10 minutes'", 'clock_timestamp()');
-      const atEnd = await call(support.session, 'GET', '/api/prov/elev');
+      const atEnd = await call(support.session, 'GET', '/api/elever/lista');
       setSupportWindow(support.assignmentId, "clock_timestamp()-interval '10 minutes'", "clock_timestamp()-interval '1 second'");
-      const after = await call(support.session, 'GET', '/api/prov/elev');
+      const after = await call(support.session, 'GET', '/api/elever/lista');
       check(checks, 'gruppsupport vid och efter sluttid: nekad utan innehåll', atEnd.status === 403 && after.status === 403 && !hasName(atEnd, after), `${atEnd.status}/${after.status}`);
     },
 
@@ -499,8 +541,8 @@ async function main() {
       const foreign = await call(it.session, 'GET', `/api/kund/anslutning?unitId=${U21}`);
       const unknown = await call(it.session, 'GET', `/api/kund/anslutning?unitId=${crypto.randomUUID()}`);
       check(checks, 'annan skola, annan kund och okänd ger samma 404', other.status === 404 && equalShape(other, foreign) && equalShape(other, unknown), `${other.status}/${foreign.status}/${unknown.status}`);
-      const read = await call(it.session, 'GET', '/api/prov/elev');
-      const exported = await call(it.session, 'GET', '/api/prov/export');
+      const read = await call(it.session, 'GET', '/api/elever/lista');
+      const exported = await call(it.session, 'GET', '/api/elever/export');
       const delegate = await call(it.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       check(checks, 'IT har ingen elevinsyn, export eller delegering', read.status === 403 && exported.status === 403 && delegate.status === 403 && !hasName(read, exported, current, tested, schools), `${read.status}/${exported.status}/${delegate.status}`);
       check(checks, 'ursprungligt anslutningsläge återställt', restored.status === 200, `HTTP ${restored.status}`);
@@ -532,11 +574,11 @@ async function main() {
       const rector = await appointRector([U11], h);
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       const health = await grant(rector, { function: 'elevhalsa', scopeKind: 'pupil', pupilIds: [P11] });
-      const before = await call(teacher.session, 'GET', '/api/prov/elev');
+      const before = await call(teacher.session, 'GET', '/api/elever/lista');
       check(checks, 'underordnat uppdrag fungerar före avslut', before.status === 200 && pupilIds(before) === JSON.stringify([P11]), `HTTP ${before.status}`);
       const ended = await call(h, 'POST', '/api/kund/uppdrag/avsluta', { assignmentId: rector.assignmentId });
-      const teacherAfter = await call(teacher.session, 'GET', '/api/prov/elev');
-      const healthAfter = await call(health.session, 'GET', `/api/prov/elev?elev=${P11}`);
+      const teacherAfter = await call(teacher.session, 'GET', '/api/elever/lista');
+      const healthAfter = await call(health.session, 'GET', `/api/elever/elev?elev=${P11}`);
       const rectorAfter = await call(rector.session, 'GET', '/api/kund/mandat');
       const childEnded = psql("select count(*) from public.access_assignments where id in (:'a'::uuid,:'b'::uuid) and ended_at is not null", { a: teacher.assignmentId, b: health.assignmentId });
       check(checks, 'huvudmannens avslut av rektor nekar omedelbart underordnade sessioner utan innehåll', ended.status === 200 && teacherAfter.status === 403 && healthAfter.status === 403 && !hasName(teacherAfter, healthAfter), `${ended.status}: ${teacherAfter.status}/${healthAfter.status}`);
@@ -575,8 +617,8 @@ async function main() {
 
     async 'foreign-object'(checks) {
       const rector = await appointRector([U11]);
-      const pupilForeign = await call(rector.session, 'GET', `/api/prov/elev?elev=${P21}`);
-      const pupilUnknown = await call(rector.session, 'GET', `/api/prov/elev?elev=${crypto.randomUUID()}`);
+      const pupilForeign = await call(rector.session, 'GET', `/api/elever/elev?elev=${P21}`);
+      const pupilUnknown = await call(rector.session, 'GET', `/api/elever/elev?elev=${crypto.randomUUID()}`);
       check(checks, 'främmande elev ger samma 404 som okänd, utan antal', pupilForeign.status === 404 && equalShape(pupilForeign, pupilUnknown) && !hasName(pupilForeign) && pupilForeign.body?.count === undefined, `${pupilForeign.status}/${pupilUnknown.status}`);
       const endForeign = await call(rector.session, 'POST', '/api/kund/uppdrag/avsluta', { assignmentId: HM2.assignment });
       const endUnknown = await call(rector.session, 'POST', '/api/kund/uppdrag/avsluta', { assignmentId: crypto.randomUUID() });
@@ -590,10 +632,13 @@ async function main() {
       const text = leaks(options, list);
       check(checks, 'urval och mandatlista innehåller inga främmande ID:n', options.status === 200 && list.status === 200 && ![C2, U21, P21, K21, HM2.membership, HM2.assignment].some((id) => text.includes(id)), `${options.status}/${list.status}`);
       const health = await grant(rector, { function: 'elevhalsa', scopeKind: 'case', caseIds: [K11] });
-      const caseForeign = await call(health.session, 'GET', `/api/prov/elev?arende=${K21}`);
-      const caseUnknown = await call(health.session, 'GET', `/api/prov/elev?arende=${crypto.randomUUID()}`);
-      check(checks, 'främmande ärende ger samma 404 som okänt', caseForeign.status === 404 && equalShape(caseForeign, caseUnknown), `${caseForeign.status}/${caseUnknown.status}`);
-      const badQuery = await call(rector.session, 'GET', `/api/prov/elev?elev=${P11}&antal=1`);
+      const caseForeign = await call(health.session, 'GET', `/api/elever/lista?arende=${K21}`);
+      const caseUnknown = await call(health.session, 'GET', `/api/elever/lista?arende=${crypto.randomUUID()}`);
+      check(checks, 'främmande ärende ger samma tomma registerurval som okänt',
+        caseForeign.status === 200 && caseUnknown.status === 200 && caseForeign.body?.count === 0 && caseUnknown.body?.count === 0 &&
+        pupilIds(caseForeign) === pupilIds(caseUnknown) && events(caseForeign) === 'pupil_list_read|ok||0|' && events(caseUnknown) === 'pupil_list_read|ok||0|',
+        `${caseForeign.status}/${caseUnknown.status}`);
+      const badQuery = await call(rector.session, 'GET', `/api/elever/elev?elev=${P11}&antal=1`);
       check(checks, 'okända frågefält nekas (ingen metadata/antal via frågan)', badQuery.status === 400, `HTTP ${badQuery.status}`);
     },
 
@@ -602,17 +647,17 @@ async function main() {
       const rector = await appointRector([U11], h);
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       const racing = [];
-      for (let i = 0; i < 8; i += 1) racing.push(call(teacher.session, 'GET', '/api/prov/elev', undefined, { 'X-Context-Epoch': String(teacher.session.epoch) }));
+      for (let i = 0; i < 8; i += 1) racing.push(call(teacher.session, 'GET', '/api/elever/lista', undefined, { 'X-Context-Epoch': String(teacher.session.epoch) }));
       const revokeP = call(rector.session, 'POST', '/api/kund/uppdrag/avsluta', { assignmentId: teacher.assignmentId });
       const doubleP = call(h, 'POST', '/api/kund/uppdrag/avsluta', { assignmentId: teacher.assignmentId });
-      for (let i = 0; i < 8; i += 1) racing.push(call(teacher.session, 'GET', '/api/prov/elev', undefined, { 'X-Context-Epoch': String(teacher.session.epoch) }));
+      for (let i = 0; i < 8; i += 1) racing.push(call(teacher.session, 'GET', '/api/elever/lista', undefined, { 'X-Context-Epoch': String(teacher.session.epoch) }));
       const [reads, revoked, second] = await Promise.all([Promise.all(racing), revokeP, doubleP]);
       const okReads = reads.filter((r) => r.status === 200), denied = reads.filter((r) => r.status !== 200);
       check(checks, 'inga serverfel under samtidigt avslut och läsning', reads.every((r) => [200, 403].includes(r.status)) && revoked.status === 200 && [200, 403, 404, 409].includes(second.status), `läsningar ${okReads.length} ok/${denied.length} nekade; avslut ${revoked.status}/${second.status}`);
-      check(checks, 'varje lyckad läsning har exakt en committad ok-händelse', okReads.every((r) => events(r) === 'pupil_probe_listed|ok||1|list'), `${okReads.length} ok`);
-      check(checks, 'varje nekad läsning har nekandehändelse och inget innehåll', denied.every((r) => events(r).startsWith('pupil_probe_read|denied|')) && !hasName(...denied), `${denied.length} nekade`);
+      check(checks, 'varje lyckad läsning har exakt en committad ok-händelse', okReads.every((r) => events(r) === 'pupil_list_read|ok||1|'), `${okReads.length} ok`);
+      check(checks, 'varje nekad läsning har nekandehändelse och inget innehåll', denied.every((r) => events(r).startsWith('pupil_list_read|denied|')) && !hasName(...denied), `${denied.length} nekade`);
       const endedAt = psql("select count(*) from public.access_assignments where id=:'id'::uuid and ended_at is not null", { id: teacher.assignmentId });
-      const afterwards = await Promise.all([1, 2, 3].map(() => call(teacher.session, 'GET', '/api/prov/elev')));
+      const afterwards = await Promise.all([1, 2, 3].map(() => call(teacher.session, 'GET', '/api/elever/lista')));
       check(checks, 'efter avslutets commit nekas alla nya läsningar', endedAt === '1' && afterwards.every((r) => r.status === 403) && !hasName(...afterwards), afterwards.map((r) => r.status).join('/'));
       const okAfterRevoke = okReads.filter((r) => psql("select count(*) from public.security_events e join public.access_assignments a on a.id=:'id'::uuid where e.correlation_id=:'c'::uuid and e.outcome='ok' and e.occurred_at > a.ended_at", { id: teacher.assignmentId, c: corr(r) }) !== '0');
       check(checks, 'ingen lyckad läsning har transaktionstid efter avslutet', okAfterRevoke.length === 0, `${okAfterRevoke.length} efter avslut`);
@@ -627,7 +672,7 @@ async function main() {
       check(checks, 'anon REST mot elevtabell nekas med individuellt Kong-källbevis', probe?.status === 'PASS' && probe.gateway?.sourceObserved === true && probe.gateway.status >= 400, `${probe?.status}/${probe?.gateway?.status}`);
       const since = new Date(Date.now() - 1000).toISOString();
       const probes = [
-        await kongProbe('GET', '/rest/v1/phase3_probe_pupils?select=id,display_name', undefined, 'rest', { Prefer: 'count=exact' }),
+        await kongProbe('GET', '/rest/v1/pupils?select=id,display_name', undefined, 'rest', { Prefer: 'count=exact' }),
         await kongProbe('GET', '/rest/v1/access_assignments?select=id', undefined, 'rest'),
         await kongProbe('GET', '/rest/v1/security_events?select=id,details', undefined, 'rest', { Prefer: 'count=exact' }),
       ];
@@ -640,7 +685,7 @@ async function main() {
     async 'direct-rpc'(checks) {
       const report = await ensureSources();
       const probe = probeFrom('direct-rpc');
-      check(checks, 'anon RPC phase3_read_pupils nekas med individuellt Kong-källbevis', probe?.status === 'PASS' && probe.gateway?.sourceObserved === true, `${probe?.status}/${probe?.gateway?.status}`);
+      check(checks, 'anon RPC phase4_list_pupils nekas med individuellt Kong-källbevis', probe?.status === 'PASS' && probe.gateway?.sourceObserved === true, `${probe?.status}/${probe?.gateway?.status}`);
       const since = new Date(Date.now() - 1000).toISOString();
       const probes = [
         await kongProbe('POST', '/rest/v1/rpc/appoint_school_principal', { unit_id: U11, principal_assignment_id: crypto.randomUUID(), principal_name: 'x' }, 'rpc'),
@@ -669,7 +714,7 @@ async function main() {
       const report = await ensureSources();
       const probe = probeFrom('direct-sql');
       check(checks, 'direkt SQL som authenticator/anon/authenticated ger 42501 i exakt den serverrapporterade sessionen', probe?.status === 'PASS' && probe.postgres?.sourceObserved === true && probe.postgres.sourceEventIds?.length === probe.postgres.attempts, `${probe?.postgres?.attempts} försök, ${probe?.postgres?.sourceEventIds?.length} källhändelser`);
-      const authRead = sqlState('begin; set local role authenticated; select public.phase3_read_pupils(null,null,false); rollback;');
+      const authRead = sqlState("begin; set local role authenticated; select public.phase4_list_pupils('{}'::jsonb); rollback;");
       const anonCase = sqlState('begin; set local role anon; select count(*) from public.phase3_probe_cases; rollback;');
       const workerDelete = workerSql('delete from public.security_events where id=(select min(id) from public.security_events)');
       const workerUpdate = workerSql("update public.security_events set details='{}'::jsonb where id=(select min(id) from public.security_events)");
@@ -685,9 +730,9 @@ async function main() {
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       const health = await grant(rector, { function: 'elevhalsa', scopeKind: 'case', caseIds: [K11] });
       const failed = await withoutAudit(async () => ({
-        list: await call(teacher.session, 'GET', '/api/prov/elev'),
-        byId: await call(teacher.session, 'GET', `/api/prov/elev?elev=${P11}`),
-        byCase: await call(health.session, 'GET', `/api/prov/elev?arende=${K11}`),
+        list: await call(teacher.session, 'GET', '/api/elever/lista'),
+        byId: await call(teacher.session, 'GET', `/api/elever/elev?elev=${P11}`),
+        byCase: await call(health.session, 'GET', `/api/elever/lista?arende=${K11}`),
         mandates: await call(rector.session, 'GET', '/api/kund/mandat'),
         options: await call(rector.session, 'GET', '/api/kund/mandat/urval'),
       }));
@@ -695,8 +740,8 @@ async function main() {
       check(checks, 'loggfel stoppar lista, elev-ID, ärende, mandatlista och urval med audit_unavailable', all.every((r) => r.status === 500 && r.body?.code === 'audit_unavailable'), all.map((r) => `${r.status}/${r.body?.code}`).join(','));
       check(checks, 'inga elevbytes eller mandatdata lämnas', !hasName(...all) && !leaks(...all).includes(P11) && all.every((r) => !r.body?.pupils && !r.body?.mandates), 'svaren innehåller endast felkod och korrelation');
       check(checks, 'ingen ok-händelse finns för de stoppade läsningarna', all.every((r) => !events(r).includes('|ok|')), all.map(events).join(','));
-      const recovered = await call(teacher.session, 'GET', '/api/prov/elev');
-      check(checks, 'läsningen återhämtar sig när loggen är åter', recovered.status === 200 && events(recovered) === 'pupil_probe_listed|ok||1|list', events(recovered));
+      const recovered = await call(teacher.session, 'GET', '/api/elever/lista');
+      check(checks, 'läsningen återhämtar sig när loggen är åter', recovered.status === 200 && events(recovered) === 'pupil_list_read|ok||1|', events(recovered));
     },
 
     async 'audit-export-fail'(checks) {
@@ -704,14 +749,14 @@ async function main() {
       const admin = await grant(rector, { function: 'administrator' });
       const reviewer = await insertRoot('granskare');
       const failed = await withoutAudit(async () => [
-        await call(admin.session, 'GET', '/api/prov/export'),
+        await call(admin.session, 'GET', '/api/elever/export'),
         await call(reviewer.session, 'GET', '/api/logg?format=csv'),
       ]);
       check(checks, 'loggfel stoppar elevexport och loggexport', failed.every((r) => r.status === 500 && r.body?.code === 'audit_unavailable'), failed.map((r) => r.status).join('/'));
       check(checks, 'ingen CSV eller elevdata lämnas', failed.every((r) => !r.headers['content-type']?.includes('text/csv') && !r.headers['content-disposition']) && !hasName(...failed) && !leaks(...failed).includes(P11), 'inga CSV-svar');
       check(checks, 'ingen ok-händelse för stoppad export', failed.every((r) => !events(r).includes('|ok|')), failed.map(events).join(','));
-      const recovered = await call(admin.session, 'GET', '/api/prov/export');
-      check(checks, 'export fungerar igen med committad händelse', recovered.status === 200 && events(recovered) === 'pupil_probe_exported|ok||2|export', events(recovered));
+      const recovered = await call(admin.session, 'GET', '/api/elever/export');
+      check(checks, 'export fungerar igen med committad händelse', recovered.status === 200 && events(recovered) === 'pupil_exported|ok||2|', events(recovered));
     },
 
     async 'audit-write-rollback'(checks) {
@@ -746,9 +791,9 @@ async function main() {
       const rector = await appointRector([U11]);
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
       const failed = await withoutAudit(async () => [
-        await call('ogiltig-session-deny-fail', 'GET', '/api/prov/elev'),
-        await call(teacher.session, 'GET', '/api/prov/export'),
-        await call(teacher.session, 'GET', `/api/prov/elev?elev=${P21}`),
+        await call('ogiltig-session-deny-fail', 'GET', '/api/elever/lista'),
+        await call(teacher.session, 'GET', '/api/elever/export'),
+        await call(teacher.session, 'GET', `/api/elever/elev?elev=${P21}`),
         await call(teacher.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'administrator' }),
         await call(teacher.session, 'POST', '/api/kund/uppdrag/avsluta', { assignmentId: rector.assignmentId }),
       ]);
@@ -756,8 +801,8 @@ async function main() {
       check(checks, 'nekandesvaren röjer inget innehåll eller nekandeorsak', !hasName(...failed) && failed.every((r) => JSON.stringify(Object.keys(r.body ?? {}).sort()) === JSON.stringify(Object.keys(failed[0].body ?? {}).sort())), Object.keys(failed[0].body ?? {}).join(','));
       const rectorOpen = psql("select (ended_at is null)::text from public.access_assignments where id=:'id'::uuid", { id: rector.assignmentId });
       check(checks, 'nekad mutation ändrade inget', rectorOpen === 'true', rectorOpen);
-      const recovered = await call(teacher.session, 'GET', '/api/prov/export');
-      check(checks, 'nekande loggas igen när loggen är åter', recovered.status === 403 && events(recovered) === 'pupil_probe_export|denied|forbidden||', events(recovered));
+      const recovered = await call(teacher.session, 'GET', '/api/elever/export');
+      check(checks, 'nekande loggas igen när loggen är åter', recovered.status === 403 && events(recovered) === 'pupil_export|denied|forbidden||', events(recovered));
     },
 
     async 'audit-flood'(checks) {
@@ -766,10 +811,10 @@ async function main() {
       const it = await insertRoot('it', [U11]);
       const from = new Date(Date.now() - 2000).toISOString();
       const attempts = [];
-      for (let i = 0; i < 10; i += 1) attempts.push({ expect: 'no_session', r: await call(`ogiltig-flod-${i}`, 'GET', '/api/prov/elev', undefined, { 'X-Forwarded-For': `203.0.113.${i + 1}` }) });
-      for (let i = 0; i < 6; i += 1) attempts.push({ expect: 'forbidden', r: await call(teacher.session, 'GET', '/api/prov/export', undefined, { 'X-Forwarded-For': '198.51.100.7' }) });
-      for (let i = 0; i < 6; i += 1) attempts.push({ expect: 'not_found', r: await call(teacher.session, 'GET', `/api/prov/elev?elev=${P21}`) });
-      for (let i = 0; i < 6; i += 1) attempts.push({ expect: 'forbidden', r: await call(it.session, 'GET', '/api/prov/elev') });
+      for (let i = 0; i < 10; i += 1) attempts.push({ expect: 'no_session', r: await call(`ogiltig-flod-${i}`, 'GET', '/api/elever/lista', undefined, { 'X-Forwarded-For': `203.0.113.${i + 1}` }) });
+      for (let i = 0; i < 6; i += 1) attempts.push({ expect: 'forbidden', r: await call(teacher.session, 'GET', '/api/elever/export', undefined, { 'X-Forwarded-For': '198.51.100.7' }) });
+      for (let i = 0; i < 6; i += 1) attempts.push({ expect: 'not_found', r: await call(teacher.session, 'GET', `/api/elever/elev?elev=${P21}`) });
+      for (let i = 0; i < 6; i += 1) attempts.push({ expect: 'forbidden', r: await call(it.session, 'GET', '/api/elever/lista') });
       const reconciled = attempts.map(({ expect, r }) => {
         const row = psql("select count(*)||'|'||coalesce(max(outcome::text),'')||'|'||coalesce(max(details->>'code'),'') from public.security_events where correlation_id=:'c'::uuid", { c: corr(r) });
         return { expect, status: r.status, code: r.body?.code, row };
@@ -796,8 +841,8 @@ async function main() {
       check(checks, 'Kongs minimerade format är aktivt efter återhämtningen', kongActive === true, String(kongActive));
       const rector = await appointRector([U11]);
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
-      const read = await call(teacher.session, 'GET', '/api/prov/elev');
-      check(checks, 'Workerns auditerade läsning fungerar efter Postgres-omstarten', read.status === 200 && events(read) === 'pupil_probe_listed|ok||1|list', events(read));
+      const read = await call(teacher.session, 'GET', '/api/elever/lista');
+      check(checks, 'Workerns auditerade läsning fungerar efter Postgres-omstarten', read.status === 200 && events(read) === 'pupil_list_read|ok||1|', events(read));
     },
 
     async 'audit-minimization'(checks) {
@@ -805,21 +850,23 @@ async function main() {
       const since = new Date(Date.now() - 2000).toISOString();
       const rector = await appointRector([U11]);
       const teacher = await grant(rector, { function: 'larare', scopeKind: 'group', groups: [{ id: G11, kind: 'teaching' }] });
-      const nameQuery = await call(teacher.session, 'GET', `/api/prov/elev?elev=${encodeURIComponent('Syntetisk elev 11')}`);
+      const nameQuery = await call(teacher.session, 'GET', `/api/elever/elev?elev=${encodeURIComponent('Syntetisk elev 11')}`);
       const freeText = await call(rector.session, 'POST', '/api/kund/mandat', { ...base(), membershipId: createPerson().membership, function: 'administrator', note: 'Syntetisk anteckning om elev' });
-      const read = await call(teacher.session, 'GET', `/api/prov/elev?elev=${P11}`);
+      const read = await call(teacher.session, 'GET', `/api/elever/elev?elev=${P11}`);
       check(checks, 'namn i fråga och fritext i kropp nekas', nameQuery.status === 400 && freeText.status === 400, `${nameQuery.status}/${freeText.status}`);
       const ids = [...new Set(correlations)];
       const stored = psql("select coalesce(string_agg(details::text||coalesce(object_type,'')||coalesce(action,''),' '),'') from public.security_events where correlation_id=any(string_to_array(:'ids',',')::uuid[])", { ids: ids.join(',') });
       const keys = psql("select coalesce(string_agg(distinct k,','),'') from public.security_events e, jsonb_object_keys(e.details) k where correlation_id=any(string_to_array(:'ids',',')::uuid[])", { ids: ids.join(',') }).split(',').filter(Boolean);
-      const allowed = ['accessFunction', 'assignmentId', 'code', 'count', 'emailMismatch', 'format', 'from', 'grants', 'organizerId', 'path', 'principalNamed', 'proof', 'readForm', 'revokedSessions', 'status', 'stepUp', 'to'];
+      const allowed = ['accessFunction', 'action', 'assignmentId', 'code', 'count', 'emailMismatch', 'field', 'fields',
+        'format', 'from', 'grants', 'organizerId', 'path', 'principalNamed', 'proof', 'readForm',
+        'revokedSessions', 'schoolYear', 'status', 'stepUp', 'to'];
       check(checks, `körningens ${ids.length} Worker-händelser saknar namn, anteckningar och fritext`, ids.length >= 5 && stored.length > 0 && !NAME_MARKERS.some((m) => stored.includes(m)) && !stored.includes('anteckning'), `${ids.length} korrelationer`);
       check(checks, 'detaljnycklar är allowlistade', keys.every((k) => allowed.includes(k)), keys.join(','));
       const reviewer = await insertRoot('granskare');
       const log = await call(reviewer.session, 'GET', `/api/logg?limit=1000&from=${encodeURIComponent(since)}`);
       const csvLog = await call(reviewer.session, 'GET', `/api/logg?format=csv&limit=1000&from=${encodeURIComponent(since)}`);
       const logEvents = log.body?.events ?? [];
-      check(checks, 'granskaren ser elevläsningen men inga namn i JSON eller CSV', log.status === 200 && logEvents.some((e) => e.correlationId === corr(read) && e.action === 'pupil_probe_read') && csvLog.status === 200 && !hasName(log, csvLog), `${logEvents.length} händelser`);
+      check(checks, 'granskaren ser elevläsningen men inga namn i JSON eller CSV', log.status === 200 && logEvents.some((e) => e.correlationId === corr(read) && e.action === 'pupil_read') && csvLog.status === 200 && !hasName(log, csvLog), `${logEvents.length} händelser`);
       check(checks, 'granskarens logg är begränsad till egen kund', logEvents.length > 0 && logEvents.every((e) => e.customerId === C1), 'kund-id kontrollerat');
       const bertil = await mint({ identityId: BERTIL.identity, membershipId: BERTIL.membership, assignmentId: BERTIL.assignment });
       const otherLog = await call(bertil, 'GET', `/api/logg?limit=1000&from=${encodeURIComponent(new Date(Date.now() - 3600_000).toISOString())}`);
@@ -896,15 +943,31 @@ async function main() {
   const setupTemporary = () => {
     psql(fs.readFileSync(path.join(root, 'work/pilot/sql/phase3-fixtures.sql'), 'utf8'));
     cleanupTemporary();
-    psql(`insert into public.phase3_probe_pupils values (:'p'::uuid,:'c'::uuid,:'o'::uuid,:'u'::uuid,'Syntetisk elev 19');
-      insert into public.phase3_probe_groups values (:'g'::uuid,:'c'::uuid,:'o'::uuid,:'u'::uuid);
-      insert into public.phase3_probe_group_members values (:'g'::uuid,:'p'::uuid,:'c'::uuid,:'u'::uuid);
-      insert into public.phase3_probe_cases values (:'k'::uuid,:'p'::uuid,:'c'::uuid,:'u'::uuid);`, { p: P19, g: G19, k: K19, c: C1, o: ORG1, u: U11 });
+    psql(`begin;
+      insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name)
+      select :'p'::uuid,:'c'::uuid,:'o'::uuid,'Syntetisk elev 19',s.personal_number,'Elev 19'
+      from public.synthetic_pupil_numbers s where not exists(select 1 from public.pupils x where x.customer_id=:'c'::uuid and x.personal_number=s.personal_number)
+      order by s.personal_number limit 1;
+      insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year)
+      select :'g'::uuid,:'c'::uuid,:'o'::uuid,:'u'::uuid,o.id,'PROV-19',o.start_year
+      from public.offerings o where o.id=public.phase4_probe_uuid('offering:'||:'u') limit 1;
+      insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on)
+      select public.phase4_probe_uuid('placement:'||:'p'),:'c'::uuid,:'o'::uuid,:'p'::uuid,:'u'::uuid,o.id,make_date(o.start_year,7,1)
+      from public.offerings o where o.id=public.phase4_probe_uuid('offering:'||:'u') limit 1;
+      insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on)
+      select public.phase4_probe_uuid('member:'||:'g'||':'||:'p'),:'c'::uuid,:'o'::uuid,:'p'::uuid,:'u'::uuid,:'g'::uuid,
+        public.phase4_probe_uuid('placement:'||:'p'),make_date(o.start_year,7,1)
+      from public.offerings o where o.id=public.phase4_probe_uuid('offering:'||:'u') limit 1;
+      insert into public.phase3_probe_cases values (:'k'::uuid,:'p'::uuid,:'c'::uuid,:'u'::uuid);
+      commit;`, { p: P19, g: G19, k: K19, c: C1, o: ORG1, u: U11 });
   };
   function cleanupTemporary() {
     psql(`delete from public.mandate_cases where case_id=:'k'::uuid; delete from public.mandate_pupils where pupil_id=:'p'::uuid; delete from public.mandate_groups where group_id=:'g'::uuid;
-      delete from public.phase3_probe_cases where id=:'k'::uuid; delete from public.phase3_probe_group_members where group_id=:'g'::uuid or pupil_id=:'p'::uuid;
-      delete from public.phase3_probe_groups where id=:'g'::uuid; delete from public.phase3_probe_pupils where id=:'p'::uuid;`, { p: P19, g: G19, k: K19 });
+      delete from public.phase3_probe_cases where id=:'k'::uuid;
+      delete from public.pupil_class_memberships where pupil_id=:'p'::uuid and class_id=:'g'::uuid;
+      delete from public.pupil_placements where pupil_id=:'p'::uuid;
+      delete from public.school_classes where id=:'g'::uuid and name='PROV-19';
+      delete from public.pupils where id=:'p'::uuid and display_name='Syntetisk elev 19';`, { p: P19, g: G19, k: K19 });
   }
 
   const runCase = async (name) => {
