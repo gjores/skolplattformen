@@ -78,8 +78,8 @@ Verifieringskartan nedan anger planerade kontroller. 04-01, 04-02, 04-03, 04-04,
 | 04-17-02 | DATA-01, DATA-02 | `cd web && npx tsc --noEmit && npx oxlint app lib && npm run build:protected` | PASS (commit 78f1e18): tsc och oxlint utan fel, nodprov 395/395 (399 − 4 borttagna elevprovsfall), build:protected utan fel och routetabellen saknar `/api/prov`. Byggd protected-Worker: GET/POST `/api/prov`, `/api/prov/elev`, `/api/prov/export` ger 404, medan POST `/api/elever/lista` ger 401 utan session. Fas 3:s API-/browserprov mot `/api/prov` är övergångsröda tills 04-18 |
 | 04-18-01 | DATA-01, DATA-02 | `node work/pilot/verify-mandates.mjs --out work/pilot/results/phase4-mandates-regression.json && node work/pilot/verify-access.mjs --out work/pilot/results/phase4-access-regression.json` | PASS 2026-09-29: mandat 26/26, access 16/16; faktisk källrapport fyra direktprov och tre omstarts-/återhämtningsprov PASS. Historiska fas 3-rapporter orörda; se 04-18-SUMMARY |
 | 04-18-02 | DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.phase3.config.ts phase3-workspace --list && npx playwright test --config playwright.phase3.config.ts phase3-workspace && npx playwright test --config playwright.protected.config.ts phase3-mandates --list && npx playwright test --config playwright.protected.config.ts phase3-mandates --project=protected-desktop --project=protected-phone --project=protected-built` | PASS 2026-09-29: färsk fixture, arbetsyta 18/18 dator/telefon, mandatbrowser 45/45 dator/telefon/byggd app, tsc/oxlint PASS. Intermittent supporttext till 04-19; se 04-18-SUMMARY |
-| 04-19-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-desktop --project=protected-phone --project=protected-built` | Ej kört |
-| 04-19-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-phone` | Ej kört |
+| 04-19-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-desktop --project=protected-phone --project=protected-built` | PASS 2026-09-29: 13 namngivna fall × 3 projekt = 39/39, utan hopp; lokal syntetisk Keycloak/Worker/DB. Första försöket 38/39 vid tillfälligt byggt serveravbrott, sedan riktat omprov 2/2 och full sammanhängande omkörning 39/39; se 04-19-SUMMARY |
+| 04-19-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npx playwright test --config playwright.protected.config.ts phase4-register --project=protected-phone` | PASS 2026-09-29: separat WebKit-enhetsläge 13/13, 390×844 och 320×740; ingen fysisk telefon; se 04-19-SUMMARY |
 | 04-20-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && node --test scripts/verify-phase4.test.mjs && npm run verify:phase4` | Ej kört |
 | 04-20-02 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `cd web && npm run verify:phase4` | Ej kört |
 | 04-21-01 | STU-01, STU-02, STU-03, STU-04, STU-05, STU-06, DATA-01, DATA-02 | `npm run docs:build` | Ej kört |
@@ -119,7 +119,7 @@ Samlad kravgrind: 04-20; handbok och förnyad slutgrind: 04-21. 04-25 ger inget 
 - [ ] `supabase/tests/phase4_{register,periods,protected,conflicts,export}.test.sql` + uppdaterade fas 3-fixturer
 - [ ] `work/pilot/sql/phase4-fixtures.sql`, `work/pilot/phase4-browser-fixtures.mjs`
 - [ ] `work/pilot/verify-register.mjs`, `work/pilot/verify-register-locks.mjs`
-- [ ] `web/e2e/phase4-register.spec.ts` (protected-desktop, -phone, -built)
+- [x] `web/e2e/phase4-register.spec.ts` (protected-desktop, -phone, -built; 39/39, 04-19)
 - [ ] `web/scripts/verify-phase4.mjs` + `.test.mjs`, `npm run verify:phase4`
 
 ---

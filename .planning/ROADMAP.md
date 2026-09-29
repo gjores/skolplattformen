@@ -116,7 +116,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 4. Behörig personal kan genomföra pilotens fastställda arbetsfall med en skyddad syntetisk elev. Obehöriga läsvägar, sökträffar, fel och aviseringar röjer varken skyddade uppgifter eller metadata. (DATA-01)
 5. Administratören kan exportera ett uttryckligt elevurval med endast tillåtna fält. Serverns behörighetskontroll, aktuella spärrar, skyddsregler och loggning gäller även om exporten anropas direkt. (DATA-02)
 
-**Plans**: 25 planer i 15 vågor, 19 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); 04-24 och 04-25 tillagda efter våg 8 för luckorna skyddad export och Worker-avbrott; genomförande och beteendeverifiering återstår.
+**Plans**: 25 planer i 15 vågor, 22 genomförda — planstrukturen granskad 2026-09-28; 04-23 tillagd efter våg 7 (användarbeslut 2026-09-28); 04-24 och 04-25 tillagda efter våg 8 för luckorna skyddad export och Worker-avbrott; samlad kravgrind, handbok och användarprov återstår.
 
 - [x] 04-01-PLAN.md — Fastställ registerkontrakt och rena datumregler (våg 1)
 - [x] 04-02-PLAN.md — Bygg registerschema och referensdata (våg 2)
@@ -136,7 +136,7 @@ Den första syntetiska elevoperationen används för att bevisa hela skydds- och
 - [x] 04-16-PLAN.md — Skapa fullständiga registerprov och syntetiska scenarion (våg 10)
 - [x] 04-17-PLAN.md — Avveckla elevprovet utan alternativa datavägar (våg 9, körs sist i vågen)
 - [x] 04-18-PLAN.md — Porta tidigare API- och browserbevis (våg 11)
-- [ ] 04-19-PLAN.md — Verifiera hela elevflödet i webbläsare (våg 12)
+- [x] 04-19-PLAN.md — Verifiera hela elevflödet i webbläsare (våg 12)
 - [ ] 04-20-PLAN.md — Bygg fullständig fasgrind och beviskarta (våg 13)
 - [ ] 04-21-PLAN.md — Uppdatera handboken med prövat registerbeteende (våg 14)
 - [ ] 04-22-PLAN.md — Genomför användarprov och redovisa fasens gräns (våg 15)
@@ -231,7 +231,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 1. Baslinje och avskild pilotmiljö | 10/10 | Complete    | 2026-09-12 |
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
-| 4. Beständigt och skyddat elevregister | 21/25 | In progress — våg 11 klar: 04-18 (portade API-/browser-/källregressioner PASS, lokalt syntetiskt); nästa våg 12: 04-19 | - |
+| 4. Beständigt och skyddat elevregister | 22/25 | In progress — våg 12 klar: 04-19 (browser 39/39 och separat WebKit 13/13 PASS, lokalt syntetiskt); nästa våg 13: 04-20 | - |
 | 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |

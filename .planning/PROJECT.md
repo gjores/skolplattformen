@@ -12,7 +12,7 @@ Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgif
 
 **v1.0 — Säker administration inför en pilot.** Användaren valde den 2026-09-10 inloggning, behörigheter, elevregister och en kommunintegration som första milstolpe. Hela produktvisionen finns kvar, men undervisning, fullständiga ärendeprocesser och alla leverantörsanslutningar ska inte färdigställas samtidigt.
 
-De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Fas 1–3 är genomförda och verifierade lokalt med syntetiska uppgifter. Fas 4 har 21 av 25 planer genomförda till och med våg 11: registret är enda elevdatavägen i skyddat läge. Plan 04-16 prövade 18/18 register-API-fall och riktad CSV-nedladdning; plan 04-18 portade äldre fas 3-gränser med mandat-API 26/26, access-API 16/16 och browser 63/63 PASS. Hela UI-, krav-, handboks- och användargrindar återstår i 04-19–04-22. Ingen verklig kommunanslutning eller pilotdrift är godkänd.
+De 42 detaljkraven i `.planning/REQUIREMENTS.md` och färdplanens åtta faser i `.planning/ROADMAP.md` godkändes av användaren 2026-09-11. Fas 1–3 är genomförda och verifierade lokalt med syntetiska uppgifter. Fas 4 har 22 av 25 planer genomförda till och med våg 12: registret är enda elevdatavägen i skyddat läge. Plan 04-16 prövade 18/18 register-API-fall och riktad CSV-nedladdning; 04-18 portade äldre fas 3-gränser med mandat-API 26/26, access-API 16/16 och browser 63/63 PASS; 04-19 prövade hela elevflödet i 39/39 dator-/telefon-/byggda browserfall samt separat WebKit 13/13. Samlad kravgrind, handbok och användarprov återstår i 04-20–04-22. Ingen verklig kommunanslutning eller pilotdrift är godkänd.
 
 Målet är en avgränsad och prövbar pilot för en huvudman, med syntetiska uppgifter tills kommunen har beslutat om verklig användning. Val av pilotkommun, identitetsleverantör, externt elevregister, avtal och drift är öppna beroenden. Dessa får inte ersättas med påhittade integrationsbesked.
 
@@ -117,4 +117,4 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dokumentera ändrade eller borttagna krav med skäl och uppdatera beslut och nuläge. Vid milstolpens slut: granska hela projektbeskrivningen, kärnvärdet, senarelagd omfattning och driftläget. Ett förslag blir inte beslutat enbart för att det står i filen.
 
 ---
-*Last updated: 2026-09-29 — fas 4 våg 11 genomförd; nästa våg 12.*
+*Last updated: 2026-09-29 — fas 4 våg 12 genomförd; nästa våg 13.*
