@@ -158,6 +158,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- Användartermen ska vara programplan/programplaner, inte poängplan/poängplaner (beslut 2026-09-29). Namnbyte fångat som separat UI-todo och länkat till den samlade UI-genomgången; ännu inte genomfört.
+
 - 2026-09-29: kommunval från sökbar lista samt sex uppgifter för ersättning/fakturering mot hemkommun tillagda. Se `.planning/research/HEMKOMMUN-ERSATTNING.md` för primärkällor, rekommenderad ordning och öppna beslut. Detta är framtida planeringsunderlag; fas 4:s öppna checkpoint och fastställd milstolpe kvarstår.
 
 - 04-22: första provdelen och källavvikelse bekräftade av användaren. Klasstillhörighetens datum/presentation har anmärkning; samtidiga ändringar, skyddsbehörighet och separat personnummervisning återstår. Samlad UI-genomgång tillagd som todo 2026-09-29.
@@ -167,7 +169,7 @@ Fullständiga beslut finns i PROJECT.md.
 - 04-22: användarprovet förberett i lokal skyddad app på 3012. Se `04-HUMAN-UAT.md`; mänskliga resultat och godkännande väntar. Planen är inte slutförd.
 
 - Nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
-- 16 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
+- 17 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 
 ## Blockers
 
