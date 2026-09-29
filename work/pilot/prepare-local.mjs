@@ -334,7 +334,9 @@ if (target === 'baseline') {
   if (fs.existsSync(sourceTests)) for (const file of fs.readdirSync(sourceTests).filter(file => file.endsWith('.sql')).sort()) fs.copyFileSync(path.join(sourceTests, file), path.join(workTests, file));
 }
 
-const exclude = options.excludeExtra ? [...excludedServices, ...extraExcludedServices] : excludedServices;
+const exclude = options.excludeExtra
+  ? [...excludedServices, ...extraExcludedServices, ...(target === 'baseline' ? ['storage'] : [])]
+  : excludedServices;
 try {
   if (!effectiveRunning || options.fresh) {
     console.log(`Startar ${projectId} (api ${ports.api}, db ${ports.db}) …`);
