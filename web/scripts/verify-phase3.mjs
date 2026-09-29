@@ -448,28 +448,30 @@ async function main() {
   const apiBlock = !protectedReady ? 'protected-målet är inte klart' : await environmentBlock([3013, 3014], true);
   const apiReady = apiBlock === null;
   const apiReason = apiBlock ?? '';
-  const accessOut = path.join(results, 'access.json');
+  // Fas 3:s gamla rapporter är historiska bevis och får inte skrivas över av
+  // den portade regressionskörningen efter elevprovets avveckling.
+  const accessOut = path.join(results, 'phase4-access-regression.json');
   if (!apiReady) blocked('access-api', 'node work/pilot/verify-access.mjs', apiReason);
   else await commandStep('access-api', process.execPath, [path.join(pilot, 'verify-access.mjs'), '--out', accessOut], {
-    cwd: root, command: 'node work/pilot/verify-access.mjs --out work/pilot/results/access.json',
+    cwd: root, command: 'node work/pilot/verify-access.mjs --out work/pilot/results/phase4-access-regression.json',
     validate: () => validateAccessReport(freshJson(accessOut, startedMs), { startedMs, revision }),
   });
 
-  const apiOut = path.join(results, 'phase3-api.json');
-  const denialsOut = path.join(results, 'phase3-denials.json');
+  const apiOut = path.join(results, 'phase4-mandates-regression.json');
+  const denialsOut = path.join(results, 'phase4-denials-regression.json');
   if (!apiReady) {
     blocked('mandat-api', 'node work/pilot/verify-mandates.mjs', apiReason);
-    blocked('källbevis', 'work/pilot/results/phase3-denials.json', apiReason);
+    blocked('källbevis', 'work/pilot/results/phase4-denials-regression.json', apiReason);
   } else {
     await commandStep('mandat-api', process.execPath, [path.join(pilot, 'verify-mandates.mjs'), '--out', apiOut], {
-      cwd: root, command: 'node work/pilot/verify-mandates.mjs --out work/pilot/results/phase3-api.json',
+      cwd: root, command: 'node work/pilot/verify-mandates.mjs --out work/pilot/results/phase4-mandates-regression.json',
       validate: () => validateApiReport(freshJson(apiOut, startedMs), { startedMs, revision }),
     });
     try {
       const evidence = validateSourceReport(freshJson(denialsOut, startedMs), { startedMs });
-      record({ name: 'källbevis', command: 'work/pilot/results/phase3-denials.json (skriven av mandat-api)', exit: 0, durationMs: 0, status: 'PASS', evidence });
+      record({ name: 'källbevis', command: 'work/pilot/results/phase4-denials-regression.json (skriven av mandat-api)', exit: 0, durationMs: 0, status: 'PASS', evidence });
     } catch (error) {
-      record({ name: 'källbevis', command: 'work/pilot/results/phase3-denials.json (skriven av mandat-api)', exit: 1, durationMs: 0, status: 'FAIL', evidence: { validation: String(error.message).slice(0, 400) } });
+      record({ name: 'källbevis', command: 'work/pilot/results/phase4-denials-regression.json (skriven av mandat-api)', exit: 1, durationMs: 0, status: 'FAIL', evidence: { validation: String(error.message).slice(0, 400) } });
     }
   }
 
