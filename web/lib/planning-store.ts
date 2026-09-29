@@ -8,6 +8,20 @@
 // som går igenom.
 
 import { supabase, type Client } from './supabase.ts';
+import { PlanningWriteQueue } from './planning-write-queue.ts';
+
+// Separat kö och ID-mappning per klient; ingen ny databasåtkomst skapas.
+type WriteState = { queue: PlanningWriteQueue; timplans: Map<string, string>; years: Map<string, string> };
+const writes = new WeakMap<Client, WriteState>();
+function writeState(db: Client): WriteState {
+  let state = writes.get(db);
+  if (!state) {
+    state = { queue: new PlanningWriteQueue(), timplans: new Map(), years: new Map() };
+    writes.set(db, state);
+  }
+  return state;
+}
+const idKey = (organizerId: string, modelId: string) => `${organizerId}:${modelId}`;
 import type { Database } from './database.types.ts';
 import {
   defaultCells,
@@ -150,13 +164,25 @@ async function writeTimplanEvent(db: Client, timplanId: string, role: 'rektor' |
 /** Skriver skillnaden mellan två tillstånd och lämnar databasen som modellen. */
 export async function persistTimplans(next: Timplan[], previous: Timplan[]) {
   const db = client();
-  const organizerId = await currentOrganizer(db);
+  const state = writeState(db);
+  const snapshot = structuredClone({ next, previous });
+  return state.queue.run(async () => {
+    const organizerId = await currentOrganizer(db);
+    await writeTimplans(db, state, organizerId, snapshot.next, snapshot.previous);
+  });
+}
+
+async function writeTimplans(db: Client, state: WriteState, organizerId: string, next: Timplan[], previous: Timplan[]) {
   const before = new Map(previous.map((p) => [p.id, p]));
   for (const plan of next) {
     const old = before.get(plan.id);
+    const key = idKey(organizerId, plan.id);
+    const storedId = state.timplans.get(key) ?? plan.id;
     if (!old) {
+      if (state.timplans.has(key)) throw new Error("Timplanen är redan skapad. Läs om underlaget före en ny skapning.");
       const row = await insertTimplan(db, organizerId, plan.educationId, plan.version, plan.basis, plan.catalog || null);
-      if (!row) continue;
+      if (!row) throw new Error("Timplanen kunde inte skapas.");
+      state.timplans.set(key, row.id);
       await writeCells(db, row.id, plan.cells, {});
       for (const h of [...plan.history].reverse()) await writeTimplanEvent(db, row.id, h.role, h.action, h.comment);
       continue;
@@ -165,19 +191,24 @@ export async function persistTimplans(next: Timplan[], previous: Timplan[]) {
       const { error } = await db
         .from('timplans')
         .update({ status: timplanStatusOut(plan.status), decided_on: plan.decidedOn ?? null, basis: plan.basis })
-        .eq('id', plan.id);
+        .eq('id', storedId);
       if (error) fail('spara timplanens status', error.message);
     }
-    await writeCells(db, plan.id, plan.cells, old.cells);
+    await writeCells(db, storedId, plan.cells, old.cells);
     const seen = new Set(old.history.map((h) => h.id));
     for (const h of [...plan.history].reverse())
-      if (!seen.has(h.id)) await writeTimplanEvent(db, plan.id, h.role, h.action, h.comment);
+      if (!seen.has(h.id)) await writeTimplanEvent(db, storedId, h.role, h.action, h.comment);
   }
   const after = new Set(next.map((p) => p.id));
   for (const plan of previous)
     if (!after.has(plan.id)) {
-      const { error } = await db.from('timplans').delete().eq('id', plan.id);
+      const key = idKey(organizerId, plan.id);
+      const storedId = state.timplans.get(key) ?? plan.id;
+      const { error } = await db.from('timplans').delete().eq('id', storedId);
       if (error) fail('ta bort timplan', error.message);
+      for (const [alias, id] of state.timplans) {
+        if (alias.startsWith(`${organizerId}:`) && id === storedId) state.timplans.delete(alias);
+      }
     }
 }
 
@@ -370,19 +401,27 @@ async function writeYearEvent(db: Client, yearId: string, role: 'rektor' | 'huvu
 }
 
 /** Skriver skillnaden mellan två tillstånd och lämnar databasen som modellen. */
-export async function persistSchoolYears(
-  next: SchoolYear[],
-  previous: SchoolYear[],
-  unitId: string,
-) {
+export async function persistSchoolYears(next: SchoolYear[], previous: SchoolYear[], unitId: string) {
   const db = client();
-  const organizerId = await currentOrganizer(db);
+  const state = writeState(db);
+  const snapshot = structuredClone({ next, previous });
+  return state.queue.run(async () => {
+    const organizerId = await currentOrganizer(db);
+    await writeSchoolYears(db, state, organizerId, snapshot.next, snapshot.previous, unitId);
+  });
+}
+
+async function writeSchoolYears(db: Client, state: WriteState, organizerId: string, next: SchoolYear[], previous: SchoolYear[], unitId: string) {
   const before = new Map(previous.map((y) => [y.id, y]));
   for (const year of next) {
     const old = before.get(year.id);
+    const key = idKey(organizerId, `${unitId}:${year.id}`);
+    const storedId = state.years.get(key) ?? year.id;
     if (!old) {
+      if (state.years.has(key)) throw new Error("Läsåret är redan skapat. Läs om underlaget före en ny skapning.");
       const row = await insertSchoolYear(db, organizerId, unitId, year);
-      if (!row) continue;
+      if (!row) throw new Error("Läsåret kunde inte skapas.");
+      state.years.set(key, row.id);
       await writeYearDays(db, row.id, year.exceptions, {});
       await writeGroupDays(db, row.id, year.groupExceptions, {});
       await writeShortWeeks(db, row.id, year.shortWeeks, {});
@@ -397,7 +436,7 @@ export async function persistSchoolYears(
       const { error } = await db
         .from('school_years')
         .update({ status: yearStatusOut(year.status), decided_on: year.decidedOn ?? null })
-        .eq('id', year.id);
+        .eq('id', storedId);
       if (error) fail('spara läsårets status', error.message);
     };
     if (opening) await writeStatus();
@@ -410,22 +449,27 @@ export async function persistSchoolYears(
       const { error } = await db
         .from('school_years')
         .update({ ht_start: year.ht.start, ht_end: year.ht.end, vt_start: year.vt.start, vt_end: year.vt.end })
-        .eq('id', year.id);
+        .eq('id', storedId);
       if (error) fail('spara terminernas datum', error.message);
     }
-    await writeYearDays(db, year.id, year.exceptions, old.exceptions);
-    await writeGroupDays(db, year.id, year.groupExceptions, old.groupExceptions);
-    await writeShortWeeks(db, year.id, year.shortWeeks, old.shortWeeks);
+    await writeYearDays(db, storedId, year.exceptions, old.exceptions);
+    await writeGroupDays(db, storedId, year.groupExceptions, old.groupExceptions);
+    await writeShortWeeks(db, storedId, year.shortWeeks, old.shortWeeks);
     if (!opening) await writeStatus();
     const seen = new Set(old.history.map((h) => h.id));
     for (const h of [...year.history].reverse())
-      if (!seen.has(h.id)) await writeYearEvent(db, year.id, h.role, h.action, h.comment);
+      if (!seen.has(h.id)) await writeYearEvent(db, storedId, h.role, h.action, h.comment);
   }
   const after = new Set(next.map((y) => y.id));
   for (const year of previous)
     if (!after.has(year.id)) {
-      const { error } = await db.from('school_years').delete().eq('id', year.id);
+      const key = idKey(organizerId, `${unitId}:${year.id}`);
+      const storedId = state.years.get(key) ?? year.id;
+      const { error } = await db.from('school_years').delete().eq('id', storedId);
       if (error) fail('ta bort läsår', error.message);
+      for (const [alias, id] of state.years) {
+        if (alias.startsWith(`${organizerId}:${unitId}:`) && id === storedId) state.years.delete(alias);
+      }
     }
 }
 

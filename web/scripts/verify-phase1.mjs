@@ -217,32 +217,10 @@ if (flags.skipBrowser) {
   });
 }
 
-// 6. sparordning — reproducerare av känt fel; aldrig PASS.
-{
-  const command = 'node --test lib/save-order.repro.mjs';
-  heading('sparordning', command);
-  const r = await run(process.execPath, ['--test', 'lib/save-order.repro.mjs']);
-  const line = r.output
-    .split('\n')
-    .map((l) => l.trim())
-    .find((l) => l.startsWith('KNOWN-ISSUE:'));
-  let status;
-  let detail;
-  if (r.spawnError || !line) {
-    status = 'FAIL';
-    detail = 'reproduceraren gav ingen KNOWN-ISSUE-rad (krasch eller saknad fil)';
-    knownIssues.push(`sparordning: ${detail}`);
-  } else if (r.exit === 0) {
-    status = 'KNOWN-ISSUE';
-    detail = `grön — utred: ${line}`;
-    knownIssues.push(`sparordning (grön — utred): ${line}`);
-  } else {
-    status = 'KNOWN-ISSUE';
-    detail = line;
-    knownIssues.push(`sparordning: ${line}`);
-  }
-  record({ name: 'sparordning', command, required: false, exit: r.exit, durationMs: r.durationMs, status, detail });
-}
+// 6. sparordning — obligatorisk regression efter rättningen i fas 5.
+await required('sparordning', process.execPath, ['--test', 'lib/planning-save-order.test.mjs', 'lib/planning-write-queue.test.mjs'], {
+  command: 'node --test lib/planning-save-order.test.mjs lib/planning-write-queue.test.mjs',
+});
 
 // 7. mål-protected
 const protectedTarget = await pilotStep('mål-protected', 'verify-target.mjs', ['--target', 'protected']);

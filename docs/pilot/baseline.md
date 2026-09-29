@@ -88,7 +88,15 @@ Dessa körningar avser äldre revisioner och en gemensam molndemo. De ersätts a
 | Tysta fel i `logEvent` (kontrollerar inte `error`) och `saveGrades` (kontrollerar inte uppdateringen av utbildningarnas årskurser) | `.planning/codebase/CONCERNS.md` § Tech Debt | DOKUMENTERAD RISK | Fas 2 (AUDIT-01) | Serverstyrd händelselogg ersätter klientloggning; klientens felresultat behandlas uttryckligen innan skyddade skrivvägar öppnas |
 | Hårdkodade texter i sidomenyn och Elever-vyns kontextrad (**Testskolan**, **Alex Lind**, `Grundskola & gymnasium · … ändringar gäller denna session`) oavsett vald exempelskola; React-varningar om saknad `key` i `OrganisationWorkspace`/`TimplanView` | `.planning/phases/01-baslinje-och-avskild-pilotmilj/deferred-items.md` (01-07, 01-08, 01-10) | UPPSKJUTET UI-FYND | Nästa UI-plan (fas 2 eller senare UI-arbete) | Påverkar inga provresultat och ingen skyddsgräns; rättas innan provmiljön visas för en pilotpartner |
 
-Inget av felen ovan räknas som godkänd funktion. Raderna 11–12 i matrisen står som KNOWN-ISSUE just därför; `verify:phase1` ger PASS trots dem eftersom steget `sparordning` är icke-obligatoriskt och listas separat under `knownIssues`, aldrig som PASS.
+Tabellen och raderna 11–12 beskriver baslinjens historiska fynd. Resultaten där skrivs inte om retroaktivt. Aktuell status för sparfelen finns nedan; övriga luckor är inte godkänd funktion.
+
+### Uppföljning i fas 5, plan 05-02 (2026-09-29)
+
+Det äldre planeringslagret köar nu snapshots per klient och mappar lokala nyobjekts-ID till server-ID inom respektive huvudman (läsår även skola). Fel stoppar redan köade följdskrivningar; efter omläsning kan en ny skrivning göras. Vid borttagning rensas alias även när anropet använder omläst server-ID. Samma ordning gäller timplaner och läsår.
+
+De två ursprungliga förväntningarna är bevarade i `web/lib/planning-save-order.test.mjs`: senaste värde200 ligger kvar trots fördröjd första skrivning, och ny plan följd av snabb ändring ger exakt en databasrad med rätt FK. `web/lib/save-order.repro.mjs` är ett kompatibilitetskommando som kör samma ordinarie regression. Fas1-grindens sparordningssteg är nu obligatoriskt PASS/FAIL; ett fel kan inte längre redovisas som tillåtet KNOWN-ISSUE. Detta är en ändrad grind, ingen ny fullständig fas1-körning redovisas här.
+
+Beviset gäller verkliga äldre lagerfunktioner genom syntetisk transport. Klienternas köer ger inte samtidighetsskydd mellan användare, atomär databas/audit, skyddade servermandat eller garanti mot inaktuella UI-omläsningssvar. Backend är fortfarande avstängd i appklienten och skyddad planeringsnavigation förblir stängd. Alla dessa nya datavägar måste provas separat före öppnande; fas4:s kvarstående användarprov och datum-/UI-anmärkningar behålls.
 
 ## Vad som inte är verifierat
 
