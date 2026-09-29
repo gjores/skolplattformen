@@ -290,19 +290,26 @@ async function ensureActiveGustav() {
 }
 
 const cases = {
-  // 03-05: syntetiskt elevprov. Visar att varje läsform (lista, elev-ID, ärende,
-  // export) lämnar data först efter committad säkerhetshändelse med samma
-  // korrelation, och att loggfel stoppar läsningen utan innehåll.
+  // 03-05: samma person- och mandatgränser mot fas 4:s enda elevdataväg.
+  // Fallnamnet bevaras för den historiska rapportvalidatorn.
   async 'phase3-pupils'(checks) {
-    psql(fs.readFileSync(path.join(root,'work/pilot/sql/phase3-fixtures.sql'),'utf8'));
+    await assertTarget('protected');
+    psql(fs.readFileSync(path.join(root, 'work/pilot/sql/phase3-fixtures.sql'), 'utf8'));
     const customer='33000000-0000-4000-8000-000000000001';
     const unit='33000000-0000-4000-8000-000000000111';
     const group='33000000-0000-4000-8000-000000000311';
     const pupil='33000000-0000-4000-8000-000000000211', otherPupil='33000000-0000-4000-8000-000000000212', foreignPupil='33000000-0000-4000-8000-000000000221';
     const ownCase='33000000-0000-4000-8000-000000000411', otherCase='33000000-0000-4000-8000-000000000412';
-    const FIELDS=JSON.stringify(['displayName','groupIds','id','unitId']);
+    const today=psql('select public.app_today()::text');
+    const year=Number(today.slice(0,4))-(Number(today.slice(5,7))<7?1:0);
+    const selection=(extra={})=>({schoolYear:year,unitId:unit,classId:null,educationId:null,grade:null,status:null,page:1,...extra});
+    const list=(session,caseId=null,extra={})=>call(session,'POST','/api/elever/lista',{selection:selection(extra),search:'',caseId});
+    const card=(session,pupilId,caseId=null)=>call(session,'GET',`/api/elever/elev?pupilId=${pupilId}&schoolYear=${year}${caseId?`&caseId=${caseId}`:''}`);
+    const exportBody=(mode,ids)=>({mode,export:{mode:'ids',ids,schoolYear:year,caseId:null,fields:['id','displayName'],protectedIds:[],includePersonalNumber:false}});
+    const exportCall=(session,mode,ids=[pupil])=>call(session,'POST','/api/elever/export',exportBody(mode,ids));
     const corr=(response)=>response.headers['x-correlation-id'];
-    const events=(response)=>psql("select action||'|'||outcome||'|'||coalesce(details->>'count','')||'|'||coalesce(details->>'readForm','')||'|'||coalesce(details->>'code','') from public.security_events where correlation_id=:'corr'::uuid order by id",{corr:corr(response)});
+    const events=(response)=>corr(response)?psql("select action||'|'||outcome from public.security_events where correlation_id=:'corr'::uuid order by id",{corr:corr(response)}).split('\n').filter(Boolean):[];
+    const has=(response,action,outcome='ok')=>events(response).includes(`${action}|${outcome}`);
     const leaks=(...responses)=>responses.map((response)=>JSON.stringify(response.body)).join(' ');
     const createPerson=(name)=>{
       const identity=crypto.randomUUID(),membership=crypto.randomUUID();
@@ -310,21 +317,18 @@ const cases = {
       return {identity,membership};
     };
     const hm=await mint({identityId:'33000000-0000-4000-8000-000000000021',membershipId:'33000000-0000-4000-8000-000000000031',assignmentId:'33000000-0000-4000-8000-000000000041'});
-    const today=psql('select public.app_today()::text');
     const base={unitIds:[unit],scopeKind:'school',validFrom:today};
     const principal=createPerson('Syntetisk rektor');
     const appointed=await call(hm,'POST','/api/kund/rektor',{...base,membershipId:principal.membership,function:'rektor'});
     check(checks,'huvudman utser rektor för provet',appointed.status===201,`HTTP ${appointed.status}/${appointed.body?.code}`);
     if(appointed.status!==201)return;
     const rector=await mint({identityId:principal.identity,membershipId:principal.membership,assignmentId:appointed.body.assignmentId});
-
     const options=await call(rector,'GET','/api/kund/mandat/urval');
     const optionText=JSON.stringify(options.body);
-    check(checks,'tilldelningsurvalet är begränsat till rektorns skola',options.status===200&&JSON.stringify(options.body?.pupils?.map((p)=>p.id))===JSON.stringify([pupil])&&JSON.stringify(options.body?.schools?.map((s)=>s.id))===JSON.stringify([unit])&&!optionText.includes(otherPupil)&&!optionText.includes(foreignPupil)&&!options.body?.recipients?.some((r)=>r.membershipId===principal.membership),`HTTP ${options.status}`);
-    check(checks,'tilldelningsurvalet är auditerat',events(options)==='mandate_options_read|ok|1||',events(options));
+    check(checks,'tilldelningsurvalet är begränsat till rektorns skola',options.status===200&&options.body?.pupils?.some((p)=>p.id===pupil)&&JSON.stringify(options.body?.schools?.map((s)=>s.id))===JSON.stringify([unit])&&!optionText.includes(otherPupil)&&!optionText.includes(foreignPupil)&&!options.body?.recipients?.some((r)=>r.membershipId===principal.membership),`HTTP ${options.status}`);
+    check(checks,'tilldelningsurvalet är auditerat',has(options,'mandate_options_read'),events(options).join(','));
     const hmOptions=await call(hm,'GET','/api/kund/mandat/urval');
     check(checks,'huvudman får inget elevurval',hmOptions.status===200&&JSON.stringify(hmOptions.body?.functions)==='["rektor"]'&&hmOptions.body?.pupils?.length===0,`HTTP ${hmOptions.status}`);
-
     const grant=async(name,body)=>{
       const person=createPerson(name);
       const granted=await call(rector,'POST','/api/kund/mandat',{...base,membershipId:person.membership,...body});
@@ -337,67 +341,59 @@ const cases = {
     const support=await grant('Syntetisk support',{function:'support',scopeKind:'pupil',pupilIds:[pupil],purposeCode:'synthetic-troubleshooting',startsAt:new Date(Date.now()-1000).toISOString(),endsAt:new Date(Date.now()+1200000).toISOString()});
     check(checks,'rektor tilldelar lärare, skoladministratör, elevhälsa och support via API',true,'4 × 201');
 
-    const list=await call(teacher.session,'GET','/api/prov/elev');
-    check(checks,'lärarens lista gäller endast egen grupp',list.status===200&&JSON.stringify(list.body?.pupils?.map((p)=>p.id))===JSON.stringify([pupil]),`HTTP ${list.status}/${list.body?.code}`);
-    check(checks,'endast explicit fältlista lämnas',list.body?.pupils?.every((p)=>JSON.stringify(Object.keys(p).sort())===FIELDS)&&JSON.stringify(list.body?.pupils?.[0]?.groupIds)===JSON.stringify([group]),JSON.stringify(Object.keys(list.body?.pupils?.[0]??{})));
-    check(checks,'läsning är no-store',list.headers['cache-control']==='no-store',list.headers['cache-control']);
-    check(checks,'listläsning har committad händelse med samma korrelation',events(list)==='pupil_probe_listed|ok|1|list|',events(list));
-    const byId=await call(teacher.session,'GET',`/api/prov/elev?elev=${pupil}`);
-    check(checks,'direkt ID-läsning inom scope loggas',byId.status===200&&events(byId)==='pupil_probe_read|ok|1|pupil|',`HTTP ${byId.status}; ${events(byId)}`);
-    const other=await call(teacher.session,'GET',`/api/prov/elev?elev=${otherPupil}`);
-    const foreign=await call(teacher.session,'GET',`/api/prov/elev?elev=${foreignPupil}`);
-    const unknown=await call(teacher.session,'GET',`/api/prov/elev?elev=${crypto.randomUUID()}`);
+    const teacherList=await list(teacher.session);
+    check(checks,'lärarens lista gäller endast egen grupp',teacherList.status===200&&teacherList.body?.pupils?.some((p)=>p.id===pupil)&&!teacherList.body?.pupils?.some((p)=>p.id===otherPupil||p.id===foreignPupil),`HTTP ${teacherList.status}/${teacherList.body?.code}`);
+    const row=teacherList.body?.pupils?.find((p)=>p.id===pupil);
+    check(checks,'registerprojektionen lämnar inte rått personnummer',row&&row.classId===group&&!Object.hasOwn(row,'personalNumber')&&teacherList.body?.pupils?.every((p)=>!Object.hasOwn(p,'personalNumber')),JSON.stringify(Object.keys(row??{})));
+    check(checks,'läsning är no-store',teacherList.headers['cache-control']==='no-store',teacherList.headers['cache-control']);
+    check(checks,'listläsning har committad händelse med samma korrelation',has(teacherList,'pupil_list_read'),events(teacherList).join(','));
+    const byId=await card(teacher.session,pupil);
+    check(checks,'direkt ID-läsning inom scope loggas',byId.status===200&&byId.body?.id===pupil&&has(byId,'pupil_read'),`HTTP ${byId.status}; ${events(byId).join(',')}`);
+    const other=await card(teacher.session,otherPupil),foreign=await card(teacher.session,foreignPupil),unknown=await card(teacher.session,crypto.randomUUID());
     check(checks,'annan skolas, annan kunds och okänd elev ger samma nekande',other.status===404&&equalShape(other,foreign)&&equalShape(other,unknown)&&!leaks(other,foreign,unknown).includes('Syntetisk elev'),`HTTP ${other.status}/${foreign.status}/${unknown.status}`);
-    check(checks,'nekad ID-läsning loggas som nekande',events(other)==='pupil_probe_read|denied|||not_found'&&events(unknown)==='pupil_probe_read|denied|||not_found',`${events(other)} / ${events(unknown)}`);
-    const bad=await call(teacher.session,'GET',`/api/prov/elev?elev=${pupil}&falt=namn`);
+    check(checks,'nekad ID-läsning loggas som nekande',has(other,'pupil_read','denied')&&has(unknown,'pupil_read','denied'),`${events(other).join(',')} / ${events(unknown).join(',')}`);
+    const bad=await call(teacher.session,'GET',`/api/elever/elev?pupilId=${pupil}&schoolYear=${year}&falt=namn`);
     check(checks,'okända frågeparametrar nekas',bad.status===400,`HTTP ${bad.status}`);
 
-    const healthList=await call(health.session,'GET','/api/prov/elev');
-    const caseRead=await call(health.session,'GET',`/api/prov/elev?arende=${ownCase}`);
-    const otherCaseRead=await call(health.session,'GET',`/api/prov/elev?arende=${otherCase}`);
-    const mismatch=await call(health.session,'GET',`/api/prov/elev?arende=${ownCase}&elev=${otherPupil}`);
-    check(checks,'ärendescope kräver exakt ärende',healthList.status===200&&healthList.body?.pupils?.length===0&&JSON.stringify(healthList.body?.scope?.cases?.map((c)=>c.id))===JSON.stringify([ownCase]),`lista ${healthList.status}`);
-    check(checks,'exakt ärende ger ärendets elev och loggas',caseRead.status===200&&caseRead.body?.pupils?.[0]?.id===pupil&&events(caseRead)==='pupil_probe_case_read|ok|1|case|',`HTTP ${caseRead.status}; ${events(caseRead)}`);
+    const healthList=await list(health.session);
+    const caseRead=await card(health.session,pupil,ownCase),otherCaseRead=await card(health.session,otherPupil,otherCase),mismatch=await card(health.session,otherPupil,ownCase);
+    check(checks,'ärendescope kräver exakt ärende',healthList.status===200&&healthList.body?.count===0&&JSON.stringify(healthList.body?.scope?.cases?.map((c)=>c.id))===JSON.stringify([ownCase]),`lista ${healthList.status}`);
+    check(checks,'exakt ärende ger ärendets elev och loggas',caseRead.status===200&&caseRead.body?.id===pupil&&has(caseRead,'pupil_read'),`HTTP ${caseRead.status}; ${events(caseRead).join(',')}`);
     check(checks,'annat ärende och fel elev nekas lika',otherCaseRead.status===404&&mismatch.status===404&&equalShape(otherCaseRead,mismatch),`HTTP ${otherCaseRead.status}/${mismatch.status}`);
 
-    const exported=await call(admin.session,'GET','/api/prov/export');
+    const preview=await exportCall(admin.session,'preview');
+    const exported=await exportCall(admin.session,'download');
     const csv=typeof exported.body==='string'?exported.body:'';
-    check(checks,'skoladministratören exporterar samma kontrollerade urval',exported.status===200&&exported.headers['content-type']?.includes('text/csv')&&csv.includes('Syntetisk elev 11')&&!csv.includes('Syntetisk elev 12')&&!csv.includes('Syntetisk elev 21')&&exported.headers['cache-control']==='no-store',`HTTP ${exported.status}`);
-    check(checks,'exporten har committad händelse',events(exported)==='pupil_probe_exported|ok|1|export|',events(exported));
-    const teacherExport=await call(teacher.session,'GET','/api/prov/export');
-    const supportExport=await call(support.session,'GET','/api/prov/export');
-    const hmRead=await call(hm,'GET','/api/prov/elev');
+    check(checks,'skoladministratören exporterar samma kontrollerade urval',preview.status===200&&preview.body?.count===1&&exported.status===200&&exported.headers['content-type']?.includes('text/csv')&&csv.includes('Syntetisk elev 11')&&!csv.includes('Syntetisk elev 12')&&!csv.includes('Syntetisk elev 21')&&exported.headers['cache-control']==='no-store',`HTTP ${exported.status}`);
+    check(checks,'exporten har committad händelse',has(preview,'pupil_export_preview')&&has(exported,'pupil_exported'),events(exported).join(','));
+    const teacherExport=await exportCall(teacher.session,'download'),supportExport=await exportCall(support.session,'download'),hmRead=await list(hm);
     check(checks,'lärare, support och huvudman saknar export/elevinsyn',teacherExport.status===403&&supportExport.status===403&&hmRead.status===403,`${teacherExport.status}/${supportExport.status}/${hmRead.status}`);
-    check(checks,'nekad export loggas',events(teacherExport)==='pupil_probe_export|denied|||forbidden',events(teacherExport));
-
-    const supportList=await call(support.session,'GET','/api/prov/elev');
-    check(checks,'support ser en elev med godkännare, syfte och sluttid',supportList.status===200&&supportList.body?.pupils?.length===1&&supportList.body?.scope?.approverName==='Syntetisk rektor'&&supportList.body?.scope?.purposeCode==='synthetic-troubleshooting'&&Boolean(supportList.body?.scope?.endsAt),`HTTP ${supportList.status}`);
-    const eventText=psql("select coalesce(string_agg(details::text,' '),'') from public.security_events where correlation_id=any(string_to_array(:'ids',',')::uuid[])",{ids:[list,byId,caseRead,exported,supportList,options].map(corr).join(',')});
+    check(checks,'nekad export loggas',has(teacherExport,'pupil_export','denied'),events(teacherExport).join(','));
+    const supportList=await list(support.session);
+    const supportSelection=await call(support.session,'GET','/api/elever/urval');
+    check(checks,'support ser en elev med godkännare, syfte och sluttid',supportList.status===200&&supportList.body?.pupils?.length===1&&supportSelection.status===200&&supportSelection.body?.approverName==='Syntetisk rektor'&&supportSelection.body?.purposeCode==='synthetic-troubleshooting'&&Boolean(supportSelection.body?.endsAt),`lista ${supportList.status}, urval ${supportSelection.status}`);
+    check(checks,'supportens urvalsmetadata är auditerad',has(supportSelection,'pupil_selection_read'),events(supportSelection).join(','));
+    const eventText=psql("select coalesce(string_agg(details::text,' '),'') from public.security_events where correlation_id=any(string_to_array(:'ids',',')::uuid[])",{ids:[teacherList,byId,caseRead,exported,supportList,options].map(corr).join(',')});
     check(checks,'händelserna innehåller inga elevnamn',eventText!==''&&!eventText.includes('Syntetisk elev'),'details kontrollerade');
 
     let failed;
     try {
+      await assertTarget('protected');
       psql('revoke insert on public.security_events from skolplattform_worker');
       failed={
-        list:await call(teacher.session,'GET','/api/prov/elev'),
-        byId:await call(teacher.session,'GET',`/api/prov/elev?elev=${pupil}`),
-        caseRead:await call(health.session,'GET',`/api/prov/elev?arende=${ownCase}`),
-        exported:await call(admin.session,'GET','/api/prov/export'),
-        denied:await call(teacher.session,'GET','/api/prov/export'),
-        options:await call(rector,'GET','/api/kund/mandat/urval'),
+        list:await list(teacher.session),byId:await card(teacher.session,pupil),caseRead:await card(health.session,pupil,ownCase),
+        preview:await exportCall(admin.session,'preview'),exported:await exportCall(admin.session,'download'),
+        denied:await exportCall(teacher.session,'download'),options:await call(rector,'GET','/api/kund/mandat/urval'),
       };
-    } finally {
-      psql('grant insert on public.security_events to skolplattform_worker');
-    }
+    } finally { psql('grant insert on public.security_events to skolplattform_worker'); }
     const allFailed=Object.values(failed);
     check(checks,'loggfel stoppar lista, ID, ärende, export, nekande och urval med audit_unavailable',allFailed.every((response)=>response.status===500&&response.body?.code==='audit_unavailable'),allFailed.map((response)=>`${response.status}/${response.body?.code}`).join(','));
     check(checks,'loggfel lämnar inget elevinnehåll',!leaks(...allFailed).includes('Syntetisk elev')&&!allFailed.some((response)=>response.headers['content-type']?.includes('text/csv')),'inga namn eller CSV');
-    check(checks,'loggfel lämnar ingen ok-händelse',allFailed.every((response)=>!events(response).includes('|ok|')),allFailed.map(events).join(','));
-    const recovered=await call(teacher.session,'GET','/api/prov/elev');
-    check(checks,'läsningen fungerar igen när loggen är åter',recovered.status===200&&events(recovered)==='pupil_probe_listed|ok|1|list|',`HTTP ${recovered.status}`);
-
+    check(checks,'loggfel lämnar ingen ok-händelse',allFailed.every((response)=>!events(response).some((entry)=>entry.endsWith('|ok'))),allFailed.map((response)=>events(response).join(',')).join(';'));
+    const recovered=await list(teacher.session);
+    check(checks,'läsningen fungerar igen när loggen är åter',recovered.status===200&&has(recovered,'pupil_list_read'),`HTTP ${recovered.status}`);
     const ended=await call(rector,'POST','/api/kund/uppdrag/avsluta',{assignmentId:support.assignmentId});
-    const afterEnd=await call(support.session,'GET','/api/prov/elev');
+    const afterEnd=await list(support.session);
     check(checks,'avslutat supportuppdrag nekar genast utan innehåll',ended.status===200&&afterEnd.status===403&&!leaks(afterEnd).includes('Syntetisk elev'),`avslut ${ended.status}, läsning ${afterEnd.status}/${afterEnd.body?.code}`);
     psql("update public.access_assignments set ended_at=clock_timestamp() where id=any(string_to_array(:'ids',',')::uuid[]) and ended_at is null",{ids:[teacher,admin,health,{assignmentId:appointed.body.assignmentId}].map((item)=>item.assignmentId).join(',')});
   },
