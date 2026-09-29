@@ -159,7 +159,12 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: TBD
+**Plans**: Förberedelseplan 05-01 genomförd 2026-09-29; detaljerade implementationsplaner återstår.
+
+- [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
+
+Fas 5 förbereds på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
+
 **UI hint**: yes
 
 Denna fas äger slutverifieringen av bevarandekraven. Referensflödena provas redan i fas 1 och vid varje berörd ändring i fas 2–4; regressionsskydd skjuts inte upp till fas 5. Grundskola och gymnasium provas där respektive arbetsflöde är tillämpligt.
