@@ -3,7 +3,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(20);
 
 create temporary table audit_test_ids (id bigint primary key);
 with created as (
@@ -113,6 +113,14 @@ select throws_like(
   'händelse utan serverkontext nekas'
 );
 select set_config('app.app_role', 'huvudman', true);
+-- 05-08 closes direct Worker history insertion. The legacy trigger still
+-- preserves auth.users actor semantics for privileged migration/setup writes.
+select throws_ok(
+  $$insert into public.point_plan_events (point_plan_id, actor_role, action)
+    values ('70000000-0000-4000-8000-000000000301', 'huvudman', 'Otillåten direkt historik')$$,
+  '42501', null, 'Worker kan inte skriva programplanshistorik direkt'
+);
+reset role;
 insert into public.point_plan_events (
   point_plan_id, actor, actor_role, action
 ) values (
