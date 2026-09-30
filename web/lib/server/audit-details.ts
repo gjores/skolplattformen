@@ -3,7 +3,7 @@ export type AuditJson = null | boolean | number | string | AuditJson[] | { [key:
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const FUNCTIONS = new Set(['kundadmin','granskare','huvudman','rektor','administrator','larare','elevhalsa','elevhalsoansvarig','it','support']);
 const CODES = new Set(['no_session','session_expired','session_revoked','no_context','membership_blocked','customer_closed','mfa_required','forbidden','assignment_expired','assignment_ended','assignment_upcoming','invitation_invalid','conflict','context_changed','registry_unavailable','db_unreachable','csrf','idp_registration_failed','login_state_invalid','not_found','bad_request','internal_error','audit_unavailable']);
-const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/elever','/api/other']);
+const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/elever','/api/timplaner','/api/other']);
 // Event names and field names describe operations, never the values involved.
 export const PUPIL_REGISTER_ACTIONS = [
   'pupil_list_read', 'pupil_read', 'pupil_history_read', 'pupil_conflict_read',

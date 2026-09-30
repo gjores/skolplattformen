@@ -226,6 +226,7 @@ export async function withSessionContext<T>(
       await tx`select
         set_config('app.phase', '', true),
         set_config('app.identity_id', ${row.identity_id}, true),
+        set_config('app.session_id', ${row.id}, true),
         set_config('app.customer_id', ${membership?.customer_id ?? ''}, true),
         set_config('app.membership_id', ${membership?.id ?? ''}, true),
         set_config('app.assignment_id', ${assignment?.id ?? ''}, true),
