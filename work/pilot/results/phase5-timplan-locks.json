@@ -31,6 +31,5 @@
       "dataPreserved": true
     }
   ],
-  "sourceCommit": "8c91a22e97c1fb40f099c730060d434927560d9b",
-  "scope": "local synthetic SQL as postgres; not Worker/API"
+  "sourceCommit": "c216c7b0812c9b5881b501ecca9f8f5fe2d2eea9"
 }

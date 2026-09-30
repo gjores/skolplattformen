@@ -159,11 +159,13 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-03 genomförda; stängd SQL-grund klar 2026-09-30. Nästa 05-04: session/API före Worker-grant; övriga skyddade flöden återstår.
+**Plans**: 05-01–05-04 genomförda 2026-09-30. Sessionskopplad timplans-API verifierad lokalt; nästa skyddad timplansvy/kolumnunderlag och övriga flöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
 - [x] 05-03-PLAN.md — Stängd mandatavgränsad timplansläsning/celländring med revision och atomisk DB-audit; SQL 77/77, lås 4/4 PASS; session/API/UI återstår
+
+- [x] 05-04-PLAN.md — Sessionskopplad timplans-API, MFA/konflikt/audit, preflight/final 29/29 PASS och exakt två Worker-grants; UI/gymnasieskrivning stängda
 
 Fas 5 förbereds på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 

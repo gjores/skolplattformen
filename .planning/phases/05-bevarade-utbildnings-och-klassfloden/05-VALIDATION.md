@@ -38,3 +38,7 @@ Namnen är planeringsförslag, inte befintliga körbara tester. Nästa genomför
 ## Delbevis 05-03 — 2026-09-30
 
 Stängd timplans-SQL på 8c91a22: PASS 77/77; två riktiga anslutningar/låsväntan PASS 4/4; mandat 243/243, audit 19/19, registerkonflikt 19/19 och timplansmodell 14/14 PASS. Se 05-03-SUMMARY. Intern DB-audit har session_id=NULL; session/API/nekandeaudit och exakt Worker-grant hör till 05-04. Vald rad/kolumnbredd verifierad, inte full matris/totalram eller gymnasiets programplansgrund. Äldre fastställt beslut och klasskoppling bevarade i syntetisk fixtur. ADMIN-kraven och fas 4:s slutverifiering fortsatt öppna.
+
+## Delbevis 05-04 — 2026-09-30
+
+Sessionskopplad timplans-API på c216c7b, skyddat bygge samma revision; prov/grant i 000ec09. Preflight och final PASS 29/29 fall (93 kontroller vardera), exakt ACL återställd före separat grant och cleanup PASS. Sessions-/Worker-SQL 27/27, timplans-SQL 77/77, mandat/audit/register 281/281, verkliga lås 4/4 och modell/server 416/416 PASS. Körargrind 2/2, typ/lint/bygge PASS. Verklig PostgreSQL och byggd Worker med lokalt mintade testrealmsessioner; ingen interaktiv IdP eller kommunanslutning. Exakt två Worker-entrypoints öppna, helpers/klientroller stängda. Se 05-04-SUMMARY för sessions-/audit-/nekande- och rollbackbevis. Skyddad UI/kolumnunderlag, full matris/totalram och gymnasiets programplansgrund återstår; ADMIN-kraven och fas 4:s slutverifiering fortsatt öppna.
