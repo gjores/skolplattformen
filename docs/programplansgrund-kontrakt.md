@@ -1,6 +1,6 @@
 # Versionsbundet underlag för programplaner
 
-Internt kontrakt för fas 5, plan 05-07. Detta dokument hör inte till användarhandboken. Katalogreferenser är en grund för kommande skyddade programplanskommandon, inte ett godkännande av en utbildning eller dess samlade nationella ram.
+Internt kontrakt för fas 5, plan 05-07–05-08. Detta dokument hör inte till användarhandboken. Katalogreferenser är en grund för kommande skyddade programplanskommandon, inte ett godkännande av en utbildning eller dess samlade nationella ram.
 
 ## Källa och återfinnbart innehåll
 
@@ -91,24 +91,37 @@ Referensgrunden fabricerar varken generell 2500-poängsram, fördjupningsrest, a
 
 `web/lib/server/programplan-basis.ts` exporterar `createVerifiedProgramplanCatalog(value)` och `validateProgramplanCatalogBasis(value)`. Den första använder den gemensamma verifieraren för både slutet artefaktformat och överensstämmelse mellan innehåll och fingerprint, och ger en fryst kopia. Den andra kontrollerar referensen och använder samma resolver med repoartefaktet. Endast verifierad oföränderlig katalog får cachelagras; ingen aktör eller behörighet cachelagras här.
 
-Importen ansluter inte till databasen, läser inga privata miljövärden och hämtar inga externa uppgifter. Ingen publik route, UI-vy eller ny SQL/Worker-rättighet finns i denna plan. En klientvald katalogreferens blir inte betrodd utbildningsdata för att denna validator returnerar `resolved`.
+Importen ansluter inte till databasen, läser inga privata miljövärden och hämtar inga externa uppgifter. Adaptern öppnar ingen publik route eller UI-vy. Databasgrunden i 05-08 är separat och har inga nya Worker-rättigheter. En klientvald katalogreferens blir inte betrodd utbildningsdata för att denna validator returnerar `resolved`.
 
-## Nästa SQL-plan
+## Sluten databasgrund för utkast (05-08)
 
-Inventeringen finns i `.planning/phases/05-bevarade-utbildnings-och-klassfloden/05-07-INVENTORY.md`. `point_plans` saknar revision, fingerprint och explicit program-/ämnesversionsgrund. `catalog_fetched` är endast ett datum. Äldre actor-FK till `auth.users` är inte den aktuella skyddade sessionens aktör.
+Tre framåtriktade migrationer lagrar katalogen och inför programplansutkast. `programplan_catalogs` har enbart `catalog_id` och `payload`. Databasen prövar det slutna normaliserade formatet, korsreferenserna och samma kanoniska SHA-256 som offlinegeneratorn. Arrays omordnas inte i SQL; seedgeneratorn ska därför användas för den verifierade lagringsformen. UPDATE, DELETE och TRUNCATE nekas. En ny katalog är en ny innehållsidentitet och skriver inte över en tidigare katalog.
 
-Nästa genomförandeplan behöver:
+`web/scripts/build-programplan-catalog-sql.mjs` skapar seedmigrationen från det verifierade artefaktet utan nätverk, databas, tidsstämplar eller upsert. `--check` jämför exakta bytes utan att skriva.
 
-1. Föra över ett exakt maskinartefakt som oföränderligt, versionshanterat referensunderlag till databasen och verifiera samma SHA-256/innehåll där. Appens validator får inte ensam godkänna SQL-skrivning.
-2. Binda varje ny programplansversion till katalog-ID, programversion, explicit utbildningsstart, ämnesversioner och lösta nationella alternativ. Identiteten fryses för versionen. Nytt underlag kräver uttryckligt versions-/migreringskommando.
-3. Hantera befintliga obundna poster som `unpinned_basis`. Gissa inte katalogversion ur hämtdatum eller utbildningsstart ur kulltext. Inventering, explicit rättning och separat audit måste föregå bindning; äldre beslut och utbildnings-ID ska bevaras.
-4. Härleda kund, aktör, medlemskap, uppdrag, skola och levande mandat från faktisk serverkontrollerad session. Kontrollera relationerna även i SQL-transaktionen och neka främmande kund/skola samt återkallat mandat.
-5. Låsa programplansobjekt och jämföra förväntad revision. Huvudman/rektor får utforma utkast; endast huvudman fastställer direkt ur utkast. Timplanens förslag/återsändning införs inte som ny programplansprocess.
-6. Ersätta tidigare fastställd version och fastställa ny version atomärt med obligatorisk sessionskopplad DB-/Worker-audit. Loggfel eller delskrivningsfel återställer hela kommandot. Inga råa katalog-/planinnehåll behöver skrivas i säkerhetsloggen.
-7. Pröva exakta källreferenser samt fullständiga nationella alternativ, ramar och beslutsregler för varje öppnad programkategori. Olösta val eller ej belagd kategori/ram stoppar öppnande.
-8. Hålla nya entrypoints stängda tills full SQL-/sessions-/API-preflight och kompensation av tillfälliga grants har verifierats; därefter endast exakt avgränsade Worker-rättigheter. Ingen gammal demoväg återöppnas.
+`phase5_resolve_programplan_basis(jsonb)` återger exakt sex fält: `status`, `catalogId`, `programRef`, `diagnostics`, `unresolvedChoices` och `decisionReady: false`. Det är ett avgränsat referensresultat, utan hela katalogunderlaget eller skrivmandat. Diagnostik och olösta val jämförs innehållsmässigt med TypeScript-resolvern. Vid fel innan bindningen kunnat parsas kan SQL sakna vald katalog och returnera `catalogId: null`; TypeScript har redan fått en verifierad kataloginstans. Saknat katalog-ID i databasen ger `catalog_unavailable`; TypeScript med annan vald instans ger `catalog_mismatch`. Ingen implicit standardkatalog väljs.
 
-Detta är krav på nästa implementation, inte påståenden om redan implementerade SQL-funktioner. De befintliga tre fas 5-entrypointsen för GR/IM-timplan ändras inte. ADMIN-02 är fortsatt Pending; fas 4:s mänskliga checkpoint och separat fasverifiering kvarstår.
+`point_plans` får `revision`, nullable `catalog_id` och nullable `basis_reference`. Befintliga planer börjar med revision 0 och obundet underlag. Ingen utbildningsstart eller katalogversion härleds från gammalt hämtdatum eller fri kulltext. En bunden versions katalog, program, inriktning, utbildningsstart och identitet fryses; endast utkastets ordnade fördjupningsreferenser kan ändras med förväntad revision.
+
+De fem interna kommandona är:
+
+- `phase5_read_programplan(plan_id)` läser en plan inom levande skolmandat och skriver obligatorisk DB-audit.
+- `phase5_bind_programplan_draft(plan_id, expected_revision, basis_reference)` binder ett obundet utkast uttryckligt. Gamla fördjupningskoder måste återfinnas i exakt samma ordning.
+- `phase5_replace_programplan_specialization(plan_id, expected_revision, specialization_refs)` ersätter det bundna utkastets fördjupning atomärt och ökar revisionen.
+- `phase5_create_programplan_draft(offering_id, expected_latest_version, basis_reference)` skapar nästa version utan att ändra en tidigare plan. Högst ett öppet utkast tillåts.
+- `phase5_clone_programplan_draft(source_plan_id, expected_source_revision, expected_latest_version, explicit_legacy_basis default null)` kopierar en tidigare fastställd/ersatt källas underlag till ett nytt utkast. Obunden källa kräver uttryckligt underlag; källans identitet, beslut och historik bevaras.
+
+Kommandona återger samma slutna projektion med tolv fält: `id`, `offeringId`, `unitId`, `schoolName`, `education`, `version`, `revision`, `status`, `decidedOn`, `catalogId`, `basisReference`, `resolution`. Aktörens privata uppgifter ingår inte. SQL låser faktisk session, därefter kund och utbildning/plan, och prövar aktuell session och mandatkedja efter väntan. Huvudman och rektor får arbeta med utkast inom sina levande skolmandat. Klientens rollfält ger inget mandat.
+
+Ny verksamhetshistorik använder verklig skyddad identitet, session, medlemskap och uppdrag i separata kolumner. Äldre historik och dess `auth.users`-koppling lämnas kvar. Alla kommandon kräver korrelations-ID och sessionskopplad DB-audit i samma transaktion; loggfel återställer data, revision och verksamhetshistorik. Säkerhetsloggen innehåller minimala objekt-/åtgärdsuppgifter, inte råa planer.
+
+Alla nya tabell-/funktionsrättigheter är stängda för PUBLIC, anon, authenticated och Worker. Workers gamla direkta programplans-/historikrättigheter stängs också; de tre befintliga timplanskommandona behåller sina rättigheter. SQL-proven är lokala syntetiska databasprov och bevisar varken HTTP-session, MFA eller Worker-audit.
+
+## Nästa avgränsning
+
+Nästa plan behöver koppla dessa interna utkastkommandon till skyddad server/API med levande sessionskontroll, MFA enligt befintlig policy, strikt indata/svarsprojektion och obligatorisk Worker-audit i samma yttre transaktion. Full preflight och återställning av tillfälliga provrättigheter ska föregå några permanenta nya Worker-grants. Därefter kan ett tydligt användarflöde öppnas och provas på dator och telefon.
+
+Fastställande har inget kommando här. Huvudmannen ska senare kunna fastställa direkt ur utkast; timplanens förslag/återsändning införs inte för programplaner. Fullständiga nationella alternativ, ramar, nivåföljd och timregler måste först ha verifierat underlag. Teknisk `resolved` med olösta val är tillåten som utkast men ger aldrig `decisionReady: true`. ADMIN-02 är fortsatt Pending; kullkopiering, klasskoppling, fas 4:s mänskliga checkpoint och separat fasverifiering återstår.
 
 ## Verifiering
 
@@ -120,7 +133,18 @@ node scripts/build-programplan-catalog.mjs --check
 node --test lib/*.test.mjs lib/server/*.test.mjs scripts/build-programplan-catalog.test.mjs
 npx tsc --noEmit
 npx oxlint app lib scripts/build-programplan-catalog.mjs
-npm run build:protected
+node scripts/build-programplan-catalog-sql.mjs --check
 ```
 
 Generator-/parserprov ska täcka faktisk källsnapshot, exakt fingerprint, modifierat innehåll med gammalt ID, fel program/inriktning/version/start/ämne/item/poäng, dubbletter, okända fält och bevarade alternativ. Ordinarie organisations-/timplans-/kull-/lagerprov verifierar att den äldre vägen är oförändrad. Syntetiska referensprov är inga mandatprov eller kommunala acceptansprov. Nytt användarbeteende öppnas inte här, så tidigare browserbevis för 05-06 är historik och inget bevis för denna validator.
+
+Databas- och samtidighetsproven körs från projektroten med målskydd mot endast den disponibla lokala `protected`-miljön:
+
+```sh
+node work/pilot/run-sql-tests.mjs --file phase5_programplan_catalog.test.sql
+node work/pilot/run-sql-tests.mjs --file phase5_programplan_drafts.test.sql
+node --test work/pilot/verify-programplan-locks.test.mjs
+node work/pilot/verify-programplan-locks.mjs
+```
+
+Samtidighetsprovet använder verkliga separata anslutningar och konstaterad låsväntan. Det städar bara sin egen syntetiska verksamhetsgraf. Säkerhetsloggar och de identiteter loggarna refererar till behålls som auditankare och redovisas i resultatet.
