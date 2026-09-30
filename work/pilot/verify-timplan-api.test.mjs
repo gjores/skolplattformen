@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { REQUIRED_CASES, parseArgs, overallStatus } from './verify-timplan-api.mjs';
+import { REQUIRED_CASES, REQUIRED_SELECTION_CASES, parseArgs, overallStatus } from './verify-timplan-api.mjs';
 const passed = name => ({ name, status: 'PASS', checks: [{ kind: 'response', ok: true }, { kind: 'persistent', ok: true }] });
 test('alla namngivna fall och oberoende beständigt bevis krävs', () => {
   assert.equal(overallStatus(REQUIRED_CASES.map(passed)), 'PASS');
@@ -16,4 +16,10 @@ test('endast explicit lokalt protected-mål, säker rapportkatalog och port', ()
   assert.throws(() => parseArgs(['--target','protected','--out','/tmp/timplan.json','--port','80']), /port/u);
   assert.throws(() => parseArgs(['--target','protected','--out','/tmp/timplan.json','--linked']), /okänt/u);
   assert.equal(parseArgs(['--target','protected','--out','/tmp/timplan.json','--preflight']).preflight, true);
+});
+
+test('listdelen kräver alla gamla och nya bevis, inte ett delurval', () => {
+  assert.equal(overallStatus(REQUIRED_SELECTION_CASES.map(passed), REQUIRED_SELECTION_CASES), 'PASS');
+  assert.equal(overallStatus(REQUIRED_CASES.map(passed), REQUIRED_SELECTION_CASES), 'FAIL');
+  assert.equal(parseArgs(['--target','protected','--out','/tmp/timplan.json','--selection','--preflight']).selection, true);
 });

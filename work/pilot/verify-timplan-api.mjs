@@ -2,7 +2,8 @@
 // 05-04: byggd protected-Worker, verklig PostgreSQL och egen syntetisk kund.
 // Sessioner mintas lokalt med testrealmens bevisprofil. Ingen interaktiv IdP-
 // inloggning eller verklig kommunanslutning påstås. Inga privata värden skrivs ut.
-// --preflight öppnar enbart två entrypoints tillfälligt och återställer deras
+// --preflight öppnar två entrypoints (eller med --selection bara den nya listan)
+// tillfälligt och återställer deras
 // ursprungliga Worker-grants i finally. Hjälpfunktionerna öppnas aldrig.
 import { execFileSync, spawn } from 'node:child_process';
 import crypto from 'node:crypto';
@@ -16,23 +17,25 @@ const root = path.resolve(fileURLToPath(import.meta.url), '../../..');
 const web = path.join(root, 'web');
 const RESULTS = path.join(root, 'work/pilot/results');
 const ENTRYPOINTS = ['public.phase5_read_timplan(uuid)', 'public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)'];
+const SELECTION_ENTRYPOINT = 'public.phase5_list_timplans(integer)';
 const HELPERS = ['public.phase5_timplan_scope(uuid,boolean)', 'public.phase5_timplan_audit(uuid,text)'];
 const MARKER = 'Syntetiskt 05-04 API-prov';
 export const REQUIRED_CASES = ['worker-role','principal-read','hm-read','principal-write-reload','revision-conflict','concurrent-write','hm-write-denied','admin-denied','other-school','other-customer','missing-object','no-mfa','csrf','stale-context','parent-revoked','session-expired','session-revoked','membership-blocked','customer-closed','no-session','invalid-input','decided-plan','gymnasium-write','denied-audit-failure','db-audit-read-failure','db-audit-write-failure','worker-audit-write-failure','client-sql-denied','persistent-audit'];
-export function overallStatus(cases) {
-  if (cases.length !== REQUIRED_CASES.length || new Set(cases.map(c => c.name)).size !== REQUIRED_CASES.length) return 'FAIL';
-  return REQUIRED_CASES.every(name => {
+export const REQUIRED_SELECTION_CASES = [...REQUIRED_CASES,'selection-hm','selection-principal','selection-role-denied','selection-revoked','selection-pagination','selection-empty','selection-strict-input','selection-db-audit-failure','selection-worker-audit-failure','selection-metadata'];
+export function overallStatus(cases, required = REQUIRED_CASES) {
+  if (cases.length !== required.length || new Set(cases.map(c => c.name)).size !== required.length) return 'FAIL';
+  return required.every(name => {
     const c = cases.find(item => item.name === name);
     return c?.status === 'PASS' && c.checks.length > 0 && c.checks.every(check => check.ok === true) && ['response','persistent'].every(kind => c.checks.some(check => check.kind === kind));
   }) ? 'PASS' : 'FAIL';
 }
 export function parseArgs(argv) {
-  const o = { target: null, out: null, port: 3054, preflight: false };
+  const o = { target: null, out: null, port: 3054, preflight: false, selection: false };
   for (let i=0; i<argv.length; i++) {
     const a=argv[i];
     const value=()=>{ if (argv[i+1] === undefined) throw new Error(`${a} saknar värde`); return argv[++i]; };
     if(a==='--target') o.target=value(); else if(a==='--out') o.out=path.resolve(value());
-    else if(a==='--port') o.port=Number(value()); else if(a==='--preflight') o.preflight=true;
+    else if(a==='--port') o.port=Number(value()); else if(a==='--preflight') o.preflight=true; else if(a==='--selection') o.selection=true;
     else throw new Error(`okänt argument ${a}`);
   }
   if(o.target!=='protected') throw new Error('--target protected krävs');
@@ -44,6 +47,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 async function main() {
   let o;
   try { o=parseArgs(process.argv.slice(2)); } catch(e) { console.error(`REFUSED: ${e.message}`); process.exit(1); }
+  const required=o.selection?REQUIRED_SELECTION_CASES:REQUIRED_CASES;
+  const activeEntries=o.selection?[...ENTRYPOINTS,SELECTION_ENTRYPOINT]:ENTRYPOINTS;
+  const temporaryEntries=o.selection?[SELECTION_ENTRYPOINT]:ENTRYPOINTS;
   const prefix=crypto.randomUUID().slice(0,8), id=n=>`${prefix}-0000-4000-8000-${String(n).padStart(12,'0')}`;
   const trigger=`p5_api_fail_${prefix}`, triggerFn=`p5_api_fail_fn_${prefix}`;
   let db, server, created=false, grants=null, triggerCreated=false, serverErrors='', exitCode=1, legacyAssignmentIds=[], aclTouched=false;
@@ -65,22 +71,23 @@ async function main() {
     if(!manifest.idp?.issuer || !manifest.idp?.clientId) throw new Error('BLOCKED: testrealmens bevisprofil saknas');
     try { mark=JSON.parse(fs.readFileSync(path.join(web,'dist-protected/build-mode.json'),'utf8')); }catch{}
     if(mark?.mode!=='protected'||!mark.revision) throw new Error('BLOCKED: protected-bygge saknas');
-    const sourcePaths=['web/lib/server/db.ts','web/lib/server/timplan-planning.ts','web/lib/server/audit-details.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts'];
+    const sourcePaths=['web/lib/server/db.ts','web/lib/server/timplan-planning.ts','web/lib/server/audit-details.ts','web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts'];
     const dirty=execFileSync('git',['status','--porcelain','--',...sourcePaths],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
     if(dirty)throw new Error('BLOCKED: timplansserverns ändringar måste versionshanteras före verifierat bygge');
     const sourceCommit=execFileSync('git',['log','-1','--format=%H','--',...sourcePaths],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
     try{execFileSync('git',['merge-base','--is-ancestor',sourceCommit,mark.revision],{cwd:root,stdio:'ignore'});}catch{throw new Error('BLOCKED: protected-bygget är äldre än timplansservern');}
     const postgres=createRequire(path.join(web,'package.json'))('postgres');
     db=postgres(manifest.dbUrl,{max:4,prepare:false,connect_timeout:10,onnotice:()=>{}});
-    const acl=async()=>db`select f,has_function_privilege('skolplattform_worker',f,'EXECUTE') as granted,(select proacl::text from pg_proc where oid=to_regprocedure(f)) as acl from unnest(${[...ENTRYPOINTS,...HELPERS]}::text[]) f`;
+    const acl=async()=>db`select 'public.'||p.proname||'('||array_to_string(array(select format_type(t,null) from unnest(p.proargtypes::oid[]) t),',')||')' as f,has_function_privilege('skolplattform_worker',p.oid,'EXECUTE') as granted,p.proacl::text as acl from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' order by p.oid`;
     grants=await acl();
     if(grants.some(r=>HELPERS.includes(r.f)&&r.granted)) throw new Error('REFUSED: Worker får redan köra en intern hjälpfunktion');
     if(o.preflight) {
-      if(grants.some(r=>ENTRYPOINTS.includes(r.f)&&r.granted))throw new Error('REFUSED: preflight kräver stängda Worker-entrypoints');
+      if(o.selection&&grants.some(r=>ENTRYPOINTS.includes(r.f)&&!r.granted))throw new Error('REFUSED: befintlig timplans-API måste vara öppen före listpreflight');
+      if(grants.some(r=>temporaryEntries.includes(r.f)&&r.granted))throw new Error('REFUSED: preflight kräver stängda Worker-entrypoints');
       await assertTarget('protected');
       aclTouched=true;
-      for(const f of ENTRYPOINTS) await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);
-    } else if(grants.some(r=>ENTRYPOINTS.includes(r.f)&&!r.granted)) throw new Error('BLOCKED: Worker-entrypoints saknar permanent grant');
+      for(const f of temporaryEntries) await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);
+    } else if(grants.some(r=>activeEntries.includes(r.f)&&!r.granted)) throw new Error('BLOCKED: Worker-entrypoints saknar permanent grant');
     const src=fs.readFileSync(path.join(root,'supabase/tests/phase5_timplan.test.sql'),'utf8');
     const start=src.indexOf('-- Planning fixture:'), end=src.indexOf('-- End planning fixture.');
     if(start<0||end<=start) throw new Error('REFUSED: avgränsad planning-fixtur saknas');
@@ -122,14 +129,15 @@ async function main() {
       // CSRF och ogiltig session stoppas före ctx. Vid blockering/stängning eller
       // ogiltig givarkedja finns sessions-ID:n i ctx-hinten, medan RLS döljer
       // accessFunction innan withSessionContext hunnit skapa en levande kontext.
-      return{status:r.status,body:parsed,text,corr:r.headers.get('x-correlation-id'),cache:r.headers.get('cache-control'),epoch:r.headers.get('x-context-epoch'),auditAction:route==='/api/timplaner/cell'?'timplan_cell_changed':'timplan_read',auditSession:['csrf','session-expired','session-revoked','no-session'].includes(currentCase)?null:s,auditFunction:['parent-revoked','membership-blocked','customer-closed'].includes(currentCase)?null:s?.accessFunction};
+      return{status:r.status,body:parsed,text,corr:r.headers.get('x-correlation-id'),cache:r.headers.get('cache-control'),epoch:r.headers.get('x-context-epoch'),auditAction:route==='/api/timplaner/cell'?'timplan_cell_changed':route==='/api/timplaner/lista'?'timplan_list_read':'timplan_read',auditSession:['csrf','session-expired','session-revoked','no-session'].includes(currentCase)?null:s,auditFunction:['parent-revoked','membership-blocked','customer-closed','selection-revoked'].includes(currentCase)?null:s?.accessFunction};
     };
+    const selectPlans=(s=principal,extra={})=>call(s,'/api/timplaner/lista',{page:1},extra);
     const read=(s=principal,p=planId)=>call(s,'/api/timplaner/lasa',{planId:p});
     const change=async(s=principal,hours=210,revision=null,p=planId,extra={})=>call(s,'/api/timplaner/cell',{planId:p,expectedRevision:revision??(await snapshot()).revision,rowId:'matematik',columnIndex:1,hours},extra);
     const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
     const paired=async(r,s,action)=>{
       const list=await events(r);
-      return list.length===2&&['db','worker'].every(source=>list.some(e=>e.source===source&&e.action===action&&e.outcome==='ok'&&e.actor_identity_id===s.identityId&&e.membership_id===s.membershipId&&e.assignment_id===s.assignmentId&&e.customer_id===id(1)&&e.session_id===s.id&&e.object_type==='timplan'&&e.object_id===planId));
+      return list.length===2&&['db','worker'].every(source=>list.some(e=>e.source===source&&e.action===action&&e.outcome==='ok'&&e.actor_identity_id===s.identityId&&e.membership_id===s.membershipId&&e.assignment_id===s.assignmentId&&e.customer_id===id(1)&&e.session_id===s.id&&e.object_type===(action==='timplan_list_read'?'timplan_collection':'timplan')&&e.object_id===(action==='timplan_list_read'?null:r.body?.id)));
     };
     const errorContract=r=>r.body&&typeof r.body==='object'&&!Array.isArray(r.body)&&Object.keys(r.body).length===2&&Object.hasOwn(r.body,'code')&&Object.hasOwn(r.body,'correlationId')&&typeof r.body.code==='string'&&/^[a-z_]{1,40}$/u.test(r.body.code)&&typeof r.corr==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(r.corr)&&r.body.correlationId===r.corr&&/no-store/u.test(r.cache||'');
     const exactDenial=async(r,source)=>{
@@ -154,7 +162,7 @@ async function main() {
       check(checks,'response','byggd protected-Worker med databasroll',await health());
       const a=await acl();
       const [all]=await db`select count(*)::int as n from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'EXECUTE')`;
-      check(checks,'persistent','enbart två avgränsade Worker-entrypoints öppna',all.n===2&&a.filter(r=>ENTRYPOINTS.includes(r.f)).every(r=>r.granted)&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
+      check(checks,'persistent','exakt avgränsad Worker-EXECUTE-mängd',all.n===activeEntries.length&&a.filter(r=>activeEntries.includes(r.f)).every(r=>r.granted)&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
     });
     for(const [name,s] of [['principal-read',principal],['hm-read',hm]]) await run(name,async checks=>{
       const r=await read(s); allowed.push({r,s,action:'timplan_read'});
@@ -191,9 +199,10 @@ async function main() {
       await denial(checks,()=>change(noMfa),403,'mfa_required');
       const r=await read(noMfa);allowed.push({r,s:noMfa,action:'timplan_read'});
       check(checks,'response','rektor kan läsa utan MFA',r.status===200);check(checks,'persistent','läsning utan MFA loggas',await paired(r,noMfa,'timplan_read'));
+      if(o.selection){const l=await selectPlans(noMfa);allowed.push({r:l,s:noMfa,action:'timplan_list_read'});check(checks,'response','lista kräver inte MFA',l.status===200);check(checks,'persistent','lista utan MFA är auditerad',await paired(l,noMfa,'timplan_list_read'));}
     });
     await run('csrf',checks=>denial(checks,()=>change(principal,210,null,planId,{'Sec-Fetch-Site':'cross-site',Origin:'https://untrusted.example.test'}),403,'csrf'));
-    await run('stale-context',checks=>denial(checks,()=>read({...principal,epoch:principal.epoch+1}),409,'context_changed'));
+    await run('stale-context',async checks=>{await denial(checks,()=>read({...principal,epoch:principal.epoch+1}),409,'context_changed');if(o.selection)await denial(checks,()=>selectPlans({...principal,epoch:principal.epoch+1}),409,'context_changed');});
     await run('parent-revoked',async checks=>{
       await db`update public.access_assignments set ended_at=clock_timestamp() where id=${id(60)}`;
       try{await denial(checks,()=>read(principal),403);await denial(checks,()=>change(principal),403);}finally{await db`update public.access_assignments set ended_at=null where id=${id(60)}`;}
@@ -201,22 +210,22 @@ async function main() {
     await run('session-expired',async checks=>{
       const expired=await mint(11,21,roles.principal);
       await db`update public.app_sessions set expires_at=now()-interval '1 second' where id=${expired.id}`;
-      await denial(checks,()=>read(expired),401,'session_expired');await denial(checks,()=>change(expired),401,'session_expired');
+      await denial(checks,()=>read(expired),401,'session_expired');if(o.selection)await denial(checks,()=>selectPlans(expired),401,'session_expired');await denial(checks,()=>change(expired),401,'session_expired');
     });
     await run('session-revoked',async checks=>{
       const revoked=await mint(11,21,roles.principal);
       await db`update public.app_sessions set revoked_at=clock_timestamp() where id=${revoked.id}`;
-      await denial(checks,()=>read(revoked),401,'session_revoked');await denial(checks,()=>change(revoked),401,'session_revoked');
+      await denial(checks,()=>read(revoked),401,'session_revoked');if(o.selection)await denial(checks,()=>selectPlans(revoked),401,'session_revoked');await denial(checks,()=>change(revoked),401,'session_revoked');
     });
     await run('membership-blocked',async checks=>{
       await db`update public.memberships set status='blocked',blocked_at=clock_timestamp() where id=${id(21)}`;
-      try{await denial(checks,()=>read(principal),403,'membership_blocked');await denial(checks,()=>change(principal),403,'membership_blocked');}finally{await db`update public.memberships set status='active',blocked_at=null where id=${id(21)}`;}
+      try{await denial(checks,()=>read(principal),403,'membership_blocked');if(o.selection)await denial(checks,()=>selectPlans(),403,'membership_blocked');await denial(checks,()=>change(principal),403,'membership_blocked');}finally{await db`update public.memberships set status='active',blocked_at=null where id=${id(21)}`;}
     });
     await run('customer-closed',async checks=>{
       await db`update public.customers set closed_at=clock_timestamp() where id=${id(1)}`;
-      try{await denial(checks,()=>read(principal),403,'customer_closed');await denial(checks,()=>change(principal),403,'customer_closed');}finally{await db`update public.customers set closed_at=null where id=${id(1)}`;}
+      try{await denial(checks,()=>read(principal),403,'customer_closed');if(o.selection)await denial(checks,()=>selectPlans(),403,'customer_closed');await denial(checks,()=>change(principal),403,'customer_closed');}finally{await db`update public.customers set closed_at=null where id=${id(1)}`;}
     });
-    await run('no-session',async checks=>{await denial(checks,()=>read(null),401,'no_session');await denial(checks,()=>change(null),401,'no_session');});
+    await run('no-session',async checks=>{await denial(checks,()=>read(null),401,'no_session');if(o.selection)await denial(checks,()=>selectPlans(null),401,'no_session');await denial(checks,()=>change(null),401,'no_session');});
     await run('invalid-input',async checks=>{
       const rev=(await snapshot()).revision;
       for(const body of [{planId,unexpected:true},{planId:'invalid'},'{', {planId,expectedRevision:rev,rowId:'matematik',columnIndex:1,hours:'200'}, {planId,expectedRevision:rev,rowId:'forged',columnIndex:1,hours:200},{planId,expectedRevision:rev,rowId:'matematik',columnIndex:99,hours:200},{planId,expectedRevision:rev,rowId:'matematik',columnIndex:1,hours:2001}])
@@ -245,14 +254,56 @@ async function main() {
       check(checks,'response','loggfel lämnar generiskt felsvar utan plan',r.status===500&&r.body?.code==='audit_unavailable'&&errorContract(r));
       check(checks,'persistent','timmar revision och båda ok-loggar rullas tillbaka',same(before,await snapshot())&&!(await events(r)).some(e=>e.outcome==='ok'));
     });
+    if(o.selection){
+      const list=(s=principal,page=1)=>call(s,'/api/timplaner/lista',{page});
+      const remember=(r,s,action='timplan_list_read')=>{allowed.push({r,s,action});return r;};
+      const scopedIds=async unit=> (await db`select t.id from public.timplans t join public.offerings o on o.id=t.offering_id where t.organizer_id=${id(2)} and o.kind in ('grundskola','introduktionsprogram') and (${unit}::uuid is null or o.unit_id=${unit}::uuid)`).map(r=>r.id).sort();
+      for(const [name,s,unit]of[['selection-hm',hm,null],['selection-principal',principal,id(30)]])await run(name,async checks=>{
+        const r=remember(await list(s),s),expected=await scopedIds(unit);
+        const keys=['id','offeringId','unitId','schoolName','educationName','cohort','kind','version','revision','status'];
+        check(checks,'response','endast uppdragets befintliga GR-/IM-planer och slutet listkontrakt',r.status===200&&Object.keys(r.body||{}).sort().join(',')===['plans','count','page','pageSize'].sort().join(',')&&r.body.page===1&&r.body.pageSize===50&&r.body.count===expected.length&&same(r.body.plans.map(p=>p.id).sort(),expected)&&r.body.plans.every(p=>Object.keys(p).length===keys.length&&keys.every(k=>Object.hasOwn(p,k))&&p.id!==id(150)&&p.id!==id(52))&&/no-store/u.test(r.cache||''));
+        check(checks,'persistent','listläsningen har faktisk sessionskoppling i båda källorna',await paired(r,s,'timplan_list_read'));
+      });
+      await run('selection-role-denied',checks=>denial(checks,()=>list(admin),403,'forbidden'));
+      await run('selection-revoked',async checks=>{
+        await db`update public.access_assignments set ended_at=clock_timestamp() where id=${id(60)}`;
+        try{await denial(checks,()=>list(),403,'assignment_expired');}finally{await db`update public.access_assignments set ended_at=null where id=${id(60)}`;}
+      });
+      await run('selection-pagination',async checks=>{
+        await db`insert into public.timplans(id,organizer_id,offering_id,version) select gen_random_uuid(),${id(2)}::uuid,${id(40)}::uuid,n from generate_series(10,69) n`;
+        const first=remember(await list(),principal),second=remember(await list(principal,2),principal),empty=remember(await list(principal,100000),principal),expected=await scopedIds(id(30));
+        check(checks,'response','50 per sida utan dubblett eller dold trunkering',first.status===200&&second.status===200&&empty.status===200&&first.body.plans.length===50&&first.body.count===expected.length&&second.body.count===expected.length&&second.body.page===2&&same([...first.body.plans,...second.body.plans].map(p=>p.id).sort(),expected)&&empty.body.plans.length===0&&empty.body.count===expected.length);
+        check(checks,'persistent','alla sidläsningar har minimerad sessionsaudit',(await Promise.all([first,second,empty].map(r=>paired(r,principal,'timplan_list_read')))).every(Boolean));
+      });
+      await run('selection-empty',async checks=>{
+        await db`update public.offerings set kind='gymnasium',program_code='EK25' where id=${id(41)}`;
+        try{const r=remember(await list(outside),outside);check(checks,'response','giltigt tomt skolurval återges uttryckligt',r.status===200&&r.body.count===0&&r.body.plans.length===0);check(checks,'persistent','även tomt urval är obligatoriskt loggat',await paired(r,outside,'timplan_list_read'));}
+        finally{await db`update public.offerings set kind='grundskola',program_code=null where id=${id(41)}`;}
+      });
+      await run('selection-strict-input',async checks=>{
+        for(const body of [{},{page:0},{page:'1'},{page:1,customerId:id(101)},'{'])await denial(checks,()=>call(principal,'/api/timplaner/lista',body),400,'bad_request');
+      });
+      for(const source of['db','worker'])await run(`selection-${source}-audit-failure`,async checks=>{
+        const before=await allPlans(),r=await injectAudit(source,'timplan_list_read',()=>list());failedAudits.push(r);
+        check(checks,'response','loggfel lämnar endast generiskt felsvar',r.status===500&&r.body?.code==='audit_unavailable'&&errorContract(r));
+        check(checks,'persistent','ingen framgångslogg eller dataändring vid loggfel',same(before,await allPlans())&&!(await events(r)).some(e=>e.outcome==='ok'));
+      });
+      await run('selection-metadata',async checks=>{
+        await db`update public.offerings set grades=array[9,1,4]::smallint[] where id=${id(40)}`;
+        try{const r=remember(await read(),principal,'timplan_read'),im=remember(await read(principal,id(53)),principal,'timplan_read');
+          check(checks,'response','årskursordning och IM-vecka kommer från faktiskt underlag',r.status===200&&same(r.body.education?.grades,[9,1,4])&&r.body.education?.kind==='grundskola'&&r.body.schoolName==='Syntetisk skola 30'&&same(r.body.cells.matematik,(await snapshot()).hours)&&im.status===200&&im.body.education?.kind==='introduktionsprogram'&&same(im.body.education?.grades,[])&&same(im.body.cells['im-ma'],[5]));
+          check(checks,'persistent','båda metadata-/celläsningar loggar exakt rätt plan',await paired(r,principal,'timplan_read')&&await paired(im,principal,'timplan_read'));
+        }finally{await db`update public.offerings set grades=array[1,4,9]::smallint[] where id=${id(40)}`;}
+      });
+    }
     await run('client-sql-denied',async checks=>{
       const states=[];
-      for(const role of ['anon','authenticated'])for(const f of [...ENTRYPOINTS,...HELPERS]){
-        const args=f===ENTRYPOINTS[0]?`'${planId}'::uuid`:f===ENTRYPOINTS[1]?`'${planId}'::uuid,0,'matematik',1,200`:f===HELPERS[0]?`'${planId}'::uuid,false`:`'${planId}'::uuid,'timplan_read'`;
+      for(const role of ['anon','authenticated'])for(const f of [...activeEntries,...HELPERS]){
+        const args=f===SELECTION_ENTRYPOINT?'1':f===ENTRYPOINTS[0]?`'${planId}'::uuid`:f===ENTRYPOINTS[1]?`'${planId}'::uuid,0,'matematik',1,200`:f===HELPERS[0]?`'${planId}'::uuid,false`:`'${planId}'::uuid,'timplan_read'`;
         let code='ok';try{await db.begin(async tx=>{await tx.unsafe(`set local role ${role}`);await tx.unsafe(`select ${f.split('(')[0]}(${args})`);});}catch(e){code=e.code;}
         states.push(code);
       }
-      check(checks,'response','anon och authenticated får SQL permission denied',states.length===8&&states.every(code=>code==='42501'));
+      check(checks,'response','anon och authenticated får SQL permission denied',states.length===activeEntries.length*2+HELPERS.length*2&&states.every(code=>code==='42501'));
       const publicACL=await db`select exists(select 1 from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and a.grantee=0 and a.privilege_type='EXECUTE') as open`;
       const a=await acl();
       check(checks,'persistent','PUBLIC och Worker-hjälpare är stängda',publicACL[0].open===false&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
@@ -267,10 +318,10 @@ async function main() {
       check(checks,'persistent','alla tillåtna sessioner har två minimerade händelser',pairs.every(Boolean)&&minimized);
       check(checks,'persistent','alla nekanden loggas och saknar lyckad datahändelse',denialsExact.every(Boolean));
     });
-    const status=overallStatus(cases);
-    const report={kind:'phase5-timplan-api',scope:'local-synthetic-only',proof:'lokalt mintade sessioner med testrealmens bevisprofil; byggd protected-Worker och verklig PostgreSQL; ingen interaktiv IdP-inloggning eller kommunanslutning',startedAt,completedAt:new Date().toISOString(),revision:revision(),workerBuildRevision:mark.revision,preflight:o.preflight,requiredCases:REQUIRED_CASES,complete:cases.length===REQUIRED_CASES.length,status,cases,calls};
+    const status=overallStatus(cases,required);
+    const report={kind:'phase5-timplan-api',scope:'local-synthetic-only',proof:'lokalt mintade sessioner med testrealmens bevisprofil; byggd protected-Worker och verklig PostgreSQL; ingen interaktiv IdP-inloggning eller kommunanslutning',startedAt,completedAt:new Date().toISOString(),revision:revision(),workerBuildRevision:mark.revision,preflight:o.preflight,selection:o.selection,requiredCases:required,complete:cases.length===required.length,status,cases,calls};
     fs.mkdirSync(path.dirname(o.out),{recursive:true});fs.writeFileSync(o.out,`${JSON.stringify(report,null,2)}\n`);
-    console.log(`Totalstatus: ${status} (${cases.filter(c=>c.status==='PASS').length}/${REQUIRED_CASES.length})`);exitCode=status==='PASS'?0:1;
+    console.log(`Totalstatus: ${status} (${cases.filter(c=>c.status==='PASS').length}/${required.length})`);exitCode=status==='PASS'?0:1;
   } catch(e) {
     const safe=/^(BLOCKED|REFUSED):/u.test(e.message||'')?e.message.slice(0,200):'FAILED';
     console.error(safe);
@@ -284,7 +335,7 @@ async function main() {
       try{
         await assertTarget('protected');
         if(triggerCreated)await db.unsafe(`drop trigger if exists ${trigger} on public.security_events; drop function if exists public.${triggerFn}();`);
-        if(aclTouched&&grants)for(const row of grants.filter(r=>ENTRYPOINTS.includes(r.f)))await db.unsafe(`${row.granted?'grant':'revoke'} execute on function ${row.f} ${row.granted?'to':'from'} skolplattform_worker`);
+        if(aclTouched&&grants)for(const row of grants.filter(r=>temporaryEntries.includes(r.f)))await db.unsafe(`${row.granted?'grant':'revoke'} execute on function ${row.f} ${row.granted?'to':'from'} skolplattform_worker`);
         if(aclTouched&&grants){
           const restored=await aclForCleanup(db,grants.map(row=>row.f));
           if(!restored.every(row=>grants.find(original=>original.f===row.f)?.granted===row.granted&&grants.find(original=>original.f===row.f)?.acl===row.acl))throw new Error('ACL restore');

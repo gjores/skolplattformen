@@ -30,6 +30,7 @@ const fixture = globalThis.__timplanTest = {
     }
     state.calls.push({sql,values});
     if(state.sqlError) throw state.sqlError;
+    if(sql.includes('phase5_list_timplans')) return [{result:state.list}];
     if(sql.includes('phase5_read_timplan')) return [{result:state.read}];
     if(sql.includes('phase5_change_timplan_cell')) {
       state.mutations.push(values);
@@ -48,12 +49,14 @@ registerHooks({load(url, context, next) {
 }});
 const adapter = await import('./timplan-planning.ts');
 const {POST:read} = await import('../../app/api/timplaner/lasa/route.ts');
+const {POST:list} = await import('../../app/api/timplaner/lista/route.ts');
 const {POST:change} = await import('../../app/api/timplaner/cell/route.ts');
 const {auditRoute,sanitizeAuditDetails} = await import('./audit-details.ts');
 const cell = ()=>({planId:id,expectedRevision:0,rowId:'matematik',columnIndex:0,hours:100});
 const plan = ()=>({id,offeringId:id,unitId:id,version:1,revision:0,status:'utkast',basis:'Syntetisk grund',
-  catalogFetched:null,decidedOn:null,cells:{matematik:[10,20,30]}});
-function reset(){state={fn:'rektor',mfa:true,read:plan(),events:[],calls:[],mutations:[]};}
+  catalogFetched:null,decidedOn:null,schoolName:'Syntetisk skola',education:{name:'Syntetisk utbildning',cohort:'Syntetiskt prov',kind:'grundskola',grades:[9,1,4]},cells:{matematik:[10,20,30]}});
+const selection = ()=>({plans:[{id,offeringId:id,unitId:id,schoolName:'Syntetisk skola',educationName:'Syntetisk utbildning',cohort:'Syntetiskt prov',kind:'grundskola',version:1,revision:0,status:'utkast'}],count:1,page:1,pageSize:50});
+function reset(){state={fn:'rektor',mfa:true,read:plan(),list:selection(),events:[],calls:[],mutations:[]};}
 function request(body, path='cell', origin='http://localhost') {return new Request(`http://localhost/api/timplaner/${path}`,{
   method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Context-Epoch':'1'},body:JSON.stringify(body)});}
 test('closed requests reject client actor, role, extra fields, malformed identifiers and numbers',()=>{
@@ -122,4 +125,53 @@ test('malformed JSON and extra input are denied without executing SQL',async()=>
 test('audit route is classified without retaining path identifiers or values',()=>{
   assert.equal(auditRoute(`http://localhost/api/timplaner/${id}?secret=private`),'/api/timplaner');
   assert.deepEqual(sanitizeAuditDetails({path:'/api/timplaner',hours:100,rowId:'matematik',planId:id}),{path:'/api/timplaner'});
+});
+
+test('closed list request rejects client selection filters and malformed pages',()=>{
+  assert.deepEqual(adapter.parseTimplanList({page:1}),{page:1});
+  for(const value of [null,[],{page:0},{page:100001},{page:1.5},{page:'1'},{page:1,unitId:id},{page:1,customerId:id},{page:1,function:'rektor'}]) assert.throws(()=>adapter.parseTimplanList(value));
+});
+test('list uses server scope, has collection audit even when empty and does not require write MFA',async()=>{
+  for(const fn of ['huvudman','rektor']) {
+    reset();state.fn=fn;state.mfa=false;
+    const response=await list(request({page:1},'lista'));
+    assert.equal(response.status,200);assert.deepEqual(await response.json(),selection());
+    assert.deepEqual(state.calls[0].values,[1]);assert.equal(state.events[0].action,'timplan_list_read');assert.equal(state.events[0].objectId,null);
+    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal('plans' in state.events[0].details,false);
+  }
+  reset();state.list={plans:[],count:0,page:1,pageSize:50};
+  const response=await list(request({page:1},'lista'));
+  assert.equal(response.status,200);assert.equal(state.events.length,1);
+});
+test('list wrong role, bad body and audit outage yield no planning content',async()=>{
+  for(const fn of ['administrator','larare','support','it','kundadmin']) {
+    reset();state.fn=fn;assert.equal((await list(request({page:1},'lista'))).status,403);assert.equal(state.calls.length,0);
+  }
+  reset();assert.equal((await list(request({page:1,organizerId:id},'lista'))).status,400);assert.equal(state.calls.length,0);
+  reset();state.auditFails=true;const failed=await list(request({page:1},'lista'));
+  assert.equal(failed.status,500);assert.equal((await failed.json()).code,'audit_unavailable');assert.equal(state.events.length,0);
+  reset();state.sqlError={code:'55000'};assert.equal((await list(request({page:1},'lista'))).status,500);
+});
+test('closed list response rejects duplicate IDs, raw fields, unsupported kind and inconsistent pagination',async()=>{
+  for(const mutate of [p=>p.secret='private',p=>p.page=2,p=>p.pageSize=49,p=>p.count=-1,p=>p.count=2,
+    p=>p.count=Number.MAX_SAFE_INTEGER+1,p=>p.plans[0].kind='gymnasium',p=>p.plans[0].revision=-1,
+    p=>p.plans[0].customerId=id,p=>{p.plans.push({...p.plans[0]});p.count=2;}]) {
+    reset();mutate(state.list);const response=await list(request({page:1},'lista'));
+    assert.equal(response.status,500);assert.equal((await response.json()).code,'audit_unavailable');assert.equal(state.events.some(e=>e.outcome==='ok'),false);
+  }
+  reset();state.list={plans:[],count:1,page:2,pageSize:50};assert.equal((await list(request({page:2},'lista'))).status,200);
+});
+test('read preserves GR grade order and fails closed on invalid columns, width and education fields',async()=>{
+  reset();const success=await read(request({planId:id},'lasa'));
+  assert.deepEqual((await success.json()).education.grades,[9,1,4]);
+  for(const mutate of [p=>p.education.grades=[1,1,4],p=>p.education.grades=[],p=>p.education.grades=[0,1,4],
+    p=>p.education.grades=[[1],4,9],p=>p.education.secret='private',p=>p.education.kind='unknown',
+    p=>p.cells.matematik=[1,2],p=>p.schoolName=null,p=>p.education.cohort=null]) {
+    reset();mutate(state.read);assert.equal((await read(request({planId:id},'lasa'))).status,500);assert.equal(state.events.some(e=>e.outcome==='ok'),false);
+  }
+  reset();state.read.education={...state.read.education,kind:'introduktionsprogram',grades:[]};state.read.cells={'im-ma':[1]};
+  assert.equal((await read(request({planId:id},'lasa'))).status,200);
+  reset();state.read.education={...state.read.education,kind:'gymnasium',grades:[]};
+  assert.equal((await read(request({planId:id},'lasa'))).status,200);
 });
