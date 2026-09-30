@@ -143,8 +143,8 @@ select is(has_function_privilege('authenticated','public.phase5_read_timplan(uui
 select is(has_function_privilege('authenticated','public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)','EXECUTE'),false,'authenticated cannot execute phase5_change_timplan_cell');
 select is(has_function_privilege('authenticated','public.phase5_timplan_scope(uuid,boolean)','EXECUTE'),false,'authenticated cannot execute phase5_timplan_scope');
 select is(has_function_privilege('authenticated','public.phase5_timplan_audit(uuid,text)','EXECUTE'),false,'authenticated cannot execute phase5_timplan_audit');
-select is(has_function_privilege('skolplattform_worker','public.phase5_read_timplan(uuid)','EXECUTE'),false,'skolplattform_worker cannot execute phase5_read_timplan');
-select is(has_function_privilege('skolplattform_worker','public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)','EXECUTE'),false,'skolplattform_worker cannot execute phase5_change_timplan_cell');
+select is(has_function_privilege('skolplattform_worker','public.phase5_read_timplan(uuid)','EXECUTE'),true,'Worker can execute audited timplan read');
+select is(has_function_privilege('skolplattform_worker','public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)','EXECUTE'),true,'Worker can execute audited timplan cell change');
 select is(has_function_privilege('skolplattform_worker','public.phase5_timplan_scope(uuid,boolean)','EXECUTE'),false,'skolplattform_worker cannot execute phase5_timplan_scope');
 select is(has_function_privilege('skolplattform_worker','public.phase5_timplan_audit(uuid,text)','EXECUTE'),false,'skolplattform_worker cannot execute phase5_timplan_audit');
 savepoint planning_outer;
