@@ -1,0 +1,36 @@
+{
+  "target": "protected",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "same-cell",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "different-cell",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "parent-revoked",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "42501",
+      "dataPreserved": true
+    },
+    {
+      "name": "plan-row",
+      "waitingObserved": true,
+      "lockType": "transactionid",
+      "outcome": "40001",
+      "dataPreserved": true
+    }
+  ],
+  "sourceCommit": "8c91a22e97c1fb40f099c730060d434927560d9b",
+  "scope": "local synthetic SQL as postgres; not Worker/API"
+}

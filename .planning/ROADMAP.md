@@ -159,10 +159,11 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: Förberedelseplaner 05-01–05-02 genomförda 2026-09-29; skyddade implementationsplaner återstår.
+**Plans**: 05-01–05-03 genomförda; stängd SQL-grund klar 2026-09-30. Nästa 05-04: session/API före Worker-grant; övriga skyddade flöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
+- [x] 05-03-PLAN.md — Stängd mandatavgränsad timplansläsning/celländring med revision och atomisk DB-audit; SQL 77/77, lås 4/4 PASS; session/API/UI återstår
 
 Fas 5 förbereds på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
@@ -238,7 +239,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
-| 5. Bevarade utbildnings- och klassflöden | 0/TBD | Not started | - |
+| 5. Bevarade utbildnings- och klassflöden | 3/TBD | In progress — stängd SQL-grund; session/API nästa | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
@@ -246,4 +247,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav väntar på genomförande eller slutverifiering. Fas 4:s åtta krav har gröna automatiska syntetiska bevis, men mänskligt användarprov och separat fasverifiering återstår.
 
 ---
-*Last updated: 2026-09-29 — fas 1–3 verifierade lokalt syntetiskt; fas 4 våg 14 genomförd (24 av 25 planer klara).*
+*Last updated: 2026-09-30 — fas 5:s tre delplaner genomförda; fas 4:s checkpoint och fasverifiering kvarstår.*

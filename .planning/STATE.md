@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-02
+current_plan: 05-03
 status: planning
-stopped_at: Completed 05-02; protected planning implementation plans next; Phase 4 checkpoint open
-last_updated: "2026-09-29"
-last_activity: 2026-09-29
-last_activity_desc: "05-02 klar på 174f6d8: lokal sparordning och ID-mappning rättade,346/346 tester samt typ/lint/bygge PASS. Skyddad planering och fas4-verifiering återstår."
-state_head: 174f6d8
+stopped_at: Completed 05-03 closed timplan SQL; session/API plan 05-04 next; Phase 4 checkpoint open
+last_updated: "2026-09-30"
+last_activity: 2026-09-30
+last_activity_desc: "05-03 klar: stängda timplanskommandon, SQL 77/77 och verkliga lås 4/4 PASS; session/API 05-04 nästa, fas 4 fortsatt öppen."
+state_head: 8c91a22e97c1fb40f099c730060d434927560d9b
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 56
-  completed_plans: 55
+  total_plans: 57
+  completed_plans: 56
 milestone_name: milestone
 ---
 
@@ -22,31 +22,31 @@ milestone_name: milestone
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-29)
+See: .planning/PROJECT.md (updated 2026-09-30)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: 05-01–05-02 genomförda. Lokala sparordnings-/ID-prov nu gröna; ordinarie svit 346/346, typ/lint/bygge PASS på arbetskopiekod committad 174f6d8. Nästa: avgränsade server-/SQL-/UI-planer för skyddad planering. Fas4 är inte slutverifierad och kvarstående användarprov/datumanmärkning behålls öppna.
+**Current focus:** Fas 5: 05-01–05-03 genomförda. Stängda SQL-kommandon för timplansläsning/celländring med aktuella mandat, revision och atomisk DB-audit; SQL 77/77 och verkliga lås 4/4 PASS på kod committad 8c91a22. Nästa 05-04: sessionkoppling, serverkontrakt, MFA/same-origin, nekande-/konfliktaudit och verkligt API-prov före Worker-grant. Skyddad planerings-UI och gymnasieskrivning fortsatt stängda. Fas 4:s användarprov/datumanmärkning och separat verifiering kvarstår.
 
 ## Current Position
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-02 förberedelser genomförda; skyddad implementationsplanering återstår. Fas 4 kvarstår på 24 av 25 planer.
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-03 genomförda; session/API 05-04 återstår. Fas 4 kvarstår på 24 av 25 planer.
 Plan: 04-01–04-21, 04-23, 04-24 och 04-25 klara; våg 14 klar; nästa våg 15: 04-22
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-02 klar; nästa planer för skyddad planering
-**Total Plans in Phase:** 2 genomförda förberedelseplaner; skyddade implementationsplaner återstår
+**Current Plan:** 05-03 klar; nästa 05-04 session/API
+**Total Plans in Phase:** 3 genomförda delplaner; övriga skyddade flöden återstår
 **Status:** Planning fas 5; fas 4:s användarprov och fasverifiering fortfarande öppna
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-29
-**Last Activity Description:** 05-02 genomförd: lokal sparordning/databas-ID rättade och 346/346 tester PASS; nya skyddade planeringsvägar återstår.
+**Last Activity:** 2026-09-30
+**Last Activity Description:** 05-03: timplansmandat, revisionskonflikt och atomisk DB-audit prövade lokalt; SQL 77/77, lås 4/4, regression 281/281 och modell 14/14 PASS.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 55 av 56 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 56 av 57 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
@@ -193,8 +193,8 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-09-29
-**Stopped At:** 05-02 klar; skyddad implementationsplanering för fas 5 nästa; fas 4:s checkpoint kvarstår separat
+**Last Date:** 2026-09-30
+**Stopped At:** 05-03 klar; nästa 05-04 session/API före Worker-grant; fas 4:s checkpoint kvarstår separat
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01–05-02 klara; skyddade genomförandeplaner återstår — 2026-09-29
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01–05-03 klara; session/API 05-04 och övriga genomförandeplaner återstår — 2026-09-30

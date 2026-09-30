@@ -33,3 +33,8 @@ Fas 5 behöver en fail-closed kravgrind som kräver alla obligatoriska steg, ing
 - `web/scripts/verify-phase5.mjs`: obligatorisk kravgrind utan skip-väg till PASS.
 
 Namnen är planeringsförslag, inte befintliga körbara tester. Nästa genomförandeplan ska bekräfta eller precisera dem innan implementation.
+
+
+## Delbevis 05-03 — 2026-09-30
+
+Stängd timplans-SQL på 8c91a22: PASS 77/77; två riktiga anslutningar/låsväntan PASS 4/4; mandat 243/243, audit 19/19, registerkonflikt 19/19 och timplansmodell 14/14 PASS. Se 05-03-SUMMARY. Intern DB-audit har session_id=NULL; session/API/nekandeaudit och exakt Worker-grant hör till 05-04. Vald rad/kolumnbredd verifierad, inte full matris/totalram eller gymnasiets programplansgrund. Äldre fastställt beslut och klasskoppling bevarade i syntetisk fixtur. ADMIN-kraven och fas 4:s slutverifiering fortsatt öppna.

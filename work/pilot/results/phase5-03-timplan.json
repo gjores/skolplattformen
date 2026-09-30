@@ -1,0 +1,11 @@
+{
+  "target": "protected",
+  "files": [
+    "phase5_timplan.test.sql"
+  ],
+  "status": "PASS",
+  "exitCode": 0,
+  "sourceCommit": "8c91a22e97c1fb40f099c730060d434927560d9b",
+  "assertions": 77,
+  "scope": "local synthetic SQL; closed entrypoints"
+}
