@@ -32,7 +32,7 @@
 .protected-timplan button,.pt-dialog button{min-height:44px}
 .protected-timplan button:focus-visible,.protected-timplan select:focus-visible,.pt-matrix-scroll:focus-visible,.pt-dialog input:focus-visible{outline:3px solid #5b8ec1;outline-offset:3px}
 .pt-column-picker{display:flex;align-items:center;gap:.75rem;font-weight:600;font-size:.9rem;margin-block:1rem}
-.pt-column-picker select{min-height:44px;border:1px solid #ccd7e4;border-radius:7px;background:white;padding:.5rem .8rem;max-width:100%}
+.pt-column-picker select{appearance:none;height:44px;min-height:44px;border:1px solid #ccd7e4;border-radius:7px;background-color:white;background-image:linear-gradient(45deg,transparent 50%,#53677f 50%),linear-gradient(135deg,#53677f 50%,transparent 50%);background-position:right 18px center,right 13px center;background-size:5px 5px;background-repeat:no-repeat;padding:.5rem 2.5rem .5rem .8rem;max-width:100%}
 .pt-matrix-scroll{max-width:100%;overflow:auto;border:1px solid #dbe3ed;border-radius:12px;background:white;isolation:isolate}
 .pt-matrix{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;text-align:center}
 .pt-matrix caption{text-align:left;padding:.8rem 1rem;font-size:.85rem;color:#52647b;caption-side:bottom}
