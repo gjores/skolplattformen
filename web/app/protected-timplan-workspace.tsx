@@ -219,7 +219,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
         </section>:<p>Den här skolformens timplansunderlag öppnas i ett senare steg.</p>}
       </>}
       <Dialog open={draft!==null} onOpenChange={open=>{if(!open)closeDraft();}}>
-        <DialogContent className="pt-dialog" showCloseButton={false}>
+        <DialogContent className="pt-dialog" aria-modal="true" showCloseButton={false}>
           <DialogTitle>Ändra undervisningstid</DialogTitle>
           <DialogDescription>{draft?.rowLabel} · {draft?.columnLabel}. Ändringen sparas först när du väljer att spara.</DialogDescription>
           {draft && <>
