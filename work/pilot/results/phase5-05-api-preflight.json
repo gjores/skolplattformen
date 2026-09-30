@@ -1,0 +1,1389 @@
+{
+  "kind": "phase5-timplan-api",
+  "scope": "local-synthetic-only",
+  "proof": "lokalt mintade sessioner med testrealmens bevisprofil; byggd protected-Worker och verklig PostgreSQL; ingen interaktiv IdP-inloggning eller kommunanslutning",
+  "startedAt": "2026-09-30T08:17:03.051Z",
+  "completedAt": "2026-09-30T08:17:09.157Z",
+  "revision": "93ceb4e36928881097f83a8dfa29b60ed7efec17",
+  "workerBuildRevision": "93ceb4e36928881097f83a8dfa29b60ed7efec17",
+  "preflight": true,
+  "selection": true,
+  "requiredCases": [
+    "worker-role",
+    "principal-read",
+    "hm-read",
+    "principal-write-reload",
+    "revision-conflict",
+    "concurrent-write",
+    "hm-write-denied",
+    "admin-denied",
+    "other-school",
+    "other-customer",
+    "missing-object",
+    "no-mfa",
+    "csrf",
+    "stale-context",
+    "parent-revoked",
+    "session-expired",
+    "session-revoked",
+    "membership-blocked",
+    "customer-closed",
+    "no-session",
+    "invalid-input",
+    "decided-plan",
+    "gymnasium-write",
+    "denied-audit-failure",
+    "db-audit-read-failure",
+    "db-audit-write-failure",
+    "worker-audit-write-failure",
+    "client-sql-denied",
+    "persistent-audit",
+    "selection-hm",
+    "selection-principal",
+    "selection-role-denied",
+    "selection-revoked",
+    "selection-pagination",
+    "selection-empty",
+    "selection-strict-input",
+    "selection-db-audit-failure",
+    "selection-worker-audit-failure",
+    "selection-metadata"
+  ],
+  "complete": true,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "worker-role",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "byggd protected-Worker med databasroll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "exakt avgränsad Worker-EXECUTE-mängd",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "giltig skolas plan med revision och cacheförbud",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "DB och Worker loggar faktisk session",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "giltig skolas plan med revision och cacheförbud",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "DB och Worker loggar faktisk session",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-write-reload",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "ändring och omläsning lämnar samma revision",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "bara vald cell ändras och båda auditkällorna finns",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "revision-conflict",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-write",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "en vinnare och en revisionskonflikt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "en revision sparad utan förlorarens ok-logg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "omläsning och färskt omförsök lyckas",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "färskt omförsök sparat med korrekt sessionsaudit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-write-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "admin-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-customer",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "missing-object",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-mfa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "rektor kan läsa utan MFA",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "läsning utan MFA loggas",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "lista kräver inte MFA",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "lista utan MFA är auditerad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "csrf",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-context",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "parent-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-expired",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "membership-blocked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "customer-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-input",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "decided-plan",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "gymnasium-write",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "denied-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekandeloggfel stoppar med audit_unavailable",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga data eller ok-händelser trots nekandeloggfel",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-read-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar generiskt felsvar utan plan",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "timmar revision och båda ok-loggar rullas tillbaka",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-write-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar generiskt felsvar utan plan",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "timmar revision och båda ok-loggar rullas tillbaka",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-write-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar generiskt felsvar utan plan",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "timmar revision och båda ok-loggar rullas tillbaka",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-hm",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "endast uppdragets befintliga GR-/IM-planer och slutet listkontrakt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "listläsningen har faktisk sessionskoppling i båda källorna",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-principal",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "endast uppdragets befintliga GR-/IM-planer och slutet listkontrakt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "listläsningen har faktisk sessionskoppling i båda källorna",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-role-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-pagination",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "50 per sida utan dubblett eller dold trunkering",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "alla sidläsningar har minimerad sessionsaudit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-empty",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "giltigt tomt skolurval återges uttryckligt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "även tomt urval är obligatoriskt loggat",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-strict-input",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "nekad utan planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen ändring och beständig nekandelogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-db-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar endast generiskt felsvar",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen framgångslogg eller dataändring vid loggfel",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-worker-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar endast generiskt felsvar",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen framgångslogg eller dataändring vid loggfel",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "selection-metadata",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "årskursordning och IM-vecka kommer från faktiskt underlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "båda metadata-/celläsningar loggar exakt rätt plan",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "client-sql-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "anon och authenticated får SQL permission denied",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "PUBLIC och Worker-hjälpare är stängda",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "persistent-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "alla observerade svar har korrelation",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "alla tillåtna sessioner har två minimerade händelser",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "alla nekanden loggas och saknar lyckad datahändelse",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "caseId": "principal-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-write-reload",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-write-reload",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflict",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-write",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-write",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-write",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-write",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-write-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "admin-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "admin-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-school",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-school",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-customer",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-customer",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "missing-object",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-revoked",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-revoked",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "decided-plan",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "gymnasium-write",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "denied-audit-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-read-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-write-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-write-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-hm",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-principal",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-role-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-revoked",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-empty",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-strict-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-strict-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-strict-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-strict-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-strict-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-db-audit-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-worker-audit-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-metadata",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "selection-metadata",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    }
+  ],
+  "cleanup": "PASS",
+  "preflightAclRestored": true
+}
