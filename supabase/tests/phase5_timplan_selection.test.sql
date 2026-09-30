@@ -81,8 +81,7 @@ update public.timplan_cells set hours='[0:2]={1,2,3}'::smallint[] where timplan_
 select throws_ok($q$select public.phase5_read_timplan('55005000-0000-4000-8000-000000000050')$q$,'22023',null,'noncanonical hours rejected');
 update public.timplan_cells set hours=array[[1,2,3]]::smallint[] where timplan_id='55005000-0000-4000-8000-000000000050' and row_id='matematik';
 select throws_ok($q$select public.phase5_read_timplan('55005000-0000-4000-8000-000000000050')$q$,'22023',null,'multidimensional read hours rejected');
-update public.timplan_cells set hours=array[1,2001,3]::smallint[] where timplan_id='55005000-0000-4000-8000-000000000050' and row_id='matematik';
-select throws_ok($q$select public.phase5_read_timplan('55005000-0000-4000-8000-000000000050')$q$,'22023',null,'read hours outside bound rejected');
+select throws_ok($q$update public.timplan_cells set hours=array[1,2001,3]::smallint[] where timplan_id='55005000-0000-4000-8000-000000000050' and row_id='matematik'$q$,'23514',null,'database prevents stored hours outside bound');
 update public.timplan_cells set hours=array[1,2,3]::smallint[] where timplan_id='55005000-0000-4000-8000-000000000050' and row_id='matematik';
 select is(public.phase5_read_timplan('55005000-0000-4000-8000-000000000053')->'education'->'grades','[]'::jsonb,'IM has no grade-based columns');
 select is(public.phase5_read_timplan('55005000-0000-4000-8000-000000000052')->'education'->'grades','[]'::jsonb,'gymnasium read has no fabricated grades');
@@ -122,8 +121,8 @@ insert into public.timplans(id,organizer_id,offering_id,version) values ('550050
 select is((public.phase5_list_timplans(1)->>'count')::int,3,'foreign customer never increases list count');
 select ok(not exists(select 1 from jsonb_array_elements(public.phase5_list_timplans(1)->'plans') p where p->>'id'='55005000-0000-4000-8000-000000000150'),'foreign customer plan hidden in list');
 -- Multi-page scope shares a deterministic order and exact total.
-insert into public.timplans(id,organizer_id,offering_id,version,basis)
-select ('55005000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,'55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',n+2,'Syntetisk grund' from generate_series(1,55) n;
+insert into public.timplans(id,organizer_id,offering_id,version,basis,status,decided_on)
+select ('55005000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,'55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',n+2,'Syntetisk grund','ersatt',public.app_today() from generate_series(1,55) n;
 create temporary table pages as select public.phase5_list_timplans(1) as first,public.phase5_list_timplans(2) as second;
 select is((select (first->>'count')::int from pages),58,'pagination count includes all scoped versions');
 select is((select jsonb_array_length(first->'plans') from pages),50,'first page fixed at 50');

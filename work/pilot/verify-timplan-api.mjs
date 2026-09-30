@@ -270,7 +270,7 @@ async function main() {
         try{await denial(checks,()=>list(),403,'assignment_expired');}finally{await db`update public.access_assignments set ended_at=null where id=${id(60)}`;}
       });
       await run('selection-pagination',async checks=>{
-        await db`insert into public.timplans(id,organizer_id,offering_id,version) select gen_random_uuid(),${id(2)}::uuid,${id(40)}::uuid,n from generate_series(10,69) n`;
+        await db`insert into public.timplans(id,organizer_id,offering_id,version,status,decided_on) select gen_random_uuid(),${id(2)}::uuid,${id(40)}::uuid,n,'ersatt',public.app_today() from generate_series(10,69) n`;
         const first=remember(await list(),principal),second=remember(await list(principal,2),principal),empty=remember(await list(principal,100000),principal),expected=await scopedIds(id(30));
         check(checks,'response','50 per sida utan dubblett eller dold trunkering',first.status===200&&second.status===200&&empty.status===200&&first.body.plans.length===50&&first.body.count===expected.length&&second.body.count===expected.length&&second.body.page===2&&same([...first.body.plans,...second.body.plans].map(p=>p.id).sort(),expected)&&empty.body.plans.length===0&&empty.body.count===expected.length);
         check(checks,'persistent','alla sidläsningar har minimerad sessionsaudit',(await Promise.all([first,second,empty].map(r=>paired(r,principal,'timplan_list_read')))).every(Boolean));
