@@ -1,0 +1,151 @@
+{
+  "status": "PASS",
+  "target": "protected",
+  "scope": "Immutable catalog and closed program plan draft SQL; no API, Worker audit, MFA, UI or decision verification",
+  "sourceCommit": "b0bf476bbe16a245a5e49cc1821f198b36cad72d",
+  "checkedAt": "2026-09-30T18:54:48.647Z",
+  "catalogId": "sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace",
+  "migrations": [
+    "20260930160000",
+    "20260930161000",
+    "20260930162000"
+  ],
+  "sql": [
+    {
+      "name": "catalog",
+      "count": 60,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-catalog.json"
+    },
+    {
+      "name": "drafts",
+      "count": 108,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-drafts.json"
+    },
+    {
+      "name": "phase5_timplan",
+      "count": 77,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase5_timplan.json"
+    },
+    {
+      "name": "phase5_timplan_worker",
+      "count": 27,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase5_timplan_worker.json"
+    },
+    {
+      "name": "phase5_timplan_selection",
+      "count": 59,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase5_timplan_selection.json"
+    },
+    {
+      "name": "phase3_mandates",
+      "count": 243,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase3_mandates.json"
+    },
+    {
+      "name": "phase3_audit",
+      "count": 19,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase3_audit.json"
+    },
+    {
+      "name": "phase4_conflicts",
+      "count": 19,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase4_conflicts.json"
+    },
+    {
+      "name": "phase2_audit",
+      "count": 20,
+      "status": "PASS",
+      "reportPath": "work/pilot/results/phase5-08-regression-phase2_audit.json"
+    }
+  ],
+  "sqlTotal": 632,
+  "nodeTests": {
+    "modelsServerGenerators": 455,
+    "harnessSafety": 5,
+    "status": "PASS",
+    "skipped": 0
+  },
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "catalogByteChecks": "PASS",
+  "realConcurrency": {
+    "observedWaitCases": 6,
+    "outerTransactionRollback": 1,
+    "parityCases": 42,
+    "reportPath": "work/pilot/results/phase5-08-locks.json",
+    "executedAtCommit": "244d1e228103458db5ad641ceab0e15ae2e8c456",
+    "executedSourceHashesMatchFinalCommit": true
+  },
+  "preservation": {
+    "status": "PASS",
+    "before": {
+      "plans": 1,
+      "plansdigest": "5bffb4cb38deb031c173b5dc1d048806ef6df381aebb41d6b5da7f16559ff29b",
+      "offeringsdigest": "8f6ffc4a72333857852187e2cd1e9c4cddf3d1dc446a4fea94d5d937aeb60925",
+      "historydigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "after": {
+      "plans": 1,
+      "plansdigest": "5bffb4cb38deb031c173b5dc1d048806ef6df381aebb41d6b5da7f16559ff29b",
+      "offeringsdigest": "8f6ffc4a72333857852187e2cd1e9c4cddf3d1dc446a4fea94d5d937aeb60925",
+      "historydigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "legacyColumnsUnchanged": true,
+    "programplanEvents": [
+      {
+        "action": "programplan_basis_bound",
+        "n": 1
+      },
+      {
+        "action": "programplan_draft_cloned",
+        "n": 1
+      },
+      {
+        "action": "programplan_specialization_changed",
+        "n": 1
+      }
+    ]
+  },
+  "cleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 3,
+    "preservedauditanchors": 1
+  },
+  "phase5WorkerFunctions": [
+    "phase5_change_timplan_cell",
+    "phase5_list_timplans",
+    "phase5_read_timplan"
+  ],
+  "sourceHashes": {
+    "supabase/migrations/20260930160000_phase5_programplan_catalog.sql": "3dbfb0b4721bed32608dd3428b133eaa0c2f56092248f5eb940c9e5ddca9c53a",
+    "supabase/migrations/20260930161000_phase5_programplan_catalog_seed.sql": "90b7fb00e290fe2e928dc46c4012ad99e9b699313e6b656831ff09188916d9e5",
+    "supabase/migrations/20260930162000_phase5_programplan_drafts.sql": "3e7235d17b5b9305184eb4bb445c5882809a606c783f59986600a2881c2737a7",
+    "supabase/tests/phase5_programplan_drafts.test.sql": "d11019bf1e22a29633ff8064dcb98bc980b5912f0006d78b906b207da775864c",
+    "work/pilot/verify-programplan-locks.mjs": "c304359dda3ceb345e062b06a8f841d235059e2ff2634ee3d43765374bd1ac95"
+  },
+  "independentReview": {
+    "mustHavesPassed": 6,
+    "total": 6,
+    "status": "PASS"
+  },
+  "unverified": [
+    "programplan API/MFA/Worker audit/UI",
+    "national full decision rules",
+    "programplan decisions",
+    "cohort copying and class binding",
+    "Phase 4 human checkpoint"
+  ],
+  "buildAndBrowser": "Not rerun; no app routes/server/UI changed; earlier build/browser evidence is historical"
+}

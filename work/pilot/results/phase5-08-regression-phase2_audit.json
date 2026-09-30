@@ -1,0 +1,8 @@
+{
+  "target": "protected",
+  "files": [
+    "phase2_audit.test.sql"
+  ],
+  "status": "PASS",
+  "exitCode": 0
+}

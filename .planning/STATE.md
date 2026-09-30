@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-07
+current_plan: 05-08
 status: planning
-stopped_at: Completed 05-07 version-bound program plan catalog foundation; mandate-scoped audited program plan SQL next; Phase 4 checkpoint open
+stopped_at: Completed 05-08 closed audited program plan draft SQL; protected API preflight next; Phase 4 checkpoint open
 last_updated: "2026-09-30"
 last_activity: 2026-09-30
-last_activity_desc: "05-07 klar: reproducerbar programplanskatalog, strikt versions-/datum-/nivågrund och serverintegritet; 451/451 prov, typ/lint/skyddat bygge PASS; SQL/API/UI-programplansskrivning fortsatt stängd."
-state_head: 6922ce79dbd0268bb540ab40dbd492566c79c448
+last_activity_desc: "05-08 klar: immutable SQL-katalog, sessions-/mandatbundna utkast, CAS och atomisk DB-audit; 632 SQL, 455+5 Node, 42 paritetsfall och 6 låsväntansfall PASS; API/UI/beslut fortsatt stängda."
+state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 61
-  completed_plans: 60
+  total_plans: 62
+  completed_plans: 61
 milestone_name: milestone
 ---
 
@@ -25,35 +25,35 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-09-30)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: 05-01–05-07 genomförda. 05-07 har levererat reproducerbar katalog, exakta program-/ämnesversioner, uttrycklig utbildningsstart och strikt serverintern referens-/hashkontroll. 451/451 prov, typ/lint och skyddat bygge PASS på 6922ce7. Tekniskt återfunnet underlag ger aldrig skriv-/beslutsrätt; nationella alternativ/ramar kvarstår. Nästa: planera atomiskt, mandatavgränsat och auditerat programplans-SQL med samma bundna katalog. GR/IM-lista/cellvy från 05-06 bevarad; dess browser/API-bevis är historik. Programplansskrivning, skapande/beslut, full matris, kullkopiering och klasskoppling fortsatt stängda. Fas 4:s checkpoint/datumanmärkning och separat verifiering kvarstår.
+**Current focus:** Fas 5: 05-01–05-08 genomförda. 05-08 har levererat oföränderlig DB-katalog samt stängda sessions-/mandatbundna kommandon för läsning, legacy-bindning, fördjupningsändring, skapa och klona utkast. 632 riktade SQL-prov, 455 modell/server/generator + 5 harnessprov, 42 TS/SQL-paritetsfall och 6 observerade låsväntansfall samt caller-rollback PASS. Ursprungliga plan-/utbildnings-/historikfält är oförändrade. Nästa: skyddad programplans-API med levande session/MFA, Worker-audit och full preflight före några nya grants. Inga nya programplansrättigheter öppnade. Fastställande, nationella beslutsregler, UI, kullkopiering och klasskoppling återstår. Fas 4:s mänskliga checkpoint/datumanmärkning kvarstår separat.
 
 ## Current Position
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-07 genomförda; övriga utbildnings- och versionsflöden återstår. Fas 4 kvarstår på 24 av 25 planer.
-Plan: 04-01–04-21, 04-23, 04-24 och 04-25 klara; våg 14 klar; nästa våg 15: 04-22
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-08 genomförda; övriga utbildnings- och versionsflöden återstår. Fas 4 kvarstår på 24 av 25 planer.
+Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-07 klar; nästa atomiskt mandatavgränsat/auditerat programplans-SQL
-**Total Plans in Phase:** 7 genomförda delplaner; övriga skyddade flöden återstår
+**Current Plan:** 05-08 klar; nästa 05-09: planera skyddad programplans-API och preflight
+**Total Plans in Phase:** 8 genomförda delplaner; övriga skyddade flöden återstår
 **Status:** Planning fas 5; fas 4:s användarprov och fasverifiering fortfarande öppna
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-09-30
-**Last Activity Description:** 05-07: katalog/generator/server 21/21, full modell/server/generator 451/451, artefaktkontroll, typ/lint och skyddat bygge 6922ce7 PASS. Oberoende strukturell granskning 5/5; inga nya DB/API/UI-vägar eller grants. Tidigare 05-05/05-06-bevis bevarade som historik.
+**Last Activity Description:** 05-08 på b0bf476: katalog 60/60, utkast 108/108, riktad SQL-regression 464/464, full modell/server/generator 455/455 och harnesssäkerhet 5/5; typ/lint/bytekontroll, 42 paritetsfall, 6/6 faktisk låsväntan + yttre rollback, bevarande och oberoende granskning 6/6 PASS. SQL-kommandon stängda, inga nya Worker-grants eller API/UI/beslut. Bygge/browser/handbok från tidigare planer är historik.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 60 av 61 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 61 av 62 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 60
+- Total plans completed: 61
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -194,7 +194,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-09-30
-**Stopped At:** 05-07 klar; nästa atomiskt mandatavgränsat/auditerat programplans-SQL med bundet katalogunderlag; fas 4:s checkpoint kvarstår separat
+**Stopped At:** 05-08 klar; nästa skyddad programplans-API med obligatorisk Worker-audit och preflight före grant; fas 4:s checkpoint kvarstår separat
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01–05-07 klara; övriga utbildnings-/versionsflöden och genomförandeplaner återstår — 2026-09-30
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01–05-08 klara; övriga utbildnings-/versionsflöden och genomförandeplaner återstår — 2026-09-30
