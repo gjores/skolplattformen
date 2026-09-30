@@ -10,8 +10,8 @@ Sammanställning av de regler servern tillämpar. Reglerna prövas på servern v
 |---|---|---|
 | Kundadministration | Bygga organisationen, bjuda in, spärra, avsluta uppdrag | Läsa elevuppgifter |
 | Granskning | Läsa och exportera kundens säkerhetslogg | Läsa elevuppgifter |
-| Huvudman | Läsa organisationen, utse rektor | Automatisk insyn i elevärenden |
-| Rektor | Läsa elever inom sina skolenheter, delegera uppdrag | Gå utanför sina skolenheter |
+| Huvudman | Läsa organisationen, utse rektor, läsa befintliga timplaner inom skoluppdraget | Automatisk insyn i elevärenden; ändra rektorns timplansutkast |
+| Rektor | Läsa elever inom sina skolenheter, delegera uppdrag, läsa timplaner och ändra befintliga grundskole-/IM-utkastceller med aktuellt bevis med engångskod | Gå utanför sina skolenheter; ändra låsta timplansversioner |
 | Administratör | Läsa elever inom räckvidden; skyddade uppgifter kräver särskild skolbehörighet | Delegera uppdrag; ändra eller exportera en anonymiserad elev |
 | Lärare | Läsa elever i sina undervisnings- och mentorsgrupper | Nå elever utanför grupperna, exportera |
 | Elevhälsa | Läsa elever inom tilldelad räckvidd | Nå elever utanför räckvidden, exportera, delegera |
