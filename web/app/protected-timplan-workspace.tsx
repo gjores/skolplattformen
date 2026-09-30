@@ -183,7 +183,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
           <div className="pt-list-heading"><h2>Välj timplan</h2><span>{list.count} {list.count===1?'timplan':'timplaner'}</span></div>
           {list.plans.length===0 ? <div className="pt-empty"><h3>Inga timplaner på den här sidan</h3><p>{list.count===0?'Ditt aktuella uppdrag omfattar inga befintliga timplaner för grundskola eller introduktionsprogram.':'Välj föregående sida.'}</p></div>
             : <div className="pt-plan-list">{list.plans.map(summary=><button type="button" key={summary.id} className="pt-plan-choice" onClick={()=>void openPlan(summary.id)}
-              aria-label={`Öppna ${summary.educationName}, ${summary.cohort}, version ${summary.version}`}>
+              aria-label={`Öppna ${summary.educationName}, ${summary.cohort}, version ${summary.version}, ${summary.schoolName}`}>
               <div><strong>{summary.educationName}</strong><span>{summary.schoolName} · {summary.cohort}</span></div>
               <div className="pt-plan-state"><span className={`pt-status pt-status-${summary.status}`}>{statusLabel[summary.status]}</span><span>Version {summary.version}</span></div>
             </button>)}</div>}
@@ -228,8 +228,8 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
             {draft.mode==='refreshing'&&<output>Hämtar aktuell timplan. Din ändring behålls i dialogen…</output>}
             {draft.mode==='compare'&&<div className="pt-comparison" aria-live="polite"><p>{draft.uncertain?'Det gick inte att bekräfta sparandet. Timplanen har lästs om.':'Timplanen ändrades av någon annan. Timplanen har lästs om.'}</p><div><span>Aktuellt värde<strong>{plan && !sameTimplanColumn(plan,draft.columnIndex,draft.columnId)?'Ändrat underlag':actual===null?'Saknas':actual}</strong></span><span>Ditt värde<strong>{draft.value}</strong></span></div><p>Kontrollera skillnaden innan du väljer att använda din ändring.</p></div>}
             {draft.mode==='applied'&&<output className="pt-notice">Den aktuella timplanen innehåller redan ditt värde. Inget nytt sparande behövs.</output>}
-            {draft.mode==='draft'&&<label className="pt-hours-field">{weekly?'Timmar per vecka':'Timmar'}<input type="text" inputMode="numeric" value={draft.value} disabled={busy}
-              onChange={event=>setDraft({...draft,value:event.target.value,error:null,mfa:false})}/><span>Sparat värde: {draft.original}. Heltal mellan 0 och 2 000.</span></label>}
+            {draft.mode==='draft'&&<div className="pt-hours-field"><label htmlFor="pt-hours">{weekly?'Timmar per vecka':'Timmar'}</label><input id="pt-hours" type="text" inputMode="numeric" aria-describedby="pt-hours-help" value={draft.value} disabled={busy}
+              onChange={event=>setDraft({...draft,value:event.target.value,error:null,mfa:false})}/><span id="pt-hours-help">Sparat värde: {draft.original}. Heltal mellan 0 och 2 000.</span></div>}
             {draft.mode==='draft' && <output>{busy?'Sparar ändringen…':dirty?'Osparad ändring':'Ingen ändring ännu'}</output>}
             {draft.mode==='refresh-failed'&&<p>Ditt värde: <strong>{draft.value}</strong>. Den tidigare matrisen är dold tills aktuell timplan kan hämtas.</p>}
             {draft.mode==='compare'&&!draftEditable&&<p className="pt-alert">Den aktuella cellen är inte längre öppen för ändring.</p>}
