@@ -1,0 +1,369 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-09-30T16:00:39.953Z",
+  "scope": "05-07 technical catalog references only; no SQL/API/UI write opening",
+  "sourceCommit": "6922ce79dbd0268bb540ab40dbd492566c79c448",
+  "catalog": {
+    "catalogId": "sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace",
+    "source": {
+      "url": "https://api.skolverket.se/syllabus/v1",
+      "apiVersion": "1.16.2-SNAPSHOT",
+      "fetched": "2026-09-05"
+    },
+    "subjects": 907,
+    "items": 2192,
+    "programs": 29,
+    "levelReferences": 2561,
+    "unresolvedLevelBlocks": 10,
+    "artifactBytesSha256": "sha256:7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124",
+    "sourceSnapshotSha256": "sha256:0df0daf7cf05394e069bc0d3c1b60303482516fa3be8048de0332c02e7f082a9",
+    "snapshotUnchanged": true,
+    "wholeCatalogRefreshed": false
+  },
+  "referenceProbe": {
+    "startedOn": "2026-08-01",
+    "selection": "first published orientation; no selected specialization",
+    "diagnosticCounts": {},
+    "unresolvedChoiceCounts": {
+      "optional_subject": 58,
+      "program_rules_unverified": 29,
+      "subject_levels_unresolved": 8
+    },
+    "cases": [
+      {
+        "programCode": "BA25",
+        "programVersion": 4,
+        "orientationCode": "BABYI",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "BF25",
+        "programVersion": 5,
+        "orientationCode": "BFFRH",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "DS25",
+        "programVersion": 2,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "EE25",
+        "programVersion": 4,
+        "orientationCode": "EEAUK",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "EK25",
+        "programVersion": 4,
+        "orientationCode": "EKEKI",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 4,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "ES25",
+        "programVersion": 3,
+        "orientationCode": "ESBIF",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "FI25",
+        "programVersion": 2,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "FL25",
+        "programVersion": 4,
+        "orientationCode": "FLFLN",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "FO25",
+        "programVersion": 2,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "FR25",
+        "programVersion": 5,
+        "orientationCode": "FRBAE",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "FS25",
+        "programVersion": 5,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "FT25",
+        "programVersion": 4,
+        "orientationCode": "FTFOL",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "GL25",
+        "programVersion": 2,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "GU25",
+        "programVersion": 2,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "HT25",
+        "programVersion": 5,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "HU25",
+        "programVersion": 5,
+        "orientationCode": "HUKUR",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 7,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "IN25",
+        "programVersion": 5,
+        "orientationCode": "INDRU",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "MA25",
+        "programVersion": 3,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "NA25",
+        "programVersion": 4,
+        "orientationCode": "NANAP",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 4,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "NB25",
+        "programVersion": 6,
+        "orientationCode": "NBDJD",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "RL25",
+        "programVersion": 4,
+        "orientationCode": "RLBAK",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "SA25",
+        "programVersion": 4,
+        "orientationCode": "SABEP",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 4,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "SJ25",
+        "programVersion": 3,
+        "orientationCode": "SJDAK",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "SM25",
+        "programVersion": 2,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 4,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "TA25",
+        "programVersion": 3,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "TE25",
+        "programVersion": 2,
+        "orientationCode": "TEDEP",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "VF25",
+        "programVersion": 5,
+        "orientationCode": "VFFAT",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "VO25",
+        "programVersion": 4,
+        "orientationCode": null,
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      },
+      {
+        "programCode": "YR25",
+        "programVersion": 3,
+        "orientationCode": "YRKLB",
+        "status": "resolved",
+        "diagnostics": [],
+        "unresolvedChoices": 3,
+        "decisionReady": false,
+        "writeReady": false
+      }
+    ]
+  },
+  "checks": {
+    "focused": {
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullModelServerGenerator": {
+      "passed": 451,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "artifactCheck": "PASS",
+    "independentStructuralReview": {
+      "mustHavesPassed": 5,
+      "mustHavesTotal": 5
+    },
+    "protectedBuild": "PASS",
+    "diffCheck": "PASS"
+  },
+  "protectedBuild": {
+    "mode": "protected",
+    "revision": "6922ce79dbd0268bb540ab40dbd492566c79c448",
+    "builtAt": "2026-09-30T15:58:40.605Z",
+    "node": "v25.9.0",
+    "workerEntrySha256": "sha256:a5e7a478df39eda042fddc421260fb92f794b055dd32f0f21b2d6118a00adec3"
+  },
+  "boundaries": {
+    "newRoutes": false,
+    "newUi": false,
+    "newSql": false,
+    "newWorkerGrants": false,
+    "databaseMutations": false,
+    "legacyModelChanges": false,
+    "readinessAlwaysFalse": true,
+    "browserRerun": false,
+    "handbookBuildRerun": false,
+    "wholePhaseComplete": false,
+    "ADMIN02": "Pending",
+    "phase4Checkpoint": "open"
+  },
+  "sourceMetadataCheck": "work/pilot/results/phase5-07-source-check.json",
+  "contract": "docs/programplansgrund-kontrakt.md"
+}

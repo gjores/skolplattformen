@@ -34,3 +34,9 @@ Fas 4 är fortsatt öppen: partialt mänskligt användarprov, datumanmärkning o
 ## Uppföljning 05-02
 
 Startproven ovan är historik före rättning. 05-02 rättade lokalt lager/kö/ID-mappning på 174f6d8, med 346/346 ordinarie tester PASS inklusive 9 lager- och 3 köprov. Den nya skyddade datavägen och UI-omläsningssvar är fortfarande obevisade. Se 05-02-SUMMARY.md för faktisk prov-/bygggräns.
+
+## Uppföljning 05-07 — 2026-09-30
+
+Efter 05-03–05-06:s timplansdelbevis har 05-07 byggt strikt programplansreferensgrund på 6922ce7, inte bara ett inventeringsdokument. Exakt katalogfingerprint, versions-/datum-/inriktnings-/nivåprövning och integritetsverifierad fryst serverinstans finns. Riktade 21/21 och full modell/server/generator 451/451, typ/lint, bytekontroll och skyddat bygge PASS; oberoende strukturell granskning 5/5. Inga legacy-modeller eller originalsnapshot ändrade. Se 05-07-SUMMARY och maskinrapporten phase5-07-catalog.json.
+
+Källkontrollen jämförde aktuellt offentligt API med snapshoten för endast SA25/EK25/ES25:s version/startdatum. Ingen kataloguppdatering eller DB-mutation skedde. Nationella språk-/nivåval och ram-/beslutsregler är fortsatt olösta; `resolved` ger aldrig skriv-/beslutsrätt. Atomiskt mandatavgränsat/auditerat programplans-SQL och separat API/UI återstår. Startprovens äldre status ovan ska läsas tillsammans med respektive senare delplans konkreta bevis, inte som ny körstatus. Fas 4:s mänskliga checkpoint är fortsatt öppen.

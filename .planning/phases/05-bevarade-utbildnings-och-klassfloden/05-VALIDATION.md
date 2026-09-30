@@ -1,11 +1,11 @@
 # Fas 5 — valideringskarta
 
-Status 2026-09-30: 05-01–05-06 genomförda som delplaner. Skyddad GR/IM-timplanslista/cellvy lokalt verifierad; övriga utbildnings-/versionsflöden och full fasverifiering återstår. Kravstatus ändras inte av denna karta.
+Status 2026-09-30: 05-01–05-07 genomförda som delplaner. Skyddad GR/IM-timplanslista/cellvy och separat programplansreferensgrund lokalt verifierade; övriga utbildnings-/versionsflöden och full fasverifiering återstår. Kravstatus ändras inte av denna karta.
 
 | Krav | Positivt användarbeteende | Negativa och återställande prov | Slutligt bevis |
 | --- | --- | --- | --- |
 | ADMIN-01 | Huvudman importerar skola via kod/orgnummer, omläser adress/skolform; uppdatering bevarar lokal rektor. | Annan kund/skola, återkallat mandat, förfalskad klientroll, fel under import/audit; rektorsmandat och data oförändrade. | Lokal SQL/API + dator/telefon + handbok; verkligt källuppslag redovisas separat från stub. Väntar. |
-| ADMIN-02 | Gymnasieutbildning, kurs/nivå, utkast/förslag/beslut följer befintliga regler och består efter inloggning. | Låst version, ogiltigt katalogval/ram, obehörigt beslut, samtidig revision, audit-/delskrivningsfel. | Modeller + lokal SQL/API + browser + handbok. Väntar. |
+| ADMIN-02 | Gymnasieutbildning, kurs/nivå, programplaners utkast/direkta HM-beslut och timplanernas förslagsflöde följer befintliga regler och består efter inloggning. | Låst version, ogiltigt katalogval/ram, obehörigt beslut, samtidig revision, audit-/delskrivningsfel. | Modeller + lokal SQL/API + browser + handbok. Väntar. |
 | ADMIN-03 | Huvudman kopierar till senare kull och får egna utkast med nya ID:n. | Tidigare/ogiltigt år, dubbla samtidiga kopior, annan kund/skola, avbrott; inga kopierade elever/klasser/beslut/tillstånd. | Lokal atomär SQL/API, negativa identiteter och browser. Väntar. |
 | ADMIN-04 | Beständig klass kopplas till exakt fastställd timplan/läsår/kolumn; ny version lämnar gamla kopplingen kvar. | Annan skola, fel kolumn, ej fastställd ny koppling, tvetydig backfill, omvänd sparordning, ny objekts-ID, konflikt och loggfel. | Modeller + schemaavstämning + SQL/API + browser/läsårsunderlag. Väntar. |
 
@@ -50,3 +50,9 @@ Sessionskopplad timplans-API på c216c7b, skyddat bygge samma revision; prov/gra
 05-06 UI/skyddat bygge 7776f41: model/server 430/430, helper 9/9, typ/lint/bygge/handbok PASS. Browser 18/18 (desktop Chromium 9, telefon WebKit 9), inga skip/retries. Befintlig GR/IM-lista, korrekt sparad kolumnordning/veckotimmar, saknat/okänt underlag, en cells beständiga ändring+revision+sessionskopplad DB/Worker-audit+omläsning, HM/låst läsvy, verklig konflikt/explicit retry, MFA/båda loggfel, epoch/session/mandat/sent svar och okänt nätutfall efter commit prövade. Osparatprov bevisar modalspärr/fokus och accepterat/avböjt discard; separat aktivt uppdragsbyte genom modal prövas inte. Pekytor minst 44 px, contained tabellscroll/inget globalt overflow och syntetiska bilder granskade. Automatiskt fresh-read efter konflikt är enda planavvikelsen i omförsöksflödet; write alltid uttryckligt. Egna fixtures/trigger städade, säkerhetsloggar bevarade.
 
 Se 05-05/05-06-SUMMARY och work/pilot/results/phase5-05-*.json, phase5-06-browser.json. Verklig byggd Worker/PostgreSQL med lokalt mintade testsessioner, inte interaktiv IdP/kommunanslutning. ADMIN-02/04 har delbevis men är fortsatt Pending: skapande, beslut, fullmatris/totalram, gymnasiets programplansgrund, kullkopiering och klasskoppling återstår. ADMIN-01/03 och fas 4:s mänskliga checkpoint är också öppna.
+
+## Delbevis 05-07 — 2026-09-30
+
+Kod/skyddat bygge 6922ce7: riktade katalog/generator/serverprov 21/21, full modell/server/generator 451/451, typ/lint, oförändrad originalsnapshot och byteexakt `--check` PASS. Katalog-ID `sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace`. Generatorn korsreferensprövar 907 ämnen, 2192 items, 29 program och 2561 blocknivåreferenser. Alla 29 program kan återfinnas tekniskt med vald första inriktning/start 2026-08-01; 58 optional-val, 8 ej nivåupplösta block i dessa vägar och 29 programregel-luckor kvarstår. Ingen generell poäng-/timram eller implicit svenska skapas. Fel version/inriktning/start/nivå/poäng, ändrat innehåll med gammalt ID, obunden legacygrund och malformed objektreferenser stoppas.
+
+Oberoende GSD-läsgranskning 5/5 must-haves. Se 05-07-SUMMARY och work/pilot/results/phase5-07-catalog.json. Ingen ny DB-, SQL-, API-, UI- eller grantväg, inget nytt browserprov/handboksbygge. Referensgrunden är tekniskt verifierad; nationellt komplett beslutsunderlag och skyddad beständig programplanshantering återstår före ADMIN-02:s slutbevis. Fas 4:s checkpoint och hela fas 5 är fortsatt öppna.

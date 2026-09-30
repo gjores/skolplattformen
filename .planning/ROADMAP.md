@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-06 genomförda 2026-09-30. Skyddad GR/IM-timplanslista och uttrycklig celländring verifierade lokalt på dator/telefon; övriga utbildnings- och versionsflöden återstår.
+**Plans**: 05-01–05-07 genomförda 2026-09-30. Skyddad GR/IM-timplanslista/celländring och separat strikt programplansreferensgrund verifierade; övriga utbildnings- och versionsflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -169,6 +169,9 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 
 - [x] 05-05-PLAN.md — Auditerad GR/IM-lista och kolumnmetadata, API preflight/final 39/39, SQL 59/77/27, lås 4/4 och exakt tre Worker-entrypoints
 - [x] 05-06-PLAN.md — Skyddad timplansvy med celländring, osparat skydd/konflikt/rensning, browser 18/18 och byggd handbok; övriga planeringskommandon stängda
+- [x] 05-07-PLAN.md — Reproducerbart katalogartefakt, exakta program-/ämnes-/nivåreferenser och serverintegritet; 451/451 prov, typ/lint/skyddat bygge PASS; inga gymnasieskrivningar öppnade
+
+Nästa delplan ska binda katalogunderlaget till atomiskt mandatavgränsat och auditerat programplans-SQL. Programplanernas direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. API/UI, kullkopiering och klasskoppling återstår.
 
 Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
