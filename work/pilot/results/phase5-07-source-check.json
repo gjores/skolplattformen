@@ -1,0 +1,39 @@
+{
+  "scope": "public-reference-metadata-only",
+  "checkedAt": "2026-09-30T15:24:03.615Z",
+  "sourceDocument": "https://www.skolverket.se/om-skolverket/oppna-data/api-for-laroplaner-kurs--och-amnesplaner",
+  "pinnedSnapshotFetched": "2026-09-05",
+  "snapshotReplaced": false,
+  "cases": [
+    {
+      "code": "SA25",
+      "url": "https://api.skolverket.se/syllabus/v1/programs/SA25",
+      "status": "PASS",
+      "remoteVersion": 4,
+      "remoteStartDate": "2026-07-01",
+      "localVersion": 4,
+      "localStartDate": "2026-07-01",
+      "metadataMatches": true
+    },
+    {
+      "code": "EK25",
+      "url": "https://api.skolverket.se/syllabus/v1/programs/EK25",
+      "status": "PASS",
+      "remoteVersion": 4,
+      "remoteStartDate": "2026-07-01",
+      "localVersion": 4,
+      "localStartDate": "2026-07-01",
+      "metadataMatches": true
+    },
+    {
+      "code": "ES25",
+      "url": "https://api.skolverket.se/syllabus/v1/programs/ES25",
+      "status": "PASS",
+      "remoteVersion": 3,
+      "remoteStartDate": "2026-07-01",
+      "localVersion": 3,
+      "localStartDate": "2026-07-01",
+      "metadataMatches": true
+    }
+  ]
+}
