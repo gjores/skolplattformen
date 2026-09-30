@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-04 genomförda 2026-09-30. Sessionskopplad timplans-API verifierad lokalt; nästa skyddad timplansvy/kolumnunderlag och övriga flöden återstår.
+**Plans**: 05-01–05-06 genomförda 2026-09-30. Skyddad GR/IM-timplanslista och uttrycklig celländring verifierade lokalt på dator/telefon; övriga utbildnings- och versionsflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -167,7 +167,10 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 
 - [x] 05-04-PLAN.md — Sessionskopplad timplans-API, MFA/konflikt/audit, preflight/final 29/29 PASS och exakt två Worker-grants; UI/gymnasieskrivning stängda
 
-Fas 5 förbereds på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
+- [x] 05-05-PLAN.md — Auditerad GR/IM-lista och kolumnmetadata, API preflight/final 39/39, SQL 59/77/27, lås 4/4 och exakt tre Worker-entrypoints
+- [x] 05-06-PLAN.md — Skyddad timplansvy med celländring, osparat skydd/konflikt/rensning, browser 18/18 och byggd handbok; övriga planeringskommandon stängda
+
+Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
 **UI hint**: yes
 
@@ -249,4 +252,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav väntar på genomförande eller slutverifiering. Fas 4:s åtta krav har gröna automatiska syntetiska bevis, men mänskligt användarprov och separat fasverifiering återstår.
 
 ---
-*Last updated: 2026-09-30 — fas 5:s tre delplaner genomförda; fas 4:s checkpoint och fasverifiering kvarstår.*
+*Last updated: 2026-09-30 — fas 5:s sex delplaner genomförda; fas 4:s checkpoint och fasverifiering kvarstår.*

@@ -1,0 +1,297 @@
+{
+  "kind": "phase5-timplan-browser",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "proof": "Byggd protected Worker och verklig PostgreSQL; lokalt mintade testrealmsessioner, ingen interaktiv IdP eller kommunanslutning",
+  "startedAt": "2026-09-30T08:48:24.302Z",
+  "durationMs": 44878.672,
+  "testSourceCommit": "d63ebf2541705f1e533deed5fce0592340f21588",
+  "sourceBuild": {
+    "timplan-desktop": {
+      "sourceRevision": "7776f41087c63501511ea4e963d3e7f2de88b4e7",
+      "buildRevision": "7776f41087c63501511ea4e963d3e7f2de88b4e7",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    "timplan-phone": {
+      "sourceRevision": "7776f41087c63501511ea4e963d3e7f2de88b4e7",
+      "buildRevision": "7776f41087c63501511ea4e963d3e7f2de88b4e7",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  },
+  "stats": {
+    "startTime": "2026-09-30T08:48:24.302Z",
+    "duration": 44878.672,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "case": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "03: huvudman och fastställd version är läsning utan redigering",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "05: osparat skydd vid dialogstängning och byte till annan plan",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "08: pagination, tom lista, okänd rad och stängd programplansnavigation",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "03: huvudman och fastställd version är läsning utan redigering",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "05: osparat skydd vid dialogstängning och byte till annan plan",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "08: pagination, tom lista, okänd rad och stängd programplansnavigation",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "case": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    }
+  ],
+  "targets": {
+    "timplan-desktop": [
+      {
+        "name": "draft-targets.json",
+        "targets": [
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 432,
+            "height": 48
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Avbryt",
+            "width": 65.1875,
+            "height": 44
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Spara ändring",
+            "width": 113.84375,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "name": "compare-targets.json",
+        "targets": [
+          {
+            "tag": "BUTTON",
+            "label": "Avbryt",
+            "width": 65.1875,
+            "height": 44
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Använd min ändring",
+            "width": 152.1875,
+            "height": 44
+          }
+        ]
+      }
+    ],
+    "timplan-phone": [
+      {
+        "name": "draft-targets.json",
+        "targets": [
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 321.21875,
+            "height": 48
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Avbryt",
+            "width": 155.421875,
+            "height": 44
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Spara ändring",
+            "width": 155.421875,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "name": "compare-targets.json",
+        "targets": [
+          {
+            "tag": "BUTTON",
+            "label": "Avbryt",
+            "width": 155.421875,
+            "height": 44
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Använd min ändring",
+            "width": 155.421875,
+            "height": 44
+          }
+        ]
+      }
+    ]
+  },
+  "cleanup": {
+    "status": "PASS",
+    "fixtureCustomers": 0,
+    "testTriggers": 0,
+    "testHelpers": 0,
+    "appendOnlySecurityEventsPreserved": true
+  },
+  "finalAcl": {
+    "workerEntryPoints": [
+      "phase5_list_timplans(integer)",
+      "phase5_read_timplan(uuid)",
+      "phase5_change_timplan_cell(uuid,integer,text,integer,integer)"
+    ],
+    "clientPublicGrants": 0
+  },
+  "visualReview": "Desktop och telefon: GR/IM, ändring och konflikt; contained tabellscroll utan globalt overflow"
+}
