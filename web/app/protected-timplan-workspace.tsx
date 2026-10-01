@@ -11,9 +11,11 @@ import { canChangeTimplanCell, cellHours, parseProtectedTimplan, parseTimplanCel
   type ProtectedTimplan, type TimplanList } from '@/lib/protected-timplan.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
+import { TimplanGuidance, TimplanEditGuidance } from './timplan-guidance';
 import './protected-timplan.css';
 
 type CellDraft = {
+  weekly: boolean;
   planId: string; rowId: string; rowLabel: string; columnIndex: number; columnId: string; columnLabel: string;
   value: string; original: number; mode: 'draft' | 'refreshing' | 'refresh-failed' | 'compare' | 'applied';
   error: string | null; mfa: boolean; uncertain: boolean;
@@ -95,7 +97,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
     if (!plan || busy || !canChangeTimplanCell(plan,context.function,rowId,columnIndex)) return;
     const value = cellHours(plan,rowId,columnIndex)!;
     setNotice(null);
-    setDraft({ planId:plan.id, rowId, rowLabel:timplanRows(plan).find(row=>row.id===rowId)!.label,
+    setDraft({ weekly:plan.education.kind==='introduktionsprogram', planId:plan.id, rowId, rowLabel:timplanRows(plan).find(row=>row.id===rowId)!.label,
       columnIndex, columnId:timplanColumns(plan)[columnIndex].id, columnLabel:timplanColumns(plan)[columnIndex].label, value:String(value), original:value,
       mode:'draft', error:null, mfa:false, uncertain:false });
   }
@@ -200,7 +202,8 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
         <div className="pt-plan-header"><div><p>{plan.schoolName} · {plan.education.cohort}</p><h2>{plan.education.name}</h2><p>Version {plan.version} <span className={`pt-status pt-status-${plan.status}`}>{statusLabel[plan.status]}</span></p></div>
           <span className="pt-read-state">{context.function==='huvudman'?'Läsvy för huvudman':!['utkast','atersand'].includes(plan.status)?'Versionen är låst för ändring':'Välj en timcell för att ändra'}</span></div>
         <div className="pt-basis"><strong>Underlag</strong><p>{plan.basis||'Inget underlag angivet.'}</p>{plan.decidedOn&&<span>Beslutsdatum: {plan.decidedOn}</span>}</div>
-        <p className="pt-boundary">{weekly?'Timmar per vecka.':'Timmar per årskurs.'} Här visas lagrad undervisningstid. Totalram och villkor för beslut prövas inte i den här vyn.</p>
+        <p className="pt-boundary">{weekly?'Timmar per vecka.':'Timmar per årskurs.'} Här visas lagrad undervisningstid.</p>
+        <TimplanGuidance weekly={weekly}/>
         {(unknownRows.length>0||missingRows.length>0) && <div className="pt-alert" role="alert">
           {missingRows.length>0&&<p>Vissa ämnesrader saknas eller har fel antal kolumner. De visas som ”Saknas” och kan inte ändras här.</p>}
           {unknownRows.length>0&&<p>Underlaget innehåller okända rader: {unknownRows.join(', ')}. Redigering är stängd tills underlaget har kontrollerats.</p>}
@@ -223,6 +226,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
           <DialogTitle>Ändra undervisningstid</DialogTitle>
           <DialogDescription>{draft?.rowLabel} · {draft?.columnLabel}. Ändringen sparas först när du väljer att spara.</DialogDescription>
           {draft && <>
+            <TimplanEditGuidance weekly={draft.weekly}/>
             {draft.error && !draft.mfa && <output role="alert" className="pt-alert">{draft.error}</output>}
             {draft.mfa && <MfaStepUpNotice message={draft.error||'Verifiering med engångskod krävs.'} detail="Din osparade ändring finns kvar här. Om du väljer verifiering lämnar du sidan och ändringen följer inte med."/>}
             {draft.mode==='refreshing'&&<output>Hämtar aktuell timplan. Din ändring behålls i dialogen…</output>}

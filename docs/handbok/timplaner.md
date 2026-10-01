@@ -12,6 +12,22 @@ Grundskolans kolumner följer utbildningens sparade årskurser och ordning. För
 
 ## Ändra undervisningstid
 
+Den öppnade planen visar **Innan du ändrar undervisningstiden**. Öppna **Regler och ansvar** för skolformens vägledning och daterade källänkar. Ändringsdialogen påminner om att granska hela fördelningen. Att en cell sparas innebär inte att planen uppfyller regelverket.
+
+### Grundskola
+
+En timme är 60 minuter. Bedöm ämnes- och ämnesgruppsramar för hela stadiet, inte enbart den årskurs som ändras. Huvudmannen beslutar fördelningen mellan årskurser efter rektors förslag. För NO och SO finns även ämnesramar inom grupperna.
+
+Enligt timplanen från 2024/2025 får skolans val minska tiden per stadium för ett ämne eller en ämnesgrupp med högst 20 procent. Svenska eller svenska som andraspråk, engelska, matematik och språkval får inte minskas. Skolans val omfördelar högst 600 timmar sammanlagt inom timplanen; det minskar inte den ordinarie garanterade totaltiden på 6 890 timmar. Kontrollera tillämpligt regelunderlag och eventuella individuella beslut; appen väljer ännu inte regelversion utifrån elevkullen. Se [Skolverkets timplan](https://www.skolverket.se/undervisning/grundskolan/timplan-for-grundskolan).
+
+### Introduktionsprogram
+
+Tiden anges per vecka, i klocktimmar. Eleven har rätt till i genomsnitt minst 23 timmars undervisning i veckan. Huvudmannen beslutar utbildningsplanen och rektor beslutar fördelningen för varje elev inom den individuella studieplanen. En summa av alla rader, inklusive praktik och annan tid, bevisar inte att garanterad undervisningstid uppfylls. Minskad omfattning kräver elevens begäran och att huvudmannen bedömer att det finns särskilda skäl.
+
+Källa för tidsenhet och beslutsansvar: [Skolverkets regler om undervisningstid](https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema). Källorna kontrollerades 1 oktober 2026. Vägledningen gäller ordinarie grundskola från 2024/2025 respektive introduktionsprogram; individuella undantag behöver eget underlag.
+
+### Spara ett cellvärde
+
 Rektor kan ändra befintliga celler i **Utkast** och **Återsänd**. Huvudmannen kan läsa planen. Förslag, fastställda och ersatta versioner är låsta.
 
 1. Välj cellen för det ämne och den kolumn du vill ändra.

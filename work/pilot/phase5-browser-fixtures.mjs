@@ -11,7 +11,7 @@ import { assertTarget } from './verify-target.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const require = createRequire(path.join(root, 'web/package.json'));
 const MARKER = 'Syntetiskt 05-06 browserprov';
-const SOURCE_PATHS = ['web/app/protected-timplan-workspace.tsx','web/app/protected-home.tsx',
+const SOURCE_PATHS = ['web/app/protected-timplan-workspace.tsx','web/app/timplan-guidance.tsx','web/app/protected-home.tsx',
   'web/app/protected-timplan.css','web/lib/protected-timplan.ts','web/lib/server/timplan-planning.ts',
   'web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts'];
 

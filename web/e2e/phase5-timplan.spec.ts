@@ -110,6 +110,61 @@ async function dialogTargets(dialog:Locator,testInfo:TestInfo,name:string) {
   expect(targets.filter(target=>target.width<44 || target.height<44)).toEqual([]);
 }
 
+test('10: skolformsanpassat regelstöd, källor och påminnelse vid ändring',async({page},testInfo)=>{
+  await enter(page);
+  await open(page);
+  const guidance=workspace(page).getByRole('complementary',{name:'Regelstöd för timplanen'});
+  await expect(guidance.getByText('Sparat betyder inte regelkontrollerat.',{exact:true})).toBeVisible();
+  const summary=guidance.locator('summary');
+  await expect(summary).toHaveText('Regler och ansvar för grundskolan');
+  await summary.focus();
+  await page.keyboard.press('Enter');
+  await expect(guidance.getByText(/högst 20 procent/u)).toBeVisible();
+  await expect(guidance.getByText(/6 890 timmar/u)).toBeVisible();
+  await expect(guidance.getByText(/efter rektors förslag/u)).toBeVisible();
+  await expect(guidance.getByText(/Appen väljer ännu inte regelversion/u)).toBeVisible();
+  await expect(guidance.getByRole('link',{name:'Skolverkets timplan',exact:true})).toHaveAttribute('href','https://www.skolverket.se/undervisning/grundskolan/timplan-for-grundskolan');
+  expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+  await summary.scrollIntoViewIfNeeded();
+  await testInfo.attach('grundskola-regelstod.png',{body:await page.screenshot(),contentType:'image/png'});
+  const dialog=await edit(page,101);
+  await expect(dialog.getByText(/Kontrollera ämnesramarna och huvudmannens beslut/u)).toBeVisible();
+  await expect(dialog.getByText(/Sparningen är ingen kontroll av hela regelverket/u)).toBeVisible();
+  await acceptDiscard(page,()=>dialog.getByRole('button',{name:'Avbryt',exact:true}).click());
+  await workspace(page).getByRole('button',{name:'Alla timplaner',exact:true}).click();
+  await open(page,imPlan);
+  await expect(summary).toHaveText('Regler och ansvar för introduktionsprogram');
+  // Planbyte kan återanvända details-elementets öppna läge. Öppna bara om stängt.
+  if(!await guidance.locator('details').evaluate(element=>(element as HTMLDetailsElement).open))await summary.click();
+  await expect(guidance.getByText(/minst 23 timmars undervisning/u)).toBeVisible();
+  await expect(guidance.getByText(/Rektor beslutar hur undervisningstiden/u)).toBeVisible();
+  await expect(guidance.getByText(/högst 20 procent/u)).toHaveCount(0);
+  await expect(guidance.getByRole('link',{name:'Skolverkets timplan',exact:true})).toHaveCount(0);
+  await expect(guidance.getByRole('link',{name:'Skolverkets regler om undervisningstid och ansvar',exact:true})).toHaveAttribute('href','https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+  await summary.scrollIntoViewIfNeeded();
+  await testInfo.attach('im-regelstod.png',{body:await page.screenshot(),contentType:'image/png'});
+  await workspace(page).getByRole('button',{name:/^Ändra Matematik, grundskolenivå,/u}).click();
+  const imDialog=page.getByRole('dialog',{name:'Ändra undervisningstid'});
+  await expect(imDialog.getByText(/Ändringen påverkar veckofördelningen/u)).toBeVisible();
+  await imDialog.getByRole('textbox',{name:'Timmar per vecka',exact:true}).fill('11');
+  await page.route('**/api/timplaner/cell',async route=>{
+    const actual=await route.fetch();expect(actual.status()).toBe(200);
+    await route.abort('failed');
+  });
+  await page.route('**/api/timplaner/lasa',async route=>{
+    const actual=await route.fetch();expect(actual.status()).toBe(200);
+    await route.abort('failed');
+  });
+  await imDialog.getByRole('button',{name:'Spara ändring',exact:true}).click();
+  await expect(imDialog).toContainText('Aktuell timplan kunde inte läsas.');
+  await expect(imDialog.getByText(/Ändringen påverkar veckofördelningen/u)).toBeVisible();
+  await expect(imDialog.getByText(/Kontrollera ämnesramarna och huvudmannens beslut/u)).toHaveCount(0);
+  await page.unroute('**/api/timplaner/cell');
+  await page.unroute('**/api/timplaner/lasa');
+});
+
 test('01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation',async({page},testInfo)=>{
   await enter(page);
   const response=await open(page);
