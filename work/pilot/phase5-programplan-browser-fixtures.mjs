@@ -66,7 +66,7 @@ export async function createProgramplanBrowserFixture() {
     const principal=await mint(11,21,roles.principal),second=await mint(12,22,roles.principal2),hm=await mint(10,20,id(60)),noMfa=await mint(11,21,roles.principal,false);
     const snapshot=async(plan=id(50))=>{const [row]=await db`select to_jsonb(p) as plan from public.point_plans p where id=${plan} and organizer_id=${id(2)}`;return row?.plan;};
     const plans=async offering=>db`select id::text,version,revision,status from public.point_plans where offering_id=${offering} and organizer_id=${id(2)} order by version`;
-    const history=async plan=>db`select to_jsonb(e) as event from public.point_plan_events e where point_plan_id=${plan} order by id`;
+    const history=async plan=>db`select to_jsonb(e) as event from public.point_plan_events e where point_plan_id=${plan} order by created_at,id`;
     const events=async corr=>db`select source,action,outcome,actor_identity_id,membership_id,assignment_id,session_id,customer_id,object_type,object_id,details from public.security_events where correlation_id=${corr}`;
     const paired=async(corr,session,action,objectId=/** @type {string|null} */(id(50)),objectType='programplan')=>{
       const rows=await events(corr);return rows.length===2&&['db','worker'].every(source=>rows.some(e=>e.source===source&&e.action===action&&e.outcome==='ok'&&e.actor_identity_id===session.identityId&&e.membership_id===session.membershipId&&e.assignment_id===session.assignmentId&&e.session_id===session.id&&e.customer_id===id(1)&&e.object_type===objectType&&e.object_id===objectId&&Object.keys(e.details).every(k=>['path','accessFunction','proof','sourcePlanId'].includes(k))));

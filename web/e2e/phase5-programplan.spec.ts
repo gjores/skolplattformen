@@ -1,6 +1,6 @@
 // Verklig byggd Worker/SQL, egen syntetisk kund perfall. Lokalt mintade
 // sessionsbevis; inget interaktivt IdP-prov eller faktiskt skolbeslut.
-import { expect,test,type Page,type Response,type Locator } from '@playwright/test';
+import { expect,test,type Page,type Response,type Locator,type TestInfo } from '@playwright/test';
 import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget } from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
 import { waitForHydration } from './helpers/keycloak.ts';
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
@@ -25,9 +25,10 @@ async function edit(page:Page){await w(page).getByRole('button',{name:'Ändra pr
 async function add(dialog:Locator,code='ANIM1000X'){await dialog.getByLabel('Lägg till fördjupningsnivå').selectOption(code);await dialog.getByRole('button',{name:'Lägg till nivå',exact:true}).click();}
 async function save(page:Page,route='fordjupning'){const pending=page.waitForResponse(matches(`/api/programplaner/${route}`));await page.getByRole('dialog').getByRole('button',{name:'Spara utkast',exact:true}).click();return pending;}
 async function paired(r:Response,action:string,objectId:string|null=fixture.planId,session=fixture.principal,type='programplan'){const corr=r.headers()['x-correlation-id'];expect(corr).toMatch(/^[a-f0-9-]{36}$/u);expect(await fixture.paired(corr,session,action,objectId,type)).toBe(true);if(type==='programplan'&&objectId&&action!=='programplan_read'){const history=await fixture.history(objectId) as {event:{action:string;actor_identity_id:string;session_id:string;assignment_id:string}}[];const matching=history.map(row=>row.event).filter(e=>e.action===action);expect(matching.length).toBeGreaterThan(0);const latest=matching.at(-1)!;expect(latest.actor_identity_id).toBe(session.identityId);expect(latest.session_id).toBe(session.id);expect(latest.assignment_id).toBe(session.assignmentId);}}
+async function capture(page:Page,info:TestInfo,name:string){const path=info.outputPath(name);await page.screenshot({path,fullPage:true});await info.attach(name,{path,contentType:'image/png'});}
 async function discard(page:Page,accept:boolean,action:()=>Promise<unknown>){const pending=page.waitForEvent('dialog'),operation=action();const d=await pending;expect(d.type()).toBe('confirm');if(accept)await d.accept();else await d.dismiss();await operation;}
 
-test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning',async({page})=>{
+test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning',async({page},info)=>{
   const list=await enter(page);await paired(list,'programplan_offerings_listed',null,fixture.principal,'education_collection');
   await expect(w(page)).not.toContainText('Syntetisk annan skola SA');
   const underlying=await education(page);await paired(underlying,'programplan_workspace_read',fixture.offeringId,fixture.principal,'education');
@@ -37,7 +38,7 @@ test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning
   await expect(w(page).getByLabel('Välj exakt katalog')).toHaveValue(fixture.catalogId);await expect(w(page).getByLabel('Välj exakt katalog')).toBeDisabled();
   await expect(w(page)).toContainText('Utbildningsstart: 2026-08-01');await expect(w(page).getByRole('region',{name:'Läst programplan'})).toContainText('Engelska');
   await expect(w(page).getByRole('button',{name:/Fastställ/u})).toHaveCount(0);
-  expect((await fixture.snapshot()).revision).toBe(0);
+  expect((await fixture.snapshot()).revision).toBe(0);await capture(page,info,'programplan-read.png');
 });
 
 test('02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning',async({page})=>{
@@ -69,10 +70,10 @@ test('04: ordnad fördjupning, borttagning, tomt utkast, tangentbord och telefon
   expect((await save(page)).status()).toBe(200);await expect(page.getByRole('dialog')).toHaveCount(0);expect((await fixture.snapshot()).specialization).toEqual([]);
 });
 
-test('05: kopiera äldre låst källa uttryckligt och bevara källa/historik',async({page})=>{
+test('05: kopiera äldre låst källa uttryckligt och bevara källa/historik',async({page},info)=>{
   const before=await fixture.snapshot(fixture.lockedPlanId),history=await fixture.history(fixture.lockedPlanId);
   await enter(page);await education(page,'Syntetisk tidigare beslutad SA');await version(page,'Version 3 · Fastställd');await catalog(page);await w(page).getByRole('button',{name:'Kopiera till nytt utkast',exact:true}).click();
-  const d=page.getByRole('dialog',{name:'Kopiera till nytt programplansutkast'});await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');await d.getByRole('checkbox').check();const r=await save(page,'klona');expect(r.status()).toBe(200);const body=await r.json();expect(body.version).toBe(4);expect(body.id).not.toBe(fixture.lockedPlanId);await paired(r,'programplan_draft_cloned',body.id);await expect(page.getByRole('dialog')).toHaveCount(0);expect(await fixture.snapshot(fixture.lockedPlanId)).toEqual(before);expect(await fixture.history(fixture.lockedPlanId)).toEqual(history);
+  const d=page.getByRole('dialog',{name:'Kopiera till nytt programplansutkast'});await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');await d.getByRole('checkbox').check();await capture(page,info,'programplan-legacy-clone.png');const r=await save(page,'klona');expect(r.status()).toBe(200);const body=await r.json();expect(body.version).toBe(4);expect(body.id).not.toBe(fixture.lockedPlanId);await paired(r,'programplan_draft_cloned',body.id);await expect(page.getByRole('dialog')).toHaveCount(0);expect(await fixture.snapshot(fixture.lockedPlanId)).toEqual(before);expect(await fixture.history(fixture.lockedPlanId)).toEqual(history);
   // Konkurrerande nytt utkast stoppar även clone-CAS utan en extra version.
   await fixture.seedBoundLocked();await w(page).getByRole('button',{name:'Alla utbildningar',exact:true}).click();await education(page);await version(page,'Version 1 · Fastställd');await w(page).getByRole('button',{name:'Kopiera till nytt utkast',exact:true}).click();
   const other=await fixture.request(baseURL,fixture.second,'/api/programplaner/skapa',{offeringId:fixture.offeringId,expectedLatestVersion:1,basisReference:fixture.basis([animation])});expect(other.status).toBe(200);expect(await fixture.paired(other.correlationId,fixture.second,'programplan_draft_created',other.body.id)).toBe(true);
@@ -83,9 +84,9 @@ test('06: bunden låst syntetisk källa kopieras med oförändrad grund',async({
   await fixture.seedBoundLocked();const before=await fixture.snapshot();await enter(page);await education(page);await version(page,'Version 1 · Fastställd');await w(page).getByRole('button',{name:'Kopiera till nytt utkast',exact:true}).click();const d=page.getByRole('dialog');await expect(d.getByLabel('Utbildningens exakta startdatum')).toHaveCount(0);await expect(d.getByRole('checkbox')).toHaveCount(0);const r=await save(page,'klona');expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_cloned',body.id);await expect(page.getByRole('dialog')).toHaveCount(0);expect(body.basisReference).toEqual(before.basis_reference);expect(await fixture.snapshot()).toEqual(before);
 });
 
-test('07: verklig tvåsessionskonflikt och uttrycklig omprövning',async({page})=>{
+test('07: verklig tvåsessionskonflikt och uttrycklig omprövning',async({page},info)=>{
   await enter(page);await education(page);await version(page);await add(await edit(page));const other=await fixture.request(baseURL,fixture.second,'/api/programplaner/fordjupning',{planId:fixture.planId,expectedRevision:0,specializationRefs:[animation]});expect(other.status).toBe(200);expect(await fixture.paired(other.correlationId,fixture.second,'programplan_specialization_changed')).toBe(true);
-  const r=await save(page);expect(r.status()).toBe(409);const d=page.getByRole('dialog');await expect(d).toContainText('Aktuell revision: 1');await expect(d).toContainText('Dina fördjupningsval: ENGE3000X, ANIM1000X');expect((await fixture.snapshot()).specialization).toEqual(['ANIM1000X']);
+  const r=await save(page);expect(r.status()).toBe(409);const d=page.getByRole('dialog');await expect(d).toContainText('Aktuell revision: 1');await expect(d).toContainText('Dina fördjupningsval: ENGE3000X, ANIM1000X');expect((await fixture.snapshot()).specialization).toEqual(['ANIM1000X']);await capture(page,info,'programplan-conflict.png');
   const pending=page.waitForResponse(matches('/api/programplaner/fordjupning'));await d.getByRole('button',{name:'Använd mina val',exact:true}).click();const retried=await pending;expect(retried.status()).toBe(200);await paired(retried,'programplan_specialization_changed');await expect(page.getByRole('dialog')).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(2);
 });
 
@@ -98,17 +99,17 @@ test('08: annan session binder till annan grund; eget formulär kan inte återan
   expect((await save(page,'skapa')).status()).toBe(409);await expect(creation.getByRole('button',{name:'Använd mina val',exact:true})).toBeDisabled();await expect(creation).toContainText('Dina fördjupningsval: ANIM1000X');expect((await fixture.snapshot(competing.body.id)).version).toBe(1);expect(await fixture.plans(fixture.emptyOfferingId)).toHaveLength(1);
 });
 
-test('09: MFA och DB/Worker-auditfel bevarar formulär och ändrar ingenting',async({page})=>{
-  await enter(page,fixture.noMfa);await education(page);await version(page);await add(await edit(page));let r=await save(page);expect(r.status()).toBe(403);await expect(page.getByRole('dialog')).toContainText('Verifiera med engångskod');expect((await fixture.snapshot()).revision).toBe(0);
+test('09: MFA och DB/Worker-auditfel bevarar formulär och ändrar ingenting',async({page},info)=>{
+  await enter(page,fixture.noMfa);await education(page);await version(page);await add(await edit(page));let r=await save(page);expect(r.status()).toBe(403);await expect(page.getByRole('dialog')).toContainText('Verifiera med engångskod');expect((await fixture.snapshot()).revision).toBe(0);await capture(page,info,'programplan-mfa.png');
   await discard(page,true,()=>page.getByRole('dialog').getByRole('button',{name:'Avbryt',exact:true}).click());await fixture.cookies(page.context(),fixture.principal,baseURL);await page.reload();await navigate(page);await education(page);await version(page);await add(await edit(page));
   for(const source of ['db','worker']){await fixture.auditFailure(source);r=await save(page);expect(r.status()).toBe(500);expect((await r.json()).code).toBe('audit_unavailable');await expect(page.getByRole('dialog')).toContainText('Kunde inte spara');expect((await fixture.snapshot()).revision).toBe(0);expect((await fixture.snapshot()).specialization).toEqual(['ENGE3000X']);await fixture.clearAuditFailure();}
   expect((await save(page)).status()).toBe(200);await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test('10: accepterad sparning följd av omläsningsfel behåller formulär; ingen dubbelwrite',async({page})=>{
+test('10: accepterad sparning följd av omläsningsfel behåller formulär; ingen dubbelwrite',async({page},info)=>{
   await enter(page);await education(page);await version(page);await add(await edit(page));let writes=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/fordjupning')writes++;});
   await page.route('**/api/programplaner/underlag',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'audit_unavailable'})}));
-  const r=await save(page);expect(r.status()).toBe(200);await paired(r,'programplan_specialization_changed');const d=page.getByRole('dialog');await expect(d).toContainText('Dina uppgifter finns kvar');await expect(d).toContainText('ANIM1000X');expect((await fixture.snapshot()).revision).toBe(1);
+  const r=await save(page);expect(r.status()).toBe(200);await paired(r,'programplan_specialization_changed');const d=page.getByRole('dialog');await expect(d).toContainText('Dina uppgifter finns kvar');await expect(d).toContainText('ANIM1000X');expect((await fixture.snapshot()).revision).toBe(1);await capture(page,info,'programplan-refresh-error.png');
   await page.unroute('**/api/programplaner/underlag');await d.getByRole('button',{name:'Läs om underlaget',exact:true}).click();await expect(d).toContainText('Inget nytt sparande behövs');expect(writes).toBe(1);await d.getByRole('button',{name:'Stäng',exact:true}).click();
 });
 
