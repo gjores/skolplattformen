@@ -169,12 +169,15 @@ select is((select count(*) from public.security_events where customer_id='551010
 drop trigger phase5_workspace_audit_probe on public.security_events;
 
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values('55101000-0000-4000-8000-000000000039','55101000-0000-4000-8000-000000000002','55101039','Syntetisk tom skola','0000');
-insert into public.mandate_units values('55101000-0000-4000-8000-000000000060','55101000-0000-4000-8000-000000000001','55101000-0000-4000-8000-000000000002','55101000-0000-4000-8000-000000000039');
-delete from public.mandate_units where assignment_id=(select id from programplan_roles where name='principal');
-insert into public.mandate_units values((select id from programplan_roles where name='principal'),'55101000-0000-4000-8000-000000000001','55101000-0000-4000-8000-000000000002','55101000-0000-4000-8000-000000000039');
+insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind)
+ values('55101000-0000-4000-8000-000000000063','55101000-0000-4000-8000-000000000020','55101000-0000-4000-8000-000000000001','55101000-0000-4000-8000-000000000002','huvudman','synthetic-v1','school');
+insert into public.mandate_units values('55101000-0000-4000-8000-000000000063','55101000-0000-4000-8000-000000000001','55101000-0000-4000-8000-000000000002','55101000-0000-4000-8000-000000000039');
+insert into public.app_sessions(id,token_hash,identity_id,membership_id,assignment_id,expires_at,absolute_expires_at)
+ values('55101000-0000-4000-8000-000000000084',decode(md5('55101000-0000-4000-8000-000000000084')||md5('55101000-0000-4000-8000-000000000084'),'hex'),'55101000-0000-4000-8000-000000000010','55101000-0000-4000-8000-000000000020','55101000-0000-4000-8000-000000000063',clock_timestamp()+interval '1 hour',clock_timestamp()+interval '8 hours');
+select pg_temp.programplan_actor('55101000-0000-4000-8000-000000000063','55101000-0000-4000-8000-000000000020','55101000-0000-4000-8000-000000000010','55101000-0000-4000-8000-000000000084');
 select is((public.phase5_list_programplan_offerings(1)->>'count')::int,0,'valid school mandate without gymnasieutbildningar yields empty count');
 select is(public.phase5_list_programplan_offerings(1)->'offerings','[]'::jsonb,'empty scope yields honest empty list with audit');
-select throws_ok($q$select public.phase5_programplan_workspace('55101000-0000-4000-8000-000000000045',1,null)$q$,'42501',null,'removed unit no longer reads workspace');
+select throws_ok($q$select public.phase5_programplan_workspace('55101000-0000-4000-8000-000000000045',1,null)$q$,'42501',null,'empty-school context cannot read former context education');
 
 select ok(not has_function_privilege('anon',p.oid,'execute') and not has_function_privilege('authenticated',p.oid,'execute'),p.proname||' remains closed to client roles') from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('phase5_programplan_education','phase5_programplan_workspace_audit','phase5_list_programplan_offerings','phase5_programplan_workspace');
 select ok(not has_function_privilege('skolplattform_worker',p.oid,'execute'),p.proname||' has no Worker grant before own preflight') from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('phase5_programplan_education','phase5_programplan_workspace_audit','phase5_list_programplan_offerings','phase5_programplan_workspace');
