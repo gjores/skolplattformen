@@ -148,3 +148,27 @@ node work/pilot/verify-programplan-locks.mjs
 ```
 
 Samtidighetsprovet använder verkliga separata anslutningar och konstaterad låsväntan. Det städar bara sin egen syntetiska verksamhetsgraf. Säkerhetsloggar och de identiteter loggarna refererar till behålls som auditankare och redovisas i resultatet.
+
+## Skyddad transport för utkast (05-09)
+
+Fem POST-rutter finns under `/api/programplaner`: `lasa`, `binda`, `fordjupning`, `skapa` och `klona`. De använder motsvarande fem SQL-kommandon ovan. `web/lib/programplan-contract.ts` är det gemensamma rena formatkontraktet; serveradaptern ligger i `web/lib/server/programplan-planning.ts`. Inga fria kund-, roll-, skol-, sessions- eller statusfält accepteras.
+
+Huvudman och rektor får läsa inom sitt levande skolmandat. Samma roller får skriva utkast med giltigt MFA-bevis och begäran från samma webbplats. En färsk låst session, uppdragskedja och kontextversion prövas för varje operation. Klientens typkontroll, roll eller underlagsreferens ger aldrig behörighet. API:t är fortfarande avgränsat till lokal skyddad syntetisk provmiljö.
+
+Svaren bevarar exakt SQL:s tolvfältsschema. `resolution` har enbart `status`, `diagnostics`, `unresolvedChoices` och `decisionReady: false`. Ett obundet äldre underlag förblir uttryckligt blockerat; svaret innehåller inte dess gamla råa fördjupningskoder. Det kräver en separat mandatbunden läsprojektion i nästa arbetsyteplan. Ingen katalog, full nationell matris eller beslutberedskap härleds från ett tekniskt lyckat svar.
+
+Bindning och ändring ska återge samma plan-ID och nästa revision. Skapande och kloning ger nästa planversion och revision 0; kloning ger ett nytt ID. Underlag och ordnade val måste motsvara begäran. Felaktig SQL-projektion, ID-/revisionsavvikelse eller okänd diagnostik stoppar svar inom transaktionen. Versionskonflikt ger minimerat 409; SQL-feltext eller konkurrerande planvärden lämnas aldrig ut.
+
+Varje lyckad operation skriver DB- och Worker-händelse i samma yttre transaktion före svar. Båda binder verklig identitet, session, medlemskap, uppdrag, kund, plan, åtgärd och korrelation. Clone-DB-händelsen innehåller endast serverkontrollerat `sourcePlanId`; Worker loggar inga referenser, poäng, namn eller fria planvärden. Auditfel återställer verksamhet, revision, historia och framgångshändelser. Ett nekande loggas separat och lämnar ingen verksamhetsframgång. Alla svar har `Cache-Control: no-store`.
+
+Migration `20261001110000_phase5_worker_programplan_execute.sql` öppnar enbart de fem bevisade signaturerna till Worker. PUBLIC, anon, authenticated, katalogtabell, direkta plan-/historiktabeller och interna helpers förblir stängda. De tre tidigare timplanskommandona består, totalt exakt åtta phase5-signaturer. Preflightens tillfälliga grants återställs och hela funktionernas ACL jämförs före permanent grant. Cleanup behåller append-only säkerhetsloggar och nödvändiga identitetsankare.
+
+Full preflight och slutprov finns i `work/pilot/results/phase5-09-api-preflight.json` och `phase5-09-api.json`. Provmatrisen använder byggd Worker, verklig PostgreSQL och lokalt mintade sessioner med testrealmens bevisprofil. Detta bevisar assurancekontroll i servervägen, inte interaktiv IdP-inloggning eller verklig kommunanslutning. SQL-låsprov är separata bevis utan HTTP-MFA. Utbildnings-/list-/UI- och fastställandeflöden ingår inte i 05-09.
+
+## Kompatibilitet för framtida schema och modulutbyte
+
+`offeringId`, `unitId`, planens `id`, `version` och `revision` identifierar verksamhet och sparat tillstånd. `catalogId`, `programRef.version` och `subjectVersion` är separata nationella innehållsidentiteter. Ingen av dessa versioner får ersätta en annan.
+
+`startedOn` är uttryckligt underlagsbundet startdatum. `cohort` är en fri etikett och ger inget datum, kalender-ID, klass-ID eller kullkopplingsbevis. `points` är gymnasiepoäng; API:t producerar inga schemaminuter eller garanterade undervisningstimmar. Bindningens giltighet och exakta versioner fryses och bevaras; ett senare utbyteskontrakt behöver egen giltighets- och enhetsmodell.
+
+Utkaständring tillhör aktuellt huvudmanna-/rektorsmandat. Den ger inget schemapublicerings-, studieplans-, AI- eller modulköpsmandat. En ny planversion ombinder ingen befintlig klasskoppling. Delprojektets S1 behöver senare precisera gemensamma utbyteskontrakt, ändringsansvar och konsekvensanalys; 05-09 inför inga konkurrerande planmodeller eller nya schemaåtkomster.

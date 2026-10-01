@@ -18,6 +18,8 @@ const web = path.join(root, 'web');
 const RESULTS = path.join(root, 'work/pilot/results');
 const ENTRYPOINTS = ['public.phase5_read_timplan(uuid)', 'public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)'];
 const SELECTION_ENTRYPOINT = 'public.phase5_list_timplans(integer)';
+const PROGRAMPLAN_ENTRYPOINTS = ['public.phase5_read_programplan(uuid)','public.phase5_bind_programplan_draft(uuid,integer,jsonb)','public.phase5_replace_programplan_specialization(uuid,integer,jsonb)','public.phase5_create_programplan_draft(uuid,integer,jsonb)','public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)'];
+export function validWorkerFunctions(actual, entries, programplan=false) {const expected=[...entries,...(programplan?PROGRAMPLAN_ENTRYPOINTS:[])];return actual.length===expected.length&&new Set(actual).size===expected.length&&actual.every(f=>expected.includes(f));}
 const HELPERS = ['public.phase5_timplan_scope(uuid,boolean)', 'public.phase5_timplan_audit(uuid,text)'];
 const MARKER = 'Syntetiskt 05-04 API-prov';
 export const REQUIRED_CASES = ['worker-role','principal-read','hm-read','principal-write-reload','revision-conflict','concurrent-write','hm-write-denied','admin-denied','other-school','other-customer','missing-object','no-mfa','csrf','stale-context','parent-revoked','session-expired','session-revoked','membership-blocked','customer-closed','no-session','invalid-input','decided-plan','gymnasium-write','denied-audit-failure','db-audit-read-failure','db-audit-write-failure','worker-audit-write-failure','client-sql-denied','persistent-audit'];
@@ -30,12 +32,12 @@ export function overallStatus(cases, required = REQUIRED_CASES) {
   }) ? 'PASS' : 'FAIL';
 }
 export function parseArgs(argv) {
-  const o = { target: null, out: null, port: 3054, preflight: false, selection: false };
+  const o = { target: null, out: null, port: 3054, preflight: false, selection: false, programplan: false };
   for (let i=0; i<argv.length; i++) {
     const a=argv[i];
     const value=()=>{ if (argv[i+1] === undefined) throw new Error(`${a} saknar värde`); return argv[++i]; };
     if(a==='--target') o.target=value(); else if(a==='--out') o.out=path.resolve(value());
-    else if(a==='--port') o.port=Number(value()); else if(a==='--preflight') o.preflight=true; else if(a==='--selection') o.selection=true;
+    else if(a==='--port') o.port=Number(value()); else if(a==='--preflight') o.preflight=true; else if(a==='--selection') o.selection=true; else if(a==='--programplan') o.programplan=true;
     else throw new Error(`okänt argument ${a}`);
   }
   if(o.target!=='protected') throw new Error('--target protected krävs');
@@ -162,7 +164,7 @@ async function main() {
       check(checks,'response','byggd protected-Worker med databasroll',await health());
       const a=await acl();
       const [all]=await db`select count(*)::int as n from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'EXECUTE')`;
-      check(checks,'persistent','exakt avgränsad Worker-EXECUTE-mängd',all.n===activeEntries.length&&a.filter(r=>activeEntries.includes(r.f)).every(r=>r.granted)&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
+      check(checks,'persistent','exakt avgränsad Worker-EXECUTE-mängd',all.n===activeEntries.length+(o.programplan?5:0)&&validWorkerFunctions(a.filter(r=>r.granted).map(r=>r.f),activeEntries,o.programplan)&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
     });
     for(const [name,s] of [['principal-read',principal],['hm-read',hm]]) await run(name,async checks=>{
       const r=await read(s); allowed.push({r,s,action:'timplan_read'});
@@ -319,7 +321,7 @@ async function main() {
       check(checks,'persistent','alla nekanden loggas och saknar lyckad datahändelse',denialsExact.every(Boolean));
     });
     const status=overallStatus(cases,required);
-    const report={kind:'phase5-timplan-api',scope:'local-synthetic-only',proof:'lokalt mintade sessioner med testrealmens bevisprofil; byggd protected-Worker och verklig PostgreSQL; ingen interaktiv IdP-inloggning eller kommunanslutning',startedAt,completedAt:new Date().toISOString(),revision:revision(),workerBuildRevision:mark.revision,preflight:o.preflight,selection:o.selection,requiredCases:required,complete:cases.length===required.length,status,cases,calls};
+    const report={kind:'phase5-timplan-api',scope:'local-synthetic-only',proof:'lokalt mintade sessioner med testrealmens bevisprofil; byggd protected-Worker och verklig PostgreSQL; ingen interaktiv IdP-inloggning eller kommunanslutning',startedAt,completedAt:new Date().toISOString(),revision:revision(),workerBuildRevision:mark.revision,preflight:o.preflight,selection:o.selection,programplanProfile:o.programplan,requiredCases:required,complete:cases.length===required.length,status,cases,calls};
     fs.mkdirSync(path.dirname(o.out),{recursive:true});fs.writeFileSync(o.out,`${JSON.stringify(report,null,2)}\n`);
     console.log(`Totalstatus: ${status} (${cases.filter(c=>c.status==='PASS').length}/${required.length})`);exitCode=status==='PASS'?0:1;
   } catch(e) {

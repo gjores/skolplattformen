@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
 import test from 'node:test';
-import { cleanupProgramplanFixture, extractProgramplanFixture, withProgramplanTarget } from './verify-programplan-locks.mjs';
+import { cleanupProgramplanFixture, extractProgramplanFixture, withProgramplanTarget, programplanWorkerNames } from './verify-programplan-locks.mjs';
 
 test('fixture extraction randomizes the complete owned graph and refuses ambiguous markers or unsafe blocks', async () => {
   const source = await readFile(new URL('../../supabase/tests/phase5_programplan_drafts.test.sql',import.meta.url),'utf8');
@@ -47,3 +47,5 @@ test('import does not connect, create a report or replace existing evidence', as
   assert.equal(after?.mtimeMs??null,before?.mtimeMs??null);
   if(after)assert.equal(await readFile(output,'utf8'),bytes);
 });
+
+test('SQL-låsprovet använder explicit stängd eller åtta-kommandoprofil',()=>{assert.equal(programplanWorkerNames().length,3);assert.equal(programplanWorkerNames('programplan').length,8);assert.equal(programplanWorkerNames('programplan').includes('phase5_programplan_result'),false);assert.throws(()=>programplanWorkerNames('auto'));});

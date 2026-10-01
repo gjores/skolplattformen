@@ -155,7 +155,7 @@ select throws_ok($q$select public.phase5_list_timplans(1)$q$,'55000',null,'gener
 drop trigger selection_audit_failure on public.security_events;
 select is(has_function_privilege('anon','public.phase5_list_timplans(integer)','execute'),false,'anon list entry remains closed');
 select is(has_function_privilege('authenticated','public.phase5_list_timplans(integer)','execute'),false,'authenticated list entry remains closed');
-select is((select count(*) from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'execute')),3::bigint,'exactly three Worker entrypoints inside temporary grant; helpers closed');
+select is((select count(*) from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'execute')),8::bigint,'exactly eight Worker entrypoints inside temporary grant; helpers closed');
 select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and a.grantee=0 and a.privilege_type='EXECUTE'),'PUBLIC has no phase5 execute');
 select * from finish();
 rollback;

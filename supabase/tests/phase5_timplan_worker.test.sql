@@ -84,7 +84,7 @@ drop trigger planning_session_audit_failure on public.security_events;
 select is((select revision from public.timplans where id='55004000-0000-4000-8000-000000000050'),1,'all failed session/audit calls preserve revision');
 select is((select hours[1]::int from public.timplan_cells where timplan_id='55004000-0000-4000-8000-000000000050' and row_id='matematik'),101,'all failed session/audit calls preserve hours');
 select is((select count(*) from public.security_events where object_id='55004000-0000-4000-8000-000000000050'),2::bigint,'failed session/audit calls add no successful event');
-select is((select count(*) from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'execute')),3::bigint,'exactly three Worker entrypoints; helpers closed');
+select is((select count(*) from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'execute')),8::bigint,'exactly eight Worker entrypoints; helpers closed');
 select is(has_function_privilege('anon','public.phase5_read_timplan(uuid)','execute'),false,'anon cannot call phase5_read_timplan');
 select is(has_function_privilege('anon','public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)','execute'),false,'anon cannot call phase5_change_timplan_cell');
 select is(has_function_privilege('anon','public.phase5_timplan_scope(uuid,boolean)','execute'),false,'anon cannot call phase5_timplan_scope');

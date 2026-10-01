@@ -71,7 +71,9 @@ function normalizedResolution(r) {
   return { status:r.status, catalogId:r.catalogId, programRef:r.programRef,
     diagnostics:r.diagnostics.map(canonicalCatalogJson).sort(), unresolvedChoices:r.unresolvedChoices.map(canonicalCatalogJson).sort() };
 }
-export async function runProgramplanVerification() {
+export function programplanWorkerNames(profile='closed') {if(!['closed','programplan'].includes(profile))throw Error('worker_profile_invalid');return ['phase5_change_timplan_cell','phase5_list_timplans','phase5_read_timplan',...(profile==='programplan'?['phase5_read_programplan','phase5_bind_programplan_draft','phase5_replace_programplan_specialization','phase5_create_programplan_draft','phase5_clone_programplan_draft']:[])].sort();}
+export async function runProgramplanVerification({workerProfile='closed',outFile=new URL('./results/phase5-08-locks.json',import.meta.url)}={}) {
+  const expectedWorkerNames=programplanWorkerNames(workerProfile);
   return withProgramplanTarget(assertTarget, async target => {
     const require = createRequire(new URL('../../web/package.json', import.meta.url));
     const postgres = require('postgres');
@@ -201,7 +203,7 @@ export async function runProgramplanVerification() {
       assert.deepEqual(await snapshot(id(50)),before);assert.equal(await auditCount(),events);
       report.cases.push({name:activeCase,status:'PASS',dataPreserved:true,auditPreserved:true,scope:'SQL caller rollback'});
       const acl=await db`select proname from pg_proc where pronamespace='public'::regnamespace and proname like 'phase5_%' and has_function_privilege('skolplattform_worker',oid,'execute') order by proname`;
-      assert.deepEqual(acl.map(r=>r.proname),['phase5_change_timplan_cell','phase5_list_timplans','phase5_read_timplan']);
+      assert.deepEqual(acl.map(r=>r.proname),expectedWorkerNames);
       report.phase5WorkerFunctions=acl.map(r=>r.proname);report.status='PASS';
     } catch(error) {
       report.failedCase=activeCase;report.code=typeof error?.code==='string'&&/^[A-Z0-9_]{1,40}$/u.test(error.code)?error.code:'TEST_FAILED';
@@ -216,12 +218,13 @@ export async function runProgramplanVerification() {
       'supabase/migrations/20260930162000_phase5_programplan_drafts.sql','supabase/tests/phase5_programplan_drafts.test.sql','work/pilot/verify-programplan-locks.mjs']) {
       report.sourceHashes[path]=createHash('sha256').update(await readFile(resolve(root,path))).digest('hex');
     }
-    await writeFile(new URL('./results/phase5-08-locks.json',import.meta.url),`${JSON.stringify(report,null,2)}\n`);
+    await writeFile(outFile,`${JSON.stringify(report,null,2)}\n`);
     return report;
   });
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  if(process.argv.length>2){process.stderr.write('REFUSED: inga flaggor tillåtna\n');process.exitCode=1;}
-  else try {const report=await runProgramplanVerification();process.stdout.write(`${JSON.stringify(report)}\n`);if(report.status!=='PASS')process.exitCode=1;}
+  const args=process.argv.slice(2);
+  if(args.length&&!(args.length===1&&args[0]==='--programplan')){process.stderr.write('REFUSED: endast --programplan tillåten\n');process.exitCode=1;}
+  else try {const report=await runProgramplanVerification(args[0]==='--programplan'?{workerProfile:'programplan',outFile:new URL('./results/phase5-09-locks.json',import.meta.url)}:{});process.stdout.write(`${JSON.stringify(report)}\n`);if(report.status!=='PASS')process.exitCode=1;}
   catch{process.stderr.write('Programplansprovet kunde inte startas mot verifierat protected-mål.\n');process.exitCode=1;}
 }
