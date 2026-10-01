@@ -4,10 +4,14 @@
 import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import { assertTarget } from './verify-target.mjs';
 const require = createRequire(new URL('../../web/package.json', import.meta.url));
 const postgres = require('postgres');
-if (process.argv.length > 2) throw new Error('REFUSED: inga flaggor tillåtna');
+const args=process.argv.slice(2),resultsDir=path.dirname(fileURLToPath(new URL('./results/phase5-timplan-locks.json',import.meta.url)));
+const outFile=args.length===0?new URL('./results/phase5-timplan-locks.json',import.meta.url):args.length===2&&args[0]==='--out'&&path.dirname(path.resolve(args[1]))===resultsDir?path.resolve(args[1]):null;
+if(!outFile)throw new Error('REFUSED: endast --out till lokal resultatkatalog tillåten');
 const target = await assertTarget('protected');
 const db = postgres(target.dbUrl, { max: 3, prepare: false, connect_timeout: 10, onnotice: () => {} });
 const prefix = randomUUID().slice(0, 8);
@@ -114,6 +118,6 @@ try {
   await db.end();
   const result = { target: 'protected', status: complete ? 'PASS' : 'FAIL', cases,
     ...(failureCode ? { failedCase: activeCase, code: failureCode } : {}) };
-  fs.writeFileSync(new URL('./results/phase5-timplan-locks.json', import.meta.url), JSON.stringify(result, null, 2) + '\n');
+  fs.writeFileSync(outFile, JSON.stringify(result, null, 2) + '\n');
   console.log(JSON.stringify(result));
 }

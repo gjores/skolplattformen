@@ -53,6 +53,6 @@ test('raw SQL selection demands explicit ID and whole payload, preserving server
 test('nested getters, hidden fields, sparse arrays and unsafe URLs are rejected without coercion',()=>{
  const value=workspace();Object.defineProperty(value.education,'hidden',{value:'private'});assert.throws(()=>parseProgramplanWorkspace(value,request()));
  const getter=workspace();Object.defineProperty(getter.education,'name',{get(){throw new Error('getter executed');}});assert.throws(()=>parseProgramplanWorkspace(getter,request()),/invalid_programplan_workspace/u);
- const sparse={offerings:new Array(1),count:1,page:1,pageSize:50};assert.throws(()=>parseProgramplanOfferingList(sparse,1));
+ const sparseRows=[];sparseRows.length=1;const sparse={offerings:sparseRows,count:1,page:1,pageSize:50};assert.throws(()=>parseProgramplanOfferingList(sparse,1));
  for(const url of ['javascript:alert(1)','https://secret:password@example.test/data']){const invalid=workspace();invalid.catalogs[0].source={...artifact.source,url};assert.throws(()=>parseProgramplanWorkspace(invalid,request()));}
 });
