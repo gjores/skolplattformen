@@ -25,6 +25,8 @@ Läsårsändringar följer rektors utkast/förslag och huvudmannens beslut enlig
 
 ## Krav och prov
 
+Användarinriktning 2026-10-01: rektor ska få tydlig handledning om timplanens regelverk direkt i arbetsflödet. [Separat genomförandetodo](../../todos/pending/2026-10-01-handledning-for-rektor-om-timplanens-regelverk.md) anger vägledning, primärkällor och prov. Beakta detta i återstående timplansplanering; cellinmatning och sparning innebär inte att hela planen uppfyller regelverket. Rättsligt beslutsansvar ska skiljas från appens befintliga mandat- och versionsflöde. Ingen utökad regelkontroll är ännu genomförd.
+
 ADMIN-01: registerimport och återuppdatering bevarar lokal rektor.
 ADMIN-02: gymnasieutbildning, kurs/nivå, poäng-/timplaners lås och beslut består efter ny inloggning.
 ADMIN-03: kullkopiering är atomär och isolerad.

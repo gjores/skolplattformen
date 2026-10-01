@@ -173,7 +173,8 @@ Fullständiga beslut finns i PROJECT.md.
 - 04-22: användarprovet förberett i lokal skyddad app på 3012. Se `04-HUMAN-UAT.md`; mänskliga resultat och godkännande väntar. Planen är inte slutförd.
 
 - Fas 4:s nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
-- 18 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
+- 19 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
+- 2026-10-01: [rektors handledning om timplanens regelverk](todos/pending/2026-10-01-handledning-for-rektor-om-timplanens-regelverk.md) beställd. Vägledning i vyn och vid ändring ska förklara tillämpliga ramar, konsekvenser och beslutsansvar med daterade primärkällor. Planering och användarverifiering återstår.
 - 2026-10-01: befintlig schematodo utökad till [sammanhängande schemadelprojekt](research/SCHEMAMODUL-PROJEKT.md). SCHEMA-01–08 har ansvar i S1–S4 och ännu ej provade verifieringsmål. Program-/tim-/studieplaner, grupper och kalender ska samverka; roller/regler och valbara moduldelar utreds från början, med Rustprototyp och utvärdering av Jev/liknande AI för möjlig användning i schemaarbetet. AI-införande är inte beslutat. Delprojektets första steg är S1 kontrakt/mandat; dess genomförandeplacering är öppen. Fas 5 ska beakta gemensamma ID:n, versioner, enheter och ändringsansvar nu. Ingen ny numrerad pilotfas eller ny rättighet införd.
 
 ## Blockers
