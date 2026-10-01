@@ -118,7 +118,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const boundSourceMatches = !!plan?.basisReference && !!workspace?.catalog.program && workspace.catalog.catalogId === plan.catalogId
     && workspace.catalog.program.version === plan.basisReference.programRef.version;
   function edit(kind: ProgramplanCommandKind) {
-    if (busy || !workspace || !sourceReady || !workspace.catalog.program || !workspace.catalog.catalogId) return;
+    if (busy || preparation && error || !workspace || !sourceReady || !workspace.catalog.program || !workspace.catalog.catalogId) return;
     const source = kind === 'create' ? null : plan?.basisReference;
     if ((kind === 'replace' || kind === 'clone' && source) && !boundSourceMatches) return;
     if (kind !== 'create' && !plan || (kind === 'bind' || kind === 'clone' && !source) && (!legacyResolution || legacyResolution.problems.length)) return;
@@ -240,7 +240,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           {preparationBlocked&&<p role="alert">{preparationBlocked}</p>}
           {error&&preparation.catalogId&&<Button variant="outline" disabled={busy} onClick={()=>changeGuideCatalog(preparation.catalogId!)}>Läs underlaget igen</Button>}
           {preparation.catalogId&&legacyResolution?.problems.length ? <p role="alert">Vissa äldre val kan inte återfinnas entydigt: {legacyResolution.problems.join(', ')}. De har bevarats. Du kan inte gå vidare med detta underlag.</p>:null}
-          <div className="pp-actions"><Button variant="outline" disabled={busy} onClick={cancelPreparation}>Avbryt förberedelse</Button><Button disabled={busy||!!preparationBlocked||!preparation.catalogId||preparation.catalogId!==workspace.catalog.catalogId||!sourceReady||(preparation.kind==='bind'||preparation.kind==='clone')&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit(preparation.kind)}>Fortsätt till startdatum och val</Button></div>
+          <div className="pp-actions"><Button variant="outline" disabled={busy} onClick={cancelPreparation}>Avbryt förberedelse</Button><Button disabled={busy||!!error||!!preparationBlocked||!preparation.catalogId||preparation.catalogId!==workspace.catalog.catalogId||!sourceReady||(preparation.kind==='bind'||preparation.kind==='clone')&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit(preparation.kind)}>Fortsätt till startdatum och val</Button></div>
         </>}
       </section>
       <section className="pp-subjects" aria-label="Ämnen och nivåer"><h2>Ämnen och nivåer</h2><p>Poängen nedan är gymnasiepoäng.</p>
