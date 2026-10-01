@@ -14,6 +14,10 @@ Skriptet använder assertTarget('protected'), verifierar kund/skolnamn och ägar
 
 ## Att pröva
 
+### Användarresultat 2026-10-01
+
+Användaren rapporterar: ”alla tester kring timplaner funkar”. De ovan förberedda användarproven registreras som användarrapporterat godkända för befintlig timplansvy. Enskilda provsteg, enheter och roller särredovisades inte i beskedet. Detta är inte verifiering av nationell regelöverensstämmelse, ännu ej implementerade fastställandeflöden eller hela fas 5. Beställd regelhandledning för rektor kvarstår i separat todo. Fas 4:s elevregisterprov påverkas inte.
+
 1. Ladda om appen på http://127.0.0.1:3012/ och välj **Timplaner** som rektor på Syntetisk skola 11.
 2. Öppna grundskolans **utkast, version 1**, ändra matematik för en årskurs och välj Spara ändring. Kontrollera sparat värde efter omläsning.
 3. Öppna **version 2, fastställd** och kontrollera att den är en läsvy.

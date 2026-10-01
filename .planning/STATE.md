@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 
 ## Current Position
 
+**Användarprov 2026-10-01:** användaren rapporterar att alla timplansprov fungerar. Registrerat i `05-TIMPLAN-USER-TRIAL.md` för den befintliga skyddade vyn; ingen separat redovisning av enheter/roller. Regelhandledning kvarstår och detta slutför inte fas 5 eller fas 4:s checkpoint. Nästa plan är fortsatt 05-09, skyddad programplans-API.
+
 Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-08 genomförda; övriga utbildnings- och versionsflöden återstår. Fas 4 kvarstår på 24 av 25 planer.
 Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
