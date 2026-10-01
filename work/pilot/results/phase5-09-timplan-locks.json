@@ -1,0 +1,34 @@
+{
+  "target": "protected",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "same-cell",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "different-cell",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "parent-revoked",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "42501",
+      "dataPreserved": true
+    },
+    {
+      "name": "plan-row",
+      "waitingObserved": true,
+      "lockType": "transactionid",
+      "outcome": "40001",
+      "dataPreserved": true
+    }
+  ]
+}

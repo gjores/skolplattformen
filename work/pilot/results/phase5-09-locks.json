@@ -1,0 +1,261 @@
+{
+  "target": "protected",
+  "scope": "closed SQL; no Worker/API/MFA verification",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "same-revision-replace",
+      "status": "PASS",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "same-revision-bind",
+      "status": "PASS",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "one-next-draft",
+      "status": "PASS",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "plan-row-revision",
+      "status": "PASS",
+      "waitingObserved": true,
+      "lockType": "transactionid",
+      "outcome": "40001",
+      "dataPreserved": true
+    },
+    {
+      "name": "parent-revoked-after-wait",
+      "status": "PASS",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "42501",
+      "dataPreserved": true
+    },
+    {
+      "name": "session-expired-after-wait",
+      "status": "PASS",
+      "waitingObserved": true,
+      "lockType": "advisory",
+      "outcome": "42501",
+      "dataPreserved": true
+    },
+    {
+      "name": "outer-transaction-rollback",
+      "status": "PASS",
+      "dataPreserved": true,
+      "auditPreserved": true,
+      "scope": "SQL caller rollback"
+    }
+  ],
+  "parity": [
+    {
+      "name": "program-BA25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-BF25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-DS25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-EE25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-EK25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-ES25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-FI25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-FL25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-FO25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-FR25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-FS25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-FT25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-GL25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-GU25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-HT25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-HU25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-IN25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-MA25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-NA25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-NB25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-RL25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-SA25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-SJ25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-SM25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-TA25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-TE25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-VF25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-VO25",
+      "status": "PASS"
+    },
+    {
+      "name": "program-YR25",
+      "status": "PASS"
+    },
+    {
+      "name": "historical-start",
+      "status": "PASS"
+    },
+    {
+      "name": "historical-program",
+      "status": "PASS"
+    },
+    {
+      "name": "invalid-start",
+      "status": "PASS"
+    },
+    {
+      "name": "orientation",
+      "status": "PASS"
+    },
+    {
+      "name": "wrong-subject",
+      "status": "PASS"
+    },
+    {
+      "name": "points",
+      "status": "PASS"
+    },
+    {
+      "name": "missing-item",
+      "status": "PASS"
+    },
+    {
+      "name": "gy11",
+      "status": "PASS"
+    },
+    {
+      "name": "ground-school",
+      "status": "PASS"
+    },
+    {
+      "name": "duplicate",
+      "status": "PASS"
+    },
+    {
+      "name": "fixed",
+      "status": "PASS"
+    },
+    {
+      "name": "unbound",
+      "status": "PASS"
+    },
+    {
+      "name": "extra-field",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 3,
+    "preservedauditanchors": 1
+  },
+  "catalogId": "sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace",
+  "phase5WorkerFunctions": [
+    "phase5_bind_programplan_draft",
+    "phase5_change_timplan_cell",
+    "phase5_clone_programplan_draft",
+    "phase5_create_programplan_draft",
+    "phase5_list_timplans",
+    "phase5_read_programplan",
+    "phase5_read_timplan",
+    "phase5_replace_programplan_specialization"
+  ],
+  "sourceCommit": "8cca473401a7e2e44714da85480a1c6b1dc79590",
+  "checkedAt": "2026-10-01T20:58:25.575Z",
+  "sourceHashes": {
+    "supabase/migrations/20260930160000_phase5_programplan_catalog.sql": "3dbfb0b4721bed32608dd3428b133eaa0c2f56092248f5eb940c9e5ddca9c53a",
+    "supabase/migrations/20260930161000_phase5_programplan_catalog_seed.sql": "90b7fb00e290fe2e928dc46c4012ad99e9b699313e6b656831ff09188916d9e5",
+    "supabase/migrations/20260930162000_phase5_programplan_drafts.sql": "3e7235d17b5b9305184eb4bb445c5882809a606c783f59986600a2881c2737a7",
+    "supabase/tests/phase5_programplan_drafts.test.sql": "f97d46c0dc64565f41ab1fd2535185a82565774ed890306dde3e4dce856fe8fe",
+    "work/pilot/verify-programplan-locks.mjs": "1153bbfbc21b2208247fb946e098a903205f147e53874fac397aa072488ffd70"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "scope": "local protected SQL",
+  "reports": [
+    {
+      "name": "phase5_programplan_worker",
+      "status": "PASS",
+      "tests": 31
+    },
+    {
+      "name": "phase5_programplan_catalog",
+      "status": "PASS",
+      "tests": 60
+    },
+    {
+      "name": "phase5_programplan_drafts",
+      "status": "PASS",
+      "tests": 108
+    },
+    {
+      "name": "phase5_timplan",
+      "status": "PASS",
+      "tests": 77
+    },
+    {
+      "name": "phase5_timplan_worker",
+      "status": "PASS",
+      "tests": 27
+    },
+    {
+      "name": "phase5_timplan_selection",
+      "status": "PASS",
+      "tests": 59
+    },
+    {
+      "name": "phase3_mandates",
+      "status": "PASS",
+      "tests": 243
+    },
+    {
+      "name": "phase3_audit",
+      "status": "PASS",
+      "tests": 19
+    },
+    {
+      "name": "phase2_audit",
+      "status": "PASS",
+      "tests": 20
+    },
+    {
+      "name": "phase4_conflicts",
+      "status": "PASS",
+      "tests": 19
+    }
+  ]
+}
