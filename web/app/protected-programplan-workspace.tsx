@@ -10,22 +10,24 @@ import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.t
 import { parseProgramplanOfferingList, parseProgramplanWorkspace, type ProgramplanOfferingList,
   type ProgramplanWorkspace, type ProgramplanVersionSummary } from '@/lib/programplan-workspace-contract.ts';
 import { programplanCommand, programplanCommandReply, programplanDiagnostic, programplanOptions, programplanReference,
-  programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
+  programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, programplanSelectedId, assertProgramplanSummary, programplanLevelName, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import './protected-programplan.css';
 
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void };
 const aborted = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
-const titles = { create: 'Skapa programplansutkast', bind: 'Bind äldre utkast till underlag', replace: 'Ändra programfördjupning', clone: 'Kopiera till nytt programplansutkast' };
+const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för ändring', replace: 'Ändra fördjupning', clone: 'Skapa ny version' };
 
 export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost }: Props) {
   const [list, setList] = useState<ProgramplanOfferingList | null>(null), [page, setPage] = useState(1);
   const [workspace, setWorkspace] = useState<ProgramplanWorkspace | null>(null), [plan, setPlan] = useState<Programplan | null>(null);
+  const [planSummary, setPlanSummary] = useState<ProgramplanVersionSummary | null>(null);
+  const [preparation, setPreparation] = useState<{kind: ProgramplanCommandKind; catalogId: string | null} | null>(null);
   const [draft, setDraft] = useState<ProgramplanDraft | null>(null), [option, setOption] = useState('');
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const generation = useRef(0), mounted = useRef(true), controller = useRef<AbortController | null>(null), saving = useRef(false);
-  const dirty = !!draft && draft.mode !== 'applied' && (draft.kind !== 'replace' || draft.startedOn !== draft.originalStart
+  const dirty = !!preparation?.catalogId || !!draft && draft.mode !== 'applied' && (draft.kind !== 'replace' || draft.startedOn !== draft.originalStart
     || !sameProgramplanLevels(draft.refs, draft.originalRefs) || draft.mode !== 'edit');
   useUnsavedChanges(`programplan-${epoch}-${context.assignmentId}`, dirty || busy && draft !== null);
   const invalidate = useCallback(() => { generation.current++; controller.current?.abort(); controller.current = null; }, []);
@@ -33,10 +35,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const current = useCallback((token: number) => mounted.current && generation.current === token, []);
   const securityFailure = useCallback((e: unknown) => {
     if (!(e instanceof ApiError) || !(e.status === 401 || e.status === 403 && e.code !== 'mfa_required')) return false;
-    invalidate(); setList(null); setWorkspace(null); setPlan(null); setDraft(null); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
+    invalidate(); setList(null); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
   }, [invalidate, onSessionLost]);
   const loadList = useCallback(async (next: number) => {
-    const r = begin(); setPage(next); setList(null); setWorkspace(null); setPlan(null); setDraft(null); setNotice(null); setError(null); setBusy(true);
+    const r = begin(); setPage(next); setList(null); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setNotice(null); setError(null); setBusy(true);
     try { const value = parseProgramplanOfferingList(await api.post('/api/programplaner/lista', { page: next }, r.signal), next); if (current(r.token)) setList(value); }
     catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Utbildningarna kunde inte hämtas. Försök igen.'); }
     finally { if (current(r.token)) setBusy(false); }
@@ -51,26 +53,63 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     if (value.id !== id || value.offeringId !== offeringId) throw new Error('Planens identitet avviker.');
     return value;
   }
-  function assertMatchingSummary(fresh: ProgramplanWorkspace, selected: Programplan) {
-    const summary = fresh.versions.find(p => p.id === selected.id);
-    if (summary && (summary.revision !== selected.revision || summary.version !== selected.version || summary.status !== selected.status)) throw new Error('Versionsunderlaget ändrades under läsningen.');
+  async function readSelection(offeringId: string, versionPage: number, catalogId: string | null, explicitId: string | null,
+    signal: AbortSignal, automatic = true, initial?: ProgramplanWorkspace) {
+    let fresh = initial ?? await readWorkspace(offeringId, versionPage, catalogId, signal);
+    const initialEducation = fresh.education, count = fresh.versionCount;
+    const matchingWorkspace = (next: ProgramplanWorkspace) => {
+      if (JSON.stringify(next.education) !== JSON.stringify(initialEducation) || next.versionCount !== count) {
+        throw new Error('Utbildningens planer ändrades under läsningen.');
+      }
+    };
+    const summaries = [...fresh.versions], pages = new Set([fresh.versionPage]);
+    async function findSummary(matches: (v: ProgramplanVersionSummary) => boolean): Promise<ProgramplanVersionSummary | null> {
+      for (let next = 1; next <= Math.ceil(count / 50); next++) {
+        const found = summaries.filter(matches);
+        if (found.length > 1) throw new Error('Planens identitet är tvetydig.');
+        if (found.length === 1) return found[0];
+        if (pages.has(next)) continue;
+        const extra = await readWorkspace(offeringId, next, fresh.catalog.catalogId, signal);
+        matchingWorkspace(extra); pages.add(next); summaries.push(...extra.versions);
+      }
+      const found = summaries.filter(matches);
+      if (found.length > 1) throw new Error('Planens identitet är tvetydig.');
+      return found[0] ?? null;
+    }
+    if (!explicitId && automatic && !fresh.education.draftId && fresh.education.latestVersion > 0) {
+      await findSummary(v => v.version === fresh.education.latestVersion);
+    }
+    const id = automatic ? programplanSelectedId(fresh, explicitId, summaries) : explicitId;
+    if (!id) return { fresh, selected: null, summary: null };
+    const selected = await readPlan(id, offeringId, signal);
+    if (selected.basisReference && fresh.catalog.catalogId !== selected.catalogId) {
+      const pinned = await readWorkspace(offeringId, versionPage, selected.catalogId, signal);
+      matchingWorkspace(pinned); fresh = pinned; summaries.splice(0, summaries.length, ...pinned.versions); pages.clear(); pages.add(pinned.versionPage);
+    }
+    const summary = await findSummary(v => v.id === selected.id);
+    assertProgramplanSummary(summary, selected);
+    if (selected.unitId !== fresh.education.unitId || selected.version > fresh.education.latestVersion
+      || selected.education.programCode !== fresh.education.programCode || selected.education.orientationCode !== fresh.education.orientationCode) {
+      throw new Error('Utbildningens aktuella uppgifter avviker från planen.');
+    }
+    if (fresh.education.draftId === selected.id && selected.status !== 'utkast') throw new Error('Utkastets status ändrades.');
+    return { fresh, selected, summary };
   }
-  async function openEducation(offeringId: string, versionPage = 1, catalogId: string | null = null, planId: string | null = null) {
-    if (busy || dirty && !confirmDiscard()) return;
-    const r = begin(); setWorkspace(null); setPlan(null); setDraft(null); setNotice(null); setError(null); setBusy(true);
+  async function openEducation(offeringId: string, versionPage = 1, catalogId: string | null = null,
+    planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null) {
+    if (busy || !keepPreparation && dirty && !confirmDiscard()) return;
+    const r = begin(); setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); setNotice(null); setError(null);
+    setPreparation(keepPreparation ? {kind: keepPreparation, catalogId} : null); setBusy(true);
     try {
-      const fresh = await readWorkspace(offeringId, versionPage, catalogId, r.signal);
-      const selected = planId ? await readPlan(planId, offeringId, r.signal) : null;
-      if (selected) assertMatchingSummary(fresh, selected);
-      if (current(r.token)) { setWorkspace(fresh); setPlan(selected); }
+      const {fresh, selected, summary} = await readSelection(offeringId, versionPage, catalogId, planId, r.signal);
+      if (current(r.token)) { setWorkspace(fresh); setPlan(selected); setPlanSummary(summary); }
     } catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Aktuellt programplansunderlag kunde inte läsas. Välj utbildningen igen.'); }
     finally { if (current(r.token)) setBusy(false); }
   }
   function openVersion(version: ProgramplanVersionSummary) {
     if (workspace) void openEducation(workspace.education.id, workspace.versionPage, version.catalogId, version.id);
   }
-  const selectedVersion = workspace?.versions.find(v => v.id === plan?.id);
-  const legacy = selectedVersion?.legacySpecialization ?? null;
+  const legacy = planSummary?.legacySpecialization ?? null;
   const options = workspace ? programplanOptions(workspace) : [];
   const legacyResolution = legacy ? resolveLegacyProgramplan(legacy, options) : null;
   const sourceReady = workspace?.catalog.status === 'selected' && !!workspace.catalog.program;
@@ -88,20 +127,20 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         programRef: { code: workspace.catalog.program.code, version: workspace.catalog.program.version }, orientationCode: workspace.education.orientationCode, startedOn },
       startedOn, originalStart: startedOn, refs: refs.map(programplanReference), originalRefs: refs.map(programplanReference), sourceBound: !!source,
       legacyConfirmed: false, options, mode: 'edit', error: null, mfa: false, uncertain: false });
-    setOption(''); setNotice(null);
+    setOption(''); setNotice(null); setPreparation(null);
   }
   function closeDraft() { if (busy || dirty && !confirmDiscard()) return; setDraft(null); }
   async function refreshDraft(own: ProgramplanDraft, token: number, signal: AbortSignal) {
-    setWorkspace(null); setPlan(null); setDraft({ ...own, mode: 'refreshing', mfa: false });
+    setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft({ ...own, mode: 'refreshing', mfa: false });
     try {
       const fresh = await readWorkspace(own.offeringId, 1, own.pin.catalogId, signal);
       const candidateId = own.kind === 'bind' || own.kind === 'replace' ? own.planId : fresh.education.draftId;
-      const candidate = candidateId ? await readPlan(candidateId, own.offeringId, signal) : null;
-      if (candidate) assertMatchingSummary(fresh, candidate);
+      const snapshot = await readSelection(own.offeringId, 1, own.pin.catalogId, candidateId, signal, false, fresh);
+      const candidate = snapshot.selected;
       if (!current(token)) return;
       const alreadyPresent = own.uncertain && candidate?.status === 'utkast' && sameProgramplanPin(candidate.basisReference,
         { ...own.pin, startedOn: own.startedOn, specializationRefs: own.refs }) && sameProgramplanLevels(candidate.basisReference!.specializationRefs, own.refs);
-      setWorkspace(fresh); setPlan(candidate);
+      setWorkspace(snapshot.fresh); setPlan(candidate); setPlanSummary(snapshot.summary);
       setDraft({ ...own, mode: alreadyPresent ? 'applied' : 'compare', error: null, mfa: false });
     } catch (e) {
       if (current(token) && !aborted(e) && !securityFailure(e)) setDraft({ ...own, mode: 'refresh-failed', mfa: false,
@@ -129,10 +168,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     try {
       accepted = programplanCommandReply(await api.post(command.route, command.body, r.signal), own);
       const fresh = await readWorkspace(own.offeringId, 1, accepted.catalogId, r.signal);
-      const read = await readPlan(accepted.id, own.offeringId, r.signal);
-      assertMatchingSummary(fresh, read);
+      const snapshot = await readSelection(own.offeringId, 1, accepted.catalogId, accepted.id, r.signal, false, fresh);
+      const read = snapshot.selected!;
       if (!current(r.token)) return;
-      setWorkspace(fresh); setPlan(read); setDraft(null); setNotice('Utkastet sparades. Visar senast hämtade programplan.');
+      setWorkspace(snapshot.fresh); setPlan(read); setPlanSummary(snapshot.summary); setDraft(null); setNotice('Utkastet sparades. Visar senast hämtade programplan.');
     } catch (e) {
       if (!current(r.token) || aborted(e) || securityFailure(e)) return;
       if (accepted) await refreshDraft({ ...own, uncertain: true }, r.token, r.signal);
@@ -144,9 +183,25 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   function move(index: number, step: number) { if (!draft) return; const refs = [...draft.refs]; [refs[index],refs[index+step]] = [refs[index+step],refs[index]]; setDraft({ ...draft, refs, error: null }); }
   const editableRefs = draft?.kind === 'replace' || draft?.kind === 'create';
   const formLocked = busy || draft?.mode !== 'edit';
+  const nextKind: ProgramplanCommandKind = !plan ? 'create' : plan.status === 'utkast' ? plan.basisReference ? 'replace' : 'bind' : 'clone';
+  const anotherDraft = !!workspace?.education.draftId && workspace.education.draftId !== plan?.id;
+  function nextAction() {
+    if (anotherDraft && workspace) { void openEducation(workspace.education.id, 1, null, workspace.education.draftId); return; }
+    if (nextKind === 'replace' || nextKind === 'clone' && plan?.basisReference) edit(nextKind);
+    else setPreparation({kind: nextKind, catalogId: null});
+  }
+  function changeGuideCatalog(catalogId: string) {
+    if (workspace && preparation) void openEducation(workspace.education.id, workspace.versionPage, catalogId || null, plan?.id ?? null, preparation.kind);
+  }
+  function cancelPreparation() { if (dirty && !confirmDiscard()) return; setPreparation(null); }
+  const referenceBlocks = workspace?.catalog.status === 'selected' && workspace.catalog.program ? [
+    {name:'Gymnasiegemensamma ämnen', subjects:workspace.catalog.program.foundation},
+    {name:'Programgemensamma ämnen', subjects:workspace.catalog.program.programmeSpecific},
+    ...workspace.catalog.program.orientations.filter(o=>o.code===workspace.education.orientationCode).map(o=>({name:`Inriktning: ${o.name}`,subjects:o.subjects})),
+  ] : [];
+  const namedChoices = (refs: ProgramplanDraft['refs'], choices = options) => refs.length ? refs.map(r => `${programplanLevelName(r,choices)} (${r.points} poäng)`).join(', ') : 'Inga val';
   return <section className="protected-programplan" data-testid="protected-programplan-workspace" aria-busy={busy}>
-    <div className="pp-heading"><ListChecks aria-hidden="true"/><div><h1>Programplaner</h1><p>Gymnasieutbildning, versionsbundet underlag och utkast.</p></div></div>
-    <p className="pp-boundary"><strong>Sparat utkast betyder inte fastställd utbildning.</strong> Källreferenser kan kontrolleras och utkast sparas. Fullständiga nationella ramar, alternativ och nivåföljd är ännu inte verifierade. Fastställande är stängt här. Poäng är gymnasiepoäng och omvandlas inte till undervisningstid.</p>
+    <div className="pp-heading"><ListChecks aria-hidden="true"/><div><h1>Programplaner</h1><p>Läs utbildningens ämnen och arbeta med fördjupningen.</p></div></div>
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>void loadList(page)}>Hämta utbildningarna igen</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
     {!workspace && !draft && (busy ? <output>Hämtar programplansunderlag…</output> : list && <>
@@ -157,53 +212,68 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         </button>)}</div>}
       {list.count > 50 && <nav className="pp-pagination" aria-label="Utbildningarnas sidor"><Button variant="outline" disabled={page===1||busy} onClick={()=>void loadList(page-1)}>Föregående utbildningar</Button><span>Sida {page} av {Math.ceil(list.count/50)}</span><Button variant="outline" disabled={page*50>=list.count||busy} onClick={()=>void loadList(page+1)}>Nästa utbildningar</Button></nav>}
     </>)}
-    {workspace && <>
-      <div className="pp-toolbar"><Button variant="ghost" disabled={busy} onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={16}/>Alla utbildningar</Button><Button variant="outline" disabled={busy||!!draft} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button></div>
-      <div className="pp-education"><p>{workspace.education.schoolName} · {workspace.education.cohort}</p><h2>{workspace.education.name}</h2><p>{workspace.education.programCode} · Inriktning: {workspace.education.orientationCode??'Ingen'}{workspace.education.localCode&&` · Lokal kod: ${workspace.education.localCode}`}</p></div>
-      <div className="pp-columns"><section aria-label="Programplanens versioner"><h3>Versioner</h3>{workspace.versionCount===0&&<p>Ingen programplan har skapats för utbildningen.</p>}
-        <div className="pp-versions">{workspace.versions.map(v=><button type="button" key={v.id} className={`pp-version${plan?.id===v.id?' pp-selected':''}`} aria-pressed={plan?.id===v.id} disabled={busy} onClick={()=>openVersion(v)}><strong>Version {v.version} · {programplanStatus[v.status]}</strong><span>Revision {v.revision}{v.decidedOn&&` · Beslut ${v.decidedOn}`}</span><span>{v.catalogId?'Versionsbundet underlag':'Äldre, obundet underlag'}</span></button>)}</div>
-        {workspace.versionCount>50&&<nav className="pp-pagination" aria-label="Versionernas sidor"><Button variant="outline" disabled={workspace.versionPage===1||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage-1,workspace.catalog.catalogId)}>Föregående versioner</Button><span>Sida {workspace.versionPage} av {Math.ceil(workspace.versionCount/50)}</span><Button variant="outline" disabled={workspace.versionPage*50>=workspace.versionCount||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage+1,workspace.catalog.catalogId)}>Nästa versioner</Button></nav>}
-      </section><section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Katalogunderlag</h3>
-        <label htmlFor="pp-catalog">Välj exakt katalog</label><select id="pp-catalog" value={workspace.catalog.catalogId??''} disabled={busy||!!plan?.basisReference} onChange={e=>void openEducation(workspace.education.id,workspace.versionPage,e.target.value||null,plan?.id??null)}><option value="">Välj katalogunderlag</option>{workspace.catalogs.map(c=><option value={c.catalogId} key={c.catalogId}>{c.source.fetched} · API {c.source.apiVersion} · katalog {c.catalogId.slice(-12)}</option>)}</select>
-        {workspace.catalog.status==='unselected'&&<p>Välj själv vilket återfinnbart underlag utbildningen ska använda. Utbildningsstart anges separat när utkastet skapas eller binds.</p>}
-        {workspace.catalog.status==='blocked'&&<p role="alert" className="pp-alert">{programplanDiagnostic(workspace.catalog.diagnostic??'catalog_unavailable')}</p>}
-        {workspace.catalog.status==='selected'&&workspace.catalog.program&&<><p>{workspace.catalog.program.name} ({workspace.catalog.program.code}), programversion {workspace.catalog.program.version}</p><p>Gäller från {workspace.catalog.program.startDate??'Datum saknas'}{workspace.catalog.program.endDate&&` till ${workspace.catalog.program.endDate}`}{workspace.catalog.program.canceledDate&&` · Upphävt ${workspace.catalog.program.canceledDate}`}</p><p>Källa: <a href={workspace.catalog.source!.url} target="_blank" rel="noreferrer">Skolverkets källunderlag</a> · hämtat {workspace.catalog.source!.fetched}, API {workspace.catalog.source!.apiVersion} (öppnas i ny flik)</p><details><summary>Exakt katalogreferens</summary><p className="pp-code">{workspace.catalog.catalogId}</p></details></>}
-      </section></div>
-      {plan&&<section className="pp-plan" aria-label="Läst programplan"><h3>Version {plan.version} · {programplanStatus[plan.status]}</h3><p>Revision {plan.revision}{plan.decidedOn&&` · Beslut ${plan.decidedOn}`}</p>
-        {plan.basisReference&&<p>Utbildningsstart: {plan.basisReference.startedOn} · programversion {plan.basisReference.programRef.version}. Grund, start och katalog är bundna till denna version.</p>}
-        {plan.resolution.diagnostics.map((d,i)=><p key={i} className="pp-alert">{programplanDiagnostic(d.code)} {d.subjectCode??''} {d.itemCode??''}</p>)}
-        <h4>{plan.basisReference?'Sparad programfördjupning':'Äldre sparade fördjupningsval'}</h4><ol className="pp-levels">{(plan.basisReference?.specializationRefs.map(r=>r.itemCode)??legacy??[]).map((code,i)=><li key={`${i}-${code}`}>{plan.basisReference&&(()=>{const r=plan.basisReference!.specializationRefs[i];const found=options.find(o=>o.itemCode===r.itemCode&&o.subjectCode===r.subjectCode&&o.subjectVersion===r.subjectVersion&&o.points===r.points);return found?<strong>{found.subjectName} · {found.name} · </strong>:null;})()}<span className="pp-code">{code||'(Tomt äldre värde)'}</span>{plan.basisReference&&<span> · ämnesversion {plan.basisReference.specializationRefs[i].subjectVersion} · {plan.basisReference.specializationRefs[i].points} poäng</span>}</li>)}</ol>
-        {!plan.basisReference&&legacyResolution?.problems.length? <p className="pp-alert">Äldre val kan inte återfinnas entydigt i denna grund: {legacyResolution.problems.join(', ')}. Bindning eller kloning är stängd tills underlaget är löst.</p>:null}
-        {plan.resolution.unresolvedChoices.length>0&&<div className="pp-unresolved"><h4>Underlag som återstår</h4>{plan.resolution.unresolvedChoices.map((c,i)=><p key={i}>{programplanDiagnostic(c.kind)} {c.subjectCode??''}{c.points!==undefined&&` · källblockets ${c.points} poäng`}</p>)}</div>}
-      </section>}
-      {workspace.catalog.status==='selected'&&workspace.catalog.program&&<details className="pp-blocks"><summary>Källans ämnesblock och alternativ</summary>{[
-        {name:'Gymnasiegemensamma ämnen',subjects:workspace.catalog.program.foundation},{name:'Programgemensamma ämnen',subjects:workspace.catalog.program.programmeSpecific},
-        ...workspace.catalog.program.orientations.filter(o=>o.code===workspace.education.orientationCode).map(o=>({name:`Inriktning ${o.name}`,subjects:o.subjects})),
-      ].map(block=><section key={block.name}><h4>{block.name}</h4>{block.subjects.map(s=><div key={s.code} className="pp-block"><strong>{s.name} · {s.points} poäng{s.optional?' · Alternativ, inget automatiskt val':''}</strong><p>Ämne {s.code} · version {s.subjectVersion??'saknas'}</p>{s.levels.length?<ul>{s.levels.map(l=><li key={l.code}>{l.name} · {l.code} · {l.points} poäng</li>)}</ul>:<p>Nivåreferenser saknas i källan.</p>}</div>)}</section>)}<p>Blockpoäng är källuppgifter. Vyn räknar inte ut en generell poängram eller garanterad undervisningstid.</p></details>}
-      <div className="pp-actions">
-        {!workspace.education.draftId&&<Button disabled={busy||!sourceReady} onClick={()=>edit('create')}>Skapa utkast</Button>}
-        {plan?.status==='utkast'&&!plan.basisReference&&<Button disabled={busy||!sourceReady||!legacyResolution||legacyResolution.problems.length>0} onClick={()=>edit('bind')}>Bind äldre utkast</Button>}
-        {plan?.status==='utkast'&&plan.basisReference&&<Button disabled={busy||!boundSourceMatches} onClick={()=>edit('replace')}>Ändra programfördjupning</Button>}
-        {plan&&['faststalld','ersatt'].includes(plan.status)&&!workspace.education.draftId&&<Button disabled={busy||!sourceReady||!!plan.basisReference&&!boundSourceMatches||!plan.basisReference&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit('clone')}>Kopiera till nytt utkast</Button>}
-        {workspace.education.draftId&&!plan&&<p>Utbildningen har redan ett utkast. Välj dess version för att fortsätta.</p>}
-        {!sourceReady&&<p>Välj tillgängligt katalogunderlag för att arbeta med utkast.</p>}
-      </div>
+    {workspace&&<>
+      <div className="pp-toolbar"><Button variant="ghost" disabled={busy} onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={16}/>Alla utbildningar</Button><Button variant="outline" disabled={busy||!!draft||!!preparation} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button></div>
+      <header className="pp-education"><p>{workspace.education.schoolName} · {workspace.education.cohort??'Elevkull saknas'}</p><h2>{workspace.education.name}</h2>
+        <p>{workspace.catalog.program?.name??workspace.education.programCode}{workspace.catalog.program?.orientations.find(o=>o.code===workspace.education.orientationCode)&&` · ${workspace.catalog.program.orientations.find(o=>o.code===workspace.education.orientationCode)!.name}`}</p>
+        <p className="pp-status">{plan ? plan.status==='utkast' ? 'Utkast — kan inte fastställas här ännu' : `${programplanStatus[plan.status]} · läses utan ändring` : 'Ingen programplan ännu'}{plan&&` · Version ${plan.version}`}</p>
+      </header>
+      <section className="pp-next" aria-label="Nästa steg">
+        <h3>{preparation ? `1. Välj underlag för ${workspace.education.name}` : 'Nästa steg'}</h3>
+        {!preparation&&<>
+          <p>{anotherDraft?'Utbildningen har ett utkast som du kan fortsätta med.':nextKind==='create'?'Börja med ett utkast för den här utbildningen.':nextKind==='bind'?'Det äldre utkastets val finns kvar. Välj underlag och startdatum innan du ändrar fördjupningen.':nextKind==='replace'?'Lägg till, ta bort eller flytta dina fördjupningsnivåer. Utbildningens grundämnen ändras inte här.':'Skapa ett nytt utkast. Den här versionen och dess tidigare beslut behålls.'}</p>
+          <Button disabled={busy||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':titles[nextKind]}</Button>
+          {(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
+        </>}
+        {preparation&&<>
+          <p>Välj aktivt vilket underlag utbildningen ska använda. Därefter anger du det kända startdatumet och granskar valen. Inget sparas i detta steg.</p>
+          <div className="pp-field"><label htmlFor="pp-guide-catalog">Välj underlag</label><select id="pp-guide-catalog" value={preparation.catalogId??''} disabled={busy} onChange={e=>changeGuideCatalog(e.target.value)}><option value="">Välj ett underlag för {workspace.education.name}</option>{workspace.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>{workspace.education.name} · Skolverket · hämtat {c.source.fetched}</option>)}</select></div>
+          {workspace.catalog.status==='blocked'&&<p role="alert">{programplanDiagnostic(workspace.catalog.diagnostic??'catalog_unavailable')}</p>}
+          {preparation.catalogId&&legacyResolution?.problems.length ? <p role="alert">Vissa äldre val kan inte återfinnas entydigt: {legacyResolution.problems.join(', ')}. De har bevarats. Du kan inte gå vidare med detta underlag.</p>:null}
+          <div className="pp-actions"><Button variant="outline" disabled={busy} onClick={cancelPreparation}>Avbryt förberedelse</Button><Button disabled={busy||!preparation.catalogId||preparation.catalogId!==workspace.catalog.catalogId||!sourceReady||(preparation.kind==='bind'||preparation.kind==='clone')&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit(preparation.kind)}>Fortsätt till startdatum och val</Button></div>
+        </>}
+      </section>
+      <section className="pp-subjects" aria-label="Ämnen och nivåer"><h2>Ämnen och nivåer</h2><p>Poängen nedan är gymnasiepoäng.</p>
+        <section className="pp-saved" aria-label="Dina sparade fördjupningsval"><h3>Dina sparade fördjupningsval</h3>
+          {plan?.basisReference ? <><p>Det här är de ordnade val som har sparats i version {plan.version}.</p>{plan.basisReference.specializationRefs.length===0&&<p>Inga fördjupningsnivåer sparade.</p>}<ol className="pp-levels">{plan.basisReference.specializationRefs.map((r,i)=><li key={`${i}-${r.itemCode}`}><strong>{programplanLevelName(r,options)}</strong><span>{r.points} poäng</span><small>{r.itemCode} · ämnesversion {r.subjectVersion}</small></li>)}</ol></>
+          : plan ? <><p>Äldre sparade val visas precis som de lagrats. Namn och nivåer behöver kopplas till ett aktivt valt underlag innan ändring.</p><ol className="pp-levels">{(legacy??[]).map((code,i)=><li key={`${i}-${code}`}><strong>{code||'(Tomt äldre värde)'}</strong></li>)}</ol>{legacy?.length===0&&<p>Inga äldre fördjupningsval sparade.</p>}</>
+          : <p>Inga val är sparade ännu. Börja med Skapa programplan.</p>}
+        </section>
+        <section className="pp-reference" aria-label="Ingår enligt underlaget"><h3>Ingår enligt underlaget</h3><p>Detta är programgrundens referensuppgifter. De är skilda från dina sparade fördjupningsval och kan inte ändras i den här vyn.</p>
+          {referenceBlocks.length===0&&<p>Ämnena kan visas när ett underlag har valts. Följ nästa steg ovan.</p>}
+          {referenceBlocks.map(block=><section className="pp-subject-block" key={block.name}><h4>{block.name}</h4><div className="pp-subject-table">{block.subjects.map(subject=><article className="pp-subject-row" key={subject.code}><div><strong>{subject.name}</strong>{subject.optional&&<p className="pp-reference-gap">Alternativ i underlaget — inget ämnesval är gjort här.</p>}</div><div>{subject.levels.length ? <ul>{subject.levels.map(level=><li key={level.code}>{level.name}<span>{level.points} poäng</span></li>)}</ul>:<p className="pp-reference-gap">Nivåuppgifter saknas i underlaget.</p>}<small>{subject.code} · ämnesversion {subject.subjectVersion??'saknas'} · källblock {subject.points} poäng</small></div></article>)}</div></section>)}
+        </section>
+      </section>
+      <details className="pp-underlying"><summary>Underlag och tidigare versioner</summary>
+        <section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Underlag</h3><p>Fastställande är stängt här. Fullständiga nationella ramar, alternativ och nivåföljd är ännu inte verifierade. Gymnasiepoäng omvandlas inte till undervisningstimmar.</p>
+          {plan&&<p>Version {plan.version} · Revision {plan.revision}{plan.decidedOn&&` · Beslut ${plan.decidedOn}`}</p>}
+          {plan?.basisReference&&<p>Utbildningsstart: {plan.basisReference.startedOn}. Katalog, programgrund och start hör till denna version.</p>}
+          {plan?.resolution.diagnostics.map((d,i)=><p key={i}>{programplanDiagnostic(d.code)} {d.subjectCode??''} {d.itemCode??''}</p>)}
+          {workspace.catalog.status==='unselected'&&<p>Inget underlag är valt. Använd nästa steg ovan för att välja underlag och förbereda utkastet.</p>}
+          {workspace.catalog.status==='blocked'&&<p role="alert">{programplanDiagnostic(workspace.catalog.diagnostic??'catalog_unavailable')}</p>}
+          {workspace.catalog.status==='selected'&&workspace.catalog.program&&<><p>{workspace.catalog.program.name} ({workspace.catalog.program.code}), programversion {workspace.catalog.program.version}</p><p>Gäller från {workspace.catalog.program.startDate??'Datum saknas'}{workspace.catalog.program.endDate&&` till ${workspace.catalog.program.endDate}`}{workspace.catalog.program.canceledDate&&` · Upphävt ${workspace.catalog.program.canceledDate}`}</p><p>Källa: <a href={workspace.catalog.source!.url} target="_blank" rel="noreferrer">Skolverkets källunderlag</a> · hämtat {workspace.catalog.source!.fetched}, API {workspace.catalog.source!.apiVersion}</p><p className="pp-code">Exakt katalogreferens: {workspace.catalog.catalogId}</p></>}
+          {plan?.resolution.unresolvedChoices.map((c,i)=><p key={i}>{programplanDiagnostic(c.kind)} {c.subjectCode??''}{c.points!==undefined&&` · källblockets ${c.points} poäng`}</p>)}
+        </section>
+        <section aria-label="Tidigare versioner"><h3>Versioner</h3><div className="pp-versions">{workspace.versions.map(v=><button type="button" className={`pp-version ${v.id===plan?.id?'pp-selected':''}`} key={v.id} disabled={busy} onClick={()=>openVersion(v)} aria-label={`Version ${v.version} · ${programplanStatus[v.status]}`}><strong>Version {v.version} · {programplanStatus[v.status]}</strong><span>Revision {v.revision}{v.decidedOn&&` · Beslut ${v.decidedOn}`}</span><span>{v.catalogId?'Versionsbundet underlag':'Äldre, obundet underlag'}</span></button>)}</div>
+          {workspace.versionCount>50&&<nav className="pp-pagination" aria-label="Versionernas sidor"><Button variant="outline" disabled={workspace.versionPage===1||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage-1,workspace.catalog.catalogId,plan?.id??null)}>Föregående versioner</Button><span>Sida {workspace.versionPage} av {Math.ceil(workspace.versionCount/50)}</span><Button variant="outline" disabled={workspace.versionPage*50>=workspace.versionCount||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage+1,workspace.catalog.catalogId,plan?.id??null)}>Nästa versioner</Button></nav>}
+        </section>
+      </details>
     </>}
     <Dialog open={draft!==null} onOpenChange={open=>{if(!open)closeDraft();}}><DialogContent className="pp-dialog" showCloseButton={false} aria-modal="true">
       <DialogTitle>{draft?titles[draft.kind]:'Programplansutkast'}</DialogTitle><DialogDescription>Uppgifterna sparas först när du väljer att spara. Sparningen fastställer inte planen.</DialogDescription>
       {draft&&<>
-        <p><strong>{draft.educationName}</strong> · {draft.schoolName}</p><p>{draft.pin.programRef.code} · programversion {draft.pin.programRef.version} · inriktning {draft.pin.orientationCode??'ingen'}</p><p className="pp-code">Katalog: {draft.pin.catalogId}</p>
+        <p><strong>{draft.educationName}</strong> · {draft.schoolName}</p><details className="pp-dialog-source"><summary>Utkastets underlag</summary><p>{draft.pin.programRef.code} · programversion {draft.pin.programRef.version} · inriktning {draft.pin.orientationCode??'ingen'}</p><p className="pp-code">Katalog: {draft.pin.catalogId}</p></details>
         {draft.error&&!draft.mfa&&<output role="alert" className="pp-alert">{draft.error}</output>}
         {draft.mfa&&<MfaStepUpNotice message={draft.error??'Verifiering med engångskod krävs.'} detail="Dina uppgifter finns kvar här. Om du väljer verifiering lämnar du sidan; det osparade formuläret följer inte med."/>}
         {(draft.kind==='create'||draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<div className="pp-field"><label htmlFor="pp-start">Utbildningens exakta startdatum</label><input id="pp-start" type="date" value={draft.startedOn} disabled={formLocked} aria-describedby="pp-start-help" onChange={e=>setDraft({...draft,startedOn:e.target.value,error:null,mfa:false})}/><p id="pp-start-help">Ange det kända datumet från utbildningens underlag. Kulltext och startår väljer inte datum åt dig.</p></div>}
         {draft.sourceBound&&<p>Bundet utbildningsstartdatum: {draft.startedOn}. Katalog, start och programgrund ändras inte.</p>}
         <h4>{editableRefs?'Vald programfördjupning':'Förändringsfria val från källan'}</h4>
         {draft.refs.length===0&&<p>Inga fördjupningsnivåer valda.</p>}
-        <ol className="pp-edit-levels">{draft.refs.map((r,i)=><li key={`${i}-${r.itemCode}`}><div><strong>{(()=>{const found=draft.options.find(o=>o.itemCode===r.itemCode&&o.subjectCode===r.subjectCode&&o.subjectVersion===r.subjectVersion&&o.points===r.points);return found?`${found.subjectName} · ${found.name}`:r.itemCode;})()}</strong><span>{r.itemCode} · ämnesversion {r.subjectVersion} · {r.points} poäng</span></div>{editableRefs&&<div className="pp-level-actions"><Button type="button" variant="outline" disabled={formLocked||i===0} aria-label={`Flytta upp ${r.itemCode}`} onClick={()=>move(i,-1)}><ArrowUp size={16}/></Button><Button type="button" variant="outline" disabled={formLocked||i===draft.refs.length-1} aria-label={`Flytta ned ${r.itemCode}`} onClick={()=>move(i,1)}><ArrowDown size={16}/></Button><Button type="button" variant="outline" disabled={formLocked} aria-label={`Ta bort ${r.itemCode}`} onClick={()=>setDraft({...draft,refs:draft.refs.filter((_,index)=>index!==i),error:null})}>Ta bort</Button></div>}</li>)}</ol>
+        <ol className="pp-edit-levels">{draft.refs.map((r,i)=><li key={`${i}-${r.itemCode}`}><div><strong>{programplanLevelName(r,draft.options)}</strong><span>{r.itemCode} · ämnesversion {r.subjectVersion} · {r.points} poäng</span></div>{editableRefs&&<div className="pp-level-actions"><Button type="button" variant="outline" disabled={formLocked||i===0} aria-label={`Flytta upp ${r.itemCode}`} onClick={()=>move(i,-1)}><ArrowUp size={16}/></Button><Button type="button" variant="outline" disabled={formLocked||i===draft.refs.length-1} aria-label={`Flytta ned ${r.itemCode}`} onClick={()=>move(i,1)}><ArrowDown size={16}/></Button><Button type="button" variant="outline" disabled={formLocked} aria-label={`Ta bort ${r.itemCode}`} onClick={()=>setDraft({...draft,refs:draft.refs.filter((_,index)=>index!==i),error:null})}>Ta bort</Button></div>}</li>)}</ol>
         {editableRefs&&<div className="pp-field"><label htmlFor="pp-option">Lägg till fördjupningsnivå</label><select id="pp-option" value={option} disabled={formLocked} onChange={e=>setOption(e.target.value)}><option value="">Välj nivå</option>{draft.options.filter(o=>!draft.refs.some(r=>r.itemCode===o.itemCode)).map(o=><option key={o.itemCode} value={o.itemCode}>{o.subjectName} · {o.name} · {o.itemCode} · {o.points} poäng</option>)}</select><Button type="button" variant="outline" disabled={formLocked||!option||draft.refs.length>=200} onClick={()=>{const found=draft.options.find(o=>o.itemCode===option);if(found){setDraft({...draft,refs:[...draft.refs,programplanReference(found)],error:null});setOption('');}}}>Lägg till nivå</Button></div>}
         {(draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<label className="pp-check"><input type="checkbox" disabled={formLocked} checked={draft.legacyConfirmed} onChange={e=>setDraft({...draft,legacyConfirmed:e.target.checked,error:null})}/><span>Jag har kontrollerat att alla äldre val bevaras i samma ordning och att startdatum samt underlag gäller för utbildningen.</span></label>}
         {draft.mode==='refreshing'&&<output>Hämtar aktuellt underlag. Dina uppgifter behålls…</output>}
-        {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella fördjupningsval: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina fördjupningsval: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p>{!retryCompatible(draft)&&<p>Detta kommando kan inte skickas igen automatiskt. Stäng dialogen och granska den aktuella versionen innan du väljer nästa åtgärd.</p>}</div>}
+        {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuella fördjupningsval: {namedChoices(plan?.basisReference?.specializationRefs??[])}</p><p>Dina fördjupningsval: {namedChoices(draft.refs,draft.options)}</p><details><summary>Jämför referenser och revisioner</summary><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella referenser: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina referenser: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p></details>{!retryCompatible(draft)&&<p>Detta kommando kan inte skickas igen automatiskt. Stäng dialogen och granska den aktuella versionen innan du väljer nästa åtgärd.</p>}</div>}
         {draft.mode==='applied'&&<output className="pp-notice">Ett aktuellt utkast innehåller redan samma bundna underlag och val. Inget nytt sparande behövs.</output>}
         <div className="pp-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>{draft.mode==='refresh-failed'?<Button disabled={busy} onClick={()=>void reloadDraft()}>Läs om underlaget</Button>:['edit','compare'].includes(draft.mode)&&<Button disabled={busy||draft.mode==='compare'&&!retryCompatible(draft)} onClick={()=>void saveDraft()}>{busy?'Sparar…':draft.mode==='compare'?'Använd mina val':'Spara utkast'}</Button>}</div>
       </>}

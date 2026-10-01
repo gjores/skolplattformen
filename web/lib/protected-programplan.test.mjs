@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import artifact from './programplan-catalog.generated.json' with { type: 'json' };
 import { programplanOptions, resolveLegacyProgramplan, newProgramplanBasis, programplanCommand, programplanCommandReply,
-  sameProgramplanLevels, sameProgramplanPin, programplanReference } from './protected-programplan.ts';
+  sameProgramplanLevels, sameProgramplanPin, programplanReference, programplanSelectedId, assertProgramplanSummary, programplanLevelName } from './protected-programplan.ts';
 
 const offeringId = '55101100-0000-4000-8000-000000000040', planId = '55101100-0000-4000-8000-000000000050';
 const program = artifact.programs.find(p=>p.code==='SA25');
@@ -55,4 +55,33 @@ test('create and clone accept only new server IDs and latest+1/revision0; copied
   const d=cleanDraft('clone'),r={...result(),id:'55101100-0000-4000-8000-000000000070',version:4,revision:0};assert.equal(programplanCommandReply(r,d).id,r.id);
   for(const change of [{id:planId},{version:3},{revision:1}])assert.throws(()=>programplanCommandReply({...r,...change},d));
   d.kind='create';d.planId=null;assert.equal(programplanCommandReply(r,d).version,4);
+});
+
+test('current selection uses actual draft ID beyond the history page, exact latest ID and explicit old ID',()=>{
+  const older='55101100-0000-4000-8000-000000000051';
+  const w={...workspace(),versionCount:53,versions:[{id:older,version:53,status:'ersatt'}]};
+  w.education.latestVersion=53;w.education.draftId=planId;
+  assert.equal(programplanSelectedId(w,null),planId);
+  assert.equal(programplanSelectedId(w,older),older);
+  w.education.draftId=null;assert.equal(programplanSelectedId(w,null),older);
+  w.versions=[{id:planId,version:1}];assert.throws(()=>programplanSelectedId(w,null));
+  assert.equal(programplanSelectedId(w,null,[...w.versions,{id:older,version:53}]),older);
+  assert.throws(()=>programplanSelectedId(w,null,[{id:older,version:53},{id:planId,version:53}]));
+  w.education.latestVersion=0;assert.throws(()=>programplanSelectedId(w,null));
+  w.versionCount=0;w.versions=[];assert.equal(programplanSelectedId(w,null),null);
+});
+
+test('separate selected summary must match actual read; absent or changed summary is never empty legacy data',()=>{
+  const r=result(),summary={id:r.id,version:r.version,revision:r.revision,status:r.status,catalogId:r.catalogId,decidedOn:r.decidedOn,basisReference:r.basisReference,legacySpecialization:null};
+  assert.doesNotThrow(()=>assertProgramplanSummary(summary,r));
+  for(const changed of [null,{...summary,id:'other'},{...summary,revision:2},{...summary,status:'ersatt'},
+    {...summary,basisReference:{...basis(),startedOn:'2026-08-18'}},{...summary,basisReference:{...basis(),specializationRefs:[]}},
+    {...summary,catalogId:null,basisReference:null}])assert.throws(()=>assertProgramplanSummary(changed,r));
+  const legacy={...r,catalogId:null,basisReference:null};
+  assert.doesNotThrow(()=>assertProgramplanSummary({...summary,catalogId:null,basisReference:null,legacySpecialization:['UNKNOWN','ENGE3000X','ENGE3000X']},legacy));
+});
+
+test('saved level names require exact source identity, version and points; ambiguous names stay raw',()=>{
+  const option=first(),r=ref();assert.equal(programplanLevelName(r,[option]),`${option.subjectName} · ${option.name}`);
+  for(const choices of [[],[{...option,subjectVersion:2}],[{...option,points:200}],[option,{...option,name:'Other'}]])assert.equal(programplanLevelName(r,choices),r.itemCode);
 });

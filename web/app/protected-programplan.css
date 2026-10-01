@@ -3,3 +3,13 @@
 
 /* Safari behöver uttrycklig höjd på den native nivåväljaren. */
 .pp-source select,.pp-field select{height:48px}.pp-source summary{min-height:44px;padding-block:.6rem;cursor:pointer}
+/* The education and the next action lead; references remain a separate surface. */
+.pp-status{display:inline-block;padding:.45rem .75rem;border-radius:8px;background:#e9f1fb;color:#244c77!important;font-weight:600}
+.pp-next{border:1px solid #c9d9ea;background:#f5f9ff;border-radius:12px;padding:1.2rem;margin:1rem 0 1.6rem;line-height:1.6}
+.pp-next h3{margin:0}.pp-next p{margin:.65rem 0 1rem}.pp-next>.pp-field{max-width:720px}
+.pp-subjects{line-height:1.6}.pp-saved,.pp-reference{margin:1.2rem 0 1.8rem}.pp-saved{padding:1.2rem;border:1px solid #c9d9ea;border-radius:12px;background:white}
+.pp-saved h3,.pp-reference h3{margin-top:0}.pp-levels{margin:.8rem 0;padding:0;list-style:none}.pp-levels li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.2rem 1rem;padding:.8rem 0;border-top:1px solid #e2e9f2;overflow-wrap:anywhere}.pp-levels small{grid-column:1/-1;color:#63758b;font-size:.82rem}
+.pp-subject-block{margin:1.3rem 0;border:1px solid #d4dfeb;border-radius:12px;overflow:hidden;background:white}.pp-subject-block h4{margin:0;padding:.8rem 1rem;background:#f1f5fa}
+.pp-subject-row{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(220px,1.2fr);gap:1.2rem;padding:1rem;border-top:1px solid #e2e9f2}.pp-subject-row ul{padding:0;margin:0;list-style:none}.pp-subject-row li{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}.pp-subject-row small{display:block;margin-top:.55rem;color:#63758b;font-size:.82rem;overflow-wrap:anywhere}.pp-reference-gap{margin:.35rem 0;color:#755236;font-size:.92rem}
+.pp-underlying{border-top:1px solid #cbd8e6;padding-top:.5rem;margin-top:1.6rem}.pp-underlying>summary,.pp-dialog-source>summary,.pp-comparison summary{min-height:44px;cursor:pointer;padding:.65rem .2rem;font-weight:600}.pp-underlying>summary:focus-visible,.pp-dialog summary:focus-visible{outline:3px solid #5b8ec1;outline-offset:3px}.pp-dialog-source{color:#53677f;font-size:.9rem}.pp-dialog-actions{position:sticky;bottom:-1.5rem;background:white;padding:.8rem 0 .4rem;z-index:1}.pp-dialog .pp-edit-levels{padding-left:1rem}.pp-next select,.pp-dialog select,.pp-dialog input[type=date]{height:48px}
+@media(max-width:700px){.pp-subject-row{display:block;padding:.9rem}.pp-subject-row>div+div{margin-top:.65rem}.pp-next,.pp-saved{padding:1rem}.pp-next .pp-actions>*{width:100%}.pp-dialog-actions{bottom:-1rem}.pp-levels li{grid-template-columns:minmax(0,1fr)}.pp-levels small{grid-column:auto}.pp-subject-block h4{padding:.75rem .9rem}}

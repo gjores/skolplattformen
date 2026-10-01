@@ -1,6 +1,33 @@
 import { parseProgramplanBasisReference, type ProgramplanBasisReference, type ProgramplanLevelRef } from './programplan-catalog.ts';
 import { parseProgramplan, type Programplan } from './programplan-contract.ts';
-import type { ProgramplanWorkspace } from './programplan-workspace-contract.ts';
+import type { ProgramplanWorkspace, ProgramplanVersionSummary } from './programplan-workspace-contract.ts';
+
+// A missing historical page is different from an education without a plan.
+export function programplanSelectedId(workspace: ProgramplanWorkspace, explicitId: string | null, summaries = workspace.versions): string | null {
+  if (explicitId) return explicitId;
+  const { latestVersion, draftId } = workspace.education;
+  if (latestVersion === 0) {
+    if (draftId || workspace.versionCount !== 0) throw new Error('Planernas underlag är inaktuellt.');
+    return null;
+  }
+  if (draftId) return draftId;
+  const latest = summaries.filter(v => v.version === latestVersion);
+  if (latest.length !== 1) throw new Error('Den senaste planens exakta identitet saknas.');
+  return latest[0].id;
+}
+export function assertProgramplanSummary(summary: ProgramplanVersionSummary | null, plan: Programplan): void {
+  if (!summary || summary.id !== plan.id || summary.revision !== plan.revision || summary.version !== plan.version
+    || summary.status !== plan.status || summary.catalogId !== plan.catalogId || summary.decidedOn !== plan.decidedOn
+    || (summary.basisReference === null) !== (plan.basisReference === null)
+    || (plan.basisReference && (!sameProgramplanPin(summary.basisReference, plan.basisReference)
+      || !sameProgramplanLevels(summary.basisReference!.specializationRefs, plan.basisReference.specializationRefs)))) {
+    throw new Error('Versionsunderlaget ändrades under läsningen.');
+  }
+}
+export function programplanLevelName(ref: ProgramplanLevelRef, options: ProgramplanOption[]): string {
+  const matches = options.filter(o => o.subjectCode === ref.subjectCode && o.subjectVersion === ref.subjectVersion && o.itemCode === ref.itemCode && o.points === ref.points);
+  return matches.length === 1 ? `${matches[0].subjectName} · ${matches[0].name}` : ref.itemCode;
+}
 
 export type ProgramplanOption = ProgramplanLevelRef & { name: string; subjectName: string };
 export const programplanStatus = { utkast: 'Utkast', faststalld: 'Fastställd', ersatt: 'Ersatt' } as const;
