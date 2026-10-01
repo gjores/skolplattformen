@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-09
+current_plan: 05-10
 status: executing
-stopped_at: Executing protected programplan API and parallel timetable guidance; continue automatically until human UI trial; Phase 4 checkpoint open
+stopped_at: Programplan API verified; executing workspace and UI until human trial; Phase 4 checkpoint open
 last_updated: "2026-10-01"
 last_activity: 2026-10-01
-last_activity_desc: "Användaren har godkänt automatisk fortsättning genom flera GSD-planer till nästa konkreta mänskliga prov. 05-09 skyddad programplans-API genomförs; 05-12 regelhandledning i befintlig timplansvy genomförs parallellt. Programplansurval och UI planeras därefter; fas 4:s checkpoint kvarstår."
+last_activity_desc: "05-09 API/preflight och smal grant klara, oberoende granskning 6/6 PASS. 05-10 urvalsunderlag genomförs och 05-11 UI förbereds till konkret mänskligt prov. 05-12 timplanshandledning klar automatiskt; fas 4:s checkpoint kvarstår."
 state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 65
-  completed_plans: 62
+  total_plans: 66
+  completed_plans: 63
 milestone_name: milestone
 ---
 
@@ -25,43 +25,43 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-01)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: 05-01–05-08 genomförda. 05-08 har levererat oföränderlig DB-katalog samt stängda sessions-/mandatbundna kommandon för läsning, legacy-bindning, fördjupningsändring, skapa och klona utkast. 632 riktade SQL-prov, 455 modell/server/generator + 5 harnessprov, 42 TS/SQL-paritetsfall och 6 observerade låsväntansfall samt caller-rollback PASS. Ursprungliga plan-/utbildnings-/historikfält är oförändrade. Nästa: skyddad programplans-API med levande session/MFA, Worker-audit och full preflight före några nya grants. Inga nya programplansrättigheter öppnade. Fastställande, nationella beslutsregler, UI, kullkopiering och klasskoppling återstår. Fas 4:s mänskliga checkpoint/datumanmärkning kvarstår separat.
+**Current focus:** Fas 5: 05-01–05-09 och 05-12 genomförda. Programplans-API har preflight/final 48/48, SQL 663, tidigare timplans-API 39/39 och oberoende granskning 6/6 PASS. Exakt fem nya Worker-entrypoints är öppna, totalt åtta i fas 5. 05-10 urvals-/versions-/källunderlag genomförs; 05-11 förbereder skyddad användarvy och mänskligt prov. Fastställande, fullständiga nationella regler, nya utbildningar, kullkopiering och klasskoppling återstår. Fas 4:s mänskliga checkpoint kvarstår separat.
 
 ## Current Position
 
-**Pågående genomförande 2026-10-01:** 05-12:s timplanshandledning klar med 20/20 browserprov, typ/lint/skyddat bygge och handbok PASS; ny mänsklig förståelsebedömning samordnas med kommande programplansvy. 05-09:s serverkontrakt/fem routes är committade, 480 Nodeprov PASS; verklig API-preflight/grant återstår. 05-10 gymnasieurval/versions-/källunderlag planerad, förberedande implementation pågår utan öppnade nya datavägar. Nästa gräns är programplans-UI 05-11 och mänskligt prov. Ingen hel fas eller ADMIN-krav slutverifierat.
+**Pågående genomförande 2026-10-01:** 05-09 API och avgränsad grant klara; samtliga 48 API-fall, loggfel/rollback, faktisk samtidighet, originalhashar och cleanup PASS. 05-12 timplanshandledning klar med 20/20 browserprov och handbok. 05-10 genomförs med ännu stängda nya SQL-kommandon; 05-11 UI förbereds bakom stängd navigation. Ingen hel fas eller ADMIN-krav slutverifierat.
 
-**Användarprov 2026-10-01:** användaren rapporterar att alla timplansprov fungerar. Registrerat i `05-TIMPLAN-USER-TRIAL.md` för den befintliga skyddade vyn; ingen separat redovisning av enheter/roller. Regelhandledning kvarstår och detta slutför inte fas 5 eller fas 4:s checkpoint. Nästa plan är fortsatt 05-09, skyddad programplans-API.
+**Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och kommande programplansvy kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-08 genomförda; övriga utbildnings- och versionsflöden återstår. Fas 4 kvarstår på 24 av 25 planer.
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-09 och 05-12 genomförda; 05-10/05-11 pågår. Fas 4 kvarstår på 24 av 25 planer.
 Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-09 genomförs: skyddad programplans-API och preflight; 05-12 timplansregelhandledning parallellt. Därefter urvalsunderlag och programplansvy till nästa mänskliga prov.
-**Total Plans in Phase:** 8 genomförda delplaner; övriga skyddade flöden återstår
+**Current Plan:** 05-10 urvals-/versions-/källunderlag genomförs; 05-11 skyddad programplansvy förbereds. Fortsätt automatiskt till samlat mänskligt användarprov.
+**Total Plans in Phase:** 12 skrivna, 10 genomförda; övriga skyddade utbildningsflöden planeras därefter.
 **Status:** Genomförande fas 5; automatisk fortsättning till konkret mänskligt prov enligt användarbeslut 2026-10-01. Fas 4:s användarprov och fasverifiering fortfarande öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-01
-**Last Activity Description:** Användarbeställt schemadelprojekt dokumenterat med SCHEMA-01–08, gemensamma plan-/grupp-/schemakontrakt, operationsbundna mandat, Rustprototyp och utvärdering av Jev eller liknande AI för möjlig användning i schemamodulen; införande kräver separat beslut efter utvärderingen. Valda interna/externa moduldelar ska kunna kombineras. Fas 5 har fått en kompatibilitetsgräns inför berörda kommande planer; nästa genomförandeplan är fortfarande 05-09. Inga nya verksamhetsvägar, prototyper eller verifieringsresultat.
+**Last Activity Description:** Skyddat programplans-API färdigställt med atomisk DB-/Worker-loggning och exakt fem grants efter återställd preflight. Oberoende granskning 6/6 PASS. Urvalsunderlag och användarvy genomförs till mänskligt prov; timplanshandledning har 20 automatiska browserprov PASS.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
-**Senaste genomförandebevis, 2026-09-30:** 05-08 på b0bf476: katalog 60/60, utkast 108/108, riktad SQL-regression 464/464, full modell/server/generator 455/455 och harnesssäkerhet 5/5; typ/lint/bytekontroll, 42 paritetsfall, 6/6 faktisk låsväntan + yttre rollback, bevarande och oberoende granskning 6/6 PASS. SQL-kommandon stängda, inga nya Worker-grants eller API/UI/beslut. Bygge/browser/handbok från tidigare planer är historik.
+**Senaste genomförandebevis, 2026-10-01:** 05-09 preflight/final 48/48, SQL 663/663, gamla timplans-API 39/39, paritet 42/42, sex observerade programplanslås + rollback, fyra timplanslås och oberoende granskning 6/6 PASS. Alla 18 API-källhashar matchade vid granskningen. Tidigare verksamhetsrader är hashidentiska efter proven. Separat 05-12 har 20/20 dator-/telefonbrowserprov PASS. Ingen mänsklig förståelsebedömning eller fasverifiering ersätts av dessa prov.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 61 av 62 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 63 av 66 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 61
+- Total plans completed: 63
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -205,7 +205,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-01
-**Stopped At:** 05-08 klar; nästa skyddad programplans-API med obligatorisk Worker-audit och preflight före grant; fas 4:s checkpoint kvarstår separat
+**Stopped At:** 05-09 och 05-12 klara; 05-10/05-11 genomförs automatiskt till nästa konkreta mänskliga prov. Fas 4:s checkpoint kvarstår separat.
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — 05-01–05-08 klara; övriga utbildnings-/versionsflöden och genomförandeplaner återstår — 2026-09-30
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — urvalsunderlag och skyddad programplansvy genomförs; ytterligare utbildnings-/beslutsflöden återstår — 2026-10-01
