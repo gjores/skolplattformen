@@ -1,0 +1,8 @@
+{
+  "target": "protected",
+  "files": [
+    "phase5_timplan_selection.test.sql"
+  ],
+  "status": "PASS",
+  "exitCode": 0
+}

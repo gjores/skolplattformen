@@ -1,6 +1,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Historical eight-entrypoint profile: explicit local revokes roll back at EOF.
+-- The actual final ten-entrypoint ACL is asserted by phase5_programplan_workspace_worker.
+revoke execute on function public.phase5_list_programplan_offerings(integer),public.phase5_programplan_workspace(uuid,integer,text) from skolplattform_worker;
 -- These INSERT probes are synthetic and the complete transaction rolls back.
 create function pg_temp.catalog_fixture() returns jsonb language sql immutable as $f$
 select '{"schemaVersion":1,"source":{"url":"https://catalog.example.test/v1","apiVersion":"synthetic-1","fetched":"2026-09-05"},"subjects":[{"code":"TEST","name":"Syntetiskt ämne","typeOfSyllabus":"GRADE_SUBJECT_SYLLABUS","schoolTypes":["GY"],"version":1,"startDate":"2026-01-01","endDate":null,"canceledDate":null,"skolfs":null,"items":[{"code":"TEST1000X","name":"Nivå 1","points":100}]}],"programs":[{"code":"TP25","name":"Syntetiskt program","category":"PRELIMINARY_PROGRAM_FOR_HIGHER_EDUCATION","version":1,"startDate":"2026-01-01","endDate":null,"canceledDate":null,"skolfs":null,"foundation":[{"code":"TEST","name":"Syntetiskt ämne","points":200,"optional":false,"subjectVersion":1,"levels":[{"code":"TEST1000X","name":"Nivå 1","points":100}]}],"programmeSpecific":[],"orientations":[],"specialization":[]}]}'::jsonb

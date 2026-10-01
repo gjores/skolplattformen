@@ -71,7 +71,7 @@ function normalizedResolution(r) {
   return { status:r.status, catalogId:r.catalogId, programRef:r.programRef,
     diagnostics:r.diagnostics.map(canonicalCatalogJson).sort(), unresolvedChoices:r.unresolvedChoices.map(canonicalCatalogJson).sort() };
 }
-export function programplanWorkerNames(profile='closed') {if(!['closed','programplan'].includes(profile))throw Error('worker_profile_invalid');return ['phase5_change_timplan_cell','phase5_list_timplans','phase5_read_timplan',...(profile==='programplan'?['phase5_read_programplan','phase5_bind_programplan_draft','phase5_replace_programplan_specialization','phase5_create_programplan_draft','phase5_clone_programplan_draft']:[])].sort();}
+export function programplanWorkerNames(profile='closed') {if(!['closed','programplan','workspace'].includes(profile))throw Error('worker_profile_invalid');return ['phase5_change_timplan_cell','phase5_list_timplans','phase5_read_timplan',...(profile!=='closed'?['phase5_read_programplan','phase5_bind_programplan_draft','phase5_replace_programplan_specialization','phase5_create_programplan_draft','phase5_clone_programplan_draft']:[]),...(profile==='workspace'?['phase5_list_programplan_offerings','phase5_programplan_workspace']:[])].sort();}
 export async function runProgramplanVerification({workerProfile='closed',outFile=new URL('./results/phase5-08-locks.json',import.meta.url)}={}) {
   const expectedWorkerNames=programplanWorkerNames(workerProfile);
   return withProgramplanTarget(assertTarget, async target => {
@@ -224,7 +224,7 @@ export async function runProgramplanVerification({workerProfile='closed',outFile
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const args=process.argv.slice(2);
-  if(args.length&&!(args.length===1&&args[0]==='--programplan')){process.stderr.write('REFUSED: endast --programplan tillåten\n');process.exitCode=1;}
-  else try {const report=await runProgramplanVerification(args[0]==='--programplan'?{workerProfile:'programplan',outFile:new URL('./results/phase5-09-locks.json',import.meta.url)}:{});process.stdout.write(`${JSON.stringify(report)}\n`);if(report.status!=='PASS')process.exitCode=1;}
+  if(args.length&&!(args.length===1&&['--programplan','--workspace'].includes(args[0]))){process.stderr.write('REFUSED: endast --programplan eller --workspace tillåten\n');process.exitCode=1;}
+  else try {const report=await runProgramplanVerification(args[0]==='--workspace'?{workerProfile:'workspace',outFile:new URL('./results/phase5-10-locks.json',import.meta.url)}:args[0]==='--programplan'?{workerProfile:'programplan',outFile:new URL('./results/phase5-09-locks.json',import.meta.url)}:{});process.stdout.write(`${JSON.stringify(report)}\n`);if(report.status!=='PASS')process.exitCode=1;}
   catch{process.stderr.write('Programplansprovet kunde inte startas mot verifierat protected-mål.\n');process.exitCode=1;}
 }

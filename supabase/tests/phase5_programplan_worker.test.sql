@@ -1,6 +1,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Historical eight-entrypoint profile: explicit local revokes roll back at EOF.
+-- The actual final ten-entrypoint ACL is asserted by phase5_programplan_workspace_worker.
+revoke execute on function public.phase5_list_programplan_offerings(integer),public.phase5_programplan_workspace(uuid,integer,text) from skolplattform_worker;
 -- Programplan fixture: reusable synthetic setup; no grants or assertions.
 create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns void language plpgsql as $$begin
  perform set_config('app.customer_id','55008000-0000-4000-8000-000000000001',true),

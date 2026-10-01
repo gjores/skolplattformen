@@ -49,3 +49,5 @@ test('import does not connect, create a report or replace existing evidence', as
 });
 
 test('SQL-låsprovet använder explicit stängd eller åtta-kommandoprofil',()=>{assert.equal(programplanWorkerNames().length,3);assert.equal(programplanWorkerNames('programplan').length,8);assert.equal(programplanWorkerNames('programplan').includes('phase5_programplan_result'),false);assert.throws(()=>programplanWorkerNames('auto'));});
+
+test('workspace locks profile is an explicit ten-function set',()=>{const names=programplanWorkerNames('workspace');assert.equal(names.length,10);assert.ok(names.includes('phase5_programplan_workspace'));assert.ok(names.includes('phase5_list_programplan_offerings'));assert.equal(names.includes('phase5_programplan_workspace_audit'),false);});
