@@ -1,0 +1,29 @@
+{
+  "status": "APPLIED",
+  "checkedAt": "2026-10-01T21:26:10.226Z",
+  "scope": "local synthetic Docker trial only",
+  "target": "skolplattform-pilot-protected",
+  "dbHost": "127.0.0.1",
+  "dbPort": 56322,
+  "preflightCases": 38,
+  "preflightAclRestored": true,
+  "newReadSignatures": [
+    "phase5_list_programplan_offerings(integer)",
+    "phase5_programplan_workspace(uuid,integer,text)"
+  ],
+  "phase5WorkerSignatures": 10,
+  "publicAnonAuthenticatedExecute": 0,
+  "ledgerRegistered": [
+    "20261001120000",
+    "20261001121000"
+  ],
+  "closedMigrationHash": "1f8efa579c5bc27e5e97edcbcbd4fba0538dec8f31af9862d935114c143094fa",
+  "grantMigrationHash": "944dbc3adbe86aa81c60cdaa5ea1098346ba1b4545494f56883dc619d94198bf",
+  "approvalReview": {
+    "initialRejected": true,
+    "retryApproved": true,
+    "newEvidence": "independent read-only target/container/ACL verification and complete restored 38-case preflight",
+    "newHumanApproval": false
+  },
+  "limitation": "application proof; final API, browser and human checks recorded separately"
+}

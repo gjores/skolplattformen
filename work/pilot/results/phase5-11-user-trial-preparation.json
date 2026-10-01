@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-01T21:31:16.455Z",
+  "scope": "local synthetic user trial preparation",
+  "initialSeed": "READY; four new owned educations and three plans; existing roles2 verified through SQL",
+  "rerun": {
+    "target": "protected",
+    "status": "READY",
+    "educations": 4,
+    "school": "Syntetisk skola 11",
+    "program": "SA25",
+    "programVersion": 4,
+    "orientation": "SASAP",
+    "knownSyntheticStart": "2026-08-17",
+    "verifiedExistingRoles": 2,
+    "preservedExistingRecords": 7,
+    "verification": "owned additive rows; actual existing rector/HM mandates with temporary SQL sessions and mandatory DB audit; no Worker, interactive IdP or human result implied"
+  },
+  "preservedOwnedCohortEdit": true,
+  "fixtureVersionsAndPlanDataPreserved": true,
+  "limitation": "owned fixture metadata edit tests preservation; no human interaction implied",
+  "ownedProbeFieldRestored": true
+}

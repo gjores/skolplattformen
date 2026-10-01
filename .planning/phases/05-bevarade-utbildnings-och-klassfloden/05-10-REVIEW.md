@@ -3,7 +3,7 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "10"
 reviewed: 2026-10-01
 reviewer: independent-executor-05-09
-status: code_review_passed_runtime_pending
+status: code_and_backend_runtime_review_passed
 scope: SQL, slutna underlagskontrakt, serveradapter och klientens kommandokontrakt
 ---
 
@@ -33,3 +33,13 @@ Sex kodkontroller passerar. Inga konkreta blockerande fel har hittats i de grans
 Granskaren har inte gjort samtidiga databaskörningar eller egna kodändringar. Körbevis för exakt två nya grants, återställd ACL, DB/Worker-auditrollback, verkliga sessions-/mandatgränser, read-preservation, fel/timeout och dator-/telefonflöde måste finnas från genomförandet. SQL-testkällans positiva/negativa assertions och pagineringsfall stödjer granskningsbedömningen men ersätter inte färsk körning. En observerad låsväntan prövas separat om workspacegenomförandet ska göra ett nytt påstående om dynamiskt mandat efter väntan.
 
 Fullständiga nationella ramar, alternativ, nivåföljd/timregler och fastställande förblir stängda. Mänsklig användarverifiering och fasens samlade kravverifiering återstår. Ingen verklig IdP-/kommunanslutning eller pilotdrift granskas här.
+
+## Rootens uppföljning av slutbevis — 2026-10-01
+
+Root har läst preflight/finalrapporterna och jämfört aktuella källhashar. Underlags-API har 38/38 fall och 118/118 kontroller i båda körningarna, gammalt programplans-API 48/278 och timplans-API 39/135 PASS. Alla obligatoriska response-/persistentkontroller är true, ACL är återställd efter preflight, slutproven kör utan tillfälliga grants och verksamhetsbevarande/cleanup är gröna. Slutrapporternas samtliga källhashar matchar aktuell kod. SQL443/443 och verkliga paritets-/låsväntansbevis redovisas i 05-10-SUMMARY.
+
+Preflightens enda avvikande källhash gäller harnessens egen fil: efter preflight har låsväntan fått en felväg som stoppar vid locker-fel i stället för hängning, och två migreringshashar har tillförts rapportmetadata. Återställning av enbart dessa två textändringar i minnet ger exakt preflightens SHA c4805048…ef7e477; aktuellt/finalt SHA är fbe62612…a0d0fd23. Inga assertions, grants, lyckade väntansvägar eller bevarandekrav ändrades. Preflightens dåvarande harness var inte committad vid sin rapportrevision; detta får inte beskrivas som byteidentisk Git-källa.
+
+Rootens tillämpningskontroll verifierade exakt tio Worker-signaturer, noll PUBLIC/anon/authenticated-EXECUTE och ledger120000/121000 i samma transaktion. Ett första automatiskt avslag följdes av nytt oberoende läsbevis och transparent godkänd omprövning. Ingen behörighetsomväg eller nytt manuellt användargodkännande användes. Två nya läsfunktioner finns enbart i det lokala syntetiska provmålet.
+
+Backendgränsen är nu verifierad för fortsättning till 05-11. UI/browser och mänsklig användarbedömning redovisas fortfarande separat; ADMIN-02 och fas 5 är öppna.
