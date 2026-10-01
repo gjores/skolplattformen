@@ -40,7 +40,8 @@ export function selectCurrentTrialPlan(workspace, versions) {
     if(workspace.versionCount!==0||versions.length||draftId!==null)throw Error('REFUSED: aktuellt provurval avviker');
     return null;
   }
-  if(versions.length!==workspace.versionCount||new Set(versions.map(p=>p.id)).size!==versions.length)
+  if(versions.length!==workspace.versionCount||new Set(versions.map(p=>p.id)).size!==versions.length
+    ||Math.max(...versions.map(p=>p.version))!==latestVersion)
     throw Error('REFUSED: ofullständig aktuell versionslista');
   const current=draftId?versions.find(p=>p.id===draftId):versions.find(p=>p.version===latestVersion);
   if(!current||(draftId&&current.status!=='utkast'))throw Error('REFUSED: aktuell provversion saknas');

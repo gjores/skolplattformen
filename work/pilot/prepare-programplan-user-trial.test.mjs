@@ -42,5 +42,6 @@ test('current readiness preserves human changes and selects exact off-page draft
   assert.throws(()=>selectCurrentTrialPlan(w,[latest]),/REFUSED/u);
   assert.throws(()=>selectCurrentTrialPlan(w,[latest,{...draft,status:'ersatt'}]),/REFUSED/u);
   assert.throws(()=>selectCurrentTrialPlan({...w,education:{latestVersion:61,draftId:null}},[latest,draft]),/REFUSED/u);
+  assert.throws(()=>selectCurrentTrialPlan({...w,education:{latestVersion:61,draftId:'draft'}},[latest,draft]),/REFUSED/u);
   assert.equal(selectCurrentTrialPlan({education:{latestVersion:0,draftId:null},versionCount:0},[]),null);
 });

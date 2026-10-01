@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-01T23:23:03.408Z",
+  "scope": "isolated local synthetic IdP",
+  "cases": [
+    {
+      "profile": "desktop",
+      "role": "Rektor",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "profile": "desktop",
+      "role": "Huvudman",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "profile": "phone",
+      "role": "Rektor",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "profile": "phone",
+      "role": "IT",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    }
+  ],
+  "cleanup": "actual app logout revokes each own browser session; security audit preserved",
+  "limitations": [
+    "Test helper automatically supplies a real local code; this is not a human second-factor assurance test.",
+    "Phone uses iPhone/WebKit emulation; production authentication and mandates unchanged."
+  ]
+}

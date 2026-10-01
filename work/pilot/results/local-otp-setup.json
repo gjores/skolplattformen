@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "scope": "isolated local synthetic IdP",
+  "results": [
+    {
+      "username": "p3.rektor",
+      "action": "additive_helper_credential",
+      "oldCredentialsPreserved": true,
+      "profilePreserved": true,
+      "enrollmentCompleted": false
+    },
+    {
+      "username": "p3.huvudman",
+      "action": "existing_binding_preserved"
+    },
+    {
+      "username": "p3.it",
+      "action": "additive_helper_credential",
+      "oldCredentialsPreserved": true,
+      "profilePreserved": true,
+      "enrollmentCompleted": true
+    }
+  ],
+  "limitations": [
+    "Setup adds a separate local helper OTP registration only where needed; actual OIDC/MFA login still requires separate verification."
+  ],
+  "source": "idp-test-otp-setup.mjs; local named realm/container, exact account ID/username/email, old credential/profile preservation checks",
+  "recordedAt": "2026-10-01T23:25:56.720594+00:00"
+}
