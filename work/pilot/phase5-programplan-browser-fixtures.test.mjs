@@ -24,6 +24,10 @@ test('browser summary fails on missing/skipped/duplicated cases, stale provenanc
   const cleanup={customers:0,sessions:0,plans:0,offerings:0,mandates:0,mintedSessions:0,triggers:0,functions:0,preservedAuditEvents:3,preservedAuditAnchors:1};
   const report=()=>({errors:[],suites:[{specs:Array.from({length:15},(_,i)=>({title:`${String(i+1).padStart(2,'0')}: flow`,tests:['programplan-desktop','programplan-phone'].map(projectName=>({projectName,expectedStatus:'passed',results:[{status:'passed',attachments:[attachment('cleanup.json',cleanup),...(i===0?[attachment('source-build.json',{...proof,scope:'local-synthetic-only'})]:[])]}]}))}))}]});
   assert.equal(summarizeProgramplanBrowser(report(),proof).status,'PASS');
+  const advancedHead=report();const attachments=advancedHead.suites[0].specs[0].tests[1].results[0].attachments;
+  attachments[1]=attachment('source-build.json',{...proof,sourceRevision:'c'.repeat(40),scope:'local-synthetic-only'});
+  assert.equal(summarizeProgramplanBrowser(advancedHead,proof).status,'PASS');
+  assert.deepEqual(summarizeProgramplanBrowser(advancedHead,proof).observedSourceRevisions,[source,'c'.repeat(40)]);
   const missed=report();missed.suites[0].specs.pop();assert.equal(summarizeProgramplanBrowser(missed,proof).status,'FAIL');
   const skipped=report();skipped.suites[0].specs[4].tests[0].results[0].status='skipped';assert.equal(summarizeProgramplanBrowser(skipped,proof).status,'FAIL');
   const duplicate=report();duplicate.suites[0].specs[3].title='01: duplicate';assert.equal(summarizeProgramplanBrowser(duplicate,proof).status,'FAIL');

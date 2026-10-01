@@ -1,0 +1,18 @@
+{
+  "scope": "local-synthetic-only",
+  "buildRevision": "c3200412f24a5ca797b47bcc2bfcf714d56e5697",
+  "images": [
+    "web/outputs/phase5-11/programplan/programplan-desktop-01-programplan-read.png",
+    "web/outputs/phase5-11/programplan/programplan-desktop-05-programplan-legacy-clone.png",
+    "web/outputs/phase5-11/programplan/programplan-desktop-07-programplan-conflict.png",
+    "web/outputs/phase5-11/programplan/programplan-desktop-09-programplan-mfa.png",
+    "web/outputs/phase5-11/programplan/programplan-desktop-10-programplan-refresh-error.png",
+    "web/outputs/phase5-11/programplan/programplan-phone-01-programplan-read.png",
+    "web/outputs/phase5-11/programplan/programplan-phone-05-programplan-legacy-clone.png",
+    "web/outputs/phase5-11/programplan/programplan-phone-07-programplan-conflict.png",
+    "web/outputs/phase5-11/programplan/programplan-phone-09-programplan-mfa.png",
+    "web/outputs/phase5-11/programplan/programplan-phone-10-programplan-refresh-error.png",
+    "web/outputs/phase5-11/programplan/programplan-phone-04-programplan-dialog.png",
+    "web/outputs/phase5-11/programplan/programplan-desktop-04-programplan-dialog.png"
+  ]
+}

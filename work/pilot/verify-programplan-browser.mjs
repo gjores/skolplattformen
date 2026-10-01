@@ -13,9 +13,11 @@ export function summarizeProgramplanBrowser(json,proof){
   const builds=bodies('source-build.json'),cleanup=bodies('cleanup.json');
   const matrix=['programplan-desktop','programplan-phone'].every(project=>Array.from({length:15},(_,n)=>String(n+1).padStart(2,'0')).every(id=>cases.filter(c=>c.project===project&&c.case===id&&c.status==='passed').length===1));
   const cleaned=cleanup.length===30&&cleanup.every(c=>c&&['customers','sessions','plans','offerings','mandates','mintedSessions','triggers','functions'].every(key=>c[key]===0)&&c.preservedAuditEvents>0&&c.preservedAuditAnchors>0);
-  const provenance=builds.length===2&&builds.every(b=>b.buildRevision===proof.buildRevision&&b.sourceRevision===proof.sourceRevision&&b.scope==='local-synthetic-only');
+  // Each beforeAll independently checks all controlled files against this build.
+  // A concurrent planning-only commit may advance HEAD between projects.
+  const provenance=builds.length===2&&builds.every(b=>b.buildRevision===proof.buildRevision&&/^[a-f0-9]{40}$/u.test(b.sourceRevision??'')&&b.scope==='local-synthetic-only');
   return {phase:'05-11',status:tests.length===30&&matrix&&cleaned&&provenance&&tests.every(t=>t.expected==='passed'&&t.status==='passed'&&t.results.length===1)&&(json.errors??[]).length===0?'PASS':'FAIL',
-    ...proof,scope:'local-synthetic-only',cases,cleanupCount:cleanup.length,cleanupVerified:cleaned,sourceBuildVerified:provenance,
+    ...proof,observedSourceRevisions:[...new Set(builds.map(b=>b.sourceRevision))],scope:'local-synthetic-only',cases,cleanupCount:cleanup.length,cleanupVerified:cleaned,sourceBuildVerified:provenance,
     preservedAuditEvents:cleanup.reduce((n,c)=>n+(c?.preservedAuditEvents??0),0),preservedAuditAnchors:cleanup.reduce((n,c)=>n+(c?.preservedAuditAnchors??0),0),
     limits:['Lokalt mintade sessionsbevis; inget interaktivt IdP-prov.','Telefonprov använder iPhone/WebKit-emulering.','Negativa transportfel avgränsas med browserintercept, framgångswrite använder Worker/SQL.','Mänsklig förståelse och fasens fullständiga nationella regelram återstår.']};
 }

@@ -1,0 +1,172 @@
+{
+  "phase": "05-11 / 05-12 regression",
+  "status": "FAIL",
+  "sourceRevision": "0b6a1185938564703fd50adf7d09175cffba6936",
+  "buildRevision": "c3200412f24a5ca797b47bcc2bfcf714d56e5697",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "10",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "10",
+      "project": "timplan-phone",
+      "status": "failed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "timplan-phone",
+      "status": "failed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "timplan-phone",
+      "status": "skipped",
+      "expected": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 11,
+  "cleanupVerified": false,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 140,
+  "preservedAuditAnchors": 13,
+  "images": [
+    "web/outputs/phase5-11/timplan/timplan-desktop-10-grundskola-regelstod.png",
+    "web/outputs/phase5-11/timplan/timplan-desktop-10-im-regelstod.png"
+  ],
+  "limits": [
+    "Lokalt mintade sessionsbevis; inget interaktivt IdP-prov.",
+    "Telefon använder iPhone/WebKit-emulering.",
+    "Negativa svar är browserintercept kring faktiska Worker/SQL-writes.",
+    "Äldre timplanscleanup är inte retroaktivt verifierad."
+  ],
+  "failureNotes": [
+    "Desktop10/10PASS, därefter previewavbrott vid första telefonprojektets sidladdning, återstående nekad3056anslutning.",
+    "Samtliga11 faktiskt seedade fixturer har cleanup; historisk FAIL ersätts inte med PASS.",
+    "Neutral ny processdiagnos och hel omkörning krävs; inga retries/skips."
+  ],
+  "passedCases": 10,
+  "seededCases": 11,
+  "seededCleanupVerified": true
+}
