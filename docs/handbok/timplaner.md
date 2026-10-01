@@ -46,6 +46,6 @@ Om anslutningen bryts under sparning kan beskedet vara osäkert. Läs då in pla
 
 ## Begränsningar
 
-Vyn visar och ändrar befintliga timplansceller. Skapande, förslag, beslut, nya versioner, klasskopplingar och gymnasiets programplansunderlag är ännu inte tillgängliga i den skyddade vyn. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
+Vyn visar och ändrar befintliga timplansceller. Skapande av timplaner, förslag, beslut, nya timplansversioner och klasskopplingar är ännu inte tillgängliga här. Gymnasiets utkast hanteras separat i Programplaner. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
 
 Alla läsningar och ändringar kräver att säkerhetsloggen fungerar. Om den inte kan skrivas lämnas inget innehåll ut och ändringen genomförs inte. Vid utloggning eller ändrat uppdrag rensas plan och osparat innehåll från arbetsytan.

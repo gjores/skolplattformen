@@ -4,6 +4,7 @@ module.exports = { handbok: [
     'exempelmiljo',
     'anvandning',
     'timplaner',
+    'programplaner',
     'inloggningsmetoder',
     'kundadministration',
     'mandat',
