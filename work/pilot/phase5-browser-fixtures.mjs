@@ -93,8 +93,8 @@ export async function createTimplanBrowserFixture() {
         and not exists(select 1 from public.access_assignments where customer_id=${id(1)})
         and not exists(select 1 from public.offerings where organizer_id=${id(2)})
         and not exists(select 1 from public.timplans where organizer_id=${id(2)}) as clean,
-        (select count(*)::int from public.security_events where customer_id=${id(1)}) as preservedAuditEvents,
-        (select count(*)::int from public.identities i where i.id=any(${[10,11,12,13,14].map(id)}::uuid[]) and exists(select 1 from public.security_events e where e.actor_identity_id=i.id)) as preservedAuditAnchors`;
+        (select count(*)::int from public.security_events where customer_id=${id(1)}) as "preservedAuditEvents",
+        (select count(*)::int from public.identities i where i.id=any(${[10,11,12,13,14].map(id)}::uuid[]) and exists(select 1 from public.security_events e where e.actor_identity_id=i.id)) as "preservedAuditAnchors"`;
       if(!row.clean) failed=true;else evidence=row;
     } catch { failed=true; }
     await db.end({timeout:3});

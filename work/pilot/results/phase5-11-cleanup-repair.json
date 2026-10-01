@@ -1,0 +1,19 @@
+{
+  "phase": "05-11",
+  "status": "PASS",
+  "scope": "two-owned-local-synthetic-browser-fixtures-only",
+  "cause": "Two test workers exited after competing unhandled timeout promises in an invalid behind-modal navigation attempt; their cleanup attachments were absent.",
+  "ownershipChecks": [
+    "Exact customer name Syntetiskt programplansprov",
+    "Exact synthetic UUID customer suffix 000000000001",
+    "Owned organizer and offering suffix 000000000046 with name Syntetisk SA utan plan",
+    "Maximum two matching customers; no permanent user-trial customer selected"
+  ],
+  "repaired": 2,
+  "cleanup": [
+    { "customers": 0, "sessions": 0, "plans": 0, "offerings": 0, "mandates": 0, "preservedAuditEvents": 10, "preservedAuditAnchors": 1 },
+    { "customers": 0, "sessions": 0, "plans": 0, "offerings": 0, "mandates": 0, "preservedAuditEvents": 10, "preservedAuditAnchors": 1 }
+  ],
+  "mintedSessionCleanup": "Own sessions selected through these two customers' memberships and deleted before graph cleanup.",
+  "limits": "This repair concerns the two interrupted programplan browser fixtures. It does not retroactively verify earlier timplan-fixture cleanup or recover previously deleted audit identities."
+}
