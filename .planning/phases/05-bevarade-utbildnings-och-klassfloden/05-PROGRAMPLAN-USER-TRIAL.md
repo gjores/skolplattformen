@@ -4,9 +4,9 @@ Status 2026-10-02: **användaren har rapporterat en allvarlig begriplighetsbrist
 
 ## Börja här
 
-Ladda om http://127.0.0.1:3012/ för att få det aktuella bygget och välj rektorns provknapp på inloggningssidan. Ange aktuell engångskod när inloggningen kräver den. Välj uppdraget för **Syntetisk skola 11**. Huvudmannens provkonto kan också arbeta med programplansutkasten. Inga inloggningsuppgifter eller engångskoder lagras i denna fil.
+Ladda om http://127.0.0.1:3012/ för att få det aktuella bygget. Välj rektorns rollprovknapp på inloggningssidan, **Fyll i provkod** och **Logga in**. Välj uppdraget för **Syntetisk skola 11**. Huvudmannens rollprov kan också arbeta med programplansutkasten. Inga inloggningsuppgifter eller engångskoder lagras i denna fil.
 
-Välj **Programplaner**. Fyra nya utbildningar ska vara synliga:
+Välj **Programplaner**. De fyra befintliga provutbildningarna ska vara synliga:
 
 | Utbildning | Vad du prövar |
 | --- | --- |
@@ -19,11 +19,15 @@ Alla exempel använder **SA25**, programversion **4**, inriktning **SASAP** och 
 
 ## Prova programplanerna
 
-1. Öppna **skapa**. Välj katalog och **Skapa utkast**, ange 2026-08-17, välj en fördjupningsnivå och spara. Läs om eller ladda om sidan: samma utkast och val ska finnas kvar. Det ska framgå att sparningen inte fastställer planen.
-2. Öppna **äldre utkast**, välj version 1 och katalogen. Det äldre valet **ANIM1000X** ska visas. Välj **Bind äldre utkast**, ange 2026-08-17 och bekräfta att hela den äldre valmängden bevaras i samma ordning. Efter sparning ska utbildningsstart och programversion visas, med samma äldre val.
-3. Öppna **bundet utkast** och version 1. Välj **Ändra programfördjupning**, lägg till ytterligare nivå och pröva flytta/ta bort. Spara och ladda om. Val och ordning ska bestå; katalog och startdatum ska vara bundna. Ändra något igen och välj Avbryt eller en annan vy: osparade ändringar ska ge ett tydligt val.
-4. Öppna **ny version** och version 1. Den låsta källan ska gå att läsa. Välj katalog, **Kopiera till nytt utkast**, ange 2026-08-17 och bekräfta äldre val. Spara. Den nya versionen ska vara utkast och den tidigare versionens status och beslutsdatum ska bestå.
-5. Bedöm om skillnaden mellan version, katalogunderlag, olösta val, sparat utkast och fastställd plan är begriplig. Prova också på telefon: nås alla val och knappar, fungerar dialogens rullning och syns resultat/fel där du förväntar dig?
+Börja med att öppna en utbildning och säg vad som ingår och vad du kan ändra. Planen ska visas direkt. Beskriv om **Ingår enligt underlaget**, **Dina sparade fördjupningsval** och **Nästa steg** hjälper dig att förstå utbildningen. Tekniska källor och äldre versioner kan sedan öppnas under **Underlag och tidigare versioner**.
+
+Använd de kvarvarande exemplen; en tidigare sparad eller ändrad plan ska ligga kvar. Följ den åtgärd som faktiskt visas. Skapa inte om en plan för att försöka återställa en tidigare provbild.
+
+1. Öppna **skapa**. Om utbildningen fortfarande saknar plan: välj **Skapa programplan**, välj aktivt underlaget hämtat 2026-09-05 och **Fortsätt till startdatum och val**. Ange 2026-08-17, välj en fördjupningsnivå och **Spara utkast**. Om ett utkast redan finns, läs dess sparade val och gå vidare via **Ändra fördjupning**. Ladda om: samma utkast och val ska ligga kvar. Det ska framgå att sparningen inte fastställer planen.
+2. Öppna **äldre utkast**. Om det fortfarande är obundet ska äldre råval, exempelvis **ANIM1000X**, visas utan gissade namn. Välj **Gör utkastet redo för ändring**, aktivt underlag, **Fortsätt till startdatum och val**, startdatum 2026-08-17 och bekräftelsen att hela den äldre valmängden bevaras i samma ordning. Spara. Därefter ska nivånamn och poäng kunna läsas. Om planen redan är bunden, granska de bevarade valen och det bundna underlaget i stället för att binda igen.
+3. Öppna **bundet utkast**. Välj **Ändra fördjupning**, lägg till en nivå och pröva flytta/ta bort. Spara och ladda om. Namn, poäng och ordning ska bestå; katalog och startdatum är bundna. Ändra något igen och välj **Avbryt**: bekräftelsen ska låta dig behålla eller lämna dina osparade ändringar. Pröva samma väg på telefon.
+4. Öppna **ny version**. Om den låsta källan fortfarande är aktuell och inget utkast finns: välj **Skapa ny version**, aktivt underlag, **Fortsätt till startdatum och val**, startdatum 2026-08-17 och bekräftelsen för äldre val. Spara. Den nya versionen ska vara utkast. Om ett utkast redan skapats visas det direkt; läs det och öppna sedan den äldre låsta versionen i **Underlag och tidigare versioner**. Den låsta källans status och beslutsdatum ska bestå.
+5. Bedöm om du förstår nästa handling utan att börja med de tekniska källuppgifterna. Skiljer vyn tydligt sparade val från alternativ eller saknade nivåuppgifter i referensunderlaget? Prova också på telefon: nås alla val och knappar, fungerar dialogens rullning och syns resultat/fel där du förväntar dig?
 
 Den låsta provkällan har lagts in privilegierat som syntetisk provsetup; fastställande är ännu inte en levererad användaråtgärd. Katalogreferenser kan lösas utan att hela utbildningens nationella ram, alternativ, nivåföljd eller undervisningstid är kontrollerad. Ingen generell poängram eller omräkning till schematimmar ska visas som godkänd regelkontroll.
 
