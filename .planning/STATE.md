@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-08
-status: planning
-stopped_at: Completed 05-08 closed audited program plan draft SQL; protected API preflight next; Phase 4 checkpoint open
+current_plan: 05-09
+status: executing
+stopped_at: Executing protected programplan API and parallel timetable guidance; continue automatically until human UI trial; Phase 4 checkpoint open
 last_updated: "2026-10-01"
 last_activity: 2026-10-01
-last_activity_desc: "Schemadelprojekt kompletterat med separat köp av moduler: MODUL-01–04, kundens modultillgång skild från personmandat, öppna beroenden och kontrollerat tillägg/avslut. SCHEMA-05 förtydligat till AI-utvärdering med möjlighet att avstå; AI-införande ej beslutat. Rustprototyp och övriga krav kvarstår; inget nytt genomförande eller fasgodkännande."
+last_activity_desc: "Användaren har godkänt automatisk fortsättning genom flera GSD-planer till nästa konkreta mänskliga prov. 05-09 skyddad programplans-API genomförs; 05-12 regelhandledning i befintlig timplansvy genomförs parallellt. Programplansurval och UI planeras därefter; fas 4:s checkpoint kvarstår."
 state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 62
+  total_plans: 64
   completed_plans: 61
 milestone_name: milestone
 ---
@@ -38,9 +38,9 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-08 klar; nästa 05-09: planera skyddad programplans-API och preflight
+**Current Plan:** 05-09 genomförs: skyddad programplans-API och preflight; 05-12 timplansregelhandledning parallellt. Därefter urvalsunderlag och programplansvy till nästa mänskliga prov.
 **Total Plans in Phase:** 8 genomförda delplaner; övriga skyddade flöden återstår
-**Status:** Planning fas 5; fas 4:s användarprov och fasverifiering fortfarande öppna
+**Status:** Genomförande fas 5; automatisk fortsättning till konkret mänskligt prov enligt användarbeslut 2026-10-01. Fas 4:s användarprov och fasverifiering fortfarande öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-01
 **Last Activity Description:** Användarbeställt schemadelprojekt dokumenterat med SCHEMA-01–08, gemensamma plan-/grupp-/schemakontrakt, operationsbundna mandat, Rustprototyp och utvärdering av Jev eller liknande AI för möjlig användning i schemamodulen; införande kräver separat beslut efter utvärderingen. Valda interna/externa moduldelar ska kunna kombineras. Fas 5 har fått en kompatibilitetsgräns inför berörda kommande planer; nästa genomförandeplan är fortfarande 05-09. Inga nya verksamhetsvägar, prototyper eller verifieringsresultat.
