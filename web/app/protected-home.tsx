@@ -51,9 +51,10 @@ import MandateWorkspace from './mandate-workspace';
 import MfaStepUpNotice from './mfa-step-up';
 import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-workspace';
 import ProtectedTimplanWorkspace from './protected-timplan-workspace';
+import ProtectedProgramplanWorkspace from './protected-programplan-workspace';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 
-type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'stangt';
+type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -76,7 +77,6 @@ export type SessionResponse = {
 
 const closedItems = [
   ['Utbildningar', Building2],
-  ['Programplaner', ListChecks],
   ['Klasser och läsår', GraduationCap],
 ] as const;
 
@@ -153,6 +153,12 @@ function ProtectedNavigation({
             <SidebarMenuButton isActive={view === 'timplaner'} aria-current={view === 'timplaner' ? 'page' : undefined}
               onClick={() => go(session.context && ['huvudman','rektor'].includes(session.context.function) ? 'timplaner' : 'stangt')} className="nav-button">
               <CalendarClock size={19}/><span>Timplaner</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton isActive={view === 'programplaner'} aria-current={view === 'programplaner' ? 'page' : undefined}
+              onClick={() => go(session.context && ['huvudman','rektor'].includes(session.context.function) ? 'programplaner' : 'stangt')} className="nav-button">
+              <ListChecks size={19}/><span>Programplaner</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           {closedItems.map(([label, Icon]) => (
@@ -376,7 +382,7 @@ function ProtectedShell() {
     <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); return loadSession(); }} />
   );
   const validContext = session.context?.valid && !session.context.blocked;
-  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : 'Kommande funktion';
+  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
@@ -392,7 +398,7 @@ function ProtectedShell() {
           <div className="breadcrumbs"><SidebarTrigger aria-label="Visa eller dölj navigation" /><span>Arbetsyta</span><strong>{currentTitle}</strong></div>
           <div className="top-actions">
             <span className="demo-pill">Skyddad provmiljö</span>
-            {view !== 'timplaner' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
+            {view !== 'timplaner' && view !== 'programplaner' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
               setSchoolYear(year);
               if (view !== 'elever' && registerSetup.scope.schools[0]) {
                 const defaults = { schoolYear: year, unitId: registerSetup.scope.schools[0].id, classId: null, educationId: null, grade: null, status: null, page: 1 };
@@ -416,6 +422,7 @@ function ProtectedShell() {
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
             {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={setSchoolYear} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
             {view === 'timplaner' && ['huvudman','rektor'].includes(session.context!.function) && <ProtectedTimplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
+            {view === 'programplaner' && ['huvudman','rektor'].includes(session.context!.function) && <ProtectedProgramplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}

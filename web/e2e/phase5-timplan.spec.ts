@@ -356,12 +356,17 @@ test('07: session, epoch och återkallat mandat rensar uppgifter och sena verkli
   expect((await fixture.snapshot()).revision).toBe(0);
 });
 
-test('08: pagination, tom lista, okänd rad och stängd programplansnavigation',async({page})=>{
+test('08: pagination, tom lista, okänd rad och skyddad programplansnavigation',async({page})=>{
   await fixture.unknownRow();await enter(page);await open(page);
   await expect(workspace(page)).toContainText(/okänd|ej stö|stöds inte/iu);
   await expect(workspace(page).getByRole('button',{name:/Ändra syntetisk_okand/iu})).toHaveCount(0);
+  const programList=page.waitForResponse(matches('/api/programplaner/lista'));
   await navigate(page,'Programplaner');
-  await expect(page.getByRole('heading',{name:'Stängt i denna fas'})).toBeVisible();
+  expect((await programList).status()).toBe(200);
+  const programWorkspace=page.getByTestId('protected-programplan-workspace');
+  await expect(programWorkspace.getByRole('heading',{name:'Programplaner',exact:true})).toBeVisible();
+  await expect(programWorkspace).toContainText('Syntetiskt gymnasium');
+  await expect(programWorkspace).not.toContainText('Syntetisk annan grundskola');
   await fixture.addPages();
   await navigate(page,'Timplaner');
   await expect(workspace(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(50);
