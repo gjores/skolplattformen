@@ -9,7 +9,7 @@ scope: read-only diagnosis; no product/runtime/database changes
 ## Current Focus
 
 hypothesis: Ursprungligt terminalt Wrangler/workerd-fel eller ursprunglig processignal är ännu inte fångad. Ingen faktisk rotorsak är belagd.
-test: UI-agenten kör en full neutral timplansomgång på samma c320041-bygge med enbart uncaughtExceptionMonitor/exitkodmonitor och privat WRANGLER_LOG=debug. Root prövar separat vanlig3012 utan preload med health, rootURL och verkliga HM-/rektorsunderlag genom Worker.
+test: UI-agentens fulla neutrala timplansomgång är avslutad20/20PASS på samma c320041, utan uncaughtExceptionMonitor-event; vanlig3012 utan preload och rootens egna readinessprov förs separat.
 expecting: Färska gröna sviter och frisk3012 kan verifiera aktuellt användarprov; de bevisar inte att de tidigare avbrottens orsak är åtgärdad.
 next_action: Vid nytt avbrott, samla ursprunglig exit code/signal per process och filtrerad exception/cause/stack från privat diagnostik. Till dess bevara denna separat öppna fråga; märk inte fixed/resolved.
 
@@ -54,6 +54,10 @@ started: Två rapporterade avbrott under aktuella UI-prov; tidigare API-prov och
 - checked: Runtime-/DB-ägande.
   found: UI-agenten äger3056 och fixturer; denna debugger har varken startat/stoppat runtime, läst/skrivit DB eller ändrat produktkod. Root samordnar vanlig3012 och beständigt mänskligt prov.
   implication: Inga parallella process-/databasmutationer från denna undersökning. Ingen ny fasverifiering eller kommunanslutning påstås.
+
+- checked: UI-agentens avslutade neutrala fullsvit och privata exitmonitoruppgifter.
+  found: Neutral timplan20/20PASS, cleanup20 med alla egna rester0, 300 bevarade audithändelser/26ankare. Preview67898 stoppades därefter avsiktligt med CtrlCexit130;3056stängd. Privat neutraldebuglogg har enbart fyra exitmonitorposter130 för de stoppade Node-processleden och inga uncaughtMonitor-/unhandled-handler-events. Äldre instrumenterad20PASS hålls separat och används inte som slutgrind.
+  implication: Färskt fullständigt timplansbrowserbevis på oförändrat bygge med neutral monitor, ingen behovsstyrd produktfix. DB/runtime är släppt till root. De två äldre avbrottens terminalorsak kvarstår obestämd.
 
 ## Resolution
 
