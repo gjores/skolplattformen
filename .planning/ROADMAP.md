@@ -173,7 +173,11 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 
 - [x] 05-08-PLAN.md — Oföränderlig SQL-katalog och stängda sessions-/mandatbundna utkast med CAS/audit; 632 SQL, 455+5 Node, 42 paritet och 6 observerade låsväntansfall + rollback PASS; inga API/grants/beslut öppnade
 
-Nästa delplan ska koppla stängda programplansutkast till skyddad API med levande session/MFA och obligatorisk Worker-audit, följt av full preflight före permanent grant. Programplanernas direkta framtida HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. UI, beslut, kullkopiering och klasskoppling återstår.
+- [ ] 05-09-PLAN.md — Skyddad programplans-API med session/MFA/dubbel audit och full preflight före smal grant; genomförande pågår
+- [ ] 05-10-PLAN.md — Gymnasieurval, versions-/legacyunderlag och uttrycklig verifierad katalogkälla före UI; förberedande genomförande pågår
+- [x] 05-12-PLAN.md — Regelhandledning i befintlig timplansvy och dialog, GR/IM-källor och handbok; 20/20 browserprov och skyddat bygge PASS. Mänsklig förståelsebedömning följer med 05-11.
+
+05-11 ska öppna programplansvyn efter 05-09/05-10:s verifierade API. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 
 Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 

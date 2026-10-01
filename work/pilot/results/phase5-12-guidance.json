@@ -1,0 +1,41 @@
+{
+  "plan": "05-12",
+  "scope": "local-synthetic-built-worker",
+  "status": "PASS",
+  "build": {
+    "mode": "protected",
+    "revision": "2477d57bf97b2e27097f13cdd0115e0645e5e335",
+    "builtAt": "2026-10-01T20:41:27.867Z",
+    "node": "v25.9.0"
+  },
+  "stats": {
+    "startTime": "2026-10-01T20:41:53.519Z",
+    "duration": 48624.967,
+    "expected": 20,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sourceRevision": "04f2eaa9ba0b80fefe1a34019b497a683d72e876",
+  "sourceHashes": {
+    "web/app/timplan-guidance.tsx": "94462a795067229b0b2a14b267d0ffc274d56d208e729d03772255dcea8eef00",
+    "web/app/protected-timplan-workspace.tsx": "3844b98329de1a22e8be83881e981bf222a493d72b73368449457c660b54ed2b",
+    "web/app/protected-timplan.css": "8088461248010fdb837a68a1288fef054b0805d6e5c6fa07216f439b90b5a1e9",
+    "web/e2e/phase5-timplan.spec.ts": "4704d48b369e86b842286fb375185b035b325a822bde54d40a051b73acf2c4ed",
+    "work/pilot/phase5-browser-fixtures.mjs": "06116f2f2a46ac9d9f6450a44adc4e0457646d49876cc8b5c0789e6b4aaf6399",
+    "docs/handbok/timplaner.md": "c22d30f2ccc8716a3e2c91d0708eb09aeb21a5fe6191a3b5b4fe849e1694bb6a"
+  },
+  "typecheck": "PASS",
+  "scopedLint": "PASS",
+  "docsBuild": "PASS",
+  "existingTimplanModel": {
+    "passed": 9,
+    "skipped": 0
+  },
+  "visualReview": "desktop and phone GR/IM checked",
+  "humanTrial": "pending-guidance-understanding",
+  "limitations": [
+    "No full timetable rule validation or decisions",
+    "Minted local sessions; no new interative IdP or real municipality evidence"
+  ]
+}

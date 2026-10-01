@@ -13,8 +13,8 @@ state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 64
-  completed_plans: 61
+  total_plans: 65
+  completed_plans: 62
 milestone_name: milestone
 ---
 
@@ -28,6 +28,8 @@ See: .planning/PROJECT.md (updated 2026-10-01)
 **Current focus:** Fas 5: 05-01–05-08 genomförda. 05-08 har levererat oföränderlig DB-katalog samt stängda sessions-/mandatbundna kommandon för läsning, legacy-bindning, fördjupningsändring, skapa och klona utkast. 632 riktade SQL-prov, 455 modell/server/generator + 5 harnessprov, 42 TS/SQL-paritetsfall och 6 observerade låsväntansfall samt caller-rollback PASS. Ursprungliga plan-/utbildnings-/historikfält är oförändrade. Nästa: skyddad programplans-API med levande session/MFA, Worker-audit och full preflight före några nya grants. Inga nya programplansrättigheter öppnade. Fastställande, nationella beslutsregler, UI, kullkopiering och klasskoppling återstår. Fas 4:s mänskliga checkpoint/datumanmärkning kvarstår separat.
 
 ## Current Position
+
+**Pågående genomförande 2026-10-01:** 05-12:s timplanshandledning klar med 20/20 browserprov, typ/lint/skyddat bygge och handbok PASS; ny mänsklig förståelsebedömning samordnas med kommande programplansvy. 05-09:s serverkontrakt/fem routes är committade, 480 Nodeprov PASS; verklig API-preflight/grant återstår. 05-10 gymnasieurval/versions-/källunderlag planerad, förberedande implementation pågår utan öppnade nya datavägar. Nästa gräns är programplans-UI 05-11 och mänskligt prov. Ingen hel fas eller ADMIN-krav slutverifierat.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla timplansprov fungerar. Registrerat i `05-TIMPLAN-USER-TRIAL.md` för den befintliga skyddade vyn; ingen separat redovisning av enheter/roller. Regelhandledning kvarstår och detta slutför inte fas 5 eller fas 4:s checkpoint. Nästa plan är fortsatt 05-09, skyddad programplans-API.
 

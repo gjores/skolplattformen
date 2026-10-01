@@ -36,4 +36,4 @@ Kontrollerade som primära utgångspunkter 2026-10-01; detaljer och författning
 - [Skolverket: Anordna skolans val](https://www.skolverket.se/styrning-och-ansvar/anordna-utbildning/anordna-utbildning-pa-grundskoleniva/anordna-skolans-val).
 - [Skolverket: Undervisningstid, lärotider och schema](https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema).
 
-Status: användarbeställd vägledning fångad för planering. Genomförande, fullständig rättslig granskning och verifiering återstår. Ingen ändring av mandat eller utökad automatisk regelkontroll är genomförd.
+Status 2026-10-01: vägledningsdelen genomförd i [05-12](../../phases/05-bevarade-utbildnings-och-klassfloden/05-12-SUMMARY.md), med källgranskade skolformsavsnitt i vyn/dialogen och handbok; browser 20/20, typ/lint/skyddat bygge/docsbygge PASS. Mänsklig förståelsebedömning samordnas med 05-11. Fullständig nationell ram-/avvikelseberäkning, versionsbundet regelunderlag och serverkontroll inför fastställande kvarstår; todon är därför fortfarande öppen. Ingen ändring av mandat eller utökad automatisk regelkontroll är genomförd.
