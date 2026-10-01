@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-11
-status: awaiting_human_verification
-stopped_at: Protected programplan and timplan guidance ready on 3012; waiting for combined human trial; Phase 4 checkpoint open
+current_plan: 05-13
+status: executing
+stopped_at: Human programplan trial found major UX gap; preparing 05-13 correction and local OTP button; Phase 4 checkpoint open
 last_updated: "2026-10-02"
 last_activity: 2026-10-02
-last_activity_desc: "05-09–05-12 genomförda. Programplan 30/30 och timplan 20/20 browser PASS på c320041. Fyra beständiga exempel Worker-lästa av rektor/HM på frisk 3012. Samlat mänskligt prov väntar; fas 4:s checkpoint och previewavbrottsdiagnosen kvarstår."
+last_activity_desc: "Användaren underkände programplansvyns begriplighet. 05-13 genomförs med ämnen och tydliga åtgärder först. Lokal provkodsknapp verifieras separat; fas 4 och fasverifiering kvarstår."
 state_head: 81a9fdc
 worker_build_revision: c3200412f24a5ca797b47bcc2bfcf714d56e5697
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 66
+  total_plans: 67
   completed_plans: 65
 milestone_name: milestone
 ---
@@ -26,7 +26,7 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: alla tolv hittills skrivna planer genomförda automatiskt. Skyddad programplansvy och timplanshandledning är redo för samlat mänskligt prov. Exakt tio avgränsade Worker-entrypoints; klientroller och helpers stängda. Nationella regler, fastställande, nya utbildningar, kullkopiering och klasskoppling återstår. Fas 4:s checkpoint kvarstår separat.
+**Current focus:** Fas 5: tolv tidigare planer genomförda automatiskt. Användaren har därefter rapporterat att programplansvyn är obegriplig; 05-13 planerar och rättar denna UX-lucka före nytt mänskligt prov. Exakt tio avgränsade Worker-entrypoints; klientroller och helpers stängda. Nationella regler, fastställande, nya utbildningar, kullkopiering och klasskoppling återstår. Fas 4:s checkpoint kvarstår separat.
 
 ## Current Position
 
@@ -41,9 +41,9 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-11/05-12 väntar på samlat mänskligt användarprov i 05-PROGRAMPLAN-USER-TRIAL.md. Aktuell skyddad app på 3012, fyra namngivna exempel på Syntetisk skola 11.
-**Total Plans in Phase:** 12 skrivna och automatiskt genomförda; mänskligt 05-11/05-12-prov och återstående utbildnings-/beslutsflöden är öppna.
-**Status:** Väntar mänskligt användarprov efter automatisk fortsättning enligt användarbeslut 2026-10-01. Fas 4:s användarprov och fasverifiering fortfarande öppna. Orsaken till två tidigare previewavbrott är fortsatt awaiting_evidence; senaste fulla browseromgångar och vanlig 3012-readiness passerar.
+**Current Plan:** 05-13 genomförs efter användarens misslyckade begriplighetsprov av programplansvyn. Lokalt provkodsstöd genomförs parallellt på användarens begäran. Ingen fas eller mänsklig UX-grind godkänd.
+**Total Plans in Phase:** 13 skrivna, 12 automatiskt genomförda; mänskligt 05-11/05-12-prov och återstående utbildnings-/beslutsflöden är öppna.
+**Status:** 05-13 genomförs efter underkänt mänskligt begriplighetsprov. Tidigare mekaniska browserprov är historiska bevis; rättningen kräver färska prov och ny mänsklig bedömning. Fas 4 och previewavbrottsdiagnosen kvarstår.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-02
 **Last Activity Description:** Skyddad programplansvy och timplanshandledning genomförda till mänskligt prov. 30+20 browser, 502 modell/server/generator, oberoende kodgranskning 6/6 och fyra beständiga exempel via aktuell 3012 PASS. Inga nya grants i UI-planen; totalt tio fas 5-entrypoints efter 05-10.
@@ -55,7 +55,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 65 av 66 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 65 av 67 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
@@ -206,7 +206,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-02
-**Stopped At:** Konkret mänskligt prov för 05-11/05-12 redo på frisk 3012. Fyra beständiga programplansexempel finns på Syntetisk skola 11. Fas 4:s checkpoint kvarstår separat; tidigare previewavbrotts rotorsak är öppen.
+**Stopped At:** 05-13 genomförs efter underkänd programplans-UX. Befintliga fyra användarexempel bevaras. Lokala OTP-knappens fulla inloggningsprov felsöks parallellt. Fas 4 och tidigare previewavbrotts rotorsak är öppna.
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — registrera användarresultat för programplansutkast och timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — genomför 05-13, pröva begriplighet på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
+
+### Senaste användarfynd, 2026-10-02
+
+Programplansvyn fick ett misslyckat mänskligt begriplighetsresultat: ”programplanerdelen är ju fullständigt obegripligt UI. fattar noll.” 05-13 ska visa ämnen, nivåer och poäng först och ge tydlig nästa åtgärd; historik och tekniska källuppgifter blir sekundära. Verifierad explicit käll-/startbindning, servermandat, MFA, revisionskonflikter, osäkra sparsvar och användarens lagrade data bevaras. Kodknapp för tre syntetiska MFA-provkonton förbereds separat, bara i den lokala test-IdP:n.

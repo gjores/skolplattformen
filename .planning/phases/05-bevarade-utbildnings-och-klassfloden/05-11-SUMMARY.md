@@ -4,7 +4,7 @@ plan: "11"
 status: implementation_verified
 completed: 2026-10-02
 requirements: [ADMIN-02]
-human_verification: pending
+human_verification: issues_reported
 subsystem: protected-programplan-ui
 requires: [05-09, 05-10]
 provides:
@@ -75,3 +75,7 @@ En första samordnad timplansomgång passerade desktop10/10 men fick därefter s
 Vanlig skyddad 3012 utan preload startad på samma c320041bygge. Startsida och databasens hälsokontroll PASS med runtime workerd och roll skolplattform_worker. De fyra beständiga utbildningarna och deras initiala tre planversioner är verifierade genom den byggda Workern för både befintlig rektor och huvudman: 16 auditerade läsningar med exakt DB-/Worker-par, korrekt katalog/grund/status/revision och städade egna tillfälliga sessioner. Detta är lokala syntetiska sessionsbevis, inte interaktiv IdP. Förberedelse och bevarandeprov samt import-/readinessguards 2/2 PASS. Se phase5-11-user-trial-worker.json och phase5-11-root-verification.json.
 
 Root kontrollerade fulla namngivna 30+20-fallmatriser, source/build-match, cleanup och slutbilder för läsning, dialog, konflikt, äldre kloning, MFA och omläsningsfel. Kontrollerade källor i web/app, web/lib, web/scripts, web/e2e och handboken avviker inte från c320041. Dator/telefonbildernas fullPage-modalbegränsning består enligt ovan. 05-PROGRAMPLAN-USER-TRIAL.md är redo med konkreta namn, katalog 2026-09-05 och känd start 2026-08-17. Mänskligt resultat, ADMIN-02, hela fas 5 och fas 4:s separata checkpoint förblir öppna. Tidigare serveravbrotts exakta orsak är awaiting_evidence, trots godkända senaste fulla körningar och fungerande vanlig användarvy.
+
+## Mänskligt begriplighetsprov, 2026-10-02
+
+Användaren rapporterar att programplansdelen är obegriplig. Detta är en verklig UX-lucka trots passerade mekaniska browserprov. Inget mänskligt godkännande registreras. 05-13 planerar ämnen/nivåer/poäng först, direkt läsning av aktuell serverplan, begripliga nästa åtgärder och guidade äldre val; ingen ny server-/beslutsfunktion eller gissad kataloggrund.
