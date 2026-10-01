@@ -77,6 +77,8 @@ Användaren vill utveckla schemaläggning tillsammans med programplaner, timplan
 
 [Delprojektets underlag](research/SCHEMAMODUL-PROJEKT.md) anger gemensam grund, föreslagna mandat, krav SCHEMA-01–08, planeringssteg S1–S4 och verifieringsmål. Projektinriktningen är användarbeställd; exakt rolltilldelning, motor, AI-alternativ, driftgräns och genomförandeplacering är öppna. Inga nya schemavägar, Rust-/AI-komponenter eller rättigheter är byggda. Fas 5:s planering ska redovisa kompatibilitet för berörda planversioner, ID:n, enheter och ändringsansvar. Pilotens v1-krav och åtta faser behålls; en hel backendomskrivning är inte beslutad.
 
+Användaren har också beslutat att kunden ska kunna köpa moduler var för sig. MODUL-01–04 anger separat kundbunden modultillgång, personbundna mandat, öppna databeroenden och kontrollerat tillägg/avslut. En kund ska exempelvis kunna köpa schema och tillföra planunderlag från ett befintligt system utan att köpa alla våra planeringsmoduler. Säljbar modulkatalog, tillval, priser och beställnings-/betalningsprocess återstår; ingen licens- eller betalningsfunktion är byggd.
+
 ### Befintlig teknik och begränsningar
 
 Arbetskatalog: `/Users/petter.gjores/dev/skolplattform`. Webbappen finns i `web/` och bygger på React, TypeScript, Vinext/Vite och Supabase/Postgres. Lokal förhandsvisning har använt port 5188; telefonförhandsvisningen har separat startkommando. `web/package.json` och låsfilen är källor för exakta beroenden.
@@ -124,6 +126,7 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 | Gemensam app, konfigurerbara kundanslutningar | Flera kommuner ska kunna anslutas utan kundspecifika kodkopior | Proposed; driftgräns återstår |
 | Återanvänd befintlig research och komplettera identifierade luckor | Undvik att börja om; verifiera föränderliga och rättsliga antaganden | Working default |
 | Sammanhängande schemamoduler, Rustprototyp och AI inne i schemaarbetet | Uttrycklig användarinriktning 2026-10-01: planmoduler ska hållas samstämmiga och valda moduldelar kunna kombineras | Confirmed direction; kontrakt, specifika mandat och genomförande återstår |
+| Kunden kan köpa moduler var för sig | Uttryckligt användarbeslut 2026-10-01; egna och externa moduler ska kunna kombineras med separata kund- och personrättigheter | Confirmed; modulkatalog, kommersiella villkor och genomförande återstår |
 
 ## Evolution
 

@@ -95,6 +95,15 @@ Senarelagda delar av visionen. De är inte borttagna produktmål och behöver eg
 - **HOST-01**: Leverans för kommunal egen drift efter provad installation, uppgradering och förvaltning.
 - **PARITY-01**: Fortsatt genomgång av SchoolSoft-funktionsregistret med varje relevant område märkt byggt, planerat, senarelagt eller ej tillämpligt och verifiering skild från leverantörsbeskrivning.
 
+### Kundens köpbara moduler — användarbeslut 2026-10-01
+
+Gemensamt produktkrav: kunden ska kunna köpa och använda moduler var för sig och kombinera dem med befintliga externa system. Slutlig modulkatalog, priser och beställnings-/betalningsprocess återstår. Kraven nedan får första kontraktsarbete i schemadelprojektets S1 och verifieras i S4 enligt [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md); de är ännu inte implementerade eller verifierade och ändrar inte pilotens 42 v1-krav.
+
+- **MODUL-01**: Kunden kan välja, köpa och aktivera avgränsade moduler och tillval samt senare lägga till fler utan att behöva köpa hela verksamhetssviten eller byta kundidentitet.
+- **MODUL-02**: Kundens giltiga modultillgång och personens aktuella operationsmandat kontrolleras var för sig på servern och i bakgrundsjobb; varken köp eller roll ensam ger verksamhetsåtkomst.
+- **MODUL-03**: Varje köpbar modul har uttryckliga datakrav och beroenden som kan uppfyllas genom egen modul, kompatibel extern modul eller godkänd import när kontraktet medger det; kunden behöver inte köpa våra övriga vyer för att leverera nödvändigt underlag.
+- **MODUL-04**: Tillägg, avaktivering och avslut av moduler bevarar stabila ID:n och historik, stoppar berörda funktioner och hanterar beroenden och avtalad dataåtkomst/export med definierade rättigheter utan oavsiktlig radering.
+
 ### Sammanhängande schemamoduler — användarinriktning 2026-10-01
 
 Användaren har beställt ett sammanhängande delprojekt som ska beaktas redan i planeringen av återstående planflöden. Nedan är produktkrav för delprojektet, inte tillägg till pilotens 42 v1-krav eller redan verifierad leverans. Detaljerade roller, kontrakt och genomförandeplaner återstår. Ansvar inom delprojektet och verifieringsmål finns i [SCHEMAMODUL-PROJEKT.md](research/SCHEMAMODUL-PROJEKT.md); STUDY-01 och GROUP-01 förblir öppna och omfattar även arbete utanför schemaavgränsningen.
@@ -178,4 +187,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-10-01 — SCHEMA-01–08 registrerade för delprojektet; v1:s 42 krav och deras fasfördelning behålls, inga nya verifieringsresultat.*
+*Last updated: 2026-10-01 — SCHEMA-01–08 och MODUL-01–04 registrerade; v1:s 42 krav och deras fasfördelning behålls, inga nya verifieringsresultat.*

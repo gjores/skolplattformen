@@ -22,6 +22,7 @@ Användaren vill utveckla schemaläggning som ett sammanhängande delprojekt med
 - Beakta versionsbundna planreferenser, stabila ID:n och informationsansvar i återstående fas 5-planering; bygg ingen separat konkurrerande program-/tim-/studieplansmodell för schemat.
 - Prova Rust genom en körbar avgränsad komponent och AI genom konfliktprioritering/åtgärdsval inne i schemaberäkningen. Jämför med/utan Jev och med annat relevant AI-alternativ. Detta avser inte enbart researchgranskning.
 - Definiera och pröva valbara delar för planunderlag, regler, motor, AI, redigering, publicering och adapter. Dokumentera faktisk förmåga och nekad användning vid oförenliga kontrakt.
+- Definiera köpbara modulgränser/tillval och kundens giltiga modultillgång enligt MODUL-01–04. Pröva schema med externt planunderlag utan köpta egna planvyer, separat kontroll av modul och personmandat samt tillägg/avslut med bevarade ID:n, historik och kontrollerade beroenden. Priser och betalningsprocess är öppna val.
 - Använd produktjämförelsen och provfallen i [researchunderlaget](../../research/SCHEMALAGGNING-2026-10-01.md).
 - Prova Royal i en isolerad provorganisation med syntetiska uppgifter. Dokumentera produktvariant och vilka funktioner som faktiskt finns på kontot.
 - Bedöm obligatoriska regler, önskemål, undervisningsminuter, kalenderperioder, valgrupper, manuella ändringar och hur mycket ett befintligt schema behöver ändras vid nya förutsättningar.
@@ -32,4 +33,4 @@ Användaren vill utveckla schemaläggning som ett sammanhängande delprojekt med
 
 ## Status
 
-Offentlig research, Royal-provplan och sammanhängande projektinriktning dokumenterade 2026-10-01. SCHEMA-01–08 är registrerade som framtida produktkrav med ansvar i S1–S4 och ännu ej provade verifieringsmål. Ingen inloggad produktprovning, Rust-/motor-/AI-prototyp eller verklig integration genomförd. Fas 5 ska beakta kompatibilitetsgränserna nu; pilotens åtta faser och 42 v1-krav behålls. Testinloggning är ännu inte tillgänglig i denna uppgift.
+Offentlig research, Royal-provplan och sammanhängande projektinriktning dokumenterade 2026-10-01. SCHEMA-01–08 och MODUL-01–04 är registrerade som framtida produktkrav med ansvar i S1–S4 och ännu ej provade verifieringsmål. Separat köp av moduler är användarbeslut; detaljkatalog och kommersiell process återstår. Ingen inloggad produktprovning, Rust-/motor-/AI-prototyp, licensfunktion eller verklig integration genomförd. Fas 5 ska beakta kompatibilitetsgränserna nu; pilotens åtta faser och 42 v1-krav behålls. Testinloggning är ännu inte tillgänglig i denna uppgift.

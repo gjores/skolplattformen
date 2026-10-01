@@ -8,7 +8,7 @@ status: planning
 stopped_at: Completed 05-08 closed audited program plan draft SQL; protected API preflight next; Phase 4 checkpoint open
 last_updated: "2026-10-01"
 last_activity: 2026-10-01
-last_activity_desc: "Sammanhängande schemadelprojekt registrerat: SCHEMA-01–08, roller/regler, modulkontrakt, Rustprototyp och Jev/liknande AI inne i schemat; fas 5 ska beakta kompatibilitet. Inget nytt genomförande eller fasgodkännande."
+last_activity_desc: "Schemadelprojekt kompletterat med separat köp av moduler: MODUL-01–04, kundens modultillgång skild från personmandat, öppna beroenden och kontrollerat tillägg/avslut. SCHEMA-01–08, Rust och AI i schemat kvarstår; inget nytt genomförande eller fasgodkännande."
 state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
@@ -42,6 +42,8 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-01
 **Last Activity Description:** Användarbeställt schemadelprojekt dokumenterat med SCHEMA-01–08, gemensamma plan-/grupp-/schemakontrakt, operationsbundna mandat, Rustprototyp och Jev eller liknande AI inne i schemamodulen. Valda interna/externa moduldelar ska kunna kombineras. Fas 5 har fått en kompatibilitetsgräns inför berörda kommande planer; nästa genomförandeplan är fortfarande 05-09. Inga nya verksamhetsvägar, prototyper eller verifieringsresultat.
+
+**Senaste förtydligande:** Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
 **Senaste genomförandebevis, 2026-09-30:** 05-08 på b0bf476: katalog 60/60, utkast 108/108, riktad SQL-regression 464/464, full modell/server/generator 455/455 och harnesssäkerhet 5/5; typ/lint/bytekontroll, 42 paritetsfall, 6/6 faktisk låsväntan + yttre rollback, bevarande och oberoende granskning 6/6 PASS. SQL-kommandon stängda, inga nya Worker-grants eller API/UI/beslut. Bygge/browser/handbok från tidigare planer är historik.
 

@@ -9,6 +9,7 @@ Datum: 2026-10-01. Status: användarbeställd projektinriktning och planeringsun
 - Rust ska ingå som ett uttryckligt teknikspår med en körbar prototyp. Placeringen i arkitekturen och val av beräkningsmotor behöver prövas; en full backendomskrivning är inte beslutad.
 - Jev eller liknande AI-verktyg ska ingå i själva schemamodulen och provas som stöd för konfliktprioritering, val av åtgärder och värdering av alternativ. Detta avser inte enbart källgranskning i researchprocessen.
 - Det ska gå att använda valda delar av olika interna eller externa moduler. Ett val av schemamotor får inte tvinga fram ett byte av programplan, studieplan, redigeringsvy eller hela plattformen.
+- Kunden ska kunna köpa moduler var för sig och senare lägga till eller avsluta valda moduler. Detta är ett kommersiellt produktkrav utöver den tekniska möjligheten att kombinera komponenter.
 
 ## Mål
 
@@ -73,6 +74,27 @@ Varje adapter måste beskriva vilka förmågor, regler, datatyper och riktningar
 
 Urval ska också kunna göras inom en modul, exempelvis valda utbildningar, ämnen/nivåer, grupper eller perioder. Kontraktet måste redovisa urvalets omfattning och vilka beroenden eller undervisningsbehov som ligger utanför det. Ett delschema får inte redovisas som en fullständigt kontrollerad elevplan. Samplanering över flera skolenheter behöver uttryckliga mandat för hela berörda urvalet och gemensamma resurser; en adapter eller AI får inte vidga urvalet på egen hand.
 
+## Moduler som kunden kan köpa separat
+
+Användarbeslut 2026-10-01. Kunden ska kunna välja exempelvis schemaläggning, programplanering, timplanering eller individuella studieplaner och kombinera vårt erbjudande med sina befintliga system. Den slutliga säljbara modulkatalogen, tillvalen och prisformen behöver definieras; ovanstående är avsedda köpscenarier att prova, inte färdiga produkter eller beslutade priser. En intern teknisk komponent är inte automatiskt en separat försäljningsprodukt.
+
+Gemensam identitet, kundgräns, mandat och loggning ska kunna återanvändas av alla moduler utan att kunden måste köpa hela verksamhetssviten. Varje modul ska ange sitt minsta underlag och vilka beroenden som kan uppfyllas via vår egen modul, ett externt system eller en uttrycklig import. Exempel: en kund som bara köper schemaläggning ska kunna tillföra undervisningsbehov, lärare, grupper och kalender genom ett godkänt kontrakt utan att behöva köpa våra studieplans- och timplansvyer. Om underlaget inte räcker ska bristen förklaras före aktivering/körning. Importen måste fortfarande bevara nödvändiga versioner, regler och datakvalitet.
+
+Kundens avtalsbundna modultillgång hålls skild från personens uppdrag. För en verksamhetsoperation behöver både rätt modul/funktion vara aktiv för kunden och användaren ha ett giltigt mandat för operationen och urvalet. Ett köp ger ingen användare automatiskt breda rättigheter; ett rektors- eller kundadministratörsuppdrag ger inte automatiskt tillgång till en modul som saknar avtalad aktivering. Kontrollera detta på servern, i datavägar och i bakgrundsjobb, inklusive resultat som skapats före avaktivering. Att dölja navigation räcker inte.
+
+Definiera kundbunden modulidentitet, funktioner/tillval, avtalsreferens, giltighet, status och revision samt vem som får ändra tillgången och hur ändringen loggas. Modultillgång kan till en början administreras genom en uttrycklig avtalsprocess; betalningsleverantör, självbetjänad beställning, avgiftsmodell och automatiserad fakturering är öppna val. Ingen allmän leverantörs- eller elevåtkomst följer av detta produktbeslut.
+
+Aktivering ska kontrollera beroenden och anslutningar. Tillägg av en modul ska återanvända kundens stabila identiteter och historik. Avslut/avaktivering ska stoppa berörda nya operationer och jobb och visa konsekvenser för kvarvarande moduler. Planera övergång till extern källa eller avtalad läs-/exportväg när en kvarvarande modul behöver data från en avslutad modul. Ingen automatisk radering av planer eller elevuppgifter följer av avslutet; fortsatt åtkomst och bevarande/avveckling kräver egna definierade regler och rättigheter. AI-tillvalets bortfall ska kunna ge den tidigare beskrivna vanliga beräkningsvägen om kontraktet medger det.
+
+Krav MODUL-01–04 finns i `../REQUIREMENTS.md`. De är gemensamma produktkrav med första kontraktsarbete i S1 och integrationsprov i S4; de är inte nya v1-krav eller implementerade betalnings-/licensfunktioner.
+
+| Krav | Steg | Verifieringsmål, ännu inte provat |
+| --- | --- | --- |
+| MODUL-01: köpbara moduler | S1 och S4 | Kund A använder bara schema med externt planunderlag, kund B kombinerar våra planmoduler och schema. Båda kan lägga till en modul utan byte av kund eller dubbletter. |
+| MODUL-02: modultillgång och personmandat | S1, genomdrivs i S3/S4 | Aktivt uppdrag med inaktiv modul nekas på direkt anrop; aktiv modul med saknat uppdrag nekas. Annan kunds modulaktivering ger ingen tillgång. Avaktivering under ett jobb stoppar senare användning som kräver aktiv modul. |
+| MODUL-03: öppna beroenden | S1 och S4 | Schemat accepterar kontraktsriktigt externt underlag utan köpt egen planmodul och redovisar saknat stöd. Bara verkligt nödvändiga funktionella beroenden krävs. |
+| MODUL-04: tillägg och avslut | S4 | Modultillägg bevarar ID:n och historik. Avslut stoppar avtalade funktioner, ger begriplig konsekvens för beroenden och hanterar beslutad dataåtkomst/export utan oavsiktlig radering. |
+
 ## Rust och AI i schemamodulen
 
 Rustspåret ska omfatta en avgränsad körbar beräkningstjänst eller komponent med ett versionsbundet indata-/utdatakontrakt. Pröva jobbstatus, avbrott, tids-/resursgränser, återförsök och isolering mellan kunder. Körmiljö, native kontra Wasm, motorkoppling och slutlig driftplats avgörs efter verifierad prototyp. Nuvarande API och Postgres-regler kan bevaras och kopplas stegvis.
@@ -106,7 +128,7 @@ SCHEMA-01–08 registreras som senare produktkrav i `../REQUIREMENTS.md`. Tabell
 | SCHEMA-07: avstämd synk | S3: plan till grupp till schema | Ändrad studieplan, timplan och kalender ger spårbar avvikelse; dubbelleverans, fel ordning och samtidiga ändringar tappar inga giltiga kopplingar. |
 | SCHEMA-08: granskning och uppföljning | S3 och S4: arbetsflöde och extern adapter | Förslag kan jämföras, låsas och publiceras med korrekt mandat och revision; minuter stäms av mot faktiskt kalenderutfall och mottagaren får rätt version. |
 
-S1 ska resultera i ett konkret informations-/modulkontrakt, operation-/mandatmatris, regelmodell och syntetiska acceptansfall. S2 är en avskild Rust-/motor-/AI-prototyp utan skyddade verksamhetsskrivningar. S3 kopplar befintliga planflöden till grupper och schema med granskning, audit och dator-/telefonprov. S4 provar komponentbyte, vald extern adapter och uppföljning. Varje steg får egna GSD-genomförandeplaner och verifieringsresultat innan det markeras klart.
+S1 ska resultera i ett konkret informations-/modulkontrakt, operation-/mandatmatris, regelmodell, modulkatalog med köpbara gränser/beroenden och syntetiska acceptansfall. S2 är en avskild Rust-/motor-/AI-prototyp utan skyddade verksamhetsskrivningar. S3 kopplar befintliga planflöden till grupper och schema med granskning, audit och dator-/telefonprov. S4 provar komponentbyte, vald extern adapter, kundens köpta modulurval, aktivering/avslut och uppföljning. Varje steg får egna GSD-genomförandeplaner och verifieringsresultat innan det markeras klart.
 
 ## Vad som behöver beaktas redan i fas 5
 
@@ -121,4 +143,4 @@ Fas 5 behåller ADMIN-01–04 och befintliga fastställanderegler. Kontrollen ov
 - `../../docs/programplansgrund-kontrakt.md` och `../../docs/produktunderlag/12-informationsmodell-och-designkontrakt.md` som källor med sina uttryckliga statusgränser.
 - Första nästa projektsteg är S1: ta fram gemensamma kontrakt, behörighetsoperationer och testunderlag. Royal-provningen kan ge information till motor-/adapterval, men får inte ensam bestämma vår informationsmodell eller interna behörigheter.
 
-Öppna val: exakt delegation/publiceringsansvar, första sammanhängande skolformsfall, driftgräns för Rust, motor, AI-alternativ, externa komponenters kontrakt/licenser och när S1–S4 genomförs i förhållande till piloten. Användarens projektinriktning ovan behöver inte återgodkännas.
+Öppna val: exakt delegation/publiceringsansvar, första sammanhängande skolformsfall, driftgräns för Rust, motor, AI-alternativ, externa komponenters kontrakt/licenser, slutlig säljbar modulkatalog/tillval, pris-/beställningsform, modulaktiveringsansvar och när S1–S4 genomförs i förhållande till piloten. Användarens projektinriktning och beslut om separat köp av moduler ovan behöver inte återgodkännas.
