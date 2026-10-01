@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {requireTrialSchool,requireOwnedTrialEducation,trialEducationSpecs} from './prepare-programplan-user-trial.mjs';
-import {verifyInitialTrialPlan} from './verify-programplan-user-trial.mjs';
+import {verifyInitialTrialPlan,selectCurrentTrialPlan} from './verify-programplan-user-trial.mjs';
 const school={unit_id:'33000000-0000-4000-8000-000000000111',customer_id:'33000000-0000-4000-8000-000000000001',customer_name:'Syntetisk fas 3 kund 1',school_name:'Syntetisk skola 11',organizer_id:'synthetic-organizer'};
 test('imports have no database effect; target and ownership guards refuse unrelated rows',()=>{
   assert.equal(requireTrialSchool(school),'synthetic-organizer');
@@ -31,4 +31,16 @@ test('initial readiness refuses missing or changed trial scenarios',()=>{
       assert.throws(()=>verifyInitialTrialPlan({...w,versions:[{...p,...patch}]},spec,catalogId),/REFUSED/u);
     assert.throws(()=>verifyInitialTrialPlan({...w,versions:[{...p,basisReference:bound?{...basis,startedOn:'2026-08-01'}:null,legacySpecialization:bound?null:['ANIM1000X','SYNTETISK_OKAND']}]},spec,catalogId),/REFUSED/u);
   }
+});
+
+test('current readiness preserves human changes and selects exact off-page draft or latest version',()=>{
+  const latest={id:'latest',version:60,revision:2,status:'faststalld'};
+  const draft={id:'draft',version:1,revision:7,status:'utkast',legacySpecialization:['changed','changed']};
+  const w={education:{latestVersion:60,draftId:'draft'},versionCount:2,versions:[latest]};
+  assert.equal(selectCurrentTrialPlan(w,[latest,draft]),draft);
+  assert.equal(selectCurrentTrialPlan({...w,education:{...w.education,draftId:null}},[draft,latest]),latest);
+  assert.throws(()=>selectCurrentTrialPlan(w,[latest]),/REFUSED/u);
+  assert.throws(()=>selectCurrentTrialPlan(w,[latest,{...draft,status:'ersatt'}]),/REFUSED/u);
+  assert.throws(()=>selectCurrentTrialPlan({...w,education:{latestVersion:61,draftId:null}},[latest,draft]),/REFUSED/u);
+  assert.equal(selectCurrentTrialPlan({education:{latestVersion:0,draftId:null},versionCount:0},[]),null);
 });

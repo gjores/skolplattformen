@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-12 automatiskt genomförda till konkret mänskligt prov 2026-10-02. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
+**Plans**: 05-01–05-12 automatiskt genomförda. Användaren underkände därefter programplansvyns begriplighet; 05-13 genomför rättningen inför ett nytt mänskligt prov 2026-10-02. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -175,8 +175,9 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 
 - [x] 05-09-PLAN.md — Skyddad programplans-API, preflight/final 48/48, SQL 663, gamla timplans-API 39 och oberoende granskning 6/6 PASS; exakt fem nya grants efter återställd preflight
 - [x] 05-10-PLAN.md — Gymnasieurval och verifierat katalogunderlag; preflight/final 38/118, SQL 443 och tidigare API 48/39 PASS. Exakt två nya läsgrants; totalt tio Worker-signaturer.
-- [x] 05-11-PLAN.md — Skyddad programplansvy och utkast/kloning, programbrowser 30/30 + timplan 20/20 PASS, handbok och fyra beständiga exempel verifierade på 3012. Samlat mänskligt prov väntar.
+- [x] 05-11-PLAN.md — Skyddad programplansvy och utkast/kloning, programbrowser 30/30 + timplan 20/20 PASS, handbok och fyra beständiga exempel verifierade på 3012. Mänsklig begriplighet underkänd; rättas i 05-13.
 - [x] 05-12-PLAN.md — Regelhandledning i befintlig timplansvy och dialog, GR/IM-källor och handbok; 20/20 browserprov och skyddat bygge PASS. Mänsklig förståelsebedömning följer med 05-11.
+- [ ] 05-13-PLAN.md — Begriplig ämnes-/nivåvy, tydlig nästa åtgärd och guidad källbindning efter användarfynd. Färska browserprov och nytt mänskligt prov återstår.
 
 05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 

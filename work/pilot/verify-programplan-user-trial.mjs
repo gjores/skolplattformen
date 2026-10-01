@@ -33,7 +33,22 @@ export function verifyInitialTrialPlan(workspace,spec,catalogId) {
   return p;
 }
 
-export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012') {
+// Current-state mode accepts saved human changes while requiring exact metadata.
+export function selectCurrentTrialPlan(workspace, versions) {
+  const {latestVersion,draftId}=workspace.education;
+  if(latestVersion===0){
+    if(workspace.versionCount!==0||versions.length||draftId!==null)throw Error('REFUSED: aktuellt provurval avviker');
+    return null;
+  }
+  if(versions.length!==workspace.versionCount||new Set(versions.map(p=>p.id)).size!==versions.length)
+    throw Error('REFUSED: ofullständig aktuell versionslista');
+  const current=draftId?versions.find(p=>p.id===draftId):versions.find(p=>p.version===latestVersion);
+  if(!current||(draftId&&current.status!=='utkast'))throw Error('REFUSED: aktuell provversion saknas');
+  return current;
+}
+
+export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012', {mode='initial'}={}) {
+  if(!['initial','current'].includes(mode))throw Error('REFUSED: okänt provläge');
   if(baseURL!=='http://127.0.0.1:3012')throw new Error('REFUSED: avsedd lokal användarprovserver krävs');
   const manifest=await assertTarget('protected');
   const health=await fetch(`${baseURL}/api/health/db`,{signal:AbortSignal.timeout(10000)});
@@ -46,10 +61,21 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
   const catalogId='sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace';
   const sessions=[];
   let checked=0;
+  const scenarios=[];
+  const snapshot=async()=>{
+    const rows=await db`select 'education' as kind,o.id,to_jsonb(o) as data from public.offerings o
+      where o.id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[])
+      union all select 'plan',p.id,to_jsonb(p) from public.point_plans p
+      where p.offering_id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[]) order by kind,id`;
+    return JSON.stringify(rows);
+  };
+  let before;
+
   try {
     const [school]=await db`select s.id as unit_id,s.organizer_id,s.name as school_name,c.id as customer_id,c.name as customer_name
       from public.school_units s join public.organizers o on o.id=s.organizer_id join public.customers c on c.id=o.customer_id where s.id=${unit}`;
     const organizer=requireTrialSchool(school);
+    before=await snapshot();
     for(const role of ['rektor','huvudman']){
       const [actor]=await db`select a.id,a.membership_id,m.identity_id from public.access_assignments a
         join public.memberships m on m.id=a.membership_id join public.mandate_units u on u.assignment_id=a.id
@@ -90,7 +116,23 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
         const read=parseProgramplanWorkspace(await request('underlag',input,'programplan_workspace_read','education',input.offeringId),input);
         if(read.catalog.status!=='selected'||read.catalog.program?.code!=='SA25'||read.catalog.program?.version!==4
           ||read.education.orientationCode!=='SASAP'||read.decisionReady!==false)throw new Error('REFUSED: provets verifierade katalogprojektion avviker');
-        const initial=verifyInitialTrialPlan(read,spec,catalogId);
+        let initial;
+        if(mode==='initial')initial=verifyInitialTrialPlan(read,spec,catalogId);
+        else {
+          const versions=[...read.versions];
+          for(let page=2;(page-1)*read.pageSize<read.versionCount;page++){
+            const nextInput={...input,versionPage:page};
+            const next=parseProgramplanWorkspace(await request('underlag',nextInput,'programplan_workspace_read','education',input.offeringId),nextInput);
+            if(JSON.stringify(next.education)!==JSON.stringify(read.education)||next.versionCount!==read.versionCount)
+              throw Error('REFUSED: provunderlag ändrades under läsning');
+            versions.push(...next.versions);
+          }
+          initial=selectCurrentTrialPlan(read,versions);
+          scenarios.push({role,scenario:spec.number,versionCount:read.versionCount,
+            currentStatus:initial?.status??'no_plan',currentVersion:initial?.version??null,
+            revision:initial?.revision??null,bound:!!initial?.basisReference,
+            savedChoices:initial?.basisReference?.specializationRefs.length??initial?.legacySpecialization?.length??0});
+        }
         if(initial){
           const plan=parseProgramplan(await request('lasa',{planId:initial.id},'programplan_read','programplan',initial.id));
           if(plan.id!==initial.id||plan.offeringId!==input.offeringId||plan.version!==initial.version||plan.revision!==initial.revision
@@ -99,8 +141,10 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
         }
       }
     }
-    return {status:'PASS',target:'protected',roles:2,educationsPerRole:4,auditedReads:checked,
-      proof:'initial four trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied'};
+    if(await snapshot()!==before)throw Error('REFUSED: användarprovsdata ändrades under provet');
+    return {status:'PASS',target:'protected',mode,roles:2,educationsPerRole:4,auditedReads:checked,
+      businessRowsPreserved:true,...(mode==='current'?{scenarios}:{}),
+      proof:`${mode} four trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied`};
   } finally {
     try {
       for(const session of sessions)await db`delete from public.app_sessions where id=${session.id} and identity_id=${session.identity}`;
