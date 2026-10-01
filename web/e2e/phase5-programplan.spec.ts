@@ -12,7 +12,7 @@ const animation={subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points
 const english={subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100};
 test.beforeAll(async({browserName},info)=>{await info.attach('source-build.json',{body:JSON.stringify({...await verifyProgramplanBrowserTarget(baseURL),browserName,scope:'local-synthetic-only'}),contentType:'application/json'});});
 test.beforeEach(async()=>{fixture=undefined!;fixture=await createProgramplanBrowserFixture();});
-test.afterEach(async()=>{await fixture?.cleanup();});
+test.afterEach(async({},info)=>{if(fixture)await info.attach('cleanup.json',{body:JSON.stringify(await fixture.cleanup()),contentType:'application/json'});});
 async function navigate(page:Page,label='Programplaner'){
   await waitForHydration(page);const b=page.getByRole('button',{name:label,exact:true});const box=await b.isVisible()?await b.boundingBox():null;
   if(!box||box.x<0||box.x+box.width>(page.viewportSize()?.width??1440))await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();await b.click();

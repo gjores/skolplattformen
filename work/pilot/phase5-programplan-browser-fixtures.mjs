@@ -14,6 +14,12 @@ const MARKER='Syntetiskt programplansprov';
 const SOURCE_PATHS=['web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan.css',
   'web/lib/protected-programplan.ts','web/lib/programplan-contract.ts','web/lib/programplan-workspace-contract.ts',
   'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/app/api/programplaner'];
+export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
+  if(mark?.mode!=='protected'||!/^([0-9a-f]{40})$/u.test(mark.revision??'')||!/^([0-9a-f]{40})$/u.test(sourceRevision??''))throw Error('Skyddat versionshanterat bygge saknas.');
+  if(dirty||ancestor!==true)throw Error('Browserprov kräver aktuell versionshanterad UI/serverkod i bygget.');
+  if(health?.ok!==true||health.role!=='skolplattform_worker'||health.runtime!=='workerd')throw Error('Browserprovet kräver verklig byggd Worker.');
+  return {sourceRevision,buildRevision:mark.revision};
+}
 export async function verifyProgramplanBrowserTarget(baseURL) {
   if(!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL))throw Error('Endast lokal browserprovserver tillåts.');
   await assertTarget('protected');
@@ -24,8 +30,7 @@ export async function verifyProgramplanBrowserTarget(baseURL) {
   const source=git(['log','-1','--format=%H','--',...SOURCE_PATHS]);
   try{git(['merge-base','--is-ancestor',source,mark.revision]);}catch{throw Error('Browserprov kräver aktuell UI/serverkod i bygget.');}
   const response=await fetch(`${baseURL}/api/health/db`,{signal:AbortSignal.timeout(10000)}),body=await response.json();
-  if(!response.ok||body.role!=='skolplattform_worker'||body.runtime!=='workerd')throw Error('Browserprovet kräver verklig byggd Worker.');
-  return {sourceRevision:source,buildRevision:mark.revision};
+  return programplanBrowserBuildProof(mark,source,false,true,{...body,ok:response.ok});
 }
 
 export async function createProgramplanBrowserFixture() {
@@ -38,10 +43,10 @@ export async function createProgramplanBrowserFixture() {
   const owned=async tx=>{const rows=await tx`select id from public.customers where id=${id(1)} and name=${MARKER}`;if(rows.length!==1)throw Error('Syntetiskt ägarskap kunde inte verifieras.');};
   const clearAuditFailure=async()=>{if(!injected)return;await assertTarget('protected');await owned(db);await db.unsafe(`drop trigger if exists ${trigger} on public.security_events; drop function if exists public.${triggerFn}();`);injected=false;};
   const cleanup=async()=>{
-    let failure;
-    try{await assertTarget('protected');await clearAuditFailure();if(created){await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`delete from public.app_sessions where id=any(${[...sessions]}::uuid[])`;});await cleanupProgramplanFixture(db,prefix);}}
+    let failure,evidence=null;
+    try{await assertTarget('protected');await clearAuditFailure();if(created){await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`delete from public.app_sessions where id=any(${[...sessions]}::uuid[])`;});evidence=await cleanupProgramplanFixture(db,prefix);const [remaining]=await db`select (select count(*)::int from public.app_sessions where id=any(${[...sessions]}::uuid[])) as mintedSessions,(select count(*)::int from pg_trigger where tgname=${trigger}) as triggers,(select count(*)::int from pg_proc where proname=${triggerFn}) as functions`;if(Object.values(remaining).some(n=>n!==0))throw Error('fixture_cleanup_remaining');evidence={...evidence,...remaining};}}
     catch(e){failure=e;}finally{await db.end({timeout:3});}
-    if(failure)throw Error('Programplansbrowserfixturens städning misslyckades.');
+    if(failure)throw Error('Programplansbrowserfixturens städning misslyckades.');return evidence;
   };
   try {
     const sql=extractProgramplanFixture(readFileSync(path.join(root,'supabase/tests/phase5_programplan_drafts.test.sql'),'utf8'),prefix);
