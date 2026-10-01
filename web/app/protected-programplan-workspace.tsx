@@ -98,7 +98,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   async function openEducation(offeringId: string, versionPage = 1, catalogId: string | null = null,
     planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null) {
     if (busy || !keepPreparation && dirty && !confirmDiscard()) return;
-    const r = begin(); setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); setNotice(null); setError(null);
+    const r = begin();
+    if (!keepPreparation) { setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); }
+    setNotice(null); setError(null);
     setPreparation(keepPreparation ? {kind: keepPreparation, catalogId} : null); setBusy(true);
     try {
       const {fresh, selected, summary} = await readSelection(offeringId, versionPage, catalogId, planId, r.signal);
@@ -185,6 +187,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const formLocked = busy || draft?.mode !== 'edit';
   const nextKind: ProgramplanCommandKind = !plan ? 'create' : plan.status === 'utkast' ? plan.basisReference ? 'replace' : 'bind' : 'clone';
   const anotherDraft = !!workspace?.education.draftId && workspace.education.draftId !== plan?.id;
+  const preparationBlocked = !preparation ? null : preparation.kind === 'create' && workspace?.education.draftId
+    ? 'Utbildningen har nu ett utkast. Avbryt förberedelsen och öppna utkastet.'
+    : preparation.kind === 'bind' && (plan?.status !== 'utkast' || !!plan.basisReference)
+      ? 'Utkastets grund eller status har ändrats. Avbryt förberedelsen och granska den aktuella planen.'
+      : preparation.kind === 'clone' && workspace?.education.draftId
+        ? 'Utbildningen har nu ett utkast. Avbryt förberedelsen och öppna utkastet innan du skapar en ny version.' : null;
   function nextAction() {
     if (anotherDraft && workspace) { void openEducation(workspace.education.id, 1, null, workspace.education.draftId); return; }
     if (nextKind === 'replace' || nextKind === 'clone' && plan?.basisReference) edit(nextKind);
@@ -202,7 +210,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const namedChoices = (refs: ProgramplanDraft['refs'], choices = options) => refs.length ? refs.map(r => `${programplanLevelName(r,choices)} (${r.points} poäng)`).join(', ') : 'Inga val';
   return <section className="protected-programplan" data-testid="protected-programplan-workspace" aria-busy={busy}>
     <div className="pp-heading"><ListChecks aria-hidden="true"/><div><h1>Programplaner</h1><p>Läs utbildningens ämnen och arbeta med fördjupningen.</p></div></div>
-    {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>void loadList(page)}>Hämta utbildningarna igen</Button></div>}
+    {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}>Hämta utbildningarna igen</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
     {!workspace && !draft && (busy ? <output>Hämtar programplansunderlag…</output> : list && <>
       <div className="pp-list-heading"><h2>Välj utbildning</h2><span>{list.count} utbildningar</span></div>
@@ -229,8 +237,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <p>Välj aktivt vilket underlag utbildningen ska använda. Därefter anger du det kända startdatumet och granskar valen. Inget sparas i detta steg.</p>
           <div className="pp-field"><label htmlFor="pp-guide-catalog">Välj underlag</label><select id="pp-guide-catalog" value={preparation.catalogId??''} disabled={busy} onChange={e=>changeGuideCatalog(e.target.value)}><option value="">Välj ett underlag för {workspace.education.name}</option>{workspace.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>{workspace.education.name} · Skolverket · hämtat {c.source.fetched}</option>)}</select></div>
           {workspace.catalog.status==='blocked'&&<p role="alert">{programplanDiagnostic(workspace.catalog.diagnostic??'catalog_unavailable')}</p>}
+          {preparationBlocked&&<p role="alert">{preparationBlocked}</p>}
+          {error&&preparation.catalogId&&<Button variant="outline" disabled={busy} onClick={()=>changeGuideCatalog(preparation.catalogId!)}>Läs underlaget igen</Button>}
           {preparation.catalogId&&legacyResolution?.problems.length ? <p role="alert">Vissa äldre val kan inte återfinnas entydigt: {legacyResolution.problems.join(', ')}. De har bevarats. Du kan inte gå vidare med detta underlag.</p>:null}
-          <div className="pp-actions"><Button variant="outline" disabled={busy} onClick={cancelPreparation}>Avbryt förberedelse</Button><Button disabled={busy||!preparation.catalogId||preparation.catalogId!==workspace.catalog.catalogId||!sourceReady||(preparation.kind==='bind'||preparation.kind==='clone')&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit(preparation.kind)}>Fortsätt till startdatum och val</Button></div>
+          <div className="pp-actions"><Button variant="outline" disabled={busy} onClick={cancelPreparation}>Avbryt förberedelse</Button><Button disabled={busy||!!preparationBlocked||!preparation.catalogId||preparation.catalogId!==workspace.catalog.catalogId||!sourceReady||(preparation.kind==='bind'||preparation.kind==='clone')&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit(preparation.kind)}>Fortsätt till startdatum och val</Button></div>
         </>}
       </section>
       <section className="pp-subjects" aria-label="Ämnen och nivåer"><h2>Ämnen och nivåer</h2><p>Poängen nedan är gymnasiepoäng.</p>
