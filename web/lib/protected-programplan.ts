@@ -46,7 +46,7 @@ export function newProgramplanBasis(workspace: ProgramplanWorkspace, startedOn: 
 }
 export type ProgramplanCommandKind = 'create' | 'bind' | 'replace' | 'clone';
 export type ProgramplanDraft = {
-  kind: ProgramplanCommandKind; offeringId: string; planId: string | null; expectedRevision: number;
+  kind: ProgramplanCommandKind; offeringId: string; educationName: string; schoolName: string; planId: string | null; expectedRevision: number;
   expectedLatestVersion: number; pin: Omit<ProgramplanBasisReference, 'specializationRefs'>;
   startedOn: string; originalStart: string; refs: ProgramplanLevelRef[]; originalRefs: ProgramplanLevelRef[];
   sourceBound: boolean; legacyConfirmed: boolean; options: ProgramplanOption[];
