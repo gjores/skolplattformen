@@ -13,7 +13,8 @@ const require=createRequire(path.join(root,'web/package.json'));
 const MARKER='Syntetiskt programplansprov';
 const SOURCE_PATHS=['web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan.css',
   'web/lib/protected-programplan.ts','web/lib/programplan-contract.ts','web/lib/programplan-workspace-contract.ts',
-  'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/app/api/programplaner'];
+  'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/lib/programplan-catalog.ts','web/app/api/programplaner',
+  'web/e2e/phase5-programplan.spec.ts','web/playwright.phase5-programplan.config.ts','work/pilot/phase5-programplan-browser-fixtures.mjs','work/pilot/verify-programplan-browser.mjs'];
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
   if(mark?.mode!=='protected'||!/^([0-9a-f]{40})$/u.test(mark.revision??'')||!/^([0-9a-f]{40})$/u.test(sourceRevision??''))throw Error('Skyddat versionshanterat bygge saknas.');
   if(dirty||ancestor!==true)throw Error('Browserprov kräver aktuell versionshanterad UI/serverkod i bygget.');
