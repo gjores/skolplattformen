@@ -166,22 +166,24 @@ test('10: skolformsanpassat regelstöd, källor och påminnelse vid ändring',as
   await imDialog.getByRole('button',{name:'Läs om planen',exact:true}).click();
   await expect(imDialog).toContainText('Den aktuella timplanen innehåller redan ditt värde.');
   await imDialog.getByRole('button',{name:'Stäng',exact:true}).click();
+  for(const [index,status] of [502,400].entries()){
   await workspace(page).getByRole('button',{name:/^Ändra Matematik, grundskolenivå,/u}).click();
   const gatewayDialog=page.getByRole('dialog',{name:'Ändra undervisningstid'});
-  await gatewayDialog.getByRole('textbox',{name:'Timmar per vecka',exact:true}).fill('12');let gatewayWrites=0,audited=false;
+  await gatewayDialog.getByRole('textbox',{name:'Timmar per vecka',exact:true}).fill(String(12+index));let gatewayWrites=0,audited=false;
   await page.route('**/api/timplaner/cell',async route=>{
     gatewayWrites++;const actual=await route.fetch();expect(actual.status()).toBe(200);
     audited=await fixture.paired(actual.headers()['x-correlation-id'],fixture.principal,'timplan_cell_changed',fixture.imPlanId);
-    await route.fulfill({status:502,contentType:'text/plain',body:'Synthetic gateway failure without an API error code'});
+    await route.fulfill({status,contentType:'text/plain',body:'Synthetic gateway failure without an API error code'});
   });
   await gatewayDialog.getByRole('button',{name:'Spara ändring',exact:true}).click();
   await expect(gatewayDialog).toContainText('Den aktuella timplanen innehåller redan ditt värde.');
   await expect(gatewayDialog.getByText(/Ändringen påverkar veckofördelningen/u)).toBeVisible();
   await expect(gatewayDialog.getByText(/Kontrollera ämnesramarna och huvudmannens beslut/u)).toHaveCount(0);
   await expect(gatewayDialog.getByRole('button',{name:'Spara ändring',exact:true})).toHaveCount(0);
-  expect(gatewayWrites).toBe(1);expect(audited).toBe(true);expect((await fixture.snapshot(fixture.imPlanId)).revision).toBe(2);
-  expect((await fixture.snapshot(fixture.imPlanId)).cells['im-ma'][0]).toBe(12);
+  expect(gatewayWrites).toBe(1);expect(audited).toBe(true);expect((await fixture.snapshot(fixture.imPlanId)).revision).toBe(2+index);
+  expect((await fixture.snapshot(fixture.imPlanId)).cells['im-ma'][0]).toBe(12+index);
   await page.unroute('**/api/timplaner/cell');await gatewayDialog.getByRole('button',{name:'Stäng',exact:true}).click();
+  }
 });
 
 test('01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation',async({page},testInfo)=>{

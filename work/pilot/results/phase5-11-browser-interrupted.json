@@ -1,0 +1,181 @@
+{
+  "phase": "05-11",
+  "status": "FAIL",
+  "sourceRevision": "7ce3e370968a4748d036a0a0046f1313c12c7124",
+  "buildRevision": "40efd8d9b6bdf30cde7181f4a0b8d787bd9d231f",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "01",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "09",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "10",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "11",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "12",
+      "project": "programplan-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "13",
+      "project": "programplan-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "14",
+      "project": "programplan-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "15",
+      "project": "programplan-desktop",
+      "status": "skipped"
+    },
+    {
+      "case": "01",
+      "project": "programplan-phone",
+      "status": "failed"
+    },
+    {
+      "case": "02",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "03",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "04",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "05",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "06",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "07",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "08",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "09",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "10",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "11",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "12",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "13",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "14",
+      "project": "programplan-phone",
+      "status": "skipped"
+    },
+    {
+      "case": "15",
+      "project": "programplan-phone",
+      "status": "skipped"
+    }
+  ],
+  "cleanupCount": 13,
+  "cleanupVerified": false,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 250,
+  "preservedAuditAnchors": 15,
+  "limits": [
+    "Lokalt mintade sessionsbevis; inget interaktivt IdP-prov.",
+    "Telefonprov använder iPhone/WebKit-emulering.",
+    "Negativa transportfel avgränsas med browserintercept, framgångswrite använder Worker/SQL.",
+    "Mänsklig förståelse och fasens fullständiga nationella regelram återstår."
+  ],
+  "actualHeadAtStart": "40efd8d9b6bdf30cde7181f4a0b8d787bd9d231f",
+  "sourceRevisionMeaning": "Historisk senaste inventariecommit i äldre helper; ersätts av faktisk HEAD och builddiff i slutomgången.",
+  "passedCases": 11,
+  "seededCases": 13,
+  "seededCleanupVerified": true,
+  "remainingOwnedFixturesAfterInspection": 0,
+  "failureNotes": [
+    "Fall12 kontrollerade beforeunloadregistrering synkront; ersatt med väntande poll utan retries/skips.",
+    "Wrangler avslutades utan diagnostisk feltext; därefter nekad anslutning3056. Orsaken kan inte beläggas från den avstängda Wranglerloggningen.",
+    "Alla13 faktiskt seedade fixturer städades med kvarvarande auditankare; 17 fall fick ingen seed."
+  ]
+}

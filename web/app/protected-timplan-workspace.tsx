@@ -154,7 +154,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
         await refreshDraft({...own,uncertain:true},request.token,request.signal);
       } else if (caught instanceof ApiError && caught.status===409 && caught.code==='conflict') {
         await refreshDraft({...own,uncertain:false},request.token,request.signal);
-      } else if (caught instanceof ApiError && (caught.status===403 && caught.code==='mfa_required' || caught.status===400 && caught.code==='bad_request' || caught.status===500 && caught.code==='audit_unavailable')) {
+      } else if (caught instanceof ApiError && caught.hasExplicitCode && (caught.status===403 && caught.code==='mfa_required' || caught.status===400 && caught.code==='bad_request' || caught.status===500 && caught.code==='audit_unavailable')) {
         setDraft({...own,mode:'draft',error:`Kunde inte spara. ${caught.message}`,mfa:caught.code==='mfa_required'});
       } else {
         await refreshDraft({...own,uncertain:true},request.token,request.signal);

@@ -137,7 +137,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       if (!current(r.token) || aborted(e) || securityFailure(e)) return;
       if (accepted) await refreshDraft({ ...own, uncertain: true }, r.token, r.signal);
       else if (e instanceof ApiError && e.status === 409 && e.code === 'conflict') await refreshDraft({ ...own, uncertain: false }, r.token, r.signal);
-      else if (e instanceof ApiError && (e.status === 403 && e.code === 'mfa_required' || e.status === 400 && e.code === 'bad_request' || e.status === 500 && e.code === 'audit_unavailable')) setDraft({ ...own, mode: 'edit', error: `Kunde inte spara. ${e.message}`, mfa: e.code === 'mfa_required' });
+      else if (e instanceof ApiError && e.hasExplicitCode && (e.status === 403 && e.code === 'mfa_required' || e.status === 400 && e.code === 'bad_request' || e.status === 500 && e.code === 'audit_unavailable')) setDraft({ ...own, mode: 'edit', error: `Kunde inte spara. ${e.message}`, mfa: e.code === 'mfa_required' });
       else await refreshDraft({ ...own, uncertain: true }, r.token, r.signal);
     } finally { saving.current = false; if (current(r.token)) setBusy(false); }
   }

@@ -12,7 +12,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
 const MARKER='Syntetiskt programplansprov';
 const SOURCE_PATHS=['web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan.css',
-  'web/lib/protected-programplan.ts','web/lib/programplan-contract.ts','web/lib/programplan-workspace-contract.ts',
+  'web/lib/protected-programplan.ts','web/lib/programplan-contract.ts','web/lib/programplan-workspace-contract.ts','web/lib/server-client.ts','web/lib/unsaved-changes.tsx',
   'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/lib/programplan-catalog.ts','web/app/api/programplaner',
   'web/e2e/phase5-programplan.spec.ts','web/playwright.phase5-programplan.config.ts','work/pilot/phase5-programplan-browser-fixtures.mjs','work/pilot/verify-programplan-browser.mjs'];
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
@@ -28,8 +28,9 @@ export async function verifyProgramplanBrowserTarget(baseURL) {
   if(mark.mode!=='protected'||!mark.revision)throw Error('Skyddat versionshanterat bygge saknas.');
   const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   if(git(['status','--porcelain','--',...SOURCE_PATHS]))throw Error('Browserprov kräver versionshanterad UI/serverkod.');
-  const source=git(['log','-1','--format=%H','--',...SOURCE_PATHS]);
-  try{git(['merge-base','--is-ancestor',source,mark.revision]);}catch{throw Error('Browserprov kräver aktuell UI/serverkod i bygget.');}
+  const source=git(['rev-parse','HEAD']);
+  try{git(['merge-base','--is-ancestor',mark.revision,source]);}catch{throw Error('Browserprov kräver ett bygge från denna källhistorik.');}
+  if(git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE_PATHS]))throw Error('Browserprov kräver samma styrda källor som bygget.');
   const response=await fetch(`${baseURL}/api/health/db`,{signal:AbortSignal.timeout(10000)}),body=await response.json();
   return programplanBrowserBuildProof(mark,source,false,true,{...body,ok:response.ok});
 }

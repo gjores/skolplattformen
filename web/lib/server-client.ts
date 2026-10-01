@@ -6,11 +6,13 @@ export class ApiError extends Error {
   public status: number;
   public correlationId: string | null;
   public details: ConflictDetails | null;
+  public hasExplicitCode: boolean;
   constructor(
     code: string,
     status: number,
     correlationId: string | null,
     details: ConflictDetails | null = null,
+    hasExplicitCode = false,
   ) {
     super(messageText(code));
     this.name = 'ApiError';
@@ -18,6 +20,7 @@ export class ApiError extends Error {
     this.status = status;
     this.correlationId = correlationId;
     this.details = details;
+    this.hasExplicitCode = hasExplicitCode;
   }
 }
 
@@ -109,7 +112,8 @@ async function request<T>(
     assertCurrent();
     if (!response.ok) {
       const error = parsed && typeof parsed === 'object' ? parsed as ErrorBody : {};
-      const code = typeof error.code === 'string' ? error.code : 'bad_request';
+      const hasExplicitCode = !Array.isArray(parsed) && Object.hasOwn(error, 'code') && typeof error.code === 'string';
+      const code = hasExplicitCode ? error.code as string : 'bad_request';
       const correlationId = typeof error.correlationId === 'string'
         ? error.correlationId : response.headers.get('X-Correlation-Id');
       if (response.status === 401) invalidatePending(controller);
@@ -120,7 +124,7 @@ async function request<T>(
       // Tekniska fel och svar från ändrad serverkontext bär aldrig elevfält.
       const details = !unexpectedEpoch && code === 'conflict' && response.status === 409
         ? parseConflictDetails(error.details) : null;
-      throw new ApiError(code, response.status, correlationId, details);
+      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode);
     }
     if (unexpectedEpoch) {
       throw new DOMException('Begäran tillhör en tidigare kontext.', 'AbortError');

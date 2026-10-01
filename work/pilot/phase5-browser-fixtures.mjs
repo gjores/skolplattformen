@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const require = createRequire(path.join(root, 'web/package.json'));
 const MARKER = 'Syntetiskt 05-06 browserprov';
 const SOURCE_PATHS = ['web/app/protected-timplan-workspace.tsx','web/app/timplan-guidance.tsx','web/app/protected-home.tsx',
-  'web/app/protected-timplan.css','web/lib/protected-timplan.ts','web/lib/server/timplan-planning.ts',
+  'web/app/protected-timplan.css','web/lib/protected-timplan.ts','web/lib/server/timplan-planning.ts','web/lib/server-client.ts','web/lib/unsaved-changes.tsx',
   'web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts',
   'work/pilot/phase5-browser-fixtures.mjs','web/e2e/phase5-timplan.spec.ts','web/playwright.phase5-timplan.config.ts'];
 
@@ -23,9 +23,10 @@ export async function verifyBrowserTarget(baseURL) {
   if (mark.mode !== 'protected' || !mark.revision) throw new Error('Verifierat skyddat bygge saknas.');
   const git = args => execFileSync('git', args, {cwd: root, encoding:'utf8', stdio:['ignore','pipe','ignore']}).trim();
   if (git(['status','--porcelain','--',...SOURCE_PATHS])) throw new Error('Browserprovet kräver versionshanterad UI/serverkod.');
-  const source = git(['log','-1','--format=%H','--',...SOURCE_PATHS]);
-  try { git(['merge-base','--is-ancestor',source,mark.revision]); }
+  const source = git(['rev-parse','HEAD']);
+  try { git(['merge-base','--is-ancestor',mark.revision,source]); }
   catch { throw new Error('Browserprovet kräver ett bygge av aktuell UI/serverkod.'); }
+  if(git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE_PATHS]))throw Error('Browserprovet kräver samma styrda källor som bygget.');
   const response = await fetch(`${baseURL}/api/health/db`, {signal:AbortSignal.timeout(10000)});
   const body = await response.json();
   if (!response.ok || body.role !== 'skolplattform_worker' || body.runtime !== 'workerd') throw new Error('Browserprovets databasroll är inte byggd Worker.');

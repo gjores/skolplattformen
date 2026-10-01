@@ -121,10 +121,16 @@ test('401 behåller ApiError och avbryter andra pågående svar', async () => {
 test('första epoch accepteras och fel utan objektkropp blir generiska', async () => {
   globalThis.fetch = async () => response({ ready: true });
   assert.deepEqual(await api.get('/api/test'), { ready: true });
-  for (const body of [null, 'private value']) {
+  for (const body of [null, 'private value', {}, {code:42}]) {
     globalThis.fetch = async () => response(body, 400);
-    await assert.rejects(api.get('/api/test'), e => e instanceof ApiError && e.code === 'bad_request' && e.details === null);
+    await assert.rejects(api.get('/api/test'), e => e instanceof ApiError && e.code === 'bad_request' && e.status === 400 && e.hasExplicitCode === false && e.details === null);
   }
+  for (const body of ['gateway failure', '{"code":']) {
+    globalThis.fetch = async () => new Response(body, {status:400});
+    await assert.rejects(api.get('/api/test'), e => e instanceof ApiError && e.code === 'bad_request' && e.hasExplicitCode === false && e.details === null);
+  }
+  globalThis.fetch = async () => response({code:'bad_request'},400);
+  await assert.rejects(api.get('/api/test'), e => e instanceof ApiError && e.code === 'bad_request' && e.status === 400 && e.hasExplicitCode === true && e.details === null);
 });
 
 test('arbetsytans abortsignal stoppar sena resultat utan att låsa andra begäranden', async () => {
