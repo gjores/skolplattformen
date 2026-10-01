@@ -114,9 +114,13 @@ test('10: accepterad sparning följd av omläsningsfel behåller formulär; inge
 });
 
 test('11: tappat verkligt writesvar stäms av genom verklig omläsning',async({page})=>{
-  await enter(page);await education(page);await version(page);await add(await edit(page));let audited=false;
-  await page.route('**/api/programplaner/fordjupning',async r=>{const actual=await r.fetch();expect(actual.status()).toBe(200);audited=await fixture.paired(actual.headers()['x-correlation-id'],fixture.principal,'programplan_specialization_changed');await r.abort('failed');});
-  await page.getByRole('dialog').getByRole('button',{name:'Spara utkast',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('Inget nytt sparande behövs');expect(audited).toBe(true);expect((await fixture.snapshot()).revision).toBe(1);
+  await enter(page);await education(page);await version(page);
+  for(const [index,failure]of ['abort','gateway502'].entries()){
+    const d=await edit(page);if(index===0)await add(d);else await d.getByRole('button',{name:'Ta bort ANIM1000X',exact:true}).click();let audited=false,writes=0;
+    await page.route('**/api/programplaner/fordjupning',async r=>{writes++;const actual=await r.fetch();expect(actual.status()).toBe(200);audited=await fixture.paired(actual.headers()['x-correlation-id'],fixture.principal,'programplan_specialization_changed');if(failure==='abort')await r.abort('failed');else await r.fulfill({status:502,contentType:'text/plain',body:'Synthetic gateway failure without an API error code'});});
+    await d.getByRole('button',{name:'Spara utkast',exact:true}).click();await expect(d).toContainText('Inget nytt sparande behövs');await expect(d.getByRole('button',{name:'Spara utkast',exact:true})).toHaveCount(0);expect(audited).toBe(true);expect(writes).toBe(1);expect((await fixture.snapshot()).revision).toBe(index+1);
+    await d.getByRole('button',{name:'Stäng',exact:true}).click();await page.unroute('**/api/programplaner/fordjupning');
+  }
 });
 
 test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',async({page})=>{
