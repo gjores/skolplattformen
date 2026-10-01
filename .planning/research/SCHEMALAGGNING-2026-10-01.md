@@ -2,6 +2,8 @@
 
 Researchdatum: 2026-10-01. Status: offentligt produkt- och teknikunderlag för framtida planering. Användaren vill undersöka automatisk schemaläggning som en framtida USP och en möjlig stegvis introduktion av Rust. Användaren kan ordna tillgång till Royal Schedule eller SchoolSoft AI Schema. Inga produkter har provats inloggat, inga leverantörer har kontaktats och ingen integration eller prestanda är verifierad. Pågående fas 5 och befintliga godkända krav ändras inte av underlaget.
 
+Senare användarinriktning 2026-10-01: [sammanhängande schemadelprojekt](SCHEMAMODUL-PROJEKT.md) ska planera programplaner, timplaner, studieplaner, roller/regler och valbara moduldelar tillsammans. Rust och Jev eller liknande AI ska ingå i själva schemamodulen. Delprojektets S1-kontrakt och kompatibilitet i återstående fas 5 beaktas nu; produktprovningen nedan är ett underlag för senare motor-/adapterval. Ingen implementation eller ny verifiering tillkom genom detta förtydligande.
+
 ## Bedömning
 
 Börja med att prova Royal Schedule på en isolerad provskola. Jämför sedan en egen beräkningsmotor med samma undervisningsbehov och regler. Valet mellan extern produkt och egen motor bör avgöras av schemakvalitet, ändringsarbete, integrationsrättigheter och kostnad. En hel omskrivning av backenden behövs inte för denna undersökning.
@@ -96,4 +98,4 @@ Efter första passet föreslås ett större underlag med sex klasser, tolv lära
 - Vilka kundgränser, roller, loggar, driftplatser och dataflöden gäller för beräkning och eventuell assistent?
 - Hur kan vi ta ut vårt underlag, våra regler och våra resultat vid ett framtida byte?
 
-Frågorna är förberedda inför provning och eventuell leverantörsdialog. Inga svar från leverantör har erhållits. Nästa steg är Royal-provningen med det lilla underlaget; därefter ett separat beslut om teknisk prototyp, motor och eventuell Rusttjänst.
+Frågorna är förberedda inför provning och eventuell leverantörsdialog. Inga svar från leverantör har erhållits. Royal-provningen med det lilla underlaget kan ske när tillgång finns. Gemensamt kontrakt/mandat och vidare Rust-/motor-/AI-arbete följer den senare användarinriktningen och ordningen i [schemadelprojektet](SCHEMAMODUL-PROJEKT.md).

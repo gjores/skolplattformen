@@ -71,6 +71,12 @@ Avgränsningarna nedan avser första milstolpen och ska kunna omprövas; de tar 
 - Att lägga till skola börjar med registeruppslag. Registret ger skolans fakta; huvudmannen tillsätter rektor och rektor hanterar läraruppdrag.
 - Kommunintegration är ett produktkrav. Säkerhet behöver genomsyra identitet, behörighet, data, anslutningar och drift.
 
+### Delprojekt för sammanhängande schemamoduler — 2026-10-01
+
+Användaren vill utveckla schemaläggning tillsammans med programplaner, timplaner, individuella studieplaner, tjänstefördelning, grupper och kalender. Roller, regler och gemensamma informations-/modulkontrakt ska beaktas redan i återstående planeringsarbete. Rust ska ingå i en avgränsad körbar prototyp och Jev eller liknande AI ska provas inne i schemamodulen för konfliktprioritering, åtgärdsval och alternativvärdering. Valda delar av olika interna och externa moduler ska kunna kombineras och bytas utan att hela plattformen byts.
+
+[Delprojektets underlag](research/SCHEMAMODUL-PROJEKT.md) anger gemensam grund, föreslagna mandat, krav SCHEMA-01–08, planeringssteg S1–S4 och verifieringsmål. Projektinriktningen är användarbeställd; exakt rolltilldelning, motor, AI-alternativ, driftgräns och genomförandeplacering är öppna. Inga nya schemavägar, Rust-/AI-komponenter eller rättigheter är byggda. Fas 5:s planering ska redovisa kompatibilitet för berörda planversioner, ID:n, enheter och ändringsansvar. Pilotens v1-krav och åtta faser behålls; en hel backendomskrivning är inte beslutad.
+
 ### Befintlig teknik och begränsningar
 
 Arbetskatalog: `/Users/petter.gjores/dev/skolplattform`. Webbappen finns i `web/` och bygger på React, TypeScript, Vinext/Vite och Supabase/Postgres. Lokal förhandsvisning har använt port 5188; telefonförhandsvisningen har separat startkommando. `web/package.json` och låsfilen är källor för exakta beroenden.
@@ -117,10 +123,11 @@ Det nytillkomna `docs/medicinska-uppdraget-och-kansliga-delar.md` är ett separa
 | En begränsad registerintegration först | Gör anslutning, felhantering och informationsansvar prövbara | Confirmed scope; leverantör öppen |
 | Gemensam app, konfigurerbara kundanslutningar | Flera kommuner ska kunna anslutas utan kundspecifika kodkopior | Proposed; driftgräns återstår |
 | Återanvänd befintlig research och komplettera identifierade luckor | Undvik att börja om; verifiera föränderliga och rättsliga antaganden | Working default |
+| Sammanhängande schemamoduler, Rustprototyp och AI inne i schemaarbetet | Uttrycklig användarinriktning 2026-10-01: planmoduler ska hållas samstämmiga och valda moduldelar kunna kombineras | Confirmed direction; kontrakt, specifika mandat och genomförande återstår |
 
 ## Evolution
 
 Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dokumentera ändrade eller borttagna krav med skäl och uppdatera beslut och nuläge. Vid milstolpens slut: granska hela projektbeskrivningen, kärnvärdet, senarelagd omfattning och driftläget. Ett förslag blir inte beslutat enbart för att det står i filen.
 
 ---
-*Last updated: 2026-09-30 — fas 5:s stängda programplans-SQL 05-08 verifierad; skyddad API/UI, beslut och fas 4:s checkpoint kvarstår.*
+*Last updated: 2026-10-01 — delprojekt för sammanhängande schemamoduler registrerat; fas 5:s API/UI/beslut och fas 4:s checkpoint kvarstår.*

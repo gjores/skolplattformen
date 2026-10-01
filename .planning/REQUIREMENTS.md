@@ -6,7 +6,7 @@
 
 **Core Value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
 
-**Status:** Godkända av användaren 2026-09-11 tillsammans med färdplanens åtta faser. Nio krav är verifierade efter fas 1–2; övriga 33 inväntar genomförande och verifiering.
+**Status:** V1-kraven godkändes av användaren 2026-09-11 tillsammans med färdplanens åtta faser. 15 krav är verifierade efter fas 1–3; övriga 27 inväntar genomförande eller slutverifiering. SCHEMA-01–08 är registrerade som separat senare projektinriktning 2026-10-01 och är ännu inte verifierade.
 
 ## v1 Requirements
 
@@ -95,6 +95,19 @@ Senarelagda delar av visionen. De är inte borttagna produktmål och behöver eg
 - **HOST-01**: Leverans för kommunal egen drift efter provad installation, uppgradering och förvaltning.
 - **PARITY-01**: Fortsatt genomgång av SchoolSoft-funktionsregistret med varje relevant område märkt byggt, planerat, senarelagt eller ej tillämpligt och verifiering skild från leverantörsbeskrivning.
 
+### Sammanhängande schemamoduler — användarinriktning 2026-10-01
+
+Användaren har beställt ett sammanhängande delprojekt som ska beaktas redan i planeringen av återstående planflöden. Nedan är produktkrav för delprojektet, inte tillägg till pilotens 42 v1-krav eller redan verifierad leverans. Detaljerade roller, kontrakt och genomförandeplaner återstår. Ansvar inom delprojektet och verifieringsmål finns i [SCHEMAMODUL-PROJEKT.md](research/SCHEMAMODUL-PROJEKT.md); STUDY-01 och GROUP-01 förblir öppna och omfattar även arbete utanför schemaavgränsningen.
+
+- **SCHEMA-01**: Programplan, timplan, individuell studieplan, undervisningsgrupp och schema har gemensamt definierade identiteter, giltigheter, enheter och exakta versionskopplingar som går att följa genom hela flödet.
+- **SCHEMA-02**: Specifika schemauppdrag och operationsbundna rättigheter för underlag, regler, beräkning, granskning, publicering och integration genomdrivs på servern och i bakgrundsjobb, med återkallelse och spårbarhet.
+- **SCHEMA-03**: Schemat använder versionsbundna obligatoriska regler och uttryckliga prioriterade önskemål; saknat underlag och olösbara villkor visas utan tyst regeluppluckring.
+- **SCHEMA-04**: Rust ingår i en körbar avgränsad prototyp för beräkningstjänst/komponent med versionsbundet kontrakt, avbrott, resursgränser och kontrollerbar integration med befintlig backend.
+- **SCHEMA-05**: Jev eller liknande AI ingår i schemamodulens konfliktprioritering, åtgärdsval eller alternativvärdering och jämförs med vanlig sökprioritering; obligatoriska regler och mandat kontrolleras oberoende av modellen.
+- **SCHEMA-06**: Valda delar av interna och externa moduler kan kombineras och bytas genom avgränsade kontrakt; saknat stöd för nödvändiga regler eller data upptäcks före användning.
+- **SCHEMA-07**: Ändringar i plan-, grupp-, resurs- och kalendermoduler ger versionsbunden, avstämd synk och synliga konsekvenser i schemat, utan dubbletter, förlorade ändringar eller automatisk ombindning av tidigare beslut.
+- **SCHEMA-08**: Behörig personal kan jämföra, låsa, granska och publicera rätt schemaversion och följa undervisningsbehov, schemalagd, inställd och genomförd tid som skilda uppgifter.
+
 ## Out of Scope
 
 | Funktion | Skäl |
@@ -165,4 +178,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-09-12 — BASE-01, BASE-02 och PILOT-01 verifierade i fas 1 (01-VERIFICATION.md status passed, användarens checkpoint godkänd). Övriga 39 krav Pending.*
+*Last updated: 2026-10-01 — SCHEMA-01–08 registrerade för delprojektet; v1:s 42 krav och deras fasfördelning behålls, inga nya verifieringsresultat.*

@@ -6,9 +6,9 @@ current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-08
 status: planning
 stopped_at: Completed 05-08 closed audited program plan draft SQL; protected API preflight next; Phase 4 checkpoint open
-last_updated: "2026-09-30"
-last_activity: 2026-09-30
-last_activity_desc: "05-08 klar: immutable SQL-katalog, sessions-/mandatbundna utkast, CAS och atomisk DB-audit; 632 SQL, 455+5 Node, 42 paritetsfall och 6 låsväntansfall PASS; API/UI/beslut fortsatt stängda."
+last_updated: "2026-10-01"
+last_activity: 2026-10-01
+last_activity_desc: "Sammanhängande schemadelprojekt registrerat: SCHEMA-01–08, roller/regler, modulkontrakt, Rustprototyp och Jev/liknande AI inne i schemat; fas 5 ska beakta kompatibilitet. Inget nytt genomförande eller fasgodkännande."
 state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
@@ -22,7 +22,7 @@ milestone_name: milestone
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-30)
+See: .planning/PROJECT.md (updated 2026-10-01)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
 **Current focus:** Fas 5: 05-01–05-08 genomförda. 05-08 har levererat oföränderlig DB-katalog samt stängda sessions-/mandatbundna kommandon för läsning, legacy-bindning, fördjupningsändring, skapa och klona utkast. 632 riktade SQL-prov, 455 modell/server/generator + 5 harnessprov, 42 TS/SQL-paritetsfall och 6 observerade låsväntansfall samt caller-rollback PASS. Ursprungliga plan-/utbildnings-/historikfält är oförändrade. Nästa: skyddad programplans-API med levande session/MFA, Worker-audit och full preflight före några nya grants. Inga nya programplansrättigheter öppnade. Fastställande, nationella beslutsregler, UI, kullkopiering och klasskoppling återstår. Fas 4:s mänskliga checkpoint/datumanmärkning kvarstår separat.
@@ -40,8 +40,10 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Total Plans in Phase:** 8 genomförda delplaner; övriga skyddade flöden återstår
 **Status:** Planning fas 5; fas 4:s användarprov och fasverifiering fortfarande öppna
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-09-30
-**Last Activity Description:** 05-08 på b0bf476: katalog 60/60, utkast 108/108, riktad SQL-regression 464/464, full modell/server/generator 455/455 och harnesssäkerhet 5/5; typ/lint/bytekontroll, 42 paritetsfall, 6/6 faktisk låsväntan + yttre rollback, bevarande och oberoende granskning 6/6 PASS. SQL-kommandon stängda, inga nya Worker-grants eller API/UI/beslut. Bygge/browser/handbok från tidigare planer är historik.
+**Last Activity:** 2026-10-01
+**Last Activity Description:** Användarbeställt schemadelprojekt dokumenterat med SCHEMA-01–08, gemensamma plan-/grupp-/schemakontrakt, operationsbundna mandat, Rustprototyp och Jev eller liknande AI inne i schemamodulen. Valda interna/externa moduldelar ska kunna kombineras. Fas 5 har fått en kompatibilitetsgräns inför berörda kommande planer; nästa genomförandeplan är fortfarande 05-09. Inga nya verksamhetsvägar, prototyper eller verifieringsresultat.
+
+**Senaste genomförandebevis, 2026-09-30:** 05-08 på b0bf476: katalog 60/60, utkast 108/108, riktad SQL-regression 464/464, full modell/server/generator 455/455 och harnesssäkerhet 5/5; typ/lint/bytekontroll, 42 paritetsfall, 6/6 faktisk låsväntan + yttre rollback, bevarande och oberoende granskning 6/6 PASS. SQL-kommandon stängda, inga nya Worker-grants eller API/UI/beslut. Bygge/browser/handbok från tidigare planer är historik.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
@@ -169,7 +171,8 @@ Fullständiga beslut finns i PROJECT.md.
 - 04-22: användarprovet förberett i lokal skyddad app på 3012. Se `04-HUMAN-UAT.md`; mänskliga resultat och godkännande väntar. Planen är inte slutförd.
 
 - Fas 4:s nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
-- 17 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
+- 18 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
+- 2026-10-01: befintlig schematodo utökad till [sammanhängande schemadelprojekt](research/SCHEMAMODUL-PROJEKT.md). SCHEMA-01–08 har ansvar i S1–S4 och ännu ej provade verifieringsmål. Program-/tim-/studieplaner, grupper och kalender ska samverka; roller/regler och valbara moduldelar utreds från början, med Rustprototyp och Jev/liknande AI inne i schemaarbetet. Delprojektets första steg är S1 kontrakt/mandat; dess genomförandeplacering är öppen. Fas 5 ska beakta gemensamma ID:n, versioner, enheter och ändringsansvar nu. Ingen ny numrerad pilotfas eller ny rättighet införd.
 
 ## Blockers
 
@@ -190,10 +193,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | Produktvision | Studieplaner, schema, undervisning, ärenden, vårdnadshavare, fler anslutningar, egen drift och eventuell diarietjänst | Se v2 Requirements | 2026-09-10 |
+| Schemadelprojekt | Sammanhängande planmoduler, specifika mandat/regler, Rust, AI inne i schemat och valbara moduldelar | SCHEMA-01–08 och S1–S4 dokumenterade; kompatibilitet beaktas i fas 5, detaljerat genomförande återstår | 2026-10-01 |
 
 ## Session
 
-**Last Date:** 2026-09-30
+**Last Date:** 2026-10-01
 **Stopped At:** 05-08 klar; nästa skyddad programplans-API med obligatorisk Worker-audit och preflight före grant; fas 4:s checkpoint kvarstår separat
 **Resume File:** None
 

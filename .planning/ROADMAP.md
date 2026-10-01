@@ -177,6 +177,8 @@ Nästa delplan ska koppla stängda programplansutkast till skyddad API med levan
 
 Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
+Planeringsgräns 2026-10-01: användarens [delprojekt för sammanhängande schemamoduler](research/SCHEMAMODUL-PROJEKT.md) ska beaktas i berörda återstående planer. Redovisa stabila ID:n, exakta plan-/katalogversioner, undervisningstidens enheter, giltighet, klasskopplingar och ändringsansvar så programplaner, timplaner och framtida studieplan/schema kan samverka. ADMIN-01–04 behålls; Rustmotor, AI-koppling och nya schemafunktioner får egna genomförandeplaner.
+
 **UI hint**: yes
 
 Denna fas äger slutverifieringen av bevarandekraven. Referensflödena provas redan i fas 1 och vid varje berörd ändring i fas 2–4; regressionsskydd skjuts inte upp till fas 5. Grundskola och gymnasium provas där respektive arbetsflöde är tillämpligt.
@@ -233,6 +235,10 @@ Ett simulerat API kan användas för interna kontrakts- och felprov och redovisa
 
 Informationshantering kan bygga på kundens etablerade process; en egen publik diarietjänst ingår inte. Drift- och avtalsfrågor förbereds från fas 1. Inga verkliga elevuppgifter får föras in innan kundens driftbeslut och tillämpliga godkännanden finns; ett godkänt syntetiskt prov ändrar inte denna gräns.
 
+## Registrerat delprojekt: sammanhängande schemamoduler
+
+Användarinriktning 2026-10-01. SCHEMA-01–08 finns bland senare produktkrav med verifieringsmål i [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md). Föreslagen ordning: S1 gemensamma kontrakt/mandat/regler; S2 avskild Rust-/motor-/AI-prototyp; S3 plan–grupp–schema med granskning och synk; S4 komponentbyte och vald extern adapter. Dessa är ej genomförda planeringssteg i delprojektet, inte nya numrerade faser i v1.0. Genomförandeplaceringen återstår; kompatibilitetsfrågorna ska beaktas redan i fas 5. Den befintliga schematodon är uppdaterad, inte duplicerad.
+
 ## Genomförande och verifiering
 
 Varje fas följer GSD:s diskussion, planering, genomförande och användarverifiering. Fasplanen utgår från aktuell berörd kod och beskriver dagens beteende, önskat beteende, datavägar, migrering, återgång och användarprov. En dataväg växlas i taget med avstämda ID:n; återgång får inte återöppna demoåtkomst eller äldre överbehörigheter.
@@ -249,7 +255,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
-| 5. Bevarade utbildnings- och klassflöden | 3/TBD | In progress — stängd SQL-grund; session/API nästa | - |
+| 5. Bevarade utbildnings- och klassflöden | 8/TBD | In progress — 05-08 stängd programplans-SQL klar; skyddad programplans-API och preflight nästa | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
@@ -257,4 +263,4 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav väntar på genomförande eller slutverifiering. Fas 4:s åtta krav har gröna automatiska syntetiska bevis, men mänskligt användarprov och separat fasverifiering återstår.
 
 ---
-*Last updated: 2026-09-30 — fas 5:s sex delplaner genomförda; fas 4:s checkpoint och fasverifiering kvarstår.*
+*Last updated: 2026-10-01 — schemadelprojekt och kompatibilitetsgräns registrerade; fas 5:s åtta delplaner genomförda, fas 4:s checkpoint och fasverifiering kvarstår.*

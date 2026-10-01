@@ -32,3 +32,10 @@ ADMIN-04: stabil klassbindning ger korrekt läsårsunderlag även efter senare t
 
 Varje krav provas med positiva och negativa SQL/API-prov, kontrollerat browserflöde och handbok; slutgrinden bevarar fas 1–4:s säkerhetsbevis. Simulatorprov och verklig anslutning får aldrig blandas ihop.
 
+## Framåtriktad modulgräns — användarinriktning 2026-10-01
+
+Användaren har beställt [ett sammanhängande schemadelprojekt](../../research/SCHEMAMODUL-PROJEKT.md) med Rust, Jev eller liknande AI inne i schemamodulen samt valbara interna/externa moduldelar. Programplan, timplan, individuell studieplan, grupper och kalender behöver gemensamma kontrakt och särskilda mandat. Detta behöver beaktas redan när återstående fas 5-planer utformas.
+
+För varje berörd plan ska genomförandeunderlaget redovisa stabila ID:n och exakta katalog-/planversioner, koppling till kull/klass/läsår, enheter för undervisningstid, giltighet samt ägare för ändringar och konsekvenser för framtida schema. Poäng är inte automatiskt schemaminuter. Ny planversion får inte tyst ombinda äldre klasskopplingar. Tvetydig legacy-mappning ska rapporteras som lucka.
+
+Fas 5 behåller ADMIN-01–04 och befintliga fastställanderegler. Denna kompatibilitetskontroll kräver inga nya schemagrants, generell studieplansåtkomst eller AI-rättigheter i nästa API-plan. Specificering av schemaläggaruppdrag, modulkontrakt och regelmodell hör till delprojektets S1; faktisk Rust-/AI-prototyp och schemaflöden får egna genomförandeplaner och prov.
