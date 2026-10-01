@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "target": "protected",
+  "roles": 2,
+  "educationsPerRole": 4,
+  "auditedReads": 16,
+  "proof": "initial four trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied",
+  "checkedAt": "2026-10-01T22:15:59.973Z",
+  "buildRevision": "c3200412f24a5ca797b47bcc2bfcf714d56e5697"
+}

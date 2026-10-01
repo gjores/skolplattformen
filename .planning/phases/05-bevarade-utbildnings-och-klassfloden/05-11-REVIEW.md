@@ -4,7 +4,7 @@ plan: "11"
 reviewed: 2026-10-02
 reviewer: independent-executor-05-09
 source_revision: c3200412f24a5ca797b47bcc2bfcf714d56e5697
-status: code_review_passed_runtime_pending
+status: code_review_passed_runtime_confirmed_human_pending
 human_pending: true
 code_checks_passed: 6
 code_checks_total: 6
@@ -40,3 +40,9 @@ Browserfixturerna inkluderar nu även `server-client.ts` och osparatregistret bl
 Granskningen godkänner inte ADMIN-02 eller hela fas 5. Den sjunde sanningen i planens must_haves, färska dator-/telefonbevis och ett synligt beständigt användarprovsunderlag, kräver genomförarens aktuella rapporter: source/build-match, full fallmatris, audit/dataasserts, cleanup, granskade bilder, dokumentationsbygge och rootens verifiering av de fyra beständiga exemplen på 3012. Dessa rapporter har inte ersatts med provkällor eller äldre PASS-status i denna granskning.
 
 Mänsklig bedömning återstår enligt `05-PROGRAMPLAN-USER-TRIAL.md`: rektor/huvudman hittar utbildning/version, förstår fryst grund och olösta val, anger känt startdatum, skapar/binder/ändrar/klonar utkast och bedömer dialoger, fel/MFA och telefonupplevelse. Samma prov bedömer den nya timplanshandledningen för grundskola och introduktionsprogram. Browseremulering bevisar inte begriplighet eller godkänd verklig IdP-/kommunanslutning. Fastställande, full nationell regelkontroll och fasens återstående krav hålls öppna.
+
+## Roots efterföljande runtimekontroll, 2026-10-02
+
+Den oberoende granskningen ovan är kodgranskning. Root har separat kontrollerat aktuella rapporters fullständiga 30 programplansfall och 20 timplansfall på c320041, source/build-match, noll egna grafrester och bevarad audit. Source-HEAD-avancering till 0b6a118 ändrade endast granskningsfilen; styrda runtimekällor jämfördes före båda projekten. Typ/lint, handbok och roots modell/server/generator 502 PASS. Lästa slutbilder är bedömda tillsammans med faktiska fokus-/scroll-/kontrollassertions.
+
+Vanlig 3012 utan preload har frisk startsida/Worker-hälsa. Fyra beständiga initiala scenarier och tre planversioner är lästa för två befintliga mandat genom Worker, med 16 kontrollerade auditpar och städade egna sessioner. Se phase5-11-root-verification.json och phase5-11-user-trial-worker.json. Den sjunde sanningen, automatisk verifiering och synligt mänskligt provunderlag, är därmed förberedd; mänsklig begriplighet/fysisk telefon och hela fasens krav är fortfarande öppna. Två tidigare previewavbrotts orsaksfråga är awaiting_evidence och deras FAIL-bevis har inte omklassats.

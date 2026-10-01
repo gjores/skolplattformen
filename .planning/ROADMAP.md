@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-10 och 05-12 genomförda till 2026-10-01. Skyddad GR/IM-timplanslista/celländring och separat strikt programplansreferensgrund verifierade; övriga utbildnings- och versionsflöden återstår.
+**Plans**: 05-01–05-12 automatiskt genomförda till konkret mänskligt prov 2026-10-02. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -175,10 +175,10 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 
 - [x] 05-09-PLAN.md — Skyddad programplans-API, preflight/final 48/48, SQL 663, gamla timplans-API 39 och oberoende granskning 6/6 PASS; exakt fem nya grants efter återställd preflight
 - [x] 05-10-PLAN.md — Gymnasieurval och verifierat katalogunderlag; preflight/final 38/118, SQL 443 och tidigare API 48/39 PASS. Exakt två nya läsgrants; totalt tio Worker-signaturer.
-- [ ] 05-11-PLAN.md — Skyddad programplansvy, utkast/kloning, dator-/telefonprov, handbok och samlat mänskligt prov; slutligt browserprov pågår
+- [x] 05-11-PLAN.md — Skyddad programplansvy och utkast/kloning, programbrowser 30/30 + timplan 20/20 PASS, handbok och fyra beständiga exempel verifierade på 3012. Samlat mänskligt prov väntar.
 - [x] 05-12-PLAN.md — Regelhandledning i befintlig timplansvy och dialog, GR/IM-källor och handbok; 20/20 browserprov och skyddat bygge PASS. Mänsklig förståelsebedömning följer med 05-11.
 
-05-11 ska öppna programplansvyn efter 05-09/05-10:s verifierade API. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
+05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 
 Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
@@ -262,7 +262,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
-| 5. Bevarade utbildnings- och klassflöden | 11/12 hittills planerade | In progress — backend och timplanshandledning klara; 05-11 slutprov före mänsklig bedömning | - |
+| 5. Bevarade utbildnings- och klassflöden | 12/12 hittills skrivna, mänskligt prov väntar | In progress — skyddade utkast och handledning redo; återstående utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |

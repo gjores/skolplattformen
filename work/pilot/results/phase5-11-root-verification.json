@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-01T22:15:59.973Z",
+  "buildRevision": "c3200412f24a5ca797b47bcc2bfcf714d56e5697",
+  "scope": "local synthetic implementation and human trial readiness",
+  "programplanBrowser": {
+    "passed": 30,
+    "total": 30,
+    "cleanup": 30
+  },
+  "timplanBrowser": {
+    "passed": 20,
+    "total": 20,
+    "cleanup": 20
+  },
+  "nodeTests": {
+    "model": 386,
+    "server": 105,
+    "unchangedGenerators": 11,
+    "total": 502
+  },
+  "trialScriptTests": 2,
+  "independentCodeReview": {
+    "passed": 6,
+    "total": 6
+  },
+  "trialWorker": {
+    "roles": 2,
+    "educationsPerRole": 4,
+    "auditedReads": 16
+  },
+  "rootVisualReview": [
+    "desktop read/dialog/refresh error",
+    "phone dialog/legacy clone/conflict/MFA"
+  ],
+  "visualLimitation": "FullPage modal images show the currently scrolled portion; interpreted with actual browser focus/scroll/control assertions.",
+  "humanResult": "pending",
+  "phase5Verified": false,
+  "phase4Checkpoint": "open",
+  "previewExitDiagnosis": "awaiting_evidence; two earlier interrupted runs are not PASS or a verified root cause fix"
+}

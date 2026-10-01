@@ -1,10 +1,10 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
-Status: **förbereds — mänskligt resultat saknas**. Gäller lokal skyddad provmiljö och syntetiska uppgifter. De automatiska proven redovisas separat i 05-11/05-12-SUMMARY. Detta godkänner inte fullständiga nationella beslutsregler, verklig kommunanslutning eller pilotdrift.
+Status 2026-10-02: **redo för användarprov — mänskligt resultat saknas**. Gäller lokal skyddad provmiljö och syntetiska uppgifter. De automatiska proven redovisas separat i 05-11/05-12-SUMMARY. Detta godkänner inte fullständiga nationella beslutsregler, verklig kommunanslutning eller pilotdrift.
 
 ## Börja här
 
-Öppna http://127.0.0.1:3012/ och välj rektorns provknapp på inloggningssidan. Ange aktuell engångskod när inloggningen kräver den. Välj uppdraget för **Syntetisk skola 11**. Huvudmannens provkonto kan också arbeta med programplansutkasten. Inga inloggningsuppgifter eller engångskoder lagras i denna fil.
+Ladda om http://127.0.0.1:3012/ för att få det aktuella bygget och välj rektorns provknapp på inloggningssidan. Ange aktuell engångskod när inloggningen kräver den. Välj uppdraget för **Syntetisk skola 11**. Huvudmannens provkonto kan också arbeta med programplansutkasten. Inga inloggningsuppgifter eller engångskoder lagras i denna fil.
 
 Välj **Programplaner**. Fyra nya utbildningar ska vara synliga:
 
@@ -37,4 +37,8 @@ Skriv vilka moment du provade och om du använde dator, telefon eller båda. Bes
 
 ## Teknisk förberedelse
 
-Ägarskyddad, additiv förberedelse: `work/pilot/prepare-programplan-user-trial.mjs`, reserverat prefix 55100110. Exakta syntetiska kund-/skolnamn och organizerrelation måste finnas. Scriptet ändrar inte mandat eller befintliga planer och bevarar användarens tidigare ändringar. Tillfälliga egna SQL-sessioner provar befintliga rektors-/huvudmannamandat och obligatorisk DB-loggning; detta är inte interaktiv IdP eller Worker/browserbevis. Körresultat, idempotens och aktuell 3012-verifiering kompletteras när backendens slutprov har avslutats.
+Ägarskyddad, additiv förberedelse: `work/pilot/prepare-programplan-user-trial.mjs`, reserverat prefix 55100110. Exakta syntetiska kund-/skolnamn och organizerrelation måste finnas. Scriptet ändrar inte mandat eller befintliga planer och bevarar användarens tidigare ändringar. Tillfälliga egna SQL-sessioner provar befintliga rektors-/huvudmannamandat och obligatorisk DB-loggning; detta är inte interaktiv IdP eller Worker/browserbevis. Första förberedelse och omkörning PASS: alla sju tidigare provrader samt en uttryckligt ändrad egen kulltext bevarades. Den egna textändringen återställdes efter detta avgränsade bevarandeprov. Se phase5-11-user-trial-preparation.json.
+
+Vanlig skyddad app på 3012 kör bygge c320041 utan diagnostisk preload. Startsida och Worker/DB-hälsa PASS. Verify-programplan-user-trial.mjs läste därefter alla fyra initiala exempel och de tre förberedda planerna för både befintlig rektor och huvudman genom faktisk Worker: 16 auditerade läsningar med rätt DB-/Worker-par. Egna tillfälliga sessionsrader städades; säkerhetsloggar bevarades. Se phase5-11-user-trial-worker.json och phase5-11-root-verification.json. Detta använder lokalt mintade sessionsbevis och är inte interaktiv IdP eller ett mänskligt resultat.
+
+Programbrowser 30/30 och timplansregression 20/20 PASS mot samma bygge, på dator och iPhone/WebKit. Två tidigare avbrutna previewomgångar sparas som FAIL; deras rotorsak är fortsatt öppen i .planning/debug/phase5-preview-exit.md. De nya fulla gröna proven och frisk 3012 förbereder användarprovet utan att påstå en verifierad orsaksfix.
