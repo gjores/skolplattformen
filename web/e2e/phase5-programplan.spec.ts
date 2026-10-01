@@ -134,7 +134,9 @@ test('13: sidurval, äldre version, okända äldre val och tomt uppdrag',async({
 
 test('14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll',async({page})=>{
   await enter(page,fixture.hm);await education(page);await version(page);await add(await edit(page));const r=await save(page);expect(r.status()).toBe(200);await paired(r,'programplan_specialization_changed',fixture.planId,fixture.hm);await expect(page.getByRole('dialog')).toHaveCount(0);
-  await fixture.advanceEpoch(fixture.hm);await w(page).getByRole('button',{name:'Läs om',exact:true}).click();await expect(w(page)).toHaveCount(0);await expect(page.getByRole('dialog')).toHaveCount(0);
+  let release!:()=>void,arrived!:()=>void;const waiting=new Promise<void>(r=>{arrived=r;}),delay=new Promise<void>(r=>{release=r;});
+  await page.route('**/api/programplaner/lasa',async route=>{const result=await route.fetch();arrived();await delay;try{await route.fulfill({response:result});}catch{/* request belonged to the old epoch */}});
+  await w(page).getByRole('button',{name:'Läs om',exact:true}).click();await waiting;await fixture.advanceEpoch(fixture.hm);await page.evaluate(()=>window.dispatchEvent(new Event('pageshow')));await expect(w(page)).toHaveCount(0);release();await expect(w(page)).toHaveCount(0);await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 test('15: utgången session och avslutat givande mandat rensar det öppna formuläret',async({page})=>{
