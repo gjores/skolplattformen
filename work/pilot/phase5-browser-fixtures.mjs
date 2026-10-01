@@ -13,7 +13,8 @@ const require = createRequire(path.join(root, 'web/package.json'));
 const MARKER = 'Syntetiskt 05-06 browserprov';
 const SOURCE_PATHS = ['web/app/protected-timplan-workspace.tsx','web/app/timplan-guidance.tsx','web/app/protected-home.tsx',
   'web/app/protected-timplan.css','web/lib/protected-timplan.ts','web/lib/server/timplan-planning.ts',
-  'web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts'];
+  'web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts',
+  'work/pilot/phase5-browser-fixtures.mjs','web/e2e/phase5-timplan.spec.ts','web/playwright.phase5-timplan.config.ts'];
 
 export async function verifyBrowserTarget(baseURL) {
   if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL)) throw new Error('Endast lokal browserprovserver tillåts.');
@@ -55,11 +56,12 @@ export async function createTimplanBrowserFixture() {
   const clearAuditFailure = async () => {
     if (!injected) return;
     await assertTarget('protected');
+    await owned(db);
     await db.unsafe(`drop trigger if exists ${trigger} on public.security_events; drop function if exists public.${triggerFn}();`);
     injected=false;
   };
   const cleanup = async () => {
-    let failed=false;
+    let failed=false,evidence=null;
     try {
       await assertTarget('protected');
       await clearAuditFailure();
@@ -77,7 +79,8 @@ export async function createTimplanBrowserFixture() {
         await tx`delete from public.school_units where organizer_id=${id(2)}`;
         await tx`delete from public.memberships where customer_id=${id(1)}`;
         await tx`delete from public.organizers where id=${id(2)}`;
-        await tx`delete from public.identities where id=any(${[10,11,12,13,14].map(id)}::uuid[])`;
+        // Retained audit still needs its original synthetic actor identity.
+        await tx`delete from public.identities i where i.id=any(${[10,11,12,13,14].map(id)}::uuid[]) and not exists(select 1 from public.security_events e where e.actor_identity_id=i.id)`;
         await tx`delete from public.customers where id=${id(1)}`;
       });
       const [row]=await db`select not exists(select 1 from public.customers where id=${id(1)})
@@ -86,17 +89,24 @@ export async function createTimplanBrowserFixture() {
         and not exists(select 1 from public.assignment_units where assignment_id=any(${legacyAssignmentIds}::uuid[]))
         and not exists(select 1 from public.staff_assignment_bindings where customer_id=${id(1)})
         and not exists(select 1 from pg_trigger where tgname=${trigger})
-        and not exists(select 1 from pg_proc where proname=${triggerFn}) as clean`;
-      if(!row.clean) failed=true;
+        and not exists(select 1 from pg_proc where proname=${triggerFn})
+        and not exists(select 1 from public.access_assignments where customer_id=${id(1)})
+        and not exists(select 1 from public.offerings where organizer_id=${id(2)})
+        and not exists(select 1 from public.timplans where organizer_id=${id(2)}) as clean,
+        (select count(*)::int from public.security_events where customer_id=${id(1)}) as preservedAuditEvents,
+        (select count(*)::int from public.identities i where i.id=any(${[10,11,12,13,14].map(id)}::uuid[]) and exists(select 1 from public.security_events e where e.actor_identity_id=i.id)) as preservedAuditAnchors`;
+      if(!row.clean) failed=true;else evidence=row;
     } catch { failed=true; }
     await db.end({timeout:3});
-    if(failed) throw new Error('Browserfixturens städning misslyckades.');
+    if(failed) throw new Error('Browserfixturens städning misslyckades.');return evidence;
   };
   try {
     const source = readFileSync(path.join(root,'supabase/tests/phase5_timplan.test.sql'),'utf8');
     const start=source.indexOf('-- Planning fixture:'), end=source.indexOf('-- End planning fixture.');
     if(start<0 || end<=start) throw new Error('Avgränsad SQL-provmall saknas.');
-    const sql=source.slice(start,end).replaceAll('55003000',prefix)
+    const block=source.slice(start,end);
+    if(/\b(?:grant|revoke|truncate|drop)\b/iu.test(block))throw new Error('SQL-provmallen får inte ändra databasrättigheter eller städa globalt.');
+    const sql=block.replaceAll('55003000',prefix)
       .replaceAll('Syntetiskt timplansprov',MARKER)
       .replaceAll('planning.example.test',`${prefix}.browser.example.test`)
       .replaceAll('55003030',`${code}30`).replaceAll('55003031',`${code}31`);

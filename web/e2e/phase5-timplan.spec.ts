@@ -19,7 +19,7 @@ test.beforeAll(async({browserName},testInfo)=>{
   await testInfo.attach('source-build.json',{body:JSON.stringify({...proof,browserName,scope:'local-synthetic-only'}),contentType:'application/json'});
 });
 test.beforeEach(async()=>{ fixture=undefined!; fixture=await createTimplanBrowserFixture(); });
-test.afterEach(async()=>{ await fixture?.cleanup(); });
+test.afterEach(async({browserName},testInfo)=>{if(fixture)await testInfo.attach('cleanup.json',{body:JSON.stringify({...await fixture.cleanup(),browserName}),contentType:'application/json'});});
 
 async function navigate(page: Page,label: string) {
   await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();
