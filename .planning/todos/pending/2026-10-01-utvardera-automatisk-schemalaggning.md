@@ -1,7 +1,7 @@
 ---
 created: 2026-10-01
 updated: 2026-10-01
-title: Sammanhängande schemamoduler med Rust och AI-stöd
+title: Sammanhängande schemamoduler med Rust och utvärdering av AI
 area: schema
 files:
   - .planning/research/SCHEMALAGGNING-2026-10-01.md
@@ -14,14 +14,14 @@ files:
 
 ## Problem
 
-Användaren vill utveckla schemaläggning som ett sammanhängande delprojekt med programplaner, timplaner, individuella studieplaner, grupper och kalender. Roller, regler och gemensamma kontrakt behöver förberedas redan nu. Rust och Jev eller liknande AI ska ingå i själva schemamodulen. Det ska gå att kombinera valda delar av olika interna och externa moduler. Royal Schedule / SchoolSoft AI Schema kan bli tillgängligt för provning genom användaren.
+Användaren vill utveckla schemaläggning som ett sammanhängande delprojekt med programplaner, timplaner, individuella studieplaner, grupper och kalender. Roller, regler och gemensamma kontrakt behöver förberedas redan nu. Rust ska provas i en avgränsad prototyp. Jev och liknande AI ska utvärderas för möjlig användning i schemamodulen; införande är inte beslutat. Det ska gå att kombinera valda delar av olika interna och externa moduler. Royal Schedule / SchoolSoft AI Schema kan bli tillgängligt för provning genom användaren.
 
 ## Solution
 
 - Följ [delprojektets inriktning, krav och planeringssteg](../../research/SCHEMAMODUL-PROJEKT.md). Första steg S1 tar fram gemensamt informations-/modulkontrakt, operationsbundna mandat, uttrycklig regelmodell och syntetiska acceptansfall.
 - Beakta versionsbundna planreferenser, stabila ID:n och informationsansvar i återstående fas 5-planering; bygg ingen separat konkurrerande program-/tim-/studieplansmodell för schemat.
-- Prova Rust genom en körbar avgränsad komponent och AI genom konfliktprioritering/åtgärdsval inne i schemaberäkningen. Jämför med/utan Jev och med annat relevant AI-alternativ. Detta avser inte enbart researchgranskning.
-- Definiera och pröva valbara delar för planunderlag, regler, motor, AI, redigering, publicering och adapter. Dokumentera faktisk förmåga och nekad användning vid oförenliga kontrakt.
+- Prova Rust genom en körbar avgränsad komponent. Utvärdera Jev och annat relevant AI-alternativ för konfliktprioritering/åtgärdsval i schemaberäkningen mot samma motor utan AI. Definiera kriterier för kvalitet, tid, kostnad, stabilitet och integrationskomplexitet före provning och dokumentera rekommendation att införa, avstå eller utreda vidare. SCHEMA-05 är ett utvärderingskrav; AI-införande kräver separat beslut.
+- Definiera och pröva valbara delar för planunderlag, regler, motor, redigering, publicering och adapter. AI-delen utvärderas; dess produktkontrakt och utbytbarhet planeras bara om införande beslutas. Dokumentera faktisk förmåga och nekad användning vid oförenliga kontrakt.
 - Definiera köpbara modulgränser/tillval och kundens giltiga modultillgång enligt MODUL-01–04. Pröva schema med externt planunderlag utan köpta egna planvyer, separat kontroll av modul och personmandat samt tillägg/avslut med bevarade ID:n, historik och kontrollerade beroenden. Priser och betalningsprocess är öppna val.
 - Använd produktjämförelsen och provfallen i [researchunderlaget](../../research/SCHEMALAGGNING-2026-10-01.md).
 - Prova Royal i en isolerad provorganisation med syntetiska uppgifter. Dokumentera produktvariant och vilka funktioner som faktiskt finns på kontot.
@@ -33,4 +33,4 @@ Användaren vill utveckla schemaläggning som ett sammanhängande delprojekt med
 
 ## Status
 
-Offentlig research, Royal-provplan och sammanhängande projektinriktning dokumenterade 2026-10-01. SCHEMA-01–08 och MODUL-01–04 är registrerade som framtida produktkrav med ansvar i S1–S4 och ännu ej provade verifieringsmål. Separat köp av moduler är användarbeslut; detaljkatalog och kommersiell process återstår. Ingen inloggad produktprovning, Rust-/motor-/AI-prototyp, licensfunktion eller verklig integration genomförd. Fas 5 ska beakta kompatibilitetsgränserna nu; pilotens åtta faser och 42 v1-krav behålls. Testinloggning är ännu inte tillgänglig i denna uppgift.
+Offentlig research, Royal-provplan och sammanhängande projektinriktning dokumenterade 2026-10-01. SCHEMA-01–08 och MODUL-01–04 är registrerade som framtida krav med ansvar i S1–S4 (SCHEMA-05 avser utvärdering, inte beslutad AI-leverans) och ännu ej provade verifieringsmål. Separat köp av moduler är användarbeslut; detaljkatalog och kommersiell process återstår. Ingen inloggad produktprovning, Rust-/motor-/AI-prototyp, licensfunktion eller verklig integration genomförd. Fas 5 ska beakta kompatibilitetsgränserna nu; pilotens åtta faser och 42 v1-krav behålls. Testinloggning är ännu inte tillgänglig i denna uppgift.

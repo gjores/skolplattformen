@@ -8,7 +8,7 @@ status: planning
 stopped_at: Completed 05-08 closed audited program plan draft SQL; protected API preflight next; Phase 4 checkpoint open
 last_updated: "2026-10-01"
 last_activity: 2026-10-01
-last_activity_desc: "Schemadelprojekt kompletterat med separat köp av moduler: MODUL-01–04, kundens modultillgång skild från personmandat, öppna beroenden och kontrollerat tillägg/avslut. SCHEMA-01–08, Rust och AI i schemat kvarstår; inget nytt genomförande eller fasgodkännande."
+last_activity_desc: "Schemadelprojekt kompletterat med separat köp av moduler: MODUL-01–04, kundens modultillgång skild från personmandat, öppna beroenden och kontrollerat tillägg/avslut. SCHEMA-05 förtydligat till AI-utvärdering med möjlighet att avstå; AI-införande ej beslutat. Rustprototyp och övriga krav kvarstår; inget nytt genomförande eller fasgodkännande."
 state_head: b0bf476bbe16a245a5e49cc1821f198b36cad72d
 progress:
   total_phases: 8
@@ -41,9 +41,9 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Planning fas 5; fas 4:s användarprov och fasverifiering fortfarande öppna
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-01
-**Last Activity Description:** Användarbeställt schemadelprojekt dokumenterat med SCHEMA-01–08, gemensamma plan-/grupp-/schemakontrakt, operationsbundna mandat, Rustprototyp och Jev eller liknande AI inne i schemamodulen. Valda interna/externa moduldelar ska kunna kombineras. Fas 5 har fått en kompatibilitetsgräns inför berörda kommande planer; nästa genomförandeplan är fortfarande 05-09. Inga nya verksamhetsvägar, prototyper eller verifieringsresultat.
+**Last Activity Description:** Användarbeställt schemadelprojekt dokumenterat med SCHEMA-01–08, gemensamma plan-/grupp-/schemakontrakt, operationsbundna mandat, Rustprototyp och utvärdering av Jev eller liknande AI för möjlig användning i schemamodulen; införande kräver separat beslut efter utvärderingen. Valda interna/externa moduldelar ska kunna kombineras. Fas 5 har fått en kompatibilitetsgräns inför berörda kommande planer; nästa genomförandeplan är fortfarande 05-09. Inga nya verksamhetsvägar, prototyper eller verifieringsresultat.
 
-**Senaste förtydligande:** Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
+**Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
 **Senaste genomförandebevis, 2026-09-30:** 05-08 på b0bf476: katalog 60/60, utkast 108/108, riktad SQL-regression 464/464, full modell/server/generator 455/455 och harnesssäkerhet 5/5; typ/lint/bytekontroll, 42 paritetsfall, 6/6 faktisk låsväntan + yttre rollback, bevarande och oberoende granskning 6/6 PASS. SQL-kommandon stängda, inga nya Worker-grants eller API/UI/beslut. Bygge/browser/handbok från tidigare planer är historik.
 
@@ -174,7 +174,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 - Fas 4:s nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
 - 18 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
-- 2026-10-01: befintlig schematodo utökad till [sammanhängande schemadelprojekt](research/SCHEMAMODUL-PROJEKT.md). SCHEMA-01–08 har ansvar i S1–S4 och ännu ej provade verifieringsmål. Program-/tim-/studieplaner, grupper och kalender ska samverka; roller/regler och valbara moduldelar utreds från början, med Rustprototyp och Jev/liknande AI inne i schemaarbetet. Delprojektets första steg är S1 kontrakt/mandat; dess genomförandeplacering är öppen. Fas 5 ska beakta gemensamma ID:n, versioner, enheter och ändringsansvar nu. Ingen ny numrerad pilotfas eller ny rättighet införd.
+- 2026-10-01: befintlig schematodo utökad till [sammanhängande schemadelprojekt](research/SCHEMAMODUL-PROJEKT.md). SCHEMA-01–08 har ansvar i S1–S4 och ännu ej provade verifieringsmål. Program-/tim-/studieplaner, grupper och kalender ska samverka; roller/regler och valbara moduldelar utreds från början, med Rustprototyp och utvärdering av Jev/liknande AI för möjlig användning i schemaarbetet. AI-införande är inte beslutat. Delprojektets första steg är S1 kontrakt/mandat; dess genomförandeplacering är öppen. Fas 5 ska beakta gemensamma ID:n, versioner, enheter och ändringsansvar nu. Ingen ny numrerad pilotfas eller ny rättighet införd.
 
 ## Blockers
 
@@ -195,7 +195,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | Produktvision | Studieplaner, schema, undervisning, ärenden, vårdnadshavare, fler anslutningar, egen drift och eventuell diarietjänst | Se v2 Requirements | 2026-09-10 |
-| Schemadelprojekt | Sammanhängande planmoduler, specifika mandat/regler, Rust, AI inne i schemat och valbara moduldelar | SCHEMA-01–08 och S1–S4 dokumenterade; kompatibilitet beaktas i fas 5, detaljerat genomförande återstår | 2026-10-01 |
+| Schemadelprojekt | Sammanhängande planmoduler, specifika mandat/regler, Rustprototyp, AI-utvärdering för schemat och valbara moduldelar | SCHEMA-01–08 och S1–S4 dokumenterade; kompatibilitet beaktas i fas 5, detaljerat genomförande återstår | 2026-10-01 |
 
 ## Session
 

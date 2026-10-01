@@ -2,7 +2,7 @@
 
 Researchdatum: 2026-10-01. Status: offentligt produkt- och teknikunderlag för framtida planering. Användaren vill undersöka automatisk schemaläggning som en framtida USP och en möjlig stegvis introduktion av Rust. Användaren kan ordna tillgång till Royal Schedule eller SchoolSoft AI Schema. Inga produkter har provats inloggat, inga leverantörer har kontaktats och ingen integration eller prestanda är verifierad. Pågående fas 5 och befintliga godkända krav ändras inte av underlaget.
 
-Senare användarinriktning 2026-10-01: [sammanhängande schemadelprojekt](SCHEMAMODUL-PROJEKT.md) ska planera programplaner, timplaner, studieplaner, roller/regler och valbara moduldelar tillsammans. Rust och Jev eller liknande AI ska ingå i själva schemamodulen. Delprojektets S1-kontrakt och kompatibilitet i återstående fas 5 beaktas nu; produktprovningen nedan är ett underlag för senare motor-/adapterval. Ingen implementation eller ny verifiering tillkom genom detta förtydligande.
+Senare användarinriktning 2026-10-01: [sammanhängande schemadelprojekt](SCHEMAMODUL-PROJEKT.md) ska planera programplaner, timplaner, studieplaner, roller/regler och valbara moduldelar tillsammans. Rust ska provas i en avgränsad prototyp. Jev och liknande AI ska utvärderas för möjlig användning i schemamodulen; införande är inte beslutat och rekommendationen kan vara att avstå. Delprojektets S1-kontrakt och kompatibilitet i återstående fas 5 beaktas nu; produktprovningen nedan är ett underlag för senare motor-/adapterval. Ingen implementation eller ny verifiering tillkom genom detta förtydligande.
 
 ## Bedömning
 

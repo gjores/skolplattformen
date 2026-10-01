@@ -177,7 +177,7 @@ Nästa delplan ska koppla stängda programplansutkast till skyddad API med levan
 
 Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
-Planeringsgräns 2026-10-01: användarens [delprojekt för sammanhängande schemamoduler](research/SCHEMAMODUL-PROJEKT.md) ska beaktas i berörda återstående planer. Redovisa stabila ID:n, exakta plan-/katalogversioner, undervisningstidens enheter, giltighet, klasskopplingar och ändringsansvar så programplaner, timplaner och framtida studieplan/schema kan samverka. ADMIN-01–04 behålls; Rustmotor, AI-koppling och nya schemafunktioner får egna genomförandeplaner.
+Planeringsgräns 2026-10-01: användarens [delprojekt för sammanhängande schemamoduler](research/SCHEMAMODUL-PROJEKT.md) ska beaktas i berörda återstående planer. Redovisa stabila ID:n, exakta plan-/katalogversioner, undervisningstidens enheter, giltighet, klasskopplingar och ändringsansvar så programplaner, timplaner och framtida studieplan/schema kan samverka. ADMIN-01–04 behålls; Rustmotor och nya schemafunktioner får egna genomförandeplaner. AI utvärderas separat; eventuell AI-koppling planeras bara efter införandebeslut.
 
 **UI hint**: yes
 
@@ -237,7 +237,7 @@ Informationshantering kan bygga på kundens etablerade process; en egen publik d
 
 ## Registrerat delprojekt: sammanhängande schemamoduler
 
-Användarinriktning 2026-10-01. SCHEMA-01–08 finns bland senare produktkrav med verifieringsmål i [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md). Föreslagen ordning: S1 gemensamma kontrakt/mandat/regler; S2 avskild Rust-/motor-/AI-prototyp; S3 plan–grupp–schema med granskning och synk; S4 komponentbyte och vald extern adapter. Dessa är ej genomförda planeringssteg i delprojektet, inte nya numrerade faser i v1.0. Genomförandeplaceringen återstår; kompatibilitetsfrågorna ska beaktas redan i fas 5. Den befintliga schematodon är uppdaterad, inte duplicerad.
+Användarinriktning 2026-10-01. SCHEMA-01–08 finns bland senare produkt- och utvärderingskrav med verifieringsmål i [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md). Föreslagen ordning: S1 gemensamma kontrakt/mandat/regler; S2 avskild Rust-/motorprototyp och jämförande AI-utvärdering med möjlighet att avstå från AI; S3 plan–grupp–schema med granskning och synk; S4 komponentbyte och vald extern adapter. Dessa är ej genomförda planeringssteg i delprojektet, inte nya numrerade faser i v1.0. Genomförandeplaceringen återstår; kompatibilitetsfrågorna ska beaktas redan i fas 5. Den befintliga schematodon är uppdaterad, inte duplicerad.
 
 MODUL-01–04 kompletterar projektet med användarens beslut om separat köp av moduler. S1 ska definiera köpbara gränser, beroenden och kundens modultillgång skild från personmandat. S4 provar olika köpta kombinationer, externt planunderlag och tillägg/avslut med bevarad historik. Prissättning och betalningsväg är öppna; ingen kommersiell funktion är verifierad.
 

@@ -7,7 +7,7 @@ Datum: 2026-10-01. Status: användarbeställd projektinriktning och planeringsun
 - Schemaläggning ska utvecklas tillsammans med programplaner, timplaner, individuella studieplaner och övriga relevanta planeringsmoduler.
 - Specifika roller och regler behöver hanteras redan i grundarbetet, före öppnande av nya datavägar.
 - Rust ska ingå som ett uttryckligt teknikspår med en körbar prototyp. Placeringen i arkitekturen och val av beräkningsmotor behöver prövas; en full backendomskrivning är inte beslutad.
-- Jev eller liknande AI-verktyg ska ingå i själva schemamodulen och provas som stöd för konfliktprioritering, val av åtgärder och värdering av alternativ. Detta avser inte enbart källgranskning i researchprocessen.
+- Jev och liknande AI-verktyg ska utvärderas för möjlig användning i schemamodulen, exempelvis för konfliktprioritering, val av åtgärder och värdering av alternativ. Utvärderingen gäller schemaberäkningen; införande av AI är inte ett beslutat produktkrav. Att välja en lösning utan AI är ett giltigt utfall.
 - Det ska gå att använda valda delar av olika interna eller externa moduler. Ett val av schemamotor får inte tvinga fram ett byte av programplan, studieplan, redigeringsvy eller hela plattformen.
 - Kunden ska kunna köpa moduler var för sig och senare lägga till eller avsluta valda moduler. Detta är ett kommersiellt produktkrav utöver den tekniska möjligheten att kombinera komponenter.
 
@@ -63,12 +63,12 @@ Regler ska ha ID, ursprung, version, giltighet, omfattning, ansvarig och typ: ob
 
 ## Delar som ska gå att kombinera
 
-Utforma separata kontrakt för planunderlag, regelvalidering, beräkning, AI-bedömning, schemaredigering, granskning/publicering samt import/export och uppföljning. Exempel på avsedda kombinationer:
+Utforma separata kontrakt för planunderlag, regelvalidering, beräkning, schemaredigering, granskning/publicering samt import/export och uppföljning. Ett separat AI-gränssnitt prövas i utvärderingen om det behövs; det är inget obligatoriskt produktberoende. Exempel på möjliga kombinationer:
 
 - Våra program-/tim-/studieplaner och vår redigeringsvy med en extern beräkningsmotor.
-- Vår Rusttjänst med en vald optimeringsmotor och Jev som utbytbar bedömare.
+- Vår Rusttjänst med en vald optimeringsmotor; Jev eller annan utbytbar bedömare är en hypotes för utvärderingen.
 - En extern schemastruktur som importeras för lokal validering och uppföljning utan att dess plan- eller elevregister används.
-- Vår regelkontroll och publicering med AI-stödet avstängt eller ersatt.
+- Vår regelkontroll och publicering utan AI, eller med ett utbytbart AI-stöd om utvärderingen leder till ett införandebeslut.
 
 Varje adapter måste beskriva vilka förmågor, regler, datatyper och riktningar den stöder. Det går inte att anta att ett SS12000-API omfattar beräkning eller alla interna regler. En delvis stödjande modul får inte tyst tappa individkonflikter, låsningar, planversioner eller undervisningsminuter. Otillräckligt stöd ska rapporteras före körning eller import. Delar får användas tillsammans bara när deras faktiska kontrakt är kompatibla.
 
@@ -84,7 +84,7 @@ Kundens avtalsbundna modultillgång hålls skild från personens uppdrag. För e
 
 Definiera kundbunden modulidentitet, funktioner/tillval, avtalsreferens, giltighet, status och revision samt vem som får ändra tillgången och hur ändringen loggas. Modultillgång kan till en början administreras genom en uttrycklig avtalsprocess; betalningsleverantör, självbetjänad beställning, avgiftsmodell och automatiserad fakturering är öppna val. Ingen allmän leverantörs- eller elevåtkomst följer av detta produktbeslut.
 
-Aktivering ska kontrollera beroenden och anslutningar. Tillägg av en modul ska återanvända kundens stabila identiteter och historik. Avslut/avaktivering ska stoppa berörda nya operationer och jobb och visa konsekvenser för kvarvarande moduler. Planera övergång till extern källa eller avtalad läs-/exportväg när en kvarvarande modul behöver data från en avslutad modul. Ingen automatisk radering av planer eller elevuppgifter följer av avslutet; fortsatt åtkomst och bevarande/avveckling kräver egna definierade regler och rättigheter. AI-tillvalets bortfall ska kunna ge den tidigare beskrivna vanliga beräkningsvägen om kontraktet medger det.
+Aktivering ska kontrollera beroenden och anslutningar. Tillägg av en modul ska återanvända kundens stabila identiteter och historik. Avslut/avaktivering ska stoppa berörda nya operationer och jobb och visa konsekvenser för kvarvarande moduler. Planera övergång till extern källa eller avtalad läs-/exportväg när en kvarvarande modul behöver data från en avslutad modul. Ingen automatisk radering av planer eller elevuppgifter följer av avslutet; fortsatt åtkomst och bevarande/avveckling kräver egna definierade regler och rättigheter. Om AI senare införs som tillval behöver även dess bortfall hanteras genom en avtalad beräkningsväg utan AI.
 
 Krav MODUL-01–04 finns i `../REQUIREMENTS.md`. De är gemensamma produktkrav med första kontraktsarbete i S1 och integrationsprov i S4; de är inte nya v1-krav eller implementerade betalnings-/licensfunktioner.
 
@@ -95,15 +95,15 @@ Krav MODUL-01–04 finns i `../REQUIREMENTS.md`. De är gemensamma produktkrav m
 | MODUL-03: öppna beroenden | S1 och S4 | Schemat accepterar kontraktsriktigt externt underlag utan köpt egen planmodul och redovisar saknat stöd. Bara verkligt nödvändiga funktionella beroenden krävs. |
 | MODUL-04: tillägg och avslut | S4 | Modultillägg bevarar ID:n och historik. Avslut stoppar avtalade funktioner, ger begriplig konsekvens för beroenden och hanterar beslutad dataåtkomst/export utan oavsiktlig radering. |
 
-## Rust och AI i schemamodulen
+## Rustprototyp och utvärdering av AI för schemamodulen
 
 Rustspåret ska omfatta en avgränsad körbar beräkningstjänst eller komponent med ett versionsbundet indata-/utdatakontrakt. Pröva jobbstatus, avbrott, tids-/resursgränser, återförsök och isolering mellan kunder. Körmiljö, native kontra Wasm, motorkoppling och slutlig driftplats avgörs efter verifierad prototyp. Nuvarande API och Postgres-regler kan bevaras och kopplas stegvis.
 
-AI-gränssnittet ska kunna fråga Jev eller motsvarande modell om avgränsade val: vilken konflikt som bör behandlas först, vilken av motorns tillåtna åtgärder som bör prövas och hur giltiga schemaförslag bedöms mot verksamhetens uttryckliga mål. Tillåt även svaret osäkert/inget lämpligt alternativ. En separat kodbaserad kontroll prövar obligatoriska regler efter varje föreslagen ändring. Förklaringar måste gå att härleda till givna regler och konsekvenser.
+Utvärdera om Jev eller motsvarande modell kan bidra till avgränsade val: vilken konflikt som bör behandlas först, vilken av motorns tillåtna åtgärder som bör prövas och hur giltiga schemaförslag bedöms mot verksamhetens uttryckliga mål. Ett provgränssnitt kan användas för jämförelsen utan att bli ett beslutat produktkontrakt. I provet ska även svaret osäkert/inget lämpligt alternativ hanteras. En separat kodbaserad kontroll prövar obligatoriska regler efter varje föreslagen ändring. Förklaringar måste gå att härleda till givna regler och konsekvenser.
 
 Spara modellversion, bedömningskriterier, nödvändiga indatareferenser, utfall och osäkerhet för reproducerbar utvärdering utan att kopiera känsliga uppgifter till vanliga loggar. Skicka minsta nödvändiga resurs-/konsekvensunderlag; ett faktiskt externt dataflöde kräver eget drift- och informationshanteringsunderlag. Modellfel, låg säkerhet eller tjänstebortfall ska ge vanlig sökprioritering eller manuell granskning. Hög confidence ger inte skrivmandat eller bevis för ett regelriktigt schema.
 
-Jevs strukturerade val och confidence beskrivs i [TypeSafes Choice-dokumentation](https://docs.typesafe.ai/primitives/choice) och [confidence-dokumentation](https://docs.typesafe.ai/confidence). Användningen inne i schemaberäkningen är vår hypotes att prova; ingen förbättring i skolmiljö är verifierad. Jämför samma motor utan AI, med Jev och med minst ett relevant alternativ utifrån kvalitet, ändringsmängd, total tid, kostnad och felbeteende.
+Jevs strukturerade val och confidence beskrivs i [TypeSafes Choice-dokumentation](https://docs.typesafe.ai/primitives/choice) och [confidence-dokumentation](https://docs.typesafe.ai/confidence). Användningen inne i schemaberäkningen är vår hypotes att prova; ingen förbättring i skolmiljö är verifierad. Jämför samma motor utan AI, med Jev och med minst ett relevant alternativ utifrån kvalitet, ändringsmängd, total tid, kostnad, stabilitet och integrationskomplexitet. Definiera bedömningskriterier före provningen och dokumentera resultat, begränsningar och rekommendationen att införa, avstå eller utreda vidare. Införande kräver ett separat beslut utifrån resultaten; även rekommendationen att avstå uppfyller utvärderingskravet.
 
 ## Hur modulerna hålls samstämmiga
 
@@ -115,7 +115,7 @@ Jevs strukturerade val och confidence beskrivs i [TypeSafes Choice-dokumentation
 
 ## Krav, planeringssteg och verifieringsmål
 
-SCHEMA-01–08 registreras som senare produktkrav i `../REQUIREMENTS.md`. Tabellen nedan ger dem ansvar inom delprojektet. Stegen är planeringsordning, inte tillagda eller genomförda faser i pilotens åttafasfärdplan.
+SCHEMA-01–08 registreras bland senare krav i `../REQUIREMENTS.md`; SCHEMA-05 är ett utvärderingskrav, inte ett krav på AI i levererad produkt. Tabellen nedan ger dem ansvar inom delprojektet. Stegen är planeringsordning, inte tillagda eller genomförda faser i pilotens åttafasfärdplan.
 
 | Krav | Steg | Verifieringsmål, ännu inte provat |
 | --- | --- | --- |
@@ -123,12 +123,12 @@ SCHEMA-01–08 registreras som senare produktkrav i `../REQUIREMENTS.md`. Tabell
 | SCHEMA-02: operationsbundna mandat | S1, genomdrivs i S3 | Tilldelad schemaläggare kan arbeta inom sitt uppdrag; annan skola, saknad publiceringsrätt och återkallat mandat nekas även på direkta anrop och gamla jobb. |
 | SCHEMA-03: uttryckliga regler | S1, prövas i S2 | Obligatoriska regler består efter automatisk och manuell ändring; olöslighet, timeout och bristande indata skiljs åt. |
 | SCHEMA-04: Rustprototyp | S2: avskilda beräknings- och AI-prov | Körbar Rustkomponent behandlar versionsbunden syntetisk indata, avbryts kontrollerat och lämnar verifierbart resultat utan generellt skrivmandat. |
-| SCHEMA-05: AI i schemaarbetet | S2 | Samma motor jämförs med/utan Jev och med annat relevant AI-alternativ; kvalitet och total kostnad/tid mäts, obligatoriska regelbrott accepteras aldrig. |
-| SCHEMA-06: valbara moduldelar | S1, prövas i S4 | Minst två komponentkombinationer använder samma kontrakt; saknat stöd upptäcks och motor/AI kan bytas utan att planmodulerna byts. |
+| SCHEMA-05: utvärdera AI i schemaarbetet | S2 | Samma motor jämförs utan AI, med Jev och med annat relevant AI-alternativ mot fördefinierade kriterier. Resultat och rekommendation att införa, avstå eller utreda vidare dokumenteras; obligatoriska regelbrott accepteras aldrig. Ingen AI-integration i levererad produkt krävs för godkänt utvärderingsresultat. |
+| SCHEMA-06: valbara moduldelar | S1, prövas i S4 | Minst två komponentkombinationer använder samma kontrakt; saknat stöd upptäcks och motor kan bytas utan att planmodulerna byts. Om AI införs provas även dess utbytbarhet. |
 | SCHEMA-07: avstämd synk | S3: plan till grupp till schema | Ändrad studieplan, timplan och kalender ger spårbar avvikelse; dubbelleverans, fel ordning och samtidiga ändringar tappar inga giltiga kopplingar. |
 | SCHEMA-08: granskning och uppföljning | S3 och S4: arbetsflöde och extern adapter | Förslag kan jämföras, låsas och publiceras med korrekt mandat och revision; minuter stäms av mot faktiskt kalenderutfall och mottagaren får rätt version. |
 
-S1 ska resultera i ett konkret informations-/modulkontrakt, operation-/mandatmatris, regelmodell, modulkatalog med köpbara gränser/beroenden och syntetiska acceptansfall. S2 är en avskild Rust-/motor-/AI-prototyp utan skyddade verksamhetsskrivningar. S3 kopplar befintliga planflöden till grupper och schema med granskning, audit och dator-/telefonprov. S4 provar komponentbyte, vald extern adapter, kundens köpta modulurval, aktivering/avslut och uppföljning. Varje steg får egna GSD-genomförandeplaner och verifieringsresultat innan det markeras klart.
+S1 ska resultera i ett konkret informations-/modulkontrakt, operation-/mandatmatris, regelmodell, modulkatalog med köpbara gränser/beroenden och syntetiska acceptansfall. S2 omfattar en avskild Rust-/motorprototyp och en jämförande AI-utvärdering utan skyddade verksamhetsskrivningar. S3 kopplar befintliga planflöden till grupper och schema med granskning, audit och dator-/telefonprov; AI införs bara efter separat beslut. S4 provar komponentbyte, vald extern adapter, kundens köpta modulurval, aktivering/avslut och uppföljning. Varje steg får egna GSD-genomförandeplaner och verifieringsresultat innan det markeras klart.
 
 ## Vad som behöver beaktas redan i fas 5
 
@@ -143,4 +143,4 @@ Fas 5 behåller ADMIN-01–04 och befintliga fastställanderegler. Kontrollen ov
 - `../../docs/programplansgrund-kontrakt.md` och `../../docs/produktunderlag/12-informationsmodell-och-designkontrakt.md` som källor med sina uttryckliga statusgränser.
 - Första nästa projektsteg är S1: ta fram gemensamma kontrakt, behörighetsoperationer och testunderlag. Royal-provningen kan ge information till motor-/adapterval, men får inte ensam bestämma vår informationsmodell eller interna behörigheter.
 
-Öppna val: exakt delegation/publiceringsansvar, första sammanhängande skolformsfall, driftgräns för Rust, motor, AI-alternativ, externa komponenters kontrakt/licenser, slutlig säljbar modulkatalog/tillval, pris-/beställningsform, modulaktiveringsansvar och när S1–S4 genomförs i förhållande till piloten. Användarens projektinriktning och beslut om separat köp av moduler ovan behöver inte återgodkännas.
+Öppna val: exakt delegation/publiceringsansvar, första sammanhängande skolformsfall, driftgräns för Rust, motor, om AI alls ska införas och i så fall vilket alternativ, externa komponenters kontrakt/licenser, slutlig säljbar modulkatalog/tillval, pris-/beställningsform, modulaktiveringsansvar och när S1–S4 genomförs i förhållande till piloten. Användarens projektinriktning och beslut om separat köp av moduler ovan behöver inte återgodkännas.
