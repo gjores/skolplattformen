@@ -4,6 +4,18 @@ title: Programplaner
 
 Huvudman och rektor kan läsa och ändra programplansutkast för befintliga gymnasieutbildningar inom sina aktuella skoluppdrag. Ett sparat utkast är inte en fastställd utbildning.
 
+## Första gången här?
+
+En programplan beskriver utbildningens ämnen och nivåer. Den gäller utbildningen och elevkullen, inte en enskild elevs studieplan. Ett ämne kan ha flera nivåer. Gymnasiepoäng beskriver omfattningen och är inte lektionstimmar.
+
+| Begrepp i vyn | Vad det betyder för dig |
+| --- | --- |
+| **Programunderlaget** | Ämnesuppgifter från Skolverkets underlag. Du läser dem under **Ingår enligt underlaget**. Ett markerat alternativ är inte ett val som redan gjorts. |
+| **Programfördjupning** | Utbildningens valda fördjupningsnivåer. **Dina sparade fördjupningsval** visar vad som faktiskt är sparat. |
+| **Utkast** | En arbetsversion som du kan arbeta vidare med. **Spara utkast** sparar uppgifterna, men fastställer inte planen. |
+
+Börja med att välja rätt utbildning, skola och elevkull. Läs det som redan finns. Följ därefter knappen under **Nästa steg** för att skapa eller arbeta vidare med ett utkast.
+
 ## Öppna utbildningen och läs planen
 
 Välj **Programplaner** och öppna en utbildning. Vyn öppnar utbildningens befintliga utkast direkt, eller den senaste planen om inget utkast finns. Skola, elevkull och planens status visas överst. **Nästa steg** visar vad du kan göra.
@@ -37,7 +49,13 @@ Välj **Spara utkast** när uppgifterna är klara. Inget autosparas. En redan bu
 
 ## Ändra fördjupningen
 
-Välj **Ändra fördjupning**. Lägg till en tillgänglig nivå, ta bort ett val eller flytta nivåerna uppåt och nedåt. Namn och gymnasiepoäng visar vad du arbetar med; kod och ämnesversion hjälper dig att identifiera exakt nivå. Hela den ordnade listan sparas tillsammans med **Spara utkast**. En tom fördjupningslista är ett ofärdigt utkast, inte en fullständig utbildningsplan.
+Välj **Ändra fördjupning**. Dialogen har tre numrerade steg:
+
+1. **Kontrollera utbildningsstarten.** Om datumet redan är bundet visas det och kan inte ändras här. När du skapar eller förbereder ett obundet utkast får du i stället ange det verkliga startdatumet. Använd utbildningens uppgifter, inte dagens datum eller elevkullens namn som gissning.
+2. **Välj programfördjupning.** Läs dina val i listan. För att lägga till: välj en nivå under **Lägg till fördjupningsnivå** och tryck sedan **Lägg till nivå**. Att bara välja i rullistan lägger inte till något. Nivån ska nu finnas bland dina val ovan. Upprepa för fler nivåer, eller använd **Ta bort** och pilknapparna för att ändra listan och ordningen. När äldre val kopplas eller en version kopieras granskar du de bevarade valen; själva ändringen görs efteråt med **Ändra fördjupning**.
+3. **Kontrollera och spara.** Kontrollera namnen och ordningen. Välj **Spara utkast**. Dialogen stängs efter lyckad sparning och omläsning. Läs **Dina sparade fördjupningsval** för att se resultatet. För att arbeta vidare väljer du **Ändra fördjupning** igen. **Avbryt** lämnar ändringarna efter eventuell bekräftelse om osparade uppgifter.
+
+Namn och gymnasiepoäng visar vad du arbetar med; kod och ämnesversion hjälper dig att identifiera exakt nivå. Hela den ordnade listan sparas tillsammans. En tom fördjupningslista är ett ofärdigt utkast, inte en fullständig utbildningsplan. Sparningen ändrar inte programunderlagets grundämnen.
 
 ## Underlag och tidigare versioner
 

@@ -2,6 +2,8 @@
 @media(max-width:700px){.pp-heading h1{font-size:1.6rem}.pp-columns{display:block}.pp-dialog{width:calc(100% - 1.5rem)!important;padding:1rem!important}.pp-dialog-actions>*{flex:1}.pp-choice,.pp-version{padding:.9rem}.pp-list-heading{align-items:flex-start}.pp-check span{font-size:.9rem}}
 
 /* Safari behöver uttrycklig höjd på den native nivåväljaren. */
+.pp-explainer{padding:1.1rem 1.2rem;margin:1rem 0;border:1px solid #c9d9ea;border-radius:12px;background:white;line-height:1.65;overflow-wrap:anywhere}.pp-explainer h2,.pp-explainer h3,.pp-explainer h4{margin-top:0}.pp-explainer p{margin:.5rem 0}.pp-explainer ol{padding-left:1.4rem;margin-bottom:0}.pp-explainer li+li{margin-top:.65rem}.pp-explainer-parts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem;margin-top:1rem}.pp-explainer-parts>div{border-top:2px solid #c9d9ea;padding-top:.8rem}.pp-explainer-parts h4{margin-bottom:.4rem}.pp-form-step{font-size:1.1rem;font-weight:650;margin:1.2rem 0 .4rem;line-height:1.5}.pp-save-help{background:#f3f7fc;border:1px solid #d4dfeb;border-radius:10px;padding:.8rem 1rem;line-height:1.6}.pp-save-help .pp-form-step{margin-top:0}.pp-save-help p{margin:.5rem 0}.pp-dialog p{overflow-wrap:anywhere}
+@media(max-width:700px){.pp-explainer{padding:1rem}.pp-explainer-parts{grid-template-columns:minmax(0,1fr);gap:.7rem}}
 .pp-source select,.pp-field select{height:48px}.pp-source summary{min-height:44px;padding-block:.6rem;cursor:pointer}
 /* The education and the next action lead; references remain a separate surface. */
 .pp-status{display:inline-block;padding:.45rem .75rem;border-radius:8px;background:#e9f1fb;color:#244c77!important;font-weight:600}
