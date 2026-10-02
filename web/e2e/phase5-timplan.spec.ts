@@ -175,7 +175,9 @@ test('10: skolformsanpassat regelstöd, källor och påminnelse vid ändring',as
     audited=await fixture.paired(actual.headers()['x-correlation-id'],fixture.principal,'timplan_cell_changed',fixture.imPlanId);
     await route.fulfill({status,contentType:'text/plain',body:'Synthetic gateway failure without an API error code'});
   });
+  const mandatoryRead=page.waitForResponse(r=>matches('/api/timplaner/lasa')(r)&&r.request().postDataJSON()?.planId===fixture.imPlanId);
   await gatewayDialog.getByRole('button',{name:'Spara ändring',exact:true}).click();
+  expect((await mandatoryRead).status()).toBe(200);
   await expect(gatewayDialog).toContainText('Den aktuella timplanen innehåller redan ditt värde.');
   await expect(gatewayDialog.getByText(/Ändringen påverkar veckofördelningen/u)).toBeVisible();
   await expect(gatewayDialog.getByText(/Kontrollera ämnesramarna och huvudmannens beslut/u)).toHaveCount(0);
@@ -411,7 +413,9 @@ test('09: committad ändring med tappat svar ger okänt utfall och kräver omlä
     expect(await fixture.paired(actual.headers()['x-correlation-id'],fixture.principal,'timplan_cell_changed')).toBe(true);
     await route.abort('failed');
   });
+  const mandatoryRead=page.waitForResponse(r=>matches('/api/timplaner/lasa')(r)&&r.request().postDataJSON()?.planId===fixture.planId);
   await page.getByRole('button',{name:'Spara ändring',exact:true}).click();
+  expect((await mandatoryRead).status()).toBe(200);
   await expect(page.getByRole('dialog')).toContainText('Den aktuella timplanen innehåller redan ditt värde.');
   await expect(page.getByRole('button',{name:'Spara ändring',exact:true})).toHaveCount(0);
   expect((await fixture.snapshot()).revision).toBe(1);

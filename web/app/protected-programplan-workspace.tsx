@@ -235,7 +235,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         </>}
         {preparation&&<>
           <p>Välj aktivt vilket underlag utbildningen ska använda. Därefter anger du det kända startdatumet och granskar valen. Inget sparas i detta steg.</p>
-          <div className="pp-field"><label htmlFor="pp-guide-catalog">Välj underlag</label><select id="pp-guide-catalog" value={preparation.catalogId??''} disabled={busy} onChange={e=>changeGuideCatalog(e.target.value)}><option value="">Välj ett underlag för {workspace.education.name}</option>{workspace.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>{workspace.education.name} · Skolverket · hämtat {c.source.fetched}</option>)}</select></div>
+          <div className="pp-field"><label htmlFor="pp-guide-catalog">Välj underlag</label><select id="pp-guide-catalog" value={preparation.catalogId??''} disabled={busy} onChange={e=>changeGuideCatalog(e.target.value)}><option value="">Välj underlag</option>{workspace.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>Skolverket · hämtat {c.source.fetched}</option>)}</select></div>
+          {!busy&&!error&&preparation.catalogId===workspace.catalog.catalogId&&workspace.catalog.status==='selected'&&workspace.catalog.program&&workspace.catalog.source&&<p>Valt underlag: {workspace.catalog.program.name} · Skolverket · hämtat {workspace.catalog.source.fetched}.</p>}
           {workspace.catalog.status==='blocked'&&<p role="alert">{programplanDiagnostic(workspace.catalog.diagnostic??'catalog_unavailable')}</p>}
           {preparationBlocked&&<p role="alert">{preparationBlocked}</p>}
           {error&&preparation.catalogId&&<Button variant="outline" disabled={busy} onClick={()=>changeGuideCatalog(preparation.catalogId!)}>Läs underlaget igen</Button>}
