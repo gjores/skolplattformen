@@ -38,3 +38,4 @@
 .pp-table-options td:first-child{width:56px}.pp-table-options input[type=checkbox]{width:24px;height:24px}.pp-table-options tr:has(input:disabled:not(:checked)) th,.pp-table-options tr:has(input:disabled:not(:checked)) td{color:#7b8a9c}
 .pp-frame{margin:1.2rem 0;padding:1rem 1.2rem;border:1px solid #c9d9ea;border-radius:12px;background:#f7fbff}.pp-frame h4{margin:0 0 .4rem}.pp-frame-status{display:block;margin-top:.5rem;font-weight:700;color:#2b6a35}.pp-frame-over{color:#9b2c2c}
 @media(max-width:700px){.pp-table th,.pp-table td{padding:.5rem .6rem}.pp-table-options input[type=checkbox]{width:28px;height:28px}.pp-table-options td:first-child{width:48px}}
+.pp-frame-note{color:#46586d;font-size:.95rem}
