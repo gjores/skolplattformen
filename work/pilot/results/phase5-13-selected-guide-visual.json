@@ -1,0 +1,49 @@
+{
+  "phase": "05-13",
+  "scope": "local-synthetic-only",
+  "sourceRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "buildRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "status": "PASS",
+  "rows": [
+    {
+      "profile": "desktop",
+      "status": "PASS",
+      "image": "web/outputs/phase5-13/programplan/programplan-desktop-selected-guide.png",
+      "sourceDate": "2026-09-05",
+      "programName": "Samhällsvetenskapsprogrammet",
+      "noMutation": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 7,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "profile": "phone",
+      "status": "PASS",
+      "image": "web/outputs/phase5-13/programplan/programplan-phone-selected-guide.png",
+      "sourceDate": "2026-09-05",
+      "programName": "Samhällsvetenskapsprogrammet",
+      "noMutation": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 8,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ]
+}

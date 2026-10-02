@@ -1,0 +1,46 @@
+{
+  "scope": "local-synthetic-only",
+  "buildRevision": "f6f05a7c06bf3ae8c9bea9f1a9b6e1216ec58421",
+  "images": [
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-01-programplan-read.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-02-programplan-guide.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-04-programplan-dialog.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-05-programplan-legacy-clone.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-07-programplan-conflict.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-09-programplan-mfa.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-desktop-10-programplan-refresh-error.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-01-programplan-read.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-02-programplan-guide.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-04-programplan-dialog.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-05-programplan-legacy-clone.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-07-programplan-conflict.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-09-programplan-mfa.png",
+    "web/outputs/phase5-13/initial-f6f05a7/programplan/programplan-phone-10-programplan-refresh-error.png"
+  ],
+  "visualReview": {
+    "reviewed": true,
+    "profiles": [
+      "Chromium desktop 1440×900",
+      "iPhone 13 WebKit"
+    ],
+    "views": [
+      "direct read",
+      "active source guide",
+      "edit dialog",
+      "legacy clone",
+      "two-session conflict",
+      "MFA",
+      "post-write refresh error"
+    ],
+    "findings": [
+      "Ämnesnamn, nivåer, poäng och en nästa handling kommer före tekniskt Underlag.",
+      "Sparade fördjupningsval skiljs från källans referensblock; alternativ och saknade nivåer anges vid berörd rad.",
+      "Inget synligt sidöverflöde i granskade dator-/telefonbilder; bottenåtgärder finns i telefonmodal."
+    ],
+    "limits": [
+      "Telefonmodalbilder visar aktuellt rullat utsnitt, inte alla kontroller samtidigt; bedöms ihop med faktiska scroll/fokus/44px/48px-kontroller.",
+      "Fullpage-läsbild är lång; mänsklig begriplighet och fysisk telefon återstår."
+    ]
+  },
+  "historical": true
+}

@@ -1,0 +1,54 @@
+{
+  "scope": "local-synthetic-only",
+  "buildRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "images": [
+    "web/outputs/phase5-13/programplan/programplan-desktop-01-programplan-read.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-02-programplan-guide.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-04-programplan-dialog.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-05-programplan-legacy-clone.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-07-programplan-conflict.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-09-programplan-mfa.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-10-programplan-refresh-error.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-01-programplan-read.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-02-programplan-guide.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-04-programplan-dialog.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-05-programplan-legacy-clone.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-07-programplan-conflict.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-09-programplan-mfa.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-10-programplan-refresh-error.png",
+    "web/outputs/phase5-13/programplan/programplan-desktop-selected-guide.png",
+    "web/outputs/phase5-13/programplan/programplan-phone-selected-guide.png",
+    "web/outputs/phase5-13/timplan/timplan-desktop-10-grundskola-regelstod.png",
+    "web/outputs/phase5-13/timplan/timplan-desktop-10-im-regelstod.png",
+    "web/outputs/phase5-13/timplan/timplan-phone-10-grundskola-regelstod.png",
+    "web/outputs/phase5-13/timplan/timplan-phone-10-im-regelstod.png"
+  ],
+  "visualReview": {
+    "reviewed": true,
+    "profiles": [
+      "Chromium desktop 1440×900",
+      "iPhone 13 WebKit"
+    ],
+    "views": [
+      "direct read",
+      "blank and selected source guide",
+      "edit dialog",
+      "legacy clone",
+      "two-session conflict",
+      "MFA",
+      "post-write refresh error",
+      "GR and IM guidance"
+    ],
+    "findings": [
+      "Ämnesnamn, nivåer, poäng och nästa handling före tekniskt Underlag.",
+      "Sparade fördjupningsval skiljs från källans referensblock; alternativ och saknade nivåer vid berörd rad.",
+      "Källans korta hämtdatumlabel är läsbar i telefonens native-select; program/datumcaption kräver lyckad aktuell read.",
+      "Inget synligt sidöverflöde; modalens bottenactions nåbara och läsbara."
+    ],
+    "limits": [
+      "Modalbilder visar aktuellt rullat utsnitt, inte alla kontroller samtidigt; bedöms ihop med verkliga scroll/fokus/44px/48px-kontroller.",
+      "Den valda telefon-guidens Fortsätt ligger under aktuellt bildutsnitt; ordinarie matris prövar verkligt fortsatt klick.",
+      "Fullpage-läsbild är lång; mänsklig begriplighet och fysisk telefon återstår."
+    ]
+  }
+}

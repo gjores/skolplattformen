@@ -1,0 +1,173 @@
+{
+  "phase": "05-13",
+  "status": "PASS",
+  "sourceRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "buildRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "observedSourceRevisions": [
+    "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1"
+  ],
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "01",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "09",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "10",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "11",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "12",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "13",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "14",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "15",
+      "project": "programplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "01",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "09",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "10",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "11",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "12",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "13",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "14",
+      "project": "programplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "15",
+      "project": "programplan-phone",
+      "status": "passed"
+    }
+  ],
+  "cleanupCount": 30,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 889,
+  "preservedAuditAnchors": 36,
+  "limits": [
+    "Lokalt mintade sessionsbevis; inget interaktivt IdP-prov.",
+    "Telefonprov använder iPhone/WebKit-emulering.",
+    "Negativa transportfel avgränsas med browserintercept, framgångswrite använder Worker/SQL.",
+    "Mänsklig förståelse och fasens fullständiga nationella regelram återstår."
+  ]
+}

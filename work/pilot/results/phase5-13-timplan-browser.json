@@ -1,0 +1,171 @@
+{
+  "phase": "05-13 timplan regression",
+  "status": "PASS",
+  "sourceRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "buildRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "observedSourceRevisions": [
+    "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1"
+  ],
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "10",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "10",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "timplan-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 20,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 303,
+  "preservedAuditAnchors": 26,
+  "images": [
+    "web/outputs/phase5-13/timplan/timplan-desktop-10-grundskola-regelstod.png",
+    "web/outputs/phase5-13/timplan/timplan-desktop-10-im-regelstod.png",
+    "web/outputs/phase5-13/timplan/timplan-phone-10-grundskola-regelstod.png",
+    "web/outputs/phase5-13/timplan/timplan-phone-10-im-regelstod.png"
+  ],
+  "retries": 0,
+  "skipped": 0,
+  "limits": [
+    "Lokalt mintade sessionsbevis; inget interaktivt IdP-prov.",
+    "Telefon använder iPhone/WebKit-emulering.",
+    "Negativa svar är browserintercept kring faktiska Worker/SQL-writes.",
+    "Äldre timplanscleanup är inte retroaktivt verifierad."
+  ]
+}
