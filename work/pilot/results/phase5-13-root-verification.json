@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-02T05:12:50.058447+00:00",
+  "buildRevision": "0f18e9bb36ad8f40fe4750da6ee8476b43063fc1",
+  "scope": "local synthetic implementation and new human understanding trial readiness",
+  "programplanBrowser": {
+    "passed": 30,
+    "total": 30,
+    "cleanup": 30,
+    "retries": 0,
+    "skipped": 0,
+    "frameworkErrors": 0,
+    "preservedAuditEvents": 889,
+    "preservedAuditAnchors": 36
+  },
+  "timplanBrowser": {
+    "passed": 20,
+    "total": 20,
+    "cleanup": 20,
+    "retries": 0,
+    "skipped": 0,
+    "frameworkErrors": 0,
+    "preservedAuditEvents": 303,
+    "preservedAuditAnchors": 26
+  },
+  "freshNodeTests": {
+    "modelAndContracts": 25,
+    "browserHarness": 4
+  },
+  "trialScriptTests": 3,
+  "localOtpHelperGuardTests": 2,
+  "types": "PASS",
+  "lint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": {
+    "status": "PASS",
+    "sourceCommit": "af9382e",
+    "sourcesUnchangedThroughBuild": true
+  },
+  "historicalBroadNodeTests": {
+    "sourcePlan": "05-11",
+    "total": 502,
+    "notRerunFor05_13": true
+  },
+  "independentCodeReview": {
+    "passed": 6,
+    "total": 6
+  },
+  "ordinaryPreview": {
+    "url": "http://127.0.0.1:3012",
+    "diagnosticPreload": false,
+    "rootStatus": 200,
+    "healthStatus": 200,
+    "role": "skolplattform_worker",
+    "runtime": "workerd",
+    "idpDiscoveryStatus": 200
+  },
+  "trialWorker": {
+    "mode": "current",
+    "roles": 2,
+    "educationsPerRole": 4,
+    "auditedReads": 16,
+    "businessRowsPreserved": true,
+    "ownSessionsCleaned": true
+  },
+  "localLoginHelpers": {
+    "actualInteractiveFlowsPassed": 4,
+    "actualInteractiveFlowsTotal": 4,
+    "report": "local-login-helpers.json",
+    "workerRevision": "c320041",
+    "serverAuthUnchangedThroughBuild": true
+  },
+  "rootVisualReview": [
+    "final desktop subject/level read view",
+    "final phone edit dialog",
+    "final phone selected source/date guide"
+  ],
+  "visualLimitation": "Modal/fullPage images show the currently scrolled portion; interpreted with actual browser focus/scroll/control assertions. Phone uses WebKit emulation.",
+  "historicalRunsPreserved": {
+    "firstProgramplan": "PASS 30/30 at f6f05a7",
+    "firstTimplan": "FAIL 18/20 at f6f05a7; two UI assertions preceded required completed read; exact-read synchronization fixed in harness"
+  },
+  "humanResult": "new_trial_pending_after_previous_ux_failure",
+  "phase5Verified": false,
+  "phase4Checkpoint": "open",
+  "previewExitDiagnosis": "awaiting_evidence; two older interrupted runs are not PASS or a verified root cause fix"
+}

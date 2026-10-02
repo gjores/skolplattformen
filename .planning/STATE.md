@@ -4,18 +4,18 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-13
-status: executing
-stopped_at: Human programplan trial found major UX gap; preparing 05-13 correction and local OTP button; Phase 4 checkpoint open
+status: awaiting_human_verification
+stopped_at: 05-13 correction ready on 3012 for new human understanding trial; local OTP button passed; Phase 4 checkpoint open
 last_updated: "2026-10-02"
 last_activity: 2026-10-02
-last_activity_desc: "Användaren underkände programplansvyns begriplighet. 05-13 genomförs med ämnen och tydliga åtgärder först. Lokal provkodsknapp verifieras separat; fas 4 och fasverifiering kvarstår."
-state_head: 81a9fdc
-worker_build_revision: c3200412f24a5ca797b47bcc2bfcf714d56e5697
+last_activity_desc: "05-13 rättad och automatiskt kontrollerad: 30+20 browser PASS på 0f18e9b. Befintliga fyra exempel bevarade och Worker-lästa på frisk 3012. Lokal provkodsknapp 4/4 faktisk inloggning PASS. Ny mänsklig begriplighetsbedömning, fas 4 och fasverifiering kvarstår."
+state_head: 899b613
+worker_build_revision: 0f18e9bb36ad8f40fe4750da6ee8476b43063fc1
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 67
-  completed_plans: 65
+  completed_plans: 66
 milestone_name: milestone
 ---
 
@@ -26,43 +26,43 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: tolv tidigare planer genomförda automatiskt. Användaren har därefter rapporterat att programplansvyn är obegriplig; 05-13 planerar och rättar denna UX-lucka före nytt mänskligt prov. Exakt tio avgränsade Worker-entrypoints; klientroller och helpers stängda. Nationella regler, fastställande, nya utbildningar, kullkopiering och klasskoppling återstår. Fas 4:s checkpoint kvarstår separat.
+**Current focus:** Fas 5: tretton planer automatiskt genomförda. Efter användarens underkända programplans-UX visar 05-13 verklig aktuell plan, ämnen/nivåer, sparade val och tydlig guidad nästa handling. Nytt mänskligt begriplighetsprov väntar på frisk 3012. Lokal Fyll i provkod-knapp har 4/4 verkliga OIDC/MFA-prov PASS. Exakt tio Worker-entrypoints; nationella regler, fastställande, nya utbildningar, kullkopiering och klasskoppling samt fas 4:s checkpoint kvarstår.
 
 ## Current Position
 
-**Aktuellt läge 2026-10-02:** 05-11:s programplansbrowser 30/30 och timplansregression 20/20 PASS mot samma bygge c320041, inga retries/skips. Samtliga 50 fixturer städade med audit/ankare bevarade. Modell/server/generator 502, typ/lint och handbok PASS; oberoende kodgranskning 6/6. Vanlig skyddad 3012 utan diagnostisk preload har frisk startsida och Worker-hälsa. Fyra beständiga syntetiska exempel är lästa av befintliga rektors-/HM-mandat med 16 DB-/Worker-auditpar; egna sessioner städade. Förberedelsens omkörning bevarade sju rader och en ändrad kulltext. Ingen hel fas eller ADMIN-krav slutverifierat.
+**Aktuellt läge 2026-10-02:** 05-13:s färska programplansbrowser 30/30 och timplansregression 20/20 PASS på samma skyddade bygge 0f18e9b, utan retries/skips. Cleanup 50/50 med 889/36 respektive 303/26 audit/ankare bevarade. Två extra läsfixturer visar tydligt källdatum på dator/telefon, städade med 15/2 audit/ankare. Riktade modell/kontrakt 25 och harness 4, typ/lint/skyddat bygge PASS; oförändrad handbok byggd på af9382e. Oberoende kodgranskning 6/6 PASS. Vanlig 3012 utan preload har startsida, faktisk Worker/DB-hälsa och IdP-discovery 200. Current-verifieraren läser fyra befintliga exempel för rektor/HM genom 16 auditerade läsningar och bevarar verksamhetsraderna; endast egna lässessioner städas. Ingen initial provbild återställs. Lokal kodknapp är separat verifierad med fyra verkliga OIDC/MFA-flöden på tidigare Worker vars serverauth är oförändrad.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och programplansvyn kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-12 genomförda till konkret mänskligt prov. Fas 4 kvarstår på 24 av 25 planer.
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-13 automatiskt genomförda till nytt konkret mänskligt prov. Fas 4 kvarstår på 24 av 25 planer.
 Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-13 genomförs efter användarens misslyckade begriplighetsprov av programplansvyn. Lokalt provkodsstöd genomförs parallellt på användarens begäran. Ingen fas eller mänsklig UX-grind godkänd.
-**Total Plans in Phase:** 13 skrivna, 12 automatiskt genomförda; mänskligt 05-11/05-12-prov och återstående utbildnings-/beslutsflöden är öppna.
-**Status:** 05-13 genomförs efter underkänt mänskligt begriplighetsprov. Tidigare mekaniska browserprov är historiska bevis; rättningen kräver färska prov och ny mänsklig bedömning. Fas 4 och previewavbrottsdiagnosen kvarstår.
+**Current Plan:** 05-13 automatiskt genomförd; nytt mänskligt begriplighetsprov väntar i 05-PROGRAMPLAN-USER-TRIAL.md på aktuell 3012. Tidigare mänsklig programplansbedömning är FAIL och ersätts inte av automationsresultaten.
+**Total Plans in Phase:** 13 skrivna och automatiskt genomförda; mänskligt programplans-/handledningsprov och återstående utbildnings-/beslutsflöden är öppna.
+**Status:** Väntar på nytt konkret mänskligt begriplighetsprov. Kodknappen är färdig. Fas 4:s checkpoint och tidigare previewavbrotts orsaksdiagnos är öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-02
-**Last Activity Description:** Skyddad programplansvy och timplanshandledning genomförda till mänskligt prov. 30+20 browser, 502 modell/server/generator, oberoende kodgranskning 6/6 och fyra beständiga exempel via aktuell 3012 PASS. Inga nya grants i UI-planen; totalt tio fas 5-entrypoints efter 05-10.
+**Last Activity Description:** Programplaner rättade efter mänskligt UX-fynd: direkt plan, ämnen/sparade val, tydlig nästa handling och aktiv guide. Färska 30+20 browser, 25+4 riktade Node-prov, typ/lint/bygge och oberoende 6/6 PASS. Fyra befintliga exempel lästa utan ändring via frisk 3012. Inga nya grants; totalt tio fas 5-entrypoints.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
-**Senaste genomförandebevis, 2026-10-02:** 05-11/05-12:s gemensamma bygge c320041: programplan 30/30, timplan 20/20, cleanup 50/50 och full kontrollerad fallmatris PASS. Programprov bevarar 679 audithändelser/36 ankare, timplan 300/26. Roots färska modell/server 386+105 och oförändrade generatorprov 11 PASS. Källor matchar bygget; typ/lint, handbok och oberoende kodgranskning 6/6 PASS. Usertrial-Worker läser fyra exempel för två befintliga mandat, 16 auditerade läsningar. Äldre avbrutna omgångar hålls som FAIL och .planning/debug/phase5-preview-exit.md förblir awaiting_evidence. Se 05-11-SUMMARY/REVIEW och phase5-11-root-verification.json. Ingen mänsklig förståelsebedömning eller fasverifiering ersätts av dessa prov.
+**Senaste genomförandebevis, 2026-10-02:** Se 05-13-SUMMARY/REVIEW och phase5-13-root-verification.json. Gemensam build/source 0f18e9b, program 30/30, timplan 20/20, cleanup 50/50 PASS. Första f6f05a7-programomgången 30/30 PASS och timomgången 18/20 FAIL är bevarade: två UI-assertions hann före den obligatoriska avslutade läsningen. Proven synkroniseras nu mot verklig 200-läsning av exakt plan innan samma UI-assertion; inga write-/audit-/konfliktskydd försvagade. Äldre två previewavbrott och deras öppna orsaksdiagnos hålls separat. 05-11:s breda 502 Node-prov är historik, inte en färsk 05-13-omkörning. Ny mänsklig förståelsebedömning och fasverifiering återstår.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 65 av 67 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 66 av 67 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 65
+- Total plans completed: 66
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -75,7 +75,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 **Recent Trend:**
 
-- Last 5 plans: 05-08, 05-09, 05-12, 05-10 och 05-11 automatiskt genomförda; mänskligt samlat prov återstår.
+- Last 5 plans: 05-09, 05-12, 05-10, 05-11 och 05-13 automatiskt genomförda; nytt mänskligt samlat prov återstår.
 - Trend: Ej tillämpligt
 
 | Phase 01 P01 | 5min | 2 tasks | 3 files |
@@ -206,11 +206,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-02
-**Stopped At:** 05-13 genomförs efter underkänd programplans-UX. Befintliga fyra användarexempel bevaras. Lokala OTP-knappens fulla inloggningsprov felsöks parallellt. Fas 4 och tidigare previewavbrotts rotorsak är öppna.
+**Stopped At:** 05-13 rättad och redo på frisk 3012. Fyra befintliga exempel bevarade och aktuellt Worker-lästa. Fyll i provkod verifierad med fyra verkliga inloggningar. Nytt mänskligt begriplighetsprov och timplanshandledningens textbedömning väntar; fas 4 och äldre previewdiagnos är öppna.
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — genomför 05-13, pröva begriplighet på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-13:s begriplighet på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
 
 ### Senaste användarfynd, 2026-10-02
 
-Programplansvyn fick ett misslyckat mänskligt begriplighetsresultat: ”programplanerdelen är ju fullständigt obegripligt UI. fattar noll.” 05-13 ska visa ämnen, nivåer och poäng först och ge tydlig nästa åtgärd; historik och tekniska källuppgifter blir sekundära. Verifierad explicit käll-/startbindning, servermandat, MFA, revisionskonflikter, osäkra sparsvar och användarens lagrade data bevaras. Kodknapp för tre syntetiska MFA-provkonton förbereds separat, bara i den lokala test-IdP:n.
+Programplansvyn fick ett misslyckat mänskligt begriplighetsresultat: ”programplanerdelen är ju fullständigt obegripligt UI. fattar noll.” 05-13 ska visa ämnen, nivåer och poäng först och ge tydlig nästa åtgärd; historik och tekniska källuppgifter blir sekundära. Verifierad explicit käll-/startbindning, servermandat, MFA, revisionskonflikter, osäkra sparsvar och användarens lagrade data bevaras. Kodknapp för tre syntetiska MFA-provkonton är färdig och verifierad separat, bara i den lokala test-IdP:n. 05-13 är nu automatiskt genomförd; ny mänsklig bedömning väntar.

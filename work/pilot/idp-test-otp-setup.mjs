@@ -1,5 +1,6 @@
 // Explicit, additive recovery for missing private local test-code bindings.
-// Never removes existing credentials or changes passwords, profiles or mandates.
+// Preserves credentials, passwords, personal fields and mandates. Completing
+// first enrollment updates its required action and derived TOTP flag.
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
