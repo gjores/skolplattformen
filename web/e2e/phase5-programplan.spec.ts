@@ -81,7 +81,7 @@ test('04: ordnad fördjupning, borttagning, tomt utkast, tangentbord och telefon
   await enter(page);await education(page);await version(page);let d=await edit(page);
   await expect(d.getByRole('button',{name:'Spara utkast',exact:true})).toHaveCount(0);
   await d.getByLabel('Sök ämne eller nivå').fill('animation');await d.getByLabel('Lägg till fördjupningsnivå').selectOption('ANIM1000X');await expect(d).toContainText('Den är inte tillagd ännu');expect((await fixture.snapshot()).revision).toBe(0);
-  await review(page);await expect(d.getByRole('region',{name:'Kontrollera före sparning'})).toContainText('Nivån i väljaren har inte lagts till');await expect(d.getByRole('region',{name:'Kontrollera före sparning'})).toContainText('1 valda nivåer');expect((await fixture.snapshot()).revision).toBe(0);
+  await review(page);await expect(d.getByRole('region',{name:'Kontrollera före sparning'})).toContainText('Nivån i väljaren har inte lagts till');await expect(d.getByRole('region',{name:'Kontrollera före sparning'})).toContainText('1 vald nivå');expect((await fixture.snapshot()).revision).toBe(0);
   await d.getByRole('button',{name:'Tillbaka till uppgifterna',exact:true}).click();await expect(d.getByLabel('Lägg till fördjupningsnivå')).toHaveValue('ANIM1000X');await d.getByRole('button',{name:'Lägg till nivå',exact:true}).click();await d.getByLabel('Sök ämne eller nivå').fill('saknas helt');await expect(d).toContainText('Ingen tillgänglig nivå matchar');await d.getByLabel('Sök ämne eller nivå').fill('');
   await d.getByRole('button',{name:'Flytta upp ANIM1000X',exact:true}).focus();await page.keyboard.press('Enter');
   await expect(d).toHaveAttribute('aria-modal','true');const r=await save(page);expect(r.status()).toBe(200);await paired(r,'programplan_specialization_changed');await expect(page.getByRole('dialog')).toHaveCount(0);expect((await fixture.snapshot()).specialization).toEqual(['ANIM1000X','ENGE3000X']);
@@ -192,7 +192,7 @@ test('16: fem ytterligare program skapas, granskas och läses med rätt programg
     const code=await selector.locator('option').nth(1).getAttribute('value');expect(code).toBeTruthy();
     await selector.selectOption(code!);await d.getByRole('button',{name:'Lägg till nivå',exact:true}).click();
     await review(page);const summary=d.getByRole('region',{name:'Kontrollera före sparning',exact:true});
-    await expect(summary).toContainText(spec.name);await expect(summary).toContainText('2026-08-17');await expect(summary).toContainText('1 valda nivåer');
+    await expect(summary).toContainText(spec.name);await expect(summary).toContainText('2026-08-17');await expect(summary).toContainText('1 vald nivå');
     expect(await fixture.plans(spec.id)).toEqual([]);
     if(spec.program==='VO25')await capture(page,info,'programplan-vard-review.png');
     const r=await save(page,'skapa');expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_created',body.id);

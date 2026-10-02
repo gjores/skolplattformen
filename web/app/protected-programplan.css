@@ -21,3 +21,5 @@
 @media(max-width:700px){.pp-journey{display:block}.pp-journey li+li{margin-top:1rem}.pp-review{grid-template-columns:minmax(0,1fr);gap:.2rem}.pp-review dd{margin-bottom:.6rem}.pp-dialog-actions{flex-wrap:wrap}.pp-dialog-actions>*{min-width:120px}}
 
 .pp-field>output{display:block;line-height:1.6;margin-top:.5rem}
+
+@media(min-width:701px){.pp-explainer .pp-journey li+li{margin-top:0}}
