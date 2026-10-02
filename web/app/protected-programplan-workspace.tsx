@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, RefreshCw, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { confirmDiscard, useUnsavedChanges, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.ts';
 import { parseProgramplanWorkspace,
   type ProgramplanWorkspace, type ProgramplanVersionSummary } from '@/lib/programplan-workspace-contract.ts';
@@ -23,6 +23,8 @@ const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för än
 
 export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost }: Props) {
   const page = 1;
+  const hasUnsaved = useHasUnsaved();
+  const [flowRevision,setFlowRevision] = useState(0);
   const [workspace, setWorkspace] = useState<ProgramplanWorkspace | null>(null), [plan, setPlan] = useState<Programplan | null>(null);
   const [planSummary, setPlanSummary] = useState<ProgramplanVersionSummary | null>(null);
   const [preparation, setPreparation] = useState<{kind: ProgramplanCommandKind; catalogId: string | null} | null>(null);
@@ -46,7 +48,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
   }, [invalidate, onSessionLost]);
   const loadList = useCallback(async (_next: number) => {
-    invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setNotice(null); setError(null); setBusy(false);
+    invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setNotice(null); setError(null); setBusy(false); setFlowRevision(value=>value+1);
   }, [invalidate]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; invalidate(); }; }, [invalidate]);
   async function readWorkspace(offeringId: string, versionPage: number, catalogId: string | null, signal: AbortSignal) {
@@ -213,9 +215,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const namedChoices = (refs: ProgramplanDraft['refs'], choices = options) => refs.length ? refs.map(r => `${programplanLevelName(r,choices)} (${r.points} poäng)`).join(', ') : 'Inga val';
   return <section className="protected-programplan" data-testid="protected-programplan-workspace" aria-busy={busy}>
     <div className="pp-heading"><ListChecks aria-hidden="true"/><div><h1>Programplaner</h1><p>Välj program, inriktning och de fördjupningsnivåer utbildningen ska erbjuda.</p></div></div>
-    {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}>Hämta utbildningarna igen</Button></div>}
+    {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(!hasUnsaved||confirmDiscard())void loadList(page);}}>Hämta utbildningarna igen</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
-    {!workspace&&!draft&&<ProtectedProgramplanFlow scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId)=>openEducation(id,1,catalogId,planId??null,null,!!planId)}/>}
+    {!workspace&&!draft&&<ProtectedProgramplanFlow key={flowRevision} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId)=>openEducation(id,1,catalogId,planId??null,null,!!planId)}/>}
     {workspace&&<>
       <div className="pp-toolbar"><Button variant="ghost" disabled={busy} onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={16}/>Alla utbildningar</Button><Button variant="outline" disabled={busy||!!draft||!!preparation} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button></div>
       <header className="pp-education"><p>{workspace.education.schoolName} · {workspace.education.cohort??'Elevkull saknas'}</p><h2>{workspace.education.name}</h2>
