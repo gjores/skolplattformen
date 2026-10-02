@@ -1,0 +1,65 @@
+{
+  "kind": "phase5-programplan-education-locks",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "same-command-replay",
+      "status": "PASS",
+      "observedLock": {
+        "blocker": 43413,
+        "waiter": 43414,
+        "waitEvent": "advisory"
+      },
+      "singleOfferingPlanReceipt": true
+    },
+    {
+      "name": "new-command-duplicate",
+      "status": "PASS",
+      "observedLock": {
+        "blocker": 43413,
+        "waiter": 43414,
+        "waitEvent": "advisory"
+      },
+      "singleOfferingPlanReceipt": true
+    },
+    {
+      "name": "status-after-committed-create",
+      "status": "PASS",
+      "observedLock": {
+        "blocker": 43413,
+        "waiter": 43414,
+        "waitEvent": "advisory"
+      },
+      "singleOfferingPlanReceipt": true
+    },
+    {
+      "name": "mandate-revoked-after-lock",
+      "status": "PASS",
+      "observedLock": {
+        "blocker": 43413,
+        "waiter": 43414,
+        "waitEvent": "advisory"
+      },
+      "noPartialWrite": true
+    }
+  ],
+  "sourceCommit": "134cf728238644f4cadc5b6e27e0a056beb65234",
+  "cleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationevents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 8,
+    "preservedauditanchors": 1
+  },
+  "checkedAt": "2026-10-02T10:11:27.523Z",
+  "sourceHashes": {
+    "supabase/migrations/20261002120000_phase5_programplan_education.sql": "9754346a6c5f00c02b282725379905e2bc3db8944a5774a9ea7e4dd604847b55",
+    "supabase/tests/phase5_programplan_education.test.sql": "b43122daa9a1741e11fbe613d13ccacb6eb5c70f4aacf43867c3729623f83632",
+    "work/pilot/verify-programplan-education-locks.mjs": "5991cf8abd3f7051fff431b0bb9f6265112b8812605a6571d22f3d34ecf01ccb"
+  }
+}

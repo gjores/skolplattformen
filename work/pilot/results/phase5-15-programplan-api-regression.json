@@ -1,0 +1,2626 @@
+{
+  "kind": "phase5-programplan-api",
+  "fixturePrefix": "813fb24f",
+  "scope": "local-synthetic-only",
+  "proof": "lokalt mintade testprofilssessioner; byggd Worker och PostgreSQL, inte interaktiv IdP eller kommunanslutning",
+  "startedAt": "2026-10-02T10:08:50.851Z",
+  "completedAt": "2026-10-02T10:09:07.548Z",
+  "revision": "134cf728238644f4cadc5b6e27e0a056beb65234",
+  "workerBuildRevision": "74f7ce6362cde5cd1b871e810e2190a4e7e5f398",
+  "preflight": false,
+  "sourceCommit": "2477d57bf97b2e27097f13cdd0115e0645e5e335",
+  "requiredCases": [
+    "worker-role",
+    "principal-read",
+    "hm-read",
+    "legacy-read",
+    "principal-mutations",
+    "hm-mutations",
+    "pinned-clone",
+    "legacy-order",
+    "frozen-basis",
+    "revision-conflicts",
+    "concurrent-replace",
+    "concurrent-bind",
+    "concurrent-create",
+    "concurrent-clone",
+    "roles-denied",
+    "other-school",
+    "other-customer",
+    "missing-object",
+    "wrong-school-kind",
+    "mandate-ended",
+    "mandate-expired",
+    "parent-revoked",
+    "membership-blocked",
+    "customer-closed",
+    "session-expired",
+    "session-revoked",
+    "no-session",
+    "no-mfa",
+    "stale-proof",
+    "wrong-proof",
+    "csrf",
+    "stale-context",
+    "invalid-input",
+    "business-boundaries",
+    "db-audit-lasa",
+    "db-audit-binda",
+    "db-audit-fordjupning",
+    "db-audit-skapa",
+    "db-audit-klona",
+    "worker-audit-lasa",
+    "worker-audit-binda",
+    "worker-audit-fordjupning",
+    "worker-audit-skapa",
+    "worker-audit-klona",
+    "denied-audit-failure",
+    "client-sql-denied",
+    "preservation",
+    "persistent-audit"
+  ],
+  "complete": true,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "worker-role",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "byggd Worker använder avsedd roll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "exakt åtta phase5-signaturer",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "bunden plan med olösta val och stängt beslut",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "två sessionsbundna händelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "bunden plan med olösta val och stängt beslut",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "två sessionsbundna händelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "legacy-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "äldre plan utan gissad bindning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "läsning ändrar inte plan",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "äldre plan utan gissad bindning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "läsning ändrar inte plan",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "äldre plan utan gissad bindning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "läsning ändrar inte plan",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-mutations",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "binda utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "binda DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "binda beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "binda omläsning och källa bevarad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "fordjupning utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "fordjupning DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "fordjupning beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "fordjupning omläsning och källa bevarad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "skapa utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "skapa DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "skapa beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "skapa omläsning och källa bevarad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "klona utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "klona DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "klona beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "klona omläsning och källa bevarad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-mutations",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "binda utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "binda DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "binda beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "binda omläsning och källa bevarad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "fordjupning utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "fordjupning DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "fordjupning beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "fordjupning omläsning och källa bevarad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "skapa utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "skapa DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "skapa beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "skapa omläsning och källa bevarad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "klona utkast sparat",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "klona DB/Worker/history",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "klona beständig omläsning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "klona omläsning och källa bevarad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "pinned-clone",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "bunden källa ger ny version med exakt underlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "källans beslut/historia bytebevaras",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "legacy-order",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "ordnade gamla val kan bindas uttryckligt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ordning och underlag auditerat",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "frozen-basis",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "bara ordnat fördjupningsval ändras",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "revision ökar utan ny plan/utbildning",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "revision-conflicts",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "första bindning lyckas",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "första bindning auditerad",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "omläsning ger fungerande färskt omförsök",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "färskt omförsök auditerat",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-replace",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "två HTTP-sessioner ger en vinnare och en 409",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "vinnaren committar dubbel audit",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "bara en ändring/nyplan och loser denied",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-bind",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "två HTTP-sessioner ger en vinnare och en 409",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "vinnaren committar dubbel audit",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "bara en ändring/nyplan och loser denied",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-create",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "två HTTP-sessioner ger en vinnare och en 409",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "vinnaren committar dubbel audit",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "bara en ändring/nyplan och loser denied",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-clone",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "två HTTP-sessioner ger en vinnare och en 409",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "vinnaren committar dubbel audit",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "bara en ändring/nyplan och loser denied",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "roles-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-customer",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "missing-object",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "wrong-school-kind",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandate-ended",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandate-expired",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "parent-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "membership-blocked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "customer-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-expired",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-mfa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "läsning utan MFA fungerar",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "läsning utan MFA auditerad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-proof",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "wrong-proof",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "csrf",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-context",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-input",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "business-boundaries",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och committat nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-lasa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-binda",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-fordjupning",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-skapa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-klona",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-lasa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-binda",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-fordjupning",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-skapa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-klona",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel lämnar inget planinnehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "planer/utbildningar/revision/historia och båda ok-events återställs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "denied-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekandeloggfel ger audit_unavailable",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga data eller framgångsloggar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "client-sql-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "verkliga direkta klient-/helperförsök nekas",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "PUBLIC och oväntade Workerfunktioner stängda",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "preservation",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "gamla käll-ID/beslut/historik kvar",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ursprungliga utbildningar och obundna planer bevarade",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "persistent-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "alla svar har korrelation och ingen readiness",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "audit innehåller aldrig råa planer/nivåval",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "caseId": "principal-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-read",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "principal-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-mutations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "pinned-clone",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-order",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-order",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-order",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-order",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "frozen-basis",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "revision-conflicts",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-replace",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-replace",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-bind",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-bind",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-create",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-create",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-clone",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "concurrent-clone",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-school",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-school",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-school",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-customer",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-customer",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-customer",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "missing-object",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "missing-object",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "wrong-school-kind",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "wrong-school-kind",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "mandate-ended",
+      "status": 403,
+      "code": "assignment_ended",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "mandate-ended",
+      "status": 403,
+      "code": "assignment_ended",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "mandate-ended",
+      "status": 403,
+      "code": "assignment_ended",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "mandate-expired",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "mandate-expired",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "mandate-expired",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-revoked",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-revoked",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-revoked",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-proof",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "wrong-proof",
+      "status": 403,
+      "code": "mfa_required",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "business-boundaries",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "business-boundaries",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "business-boundaries",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "business-boundaries",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "business-boundaries",
+      "status": 409,
+      "code": "conflict",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-lasa",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-binda",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-fordjupning",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-skapa",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-klona",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-lasa",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-binda",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-fordjupning",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-skapa",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-klona",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "denied-audit-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    }
+  ],
+  "cleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationevents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 155,
+    "preservedauditanchors": 4
+  },
+  "foreignCleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationevents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 0,
+    "preservedauditanchors": 0
+  },
+  "originalHashes": {
+    "plans": "316596f0966982403b2523a66e5a86bd",
+    "offerings": "5a3f2b512e065a75ffe3a46cca904fe4",
+    "history": "c6b6f8eb890d7d281b980761042ca03a",
+    "classbindings": "d751713988987e9331980363e24189ce",
+    "catalogs": "b3c1b14ec5914717862ff99a18e6fa11"
+  },
+  "finalHashes": {
+    "plans": "316596f0966982403b2523a66e5a86bd",
+    "offerings": "5a3f2b512e065a75ffe3a46cca904fe4",
+    "history": "c6b6f8eb890d7d281b980761042ca03a",
+    "classbindings": "d751713988987e9331980363e24189ce",
+    "catalogs": "b3c1b14ec5914717862ff99a18e6fa11"
+  },
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "sourceHashes": {
+    "web/lib/programplan-contract.ts": "4082876e4ba31c3fa7fc65e74b0a8fd75c77490f35912156dc2ff7dd92bf7329",
+    "web/lib/programplan-catalog.ts": "22509c3459793e518c9e0c1738d8c7c1d7b56d359b7fbad17740aa6b56acd498",
+    "web/lib/server/programplan-planning.ts": "f76a805552a32bd14e2cf8a99d51ef2c0f6f288af31331db6e3867bb271edff3",
+    "web/lib/server/audit-details.ts": "0a8f2e3cb3094e01c30b7fb2ab7e68ac2de00369df773d682972ad77841608ce",
+    "web/lib/server/db.ts": "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+    "web/lib/server/authz.ts": "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+    "web/lib/server/events.ts": "f7705febcfc3300192930d2ee088a129742c38d15c737cd533fa24fcded65268",
+    "web/lib/server/http.ts": "5dcd83d9de7dc0db3af5423549f536c63092852afb1e60859eafbaf2caf25991",
+    "web/lib/server/session.ts": "2c94f0bd72f949f15a24d6c1c63a2749e5ce850452e3b3229829411ead6de992",
+    "web/lib/server/identity-provider.ts": "49dd4e48279048a0cdf34d694ee43ba14a02560529966ccb85a0c202225babb0",
+    "web/lib/server/mandate-route.ts": "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+    "web/app/api/programplaner/lasa/route.ts": "47d0bf3a09a4a9e4285ac2b66caac25dc2e98a03073b7b07ebb41b4107bef3da",
+    "web/app/api/programplaner/binda/route.ts": "2d0c53a81eb2a019f46a58dea8f58ded9a6f95af2fdcc5c77c420412e6a7df1d",
+    "web/app/api/programplaner/fordjupning/route.ts": "03c78ab3e6f10312282988af8f755ca79a0eed7e1b82da81dbbb69124a4e5da9",
+    "web/app/api/programplaner/skapa/route.ts": "435c9c2553cb916e8c039f413ca34a28ac79db2da9b4929af1bc46f1dcc65023",
+    "web/app/api/programplaner/klona/route.ts": "7b7cc3ff497f776b64b6e8d8ea7ea48227b6e760aed04005a792b8ac8b23d271",
+    "work/pilot/verify-programplan-api.mjs": "d07e428d07440d40d519586f026d40dbecf034025991648bbce4ae95430d5f12",
+    "supabase/tests/phase5_programplan_drafts.test.sql": "fc3ce56a10651271918349c33f55a3a3435e865fd57ce5aa912703141c38b274"
+  }
+}

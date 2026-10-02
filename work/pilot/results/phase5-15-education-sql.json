@@ -1,0 +1,16 @@
+{
+  "kind": "phase5-programplan-education-sql",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "total": 50,
+  "passed": 50,
+  "failed": 0,
+  "outerRollback": true,
+  "sourceCommit": "ff4186f06bda90d639dd77dc9216999d6937b01b",
+  "sourceHashes": {
+    "supabase/migrations/20261002120000_phase5_programplan_education.sql": "9754346a6c5f00c02b282725379905e2bc3db8944a5774a9ea7e4dd604847b55",
+    "supabase/tests/phase5_programplan_education.test.sql": "b43122daa9a1741e11fbe613d13ccacb6eb5c70f4aacf43867c3729623f83632"
+  },
+  "checkedAt": "2026-10-02T10:05:26.382Z",
+  "target": "protected"
+}

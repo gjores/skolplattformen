@@ -1,0 +1,1292 @@
+{
+  "kind": "phase5-programplan-workspace-api",
+  "scope": "local-synthetic-only",
+  "startedAt": "2026-10-02T10:10:19.908Z",
+  "status": "PASS",
+  "complete": true,
+  "cases": [
+    {
+      "name": "worker-role",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "byggd Worker har rätt roll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "exakt tio entrypoints under provet",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-list",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "verkligt scoped gymnasieurval med tom utbildning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "tom och befintlig utbildning auditeras",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-list",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "verkligt scoped gymnasieurval med tom utbildning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "tom och befintlig utbildning auditeras",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "without-mfa",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "läsning tillåten utan engångskod",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "faktisk sessionsbunden dubbel audit utan MFA",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "läsning tillåten utan engångskod",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "faktisk sessionsbunden dubbel audit utan MFA",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "läsning tillåten utan engångskod",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "faktisk sessionsbunden dubbel audit utan MFA",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "läsning tillåten utan engångskod",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "faktisk sessionsbunden dubbel audit utan MFA",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "education-without-plan",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "utbildning med verklig metadata utan plan",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "audit på rätt utbildning",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "legacy-order",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "okända/dubbla äldre koder och ordning bevaras",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "legacyläsning auditerad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "pinned-exact-source",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "exakt fryst källa och verkliga block/ämnesversioner",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "exakt källunderlag auditerat",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "explicit-no-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "NULL väljer aldrig tidigare bunden eller senaste katalog",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen dold bindning, auditerad läsning",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "missing-exact-catalog",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "saknad exakt källa blir läsbart stopp utan fallback",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "begränsad läsning auditerad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "catalog-integrity",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "hashfel efter SQL lämnar inget källunderlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "yttre transaktion rullar tillbaka DB-läsaudit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "source-limitations",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "saknat program synligt utan gissning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "begränsad referensläsning auditerad",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "education-pagination",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "stabila sidor femtio/nio/noll med hel count",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "varje sida och tomt svar har dubbel audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "version-pagination",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "old page retains whole max/draft and exact old order",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "alla versionssidor har audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "empty-school-scope",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "giltig skolkontext utan gymnasieutbildning ger tom lista",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "tomt resultat har audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "roles-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-customer",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "missing-object",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "wrong-school-kind",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "broken-unit-chain",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "parent-ended",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "membership-blocked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "customer-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-expired",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-revoked",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "csrf",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-context",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-input",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "minimerat nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "oförändrad verksamhet och obligatoriskt nekande",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-lista",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "auditfel lämnar inget underlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga ändringar eller framgångshändelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-underlag",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "auditfel lämnar inget underlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga ändringar eller framgångshändelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-lista",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "auditfel lämnar inget underlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga ändringar eller framgångshändelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-underlag",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "auditfel lämnar inget underlag",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga ändringar eller framgångshändelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "denied-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "nekandeloggfel stoppar svar",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen data eller framgångsaudit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-sql-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "klient och hjälparanrop är verkligt nekade",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "PUBLIC/helpers stängda och exakt tio grants",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "expiry-after-observed-wait",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "persistent",
+          "name": "pg_blocking_pids observerar faktisk Worker-väntan på utbildning",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "verklig sessionssluttid passerad före låsfrigöring",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "utgången session efter väntan får inget innehåll",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen DB-framgång, endast Worker-nekande efter rollback",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "read-preservation",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "läsningar och nekanden bevarar originalets plan-/utbildningsfält",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "ingen verksamhetshistorik eller revisionsändring",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "persistent-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "alla lässvar har korrelation och stängt beslut",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga råa metadata/val/payload i audit",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "fixtureDifference": [],
+  "revision": "134cf728238644f4cadc5b6e27e0a056beb65234",
+  "workerBuildRevision": "74f7ce6362cde5cd1b871e810e2190a4e7e5f398",
+  "sourceCommit": "8cca473401a7e2e44714da85480a1c6b1dc79590",
+  "preflight": false,
+  "requiredCases": [
+    "worker-role",
+    "principal-list",
+    "hm-list",
+    "without-mfa",
+    "education-without-plan",
+    "legacy-order",
+    "pinned-exact-source",
+    "explicit-no-selection",
+    "missing-exact-catalog",
+    "catalog-integrity",
+    "source-limitations",
+    "education-pagination",
+    "version-pagination",
+    "empty-school-scope",
+    "roles-denied",
+    "other-school",
+    "other-customer",
+    "missing-object",
+    "wrong-school-kind",
+    "broken-unit-chain",
+    "parent-ended",
+    "membership-blocked",
+    "customer-closed",
+    "session-expired",
+    "session-revoked",
+    "no-session",
+    "csrf",
+    "stale-context",
+    "invalid-input",
+    "db-audit-lista",
+    "db-audit-underlag",
+    "worker-audit-lista",
+    "worker-audit-underlag",
+    "denied-audit-failure",
+    "direct-sql-denied",
+    "expiry-after-observed-wait",
+    "read-preservation",
+    "persistent-audit"
+  ],
+  "calls": [
+    {
+      "caseId": "principal-list",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "hm-list",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "without-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "without-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "without-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "without-mfa",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "education-without-plan",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "legacy-order",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "pinned-exact-source",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "explicit-no-selection",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "missing-exact-catalog",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "catalog-integrity",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "source-limitations",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "education-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "education-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "education-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "education-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "version-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "version-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "version-pagination",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "empty-school-scope",
+      "status": 200,
+      "code": null,
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "roles-denied",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-school",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "other-customer",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "missing-object",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "wrong-school-kind",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "broken-unit-chain",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-ended",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "parent-ended",
+      "status": 403,
+      "code": "assignment_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-expired",
+      "status": 401,
+      "code": "session_expired",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "session-revoked",
+      "status": 401,
+      "code": "session_revoked",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "csrf",
+      "status": 403,
+      "code": "csrf",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "invalid-input",
+      "status": 400,
+      "code": "bad_request",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-lista",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "db-audit-underlag",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-lista",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "worker-audit-underlag",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "denied-audit-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "hasCorrelation": true
+    },
+    {
+      "caseId": "expiry-after-observed-wait",
+      "status": 403,
+      "code": "forbidden",
+      "hasCorrelation": true
+    }
+  ],
+  "cleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationevents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 72,
+    "preservedauditanchors": 3
+  },
+  "foreignCleanup": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationevents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedauditevents": 0,
+    "preservedauditanchors": 0
+  },
+  "originalHashes": [
+    {
+      "plans": "316596f0966982403b2523a66e5a86bd",
+      "offerings": "5a3f2b512e065a75ffe3a46cca904fe4",
+      "history": "c6b6f8eb890d7d281b980761042ca03a",
+      "classbindings": "d751713988987e9331980363e24189ce",
+      "catalogs": "b3c1b14ec5914717862ff99a18e6fa11"
+    }
+  ],
+  "finalHashes": [
+    {
+      "plans": "316596f0966982403b2523a66e5a86bd",
+      "offerings": "5a3f2b512e065a75ffe3a46cca904fe4",
+      "history": "c6b6f8eb890d7d281b980761042ca03a",
+      "classbindings": "d751713988987e9331980363e24189ce",
+      "catalogs": "b3c1b14ec5914717862ff99a18e6fa11"
+    }
+  ],
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-02T10:10:33.188Z",
+  "migrationHashes": {
+    "20261001120000_phase5_programplan_workspace.sql": "1f8efa579c5bc27e5e97edcbcbd4fba0538dec8f31af9862d935114c143094fa",
+    "20261001121000_phase5_worker_programplan_workspace.sql": "944dbc3adbe86aa81c60cdaa5ea1098346ba1b4545494f56883dc619d94198bf"
+  },
+  "sourceHashes": {
+    "web/lib/programplan-workspace-contract.ts": "433a7aaf2f04a12cbf6ffe2908a5e6dda9703c853c9a0cdf312007455e643b74",
+    "web/lib/programplan-catalog.ts": "22509c3459793e518c9e0c1738d8c7c1d7b56d359b7fbad17740aa6b56acd498",
+    "web/lib/server/programplan-workspace.ts": "b63afc932c4fcaa08ceaadcb2cb0f39c66321d86e77c34e26f1d25efd7940fac",
+    "web/lib/server/programplan-planning.ts": "f76a805552a32bd14e2cf8a99d51ef2c0f6f288af31331db6e3867bb271edff3",
+    "web/lib/server/authz.ts": "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+    "web/lib/server/db.ts": "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+    "web/lib/server/http.ts": "5dcd83d9de7dc0db3af5423549f536c63092852afb1e60859eafbaf2caf25991",
+    "web/lib/server/events.ts": "f7705febcfc3300192930d2ee088a129742c38d15c737cd533fa24fcded65268",
+    "web/lib/server/session.ts": "2c94f0bd72f949f15a24d6c1c63a2749e5ce850452e3b3229829411ead6de992",
+    "web/lib/server/audit-details.ts": "0a8f2e3cb3094e01c30b7fb2ab7e68ac2de00369df773d682972ad77841608ce",
+    "web/lib/server/mandate-route.ts": "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+    "web/app/api/programplaner/lista/route.ts": "04b7f7ece89a827c02ddef50c6184af422222300e458b90b25c44cfe3b940109",
+    "web/app/api/programplaner/underlag/route.ts": "a34330ebc27ea97e93b3ffd6796041fce349cc2a05c519aec3d310856a47794a",
+    "work/pilot/verify-programplan-workspace-api.mjs": "167b268d7bc2d5c33245870db175028d7ebcb827f89159a39594453ce1824776",
+    "supabase/migrations/20261001120000_phase5_programplan_workspace.sql": "1f8efa579c5bc27e5e97edcbcbd4fba0538dec8f31af9862d935114c143094fa"
+  }
+}

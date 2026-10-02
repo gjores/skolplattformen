@@ -1,0 +1,83 @@
+{
+  "phase": "05-15",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "backendComplete": true,
+  "humanUIAccepted": false,
+  "fullPhaseVerified": false,
+  "runtimeBuildRevision": "529afa4366b40a3ccfa69d93f9fc9cf54e5e5656",
+  "evidenceRevision": "579d82a3f94ff6a04eb4dc1a7cb30d21af26add0",
+  "catalogId": "sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace",
+  "sql": {
+    "passed": 50,
+    "failed": 0,
+    "outerRollback": true
+  },
+  "concurrency": {
+    "newEducationObservedLocks": 4,
+    "existingProgrammeObservedCases": 7,
+    "catalogParityCases": 42
+  },
+  "api": {
+    "newPreflight": 43,
+    "newFinal": 43,
+    "previousProgramme": 48,
+    "previousWorkspace": 38,
+    "allRequiredCasesPassed": true,
+    "preflightAclRestored": true,
+    "exactWorkerEntrypoints": 13,
+    "originalBusinessPreserved": true,
+    "previousTimplan": 39,
+    "emptyGymnasiumFirstEducationCreated": true,
+    "immutableReceiptAfterActualPlanChange": true,
+    "sameIdentityCurrentForeignSchoolDenied": true
+  },
+  "node": {
+    "passed": 80,
+    "failed": 0
+  },
+  "reports": [
+    "phase5-15-education-sql",
+    "phase5-15-education-locks",
+    "phase5-15-regression-locks",
+    "phase5-15-education-api-preflight",
+    "phase5-15-education-api-final",
+    "phase5-15-programplan-api-regression",
+    "phase5-15-workspace-api-regression",
+    "phase5-15-timplan-api-regression"
+  ],
+  "sourceHashes": {
+    "web/lib/programplan-education-contract.ts": "81232475dfe416ac98f18d553e34026f20daba355ea0278c8511890059b275a0",
+    "web/lib/server/programplan-education.ts": "aa74c1031ea45731e852a775fcb346df006b4a2b0c4bc3d276598210c5ae78d3",
+    "web/app/api/programplaner/val/route.ts": "66d6c020e0efeee6b43967d95191d1b65c014855f873d4a115f05d22755a0684",
+    "web/app/api/programplaner/utbildning/skapa/route.ts": "ca4e0263c13a68512f41177fc2c0e97b73270d095c51d549f47d38f6be22a51f",
+    "web/app/api/programplaner/utbildning/status/route.ts": "0204abcbda7c1513661e589a5aebeed8709a30c775ac77b84938aaf9242b92df",
+    "supabase/migrations/20261002120000_phase5_programplan_education.sql": "9754346a6c5f00c02b282725379905e2bc3db8944a5774a9ea7e4dd604847b55",
+    "supabase/migrations/20261002121000_phase5_worker_programplan_education.sql": "618c216c1166ec6ddb50febc6fe93ba4104a8e7ca0b976cbafee6f6ff1633fe4",
+    "supabase/tests/phase5_programplan_education.test.sql": "b43122daa9a1741e11fbe613d13ccacb6eb5c70f4aacf43867c3729623f83632",
+    "work/pilot/verify-programplan-education-api.mjs": "034e6a402ac477c5e47d2a7d5f97fdbcb160b4e3198fdb037e059d59e4433510",
+    "work/pilot/verify-programplan-education-locks.mjs": "5991cf8abd3f7051fff431b0bb9f6265112b8812605a6571d22f3d34ecf01ccb"
+  },
+  "deviations": [
+    {
+      "type": "fixture",
+      "result": "FAIL",
+      "detail": "First preflight42/43: customer-admin fixture violated DBorganizer constraint; corrected to separate real customer-level assignment; full43/43 rerunPASS.",
+      "archive": "web/outputs/phase5-15-education-api/first-fixture-fail.json"
+    },
+    {
+      "type": "fixture",
+      "result": "FAIL",
+      "detail": "Initial SQLorientationSAMED didnotexist; exactSAMJK substituted. ExpandedSQL6countFAIL because globalcount included concurrent ownAPIfixtures; counts now scoped to ownedcustomer/organizer; full50/50PASS.",
+      "archive": "web/outputs/phase5-15-education-api/sql-global-count-fixture-fail.txt"
+    }
+  ],
+  "limits": [
+    "No interactive IdP or real municipality/pilot connection proven.",
+    "No national rule approval, decision/finalization, shared package feature, pupil choice, class linking or next-cohort copy introduced.",
+    "Human understanding of replacement UI remains pending after05-16."
+  ],
+  "previousApiRegressionBuildRevision": "74f7ce6362cde5cd1b871e810e2190a4e7e5f398",
+  "controlledRuntimeSourceUnchangedBetweenBuilds": true
+}
