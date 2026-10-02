@@ -182,7 +182,7 @@ test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',asyn
   const loggedOut=await logoutResponse;expect(loggedOut.status()).toBe(200);
   expect(loggedOut.request().postData()).toBeNull();
   expect(await loggedOut.finished()).toBeNull();
-  await page.waitForURL(url=>url.hostname==='127.0.0.1'&&url.pathname==='/realms/skolplattform-test/protocol/openid-connect/logout');await page.waitForLoadState('load');
+  await page.waitForURL(url=>url.origin===fixture.idpOrigin&&url.pathname==='/realms/skolplattform-test/protocol/openid-connect/logout');await page.waitForLoadState('load');
   expect((await fixture.request(baseURL,fixture.principal,'/api/programplaner/lista',{page:1})).status).toBe(401);
 });
 
