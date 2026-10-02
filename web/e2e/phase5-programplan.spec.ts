@@ -14,8 +14,11 @@ test.beforeAll(async({browserName},info)=>{await info.attach('source-build.json'
 test.beforeEach(async()=>{fixture=undefined!;fixture=await createProgramplanBrowserFixture();});
 test.afterEach(async({browserName},info)=>{if(fixture)await info.attach('cleanup.json',{body:JSON.stringify({...await fixture.cleanup(),browserName}),contentType:'application/json'});});
 async function navigate(page:Page,label='Programplaner'){
-  await waitForHydration(page);const b=page.getByRole('button',{name:label,exact:true});const box=await b.isVisible()?await b.boundingBox():null;
-  if(!box||box.x<0||box.x+box.width>(page.viewportSize()?.width??1440))await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();await b.click();
+  await waitForHydration(page);const b=page.getByRole('button',{name:label,exact:true});
+  const mobile=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches);
+  const sidebar=page.locator('[data-slot="sidebar"][data-state]');
+  if(mobile?!await page.locator('[data-mobile="true"]').isVisible():await sidebar.getAttribute('data-state')==='collapsed')await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
+  await b.click();
 }
 async function enter(page:Page,session=fixture.principal){await fixture.cookies(page.context(),session,baseURL);await page.goto('/');await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();const pending=page.waitForResponse(matches('/api/programplaner/lista'));await navigate(page);const r=await pending;expect(r.status()).toBe(200);await expect(w(page)).toBeVisible();return r;}
 async function chooseProgram(page:Page,code='SA25',orientation:string|null='SABEP') {
@@ -179,7 +182,7 @@ test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',asyn
   const loggedOut=await logoutResponse;expect(loggedOut.status()).toBe(200);
   expect(loggedOut.request().postData()).toBeNull();
   expect(await loggedOut.finished()).toBeNull();
-  const {redirect}=await loggedOut.json();await page.waitForURL(redirect);await page.waitForLoadState('load');
+  await page.waitForURL(url=>url.hostname==='127.0.0.1'&&url.pathname==='/realms/skolplattform-test/protocol/openid-connect/logout');await page.waitForLoadState('load');
   expect((await fixture.request(baseURL,fixture.principal,'/api/programplaner/lista',{page:1})).status).toBe(401);
 });
 

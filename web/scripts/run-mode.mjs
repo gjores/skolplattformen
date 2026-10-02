@@ -284,7 +284,7 @@ async function preview() {
     console.log(`Förhandsvisning: läge protected, revision ${mark.revision}`);
     try {
       process.exitCode = await run(
-        [WRANGLER, 'dev', '--config', WRANGLER_CONFIG_PROTECTED, '--port', p, '--ip', '127.0.0.1', '--inspector-port', '0'],
+        ['scripts/preview-worker.mjs', WRANGLER_CONFIG_PROTECTED, p],
         { ...process.env, ...quiet },
       );
     } finally {

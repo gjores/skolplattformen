@@ -25,9 +25,9 @@ async function navigate(page: Page,label: string) {
   await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();
   await waitForHydration(page);
   const button=page.getByRole('button',{name:label,exact:true});
-  const bounds=await button.isVisible()?await button.boundingBox():null;
-  const width=page.viewportSize()?.width??1440;
-  if(!bounds || bounds.x<0 || bounds.x+bounds.width>width) {
+  const mobile=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches);
+  const sidebar=page.locator('[data-slot="sidebar"][data-state]');
+  if(mobile?!await page.locator('[data-mobile="true"]').isVisible():await sidebar.getAttribute('data-state')==='collapsed') {
     await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
   }
   await button.click();

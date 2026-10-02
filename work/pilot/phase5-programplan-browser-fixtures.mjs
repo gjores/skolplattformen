@@ -12,7 +12,7 @@ import { trialEducationSpecs } from './prepare-programplan-user-trial.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
 const MARKER='Syntetiskt programplansprov';
-const SOURCE_PATHS=['web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan-overview.tsx','web/app/protected-programplan.css','web/app/mfa-step-up.tsx',
+const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs','web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan-overview.tsx','web/app/protected-programplan.css','web/app/mfa-step-up.tsx',
   'web/lib/programplan-education-contract.ts','web/lib/server/programplan-education.ts','web/lib/protected-programplan-education.ts','web/app/protected-programplan-level-picker.tsx','web/app/protected-programplan-flow.tsx','supabase/migrations/20261002120000_phase5_programplan_education.sql','supabase/migrations/20261002121000_phase5_worker_programplan_education.sql','web/lib/protected-programplan.ts','web/lib/programplan-contract.ts','web/lib/programplan-workspace-contract.ts','web/lib/server-client.ts','web/lib/unsaved-changes.tsx',
   'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/lib/programplan-catalog.ts','web/app/api/programplaner',
   'web/e2e/phase5-programplan.spec.ts','web/playwright.phase5-programplan.config.ts','work/pilot/phase5-programplan-browser-fixtures.mjs','work/pilot/verify-programplan-browser.mjs','work/pilot/prepare-programplan-user-trial.mjs'];
