@@ -29,3 +29,12 @@
 @media(max-width:800px){.pp-work-sheet,.pp-flow-support,.pp-flow-selection,.pp-new-fields,.pp-picker-columns{grid-template-columns:minmax(0,1fr)}.pp-work-sheet .pp-reference{grid-row:auto}.pp-work-sheet .pp-next{margin-top:0}.pp-picker-options{max-height:450px}.pp-flow-steps{gap:.4rem}.pp-flow-steps li{padding:.6rem .7rem}.pp-new-education,.pp-draft-sheet{padding:.9rem}.pp-work-sheet .pp-subject-row{display:block}.pp-flow-mode>*{min-width:120px}.pp-level-check{gap:.6rem}.pp-picker-selected{padding:.9rem}}
 
 .pp-flow-mode{border:0;margin:0;padding:0}
+
+.pp-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.pp-table-wrap{margin:1.2rem 0;border:1px solid #d4dfeb;border-radius:12px;overflow-x:auto;background:white}.pp-table-scroll{max-height:520px;overflow-y:auto}
+.pp-table{width:100%;border-collapse:collapse;font-size:.95rem}.pp-table th,.pp-table td{padding:.55rem .9rem;text-align:left;border-top:1px solid #e2e9f2;vertical-align:top}.pp-table thead th{position:sticky;top:0;z-index:1;background:#f1f5fa;border-top:0;font-size:.85rem;color:#46586d}
+.pp-table tbody th[scope=row]{font-weight:500}.pp-table small{display:block;margin-top:.15rem;color:#63758b;font-size:.82rem}.pp-table .pp-num{text-align:right;white-space:nowrap}
+.pp-table-group th{background:#e9f2ff;color:#214f80;font-weight:700;border-top:1px solid #c9d9ea}.pp-table-sum th,.pp-table-sum td{background:#f7f9fc;font-weight:700}.pp-row-chosen th,.pp-row-chosen td{background:#f0f8ee}
+.pp-table-options td:first-child{width:56px}.pp-table-options input[type=checkbox]{width:24px;height:24px}.pp-table-options tr:has(input:disabled:not(:checked)) th,.pp-table-options tr:has(input:disabled:not(:checked)) td{color:#7b8a9c}
+.pp-frame{margin:1.2rem 0;padding:1rem 1.2rem;border:1px solid #c9d9ea;border-radius:12px;background:#f7fbff}.pp-frame h4{margin:0 0 .4rem}.pp-frame-status{display:block;margin-top:.5rem;font-weight:700;color:#2b6a35}.pp-frame-over{color:#9b2c2c}
+@media(max-width:700px){.pp-table th,.pp-table td{padding:.5rem .6rem}.pp-table-options input[type=checkbox]{width:28px;height:28px}.pp-table-options td:first-child{width:48px}}
