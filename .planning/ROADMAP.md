@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-13 automatiskt genomförda. Användaren underkände programplansvyns begriplighet; 05-13 är rättad och färskt verifierad inför ett nytt mänskligt prov 2026-10-02. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
+**Plans**: 05-01–05-14 automatiskt genomförda. Användaren underkände programplansvyns begriplighet; 05-13 är rättad och färskt verifierad inför ett nytt mänskligt prov 2026-10-02. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -178,6 +178,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] 05-11-PLAN.md — Skyddad programplansvy och utkast/kloning, programbrowser 30/30 + timplan 20/20 PASS, handbok och fyra beständiga exempel verifierade på 3012. Mänsklig begriplighet underkänd; rättas i 05-13.
 - [x] 05-12-PLAN.md — Regelhandledning i befintlig timplansvy och dialog, GR/IM-källor och handbok; 20/20 browserprov och skyddat bygge PASS. Mänsklig förståelsebedömning följer med 05-11.
 - [x] 05-13-PLAN.md — Direkt aktuell plan, ämnes-/nivåvy, tydlig nästa åtgärd och guidad källbindning efter användarfynd. Senast pedagogiskt fördjupad med tre dialogsteg/fälthjälp: färska 30+20 browser, typ/lint/bygge/handbok och bevarad current-läsning på vanlig 3012 PASS (e077e81). Tidigare 25+4 Node-prov är historik. Ny mänsklig begriplighetsbedömning väntar.
+- [x] 05-14-PLAN.md — Separat granskning, ämnessökning och fem fler gymnasieprogram i additiv provsetup. 32+20 browser, 27 Node, typ/lint/bygge/handbok samt nio bevarade exempel på vanlig 3012 PASS (43c91fa). Ny mänsklig begriplighetsbedömning väntar.
 
 05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 
@@ -263,7 +264,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
-| 5. Bevarade utbildnings- och klassflöden | 13/13 hittills skrivna automatiskt genomförda | In progress — programplans-UX rättad och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
+| 5. Bevarade utbildnings- och klassflöden | 14/14 hittills skrivna automatiskt genomförda | In progress — programplans-UX rättad och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |

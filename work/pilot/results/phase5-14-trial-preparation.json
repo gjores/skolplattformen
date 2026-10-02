@@ -1,0 +1,46 @@
+{
+  "phase": "05-14",
+  "status": "PASS",
+  "first": {
+    "target": "protected",
+    "status": "READY",
+    "educations": 9,
+    "school": "Syntetisk skola 11",
+    "programs": [
+      "SA25",
+      "EK25",
+      "NA25",
+      "TE25",
+      "ES25",
+      "VO25"
+    ],
+    "knownSyntheticStart": "2026-08-17",
+    "verifiedExistingRoles": 2,
+    "preservedExistingRecords": 7,
+    "verification": "owned additive rows; actual existing rector/HM mandates with temporary SQL sessions and mandatory DB audit; no Worker, interactive IdP or human result implied"
+  },
+  "second": {
+    "target": "protected",
+    "status": "READY",
+    "educations": 9,
+    "school": "Syntetisk skola 11",
+    "programs": [
+      "SA25",
+      "EK25",
+      "NA25",
+      "TE25",
+      "ES25",
+      "VO25"
+    ],
+    "knownSyntheticStart": "2026-08-17",
+    "verifiedExistingRoles": 2,
+    "preservedExistingRecords": 12,
+    "verification": "owned additive rows; actual existing rector/HM mandates with temporary SQL sessions and mandatory DB audit; no Worker, interactive IdP or human result implied"
+  },
+  "idempotent": true,
+  "scope": "local-synthetic-only",
+  "priorAttempt": {
+    "status": "FAIL",
+    "reason": "Preparer initially checked projected program on raw SQL catalogue payload; transaction rejected and rolled back before commit. Fixed by parsing raw contract and verifying stored whole catalogue."
+  }
+}

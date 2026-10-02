@@ -1,0 +1,61 @@
+{
+  "phase": "05-14 guided review",
+  "sourceRevision": "43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc",
+  "buildRevision": "43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "rows": [
+    {
+      "profile": "desktop",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-14-guided/instructions/desktop-start.png",
+        "web/outputs/phase5-14-guided/instructions/desktop-workspace.png",
+        "web/outputs/phase5-14-guided/instructions/desktop-dialog-start.png",
+        "web/outputs/phase5-14-guided/instructions/desktop-dialog-save.png"
+      ],
+      "noMutation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "profile": "phone",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-14-guided/instructions/phone-start.png",
+        "web/outputs/phase5-14-guided/instructions/phone-workspace.png",
+        "web/outputs/phase5-14-guided/instructions/phone-dialog-start.png",
+        "web/outputs/phase5-14-guided/instructions/phone-dialog-save.png"
+      ],
+      "noMutation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Actual read-only browser paths with own synthetic fixtures.",
+    "Phone uses WebKit emulation; screenshots require visual review and do not establish human understanding."
+  ]
+}

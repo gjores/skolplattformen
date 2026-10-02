@@ -1,0 +1,27 @@
+{
+  "phase": "05-14",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "sourceRevision": "43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc",
+  "buildRevision": "43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc",
+  "programBrowser": 32,
+  "timplanBrowser": 20,
+  "nodeTests": 27,
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "visualProfiles": 2,
+  "visualImagesReviewed": 8,
+  "currentTrialEducationsPerRole": 9,
+  "currentAuditedReads": 26,
+  "humanUnderstanding": "awaiting_user",
+  "phase4Checkpoint": "open",
+  "previewRootCause": "awaiting_evidence",
+  "limits": [
+    "No interactive IdP test in this plan; browser sessions are locally minted.",
+    "Phone is WebKit emulation.",
+    "Five added programmes are synthetic existing offerings, no general education creation or external upload.",
+    "National decision rules, approval, cohort copying and class links remain open."
+  ]
+}

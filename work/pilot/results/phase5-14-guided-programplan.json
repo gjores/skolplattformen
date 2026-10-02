@@ -1,0 +1,233 @@
+{
+  "phase": "05-14 guided review",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "sourceRevision": "43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc",
+  "buildRevision": "43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc",
+  "cases": [
+    {
+      "case": "01",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "10",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "11",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "12",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "13",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "14",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "15",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "16",
+      "project": "programplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "10",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "11",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "12",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "13",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "14",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "15",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "16",
+      "project": "programplan-phone",
+      "status": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 32,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 1093,
+  "preservedAuditAnchors": 38,
+  "images": [
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-01-programplan-read-png-ea895d79ec338c211a6cb767af4203ae22d181e5.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-02-programplan-guide-png-4fc9814e1b218bd96cf063c9e4512b4052ad9bc0.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-04-programplan-dialog-png-93d5f542fbfc44368b61010df4e20d65f1329123.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-05-programplan-legacy-clone-png-53c2c4dd08f9c64cf53c126113f269ae84403adb.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-07-programplan-conflict-png-927c453f66bf73aa0025dbf72744d596e975b844.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-09-programplan-mfa-png-43f745feb1a5aa4b5207418b2a6de4797f786c67.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-10-programplan-refresh-error-png-da49d67b72c2220449be5a2188d84ba16dbaa367.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-desktop-16-programplan-vard-review-png-af3ac44ff7e3cfa788a0b336b0b318c8af5769ce.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-01-programplan-read-png-9e3a545f66704232b369b3d63001a3431defd723.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-02-programplan-guide-png-534878ba8d0036bcbc5e4e523f0ac160101bf4f5.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-04-programplan-dialog-png-fc8b037fbbe86db4846872e59e66b92853810041.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-05-programplan-legacy-clone-png-236d1766fa46f7fcb85ddfe0064d43f168bb1db3.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-07-programplan-conflict-png-2b7129b71df96991cf3488e3c761541e01f106ac.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-09-programplan-mfa-png-8a566b48819fca6c3f734546d6d78082baed485e.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-10-programplan-refresh-error-png-b34c5c952466fc1e30813e3557311420d0c21d30.png",
+    "web/outputs/phase5-14-guided/programplan/programplan-phone-16-programplan-vard-review-png-a23a90cf7f2a6dcc1c0cb963154d94cf0b932c68.png"
+  ],
+  "retries": 0,
+  "skipped": 0,
+  "frameworkErrors": 0,
+  "runtimeDiagnostic": "WRANGLER_LOG=debug to a private file; no preload or exception handler changes",
+  "limits": [
+    "Local synthetic fixtures and locally minted sessions; no interactive IdP or human understanding proof.",
+    "Phone uses iPhone/WebKit emulation.",
+    "Previous interrupted run remains FAIL and its root cause is unresolved."
+  ]
+}

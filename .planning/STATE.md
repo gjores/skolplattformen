@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-13
+current_plan: 05-14
 status: awaiting_human_verification
-stopped_at: 05-13 correction ready on 3012 for new human understanding trial; local OTP button passed; Phase 4 checkpoint open
+stopped_at: 05-14 ready on 3012 with nine programme trials; human understanding and Phase 4 checkpoint open
 last_updated: "2026-10-02"
 last_activity: 2026-10-02
-last_activity_desc: "05-13 pedagogiskt fördjupad på användarens begäran: första-gången-förklaring och tre numrerade dialogsteg. Färska 30+20 browser, typ/lint/bygge och handbok PASS på e077e81. Vanlig 3012 frisk med bevarade exempel; ny mänsklig bedömning och previewdiagnos öppna."
-state_head: e077e81
-worker_build_revision: e077e81c0d7f5228eda7a0541ae4fc3afe898b60
+last_activity_desc: "05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna."
+state_head: 43c91fa
+worker_build_revision: 43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 67
-  completed_plans: 66
+  total_plans: 68
+  completed_plans: 67
 milestone_name: milestone
 ---
 
@@ -26,31 +26,31 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: tretton planer automatiskt genomförda. Efter användarens underkända programplans-UX visar 05-13 verklig aktuell plan, ämnen/nivåer, sparade val och tydlig guidad nästa handling. Nytt mänskligt begriplighetsprov väntar på frisk 3012. Lokal Fyll i provkod-knapp har 4/4 verkliga OIDC/MFA-prov PASS. Exakt tio Worker-entrypoints; nationella regler, fastställande, nya utbildningar, kullkopiering och klasskoppling samt fas 4:s checkpoint kvarstår.
+**Current focus:** Fas 5: fjorton planer automatiskt genomförda. 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna.
 
 ## Current Position
 
-**Aktuellt läge 2026-10-02:** Användaren kräver extrem pedagogik. 05-13 har fått förklaring vid första användningen och i planen, hjälp vid fälten samt tre numrerade delar för start, val/granskning och sparning. Färskt skyddat bygge e077e81: programbrowser 30/30 och timplan 20/20 PASS utan retries/skips/ramverksfel, cleanup 50 med 892/36 respektive 305/26 audit/ankare bevarade. Typ/lint/appbygge och ändrad handbok PASS. Två egna läsfixturer visar början/slutet på dialogen och introduktionen utan writes eller överflöde; sex stabila bilder granskade. Vanlig 3012 utan preload/debugnivå har root/health/IdP 200 och faktisk Worker/DB. Current-verifieraren läser fyra bevarade exempel för rektor/HM genom 16 auditerade läsningar. En första omgång avbröts med samma tomma Wrangler ERROR/exit1 som tidigare; den är arkiverad som FAIL och orsaken är fortsatt öppen. De fulla färska sviterna är körda med privat debugloggning utan preload eller ändrad felhantering. Tidigare riktade Node-/oberoende kodprov avser föregående oförändrade hjälpar-/skyddslogik och markeras inte som nya prov för presentationstexten. Ny mänsklig bedömning väntar.
+**Aktuellt läge 2026-10-02:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna. Se 05-14-SUMMARY/REVIEW för exakt verifieringsgräns. Äldre previewavbrotts rotorsak är fortfarande öppen.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och programplansvyn kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-13 automatiskt genomförda till nytt konkret mänskligt prov. Fas 4 kvarstår på 24 av 25 planer.
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-14 automatiskt genomförda till nytt konkret mänskligt prov. Fas 4 kvarstår på 24 av 25 planer.
 Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-13 automatiskt genomförd; nytt mänskligt begriplighetsprov väntar i 05-PROGRAMPLAN-USER-TRIAL.md på aktuell 3012. Tidigare mänsklig programplansbedömning är FAIL och ersätts inte av automationsresultaten.
-**Total Plans in Phase:** 13 skrivna och automatiskt genomförda; mänskligt programplans-/handledningsprov och återstående utbildnings-/beslutsflöden är öppna.
+**Current Plan:** 05-14 automatiskt genomförd; nytt mänskligt begriplighetsprov väntar i 05-PROGRAMPLAN-USER-TRIAL.md. Fasens fullständiga krav är inte godkända.
+**Total Plans in Phase:** 14 skrivna och automatiskt genomförda; mänskligt programplans-/handledningsprov och återstående utbildnings-/beslutsflöden är öppna.
 **Status:** Väntar på nytt konkret mänskligt begriplighetsprov. Kodknappen är färdig. Fas 4:s checkpoint och tidigare previewavbrotts orsaksdiagnos är öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-02
-**Last Activity Description:** Pedagogiken fördjupad: Så börjar du, Så läser du planen, tre numrerade dialogdelar, förklarat Lägg till nivå och konkret sparbesked. Färska 30+20 browser, typ/lint/bygge/handbok och sex stabila dator-/telefonbilder PASS. Befintliga exempel bevarade och lästa via vanlig 3012. Ingen ny rättighet eller affärsfunktion.
+**Last Activity Description:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
-**Senaste genomförandebevis, 2026-10-02:** Se pedagogiktillägget i 05-13-SUMMARY och phase5-13-pedagogy-verification.json. Färsk fullmatris30+20 på e077e81, båda source/build-bilagor per profil och samtliga cleanupbevis kontrollerade. Första avbrutna pedagogikomgången9 PASS/3 FAIL/18 SKIP bevaras med10 nollställda egna cleanupbilagor och254 audit/12 ankare; den är inte fullmatris-PASS. Ny normal3012/current-läsning PASS, verksamhetsbilden identisk. Tidigare05-13-bevis på0f18e9b och oberoende6/6 är historik. Äldre previewavbrott och det nya avbrottet har fortsatt öppen orsaksdiagnos; ingen fix påstås. Mänsklig begriplighet, handledningsbedömning och fasverifiering väntar.
+**Senaste genomförandebevis, 2026-10-02:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna. Se phase5-14-guided-verification.json. 05-13:s äldre fulla och avbrutna omgångar förblir historiska, med bibehållen FAIL för avbrotten.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
@@ -75,7 +75,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 **Recent Trend:**
 
-- Last 5 plans: 05-09, 05-12, 05-10, 05-11 och 05-13 automatiskt genomförda; nytt mänskligt samlat prov återstår.
+- Last 5 plans: 05-12, 05-10, 05-11, 05-13 och 05-14 automatiskt genomförda; nytt mänskligt samlat prov återstår.
 - Trend: Ej tillämpligt
 
 | Phase 01 P01 | 5min | 2 tasks | 3 files |
@@ -206,13 +206,15 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-02
-**Stopped At:** 05-13 pedagogiskt fördjupad och redo på frisk 3012 (e077e81). Fyra befintliga exempel bevarade och aktuellt Worker-lästa. Fyll i provkod verifierad med fyra verkliga inloggningar. Nytt mänskligt begriplighetsprov och timplanshandledningens textbedömning väntar; fas 4 och äldre previewdiagnos är öppna.
+**Stopped At:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna.
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-13:s begriplighet på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-14:s begriplighet och fler program på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
 
 ### Senaste användarfynd, 2026-10-02
 
 Programplansvyn fick ett misslyckat mänskligt begriplighetsresultat: ”programplanerdelen är ju fullständigt obegripligt UI. fattar noll.” 05-13 ska visa ämnen, nivåer och poäng först och ge tydlig nästa åtgärd; historik och tekniska källuppgifter blir sekundära. Verifierad explicit käll-/startbindning, servermandat, MFA, revisionskonflikter, osäkra sparsvar och användarens lagrade data bevaras. Kodknapp för tre syntetiska MFA-provkonton är färdig och verifierad separat, bara i den lokala test-IdP:n. 05-13 är nu automatiskt genomförd; ny mänsklig bedömning väntar.
 
 **Senaste användarstyrning:** ”måste vara extremt pedagigisk”. Genomfört som hjälp vid första läsningen och vid varje uppgift, med numrerat start–val–spara-flöde. Detta är inget mänskligt begriplighetsgodkännande.
+
+Senaste styrning: ännu mer pedagogik och fler gymnasieprogram genomförd i 05-14 med separat granskning och additiva exempel. Tidigare tre samtidiga dialogdelar ersätts av två användarsteg. Mänskligt godkännande väntar.
