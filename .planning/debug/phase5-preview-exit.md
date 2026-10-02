@@ -3,13 +3,13 @@ status: awaiting_evidence
 trigger: "Root: upprepade 3056-previewavbrott under byggda UI-prov"
 created: 2026-10-02
 updated: 2026-10-02
-scope: read-only diagnosis; no product/runtime/database changes
+scope: read-only cause analysis with root-owned isolated preview tests; no root-cause fix
 ---
 
 ## Current Focus
 
 hypothesis: Ursprungligt terminalt Wrangler/workerd-fel eller ursprunglig processignal är ännu inte fångad. Ingen faktisk rotorsak är belagd.
-test: UI-agentens fulla neutrala timplansomgång är avslutad20/20PASS på samma c320041, utan uncaughtExceptionMonitor-event; vanlig3012 utan preload och rootens egna readinessprov förs separat.
+test: Senaste e077e81-omgången är full program 30/30 +tim 20/20 PASS med privat debugnivå och ingen preload/felhanteringsändring; vanlig 3012 utan debug/preload och current-läsning är separat PASS. Tre observerade avbrott har ännu ingen belagd terminalorsak.
 expecting: Färska gröna sviter och frisk3012 kan verifiera aktuellt användarprov; de bevisar inte att de tidigare avbrottens orsak är åtgärdad.
 next_action: Vid nytt avbrott, samla ursprunglig exit code/signal per process och filtrerad exception/cause/stack från privat diagnostik. Till dess bevara denna separat öppna fråga; märk inte fixed/resolved.
 
@@ -52,7 +52,7 @@ started: Två rapporterade avbrott under aktuella UI-prov; tidigare API-prov och
   found: Samma c320041, ingen ombyggnad. Privat0600 /private/tmp/programplan-final-runtime-neutral-debug.log; WRANGLER_LOG=debug och endast uncaughtExceptionMonitor plus exitkodlogg. Full20-fallstimplanssvit pågår vid denna dokumentation. Filtrerade läsningen visar hittills ingen terminalorsak/monitorcallback.
   implication: Utfall förs separat i senaste browserrapport. Debugfilen påstår varken slutlig PASS för pågående omgång eller att de äldre avbrotten är åtgärdade.
 - checked: Runtime-/DB-ägande.
-  found: UI-agenten äger3056 och fixturer; denna debugger har varken startat/stoppat runtime, läst/skrivit DB eller ändrat produktkod. Root samordnar vanlig3012 och beständigt mänskligt prov.
+  found: UI-agenten äger3056 och fixturer; denna debugger har varken startat/stoppat runtime, läst/skrivit DB eller ändrat produktkod. Root samordnar vanlig 3012 och beständigt mänskligt prov.
   implication: Inga parallella process-/databasmutationer från denna undersökning. Ingen ny fasverifiering eller kommunanslutning påstås.
 
 - checked: UI-agentens avslutade neutrala fullsvit och privata exitmonitoruppgifter.
@@ -63,5 +63,11 @@ started: Två rapporterade avbrott under aktuella UI-prov; tidigare API-prov och
 
 root_cause: Obestämd. Den exakta ursprungliga exception/cause/stack eller exit-signal som avslutade Wrangler/workerd vid de två äldre avbrotten saknas.
 fix: Ingen produktfix tillämpad. Rekommenderad diagnostik är ursprunglig signal/exit i varje processled samt privata debugstackar; skriv aldrig konfiguration, tokens eller nycklar till GSD.
-verification: Rootens aktuella readiness bör omfatta vanlig3012 utan preload: health/db runtime workerd/roll skolplattform_worker, GET/200, egna skol-/sessionsbundna HM-/rektorsprogramplanslista+underlag med väntade ID/version/katalog och obligatorisk audit, följt av ny health. Senaste fulla sviter redovisas separat; de gör inte denna diagnos resolved.
+verification: Rootens aktuella readiness bör omfatta vanlig 3012 utan preload: health/db runtime workerd/roll skolplattform_worker, GET/200, egna skol-/sessionsbundna HM-/rektorsprogramplanslista+underlag med väntade ID/version/katalog och obligatorisk audit, följt av ny health. Senaste fulla sviter redovisas separat; de gör inte denna diagnos resolved.
 files_changed: [.planning/debug/phase5-preview-exit.md]
+
+## Ny observation vid pedagogikprov, 2026-10-02
+
+Root observerade samma typ av avbrott på e077e81: vanlig 3056 utan preload avslutades med exit1 efter GET/200, tom Wrangler ERROR och generell bugghänvisning. Programmatrisen stannade på9 PASS/3 FAIL/18 SKIP;10 cleanupbilagor är noll och254 audit/12 ankare bevarade. Full rårapport och FAIL-sammanfattning är arkiverade i phase5-13-pedagogy/interrupted-programplan och phase5-13-pedagogy-programplan-interrupted.json. Ursprunglig CLI-/workerd-signal eller fångad exceptionstack saknas även för detta avbrott.
+
+Root startade därefter samma oförändrade bygge med WRANGLER_LOG=debug till privat fil, utan preload eller ändrad exceptionhantering. Ny fullprogram 30+tim 20 PASS, cleanup 50. Avsiktligt CtrlC gav130. Vanlig 3012 startades utan debug/preload och klarade startsida/hälsa/IdP samt bevarande current-läsning av fyra exempel för två mandat,16 auditpar. Den nya körningen reproducerade inte terminalfelet och belägger ingen rotorsaksfix. Status förblir awaiting_evidence; tre observerade avbrott hålls skilda från gröna slutprov.

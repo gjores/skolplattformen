@@ -8,9 +8,9 @@ status: awaiting_human_verification
 stopped_at: 05-13 correction ready on 3012 for new human understanding trial; local OTP button passed; Phase 4 checkpoint open
 last_updated: "2026-10-02"
 last_activity: 2026-10-02
-last_activity_desc: "05-13 rättad och automatiskt kontrollerad: 30+20 browser PASS på 0f18e9b. Befintliga fyra exempel bevarade och Worker-lästa på frisk 3012. Lokal provkodsknapp 4/4 faktisk inloggning PASS. Ny mänsklig begriplighetsbedömning, fas 4 och fasverifiering kvarstår."
-state_head: 899b613
-worker_build_revision: 0f18e9bb36ad8f40fe4750da6ee8476b43063fc1
+last_activity_desc: "05-13 pedagogiskt fördjupad på användarens begäran: första-gången-förklaring och tre numrerade dialogsteg. Färska 30+20 browser, typ/lint/bygge och handbok PASS på e077e81. Vanlig 3012 frisk med bevarade exempel; ny mänsklig bedömning och previewdiagnos öppna."
+state_head: e077e81
+worker_build_revision: e077e81c0d7f5228eda7a0541ae4fc3afe898b60
 progress:
   total_phases: 8
   completed_phases: 3
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 
 ## Current Position
 
-**Aktuellt läge 2026-10-02:** 05-13:s färska programplansbrowser 30/30 och timplansregression 20/20 PASS på samma skyddade bygge 0f18e9b, utan retries/skips. Cleanup 50/50 med 889/36 respektive 303/26 audit/ankare bevarade. Två extra läsfixturer visar tydligt källdatum på dator/telefon, städade med 15/2 audit/ankare. Riktade modell/kontrakt 25 och harness 4, typ/lint/skyddat bygge PASS; oförändrad handbok byggd på af9382e. Oberoende kodgranskning 6/6 PASS. Vanlig 3012 utan preload har startsida, faktisk Worker/DB-hälsa och IdP-discovery 200. Current-verifieraren läser fyra befintliga exempel för rektor/HM genom 16 auditerade läsningar och bevarar verksamhetsraderna; endast egna lässessioner städas. Ingen initial provbild återställs. Lokal kodknapp är separat verifierad med fyra verkliga OIDC/MFA-flöden på tidigare Worker vars serverauth är oförändrad.
+**Aktuellt läge 2026-10-02:** Användaren kräver extrem pedagogik. 05-13 har fått förklaring vid första användningen och i planen, hjälp vid fälten samt tre numrerade delar för start, val/granskning och sparning. Färskt skyddat bygge e077e81: programbrowser 30/30 och timplan 20/20 PASS utan retries/skips/ramverksfel, cleanup 50 med 892/36 respektive 305/26 audit/ankare bevarade. Typ/lint/appbygge och ändrad handbok PASS. Två egna läsfixturer visar början/slutet på dialogen och introduktionen utan writes eller överflöde; sex stabila bilder granskade. Vanlig 3012 utan preload/debugnivå har root/health/IdP 200 och faktisk Worker/DB. Current-verifieraren läser fyra bevarade exempel för rektor/HM genom 16 auditerade läsningar. En första omgång avbröts med samma tomma Wrangler ERROR/exit1 som tidigare; den är arkiverad som FAIL och orsaken är fortsatt öppen. De fulla färska sviterna är körda med privat debugloggning utan preload eller ändrad felhantering. Tidigare riktade Node-/oberoende kodprov avser föregående oförändrade hjälpar-/skyddslogik och markeras inte som nya prov för presentationstexten. Ny mänsklig bedömning väntar.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och programplansvyn kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
@@ -46,11 +46,11 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Väntar på nytt konkret mänskligt begriplighetsprov. Kodknappen är färdig. Fas 4:s checkpoint och tidigare previewavbrotts orsaksdiagnos är öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-02
-**Last Activity Description:** Programplaner rättade efter mänskligt UX-fynd: direkt plan, ämnen/sparade val, tydlig nästa handling och aktiv guide. Färska 30+20 browser, 25+4 riktade Node-prov, typ/lint/bygge och oberoende 6/6 PASS. Fyra befintliga exempel lästa utan ändring via frisk 3012. Inga nya grants; totalt tio fas 5-entrypoints.
+**Last Activity Description:** Pedagogiken fördjupad: Så börjar du, Så läser du planen, tre numrerade dialogdelar, förklarat Lägg till nivå och konkret sparbesked. Färska 30+20 browser, typ/lint/bygge/handbok och sex stabila dator-/telefonbilder PASS. Befintliga exempel bevarade och lästa via vanlig 3012. Ingen ny rättighet eller affärsfunktion.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
-**Senaste genomförandebevis, 2026-10-02:** Se 05-13-SUMMARY/REVIEW och phase5-13-root-verification.json. Gemensam build/source 0f18e9b, program 30/30, timplan 20/20, cleanup 50/50 PASS. Första f6f05a7-programomgången 30/30 PASS och timomgången 18/20 FAIL är bevarade: två UI-assertions hann före den obligatoriska avslutade läsningen. Proven synkroniseras nu mot verklig 200-läsning av exakt plan innan samma UI-assertion; inga write-/audit-/konfliktskydd försvagade. Äldre två previewavbrott och deras öppna orsaksdiagnos hålls separat. 05-11:s breda 502 Node-prov är historik, inte en färsk 05-13-omkörning. Ny mänsklig förståelsebedömning och fasverifiering återstår.
+**Senaste genomförandebevis, 2026-10-02:** Se pedagogiktillägget i 05-13-SUMMARY och phase5-13-pedagogy-verification.json. Färsk fullmatris30+20 på e077e81, båda source/build-bilagor per profil och samtliga cleanupbevis kontrollerade. Första avbrutna pedagogikomgången9 PASS/3 FAIL/18 SKIP bevaras med10 nollställda egna cleanupbilagor och254 audit/12 ankare; den är inte fullmatris-PASS. Ny normal3012/current-läsning PASS, verksamhetsbilden identisk. Tidigare05-13-bevis på0f18e9b och oberoende6/6 är historik. Äldre previewavbrott och det nya avbrottet har fortsatt öppen orsaksdiagnos; ingen fix påstås. Mänsklig begriplighet, handledningsbedömning och fasverifiering väntar.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
@@ -206,7 +206,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-02
-**Stopped At:** 05-13 rättad och redo på frisk 3012. Fyra befintliga exempel bevarade och aktuellt Worker-lästa. Fyll i provkod verifierad med fyra verkliga inloggningar. Nytt mänskligt begriplighetsprov och timplanshandledningens textbedömning väntar; fas 4 och äldre previewdiagnos är öppna.
+**Stopped At:** 05-13 pedagogiskt fördjupad och redo på frisk 3012 (e077e81). Fyra befintliga exempel bevarade och aktuellt Worker-lästa. Fyll i provkod verifierad med fyra verkliga inloggningar. Nytt mänskligt begriplighetsprov och timplanshandledningens textbedömning väntar; fas 4 och äldre previewdiagnos är öppna.
 **Resume File:** None
 
 **Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-13:s begriplighet på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
@@ -214,3 +214,5 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ### Senaste användarfynd, 2026-10-02
 
 Programplansvyn fick ett misslyckat mänskligt begriplighetsresultat: ”programplanerdelen är ju fullständigt obegripligt UI. fattar noll.” 05-13 ska visa ämnen, nivåer och poäng först och ge tydlig nästa åtgärd; historik och tekniska källuppgifter blir sekundära. Verifierad explicit käll-/startbindning, servermandat, MFA, revisionskonflikter, osäkra sparsvar och användarens lagrade data bevaras. Kodknapp för tre syntetiska MFA-provkonton är färdig och verifierad separat, bara i den lokala test-IdP:n. 05-13 är nu automatiskt genomförd; ny mänsklig bedömning väntar.
+
+**Senaste användarstyrning:** ”måste vara extremt pedagigisk”. Genomfört som hjälp vid första läsningen och vid varje uppgift, med numrerat start–val–spara-flöde. Detta är inget mänskligt begriplighetsgodkännande.

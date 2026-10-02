@@ -1,0 +1,59 @@
+{
+  "phase": "05-13 pedagogy",
+  "sourceRevision": "e077e81c0d7f5228eda7a0541ae4fc3afe898b60",
+  "buildRevision": "e077e81c0d7f5228eda7a0541ae4fc3afe898b60",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "rows": [
+    {
+      "profile": "desktop",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-13-pedagogy/instructions/desktop-start.png",
+        "web/outputs/phase5-13-pedagogy/instructions/desktop-dialog-start.png",
+        "web/outputs/phase5-13-pedagogy/instructions/desktop-dialog-save.png"
+      ],
+      "noMutation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "profile": "phone",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-13-pedagogy/instructions/phone-start.png",
+        "web/outputs/phase5-13-pedagogy/instructions/phone-dialog-start.png",
+        "web/outputs/phase5-13-pedagogy/instructions/phone-dialog-save.png"
+      ],
+      "noMutation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Actual read-only browser paths with own synthetic fixtures.",
+    "Phone uses WebKit emulation; screenshots require visual review and do not establish human understanding."
+  ]
+}

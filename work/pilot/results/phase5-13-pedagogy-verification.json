@@ -1,0 +1,63 @@
+{
+  "phase": "05-13 pedagogy",
+  "status": "PASS",
+  "checkedAt": "2026-10-02T05:42:49.147568+00:00",
+  "sourceRevision": "e077e81c0d7f5228eda7a0541ae4fc3afe898b60",
+  "buildRevision": "e077e81c0d7f5228eda7a0541ae4fc3afe898b60",
+  "types": "PASS",
+  "lint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "freshBrowser": {
+    "programplan": 30,
+    "timplan": 20,
+    "retries": 0,
+    "skipped": 0,
+    "frameworkErrors": 0,
+    "cleanup": 50,
+    "preservedAuditEvents": 1197,
+    "preservedAuditAnchors": 62
+  },
+  "readOnlyInstructionViews": {
+    "profiles": 2,
+    "noMutation": true,
+    "noHorizontalOverflow": true,
+    "cleanup": 2,
+    "images": 6
+  },
+  "visualReview": "Root reviewed stable desktop/phone introduction, dialog start and dialog save screenshots, with matrix focus/scroll/touch assertions; phone is WebKit emulation.",
+  "ordinaryPreview": {
+    "url": "http://127.0.0.1:3012/",
+    "noPreload": true,
+    "noDebugLevel": true,
+    "rootStatus": 200,
+    "healthStatus": 200,
+    "role": "skolplattform_worker",
+    "runtime": "workerd",
+    "idpStatus": 200
+  },
+  "currentTrial": {
+    "roles": 2,
+    "educationsPerRole": 4,
+    "auditedReads": 16,
+    "businessRowsPreserved": true,
+    "ownSessionsCleaned": true
+  },
+  "codeReview": "Root verified presentation/help text and CSS changes; commands/state/auth/SQL unchanged. Independent 05-13 review at 0f18e9b remains historical, not a new review of this copy.",
+  "interruptedRun": {
+    "status": "FAIL",
+    "passed": 9,
+    "failed": 3,
+    "skipped": 18,
+    "cleanupAttachments": 10,
+    "sourceBuildFullMatrix": false,
+    "preservedAuditEvents": 254,
+    "preservedAuditAnchors": 12,
+    "rootCause": "Unresolved local Wrangler exit1 with empty ERROR; diagnostic log did not reproduce the exit during the new full 50-case run.",
+    "report": "phase5-13-pedagogy-programplan-interrupted.json",
+    "observedCleanupVerified": true
+  },
+  "humanUnderstanding": "pending; user requested extreme pedagogical guidance, no human acceptance reported",
+  "phase5Verified": false,
+  "phase4Checkpoint": "open"
+}

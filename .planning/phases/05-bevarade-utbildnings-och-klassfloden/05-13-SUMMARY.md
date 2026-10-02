@@ -11,7 +11,8 @@ provides:
   - Direkt läsning av verkligt aktuellt utkast eller senaste plan
   - Ämnen, nivåer, poäng och begriplig nästa handling före tekniska underlag
   - Aktivt guidad källa/start för nya och äldre utkast
-worker_build_revision: 0f18e9bb36ad8f40fe4750da6ee8476b43063fc1
+worker_build_revision: e077e81c0d7f5228eda7a0541ae4fc3afe898b60
+previous_worker_build_revision: 0f18e9bb36ad8f40fe4750da6ee8476b43063fc1
 commits: [119d618, 8e4b85b, 0b6530f, af9382e, f6f05a7, 9cdb58d, 0f18e9b]
 ---
 
@@ -41,7 +42,7 @@ Oberoende granskning hittade och rättade ett guidegap: tidigare lyckat katalogv
 - Skyddat appbygge: PASS på 0f18e9b. Docusaurus handboksbygge: PASS med handbokskälla af9382e, oförändrad genom 0f18e9b.
 - Server/SQL/kataloggeneratorer är oförändrade. 05-11:s 386 ordinarie lib + 105 server + 11 generatorprov (502 totalt) är historiska och räknas inte som en ny 05-13omkörning.
 
-## Browserbevis
+## Browserbevis före det pedagogiska tillägget
 
 Programplansmatris **30/30 PASS**: 15 fall på dator/Chromium och iPhone/WebKit, inga retries, skips eller ramverksfel. Direkt planläsning, stängt/tangentbordsöppnat Underlag, referensluckor, aktiv guide/källa/start, verkliga create/bind/replace/clone, ordning/tomt, ny sessionscookie, dubbelklick exakt enwrite, konkurrerande utkast, tvåsessionskonflikt och annan fryst grund, MFA/auditrollback, explicit400-fältbevarande, accepterad write + abort/502/kodlös400 + obligatorisk read, misslyckad omläsning, dirty/Escape/fokus/sent svar, epoch/session/mandatförlust samt historiksidning/aktuellt äldre utkast och okända äldre val är kontrollerade. Underlagsvalets felväg provas med faktiska auditerade Worker-läsningar innan browserintercept ersätter svaret.
 
@@ -78,3 +79,13 @@ Handboken beskriver faktiska uppgifter och slutliga knappnamn: öppna utbildning
 Normal 3056-preview utan diagnostisk preload, session 51789, stoppad rent med CtrlC/exit 130. Fetch bekräftade stängd port. DB/runtime är överlämnade till root för vanlig 3012 och den bevarande current-verifieraren. Ingen README-/STATE-/ROADMAP-/PROJECT-status eller beständig verksamhetsbild har ändrats av denna executor. Mänskligt begriplighetsresultat förblir pending; root kompletterar faktisk 3012/current-readiness separat.
 
 Roots avslut 2026-10-02: vanlig 3012 på samma skyddade 0f18e9bbygge är igång utan diagnostisk preload. Startsida, faktisk Worker/DB-hälsa och lokal IdP-discovery svarar 200. Current-verifieraren läste alla fyra befintliga exempel för rektor/huvudman genom 16 auditerade läsningar, bevarade verksamhetsbilden och städade endast sina egna lässessioner. Se phase5-13-user-trial-worker.json och phase5-13-root-verification.json. Oberoende slutgranskning är automatisk PASS med mänskligt prov fortsatt öppet. Global GSD har uppdaterats till detta nya konkreta begriplighetsprov; fas 4, ADMIN-02 och hela fas 5 är inte slutgodkända.
+
+## Pedagogiskt tillägg efter användarstyrning — 2026-10-02
+
+Användaren kräver att vyn är ”extremt pedagigisk”. e077e81 inför Så börjar du och Så läser du planen: utbildning/elevkull, ämne/nivå/poäng, programunderlag kontra sparad fördjupning. Dialogen har tre numrerade delar: start, val/granskning, kontroll/spara. Hjälpen vid nivåväljaren förklarar att rullistans val också ska läggas till med knappen. Datumhjälpen förklarar verklig utbildningsstart; bundet datum är fortsatt låst. Sparbeskedet visar var resultatet finns och hur utkastet kan fortsätta. Handboken beskriver samma arbetsgång. Inga kommandon, state-/säkerhetsregler, SQL, grants eller automatiska val ändrade.
+
+Typ/lint, nytt skyddat bygge och ändrad handbok PASS. Färska fulla program 30/30 och tim 20/20 PASS på samma e077e81 utan retries/skips/ramverksfel. Alla50 cleanupbevis kontrollerade, program 892audit/36ankare och tim 305/26 bevarade. Sex stabila instruktionsbilder från två egna läsfixturer på dator/telefon visar introduktion och dialogens början/slut; ingen mutation eller horisontell överströmning, exakt cleanup. Bilder tagna före avslutad animation sparades separat och ersätts som visuellt bevis av stabila bilder. Scrollade modalbilder läses ihop med fullmatrisens fokus/scroll/knappstorleksprov.
+
+Första pedagogikomgången avbröts med tom Wrangler ERROR och exit1: 9 PASS/3 FAIL/18 SKIP,10 nollställda cleanupbilagor,254 audit/12 ankare bevarade. Den är arkiverad som FAIL under phase5-13-pedagogy/interrupted-programplan och *-interrupted.json. En ny full30+20-omgång på samma oförändrade bygge passerade med privat WRANGLER_LOG=debug och utan preload/ändrad felhantering. Ingen verifierad rotorsaksfix; phase5-preview-exit.md hålls öppen.
+
+Vanlig 3012 utan preload eller debugnivå är återställd och har root/Worker-hälsa/IdP 200. Current-verifieraren läser fyra befintliga exempel för två mandat med 16 auditpar; verksamhetsraderna bevaras och egna lässessioner städas. Se phase5-13-pedagogy-{programplan,timplan,visual,user-trial,verification}.json. Tidigare riktade Node-prov och oberoende 0f18e9b-granskning är historik, inte nya textprov. Ny mänsklig förståelsebedömning väntar; ADMIN-02, fas 4 och hela fas 5 är fortsatt öppna.
