@@ -1,0 +1,31 @@
+{
+  "phase": "05-16",
+  "status": "PASS",
+  "sourceRevision": "14810baae1821778cc3d0f4b09dbab64ba4c36b5",
+  "buildRevision": "14810baae1821778cc3d0f4b09dbab64ba4c36b5",
+  "scope": "local-synthetic-only",
+  "awaitOnlyControl": {
+    "revision": "78b17fb",
+    "casesPassed": 6,
+    "logoutResponses": 6,
+    "requestStreamErrors": 12,
+    "networkLostErrors": 0,
+    "serverAlive": true
+  },
+  "bodylessComparison": {
+    "casesPassed": 6,
+    "cleanupCount": 6,
+    "counts": {
+      "request stream after response": 0,
+      "Network connection lost": 0,
+      "Error in ProxyController": 0,
+      "POST /api/auth/logout 200": 6
+    },
+    "originalTokenRejected401": true,
+    "completedIdpRedirect": true
+  },
+  "limits": [
+    "Bounded local mitigation; upstream ProxyWorker handling of other aborted requests remains open.",
+    "No retries or restarts during either six-case run."
+  ]
+}

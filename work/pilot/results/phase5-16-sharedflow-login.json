@@ -1,0 +1,52 @@
+{
+  "phase": "05-16",
+  "sourceRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "buildRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "status": "PASS",
+  "checkedAt": "2026-10-02T11:27:32.749Z",
+  "scope": "isolated local synthetic IdP",
+  "cases": [
+    {
+      "profile": "desktop",
+      "role": "Rektor",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "profile": "desktop",
+      "role": "Huvudman",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "profile": "phone",
+      "role": "Rektor",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "profile": "phone",
+      "role": "IT",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "touchTarget": true,
+      "noHorizontalOverflow": true
+    }
+  ],
+  "cleanup": "actual app logout revokes each own browser session; security audit preserved",
+  "limitations": [
+    "Test helper automatically supplies a real local code; this is not a human second-factor assurance test.",
+    "Phone uses iPhone/WebKit emulation; production authentication and mandates unchanged."
+  ],
+  "runtime": "workerd-direct"
+}

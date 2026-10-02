@@ -1,6 +1,8 @@
-# Fas 5 — aktuellt startunderlag
+# Fas 5 — verifieringsunderlag och historik
 
-Datum 2026-09-29. Kodrevision före fasplanering: `80a6e1c`. Endast lokala modell-/transportprov, ingen ansluten drift verifierad här.
+Aktuellt 2026-10-02: 05-15/05-16 är automatiskt verifierade på `023e68b`; nytt mänskligt prov väntar. Se 05-16-SUMMARY och senaste avsnittet nedan. Äldre körningar har sina ursprungliga datum och revisioner.
+
+Startunderlag, datum 2026-09-29. Kodrevision före fasplanering: `80a6e1c`. Endast lokala modell-/transportprov, ingen ansluten drift verifierad här.
 
 ## Körda kontroller
 
@@ -89,6 +91,13 @@ Första pedagogikomgången9 PASS/3 FAIL/18 SKIP är separat FAIL efter tom Wrang
 
 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna. Automatisk automation är inte mänsklig acceptans. Exakt test-/städnings-/byggbevis finns i 05-14-SUMMARY/REVIEW och phase5-14-guided-verification.json. Katalogen hämtad 2026-09-05 och tidigare rader är bevarade. Inget riktigt kommunanslutnings- eller nationellt beslutsgodkännande.
 
-## Aktuell visualiseringsversion — 2026-10-02
+## Tidigare visualiseringsversion 05-14 — 2026-10-02
 
 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar. Byggrevision b4c26f3107210ed5fd904d740d8f6a031640c4b4. Se 05-14-VISUALIZATION-SUMMARY/REVIEW och phase5-14-visualization-verification.json; äldre 43c91fa-granskningsbevis ovan är historik.
+
+
+## Aktuellt 05-15/05-16 — 2026-10-02
+
+05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
+
+Se 05-15-SUMMARY, 05-16-SUMMARY och phase5-16-sharedflow-verification.json. Tidigare mänskligt FAIL är kvar; denna automatiska PASS ändrar inte ADMIN-02 eller full fasstatus.

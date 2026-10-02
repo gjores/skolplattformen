@@ -1,0 +1,231 @@
+{
+  "phase": "05-16",
+  "sourceRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "buildRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "status": "PASS",
+  "target": "protected",
+  "mode": "current",
+  "roles": 2,
+  "educationsPerRole": 9,
+  "programs": [
+    "SA25",
+    "EK25",
+    "NA25",
+    "TE25",
+    "ES25",
+    "VO25"
+  ],
+  "auditedReads": 40,
+  "businessRowsPreserved": true,
+  "schoolForm": "GY",
+  "sharedFlowSelectionVerified": true,
+  "selectionProgramsPerRole": 6,
+  "scenarios": [
+    {
+      "role": "rektor",
+      "scenario": 40,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "rektor",
+      "scenario": 41,
+      "versionCount": 1,
+      "currentStatus": "utkast",
+      "currentVersion": 1,
+      "revision": 2,
+      "bound": true,
+      "savedChoices": 3
+    },
+    {
+      "role": "rektor",
+      "scenario": 42,
+      "versionCount": 1,
+      "currentStatus": "utkast",
+      "currentVersion": 1,
+      "revision": 0,
+      "bound": true,
+      "savedChoices": 1
+    },
+    {
+      "role": "rektor",
+      "scenario": 43,
+      "versionCount": 1,
+      "currentStatus": "faststalld",
+      "currentVersion": 1,
+      "revision": 0,
+      "bound": false,
+      "savedChoices": 1
+    },
+    {
+      "role": "rektor",
+      "scenario": 44,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "rektor",
+      "scenario": 45,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "rektor",
+      "scenario": 46,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "rektor",
+      "scenario": 47,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "rektor",
+      "scenario": 48,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "huvudman",
+      "scenario": 40,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "huvudman",
+      "scenario": 41,
+      "versionCount": 1,
+      "currentStatus": "utkast",
+      "currentVersion": 1,
+      "revision": 2,
+      "bound": true,
+      "savedChoices": 3
+    },
+    {
+      "role": "huvudman",
+      "scenario": 42,
+      "versionCount": 1,
+      "currentStatus": "utkast",
+      "currentVersion": 1,
+      "revision": 0,
+      "bound": true,
+      "savedChoices": 1
+    },
+    {
+      "role": "huvudman",
+      "scenario": 43,
+      "versionCount": 1,
+      "currentStatus": "faststalld",
+      "currentVersion": 1,
+      "revision": 0,
+      "bound": false,
+      "savedChoices": 1
+    },
+    {
+      "role": "huvudman",
+      "scenario": 44,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "huvudman",
+      "scenario": 45,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "huvudman",
+      "scenario": 46,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "huvudman",
+      "scenario": 47,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    },
+    {
+      "role": "huvudman",
+      "scenario": 48,
+      "versionCount": 0,
+      "currentStatus": "no_plan",
+      "currentVersion": null,
+      "revision": null,
+      "bound": false,
+      "savedChoices": 0
+    }
+  ],
+  "proof": "current trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied",
+  "runtime": "workerd-direct",
+  "checks": {
+    "page": 200,
+    "db": 200,
+    "workerRole": "skolplattform_worker",
+    "providerDiscovery": 200,
+    "issuerVerified": true,
+    "otp": [
+      {
+        "origin": "http://127.0.0.1:8180",
+        "status": 204,
+        "allowedOrigin": "http://127.0.0.1:8180"
+      },
+      {
+        "origin": "http://host.docker.internal:8180",
+        "status": 204,
+        "allowedOrigin": "http://host.docker.internal:8180"
+      }
+    ]
+  },
+  "humanResult": "awaiting_user",
+  "limits": [
+    "Local synthetic rows preserved; current reads only.",
+    "Minted sessions do not prove interactive IdP login or human comprehension."
+  ]
+}

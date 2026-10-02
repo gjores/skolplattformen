@@ -1,0 +1,59 @@
+{
+  "phase": "05-16",
+  "status": "PASS",
+  "sourceRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "buildRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "scope": "local-synthetic-only",
+  "runtime": "direct local workerd with built config, assets and exact modules; no Wrangler dev proxy",
+  "reports": [
+    "phase5-16-sharedflow-programplan.json",
+    "phase5-16-sharedflow-timplan.json",
+    "phase5-16-sharedflow-education-api.json",
+    "phase5-16-sharedflow-visual.json",
+    "phase5-16-sharedflow-user-trial.json",
+    "phase5-16-sharedflow-login.json",
+    "phase5-16-logout-transport.json",
+    "phase5-16-trial-school-form.json"
+  ],
+  "checks": {
+    "nodeAppAndClient": {
+      "status": "PASS",
+      "passed": 99
+    },
+    "nodeHarness": {
+      "status": "PASS",
+      "passed": 25
+    },
+    "nodePreviewIntegrity": {
+      "status": "PASS",
+      "passed": 4
+    },
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS",
+    "handbookSha256": "0341d0a38e3a8a4dd4cb289cbaa7591476331e40e6ec74eb50c166d7c6899e86"
+  },
+  "browser": {
+    "programplan": 38,
+    "timplan": 20,
+    "cleanup": 58,
+    "retries": 0,
+    "skipped": 0
+  },
+  "educationApi": 43,
+  "visualImagesInspected": 10,
+  "currentTrialAuditedReads": 40,
+  "currentTrialRowsPreserved": true,
+  "actualLocalOidcMfaCases": 4,
+  "humanComprehension": "awaiting_user",
+  "ADMIN-02": "open",
+  "fullPhase5": "open",
+  "sharedPackages": "pending todo",
+  "limits": [
+    "Synthetic local tests do not approve municipal integration or production operation.",
+    "Phone is WebKit emulation, not physical-device acceptance.",
+    "Broader Wrangler proxy defect remains upstream; local preview avoids that proxy.",
+    "Unsaved new commands live in the component; explicitly discarded navigation/reload does not persist them."
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "phase": "05-16",
+  "sourceRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "buildRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "rows": [
+    {
+      "profile": "desktop",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-16-sharedflow/visual/desktop-program-inriktning.png",
+        "web/outputs/phase5-16-sharedflow/visual/desktop-programgrund.png",
+        "web/outputs/phase5-16-sharedflow/visual/desktop-valbara-nivaer.png",
+        "web/outputs/phase5-16-sharedflow/visual/desktop-granska-befintlig.png",
+        "web/outputs/phase5-16-sharedflow/visual/desktop-granska-ny-utan-inriktning.png"
+      ],
+      "noMutation": true,
+      "noNewEducation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 29,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "profile": "phone",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-16-sharedflow/visual/phone-program-inriktning.png",
+        "web/outputs/phase5-16-sharedflow/visual/phone-programgrund.png",
+        "web/outputs/phase5-16-sharedflow/visual/phone-valbara-nivaer.png",
+        "web/outputs/phase5-16-sharedflow/visual/phone-granska-befintlig.png",
+        "web/outputs/phase5-16-sharedflow/visual/phone-granska-ny-utan-inriktning.png"
+      ],
+      "noMutation": true,
+      "noNewEducation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 29,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Own synthetic fixtures, no real school decisions.",
+    "Phone is WebKit emulation; visual inspection and human comprehension are separate."
+  ],
+  "inspection": {
+    "allImagesReviewed": true,
+    "imagesReviewed": 10,
+    "result": "PASS",
+    "mobileActionsCoverContent": false,
+    "humanComprehension": "awaiting_user"
+  }
+}

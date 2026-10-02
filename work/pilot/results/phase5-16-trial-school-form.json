@@ -1,0 +1,20 @@
+{
+  "target": "protected",
+  "status": "READY",
+  "educations": 9,
+  "school": "Syntetisk skola 11",
+  "programs": [
+    "SA25",
+    "EK25",
+    "NA25",
+    "TE25",
+    "ES25",
+    "VO25"
+  ],
+  "knownSyntheticStart": "2026-08-17",
+  "verifiedExistingRoles": 2,
+  "preservedExistingRecords": 12,
+  "schoolForm": "GY",
+  "schoolFormAdded": true,
+  "verification": "owned additive rows; actual existing rector/HM mandates with temporary SQL sessions and mandatory DB audit; no Worker, interactive IdP or human result implied"
+}

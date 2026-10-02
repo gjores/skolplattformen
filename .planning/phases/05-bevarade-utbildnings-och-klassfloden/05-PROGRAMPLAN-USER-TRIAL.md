@@ -1,5 +1,25 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
+Status 2026-10-02: **05-15/05-16 automatiskt verifierade — nytt mänskligt begriplighetsprov väntar**. Tidigare 05-14 är mänskligt underkänt. Följ aktuella uppgifter nedan; äldre provomgångar längre ner är historik.
+
+## Aktuellt prov: samma programflöde
+
+Öppna Programplaner på vanlig skyddad app `http://127.0.0.1:3012/`. Lokal inloggning har rollknappar och **Fyll i provkod**. Prov gäller endast syntetiska uppgifter.
+
+1. Som rektor: kontrollera Syntetisk skola 11 och **Befintlig utbildning**. Välj först program, sedan inriktning och därefter rätt utbildning/elevkull. Läs **Programgrund och inriktning** och dina sparade fördjupningsval.
+2. Välj **Ändra fördjupning** (eller skapa/gör redo enligt den faktiskt visade statusen). Sök ämne/nivå, kryssa i ett val och kontrollera vald lista. Välj **Granska utkast**, gå tillbaka och kontrollera att valen finns kvar; granska igen och spara. Läs om och kontrollera resultatet.
+3. Prova ett annat program: EK → Ekonomi, NA → Naturvetenskap, TE → Informations- och medieteknik, ES → Bild och formgivning. VO har ingen inriktning. De fem extra utbildningarna och fyra tidigare SA-exemplen är bevarade; följ deras aktuella status. SA-exemplen använder Samhällsvetenskap, inte testharnessens Beteendevetenskap.
+4. Som huvudman: välj **Ny utbildning** i samma UI, sedan program/inriktning. Ange ett eget tydligt provnamn, elevkull och verkligt startdatum enligt syntetiskt underlag (2026-08-17). Välj fördjupning, granska och välj **Spara utbildning och utkast**. Kontrollera att exakt den sparade utbildningen öppnas och återfinns efter omladdning. Som rektor ska den kunna läsas/ändras inom samma skola, medan Ny utbildning inte erbjuds.
+
+Bedöm: Är ordningen självklar? Förstår du vad program/inriktning redan bestämmer och vad du själv kryssar i? Hänger nytt och befintligt ihop utan instruktioner från utvecklaren? Pröva även smal skärm. Rapportera konkret var du blir osäker; resultatet är ännu **awaiting_user**.
+
+Gemensamma fördjupningspaket över flera programplaner är en pending todo. Ett sparat utkast är inte fastställt; full nationell regelkontroll och de andra utbildnings-/beslutsflödena kvarstår.
+
+05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
+
+## Äldre provomgångar — historik
+
+
 Status 2026-10-02: **UI-rättning automatiskt kontrollerad — nytt mänskligt begriplighetsprov väntar**. Gäller lokal skyddad provmiljö och syntetiska uppgifter. Senaste följdändring är 05-14: separat granskning före sparning och fem extra gymnasieprogram. Proven redovisas i 05-14-SUMMARY. Det tidigare mänskliga programplansresultatet är FAIL. Detta godkänner inte fullständiga nationella beslutsregler, verklig kommunanslutning eller pilotdrift.
 
 ## Börja här

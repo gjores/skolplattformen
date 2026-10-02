@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-14 automatiskt genomförda. Användaren underkände programplansvyns begriplighet; 05-13 är rättad och färskt verifierad inför ett nytt mänskligt prov 2026-10-02. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
+**Plans**: 05-01–05-16 automatiskt genomförda; 05-16:s aktuella gemensamma flöde är redo för nytt mänskligt prov. Användaren underkände senast 05-14:s begriplighet. 05-15/05-16 återför den beslutade ordningen program → inriktning → programfördjupning och använder samma arbetsyta för nytt och befintligt. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -179,10 +179,10 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] 05-12-PLAN.md — Regelhandledning i befintlig timplansvy och dialog, GR/IM-källor och handbok; 20/20 browserprov och skyddat bygge PASS. Mänsklig förståelsebedömning följer med 05-11.
 - [x] 05-13-PLAN.md — Direkt aktuell plan, ämnes-/nivåvy, tydlig nästa åtgärd och guidad källbindning efter användarfynd. Senast pedagogiskt fördjupad med tre dialogsteg/fälthjälp: färska 30+20 browser, typ/lint/bygge/handbok och bevarad current-läsning på vanlig 3012 PASS (e077e81). Tidigare 25+4 Node-prov är historik. Ny mänsklig begriplighetsbedömning väntar.
 - [x] 05-14-PLAN.md — Granskning, ämnessökning, fem fler program och visuell karta över sex delar/val. Färska 32+20 browser, 27 Node, typ/lint/bygge/handbok och nio bevarade exempel PASS (b4c26f3). Gemensamma paket pending todo; ny mänsklig bedömning väntar.
-- [ ] 05-15-PLAN.md — Skyddade program-/inriktningsval och atomiskt HM-skapande av utbildning med första utkast, replaykvitto och riktiga SQL/API-prov.
-- [ ] 05-16-PLAN.md — Samma program → inriktning → fördjupningsarbetsyta för nytt och befintligt, ämnesgrupperade nivåval och nytt begriplighetsprov.
+- [x] 05-15-PLAN.md — Skyddade program-/inriktningsval och atomiskt HM-skapande av utbildning med första utkast, replaykvitto och riktiga SQL/API-prov.
+- [x] 05-16-PLAN.md — Samma program → inriktning → fördjupningsarbetsyta för nytt och befintligt, ämnesgrupperade nivåval och nytt begriplighetsprov.
 
-05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
+05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. 05-15/05-16 har nu levererat gymnasieutbildningsskapande med första utkast för huvudmannen. Beslut, generellt GR/IM-skapande, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 
 Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s kvarstående användarprov/datumanmärkning och separata fasverifiering behålls öppna.
 
@@ -266,7 +266,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 2. Verifierad kontoåtkomst | 12/12 | Complete | 2026-09-21 |
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
-| 5. Bevarade utbildnings- och klassflöden | 14/14 hittills skrivna automatiskt genomförda | In progress — programplans-UX rättad och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
+| 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 6. Avstämd registerimport | 0/TBD | Not started | - |
 | 7. Verifierad kommunanslutning | 0/TBD | Not started | - |
 | 8. Prövad pilotdrift och informationshantering | 0/TBD | Not started | - |
@@ -274,4 +274,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav väntar på genomförande eller slutverifiering. Fas 4:s åtta krav har gröna automatiska syntetiska bevis, men mänskligt användarprov och separat fasverifiering återstår.
 
 ---
-*Last updated: 2026-10-02 — 05-13 rättad efter mänskligt UX-fynd och automatiskt kontrollerad; nytt mänskligt prov, fas 4:s checkpoint och fasverifiering kvarstår.*
+*Last updated: 2026-10-02 — 05-15/05-16 automatiskt verifierade; nytt mänskligt prov, fas 4:s checkpoint och full fasverifiering kvarstår.*
+
+
+Aktuellt 2026-10-02: 05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
