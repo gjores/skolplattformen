@@ -51,6 +51,9 @@ export async function prepareProgramplanUserTrial() {
         from public.school_units s join public.organizers o on o.id=s.organizer_id join public.customers c on c.id=o.customer_id where s.id=${unit}`;
       const organizer=requireTrialSchool(school);
       await tx`select public.phase3_lock_customer(${customer})`;
+      // Only the explicitly owned synthetic trial school is complemented.
+      // Authority is still supplied by the pre-existing real mandates below.
+      const schoolFormAdded=await tx`insert into public.school_unit_types(unit_id,school_type) values(${unit},'GY') on conflict(unit_id,school_type) do nothing returning unit_id`;
       const previous=await tx`select 'education' as kind,o.id,to_jsonb(o) as data from public.offerings o
         where o.id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[])
         union all select 'plan',p.id,to_jsonb(p) from public.point_plans p
@@ -127,7 +130,7 @@ export async function prepareProgramplanUserTrial() {
         if(!after||JSON.stringify(after.data)!==JSON.stringify(row.data))throw new Error('REFUSED: tidigare användarprovsdata ändrades');
       }
       return {target:'protected',status:'READY',educations:trialEducationSpecs.length,school:'Syntetisk skola 11',programs:[...new Set(trialEducationSpecs.map(s=>s.program))],knownSyntheticStart:'2026-08-17',verifiedExistingRoles:verifiedRoles,
-        preservedExistingRecords:previous.length,
+        preservedExistingRecords:previous.length,schoolForm:'GY',schoolFormAdded:schoolFormAdded.length===1,
         verification:'owned additive rows; actual existing rector/HM mandates with temporary SQL sessions and mandatory DB audit; no Worker, interactive IdP or human result implied'};
     });
   } finally {await db.end();}

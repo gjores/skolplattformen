@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
 import { requireTrialSchool, trialEducationSpecs } from './prepare-programplan-user-trial.mjs';
 import { parseProgramplanOfferingList, parseProgramplanWorkspace } from '../../web/lib/programplan-workspace-contract.ts';
+import { parseProgramplanSelection } from '../../web/lib/programplan-education-contract.ts';
 import { parseProgramplan } from '../../web/lib/programplan-contract.ts';
 
 // This verifier describes the initial prepared trial, before human edits.
@@ -67,7 +68,7 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
     const rows=await db`select 'education' as kind,o.id,to_jsonb(o) as data from public.offerings o
       where o.id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[])
       union all select 'plan',p.id,to_jsonb(p) from public.point_plans p
-      where p.offering_id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[]) order by kind,id`;
+      where p.offering_id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[]) union all select 'school_form',t.unit_id,to_jsonb(t) from public.school_unit_types t where t.unit_id=${unit} order by kind,id`;
     return JSON.stringify(rows);
   };
   let before;
@@ -104,6 +105,15 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
         checked++;
         return result;
       };
+      const emptySelection={unitId:null,catalogId:null,programRef:null};
+      const schools=parseProgramplanSelection(await request('val',emptySelection,'programplan_selection_read','education_collection',null),emptySelection);
+      if(!schools.units.some(s=>s.id===unit)||schools.canCreateEducation!==(role==='huvudman'))throw Error('REFUSED: gemensamt programflöde saknar korrekt skolform eller mandat');
+      const programmes=new Map(trialEducationSpecs.map(spec=>[`${spec.program}:${spec.version}`,spec]));
+      for(const spec of programmes.values()){
+        const selection={unitId:unit,catalogId,programRef:{code:spec.program,version:spec.version}};
+        const choices=parseProgramplanSelection(await request('val',selection,'programplan_selection_read','education_collection',null),selection);
+        if(!choices.projection||choices.projection.program.code!==spec.program||choices.canCreateEducation!==(role==='huvudman')||spec.orientation!==null&&!choices.projection.program.orientations.some(o=>o.code===spec.orientation))throw Error('REFUSED: programmets val saknas i gemensamt flöde');
+      }
       const found=new Map();
       for(let page=1;page<=100000;page++){
         const list=parseProgramplanOfferingList(await request('lista',{page},'programplan_offerings_listed','education_collection',null),page);
@@ -144,7 +154,7 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
     }
     if(await snapshot()!==before)throw Error('REFUSED: användarprovsdata ändrades under provet');
     return {status:'PASS',target:'protected',mode,roles:2,educationsPerRole:trialEducationSpecs.length,programs:[...new Set(trialEducationSpecs.map(s=>s.program))],auditedReads:checked,
-      businessRowsPreserved:true,...(mode==='current'?{scenarios}:{}),
+      businessRowsPreserved:true,schoolForm:'GY',sharedFlowSelectionVerified:true,selectionProgramsPerRole:6,...(mode==='current'?{scenarios}:{}),
       proof:`${mode} trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied`};
   } finally {
     try {
