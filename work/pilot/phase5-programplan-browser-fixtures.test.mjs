@@ -22,7 +22,7 @@ test('browser summary fails on missing/skipped/duplicated cases, stale provenanc
   const proof={sourceRevision:source,buildRevision:build};
   const attachment=(name,value)=>({name,body:Buffer.from(JSON.stringify(value)).toString('base64')});
   const cleanup={customers:0,sessions:0,plans:0,offerings:0,mandates:0,mintedSessions:0,triggers:0,functions:0,preservedAuditEvents:3,preservedAuditAnchors:1};
-  const report=()=>({errors:[],suites:[{specs:Array.from({length:15},(_,i)=>({title:`${String(i+1).padStart(2,'0')}: flow`,tests:['programplan-desktop','programplan-phone'].map(projectName=>({projectName,expectedStatus:'passed',results:[{status:'passed',attachments:[attachment('cleanup.json',cleanup),...(i===0?[attachment('source-build.json',{...proof,scope:'local-synthetic-only'})]:[])]}]}))}))}]});
+  const report=()=>({errors:[],suites:[{specs:Array.from({length:16},(_,i)=>({title:`${String(i+1).padStart(2,'0')}: flow`,tests:['programplan-desktop','programplan-phone'].map(projectName=>({projectName,expectedStatus:'passed',results:[{status:'passed',attachments:[attachment('cleanup.json',cleanup),...(i===0?[attachment('source-build.json',{...proof,scope:'local-synthetic-only'})]:[])]}]}))}))}]});
   assert.equal(summarizeProgramplanBrowser(report(),proof).status,'PASS');
   assert.equal(summarizeProgramplanBrowser(report(),proof,'05-13').phase,'05-13');
   const advancedHead=report();const attachments=advancedHead.suites[0].specs[0].tests[1].results[0].attachments;

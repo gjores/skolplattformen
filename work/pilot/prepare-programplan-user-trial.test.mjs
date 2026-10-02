@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {requireTrialSchool,requireOwnedTrialEducation,trialEducationSpecs} from './prepare-programplan-user-trial.mjs';
 import {verifyInitialTrialPlan,selectCurrentTrialPlan} from './verify-programplan-user-trial.mjs';
+import {readFileSync} from 'node:fs';
+import {verifyProgramplanCatalog,resolveProgramplanBasis} from '../../web/lib/programplan-catalog.ts';
 const school={unit_id:'33000000-0000-4000-8000-000000000111',customer_id:'33000000-0000-4000-8000-000000000001',customer_name:'Syntetisk fas 3 kund 1',school_name:'Syntetisk skola 11',organizer_id:'synthetic-organizer'};
 test('imports have no database effect; target and ownership guards refuse unrelated rows',()=>{
   assert.equal(requireTrialSchool(school),'synthetic-organizer');
@@ -11,15 +13,26 @@ test('imports have no database effect; target and ownership guards refuse unrela
   const owned={id:'55100110-0000-4000-8000-000000000040',organizer_id:'synthetic-organizer',unit_id:school.unit_id,kind:'gymnasium',name:spec.name,program_code:'SA25',orientation_code:'SASAP'};
   requireOwnedTrialEducation(owned,spec,'synthetic-organizer');
   for(const field of Object.keys(owned))assert.throws(()=>requireOwnedTrialEducation({...owned,[field]:'other'},spec,'synthetic-organizer'),/REFUSED/u);
-  assert.equal(new Set(trialEducationSpecs.map(s=>s.number)).size,4);
+  assert.equal(new Set(trialEducationSpecs.map(s=>s.number)).size,9);
   assert.equal(Object.isFrozen(trialEducationSpecs),true);
+});
+
+test('additional programmes require their own exact references and reject crossed ownership',async()=>{
+  const catalog=await verifyProgramplanCatalog(JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url),'utf8')));
+  for(const spec of trialEducationSpecs.filter(s=>s.program!=='SA25')){
+    const row={id:`55100110-0000-4000-8000-${String(spec.number).padStart(12,'0')}`,organizer_id:school.organizer_id,unit_id:school.unit_id,kind:'gymnasium',name:spec.name,program_code:spec.program,orientation_code:spec.orientation};
+    requireOwnedTrialEducation(row,spec,school.organizer_id);
+    for(const field of Object.keys(row))assert.throws(()=>requireOwnedTrialEducation({...row,[field]:'other'},spec,school.organizer_id),/REFUSED/u);
+    const result=resolveProgramplanBasis(catalog,{catalogId:catalog.catalogId,programRef:{code:spec.program,version:spec.version},orientationCode:spec.orientation,startedOn:'2026-08-17',specializationRefs:[]});
+    assert.equal(result.status,'resolved');assert.ok(result.basis.specializationOptions.length>0);assert.equal(result.decisionReady,false);
+  }
 });
 
 test('initial readiness refuses missing or changed trial scenarios',()=>{
   const catalogId='sha256:'+'a'.repeat(64),id=n=>`55100110-0000-4000-8000-${String(n).padStart(12,'0')}`;
   const empty={education:{latestVersion:0,draftId:null},versionCount:0,versions:[]};
   assert.equal(verifyInitialTrialPlan(empty,trialEducationSpecs[0],catalogId),null);
-  for(const spec of trialEducationSpecs.slice(1)){
+  for(const spec of trialEducationSpecs.filter(s=>s.plan!==null)){
     assert.throws(()=>verifyInitialTrialPlan(empty,spec,catalogId),/REFUSED/u);
     const bound=spec.plan===51,locked=spec.plan===52;
     const basis={catalogId,programRef:{code:'SA25',version:4},orientationCode:'SASAP',startedOn:'2026-08-17',specializationRefs:[{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100}]};

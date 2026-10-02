@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { assertTarget } from './verify-target.mjs';
 import { extractProgramplanFixture, cleanupProgramplanFixture } from './verify-programplan-locks.mjs';
+import { trialEducationSpecs } from './prepare-programplan-user-trial.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
@@ -14,7 +15,7 @@ const MARKER='Syntetiskt programplansprov';
 const SOURCE_PATHS=['web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan.css','web/app/mfa-step-up.tsx',
   'web/lib/protected-programplan.ts','web/lib/programplan-contract.ts','web/lib/programplan-workspace-contract.ts','web/lib/server-client.ts','web/lib/unsaved-changes.tsx',
   'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/lib/programplan-catalog.ts','web/app/api/programplaner',
-  'web/e2e/phase5-programplan.spec.ts','web/playwright.phase5-programplan.config.ts','work/pilot/phase5-programplan-browser-fixtures.mjs','work/pilot/verify-programplan-browser.mjs'];
+  'web/e2e/phase5-programplan.spec.ts','web/playwright.phase5-programplan.config.ts','work/pilot/phase5-programplan-browser-fixtures.mjs','work/pilot/verify-programplan-browser.mjs','work/pilot/prepare-programplan-user-trial.mjs'];
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
   if(mark?.mode!=='protected'||!/^([0-9a-f]{40})$/u.test(mark.revision??'')||!/^([0-9a-f]{40})$/u.test(sourceRevision??''))throw Error('Skyddat versionshanterat bygge saknas.');
   if(dirty||ancestor!==true)throw Error('Browserprov kräver aktuell versionshanterad UI/serverkod i bygget.');
@@ -76,6 +77,12 @@ export async function createProgramplanBrowserFixture() {
     const catalogId=(await snapshot()).catalog_id;
     const basis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn='2026-08-01')=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
     return {principal,second,hm,noMfa,planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,snapshot,plans,history,events,paired,request,cleanup,
+      async addProgramTrials(){
+        await assertTarget('protected');const specs=trialEducationSpecs.filter(s=>s.program!=='SA25');
+        await db.begin(async tx=>{await owned(tx);for(const spec of specs)await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)
+          values(${id(600+spec.number)},${id(2)},${id(30)},'gymnasium',${spec.name},'Syntetiskt prov 2026',${spec.program},${spec.orientation})`;});
+        return specs.map(s=>({...s,id:id(600+s.number)}));
+      },
       async newPrincipal(){return mint(11,21,roles.principal);},
       async cookies(context,session,baseURL){await context.addCookies([{name:'sp_session',value:session.token,url:baseURL,httpOnly:true,sameSite:'Lax'}]);},
       async expire(session){await assertTarget('protected');await owned(db);await db`update public.app_sessions set expires_at=now()-interval '1 second' where id=${session.id} and identity_id=${session.identityId}`;},

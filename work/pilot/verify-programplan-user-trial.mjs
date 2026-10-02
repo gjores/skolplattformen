@@ -115,8 +115,8 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
         if(!education||education.name!==spec.name||education.unitId!==unit)throw new Error('REFUSED: synligt provurval avviker');
         const input={offeringId:id(spec.number),versionPage:1,catalogId};
         const read=parseProgramplanWorkspace(await request('underlag',input,'programplan_workspace_read','education',input.offeringId),input);
-        if(read.catalog.status!=='selected'||read.catalog.program?.code!=='SA25'||read.catalog.program?.version!==4
-          ||read.education.orientationCode!=='SASAP'||read.decisionReady!==false)throw new Error('REFUSED: provets verifierade katalogprojektion avviker');
+        if(read.catalog.status!=='selected'||read.catalog.program?.code!==spec.program||read.catalog.program?.version!==spec.version
+          ||read.education.orientationCode!==spec.orientation||read.decisionReady!==false)throw new Error('REFUSED: provets verifierade katalogprojektion avviker');
         let initial;
         if(mode==='initial')initial=verifyInitialTrialPlan(read,spec,catalogId);
         else {
@@ -143,9 +143,9 @@ export async function verifyProgramplanUserTrial(baseURL='http://127.0.0.1:3012'
       }
     }
     if(await snapshot()!==before)throw Error('REFUSED: användarprovsdata ändrades under provet');
-    return {status:'PASS',target:'protected',mode,roles:2,educationsPerRole:4,auditedReads:checked,
+    return {status:'PASS',target:'protected',mode,roles:2,educationsPerRole:trialEducationSpecs.length,programs:[...new Set(trialEducationSpecs.map(s=>s.program))],auditedReads:checked,
       businessRowsPreserved:true,...(mode==='current'?{scenarios}:{}),
-      proof:`${mode} four trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied`};
+      proof:`${mode} trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied`};
   } finally {
     try {
       for(const session of sessions)await db`delete from public.app_sessions where id=${session.id} and identity_id=${session.identity}`;

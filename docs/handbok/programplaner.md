@@ -14,7 +14,7 @@ En programplan beskriver utbildningens ämnen och nivåer. Den gäller utbildnin
 | **Programfördjupning** | Utbildningens valda fördjupningsnivåer. **Dina sparade fördjupningsval** visar vad som faktiskt är sparat. |
 | **Utkast** | En arbetsversion som du kan arbeta vidare med. **Spara utkast** sparar uppgifterna, men fastställer inte planen. |
 
-Börja med att välja rätt utbildning, skola och elevkull. Läs det som redan finns. Följ därefter knappen under **Nästa steg** för att skapa eller arbeta vidare med ett utkast.
+Börja med att välja rätt utbildning, skola och elevkull. **Nästa steg** leder dig vidare. **Hjälp: hur hänger delarna ihop?** förklarar skillnaden mellan programunderlag, programfördjupning och en enskild elevs val.
 
 ## Öppna utbildningen och läs planen
 
@@ -49,12 +49,12 @@ Välj **Spara utkast** när uppgifterna är klara. Inget autosparas. En redan bu
 
 ## Ändra fördjupningen
 
-Välj **Ändra fördjupning**. Dialogen har tre numrerade steg:
+Välj **Ändra fördjupning**. Dialogen har två steg. Samma granskning används när du skapar, förbereder eller kopierar ett utkast.
 
-1. **Kontrollera utbildningsstarten.** Om datumet redan är bundet visas det och kan inte ändras här. När du skapar eller förbereder ett obundet utkast får du i stället ange det verkliga startdatumet. Använd utbildningens uppgifter, inte dagens datum eller elevkullens namn som gissning.
-2. **Välj programfördjupning.** Läs dina val i listan. För att lägga till: välj en nivå under **Lägg till fördjupningsnivå** och tryck sedan **Lägg till nivå**. Att bara välja i rullistan lägger inte till något. Nivån ska nu finnas bland dina val ovan. Upprepa för fler nivåer, eller använd **Ta bort** och pilknapparna för att ändra listan och ordningen. När äldre val kopplas eller en version kopieras granskar du de bevarade valen; själva ändringen görs efteråt med **Ändra fördjupning**.
-3. **Kontrollera och spara.** Kontrollera namnen och ordningen. Välj **Spara utkast**. Dialogen stängs efter lyckad sparning och omläsning. Läs **Dina sparade fördjupningsval** för att se resultatet. För att arbeta vidare väljer du **Ändra fördjupning** igen. **Avbryt** lämnar ändringarna efter eventuell bekräftelse om osparade uppgifter.
+1. **Förbered uppgifterna.** Kontrollera utbildningsstarten. En bunden plan behåller datumet. När datum saknas anger du den verkliga dagen enligt utbildningens uppgifter. Sök ett ämne under **Sök ämne eller nivå**, välj nivån under **Lägg till fördjupningsnivå** och tryck **Lägg till nivå**. Vyn visar tydligt om nivån bara är vald i väljaren. Den ska hamna i listan över vald programfördjupning för att följa med. Gemensamma ämnesnivåer finns redan i programgrunden och väljs inte här. Använd **Ta bort** och pilknapparna för att ändra val och ordning. Vid äldre bindning och kopiering granskar du de bevarade valen; själva ändringen görs efteråt med **Ändra fördjupning**.
+2. **Granska och spara.** Tryck **Granska utkast**. Sammanfattningen visar utbildning, skola, startdatum och den ordnade lista som ska sparas. Det steget sparar ingenting. **Tillbaka till uppgifterna** låter dig ändra uppgifterna utan att förlora dem. Tryck **Spara utkast** när sammanfattningen stämmer. Dialogen stängs efter lyckad sparning och omläsning. Läs **Dina sparade fördjupningsval** för att se resultatet.
 
+**Avbryt** lämnar ändringarna efter eventuell bekräftelse om osparade uppgifter. Om ett datum eller äldre bekräftelse behöver rättas visas formuläret igen. En nivå som endast är vald i väljaren följer inte med; sammanfattningen påminner om den.
 Namn och gymnasiepoäng visar vad du arbetar med; kod och ämnesversion hjälper dig att identifiera exakt nivå. Hela den ordnade listan sparas tillsammans. En tom fördjupningslista är ett ofärdigt utkast, inte en fullständig utbildningsplan. Sparningen ändrar inte programunderlagets grundämnen.
 
 ## Underlag och tidigare versioner

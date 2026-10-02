@@ -10,10 +10,15 @@ const customer = '33000000-0000-4000-8000-000000000001';
 const unit = '33000000-0000-4000-8000-000000000111';
 const id = n => `55100110-0000-4000-8000-${String(n).padStart(12,'0')}`;
 export const trialEducationSpecs = Object.freeze([
-  Object.freeze({number:40,name:'Användarprov – programplan, skapa',plan:null}),
-  Object.freeze({number:41,name:'Användarprov – programplan, äldre utkast',plan:50}),
-  Object.freeze({number:42,name:'Användarprov – programplan, bundet utkast',plan:51}),
-  Object.freeze({number:43,name:'Användarprov – programplan, ny version',plan:52}),
+  Object.freeze({number:40,name:'Användarprov – programplan, skapa',plan:null,program:'SA25',version:4,orientation:'SASAP'}),
+  Object.freeze({number:41,name:'Användarprov – programplan, äldre utkast',plan:50,program:'SA25',version:4,orientation:'SASAP'}),
+  Object.freeze({number:42,name:'Användarprov – programplan, bundet utkast',plan:51,program:'SA25',version:4,orientation:'SASAP'}),
+  Object.freeze({number:43,name:'Användarprov – programplan, ny version',plan:52,program:'SA25',version:4,orientation:'SASAP'}),
+  Object.freeze({number:44,name:'Ekonomiprogrammet – Ekonomi',plan:null,program:'EK25',version:4,orientation:'EKEKI'}),
+  Object.freeze({number:45,name:'Naturvetenskapsprogrammet – Naturvetenskap',plan:null,program:'NA25',version:4,orientation:'NANAP'}),
+  Object.freeze({number:46,name:'Teknikprogrammet – Informations- och medieteknik',plan:null,program:'TE25',version:2,orientation:'TEINM'}),
+  Object.freeze({number:47,name:'Estetiska programmet – Bild och formgivning',plan:null,program:'ES25',version:3,orientation:'ESBIF'}),
+  Object.freeze({number:48,name:'Vård- och omsorgsprogrammet',plan:null,program:'VO25',version:4,orientation:null}),
 ]);
 export function requireTrialSchool(school) {
   if (!school || school.unit_id !== unit || school.customer_id !== customer
@@ -23,8 +28,8 @@ export function requireTrialSchool(school) {
 }
 export function requireOwnedTrialEducation(row,spec,organizerId) {
   if (!row || row.id !== id(spec.number) || row.organizer_id !== organizerId || row.unit_id !== unit
-    || row.kind !== 'gymnasium' || row.name !== spec.name || row.program_code !== 'SA25'
-    || row.orientation_code !== 'SASAP') throw new Error('REFUSED: prov-ID används av annat underlag');
+    || row.kind !== 'gymnasium' || row.name !== spec.name || row.program_code !== spec.program
+    || row.orientation_code !== spec.orientation) throw new Error('REFUSED: prov-ID används av annat underlag');
 }
 
 export async function prepareProgramplanUserTrial() {
@@ -33,6 +38,10 @@ export async function prepareProgramplanUserTrial() {
   const catalog=await verifyProgramplanCatalog(raw);
   const reference={catalogId:raw.catalogId,programRef:{code:'SA25',version:4},orientationCode:'SASAP',startedOn:'2026-08-17',specializationRefs:[{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100}]};
   if(resolveProgramplanBasis(catalog,reference).status!=='resolved')throw new Error('REFUSED: provets exakta kataloggrund kan inte lösas');
+  for(const spec of trialEducationSpecs){
+    if(resolveProgramplanBasis(catalog,{...reference,programRef:{code:spec.program,version:spec.version},orientationCode:spec.orientation,specializationRefs:[]}).status!=='resolved')
+      throw new Error('REFUSED: ett programs exakta kataloggrund kan inte lösas');
+  }
   const require=createRequire(new URL('../../web/package.json',import.meta.url));
   const db=require('postgres')(target.dbUrl,{max:1,prepare:false,connect_timeout:10,onnotice:()=>{}});
   try {
@@ -51,7 +60,7 @@ export async function prepareProgramplanUserTrial() {
         const [existing]=await tx`select id,organizer_id,unit_id,kind,name,program_code,orientation_code from public.offerings where id=${id(spec.number)}`;
         if(existing)requireOwnedTrialEducation(existing,spec,organizer);
         else await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year)
-          values(${id(spec.number)},${organizer},${unit},'gymnasium',${spec.name},'Syntetiskt användarprov 2026','SA25','SASAP',2026)`;
+          values(${id(spec.number)},${organizer},${unit},'gymnasium',${spec.name},'Syntetiskt användarprov 2026',${spec.program},${spec.orientation},2026)`;
         if(spec.plan===null)continue;
         const [plan]=await tx`select id,organizer_id,offering_id,version from public.point_plans where id=${id(spec.plan)}`;
         if(plan){
@@ -67,7 +76,7 @@ export async function prepareProgramplanUserTrial() {
             ${reference.specializationRefs.map(r=>r.itemCode)}::text[],${bound?reference.catalogId:null},${bound?tx.json(reference):null}::jsonb,${locked?'2026-09-01':null}::date)`;
       }
       const [{count}]=await tx`select count(*)::integer as count from public.offerings where id=any(${trialEducationSpecs.map(s=>id(s.number))}::uuid[]) and organizer_id=${organizer} and unit_id=${unit}`;
-      if(count!==4)throw new Error('REFUSED: ofullständigt provunderlag');
+      if(count!==trialEducationSpecs.length)throw new Error('REFUSED: ofullständigt provunderlag');
       // Existing real mandates supply authority; only the short-lived synthetic
       // session is new. Missing/revoked authority is never repaired by this script.
       let verifiedRoles=0;
@@ -94,7 +103,9 @@ export async function prepareProgramplanUserTrial() {
           const correlation=randomUUID();
           await tx`select set_config('app.correlation_id',${correlation},true)`;
           const [read]=await tx`select public.phase5_programplan_workspace(${id(spec.number)},1,${reference.catalogId}) as result`;
-          if(read.result.education.id!==id(spec.number)||read.result.catalog.status!=='selected')throw new Error('REFUSED: provunderlaget kan inte läsas');
+          if(read.result.education.id!==id(spec.number)||read.result.catalog.status!=='selected'
+            ||read.result.catalog.program?.code!==spec.program||read.result.catalog.program?.version!==spec.version
+            ||read.result.education.orientationCode!==spec.orientation)throw new Error('REFUSED: provunderlaget kan inte läsas');
           const [{count:auditCount}]=await tx`select count(*)::integer as count from public.security_events
             where correlation_id=${correlation} and session_id=${session.id} and assignment_id=${actor.id}
               and source='db' and action='programplan_workspace_read' and outcome='ok' and object_id=${id(spec.number)}`;
@@ -111,7 +122,7 @@ export async function prepareProgramplanUserTrial() {
           : await tx`select to_jsonb(p) as data from public.point_plans p where p.id=${row.id}`;
         if(!after||JSON.stringify(after.data)!==JSON.stringify(row.data))throw new Error('REFUSED: tidigare användarprovsdata ändrades');
       }
-      return {target:'protected',status:'READY',educations:4,school:'Syntetisk skola 11',program:'SA25',programVersion:4,orientation:'SASAP',knownSyntheticStart:'2026-08-17',verifiedExistingRoles:verifiedRoles,
+      return {target:'protected',status:'READY',educations:trialEducationSpecs.length,school:'Syntetisk skola 11',programs:[...new Set(trialEducationSpecs.map(s=>s.program))],knownSyntheticStart:'2026-08-17',verifiedExistingRoles:verifiedRoles,
         preservedExistingRecords:previous.length,
         verification:'owned additive rows; actual existing rector/HM mandates with temporary SQL sessions and mandatory DB audit; no Worker, interactive IdP or human result implied'};
     });
