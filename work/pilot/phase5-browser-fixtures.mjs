@@ -77,6 +77,7 @@ export async function createTimplanBrowserFixture() {
         await tx`delete from public.assignment_units where assignment_id=any(${legacyAssignmentIds}::uuid[])`;
         await tx`delete from public.assignments where organizer_id=${id(2)}`;
         await tx`delete from public.offerings where organizer_id=${id(2)}`;
+        await tx`delete from public.school_unit_types where unit_id in(select id from public.school_units where organizer_id=${id(2)})`;
         await tx`delete from public.school_units where organizer_id=${id(2)}`;
         await tx`delete from public.memberships where customer_id=${id(1)}`;
         await tx`delete from public.organizers where id=${id(2)}`;
@@ -93,7 +94,8 @@ export async function createTimplanBrowserFixture() {
         and not exists(select 1 from pg_proc where proname=${triggerFn})
         and not exists(select 1 from public.access_assignments where customer_id=${id(1)})
         and not exists(select 1 from public.offerings where organizer_id=${id(2)})
-        and not exists(select 1 from public.timplans where organizer_id=${id(2)}) as clean,
+        and not exists(select 1 from public.timplans where organizer_id=${id(2)})
+        and not exists(select 1 from public.school_unit_types where unit_id=any(${[id(30),id(31)]}::uuid[])) as clean,
         (select count(*)::int from public.security_events where customer_id=${id(1)}) as "preservedAuditEvents",
         (select count(*)::int from public.identities i where i.id=any(${[10,11,12,13,14].map(id)}::uuid[]) and exists(select 1 from public.security_events e where e.actor_identity_id=i.id)) as "preservedAuditAnchors"`;
       if(!row.clean) failed=true;else evidence=row;
@@ -113,6 +115,7 @@ export async function createTimplanBrowserFixture() {
       .replaceAll('55003030',`${code}30`).replaceAll('55003031',`${code}31`);
     await db.begin(async tx=>{
       await tx.unsafe(sql);
+      await tx`insert into public.school_unit_types(unit_id,school_type) values(${id(30)},'GR'),(${id(30)},'GY'),(${id(31)},'GR')`;
       for(const row of await tx`select name,id from planning_roles`) roles[row.name]=row.id;
       legacyAssignmentIds=(await tx`select id from public.assignments where organizer_id=${id(2)}`).map(r=>r.id);
       await tx`update public.identities set display_name='Syntetisk provperson' where id=any(${[10,11,12,13,14].map(id)}::uuid[])`;
