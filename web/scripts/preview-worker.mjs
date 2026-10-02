@@ -4,6 +4,7 @@
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { unstable_getMiniflareWorkerOptions } from 'wrangler';
+import { builtWorkerModules } from './preview-worker-modules.mjs';
 
 const require = createRequire(import.meta.url);
 const wranglerRequire = createRequire(require.resolve('wrangler'));
@@ -14,10 +15,12 @@ if (!configPath || !/^\d+$/u.test(portText ?? '') || Number(portText) < 1024 || 
 }
 const { workerOptions, main, externalWorkers } = unstable_getMiniflareWorkerOptions(path.resolve(configPath));
 if (!main) throw new Error('Byggets Worker-entrypoint saknas.');
+const { modulesRules: _modulesRules, ...configuredOptions } = workerOptions;
+const source = await builtWorkerModules(main, path.dirname(path.resolve(configPath)));
 const runtime = new Miniflare(convertV4MiniflareOptions({
   host: '127.0.0.1', port: Number(portText),
   log: new Log(LogLevel.INFO),
-  workers: [{ ...workerOptions, modules: true, scriptPath: main }, ...externalWorkers],
+  workers: [{ ...configuredOptions, ...source }, ...externalWorkers],
 }));
 try {
   const ready = await runtime.ready;
