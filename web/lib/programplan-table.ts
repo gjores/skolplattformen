@@ -52,7 +52,7 @@ function rowsOf(subjects: CatalogBlockSubject[]): TableRow[] {
     if (!subject.levels.length) {
       return [{ key: `${subject.code}`, subjectName: subject.name, levelName: null, code: null, points: subject.points, note: note ?? 'Nivåer saknas i underlaget' }];
     }
-    return subject.levels.map(level => ({ key: level.code, subjectName: subject.name, levelName: level.name, code: level.code, points: level.points, note }));
+    return subject.levels.map((level, index) => ({ key: level.code, subjectName: subject.name, levelName: level.name, code: level.code, points: level.points, note: index === 0 ? note : null }));
   });
 }
 

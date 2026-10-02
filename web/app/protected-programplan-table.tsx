@@ -29,10 +29,10 @@ export default function ProgramplanTable({ program, orientationCode, options, re
     {showBase&&!program&&<p>Välj ett tillgängligt underlag för att läsa ämnena. Äldre sparade uppgifter bevaras.</p>}
     {showBase&&program&&program.orientations.length===0&&<p>Programmet har ingen inriktning.</p>}
     {showBase&&frame&&<div className="pp-table-wrap"><table className="pp-table"><caption className="pp-sr">Ämnen och nivåer enligt Skolverket</caption>
-      <thead><tr><th scope="col">Kurs</th><th scope="col">Kod</th><th scope="col" className="pp-num">Poäng</th></tr></thead>
+      <thead><tr><th scope="col">Kurs</th><th scope="col" className="pp-col-code">Kod</th><th scope="col" className="pp-num">Poäng</th></tr></thead>
       {frame.sections.map(section=><tbody key={section.id} id={`pp-national-${section.id}`}>
         <tr className="pp-table-group"><th colSpan={3} scope="colgroup">{section.title}</th></tr>
-        {section.rows.map(row=><tr key={row.key}><th scope="row">{row.subjectName}{row.levelName&&` · ${row.levelName}`}{row.note&&<small className={row.code?'':'pp-reference-gap'}>{row.note==='Alternativ — en av dem läses'?'Alternativ i underlaget — inget ämnesval är gjort här.':row.note==='Nivåer saknas i underlaget'?'Nivåuppgifter saknas i underlaget.':row.note}</small>}</th><td>{row.code??'—'}</td><td className="pp-num">{row.points}</td></tr>)}
+        {section.rows.map(row=><tr key={row.key}><th scope="row">{row.subjectName}{row.levelName&&` · ${row.levelName}`}{row.note&&<small className={row.code?'':'pp-reference-gap'}>{row.note==='Alternativ — en av dem läses'?'Alternativ i underlaget — inget ämnesval är gjort här.':row.note==='Nivåer saknas i underlaget'?'Nivåuppgifter saknas i underlaget.':row.note}</small>}</th><td className="pp-col-code">{row.code??'—'}</td><td className="pp-num">{row.points}</td></tr>)}
         <tr className="pp-table-sum"><th scope="row" colSpan={2}>Summa {section.title.toLocaleLowerCase('sv')}</th><td className="pp-num">{section.points}</td></tr>
       </tbody>)}
     </table></div>}
@@ -48,7 +48,7 @@ export default function ProgramplanTable({ program, orientationCode, options, re
       <div className="pp-field"><label htmlFor={`${idPrefix}-search`}>Sök ämne eller nivå</label><input id={`${idPrefix}-search`} type="search" value={search} disabled={disabled} placeholder="Till exempel engelska" onChange={e=>setSearch(e.target.value)}/></div>
       <p className="pp-picker-help">Kryssa i nivåerna skolan ska erbjuda. Bara de ämnen Skolverket tillåter som programfördjupning för det här programmet visas. En nivå som skulle gå utanför ramen kan inte väljas.</p>
       <div className="pp-table-wrap pp-table-scroll"><table className="pp-table pp-table-options"><caption className="pp-sr">Valbar programfördjupning enligt Skolverket</caption>
-        <thead><tr><th scope="col">Välj</th><th scope="col">Kurs</th><th scope="col">Kod</th><th scope="col" className="pp-num">Poäng</th></tr></thead>
+        <thead><tr><th scope="col">Välj</th><th scope="col">Kurs</th><th scope="col" className="pp-col-code">Kod</th><th scope="col" className="pp-num">Poäng</th></tr></thead>
         {groups.length===0&&<tbody><tr><td colSpan={4}>Ingen tillgänglig nivå matchar sökningen. Prova ett annat ämnesnamn eller töm sökfältet.</td></tr></tbody>}
         {groups.map(group=><tbody key={`${group.subjectCode}:${group.subjectVersion}`}>
           <tr className="pp-table-group"><th colSpan={4} scope="colgroup">{group.subjectName}</th></tr>
@@ -57,7 +57,7 @@ export default function ProgramplanTable({ program, orientationCode, options, re
             const blocked=!checked&&!!frame&&!canAddLevel(frame,refs,level.points);
             return <tr key={level.itemCode} className={checked?'pp-row-chosen':undefined}>
               <td><input type="checkbox" aria-label={`${level.subjectName} · ${level.name} · ${level.points} poäng`} data-level-code={level.itemCode} checked={checked} disabled={disabled||blocked||!checked&&refs.length>=200} title={blocked?'Skulle gå utanför Skolverkets ram':undefined} onChange={()=>onChange?.(toggleProgramplanLevel(refs,level))}/></td>
-              <th scope="row">{level.subjectName} · {level.name}{blocked&&<small className="pp-reference-gap">Ryms inte inom Skolverkets ram</small>}</th><td>{level.itemCode}</td><td className="pp-num">{level.points}</td></tr>;
+              <th scope="row">{level.subjectName} · {level.name}{blocked&&<small className="pp-reference-gap">Ryms inte inom Skolverkets ram</small>}</th><td className="pp-col-code">{level.itemCode}</td><td className="pp-num">{level.points}</td></tr>;
           })}
         </tbody>)}
       </table></div>
