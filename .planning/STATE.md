@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-14
-status: awaiting_human_verification
-stopped_at: 05-14 visualization and nine programme trials ready on 3012; shared packages pending; human understanding open
+current_plan: 05-15
+status: in_progress
+stopped_at: executing 05-15 and 05-16 shared programme flow after human FAIL
 last_updated: "2026-10-02"
 last_activity: 2026-10-02
-last_activity_desc: "05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar."
+last_activity_desc: "Gemensamt program → inriktning → programfördjupning för nytt/befintligt planeras och genomförs i 05-15/05-16 efter underkänt mänskligt prov av 05-14. Bevarat frontendflöde jämfört. Tidigare automatiska PASS är historik; ny verifiering återstår."
 state_head: b4c26f3
 worker_build_revision: b4c26f3107210ed5fd904d740d8f6a031640c4b4
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 68
+  total_plans: 70
   completed_plans: 67
 milestone_name: milestone
 ---
@@ -26,11 +26,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5 har 14 automatiskt genomförda planer. 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
+**Current focus:** Gemensamt program → inriktning → programfördjupning för nytt/befintligt planeras och genomförs i 05-15/05-16 efter underkänt mänskligt prov av 05-14. Bevarat frontendflöde jämfört. Tidigare automatiska PASS är historik; ny verifiering återstår.
 
 ## Current Position
 
-**Aktuellt läge 2026-10-02:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar. Se 05-14-VISUALIZATION-SUMMARY/REVIEW och phase5-14-visualization-verification.json. Tidigare previewrotorsak är öppen.
+**Aktuellt läge 2026-10-02:** Gemensamt program → inriktning → programfördjupning för nytt/befintligt planeras och genomförs i 05-15/05-16 efter underkänt mänskligt prov av 05-14. Bevarat frontendflöde jämfört. Tidigare automatiska PASS är historik; ny verifiering återstår.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och programplansvyn kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
@@ -41,12 +41,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-14 automatiskt genomförd; nytt mänskligt begriplighetsprov väntar i 05-PROGRAMPLAN-USER-TRIAL.md. Fasens fullständiga krav är inte godkända.
-**Total Plans in Phase:** 14 skrivna och automatiskt genomförda; mänskligt programplans-/handledningsprov och återstående utbildnings-/beslutsflöden är öppna.
-**Status:** Väntar på nytt konkret mänskligt begriplighetsprov. Kodknappen är färdig. Fas 4:s checkpoint och tidigare previewavbrotts orsaksdiagnos är öppna.
+**Current Plan:** 05-15/05-16 genomför användarens gemensamma program → inriktning → programfördjupning för nya och befintliga utbildningar. 05-14:s mänskliga begriplighet är underkänd; fasens fullständiga krav är inte godkända.
+**Total Plans in Phase:** 16 skrivna, 14 automatiskt genomförda; mänskligt programplans-/handledningsprov och återstående utbildnings-/beslutsflöden är öppna.
+**Status:** Genomför gemensamt programflöde. Mänskligt begriplighetsprov är underkänt och ska göras om efter 05-16.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-02
-**Last Activity Description:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
+**Last Activity Description:** Gemensamt program → inriktning → programfördjupning för nytt/befintligt planeras och genomförs i 05-15/05-16 efter underkänt mänskligt prov av 05-14. Bevarat frontendflöde jämfört. Tidigare automatiska PASS är historik; ny verifiering återstår.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
@@ -55,7 +55,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 67 av 68 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planprogress: 67 av 70 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
@@ -208,7 +208,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-02
-**Stopped At:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
+**Stopped At:** Gemensamt program → inriktning → programfördjupning för nytt/befintligt planeras och genomförs i 05-15/05-16 efter underkänt mänskligt prov av 05-14. Bevarat frontendflöde jämfört. Tidigare automatiska PASS är historik; ny verifiering återstår.
 **Resume File:** None
 
 **Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-14:s visuella översikt, begriplighet och fler program på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
@@ -220,3 +220,7 @@ Programplansvyn fick ett misslyckat mänskligt begriplighetsresultat: ”program
 **Senaste användarstyrning:** ”måste vara extremt pedagigisk”. Genomfört som hjälp vid första läsningen och vid varje uppgift, med numrerat start–val–spara-flöde. Detta är inget mänskligt begriplighetsgodkännande.
 
 Senaste styrning: ännu mer pedagogik och fler gymnasieprogram genomförd i 05-14 med separat granskning och additiva exempel. Tidigare tre samtidiga dialogdelar ersätts av två användarsteg. Mänskligt godkännande väntar.
+
+## Aktiv användarrättning — 2026-10-02
+
+05-14:s mänskliga prov är underkänt som rörigt och osammanhängande. Användaren vill ha program → inriktning → programfördjupning och samma UI för nya/befintliga utbildningar. Historisk frontend läst och visuellt jämförd; se 05-PROGRAMFLOW-HISTORICAL-REVIEW och 05-15-FLOW-CONTEXT. 05-15 bygger faktiskt atomiskt huvudmannaskapande och säkert kvitto; 05-16 använder samma arbetsyta och ämnesgrupperade fördjupningsval. Ingen rektorsbehörighet eller nationell beslutsrätt utvidgas. Tidigare automatiska prov ovan är historik.

@@ -179,6 +179,8 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] 05-12-PLAN.md — Regelhandledning i befintlig timplansvy och dialog, GR/IM-källor och handbok; 20/20 browserprov och skyddat bygge PASS. Mänsklig förståelsebedömning följer med 05-11.
 - [x] 05-13-PLAN.md — Direkt aktuell plan, ämnes-/nivåvy, tydlig nästa åtgärd och guidad källbindning efter användarfynd. Senast pedagogiskt fördjupad med tre dialogsteg/fälthjälp: färska 30+20 browser, typ/lint/bygge/handbok och bevarad current-läsning på vanlig 3012 PASS (e077e81). Tidigare 25+4 Node-prov är historik. Ny mänsklig begriplighetsbedömning väntar.
 - [x] 05-14-PLAN.md — Granskning, ämnessökning, fem fler program och visuell karta över sex delar/val. Färska 32+20 browser, 27 Node, typ/lint/bygge/handbok och nio bevarade exempel PASS (b4c26f3). Gemensamma paket pending todo; ny mänsklig bedömning väntar.
+- [ ] 05-15-PLAN.md — Skyddade program-/inriktningsval och atomiskt HM-skapande av utbildning med första utkast, replaykvitto och riktiga SQL/API-prov.
+- [ ] 05-16-PLAN.md — Samma program → inriktning → fördjupningsarbetsyta för nytt och befintligt, ämnesgrupperade nivåval och nytt begriplighetsprov.
 
 05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. Beslut, utbildningsskapning, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 

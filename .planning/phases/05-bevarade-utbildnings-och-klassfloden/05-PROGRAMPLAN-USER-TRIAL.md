@@ -93,3 +93,9 @@ Bedöm samma bild på telefon. Val i programgrunden, såsom svenska/svenska som 
 ## Aktuell visualiseringsversion — 2026-10-02
 
 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar. Byggrevision b4c26f3107210ed5fd904d740d8f6a031640c4b4. Se 05-14-VISUALIZATION-SUMMARY/REVIEW och phase5-14-visualization-verification.json; äldre 43c91fa-granskningsbevis ovan är historik.
+
+## Mänskligt resultat efter 05-14 — 2026-10-02
+
+**FAIL: begriplighet och sammanhang.** Användaren säger att delen fungerade i förra UI:t men nu är rörig och osammanhängande. Önskat arbetsflöde: välj program, därefter inriktning och sedan programfördjupning. Samma UI ska användas både för nya utbildningar/elevkullar och för befintliga. 05-14:s automatiska 52 browserprov visar tekniska skydd och rendering, men uppfyller inte detta mänskliga krav. Ingen godkännandestatus ändras till PASS.
+
+Historisk jämförelse finns i 05-PROGRAMFLOW-HISTORICAL-REVIEW.md. Kommande 05-15/05-16 ska koppla faktiskt skyddat skapande till samma ämnes-/fördjupningskomponent som befintlig plan, bevara huvudmannens rätt att definiera utbildningar och låsta grunduppgifter för befintliga. Paket och elevval kvarstår separat. Nytt mänskligt prov följer först efter genomförande och färska tekniska prov.
