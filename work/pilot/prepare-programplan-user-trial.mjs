@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { assertTarget } from './verify-target.mjs';
 import { verifyProgramplanCatalog, resolveProgramplanBasis } from '../../web/lib/programplan-catalog.ts';
+import { parseRawProgramplanWorkspace } from '../../web/lib/programplan-workspace-contract.ts';
 
 const customer = '33000000-0000-4000-8000-000000000001';
 const unit = '33000000-0000-4000-8000-000000000111';
@@ -103,9 +104,12 @@ export async function prepareProgramplanUserTrial() {
           const correlation=randomUUID();
           await tx`select set_config('app.correlation_id',${correlation},true)`;
           const [read]=await tx`select public.phase5_programplan_workspace(${id(spec.number)},1,${reference.catalogId}) as result`;
-          if(read.result.education.id!==id(spec.number)||read.result.catalog.status!=='selected'
-            ||read.result.catalog.program?.code!==spec.program||read.result.catalog.program?.version!==spec.version
-            ||read.result.education.orientationCode!==spec.orientation)throw new Error('REFUSED: provunderlaget kan inte läsas');
+          const workspace=parseRawProgramplanWorkspace(read.result,{offeringId:id(spec.number),versionPage:1,catalogId:reference.catalogId});
+          if(workspace.catalog.status!=='selected'||workspace.education.orientationCode!==spec.orientation)
+            throw new Error('REFUSED: provunderlaget kan inte läsas');
+          const stored=await verifyProgramplanCatalog({...workspace.catalog.payload,catalogId:reference.catalogId});
+          const program=stored.programs.find(p=>p.code===spec.program);
+          if(program?.version!==spec.version)throw new Error('REFUSED: lagrad programgrund avviker');
           const [{count:auditCount}]=await tx`select count(*)::integer as count from public.security_events
             where correlation_id=${correlation} and session_id=${session.id} and assignment_id=${actor.id}
               and source='db' and action='programplan_workspace_read' and outcome='ok' and object_id=${id(spec.number)}`;
