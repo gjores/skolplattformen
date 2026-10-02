@@ -7,18 +7,18 @@ import { unstable_getMiniflareWorkerOptions } from 'wrangler';
 
 const require = createRequire(import.meta.url);
 const wranglerRequire = createRequire(require.resolve('wrangler'));
-const { Miniflare, Log, LogLevel } = wranglerRequire('miniflare');
+const { Miniflare, Log, LogLevel, convertV4MiniflareOptions } = wranglerRequire('miniflare');
 const [configPath, portText] = process.argv.slice(2);
 if (!configPath || !/^\d+$/u.test(portText ?? '') || Number(portText) < 1024 || Number(portText) > 65535) {
   throw new Error('Förhandsvisning kräver byggkonfiguration och en lokal port.');
 }
 const { workerOptions, main, externalWorkers } = unstable_getMiniflareWorkerOptions(path.resolve(configPath));
 if (!main) throw new Error('Byggets Worker-entrypoint saknas.');
-const runtime = new Miniflare({
+const runtime = new Miniflare(convertV4MiniflareOptions({
   host: '127.0.0.1', port: Number(portText),
   log: new Log(LogLevel.INFO),
   workers: [{ ...workerOptions, modules: true, scriptPath: main }, ...externalWorkers],
-});
+}));
 try {
   const ready = await runtime.ready;
   console.log(`Byggd Worker körs på ${ready.origin} (workerd, direkt lokal förhandsvisning).`);
