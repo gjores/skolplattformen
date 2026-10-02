@@ -21,7 +21,7 @@ export default function ProgramplanTable({ program, orientationCode, options, re
   const showBase = part !== 'selection', showSelection = part !== 'base';
   const [search, setSearch] = useState('');
   const frame = program ? programFrame(program, orientationCode) : null;
-  const selectable = !!(options && onChange && frame);
+  const selectable = !!(options && onChange);
   const status = frame ? frameStatus(frame, refs) : null;
   const groups = selectable ? groupProgramplanOptions(options, search) : [];
   const move = (index: number, step: number) => { const changed = [...refs]; [changed[index], changed[index + step]] = [changed[index + step], changed[index]]; onChange?.(changed); };
@@ -36,6 +36,7 @@ export default function ProgramplanTable({ program, orientationCode, options, re
         <tr className="pp-table-sum"><th scope="row" colSpan={2}>Summa {section.title.toLocaleLowerCase('sv')}</th><td className="pp-num">{section.points}</td></tr>
       </tbody>)}
     </table></div>}
+    {showSelection&&!frame&&selectable&&<p className="pp-frame-note">Programunderlaget kunde inte läsas just nu, så Skolverkets poängram kan inte kontrolleras. Dina val finns kvar.</p>}
     {showSelection&&frame&&status&&<section className="pp-frame" aria-label="Skolverkets poängram">
       <h4>Programfördjupning</h4>
       {frame.unresolved==='orientation'?<p className="pp-alert" role="alert">Välj inriktning först. Utan inriktning går det inte att räkna ut hur många poäng som får väljas som programfördjupning.</p>
@@ -43,7 +44,7 @@ export default function ProgramplanTable({ program, orientationCode, options, re
         :<><p>Skolverkets ram: {points(frame.total ?? 0)} totalt − {points(DIPLOMA_WORK_POINTS)} gymnasiearbete − {points(INDIVIDUAL_CHOICE_POINTS)} individuellt val − {points(frame.fixedPoints)} i programgrunden = <strong>{points(frame.specializationRoom ?? 0)}</strong> programfördjupning.</p>
         <output className={status.over?'pp-frame-status pp-frame-over':'pp-frame-status'} role={status.over?'alert':undefined}>{status.over?`Utanför Skolverkets ram: ${points(status.chosen)} valda, högst ${points(frame.specializationRoom ?? 0)} får väljas. Ta bort nivåer.`:`Valt ${points(status.chosen)} av ${points(frame.specializationRoom ?? 0)} · ${points(status.remaining ?? 0)} kvar`}</output></>}
     </section>}
-    {showSelection&&selectable&&frame&&frame.unresolved!=='orientation'&&<>
+    {showSelection&&selectable&&frame?.unresolved!=='orientation'&&<>
       <div className="pp-field"><label htmlFor={`${idPrefix}-search`}>Sök ämne eller nivå</label><input id={`${idPrefix}-search`} type="search" value={search} disabled={disabled} placeholder="Till exempel engelska" onChange={e=>setSearch(e.target.value)}/></div>
       <p className="pp-picker-help">Kryssa i nivåerna skolan ska erbjuda. Bara de ämnen Skolverket tillåter som programfördjupning för det här programmet visas. En nivå som skulle gå utanför ramen kan inte väljas.</p>
       <div className="pp-table-wrap pp-table-scroll"><table className="pp-table pp-table-options"><caption className="pp-sr">Valbar programfördjupning enligt Skolverket</caption>
@@ -53,7 +54,7 @@ export default function ProgramplanTable({ program, orientationCode, options, re
           <tr className="pp-table-group"><th colSpan={4} scope="colgroup">{group.subjectName}</th></tr>
           {group.levels.map(level=>{
             const checked=refs.some(ref=>sameProgramplanLevels([ref],[level]));
-            const blocked=!checked&&!canAddLevel(frame,refs,level.points);
+            const blocked=!checked&&!!frame&&!canAddLevel(frame,refs,level.points);
             return <tr key={level.itemCode} className={checked?'pp-row-chosen':undefined}>
               <td><input type="checkbox" aria-label={`${level.subjectName} · ${level.name} · ${level.points} poäng`} data-level-code={level.itemCode} checked={checked} disabled={disabled||blocked||!checked&&refs.length>=200} title={blocked?'Skulle gå utanför Skolverkets ram':undefined} onChange={()=>onChange?.(toggleProgramplanLevel(refs,level))}/></td>
               <th scope="row">{level.subjectName} · {level.name}{blocked&&<small className="pp-reference-gap">Ryms inte inom Skolverkets ram</small>}</th><td>{level.itemCode}</td><td className="pp-num">{level.points}</td></tr>;
