@@ -177,8 +177,10 @@ test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',asyn
   await page.getByRole('button',{name:'Logga ut',exact:true}).click();release();
   await expect(w(page)).toHaveCount(0);await expect(editor(page)).toHaveCount(0);
   const loggedOut=await logoutResponse;expect(loggedOut.status()).toBe(200);
+  expect(loggedOut.request().postData()).toBeNull();
   expect(await loggedOut.finished()).toBeNull();
   const {redirect}=await loggedOut.json();await page.waitForURL(redirect);await page.waitForLoadState('load');
+  expect((await fixture.request(baseURL,fixture.principal,'/api/programplaner/lista',{page:1})).status).toBe(401);
 });
 
 test('13: sidurval, äldre version, okända äldre val och tomt uppdrag',async({page})=>{

@@ -358,7 +358,7 @@ function ProtectedShell() {
     if (hasUnsaved && !confirmDiscard()) return;
     clearSession();
     try {
-      const result = await api.post<{ redirect: string }>('/api/auth/logout', {});
+      const result = await api.post<{ redirect: string }>('/api/auth/logout', undefined);
       try { window.sessionStorage.removeItem('sp_invite'); } catch { /* Storage kan vara avstängd. */ }
       announce({ type: 'logged-out' });
       window.location.assign(result.redirect);
