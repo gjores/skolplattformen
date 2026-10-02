@@ -2,6 +2,10 @@
 
 Status 2026-10-02: **05-15/05-16 automatiskt verifierade — nytt mänskligt begriplighetsprov väntar**. Tidigare 05-14 är mänskligt underkänt. Följ aktuella uppgifter nedan; äldre provomgångar längre ner är historik.
 
+## Fysisk telefon på samma wifi
+
+Använd den aktuella privata åtkomstlänken eller QR-koden från chatten. Den gäller i två timmar medan datorn, appen, test-IdP:n och kodhjälpen kör. Logga in med roll- och provkodsknapparna, öppna navigationen uppe till vänster och välj Programplaner. Wifi-adressen och nyckeln sparas inte här; en omstart kräver ny länk. Automatiska LAN-/WebKit-prov är PASS men faktisk telefon och din begriplighetsbedömning är ännu oprövade.
+
 ## Aktuellt prov: samma programflöde
 
 Öppna Programplaner på vanlig skyddad app `http://127.0.0.1:3012/`. Lokal inloggning har rollknappar och **Fyll i provkod**. Prov gäller endast syntetiska uppgifter.

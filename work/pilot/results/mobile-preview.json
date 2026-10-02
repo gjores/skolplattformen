@@ -1,0 +1,63 @@
+{
+  "sourceRevision": "ab7274dd4f71fa15fa9d267f1e9446faba0bb4ee",
+  "buildRevision": "023e68b126ffccfdab952abe1d2274a70e8e266d",
+  "status": "PASS",
+  "checkedAt": "2026-10-02T18:25:04.383Z",
+  "gatewaySha256": "b57f88ebafbd3458622a34ef94fefa5e59e2baa34452dfa7fe4f6ba6e3adb375",
+  "cases": [
+    {
+      "profile": "desktop",
+      "role": "rektor",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "correctMandate": true,
+      "sharedProgramSelection": true,
+      "noForeignBrowserOrigins": true,
+      "noBusinessWrites": true,
+      "noHorizontalOverflow": true,
+      "logoutRevoked": true
+    },
+    {
+      "profile": "phone",
+      "role": "rektor",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "correctMandate": true,
+      "sharedProgramSelection": true,
+      "noForeignBrowserOrigins": true,
+      "noBusinessWrites": true,
+      "noHorizontalOverflow": true,
+      "logoutRevoked": true
+    },
+    {
+      "profile": "phone",
+      "role": "huvudman",
+      "status": "PASS",
+      "actualOidc": true,
+      "mfaProof": true,
+      "correctMandate": true,
+      "sharedProgramSelection": true,
+      "noForeignBrowserOrigins": true,
+      "noBusinessWrites": true,
+      "noHorizontalOverflow": true,
+      "logoutRevoked": true
+    }
+  ],
+  "failure": null,
+  "diagnostics": null,
+  "scope": "local synthetic LAN entry, no app/IdP configuration changes",
+  "humanPhoneResult": "awaiting_user",
+  "limits": [
+    "Browser checks use Chromium/WebKit on the computer, not a physical phone.",
+    "The temporary HTTP entry is bound to the selected private interface and access-link gated for two hours.",
+    "Existing protected app, identity/MFA and server mandates remain authoritative."
+  ],
+  "gatewayRevision": "c80567bf732215c90ad29978806f82610e92f0e4",
+  "httpChecks": {
+    "status": "PASS",
+    "passed": 10
+  },
+  "qrGeneratedAndDecoded": true
+}

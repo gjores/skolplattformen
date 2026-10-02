@@ -231,3 +231,8 @@ Historik före senaste underkännande: ännu mer pedagogik och fler gymnasieprog
 05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
 
 Tidigare 05-14-introduktion/dialog/kort ovan är historik. 05-16-SUMMARY är aktuellt användarbeteende. Den generella Wrangler-proxyfrågan är öppen; vanlig lokal preview använder direkt workerd utan denna proxy.
+
+
+## Telefonprov på samma wifi — 2026-10-02
+
+2026-10-02: Användaren vill prova på fysisk telefon och bekräftar samma wifi. Separat tidsbegränsad, åtkomstlänkavgränsad LAN-ingång på port 3013 är implementerad och kör. App/IdP/kodhjälp behåller loopback och befintligt skyddat bygge 023e68b. Tio HTTP-gränsprov och tre verkliga OIDC/MFA-/programvals-/utloggningsfall genom wifi-adressen PASS (dator rektor, WebKit rektor/huvudman); inga utbildningar eller planer skrevs av dessa prov. QR-kod genererad och avkodningskontrollerad; länk/QR är privata och ignorerade. Fysisk telefonåtkomst och mänsklig begriplighet är fortsatt awaiting_user. Se work/pilot/MOBILE-PREVIEW.md och results/mobile-preview.json.
