@@ -81,3 +81,15 @@ Färska 30+20 browser på e077e81, typ/lint/bygge/handbok och sex stabila instru
 ## Senaste provmiljö efter 05-14
 
 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna. Vanlig 3012 kör byggrevision 43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc utan debugnivå/preload. Nya utbildningar är redo för användarens eget första utkast; inget initialt syntetiskt provutkast har skrivits åt användaren. Färska browserprov skapade i stället egna tillfälliga utbildningar som är städade. Följ två dialogsteg: Förbered uppgifterna och Granska och spara. Hämtdatum 2026-09-05 och känd syntetisk start 2026-08-17. Tidigare provomgångar ovan är historik.
+
+## Senaste följdprov: visuell översikt
+
+Användaren kräver 2026-10-02 en tydlig visualisering av programplanens delar och vad som är valbart. Öppna en utbildning och läs **Programplanens delar — vad kan du välja?**. Beskriv skillnaden mellan programgrundens tre ämnesblock, skolans programfördjupningsutbud, elevens individuella val och gymnasiearbete. Är det tydligt vilken del du kan ändra här?
+
+Tryck **Visa ämnena i underlaget** och **Visa nästa steg för fördjupningen**. Du ska nå rätt läsblock respektive den aktuella åtgärden utan att något sparas. Prova ett nytt program, särskilt Vård- och omsorgsprogrammet som saknar inriktning. Se att nivåantalet i översikten visar det faktiskt sparade utkastet, även efter omladdning.
+
+Bedöm samma bild på telefon. Val i programgrunden, såsom svenska/svenska som andraspråk, ska inte uppfattas som automatiskt gjorda fördjupningsval. Gemensamma paket, elevens individuella val och gymnasiearbete är inte nybyggda valfunktioner. Pakettillgänglighet över flera programplaner är en separat pending GSD-todo.
+
+## Aktuell visualiseringsversion — 2026-10-02
+
+05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar. Byggrevision b4c26f3107210ed5fd904d740d8f6a031640c4b4. Se 05-14-VISUALIZATION-SUMMARY/REVIEW och phase5-14-visualization-verification.json; äldre 43c91fa-granskningsbevis ovan är historik.

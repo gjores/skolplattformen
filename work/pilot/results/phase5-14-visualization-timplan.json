@@ -1,0 +1,144 @@
+{
+  "phase": "05-14 visualization",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "sourceRevision": "b4c26f3107210ed5fd904d740d8f6a031640c4b4",
+  "buildRevision": "b4c26f3107210ed5fd904d740d8f6a031640c4b4",
+  "cases": [
+    {
+      "case": "10",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "10",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "01",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "02",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "03",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "04",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "05",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "06",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "07",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "08",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "09",
+      "project": "timplan-phone",
+      "status": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 20,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 304,
+  "preservedAuditAnchors": 26,
+  "images": [],
+  "retries": 0,
+  "skipped": 0,
+  "frameworkErrors": 0,
+  "runtimeDiagnostic": "WRANGLER_LOG=debug to a private file; no preload or exception handler changes",
+  "limits": [
+    "Local synthetic fixtures and locally minted sessions; no interactive IdP or human understanding proof.",
+    "Phone uses iPhone/WebKit emulation.",
+    "Previous interrupted run remains FAIL and its root cause is unresolved."
+  ]
+}

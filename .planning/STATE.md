@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-14
 status: awaiting_human_verification
-stopped_at: 05-14 ready on 3012 with nine programme trials; human understanding and Phase 4 checkpoint open
+stopped_at: 05-14 visualization and nine programme trials ready on 3012; shared packages pending; human understanding open
 last_updated: "2026-10-02"
 last_activity: 2026-10-02
-last_activity_desc: "05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna."
-state_head: 43c91fa
-worker_build_revision: 43c91fa1bb3fd08ac44e39cc4decbc22fb3513dc
+last_activity_desc: "05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar."
+state_head: b4c26f3
+worker_build_revision: b4c26f3107210ed5fd904d740d8f6a031640c4b4
 progress:
   total_phases: 8
   completed_phases: 3
@@ -26,11 +26,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-02)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Fas 5: fjorton planer automatiskt genomförda. 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna.
+**Current focus:** Fas 5 har 14 automatiskt genomförda planer. 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
 
 ## Current Position
 
-**Aktuellt läge 2026-10-02:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna. Se 05-14-SUMMARY/REVIEW för exakt verifieringsgräns. Äldre previewavbrotts rotorsak är fortfarande öppen.
+**Aktuellt läge 2026-10-02:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar. Se 05-14-VISUALIZATION-SUMMARY/REVIEW och phase5-14-visualization-verification.json. Tidigare previewrotorsak är öppen.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och programplansvyn kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
@@ -46,11 +46,11 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Väntar på nytt konkret mänskligt begriplighetsprov. Kodknappen är färdig. Fas 4:s checkpoint och tidigare previewavbrotts orsaksdiagnos är öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-02
-**Last Activity Description:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna.
+**Last Activity Description:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
-**Senaste genomförandebevis, 2026-10-02:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna. Se phase5-14-guided-verification.json. 05-13:s äldre fulla och avbrutna omgångar förblir historiska, med bibehållen FAIL för avbrotten.
+**Senaste genomförandebevis, 2026-10-02:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
@@ -208,10 +208,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-02
-**Stopped At:** 05-14 ger ett separat granskningssteg, sökning och fem ytterligare program (EK/NA/TE/ES/VO). Färska 32+20 browser och 27 riktade Node-prov, typ/lint/skyddat bygge samt handbok PASS på 43c91fa. Nio exempel är bevarade och lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar; nationella beslutsregler och fas 4:s checkpoint är öppna.
+**Stopped At:** 05-14 utökad enligt användaren med visuell karta över sex programdelar och vad som går att välja här. Skolgemensamma programfördjupningspaket över flera programplaner är en pending todo. Färska 32+20 browser, 27 Node-prov, typ/lint/skyddat bygge och handbok PASS på b4c26f3. Nio bevarade exempel lästa för rektor/HM genom 26 auditpar på vanlig 3012. Ny mänsklig begriplighetsbedömning väntar.
 **Resume File:** None
 
-**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-14:s begriplighet och fler program på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
+**Planned Phase:** 5 (Bevarade utbildnings- och klassflöden) — pröva 05-14:s visuella översikt, begriplighet och fler program på nytt och registrera timplanshandledning; därefter planera återstående nationella beslut, utbildningsskapande, kullkopiering och klasskoppling — 2026-10-02
 
 ### Senaste användarfynd, 2026-10-02
 

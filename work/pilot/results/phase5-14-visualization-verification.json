@@ -1,0 +1,27 @@
+{
+  "phase": "05-14 visualization",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "sourceRevision": "b4c26f3107210ed5fd904d740d8f6a031640c4b4",
+  "buildRevision": "b4c26f3107210ed5fd904d740d8f6a031640c4b4",
+  "programBrowser": 32,
+  "timplanBrowser": 20,
+  "nodeTests": 27,
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "visualProfiles": 2,
+  "visualImagesReviewed": 10,
+  "overviewParts": 6,
+  "currentTrialEducationsPerRole": 9,
+  "currentAuditedReads": 26,
+  "humanUnderstanding": "awaiting_user",
+  "sharedPackages": "pending_todo",
+  "previewRootCause": "awaiting_evidence",
+  "limits": [
+    "No interactive IdP proof; browser sessions locally minted.",
+    "Phone uses WebKit emulation.",
+    "No package, pupil choice, gymnasiearbete workflow or national decision-rule implementation."
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "phase": "05-14 visualization",
+  "sourceRevision": "b4c26f3107210ed5fd904d740d8f6a031640c4b4",
+  "buildRevision": "b4c26f3107210ed5fd904d740d8f6a031640c4b4",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "rows": [
+    {
+      "profile": "desktop",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-14-visualization/instructions/desktop-start.png",
+        "web/outputs/phase5-14-visualization/instructions/desktop-workspace.png",
+        "web/outputs/phase5-14-visualization/instructions/desktop-overview.png",
+        "web/outputs/phase5-14-visualization/instructions/desktop-dialog-start.png",
+        "web/outputs/phase5-14-visualization/instructions/desktop-dialog-save.png"
+      ],
+      "overviewHeadingCount": 6,
+      "nextFocused": true,
+      "noMutation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "profile": "phone",
+      "status": "PASS",
+      "images": [
+        "web/outputs/phase5-14-visualization/instructions/phone-start.png",
+        "web/outputs/phase5-14-visualization/instructions/phone-workspace.png",
+        "web/outputs/phase5-14-visualization/instructions/phone-overview.png",
+        "web/outputs/phase5-14-visualization/instructions/phone-dialog-start.png",
+        "web/outputs/phase5-14-visualization/instructions/phone-dialog-save.png"
+      ],
+      "overviewHeadingCount": 6,
+      "nextFocused": true,
+      "noMutation": true,
+      "noHorizontalOverflow": true,
+      "cleanup": {
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Actual read-only browser paths with own synthetic fixtures.",
+    "Phone uses WebKit emulation; screenshots require visual review and do not establish human understanding."
+  ]
+}
