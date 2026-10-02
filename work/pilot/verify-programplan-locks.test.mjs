@@ -29,7 +29,7 @@ test('cleanup refuses ownership mismatch before any destructive statement', asyn
 });
 test('owned cleanup preserves audit rows and referenced identities and reports retained anchors honestly', async () => {
   const statements=[];
-  const remaining={customers:0,sessions:0,plans:0,offerings:0,mandates:0,preservedAuditEvents:4,preservedAuditAnchors:2};
+  const remaining={customers:0,sessions:0,plans:0,receipts:0,educationevents:0,offerings:0,mandates:0,preservedAuditEvents:4,preservedAuditAnchors:2};
   const db=async(strings)=>{statements.push(strings.join('?'));return [remaining];};
   db.begin=async callback=>callback(async(strings)=>{statements.push(strings.join('?'));return [{owned:true}];});
   assert.deepEqual(await cleanupProgramplanFixture(db,'abcdef12'),remaining);

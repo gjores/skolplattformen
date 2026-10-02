@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import artifact from './programplan-catalog.generated.json' with { type: 'json' };
 import { programplanOptions, resolveLegacyProgramplan, newProgramplanBasis, programplanCommand, programplanCommandReply,
   sameProgramplanLevels, sameProgramplanPin, programplanReference, programplanSelectedId, assertProgramplanSummary, programplanLevelName } from './protected-programplan.ts';
+import { toggleProgramplanLevel, groupProgramplanOptions } from './protected-programplan.ts';
 
 const offeringId = '55101100-0000-4000-8000-000000000040', planId = '55101100-0000-4000-8000-000000000050';
 const program = artifact.programs.find(p=>p.code==='SA25');
@@ -17,6 +18,24 @@ const draft = (kind='replace') => ({kind,offeringId,planId,expectedRevision:2,ex
 function cleanDraft(kind='replace') { const d=draft(kind);delete d.pin.specializationRefs;return d; }
 const result = () => ({id:planId,offeringId,unitId:offeringId,schoolName:'Syntetisk skola',education:{name:'SA',cohort:'Fri kulltext',programCode:'SA25',orientationCode},
   version:3,revision:3,status:'utkast',decidedOn:null,catalogId:artifact.catalogId,basisReference:basis(),resolution:{status:'resolved',diagnostics:[],unresolvedChoices:[{kind:'program_rules_unverified',blockId:'program',category:program.category}],decisionReady:false}});
+
+test('staged checkbox choices preserve retained order, append exact refs and never conflate versions',()=>{
+  const [a,b]=programplanOptions(workspace());
+  const original=[programplanReference(b),programplanReference(a)];
+  assert.deepEqual(toggleProgramplanLevel(original,a),[programplanReference(b)]);
+  assert.deepEqual(original,[programplanReference(b),programplanReference(a)]);
+  assert.deepEqual(toggleProgramplanLevel([programplanReference(b)],a),original);
+  const changed={...a,subjectVersion:a.subjectVersion+1};
+  assert.deepEqual(toggleProgramplanLevel(original,changed),[...original,programplanReference(changed)]);
+  const full=Array.from({length:200},(_,i)=>({...programplanReference(b),itemCode:`OLD${i}`}));
+  assert.equal(toggleProgramplanLevel(full,a),full);
+});
+test('subject groups search actual names and retain source order and exact subject versions',()=>{
+  const a=first(), b={...a,itemCode:'OTHER',name:'Andra nivån'}, c={...a,subjectVersion:a.subjectVersion+1};
+  assert.deepEqual(groupProgramplanOptions([a,b,c]).map(g=>g.levels),[[a,b],[c]]);
+  assert.deepEqual(groupProgramplanOptions([a,b,c],'andra').flatMap(g=>g.levels),[b]);
+  assert.deepEqual(groupProgramplanOptions([a],'does not exist'),[]);
+});
 
 test('options use exact subject versions, names and source points and exclude all fixed levels',()=>{
   const w=workspace(), options=programplanOptions(w),fixed=new Set([...program.foundation,...program.programmeSpecific,...program.orientations.find(o=>o.code===orientationCode).subjects].flatMap(s=>s.levels.map(l=>l.code)));

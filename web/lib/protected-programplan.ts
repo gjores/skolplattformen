@@ -54,6 +54,23 @@ export function programplanOptions(workspace: ProgramplanWorkspace): Programplan
 export function programplanReference(option: ProgramplanLevelRef): ProgramplanLevelRef {
   return { subjectCode: option.subjectCode, subjectVersion: option.subjectVersion, itemCode: option.itemCode, points: option.points };
 }
+export function toggleProgramplanLevel(refs: ProgramplanLevelRef[], option: ProgramplanOption): ProgramplanLevelRef[] {
+  const matches = (ref: ProgramplanLevelRef) => sameProgramplanLevels([ref], [option]);
+  if (refs.some(matches)) return refs.filter(ref => !matches(ref));
+  if (refs.length >= 200) return refs;
+  return [...refs, programplanReference(option)];
+}
+export function groupProgramplanOptions(options: ProgramplanOption[], search = '') {
+  const query = search.trim().toLocaleLowerCase('sv');
+  const groups = new Map<string, { subjectCode: string; subjectVersion: number; subjectName: string; levels: ProgramplanOption[] }>();
+  for (const option of options) {
+    if (query && !`${option.subjectName} ${option.name} ${option.itemCode}`.toLocaleLowerCase('sv').includes(query)) continue;
+    const key = `${option.subjectCode}:${option.subjectVersion}`;
+    const group = groups.get(key) ?? { subjectCode: option.subjectCode, subjectVersion: option.subjectVersion, subjectName: option.subjectName, levels: [] };
+    group.levels.push(option); groups.set(key, group);
+  }
+  return [...groups.values()];
+}
 export function resolveLegacyProgramplan(legacy: string[], options: ProgramplanOption[]) {
   const problems: string[] = [], refs: ProgramplanLevelRef[] = [], seen = new Set<string>();
   for (const code of legacy) {

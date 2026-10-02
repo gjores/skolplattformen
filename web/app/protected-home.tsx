@@ -76,7 +76,6 @@ export type SessionResponse = {
 };
 
 const closedItems = [
-  ['Utbildningar', Building2],
   ['Klasser och läsår', GraduationCap],
 ] as const;
 
@@ -161,6 +160,7 @@ function ProtectedNavigation({
               <ListChecks size={19}/><span>Programplaner</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          <SidebarMenuItem><SidebarMenuButton isActive={false} onClick={() => go(session.context && ['huvudman','rektor'].includes(session.context.function) ? 'programplaner' : 'stangt')} className="nav-button"><Building2 size={19}/><span>Utbildningar</span></SidebarMenuButton></SidebarMenuItem>
           {closedItems.map(([label, Icon]) => (
             <SidebarMenuItem key={label}>
               <SidebarMenuButton isActive={false} onClick={() => go('stangt')} className="nav-button">

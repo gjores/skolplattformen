@@ -1,19 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowDown, ArrowUp, RefreshCw, ListChecks } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.ts';
-import { parseProgramplanOfferingList, parseProgramplanWorkspace, type ProgramplanOfferingList,
+import { parseProgramplanWorkspace,
   type ProgramplanWorkspace, type ProgramplanVersionSummary } from '@/lib/programplan-workspace-contract.ts';
 import { programplanCommand, programplanCommandReply, programplanDiagnostic, programplanOptions, programplanReference,
   programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, programplanSelectedId, assertProgramplanSummary, programplanLevelName, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import ProgramplanOverview from './protected-programplan-overview';
+import ProtectedProgramplanFlow from './protected-programplan-flow';
+import ProgramplanLevelPicker from './protected-programplan-level-picker';
 import './protected-programplan.css';
 
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void };
@@ -21,14 +22,16 @@ const aborted = (e: unknown) => e instanceof DOMException && e.name === 'AbortEr
 const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för ändring', replace: 'Ändra fördjupning', clone: 'Skapa ny version' };
 
 export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost }: Props) {
-  const [list, setList] = useState<ProgramplanOfferingList | null>(null), [page, setPage] = useState(1);
+  const page = 1;
   const [workspace, setWorkspace] = useState<ProgramplanWorkspace | null>(null), [plan, setPlan] = useState<Programplan | null>(null);
   const [planSummary, setPlanSummary] = useState<ProgramplanVersionSummary | null>(null);
   const [preparation, setPreparation] = useState<{kind: ProgramplanCommandKind; catalogId: string | null} | null>(null);
-  const [draft, setDraft] = useState<ProgramplanDraft | null>(null), [option, setOption] = useState('');
-  const [reviewing, setReviewing] = useState(false), [levelSearch, setLevelSearch] = useState('');
+  const [draft, setDraft] = useState<ProgramplanDraft | null>(null);
+  const [reviewing, setReviewing] = useState(false);
   const reviewRef = useRef<HTMLElement | null>(null);
-  const nextRef = useRef<HTMLElement | null>(null);
+  const draftRef = useRef<HTMLElement | null>(null);
+  const editing = draft !== null;
+  useEffect(()=>{if(!editing)return;const frame=requestAnimationFrame(()=>draftRef.current?.focus());return()=>cancelAnimationFrame(frame);},[editing]);
   useEffect(()=>{if(!reviewing)return;const frame=requestAnimationFrame(()=>reviewRef.current?.focus());return()=>cancelAnimationFrame(frame);},[reviewing]);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const generation = useRef(0), mounted = useRef(true), controller = useRef<AbortController | null>(null), saving = useRef(false);
@@ -40,15 +43,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const current = useCallback((token: number) => mounted.current && generation.current === token, []);
   const securityFailure = useCallback((e: unknown) => {
     if (!(e instanceof ApiError) || !(e.status === 401 || e.status === 403 && e.code !== 'mfa_required')) return false;
-    invalidate(); setList(null); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
+    invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
   }, [invalidate, onSessionLost]);
-  const loadList = useCallback(async (next: number) => {
-    const r = begin(); setPage(next); setList(null); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setNotice(null); setError(null); setBusy(true);
-    try { const value = parseProgramplanOfferingList(await api.post('/api/programplaner/lista', { page: next }, r.signal), next); if (current(r.token)) setList(value); }
-    catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Utbildningarna kunde inte hämtas. Försök igen.'); }
-    finally { if (current(r.token)) setBusy(false); }
-  }, [begin, current, securityFailure]);
-  useEffect(() => { mounted.current = true; queueMicrotask(() => { if (mounted.current) void loadList(1); }); return () => { mounted.current = false; invalidate(); }; }, [loadList, invalidate]);
+  const loadList = useCallback(async (_next: number) => {
+    invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setNotice(null); setError(null); setBusy(false);
+  }, [invalidate]);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; invalidate(); }; }, [invalidate]);
   async function readWorkspace(offeringId: string, versionPage: number, catalogId: string | null, signal: AbortSignal) {
     const input = { offeringId, versionPage, catalogId };
     return parseProgramplanWorkspace(await api.post('/api/programplaner/underlag', input, signal), input);
@@ -101,7 +101,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     return { fresh, selected, summary };
   }
   async function openEducation(offeringId: string, versionPage = 1, catalogId: string | null = null,
-    planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null) {
+    planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null, propagateError = false) {
     if (busy || !keepPreparation && dirty && !confirmDiscard()) return;
     const r = begin();
     if (!keepPreparation) { setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); }
@@ -110,7 +110,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     try {
       const {fresh, selected, summary} = await readSelection(offeringId, versionPage, catalogId, planId, r.signal);
       if (current(r.token)) { setWorkspace(fresh); setPlan(selected); setPlanSummary(summary); }
-    } catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Aktuellt programplansunderlag kunde inte läsas. Välj utbildningen igen.'); }
+    } catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Aktuellt programplansunderlag kunde inte läsas. Välj utbildningen igen.'); if (propagateError) throw e; }
     finally { if (current(r.token)) setBusy(false); }
   }
   function openVersion(version: ProgramplanVersionSummary) {
@@ -134,7 +134,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         programRef: { code: workspace.catalog.program.code, version: workspace.catalog.program.version }, orientationCode: workspace.education.orientationCode, startedOn },
       startedOn, originalStart: startedOn, refs: refs.map(programplanReference), originalRefs: refs.map(programplanReference), sourceBound: !!source,
       legacyConfirmed: false, options, mode: 'edit', error: null, mfa: false, uncertain: false });
-    setOption(''); setLevelSearch(''); setReviewing(false); setNotice(null); setPreparation(null);
+    setReviewing(false); setNotice(null); setPreparation(null);
   }
   function closeDraft() { if (busy || dirty && !confirmDiscard()) return; setDraft(null); }
   async function refreshDraft(own: ProgramplanDraft, token: number, signal: AbortSignal) {
@@ -191,7 +191,6 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       else await refreshDraft({ ...own, uncertain: true }, r.token, r.signal);
     } finally { saving.current = false; if (current(r.token)) setBusy(false); }
   }
-  function move(index: number, step: number) { if (!draft) return; const refs = [...draft.refs]; [refs[index],refs[index+step]] = [refs[index+step],refs[index]]; setDraft({ ...draft, refs, error: null }); }
   const editableRefs = draft?.kind === 'replace' || draft?.kind === 'create';
   const formLocked = busy || draft?.mode !== 'edit';
   const nextKind: ProgramplanCommandKind = !plan ? 'create' : plan.status === 'utkast' ? plan.basisReference ? 'replace' : 'bind' : 'clone';
@@ -211,36 +210,20 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     if (workspace && preparation) void openEducation(workspace.education.id, workspace.versionPage, catalogId || null, plan?.id ?? null, preparation.kind);
   }
   function cancelPreparation() { if (dirty && !confirmDiscard()) return; setPreparation(null); }
-  const referenceBlocks = workspace?.catalog.status === 'selected' && workspace.catalog.program ? [
-    {name:'Gymnasiegemensamma ämnen', subjects:workspace.catalog.program.foundation},
-    {name:'Programgemensamma ämnen', subjects:workspace.catalog.program.programmeSpecific},
-    ...workspace.catalog.program.orientations.filter(o=>o.code===workspace.education.orientationCode).map(o=>({name:`Inriktning: ${o.name}`,subjects:o.subjects})),
-  ] : [];
   const namedChoices = (refs: ProgramplanDraft['refs'], choices = options) => refs.length ? refs.map(r => `${programplanLevelName(r,choices)} (${r.points} poäng)`).join(', ') : 'Inga val';
-  const availableOptions = draft?.options.filter(o=>!draft.refs.some(r=>r.itemCode===o.itemCode)) ?? [];
-  const filteredOptions = availableOptions.filter(o=>`${o.subjectName} ${o.name} ${o.itemCode}`.toLocaleLowerCase('sv').includes(levelSearch.trim().toLocaleLowerCase('sv')));
-  const chosenOption = availableOptions.find(o=>o.itemCode===option);
   return <section className="protected-programplan" data-testid="protected-programplan-workspace" aria-busy={busy}>
-    <div className="pp-heading"><ListChecks aria-hidden="true"/><div><h1>Programplaner</h1><p>Se utbildningens ämnen och välj vilka fördjupningsnivåer som ska finnas i utkastet.</p></div></div>
+    <div className="pp-heading"><ListChecks aria-hidden="true"/><div><h1>Programplaner</h1><p>Välj program, inriktning och de fördjupningsnivåer utbildningen ska erbjuda.</p></div></div>
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}>Hämta utbildningarna igen</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
-    {!workspace && !draft && (busy ? <output>Hämtar programplansunderlag…</output> : list && <>
-      <section className="pp-explainer" aria-label="Så börjar du"><h2>Vad ska eleverna läsa?</h2><p>Här planerar du för en hel utbildning och elevkull. Programunderlaget visar de gemensamma ämnena. Du väljer utbildningens programfördjupning.</p><ol className="pp-journey"><li><strong>Välj utbildning</strong><span>Vilken skola, vilket program och vilken elevkull?</span></li><li><strong>Förbered utkastet</strong><span>Kontrollera underlag och startdatum. Välj fördjupningsnivåer.</span></li><li><strong>Granska och spara</strong><span>Se precis vad som sparas innan du bekräftar.</span></li></ol></section>
-      <div className="pp-list-heading"><h2>Välj utbildning</h2><span>{list.count} utbildningar</span></div>
-      {list.offerings.length === 0 ? <div className="pp-empty"><h3>Inga utbildningar på den här sidan</h3><p>{list.count ? 'Välj föregående sida.' : 'Ditt aktuella uppdrag omfattar inga gymnasieutbildningar.'}</p></div>
-        : <div className="pp-choices">{list.offerings.map(o=><button type="button" key={o.id} onClick={()=>void openEducation(o.id)} className="pp-choice" aria-label={`Öppna utbildning ${o.name}, ${o.cohort}, ${o.schoolName}`}>
-          <strong>{o.name}</strong><span>{o.schoolName} · {o.cohort}</span><span>{o.programCode} · {o.status === 'aktiv' ? 'Aktiv' : o.status === 'planerad' ? 'Planerad' : 'Avvecklas'} · {o.latestVersion ? `Senaste version ${o.latestVersion}` : 'Ingen programplan ännu'}{o.draftId ? ' · Utkast finns' : ''}</span>
-        </button>)}</div>}
-      {list.count > 50 && <nav className="pp-pagination" aria-label="Utbildningarnas sidor"><Button variant="outline" disabled={page===1||busy} onClick={()=>void loadList(page-1)}>Föregående utbildningar</Button><span>Sida {page} av {Math.ceil(list.count/50)}</span><Button variant="outline" disabled={page*50>=list.count||busy} onClick={()=>void loadList(page+1)}>Nästa utbildningar</Button></nav>}
-    </>)}
+    {!workspace&&!draft&&<ProtectedProgramplanFlow scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId)=>openEducation(id,1,catalogId,planId??null,null,!!planId)}/>}
     {workspace&&<>
       <div className="pp-toolbar"><Button variant="ghost" disabled={busy} onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={16}/>Alla utbildningar</Button><Button variant="outline" disabled={busy||!!draft||!!preparation} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button></div>
       <header className="pp-education"><p>{workspace.education.schoolName} · {workspace.education.cohort??'Elevkull saknas'}</p><h2>{workspace.education.name}</h2>
         <p>{workspace.catalog.program?.name??workspace.education.programCode}{workspace.catalog.program?.orientations.find(o=>o.code===workspace.education.orientationCode)&&` · ${workspace.catalog.program.orientations.find(o=>o.code===workspace.education.orientationCode)!.name}`}</p>
         <p className="pp-status">{plan ? plan.status==='utkast' ? 'Utkast — kan inte fastställas här ännu' : `${programplanStatus[plan.status]} · läses utan ändring` : 'Ingen programplan ännu'}{plan&&` · Version ${plan.version}`}</p>
       </header>
-      <ProgramplanOverview workspace={workspace} plan={plan} sourceAvailable={!preparation||!busy&&!error&&preparation.catalogId===workspace.catalog.catalogId} onNext={()=>{nextRef.current?.focus({preventScroll:true});nextRef.current?.scrollIntoView({block:'start'});}}/>
-      <section ref={nextRef} tabIndex={-1} className="pp-next" aria-label="Nästa steg">
+      <ol className="pp-flow-steps pp-flow-fixed"><li>1. {workspace.catalog.program?.name??workspace.education.programCode}</li><li>2. {workspace.catalog.program?.orientations.find(o=>o.code===workspace.education.orientationCode)?.name??workspace.education.orientationCode??'Ingen inriktning'}</li><li aria-current="step">3. Programfördjupning</li></ol>
+      {!draft&&<div className="pp-work-sheet"><ProgramplanOverview program={!preparation||!busy&&!error&&preparation.catalogId===workspace.catalog.catalogId?workspace.catalog.program:null} orientationCode={workspace.education.orientationCode}/><section className="pp-next" aria-label="Programfördjupning">
         <h3>{preparation ? `1. Välj underlag för ${workspace.education.name}` : 'Nästa steg'}</h3>
         {!preparation&&<>
           <p>{anotherDraft?'Utbildningen har ett utkast som du kan fortsätta med.':nextKind==='create'?'Börja med ett utkast för den här utbildningen.':nextKind==='bind'?'Det äldre utkastets val finns kvar. Välj underlag och startdatum innan du ändrar fördjupningen.':nextKind==='replace'?'Lägg till, ta bort eller flytta dina fördjupningsnivåer. Utbildningens grundämnen ändras inte här.':'Skapa ett nytt utkast. Den här versionen och dess tidigare beslut behålls.'}</p>
@@ -258,18 +241,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <div className="pp-actions"><Button variant="outline" disabled={busy} onClick={cancelPreparation}>Avbryt förberedelse</Button><Button disabled={busy||!!error||!!preparationBlocked||!preparation.catalogId||preparation.catalogId!==workspace.catalog.catalogId||!sourceReady||(preparation.kind==='bind'||preparation.kind==='clone')&&(!legacyResolution||legacyResolution.problems.length>0)} onClick={()=>edit(preparation.kind)}>Fortsätt till startdatum och val</Button></div>
         </>}
       </section>
-      <details className="pp-explainer"><summary>Hjälp: hur hänger delarna ihop?</summary><section aria-label="Så läser du planen"><p>Planen gäller utbildningen och elevkullen ovan. Ett ämne kan ha flera nivåer. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.</p><div className="pp-explainer-parts"><div><h4>1. Programunderlaget</h4><p>De gemensamma ämnena och inriktningens ämnen kommer från underlaget. Du läser dem nedan. Alternativ, exempelvis svenska eller svenska som andraspråk, är ännu inte valda här.</p></div><div><h4>2. Din programfördjupning</h4><p>Du väljer vilka tillåtna fördjupningsnivåer utbildningen ska erbjuda. Listan under <strong>Dina sparade fördjupningsval</strong> ändras först när du sparar utkastet.</p></div></div><p>Elevers individuella val, undervisningstimmar och beslut om att fastställa hela planen görs inte i den här vyn.</p></section></details>
-      <section className="pp-subjects" aria-label="Ämnen och nivåer"><h2>Ämnen och nivåer</h2><p>Poängen nedan är gymnasiepoäng.</p>
         <section className="pp-saved" aria-label="Dina sparade fördjupningsval"><h3>Dina sparade fördjupningsval</h3>
-          {plan?.basisReference ? <><p>Det här är de ordnade val som har sparats i version {plan.version}. När du ändrar i dialogen uppdateras listan här först efter att du har sparat.</p>{plan.basisReference.specializationRefs.length===0&&<p>Inga fördjupningsnivåer sparade.</p>}<ol className="pp-levels">{plan.basisReference.specializationRefs.map((r,i)=><li key={`${i}-${r.itemCode}`}><strong>{programplanLevelName(r,options)}</strong><span>{r.points} poäng</span><small>{r.itemCode} · ämnesversion {r.subjectVersion}</small></li>)}</ol></>
+          {plan?.basisReference ? <><p>Det här är de ordnade val som har sparats i version {plan.version}. När du ändrar i formuläret uppdateras listan här först efter att du har sparat.</p>{plan.basisReference.specializationRefs.length===0&&<p>Inga fördjupningsnivåer sparade.</p>}<ol className="pp-levels">{plan.basisReference.specializationRefs.map((r,i)=><li key={`${i}-${r.itemCode}`}><strong>{programplanLevelName(r,options)}</strong><span>{r.points} poäng</span><small>{r.itemCode} · ämnesversion {r.subjectVersion}</small></li>)}</ol></>
           : plan ? <><p>Äldre sparade val visas precis som de lagrats. Namn och nivåer behöver kopplas till ett aktivt valt underlag innan ändring.</p><ol className="pp-levels">{(legacy??[]).map((code,i)=><li key={`${i}-${code}`}><strong>{code||'(Tomt äldre värde)'}</strong></li>)}</ol>{legacy?.length===0&&<p>Inga äldre fördjupningsval sparade.</p>}</>
           : <p>Inga val är sparade ännu. Börja med Skapa programplan.</p>}
         </section>
-        <section className="pp-reference" aria-label="Ingår enligt underlaget"><h3>Ingår enligt underlaget</h3><p>Detta är programgrundens referensuppgifter. De är skilda från dina sparade fördjupningsval och kan inte ändras i den här vyn.</p>
-          {referenceBlocks.length===0&&<p>Ämnena kan visas när ett underlag har valts. Följ nästa steg ovan.</p>}
-          {referenceBlocks.map((block,blockIndex)=><section id={`pp-national-${blockIndex}`} className="pp-subject-block" key={block.name}><h4>{block.name}</h4><div className="pp-subject-table">{block.subjects.map(subject=><article className="pp-subject-row" key={subject.code}><div><strong>{subject.name}</strong>{subject.optional&&<p className="pp-reference-gap">Alternativ i underlaget — inget ämnesval är gjort här.</p>}</div><div>{subject.levels.length ? <ul>{subject.levels.map(level=><li key={level.code}>{level.name}<span>{level.points} poäng</span></li>)}</ul>:<p className="pp-reference-gap">Nivåuppgifter saknas i underlaget.</p>}<small>{subject.code} · ämnesversion {subject.subjectVersion??'saknas'} · källblock {subject.points} poäng</small></div></article>)}</div></section>)}
-        </section>
-      </section>
+      </div>}
       <details className="pp-underlying"><summary>Underlag och tidigare versioner</summary>
         <section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Underlag</h3><p>Fastställande är stängt här. Fullständiga nationella ramar, alternativ och nivåföljd är ännu inte verifierade. Gymnasiepoäng omvandlas inte till undervisningstimmar.</p>
           {plan&&<p>Version {plan.version} · Revision {plan.revision}{plan.decidedOn&&` · Beslut ${plan.decidedOn}`}</p>}
@@ -285,31 +262,29 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         </section>
       </details>
     </>}
-    <Dialog open={draft!==null} onOpenChange={open=>{if(!open)closeDraft();}}><DialogContent className="pp-dialog" showCloseButton={false} aria-modal="true">
-      <DialogTitle>{draft?titles[draft.kind]:'Programplansutkast'}</DialogTitle><DialogDescription>Förbered uppgifterna och granska sedan sammanfattningen. Inget sparas förrän du trycker på Spara utkast.</DialogDescription>
+    {draft&&<section ref={draftRef} tabIndex={-1} className="pp-draft-sheet" aria-label={titles[draft.kind]}>
+      <h2>{titles[draft.kind]}</h2><p>Välj fördjupningsnivåer och granska sammanfattningen. Inget sparas förrän du trycker på Spara utkast.</p>
       {draft&&<>
         {draft.mode==='edit'&&<ol className="pp-progress" aria-label="Utkastets steg"><li aria-current={!reviewing?'step':undefined}>1. Förbered uppgifterna</li><li aria-current={reviewing?'step':undefined}>2. Granska och spara</li></ol>}
         <p><strong>{draft.educationName}</strong> · {draft.schoolName}</p><details className="pp-dialog-source"><summary>Utkastets underlag</summary><p>{draft.pin.programRef.code} · programversion {draft.pin.programRef.version} · inriktning {draft.pin.orientationCode??'ingen'}</p><p className="pp-code">Katalog: {draft.pin.catalogId}</p></details>
         {draft.error&&!draft.mfa&&<output role="alert" className="pp-alert">{draft.error}</output>}
         {draft.mfa&&<MfaStepUpNotice message={draft.error??'Verifiering med engångskod krävs.'} detail="Dina uppgifter finns kvar här. Om du väljer verifiering lämnar du sidan; det osparade formuläret följer inte med."/>}
         <div hidden={reviewing&&draft.mode==='edit'}>
+        {workspace&&<ProgramplanOverview program={workspace.catalog.program} orientationCode={workspace.education.orientationCode}/>}
         <h3 className="pp-form-step">{draft.sourceBound?'Utbildningens start':'När börjar utbildningen?'}</h3>
         {(draft.kind==='create'||draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<div className="pp-field"><label htmlFor="pp-start">Utbildningens exakta startdatum</label><input id="pp-start" type="date" value={draft.startedOn} disabled={formLocked} aria-describedby="pp-start-help" onChange={e=>setDraft({...draft,startedOn:e.target.value,error:null,mfa:false})}/><p id="pp-start-help">Ange dagen då just den här utbildningen började eller ska börja, enligt utbildningens uppgifter. Använd inte dagens datum om utbildningen börjar en annan dag. Elevkullens namn eller startår räcker inte för att avgöra dagen.</p></div>}
-        {draft.sourceBound&&<p>Bundet utbildningsstartdatum: {draft.startedOn}. Det sparades när planen kopplades till underlaget. Katalog, start och programgrund ändras inte i den här dialogen.</p>}
+        {draft.sourceBound&&<p>Bundet utbildningsstartdatum: {draft.startedOn}. Det sparades när planen kopplades till underlaget. Katalog, start och programgrund ändras inte i det här formuläret.</p>}
         <h3 className="pp-form-step">{editableRefs?'Vilka fördjupningsnivåer ska utbildningen erbjuda?':'Kontrollera de tidigare valen'}</h3>
         <p>{editableRefs?'Programfördjupningen är utbildningens valda fördjupningsnivåer. Listan nedan är det du kommer att spara. Du kan lägga till en nivå, ta bort ett val eller ändra ordningen.':'Alla tidigare val följer med i samma ordning. Här kopplar du dem till underlaget eller kopierar dem till ett nytt utkast. Du ändrar själva valen efteråt med Ändra fördjupning.'}</p>
-        <h4>{editableRefs?'Vald programfördjupning':'Förändringsfria val från källan'}</h4>
-        {draft.refs.length===0&&<p>Inga fördjupningsnivåer valda.</p>}
-        <ol className="pp-edit-levels">{draft.refs.map((r,i)=><li key={`${i}-${r.itemCode}`}><div><strong>{programplanLevelName(r,draft.options)}</strong><span>{r.itemCode} · ämnesversion {r.subjectVersion} · {r.points} poäng</span></div>{editableRefs&&<div className="pp-level-actions"><Button type="button" variant="outline" disabled={formLocked||i===0} aria-label={`Flytta upp ${r.itemCode}`} onClick={()=>move(i,-1)}><ArrowUp size={16}/></Button><Button type="button" variant="outline" disabled={formLocked||i===draft.refs.length-1} aria-label={`Flytta ned ${r.itemCode}`} onClick={()=>move(i,1)}><ArrowDown size={16}/></Button><Button type="button" variant="outline" disabled={formLocked} aria-label={`Ta bort ${r.itemCode}`} onClick={()=>setDraft({...draft,refs:draft.refs.filter((_,index)=>index!==i),error:null})}>Ta bort</Button></div>}</li>)}</ol>
-        {editableRefs&&<div className="pp-field"><label htmlFor="pp-search">Sök ämne eller nivå</label><input id="pp-search" type="search" value={levelSearch} disabled={formLocked} placeholder="Till exempel engelska" onChange={e=>{setLevelSearch(e.target.value);setOption('');}}/><label htmlFor="pp-option">Lägg till fördjupningsnivå</label><select id="pp-option" value={option} disabled={formLocked} aria-describedby="pp-option-help" onChange={e=>setOption(e.target.value)}><option value="">Välj nivå ({filteredOptions.length} tillgängliga)</option>{filteredOptions.map(o=><option key={o.itemCode} value={o.itemCode}>{o.subjectName} · {o.name} · {o.points} poäng</option>)}</select><p id="pp-option-help">Listan visar fördjupningsnivåer i det valda underlaget. Gemensamma ämnesnivåer finns redan i programgrunden och väljs inte här. Välj en nivå och tryck Lägg till nivå.</p>{filteredOptions.length===0&&<output>Ingen tillgänglig nivå matchar sökningen. Prova ett annat ämnesnamn eller töm sökfältet.</output>}{chosenOption&&<p className="pp-choice-preview">Du lägger till: <strong>{chosenOption.subjectName} · {chosenOption.name}</strong>, {chosenOption.points} gymnasiepoäng. Den är inte tillagd ännu.</p>}<Button type="button" variant="outline" disabled={formLocked||!chosenOption||draft.refs.length>=200} onClick={()=>{if(chosenOption){setDraft({...draft,refs:[...draft.refs,programplanReference(chosenOption)],error:null});setOption('');}}}>Lägg till nivå</Button><output>{draft.refs.length===1?'1 nivå':`${draft.refs.length} nivåer`} i ditt utkast. De sparas i nästa steg.</output></div>}
+        {editableRefs?<ProgramplanLevelPicker idPrefix="pp-edit" options={draft.options} refs={draft.refs} disabled={formLocked} onChange={refs=>setDraft({...draft,refs,error:null})}/>:<><h4>Förändringsfria val från källan</h4><ol className="pp-edit-levels">{draft.refs.map((r,i)=><li key={`${i}-${r.itemCode}`}><strong>{programplanLevelName(r,draft.options)}</strong><span>{r.points} poäng</span></li>)}</ol></>}
         {(draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<label className="pp-check"><input type="checkbox" disabled={formLocked} checked={draft.legacyConfirmed} onChange={e=>setDraft({...draft,legacyConfirmed:e.target.checked,error:null})}/><span>Jag har kontrollerat att alla äldre val bevaras i samma ordning och att startdatum samt underlag gäller för utbildningen.</span></label>}
         </div>
-        {draft.mode==='edit'&&reviewing&&<section ref={reviewRef} tabIndex={-1} className="pp-save-help" aria-label="Kontrollera före sparning"><h3 className="pp-form-step">Det här sparas i utkastet</h3><dl className="pp-review"><dt>Utbildning</dt><dd>{draft.educationName}</dd><dt>Skola</dt><dd>{draft.schoolName}</dd><dt>Utbildningsstart</dt><dd>{draft.startedOn||'Datum saknas — gå tillbaka och ange det'}</dd><dt>Programfördjupning</dt><dd>{draft.refs.length===1?'1 vald nivå':`${draft.refs.length} valda nivåer`}</dd></dl>{draft.refs.length>0?<ol className="pp-review-levels">{draft.refs.map((r,i)=><li key={r.itemCode}><strong>{i+1}. {programplanLevelName(r,draft.options)}</strong><span>{r.points} gymnasiepoäng</span></li>)}</ol>:<p>Inga fördjupningsnivåer valda. Du kan spara ett tomt utkast och fortsätta senare.</p>}{option&&<p role="alert">Nivån i väljaren har inte lagts till. Gå tillbaka om du vill ta med den.</p>}<p>Programunderlagets gemensamma ämnen behålls. <strong>Spara utkast</strong> sparar uppgifterna ovan. Planen blir fortfarande ett utkast; den fastställs inte.</p><p>Vill du ändra något? Välj <strong>Tillbaka till uppgifterna</strong>.</p></section>}
+        {draft.mode==='edit'&&reviewing&&<section ref={reviewRef} tabIndex={-1} className="pp-save-help" aria-label="Kontrollera före sparning"><h3 className="pp-form-step">Det här sparas i utkastet</h3><dl className="pp-review"><dt>Utbildning</dt><dd>{draft.educationName}</dd><dt>Skola</dt><dd>{draft.schoolName}</dd><dt>Utbildningsstart</dt><dd>{draft.startedOn||'Datum saknas — gå tillbaka och ange det'}</dd><dt>Programfördjupning</dt><dd>{draft.refs.length===1?'1 vald nivå':`${draft.refs.length} valda nivåer`}</dd></dl>{draft.refs.length>0?<ol className="pp-review-levels">{draft.refs.map((r,i)=><li key={r.itemCode}><strong>{i+1}. {programplanLevelName(r,draft.options)}</strong><span>{r.points} gymnasiepoäng</span></li>)}</ol>:<p>Inga fördjupningsnivåer valda. Du kan spara ett tomt utkast och fortsätta senare.</p>}<p>Programunderlagets gemensamma ämnen behålls. <strong>Spara utkast</strong> sparar uppgifterna ovan. Planen blir fortfarande ett utkast; den fastställs inte.</p><p>Vill du ändra något? Välj <strong>Tillbaka till uppgifterna</strong>.</p></section>}
         {draft.mode==='refreshing'&&<output>Hämtar aktuellt underlag. Dina uppgifter behålls…</output>}
-        {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuella fördjupningsval: {namedChoices(plan?.basisReference?.specializationRefs??[])}</p><p>Dina fördjupningsval: {namedChoices(draft.refs,draft.options)}</p><details><summary>Jämför referenser och revisioner</summary><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella referenser: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina referenser: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p></details>{!retryCompatible(draft)&&<p>Detta kommando kan inte skickas igen automatiskt. Stäng dialogen och granska den aktuella versionen innan du väljer nästa åtgärd.</p>}</div>}
+        {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuella fördjupningsval: {namedChoices(plan?.basisReference?.specializationRefs??[])}</p><p>Dina fördjupningsval: {namedChoices(draft.refs,draft.options)}</p><details><summary>Jämför referenser och revisioner</summary><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella referenser: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina referenser: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p></details>{!retryCompatible(draft)&&<p>Detta kommando kan inte skickas igen automatiskt. Stäng formuläret och granska den aktuella versionen innan du väljer nästa åtgärd.</p>}</div>}
         {draft.mode==='applied'&&<output className="pp-notice">Ett aktuellt utkast innehåller redan samma bundna underlag och val. Inget nytt sparande behövs.</output>}
         <div className="pp-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>{draft.mode==='edit'&&reviewing&&<Button variant="outline" disabled={busy} onClick={()=>setReviewing(false)}>Tillbaka till uppgifterna</Button>}{draft.mode==='refresh-failed'?<Button disabled={busy} onClick={()=>void reloadDraft()}>Läs om underlaget</Button>:draft.mode==='edit'&&!reviewing?<Button disabled={busy} onClick={()=>setReviewing(true)}>Granska utkast</Button>:['edit','compare'].includes(draft.mode)&&<Button disabled={busy||draft.mode==='compare'&&!retryCompatible(draft)} onClick={()=>void saveDraft()}>{busy?'Sparar…':draft.mode==='compare'?'Använd mina val':'Spara utkast'}</Button>}</div>
       </>}
-    </DialogContent></Dialog>
+    </section>}
   </section>;
 }

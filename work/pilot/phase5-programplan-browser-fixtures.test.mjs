@@ -21,8 +21,8 @@ test('fixture imports have no database/run/report side effects',()=>{
 test('browser summary fails on missing/skipped/duplicated cases, stale provenance or absent cleanup',()=>{
   const proof={sourceRevision:source,buildRevision:build};
   const attachment=(name,value)=>({name,body:Buffer.from(JSON.stringify(value)).toString('base64')});
-  const cleanup={customers:0,sessions:0,plans:0,offerings:0,mandates:0,mintedSessions:0,triggers:0,functions:0,preservedAuditEvents:3,preservedAuditAnchors:1};
-  const report=()=>({errors:[],suites:[{specs:Array.from({length:16},(_,i)=>({title:`${String(i+1).padStart(2,'0')}: flow`,tests:['programplan-desktop','programplan-phone'].map(projectName=>({projectName,expectedStatus:'passed',results:[{status:'passed',attachments:[attachment('cleanup.json',cleanup),...(i===0?[attachment('source-build.json',{...proof,scope:'local-synthetic-only'})]:[])]}]}))}))}]});
+  const cleanup={customers:0,sessions:0,plans:0,offerings:0,receipts:0,educationEvents:0,mandates:0,mintedSessions:0,triggers:0,functions:0,preservedAuditEvents:3,preservedAuditAnchors:1};
+  const report=()=>({errors:[],suites:[{specs:Array.from({length:19},(_,i)=>({title:`${String(i+1).padStart(2,'0')}: flow`,tests:['programplan-desktop','programplan-phone'].map(projectName=>({projectName,expectedStatus:'passed',results:[{status:'passed',attachments:[attachment('cleanup.json',cleanup),...(i===0?[attachment('source-build.json',{...proof,scope:'local-synthetic-only'})]:[])]}]}))}))}]});
   assert.equal(summarizeProgramplanBrowser(report(),proof).status,'PASS');
   assert.equal(summarizeProgramplanBrowser(report(),proof,'05-13').phase,'05-13');
   const advancedHead=report();const attachments=advancedHead.suites[0].specs[0].tests[1].results[0].attachments;
@@ -33,5 +33,7 @@ test('browser summary fails on missing/skipped/duplicated cases, stale provenanc
   const skipped=report();skipped.suites[0].specs[4].tests[0].results[0].status='skipped';assert.equal(summarizeProgramplanBrowser(skipped,proof).status,'FAIL');
   const duplicate=report();duplicate.suites[0].specs[3].title='01: duplicate';assert.equal(summarizeProgramplanBrowser(duplicate,proof).status,'FAIL');
   const unclean=report();unclean.suites[0].specs[5].tests[1].results[0].attachments=[];assert.equal(summarizeProgramplanBrowser(unclean,proof).status,'FAIL');
+  const receiptLeft=report();receiptLeft.suites[0].specs[16].tests[0].results[0].attachments[0]=attachment('cleanup.json',{...cleanup,receipts:1});assert.equal(summarizeProgramplanBrowser(receiptLeft,proof).status,'FAIL');
+  const receiptUnchecked=report();const {receipts:_receipts,...oldCleanup}=cleanup;receiptUnchecked.suites[0].specs[17].tests[1].results[0].attachments[0]=attachment('cleanup.json',oldCleanup);assert.equal(summarizeProgramplanBrowser(receiptUnchecked,proof).status,'FAIL');
   assert.equal(summarizeProgramplanBrowser(report(),{...proof,buildRevision:source}).status,'FAIL');
 });

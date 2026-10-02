@@ -1,35 +1,19 @@
 'use client';
 
-import { BookOpen, GraduationCap, Layers, ListChecks, UserRound, PencilLine } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import type { Programplan } from '@/lib/programplan-contract.ts';
-import type { ProgramplanWorkspace } from '@/lib/programplan-workspace-contract.ts';
+import type { CatalogProgram } from '@/lib/programplan-catalog.ts';
 
-type Props = { workspace: ProgramplanWorkspace; plan: Programplan | null; sourceAvailable: boolean; onNext: () => void };
-export default function ProgramplanOverview({ workspace, plan, sourceAvailable, onNext }: Props) {
-  const program = sourceAvailable ? workspace.catalog.program : null;
-  const orientation = program?.orientations.find(o=>o.code===workspace.education.orientationCode);
-  const choices = plan?.basisReference?.specializationRefs;
-  const sourceSelected = workspace.catalog.status === 'selected' && !!program;
-  return <section className="pp-overview" aria-label="Programplanens delar och val">
-    <h3>Programplanens delar — vad kan du välja?</h3>
-    <p>Se först vad som hör till programmet. Välj sedan vilka fördjupningsnivåer skolan ska erbjuda i den här utbildningen.</p>
-    <div className="pp-map-group"><h4>Programgrund · läs från underlaget</h4>
-      <div className="pp-map-grid">
-        <article className="pp-map-card"><BookOpen aria-hidden="true"/><h5>Gymnasiegemensamma ämnen</h5><span className="pp-map-tag">Gemensam grund</span><p>Ämnen som ingår på nationella program. Omfattningen beror på programmet.</p>{sourceSelected?<a href="#pp-national-0">Visa ämnena i underlaget</a>:<small>Välj underlag via Nästa steg för att se ämnena.</small>}</article>
-        <article className="pp-map-card"><GraduationCap aria-hidden="true"/><h5>Programgemensamma ämnen</h5><span className="pp-map-tag">Gemensamt inom programmet</span><p>Ämnen som ger just det här programmet dess gemensamma innehåll.</p>{sourceSelected?<a href="#pp-national-1">Visa ämnena i underlaget</a>:<small>Ämnena visas när du har valt underlag.</small>}</article>
-        <article className="pp-map-card"><Layers aria-hidden="true"/><h5>Inriktningsämnen</h5><span className="pp-map-tag">Följer utbildningens inriktning</span><p>{orientation?`Vald inriktning: ${orientation.name}.`:sourceSelected&&program.orientations.length===0?'Programmet har ingen inriktning.':workspace.education.orientationCode?'Inriktningen är angiven för utbildningen. Namnet visas när underlaget har valts.':'Ingen inriktning är angiven för utbildningen.'}</p>{orientation?<a href="#pp-national-2">Visa inriktningens ämnen</a>:<small>Inriktningen ändras inte i den här vyn.</small>}</article>
-      </div>
-    </div>
-    <div className="pp-map-bridge" aria-hidden="true">+</div>
-    <div className="pp-map-group"><h4>Fördjupning, elevens val och eget arbete</h4>
-      <div className="pp-map-grid">
-        <article className="pp-map-card pp-map-editable"><ListChecks aria-hidden="true"/><h5>Programfördjupning</h5><span className="pp-map-tag">Du väljer nivåer här</span><p>Skolans utbud av fördjupning. Här lägger du till enskilda nivåer i utbildningens utkast.</p><p className="pp-map-state">{choices?choices.length===1?'Sparat i planen: 1 nivå.':`Sparat i planen: ${choices.length} nivåer.`:plan?'Äldre val finns. Koppla dem till underlag före ändring.':'Inga fördjupningsval sparade ännu.'}</p><Button variant="outline" onClick={onNext}>Visa nästa steg för fördjupningen</Button><small>Paket kan ännu inte väljas här.</small></article>
-        <article className="pp-map-card pp-map-individual"><UserRound aria-hidden="true"/><h5>Individuellt val</h5><span className="pp-map-tag">Eleven väljer ur skolans utbud</span><p>Val som gäller den enskilda eleven. De hanteras separat från utbildningens fördjupningslista.</p><small>Elevens val görs inte i den här vyn.</small></article>
-        <article className="pp-map-card"><PencilLine aria-hidden="true"/><h5>Gymnasiearbete</h5><span className="pp-map-tag">Ingår i utbildningen</span><p>Elevens avslutande arbete hör till programmet och är en egen del av utbildningen.</p><small>Arbetet planeras inte i den här vyn.</small></article>
-      </div>
-    </div>
-    <aside className="pp-map-alternatives"><strong>Val finns också i programgrunden.</strong><p>Exempelvis svenska eller svenska som andraspråk. Alternativ i underlaget väljs inte automatiskt. De visas vid ämnet och kan inte avgöras med fördjupningsväljaren.</p></aside>
-    <p className="pp-map-caption">Översikt över nationella program; ingen automatisk kontroll av hela utbildningens regler eller poängram. <a href="https://utbildningsguiden.skolverket.se/gymnasieskolan/gymnasieskolans-program/gymnasieprogrammens-olika-delar" target="_blank" rel="noreferrer">Läs Skolverkets förklaring av programmens delar</a>.</p>
+type Props = { program: CatalogProgram | null; orientationCode: string | null };
+export default function ProgramplanOverview({ program, orientationCode }: Props) {
+  const orientation=program?.orientations.find(o=>o.code===orientationCode);
+  const blocks=program?[
+    {name:'Gymnasiegemensamma ämnen',subjects:program.foundation},
+    {name:'Programgemensamma ämnen',subjects:program.programmeSpecific},
+    ...(orientation?[{name:`Inriktning: ${orientation.name}`,subjects:orientation.subjects}]:[]),
+  ]:[];
+  return <section className="pp-reference" aria-label="Ingår enligt underlaget"><h3>Programgrund och inriktning</h3>
+    {!program&&<p>Välj ett tillgängligt underlag för att läsa ämnena. Äldre sparade uppgifter bevaras.</p>}
+    {program&&program.orientations.length===0&&<p>Programmet har ingen inriktning.</p>}
+    {blocks.map((block,index)=><section id={`pp-national-${index}`} className="pp-subject-block" key={block.name}><h4>{block.name}</h4><div className="pp-subject-table">{block.subjects.map(subject=><article className="pp-subject-row" key={subject.code}><div><strong>{subject.name}</strong>{subject.optional&&<p className="pp-reference-gap">Alternativ i underlaget — inget ämnesval är gjort här.</p>}</div><div>{subject.levels.length?<ul>{subject.levels.map(level=><li key={level.code}>{level.name}<span>{level.points} poäng</span></li>)}</ul>:<p className="pp-reference-gap">Nivåuppgifter saknas i underlaget.</p>}</div></article>)}</div></section>)}
+    <details className="pp-concept-help"><summary>Om programplanens delar</summary><p>Grundämnen och inriktningsämnen läses från underlaget. Här väljer du skolans programfördjupning. Alternativ i grunden väljs inte automatiskt. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.</p><p>Elevens individuella val och gymnasiearbete är egna delar. De väljs inte med fördjupningskryssen. Paket kan ännu inte väljas här.</p><p>Hela utbildningens regler och poängram godkänns inte automatiskt. <a href="https://utbildningsguiden.skolverket.se/gymnasieskolan/gymnasieskolans-program/gymnasieprogrammens-olika-delar" target="_blank" rel="noreferrer">Skolverket förklarar programmens delar</a>.</p></details>
   </section>;
 }
