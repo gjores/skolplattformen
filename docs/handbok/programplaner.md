@@ -29,6 +29,14 @@ Under **Ämnen och nivåer** finns två olika delar:
 
 Äldre sparade fördjupningsval visas precis som de lagrats, utan gissade namn. De behöver först kopplas till ett valt underlag innan de kan ändras.
 
+## Se vilka delar du kan välja i
+
+**Programplanens delar — vad kan du välja?** visar en översikt för nationella program. Programgrundens ämnen visas tillsammans, medan programfördjupning, individuellt val och gymnasiearbete är egna delar. Inriktningens namn hämtas från utbildningens valda underlag; en utbildning utan inriktning visas utan gissning.
+
+Den blå rutan **Programfördjupning** visar utbildningens sparade nivåantal. **Visa nästa steg för fördjupningen** tar dig till den handling som går att göra med den aktuella planen. Länkarna i programgrunden tar dig till de ämnen som går att läsa i underlaget.
+
+Elevens individuella val, gymnasiearbete och gemensamma fördjupningspaket hanteras inte i den här vyn. Alternativ i programgrunden väljs inte automatiskt eller med fördjupningsväljaren. Översikten ersätter ingen fullständig kontroll av utbildningens regler eller poängram. [Skolverket förklarar programmens delar](https://utbildningsguiden.skolverket.se/gymnasieskolan/gymnasieskolans-program/gymnasieprogrammens-olika-delar).
+
 ## Följ nästa steg
 
 Utbildningens och den lästa versionens läge avgör vilken handling som visas:

@@ -13,6 +13,7 @@ import { programplanCommand, programplanCommandReply, programplanDiagnostic, pro
   programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, programplanSelectedId, assertProgramplanSummary, programplanLevelName, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
+import ProgramplanOverview from './protected-programplan-overview';
 import './protected-programplan.css';
 
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void };
@@ -27,6 +28,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [draft, setDraft] = useState<ProgramplanDraft | null>(null), [option, setOption] = useState('');
   const [reviewing, setReviewing] = useState(false), [levelSearch, setLevelSearch] = useState('');
   const reviewRef = useRef<HTMLElement | null>(null);
+  const nextRef = useRef<HTMLElement | null>(null);
   useEffect(()=>{if(!reviewing)return;const frame=requestAnimationFrame(()=>reviewRef.current?.focus());return()=>cancelAnimationFrame(frame);},[reviewing]);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const generation = useRef(0), mounted = useRef(true), controller = useRef<AbortController | null>(null), saving = useRef(false);
@@ -237,7 +239,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         <p>{workspace.catalog.program?.name??workspace.education.programCode}{workspace.catalog.program?.orientations.find(o=>o.code===workspace.education.orientationCode)&&` · ${workspace.catalog.program.orientations.find(o=>o.code===workspace.education.orientationCode)!.name}`}</p>
         <p className="pp-status">{plan ? plan.status==='utkast' ? 'Utkast — kan inte fastställas här ännu' : `${programplanStatus[plan.status]} · läses utan ändring` : 'Ingen programplan ännu'}{plan&&` · Version ${plan.version}`}</p>
       </header>
-      <section className="pp-next" aria-label="Nästa steg">
+      <ProgramplanOverview workspace={workspace} plan={plan} sourceAvailable={!preparation||!busy&&!error&&preparation.catalogId===workspace.catalog.catalogId} onNext={()=>{nextRef.current?.focus({preventScroll:true});nextRef.current?.scrollIntoView({block:'start'});}}/>
+      <section ref={nextRef} tabIndex={-1} className="pp-next" aria-label="Nästa steg">
         <h3>{preparation ? `1. Välj underlag för ${workspace.education.name}` : 'Nästa steg'}</h3>
         {!preparation&&<>
           <p>{anotherDraft?'Utbildningen har ett utkast som du kan fortsätta med.':nextKind==='create'?'Börja med ett utkast för den här utbildningen.':nextKind==='bind'?'Det äldre utkastets val finns kvar. Välj underlag och startdatum innan du ändrar fördjupningen.':nextKind==='replace'?'Lägg till, ta bort eller flytta dina fördjupningsnivåer. Utbildningens grundämnen ändras inte här.':'Skapa ett nytt utkast. Den här versionen och dess tidigare beslut behålls.'}</p>
@@ -264,7 +267,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         </section>
         <section className="pp-reference" aria-label="Ingår enligt underlaget"><h3>Ingår enligt underlaget</h3><p>Detta är programgrundens referensuppgifter. De är skilda från dina sparade fördjupningsval och kan inte ändras i den här vyn.</p>
           {referenceBlocks.length===0&&<p>Ämnena kan visas när ett underlag har valts. Följ nästa steg ovan.</p>}
-          {referenceBlocks.map(block=><section className="pp-subject-block" key={block.name}><h4>{block.name}</h4><div className="pp-subject-table">{block.subjects.map(subject=><article className="pp-subject-row" key={subject.code}><div><strong>{subject.name}</strong>{subject.optional&&<p className="pp-reference-gap">Alternativ i underlaget — inget ämnesval är gjort här.</p>}</div><div>{subject.levels.length ? <ul>{subject.levels.map(level=><li key={level.code}>{level.name}<span>{level.points} poäng</span></li>)}</ul>:<p className="pp-reference-gap">Nivåuppgifter saknas i underlaget.</p>}<small>{subject.code} · ämnesversion {subject.subjectVersion??'saknas'} · källblock {subject.points} poäng</small></div></article>)}</div></section>)}
+          {referenceBlocks.map((block,blockIndex)=><section id={`pp-national-${blockIndex}`} className="pp-subject-block" key={block.name}><h4>{block.name}</h4><div className="pp-subject-table">{block.subjects.map(subject=><article className="pp-subject-row" key={subject.code}><div><strong>{subject.name}</strong>{subject.optional&&<p className="pp-reference-gap">Alternativ i underlaget — inget ämnesval är gjort här.</p>}</div><div>{subject.levels.length ? <ul>{subject.levels.map(level=><li key={level.code}>{level.name}<span>{level.points} poäng</span></li>)}</ul>:<p className="pp-reference-gap">Nivåuppgifter saknas i underlaget.</p>}<small>{subject.code} · ämnesversion {subject.subjectVersion??'saknas'} · källblock {subject.points} poäng</small></div></article>)}</div></section>)}
         </section>
       </section>
       <details className="pp-underlying"><summary>Underlag och tidigare versioner</summary>

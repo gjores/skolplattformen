@@ -41,6 +41,11 @@ test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning
   await expect(w(page)).not.toContainText('Syntetisk annan skola SA');
   const pendingRead=page.waitForResponse(matches('/api/programplaner/lasa'));const firstWorkspace=await education(page);await paired(firstWorkspace,'programplan_workspace_read',fixture.offeringId,fixture.principal,'education');
   await paired(await pendingRead,'programplan_read');
+  const overview=w(page).getByRole('region',{name:'Programplanens delar och val',exact:true});
+  for(const title of ['Gymnasiegemensamma ämnen','Programgemensamma ämnen','Inriktningsämnen','Programfördjupning','Individuellt val','Gymnasiearbete'])await expect(overview.getByRole('heading',{name:title,exact:true})).toBeVisible();
+  await expect(overview).toContainText('Du väljer nivåer här');await expect(overview).toContainText('Eleven väljer ur skolans utbud');await expect(overview).toContainText('Paket kan ännu inte väljas här');await expect(overview).toContainText('Sparat i planen: 1 nivå.');
+  await overview.getByRole('link',{name:'Visa ämnena i underlaget',exact:true}).first().click();await expect(w(page).locator('#pp-national-0')).toBeInViewport();
+  await overview.getByRole('button',{name:'Visa nästa steg för fördjupningen',exact:true}).click();await expect(w(page).getByRole('region',{name:'Nästa steg',exact:true})).toBeFocused();
   const details=w(page).locator('.pp-underlying');await expect(details).not.toHaveAttribute('open','');
   await expect(w(page).getByRole('region',{name:'Dina sparade fördjupningsval',exact:true})).toContainText('Engelska');await expect(w(page).getByRole('region',{name:'Dina sparade fördjupningsval',exact:true})).toContainText('100 poäng');
   await expect(w(page).getByRole('button',{name:'Ändra fördjupning',exact:true})).toBeEnabled();await expect(w(page)).toContainText('Utkast — kan inte fastställas här ännu');
@@ -196,7 +201,7 @@ test('16: fem ytterligare program skapas, granskas och läses med rätt programg
     expect(await fixture.plans(spec.id)).toEqual([]);
     if(spec.program==='VO25')await capture(page,info,'programplan-vard-review.png');
     const r=await save(page,'skapa');expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_created',body.id);
-    await expect(page.getByRole('dialog')).toHaveCount(0);const row=await fixture.snapshot(body.id);
+    await expect(page.getByRole('dialog')).toHaveCount(0);if(spec.program==='VO25')await expect(w(page).getByRole('region',{name:'Programplanens delar och val',exact:true})).toContainText('Programmet har ingen inriktning.');const row=await fixture.snapshot(body.id);
     expect(row.offering_id).toBe(spec.id);expect(row.basis_reference.programRef).toEqual({code:spec.program,version:spec.version});expect(row.basis_reference.orientationCode).toBe(spec.orientation);expect(row.basis_reference.startedOn).toBe('2026-08-17');expect(row.specialization).toEqual([code]);expect(row.status).toBe('utkast');expect(row.decided_on).toBe(null);
     await expect(w(page).getByRole('region',{name:'Dina sparade fördjupningsval',exact:true})).toContainText(code!);
     await w(page).getByRole('button',{name:'Alla utbildningar',exact:true}).click();await education(page,spec.name);
