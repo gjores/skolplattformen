@@ -32,6 +32,25 @@ Efter sparning och omläsning visas resultatet under **Dina sparade fördjupning
 
 Gymnasiepoäng beskriver omfattningen, inte lektionstimmar. Elevens individuella val och gymnasiearbete är egna delar och hanteras separat. Gemensamma fördjupningspaket kan ännu inte väljas här. **Om programplanens delar** ger kort begreppshjälp. [Skolverket förklarar programmens delar](https://utbildningsguiden.skolverket.se/gymnasieskolan/gymnasieskolans-program/gymnasieprogrammens-olika-delar).
 
+## Planera årskurser och terminer
+
+Öppna en sparad programplan med bundet underlag. **Årskurser och terminer** visar hur många poäng som ligger i årskurs 1, 2 och 3, uppdelat på höst och vår. **Visa ämnen och terminer** öppnar fördelningen per ämne/nivå.
+
+1. Välj **Fördela poäng** på ett utkast. Huvudman och rektor kan redigera inom sina aktuella skoluppdrag. Skoladministratörens delegation är ännu inte tillgänglig.
+2. Skriv poängen i de terminer där nivån ska läsas. En nivå på 100 poäng kan exempelvis fördelas med 50 på hösten och 50 på våren. På dator syns alla sex terminer. På telefon väljer du årskurs över tabellen; de andra årskursernas värden finns kvar.
+3. Kontrollera summan vid nivån och översikten över årskurserna. Tomma fält räknas som 0. Du kan spara en delvis fördelad plan. Negativa värden, decimaler och en summa som överstiger nivåns poäng måste rättas.
+4. Välj **Spara fördelning**. Fördelningen hör till den öppna programplansversionen. **Avbryt** lämnar dina osparade ändringar efter eventuell bekräftelse.
+
+Individuellt val och gymnasiearbete visas som ramrader. Att fördela deras poäng gör inga elevval och väljer inga ämnen. Alternativa ämnen och ämnen som saknar preciserade nivåer i underlaget ingår inte i summan av planeringsbara poäng; de behöver eget underlag. Översikten är därför ingen fullständighetskontroll av hela utbildningen.
+
+Om du tar bort en fördjupningsnivå som har fördelade poäng måste du först rensa den nivåns terminsfält och spara fördelningen. Detta bevarar fördelningen tills du uttryckligen väljer att ta bort den.
+
+Fastställda och ersatta versioner visar fördelningen för läsning. **Skapa ny version** kopierar en bunden äldre plans terminsfördelning till ett självständigt utkast. **Kopiera till ny utbildning** överför däremot ännu inte terminsfördelningen; den nya utbildningens fördelning behöver planeras på nytt.
+
+Vid samtidiga ändringar visas dina värden och möjlighet att jämföra med den sparade fördelningen innan du väljer **Spara min fördelning**. Om programplanens innehåll eller status har ändrats behöver du avbryta och läsa om planen. Vid tappat sparsvar kontrolleras aktuell fördelning före nästa sparförsök. **Läs sparstatus** används om kontrollen inte kunde slutföras.
+
+Poängen omvandlas inte automatiskt till timmar. Skapande av en timplan från en godkänd och fastställd programplan är ett separat kommande flöde.
+
 ## Lägg till en ny utbildning
 
 Som huvudman väljer du **Ny utbildning** i samma program- och inriktningsflöde. Ange utbildningens lokala namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**. Datumet ska vara den verkliga dagen enligt utbildningens uppgifter; dagens datum, elevkullens namn eller startår ersätter inte den uppgiften.

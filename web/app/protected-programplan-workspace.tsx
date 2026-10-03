@@ -16,6 +16,8 @@ import { AnalysisBanner, AnalysisView, PointsBar, ProgramplanSheet, SaveDialog }
 import { analyseProgramplan } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
 import ProgramplanList from './protected-programplan-list';
+import ProgramplanTerms from './protected-programplan-terms';
+import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
 import { parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import './protected-programplan.css';
@@ -34,6 +36,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [draft, setDraft] = useState<ProgramplanDraft | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const [view, setView] = useState<'plan' | 'analysis'>('plan');
+  const [termsActive, setTermsActive] = useState(false);
+  const updateTermRevision = useCallback((revision: number) => {
+    setPlan(value=>value?{...value,revision}:value);
+    setPlanSummary(value=>value?{...value,revision}:value);
+    setWorkspace(value=>value?{...value,versions:value.versions.map(v=>v.id===value.education.draftId?{...v,revision}:v)}:value);
+  },[]);
   const [showFlow, setShowFlow] = useState(false), [canCreate, setCanCreate] = useState(false);
   const [copy, setCopy] = useState<{ name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanEducationCreateRequest | null; error: string | null; uncertain: boolean } | null>(null);
   const copyAfterOpen = useRef(false);
@@ -112,7 +120,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }
   async function openEducation(offeringId: string, versionPage = 1, catalogId: string | null = null,
     planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null, propagateError = false, force = false) {
-    if (busy && !force || !keepPreparation && !force && dirty && !confirmDiscard()) return;
+    if (busy && !force || !keepPreparation && !force && hasUnsaved && !confirmDiscard()) return;
     const r = begin();
     if (!keepPreparation) { setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); }
     setNotice(null); setError(null);
@@ -214,6 +222,18 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     const r = begin(); setBusy(true); setDraft({ ...own, error: null, mfa: false }); setNotice(null);
     let accepted: Programplan | null = null;
     try {
+      if (own.kind === 'replace') {
+        const terms = parseProgramplanTermReply(await api.post('/api/programplaner/terminer/lasa', { planId: own.planId }, r.signal));
+        if (terms.planId !== own.planId) throw new Error('Terminsunderlaget avviker.');
+        if (terms.revision !== own.expectedRevision) { await refreshDraft({ ...own, uncertain: false }, r.token, r.signal); return; }
+        const keys = new Set(own.refs.map(ref=>`specialization:${ref.subjectCode}:${ref.subjectVersion}:${ref.itemCode}`));
+        const removed = terms.distribution.filter(row=>row.rowKey.startsWith('specialization:') && !keys.has(row.rowKey));
+        if (removed.length) {
+          const names = removed.map(row=>{const ref=own.originalRefs.find(ref=>row.rowKey===`specialization:${ref.subjectCode}:${ref.subjectVersion}:${ref.itemCode}`);return `${ref?programplanLevelName(ref,own.options):row.rowKey} (${row.points.reduce((sum,n)=>sum+n,0)} fördelade poäng)`;}).join(', ');
+          if (current(r.token)) { setReviewing(false); setDraft({ ...own, error: `Nivåer som du tar bort har sparad terminsfördelning: ${names}. Avbryt ändringen och rensa först nivåns fördelning under Årskurser och terminer. Dina sparade uppgifter har inte ändrats.`, mfa: false }); }
+          return;
+        }
+      }
       accepted = programplanCommandReply(await api.post(command.route, command.body, r.signal), own);
       const fresh = await readWorkspace(own.offeringId, 1, accepted.catalogId, r.signal);
       const snapshot = await readSelection(own.offeringId, 1, accepted.catalogId, accepted.id, r.signal, false, fresh);
@@ -267,6 +287,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const planBody = <>
     {analysis&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
     {analysis&&<PointsBar analysis={analysis} chosen={chosenPoints}/>}
+    {!draft&&!preparation&&!copy&&plan?.basisReference&&program&&boundSourceMatches&&<ProgramplanTerms key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} program={program} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onEditing={setTermsActive} onRevision={updateTermRevision}/>}
     {program&&analysis&&(plan?.basisReference||draft||!plan)&&<ProgramplanSheet program={program} analysis={analysis} refs={shownRefs} options={shownOptions} disabled={formLocked}
       onChange={canEditInline?refs=>setDraft({...draft!,refs,error:null}):undefined} idPrefix={draft?'pp-edit':'pp-read'}/>}
   </>;
@@ -281,16 +302,16 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     {(workspace||draft)&&<div className="pps-page">
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">
-          <button type="button" className="pps-back" disabled={busy} onClick={()=>{if(view==='analysis'){setView('plan');return;}if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>{view==='analysis'?'Tillbaka till planen':'Alla programplaner'}</button>
+          <button type="button" className="pps-back" disabled={busy||termsActive} onClick={()=>{if(view==='analysis'){setView('plan');return;}if(!hasUnsaved||confirmDiscard())void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>{view==='analysis'?'Tillbaka till planen':'Alla programplaner'}</button>
           <h2>{view==='analysis'?'Analys av programplanen':workspace.education.name}</h2>
           <p>{[program?.name??workspace.education.programCode, orientationName ?? (workspace.education.orientationCode ? workspace.education.orientationCode : null), workspace.education.schoolName, workspace.education.cohort??'Elevkull saknas'].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="pps-actions">
           <span className="pps-state pp-status">{statusText}</span>
-          {analysis&&view==='plan'&&<Button variant="outline" onClick={()=>setView('analysis')}>Analys<span className="pps-badge" data-fel={analysis.counts.fel>0} aria-label={`${problems} fel och risker`}>{problems}</span></Button>}
-          {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
-          {!draft&&!preparation&&<Button variant="outline" disabled={busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
-          {!draft&&!preparation&&<Button disabled={busy||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
+          {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys<span className="pps-badge" data-fel={analysis.counts.fel>0} aria-label={`${problems} fel och risker`}>{problems}</span></Button>}
+          {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
+          {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
+          {!draft&&!preparation&&<Button disabled={busy||termsActive||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
         </div>
       </div>}
@@ -347,7 +368,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           {workspace.catalog.status==='blocked'&&<p role="alert">{programplanDiagnostic(workspace.catalog.diagnostic??'catalog_unavailable')}</p>}
           {workspace.catalog.status==='selected'&&workspace.catalog.program&&<><p>{workspace.catalog.program.name} ({workspace.catalog.program.code}), programversion {workspace.catalog.program.version}</p><p>Gäller från {workspace.catalog.program.startDate??'Datum saknas'}{workspace.catalog.program.endDate&&` till ${workspace.catalog.program.endDate}`}{workspace.catalog.program.canceledDate&&` · Upphävt ${workspace.catalog.program.canceledDate}`}</p><p>Källa: <a href={workspace.catalog.source!.url} target="_blank" rel="noreferrer">Skolverkets källunderlag</a> · hämtat {workspace.catalog.source!.fetched}, API {workspace.catalog.source!.apiVersion}</p><p className="pp-code">Exakt katalogreferens: {workspace.catalog.catalogId}</p></>}
         </section>
-        <section aria-label="Tidigare versioner"><h3>Versioner</h3><div className="pp-versions">{workspace.versions.map(v=><button type="button" className={`pp-version ${v.id===plan?.id?'pp-selected':''}`} key={v.id} disabled={busy} onClick={()=>openVersion(v)} aria-label={`Version ${v.version} · ${programplanStatus[v.status]}`}><strong>Version {v.version} · {programplanStatus[v.status]}</strong><span>Revision {v.revision}{v.decidedOn&&` · Beslut ${v.decidedOn}`}</span><span>{v.catalogId?'Versionsbundet underlag':'Äldre, obundet underlag'}</span></button>)}</div>
+        <section aria-label="Tidigare versioner"><h3>Versioner</h3><div className="pp-versions">{workspace.versions.map(v=><button type="button" className={`pp-version ${v.id===plan?.id?'pp-selected':''}`} key={v.id} disabled={busy||termsActive} onClick={()=>openVersion(v)} aria-label={`Version ${v.version} · ${programplanStatus[v.status]}`}><strong>Version {v.version} · {programplanStatus[v.status]}</strong><span>Revision {v.revision}{v.decidedOn&&` · Beslut ${v.decidedOn}`}</span><span>{v.catalogId?'Versionsbundet underlag':'Äldre, obundet underlag'}</span></button>)}</div>
           {workspace.versionCount>50&&<nav className="pp-pagination" aria-label="Versionernas sidor"><Button variant="outline" disabled={workspace.versionPage===1||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage-1,workspace.catalog.catalogId,plan?.id??null)}>Föregående versioner</Button><span>Sida {workspace.versionPage} av {Math.ceil(workspace.versionCount/50)}</span><Button variant="outline" disabled={workspace.versionPage*50>=workspace.versionCount||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage+1,workspace.catalog.catalogId,plan?.id??null)}>Nästa versioner</Button></nav>}
         </section>
       </details>}

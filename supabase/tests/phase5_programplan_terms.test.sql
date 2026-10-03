@@ -1,12 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
--- Preserve the historical ACL profile only inside this rollback-only regression.
-revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb) from skolplattform_worker;
-
--- Historical eight-entrypoint profile: explicit local revokes roll back at EOF.
--- The actual final ten-entrypoint ACL is asserted by phase5_programplan_workspace_worker.
-revoke execute on function public.phase5_list_programplan_offerings(integer),public.phase5_programplan_workspace(uuid,integer,text) from skolplattform_worker;
 -- Programplan fixture: reusable synthetic setup; no grants or assertions.
 create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns void language plpgsql as $$begin
  perform set_config('app.customer_id','55008000-0000-4000-8000-000000000001',true),
@@ -72,44 +66,47 @@ insert into public.point_plan_events(point_plan_id,actor_role,action,comment) va
  ('55008000-0000-4000-8000-000000000052','huvudman','Syntetiskt äldre beslut','Syntetisk historik ska bevaras');
 set local session_replication_role=origin;
 
-select is(array(select 'public.'||p.proname||'('||array_to_string(array(select format_type(t,null) from unnest(p.proargtypes::oid[]) t),',')||')' from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'execute') order by 1),array['public.phase5_bind_programplan_draft(uuid,integer,jsonb)','public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)','public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)','public.phase5_create_programplan_draft(uuid,integer,jsonb)','public.phase5_list_timplans(integer)','public.phase5_read_programplan(uuid)','public.phase5_read_timplan(uuid)','public.phase5_replace_programplan_specialization(uuid,integer,jsonb)']::text[],'Worker has exactly eight full signatures');
-select is(has_function_privilege('anon','public.phase5_read_programplan(uuid)','execute'),false,'anon cannot execute public.phase5_read_programplan(uuid)');
-select is(has_function_privilege('authenticated','public.phase5_read_programplan(uuid)','execute'),false,'authenticated cannot execute public.phase5_read_programplan(uuid)');
-select is(has_function_privilege('anon','public.phase5_bind_programplan_draft(uuid,integer,jsonb)','execute'),false,'anon cannot execute public.phase5_bind_programplan_draft(uuid,integer,jsonb)');
-select is(has_function_privilege('authenticated','public.phase5_bind_programplan_draft(uuid,integer,jsonb)','execute'),false,'authenticated cannot execute public.phase5_bind_programplan_draft(uuid,integer,jsonb)');
-select is(has_function_privilege('anon','public.phase5_replace_programplan_specialization(uuid,integer,jsonb)','execute'),false,'anon cannot execute public.phase5_replace_programplan_specialization(uuid,integer,jsonb)');
-select is(has_function_privilege('authenticated','public.phase5_replace_programplan_specialization(uuid,integer,jsonb)','execute'),false,'authenticated cannot execute public.phase5_replace_programplan_specialization(uuid,integer,jsonb)');
-select is(has_function_privilege('anon','public.phase5_create_programplan_draft(uuid,integer,jsonb)','execute'),false,'anon cannot execute public.phase5_create_programplan_draft(uuid,integer,jsonb)');
-select is(has_function_privilege('authenticated','public.phase5_create_programplan_draft(uuid,integer,jsonb)','execute'),false,'authenticated cannot execute public.phase5_create_programplan_draft(uuid,integer,jsonb)');
-select is(has_function_privilege('anon','public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)','execute'),false,'anon cannot execute public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)');
-select is(has_function_privilege('authenticated','public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)','execute'),false,'authenticated cannot execute public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)');
-select ok(not has_table_privilege(r,'public.point_plans','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'direct point_plans remains closed for '||r) from unnest(array['anon','authenticated','skolplattform_worker'])r;
-select ok(not has_table_privilege(r,'public.point_plan_events','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'direct point_plan_events remains closed for '||r) from unnest(array['anon','authenticated','skolplattform_worker'])r;
-select ok(not has_table_privilege(r,'public.programplan_catalogs','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'),'direct programplan_catalogs remains closed for '||r) from unnest(array['anon','authenticated','skolplattform_worker'])r;
-set local role skolplattform_worker;
-select lives_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'Worker reads with actual living session');
-select lives_ok($q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000050',0,'[]')$q$,'Worker changes draft with actual living session');
-select set_config('app.session_id','',true);
-select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'missing session denies read');
-select set_config('app.session_id','55008000-0000-4000-8000-000000000083',true);
-select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'mismatched session denies read');
-select set_config('app.session_id','55008000-0000-4000-8000-000000000081',true);
-select set_config('app.correlation_id','',true);
-select throws_ok($q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000050',1,'[]')$q$,'55000',null,'no correlation stops mandatory audit');
-select set_config('app.correlation_id','55008000-0000-4000-8000-000000000099',true);
-select throws_ok($q$select * from public.point_plans$q$,'42501',null,'direct Worker plan read closed');
-select throws_ok($q$select public.phase5_programplan_result('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'result helper closed');
-reset role;
-update public.app_sessions set expires_at=clock_timestamp()-interval '1 second' where id='55008000-0000-4000-8000-000000000081';
-set local role skolplattform_worker;
-select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'expired actual session closed');
-reset role;
-update public.app_sessions set expires_at=clock_timestamp()+interval '1 hour' where id='55008000-0000-4000-8000-000000000081';
-update public.access_assignments set ended_at=clock_timestamp() where id='55008000-0000-4000-8000-000000000060';
-set local role skolplattform_worker;
-select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'revoked parent mandate closed');
-reset role;
-select is((select revision from public.point_plans where id='55008000-0000-4000-8000-000000000050'),1,'all failures preserve successful revision');
-select ok((select bool_and(session_id='55008000-0000-4000-8000-000000000081' and actor_identity_id='55008000-0000-4000-8000-000000000011') from public.security_events where object_id='55008000-0000-4000-8000-000000000050'),'DB audit belongs to actual session; SQL does not claim HTTP MFA');
+-- Foundation tests run before or after final grants; local ACL alterations roll back.
+revoke execute on function public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb) from skolplattform_worker;
+select ok(not has_function_privilege('skolplattform_worker','public.phase5_read_programplan_terms(uuid)','execute'),'closed new read entrypoint');
+select ok(not has_function_privilege('skolplattform_worker','public.phase5_write_programplan_terms(uuid,integer,jsonb)','execute'),'closed new write entrypoint');
+select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a where p.proname in ('phase5_programplan_term_rows','phase5_programplan_validate_terms','phase5_programplan_terms_guard','phase5_programplan_terms_audit','phase5_read_programplan_terms','phase5_write_programplan_terms') and a.grantee=0 and a.privilege_type='EXECUTE'),'all term helpers closed to PUBLIC');
+select ok(not has_table_privilege('skolplattform_worker','public.point_plans','update'),'no direct table writes');
+select is(public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050')->'distribution','[]'::jsonb,'existing draft starts empty');
+create temporary table term_result(value jsonb);
+insert into term_result values(public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',0,'[{"rowKey":"specialization:ENGE:1:ENGE3000X","points":[0,0,25,25,50,0]},{"rowKey":"meta:diplomaWork","points":[0,0,0,0,0,100]}]'));
+select is((select value->>'revision' from term_result),'1','shared CAS revision advances');
+select is(public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050'),(select value from term_result),'exact saved term distribution read back');
+select is((select count(*) from public.point_plan_events where point_plan_id='55008000-0000-4000-8000-000000000050' and action='programplan_terms_changed'),1::bigint,'one actor-bound business event');
+select ok((select bool_and(actor_identity_id='55008000-0000-4000-8000-000000000011' and session_id='55008000-0000-4000-8000-000000000081' and assignment_id=(select id from programplan_roles where name='principal')) from public.point_plan_events where point_plan_id='55008000-0000-4000-8000-000000000050' and action='programplan_terms_changed'),'event uses actual principal session');
+select ok((select bool_and(details='{}'::jsonb and source='db' and actor_identity_id='55008000-0000-4000-8000-000000000011') from public.security_events where object_id='55008000-0000-4000-8000-000000000050' and action like 'programplan_terms_%'),'audit minimized and actual actor');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',0,'[]')$q$,'40001',null,'stale revision cannot overwrite');
+select throws_ok($q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000050',1,'[]')$q$,'22023',null,'cannot delete allocated specialization silently');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"meta:diplomaWork","points":[100,1,0,0,0,0]}]')$q$,'22023',null,'overallocated level denied');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"meta:diplomaWork","points":[-1,0,0,0,0,0]}]')$q$,'22023',null,'negative allocation denied');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"meta:diplomaWork","points":[0.5,0,0,0,0,0]}]')$q$,'22023',null,'fractional allocation denied');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"meta:diplomaWork","points":[0,0,0,0,0]}]')$q$,'22023',null,'exactly six cells required');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"meta:diplomaWork","points":[0,0,0,0,0,0]},{"rowKey":"meta:diplomaWork","points":[0,0,0,0,0,0]}]')$q$,'22023',null,'duplicate row denied');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"foundation:SVEN:1:SVEN1000X","points":[100,0,0,0,0,0]}]')$q$,'22023',null,'unresolved alternative is not selected automatically');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[{"rowKey":"specialization:ENGE:2:ENGE3000X","points":[100,0,0,0,0,0]}]')$q$,'22023',null,'wrong pinned subject version denied');
+select throws_ok($q$update public.point_plans set term_distribution='[]' where id='55008000-0000-4000-8000-000000000050'$q$,'40001',null,'direct update cannot bypass revision');
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000051',0,'[]')$q$,'42501',null,'unbound legacy plan cannot allocate');
+-- Exact unresolved handling: optional source levels absent, obligatory rows + meta present.
+select ok(not exists(select 1 from jsonb_array_elements(public.phase5_programplan_term_rows(pg_temp.programplan_reference())) r where r->>'key' like 'foundation:SVEN:%' or r->>'key' like 'foundation:SVEA:%'),'alternative national subjects remain unresolved');
+select ok(exists(select 1 from jsonb_array_elements(public.phase5_programplan_term_rows(pg_temp.programplan_reference())) r where r->>'key'='meta:individualChoice' and r->>'points'='200'),'individual choice frame retained');
+-- Synthetic sealed snapshot predates binding; disable existing immutable guard only for fixture.
+alter table public.point_plans disable trigger point_plans_programplan_guard;
+update public.point_plans set status='faststalld',decided_on='2026-10-03' where id='55008000-0000-4000-8000-000000000050';
+alter table public.point_plans enable trigger point_plans_programplan_guard;
+select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',1,'[]')$q$,'42501',null,'sealed plan locked');
+select throws_ok($q$update public.point_plans set term_distribution='[]',revision=revision+1 where id='55008000-0000-4000-8000-000000000050'$q$,'42501',null,'sealed trigger prevents direct allocation change');
+insert into term_result values(public.phase5_clone_programplan_draft('55008000-0000-4000-8000-000000000050',1,1,null));
+select is((select p.term_distribution from public.point_plans p where p.id=(select (value->>'id')::uuid from term_result where value ? 'id')),(select value->'distribution' from term_result where value ? 'distribution'),'new version copies term distribution exactly');
+select pg_temp.programplan_actor((select id from programplan_roles where name='admin'),'55008000-0000-4000-8000-000000000023','55008000-0000-4000-8000-000000000013','55008000-0000-4000-8000-000000000083');
+select throws_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'administrator cannot bypass pending delegation');
+select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
+select throws_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000053')$q$,'42501',null,'foreign school denied');
+update public.app_sessions set revoked_at=clock_timestamp() where id='55008000-0000-4000-8000-000000000081';
+select throws_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'revoked actual session denied');
 select * from finish();
 rollback;

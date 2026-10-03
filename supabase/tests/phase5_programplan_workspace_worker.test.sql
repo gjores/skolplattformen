@@ -1,6 +1,9 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Preserve the historical ACL profile only inside this rollback-only regression.
+revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb) from skolplattform_worker;
+
 -- Workspace fixture: reusable synthetic setup; no grants or assertions.
 
 create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns void language plpgsql as $$begin

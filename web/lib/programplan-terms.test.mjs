@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { programplanTermRows, programplanTermTotals, validateProgramplanTermDistribution } from './programplan-terms.ts';
+import { parseProgramplanTermWrite, parseProgramplanTermReply, parseProgramplanTermDistribution } from './programplan-terms-contract.ts';
+const catalog = JSON.parse(readFileSync(new URL('./programplan-catalog.generated.json', import.meta.url)));
+const program = catalog.programs.find(p => p.code === 'SA25');
+const basis = { catalogId: catalog.catalogId, programRef: { code: program.code, version: program.version }, orientationCode: 'SABEP', startedOn: '2026-08-01', specializationRefs: [{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}] };
+const id='55001800-0000-4000-8000-000000000001';
+test('exact fixed levels, chosen specialization and two frames; alternatives remain unresolved',()=>{
+ const rows=programplanTermRows(program,basis);
+ assert.equal(rows.some(r=>r.key.startsWith('foundation:SVEN:')),false);
+ assert.equal(rows.some(r=>r.key.startsWith('foundation:SVEA:')),false);
+ assert.equal(rows.filter(r=>r.part==='specialization').length,1);
+ assert.equal(rows.find(r=>r.key==='specialization:ENGE:1:ENGE3000X').points,100);
+ assert.equal(rows.find(r=>r.key==='meta:individualChoice').points,200);
+ assert.equal(rows.find(r=>r.key==='meta:diplomaWork').points,100);
+ assert.equal(new Set(rows.map(r=>r.key)).size,rows.length);
+ assert.throws(()=>programplanTermRows(program,{...basis,orientationCode:null}));
+ assert.throws(()=>programplanTermRows(program,{...basis,programRef:{code:'XX',version:1}}));
+ assert.throws(()=>programplanTermRows(program,{...basis,specializationRefs:[{...basis.specializationRefs[0],subjectVersion:2}]}));
+});
+test('draft permits partial allocation but rejects unknown rows and all overflows',()=>{
+ const rows=programplanTermRows(program,basis),distribution=[{rowKey:'specialization:ENGE:1:ENGE3000X',points:[0,0,25,25,0,0]}];
+ const totals=programplanTermTotals(rows,distribution);
+ assert.deepEqual(totals.terms,[0,0,25,25,0,0]);assert.equal(totals.allocated,50);assert.equal(totals.remaining,totals.total-50);
+ for(const points of [[100,1,0,0,0,0],[-1,0,0,0,0,0],[0.5,0,0,0,0,0],[0,0,0,0,0]])assert.throws(()=>validateProgramplanTermDistribution(rows,[{rowKey:distribution[0].rowKey,points}]));
+ assert.throws(()=>validateProgramplanTermDistribution(rows,[...distribution,...distribution]));
+ assert.throws(()=>validateProgramplanTermDistribution(rows,[{rowKey:'foundation:SVEN:1:SVEN1000X',points:[0,0,0,0,0,0]}]));
+});
+test('closed distribution/request/reply rejects sparse arrays, accessors and foreign fields',()=>{
+ const distribution=[{rowKey:'meta:diplomaWork',points:[0,0,0,0,0,100]}],input={planId:id,expectedRevision:4,distribution};
+ assert.deepEqual(parseProgramplanTermWrite(input),input);
+ assert.deepEqual(parseProgramplanTermReply({planId:id,revision:5,status:'utkast',distribution}),{planId:id,revision:5,status:'utkast',distribution});
+ for(const value of [{...input,actorId:id},{...input,expectedRevision:-1},{...input,planId:'bad'},{...input,expectedRevision:2147483647}])assert.throws(()=>parseProgramplanTermWrite(value));
+ for(const value of [[...distribution,...distribution],[{rowKey:'meta:unknown',points:[0,0,0,0,0,0]}],[{rowKey:'meta:diplomaWork',points:[0,0,0,0,0]}],[{rowKey:'meta:diplomaWork',points:[-1,0,0,0,0,0]}],[{rowKey:'meta:diplomaWork',points:[0.5,0,0,0,0,0]}],Array(1),Array.from({length:2001},()=>distribution[0])])assert.throws(()=>parseProgramplanTermDistribution(value));
+ const sparse=Array(6);for(const i of [0,1,3,4,5])sparse[i]=0;assert.throws(()=>parseProgramplanTermDistribution([{rowKey:'meta:diplomaWork',points:sparse}]));
+ const accessor={};Object.defineProperty(accessor,'rowKey',{get(){throw Error('must not execute');},enumerable:true});accessor.points=[0,0,0,0,0,0];assert.throws(()=>parseProgramplanTermDistribution([accessor]),e=>e.code==='invalid_programplan_terms');
+ const extra=[0,0,0,0,0,0];extra.hidden=1;assert.throws(()=>parseProgramplanTermDistribution([{rowKey:'meta:diplomaWork',points:extra}]));
+ assert.throws(()=>parseProgramplanTermReply({planId:id,revision:0,status:'approved',distribution:[]}));
+});
