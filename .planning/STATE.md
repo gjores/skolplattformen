@@ -167,6 +167,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 2026-10-03: [skapa timplaner direkt från programplaner](todos/pending/2026-10-03-skapa-timplaner-fran-programplaner.md) beställt som nästa flöde efter programplansarbetet. Timplanen ska baseras på vald programplansversion och kunna redigeras av rektor och skoladministratör inom respektive skola. Genomförande och verifiering återstår.
+
 - 2026-10-03: [huvudmannen ska kunna delegera programplansarbete till rektor och skoladministratör](todos/pending/2026-10-03-huvudmannen-delegerar-programplansarbete-till-skolorna.md) beställt. Skolavgränsad tilldelning/återkallelse och serverkontroller ska planeras i fas 5; arbetsmoment och eventuell beslutsrätt behöver preciseras. Genomförande och verifiering återstår.
 
 - 2026-10-02: [skolgemensamma programfördjupningspaket över flera programplaner](todos/pending/2026-10-02-gemensamma-programfordjupningspaket-over-flera-programplaner.md) beställt. Gemensamt utbud, explicit plan-/paketversion och elevval ska skiljas åt; regler prövas för varje målprogram. Funktionen är inte implementerad.
@@ -182,7 +184,7 @@ Fullständiga beslut finns i PROJECT.md.
 - 04-22: användarprovet förberett i lokal skyddad app på 3012. Se `04-HUMAN-UAT.md`; mänskliga resultat och godkännande väntar. Planen är inte slutförd.
 
 - Fas 4:s nästa steg: våg 15, 04-22, genomför mänskligt användarprov och redovisar fasens gräns. Våg 14:s handbok och förnyade fulla grind passerade lokalt syntetiskt; se `04-21-SUMMARY.md` och `04-WAVE-14-SUMMARY.md`. Därefter återstår separat `gsd-verify-work`/fasverifiering. Ingen kommunal anslutning eller verklig pilotdrift har verifierats.
-- 22 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
+- 23 todos under `.planning/todos/pending/`. Läsårslinsen ingår bara i den avgränsade omfattning som anges i fas 4:s CONTEXT; övrigt kvarstår.
 - 2026-10-01: [rektors handledning om timplanens regelverk](todos/pending/2026-10-01-handledning-for-rektor-om-timplanens-regelverk.md) beställd. Vägledning i vyn och vid ändring ska förklara tillämpliga ramar, konsekvenser och beslutsansvar med daterade primärkällor. Planering och användarverifiering återstår.
 - 2026-10-01: befintlig schematodo utökad till [sammanhängande schemadelprojekt](research/SCHEMAMODUL-PROJEKT.md). SCHEMA-01–08 har ansvar i S1–S4 och ännu ej provade verifieringsmål. Program-/tim-/studieplaner, grupper och kalender ska samverka; roller/regler och valbara moduldelar utreds från början, med Rustprototyp och utvärdering av Jev/liknande AI för möjlig användning i schemaarbetet. AI-införande är inte beslutat. Delprojektets första steg är S1 kontrakt/mandat; dess genomförandeplacering är öppen. Fas 5 ska beakta gemensamma ID:n, versioner, enheter och ändringsansvar nu. Ingen ny numrerad pilotfas eller ny rättighet införd.
 
