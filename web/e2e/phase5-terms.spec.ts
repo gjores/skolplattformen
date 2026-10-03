@@ -18,7 +18,7 @@ async function edit(page:Page){await card(page).getByRole('button',{name:'Förde
 const field=(page:Page,term='Åk 1 HT')=>card(page).getByLabel(`Engelska · Nivå 3, ${term}`,{exact:true});
 async function save(page:Page,label='Spara fördelning'){const pending=page.waitForResponse(matches('/api/programplaner/terminer'));await card(page).getByRole('button',{name:label,exact:true}).click();return pending;}
 async function paired(r:Response){expect(await fixture.paired(r.headers()['x-correlation-id'],fixture.principal,'programplan_terms_changed')).toBe(true);}
-async function capture(page:Page,info:TestInfo,name:string){const path=info.outputPath(name);await card(page).scrollIntoViewIfNeeded();await card(page).screenshot({path});await info.attach(name,{path,contentType:'image/png'});}
+async function capture(page:Page,info:TestInfo,name:string){const path=info.outputPath(name);await card(page).getByRole('heading',{name:'Årskurser och terminer',exact:true}).click();await card(page).scrollIntoViewIfNeeded();await card(page).screenshot({path});await info.attach(name,{path,contentType:'image/png'});}
 async function read(){const r=await fixture.request(baseURL,fixture.principal,'/api/programplaner/terminer/lasa',{planId:fixture.planId});expect(r.status).toBe(200);return r.body;}
 
 test('01: sex terminer, poängsummor, verkligt sparande och omläsning',async({page},info)=>{
@@ -27,6 +27,7 @@ test('01: sex terminer, poängsummor, verkligt sparande och omläsning',async({p
   await card(page).getByLabel('Individuellt val · Ram för individuellt val, Åk 2 HT',{exact:true}).fill('100');
   if(mobile)await card(page).getByRole('button',{name:'Årskurs 3',exact:true}).click();
   await card(page).getByLabel('Gymnasiearbete · Gymnasiearbete, Åk 3 VT',{exact:true}).fill('100');
+  if(mobile){const ht=await field(page,'Åk 3 HT').boundingBox(),vt=await field(page,'Åk 3 VT').boundingBox();expect(ht!.width).toBeGreaterThanOrEqual(44);expect(ht!.height).toBeGreaterThanOrEqual(44);expect(ht!.x+ht!.width).toBeLessThanOrEqual(vt!.x);}
   await expect(card(page).locator('.ppt-year').nth(0)).toContainText('100');await expect(card(page).locator('.ppt-year').nth(1)).toContainText('100');await expect(card(page).locator('.ppt-year').nth(2)).toContainText('100');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await capture(page,info,'terms-editor.png');const r=await save(page);expect(r.status()).toBe(200);await paired(r);await expect(card(page)).toContainText('Terminsfördelningen sparades');

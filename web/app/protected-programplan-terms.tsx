@@ -135,7 +135,7 @@ export default function ProgramplanTerms({ plan, program, scope, disabled, onSec
 }
 
 function FragmentRows({header,row,points,sum,invalid,editing,locked,change}:{header:string|null;row:ReturnType<typeof programplanTermRows>[number];points:ReturnType<typeof blank>;sum:number;invalid:boolean;editing:boolean;locked:boolean;change:(key:string,column:number,value:string)=>void}){
-  return <>{header&&<tr className="ppt-group"><th colSpan={8} scope="rowgroup">{header}</th></tr>}<tr className={invalid?'ppt-invalid':''}>
+  return <>{header&&<tr className="ppt-group"><th scope="rowgroup">{header}</th>{labels.map((label,i)=><td className={`ppt-col-year-${Math.floor(i/2)}`} key={label}/>)}<td className="ppt-row-total"/></tr>}<tr className={invalid?'ppt-invalid':''}>
     <th scope="row"><span className="ppt-subject">{row.name}</span><span className="ppt-level">{row.levelName??'Programdel'} <b>{row.points} p</b></span></th>
     {points.map((n,i)=><td className={`ppt-col-year-${Math.floor(i/2)}`} key={i}>{editing?<input type="number" inputMode="numeric" min={0} max={row.points} step={1} value={n===0?'':Number.isFinite(n)?n:''} disabled={locked} aria-label={`${row.name}${row.levelName?` · ${row.levelName}`:''}, ${labels[i]}`} aria-invalid={invalid} placeholder="—" onChange={e=>change(row.key,i,e.target.value)}/>:<span className={n?'ppt-cell-filled':'ppt-cell-empty'}>{n?fmt(n):'—'}</span>}</td>)}
     <td className="ppt-row-total"><span className={invalid?'ppt-row-badge ppt-over':sum===row.points?'ppt-row-badge ppt-complete':'ppt-row-badge'}>{fmt(sum)} / {row.points}</span>{sum<row.points&&<small>{fmt(row.points-sum)} kvar</small>}{invalid&&<small>Kontrollera summan</small>}</td>
