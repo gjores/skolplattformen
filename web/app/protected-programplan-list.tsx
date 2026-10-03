@@ -36,7 +36,8 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
       }
       const empty = { unitId: null, catalogId: null, programRef: null };
       let chosen = parseProgramplanSelection(await api.post('/api/programplaner/val', empty, controller.signal), empty);
-      if (chosen.units.length === 1) { const next = { ...empty, unitId: chosen.units[0].id }; chosen = parseProgramplanSelection(await api.post('/api/programplaner/val', next, controller.signal), next); }
+      // Programnamnen är desamma för alla skolor i underlaget; första skolan räcker för att läsa dem.
+      if (chosen.units.length >= 1) { const next = { ...empty, unitId: chosen.units[0].id }; chosen = parseProgramplanSelection(await api.post('/api/programplaner/val', next, controller.signal), next); }
       if (chosen.selection.unitId && !chosen.selection.catalogId && chosen.catalogs.length === 1) {
         const next = { ...chosen.selection, catalogId: chosen.catalogs[0].catalogId }; chosen = parseProgramplanSelection(await api.post('/api/programplaner/val', next, controller.signal), next);
       }
