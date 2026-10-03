@@ -89,3 +89,4 @@
 fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-width:0}fieldset.pps-group{border:0;border-bottom:1px solid #e3e7ee;padding:0}fieldset.pps-suggestions{border:0;padding:0}fieldset.pps-chips{border:0;border-bottom:1px solid #e3e7ee}
 .pps-search input{height:42px}.pps-banner button,.pps-link{min-height:44px}.pps-top{padding:12px 22px;border-bottom:1px solid #e3e7ee}.pps-draft{display:flex;flex-direction:column;gap:20px;border:0;padding:0;background:none}
 .pps-search{height:auto;min-height:46px}.pps-search input{height:44px}
+@media(max-width:700px){.pps-title{display:grid;grid-template-columns:10px minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:center}.pps-title small{grid-column:2}}
