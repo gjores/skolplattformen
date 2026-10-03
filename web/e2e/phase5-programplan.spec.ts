@@ -33,7 +33,8 @@ async function chooseProgram(page:Page,code='SA25',orientation:string|null='SABE
 }
 async function education(page:Page,name='Syntetisk bunden SA',code='SA25',orientation:string|null='SABEP') {
   const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});
-  if(!await list.count())await chooseProgram(page,code,orientation);else await expect(list).toHaveAttribute('aria-busy','false');
+  const flow=w(page).getByRole('region',{name:'Program, inriktning och fördjupning',exact:true});await expect(list.or(flow)).toBeVisible();
+  if(await list.isVisible())await expect(list).toHaveAttribute('aria-busy','false');else await chooseProgram(page,code,orientation);
   const pending=page.waitForResponse(matches('/api/programplaner/underlag'));await w(page).getByRole('button',{name:new RegExp(`^Öppna utbildning ${name},`,'u')}).click();const r=await pending;expect(r.status()).toBe(200);await expect(w(page).getByRole('heading',{name,exact:true})).toBeVisible();return r;
 }
 const editor=(page:Page)=>w(page).locator('.pp-draft-sheet');
