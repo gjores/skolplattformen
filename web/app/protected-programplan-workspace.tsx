@@ -238,25 +238,25 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(!hasUnsaved||confirmDiscard())void loadList(page);}}>Hämta utbildningarna igen</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
     {!workspace&&!draft&&<ProtectedProgramplanFlow key={flowRevision} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId)=>openEducation(id,1,catalogId,planId??null,null,!!planId)}/>}
-    {workspace&&<div className="pps-page">
-      <div className="pps-head">
+    {(workspace||draft)&&<div className="pps-page">
+      {workspace&&<div className="pps-head">
         <div className="pps-head-text">
           <button type="button" className="pps-back" disabled={busy} onClick={()=>{if(view==='analysis'){setView('plan');return;}if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>{view==='analysis'?'Tillbaka till planen':'Alla programplaner'}</button>
           <h2>{view==='analysis'?'Analys av programplanen':workspace.education.name}</h2>
           <p>{[program?.name??workspace.education.programCode, orientationName ?? (workspace.education.orientationCode ? workspace.education.orientationCode : null), workspace.education.schoolName, workspace.education.cohort??'Elevkull saknas'].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="pps-actions">
-          <span className="pps-state">{statusText}</span>
+          <span className="pps-state pp-status">{statusText}</span>
           {analysis&&view==='plan'&&<Button variant="outline" onClick={()=>setView('analysis')}>Analys<span className="pps-badge" data-fel={analysis.counts.fel>0} aria-label={`${problems} fel och risker`}>{problems}</span></Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
           {!draft&&!preparation&&<Button disabled={busy||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
         </div>
-      </div>
-      {!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
+      </div>}
+      {workspace&&!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={()=>{setView('plan');if(!draft&&!preparation)nextAction();}}/>}
       {view==='plan'&&<>
-        {preparation&&<section className="pp-next pps-card" aria-label="Programfördjupning"><h3>Välj underlag för {workspace.education.name}</h3>
+        {workspace&&preparation&&<section className="pp-next pps-card" aria-label="Programfördjupning"><h3>Välj underlag för {workspace.education.name}</h3>
           <p>Välj Skolverkets underlag som utkastet ska kopplas till och kontrollera hämtdatumet. Inget sparas förrän du sparar utkastet.</p>
           <div className="pp-field"><label htmlFor="pp-guide-catalog">Välj underlag</label><select id="pp-guide-catalog" value={preparation.catalogId??''} disabled={busy} onChange={e=>changeGuideCatalog(e.target.value)}><option value="">Välj underlag</option>{workspace.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>Skolverket · hämtat {c.source.fetched}</option>)}</select></div>
           {!busy&&!error&&preparation.catalogId===workspace.catalog.catalogId&&workspace.catalog.status==='selected'&&workspace.catalog.program&&workspace.catalog.source&&<p>Valt underlag: {workspace.catalog.program.name} · Skolverket · hämtat {workspace.catalog.source.fetched}.</p>}
@@ -272,20 +272,20 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           {draft.mfa&&<MfaStepUpNotice message={draft.error??'Verifiering med engångskod krävs.'} detail="Dina uppgifter finns kvar här. Om du väljer verifiering lämnar du sidan; det osparade formuläret följer inte med."/>}
           {(draft.kind==='create'||draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<div className="pp-field pps-start"><label htmlFor="pp-start">Utbildningens exakta startdatum</label><input id="pp-start" type="date" value={draft.startedOn} disabled={formLocked} aria-describedby="pp-start-help" onChange={e=>setDraft({...draft,startedOn:e.target.value,error:null,mfa:false})}/><p id="pp-start-help">Den dag utbildningen började eller börjar enligt utbildningens uppgifter, inte dagens datum.</p></div>}
           {!editableRefs&&<><p>Alla tidigare val följer med i samma ordning. Ändra själva valen efteråt.</p>{(draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<label className="pp-check"><input type="checkbox" disabled={formLocked} checked={draft.legacyConfirmed} onChange={e=>setDraft({...draft,legacyConfirmed:e.target.checked,error:null})}/><span>Jag har kontrollerat att alla äldre val bevaras i samma ordning och att startdatum samt underlag gäller för utbildningen.</span></label>}</>}
-          {!(draft.mode==='edit'&&reviewing)&&planBody}
+          <div hidden={draft.mode==='edit'&&reviewing}>{planBody}</div>
           {draft.mode==='edit'&&reviewing&&analysis&&<SaveDialog analysis={analysis} busy={busy} onCancel={()=>setReviewing(false)} onAnalysis={()=>{setReviewing(false);setView('analysis');}} onConfirm={()=>void saveDraft()}>
             <p className="pps-note">{draft.educationName} · start {draft.startedOn||'saknas'} · {draft.refs.length===1?'1 vald nivå':`${draft.refs.length} valda nivåer`}. Planen förblir ett utkast och fastställs inte.</p></SaveDialog>}
           {draft.mode==='edit'&&reviewing&&!analysis&&<section className="pps-dialog" aria-label="Kontrollera före sparning"><p>Underlaget kunde inte analyseras. {draft.refs.length===1?'1 vald nivå':`${draft.refs.length} valda nivåer`} sparas som utkast.</p><div className="pps-dialog-actions"><Button variant="outline" disabled={busy} onClick={()=>setReviewing(false)}>Tillbaka till uppgifterna</Button><Button disabled={busy} onClick={()=>void saveDraft()}>{busy?'Sparar…':'Spara utkast'}</Button></div></section>}
           {draft.mode==='refreshing'&&<output>Hämtar aktuellt underlag. Dina uppgifter behålls…</output>}
           {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuella fördjupningsval: {namedChoices(plan?.basisReference?.specializationRefs??[])}</p><p>Dina fördjupningsval: {namedChoices(draft.refs,draft.options)}</p><details><summary>Jämför referenser och revisioner</summary><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella referenser: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina referenser: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p></details>{!retryCompatible(draft)&&<p>Detta kommando kan inte skickas igen automatiskt. Stäng formuläret och granska den aktuella versionen innan du väljer nästa åtgärd.</p>}</div>}
           {draft.mode==='applied'&&<output className="pp-notice">Ett aktuellt utkast innehåller redan samma bundna underlag och val. Inget nytt sparande behövs.</output>}
-          {!(draft.mode==='edit'&&reviewing)&&<div className="pp-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>{draft.mode==='refresh-failed'&&<Button disabled={busy} onClick={()=>void reloadDraft()}>Läs om underlaget</Button>}{draft.mode==='compare'&&<Button disabled={busy||!retryCompatible(draft)} onClick={()=>void saveDraft()}>{busy?'Sparar…':'Använd mina val'}</Button>}</div>}
+          {<div className="pp-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>{draft.mode==='refresh-failed'&&<Button disabled={busy} onClick={()=>void reloadDraft()}>Läs om underlaget</Button>}{draft.mode==='compare'&&<Button disabled={busy||!retryCompatible(draft)} onClick={()=>void saveDraft()}>{busy?'Sparar…':'Använd mina val'}</Button>}</div>}
         </section>}
         {!draft&&planBody}
-        {!program&&!preparation&&<output className="pp-alert">Skolverkets underlag för planen är inte valt eller inte tillgängligt. Välj underlag via {titles[nextKind]} för att se tabellen.</output>}
+        {workspace&&!program&&!preparation&&<output className="pp-alert">Skolverkets underlag för planen är inte valt eller inte tillgängligt. Välj underlag via {titles[nextKind]} för att se tabellen.</output>}
         {!draft&&plan&&!plan.basisReference&&<section className="pp-saved pps-card" aria-label="Dina sparade fördjupningsval"><h3>Äldre sparade val</h3><p>Valen visas precis som de lagrats. De behöver kopplas till ett underlag innan de kan ändras.</p><ol className="pp-levels">{(legacy??[]).map((code,i)=><li key={`${i}-${code}`}><strong>{code||'(Tomt äldre värde)'}</strong></li>)}</ol>{legacy?.length===0&&<p>Inga äldre fördjupningsval sparade.</p>}</section>}
       </>}
-      <details className="pp-underlying pps-details"><summary>Underlag och tidigare versioner</summary>
+      {workspace&&<details className="pp-underlying pps-details"><summary>Underlag och tidigare versioner</summary>
         <section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Underlag</h3><p>Fastställande är stängt här. Gymnasiepoäng omvandlas inte till undervisningstimmar.</p>
           {plan&&<p>Version {plan.version} · Revision {plan.revision}{plan.decidedOn&&` · Beslut ${plan.decidedOn}`}</p>}
           {plan?.basisReference&&<p>Utbildningsstart: {plan.basisReference.startedOn}. Katalog, programgrund och start hör till denna version.</p>}
@@ -296,7 +296,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         <section aria-label="Tidigare versioner"><h3>Versioner</h3><div className="pp-versions">{workspace.versions.map(v=><button type="button" className={`pp-version ${v.id===plan?.id?'pp-selected':''}`} key={v.id} disabled={busy} onClick={()=>openVersion(v)} aria-label={`Version ${v.version} · ${programplanStatus[v.status]}`}><strong>Version {v.version} · {programplanStatus[v.status]}</strong><span>Revision {v.revision}{v.decidedOn&&` · Beslut ${v.decidedOn}`}</span><span>{v.catalogId?'Versionsbundet underlag':'Äldre, obundet underlag'}</span></button>)}</div>
           {workspace.versionCount>50&&<nav className="pp-pagination" aria-label="Versionernas sidor"><Button variant="outline" disabled={workspace.versionPage===1||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage-1,workspace.catalog.catalogId,plan?.id??null)}>Föregående versioner</Button><span>Sida {workspace.versionPage} av {Math.ceil(workspace.versionCount/50)}</span><Button variant="outline" disabled={workspace.versionPage*50>=workspace.versionCount||busy} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage+1,workspace.catalog.catalogId,plan?.id??null)}>Nästa versioner</Button></nav>}
         </section>
-      </details>
+      </details>}
     </div>}
   </section>;
 }
