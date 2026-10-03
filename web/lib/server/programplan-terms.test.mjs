@@ -30,7 +30,7 @@ const fixture = globalThis.__programplanTermTest = {
     }
     state.calls.push({sql,values});
     if(state.sqlError) throw state.sqlError;
-    
+
     if(sql.includes('phase5_read_programplan_terms')) return [{result:state.read}];
     state.mutations.push(values); return [{result:state.result}];
   },
