@@ -38,8 +38,10 @@ test('01: sex terminer, poängsummor, verkligt sparande och omläsning',async({p
 test('02: överfördelning, decimaler och avbryt med osparade värden',async({page})=>{
   await enter(page);await edit(page);await field(page).fill('101');await expect(field(page)).toHaveAttribute('aria-invalid','true');await expect(card(page).getByRole('button',{name:'Spara fördelning',exact:true})).toBeDisabled();
   await field(page).fill('0.5');await expect(card(page).getByRole('button',{name:'Spara fördelning',exact:true})).toBeDisabled();await field(page).fill('50');
+  await expect(w(page).getByRole('button',{name:'Visa analys →',exact:true})).toBeDisabled();await expect(w(page).getByRole('button',{name:/^Analys /u})).toBeDisabled();await expect(field(page)).toHaveValue('50');
   page.once('dialog',d=>d.dismiss());await card(page).getByRole('button',{name:'Avbryt',exact:true}).click();await expect(field(page)).toHaveValue('50');
   page.once('dialog',d=>d.accept());await card(page).getByRole('button',{name:'Avbryt',exact:true}).click();await expect(card(page).getByRole('button',{name:'Fördela poäng',exact:true})).toBeVisible();expect((await read()).distribution).toEqual([]);
+  await expect(w(page).getByRole('button',{name:'Visa analys →',exact:true})).toBeEnabled();
 });
 test('03: verklig konkurrerande revision, jämförelse och uttryckligt omsparande',async({page})=>{
   await enter(page);await edit(page);await field(page).fill('50');const other=await fixture.request(baseURL,fixture.second,'/api/programplaner/terminer',{planId:fixture.planId,expectedRevision:0,distribution:[{rowKey:'meta:diplomaWork',points:[0,0,0,0,0,100]}]});expect(other.status).toBe(200);

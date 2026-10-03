@@ -284,7 +284,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const canEditInline = !!draft && editableRefs && draft.mode === 'edit';
   const statusText = plan ? `${programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
   const planBody = <>
-    {analysis&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
+    {analysis&&<AnalysisBanner analysis={analysis} disabled={termsActive} onOpen={()=>setView('analysis')}/>}
     {analysis&&<PointsBar analysis={analysis} chosen={chosenPoints}/>}
     {!draft&&!preparation&&!copy&&plan?.basisReference&&program&&boundSourceMatches&&<ProgramplanTerms key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} program={program} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onEditing={setTermsActive} onRevision={updateTermRevision}/>}
     {program&&analysis&&(plan?.basisReference||draft||!plan)&&<ProgramplanSheet program={program} analysis={analysis} refs={shownRefs} options={shownOptions} disabled={formLocked}
