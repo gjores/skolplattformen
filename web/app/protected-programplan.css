@@ -102,3 +102,15 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .pps-fineprint{margin-top:2rem;padding:0!important;border:0!important;background:none!important;font-size:.8125rem;color:#8a96a8}.pps-fineprint>summary{font-weight:400!important;font-size:.8125rem;color:#8a96a8;min-height:36px}.pps-fineprint p{font-size:.8125rem}
 @media(max-width:700px){.pps-stepper li{padding-right:8px!important}.pps-stepper li+li::before{width:12px;margin-right:6px}.pps-stepper li{font-size:.8125rem}}
 .pp-flow-mode{width:fit-content;justify-self:start;align-self:end}.pp-flow-mode>p{padding:0 .6rem;margin:0;font-size:.875rem;color:#657185}
+
+/* Startlistan över programplaner och kopiering. */
+.ppl{display:flex;flex-direction:column;gap:20px}.ppl-title{font-size:1.75rem;font-weight:650;letter-spacing:-.02em;margin:0;color:#202b3b}.ppl-sub{margin:.2rem 0 0;color:#657185;font-size:.9375rem}
+.ppl-card{overflow:hidden}.ppl-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid #e3e7ee}.ppl-tools .pps-search{flex:1;max-width:420px}.ppl-tools small{margin-left:auto;color:#657185;font-size:.8125rem}.ppl-unit select{height:46px;min-width:200px}
+.ppl-table{width:100%;border-collapse:collapse;font-size:.9375rem}.ppl-table th[scope=col]{padding:10px 18px;background:#f7f8fa;border-bottom:1px solid #e3e7ee;font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#657185;text-align:left}
+.ppl-table td,.ppl-table th[scope=row]{padding:12px 18px;border-bottom:1px solid #eef1f5;vertical-align:middle;text-align:left;color:#25334a}.ppl-table tr:last-child>*{border-bottom:0}.ppl-table tbody tr:hover{background:#fafbfc}
+.ppl-name{all:unset;cursor:pointer;font-weight:600;color:#202b3b;min-height:44px;display:inline-flex;align-items:center}.ppl-name:hover{color:#2d4cc1;text-decoration:underline}.ppl-name:focus-visible{outline:3px solid #5b8ec1;outline-offset:2px;border-radius:4px}.ppl-table th[scope=row] small{display:block;color:#8a96a8;font-weight:400;font-size:.8125rem}
+.ppl-status{display:inline-flex;padding:4px 10px;border-radius:999px;font-size:.8125rem;font-weight:500;white-space:nowrap}.ppl-draft{background:#fff5e1;color:#7a4b00}.ppl-saved{background:#edf7ef;color:#22552b}.ppl-none{background:#f0f2f6;color:#657185}
+.ppl-actions{text-align:right!important;white-space:nowrap}.ppl-actions>*+*{margin-left:8px}
+.ppl-empty{padding:28px 18px;color:#657185}.ppl-empty p{margin:0}
+.ppl-copy{padding:20px 22px;display:flex;flex-direction:column;gap:12px}.ppl-copy h3{margin:0;font-size:1rem;font-weight:600}.ppl-copy p{margin:0;color:#46586d}
+@media(max-width:800px){.ppl-table thead{display:none}.ppl-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 14px;border-bottom:1px solid #eef1f5}.ppl-table td,.ppl-table th[scope=row]{padding:0;border:0}.ppl-table th[scope=row]{grid-column:1/-1}.ppl-actions{grid-column:1/-1;text-align:left!important;margin-top:6px}.ppl-tools small{margin-left:0;width:100%}}

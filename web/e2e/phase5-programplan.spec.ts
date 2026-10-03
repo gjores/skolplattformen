@@ -23,6 +23,8 @@ async function navigate(page:Page,label='Programplaner'){
 async function enter(page:Page,session=fixture.principal){await fixture.cookies(page.context(),session,baseURL);await page.goto('/');await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();const pending=page.waitForResponse(matches('/api/programplaner/lista'));await navigate(page);const r=await pending;expect(r.status()).toBe(200);await expect(w(page)).toBeVisible();return r;}
 async function chooseProgram(page:Page,code='SA25',orientation:string|null='SABEP') {
   const flow=w(page).getByRole('region',{name:'Program, inriktning och fördjupning',exact:true});
+  if(!await flow.count()){await w(page).getByRole('button',{name:'Ny programplan',exact:true}).click();await expect(flow).toBeVisible();}
+  const existing=flow.getByRole('button',{name:'Befintlig utbildning',exact:true});if(await existing.isEnabled())await existing.click();
   const school=flow.getByLabel('Skola',{exact:true});await expect(school).toBeEnabled();if(await school.inputValue()===''){const schoolRead=page.waitForResponse(matches('/api/programplaner/val'));await school.selectOption(fixture.unitId);expect((await schoolRead).status()).toBe(200);await expect(flow).toHaveAttribute('aria-busy','false');}
   const select=flow.getByLabel('1. Program',{exact:true});await expect(select).toBeEnabled();
   const value=await select.locator('option').evaluateAll((rows,code)=>rows.map(row=>(row as HTMLOptionElement).value).find(value=>value.startsWith(`${code}:`))??code,code);
@@ -31,7 +33,8 @@ async function chooseProgram(page:Page,code='SA25',orientation:string|null='SABE
   return flow;
 }
 async function education(page:Page,name='Syntetisk bunden SA',code='SA25',orientation:string|null='SABEP') {
-  await chooseProgram(page,code,orientation);
+  const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});
+  if(!await list.count())await chooseProgram(page,code,orientation);else await expect(list).toHaveAttribute('aria-busy','false');
   const pending=page.waitForResponse(matches('/api/programplaner/underlag'));await w(page).getByRole('button',{name:new RegExp(`^Öppna utbildning ${name},`,'u')}).click();const r=await pending;expect(r.status()).toBe(200);await expect(w(page).getByRole('heading',{name,exact:true})).toBeVisible();return r;
 }
 const editor=(page:Page)=>w(page).locator('.pp-draft-sheet');

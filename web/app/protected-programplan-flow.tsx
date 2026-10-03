@@ -13,15 +13,16 @@ import { PointsBar, ProgramplanSheet } from './protected-programplan-sheet';
 import { analyseProgramplan } from '@/lib/programplan-analysis.ts';
 import MfaStepUpNotice from './mfa-step-up';
 
-type Props = { onOpen: (id: string, catalogId: string | null, planId?: string) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string };
+type Props = { onOpen: (id: string, catalogId: string | null, planId?: string) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new' };
 const empty: ProgramplanSelectionRequest = { unitId: null, catalogId: null, programRef: null };
-export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope }: Props) {
+export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope, initialMode = 'existing' }: Props) {
   const [data,setData]=useState<ProgramplanSelection|null>(null), [offerings,setOfferings]=useState<ProgramplanEducationSummary[]>([]);
-  const [mode,setMode]=useState<'existing'|'new'>('existing'),[orientation,setOrientation]=useState<string|null>(null),[orientationChosen,setOrientationChosen]=useState(false);
+  const [chosenMode,setMode]=useState<'existing'|'new'>(initialMode),[orientation,setOrientation]=useState<string|null>(null),[orientationChosen,setOrientationChosen]=useState(false);
   const [programCode,setProgramCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[mfa,setMfa]=useState(false);
   const [name,setName]=useState(''),[cohort,setCohort]=useState(''),[localCode,setLocalCode]=useState(''),[startedOn,setStartedOn]=useState('');
   const [refs,setRefs]=useState<ProgramplanLevelRef[]>([]),[reviewing,setReviewing]=useState(false),[command,setCommand]=useState<ProgramplanEducationCreateRequest|null>(null);
   const [unresolved,setUnresolved]=useState(false),[retryAllowed,setRetryAllowed]=useState(false);
+  const mode=chosenMode==='new'&&data&&!data.canCreateEducation?'existing':chosenMode;
   const generation=useRef(0),controller=useRef<AbortController|null>(null),mounted=useRef(true),saving=useRef(false),reviewRef=useRef<HTMLElement|null>(null);
   const dirty=mode==='new'&&!!(name||cohort||localCode||startedOn||refs.length||command);
   useUnsavedChanges(`new-program-education-${scope}`,dirty||busy&&command!==null);
