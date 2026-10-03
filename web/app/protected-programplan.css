@@ -91,3 +91,13 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .pps-search{height:auto;min-height:46px}.pps-search input{height:44px}
 @media(max-width:700px){.pps-title{display:grid;grid-template-columns:10px minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:center}.pps-title small{grid-column:2}}
 @media(max-width:700px){.pps-row,.pps-group-head{grid-template-columns:minmax(0,1fr) 88px 44px}.pps-num{white-space:nowrap}}
+
+/* Startsidan för programplaner: lugnare rubrik, stegindikator och finstilt underlag. */
+.protected-programplan .pp-heading{gap:.9rem;margin-bottom:1.2rem}.protected-programplan .pp-heading>svg{width:40px;height:40px;padding:9px;border-radius:10px}.protected-programplan .pp-heading h1{font-size:1.75rem;font-weight:650;letter-spacing:-.02em}.protected-programplan .pp-heading p{margin:.2rem 0 0;font-size:.9375rem;color:#657185}
+.pps-stepper{gap:0!important;margin:0 0 1.6rem!important;counter-reset:none}.pps-stepper li{display:flex;align-items:center;gap:8px;padding:0 18px 0 0!important;border:0!important;background:none!important;font-size:.875rem;font-weight:500!important;color:#8a96a8}
+.pps-stepper li+li::before{content:"";width:28px;height:1px;background:#cbd2df;margin-right:10px}.pps-stepper li>span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1px solid #cbd2df;font-size:.75rem;font-weight:600;background:#fff}
+.pps-stepper li[aria-current=step]{color:#202b3b!important;font-weight:600!important}.pps-stepper li[aria-current=step]>span{background:#365ce6;border-color:#365ce6;color:#fff}.pps-stepper li[data-done=true]{color:#46586d}.pps-stepper li[data-done=true]>span{background:#edf7ef;border-color:#bdddc5;color:#2b6a35}
+.pp-flow .pp-flow-support{padding:20px 22px;background:#fff;border:1px solid #e3e7ee;border-radius:12px}.pp-flow .pp-flow-selection{margin-top:16px;padding:20px 22px;background:#fff;border:1px solid #e3e7ee;border-radius:12px}
+.pp-flow-mode{display:inline-flex!important;gap:0!important;padding:3px!important;background:#f0f2f6;border-radius:10px;align-self:end}.pp-flow-mode button{border:0!important;box-shadow:none!important}.pp-flow-mode button:not([data-variant=default]){background:transparent}
+.pps-fineprint{margin-top:2rem;padding:0!important;border:0!important;background:none!important;font-size:.8125rem;color:#8a96a8}.pps-fineprint>summary{font-weight:400!important;font-size:.8125rem;color:#8a96a8;min-height:36px}.pps-fineprint p{font-size:.8125rem}
+@media(max-width:700px){.pps-stepper li{padding-right:8px!important}.pps-stepper li+li::before{width:12px;margin-right:6px}.pps-stepper li{font-size:.8125rem}}
