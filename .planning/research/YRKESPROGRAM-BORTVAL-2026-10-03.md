@@ -24,7 +24,7 @@ Behöver programplanerna redan nu hantera yrkesprogram och elevens rätt att vä
 | Förlängd undervisning får beslutas för en yrkeselev som riskerar att inte nå behörighetsnivåerna. | Gymnasieförordningen 9 kap. 7 § p. 2 |
 | **Från 2028-07-02** ersätts gymnasiearbetet av **yrkesprov** på yrkesprogrammen. Poängsummorna ändras inte. | Skollagen bilaga 2 (lag 2026:1243) |
 
-Tolkning, inte författningstext: Poängen för bortvalda nivåer behöver inte ersättas med andra ämnen. Elevens program blir kortare. Det följer av att den garanterade undervisningstiden minskas och att bortvalet inte räknas som reducerat program. Bekräfta tolkningen med Skolverket eller en verksamhetskunnig person innan den blir en regel i systemet.
+**Bekräftad av användaren 2026-10-03:** Poängen för bortvalda nivåer ersätts inte med andra ämnen. Elevens program blir kortare. Det stämmer med att den garanterade undervisningstiden minskas och att bortvalet inte räknas som reducerat program.
 
 ## Läget i koden
 
@@ -57,9 +57,9 @@ Därför bör regeln fångas nu:
 - Kopiering till nästa elevkull bevaras, eftersom regeln hör till programmet och inte till eleven.
 
 Risker och öppna frågor:
-- Bekräfta tolkningen att bortvalda poäng inte ersätts.
-- Riksrekryterande utbildningar: summa och bortvalsrätt behöver verifieras separat.
-- Yrkesprov från 2028-07-02: undersök övergångsbestämmelserna innan plan för elevkull 2028 skapas.
+- ~~Bekräfta tolkningen att bortvalda poäng inte ersätts.~~ Bekräftad 2026-10-03.
+- Riksrekryterande utbildningar: användaren vet inte hur de fungerar. Enligt gymnasieförordningen 5 kap. får Skolverket besluta om avvikande struktur, innehåll och examensmål, men inte om en annan omfattning av de gymnasiegemensamma ämnena än bilaga 2 anger. Bortvalsrätten följer därför troligen med, men poängsumman beror på Skolverkets beslut om respektive utbildning. Katalogen visar dessutom avvikelser: YR25 har 800 i stället för 900 gymnasiegemensamma poäng. Visa ramen som okontrollerad tills summan per utbildning är verifierad hos Skolverket.
+- Yrkesprov från 2028-07-02: användaren tycker att förändringen är bra. Gymnasiearbetet på yrkesprogrammen ska bytas mot yrkesprov för elevkullar som omfattas. Undersök övergångsbestämmelserna innan plan för elevkull 2028 skapas.
 - Gymnasial lärlingsutbildning: APL-beräkningen påverkas. Det hör till senare flöden.
 
 ## Förslag till nästa steg
