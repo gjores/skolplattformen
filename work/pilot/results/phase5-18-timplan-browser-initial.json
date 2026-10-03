@@ -1,0 +1,120 @@
+{
+  "phase": "05-18",
+  "status": "FAIL",
+  "sourceRevision": "d1f34ca12f157a4ef116b634b021dce5d8b62a94",
+  "buildRevision": "d1f34ca12f157a4ef116b634b021dce5d8b62a94",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "10",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "01",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "timplan-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "09",
+      "project": "timplan-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "10",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "01",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "timplan-phone",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "timplan-phone",
+      "status": "failed"
+    },
+    {
+      "case": "09",
+      "project": "timplan-phone",
+      "status": "passed"
+    }
+  ],
+  "cleanupCount": 20,
+  "cleanupVerified": true,
+  "sourceBuildVerified": false,
+  "preservedAuditEvents": 295,
+  "preservedAuditAnchors": 26,
+  "screenshots": [],
+  "limits": [
+    "Real local built Worker/SQL with synthetic data and minted sessions.",
+    "Phone is iPhone/WebKit emulation; human comprehension and physical phone approval remain open.",
+    "Only negative transport failures are intercepted."
+  ]
+}

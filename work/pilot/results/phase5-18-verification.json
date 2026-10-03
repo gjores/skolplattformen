@@ -1,0 +1,98 @@
+{
+  "phase": "05-18",
+  "status": "PASS_LOCAL_SYNTHETIC_HUMAN_PENDING",
+  "completed": "2026-10-04",
+  "buildRevision": "d37f566b3575623171e07ef3150f16d55c6f14ed",
+  "browserBuildRevision": "d1f34ca12f157a4ef116b634b021dce5d8b62a94",
+  "productSourceDiff": [],
+  "scope": "local-synthetic-only",
+  "checks": {
+    "termsBrowser": {
+      "status": "PASS",
+      "passed": 16
+    },
+    "programplanBrowser": {
+      "status": "PASS",
+      "passed": 40
+    },
+    "termsApiRelease": {
+      "status": "PASS",
+      "passed": 31,
+      "complete": true,
+      "cleanup": "PASS",
+      "originalBusinessPreserved": true
+    },
+    "timplanBehavior": {
+      "status": "PASS_WITH_SETUP_FAILURES",
+      "passed": 20,
+      "fullRunPassed": 19,
+      "targetedPassed": 1,
+      "completeSingleRun": false,
+      "cleanupVerified": true
+    },
+    "sql": {
+      "status": "PASS",
+      "passed": 236,
+      "matrix": [
+        29,
+        108,
+        31,
+        18,
+        50
+      ]
+    },
+    "node": {
+      "status": "PASS",
+      "passed": 417,
+      "scope": "observed CLI; relevant models/server unchanged since run"
+    },
+    "browserHarness": {
+      "status": "PASS",
+      "passed": 4
+    },
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS",
+    "visualReview": {
+      "status": "PASS",
+      "images": 4,
+      "phone": "WebKit emulation"
+    },
+    "human": "awaiting_user"
+  },
+  "sourceHashes": {
+    "web/lib/programplan-terms.ts": "f707fcb84cb098072218f67567590148e34c8dba6e6f6dae3ece1f75937f3e61",
+    "web/lib/programplan-terms-contract.ts": "239596a4a8c18c15123176630851679b5d39f11b1602b491df60f9124a66b9c5",
+    "web/lib/server/programplan-terms.ts": "53b0c6194ee9098b86e570e23570a3be44ed34161a234b13299ae1bf9e0fe34c",
+    "web/app/api/programplaner/terminer/route.ts": "cdfa49c5d8e9a9712e52220f1a03a1dab2f097f8de449ae2a8d8cd595845b7a4",
+    "web/app/api/programplaner/terminer/lasa/route.ts": "3e997213d8de3de6d2408247c9a1802110ecc5c1b11a422be8effee04eeebd1d",
+    "supabase/migrations/20261003120000_phase5_programplan_terms.sql": "628cd5573e9cf3f0d3cbce305c4ac373333ecb23985e4c3569febe3a7bb1ef6e",
+    "supabase/migrations/20261003121000_phase5_worker_programplan_terms.sql": "51692a79fbbb4e245a179e787d5129cfb4db666db1856a8084b8df72d8d55a3a"
+  },
+  "reportHashes": {
+    "terms-browser": "b32f4a3daf6110bcabc45a6791c6b6db586ee9fd3a69710e6643ca1f2eccd2cf",
+    "programplan-browser": "c49673fdc88c2bf84094ee3231ac3b2eebbddadef3f8194d709c1a0a4ac2a64d",
+    "terms-api-release": "30a659f4cde9575a0a71078792c690972d2d0671bb806c9014f1e1b10dfe2cd3",
+    "timplan-browser": "11d26cf63d428862721e35fa5af1c99811e6e8987286557fa7c686712642e2ec",
+    "terms-sql": "340017cbcef056e008ce20908078c9392401df3b3cbd5d078916acd90298a516",
+    "phase5_programplan_drafts-sql": "ff6f36a69eda7367b6032887a35df876ea26f4da5f4c5795b35cbc9b233077d5",
+    "phase5_programplan_worker-sql": "1f515f1480d81724904ae19cb041defcd68b56a16dbf02c1a973faabf7f952cf",
+    "phase5_programplan_workspace_worker-sql": "bf1634fe8e8624978d4aa7a76c65bf93ce1dafc4fcb108b85c52708370af21e1",
+    "phase5_programplan_education-sql": "87e851de8a91c82ea6fac65829d651c10172b6ea969a55a241e3b872c9f5823e",
+    "terms-api-preflight": "aca57f5d2a514870155d16817b68e1002748cc5ce189c409ae0d50c9073d3082",
+    "terms-api-final": "607467808acc5ae1ec96bcca9d7f57341bc3e165eb4174c0d3eec2ab3e87d6a1",
+    "programplan-api-regression": "8ab6b0f807e129e9036ab407c02ff85c77b09c4ddb585a58f1ec3b5e83f849a7"
+  },
+  "preview": {
+    "url": "http://127.0.0.1:3012/",
+    "runtime": "workerd",
+    "temporary3058": "stopped"
+  },
+  "remaining": [
+    "Human comprehension and physical phone trial.",
+    "Administrator delegation and approved/finalized programplan to timplan are separate todos.",
+    "Full national decisions and phase5 approval remain open.",
+    "Timplan full-run setup stalls are documented; exact external cause not confirmed."
+  ]
+}

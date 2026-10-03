@@ -159,7 +159,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-16 automatiskt genomförda; 05-16:s aktuella gemensamma flöde är redo för nytt mänskligt prov. Användaren underkände senast 05-14:s begriplighet. 05-15/05-16 återför den beslutade ordningen program → inriktning → programfördjupning och använder samma arbetsyta för nytt och befintligt. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
+**Plans**: 05-01–05-16 samt 05-18 automatiskt genomförda; 05-16:s aktuella gemensamma flöde är redo för nytt mänskligt prov. Användaren underkände senast 05-14:s begriplighet. 05-15/05-16 återför den beslutade ordningen program → inriktning → programfördjupning och använder samma arbetsyta för nytt och befintligt. Skyddad GR/IM-timplanslista/celländring och programplansurval, versionsläsning, utkast och kloning verifierade automatiskt. Samlat mänskligt prov samt fasens fulla utbildnings-/besluts-/kopierings-/klassflöden återstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -182,6 +182,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] 05-15-PLAN.md — Skyddade program-/inriktningsval och atomiskt HM-skapande av utbildning med första utkast, replaykvitto och riktiga SQL/API-prov.
 - [x] 05-16-PLAN.md — Samma program → inriktning → fördjupningsarbetsyta för nytt och befintligt, ämnesgrupperade nivåval och nytt begriplighetsprov.
 - [ ] 05-17 (planeras) — Yrkesprogrammens poängsumma (2 700 för BF/HT/VO, 2 800 för övriga, skollagen bilaga 2) så att ramen för programfördjupning kontrolleras. Markera Svenska/SvA nivå 2–3 och Engelska nivå 2 som ”ingår – eleven kan välja bort” med undantagen för BF/VO (Svenska 2) och HT (Engelska 2), gymnasieförordningen 4 kap. 23 §. Riksrekryterande utbildningar förblir okontrollerade. Elevens bortval hör till STUDY-01. Underlag: `research/YRKESPROGRAM-BORTVAL-2026-10-03.md`.
+- [x] 05-18-PLAN.md — Poängfördelning över sex terminer i exakt programplansversion, årskursöversikt och mobilinmatning. Terminer 16/16, API 31/31 och SQL 236/236 PASS; program 40/40 och timplan 20 beteenden över 19+1. Mänskligt prov väntar, setupfel särredovisade i 05-18-SUMMARY. Administratörsdelegation och skapande av timplan har egna todos.
 
 05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. 05-15/05-16 har nu levererat gymnasieutbildningsskapande med första utkast för huvudmannen. Beslut, generellt GR/IM-skapande, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 
@@ -275,7 +276,9 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 **Coverage:** 42/42 v1-krav har exakt en ansvarig fas; inga omappade eller dubbelt tilldelade krav. Detaljkraven och denna fördelning godkändes 2026-09-11. Fas 1:s tre krav är verifierade 2026-09-12 och fas 2:s sex krav är verifierade 2026-09-21. Fas 3:s sex krav är verifierade lokalt syntetiskt 2026-09-28. Övriga 27 krav väntar på genomförande eller slutverifiering. Fas 4:s åtta krav har gröna automatiska syntetiska bevis, men mänskligt användarprov och separat fasverifiering återstår.
 
 ---
-*Last updated: 2026-10-02 — 05-15/05-16 automatiskt verifierade; nytt mänskligt prov, fas 4:s checkpoint och full fasverifiering kvarstår.*
+*Last updated: 2026-10-04 — 05-18 automatiskt verifierad; mänskligt prov, fas 4:s checkpoint och full fasverifiering kvarstår.*
 
 
 Aktuellt 2026-10-02: 05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
+
+Aktuellt 2026-10-04: 05-18 levererar versionsbunden poängfördelning över sex terminer, årskurskort och mobilinmatning. Nya terminsflödet 16/16, program 40/40, API 31/31 och SQL 236/236 PASS; timplanens 20 beteenden PASS över 19+1, två externa setup-timeouts bevarade. Mänskligt prov och full ADMIN-02/fas 5 återstår; se 05-18-SUMMARY/REVIEW. Vanlig 3012 uppdaterad till d37f566.

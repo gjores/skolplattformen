@@ -1,0 +1,146 @@
+{
+  "phase": "05-18",
+  "status": "PASS_WITH_SETUP_FAILURES",
+  "behaviorMatrix": "PASS",
+  "completeSingleRun": false,
+  "sourceRevision": "d37f566b3575623171e07ef3150f16d55c6f14ed",
+  "buildRevision": "d37f566b3575623171e07ef3150f16d55c6f14ed",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "10",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "01",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "02",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "03",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "04",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "05",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "06",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "07",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "08",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "09",
+      "project": "timplan-desktop",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "10",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "01",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "02",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "03",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "04",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "05",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "06",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "07",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "08",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "full-run"
+    },
+    {
+      "case": "09",
+      "project": "timplan-phone",
+      "status": "passed",
+      "run": "targeted-rerun"
+    }
+  ],
+  "cleanupCount": 20,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 317,
+  "preservedAuditAnchors": 26,
+  "setupFailures": [
+    "Full run: phone09 timed out in fixture beforeEach; no UI behavior was attempted.",
+    "Earlier full run: phone01 also timed out before fixture completion.",
+    "After each process exited, actual protected-target read found zero fixture-marked customers; no repair deletion occurred."
+  ],
+  "limits": [
+    "All20 behavior cases passed across full19 and targeted1. This is not a single clean full-suite PASS.",
+    "External target validation uses synchronous CLI calls without a time limit; exact setup stall cause remains unverified.",
+    "Phone is WebKit emulation and does not replace human approval."
+  ]
+}

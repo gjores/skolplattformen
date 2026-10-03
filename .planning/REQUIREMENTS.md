@@ -166,7 +166,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | INT-06 | Phase 6 | Pending |
 | INT-07 | Phase 7 | Pending |
 | ADMIN-01 | Phase 5 | Pending |
-| ADMIN-02 | Phase 5 | Pending — delbevis 05-15/05-16-SUMMARY; mänsklig begriplighet och fulla beslutsregler återstår |
+| ADMIN-02 | Phase 5 | Pending — delbevis 05-15/05-16 och 05-18-SUMMARY/REVIEW (versionsbunden terminsfördelning automatiskt verifierad); mänsklig begriplighet och fulla beslutsregler återstår |
 | ADMIN-03 | Phase 5 | Pending |
 | ADMIN-04 | Phase 5 | Pending |
 | UX-01 | Phase 6 | Pending |

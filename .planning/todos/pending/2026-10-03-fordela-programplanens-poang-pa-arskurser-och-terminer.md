@@ -2,10 +2,18 @@
 created: 2026-10-03
 title: Ange årskurser och terminer för programplanens poäng
 area: programplaner
+status: implemented
+plan: 05-18
+human_result: awaiting_user
+implementation_completed: 2026-10-04
+verification: passed_local_synthetic
 files:
   - web/app/protected-programplan-workspace.tsx
   - web/app/protected-programplan-sheet.tsx
-  - web/lib/programplan-table.ts
+  - web/app/protected-programplan-terms.tsx
+  - web/lib/programplan-terms.ts
+  - web/lib/programplan-terms-contract.ts
+  - supabase/migrations/20261003120000_phase5_programplan_terms.sql
   - web/lib/server/programplan-planning.ts
   - docs/handbok/programplaner.md
 ---
@@ -29,4 +37,8 @@ Användaren saknar möjligheten att i programplanen skriva in i vilka årskurser
 - En timplan skapad från den godkända och fastställda versionen får rätt årskurs-/terminsunderlag. Äldre planversioner och timplaner förändras inte av senare redigering.
 - Obehörig ändring och tyst överskrivning nekas. Prova inmatning och översikt på dator och telefon, inklusive mänskligt begriplighetsprov.
 
-Status: **pending**. Användarbeställt behov; genomförande och verifiering återstår. Samordnas med återstående fas 5-planering.
+Status 2026-10-04: **implementerad i 05-18 — automatiskt verifierad lokalt, mänskligt prov väntar**. Inmatning, versionbunden lagring, årskurs-/terminsöversikt, radvalidering, konflikt-/mandat-/auditgränser och dator-/telefonlayout är genomförda. Läs [05-18-SUMMARY](../../phases/05-bevarade-utbildnings-och-klassfloden/05-18-SUMMARY.md) och [aktuellt mänskligt prov](../../phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-USER-TRIAL.md).
+
+Fördelningens användning vid timplansskapande ligger fortsatt i den separata timplans-todon. Administratörsmandatet följer den separata delegations-todon; nuvarande huvudmanna-/rektorsmandat gäller tills den är genomförd. Alternativ/oprecisa nivåer väljs inte automatiskt. Individuellt val är en ram, inte färdiga elevval. Ny versionskopia bevarar fördelningen; kopia till en helt ny utbildning gör det ännu inte.
+
+Todon ligger kvar under pending för mänskligt begriplighetsprov och de uttryckligen separata beroendena; detta betyder inte att terminsinmatningen saknas.

@@ -1,5 +1,19 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
+## Nytt prov 2026-10-03: poäng per årskurs och termin
+
+05-18 lägger till **Årskurser och terminer** i en öppnad, underlagsbunden programplan. Mänskligt resultat: **awaiting_user**. Automatiska prov och bildgranskning redovisas separat i 05-18-SUMMARY och 05-18-REVIEW. Tidigare underkänd begriplighet ersätts inte av automatiska PASS.
+
+På vanlig skyddad app `http://127.0.0.1:3012/`, med syntetiska uppgifter:
+
+1. Som rektor eller huvudman: välj **Programplaner**, öppna en utbildning med ett bundet utkast och hitta **Årskurser och terminer**.
+2. Välj **Fördela poäng**. På en namngiven nivå om 100 poäng: skriv 50 i åk 1 höst och 50 i åk 1 vår. Kontrollera att raden visar 100/100 och årskurskortet visar 100 poäng.
+3. Fördela några fler poäng på en annan årskurs. Kontrollera återstående poäng; en delvis fördelad plan får sparas. Ett försök med 101 på en 100-poängsnivå ska ge radfel och hindra sparning.
+4. Välj **Spara fördelning**, ladda om och öppna samma version. Poängen ska finnas kvar. På telefon väljer du en årskurs i taget; höst och vår visas bredvid ämnet.
+5. Läs en fastställd äldre version om sådan finns: fördelningen ska kunna visas men inte ändras. En ny versionskopia bevarar fördelningen. Kopiering till en helt ny utbildning bevarar däremot ännu inte terminsfördelningen.
+
+Bedöm om översikten, terminerna, återstående poäng och sparningen är begripliga på dator och telefon. Inget ämnesval görs automatiskt för alternativa eller opreciserade underlagsrader. Poäng är inte undervisningstimmar. Admin-delegation och skapande av timplan från godkänd/fastställd programplan kvarstår i separata todos.
+
 Status 2026-10-02: **05-15/05-16 automatiskt verifierade — nytt mänskligt begriplighetsprov väntar**. Tidigare 05-14 är mänskligt underkänt. Följ aktuella uppgifter nedan; äldre provomgångar längre ner är historik.
 
 ## Fysisk telefon på samma wifi

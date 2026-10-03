@@ -1,0 +1,105 @@
+{
+  "phase": "05-18",
+  "status": "PASS",
+  "sourceRevision": "d1f34ca12f157a4ef116b634b021dce5d8b62a94",
+  "buildRevision": "d1f34ca12f157a4ef116b634b021dce5d8b62a94",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "case": "01",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "terms-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "01",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "02",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "03",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "04",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "05",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "06",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "07",
+      "project": "terms-phone",
+      "status": "passed"
+    },
+    {
+      "case": "08",
+      "project": "terms-phone",
+      "status": "passed"
+    }
+  ],
+  "cleanupCount": 16,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "preservedAuditEvents": 542,
+  "preservedAuditAnchors": 20,
+  "screenshots": [
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-desktop/attachments/terms-editor-png-afee1063bad93c2b8cb34e9bf19316b4ebe4de32.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-desktop/attachments/terms-saved-png-4e3eef22dc4a95065fb023360c7eb0f8e4d2db79.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-phone/attachments/terms-editor-png-1dbf7799cfb234729a06e2df5417c300c5fc1654.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-phone/attachments/terms-saved-png-5a27cb8c89df33e01e966d8a0a96bd38311d49b9.png"
+  ],
+  "limits": [
+    "Real local built Worker/SQL with synthetic data and minted sessions.",
+    "Phone is iPhone/WebKit emulation; human comprehension and physical phone approval remain open.",
+    "Only negative transport failures are intercepted."
+  ]
+}

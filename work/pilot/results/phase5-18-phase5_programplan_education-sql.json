@@ -1,0 +1,8 @@
+{
+  "target": "protected",
+  "files": [
+    "phase5_programplan_education.test.sql"
+  ],
+  "status": "PASS",
+  "exitCode": 0
+}
