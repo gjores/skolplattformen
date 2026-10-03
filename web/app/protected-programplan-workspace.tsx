@@ -225,10 +225,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       if (own.kind === 'replace') {
         const terms = parseProgramplanTermReply(await api.post('/api/programplaner/terminer/lasa', { planId: own.planId }, r.signal));
         if (terms.planId !== own.planId) throw new Error('Terminsunderlaget avviker.');
-        if (terms.revision !== own.expectedRevision) { await refreshDraft({ ...own, uncertain: false }, r.token, r.signal); return; }
         const keys = new Set(own.refs.map(ref=>`specialization:${ref.subjectCode}:${ref.subjectVersion}:${ref.itemCode}`));
         const removed = terms.distribution.filter(row=>row.rowKey.startsWith('specialization:') && !keys.has(row.rowKey));
-        if (removed.length) {
+        if (terms.revision === own.expectedRevision && removed.length) {
           const names = removed.map(row=>{const ref=own.originalRefs.find(ref=>row.rowKey===`specialization:${ref.subjectCode}:${ref.subjectVersion}:${ref.itemCode}`);return `${ref?programplanLevelName(ref,own.options):row.rowKey} (${row.points.reduce((sum,n)=>sum+n,0)} fördelade poäng)`;}).join(', ');
           if (current(r.token)) { setReviewing(false); setDraft({ ...own, error: `Nivåer som du tar bort har sparad terminsfördelning: ${names}. Avbryt ändringen och rensa först nivåns fördelning under Årskurser och terminer. Dina sparade uppgifter har inte ändrats.`, mfa: false }); }
           return;
@@ -298,7 +297,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     {!workspace&&!draft&&!showFlow&&<ProgramplanList key={flowRevision} disabled={busy} onSecurityFailure={securityFailure} onLoaded={setCanCreate}
       onOpen={id=>void openEducation(id)} onCopy={id=>{copyAfterOpen.current=true;void openEducation(id);}} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(!hasUnsaved||confirmDiscard())void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
-      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId)=>openEducation(id,1,catalogId,planId??null,null,!!planId)}/></div>}
+      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId)=>openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId)}/></div>}
     {(workspace||draft)&&<div className="pps-page">
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">

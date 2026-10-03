@@ -208,8 +208,8 @@ test('14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll',
 });
 
 test('15: utgången session och avslutat givande mandat rensar det öppna formuläret',async({page})=>{
-  await enter(page,fixture.noMfa);await education(page);await version(page);await add(await edit(page));await fixture.expire(fixture.noMfa);expect((await save(page)).status()).toBe(401);await expect(w(page)).toHaveCount(0);await expect(editor(page)).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);
-  await enter(page);await education(page);await version(page);await add(await edit(page));await fixture.revokeParent();expect((await save(page)).status()).toBe(403);await expect(w(page)).toHaveCount(0);await expect(editor(page)).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);
+  await enter(page,fixture.noMfa);await education(page);await version(page);await add(await edit(page));await fixture.expire(fixture.noMfa);expect((await save(page,'terminer/lasa')).status()).toBe(401);await expect(w(page)).toHaveCount(0);await expect(editor(page)).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);
+  await enter(page);await education(page);await version(page);await add(await edit(page));await fixture.revokeParent();expect((await save(page,'terminer/lasa')).status()).toBe(403);await expect(w(page)).toHaveCount(0);await expect(editor(page)).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);
 });
 
 // Different programmes must round-trip their own exact source and ordered choices.

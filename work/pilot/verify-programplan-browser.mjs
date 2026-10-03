@@ -4,7 +4,7 @@ import { readFile,writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { verifyProgramplanBrowserTarget } from './phase5-programplan-browser-fixtures.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-export const PROGRAMPLAN_BROWSER_CASE_IDS=Array.from({length:19},(_,n)=>String(n+1).padStart(2,'0'));
+export const PROGRAMPLAN_BROWSER_CASE_IDS=Array.from({length:20},(_,n)=>String(n+1).padStart(2,'0'));
 const expectedCount=PROGRAMPLAN_BROWSER_CASE_IDS.length*2;
 function walk(suites){return suites.flatMap(s=>[...(s.specs??[]),...walk(s.suites??[])]);}
 export function summarizeProgramplanBrowser(json,proof,phase='05-11'){
