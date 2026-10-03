@@ -127,3 +127,8 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .pp-flow .pp-new-education{border:1px solid #e3e7ee;border-radius:12px;padding:20px 22px;display:flex;flex-direction:column;gap:16px}.pp-flow .pp-new-education>h2{font-size:1rem;font-weight:600;margin:0;color:#202b3b}.pp-flow .pp-new-education>p{margin:-10px 0 0;color:#657185;font-size:.875rem}
 .pp-flow .pp-new-education .pp-dialog-actions{border-top:1px solid #e3e7ee;padding:14px 0 0;display:flex;justify-content:flex-end;gap:10px}
 @media(max-width:800px){.pp-flow .pp-flow-support,.pp-flow .pp-flow-selection{grid-template-columns:minmax(0,1fr)}.pp-flow .pp-flow-mode{justify-self:start}}
+.pp-flow .pp-flow-support{grid-template-columns:minmax(0,420px) auto;justify-content:space-between}
+.pp-flow .pp-save-help{background:#f7f8fa;border:1px solid #e3e7ee;border-radius:10px;padding:16px 18px;outline:0;box-shadow:none}.pp-flow .pp-save-help:focus-visible{box-shadow:0 0 0 3px #dbe3ff}
+.pp-flow .pp-save-help h3{font-size:.9375rem;font-weight:600;margin:0 0 10px}.pp-flow .pp-review{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 20px;margin:0 0 10px;font-size:.9375rem}.pp-flow .pp-review dt{color:#657185;font-weight:500}.pp-flow .pp-review dd{margin:0;color:#202b3b}
+.pp-flow .pp-review-levels{margin:10px 0;padding:10px 0 0;border-top:1px solid #e3e7ee;list-style:none;font-size:.9375rem}.pp-flow .pp-save-help p{margin:0;font-size:.875rem;color:#46586d}
+@media(max-width:800px){.pp-flow .pp-flow-support{grid-template-columns:minmax(0,1fr)}}
