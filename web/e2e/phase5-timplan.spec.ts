@@ -388,12 +388,12 @@ test('08: pagination, tom lista, okänd rad och skyddad programplansnavigation',
   expect((await programList).status()).toBe(200);
   const programWorkspace=page.getByTestId('protected-programplan-workspace');
   await expect(programWorkspace.getByRole('heading',{name:'Programplaner',exact:true})).toBeVisible();
-  const flow=programWorkspace.getByRole('region',{name:'Program, inriktning och fördjupning',exact:true});
-  await expect(flow.getByLabel('1. Program',{exact:true})).toBeEnabled();
-  const selection=page.waitForResponse(matches('/api/programplaner/val'));await flow.getByLabel('1. Program',{exact:true}).selectOption('EK25:4');expect((await selection).status()).toBe(200);await expect(flow).toHaveAttribute('aria-busy','false');
-  await flow.getByLabel('2. Inriktning',{exact:true}).selectOption('__none__');
-  await expect(programWorkspace.getByRole('button',{name:/^Öppna utbildning Syntetiskt gymnasium,/u})).toBeVisible();
+  const list=programWorkspace.getByRole('region',{name:'Alla programplaner',exact:true});
+  await expect(list).toHaveAttribute('aria-busy','false');
+  const education=list.getByRole('button',{name:/^Öppna utbildning Syntetiskt gymnasium,/u});await expect(education).toBeVisible();
   await expect(programWorkspace).not.toContainText('Syntetisk annan grundskola');
+  const selection=page.waitForResponse(matches('/api/programplaner/underlag'));await education.click();expect((await selection).status()).toBe(200);
+  await expect(programWorkspace.getByRole('heading',{name:'Syntetiskt gymnasium',exact:true})).toBeVisible();
   await fixture.addPages();
   await navigate(page,'Timplaner');
   await expect(workspace(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(50);
