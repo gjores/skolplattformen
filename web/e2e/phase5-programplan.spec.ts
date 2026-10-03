@@ -61,8 +61,8 @@ test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning
   await expect(w(page).locator('.pp-overview')).toHaveCount(0);
   const details=w(page).locator('.pp-underlying');await expect(details).not.toHaveAttribute('open','');
   await expect(w(page).getByRole('group',{name:'Programfördjupning',exact:true})).toContainText('Engelska');await expect(w(page).getByRole('group',{name:'Programfördjupning',exact:true})).toContainText('ENGE3000X');
-  await expect(w(page).getByRole('button',{name:'Ändra fördjupning',exact:true})).toBeEnabled();await expect(w(page)).toContainText('Utkast · version');
-  const reference=w(page).getByRole('region',{name:'Ingår enligt underlaget',exact:true});await expect(reference).toContainText('Gymnasiegemensamma ämnen');await expect(reference).toContainText('Alternativ i underlaget — inget ämnesval är gjort här.');await expect(reference).toContainText('Nivåuppgifter saknas i underlaget.');await expect(w(page)).toContainText('Skolverkets ram: 2 500 poäng');
+  await expect(w(page).getByRole('button',{name:'Ändra fördjupning',exact:true})).toBeEnabled();await expect(w(page)).toContainText('Utkast · Version');
+  const reference=w(page).getByRole('region',{name:'Ingår enligt underlaget',exact:true});await expect(reference).toContainText('Gymnasiegemensamma ämnen');await expect(reference).toContainText('Alternativ i underlaget — inget ämnesval är gjort här.');await expect(reference).toContainText('Nivåuppgifter saknas i underlaget.');await expect(w(page)).toContainText('av 2 500 poäng');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await capture(page,info,'programplan-read.png');
   await underlying(page);await expect(details).toContainText(fixture.catalogId);await expect(details).toContainText('Utbildningsstart: 2026-08-01');await expect(details).toContainText('Fastställande är stängt');
   await expect(w(page).getByRole('button',{name:/Fastställ/u})).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);
