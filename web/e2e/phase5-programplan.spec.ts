@@ -286,3 +286,17 @@ test('19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen g
   await page.unroute('**/api/programplaner/val');await flow.getByRole('button',{name:'Läs valen igen',exact:true}).click();await chooseProgram(page,'VO25',null);const fresh=flow.getByRole('region',{name:'Ny utbildning och programfördjupning',exact:true});await expect(fresh.getByLabel('Utbildningens namn',{exact:true})).toHaveValue('');await expect(fresh.getByRole('group',{name:'Programfördjupning',exact:true})).toContainText('Inga nivåer valda');await expect(fresh).toContainText('Programmet har ingen inriktning.');
   const list=await fixture.request(baseURL,fixture.hm,'/api/programplaner/lista',{page:1});expect(list.body.offerings.some((o:{name:string})=>o.name==='Syntetisk skyddad ny utbildning')).toBe(false);
 });
+
+test('20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet',async({page},info)=>{
+  await enter(page,fixture.hm);const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});await expect(list).toHaveAttribute('aria-busy','false');
+  await expect(list.getByRole('button',{name:/^Öppna utbildning Syntetisk bunden SA,/u})).toBeVisible();await expect(list).toContainText('Utkast');await capture(page,info,'programplan-list.png',false);
+  const before=await fixture.snapshot();const opened=page.waitForResponse(matches('/api/programplaner/underlag'));await list.getByRole('button',{name:'Kopiera Syntetisk bunden SA',exact:true}).click();expect((await opened).status()).toBe(200);
+  const form=w(page).getByRole('region',{name:'Kopiera till ny utbildning',exact:true});await expect(form).toBeVisible();await expect(form.getByLabel('Utbildningens namn',{exact:true})).toHaveValue('Syntetisk bunden SA – kopia');
+  await expect(form.getByRole('button',{name:'Spara kopia',exact:true})).toBeDisabled();
+  await form.getByLabel('Elevkull',{exact:true}).fill('Syntetisk kull 2027');await form.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill('2027-08-16');
+  const pending=page.waitForResponse(matches('/api/programplaner/utbildning/skapa'));await form.getByRole('button',{name:'Spara kopia',exact:true}).click();const r=await pending;expect(r.status()).toBe(200);const body=await r.json();
+  await paired(r,'programplan_education_created',body.education.id,fixture.hm,'education');await expect(w(page).getByRole('heading',{name:'Syntetisk bunden SA – kopia',exact:true})).toBeVisible();await expect(w(page)).toContainText('Kopian sparades');
+  const copy=await fixture.snapshot(body.plan.id);expect(copy.offering_id).toBe(body.education.id);expect(copy.specialization).toEqual(before.specialization);expect(copy.basis_reference.programRef).toEqual(before.basis_reference.programRef);expect(copy.basis_reference.orientationCode).toBe(before.basis_reference.orientationCode);expect(copy.basis_reference.startedOn).toBe('2027-08-16');expect(copy.status).toBe('utkast');
+  expect(await fixture.snapshot()).toEqual(before);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
