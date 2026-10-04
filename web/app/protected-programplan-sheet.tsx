@@ -148,3 +148,14 @@ export function SaveDialog({ analysis, busy, onCancel, onConfirm, onAnalysis, ch
       <Button disabled={busy} onClick={onConfirm}>{busy ? 'Sparar…' : fel ? 'Spara ändå' : 'Spara utkast'}</Button></div>
   </section>;
 }
+
+/** Klar för beslut räknas fram: allt fördelat, inga fel och startdatum. Visar vad som saknas. */
+export function ReadinessCard({ analysis, onOpen }: { analysis: Analysis; onOpen: () => void }) {
+  if (analysis.ready) return <section className="pps-card pps-ready-card" aria-label="Klar för beslut"><CheckCircle2 size={20} aria-hidden="true"/>
+    <div><h3>Klar för beslut</h3><p>Alla nivåer är fördelade och analysen har inga fel. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.</p></div></section>;
+  return <section className="pps-card pps-missing-card" aria-label="Innan planen är klar">
+    <h3>Innan planen är klar</h3>
+    <ul>{analysis.missing.map(m => <li key={m}>{m}</li>)}</ul>
+    <button type="button" className="pps-link" onClick={onOpen}>Visa analys →</button>
+  </section>;
+}
