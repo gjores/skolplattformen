@@ -9,8 +9,9 @@ import { parseProgramplanSelection, parseProgramplanEducationCreated, type Progr
 import { educationStatusForCommand, newEducationCommand } from '@/lib/protected-programplan-education.ts';
 import { programplanOptions, programplanLevelName } from '@/lib/protected-programplan.ts';
 import type { ProgramplanLevelRef } from '@/lib/programplan-catalog.ts';
-import { PointsBar, ProgramplanSheet } from './protected-programplan-sheet';
-import { analyseProgramplan } from '@/lib/programplan-analysis.ts';
+import { LocalPlanBoard, localTermsValid } from './protected-programplan-board';
+import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
+import type { ProgramplanTermDistribution } from '@/lib/programplan-terms.ts';
 import MfaStepUpNotice from './mfa-step-up';
 
 type Props = { onOpen: (id: string, catalogId: string | null, planId?: string) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new' };
@@ -20,16 +21,16 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
   const [chosenMode,setMode]=useState<'existing'|'new'>(initialMode),[orientation,setOrientation]=useState<string|null>(null),[orientationChosen,setOrientationChosen]=useState(false);
   const [programCode,setProgramCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[mfa,setMfa]=useState(false);
   const [name,setName]=useState(''),[cohort,setCohort]=useState(''),[localCode,setLocalCode]=useState(''),[startedOn,setStartedOn]=useState('');
-  const [refs,setRefs]=useState<ProgramplanLevelRef[]>([]),[reviewing,setReviewing]=useState(false),[command,setCommand]=useState<ProgramplanEducationCreateRequest|null>(null);
+  const [refs,setRefs]=useState<ProgramplanLevelRef[]>([]),[terms,setTerms]=useState<ProgramplanTermDistribution>([]),[reviewing,setReviewing]=useState(false),[command,setCommand]=useState<ProgramplanEducationCreateRequest|null>(null);
   const [unresolved,setUnresolved]=useState(false),[retryAllowed,setRetryAllowed]=useState(false);
   const mode=chosenMode==='new'&&data&&!data.canCreateEducation?'existing':chosenMode;
   const generation=useRef(0),controller=useRef<AbortController|null>(null),mounted=useRef(true),saving=useRef(false),reviewRef=useRef<HTMLElement|null>(null);
-  const dirty=mode==='new'&&!!(name||cohort||localCode||startedOn||refs.length||command);
+  const dirty=mode==='new'&&!!(name||cohort||localCode||startedOn||refs.length||terms.length||command);
   useUnsavedChanges(`new-program-education-${scope}`,dirty||busy&&command!==null);
   const invalidate=useCallback(()=>{generation.current++;controller.current?.abort();controller.current=null;},[]);
   const begin=useCallback(()=>{invalidate();const c=new AbortController();controller.current=c;return{signal:c.signal,token:generation.current};},[invalidate]);
   const current=useCallback((token:number)=>mounted.current&&generation.current===token,[]);
-  function resetDraft(){setName('');setCohort('');setLocalCode('');setStartedOn('');setRefs([]);setCommand(null);setReviewing(false);setUnresolved(false);setRetryAllowed(false);setMfa(false);}
+  function resetDraft(){setName('');setCohort('');setLocalCode('');setStartedOn('');setRefs([]);setTerms([]);setCommand(null);setReviewing(false);setUnresolved(false);setRetryAllowed(false);setMfa(false);}
   const load=useCallback(async (selection:ProgramplanSelectionRequest, initial=false)=>{
     const r=begin();setBusy(true);setError(null);setData(null);
     try{
@@ -82,6 +83,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
   const sourcePanel=data&&unitId?<details className={data.selection.catalogId?"pp-flow-source pps-fineprint":"pp-flow-source"} open={!data.selection.catalogId}><summary>Programunderlag{data.projection?` · Skolverket ${data.projection.source.fetched}`:''}</summary><div className="pp-field"><label htmlFor="pp-flow-catalog">Välj underlag</label><select id="pp-flow-catalog" value={data.selection.catalogId??''} disabled={locked} onChange={e=>{if(allowChange()){resetDraft();setProgramCode('');setOrientationChosen(false);void load({unitId,catalogId:e.target.value||null,programRef:null});}}}><option value="">Välj underlag från Skolverket</option>{data.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>Skolverket · hämtat {c.source.fetched}</option>)}</select></div><p>Program och nivåer hör till detta exakta underlag. En befintlig bunden plan öppnas med sitt eget sparade underlag.</p></details>:null;
   async function openCreated(commandValue:ProgramplanEducationCreateRequest, value:unknown){
     const created=parseProgramplanEducationCreated(value,commandValue);
+    if(terms.length){try{const reply=parseProgramplanTermReply(await api.post('/api/programplaner/terminer',{planId:created.plan.id,expectedRevision:created.plan.revision,distribution:terms}));if(reply.planId!==created.plan.id)throw new Error('Fel plan.');}catch(e){if(onSecurityFailure(e))return;}}
     await onOpen(created.education.id,created.plan.catalogId,created.plan.id);
   }
   async function resolveCommand(own:ProgramplanEducationCreateRequest,token:number,signal:AbortSignal){
@@ -95,6 +97,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
   }
   async function save(){
     if(!reviewing||locked||saving.current||!data?.canCreateEducation||!program||!orientationChosen)return;
+    if(!command&&program&&!localTermsValid(program,orientation,refs,terms)){setReviewing(false);setError('Rätta rader med fler poäng än nivån har innan du sparar.');return;}
     let own=command;
     try{own??=newEducationCommand({unitId:unitId!,name,cohort,localCode:localCode.trim()||null,basisReference:{catalogId:data.projection!.catalogId,programRef:{code:program.code,version:program.version},orientationCode:orientation,startedOn,specializationRefs:refs}},crypto.randomUUID());}
     catch{setReviewing(false);setError('Ange utbildningens namn, elevkull och verkliga startdatum. Kontrollera fördjupningsvalen.');return;}
@@ -125,7 +128,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
         <h2>Ny utbildning</h2><p>{program.name}{orientation&&` · ${program.orientations.find(o=>o.code===orientation)?.name}`} · {schoolName}</p>
         {mfa&&<MfaStepUpNotice message={error??'Verifiering med engångskod krävs.'} detail="Dina uppgifter finns kvar tills du lämnar sidan."/>}
         <div hidden={reviewing}><div className="pp-new-fields"><div className="pp-field"><label htmlFor="pp-new-name">Utbildningens namn</label><input id="pp-new-name" value={name} disabled={locked} maxLength={120} onChange={e=>setName(e.target.value)}/></div><div className="pp-field"><label htmlFor="pp-new-cohort">Elevkull</label><input id="pp-new-cohort" value={cohort} disabled={locked} maxLength={120} placeholder="Till exempel 2026–2029" onChange={e=>setCohort(e.target.value)}/></div><div className="pp-field"><label htmlFor="pp-new-code">Lokal kod (valfri)</label><input id="pp-new-code" value={localCode} disabled={locked} maxLength={80} onChange={e=>setLocalCode(e.target.value)}/></div><div className="pp-field"><label htmlFor="pp-new-start">Utbildningens exakta startdatum</label><input id="pp-new-start" type="date" value={startedOn} disabled={locked} onChange={e=>setStartedOn(e.target.value)}/><p>Ange den verkliga dagen enligt utbildningens uppgifter.</p></div></div>
-        {(()=>{const analysis=analyseProgramplan({program,orientationCode:orientation,refs,startedOn:startedOn||null,sourceFetched:data.projection?.source.fetched??null});return <div className="pps-page"><PointsBar analysis={analysis} chosen={refs.reduce((a,r)=>a+r.points,0)}/><ProgramplanSheet program={program} analysis={analysis} refs={refs} options={options} disabled={locked} onChange={setRefs} idPrefix="pp-new"/></div>;})()}</div>
+        <LocalPlanBoard program={program} orientationCode={orientation} options={options} refs={refs} terms={terms} refsEditable={!locked} disabled={locked} onChange={(nextRefs,nextTerms)=>{setRefs(nextRefs);setTerms(nextTerms);}}/></div>
         {reviewing&&<section ref={reviewRef} tabIndex={-1} className="pp-save-help" aria-label="Kontrollera före sparning"><h3>Ny utbildning och första utkastet</h3><dl className="pp-review"><dt>Utbildning</dt><dd>{name}</dd><dt>Elevkull</dt><dd>{cohort}</dd><dt>Skola</dt><dd>{schoolName}</dd><dt>Program</dt><dd>{program.name}</dd><dt>Inriktning</dt><dd>{orientation?program.orientations.find(o=>o.code===orientation)?.name:'Ingen inriktning'}</dd><dt>Utbildningsstart</dt><dd>{startedOn||'Datum saknas'}</dd></dl><ol className="pp-review-levels">{refs.map(r=><li key={r.itemCode}>{programplanLevelName(r,options)} · {r.points} poäng</li>)}</ol><p>{refs.length===0?'Inga fördjupningsnivåer valda. ':''}Spara skapar utbildningen och första programplansutkastet tillsammans. Planen fastställs inte.</p></section>}
         <div className="pp-dialog-actions"><Button variant="outline" disabled={locked} onClick={()=>{if(!dirty||confirmDiscard())resetDraft();}}>Avbryt</Button>{unresolved?<Button disabled={busy||disabled} onClick={()=>void readStatus()}>Läs sparstatus</Button>:reviewing?<><Button variant="outline" disabled={busy} onClick={editAgain}>Tillbaka till uppgifterna</Button><Button disabled={busy||!!command&&!retryAllowed} onClick={()=>void save()}>{busy?'Sparar…':retryAllowed?'Försök spara samma utbildning igen':'Spara utbildning och utkast'}</Button></>:<Button disabled={locked} onClick={()=>setReviewing(true)}>Granska utkast</Button>}</div>
       </section>}

@@ -12,11 +12,11 @@ import { programplanCommand, programplanCommandReply, programplanDiagnostic, pro
   programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, programplanSelectedId, assertProgramplanSummary, programplanLevelName, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
-import { AnalysisBanner, AnalysisView, PointsBar, ProgramplanSheet, ReadinessCard, SaveDialog } from './protected-programplan-sheet';
+import { AnalysisBanner, AnalysisView, ReadinessCard, SaveDialog } from './protected-programplan-sheet';
 import { analyseProgramplan } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
 import ProgramplanList from './protected-programplan-list';
-import ProgramplanBoard from './protected-programplan-board';
+import ProgramplanBoard, { LocalPlanBoard, localTermsValid } from './protected-programplan-board';
 import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistribution } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
@@ -39,6 +39,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [view, setView] = useState<'plan' | 'analysis'>('plan');
   const termsActive = false;
   const [termValues, setTermValues] = useState<ProgramplanTermDistribution | null>(null);
+  const [draftTerms, setDraftTerms] = useState<ProgramplanTermDistribution>([]);
   const [showFlow, setShowFlow] = useState(false), [canCreate, setCanCreate] = useState(false);
   const [copy, setCopy] = useState<{ name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanEducationCreateRequest | null; error: string | null; uncertain: boolean } | null>(null);
   const copyAfterOpen = useRef(false);
@@ -189,7 +190,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         programRef: { code: workspace.catalog.program.code, version: workspace.catalog.program.version }, orientationCode: workspace.education.orientationCode, startedOn },
       startedOn, originalStart: startedOn, refs: refs.map(programplanReference), originalRefs: refs.map(programplanReference), sourceBound: !!source,
       legacyConfirmed: false, options, mode: 'edit', error: null, mfa: false, uncertain: false });
-    setReviewing(false); setNotice(null); setPreparation(null);
+    setDraftTerms([]); setReviewing(false); setNotice(null); setPreparation(null);
   }
   function closeDraft() { if (busy || dirty && !confirmDiscard()) return; setDraft(null); }
   async function refreshDraft(own: ProgramplanDraft, token: number, signal: AbortSignal) {
@@ -222,6 +223,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       if (!retryCompatible(own)) return;
       own = { ...own, expectedRevision: plan!.revision, mode: 'edit' };
     }
+    if (own.kind === 'create' && workspace?.catalog.program && !localTermsValid(workspace.catalog.program, own.pin.orientationCode, own.refs, draftTerms)) { setReviewing(false); setDraft({ ...own, error: 'Rätta rader med fler poäng än nivån har innan du sparar.', mfa: false }); return; }
     let command: ReturnType<typeof programplanCommand>;
     try { command = programplanCommand(own); }
     catch { setReviewing(false); setDraft({ ...own, error: 'Ange ett verkligt utbildningsstartdatum och bekräfta eventuella äldre val. Kontrollera underlaget.', mfa: false }); return; }
@@ -241,11 +243,16 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         }
       }
       accepted = programplanCommandReply(await api.post(command.route, command.body, r.signal), own);
+      let termsNote = '';
+      if (own.kind === 'create' && draftTerms.length) {
+        try { const reply = parseProgramplanTermReply(await api.post('/api/programplaner/terminer', { planId: accepted.id, expectedRevision: accepted.revision, distribution: draftTerms }, r.signal)); if (reply.planId !== accepted.id) throw new Error('Fel plan.'); accepted = { ...accepted, revision: reply.revision }; }
+        catch (e) { if (aborted(e) || securityFailure(e)) return; termsNote = ' Terminsfördelningen kunde inte sparas och behöver göras om i planen.'; }
+      }
       const fresh = await readWorkspace(own.offeringId, 1, accepted.catalogId, r.signal);
       const snapshot = await readSelection(own.offeringId, 1, accepted.catalogId, accepted.id, r.signal, false, fresh);
       const read = snapshot.selected!;
       if (!current(r.token)) return;
-      setWorkspace(snapshot.fresh); setPlan(read); setPlanSummary(snapshot.summary); setDraft(null); setNotice('Utkastet sparades. Du kan nu läsa de sparade valen nedan eller fortsätta med Ändra fördjupning. Planen är fortfarande ett utkast.');
+      setWorkspace(snapshot.fresh); setPlan(read); setPlanSummary(snapshot.summary); setDraft(null); setNotice(`Utkastet sparades.${termsNote} Planen är fortfarande ett utkast.`);
     } catch (e) {
       if (!current(r.token) || aborted(e) || securityFailure(e)) return;
       if (accepted) await refreshDraft({ ...own, uncertain: true }, r.token, r.signal);
@@ -285,10 +292,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const serverNotes = draft ? [] : [...(plan?.resolution.diagnostics ?? []).filter(d => d.code !== 'unknown_education_start').map(d => `${programplanDiagnostic(d.code)} ${d.subjectCode ?? ''} ${d.itemCode ?? ''}`.trim()),
     ...(plan?.resolution.unresolvedChoices ?? []).filter(c => c.kind === 'program_rules_unverified').map(c => programplanDiagnostic(c.kind))];
   const boardActive = !draft && !preparation && !copy && !!plan?.basisReference && !!program && boundSourceMatches;
-  const termInput = boardActive && termValues ? (() => { try { return { rows: programplanTermRows(program!, plan!.basisReference!), distribution: termValues, ranks: programplanLevelRanks(program!) }; } catch { return undefined; } })() : undefined;
+  const draftTermInput = draft && program && (draft.kind === 'create') ? (() => { try { return { rows: programplanTermRows(program, { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs }), distribution: draftTerms, ranks: programplanLevelRanks(program) }; } catch { return undefined; } })() : undefined;
+  const termInput = draftTermInput ?? (boardActive && termValues ? (() => { try { return { rows: programplanTermRows(program!, plan!.basisReference!), distribution: termValues, ranks: programplanLevelRanks(program!) }; } catch { return undefined; } })() : undefined);
   const analysis = program && workspace ? analyseProgramplan({ program, orientationCode: workspace.education.orientationCode, refs: shownRefs, startedOn: shownStart,
     sourceFetched: workspace.catalog.source?.fetched ?? null, serverNotes, terms: termInput }) : null;
-  const chosenPoints = shownRefs.reduce((a, r) => a + r.points, 0);
   const problems = analysis ? analysis.counts.fel + analysis.counts.risk : 0;
   const canEditInline = !!draft && editableRefs && draft.mode === 'edit';
   const ready = !!plan && plan.status === 'utkast' && boardActive && !!analysis?.ready;
@@ -299,10 +306,11 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}`} plan={plan} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
       onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
-    {analysis&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
-    {analysis&&<PointsBar analysis={analysis} chosen={chosenPoints}/>}
-    {program&&analysis&&(plan?.basisReference||draft||!plan)&&<ProgramplanSheet program={program} analysis={analysis} refs={shownRefs} options={shownOptions} disabled={formLocked}
-      onChange={canEditInline?refs=>setDraft({...draft!,refs,error:null}):undefined} idPrefix={draft?'pp-edit':'pp-read'}/>}
+    {analysis&&(draft||plan)&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
+    {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}
+    {program&&workspace&&<LocalPlanBoard program={program} orientationCode={workspace.education.orientationCode} options={shownOptions} refs={shownRefs}
+      terms={draft?.kind==='create'?draftTerms:[]} refsEditable={canEditInline} disabled={!draft||draft.kind!=='create'||formLocked}
+      onChange={(refs,terms)=>{if(draft){setDraft({...draft,refs,error:null});setDraftTerms(terms);}}}/>}
   </>;
   return <section className="protected-programplan" data-testid="protected-programplan-workspace" aria-busy={busy}>
 

@@ -44,7 +44,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
   const [saved, setSaved] = useState<ProgramplanTermReply | null>(null);
   const [values, setValues] = useState<Map<string, ProgramplanTermPoints>>(new Map());
   const [state, setState] = useState<SaveState>('idle'), [message, setMessage] = useState<string | null>(null), [loadError, setLoadError] = useState<string | null>(null);
-  const [year, setYear] = useState(0), [onlyOpen, setOnlyOpen] = useState(false), [query, setQuery] = useState(''), [working, setWorking] = useState(false);
+  const [working, setWorking] = useState(false);
   const valuesRef = useRef(values), savedRef = useRef(saved), saving = useRef(false), pending = useRef(false), mounted = useRef(true);
   const controller = useRef<AbortController | null>(null);
   useEffect(() => { valuesRef.current = values; }, [values]);
@@ -127,12 +127,6 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
     catch (e) { if (mounted.current && !failed(e)) { setState('unknown'); setMessage('Planen kunde inte läsas. Läs om planen.'); } }
   }
 
-  const frame = programFrame(program, basis.orientationCode);
-  const status = frameStatus(frame, basis.specializationRefs);
-  const chosen = new Set(basis.specializationRefs.map(r => `${r.subjectCode}:${r.itemCode}`));
-  const q = query.trim().toLocaleLowerCase('sv');
-  const available = options.filter(o => !chosen.has(`${o.subjectCode}:${o.itemCode}`));
-  const matches = q ? available.filter(o => `${o.subjectName} ${o.name} ${o.itemCode}`.toLocaleLowerCase('sv').includes(q)).slice(0, 12) : available.slice(0, 3);
   async function changeSpecialization(refs: ProgramplanLevelRef[], cleared?: string) {
     if (!editable || working) return;
     setWorking(true); setMessage(null);
@@ -159,31 +153,62 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
     } finally { if (mounted.current) setWorking(false); }
   }
 
-  const termTotals = PROGRAMPLAN_TERMS.map((_, i) => rows.reduce((s, r) => s + ((values.get(r.key) ?? blank())[i] || 0), 0));
-  const total = rows.reduce((s, r) => s + r.points, 0), assigned = termTotals.reduce((a, b) => a + b, 0);
-  const openRows = rows.filter(r => sum(values.get(r.key) ?? blank()) < r.points);
-  const unresolved = [...program.foundation, ...program.programmeSpecific, ...(program.orientations.find(o => o.code === basis.orientationCode)?.subjects ?? [])].filter(s => s.optional || !s.levels.length || s.subjectVersion === null);
   const locked = !editable || working || state === 'conflict' || state === 'unknown' || state === 'mfa';
-  const shownRows = onlyOpen ? rows.filter(r => openRows.includes(r) || dirtyKeys.includes(r.key)) : rows;
 
   if (loadError) return <div className="pp-alert" role="alert"><p>{loadError}</p><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button></div>;
   if (!saved) return <output className="ppb-loading">Hämtar programplanen…</output>;
-  return <section className="ppb" aria-label="Programplanen" aria-busy={state === 'saving' || working} data-year={year}>
+  return <PlanGrid program={program} orientationCode={basis.orientationCode} refs={basis.specializationRefs} options={options} rows={rows} values={values}
+    dirtyKeys={dirtyKeys} editable={editable} refsEditable={editable} locked={locked} busy={state === 'saving' || working}
+    status={state === 'saving' ? 'Sparar…' : dirtyKeys.length && state === 'idle' ? 'Osparade ändringar' : state === 'idle' ? 'Allt sparat' : ''} statusTone={state === 'idle' && dirtyKeys.length ? 'dirty' : state}
+    hint={editable ? `Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden.${anyInvalid ? ' Rader med för många poäng sparas inte förrän de är rättade.' : ''}` : plan.status !== 'utkast' ? `Version ${plan.version} är ${plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.` : null}
+    onCell={setCell} onFill={fillCell} onSplit={splitYear} onClear={clearRow} onSuggest={suggest} onRowLeave={commit}
+    onAdd={o => void changeSpecialization([...basis.specializationRefs, programplanReference(o)])} onRemove={(ref, key) => void changeSpecialization(basis.specializationRefs.filter(r => r !== ref), key)}>
+    {message && state !== 'mfa' && <div className={state === 'idle' ? 'pp-notice' : 'pp-alert'} role="alert"><p>{message}</p>
+      {state === 'conflict' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button>{dirtyKeys.length > 0 && <Button onClick={() => void keepMine()}>Spara mina värden</Button>}</div>}
+      {state === 'unknown' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button><Button onClick={() => { setState('idle'); void save(); }}>Försök spara igen</Button></div>}</div>}
+    {state === 'mfa' && <MfaStepUpNotice message={message ?? 'Verifiering med engångskod krävs.'} detail="Dina värden finns kvar här. Om du väljer verifiering lämnar du sidan; osparade värden följer inte med."/>}
+  </PlanGrid>;
+}
+
+
+type GridProps = {
+  program: CatalogProgram; orientationCode: string | null; refs: ProgramplanLevelRef[]; options: ProgramplanOption[];
+  rows: ProgramplanTermRow[]; values: Map<string, ProgramplanTermPoints>; dirtyKeys: string[];
+  /** Terminerna kan ändras. */ editable: boolean; /** Programfördjupningen kan ändras. */ refsEditable: boolean; locked: boolean; busy: boolean;
+  status: string | null; statusTone: string; hint: string | null; children?: React.ReactNode;
+  onCell: (row: ProgramplanTermRow, i: number, raw: string) => void; onFill: (row: ProgramplanTermRow, i: number) => void;
+  onSplit: (row: ProgramplanTermRow) => void; onClear: (row: ProgramplanTermRow) => void; onSuggest: () => void; onRowLeave: () => void;
+  onAdd: (option: ProgramplanOption) => void; onRemove: (ref: ProgramplanLevelRef, rowKey: string) => void;
+};
+/** Den gemensamma tabellen: årskurskort, verktyg och ämnen med sex terminer. Samma vy för sparade utkast och nya planer. */
+export function PlanGrid({ program, orientationCode, refs, options, rows, values, dirtyKeys, editable, refsEditable, locked, busy, status, statusTone, hint, children,
+  onCell, onFill, onSplit, onClear, onSuggest, onRowLeave, onAdd, onRemove }: GridProps) {
+  const [year, setYear] = useState(0), [onlyOpen, setOnlyOpen] = useState(false), [query, setQuery] = useState('');
+  const invalid = (r: ProgramplanTermRow) => { const p = values.get(r.key) ?? blank(); return p.some(n => !Number.isSafeInteger(n) || n < 0) || sum(p) > r.points; };
+  const frame = programFrame(program, orientationCode);
+  const status_ = frameStatus(frame, refs);
+  const chosen = new Set(refs.map(r => `${r.subjectCode}:${r.itemCode}`));
+  const q = query.trim().toLocaleLowerCase('sv');
+  const available = options.filter(o => !chosen.has(`${o.subjectCode}:${o.itemCode}`));
+  const matches = q ? available.filter(o => `${o.subjectName} ${o.name} ${o.itemCode}`.toLocaleLowerCase('sv').includes(q)).slice(0, 12) : available.slice(0, 3);
+  const termTotals = PROGRAMPLAN_TERMS.map((_, i) => rows.reduce((s, r) => s + ((values.get(r.key) ?? blank())[i] || 0), 0));
+  const total = rows.reduce((s, r) => s + r.points, 0), assigned = termTotals.reduce((a, b) => a + b, 0);
+  const openRows = rows.filter(r => sum(values.get(r.key) ?? blank()) < r.points);
+  const unresolved = [...program.foundation, ...program.programmeSpecific, ...(program.orientations.find(o => o.code === orientationCode)?.subjects ?? [])].filter(s => s.optional || !s.levels.length || s.subjectVersion === null);
+  const shownRows = onlyOpen ? rows.filter(r => openRows.includes(r) || dirtyKeys.includes(r.key)) : rows;
+  return <section className="ppb" aria-label="Programplanen" aria-busy={busy} data-year={year}>
     <div className="ppb-years">{[0, 1, 2].map(y => { const s = termTotals[y * 2] + termTotals[y * 2 + 1]; return <button type="button" key={y} className="ppb-year" aria-pressed={year === y} onClick={() => setYear(y)}>
       <span>Årskurs {y + 1}</span><strong>{fmt(s)} <small>poäng</small></strong><span className="ppb-year-terms">HT {fmt(termTotals[y * 2])} · VT {fmt(termTotals[y * 2 + 1])}</span>
       <span className="ppb-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, total ? s / (total / 3) * 100 : 0)}%` }}/></span></button>; })}</div>
     <div className="ppb-toolbar">
       <p><strong>{fmt(assigned)}</strong> av {fmt(total)} poäng fördelade{openRows.length ? ` · ${openRows.length} ${openRows.length === 1 ? 'nivå' : 'nivåer'} kvar` : ' · allt fördelat'}</p>
-      <output className={`ppb-save ppb-save-${state === 'idle' && dirtyKeys.length ? 'dirty' : state}`}>{state === 'saving' ? 'Sparar…' : dirtyKeys.length && state === 'idle' ? 'Osparade ändringar' : state === 'idle' ? 'Allt sparat' : ''}</output>
+      {status !== null && <output className={`ppb-save ppb-save-${statusTone}`}>{status}</output>}
       {editable && <div className="ppb-tools">
-        <Button variant="outline" disabled={locked || openRows.length === 0} onClick={suggest} title={openRows.length ? 'Fyller bara i nivåer som saknar terminer' : 'Alla nivåer har redan terminer'}><Wand2 size={15} aria-hidden="true"/>Föreslå fördelning</Button>
+        <Button variant="outline" disabled={locked || openRows.length === 0} onClick={onSuggest} title={openRows.length ? 'Fyller bara i nivåer som saknar terminer' : 'Alla nivåer har redan terminer'}><Wand2 size={15} aria-hidden="true"/>Föreslå fördelning</Button>
         <Button variant="outline" aria-pressed={onlyOpen} onClick={() => setOnlyOpen(!onlyOpen)}>{onlyOpen ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button>
       </div>}
     </div>
-    {message && state !== 'mfa' && <div className={state === 'idle' ? 'pp-notice' : 'pp-alert'} role="alert"><p>{message}</p>
-      {state === 'conflict' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button>{dirtyKeys.length > 0 && <Button onClick={() => void keepMine()}>Spara mina värden</Button>}</div>}
-      {state === 'unknown' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button><Button onClick={() => { setState('idle'); void save(); }}>Försök spara igen</Button></div>}</div>}
-    {state === 'mfa' && <MfaStepUpNotice message={message ?? 'Verifiering med engångskod krävs.'} detail="Dina värden finns kvar här. Om du väljer verifiering lämnar du sidan; osparade värden följer inte med."/>}
+    {children}
     <fieldset className="ppb-mobile-years" aria-label="Visa årskurs">{[0, 1, 2].map(y => <button key={y} type="button" aria-pressed={year === y} onClick={() => setYear(y)}>Åk {y + 1}</button>)}</fieldset>
     <div className="ppb-table-wrap"><table className="ppb-table">
       <caption className="pp-sr">Ämnen, nivåer och poäng per termin</caption>
@@ -196,40 +221,70 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
         if (!list.length && !extra) return null;
         const partPoints = rows.filter(r => r.part === part).reduce((s, r) => s + r.points, 0);
         return <tbody key={part}>
-          <tr className="ppb-group"><th colSpan={2} scope="colgroup"><i style={{ background: partColor[part] }}/>{part === 'orientation' ? `Inriktning: ${program.orientations.find(o => o.code === basis.orientationCode)?.name ?? ''}` : partTitle[part]}
-            <small>{extra && frame.specializationRoom !== null ? `${fmt(status.chosen)} av ${fmt(frame.specializationRoom)} poäng` : `${fmt(partPoints)} poäng`}</small></th>
+          <tr className="ppb-group"><th colSpan={2} scope="colgroup"><i style={{ background: partColor[part] }}/>{part === 'orientation' ? `Inriktning: ${program.orientations.find(o => o.code === orientationCode)?.name ?? ''}` : partTitle[part]}
+            <small>{extra && frame.specializationRoom !== null ? `${fmt(status_.chosen)} av ${fmt(frame.specializationRoom)} poäng` : `${fmt(partPoints)} poäng`}</small></th>
             {PROGRAMPLAN_TERMS.map((t, i) => <td key={t} className={`ppb-term ppb-y${Math.floor(i / 2)}`} aria-hidden="true"/>)}<td className="ppb-state" aria-hidden="true"/></tr>
           {list.map(row => { const p = values.get(row.key) ?? blank(), s = sum(p), bad = invalid(row), dirty = dirtyKeys.includes(row.key);
-            const ref = basis.specializationRefs.find(r => row.key === `specialization:${r.subjectCode}:${r.subjectVersion}:${r.itemCode}`);
-            return <tr key={row.key} className={bad ? 'ppb-row ppb-bad' : dirty ? 'ppb-row ppb-dirty' : 'ppb-row'} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) commit(); }}>
+            const ref = refs.find(r => row.key === `specialization:${r.subjectCode}:${r.subjectVersion}:${r.itemCode}`);
+            return <tr key={row.key} className={bad ? 'ppb-row ppb-bad' : dirty ? 'ppb-row ppb-dirty' : 'ppb-row'} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onRowLeave(); }}>
               <th scope="row"><span>{row.name}</span><small>{row.levelName}{row.key.startsWith('meta:') ? '' : ` · ${row.key.split(':')[3]}`}</small></th>
               <td className="ppb-num">{row.points}</td>
               {p.map((n, i) => <td key={i} className={`ppb-term ppb-y${Math.floor(i / 2)}`}>{editable
                 ? <input inputMode="numeric" value={n === 0 ? '' : Number.isFinite(n) ? String(n) : ''} placeholder="·" disabled={locked} aria-invalid={bad}
                   aria-label={`${row.name} ${row.levelName}, ${PROGRAMPLAN_TERMS[i]}`} data-row={row.key} data-term={i}
-                  onClick={e => { if (n === 0 && s < row.points) { fillCell(row, i); requestAnimationFrame(() => (e.target as HTMLInputElement).select()); } }}
-                  onChange={e => setCell(row, i, e.target.value.replace(/[^0-9]/gu, ''))} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}/>
+                  onClick={e => { if (n === 0 && s < row.points) { onFill(row, i); requestAnimationFrame(() => (e.target as HTMLInputElement).select()); } }}
+                  onChange={e => onCell(row, i, e.target.value.replace(/[^0-9]/gu, ''))} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}/>
                 : <span className={n ? 'ppb-filled' : 'ppb-empty'}>{n ? fmt(n) : '·'}</span>}</td>)}
               <td className="ppb-state"><span className={bad ? 'ppb-tag ppb-tag-bad' : s === row.points ? 'ppb-tag ppb-tag-ok' : 'ppb-tag'}>{bad ? 'För många' : s === row.points ? 'Klar' : `${fmt(row.points - s)} kvar`}</span>
                 {editable && <span className="ppb-row-tools">
-                  <button type="button" disabled={locked} aria-label={`Dela ${row.name} ${row.levelName} på läsåret`} title="Dela lika på höst och vår" onClick={() => splitYear(row)}><SplitSquareHorizontal size={15} aria-hidden="true"/></button>
-                  {s > 0 && <button type="button" disabled={locked} aria-label={`Töm ${row.name} ${row.levelName}`} title="Töm raden" onClick={() => clearRow(row)}><Eraser size={15} aria-hidden="true"/></button>}
-                  {ref && <button type="button" disabled={locked} aria-label={`Ta bort ${ref.itemCode}`} title="Ta bort från programfördjupningen" onClick={() => void changeSpecialization(basis.specializationRefs.filter(r => r !== ref), row.key)}><X size={15} aria-hidden="true"/></button>}
+                  <button type="button" disabled={locked} aria-label={`Dela ${row.name} ${row.levelName} på läsåret`} title="Dela lika på höst och vår" onClick={() => onSplit(row)}><SplitSquareHorizontal size={15} aria-hidden="true"/></button>
+                  {s > 0 && <button type="button" disabled={locked} aria-label={`Töm ${row.name} ${row.levelName}`} title="Töm raden" onClick={() => onClear(row)}><Eraser size={15} aria-hidden="true"/></button>}
+                  {ref && refsEditable && <button type="button" disabled={locked} aria-label={`Ta bort ${ref.itemCode}`} title="Ta bort från programfördjupningen" onClick={() => onRemove(ref, row.key)}><X size={15} aria-hidden="true"/></button>}
                 </span>}</td>
             </tr>; })}
-          {extra && editable && <tr className="ppb-add-row"><td colSpan={9}>
+          {extra && refsEditable && <tr className="ppb-add-row"><td colSpan={9}>
             <label className="pps-search"><Search size={15} aria-hidden="true"/><span className="pp-sr">Lägg till ämne eller nivå</span><input type="search" value={query} disabled={locked} placeholder="Lägg till ämne eller nivå" onChange={e => setQuery(e.target.value)}/></label>
             <fieldset className="pps-suggestions" aria-label={q ? 'Sökträffar' : 'Förslag'}>{matches.map(o => <button type="button" key={o.itemCode} data-level-code={o.itemCode} disabled={locked}
-              aria-label={`Lägg till ${o.subjectName} · ${o.name} · ${o.points} poäng`} onClick={() => void changeSpecialization([...basis.specializationRefs, programplanReference(o)])}><Plus size={14} aria-hidden="true"/>{o.subjectName} · {o.name} · {o.points}</button>)}
+              aria-label={`Lägg till ${o.subjectName} · ${o.name} · ${o.points} poäng`} onClick={() => onAdd(o)}><Plus size={14} aria-hidden="true"/>{o.subjectName} · {o.name} · {o.points}</button>)}
               {q && matches.length === 0 && <p>Ingen tillgänglig nivå matchar sökningen. Bara ämnen Skolverket anger som programfördjupning för programmet kan väljas.</p>}</fieldset>
           </td></tr>}
-          {extra && !list.length && !editable && <tr><td colSpan={9} className="ppb-note">Inga fördjupningsnivåer.</td></tr>}
+          {extra && !list.length && !refsEditable && <tr><td colSpan={9} className="ppb-note">Inga fördjupningsnivåer.</td></tr>}
         </tbody>; })}
       <tfoot><tr><th scope="row" colSpan={2}>Summa per termin</th>{termTotals.map((n, i) => <td key={i} className={`ppb-term ppb-y${Math.floor(i / 2)}`}>{fmt(n)}</td>)}<td className="ppb-state">{fmt(assigned)}</td></tr></tfoot>
     </table></div>
     {program.orientations.length === 0 && <p className="ppb-note">Programmet har ingen inriktning.</p>}
     {unresolved.length > 0 && <p className="ppb-note">Ingår men fördelas inte här: {unresolved.map(s => s.optional ? `${s.name} (alternativ)` : `${s.name} (nivåer saknas)`).join(', ')}.</p>}
-    {editable && <p className="ppb-hint">Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden. {anyInvalid ? 'Rader med för många poäng sparas inte förrän de är rättade.' : ''}</p>}
-    {!editable && plan.status !== 'utkast' && <p className="ppb-hint">Version {plan.version} är {plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.</p>}
+    {hint && <p className="ppb-hint">{hint}</p>}
   </section>;
+}
+
+type LocalProps = {
+  program: CatalogProgram; orientationCode: string | null; options: ProgramplanOption[];
+  refs: ProgramplanLevelRef[]; terms: ProgramplanTermDistribution; refsEditable: boolean; disabled: boolean;
+  onChange: (refs: ProgramplanLevelRef[], terms: ProgramplanTermDistribution) => void;
+};
+/** Samma tabell innan planen finns sparad: val och fördelning hålls lokalt och sparas med planen. */
+export function LocalPlanBoard({ program, orientationCode, options, refs, terms, refsEditable, disabled, onChange }: LocalProps) {
+  const rows = useMemo(() => { try { return programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs }); } catch { return []; } }, [program, orientationCode, refs]);
+  const ranks = useMemo(() => programplanLevelRanks(program), [program]);
+  const values = useMemo(() => toMap(terms), [terms]);
+  const set = (next: Map<string, ProgramplanTermPoints>, nextRefs = refs) => onChange(nextRefs, fromMap(rows, next).filter(d => rows.some(r => r.key === d.rowKey)));
+  const update = (key: string, points: ProgramplanTermPoints) => set(new Map(values).set(key, points));
+  const anyInvalid = rows.some(r => { const p = values.get(r.key) ?? blank(); return p.some(n => !Number.isSafeInteger(n) || n < 0) || sum(p) > r.points; });
+  return <PlanGrid program={program} orientationCode={orientationCode} refs={refs} options={options} rows={rows} values={values} dirtyKeys={[]}
+    editable={!disabled} refsEditable={refsEditable && !disabled} locked={disabled} busy={false} status={null} statusTone="idle"
+    hint={`Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Valen sparas när du sparar planen.${anyInvalid ? ' Rätta rader med för många poäng innan du sparar.' : ''}`}
+    onCell={(row, i, raw) => { const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints; const n = raw.trim() === '' ? 0 : Number(raw); p[i] = Number.isFinite(n) ? n : NaN; update(row.key, p); }}
+    onFill={(row, i) => { const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints, rest = row.points - sum(p); if (p[i] === 0 && rest > 0) { p[i] = rest; update(row.key, p); } }}
+    onSplit={row => { const y = firstYear(values.get(row.key)) ?? 0, p = blank(); p[y * 2] = Math.floor(row.points / 2); p[y * 2 + 1] = row.points - p[y * 2]; update(row.key, p); }}
+    onClear={row => update(row.key, blank())}
+    onSuggest={() => onChange(refs, suggestProgramplanTerms(rows, terms, ranks))}
+    onRowLeave={() => undefined}
+    onAdd={o => { if (refs.length < 200) onChange([...refs, programplanReference(o)], terms); }}
+    onRemove={(ref, key) => { const next = new Map(values); next.delete(key); onChange(refs.filter(r => r !== ref), fromMap(rows, next).filter(d => d.rowKey !== key)); }}/>;
+}
+
+/** Är en lokal fördelning giltig mot planens rader? */
+export function localTermsValid(program: CatalogProgram, orientationCode: string | null, refs: ProgramplanLevelRef[], terms: ProgramplanTermDistribution): boolean {
+  try { validateProgramplanTermDistribution(programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs }), terms); return true; } catch { return false; }
 }
