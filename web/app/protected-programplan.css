@@ -174,3 +174,4 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb-table .ppb-term{width:62px;padding:4px 3px}.ppb-table .ppb-state{width:auto;white-space:normal;padding:4px 8px}.ppb-table .ppb-state .ppb-tag{display:inline-flex}
 .ppb-row-tools{display:flex;gap:0}.ppb-row-tools button{width:40px;height:40px}.ppb-group th{padding:12px 12px 6px!important}.ppb-add-row td{padding:10px 12px 14px!important}
 .ppb-table tbody th[scope=row] span{display:block;overflow-wrap:anywhere}}
+@media(max-width:800px){.ppb-term input{width:54px;max-width:none}.ppb-table .ppb-term{min-width:60px}}
