@@ -7,7 +7,8 @@ const id='55101000-0000-4000-8000-000000000001', unit='55101000-0000-4000-8000-0
 const artifact=JSON.parse(await readFile(new URL('./programplan-catalog.generated.json',import.meta.url),'utf8'));
 const request=(catalogId=null)=>({offeringId:id,versionPage:1,catalogId});
 const education=()=>({id,unitId:unit,schoolName:'Syntetisk skola',kind:'gymnasium',name:'Syntetisk utbildning',localCode:null,cohort:'Fri kulltext',startYear:null,status:'planerad',programCode:'ES25',orientationCode:'ESBIF',latestVersion:0,draftId:null});
-const workspace=()=>({education:education(),versions:[],versionCount:0,versionPage:1,pageSize:50,catalogs:[{catalogId:artifact.catalogId,source:artifact.source}],catalog:{status:'unselected',catalogId:null,diagnostic:null,source:null,program:null,subjects:[]},decisionReady:false});
+const lifecycle=()=>({phase:'framtida',startsOn:null,archived:false,revision:0,units:[{id:unit,name:'Syntetisk skola',primary:true,inMandate:true}]});
+const workspace=()=>({education:education(),lifecycle:lifecycle(),versions:[],versionCount:0,versionPage:1,pageSize:50,catalogs:[{catalogId:artifact.catalogId,source:artifact.source}],catalog:{status:'unselected',catalogId:null,diagnostic:null,source:null,program:null,subjects:[]},decisionReady:false});
 const version=()=>({id:planId,version:1,revision:0,status:'utkast',decidedOn:null,catalogId:null,basisReference:null,legacySpecialization:['UNKNOWN_LEGACY','FOTO2000X','UNKNOWN_LEGACY']});
 function selected(programCode='ES25'){const value=workspace(),program=artifact.programs.find(p=>p.code===programCode),codes=new Set([...program.foundation,...program.programmeSpecific,...program.orientations.flatMap(o=>o.subjects),...program.specialization].filter(s=>s.subjectVersion!==null).map(s=>s.code));value.education.programCode=programCode;value.education.orientationCode=program.orientations[0]?.code??null;value.catalog={status:'selected',catalogId:artifact.catalogId,diagnostic:null,source:artifact.source,program,subjects:artifact.subjects.filter(s=>codes.has(s.code))};return value;}
 test('strict requests accept explicit NULL selection and reject hidden authority, coercion and invalid paging',()=>{
@@ -16,7 +17,9 @@ test('strict requests accept explicit NULL selection and reject hidden authority
  for(const value of [{...request(),catalogId:undefined},{...request(),startedOn:'2026-08-01'},{...request(),offeringId:'not-id'},{...request(),versionPage:'1'},{...request(),catalogId:'latest'}])assert.throws(()=>parseProgramplanWorkspaceRequest(value));
 });
 test('actual education without plan remains selectable and nullable start is not filled from cohort',()=>{
- const value={offerings:[education()],count:1,page:1,pageSize:50};assert.deepEqual(parseProgramplanOfferingList(value,1),value);
+ const value={offerings:[{...education(),lifecycle:lifecycle()}],count:1,page:1,pageSize:50};assert.deepEqual(parseProgramplanOfferingList(value,1),value);
+ for(const mutate of [v=>delete v.offerings[0].lifecycle,v=>v.offerings[0].lifecycle.phase='gissad',v=>v.offerings[0].lifecycle.units[0].id=id]){const invalid=structuredClone(value);mutate(invalid);assert.throws(()=>parseProgramplanOfferingList(invalid,1));}
+ for(const mutate of [v=>delete v.lifecycle,v=>v.lifecycle.units[0].id=id]){const invalid=workspace();mutate(invalid);assert.throws(()=>parseProgramplanWorkspace(invalid,request()));}
  const parsed=parseProgramplanWorkspace(workspace(),request());assert.equal(parsed.education.startYear,null);assert.equal(parsed.catalog.status,'unselected');assert.equal(parsed.decisionReady,false);
 });
 test('pages describe whole counts and whole max/draft, including empty pages and old version pages',()=>{

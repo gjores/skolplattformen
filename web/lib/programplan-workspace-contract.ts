@@ -1,5 +1,6 @@
 import { catalogDate, parseProgramplanBasisReference, parseProgramplanCatalog, ProgramplanContractError,
   type CatalogPayload, type CatalogProgram, type CatalogSubject, type ProgramplanBasisReference } from './programplan-catalog.ts';
+import { parseProgramplanLifecycle, type ProgramplanLifecycle } from './programplan-lifecycle.ts';
 
 function bad(): never { throw new ProgramplanContractError('invalid_programplan_workspace'); }
 function object(value: unknown): Record<string, unknown> {
@@ -68,13 +69,24 @@ function education(value: unknown): ProgramplanEducationSummary {
     status: r.status as ProgramplanEducationSummary['status'], programCode: code(r.programCode),
     orientationCode: r.orientationCode === null ? null : code(r.orientationCode), latestVersion, draftId };
 }
-export type ProgramplanOfferingList = { offerings: ProgramplanEducationSummary[]; count: number; page: number; pageSize: 50 };
+/** Utbildning utan lifecycle, som i skapandets kvitto. */
+export function parseProgramplanEducationSummary(value: unknown): ProgramplanEducationSummary { return education(value); }
+export type ProgramplanOfferingRow = ProgramplanEducationSummary & { lifecycle: ProgramplanLifecycle };
+function offeringRow(value: unknown): ProgramplanOfferingRow {
+  const row = object(value);
+  if (!Object.hasOwn(row, 'lifecycle')) bad();
+  const { lifecycle, ...rest } = row;
+  const edu = education(rest), parsed = parseProgramplanLifecycle(lifecycle);
+  if (parsed.units.find(u => u.primary)?.id !== edu.unitId) bad();
+  return { ...edu, lifecycle: parsed };
+}
+export type ProgramplanOfferingList = { offerings: ProgramplanOfferingRow[]; count: number; page: number; pageSize: 50 };
 function pagination(rows: unknown[], count: number, currentPage: number, pageSize: unknown) {
   if (pageSize !== 50 || rows.length !== Math.min(50, Math.max(0, count - (currentPage - 1) * 50))) bad();
 }
 export function parseProgramplanOfferingList(value: unknown, expectedPage: number): ProgramplanOfferingList {
   const r = shape(value, ['offerings','count','page','pageSize']);
-  const currentPage = page(r.page), count = integer(r.count, 0, Number.MAX_SAFE_INTEGER), offerings = array(r.offerings, 50).map(education);
+  const currentPage = page(r.page), count = integer(r.count, 0, Number.MAX_SAFE_INTEGER), offerings = array(r.offerings, 50).map(offeringRow);
   if (currentPage !== page(expectedPage) || new Set(offerings.map(o => o.id)).size !== offerings.length) bad();
   pagination(offerings, count, currentPage, r.pageSize);
   return { offerings, count, page: currentPage, pageSize: 50 };
@@ -102,11 +114,12 @@ function version(value: unknown, edu: ProgramplanEducationSummary): ProgramplanV
 }
 export type ProgramplanCatalogChoice = { catalogId: string; source: CatalogPayload['source'] };
 export type ProgramplanWorkspaceMetadata = {
-  education: ProgramplanEducationSummary; versions: ProgramplanVersionSummary[]; versionCount: number;
+  education: ProgramplanEducationSummary; lifecycle: ProgramplanLifecycle; versions: ProgramplanVersionSummary[]; versionCount: number;
   versionPage: number; pageSize: 50; catalogs: ProgramplanCatalogChoice[]; decisionReady: false;
 };
 function metadata(r: Record<string, unknown>, expected: ProgramplanWorkspaceRequest): ProgramplanWorkspaceMetadata {
-  const edu = education(r.education), currentPage = page(r.versionPage), versionCount = integer(r.versionCount, 0, Number.MAX_SAFE_INTEGER);
+  const edu = education(r.education), lifecycle = parseProgramplanLifecycle(r.lifecycle), currentPage = page(r.versionPage), versionCount = integer(r.versionCount, 0, Number.MAX_SAFE_INTEGER);
+  if (lifecycle.units.find(u => u.primary)?.id !== edu.unitId) bad();
   if (edu.id !== expected.offeringId || currentPage !== expected.versionPage || r.decisionReady !== false
     || ((versionCount === 0) !== (edu.latestVersion === 0))) bad();
   const versions = array(r.versions, 50).map(v => version(v, edu));
@@ -118,7 +131,7 @@ function metadata(r: Record<string, unknown>, expected: ProgramplanWorkspaceRequ
   });
   if (new Set(catalogs.map(c => c.catalogId)).size !== catalogs.length
     || catalogs.some((c, i) => i > 0 && catalogs[i - 1].catalogId >= c.catalogId)) bad();
-  return { education: edu, versions, versionCount, versionPage: currentPage, pageSize: 50, catalogs, decisionReady: false };
+  return { education: edu, lifecycle, versions, versionCount, versionPage: currentPage, pageSize: 50, catalogs, decisionReady: false };
 }
 export type ProgramplanWorkspaceCatalog = {
   status: 'unselected' | 'selected' | 'blocked'; catalogId: string | null;
@@ -126,7 +139,7 @@ export type ProgramplanWorkspaceCatalog = {
   source: CatalogPayload['source'] | null; program: CatalogProgram | null; subjects: CatalogSubject[];
 };
 export type ProgramplanWorkspace = ProgramplanWorkspaceMetadata & { catalog: ProgramplanWorkspaceCatalog };
-const TOP = ['education','versions','versionCount','versionPage','pageSize','catalogs','catalog','decisionReady'];
+const TOP = ['education','lifecycle','versions','versionCount','versionPage','pageSize','catalogs','catalog','decisionReady'];
 const DIAGNOSTICS = ['catalog_unavailable','program_not_found','orientation_not_found','orientation_required'];
 export function parseProgramplanWorkspace(value: unknown, expectedValue: ProgramplanWorkspaceRequest): ProgramplanWorkspace {
   const expected = parseProgramplanWorkspaceRequest(expectedValue), r = shape(value, TOP), data = metadata(r, expected);

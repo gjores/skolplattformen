@@ -29,6 +29,9 @@ const ERROR_TEXT: Record<string, string> = {
   not_found: 'Objektet finns inte eller är inte tillgängligt i din kontext.',
   bad_request: 'Uppgifterna kunde inte behandlas. Kontrollera formuläret.',
   audit_unavailable: 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.',
+  programplan_locked: 'Planen har startat eller arkiverats och kan inte längre ändras. Listan har lästs om.',
+  programplan_in_use: 'Utbildningen används av klasser, elevplaceringar, timplaner eller tillstånd och kan inte tas bort.',
+  programplan_start_passed: 'Utbildningen har redan startat. En ny plan kan bara skapas för en kull som inte har börjat.',
 };
 
 function isSessionMessage(value: unknown): value is SessionMessage {

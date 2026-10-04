@@ -16,6 +16,9 @@ import { AnalysisBanner, AnalysisView, ReadinessCard, SaveDialog } from './prote
 import { analyseProgramplan } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
 import ProgramplanList from './protected-programplan-list';
+import { DeleteEducationDialog, LifecycleBadge } from './protected-programplan-lifecycle';
+import { programplanLifecycleActions } from '@/lib/programplan-lifecycle.ts';
+import { Trash2 } from 'lucide-react';
 import ProgramplanBoard, { LocalPlanBoard, localTermsValid } from './protected-programplan-board';
 import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistribution } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
@@ -43,6 +46,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [showFlow, setShowFlow] = useState(false), [canCreate, setCanCreate] = useState(false);
   const [copy, setCopy] = useState<{ name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanEducationCreateRequest | null; error: string | null; uncertain: boolean } | null>(null);
   const copyAfterOpen = useRef(false);
+  const [lifecycleDialog, setLifecycleDialog] = useState<'delete' | null>(null);
   const reviewRef = useRef<HTMLElement | null>(null);
   const draftRef = useRef<HTMLElement | null>(null);
   const editing = draft !== null;
@@ -300,6 +304,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const canEditInline = !!draft && editableRefs && draft.mode === 'edit';
   const ready = !!plan && plan.status === 'utkast' && boardActive && !!analysis?.ready;
   const statusText = plan ? `${ready ? 'Klar för beslut' : programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
+  const lifecycleActions = workspace ? programplanLifecycleActions(workspace.lifecycle, context.function === 'huvudman' ? 'huvudman' : 'rektor') : null;
+  const lifecycleTarget = workspace ? { offeringId: workspace.education.id, name: workspace.education.name, cohort: workspace.education.cohort, versions: workspace.versionCount, lifecycle: workspace.lifecycle } : null;
+  function lifecycleStale(message: string) { setLifecycleDialog(null); void loadList(page).then(() => setNotice(message)); }
   const planBody = boardActive && plan && program ? <>
     {analysis&&termValues&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
     {analysis&&termValues&&plan.status==='utkast'&&<ReadinessCard analysis={analysis} onOpen={()=>setView('analysis')}/>}
@@ -328,15 +335,19 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <p>{[program?.name??workspace.education.programCode, orientationName ?? (workspace.education.orientationCode ? workspace.education.orientationCode : null), workspace.education.schoolName, workspace.education.cohort??'Elevkull saknas'].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="pps-actions">
+          <LifecycleBadge lifecycle={workspace.lifecycle}/>
           <span className={ready?'pps-state pp-status pps-ready':'pps-state pp-status'}>{statusText}</span>
           {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys<span className="pps-badge" data-fel={analysis.counts.fel>0} aria-label={`${problems} fel och risker`}>{problems}</span></Button>}
           {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
           {!draft&&!preparation&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
+          {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.delete&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('delete')}><Trash2 size={16} aria-hidden="true"/>Ta bort</Button>}
         </div>
       </div>}
       {workspace&&!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
+      {lifecycleDialog==='delete'&&lifecycleTarget&&<DeleteEducationDialog target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
+        onChanged={message=>{setLifecycleDialog(null);void loadList(page).then(()=>setNotice(message));}} onStale={lifecycleStale}/>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={()=>{setView('plan');if(!draft&&!preparation)nextAction();}}/>}
       {view==='plan'&&<>
         {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">

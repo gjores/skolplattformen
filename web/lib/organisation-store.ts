@@ -20,6 +20,8 @@ import {
   type SchoolUnit,
 } from './organisation-model.ts';
 
+export const OFFERING_LIFECYCLE_ONLY = 'Utbildningar ändras och tas bort under Programplaner.';
+
 type Row<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 type PlanStatus = Database['public']['Enums']['plan_status'];
 
@@ -376,28 +378,14 @@ export async function saveOffering(offering: Offering) {
   return data.id;
 }
 
-export async function updateOfferingRow(id: string, patch: Partial<Pick<Offering, 'name' | 'localCode' | 'cohort' | 'status'>>) {
-  const db = supabase();
-  if (!db) throw new Error('Ingen backend konfigurerad.');
-  const { error } = await db
-    .from('offerings')
-    .update({
-      ...(patch.name !== undefined ? { name: patch.name } : {}),
-      ...(patch.localCode !== undefined ? { local_code: patch.localCode || null } : {}),
-      ...(patch.cohort !== undefined ? { cohort: patch.cohort } : {}),
-      ...(patch.status !== undefined ? { status: patch.status } : {}),
-    })
-    .eq('id', id);
-  if (error) throw new Error(`Kunde inte spara ändringen: ${error.message}`);
+export async function updateOfferingRow(_id: string, _patch: Partial<Pick<Offering, 'name' | 'localCode' | 'cohort' | 'status'>>): Promise<never> {
+  // 05-20: utbildningar ändras bara via den skyddade livscykeln, aldrig direkt mot tabellen.
+  throw new Error(OFFERING_LIFECYCLE_ONLY);
 }
 
-export async function deleteOffering(id: string, name: string) {
-  const db = supabase();
-  if (!db) throw new Error('Ingen backend konfigurerad.');
-  const org = await currentOrganizer(db);
-  const { error } = await db.from('offerings').delete().eq('id', id);
-  if (error) throw new Error(`Kunde inte ta bort utbildningen: ${error.message}`);
-  await logEvent(db, org, 'Utbildning borttagen', name);
+export async function deleteOffering(_id: string, _name: string): Promise<never> {
+  // 05-20: borttagning kräver livscykelns kontroller (status, beroenden, audit) i SQL.
+  throw new Error(OFFERING_LIFECYCLE_ONLY);
 }
 
 export async function savePermit(offeringId: string, permit: Omit<Permit, 'id'>) {

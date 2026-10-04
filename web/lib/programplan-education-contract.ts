@@ -1,6 +1,6 @@
 import { parseProgramplanBasisReference, parseProgramplanCatalog, ProgramplanContractError,
  type CatalogProgram, type CatalogSubject, type CatalogPayload, type ProgramplanBasisReference } from './programplan-catalog.ts';
-import { parseProgramplanOfferingList, type ProgramplanEducationSummary, type ProgramplanCatalogChoice } from './programplan-workspace-contract.ts';
+import { parseProgramplanEducationSummary, type ProgramplanEducationSummary, type ProgramplanCatalogChoice } from './programplan-workspace-contract.ts';
 import { parseProgramplan, type Programplan } from './programplan-contract.ts';
 
 function bad(): never { throw new ProgramplanContractError('invalid_programplan_education'); }
@@ -56,7 +56,7 @@ export function parseProgramplanSelection(v:unknown,expectedValue:ProgramplanSel
  }
  if((selection.programRef===null)!==(projection===null))bad();return{units,canCreateEducation:r.canCreateEducation,catalogs,selection,programs,projection,decisionReady:false};
 }
-function creationData(r:Record<string,unknown>){const education=parseProgramplanOfferingList({offerings:[r.education],count:1,page:1,pageSize:50},1).offerings[0],plan=parseProgramplan(r.plan);
+function creationData(r:Record<string,unknown>){const education=parseProgramplanEducationSummary(r.education),plan=parseProgramplan(r.plan);
  if(education.id!==plan.offeringId||education.unitId!==plan.unitId||education.schoolName!==plan.schoolName||education.name!==plan.education.name||education.cohort!==plan.education.cohort
   ||education.programCode!==plan.education.programCode||education.orientationCode!==plan.education.orientationCode||education.latestVersion!==1||education.draftId!==plan.id
   ||education.status!=='planerad'||plan.status!=='utkast'||plan.version!==1||plan.revision!==0||plan.decidedOn!==null||plan.basisReference===null||plan.resolution.status!=='resolved'

@@ -8,6 +8,7 @@ import path from 'node:path';
 import { assertTarget } from './verify-target.mjs';
 import { extractProgramplanFixture, cleanupProgramplanFixture } from './verify-programplan-locks.mjs';
 import { trialEducationSpecs } from './prepare-programplan-user-trial.mjs';
+import { nextCohortStart, stockholmToday } from '../../web/lib/programplan-lifecycle.ts';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
@@ -17,7 +18,11 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'web/lib/server/programplan-planning.ts','web/lib/server/programplan-workspace.ts','web/lib/programplan-catalog.ts','web/app/api/programplaner',
   'web/e2e/phase5-programplan.spec.ts','web/playwright.phase5-programplan.config.ts','work/pilot/phase5-programplan-browser-fixtures.mjs','work/pilot/verify-programplan-browser.mjs','work/pilot/prepare-programplan-user-trial.mjs',
   'web/app/protected-programplan-terms.tsx','web/app/protected-programplan-terms.css','web/app/protected-programplan-sheet.tsx','web/lib/programplan-terms.ts','web/lib/programplan-terms-contract.ts','web/lib/server/programplan-terms.ts',
-  'supabase/migrations/20261003120000_phase5_programplan_terms.sql','supabase/migrations/20261003121000_phase5_worker_programplan_terms.sql','web/e2e/phase5-terms.spec.ts','web/playwright.phase5-terms.config.ts'];
+  'supabase/migrations/20261003120000_phase5_programplan_terms.sql','supabase/migrations/20261003121000_phase5_worker_programplan_terms.sql','web/e2e/phase5-terms.spec.ts','web/playwright.phase5-terms.config.ts',
+  'web/lib/programplan-lifecycle.ts','web/lib/server/programplan-lifecycle.ts','web/app/protected-programplan-lifecycle.tsx','web/app/protected-programplan-list.tsx','web/lib/server/http.ts','web/lib/session-channel.ts',
+  'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts'];
+/** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull förra året. */
+export const FUTURE_START=nextCohortStart(),STARTED_START=`${Number(stockholmToday().slice(0,4))-1}-08-17`;
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
   if(mark?.mode!=='protected'||!/^([0-9a-f]{40})$/u.test(mark.revision??'')||!/^([0-9a-f]{40})$/u.test(sourceRevision??''))throw Error('Skyddat versionshanterat bygge saknas.');
   if(dirty||ancestor!==true)throw Error('Browserprov kräver aktuell versionshanterad UI/serverkod i bygget.');
@@ -49,12 +54,12 @@ export async function createProgramplanBrowserFixture() {
   const clearAuditFailure=async()=>{if(!injected)return;await assertTarget('protected');await owned(db);await db.unsafe(`drop trigger if exists ${trigger} on public.security_events; drop function if exists public.${triggerFn}();`);injected=false;};
   const cleanup=async()=>{
     let failure,evidence=null;
-    try{await assertTarget('protected');await clearAuditFailure();if(created){await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`delete from public.app_sessions where id=any(${[...sessions]}::uuid[])`;});evidence=await cleanupProgramplanFixture(db,prefix);const [remaining]=await db`select (select count(*)::int from public.app_sessions where id=any(${[...sessions]}::uuid[])) as "mintedSessions",(select count(*)::int from pg_trigger where tgname=${trigger}) as triggers,(select count(*)::int from pg_proc where proname=${triggerFn}) as functions`;if(Object.values(remaining).some(n=>n!==0))throw Error('fixture_cleanup_remaining');evidence={customers:evidence.customers,sessions:evidence.sessions,plans:evidence.plans,receipts:evidence.receipts,educationEvents:evidence.educationevents,offerings:evidence.offerings,mandates:evidence.mandates,preservedAuditEvents:evidence.preservedauditevents,preservedAuditAnchors:evidence.preservedauditanchors,...remaining};}}
+    try{await assertTarget('protected');await clearAuditFailure();if(created){await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`delete from public.app_sessions where id=any(${[...sessions]}::uuid[])`;});await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`delete from public.school_classes where organizer_id=${id(2)}`;await tx`delete from public.school_years where organizer_id=${id(2)}`;});evidence=await cleanupProgramplanFixture(db,prefix);const [remaining]=await db`select (select count(*)::int from public.app_sessions where id=any(${[...sessions]}::uuid[])) as "mintedSessions",(select count(*)::int from pg_trigger where tgname=${trigger}) as triggers,(select count(*)::int from pg_proc where proname=${triggerFn}) as functions`;if(Object.values(remaining).some(n=>n!==0))throw Error('fixture_cleanup_remaining');evidence={customers:evidence.customers,sessions:evidence.sessions,plans:evidence.plans,receipts:evidence.receipts,educationEvents:evidence.educationevents,offerings:evidence.offerings,mandates:evidence.mandates,preservedAuditEvents:evidence.preservedauditevents,preservedAuditAnchors:evidence.preservedauditanchors,...remaining};}}
     catch(e){failure=e;}finally{await db.end({timeout:3});}
     if(failure)throw Error('Programplansbrowserfixturens städning misslyckades.');return evidence;
   };
   try {
-    const sql=extractProgramplanFixture(readFileSync(path.join(root,'supabase/tests/phase5_programplan_drafts.test.sql'),'utf8'),prefix);
+    const sql=extractProgramplanFixture(readFileSync(path.join(root,'supabase/tests/phase5_programplan_drafts.test.sql'),'utf8'),prefix).replaceAll("'startedOn','2026-08-01'",`'startedOn','${FUTURE_START}'`);
     await db.begin(async tx=>{
       await tx.unsafe(sql);
       for(const row of await tx`select name,id from programplan_roles`)roles[row.name]=row.id;
@@ -78,7 +83,7 @@ export async function createProgramplanBrowserFixture() {
     };
     const request=async(baseURL,session,route,body)=>{const r=await fetch(`${baseURL}${route}`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:`sp_session=${session.token}`,'X-Context-Epoch':String(session.epoch),'Sec-Fetch-Site':'same-origin',Origin:baseURL},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});return {status:r.status,body:await r.json(),correlationId:r.headers.get('x-correlation-id')};};
     const catalogId=(await snapshot()).catalog_id;
-    const basis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn='2026-08-01')=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
+    const basis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn=FUTURE_START)=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
     return {principal,second,hm,noMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,snapshot,plans,history,events,paired,request,cleanup,
       async addProgramTrials(){
         await assertTarget('protected');const specs=trialEducationSpecs.filter(s=>s.program!=='SA25');
@@ -87,6 +92,10 @@ export async function createProgramplanBrowserFixture() {
         return specs.map(s=>({...s,id:id(600+s.number)}));
       },
       async newPrincipal(){return mint(11,21,roles.principal);},
+      /** Pågående utbildning: bundet utkast vars kull startade förra året (D-04: skrivskyddat, inte borttaget). */
+      async startedEducation(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year) values(${id(47)},${id(2)},${id(30)},'gymnasium','Syntetisk pågående SA','Syntetisk startad kull','SA25','SABEP',${Number(STARTED_START.slice(0,4))})`;await tx`set local session_replication_role=replica`;await tx`insert into public.point_plans(id,organizer_id,offering_id,version,specialization,catalog_id,basis_reference) values(${id(57)},${id(2)},${id(47)},1,array['ENGE3000X'],${catalogId},${tx.json(basis(undefined,STARTED_START))})`;});return{offeringId:id(47),planId:id(57)};},
+      async addClass(offering){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`insert into public.school_classes(customer_id,organizer_id,unit_id,offering_id,name,start_year) values(${id(1)},${id(2)},${id(30)},${offering},'SYN1A',${Number(FUTURE_START.slice(0,4))})`;});},
+      async offering(offering){const [row]=await db`select to_jsonb(o) as offering from public.offerings o where id=${offering} and organizer_id=${id(2)}`;return row?.offering??null;},
       async cookies(context,session,baseURL){await context.addCookies([{name:'sp_session',value:session.token,url:baseURL,httpOnly:true,sameSite:'Lax'}]);},
       async expire(session){await assertTarget('protected');await owned(db);await db`update public.app_sessions set expires_at=now()-interval '1 second' where id=${session.id} and identity_id=${session.identityId}`;},
       async advanceEpoch(session){await assertTarget('protected');await owned(db);await db`update public.app_sessions set context_epoch=context_epoch+1 where id=${session.id} and identity_id=${session.identityId}`;},

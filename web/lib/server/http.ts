@@ -20,7 +20,10 @@ export type ErrorCode =
   | 'login_state_invalid'
   | 'not_found'
   | 'bad_request'
-  | 'audit_unavailable';
+  | 'audit_unavailable'
+  | 'programplan_locked'
+  | 'programplan_in_use'
+  | 'programplan_start_passed';
 
 export function correlationId(): string {
   return crypto.randomUUID();

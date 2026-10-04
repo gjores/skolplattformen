@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Copy, Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { parseProgramplanOfferingList, type ProgramplanEducationSummary } from '@/lib/programplan-workspace-contract.ts';
+import { parseProgramplanOfferingList, type ProgramplanEducationSummary, type ProgramplanOfferingRow } from '@/lib/programplan-workspace-contract.ts';
+import { LifecycleBadge } from './protected-programplan-lifecycle';
 import { parseProgramplanSelection, type ProgramplanSelection } from '@/lib/programplan-education-contract.ts';
 
 type Props = {
@@ -19,7 +20,7 @@ const status = (o: ProgramplanEducationSummary) => o.draftId ? { text: o.latestV
 
 /** Startsidan: alla utbildningar med programplaner, med öppna, kopiera och skapa ny. */
 export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, onCopy, onNew, onLoaded }: Props) {
-  const [offerings, setOfferings] = useState<ProgramplanEducationSummary[] | null>(null);
+  const [offerings, setOfferings] = useState<ProgramplanOfferingRow[] | null>(null);
   const [selection, setSelection] = useState<ProgramplanSelection | null>(null);
   const [error, setError] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const [query, setQuery] = useState(''), [unit, setUnit] = useState('');
@@ -74,11 +75,12 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
       </div>
       {offerings.length === 0 ? <div className="ppl-empty"><p><strong>Inga utbildningar ännu.</strong> Skapa den första programplanen med Ny programplan.</p></div>
         : shown.length === 0 ? <div className="ppl-empty"><p>Ingen utbildning matchar sökningen.</p></div>
-        : <table className="ppl-table"><thead><tr><th scope="col">Utbildning</th><th scope="col">Program och inriktning</th><th scope="col">Elevkull</th><th scope="col">Programplan</th><th scope="col"><span className="pp-sr">Åtgärder</span></th></tr></thead>
+        : <table className="ppl-table"><thead><tr><th scope="col">Utbildning</th><th scope="col">Program och inriktning</th><th scope="col">Elevkull</th><th scope="col">Programplan</th><th scope="col">Status</th><th scope="col"><span className="pp-sr">Åtgärder</span></th></tr></thead>
           <tbody>{shown.map(o => { const s = status(o); return <tr key={o.id}>
             <th scope="row"><button type="button" className="ppl-name" disabled={locked} aria-label={`Öppna utbildning ${o.name}, ${o.cohort}, ${o.schoolName}`} onClick={() => onOpen(o.id)}>{o.name}</button><small>{[o.localCode, units.length > 1 ? o.schoolName : null].filter(Boolean).join(' · ')}</small></th>
             <td>{programLabel(o)}</td><td>{o.cohort}</td>
             <td><span className={`ppl-status ppl-${s.tone}`}>{s.text}</span></td>
+            <td><LifecycleBadge lifecycle={o.lifecycle}/></td>
             <td className="ppl-actions"><Button variant="outline" disabled={locked} onClick={() => onOpen(o.id)}>Öppna</Button>
               {selection?.canCreateEducation && o.latestVersion > 0 && <Button variant="outline" disabled={locked} aria-label={`Kopiera ${o.name}`} onClick={() => onCopy(o.id)}><Copy size={15} aria-hidden="true"/>Kopiera</Button>}</td>
           </tr>; })}</tbody></table>}
