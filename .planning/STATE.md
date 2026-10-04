@@ -118,6 +118,7 @@ Fullständiga beslut finns i PROJECT.md.
 | Phase | Summary | Rationale |
 |-------|---------|-----------|
 | Init | 42 detaljkrav och åtta faser godkända 2026-09-11 | Användarens uttryckliga ja till kravförslaget och färdplanen |
+| 05 | Valbara block 2026-10-04: benämning ”valbart block”; individuellt val ingår i första leveransen; huvudman, rektor och skoladministratör får skapa valpaket inom sitt mandat | Användarens svar på research `VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md`. Nivåordning risk/fel är obesvarad. |
 | Init | Säker administration inför pilot är första milstolpen | Användarval 2026-09-10: inloggning, behörigheter, elevregister och en kommunintegration |
 | 1–5 | Bevara gymnasieutbildningar, kurs-/nivåtillägg, kullkopiering och explicita klass–timplanskopplingar | Uppskattade befintliga arbetsflöden |
 | 3 | Huvudmannen utser rektor; rektor tilldelar läraruppdrag inom sitt mandat | Användarens ansvarsfördelning |

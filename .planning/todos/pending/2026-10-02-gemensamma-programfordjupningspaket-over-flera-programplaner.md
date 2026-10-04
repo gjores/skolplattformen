@@ -35,6 +35,8 @@ Användaren kräver att en skola kan skapa ett valbart programfördjupningspaket
 
 Användaren vill att valbara block (”moduler”) ska finnas både i programfördjupningen och i det individuella valet. Rekommenderad modell, regler, kontroller och ordning finns i [VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md](../../research/VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md). Modellen har tre lager: skolans versionerade valpaket, programplanens valblock med regeln ”välj exakt ett” och en terminsram, samt elevens val i studieplanen (STUDY-01). Öppna beslut: benämning, om individuellt val ska ingå i första leveransen, vem som får skapa paket och om nivåordningen ska vara risk eller fel.
 
+**Användarbeslut 2026-10-04:** benämningen är ”valbart block”. Individuellt val ingår i första leveransen. Huvudman, rektor och skoladministratör får skapa valpaket inom sitt mandat. Om nivåordningen ska vara risk eller fel är obesvarat. Se avsnittet ”Användarbeslut” i forskningsunderlaget, inklusive samspelet med 05-20:s planer på flera skolor.
+
 ## Sources
 
 Primärkällor kontrollerade 2026-10-02. De visar verksamhetsbehov/regler, inte att appen redan stöder paket:

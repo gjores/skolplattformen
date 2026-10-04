@@ -2,6 +2,19 @@
 
 *Research 2026-10-04. Status: förslag, inte beslutad leverans. Bygger vidare på todo [skolgemensamma programfördjupningspaket](../todos/pending/2026-10-02-gemensamma-programfordjupningspaket-over-flera-programplaner.md). Kod läst på `9a8024c`. Regler kontrollerade mot gymnasieförordningen (rkrattsbaser.gov.se, hämtad 2026-10-03) och Skolverkets sidor om studieplanering i Gy25 och om programmens delar (hämtade 2026-10-04).*
 
+## Användarbeslut 2026-10-04
+
+- **B-01 Benämning:** Platsen i planen där eleven väljer heter **valbart block** i gränssnitt och handbok. Ordet ”modul” används inte. ”Valblock” i den här texten betyder valbart block. Innehållet heter tills vidare **valpaket**, eftersom användaren inte har ändrat det ordet.
+- **B-02 Omfattning:** **Individuellt val ingår i första leveransen** tillsammans med programfördjupningen. Svenska/SvA och Moderna språk/Språkämne/Naturvetenskapligt ämne hanteras som valbara block i samma leverans, enligt tillägget nedan.
+- **B-03 Mandat:** **Huvudman, rektor och skoladministratör** får skapa valpaket, inom sitt aktuella mandat. Rektor och skoladministratör arbetar inom sina skolenheter, och huvudmannen inom sin organisation. Servern kontrollerar mandatet. Att skapa ett paket är inte samma sak som att fastställa en programplan; fastställandet följer det befintliga beslutsflödet. Rättsligt beslutar huvudmannen om utbudet (4 kap. 6–7 §), och rektor och skoladministratör arbetar inom det uppdraget.
+- **Öppet:** ska fel nivåordning vara risk (förslag, enligt Skolverkets vägledning) eller fel som i dag? Inte besvarat.
+
+**Samspel med 05-20 (en plan på flera skolor, D-03):**
+- Valpaket ägs av huvudmannen och har en tillgänglighet per skolenhet. Paket som rektor eller skoladministratör skapar blir tillgängliga på deras skola.
+- Ett valbart block i en plan som är kopplad till flera skolor får bara använda paket som är tillgängliga på alla de skolorna. Annars ska analysen ge fel och tala om vilka skolor som saknar paketet.
+- Om en skola kopplas till planen efter att paketen valts ska samma kontroll göras.
+- Detta är ett förslag som följer av D-03, inte ett användarbeslut.
+
 ## Behov
 
 Vissa skolor vill erbjuda valbara block (”moduler”) i programfördjupningen och i det individuella valet. Eleven väljer då till exempel ett av tre paket om 300 poäng i stället för att alla läser samma nivåer.
@@ -86,12 +99,10 @@ Det gör att lucka 4 i `PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md` kan rättas med
 
 1. **Valblock som grundbegrepp**, med Svenska/SvA (automatiskt) och Moderna språk/SPRK/NAVE. Då summerar planerna till programmets totala poäng (lucka 4).
 2. **Valpaket och valblock i programfördjupningen**, regeln ”välj exakt ett”, terminsram och analys. Inget elevval. Detta uppfyller paket-todons verifiering med samma paket i två planer.
-3. **Valblock för individuellt val** med skolans utbud och kontroll av rättigheterna i 4 kap. 7 §.
+   Enligt B-02 ingår även **valbara block för individuellt val**, med skolans utbud och kontroll av rättigheterna i 4 kap. 7 §.
+3. *(tidigare steg 3, nu en del av steg 2)*
 4. **Elevens val** i studieplanen (STUDY-01, v2), inklusive kombinationer per elev och ”välj X poäng”.
 
 ## Beslut som behövs från användaren
 
-- Benämning: valpaket/valblock eller något annat i stället för ”modul”.
-- Ska individuellt val ingå i samma första leverans, eller komma efter programfördjupningen?
-- Vem får skapa valpaket? Huvudman enligt 4 kap. 6 §, eller också rektor efter delegering?
-- Ordningen mellan nivåer: risk enligt Skolverkets vägledning (förslag), eller fel som i dag?
+B-01–B-03 är besvarade, se ovan. Kvar: nivåordningens kategori.
