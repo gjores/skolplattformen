@@ -72,7 +72,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
       try {
         const body = await readTerms(c.signal); if (!mounted.current) return;
         if (body.revision !== plan.revision) { setLoadError('Planen har ändrats sedan den lästes. Läs om planen.'); return; }
-        setSaved(body); setValues(toMap(body.distribution));
+        savedRef.current = body; setSaved(body); setValues(toMap(body.distribution));
       } catch (e) { if (mounted.current && !failed(e)) setLoadError('Terminsfördelningen kunde inte hämtas. Läs om planen.'); }
     })();
     return () => c.abort();
@@ -91,7 +91,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
       const body = parseProgramplanTermReply(await api.post('/api/programplaner/terminer', { planId: plan.id, expectedRevision: before.revision, distribution: own }, c.signal));
       if (body.planId !== plan.id || body.revision !== before.revision + 1) throw new Error('Sparandet kunde inte bekräftas.');
       if (!mounted.current) return true;
-      setSaved(body); setState('idle'); return true;
+      savedRef.current = body; setSaved(body); setState('idle'); return true;
     } catch (e) {
       if (!mounted.current || failed(e)) return false;
       if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { setState('mfa'); setMessage('Verifiera med engångskod för att spara. Dina värden finns kvar tills du lämnar sidan.'); }
@@ -100,7 +100,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
       else {
         try {
           const back = await readTerms(c.signal); if (!mounted.current) return false;
-          if (back.revision === before.revision + 1 && back.distribution.length === own.length && own.every(r => sameRow(r.points, toMap(back.distribution).get(r.rowKey)))) { setSaved(back); setState('idle'); return true; }
+          if (back.revision === before.revision + 1 && back.distribution.length === own.length && own.every(r => sameRow(r.points, toMap(back.distribution).get(r.rowKey)))) { savedRef.current = back; setSaved(back); setState('idle'); return true; }
           setState('unknown'); setMessage('Sparandet kunde inte bekräftas. Dina värden finns kvar.');
         } catch (inner) { if (mounted.current && !failed(inner)) { setState('unknown'); setMessage('Sparstatus kunde inte läsas. Dina värden finns kvar.'); } }
       }
@@ -123,7 +123,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
   const suggest = () => { const next = suggestProgramplanTerms(rows, fromMap(rows, values), ranks); setValues(toMap(next)); commit(); };
   async function keepMine() {
     const c = new AbortController(); setState('saving');
-    try { const back = await readTerms(c.signal); if (!mounted.current) return; setSaved(back); setState('idle'); setMessage(null); await save(); }
+    try { const back = await readTerms(c.signal); if (!mounted.current) return; savedRef.current = back; setSaved(back); setState('idle'); setMessage(null); await save(); }
     catch (e) { if (mounted.current && !failed(e)) { setState('unknown'); setMessage('Planen kunde inte läsas. Läs om planen.'); } }
   }
 
