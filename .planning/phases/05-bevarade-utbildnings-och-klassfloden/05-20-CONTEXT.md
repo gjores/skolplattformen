@@ -26,3 +26,8 @@ Huvudmannen ska kunna ta bort och redigera programplaner som ännu inte är aktu
 - **D-05 Lägga till skola:** Huvudmannen får lägga till skola även i pågående/avslutad plan. Endast borttagning av skola nekas efter start.
 - **D-06 Full skolkoppling:** En tillagd skola ska kunna koppla sina egna klasser, elevplaceringar och timplaner till planen. Byggs i egen plan efter skolvalet.
 - **Uppdelning:** 05-20 = livscykel (D-01, D-02, D-04, inklusive stängda direkta tabellskrivningar till `offerings`). 05-21 = skolval (D-03, D-05). 05-22 = full skolkoppling för klasser/elever/timplaner (D-06).
+
+## Beslut inför genomförande 2026-10-04
+
+- **D-07:** 05-22 räcker som skolkoppling av befintliga datavägar; nya kommandon för att skapa klasser/timplaner och klass–timplanskoppling byggs inte nu.
+- **D-08:** Inför 05-19:s mänskliga prov förbereds syntetiska provdata på vanlig 3012 med framtida kullstart, så att provet kan göras även efter 05-20:s lås. Inga verkliga elevuppgifter; befintliga provdata raderas inte.
