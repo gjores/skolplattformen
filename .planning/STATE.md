@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-18
 status: in_progress
-stopped_at: ready for human comprehension trial after automatic 05-18 verification
+stopped_at: 05-19 genomförd; mänskligt prov av sammanhållen programplan väntar
 last_updated: "2026-10-04"
 last_activity: 2026-10-04
-last_activity_desc: "05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos."
+last_activity_desc: "05-19 genomförd: programplanen är en tabell med ämnen, programfördjupning och sex terminer, klick/förslagsfördelning, autospar, kopiering med fördelning och framräknad Klar för beslut. Tabell 15/15, program 38/40 (känt utloggningsfall), timplan 20/20. Mänskligt prov återstår."
 state_head: d37f566
 worker_build_revision: d37f566b3575623171e07ef3150f16d55c6f14ed
 progress:
