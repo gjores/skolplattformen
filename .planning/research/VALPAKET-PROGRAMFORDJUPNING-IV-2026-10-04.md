@@ -60,9 +60,31 @@ Risk:
 - Kopiering till nästa elevkull behåller samma paketversion. En ny version uppdaterar aldrig befintliga planer automatiskt. Fastställda planer ändras inte.
 - Timplanen som skapas ur programplanen (todo 2026-10-03) får en rad per valblock med undervisningstid för ramen. Alternativen blir undervisningsgrupper i schemadelprojektet.
 
+## Tillägg 2026-10-04: valblock behövs även i gymnasiegemensamma och programgemensamma delar
+
+Användaren såg att SA bara summerar till 2 000 poäng. Kontrollerat med `programplanTermRows` för alla tre inriktningar på SA25: de 500 poäng som saknas är exakt de ställen där det nationella underlaget kräver ett val, och de får i dag inga rader.
+
+| Valplats i katalogen | Poäng | Program | Tillåtna val |
+|---|---|---|---|
+| Svenska eller svenska som andraspråk | 300 | Alla 29 | SVEN 1–3 eller SVEA 1–3. Byte tillåts efter avslutad nivå (4 kap. 11 §). |
+| Moderna språk (`MOSP`, inga nivåer) | 200 | EK, HU, NA, SA, SM | Två nivåer i följd på trappan nybörjare 1 → grund 1 → fortsättning 1 → fortsättning 2 → fördjupning 1–3 (MODY, MODG, MODO, MODF). |
+| Språkämne (`SPRK`) | 300 | HU/språk | Lista i 4 kap. 1 a § |
+| Ett naturvetenskapligt ämne (`NAVE`) | — | NA/naturvetenskap och samhälle | Lista i 4 kap. 1 a § |
+
+Alla planer saknar alltså minst 300 poäng (svenska). EK, HU, NA, SA och SM saknar 500 poäng.
+
+**Moderna språk enligt SKOLFS 2024:628 (bilaga 1):** Gy11:s Moderna språk 1–7 motsvaras av nybörjare nivå 1, grund nivå 1, fortsättning nivå 1–2 och fördjupning nivå 1–3. Varje språk är ett eget språkämne inom en gemensam ämnesplan, så nivåkoden (till exempel `MODO1000X`) anger inte vilket språk det gäller. Enligt 4 kap. 9 § ska undervisningen utgå från grundskolans nivå om eleven har betyg i språket. Enligt 4 kap. 10 § ska franska, spanska och tyska erbjudas både som fortsättningsspråk och som nytt språk. Enligt 4 kap. 10 a och 17 § kan svenskt teckenspråk för hörande eller modersmål ersätta moderna språk.
+
+**Rekommendation:** Gör valblocket till ett allmänt begrepp i alla delar av planen, inte bara i programfördjupning och individuellt val.
+- **Svenska/SvA:** valblock som skapas automatiskt ur katalogen, med två alternativ och samma terminsram.
+- **Moderna språk:** valblock på 200 poäng där skolan anger paket per språk och spår, till exempel ”Spanska fortsättning (fortsättning 1 + 2)” och ”Spanska nybörjare (nybörjare 1 + grund 1)”. Kontrollen ska kräva att franska, spanska och tyska finns i båda spåren, eller visa det som ”att kontrollera” om huvudmannen erbjuder dem vid en annan skola. Paketet behöver ett eget fält för språk, eftersom katalogen saknar det. Hur Skolverket och UHR kodar språket i betygsunderlag för Gy25 är inte kontrollerat.
+- **SPRK och NAVE:** valblock med alternativ ur listan i 4 kap. 1 a §.
+
+Det gör att lucka 4 i `PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md` kan rättas med samma mekanism som valpaketen, i stället för en separat lösning som senare måste göras om.
+
 ## Föreslagen ordning
 
-1. Rätta först att Svenska/SvA och ämnen utan nivåer saknar terminer (lucka 4 i luckanalysen). Valblock bygger på samma terminsmodell.
+1. **Valblock som grundbegrepp**, med Svenska/SvA (automatiskt) och Moderna språk/SPRK/NAVE. Då summerar planerna till programmets totala poäng (lucka 4).
 2. **Valpaket och valblock i programfördjupningen**, regeln ”välj exakt ett”, terminsram och analys. Inget elevval. Detta uppfyller paket-todons verifiering med samma paket i två planer.
 3. **Valblock för individuellt val** med skolans utbud och kontroll av rättigheterna i 4 kap. 7 §.
 4. **Elevens val** i studieplanen (STUDY-01, v2), inklusive kombinationer per elev och ”välj X poäng”.
