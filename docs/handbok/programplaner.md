@@ -2,62 +2,70 @@
 title: Programplaner
 ---
 
-Programplanen gäller en utbildning och elevkull. Du arbetar i ordningen **program → inriktning → programfördjupning**. Samma arbetsyta används för nya och befintliga gymnasieutbildningar.
+Programplanen gäller en utbildning och elevkull. Hela planen är en tabell: ämnen och nivåer, skolans programfördjupning och fördelningen över sex terminer ligger på samma ställe.
 
-Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast. Rektor och huvudman kan läsa och arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Ett sparat utkast är inte en fastställd plan.
+Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Ett sparat utkast är inte en fastställd plan.
 
-## Välj program och inriktning
+## Startsidan
 
-1. Öppna **Programplaner** eller **Utbildningar**. Kontrollera skolan. Om ditt uppdrag omfattar flera skolor väljer du rätt skola.
-2. Välj **Befintlig utbildning** eller, som huvudman, **Ny utbildning**. Kontrollera **Programunderlag**. Om det bara finns ett underlag visas det valda underlaget; flera underlag kräver ett uttryckligt val. Program och nivåer följer den exakta källversionen.
-3. Välj **Program**, därefter programmets **Inriktning**. Ett program utan inriktning visar detta direkt.
-4. För en befintlig utbildning väljer du rätt utbildning och elevkull i den matchande listan. Arbetsytan öppnar dess utkast, eller senaste plan om utkast saknas. En bunden plan läses med sitt eget sparade underlag.
+**Programplaner** visar alla utbildningar med programplanens status. Sök på utbildning, program eller elevkull och filtrera per skola när du har flera.
 
-Äldre program- eller inriktningskoder som inte finns i det valda underlaget finns kvar som äldre uppgifter. De är inte därmed verifierade. Du kan läsa utbildningen utan att gamla värden automatiskt ersätts.
+- **Öppna** visar planen.
+- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning och terminsfördelning. Ange namn, elevkull och verkligt startdatum. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar.
+- **Ny programplan** öppnar valet av program och inriktning. Där skapar huvudmannen en ny utbildning, eller lägger en plan på en befintlig utbildning som saknar plan.
 
-När en befintlig utbildning är öppnad är program, inriktning, skola och elevkull fasta fakta. **Alla utbildningar** låter dig välja en annan utbildning; det skriver inte om grunden i den öppnade planen.
+## Ny programplan
 
-## Läs programgrunden och välj fördjupning
+1. Kontrollera skolan och välj **Befintlig utbildning** eller, som huvudman, **Ny utbildning**.
+2. Välj **Program** och därefter **Inriktning**. Ett program utan inriktning visar detta direkt.
+3. För en ny utbildning anger du namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**, alltså den verkliga dagen enligt utbildningens uppgifter. Välj programfördjupning, välj **Granska utkast** och sedan **Spara utbildning och utkast**.
 
-**Programgrund och inriktning** visar gymnasiegemensamma ämnen, programgemensamma ämnen och inriktningsämnen. Dessa uppgifter kommer från underlaget. Ett markerat alternativ är inte ett ämnesval som redan gjorts. Saknade nivåuppgifter förklaras vid ämnet.
+Programunderlaget från Skolverket visas längst ned i finstilt. Om flera underlag finns behöver du välja ett innan du går vidare.
 
-**Programfördjupning** är skolans valda fördjupningsnivåer för utbildningen. Välj **Ändra fördjupning** för ett bundet utkast. Ämneslistan grupperar de nivåer som finns tillgängliga i just utbildningens underlag.
+## Planen som tabell
 
-- Sök under **Sök ämne eller nivå** och kryssa i önskade nivåer. Namn och gymnasiepoäng visas vid varje val.
-- **Vald programfördjupning** visar det som kommer att sparas. Nya nivåer läggs sist. Avmarkera eller välj **Ta bort** för att ta bort ett val; pilknapparna ändrar ordningen.
-- Kryssval, sökning och flyttning sparar ingenting. Gemensamma nivåer i programgrunden väljs inte med fördjupningskryssen.
-- Välj **Granska utkast**. Kontrollera utbildning, skola, startdatum och den ordnade listan. **Tillbaka till uppgifterna** bevarar valen och låter dig rätta dem. Välj **Spara utkast** först när sammanfattningen stämmer.
+Överst visas utbildningens namn, status och knapparna **Analys**, **Kopiera** och **Läs om**. Under dem finns tre årskurskort med poäng per läsår, uppdelat på höst och vår.
 
-Efter sparning och omläsning visas resultatet under **Dina sparade fördjupningsval**. En tom fördjupningslista kan sparas som utkast, men är inte ett besked om en fullständig utbildningsplan.
+Tabellen har en rad per nivå, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och gymnasiearbete. Kolumnerna är nivåns poäng och de sex terminerna.
 
-Gymnasiepoäng beskriver omfattningen, inte lektionstimmar. Elevens individuella val och gymnasiearbete är egna delar och hanteras separat. Gemensamma fördjupningspaket kan ännu inte väljas här. **Om programplanens delar** ger kort begreppshjälp. [Skolverket förklarar programmens delar](https://utbildningsguiden.skolverket.se/gymnasieskolan/gymnasieskolans-program/gymnasieprogrammens-olika-delar).
+**Fördela poäng**
 
-## Planera årskurser och terminer
+- Klicka i en tom terminsruta: nivåns återstående poäng läggs där. Skriv ett annat antal om du vill dela nivån, till exempel 50 på hösten och 50 på våren.
+- Radens knappar delar nivån lika på höst och vår i samma årskurs, eller tömmer raden.
+- **Föreslå fördelning** fyller bara i nivåer som saknar terminer:
+  - nivåerna i ett ämne läggs i ordning,
+  - gymnasiegemensamma och programgemensamma ämnen läggs från årskurs 1,
+  - inriktning och programfördjupning läggs från årskurs 2,
+  - individuellt val läggs i årskurs 2–3 och gymnasiearbetet i årskurs 3,
+  - varje nivå delas lika på höst och vår,
+  - ämnen med en enda nivå läggs där läsåret har minst poäng.
 
-Öppna en sparad programplan med bundet underlag. **Årskurser och terminer** visar hur många poäng som ligger i årskurs 1, 2 och 3, uppdelat på höst och vår. **Visa ämnen och terminer** öppnar fördelningen per ämne/nivå.
+  Justera sedan efter skolans upplägg.
+- **Visa bara ofördelade** döljer de nivåer som redan är klara.
 
-1. Välj **Fördela poäng** på ett utkast. Huvudman och rektor kan redigera inom sina aktuella skoluppdrag. Skoladministratörens delegation är ännu inte tillgänglig.
-2. Skriv poängen i de terminer där nivån ska läsas. En nivå på 100 poäng kan exempelvis fördelas med 50 på hösten och 50 på våren. På dator syns alla sex terminer. På telefon väljer du årskurs över tabellen; de andra årskursernas värden finns kvar.
-3. Kontrollera summan vid nivån och översikten över årskurserna. Tomma fält räknas som 0. Du kan spara en delvis fördelad plan. Negativa värden, decimaler och en summa som överstiger nivåns poäng måste rättas.
-4. Välj **Spara fördelning**. Fördelningen hör till den öppna programplansversionen. **Avbryt** lämnar dina osparade ändringar efter eventuell bekräftelse.
+**Sparning.** Ändringar sparas automatiskt när du lämnar en rad. Osparade rader är gula och statusen visar **Osparade ändringar**, **Sparar…** eller **Allt sparat**. En rad med fler poäng än nivån har, eller med decimaler, markeras rött och sparas inte förrän den är rättad.
 
-Individuellt val och gymnasiearbete visas som ramrader. Att fördela deras poäng gör inga elevval och väljer inga ämnen. Alternativa ämnen och ämnen som saknar preciserade nivåer i underlaget ingår inte i summan av planeringsbara poäng; de behöver eget underlag. Översikten är därför ingen fullständighetskontroll av hela utbildningen.
+**Programfördjupning** ändras direkt i sin grupp. Sök under **Lägg till ämne eller nivå** eller välj ett förslag; bara nivåer som Skolverket tillåter som programfördjupning för programmet visas. Gruppens rubrik visar valda poäng av ramen. Ta bort en nivå med krysset på raden. Har nivån fördelade poäng töms de först. Varje ändring sparas direkt.
 
-Om du tar bort en fördjupningsnivå som har fördelade poäng måste du först rensa den nivåns terminsfält och spara fördelningen. Detta bevarar fördelningen tills du uttryckligen väljer att ta bort den.
+Alternativa ämnen, till exempel svenska eller svenska som andraspråk, och ämnen som saknar nivåer i underlaget ingår men fördelas inte i tabellen. De listas under tabellen.
 
-Fastställda och ersatta versioner visar fördelningen för läsning. **Skapa ny version** kopierar en bunden äldre plans terminsfördelning till ett självständigt utkast. **Kopiera till ny utbildning** överför däremot ännu inte terminsfördelningen; den nya utbildningens fördelning behöver planeras på nytt.
+På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet.
 
-Vid samtidiga ändringar visas dina värden och möjlighet att jämföra med den sparade fördelningen innan du väljer **Spara min fördelning**. Om programplanens innehåll eller status har ändrats behöver du avbryta och läsa om planen. Vid tappat sparsvar kontrolleras aktuell fördelning före nästa sparförsök. **Läs sparstatus** används om kontrollen inte kunde slutföras.
+## Analys och klar för beslut
 
-Poängen omvandlas inte automatiskt till timmar. Skapande av en timplan från en godkänd och fastställd programplan är ett separat kommande flöde.
+**Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
-## Lägg till en ny utbildning
+Planen räknas som **Klar för beslut** först när allt detta stämmer:
 
-Som huvudman väljer du **Ny utbildning** i samma program- och inriktningsflöde. Ange utbildningens lokala namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**. Datumet ska vara den verkliga dagen enligt utbildningens uppgifter; dagens datum, elevkullens namn eller startår ersätter inte den uppgiften.
+- alla nivåer är fördelade på terminer,
+- programfördjupningen fyller ramen, så att eleverna når programmets poäng,
+- ingen högre nivå ligger före en lägre nivå i samma ämne,
+- analysen inte har några andra fel,
+- utbildningens startdatum finns.
 
-Välj programfördjupningen med samma ämneskryss som för en befintlig utbildning. **Granska utkast** visar både utbildningsuppgifterna och fördjupningsvalen. **Spara utbildning och utkast** sparar utbildningen och första utkastet tillsammans. Därefter öppnas den sparade utbildningen i samma arbetsyta.
+Tills dess visar **Innan planen är klar** vad som saknas. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
 
-Rektor får besked om att huvudmannen lägger till nya utbildningar. Gemensam presentation ger inte rätt att skapa utbildningar utan detta mandat. Flödet gäller gymnasiets programplaner; det skapar inte grundskole- eller introduktionsprogramsutbildningar, tillstånd, skoluppdrag eller automatiska klasskopplingar.
+Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. För yrkesprogram anger underlaget ännu inte om programmet omfattar 2 700 eller 2 800 poäng, så där kontrolleras ramen inte. Lagrumshänvisningarna i analysen ska verifieras innan planen används som beslutsunderlag. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
 
 ## Äldre underlag och nya planversioner
 
@@ -65,24 +73,14 @@ Rektor får besked om att huvudmannen lägger till nya utbildningar. Gemensam pr
 | --- | --- |
 | **Skapa programplan** | En befintlig utbildning saknar plan. |
 | **Gör utkastet redo för ändring** | Det finns ett äldre utkast utan bundet underlag. |
-| **Ändra fördjupning** | Du läser ett utkast med bundet underlag. |
-| **Skapa ny version** | Du läser en låst plan och utbildningen saknar utkast. |
+| **Skapa ny version** | Du läser en fastställd eller ersatt plan. Den nya versionen behåller terminsfördelningen. |
 | **Öppna utkastet** | Du läser en äldre version och utbildningen redan har ett utkast. |
 
-När nytt eller äldre underlag behöver väljas börjar du med **Välj underlag** och **Fortsätt till startdatum och val**. Kontrollera källan och ange det verkliga startdatumet. Äldre val visas precis som de lagrats. Du behöver bekräfta att samtliga val och deras ordning bevaras innan de kopplas eller kopieras. Okända, dubblerade eller tvetydiga val visas utan gissningar och kan hindra fortsatt koppling. Själva ändringen görs därefter med **Ändra fördjupning**.
+När underlag behöver väljas börjar du med **Välj underlag** och **Fortsätt till startdatum och val**. Äldre val visas precis som de lagrats och du bekräftar att samtliga val och deras ordning bevaras. Okända eller tvetydiga val visas utan gissningar och kan hindra fortsatt koppling. **Underlag och tidigare versioner** innehåller källa, giltighetsdatum, exakta referenser, revision och planhistorik.
 
-En bunden plan behåller katalog, programgrund och startdatum. En ny version bevarar källversionen och dess tidigare beslut. **Underlag och tidigare versioner** innehåller källa, giltighetsdatum, exakta referenser, revision och planhistorik. Äldre versionsval bevaras när du bläddrar eller läser om.
+## Fel, samtidiga ändringar och tappade svar
 
-Fastställande och fullständig kontroll av nationella ramar, alternativ och nivåföljd är ännu inte tillgängliga. Synliga ämnesuppgifter och poäng ersätter inte huvudmannens och rektors bedömning av hela utbildningen.
-
-## Fel, osparat och tappade svar
-
-Inget autosparas. **Avbryt** lämnar ändringarna efter eventuell bekräftelse om osparade uppgifter. Vid vanligt inmatningsfel, krav på engångskod eller fel i säkerhetsloggen finns uppgifterna kvar. Sparning kräver ett aktuellt bevis med engångskod; osparade uppgifter följer inte med när du lämnar sidan för verifiering.
-
-När någon annan ändrar ett befintligt utkast hämtas aktuellt underlag. Dina val och aktuella val visas var för sig. **Använd mina val** är tillgängligt endast om samma utkast och grund fortfarande kan användas, och prövas mot senaste revisionen. En ändrad grund eller källstatus kräver ny granskning.
-
-Ett tappat svar betyder inte att sparningen misslyckats. Vid befintlig plan läses aktuellt underlag före nästa åtgärd. Om samma val redan sparats visas det utan ny skrivning. Om läsningen misslyckas väljer du **Läs om underlaget**.
-
-Vid ny utbildning används **Läs sparstatus** för samma sparförsök. Ett bekräftat sparande öppnar exakt den skapade utbildningen. Om ingen utbildning sparats kan du uttryckligen försöka igen med samma uppgifter. Om status inte kan avgöras finns uppgifterna kvar och ett nytt sparförsök är låst. Skapa inte en andra utbildning för att ersätta ett försök som ännu inte kunnat avgöras.
-
-Läsning och ändring kräver fungerande säkerhetslogg och aktuellt skoluppdrag. Om loggen inte kan skrivas genomförs inte ändringen. Vid utloggning eller ändrat uppdrag rensas underlag och osparat innehåll från arbetsytan.
+- **Engångskod och säkerhetslogg.** Sparning kräver ett aktuellt bevis med engångskod. Vid krav på engångskod eller fel i säkerhetsloggen finns dina värden kvar, men de följer inte med om du lämnar sidan för verifiering.
+- **Samtidiga ändringar.** Om någon annan har ändrat planen sparas inget över deras ändring. Du kan välja **Läs om planen** eller, för terminsvärden, **Spara mina värden** mot den senaste versionen.
+- **Tappade svar.** Ett tappat svar betyder inte att sparningen misslyckats. Planen läses tillbaka innan något skrivs igen, och om ändringen redan finns sparas den inte en gång till.
+- **Utloggning och uppdrag.** Läsning och ändring kräver fungerande säkerhetslogg och aktuellt skoluppdrag. Vid utloggning eller ändrat uppdrag rensas planen och osparade värden från arbetsytan.
