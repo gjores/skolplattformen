@@ -152,7 +152,7 @@ test('09: MFA och DB/Worker-auditfel ändrar ingenting',async({page},info)=>{
 test('10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite',async({page},info)=>{
   await enter(page);await education(page);await version(page);let writes=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/fordjupning')writes++;});
   await page.route('**/api/programplaner/underlag',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({code:'audit_unavailable'})}));
-  const r=await addLevel(page);expect(r.status()).toBe(200);await paired(r,'programplan_specialization_changed');await expect(w(page)).toContainText('kunde inte läsas');expect((await fixture.snapshot()).revision).toBe(1);await capture(page,info,'programplan-refresh-error.png');
+  const r=await addLevel(page);expect(r.status()).toBe(200);await paired(r,'programplan_specialization_changed');await expect(w(page).getByRole('button',{name:'Hämta utbildningarna igen',exact:true})).toBeVisible();expect((await fixture.snapshot()).revision).toBe(1);await capture(page,info,'programplan-refresh-error.png');
   await page.unroute('**/api/programplaner/underlag');await w(page).getByRole('button',{name:'Hämta utbildningarna igen',exact:true}).click();await education(page);await version(page);await expect(board(page)).toContainText('ANIM1000X');expect(writes).toBe(1);
 });
 
@@ -161,7 +161,7 @@ test('11: tappat verkligt writesvar stäms av genom verklig omläsning',async({p
   for(const [index,failure]of ['abort','gateway502','codeless400'].entries()){
     let audited=false,writes=0;
     await page.route('**/api/programplaner/fordjupning',async r=>{writes++;const actual=await r.fetch();expect(actual.status()).toBe(200);audited=await fixture.paired(actual.headers()['x-correlation-id'],fixture.principal,'programplan_specialization_changed');if(failure==='abort')await r.abort('failed');else await r.fulfill({status:failure==='codeless400'?400:502,contentType:'text/plain',body:'Synthetic gateway failure without an API error code'});});
-    if(index%2===0)await addLevel(page);else await removeLevel(page,'ANIM1000X');
+    const b=board(page);await expect(b).toContainText('Allt sparat');if(index%2===0){await b.getByRole('searchbox',{name:'Lägg till ämne eller nivå'}).fill('ANIM1000X');await b.locator('button[data-level-code="ANIM1000X"]').click();}else await b.getByRole('button',{name:'Ta bort ANIM1000X',exact:true}).click();
     await expect(board(page)).toContainText('Allt sparat');if(index%2===0)await expect(board(page)).toContainText('ANIM1000X');else await expect(board(page)).not.toContainText('ANIM1000X');
     expect(audited).toBe(true);expect(writes).toBe(1);expect((await fixture.snapshot()).revision).toBe(index+1);await page.unroute('**/api/programplaner/fordjupning');
   }
@@ -227,7 +227,7 @@ test('16: fem ytterligare program skapas, granskas och läses med rätt programg
     expect(await fixture.plans(spec.id)).toEqual([]);
     if(spec.program==='VO25')await capture(page,info,'programplan-vard-review.png');
     const r=await save(page,'skapa');expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_created',body.id);
-    await expect(editor(page)).toHaveCount(0);if(spec.program==='VO25')await expect(w(page).getByRole('region',{name:'Ingår enligt underlaget',exact:true})).toContainText('Programmet har ingen inriktning.');const row=await fixture.snapshot(body.id);
+    await expect(editor(page)).toHaveCount(0);if(spec.program==='VO25')await expect(board(page)).toContainText('Programmet har ingen inriktning.');const row=await fixture.snapshot(body.id);
     expect(row.offering_id).toBe(spec.id);expect(row.basis_reference.programRef).toEqual({code:spec.program,version:spec.version});expect(row.basis_reference.orientationCode).toBe(spec.orientation);expect(row.basis_reference.startedOn).toBe('2026-08-17');expect(row.specialization).toEqual([code]);expect(row.status).toBe('utkast');expect(row.decided_on).toBe(null);
     await expect(board(page)).toContainText(code!);
     await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page,spec.name,spec.program,spec.orientation);

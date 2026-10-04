@@ -227,6 +227,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
         </tbody>; })}
       <tfoot><tr><th scope="row" colSpan={2}>Summa per termin</th>{termTotals.map((n, i) => <td key={i} className={`ppb-term ppb-y${Math.floor(i / 2)}`}>{fmt(n)}</td>)}<td className="ppb-state">{fmt(assigned)}</td></tr></tfoot>
     </table></div>
+    {program.orientations.length === 0 && <p className="ppb-note">Programmet har ingen inriktning.</p>}
     {unresolved.length > 0 && <p className="ppb-note">Ingår men fördelas inte här: {unresolved.map(s => s.optional ? `${s.name} (alternativ)` : `${s.name} (nivåer saknas)`).join(', ')}.</p>}
     {editable && <p className="ppb-hint">Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden. {anyInvalid ? 'Rader med för många poäng sparas inte förrän de är rättade.' : ''}</p>}
     {!editable && plan.status !== 'utkast' && <p className="ppb-hint">Version {plan.version} är {plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.</p>}
