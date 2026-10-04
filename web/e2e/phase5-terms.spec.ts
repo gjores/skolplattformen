@@ -77,7 +77,7 @@ test('06: tappat svar efter commit läses tillbaka utan en andra skrivning',asyn
 test('07: borttagen fördjupningsnivå töms först och försvinner ur tabellen',async({page})=>{
   await enter(page);await cell(page).click();expect((await leave(page)).status()).toBe(200);
   const cleared=page.waitForResponse(matches('/api/programplaner/terminer')),removed=page.waitForResponse(matches('/api/programplaner/fordjupning'));
-  await board(page).getByRole('row',{name:new RegExp(`^${ENG}`,'u')}).hover();await board(page).getByRole('button',{name:'Ta bort ENGE3000X',exact:true}).click();
+  await board(page).getByRole('button',{name:'Ta bort ENGE3000X',exact:true}).click();
   expect((await cleared).status()).toBe(200);expect((await removed).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');await expect(cell(page)).toHaveCount(0);
   const plan=await fixture.snapshot();expect(plan.specialization).toEqual([]);expect((await read()).distribution.some((d:{rowKey:string})=>d.rowKey.includes('ENGE3000X'))).toBe(false);
 });
