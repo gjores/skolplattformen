@@ -26,6 +26,10 @@ Planen är nu en tabell: ämnen, programfördjupning och sex terminer redigeras 
 - **Kopiera till ny utbildning** tar nu med terminsfördelningen. Om det misslyckas står det i beskedet.
 - **Handboken** `docs/handbok/programplaner.md` är omskriven efter det nya flödet. Dokumentationsbygget passerar.
 
+## Tillägg efter användarens granskning
+
+Användaren såg den gamla tabellen i vissa vyer. Nu används samma tabell med terminer även när en plan skapas, vid koppling av äldre utkast, vid ny version och vid ny utbildning (`LocalPlanBoard`). Val och fördelning hålls lokalt och fördelningen skrivs direkt efter att planen eller utbildningen skapats. Den gamla ämnestabellen och poängstapeln är borttagna. Omkörning: programplan 39/40 på dator och 19/20 på telefon (endast känt utloggningsfall 12), tabellprov 15/15. Två tillfälliga miljötimeouts i en körning (hälsokontroll och listladdning) passerade vid omkörning.
+
 ## Användarbeslut och tolkningar
 
 - 2026-10-04: UI:t ska vara sammanhållet, och en plan kan inte vara klar förrän fördelning och analys är genomförda.
