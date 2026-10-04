@@ -168,3 +168,9 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb[data-year="0"] .ppb-y1,.ppb[data-year="0"] .ppb-y2,.ppb[data-year="1"] .ppb-y0,.ppb[data-year="1"] .ppb-y2,.ppb[data-year="2"] .ppb-y0,.ppb[data-year="2"] .ppb-y1{display:none}
 .ppb-term{width:64px}.ppb-term input{height:44px;max-width:58px}.ppb-row-tools{opacity:1;display:flex;margin:4px 0 0}.ppb-row-tools button{width:44px;height:44px}.ppb-tools{margin-left:0}.ppb-toolbar>p{width:100%}
 .ppb-group td[aria-hidden]{display:none}.ppb-group th{white-space:normal}}
+.ppb-table .ppb-state{white-space:nowrap;width:180px}
+@media(max-width:800px){
+.ppb-table{table-layout:auto;width:100%}.ppb-table thead th:first-child,.ppb-table tbody th[scope=row]{width:auto;min-width:150px;padding-left:12px}
+.ppb-table .ppb-term{width:62px;padding:4px 3px}.ppb-table .ppb-state{width:auto;white-space:normal;padding:4px 8px}.ppb-table .ppb-state .ppb-tag{display:inline-flex}
+.ppb-row-tools{display:flex;gap:0}.ppb-row-tools button{width:40px;height:40px}.ppb-group th{padding:12px 12px 6px!important}.ppb-add-row td{padding:10px 12px 14px!important}
+.ppb-table tbody th[scope=row] span{display:block;overflow-wrap:anywhere}}

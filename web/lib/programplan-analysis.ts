@@ -52,7 +52,7 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
   } else if (status.over) {
     add({ id: 'specialization-over', category: 'fel', title: 'Programfördjupningen ryms inte i ramen', detail: `${fmt(status.chosen)} poäng valda, högst ${fmt(status.room!)} får väljas. Ta bort ${fmt(status.chosen - status.room!)} poäng.`, part: 'specialization', rule: RULE_TOTAL, action: 'Ta bort nivåer' });
   } else if (status.remaining! > 0) {
-    add({ id: 'specialization-under', category: 'risk', title: 'Outnyttjat utrymme', detail: `${fmt(status.remaining!)} poäng programfördjupning är inte fördelade. Eleverna når inte programmets ${fmt(frame.total!)} poäng.`, part: 'specialization', rule: RULE_TOTAL, action: 'Lägg till nivå' });
+    add({ id: 'specialization-under', category: 'fel', title: 'Outnyttjat utrymme', detail: `${fmt(status.remaining!)} poäng programfördjupning är inte fördelade. Eleverna når inte programmets ${fmt(frame.total!)} poäng.`, part: 'specialization', rule: RULE_TOTAL, action: 'Lägg till nivå' });
   }
 
   for (const section of frame.sections) {

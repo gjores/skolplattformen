@@ -15,10 +15,10 @@ test('över ramen är fel men stoppar inget, och felen sorteras först', () => {
   assert.match(a.issues[0].detail, /400 poäng valda, högst 300/);
 });
 
-test('outnyttjat utrymme är en risk och inom ramen redovisas som uppfyllt', () => {
+test('outnyttjat utrymme är fel eftersom eleverna inte når programmets poäng, inom ramen är uppfyllt', () => {
   const under = analyseProgramplan(input([ref('A1')]));
   assert.ok(ids(under).includes('specialization-under'));
-  assert.equal(under.counts.fel, 0);
+  assert.equal(under.counts.fel, 1);
   const full = analyseProgramplan(input([ref('A1'), ref('A2'), ref('A3')]));
   assert.ok(ids(full).includes('specialization-ok'));
   assert.ok(!ids(full).includes('specialization-under'));

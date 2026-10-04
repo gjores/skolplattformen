@@ -44,6 +44,8 @@ test('02: för många poäng sparas inte och markeras tills raden är rättad',a
 
 test('03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut',async({page},info)=>{
   await enter(page);await expect(w(page).getByRole('region',{name:'Innan planen är klar',exact:true})).toContainText('Alla nivåer är inte fördelade');
+  await expect(w(page).getByRole('region',{name:'Innan planen är klar',exact:true})).toContainText('Outnyttjat utrymme');
+  for(const code of ['ANIM1000X','ANIM2000X']){const search=board(page).getByRole('searchbox',{name:'Lägg till ämne eller nivå'});await search.fill(code);const added=page.waitForResponse(matches('/api/programplaner/fordjupning'));await board(page).locator(`button[data-level-code="${code}"]`).click();expect((await added).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');}
   const pending=page.waitForResponse(matches('/api/programplaner/terminer'));await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();const r=await pending;expect(r.status()).toBe(200);await paired(r);
   await expect(board(page)).toContainText('allt fördelat');await expect(w(page).locator('.pp-status')).toContainText('Klar för beslut');
   await expect(w(page).getByRole('region',{name:'Klar för beslut',exact:true})).toBeVisible();
