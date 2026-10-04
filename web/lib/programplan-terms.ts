@@ -47,3 +47,62 @@ export function programplanTermTotals(rows: ProgramplanTermRow[], distribution: 
   const total = rows.reduce((sum, r) => sum + r.points, 0), allocated = terms.reduce((a, b) => a + b, 0);
   return { terms, total, allocated, remaining: total - allocated };
 }
+
+/** Nivåernas ordning inom varje ämne enligt underlaget, till exempel ENGE1000X före ENGE2000X. */
+export function programplanLevelRanks(program: CatalogProgram): Map<string, number> {
+  const ranks = new Map<string, number>();
+  const blocks = [program.foundation, program.programmeSpecific, ...program.orientations.map(o => o.subjects), program.specialization];
+  const counts = new Map<string, number>();
+  for (const subjects of blocks) for (const s of subjects) for (const l of s.levels) {
+    if (ranks.has(`${s.code}:${l.code}`)) continue;
+    const next = counts.get(s.code) ?? 0; ranks.set(`${s.code}:${l.code}`, next); counts.set(s.code, next + 1);
+  }
+  return ranks;
+}
+const subjectOf = (row: ProgramplanTermRow) => row.key.split(':')[1];
+const levelOf = (row: ProgramplanTermRow) => row.key.split(':')[3];
+const halves = (points: number, year: number): ProgramplanTermPoints => {
+  const p: ProgramplanTermPoints = [0, 0, 0, 0, 0, 0]; p[year * 2] = Math.floor(points / 2); p[year * 2 + 1] = points - Math.floor(points / 2); return p;
+};
+/** Första årskurs (0–2) som har poäng på raden, eller null. */
+export function firstYear(points: ProgramplanTermPoints | undefined): number | null {
+  if (!points) return null; const i = points.findIndex(p => p > 0); return i < 0 ? null : Math.floor(i / 2);
+}
+export function lastYear(points: ProgramplanTermPoints | undefined): number | null {
+  if (!points) return null; for (let i = 5; i >= 0; i--) if (points[i] > 0) return Math.floor(i / 2); return null;
+}
+
+/**
+ * Föreslår fördelning för rader som ännu saknar poäng. Redan fördelade rader rörs inte.
+ * Nivåer läses i ordning, gymnasiegemensamt och programgemensamt från åk 1, inriktning och fördjupning från åk 2,
+ * individuellt val i åk 2–3 och gymnasiearbete i åk 3. Ämnen med en enda nivå läggs där läsåret har minst poäng.
+ */
+export function suggestProgramplanTerms(rows: ProgramplanTermRow[], distribution: ProgramplanTermDistribution, ranks: Map<string, number>): ProgramplanTermDistribution {
+  const result = new Map(distribution.map(d => [d.rowKey, [...d.points] as ProgramplanTermPoints]));
+  const load = [0, 1, 2].map(y => distribution.reduce((s, d) => s + d.points[y * 2] + d.points[y * 2 + 1], 0));
+  const put = (key: string, points: ProgramplanTermPoints) => { result.set(key, points); points.forEach((p, i) => { load[Math.floor(i / 2)] += p; }); };
+  const empty = (row: ProgramplanTermRow) => !(result.get(row.key)?.some(p => p > 0));
+  const base: Record<ProgramplanTermPart, number> = { foundation: 0, programmeSpecific: 0, orientation: 1, specialization: 1, individualChoice: 1, diplomaWork: 2 };
+  for (const row of rows.filter(r => r.part === 'diplomaWork' && empty(r))) put(row.key, halves(row.points, 2));
+  for (const row of rows.filter(r => r.part === 'individualChoice' && empty(r))) {
+    const first = Math.floor(row.points / 2), p: ProgramplanTermPoints = [0, 0, 0, 0, 0, 0];
+    p[2] = Math.floor(first / 2); p[3] = first - p[2]; const second = row.points - first; p[4] = Math.floor(second / 2); p[5] = second - p[4]; put(row.key, p);
+  }
+  const subjects = new Map<string, ProgramplanTermRow[]>();
+  for (const row of rows.filter(r => r.part !== 'diplomaWork' && r.part !== 'individualChoice')) subjects.set(subjectOf(row), [...(subjects.get(subjectOf(row)) ?? []), row]);
+  const single: ProgramplanTermRow[] = [];
+  for (const levels of subjects.values()) {
+    levels.sort((a, b) => (ranks.get(`${subjectOf(a)}:${levelOf(a)}`) ?? 0) - (ranks.get(`${subjectOf(b)}:${levelOf(b)}`) ?? 0));
+    if (levels.length === 1 && (levels[0].part === 'foundation' || levels[0].part === 'programmeSpecific')) { if (empty(levels[0])) single.push(levels[0]); continue; }
+    let previous = -1;
+    for (const row of levels) {
+      if (!empty(row)) { previous = lastYear(result.get(row.key)) ?? previous; continue; }
+      const year = Math.min(2, Math.max(base[row.part], previous + 1)); put(row.key, halves(row.points, year)); previous = year;
+    }
+  }
+  for (const row of single.sort((a, b) => b.points - a.points)) {
+    const year = [0, 1, 2].reduce((best, y) => load[y] < load[best] ? y : best, base[row.part]);
+    put(row.key, halves(row.points, year));
+  }
+  return rows.flatMap(row => { const p = result.get(row.key); return p && p.some(n => n > 0) ? [{ rowKey: row.key, points: p }] : []; });
+}

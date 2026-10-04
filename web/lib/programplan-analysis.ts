@@ -5,6 +5,7 @@
 
 import type { CatalogProgram, ProgramplanLevelRef } from './programplan-catalog.ts';
 import { DIPLOMA_WORK_POINTS, INDIVIDUAL_CHOICE_POINTS, frameStatus, programFrame, type ProgramFrame } from './programplan-table.ts';
+import { firstYear, lastYear, type ProgramplanTermDistribution, type ProgramplanTermRow } from './programplan-terms.ts';
 
 export type IssueCategory = 'fel' | 'risk' | 'info' | 'ok';
 export type PlanPart = 'foundation' | 'programmeSpecific' | 'orientation' | 'specialization' | 'other' | 'meta';
@@ -26,8 +27,12 @@ export type AnalysisInput = {
   startedOn: string | null; sourceFetched: string | null;
   /** Diagnoser från serverns kontroll av den sparade planen, redan formulerade som text. */
   serverNotes?: string[];
+  /** Fördelning över terminer när planen är bunden till underlag. */
+  terms?: { rows: ProgramplanTermRow[]; distribution: ProgramplanTermDistribution; ranks: Map<string, number> };
 };
-export type Analysis = { frame: ProgramFrame; issues: PlanIssue[]; counts: Record<IssueCategory, number> };
+export type Analysis = { frame: ProgramFrame; issues: PlanIssue[]; counts: Record<IssueCategory, number>;
+  /** Planen är klar för beslut: allt fördelat, inga fel och startdatum finns. Räknas fram, sparas inte. */
+  ready: boolean; missing: string[] };
 
 const fmt = (n: number) => n.toLocaleString('sv-SE');
 const RULE_TOTAL = 'Skollagen bilaga 2 · programstruktur';
@@ -60,6 +65,29 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
     }
   }
 
+  let termsComplete = false;
+  if (input.terms) {
+    const { rows, distribution, ranks } = input.terms;
+    const byKey = new Map(distribution.map(d => [d.rowKey, d.points]));
+    const partOf = (row: ProgramplanTermRow): PlanPart => row.part === 'individualChoice' || row.part === 'diplomaWork' ? 'other' : row.part;
+    const open = rows.filter(r => (byKey.get(r.key)?.reduce((a, b) => a + b, 0) ?? 0) < r.points);
+    termsComplete = open.length === 0;
+    if (open.length) add({ id: 'terms-open', category: 'fel', title: open.length === 1 ? '1 nivå saknar terminer' : `${open.length} nivåer saknar terminer`, detail: `${open.slice(0, 4).map(r => `${r.name} ${r.levelName}`).join(', ')}${open.length > 4 ? ' med flera' : ''}. ${fmt(open.reduce((s, r) => s + r.points - (byKey.get(r.key)?.reduce((a, b) => a + b, 0) ?? 0), 0))} poäng är inte placerade.`, part: partOf(open[0]), rule: 'Fördelning över läsåren', action: 'Fördela' });
+    else add({ id: 'terms-ok', category: 'ok', title: 'Alla nivåer har terminer', detail: `${fmt(rows.reduce((s, r) => s + r.points, 0))} poäng fördelade över sex terminer.`, part: 'meta', rule: 'Fördelning över läsåren', action: null });
+    const subject = (row: ProgramplanTermRow) => row.key.split(':')[1], level = (row: ProgramplanTermRow) => row.key.split(':')[3];
+    for (const a of rows) for (const b of rows) {
+      if (a === b || subject(a) !== subject(b)) continue;
+      const ra = ranks.get(`${subject(a)}:${level(a)}`), rb = ranks.get(`${subject(b)}:${level(b)}`);
+      if (ra === undefined || rb === undefined || ra >= rb) continue;
+      const endA = lastYear(byKey.get(a.key)), startB = firstYear(byKey.get(b.key));
+      if (endA !== null && startB !== null && startB < endA) add({ id: `order-${b.key}`, category: 'fel', title: `${b.name} ${b.levelName} ligger före ${a.levelName}`, detail: `${b.levelName} börjar i åk ${startB + 1} men ${a.levelName} läses i åk ${endA + 1}. En högre nivå bygger på den lägre.`, part: partOf(b), rule: 'Nivåernas ordning', action: 'Flytta nivån' });
+    }
+    const years = [0, 1, 2].map(y => distribution.reduce((s, d) => s + d.points[y * 2] + d.points[y * 2 + 1], 0));
+    const total = rows.reduce((s, r) => s + r.points, 0), target = total / 3;
+    if (termsComplete && years.some(y => Math.abs(y - target) > target * 0.15)) add({ id: 'terms-balance', category: 'risk', title: 'Ojämn arbetsbörda mellan läsåren', detail: `Åk 1: ${fmt(years[0])}, åk 2: ${fmt(years[1])}, åk 3: ${fmt(years[2])} poäng. Ett jämnt läsår är cirka ${fmt(Math.round(target))} poäng.`, part: 'meta', rule: 'Rimlig studiegång', action: 'Jämna ut' });
+    const diploma = rows.find(r => r.part === 'diplomaWork'); const dp = diploma && byKey.get(diploma.key);
+    if (dp && dp.some(p => p > 0) && (firstYear(dp) ?? 2) < 2) add({ id: 'terms-diploma', category: 'risk', title: 'Gymnasiearbetet ligger före åk 3', detail: 'Gymnasiearbetet ska visa att eleven är förberedd för det programmet leder till och läggs normalt sist i utbildningen.', part: 'other', rule: 'Gymnasieförordningen 4 kap.', action: 'Flytta' });
+  }
   if (!input.startedOn) {
     add({ id: 'start-missing', category: 'risk', title: 'Utbildningens startdatum saknas', detail: 'Utkastet kan sparas, men planen kan inte kopplas till rätt underlag eller fastställas utan startdatum.', part: 'meta', rule: 'Krav för fastställande', action: 'Ange datum' });
   }
@@ -81,5 +109,10 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
   issues.sort((a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category));
   const counts = { fel: 0, risk: 0, info: 0, ok: 0 } as Record<IssueCategory, number>;
   for (const issue of issues) counts[issue.category]++;
-  return { frame, issues, counts };
+  const missing = [
+    ...(!input.terms ? ['Planen är inte kopplad till underlag med terminer.'] : !termsComplete ? ['Alla nivåer är inte fördelade på terminer.'] : []),
+    ...issues.filter(i => i.category === 'fel' && i.id !== 'terms-open').map(i => i.title),
+    ...(!input.startedOn ? ['Utbildningens startdatum saknas.'] : []),
+  ];
+  return { frame, issues, counts, ready: missing.length === 0, missing };
 }
