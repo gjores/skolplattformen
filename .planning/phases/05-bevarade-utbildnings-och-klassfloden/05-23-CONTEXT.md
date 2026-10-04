@@ -1,6 +1,6 @@
-# 05-21 — Valbara block, svenska/svenska som andraspråk och full poängsumma
+# 05-23 — Valbara block, svenska/svenska som andraspråk och full poängsumma
 
-Användarbeslut 2026-10-04, genom frågor i chatten. Underlag: [VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md](../../research/VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md) och [PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md](../../research/PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md).
+Användarbeslut 2026-10-04, genom frågor i chatten. Numret ändrades från 05-21 till 05-23 eftersom 05-21 och 05-22 används av skolkopplingen i 05-20-arbetet. Planen bygger på 05-20–05-22 (en plan på flera skolor). Underlag: [VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md](../../research/VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md) och [PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md](../../research/PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md).
 
 ## Problem
 
