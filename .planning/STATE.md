@@ -169,6 +169,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 2026-10-04: gap – [komplettera programplanens analys](todos/pending/2026-10-04-komplettera-programplanens-analys.md): Svenska/SvA och Moderna språk saknar terminer, överlappande nivåer i fördjupningen, nivåordning per termin, fel regelhänvisning för gymnasiearbetet samt kontrollpunkter för individuellt val, APL och moderna språk. Underlag: `research/PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md`.
+
 - 2026-10-04: gap – [inriktningens nivåer före tillåten start](todos/pending/2026-10-04-inriktningens-amnen-fore-tillaten-start.md). Analysen ska fånga inriktningsnivåer i åk 1 utom på ES/FR/IN/NB (gymnasieförordningen 4 kap. 2 §). Planering, genomförande och prov återstår.
 
 - 2026-10-03: gap – [bakåtknapp efter inloggning visar rå JSON-koden login_state_invalid](todos/pending/2026-10-03-baktknapp-efter-inloggning-ger-login-state-invalid.md). Avvisningen är korrekt men ska skicka användaren vidare till en sida med begripligt besked. Fasplacering, rättning och prov återstår.
