@@ -118,7 +118,7 @@ Fullständiga beslut finns i PROJECT.md.
 | Phase | Summary | Rationale |
 |-------|---------|-----------|
 | Init | 42 detaljkrav och åtta faser godkända 2026-09-11 | Användarens uttryckliga ja till kravförslaget och färdplanen |
-| 05 | Valbara block 2026-10-04 (05-21, D-01–D-15): svenska/SvA som egna rader per nivå; valbara block med exakt ett paket och gemensam terminsram för moderna språk, HU/NA-val, programfördjupning och individuellt val; planen bestämmer blocken och skolan väljer paketen; huvudman, rektor och skoladministratör får skapa valpaket; utbudet får ändras när som helst; nivåordning är fel om den högre nivån börjar före den lägre och risk vid överlapp | Användarens svar på frågor i chatten; se `phases/05-…/05-21-CONTEXT.md` |
+| 05 | Valbara block 2026-10-04 (05-23, D-01–D-15): svenska/SvA som egna rader per nivå; valbara block med exakt ett paket och gemensam terminsram för moderna språk, HU/NA-val, programfördjupning och individuellt val; planen bestämmer blocken och skolan väljer paketen; huvudman, rektor och skoladministratör får skapa valpaket; utbudet får ändras när som helst; nivåordning är fel om den högre nivån börjar före den lägre och risk vid överlapp | Användarens svar på frågor i chatten; se `phases/05-…/05-23-CONTEXT.md` |
 | Init | Säker administration inför pilot är första milstolpen | Användarval 2026-09-10: inloggning, behörigheter, elevregister och en kommunintegration |
 | 1–5 | Bevara gymnasieutbildningar, kurs-/nivåtillägg, kullkopiering och explicita klass–timplanskopplingar | Uppskattade befintliga arbetsflöden |
 | 3 | Huvudmannen utser rektor; rektor tilldelar läraruppdrag inom sitt mandat | Användarens ansvarsfördelning |
