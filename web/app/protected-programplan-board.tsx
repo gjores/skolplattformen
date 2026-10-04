@@ -116,7 +116,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
   const setCell = (row: ProgramplanTermRow, i: number, raw: string) => { const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints; const n = raw.trim() === '' ? 0 : Number(raw); p[i] = Number.isFinite(n) ? n : NaN; update(row.key, p); };
   const fillCell = (row: ProgramplanTermRow, i: number) => {
     const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints, rest = row.points - sum(p);
-    if (p[i] === 0 && rest > 0) { p[i] = rest; update(row.key, p); commit(); }
+    if (p[i] === 0 && rest > 0) { p[i] = rest; update(row.key, p); }
   };
   const splitYear = (row: ProgramplanTermRow) => { const y = firstYear(values.get(row.key)) ?? 0, p = blank(); p[y * 2] = Math.floor(row.points / 2); p[y * 2 + 1] = row.points - p[y * 2]; update(row.key, p); commit(); };
   const clearRow = (row: ProgramplanTermRow) => { update(row.key, blank()); commit(); };
@@ -147,7 +147,15 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
       if (!mounted.current || failed(e)) return;
       if (e instanceof ApiError && e.status === 409) { setState('conflict'); setMessage('Någon annan har ändrat planen. Läs om planen innan du ändrar fördjupningen.'); }
       else if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { setState('mfa'); setMessage('Verifiera med engångskod för att ändra fördjupningen.'); }
-      else setMessage(e instanceof ApiError ? `Kunde inte ändra fördjupningen. ${e.message}` : 'Fördjupningen kunde inte ändras. Läs om planen och försök igen.');
+      else if (e instanceof ApiError && e.hasExplicitCode && ['bad_request', 'audit_unavailable', 'forbidden'].includes(e.code)) setMessage(`Kunde inte ändra fördjupningen. ${e.message}`);
+      else {
+        // Okänt svar: läs tillbaka i stället för att skriva igen.
+        try {
+          const back = parseProgramplan(await api.post('/api/programplaner/lasa', { planId: plan.id }, new AbortController().signal));
+          if (back.id === plan.id && back.revision === (savedRef.current?.revision ?? -1) + 1 && sameProgramplanLevels(back.basisReference?.specializationRefs ?? [], refs)) { await onReload(); return; }
+          setMessage('Fördjupningen kunde inte ändras. Läs om planen och försök igen.');
+        } catch (inner) { if (mounted.current && !failed(inner)) setMessage('Sparstatus kunde inte läsas. Läs om planen innan du försöker igen.'); }
+      }
     } finally { if (mounted.current) setWorking(false); }
   }
 
