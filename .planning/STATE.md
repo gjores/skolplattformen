@@ -169,6 +169,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 2026-10-04: [valbara paket i programfördjupning och individuellt val](research/VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md) utrett. Förslaget har tre lager (skolans valpaket, programplanens valblock, elevens val) och kopplar till paket-todon från 2026-10-02. Benämning, omfattning av första leveransen, mandat och nivåordningens kategori väntar på användarbeslut.
+
 - 2026-10-04: gap – [komplettera programplanens analys](todos/pending/2026-10-04-komplettera-programplanens-analys.md): Svenska/SvA och Moderna språk saknar terminer, överlappande nivåer i fördjupningen, nivåordning per termin, fel regelhänvisning för gymnasiearbetet samt kontrollpunkter för individuellt val, APL och moderna språk. Underlag: `research/PROGRAMPLAN-ANALYS-LUCKOR-2026-10-04.md`.
 
 - 2026-10-04: gap – [inriktningens nivåer före tillåten start](todos/pending/2026-10-04-inriktningens-amnen-fore-tillaten-start.md). Analysen ska fånga inriktningsnivåer i åk 1 utom på ES/FR/IN/NB (gymnasieförordningen 4 kap. 2 §). Planering, genomförande och prov återstår.

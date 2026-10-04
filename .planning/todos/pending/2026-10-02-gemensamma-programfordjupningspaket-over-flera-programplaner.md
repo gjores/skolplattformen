@@ -31,6 +31,10 @@ Användaren kräver att en skola kan skapa ett valbart programfördjupningspaket
 - Pröva dubbla nivåer, nivåföljd/överlapp, saknad regelkontroll, samtidigt ändrat paket eller plan, obehörigt skol-/kundbyte, auditfel och tappat svar. Inga oavsiktliga massuppdateringar eller påhittade elevval.
 - Rektor kan förklara skillnaden mellan skolans paket, vad som erbjuds i en programplan och vad eleven faktiskt har valt. Mänskligt användarprov ingår.
 
+## Utökning 2026-10-04
+
+Användaren vill att valbara block (”moduler”) ska finnas både i programfördjupningen och i det individuella valet. Rekommenderad modell, regler, kontroller och ordning finns i [VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md](../../research/VALPAKET-PROGRAMFORDJUPNING-IV-2026-10-04.md). Modellen har tre lager: skolans versionerade valpaket, programplanens valblock med regeln ”välj exakt ett” och en terminsram, samt elevens val i studieplanen (STUDY-01). Öppna beslut: benämning, om individuellt val ska ingå i första leveransen, vem som får skapa paket och om nivåordningen ska vara risk eller fel.
+
 ## Sources
 
 Primärkällor kontrollerade 2026-10-02. De visar verksamhetsbehov/regler, inte att appen redan stöder paket:
