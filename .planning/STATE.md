@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-18
+current_plan: 05-24
 status: in_progress
-stopped_at: 05-19 genomförd; mänskligt prov av sammanhållen programplan väntar
+stopped_at: 05-24–05-35 planerade; timplansgenomförande återstår, 05-19:s mänskliga prov öppet
 last_updated: "2026-10-04"
 last_activity: 2026-10-04
-last_activity_desc: "05-19 genomförd: programplanen är en tabell med ämnen, programfördjupning och sex terminer, klick/förslagsfördelning, autospar, kopiering med fördelning och framräknad Klar för beslut. Tabell 15/15, program 38/40 (känt utloggningsfall), timplan 20/20. Mänskligt prov återstår."
+last_activity_desc: "05-24–05-35 planerade efter Claudes aktuella programplanslösning: sammanhållen timtabell, radvis autospar, analys med åtgärdslänkar, skolmandat och fryst källa till beslutsflöde. Inget genomförande av paketet. 05-19:s mänskliga prov och 05-20–05-23:s förutsättningar kvarstår."
 state_head: d37f566
 worker_build_revision: d37f566b3575623171e07ef3150f16d55c6f14ed
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 71
-  completed_plans: 70
+  total_plans: 87
+  completed_plans: 71
 milestone_name: milestone
 ---
 
@@ -26,9 +26,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** 05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos.
+**Current focus:** 05-24–05-35 är planerade för en sammanhållen timplansarbetsyta med analys efter den aktuella programplanslösningen. Nästa timplanssteg är 05-24:s GR/IM-analys; gymnasieflödet följer först efter verifierade programbesluts-/skol-/blockförutsättningar. 05-19:s mänskliga prov, programplansdelegation, full fas 5 och fas 4:s checkpoint kvarstår.
 
 ## Current Position
+
+**Ny beställning och planering 2026-10-04:** Användaren har byggt om programplanerna med Claude och beställt motsvarande timplansarbetsyta med bra analysstöd. [05-24–05-35](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md) är planeringspaketet: tidig GR/IM-analys, skyddat programfastställande, fryst skolunderlag, skapande från fastställd programplan, sammanhållen timtabell, radvis autospar, analysåtgärder och beslutsflöde till separat mänskligt prov. **Inget av detta paket är genomfört.** 05-19 har en SUMMARY med automatiska prov och kända fel; 05-20 har pågående arbetskopieändringar, 05-21/22 har planer och 05-23 har beslutad CONTEXT. Dessa statusar går före äldre 05-18-text nedan. Historiska `state_head`, byggrevision och planräknare har inte använts som bevis för Claudes nya arbetskopia. Planeringen ändrar inga appfiler eller tillämpade migrationer. Nästa timplanssteg är 05-24; gymnasieflödet kräver angivna förutsättningsgrindar.
 
 **Aktuellt läge 2026-10-04:** 05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos.
 
@@ -41,9 +43,9 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-18 — poäng per årskurs och termin, automatiskt verifierad till mänskligt prov. Mänskligt prov och fasens fullständiga krav är inte godkända.
-**Total Plans in Phase:** 17 skrivna (05-17 endast reserverad), 17 automatiskt genomförda; mänskligt programplans-/handledningsprov och återstående utbildnings-/beslutsflöden är öppna.
-**Status:** 05-18 automatiskt verifierad lokalt med syntetiska uppgifter; timplansregressionens 20 beteenden PASS över 19+1 med setupfel separat redovisade. Ny mänsklig begriplighet är awaiting_user; tidigare programplansresultat FAIL bevaras.
+**Current Plan:** 05-24 — timplansanalys för GR/IM, planerad som första steg i 05-24–05-35. Paketet är inte genomfört. Tidigare mänskliga prov och fasens fullständiga krav är inte godkända.
+**Total Plans in Phase:** 33 skrivna: 18 med genomförandesammanfattning (05-01–05-19 utom 05-17), 05-20–05-22 utan slutlig SUMMARY och 12 nya planerade timplanssteg (05-24–05-35). 05-17 och 05-23 saknar ännu PLAN. Mänskliga prov och slutverifiering är separata.
+**Status:** Timplanspaketet är planerat och inte genomfört. 05-19:s SUMMARY redovisar den nya programtabellen, automatiska prov och känt utloggningsfel; ny mänsklig begriplighet är awaiting_user. Äldre verifieringshistorik bevaras nedan.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-04
 **Last Activity Description:** 05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos.
@@ -57,14 +59,14 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planprogress: 70 av 71 hittills skrivna planer genomförda; fas 4 har 24 av 25. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planinventering 2026-10-04: 87 skrivna PLAN-filer, varav 71 har en genomförandesammanfattning. 16 saknar SUMMARY: 04-22, 05-20–05-22 och 05-24–05-35. En SUMMARY innebär inte att mänskligt prov eller full fas är godkänt. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 70
+- Total plans with execution summary: 71
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 

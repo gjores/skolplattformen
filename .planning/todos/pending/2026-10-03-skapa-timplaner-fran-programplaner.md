@@ -2,6 +2,9 @@
 created: 2026-10-03
 title: Skapa timplaner från godkända och fastställda programplaner
 area: timplaner
+status: planned
+planning_updated: 2026-10-04
+plans: ["05-24", "05-25", "05-26", "05-27", "05-28", "05-29", "05-30", "05-31", "05-32", "05-33", "05-34", "05-35"]
 files:
   - web/app/protected-programplan-workspace.tsx
   - web/app/protected-timplan-workspace.tsx
@@ -31,4 +34,8 @@ Användaren vill kunna nå möjligheten att skapa timplaner direkt från program
 - Programplansändring bevarar äldre timplaner och klasskopplingar. Konkurrerande ändringar ger begriplig konflikt; auditfel stoppar ändringen.
 - Prova hela programplan → skapa timplan → redigera → spara → öppna igen på dator och telefon, inklusive mänskligt begriplighetsprov.
 
-Status: **pending**. Användarbeställt behov; genomförande och verifiering återstår.
+Status 2026-10-04: **planerad, inte genomförd**. Användarens nya beställning omfattar en sammanhållen timplansarbetsyta efter den aktuella programplanstabellen i 05-19 och ett motsvarande, åtgärdsinriktat analysstöd. Se [genomförandeöversikten för 05-24–05-35](../../phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md), [avsikt och avgränsning](../../phases/05-bevarade-utbildnings-och-klassfloden/05-24-CONTEXT.md) och [kod-/källunderlaget](../../research/TIMPLAN-ARBETSYTA-OCH-ANALYS-2026-10-04.md).
+
+Planeringen omfattar skolbundna, frysta programplansunderlag, rektors-/administratörsarbete, radvis autospar, årskurs-/terminsöversikt, analys med Fel/Risk/Att kontrollera/Uppfyllt, åtgärdslänkar till berörd rad och skyddat beslutsflöde. Befintliga grundskole-/IM-flöden bevaras. Skyddat fastställande av programplan är ett uttryckligt föregående steg; 05-20–05-23 och yrkesprogrammets 05-17 behandlas enligt faktisk leveransstatus, inte som genomförda.
+
+Todon ligger kvar under pending tills genomförande och verifiering har skett. Programplansdelegation, elevval, nya klasskommandon och full kullkopiering är separata leveranser.
