@@ -88,3 +88,5 @@ Slutverifiering omfattar syntetiska skolor och alla roller, samtidighet/CAS, åt
 Kravspårning: **ADMIN-02**, och skol-/klassbevarande i **ADMIN-04**. Timplanskloning inom samma kull bidrar till versionsbevarande men full kopiering till ny elevkull (**ADMIN-03**) är en separat leverans. Schemaläggning, tjänstefördelning, elevval, faktisk tidsredovisning, programplansdelegation och nya klasskommandon ingår inte här.
 
 Detaljer: [kontext](05-24-CONTEXT.md) och [kod-/källunderlag](../../research/TIMPLAN-ARBETSYTA-OCH-ANALYS-2026-10-04.md).
+
+[Oberoende plangranskning](05-TIMPLAN-PLAN-CHECK.md): genomförbar med angivna förutsättningsgrindar, inga kvarstående blockerande eller större planeringsfel. Storleksrisker är redovisade. Granskningen gäller planernas kvalitet; den är inget genomförande- eller användargodkännande.
