@@ -4,6 +4,8 @@
 
 ## Användarbeslut 2026-10-04
 
+> Slutliga beslut D-01–D-15 finns i [05-21-CONTEXT.md](../phases/05-bevarade-utbildnings-och-klassfloden/05-21-CONTEXT.md). Där de skiljer sig från förslagen i detta dokument gäller beslutet. Två exempel: svenska/SvA är inget valbart block, och varje skola väljer paketen.
+
 - **B-01 Benämning:** Platsen i planen där eleven väljer heter **valbart block** i gränssnitt och handbok. Ordet ”modul” används inte. ”Valblock” i den här texten betyder valbart block. Innehållet heter tills vidare **valpaket**, eftersom användaren inte har ändrat det ordet.
 - **B-02 Omfattning:** **Individuellt val ingår i första leveransen** tillsammans med programfördjupningen. Svenska/SvA och Moderna språk/Språkämne/Naturvetenskapligt ämne hanteras som valbara block i samma leverans, enligt tillägget nedan.
 - **B-03 Mandat:** **Huvudman, rektor och skoladministratör** får skapa valpaket, inom sitt aktuella mandat. Rektor och skoladministratör arbetar inom sina skolenheter, och huvudmannen inom sin organisation. Servern kontrollerar mandatet. Att skapa ett paket är inte samma sak som att fastställa en programplan; fastställandet följer det befintliga beslutsflödet. Rättsligt beslutar huvudmannen om utbudet (4 kap. 6–7 §), och rektor och skoladministratör arbetar inom det uppdraget.
