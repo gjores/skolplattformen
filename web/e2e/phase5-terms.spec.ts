@@ -106,7 +106,13 @@ test('09: Flytta nivån behåller poängen, visar rätt årskurs och låter fele
   await expect(board(page).locator(`tr[data-row-key="${higher}"]`)).toHaveAttribute('data-analysis-target','true');
   await expect(board(page)).toContainText('300 av');await expect(w(page).getByRole('button',{name:'Spara utkast',exact:true})).toHaveCount(0);
   await capture(page,info,'analysis-fix-order.png');
-  await cell(page,'Åk 2 HT').fill('');await year(page,info,3);await cell(page,'Åk 3 VT').fill('100');expect((await leave(page)).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');
+  // Håll det första verkliga svaret efter DB-commit: nästa radlämning måste köas.
+  let release!:()=>void,arrived!:()=>void,held=false;
+  const received=new Promise<void>(r=>{arrived=r;}),released=new Promise<void>(r=>{release=r;});
+  await page.route('**/api/programplaner/terminer',async route=>{const first=!held;held=true;const actual=await route.fetch();expect(actual.status()).toBe(200);if(first){arrived();await released;}await route.fulfill({response:actual});});
+  await cell(page,'Åk 2 HT').fill('');const firstSave=leave(page);
+  try{await received;await year(page,info,3);await cell(page,'Åk 3 VT').fill('100');await w(page).getByRole('heading',{level:2}).first().click();}finally{release();}
+  expect((await firstSave).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');await page.unroute('**/api/programplaner/terminer');
   await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page).getByRole('button',{name:'Flytta nivån →',exact:true})).toHaveCount(0);
   expect((await read()).distribution).toContainEqual({rowKey:higher,points:[0,0,0,0,0,100]});
   await page.reload();await navigate(page);await open(page);await year(page,info,3);await expect(cell(page,'Åk 3 VT')).toHaveValue('100');
