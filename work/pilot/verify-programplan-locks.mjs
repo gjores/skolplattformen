@@ -46,6 +46,8 @@ export async function cleanupProgramplanFixture(db, prefix) {
     await tx`delete from public.organisation_events where organizer_id=${id(2)}`;
     await tx`delete from public.point_plan_events where point_plan_id in(select id from public.point_plans where organizer_id=${id(2)})`;
     if((await tx`select to_regclass('public.programplan_unit_packages') present`)[0].present)await tx`delete from public.programplan_unit_packages where organizer_id=${id(2)}`;
+    if((await tx`select to_regclass('public.programplan_packages') present`)[0].present)await tx`delete from public.programplan_packages where organizer_id=${id(2)}`;
+    if((await tx`select to_regclass('public.offering_units') present`)[0].present)await tx`delete from public.offering_units where organizer_id=${id(2)}`;
     await tx`delete from public.point_plans where organizer_id=${id(2)}`;
     await tx`delete from public.assignment_units where assignment_id in(select id from public.assignments where organizer_id=${id(2)})`;
     await tx`delete from public.staff_assignment_bindings where customer_id=${id(1)}`;
@@ -71,6 +73,10 @@ export async function cleanupProgramplanFixture(db, prefix) {
     (select count(*)::int from public.security_events where customer_id=${id(1)}) as preservedAuditEvents,
     (select count(*)::int from public.identities i where i.id=any(${[10,11,12,13].map(id)}::uuid[]) and exists(select 1 from public.security_events e where e.actor_identity_id=i.id)) as preservedAuditAnchors`;
   for (const field of ['customers','sessions','plans','offerings','mandates','receipts','educationevents']) assert.equal(remaining[field], 0, `cleanup_${field}`);
+  const [optional]=await db`select to_regclass('public.offering_units') units,to_regclass('public.programplan_packages') packages`;
+  remaining.offeringunits=optional.units?(await db`select count(*)::int n from public.offering_units where organizer_id=${id(2)}`)[0].n:0;
+  remaining.packageversions=optional.packages?(await db`select count(*)::int n from public.programplan_packages where organizer_id=${id(2)}`)[0].n:0;
+  assert.equal(remaining.offeringunits,0,'cleanup_offeringunits');assert.equal(remaining.packageversions,0,'cleanup_packageversions');
   return remaining;
 }
 function normalizedResolution(r) {
