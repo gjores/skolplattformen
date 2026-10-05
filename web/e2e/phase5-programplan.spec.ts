@@ -191,7 +191,8 @@ test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',asyn
 });
 
 test('13: sidurval, äldre version, okända äldre val och tomt uppdrag',async({page})=>{
-  await fixture.addPages();await enter(page);await chooseProgram(page);await expect(w(page).getByRole('button',{name:/^Öppna utbildning Syntetisk sidutbildning 151,/u})).toBeVisible();await education(page,'Syntetisk sidutbildning 151');await expect(w(page)).toContainText('Ingen programplan ännu');await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page);
+  // 05-20: sidurvalets ersatta versioner utan startunderlag ger annars start okänd (låst); framtida startår behåller provets avsikt.
+  await fixture.addPages();await fixture.futureStartYear(fixture.legacyOfferingId);await enter(page);await chooseProgram(page);await expect(w(page).getByRole('button',{name:/^Öppna utbildning Syntetisk sidutbildning 151,/u})).toBeVisible();await education(page,'Syntetisk sidutbildning 151');await expect(w(page)).toContainText('Ingen programplan ännu');await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page);
   // Current draft is v1 on history page2; its read is independent of visible page1.
   await expect(board(page)).toContainText('Engelska');await underlying(page);await expect(w(page).getByRole('button',{name:'Version 1 · Utkast',exact:true})).toHaveCount(0);
   await version(page,'Version 53 · Ersatt');await expect(w(page).getByRole('button',{name:'Öppna utkastet',exact:true})).toBeVisible();await w(page).getByRole('button',{name:'Öppna utkastet',exact:true}).click();await expect(board(page)).toContainText('Allt sparat');
