@@ -1,0 +1,13 @@
+{
+  "target": "protected",
+  "files": [
+    "phase5_offering_unit_linkage.test.sql"
+  ],
+  "status": "PASS",
+  "exitCode": 0,
+  "tests": 46,
+  "passed": 46,
+  "failed": 0,
+  "rollback": true,
+  "correctedSourceAndJournal": true
+}

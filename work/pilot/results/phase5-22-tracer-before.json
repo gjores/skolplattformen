@@ -1,0 +1,8 @@
+{
+  "target": "protected",
+  "tracer": "class_on_linked_school",
+  "expected": "allowed",
+  "actual": "23503",
+  "status": "RED",
+  "rollback": true
+}

@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-22
+current_plan: 05-23
 status: in_progress
-stopped_at: Analysens åtgärdslänkar rättade och upprepade informationsrutor borttagna efter användarprov; 05-21 genomförd; nästa 05-22. Ny mänsklig bedömning väntar på 3012. 05-25 väntar på 05-22/23; yrkesfastställande kräver 05-17
+stopped_at: 05-22 genomförd och verifierad lokalt; nästa 05-23 steg A för full poängsumma. Mänskligt prov väntar på 3012. Historiskt updated_at-bevarande PARTIAL; äldre fas 2-auditfall rött. 05-25 väntar på 05-23; yrkesfastställande kräver 05-17
 last_updated: "2026-10-05"
 last_activity: 2026-10-05
-last_activity_desc: "05-21 skolval levererat: delad plan, mandat för alla skolor vid skrivning och skolval i kullkopiering. SQL 54/54, API 39/39, lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov och timplan 20/20 PASS; full SQL 1917/1918 med äldre fas 2-fel. Mänskligt prov väntar. Nästa 05-22."
-state_head: 4b1addc
-worker_build_revision: 4b1addca5e73f6eb67692806e957489560c93353
+last_activity_desc: "05-22 skolkoppling levererad. SQL 46/46, API 39/39, 39/39 och 18/18 och 137 browserbeteenden (+ ett hoppat fall, separat telefonprov) PASS. Node 577/577, typ/lint/bygge/handbok PASS. Full SQL 1963/1964 FAIL på äldre fas 2-fall; fyra första updated_at kvar PARTIAL. Vanlig 3012 kör ce88748. Nästa 05-23."
+state_head: ce88748
+worker_build_revision: ce887482648a1cc1a0257d3d380769f35519a5cb
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 88
-  completed_plans: 74
+  completed_plans: 75
 milestone_name: milestone
 ---
 
@@ -26,9 +26,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** 05-21:s skolval är automatiskt verifierat. Nästa genomförandeplan är 05-22 (full skolkoppling för klasser, elevplaceringar och timplaner), därefter 05-23. 05-24:s rena GR/IM-analys är genomförd; 05-25 väntar på sina förutsättningar och yrkesprofiler kräver dessutom 05-17. Mänskliga programplansprov, delegation, full fas 5 och fas 4:s checkpoint kvarstår.
+**Current focus:** 05-22:s skolkoppling är genomförd och automatiskt verifierad lokalt med dokumenterade avvikelser. Nästa är 05-23 steg A–E: full poängsumma och valbara block. 05-25 väntar på 05-23; yrkesprofiler kräver dessutom 05-17. Mänskliga programplansprov, delegation, full fas 5 och fas 4:s checkpoint kvarstår.
 
 ## Current Position
+
+**05-22, 2026-10-05:** Tillagda skolor har egna elevplaceringar, klasser och timplansversioner genom befintliga skyddade vägar. Klasskoppling kräver samma skola/fastställd version och flyttas inte av ny version. Skolborttagning nekar befintliga beroenden med konkret besked. Se 05-22-SUMMARY/VERIFICATION och FUNCTION-INVENTORY. Riktad SQL 46/46, timplan/livscykel/register-API 39/39, 39/39 och 18/18, Node 577/577, typ/lint/skyddat bygge/handbok PASS. Browser: 137 beteenden och ett avsiktligt hoppat fall, 112 städningsbilagor: första program 39/40 FAIL följt av oförändrat phone14-omprov 1/1; första elevkort 0/12 med uppsättningsfel bevaras, slutligt 12/12 PASS. Lista 13/13, rolläsningar 5/5, timplan 22/22, livscykel 20/20, terminer 25/25 och ett hoppat fall PASS. Full SQL 1963/1964 FAIL endast äldre phase2_audit#13. Första backfillen ändrade fyra timplans updated_at; gamla tidsstämplar inte återställda, historiskt bevarande PARTIAL. Korrigerad migration helradsprovad med rollback; övriga verksamhetsvärden/ACL bevarade, även efter regressionen. Vanlig 3012 kör ce88748 med äldre klientfiler bevarade; 18 aktuella användarscenarier återlästa utan ändring före/efter serverbytet. Mänskligt prov awaiting_user. ADMIN-04 Pending; skapa klass/timplan/koppla klass ingår ännu inte. Nästa 05-23 steg A för felaktig poängmängd/valblock.
 
 **Följdprov/förenkling, 2026-10-05:** Användaren säger att vyn ser bättre ut men har för många informationsrutor. Analys-/klarstatus-/åtgärdsrutorna har tagits bort; status står vid namnet och Analys visar antal fel/risker. Radmarkeringen försvinner när samma rad är rättad. Terminsprov 25/25 (+1 avsiktligt hoppat), utbildningsurval 2/2 och delad skrivskyddad plan 2/2 PASS, 30 fixturer städade. 8 riktade Node-prov, typ/lint/skyddat bygge/handbok PASS. Dator- och telefonbilder granskade. Vanlig 3012 kör `4b1addc`; endast testanpassning skiljer från terminsprovets `197e5b9`. Öppna flikar laddas inte om automatiskt. Se programplan-compact-ui.json och debug/programplan-analysis-actions.md. Ny mänsklig bedömning väntar; nästa plan förblir 05-22.
 
@@ -49,12 +51,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-22 — full skolkoppling för klasser, elevplaceringar och timplaner; planerad och inte genomförd.
-**Total Plans in Phase:** 34 PLAN-filer: 21 har SUMMARY (05-01–05-16, 05-18–05-21, 05-24); 05-22, 05-23 och 05-25–05-35 saknar SUMMARY. 05-17 saknar PLAN. Mänskliga prov och slutverifiering är separata.
-**Status:** 05-21 automatiskt verifierad lokalt med syntetiska uppgifter. Mänskligt programplansprov är awaiting_user; ADMIN-02/ADMIN-03 och full fas 5 är inte slutgodkända. 05-24–05-35 är fortsatt ett delvis genomfört planeringspaket.
+**Current Plan:** 05-23 — full poängsumma och valbara block; nästa steg A, planerad och inte genomförd.
+**Total Plans in Phase:** 34 PLAN-filer: 22 har SUMMARY (05-01–05-16, 05-18–05-22, 05-24); 05-23 och 05-25–05-35 saknar SUMMARY. 05-17 saknar PLAN. Mänskliga prov och slutverifiering är separata.
+**Status:** 05-22 automatiskt verifierad lokalt med syntetiska uppgifter och dokumenterade SQL-/metadataavvikelser. Mänskligt programplansprov är awaiting_user; ADMIN-02/ADMIN-03 och full fas 5 är inte slutgodkända. 05-24–05-35 är fortsatt ett delvis genomfört planeringspaket.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-05
-**Last Activity Description:** 05-21:s skolval, mandat och kullkopiering genomförda. Se senaste sammanfattning och verifiering; nästa 05-22.
+**Last Activity Description:** 05-22:s skolkoppling genomförd. Se senaste sammanfattning/verifiering; nästa 05-23 för full poängsumma och valblock.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 

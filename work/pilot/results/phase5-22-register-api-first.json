@@ -1,0 +1,320 @@
+{
+  "status": "FAIL",
+  "cases": [
+    {
+      "name": "register-reload",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "ny session återfinner samma stabila elev-ID och namnlika rader",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "båda läsningarna har egna beständiga registerhändelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "placement-change",
+      "status": "FAIL",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "administratören får sparad placering med ny version",
+          "ok": false
+        },
+        {
+          "kind": "persistent",
+          "name": "två daterade placeringar, historik och säkerhetshändelse finns",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "class-change",
+      "status": "FAIL",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "klassbyte sparas och annan utbildning ger begriplig varning",
+          "ok": false
+        },
+        {
+          "kind": "persistent",
+          "name": "klasshistorik bevaras utan automatiskt utbildningsbyte",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "source-discrepancy",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "kortet visar avvikelse och båda uttryckliga beslut accepteras",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "källval och lokal rättelse ligger i historik och värden skrivs inte tyst över",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "search-filter",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "count, ordning, 50 per sida, sida 2 och tomstatus kommer från servern",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "alla fem urval loggas; främmande och okänd skola ger samma generiska form",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-edit",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "en sparning lyckas och en får auditerad versionskonflikt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "versionen ökar exakt en gång och båda utfallen finns i loggen",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "protected-admin",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "skyddsbehörig administratör får synlig markering och eget elevkort",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "varje skyddad lista och kortläsning har beständig objekthändelse",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "skyddad namnkonflikt ger auditerat 409 bara för behörig och döljer namn för obehörig",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "konflikten ändrar inte skyddat namn och båda svar har objektlogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "protected-teacher",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "läraren ser bara anonymt visningsnamn och kan inte öppna numret",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "anonym läsning och nekad nummeröppning är spårade",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "protected-unauthorized",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "utan skyddsbehörighet anonymiseras kortet; okänd och annan kund får generiskt nekande",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "anonym läsning och båda nekanden finns i minimerad säkerhetslogg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "protected-direct",
+      "status": "FAIL",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "anonymt direktanrop via Kong nekas utan skyddat värde",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "klientroller saknar rätt till alla nya tabeller och registerfunktioner",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "nekat anrop finns i faktisk minimerad Kong-källa med serverns korrelations-ID",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "protected-grant-revoke",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "återkallelse anonymiserar redan utfärdad session; nytt huvudmannabeslut öppnar igen",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "behörighetsrad och båda besluten bevaras i databas/logg",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "historical-readonly",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "historik läses med maskerat nummer och saknar skrivrutt",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "läsningen loggas och historikens radantal ändras inte",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "export-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "uttryckligt urval ger antal och CSV med endast valda två elever",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "preview och hämtning har egna committade exporthändelser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "export-direct-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "lärare och session utan extra verifiering får ingen CSV",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "nekandena loggas och inget exportutfall markeras ok",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "export-personnummer",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "engångsverifierad hämtning innehåller enbart valt syntetiskt nummer",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "personnummerexporten har egen objektlogg utan rått nummer",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-register-read-fail",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel stoppar lista, kort, historik, nummer, export och behörighetsläsning utan bytes",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "inga ok-händelser från misslyckade läsningar committas",
+          "ok": true
+        },
+        {
+          "kind": "response",
+          "name": "fel i extra visningshändelsen döljer numret",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "den första visningshändelsen rullas tillbaka; endast nekande får finnas",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-register-write-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "loggfel ger generiskt svar utan elevvärde",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "version, fälthistorik och ok-händelse rullas tillbaka",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "retired-probe",
+      "status": "PASS",
+      "checks": [
+        {
+          "kind": "response",
+          "name": "det gamla elevprovet har ingen HTTP-väg",
+          "ok": true
+        },
+        {
+          "kind": "persistent",
+          "name": "gamla elevtabeller och läsfunktion saknas i databasen",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "revision": "849c1df31ba1b22d64120682400683556611e3ce",
+  "target": "protected"
+}

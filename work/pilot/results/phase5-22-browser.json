@@ -1,0 +1,2895 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS_WITH_SEPARATE_RETEST",
+  "complete": true,
+  "passedBehaviors": 137,
+  "intentionallySkipped": 1,
+  "fullProgramplanFirstRun": "FAIL",
+  "programplanRetest": {
+    "status": "PASS",
+    "passed": 1,
+    "rawReport": "web/test-results/phase5-22-final/programplan-phone14-retest/phase5-programplan.json"
+  },
+  "firstCardRun": {
+    "status": "FAIL",
+    "passed": 0,
+    "failed": 12,
+    "rawReport": "web/test-results/phase5-22-final/phase4-card/phase4-card.json",
+    "reason": "Tre lokatorfel, nio avvisade lokala OIDC-returadresser; produktregler oförändrade."
+  },
+  "suites": [
+    {
+      "name": "phase5-timplan",
+      "rawReport": "web/test-results/phase5-22-final/phase5-timplan/phase5-timplan.json",
+      "sha256": "490245f919bff3bec51b8683ab0d6660adf4d6b2d52dc4029651f15395e612ae",
+      "stats": {
+        "startTime": "2026-10-05T10:40:23.364Z",
+        "duration": 74035.293,
+        "expected": 22,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "03: huvudman och fastställd version är läsning utan redigering",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "05: osparat skydd vid dialogstängning och byte till annan plan",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "08: pagination, tom lista, okänd rad och skyddad programplansnavigation",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+          "project": "timplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "03: huvudman och fastställd version är läsning utan redigering",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "05: osparat skydd vid dialogstängning och byte till annan plan",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "08: pagination, tom lista, okänd rad och skyddad programplansnavigation",
+          "project": "timplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+          "project": "timplan-phone",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "phase5-lifecycle",
+      "rawReport": "web/test-results/phase5-22-final/phase5-lifecycle/phase5-lifecycle.json",
+      "sha256": "ec443be52582d5311dfc072d07ce34e87706ccfad8783dcb6219835a3d9c49c2",
+      "stats": {
+        "startTime": "2026-10-05T10:41:38.419Z",
+        "duration": 92683.62700000001,
+        "expected": 20,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "L01: status i listan och arbetsytan kommer från servern",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L03: framtida plan tas bort efter bekräftelse; utbildning med klass nekas",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L02: huvudmannen ändrar namn, kull och startdatum i en framtida plan",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L04: pågående plan är låst och kan arkiveras och tas fram",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L05: konflikt, MFA och okänt svar läser om listan innan något nytt skickas",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L06: kopia med passerat startdatum stoppas i formuläret och av servern",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L08: B tas bort före kullstart, läggs till efter start och kan då inte tas bort",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L10: tillagd skola med klass kan inte tas bort och kopplingen bevaras",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L09: kopiering till ny elevkull bevarar skolor, innehåll och original",
+          "project": "lifecycle-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "L01: status i listan och arbetsytan kommer från servern",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L03: framtida plan tas bort efter bekräftelse; utbildning med klass nekas",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L02: huvudmannen ändrar namn, kull och startdatum i en framtida plan",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L04: pågående plan är låst och kan arkiveras och tas fram",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L05: konflikt, MFA och okänt svar läser om listan innan något nytt skickas",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L06: kopia med passerat startdatum stoppas i formuläret och av servern",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L08: B tas bort före kullstart, läggs till efter start och kan då inte tas bort",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L10: tillagd skola med klass kan inte tas bort och kopplingen bevaras",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        },
+        {
+          "name": "L09: kopiering till ny elevkull bevarar skolor, innehåll och original",
+          "project": "lifecycle-phone",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "phase5-programplan",
+      "rawReport": "web/test-results/phase5-22-final/phase5-programplan/phase5-programplan.json",
+      "sha256": "7a6529be387e69c54b7ce8859853ad8d77f95d94ebd4737d9917c4e77fbdf3b3",
+      "stats": {
+        "startTime": "2026-10-05T10:43:12.182Z",
+        "duration": 240987.062,
+        "expected": 39,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "04: fördjupning läggs till och tas bort direkt i tabellen, sök och pekytor",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "07: verklig tvåsessionskonflikt stoppar och planen läses om",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "09: MFA och DB/Worker-auditfel ändrar ingenting",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "15: utgången session och avslutat givande mandat rensar den öppna planen",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "04: fördjupning läggs till och tas bort direkt i tabellen, sök och pekytor",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "07: verklig tvåsessionskonflikt stoppar och planen läses om",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "09: MFA och DB/Worker-auditfel ändrar ingenting",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+          "project": "programplan-phone",
+          "status": "unexpected"
+        },
+        {
+          "name": "15: utgången session och avslutat givande mandat rensar den öppna planen",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+          "project": "programplan-phone",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "phase5-terms",
+      "rawReport": "web/test-results/phase5-22-final/phase5-terms/phase5-terms.json",
+      "sha256": "39427be6950aa14d0d544d417da85d06d9eb103afdda288d0b1a4aba22b00c0f",
+      "stats": {
+        "startTime": "2026-10-05T10:48:29.763Z",
+        "duration": 122827.155,
+        "expected": 25,
+        "skipped": 1,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "01: klick i tom termin lägger hela nivån, sparas när raden lämnas och finns kvar efter omladdning",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "02: för många poäng sparas inte och markeras tills raden är rättad",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "04: konkurrerande revision visas och egna värden kan sparas uttryckligen",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "05: MFA och loggfel lämnar värdena kvar utan skrivning",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "07: borttagen fördjupningsnivå töms först och försvinner ur tabellen",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "08: telefon visar en årskurs i taget med stora pekytor",
+          "project": "terms-desktop",
+          "status": "skipped"
+        },
+        {
+          "name": "09: Flytta nivån behåller poängen, visar rätt årskurs och låter felet rättas beständigt",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "10: Fördela och Flytta går till rätt rad, Lägg till nivå till sökfältet och sparar bara egna ändringar",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "11: Jämna ut behåller full fördelning och Ta bort nivåer går till fördjupningsradens kryss",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "13: Ange datum går till det osparade utkastets datumfält utan att tappa lokala poäng",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "01: klick i tom termin lägger hela nivån, sparas när raden lämnas och finns kvar efter omladdning",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "02: för många poäng sparas inte och markeras tills raden är rättad",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "04: konkurrerande revision visas och egna värden kan sparas uttryckligen",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "05: MFA och loggfel lämnar värdena kvar utan skrivning",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "07: borttagen fördjupningsnivå töms först och försvinner ur tabellen",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "08: telefon visar en årskurs i taget med stora pekytor",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "09: Flytta nivån behåller poängen, visar rätt årskurs och låter felet rättas beständigt",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "10: Fördela och Flytta går till rätt rad, Lägg till nivå till sökfältet och sparar bara egna ändringar",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "11: Jämna ut behåller full fördelning och Ta bort nivåer går till fördjupningsradens kryss",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "13: Ange datum går till det osparade utkastets datumfält utan att tappa lokala poäng",
+          "project": "terms-phone",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "phase4-card",
+      "rawReport": "web/test-results/phase5-22-final/after-card-fix/phase4-card/phase4-card.json",
+      "sha256": "4ad7123b9b9e832fb2f01411a40d4d25da301a121e796bf3df6f1d9a6f0e461c",
+      "stats": {
+        "startTime": "2026-10-05T10:57:53.688Z",
+        "duration": 37339.072,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "05-22: elev på tillagd skola placeras i delad utbildning och okopplat val nekas",
+          "project": "card-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "elevkortet ersätter listan, visar serverns fält utan personnummer och återför fokus",
+          "project": "card-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "ändringsdialog: fältfel utan anrop, engångskod i dialogen och bevarad inmatning",
+          "project": "card-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "export: serverns förhandsprövning ger antal, förval och engångskod med säker returadress",
+          "project": "card-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "05-22: elev på tillagd skola placeras i delad utbildning och okopplat val nekas",
+          "project": "card-phone",
+          "status": "expected"
+        },
+        {
+          "name": "elevkortet ersätter listan, visar serverns fält utan personnummer och återför fokus",
+          "project": "card-phone",
+          "status": "expected"
+        },
+        {
+          "name": "ändringsdialog: fältfel utan anrop, engångskod i dialogen och bevarad inmatning",
+          "project": "card-phone",
+          "status": "expected"
+        },
+        {
+          "name": "export: serverns förhandsprövning ger antal, förval och engångskod med säker returadress",
+          "project": "card-phone",
+          "status": "expected"
+        },
+        {
+          "name": "05-22: elev på tillagd skola placeras i delad utbildning och okopplat val nekas",
+          "project": "card-phone-320",
+          "status": "expected"
+        },
+        {
+          "name": "elevkortet ersätter listan, visar serverns fält utan personnummer och återför fokus",
+          "project": "card-phone-320",
+          "status": "expected"
+        },
+        {
+          "name": "ändringsdialog: fältfel utan anrop, engångskod i dialogen och bevarad inmatning",
+          "project": "card-phone-320",
+          "status": "expected"
+        },
+        {
+          "name": "export: serverns förhandsprövning ger antal, förval och engångskod med säker returadress",
+          "project": "card-phone-320",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "phase4-list",
+      "rawReport": "web/test-results/phase5-22-final/after-card-fix/phase4-list/phase4-list.json",
+      "sha256": "7ee3299915f425516f153edf11ed337f04593feb275ab742ecd9c6118fb2b56e",
+      "stats": {
+        "startTime": "2026-10-05T10:58:31.909Z",
+        "duration": 33034.387,
+        "expected": 13,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "serverns options och projektion visas responsivt med minst 44 px tryckytor",
+          "project": "list-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "POST-sökning ligger bara i minnet; filter, bakåt och omladdning bevarar säkert urval",
+          "project": "list-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "utloggning i annan flik tömmer lista, söktext, gamla lagringsnycklar och URL före låsvyn",
+          "project": "list-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "okänd och otillåten skola ger samma allmänna återgång; läsår skickas till servern",
+          "project": "list-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "simulerad anonym serverprojektion får ingen markering eller elevåtgärd",
+          "project": "list-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "huvudman utan elevinsyn nekas även registermetadata",
+          "project": "list-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "serverns options och projektion visas responsivt med minst 44 px tryckytor",
+          "project": "list-phone",
+          "status": "expected"
+        },
+        {
+          "name": "POST-sökning ligger bara i minnet; filter, bakåt och omladdning bevarar säkert urval",
+          "project": "list-phone",
+          "status": "expected"
+        },
+        {
+          "name": "utloggning i annan flik tömmer lista, söktext, gamla lagringsnycklar och URL före låsvyn",
+          "project": "list-phone",
+          "status": "expected"
+        },
+        {
+          "name": "okänd och otillåten skola ger samma allmänna återgång; läsår skickas till servern",
+          "project": "list-phone",
+          "status": "expected"
+        },
+        {
+          "name": "simulerad anonym serverprojektion får ingen markering eller elevåtgärd",
+          "project": "list-phone",
+          "status": "expected"
+        },
+        {
+          "name": "huvudman utan elevinsyn nekas även registermetadata",
+          "project": "list-phone",
+          "status": "expected"
+        },
+        {
+          "name": "serverns options och projektion visas responsivt med minst 44 px tryckytor",
+          "project": "list-phone-320",
+          "status": "expected"
+        }
+      ]
+    },
+    {
+      "name": "phase4-reads",
+      "rawReport": "web/test-results/phase5-22-final/after-card-fix/phase4-reads/phase4-reads.json",
+      "sha256": "faf5d4c41cd765561f134fc7bb602bcbcc3596ef964ced0229094ebd915b5535",
+      "stats": {
+        "startTime": "2026-10-05T10:59:05.786Z",
+        "duration": 56444.076,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "lista, kort och historik loggas före svar och lämnar inget innehåll vid loggfel",
+          "project": "",
+          "status": "expected"
+        },
+        {
+          "name": "skyddad läsning kräver skolbeslut och separat committad skyddslogg",
+          "project": "",
+          "status": "expected"
+        },
+        {
+          "name": "p3.huvudman: verksamhetsroll utan elevinsyn nekas alla registerläsningar",
+          "project": "",
+          "status": "expected"
+        },
+        {
+          "name": "p3.it: verksamhetsroll utan elevinsyn nekas alla registerläsningar",
+          "project": "",
+          "status": "expected"
+        },
+        {
+          "name": "lärare får klassens begränsade projektion men inte administrativ historik",
+          "project": "",
+          "status": "expected"
+        }
+      ]
+    }
+  ],
+  "sourceBuildEvidence": [
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "chromium",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "webkit",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "chromium",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "webkit",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "chromium",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "webkit",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "webkit",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "chromium",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "sourceRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "buildRevision": "849c1df31ba1b22d64120682400683556611e3ce",
+        "browserName": "webkit",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "suite": "phase4-card",
+      "project": "card-desktop",
+      "evidence": {
+        "sourceRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+        "buildRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+        "scope": "local-synthetic-only",
+        "authentication": "locally-minted-session"
+      }
+    },
+    {
+      "suite": "phase4-card",
+      "project": "card-phone",
+      "evidence": {
+        "sourceRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+        "buildRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+        "scope": "local-synthetic-only",
+        "authentication": "locally-minted-session"
+      }
+    },
+    {
+      "suite": "phase4-card",
+      "project": "card-phone-320",
+      "evidence": {
+        "sourceRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+        "buildRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+        "scope": "local-synthetic-only",
+        "authentication": "locally-minted-session"
+      }
+    }
+  ],
+  "cleanupEvidence": [
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 18,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 23,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 9,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 15,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 2,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 14,
+        "preservedAuditAnchors": 2,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 9,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 14,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 25,
+        "preservedAuditAnchors": 2,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 26,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 20,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 24,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 16,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 11,
+        "preservedAuditAnchors": 2,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 15,
+        "preservedAuditAnchors": 2,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 15,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 26,
+        "preservedAuditAnchors": 2,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 26,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-timplan",
+      "project": "timplan-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 17,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 33,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 78,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 54,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 20,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 66,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 92,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 101,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 17,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 33,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 83,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 20,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 67,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 92,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-lifecycle",
+      "project": "lifecycle-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 101,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 17,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 63,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 37,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 79,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 74,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 64,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 57,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 83,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 72,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 86,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 43,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 182,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 58,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 65,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 190,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 100,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 35,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 31,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 35,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "chromium"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 18,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 63,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 38,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 80,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 75,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 58,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 83,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 72,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 86,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 43,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 184,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 17,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 65,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 190,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 100,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 35,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 31,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-programplan",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 35,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 44,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 20,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 53,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 27,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 41,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 24,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 0,
+        "preservedAuditAnchors": 0,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 42,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 80,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 17,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-desktop",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 14,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 46,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 20,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 54,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 27,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 42,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 24,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 18,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 44,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 84,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 18,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase5-terms",
+      "project": "terms-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 14,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "suite": "phase4-card",
+      "project": "card-desktop",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1
+      }
+    },
+    {
+      "suite": "phase4-card",
+      "project": "card-phone",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1
+      }
+    },
+    {
+      "suite": "phase4-card",
+      "project": "card-phone-320",
+      "evidence": {
+        "clean": true,
+        "preservedAuditEvents": 10,
+        "preservedAuditAnchors": 1
+      }
+    },
+    {
+      "suite": "programplan-phone14-retest",
+      "project": "programplan-phone",
+      "evidence": {
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 58,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "browserName": "webkit"
+      }
+    }
+  ],
+  "visualReview": {
+    "status": "PASS",
+    "reviewed": [
+      "timplan-desktop/phone på tillagd skola",
+      "Skolor-dialog desktop/phone efter nekad borttagning",
+      "elevkort desktop och320 efter lyckat utbildningsbyte"
+    ]
+  },
+  "notes": [
+    "Första hela programomgången är39/40FAIL. Oförändrat phone14 omprov passerade1/1; orsaken till den första uteblivna läsresponsen är inte fastställd. Ingen automatisk retry.",
+    "849c1df ochce88748 har identisk produktkod i web/app,web/lib,supabase; senare commits ändrar endast provharness och intern planering.",
+    "Tre riktiga OIDC-registersviter passerade påce88748. Nya skolkopplingsfall använder lokalt mintade sessioner mot riktig Worker/SQL, ingen mänsklig OIDC/MFA-bedömning."
+  ]
+}

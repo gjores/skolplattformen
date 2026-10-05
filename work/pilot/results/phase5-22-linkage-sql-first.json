@@ -1,0 +1,28 @@
+{
+  "target": "protected",
+  "files": [
+    "phase5_offering_unit_linkage.test.sql"
+  ],
+  "status": "FAIL",
+  "exitCode": 1,
+  "tests": 46,
+  "passed": 44,
+  "failed": 2,
+  "findings": [
+    {
+      "test": 10,
+      "name": "placering på okopplad skola nekas",
+      "expected": "23503",
+      "actual": "23P01",
+      "cause": "provperioden överlappade befintlig placering; avslutad separat period används i omkörning"
+    },
+    {
+      "test": 45,
+      "name": "äldre kullkopiering stängd för service_role",
+      "expected": false,
+      "actual": true,
+      "cause": "äldre service_role-grant fanns redan; bevaras oförändrad, inga nya grants"
+    }
+  ],
+  "rollback": true
+}

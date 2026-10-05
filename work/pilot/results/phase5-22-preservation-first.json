@@ -1,0 +1,76 @@
+{
+  "target": "protected",
+  "status": "FAIL",
+  "reset": false,
+  "relations": [
+    {
+      "relation": "school_classes",
+      "before": {
+        "count": 6,
+        "checksum": "0fb3de17cbabd80a8d00e179ddc36fb5"
+      },
+      "after": {
+        "count": 6,
+        "checksum": "0fb3de17cbabd80a8d00e179ddc36fb5"
+      },
+      "preserved": true
+    },
+    {
+      "relation": "pupil_placements",
+      "before": {
+        "count": 68,
+        "checksum": "980cefbed5294ca87e0545dc51ee24e2"
+      },
+      "after": {
+        "count": 68,
+        "checksum": "980cefbed5294ca87e0545dc51ee24e2"
+      },
+      "preserved": true
+    },
+    {
+      "relation": "timplans",
+      "before": {
+        "count": 4,
+        "checksum": "eab0c116365f71de1f2e9666b6a00cc6"
+      },
+      "after": {
+        "count": 4,
+        "checksum": "cd9bcf3e4a091dc4fdcd86c707b4381c"
+      },
+      "preserved": false
+    },
+    {
+      "relation": "timplan_cells",
+      "before": {
+        "count": 46,
+        "checksum": "c72378f11b0b7ce5511c841a2e0e5f7f"
+      },
+      "after": {
+        "count": 46,
+        "checksum": "c72378f11b0b7ce5511c841a2e0e5f7f"
+      },
+      "preserved": true
+    },
+    {
+      "relation": "class_timplans",
+      "before": {
+        "count": 0,
+        "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "after": {
+        "count": 0,
+        "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "preserved": true
+    }
+  ],
+  "functionAclPreserved": true,
+  "copyDefinition": {
+    "before": "10afba1b96c755fb4b3e9cefaee237bd1446fbfe0faf32c930b1f3c5959eb8c5",
+    "after": "10afba1b96c755fb4b3e9cefaee237bd1446fbfe0faf32c930b1f3c5959eb8c5",
+    "preserved": true
+  },
+  "backfilledToPrimarySchool": true,
+  "legacyCopyServiceRoleExecutePreserved": true,
+  "concurrency": "Beroendeprov är seriella; FK skyddar samtidig referens, inget separat kapplöpningsprov i denna SQL-omgång."
+}

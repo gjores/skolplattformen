@@ -1,0 +1,41 @@
+{
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "relations": [
+    {
+      "relation": "school_classes",
+      "count": 6,
+      "checksum": "0fb3de17cbabd80a8d00e179ddc36fb5",
+      "preservedSinceMigration": true
+    },
+    {
+      "relation": "pupil_placements",
+      "count": 68,
+      "checksum": "980cefbed5294ca87e0545dc51ee24e2",
+      "preservedSinceMigration": true
+    },
+    {
+      "relation": "timplans",
+      "count": 4,
+      "checksum": "cd9bcf3e4a091dc4fdcd86c707b4381c",
+      "preservedSinceMigration": true
+    },
+    {
+      "relation": "timplan_cells",
+      "count": 46,
+      "checksum": "c72378f11b0b7ce5511c841a2e0e5f7f",
+      "preservedSinceMigration": true
+    },
+    {
+      "relation": "class_timplans",
+      "count": 0,
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+      "preservedSinceMigration": true
+    }
+  ],
+  "workerEntries": 16,
+  "clientFunctionsClosed": true,
+  "allPreviouslyInventoriedFunctionAclPreserved": true,
+  "note": "Jämför med efter första migreringen; dess fyra updated_at-avvikelser kvarstår separat. Append-only säkerhetshändelser ingår inte i verksamhetshasharna."
+}

@@ -1,0 +1,11 @@
+{
+  "target": "protected",
+  "status": "PASS",
+  "fullExistingTimplanRowsPreserved": true,
+  "unitIdBackfilled": true,
+  "touchTriggerRestored": true,
+  "rollback": true,
+  "reset": false,
+  "scope": "Korrigerad migration körd från återställt före-schema i exklusiv transaktion. Alla temporära schemaändringar och migrationen rullades tillbaka.",
+  "sourceHash": "653fd5fdf8233c29293004da8ab31a91ee750d47688f8519b1f5e368e6db559e"
+}

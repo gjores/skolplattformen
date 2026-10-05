@@ -1,0 +1,61 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS_WITH_DOCUMENTED_EXCEPTIONS",
+  "sourceCommit": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+  "workerBuildRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+  "node": {
+    "passed": 577,
+    "total": 577
+  },
+  "timplanApiHarness": {
+    "passed": 7,
+    "total": 7
+  },
+  "registerApiHarness": {
+    "passed": 5,
+    "total": 5
+  },
+  "typescript": "PASS",
+  "oxlint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "browser": {
+    "passedBehaviors": 137,
+    "skipped": 1,
+    "programplanFirstFullRun": "FAIL39/40",
+    "phone14SeparateRetest": "PASS1/1"
+  },
+  "sql": {
+    "targeted": "PASS46/46",
+    "full": "FAIL1963/1964",
+    "knownFailure": "phase2_audit #13: History denied vs %serverkontext%"
+  },
+  "migrationPreservation": {
+    "historicalFullRows": "PARTIAL",
+    "changedField": "timplans.updated_at",
+    "affectedRows": 4,
+    "correctedBackfillRollback": "PASS",
+    "originalTimestampsRestored": false
+  },
+  "regressionPreservation": "PASS",
+  "currentUserTrialBefore": "PASS18 scenarios",
+  "currentUserTrialAfter": "PASS18 scenarios",
+  "oldClientAssetsRetained": 27,
+  "temporaryOidcCallbackRestored": "PASS",
+  "auditSourceConfiguration": {
+    "status": "CONFIGURED",
+    "scope": "local-synthetic-only",
+    "kong": "reloaded",
+    "postgres": "reloaded",
+    "storage": "image-default-json; gateway-forced x-client-trace-id",
+    "note": "Configuration is not evidence. collect-denials.mjs decides PASS/BLOCKED per source."
+  },
+  "mode": "protected",
+  "userPreviewUrl": "http://127.0.0.1:3012",
+  "automaticBrowserReload": false,
+  "humanResult": "awaiting_user",
+  "notes": [
+    "Konfiguration är inte auditbevis; register-API visar faktisk minimerad Kong-händelse för nekat direktanrop.",
+    "Ingen verklig kommunanslutning, elevdata eller pilotdrift verifierad."
+  ]
+}

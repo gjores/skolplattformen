@@ -181,7 +181,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | ADMIN-01 | Phase 5 | Pending |
 | ADMIN-02 | Phase 5 | Pending — delbevis 05-15/05-16, 05-18 och 05-20 (livscykel: framtida plan ändras, startad plan låst, automatiskt verifierad); mänsklig begriplighet och fulla beslutsregler återstår |
 | ADMIN-03 | Phase 5 | Pending — delbevis 05-20: kopia kräver framtida kullstart och bevarar originalet; mänskligt prov återstår |
-| ADMIN-04 | Phase 5 | Pending |
+| ADMIN-04 | Phase 5 | Pending — delbevis 05-22: skolbunden fastställd klass–timplansversion och ny version flyttar inte kopplingen, verifierat lokalt; appkommandon/läsårsunderlag/mänskligt prov återstår. Första backfillens fyra updated_at är separat PARTIAL-avvikelse |
 | UX-01 | Phase 6 | Pending |
 | INFO-01 | Phase 8 | Pending |
 | OPS-01 | Phase 8 | Pending |
