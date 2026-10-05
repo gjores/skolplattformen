@@ -14,6 +14,16 @@ export type ProgramplanUnitPackages = {planId:string;units:ProgramplanUnitPackag
 export type ProgramplanPackageReadRequest = {planId:string};
 export type ProgramplanPackageWriteRequest = {planId:string;unitId:string;expectedRevision:number;blockId:string;entries:ProgramplanPackageEntry[]};
 export type ProgramplanLanguageStart = {ladderId:string;startIndex:number;name:string;levels:ProgramplanLevelRef[]};
+/** Whole read replies can arrive out of order after independent school writes. */
+export function mergeProgramplanUnitPackages(current:ProgramplanUnitPackages|null,next:ProgramplanUnitPackages):ProgramplanUnitPackages{
+  if(!current)return next;
+  if(current.planId!==next.planId||current.units.length!==next.units.length||next.units.some(u=>!current.units.some(c=>c.unitId===u.unitId)))bad();
+  return{planId:current.planId,units:current.units.map(unit=>{
+    const newer=next.units.find(u=>u.unitId===unit.unitId)!;
+    if(newer.revision===unit.revision&&JSON.stringify(newer.selections)!==JSON.stringify(unit.selections))bad();
+    return newer.revision>unit.revision?newer:unit;
+  })};
+}
 const defaultCatalog=artifact as ProgramplanCatalog;
 function bad(code='invalid_programplan_packages'):never {throw new ProgramplanContractError(code);}
 function shape(value:unknown,keys:string[]):Record<string,unknown>{if(!value||typeof value!=='object'||Array.isArray(value))bad();const proto=Object.getPrototypeOf(value);if((proto!==Object.prototype&&proto!==null)||Object.getOwnPropertySymbols(value).length||Object.values(Object.getOwnPropertyDescriptors(value)).some(d=>d.get!==undefined||d.set!==undefined))bad();const row=value as Record<string,unknown>;if(keys.some(k=>!Object.hasOwn(row,k))||Object.getOwnPropertyNames(row).some(k=>!keys.includes(k)))bad();return row;}

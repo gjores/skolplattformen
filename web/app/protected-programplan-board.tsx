@@ -15,6 +15,7 @@ import { parseProgramplanTermReply, type ProgramplanTermReply } from '@/lib/prog
 import type { PlanIssue } from '@/lib/programplan-analysis.ts';
 import { programFrame, frameStatus } from '@/lib/programplan-table.ts';
 import MfaStepUpNotice from './mfa-step-up';
+import {programplanPackageKey} from '@/lib/programplan-packages.ts';
 import ProgramplanPackageBlock,{type SchoolPackagesProps} from './protected-programplan-packages';
 
 type Props = {
@@ -245,7 +246,7 @@ export function PlanGrid({ schoolPackages, choiceBlocks, onBlocks, focusIssue, p
   const targetRow = target?.kind === 'row' ? target.rowKey : target?.kind === 'specialization' && target.mode === 'remove' ? rows.find(r=>r.part==='specialization')?.key : null;
   useEffect(() => {
     if (!focusIssue || handledFocus.current === focusIssue || !target || target.kind === 'start' || target.kind === 'orientation') return;
-    if(target.kind==='package'){const frame=requestAnimationFrame(()=>{setExpanded(s=>new Set([...s,target.blockId]));setOnlyOpen(false);handledFocus.current=focusIssue;});return()=>cancelAnimationFrame(frame);}
+    if(target.kind==='package'){const entry=schoolPackages?.packages?.units.find(u=>u.unitId===target.unitId)?.selections.find(s=>s.blockId===target.blockId)?.entries.find(e=>!target.entryKey||programplanPackageKey(e.ref)===target.entryKey);const start=entry?.distribution.find(d=>!target.levelKey||d.levelKey===target.levelKey)?.points.findIndex(p=>p>0)??-1;const frame=requestAnimationFrame(()=>{setExpanded(s=>new Set([...s,target.blockId]));setOnlyOpen(false);setYear(start<0?0:Math.floor(start/2));handledFocus.current=focusIssue;});return()=>cancelAnimationFrame(frame);}
     const term = targetRow ? (values.get(targetRow)?.findIndex(n=>n>0) ?? -1) : -1;
     let focusFrame = 0;
     const frame = requestAnimationFrame(() => {
@@ -261,7 +262,7 @@ export function PlanGrid({ schoolPackages, choiceBlocks, onBlocks, focusIssue, p
       });
     });
     return () => { cancelAnimationFrame(frame); cancelAnimationFrame(focusFrame); };
-  }, [focusIssue, target, targetRow, values]);
+  }, [focusIssue, target, targetRow, values, schoolPackages?.packages]);
 
   return <section ref={gridRef} className="ppb" aria-label="Programplanen" aria-busy={busy} data-year={year}>
     <div className="ppb-years">{[0, 1, 2].map(y => { const s = termTotals[y * 2] + termTotals[y * 2 + 1]; return <button type="button" key={y} className="ppb-year" aria-pressed={year === y} onClick={() => setYear(y)}>
@@ -309,7 +310,7 @@ export function PlanGrid({ schoolPackages, choiceBlocks, onBlocks, focusIssue, p
                   {s > 0 && <button type="button" disabled={locked} aria-label={`Töm ${row.name} ${row.levelName}`} title="Töm raden" onClick={() => onClear(row)}><Eraser size={15} aria-hidden="true"/></button>}
                   {ref && refsEditable && <button type="button" disabled={locked} aria-label={`Ta bort ${ref.itemCode}`} title="Ta bort från programfördjupningen" onClick={() => onRemove(ref, row.key)}><X size={15} aria-hidden="true"/></button>}
                 </span>}</td>
-            </tr>{block&&schoolPackages&&<tr hidden={!expanded.has(block.id)} className="ppk-detail"><td colSpan={9}><ProgramplanPackageBlock {...schoolPackages} block={block} frame={p} options={options} focusIssue={expanded.has(block.id)?focusIssue:null}/></td></tr>}</Fragment>; })}
+            </tr>{block&&schoolPackages&&<tr hidden={!expanded.has(block.id)} className="ppk-detail"><td colSpan={9}><ProgramplanPackageBlock {...schoolPackages} block={block} frame={p} options={options} fixedLevelKeys={rows.filter(r=>!r.key.startsWith('block:')&&!r.key.startsWith('meta:')&&!r.key.startsWith('alternative:')).map(r=>r.key.split(':').slice(1).join(':'))} focusIssue={expanded.has(block.id)?focusIssue:null}/></td></tr>}</Fragment>; })}
           {(extra || part === 'individualChoice') && editable && choiceBlocks && onBlocks && <tr className="ppb-add-row"><td colSpan={9}>
             <ChoiceBlockEditor key={part} part={part === 'specialization' ? 'specialization' : 'individualChoice'} blocks={choiceBlocks} values={values} locked={locked || busy} onSave={onBlocks}/>
           </td></tr>}

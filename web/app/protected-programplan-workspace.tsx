@@ -25,7 +25,7 @@ import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistrib
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
 import { parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
-import {parseProgramplanUnitPackages,type ProgramplanUnitPackages} from '@/lib/programplan-packages.ts';
+import {mergeProgramplanUnitPackages,parseProgramplanUnitPackages,type ProgramplanUnitPackages} from '@/lib/programplan-packages.ts';
 import './protected-programplan.css';
 
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void };
@@ -75,6 +75,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [invalidate]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; invalidate(); }; }, [invalidate]);
   const packagePlanId=plan?.id??null;
+  const acceptPackages=useCallback((next:ProgramplanUnitPackages)=>{
+    if(next.planId!==packagePlanId)return;
+    setPackages(current=>mergeProgramplanUnitPackages(current?.planId===packagePlanId?current:null,next));
+  },[packagePlanId]);
   const packageUnits=workspace?.lifecycle.units;
   const hasChoiceBlocks=!!plan?.basisReference?.choiceBlocks;
   useEffect(()=>{
@@ -202,7 +206,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     const sourceUnits = workspace.lifecycle.units.map(u => u.id);
     let sourceTerms: ProgramplanTermDistribution | null = null;
     let sourcePackages:ProgramplanUnitPackages|null=null;
-    try{sourcePackages=parseProgramplanUnitPackages(await api.post('/api/programplaner/paketval/lasa',{planId:plan.id},r.signal));if(sourcePackages.planId!==plan.id)throw Error('Fel plan.');}catch(e){saving.current=false;if(current(r.token)&&!aborted(e)&&!securityFailure(e)){setBusy(false);setCopy(c=>c&&{...c,error:'Skolornas paket kunde inte läsas. Försök igen innan du skapar kopian.'});}return;}
+    try{sourcePackages=parseProgramplanUnitPackages(await api.post('/api/programplaner/paketval/lasa',{planId:plan.id},r.signal));if(sourcePackages.planId!==plan.id||sourcePackages.units.length!==sourceUnits.length||sourcePackages.units.some(u=>!sourceUnits.includes(u.unitId)))throw Error('Källans skolval har ändrats. Läs om planen.');}catch(e){saving.current=false;if(current(r.token)&&!aborted(e)&&!securityFailure(e)){setBusy(false);setCopy(c=>c&&{...c,error:'Skolornas paket kunde inte läsas. Försök igen innan du skapar kopian.'});}return;}
     try { const read = parseProgramplanTermReply(await api.post('/api/programplaner/terminer/lasa', { planId: plan.id }, r.signal)); if (read.planId === plan.id) sourceTerms = upgradeProgramplanBasis(workspace.catalog.program!, plan.basisReference, read.distribution).distribution; } catch (e) { if (aborted(e) || securityFailure(e)) { saving.current = false; return; } }
     try { const reply = await api.post('/api/programplaner/utbildning/skapa', own, r.signal); if (current(r.token)) await openCreatedCopy(own, reply, sourceTerms, sourceUnits, sourcePackages, r.signal); }
     catch (e) {
@@ -396,7 +400,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
     <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
-      schoolPackages={{planId:plan.id,scope:`${epoch}-${context.assignmentId}`,units:workspace!.lifecycle.units,packages:packages?.planId===plan.id?packages:null,packageError,archived:workspace!.lifecycle.archived,disabled:busy,onPackages:setPackages,onSecurityFailure:securityFailure,onReadPackages:async()=>{setPackageRead(n=>n+1);}}}
+      schoolPackages={{planId:plan.id,scope:`${epoch}-${context.assignmentId}`,units:workspace!.lifecycle.units,packages:packages?.planId===plan.id?packages:null,packageError,archived:workspace!.lifecycle.archived,disabled:busy,onPackages:acceptPackages,onSecurityFailure:securityFailure,onReadPackages:async()=>{setPackageRead(n=>n+1);}}}
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
     {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}
