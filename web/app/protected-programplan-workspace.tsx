@@ -25,7 +25,7 @@ import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistrib
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
 import { parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
-import {mergeProgramplanUnitPackages,parseProgramplanUnitPackages,type ProgramplanUnitPackages} from '@/lib/programplan-packages.ts';
+import {mergeProgramplanUnitPackages,parseProgramplanUnitPackages,parseProgramplanValpaketList,type ProgramplanValpaketList,type ProgramplanUnitPackages} from '@/lib/programplan-packages.ts';
 import './protected-programplan.css';
 
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void };
@@ -35,6 +35,7 @@ const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för än
 export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost }: Props) {
   const page = 1;
   const [packages,setPackages]=useState<ProgramplanUnitPackages|null>(null),[packageError,setPackageError]=useState<string|null>(null);
+  const [valpaket,setValpaket]=useState<ProgramplanValpaketList[]|null>(null);
   const [packageRead,setPackageRead]=useState(0);
   const hasUnsaved = useHasUnsaved();
   const [flowRevision,setFlowRevision] = useState(0);
@@ -82,9 +83,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const packageUnits=workspace?.lifecycle.units;
   const hasChoiceBlocks=!!plan?.basisReference?.choiceBlocks;
   useEffect(()=>{
-    const c=new AbortController();void(async()=>{await Promise.resolve();if(c.signal.aborted)return;setPackages(null);setPackageError(null);if(!packagePlanId||!hasChoiceBlocks)return;try{const value=parseProgramplanUnitPackages(await api.post('/api/programplaner/paketval/lasa',{planId:packagePlanId},c.signal));
+    const c=new AbortController();void(async()=>{await Promise.resolve();if(c.signal.aborted)return;setPackages(null);setValpaket(null);setPackageError(null);if(!packagePlanId||!hasChoiceBlocks)return;try{const value=parseProgramplanUnitPackages(await api.post('/api/programplaner/paketval/lasa',{planId:packagePlanId},c.signal));
       if(value.planId!==packagePlanId||value.units.length!==packageUnits?.length||value.units.some(u=>!packageUnits?.some(x=>x.id===u.unitId)))throw Error('Fel skolor i svaret.');
-      if(!c.signal.aborted)setPackages(value);
+      const lists=await Promise.all(value.units.map(async u=>{const list=parseProgramplanValpaketList(await api.post('/api/programplaner/valpaket/lista',{unitId:u.unitId},c.signal));if(list.unitId!==u.unitId)throw Error('Fel skola i paketutbudet.');return list;}));
+      if(!c.signal.aborted){setPackages(value);setValpaket(lists);}
     }catch(e){if(!c.signal.aborted&&!securityFailure(e))setPackageError('Skolornas paket kunde inte hämtas.');}})();return()=>c.abort();
   },[packagePlanId,plan?.revision,hasChoiceBlocks,packageRead,packageUnits,securityFailure]);
   async function readWorkspace(offeringId: string, versionPage: number, catalogId: string | null, signal: AbortSignal) {
@@ -350,8 +352,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const boardActive = !draft && !preparation && !copy && !!plan?.basisReference && !!program && boundSourceMatches;
   const draftTermInput = draft && program && (draft.kind === 'create') ? (() => { try { return { rows: programplanTermRows(program, { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs }), distribution: draftTerms, ranks: programplanLevelRanks(program) }; } catch { return undefined; } })() : undefined;
   const termInput = draftTermInput ?? (boardActive && termValues ? (() => { try { return { rows: programplanTermRows(program!, plan!.basisReference!), distribution: termValues, ranks: programplanLevelRanks(program!) }; } catch { return undefined; } })() : undefined);
-  const analysis = program && workspace ? analyseProgramplan({ program, orientationCode: workspace.education.orientationCode, refs: shownRefs, startedOn: shownStart,
-    sourceFetched: workspace.catalog.source?.fetched ?? null, serverNotes, terms: termInput, packages:boardActive&&packages?.planId===plan?.id?packages:undefined, units:boardActive?workspace.lifecycle.units:undefined, basisReference: draft ? { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs } : plan?.basisReference }) : null;
+  const packagesLoaded=!!packages&&packages.planId===plan?.id&&!!valpaket&&valpaket.length===workspace?.lifecycle.units.length&&!packageError;
+  const rawAnalysis = program && workspace ? analyseProgramplan({ program, orientationCode: workspace.education.orientationCode, refs: shownRefs, startedOn: shownStart,
+    sourceFetched: workspace.catalog.source?.fetched ?? null, serverNotes, terms: termInput, packages:boardActive&&packages?.planId===plan?.id?packages:undefined, units:boardActive&&packagesLoaded?workspace.lifecycle.units:undefined,valpaket:boardActive&&valpaket?[...new Map(valpaket.flatMap(list=>list.packages).map(p=>[`${p.packageId}@${p.version}`,p])).values()]:undefined, basisReference: draft ? { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs } : plan?.basisReference }) : null;
+  const analysis=rawAnalysis&&boardActive&&!packagesLoaded?{...rawAnalysis,ready:false,missing:[...rawAnalysis.missing,'Skolornas paket behöver läsas']}:rawAnalysis;
   const problems = analysis ? analysis.counts.fel + analysis.counts.risk : 0;
   const problemLabel = analysis ? [analysis.counts.fel ? `${analysis.counts.fel} fel` : '', analysis.counts.risk ? `${analysis.counts.risk} ${analysis.counts.risk === 1 ? 'risk' : 'risker'}` : ''].filter(Boolean).join(' · ') : '';
   // Behåll navigeringsmålet bara så länge samma rad fortfarande behöver åtgärdas.
@@ -401,7 +405,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
     <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
-      schoolPackages={{planId:plan.id,scope:`${epoch}-${context.assignmentId}`,units:workspace!.lifecycle.units,packages:packages?.planId===plan.id?packages:null,packageError,archived:workspace!.lifecycle.archived,disabled:busy,onPackages:acceptPackages,onSecurityFailure:securityFailure,onReadPackages:async()=>{setPackageRead(n=>n+1);}}}
+      schoolPackages={{planId:plan.id,scope:`${epoch}-${context.assignmentId}`,units:workspace!.lifecycle.units,packages:packages?.planId===plan.id?packages:null,role:context.function,startedOn:plan.basisReference!.startedOn,valpaket,onValpaket:(list)=>setValpaket(current=>current?.map(old=>old.unitId===list.unitId?list:{...old,packages:[...old.packages.filter(p=>p.unitId!==null),...list.packages.filter(p=>p.unitId===null)]})??[list]),packageError,archived:workspace!.lifecycle.archived,disabled:busy,onPackages:acceptPackages,onSecurityFailure:securityFailure,onReadPackages:async()=>{setPackageRead(n=>n+1);}}}
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
     {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}

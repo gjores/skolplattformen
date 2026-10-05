@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES } from './verify-programplan-api.mjs';
+import { BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES } from './verify-programplan-api.mjs';
 // Real built Worker, local synthetic target only. Preflight restores exact prior ACL.
 import assert from 'node:assert/strict';
 import { randomUUID,randomBytes,createHash } from 'node:crypto';
@@ -35,7 +35,7 @@ export async function runTermsApi(options) {
   report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
   // 05-20: livscykelns dispatcher ingår i den faktiska ACL:en efter dess preflight.
   const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...LIFECYCLE_ENTRIES],expected=[...old,...TERMS];
-  beforeAcl=await acl();if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
+  beforeAcl=await acl();if(!o.preflight&&PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
   if(o.preflight){for(const f of TERMS)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);}
   fixture=await createProgramplanBrowserFixture();foreign=await createProgramplanBrowserFixture();
   const distribution=[{rowKey:'specialization:ENGE:1:ENGE3000X',points:[0,0,25,25,50,0]},{rowKey:'meta:diplomaWork',points:[0,0,0,0,0,100]}];

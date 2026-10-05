@@ -1,6 +1,12 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- C assertions retain their historical profile; D begins from its actual nineteen-entrypoint base.
+do $profile$ declare signature text;begin
+ foreach signature in array array['public.phase5_save_programplan_package(uuid,integer,jsonb)','public.phase5_list_programplan_packages(uuid)'] loop
+  if to_regprocedure(signature) is not null then execute 'revoke execute on function '||signature||' from skolplattform_worker';end if;
+ end loop;
+end $profile$;
 -- This file proves the C foundation profile, then its exact grant, inside rollback.
 revoke execute on function public.phase5_read_programplan_unit_packages(uuid),public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb) from skolplattform_worker;
 -- Programplan fixture: reusable synthetic setup; no grants or assertions.
@@ -102,7 +108,7 @@ select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.
 select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.programplan_reference(),'mosp',jsonb_set(pg_temp.package_entries()->0,'{distribution,0,points}','[0.1,0,0,0,0,0]'))$q$,'22023',null,'fractional points denied');
 select lives_ok($q$select public.phase5_programplan_validate_selection(pg_temp.programplan_reference(),'mosp',jsonb_set(pg_temp.package_entries()->0,'{distribution}','[]'))$q$,'missing allocation allowed for analysis');
 select throws_ok($q$select public.phase5_write_programplan_unit_packages('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000030',1,'mosp',pg_temp.package_entries()||pg_temp.package_entries())$q$,'22023',null,'duplicate entry refused');
-select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.programplan_reference(),'mosp','{"ref":{"type":"package","packageId":"55008000-0000-4000-8000-000000000001","version":1},"distribution":[]}')$q$,'22023',null,'D package reference not opened in C');
+select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.programplan_reference(),'mosp','{"ref":{"type":"package","packageId":"55008000-0000-4000-8000-000000000001","version":1},"distribution":[]}')$q$,'22023',null,'missing generic package reference remains denied');
 select pg_temp.programplan_actor((select id from programplan_roles where name='admin'),'55008000-0000-4000-8000-000000000023','55008000-0000-4000-8000-000000000013','55008000-0000-4000-8000-000000000083');
 select lives_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'administrator plan reading allowed');
 select lives_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050')$q$,'administrator term reading allowed');
@@ -177,5 +183,116 @@ select lives_ok($q$select public.phase5_read_programplan_unit_packages('55008000
 select lives_ok($q$select public.phase5_write_programplan_unit_packages('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000030',5,'mosp','[]')$q$,'real Worker role can use write command');
 select throws_ok($q$select * from public.programplan_unit_packages$q$,'42501',null,'real Worker role cannot bypass command through table');
 reset role;
+-- D: immutable package catalogue and versioned school references.
+create function pg_temp.valpaket_details(kind text default 'individualChoice',school uuid default '55008000-0000-4000-8000-000000000030',codes text[] default array['ANIM1000X','ANIM2000X']) returns jsonb
+language sql stable as $$select jsonb_build_object('unitId',school,'kind',kind,'name','Syntetiskt valpaket','levels',
+ (select jsonb_agg(jsonb_build_object('subjectCode',s->'code','subjectVersion',s->'version','itemCode',i->'code','points',i->'points') order by array_position(codes,i->>'code'))
+ from public.programplan_catalogs c cross join lateral jsonb_array_elements(c.payload->'subjects') s cross join lateral jsonb_array_elements(s->'items') i where i->>'code'=any(codes)))$$;
+create function pg_temp.valpaket_entry(p jsonb) returns jsonb language sql as $$select jsonb_build_array(jsonb_build_object('ref',jsonb_build_object('type','package','packageId',p->'packageId','version',p->'version'),'distribution','[]'::jsonb))$$;
+create function pg_temp.slot_reference(program text,orientation text) returns jsonb language sql stable as $$
+ select jsonb_build_object('catalogId',c.catalog_id,'programRef',jsonb_build_object('code',p->'code','version',p->'version'),'orientationCode',orientation,'startedOn','2027-08-17','specializationRefs','[]'::jsonb,'choiceBlocks',
+ case program when 'HU25' then '[{"id":"mosp","kind":"modernLanguage","points":200,"name":"Moderna språk"},{"id":"sprk","kind":"languageSubject","points":300,"name":"Språkämne"}]'::jsonb
+ else '[{"id":"mosp","kind":"modernLanguage","points":100,"name":"Moderna språk"},{"id":"nave","kind":"naturalScience","points":100,"name":"Ett naturvetenskapligt ämne"}]'::jsonb end||'[{"id":"iv1","kind":"individualChoice","points":200,"name":"Individuellt val"}]'::jsonb)
+ from public.programplan_catalogs c cross join lateral jsonb_array_elements(c.payload->'programs') p where p->>'code'=program
+$$;
+create temporary table d_worker_before as select proname::text name from pg_proc where pronamespace='public'::regnamespace and proname like 'phase5_%' and has_function_privilege('skolplattform_worker',oid,'execute');
+select is((select count(*) from d_worker_before),19::bigint,'D foundation preserves nineteen entrypoints');
+select ok(not has_table_privilege('anon','public.programplan_packages','select,insert,update,delete'),'D anon table closed');
+select ok(not has_table_privilege('authenticated','public.programplan_packages','select,insert,update,delete'),'D authenticated table closed');
+select ok(not has_table_privilege('service_role','public.programplan_packages','select,insert,update,delete'),'D service table closed');
+select ok(not has_table_privilege('skolplattform_worker','public.programplan_packages','select,insert,update,delete'),'D Worker table closed');
+select ok(not has_function_privilege('skolplattform_worker','public.phase5_save_programplan_package(uuid,integer,jsonb)','execute'),'D save entrypoint closed before explicit grant');
+select ok(not has_function_privilege('skolplattform_worker','public.phase5_programplan_validate_scoped_selection(jsonb,text,jsonb,uuid,uuid)','execute'),'D scoped validation helper closed');
+select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
+create temporary table valpaket_results(name text primary key,value jsonb);
+insert into valpaket_results values('iv1',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details()));
+select is((select value->>'version' from valpaket_results where name='iv1'),'1','D principal creates version one');
+select is((select value->>'points' from valpaket_results where name='iv1'),'200','D package points from pinned levels');
+select is((select array_agg(k order by k) from valpaket_results,jsonb_object_keys(value) k where name='iv1'),array['catalogId','kind','levels','name','packageId','points','unitId','version']::text[],'D reply contains exact frozen fields');
+create temporary table valpaket_original as select to_jsonb(p) value from public.programplan_packages p;
+select throws_ok($q$update public.programplan_packages set name='Ändrad'$q$,'55000',null,'D package cannot be updated');
+select throws_ok($q$delete from public.programplan_packages$q$,'55000',null,'D package cannot be deleted');
+select throws_ok($q$truncate public.programplan_packages$q$,'55000',null,'D package cannot be truncated');
+select lives_ok($q$select public.phase5_write_programplan_unit_packages('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000030',6,'iv1',pg_temp.valpaket_entry((select value from valpaket_results where name='iv1')))$q$,'D package selected in replaced plan');
+create temporary table valpaket_selection_original as select to_jsonb(up) value from public.programplan_unit_packages up where plan_id='55008000-0000-4000-8000-000000000050' and unit_id='55008000-0000-4000-8000-000000000030';
+insert into valpaket_results values('iv2',public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='iv1'),1,jsonb_set(pg_temp.valpaket_details(),'{name}','"Ny version"')));
+select is((select value->>'version' from valpaket_results where name='iv2'),'2','D new immutable version increments CAS');
+select is((select to_jsonb(p) from public.programplan_packages p where package_id=(select (value->>'packageId')::uuid from valpaket_results where name='iv1') and version=1),(select value from valpaket_original),'D complete version one row unchanged');
+select is((select to_jsonb(up) from public.programplan_unit_packages up where plan_id='55008000-0000-4000-8000-000000000050' and unit_id='55008000-0000-4000-8000-000000000030'),(select value from valpaket_selection_original),'D existing school selection row unchanged by package version');
+select is((select sel->'entries'->0->'levels' from jsonb_array_elements(public.phase5_programplan_resolved_selections('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000030')->'selections') sel where sel->>'blockId'='iv1'),(select value->'levels' from valpaket_results where name='iv1'),'D reread resolves exact original version levels');
+select lives_ok($q$select public.phase5_write_programplan_unit_packages((select (value->>'id')::uuid from package_clone),'55008000-0000-4000-8000-000000000030',2,'iv1',pg_temp.valpaket_entry((select value from valpaket_results where name='iv1')))$q$,'D same package offered in two plans');
+select is(jsonb_array_length(public.phase5_list_programplan_packages('55008000-0000-4000-8000-000000000030')->'packages'),2,'D own-school list includes every immutable version');
+select is((select details from public.security_events where action='programplan_package_saved' and object_id=(select (value->>'packageId')::uuid from valpaket_results where name='iv1') and details->>'packageVersion'='1'),jsonb_build_object('unitId','55008000-0000-4000-8000-000000000030','packageVersion',1,'count',2),'D save audit contains only frozen identifiers and level count');
+select is((select details from public.security_events where action='programplan_packages_read' and object_type='school_unit' and object_id='55008000-0000-4000-8000-000000000030' order by occurred_at desc limit 1),'{"count":2}'::jsonb,'D list audit counts versions and binds target school');
+select throws_ok($q$select public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='iv1'),1,pg_temp.valpaket_details())$q$,'40001',null,'D stale CAS denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,1,pg_temp.valpaket_details())$q$,'22023',null,'D new package requires zero expected version');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice',null))$q$,'42501',null,'D principal cannot create global package');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice','55008000-0000-4000-8000-000000000031'))$q$,'42501',null,'D principal cannot create another-school package');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('naturalScience'))$q$,'22023',null,'D NAVE disallowed subjects denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('languageSubject'))$q$,'22023',null,'D HU disallowed subjects denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice','55008000-0000-4000-8000-000000000030',array['MODO1000X','MODO2000X']))$q$,'22023',null,'D MODO stays language package');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice','55008000-0000-4000-8000-000000000030',array['ANIM1000X'])||'{"extra":1}'::jsonb)$q$,'22023',null,'D extra detail keys denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,jsonb_set(pg_temp.valpaket_details(),'{levels,0,points}','99'))$q$,'22023',null,'D forged catalogue points denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,jsonb_set(pg_temp.valpaket_details(),'{levels}',(pg_temp.valpaket_details()->'levels')||(pg_temp.valpaket_details()->'levels')))$q$,'22023',null,'D duplicate levels denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,jsonb_set(pg_temp.valpaket_details(),'{name}','" "'))$q$,'22023',null,'D empty trimmed name denied');
+select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.programplan_reference(),'mosp',(pg_temp.valpaket_entry((select value from valpaket_results where name='iv1')))->0)$q$,'22023',null,'D generic package forbidden in language block');
+select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.programplan_reference(),'iv1',jsonb_set((pg_temp.valpaket_entry((select value from valpaket_results where name='iv1')))->0,'{distribution}','[{"levelKey":"ANIM:1:ANIM1000X","points":[101,0,0,0,0,0]}]'))$q$,'22023',null,'D generic distribution overflow denied');
+insert into valpaket_results values('nave',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('naturalScience','55008000-0000-4000-8000-000000000030',array['BIOG2000X'])));
+select lives_ok($q$select public.phase5_programplan_validate_selection(pg_temp.slot_reference('NA25','NANAA'),'nave',(pg_temp.valpaket_entry((select value from valpaket_results where name='nave')))->0)$q$,'D valid NAVE package');
+insert into valpaket_results values('sprk',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('languageSubject','55008000-0000-4000-8000-000000000030',array['LATI1000X','LATI2000X','LATI3000X'])));
+select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.slot_reference('HU25','HUSPK'),'sprk',(pg_temp.valpaket_entry((select value from valpaket_results where name='sprk')))->0)$q$,'22023',null,'D HU Latin1 already fixed denied');
+insert into valpaket_results values('sprk-valid',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('languageSubject','55008000-0000-4000-8000-000000000030',array['KLAS1000X','KLAS2000X','LATI2000X'])));
+select lives_ok($q$select public.phase5_programplan_validate_selection(pg_temp.slot_reference('HU25','HUSPK'),'sprk',(pg_temp.valpaket_entry((select value from valpaket_results where name='sprk-valid')))->0)$q$,'D valid HU subjects package');
+insert into valpaket_results values('spec-valid',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('specialization','55008000-0000-4000-8000-000000000030',array['ANIM1000X'])));
+select lives_ok($q$select public.phase5_programplan_validate_selection(jsonb_set(pg_temp.programplan_reference(),'{choiceBlocks}',(pg_temp.programplan_reference()->'choiceBlocks')||'[{"id":"spec1","kind":"specialization","points":100,"name":"Fördjupning"}]'::jsonb),'spec1',(pg_temp.valpaket_entry((select value from valpaket_results where name='spec-valid')))->0)$q$,'D specialization option package allowed');
+insert into valpaket_results values('spec-invalid',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('specialization','55008000-0000-4000-8000-000000000030',array['LATI1000X'])));
+select throws_ok($q$select public.phase5_programplan_validate_selection(jsonb_set(pg_temp.programplan_reference(),'{choiceBlocks}',(pg_temp.programplan_reference()->'choiceBlocks')||'[{"id":"spec1","kind":"specialization","points":100,"name":"Fördjupning"}]'::jsonb),'spec1',(pg_temp.valpaket_entry((select value from valpaket_results where name='spec-invalid')))->0)$q$,'22023',null,'D specialization outside pinned programme options denied');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,jsonb_set(pg_temp.valpaket_details(),'{name}',to_jsonb(chr(160)||'Namn')))$q$,'22023',null,'D JavaScript trim whitespace parity');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,jsonb_set(pg_temp.valpaket_details(),'{name}',to_jsonb('Namn'||chr(128))))$q$,'22023',null,'D C1 control character denied');
+select pg_temp.programplan_actor((select id from programplan_roles where name='admin'),'55008000-0000-4000-8000-000000000023','55008000-0000-4000-8000-000000000013','55008000-0000-4000-8000-000000000083');
+select lives_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details())$q$,'D administrator creates own package');
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice',null))$q$,'42501',null,'D administrator global creation denied');
+select pg_temp.programplan_actor('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000020','55008000-0000-4000-8000-000000000010','55008000-0000-4000-8000-000000000080');
+insert into valpaket_results values('global',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice',null))),('foreign-school',public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details('individualChoice','55008000-0000-4000-8000-000000000031')));
+select lives_ok($q$select public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='global'),1,pg_temp.valpaket_details('individualChoice',null))$q$,'D HM versions global package');
+select throws_ok($q$select public.phase5_write_programplan_unit_packages('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000030',7,'iv1',pg_temp.valpaket_entry((select value from valpaket_results where name='foreign-school')))$q$,'42501',null,'D exact target school enforced even for HM');
+select lives_ok($q$select public.phase5_write_programplan_unit_packages('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000030',7,'iv1',pg_temp.valpaket_entry((select value from valpaket_results where name='global')))$q$,'D HM global package available on school');
+select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
+select throws_ok($q$select public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='global'),2,pg_temp.valpaket_details())$q$,'42501',null,'D global read grants no right to version global source');
+select throws_ok($q$select public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='foreign-school'),1,pg_temp.valpaket_details())$q$,'42501',null,'D destination mandate insufficient for foreign source');
+select throws_ok($q$select public.phase5_list_programplan_packages('55008000-0000-4000-8000-000000000031')$q$,'42501',null,'D unrelated school list denied');
+select pg_temp.programplan_actor('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000020','55008000-0000-4000-8000-000000000010','55008000-0000-4000-8000-000000000080');
+insert into public.offering_units(offering_id,unit_id,organizer_id) values('55008000-0000-4000-8000-000000000040','55008000-0000-4000-8000-000000000031','55008000-0000-4000-8000-000000000002');
+select public.phase5_write_programplan_unit_packages('55008000-0000-4000-8000-000000000050','55008000-0000-4000-8000-000000000031',0,'iv1',pg_temp.valpaket_entry((select value from valpaket_results where name='foreign-school')));
+select public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='foreign-school'),1,pg_temp.valpaket_details('individualChoice','55008000-0000-4000-8000-000000000031'));
+select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
+select is(public.phase5_list_programplan_packages('55008000-0000-4000-8000-000000000031')->'packages',jsonb_build_array((select value from valpaket_results where name='foreign-school')),'D shared other-school list only exposes exact selected version');
+-- Catalogue mismatch is exercised with an isolated corruption of the synthetic row only.
+set local session_replication_role=replica;
+update public.programplan_packages set catalog_id='sha256:'||repeat('0',64) where package_id=(select (value->>'packageId')::uuid from valpaket_results where name='nave');
+set local session_replication_role=origin;
+select throws_ok($q$select public.phase5_programplan_validate_selection(pg_temp.slot_reference('NA25','NANAA'),'nave',(pg_temp.valpaket_entry((select value from valpaket_results where name='nave')))->0)$q$,'22023',null,'D another catalogue denied');
+set local session_replication_role=replica;
+update public.programplan_packages set catalog_id='sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace' where package_id=(select (value->>'packageId')::uuid from valpaket_results where name='nave');
+set local session_replication_role=origin;
+create temporary table valpaket_audit_before as select coalesce(jsonb_agg(to_jsonb(p) order by p.id),'[]'::jsonb) value from public.programplan_packages p;
+create function pg_temp.reject_valpaket_audit() returns trigger language plpgsql as $$begin if new.action in ('programplan_package_saved','programplan_packages_read') then raise exception 'Synthetic audit failure';end if;return new;end$$;
+create trigger valpaket_audit_failure before insert on public.security_events for each row execute function pg_temp.reject_valpaket_audit();
+select throws_ok($q$select public.phase5_save_programplan_package(null,0,pg_temp.valpaket_details())$q$,'55000',null,'D new package audit rollback');
+select throws_ok($q$select public.phase5_save_programplan_package((select (value->>'packageId')::uuid from valpaket_results where name='iv1'),2,pg_temp.valpaket_details())$q$,'55000',null,'D new version audit rollback');
+select throws_ok($q$select public.phase5_list_programplan_packages('55008000-0000-4000-8000-000000000030')$q$,'55000',null,'D list audit failure stops response');
+select is((select coalesce(jsonb_agg(to_jsonb(p) order by p.id),'[]'::jsonb) from public.programplan_packages p),(select value from valpaket_audit_before),'D whole package table unchanged after audit failures');
+drop trigger valpaket_audit_failure on public.security_events;
+grant execute on function public.phase5_save_programplan_package(uuid,integer,jsonb),public.phase5_list_programplan_packages(uuid) to skolplattform_worker;
+select is((select count(*) from pg_proc where pronamespace='public'::regnamespace and proname like 'phase5_%' and has_function_privilege('skolplattform_worker',oid,'execute')),21::bigint,'D rollback-only grant adds exactly two to twenty-one');
+select is(array(select proname::text from pg_proc where pronamespace='public'::regnamespace and proname like 'phase5_%' and has_function_privilege('skolplattform_worker',oid,'execute') order by proname),array(select name from (select name from d_worker_before union all select 'phase5_save_programplan_package' union all select 'phase5_list_programplan_packages') expected order by name),'D exact previous Worker set plus only two package RPC');
+select ok(not exists(select 1 from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and a.grantee in (0,(select oid from pg_roles where rolname='anon'),(select oid from pg_roles where rolname='authenticated')) and a.privilege_type='EXECUTE'),'D all direct clients and PUBLIC remain closed');
+set local role skolplattform_worker;
+select lives_ok($q$select public.phase5_save_programplan_package(null,0,'{"unitId":"55008000-0000-4000-8000-000000000030","kind":"individualChoice","name":"Syntetiskt Workerpaket","levels":[{"subjectCode":"ANIM","subjectVersion":1,"itemCode":"ANIM1000X","points":100}]}')$q$,'D real Worker creates through entrypoint');
+select lives_ok($q$select public.phase5_list_programplan_packages('55008000-0000-4000-8000-000000000030')$q$,'D real Worker reads through entrypoint');
+select throws_ok($q$select * from public.programplan_packages$q$,'42501',null,'D real Worker cannot read table');
+select throws_ok($q$select public.phase5_programplan_package_levels('x','individualChoice','[]')$q$,'42501',null,'D real Worker cannot invoke internal helper');
+reset role;
+
 select * from finish();
 rollback;

@@ -118,3 +118,45 @@ test('B03: äldre fastställd version är Ofullständig, ny version får svenska
   expect(await fixture.snapshot(fixture.legacyPlanId)).toEqual(before);expect(await fixture.history(fixture.legacyPlanId)).toEqual(history);
   const path=info.outputPath('legacy-new-version-swedish.png');await page.screenshot({path,fullPage:true});await info.attach('legacy-new-version-swedish.png',{path,contentType:'image/png'});
 });
+
+async function openPackages(page:Page,blockId:string,name:string){
+  await board(page).locator(`tr[data-row-key="block:${blockId}"]`).getByRole('button',{name:/^Visa paket/u}).click();
+  const region=board(page).getByRole('region',{name:`Paket i ${name}`,exact:true});await expect(region).toBeVisible();await expect(region).not.toContainText('Hämtar skolornas paket');return region;
+}
+async function newPackage(page:Page,region:ReturnType<Page['getByRole']>,name:string,search:string){
+  await region.getByRole('button',{name:'Nytt valpaket',exact:true}).click();const dialog=page.getByRole('dialog');
+  await dialog.getByLabel('Paketnamn',{exact:true}).fill(name);await dialog.getByLabel('Sök paketnivå',{exact:true}).fill(search);
+  await dialog.getByRole('list',{name:'Tillåtna paketnivåer'}).getByRole('button').first().click();
+  const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/valpaket'&&r.request().method()==='POST');await dialog.getByRole('button',{name:'Skapa valpaket',exact:true}).click();const response=await pending;expect(response.status()).toBe(200);const value=await response.json();
+  expect(await fixture.paired(response.headers()['x-correlation-id'],fixture.principal,'programplan_package_saved',value.packageId,'programplan_package')).toBe(true);await expect(dialog).toHaveCount(0);return value;
+}
+async function selectPackage(page:Page,region:ReturnType<Page['getByRole']>){const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/paketval'&&r.request().method()==='POST');await region.getByRole('button',{name:'Lägg till valpaket',exact:true}).click();expect((await pending).status()).toBe(200);await expect(region).toContainText('Sparat');}
+
+test('B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan planen är klar',async({page},info)=>{
+  const basis=fixture.choiceBasis();basis.choiceBlocks=basis.choiceBlocks.flatMap(b=>b.kind==='individualChoice'?[{...b,points:100},{...b,id:'iv2',name:'Individuellt val 2',points:100}]:[b]);
+  const created=await fixture.request(baseURL,fixture.hm,'/api/programplaner/skapa',{offeringId:fixture.emptyOfferingId,expectedLatestVersion:0,basisReference:basis});expect(created.status).toBe(200);
+  await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);
+  const terms=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/terminer');await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await terms).status()).toBe(200);await expect(board(page)).toContainText('allt fördelat');
+  const language=await openPackages(page,'mosp','Moderna språk');await language.getByRole('button',{name:'Föreslå språkpaket',exact:true}).click();const langSave=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/paketval');await language.getByRole('button',{name:'Använd förslaget',exact:true}).click();expect((await langSave).status()).toBe(200);
+  const iv=await openPackages(page,'iv1','Individuellt val');const longName='Bild och form – skolans individuella val med ett långt namn för kontroll på telefon';const first=await newPackage(page,iv,longName,'BILD1B00X');await selectPackage(page,iv);
+  const iv2=await openPackages(page,'iv2','Individuellt val 2');await iv2.getByLabel('Skolans valpaket',{exact:true}).selectOption(`${first.packageId}@1`);await selectPackage(page,iv2);
+  const before=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval/lasa',{planId:created.body.id});expect(before.status).toBe(200);
+  await iv.getByRole('button',{name:'Ny version',exact:true}).click();const dialog=page.getByRole('dialog');await dialog.getByLabel('Paketnamn',{exact:true}).fill('Bild och form – uppdaterat utbud');const version=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/valpaket');await dialog.getByRole('button',{name:'Spara ny version',exact:true}).click();const response=await version;expect(response.status()).toBe(200);expect((await response.json()).version).toBe(2);await expect(dialog).toHaveCount(0);
+  const after=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval/lasa',{planId:created.body.id});expect(after.body).toEqual(before.body);await expect(iv.getByRole('region',{name:`Valpaket ${longName} version 1`,exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);const path=info.outputPath('iv-long-name-version1.png');await page.screenshot({path,fullPage:true});await info.attach('iv-long-name-version1.png',{path,contentType:'image/png'});
+  await workspace(page).getByRole('button',{name:/^Analys/u}).click();const issue=workspace(page).locator('tr').filter({hasText:'Individuellt val: nästa nivå i idrott saknas'});await expect(issue).toContainText('Risk');await expect(workspace(page)).toContainText('Individuellt val: kontrollera estetiskt ämne');await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await page.reload();await navigate(page);const reopened=await openPackages(page,'iv1','Individuellt val');await expect(reopened).toContainText(longName);await expect(reopened.getByRole('region',{name:/^Valpaket/u})).toContainText('Version 1');await expect(reopened.getByLabel('Skolans valpaket')).toContainText('version 2');
+});
+
+test('B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läser om paketvalet',async({page},info)=>{
+  const {randomUUID}=await import('node:crypto');const {defaultProgramplanChoiceBlocks}=await import('../lib/programplan-choice-blocks.ts');const {default:catalog}=await import('../lib/programplan-catalog.generated.json');const program=catalog.programs.find(p=>p.code==='NA25'&&p.version===4)!;
+  const basis={catalogId:fixture.catalogId,programRef:{code:'NA25',version:4},orientationCode:'NANAA',startedOn:fixture.basis().startedOn,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(program,'NANAA')};
+  const created=await fixture.request(baseURL,fixture.hm,'/api/programplaner/utbildning/skapa',{commandId:randomUUID(),unitId:fixture.unitId,name:'Syntetisk NAVE',localCode:null,cohort:'Syntetisk framtida kull',basisReference:basis});expect(created.status).toBe(200);
+  await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page,/^Öppna utbildning Syntetisk NAVE,/u);
+  const frame=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/terminer');await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await frame).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');
+  const region=await openPackages(page,'nave','Naturvetenskapligt ämne');await region.getByRole('button',{name:'Nytt valpaket',exact:true}).click();const dialog=page.getByRole('dialog');await dialog.getByLabel('Paketnamn').fill('Biologi för naturvetenskap och samhälle');await dialog.getByLabel('Sök paketnivå').fill('BIOG1000X');await expect(dialog.getByRole('list',{name:'Tillåtna paketnivåer'}).getByRole('button')).toHaveCount(0);await dialog.getByLabel('Sök paketnivå').fill('Engelska');await expect(dialog.getByRole('list',{name:'Tillåtna paketnivåer'}).getByRole('button')).toHaveCount(0);await dialog.getByLabel('Sök paketnivå').fill('BIOG2000X');await dialog.getByRole('list',{name:'Tillåtna paketnivåer'}).getByRole('button').click();
+  const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/valpaket');await dialog.getByRole('button',{name:'Skapa valpaket',exact:true}).click();const saved=await pending;expect(saved.status()).toBe(200);const value=await saved.json();await expect(dialog).toHaveCount(0);await selectPackage(page,region);
+  const read=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval/lasa',{planId:created.body.plan.id});expect(read.status).toBe(200);expect(read.body.units.find((u:{unitId:string})=>u.unitId===fixture.unitId).selections.find((s:{blockId:string})=>s.blockId==='nave').entries[0].ref).toEqual({type:'package',packageId:value.packageId,version:1});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);const path=info.outputPath('na-nave-package.png');await page.screenshot({path,fullPage:true});await info.attach('na-nave-package.png',{path,contentType:'image/png'});
+  await page.reload();await navigate(page,/^Öppna utbildning Syntetisk NAVE,/u);const reopened=await openPackages(page,'nave','Naturvetenskapligt ämne');await expect(reopened).toContainText('BIOG2000X');await expect(reopened).not.toContainText('Avviker från blockets ram');
+});

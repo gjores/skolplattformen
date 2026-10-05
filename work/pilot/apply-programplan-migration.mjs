@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// 05-20–05-23 B: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
+// 05-20–05-23 D: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
 // Kontrollerar journal och tidigare exakt Worker-ACL; grants kräver PASS-preflight med samma källor.
-import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, BLOCK_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
+import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, BLOCK_ENTRIES, UNIT_PACKAGE_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
 import { assertTarget } from './verify-target.mjs';
+import { BLOCK_STEP_D_CASES, packageWorkerInventory } from './verify-programplan-choice-packages-api.mjs';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { readFileSync, copyFileSync } from 'node:fs';
@@ -10,8 +11,10 @@ import { resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const BASE=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES];
-// Endast granskade 05-20–05-23 B-migrationer, i ordning, med förväntad ACL före tillämpning.
+// Endast granskade 05-20–05-23 D-migrationer, i ordning, med förväntad ACL före tillämpning.
 const ALLOWED={
+ '20261004156000_phase5_programplan_packages.sql':{before:[...BASE,...LIFECYCLE_ENTRIES,...BLOCK_ENTRIES,...UNIT_PACKAGE_ENTRIES],grants:false,dependencies:['20261004154000','20261004155000']},
+ '20261004157000_phase5_worker_programplan_packages.sql':{before:[...BASE,...LIFECYCLE_ENTRIES,...BLOCK_ENTRIES,...UNIT_PACKAGE_ENTRIES],grants:true,preflightKind:'phase5-programplan-blocks-api',preflightStep:'d',dependencies:['20261004156000']},
  '20261004154000_phase5_programplan_unit_packages.sql':{before:[...BASE,...LIFECYCLE_ENTRIES,...BLOCK_ENTRIES],grants:false,dependencies:['20261004152100','20261004153000']},
  '20261004155000_phase5_worker_programplan_unit_packages.sql':{before:[...BASE,...LIFECYCLE_ENTRIES,...BLOCK_ENTRIES],grants:true,preflightKind:'phase5-programplan-blocks-api',preflightStep:'c',dependencies:['20261004154000']},
  '20261004151000_phase5_programplan_block_commands.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004150000','20261004150100']},
@@ -41,6 +44,19 @@ export function verifyPreflight(evidence,read,expectedKind,expectedStep){
  if(!['phase5-programplan-lifecycle-api','phase5-programplan-api','phase5-programplan-blocks-api'].includes(evidence?.kind))throw Error('REFUSED: recognized programplan API preflight required');
  if(evidence?.kind==='phase5-programplan-blocks-api'&&evidence.step!==(expectedStep??'b'))throw Error('REFUSED: matching block step preflight required');
  if(evidence?.status!=='PASS'||evidence.preflight!==true||evidence.preflightAclRestored!==true||evidence.cleanupStatus!=='PASS'||evidence.originalBusinessPreserved!==true||evidence.complete!==true)throw Error('REFUSED: verified programplan API preflight required');
+ if(expectedStep==='d'){
+  const old=packageWorkerInventory(),expected=[...old,'public.phase5_save_programplan_package(uuid,integer,jsonb)','public.phase5_list_programplan_packages(uuid)'];
+  if(evidence.target!=='protected'||evidence.scope!=='local-synthetic-only'||evidence.aclUnchanged!==true
+   ||!Array.isArray(evidence.cases)||!exactFunctions(evidence.cases.map(c=>c.name),BLOCK_STEP_D_CASES)
+   ||!evidence.cases.every(c=>c.status==='PASS'&&Array.isArray(c.checks)&&c.checks.length>0&&c.checks.every(k=>k.ok===true))
+   ||!exactFunctions(evidence.beforeWorkerFunctions??[],old)||!exactFunctions(evidence.restoredWorkerFunctions??[],old)
+   ||!exactFunctions(evidence.verifiedWorkerFunctions??[],expected)
+   ||!evidence.libraryCleanup||evidence.libraryCleanup.remainingOwnPackages!==0
+   ||!evidence.originalHashes||!evidence.finalHashes||JSON.stringify(evidence.originalHashes)!==JSON.stringify(evidence.finalHashes)
+   ||Object.keys(evidence.originalHashes).length!==12
+   ||! /^[a-f0-9]{40}$/u.test(evidence.sourceCommit??'')||! /^[a-f0-9]{40}$/u.test(evidence.workerBuildRevision??''))throw Error('REFUSED: complete D Worker, ACL and preservation proof required');
+  for(const path of ['work/pilot/verify-programplan-choice-packages-api.mjs','work/pilot/verify-programplan-api.mjs','work/pilot/apply-programplan-migration.mjs','web/lib/programplan-packages.ts','web/lib/server/programplan-packages.ts','web/lib/server/audit-details.ts','web/app/api/programplaner/valpaket/route.ts','web/app/api/programplaner/valpaket/lista/route.ts','web/app/protected-programplan-package-dialog.tsx','supabase/migrations/20261004156000_phase5_programplan_packages.sql','supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql'])if(!evidence.sourceHashes?.[path])throw Error('REFUSED: complete D source proof required');
+ }
  const hashes=Object.entries(evidence.sourceHashes??{});
  if(hashes.length<5)throw Error('REFUSED: preflight source evidence missing');
  for(const [path,hash] of hashes)if(createHash('sha256').update(read(path)).digest('hex')!==hash)throw Error('REFUSED: source changed since preflight');

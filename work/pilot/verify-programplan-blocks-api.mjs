@@ -9,7 +9,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
 import { createProgramplanBrowserFixture } from './phase5-programplan-browser-fixtures.mjs';
-import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, BLOCK_ENTRIES, UNIT_PACKAGE_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
+import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, BLOCK_ENTRIES, UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
 import { parseProgramplan,parseProgramplanCloneReply } from '../../web/lib/programplan-contract.ts';
 import { parseProgramplanTermReply } from '../../web/lib/programplan-terms-contract.ts';
 import { programplanTermRows, programplanLevelRanks, suggestProgramplanTerms } from '../../web/lib/programplan-terms.ts';
@@ -17,11 +17,12 @@ import { canonicalCatalogJson } from '../../web/lib/programplan-catalog.ts';
 import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
 
 import {runBlockStepC} from './verify-programplan-packages-api.mjs';
+import {runBlockStepD} from './verify-programplan-choice-packages-api.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export const BLOCK_SOURCE_PATHS=['web/lib/programplan-catalog.ts','web/lib/programplan-choice-blocks.ts','web/lib/programplan-terms.ts','web/lib/programplan-terms-contract.ts','web/lib/programplan-contract.ts',
   'web/lib/protected-programplan.ts','web/lib/server/programplan-planning.ts','web/lib/server/programplan-terms.ts','web/app/protected-programplan-board.tsx','web/app/protected-programplan-flow.tsx','web/app/protected-programplan-workspace.tsx',
   'web/app/api/programplaner/skapa/route.ts','web/app/api/programplaner/lasa/route.ts','web/app/api/programplaner/terminer/route.ts','web/app/api/programplaner/terminer/lasa/route.ts',
-  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs','web/app/api/programplaner/block/route.ts','web/lib/programplan-analysis.ts','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql','web/app/protected-home.tsx','web/app/protected-programplan.css','web/lib/unsaved-changes.tsx','web/lib/session-channel.ts','web/lib/mandate-policy.ts','web/lib/server/http.ts','web/lib/server/audit-details.ts','web/lib/server/programplan-lifecycle.ts','web/app/api/programplaner/val/route.ts','web/app/protected-programplan-list.tsx','web/app/api/programplaner/lista/route.ts','web/app/api/programplaner/underlag/route.ts','web/lib/programplan-languages.ts','web/lib/programplan-packages.ts','web/lib/server/programplan-packages.ts','web/app/protected-programplan-packages.tsx','web/app/api/programplaner/paketval/route.ts','web/app/api/programplaner/paketval/lasa/route.ts','work/pilot/verify-programplan-packages-api.mjs','supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql','supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql'];
+  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs','web/app/api/programplaner/block/route.ts','web/lib/programplan-analysis.ts','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql','web/app/protected-home.tsx','web/app/protected-programplan.css','web/lib/unsaved-changes.tsx','web/lib/session-channel.ts','web/lib/mandate-policy.ts','web/lib/server/http.ts','web/lib/server/audit-details.ts','web/lib/server/programplan-lifecycle.ts','web/app/api/programplaner/val/route.ts','web/app/protected-programplan-list.tsx','web/app/api/programplaner/lista/route.ts','web/app/api/programplaner/underlag/route.ts','web/lib/programplan-languages.ts','web/lib/programplan-packages.ts','web/lib/server/programplan-packages.ts','web/app/protected-programplan-packages.tsx','web/app/api/programplaner/paketval/route.ts','web/app/api/programplaner/paketval/lasa/route.ts','work/pilot/verify-programplan-packages-api.mjs','supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql','supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql','work/pilot/verify-programplan-choice-packages-api.mjs','web/app/api/programplaner/valpaket/route.ts','web/app/api/programplaner/valpaket/lista/route.ts','web/app/protected-programplan-package-dialog.tsx','supabase/migrations/20261004156000_phase5_programplan_packages.sql','supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql'];
 const SOURCE=BLOCK_SOURCE_PATHS;
 export const BLOCK_STEP_A_CASES=['built-worker','ts-sql-parity','v2-create-save-reread'];
 export const BLOCK_STEP_B_CASES=['built-worker','blocks-save-reread','blocks-cas','block-id-retired','shape-upgrade','clone-upgrades-legacy','clone-keeps-historical-block-id','mfa-csrf-session','audit-rollback','direct-clients-closed','blocks-denied'];
@@ -35,7 +36,8 @@ export function parseBlockApiArgs(args) {
   if(!['a','b','c','d'].includes(o.step)||!/^http:\/\/127\.0\.0\.1:\d+$/u.test(o.baseURL)
     ||![resolve(root,'work/pilot/results'),'/private/tmp','/tmp'].includes(dirname(o.outFile)))throw Error('REFUSED_unsafe_target');
   // Later stages must add their own evidence; they cannot inherit a false PASS from A.
-  if(!['a','b','c'].includes(o.step))throw Error('REFUSED_step_not_implemented');
+  if(!['a','b','c','d'].includes(o.step))throw Error('REFUSED_step_not_implemented');
+  if(o.step==='d'&&!args.includes('--out'))o.outFile=resolve(root,'work/pilot/results/phase5-23-d-api.json');
   if(o.step==='c'&&!args.includes('--out'))o.outFile=resolve(root,'work/pilot/results/phase5-23-c-api.json');
   if(o.step==='b'&&!args.includes('--out'))o.outFile=resolve(root,'work/pilot/results/phase5-23-b-api.json');
   return o;
@@ -43,6 +45,7 @@ export function parseBlockApiArgs(args) {
 export async function runBlockApi(o) {
   parseBlockApiArgs(['--step',o.step,'--base-url',o.baseURL,'--out',o.outFile,...(o.preflight?['--preflight']:[])]);
   if(o.step==='c')return runBlockStepC(o);
+  if(o.step==='d')return runBlockStepD(o);
   if(o.step==='b')return runBlockStepB(o);
   const manifest=await assertTarget('protected');
   const db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(manifest.dbUrl,{max:3,prepare:false,onnotice:()=>{}});
@@ -69,7 +72,7 @@ export async function runBlockApi(o) {
     git(['merge-base','--is-ancestor',mark.revision,'HEAD']);
     report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
     const expected=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES,...LIFECYCLE_ENTRIES];
-    beforeAcl=await acl();if(UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),expected))throw Error('REFUSED_ACL');
+    beforeAcl=await acl();if(PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),expected))throw Error('REFUSED_ACL');
     original=await hashes();fixture=await createProgramplanBrowserFixture();
     const payload=JSON.parse(readFileSync(resolve(root,'web/lib/programplan-catalog.generated.json'),'utf8'));
     await run('built-worker',async c=>{
@@ -161,7 +164,7 @@ async function runBlockStepB(o) {
     if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...SOURCE])||git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE]))throw Error('BLOCKED_source_build');
     git(['merge-base','--is-ancestor',mark.revision,'HEAD']);report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
     const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES,...LIFECYCLE_ENTRIES],expected=[...old,...BLOCK_ENTRIES];
-    beforeAcl=await acl();if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);
+    beforeAcl=await acl();if(!o.preflight&&PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);
     if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
     if(o.preflight){aclTouched=true;for(const f of BLOCK_ENTRIES)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);}
     fixture=await createProgramplanBrowserFixture();

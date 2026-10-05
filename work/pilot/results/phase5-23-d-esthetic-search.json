@@ -1,0 +1,15 @@
+{
+  "scope": "internal-research",
+  "searchedOn": "2026-10-05",
+  "query": "site.skolverket.se OR site.skolverket.se/publikationer OR site.skolfi.se SKOLFS individuellt val estetiskt ämne 4 kap 7 gymnasieförordningen Gy25",
+  "boundedSearches": 1,
+  "result": "NOT_LOCATED_WITHIN_BOUNDED_SEARCH",
+  "verifiedAestheticSubjectList": false,
+  "category": "info",
+  "sources": [
+    "https://utbildningsguiden.skolverket.se/gymnasieskolan/gymnasieprogrammens-olika-delar",
+    "https://www.skolverket.se/styrning-och-ansvar/anordna-utbildning/anordna-gymnasieutbildning/studieplanering-i-gymnasieskolan-och-anpassade-gymnasieskolan-i-gy25",
+    "https://svenskforfattningssamling.se/sites/default/files/sfs/2025-11/SFS2025-1039.pdf"
+  ],
+  "limitation": "Ingen exakt Gy25-lista över estetiska ämnen kunde beläggas inom den avgränsade sökningen. Detta säger inte att en föreskrift saknas. Ingen lista härleds från ämnesnamn."
+}

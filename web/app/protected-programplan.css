@@ -195,3 +195,5 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 @media(max-width:700px){.ppk{padding:10px}.ppk-toolbar{align-items:flex-start;gap:8px}.ppk-toolbar label{max-width:100%}.ppk-table th:first-child{width:40%}.ppk-table th:nth-child(2){width:48px}.ppk-add{flex-direction:column}.ppk-add select{width:100%}.ppk-table th,.ppk-table td{padding:4px}}
 
 .ppk-mismatch{background:#fff4e4}.ppk-mismatch input{border-color:#b97818}.ppk-frame-note{color:#86510c;font-size:14px}
+
+.ppk-dialog{max-height:calc(100dvh - 40px);overflow:auto}.ppk-dialog label{display:flex;flex-direction:column;gap:4px;min-width:0}.ppk-dialog input,.ppk-dialog select{padding:8px;border:1px solid #cbd5e1;border-radius:6px;max-width:100%;min-width:0}.ppk-level-choices{max-height:200px;overflow:auto;margin:0;padding:0;list-style:none}.ppk-dialog li{padding:4px 0;overflow-wrap:anywhere}.ppk-dialog li button{padding:6px;text-align:left;border:1px solid #dbe2eb;border-radius:5px;max-width:100%}.ppk-entry strong,.ppk-entry span{overflow-wrap:anywhere;min-width:0}.ppk-add select{max-width:min(440px,100%)}

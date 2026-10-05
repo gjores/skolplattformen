@@ -31,7 +31,7 @@ const fixture = globalThis.__programplanPackagesTest = {
     state.calls.push({sql,values});
     if(state.sqlError) throw state.sqlError;
 
-    if(sql.includes('phase5_read_programplan_unit_packages')) return [{result:state.read}];
+    if(sql.includes('phase5_read_programplan_unit_packages')||sql.includes('phase5_list_programplan_packages')) return [{result:state.read}];
     state.mutations.push(values); return [{result:state.result}];
   },
 };
@@ -71,3 +71,33 @@ test('write verifies plan, exact school, revision, submitted block entries and p
 });
 
  test('school/block dependency hints become explicit conflict responses with no raw SQL',async()=>{for(const hint of ['programplan_unit_packages_in_use','programplan_block_packages_in_use']){reset('write');state.sqlError={code:'55006',hint,message:'private SQL'};const r=await routes.write(request('write'));assert.equal(r.status,409);assert.equal((await r.json()).code,hint);}});
+
+const genericRoutes={list:(await import('../../app/api/programplaner/valpaket/lista/route.ts')).POST,save:(await import('../../app/api/programplaner/valpaket/route.ts')).POST};
+const {default:catalog}=await import('../programplan-catalog.generated.json',{with:{type:'json'}});
+const school=id,packageId=other,level={subjectCode:'IDRO',subjectVersion:1,itemCode:'IDRO2000X',points:100};
+const definition={packageId,version:1,unitId:school,kind:'individualChoice',name:'Syntetiskt prov',catalogId:catalog.catalogId,levels:[level],points:100};
+const genericForms={save:{packageId:null,expectedVersion:0,details:{unitId:school,kind:definition.kind,name:definition.name,levels:definition.levels}},list:{unitId:school}};
+function genericReset(route){reset();state.read={unitId:school,packages:[structuredClone(definition)]};state.result=structuredClone(definition);if(route==='list')state.mfa=false;}
+function genericRequest(route,body=genericForms[route],origin='http://localhost'){return new Request(`http://localhost/api/programplaner/valpaket${route==='list'?'/lista':''}`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Context-Epoch':'1'},body:JSON.stringify(body)});}
+for(const route of ['list','save'])test(`generic ${route}: closed DTO, role and scoped SQL parameters`,async()=>{
+ for(const fn of ['huvudman','rektor','administrator']){genericReset(route);state.fn=fn;const r=await genericRoutes[route](genericRequest(route));assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');assert.deepEqual(await r.json(),route==='list'?state.read:state.result);assert.equal(state.events[0].action,route==='list'?'programplan_packages_read':'programplan_package_saved');assert.deepEqual(state.calls[0].values,route==='list'?[school]:[null,0,genericForms.save.details]);assert.equal(state.events[0].details.name,undefined);assert.equal(state.events[0].details.levels,undefined);if(route==='save')assert.equal(state.events[0].details.packageVersion,1);}
+});
+for(const route of ['list','save'])test(`generic ${route}: role/MFA/origin/CAS/audit and invalid replies fail closed`,async()=>{
+ for(const fn of ['larare','support','it','kundadmin','granskare']){genericReset(route);state.fn=fn;assert.equal((await genericRoutes[route](genericRequest(route))).status,403);assert.equal(state.calls.length,0);}
+ genericReset(route);assert.equal((await genericRoutes[route](genericRequest(route,{...genericForms[route],actorId:id}))).status,400);assert.equal(state.calls.length,0);
+ genericReset(route);assert.equal((await genericRoutes[route](genericRequest(route,genericForms[route],'https://foreign.test'))).status,403);assert.equal(state.calls.length,0);
+ genericReset(route);state.sqlError={code:'40001',message:'private SQL'};assert.equal((await genericRoutes[route](genericRequest(route))).status,409);
+ genericReset(route);state.sqlError={code:'42501',message:'private SQL'};const deny=await genericRoutes[route](genericRequest(route));assert.equal(deny.status,403);assert.equal(JSON.stringify(await deny.json()).includes('private'),false);
+ genericReset(route);state.auditFails=true;assert.equal((await genericRoutes[route](genericRequest(route))).status,500);assert.equal(state.mutations.length,0);
+ genericReset(route);if(route==='list')state.read.unitId=other;else state.result.version=2;assert.equal((await genericRoutes[route](genericRequest(route))).status,500);assert.equal(state.mutations.length,0);
+ if(route==='save'){genericReset(route);state.mfa=false;assert.equal((await genericRoutes[route](genericRequest(route))).status,403);assert.equal(state.calls.length,0);}
+});
+test('generic version save matches exact immutable identity, details and increment',async()=>{
+ const update={...genericForms.save,packageId,expectedVersion:1};
+ genericReset('save');state.result.version=2;assert.equal((await genericRoutes.save(genericRequest('save',update))).status,200);
+ for(const mutate of [p=>p.packageId=id,p=>p.unitId=other,p=>p.version=1,p=>p.name='Forged',p=>p.kind='specialization',p=>p.levels=[],p=>p.extra=true,p=>p.points=200,p=>p.catalogId='sha256:'+'0'.repeat(64)]){genericReset('save');state.result.version=2;mutate(state.result);assert.equal((await genericRoutes.save(genericRequest('save',update))).status,500);assert.equal(state.mutations.length,0);}
+ genericReset('list');state.read.packages[0].unitId=other;assert.equal((await genericRoutes.list(genericRequest('list'))).status,500);
+});
+test('mixed language/package unit selections preserve frozen references with no embedded levels',async()=>{
+ const mixed=[entries[0],{ref:{type:'package',packageId,version:1},distribution:[{levelKey:'IDRO:1:IDRO2000X',points:[0,0,0,0,0,100]}]}];reset('write');state.result.units[0].selections[0].entries=mixed;const r=await routes.write(request('write',{...forms.write,entries:mixed}));assert.equal(r.status,200);assert.deepEqual((await r.json()).units[0].selections[0].entries,mixed);assert.deepEqual(state.calls[0].values[4],mixed);
+});

@@ -35,7 +35,7 @@ export function sanitizeAuditDetails(input: Record<string, unknown> | undefined)
   const clean: Record<string, AuditJson> = {};
   for (const [key, value] of Object.entries(input ?? {})) {
     if (['emailMismatch','principalNamed','stepUp'].includes(key) && typeof value === 'boolean') clean[key] = value;
-    else if (['count','revokedSessions','copiedPackageUnits','packageRevision'].includes(key) && typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) clean[key] = value;
+    else if (['count','revokedSessions','copiedPackageUnits','packageRevision','packageVersion'].includes(key) && typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) clean[key] = value;
     else if (['assignmentId','organizerId','unitId','from','to'].includes(key) && (value === null || (typeof value === 'string' && UUID.test(value)))) clean[key] = value;
     else if (['from','to'].includes(key) && isoTime(value)) clean[key] = value;
     else if (key === 'blockId' && typeof value === 'string' && /^[a-z][a-z0-9]{0,15}$/u.test(value) && !['constructor','prototype','__proto__'].includes(value)) clean[key] = value;
