@@ -98,7 +98,7 @@ På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årsk
 
 **Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
-**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
+**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Markeringen försvinner när raden är åtgärdad. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
 
 Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan den kan ändras. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
 
@@ -110,7 +110,7 @@ Planen räknas som **Klar för beslut** först när allt detta stämmer:
 - analysen inte har några andra fel,
 - utbildningens startdatum finns.
 
-Tills dess visar **Innan planen är klar** vad som saknas. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
+Statusen visas vid utbildningens namn. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
 
 Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. För yrkesprogram anger underlaget ännu inte om programmet omfattar 2 700 eller 2 800 poäng, så där kontrolleras ramen inte. Lagrumshänvisningarna i analysen ska verifieras innan planen används som beslutsunderlag. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
 

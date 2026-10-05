@@ -12,7 +12,7 @@ import { programplanCommand, programplanCommandReply, programplanDiagnostic, pro
   programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, programplanSelectedId, assertProgramplanSummary, programplanLevelName, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
-import { AnalysisBanner, AnalysisView, ReadinessCard, SaveDialog } from './protected-programplan-sheet';
+import { AnalysisView, SaveDialog } from './protected-programplan-sheet';
 import { analyseProgramplan, type PlanIssue } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
 import ProgramplanList from './protected-programplan-list';
@@ -314,6 +314,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const analysis = program && workspace ? analyseProgramplan({ program, orientationCode: workspace.education.orientationCode, refs: shownRefs, startedOn: shownStart,
     sourceFetched: workspace.catalog.source?.fetched ?? null, serverNotes, terms: termInput }) : null;
   const problems = analysis ? analysis.counts.fel + analysis.counts.risk : 0;
+  const problemLabel = analysis ? [analysis.counts.fel ? `${analysis.counts.fel} fel` : '', analysis.counts.risk ? `${analysis.counts.risk} ${analysis.counts.risk === 1 ? 'risk' : 'risker'}` : ''].filter(Boolean).join(' · ') : '';
+  // Behåll navigeringsmålet bara så länge samma rad fortfarande behöver åtgärdas.
+  const activeFocusIssue = focusIssue && analysis?.issues.some(issue => issue.id === focusIssue.id &&
+    (issue.target?.kind !== 'row' || focusIssue.target?.kind === 'row' && issue.target.rowKey === focusIssue.target.rowKey)) ? focusIssue : null;
   const canEditInline = !!draft && editableRefs && draft.mode === 'edit';
   const ready = !!plan && plan.status === 'utkast' && boardActive && !!analysis?.ready;
   const statusText = plan ? `${ready ? 'Klar för beslut' : programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
@@ -355,15 +359,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     return () => cancelAnimationFrame(frame);
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
-    {analysis&&termValues&&<AnalysisBanner analysis={analysis} canSaveDraft={changePlan && (!!draft || plan?.status === 'utkast')} onOpen={()=>setView('analysis')}/>}
-    {analysis&&termValues&&plan.status==='utkast'&&<ReadinessCard analysis={analysis} onOpen={()=>setView('analysis')}/>}
     <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
-      focusIssue={view==='plan'?focusIssue:null} onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
+      focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
-    {analysis&&(draft||plan)&&<AnalysisBanner analysis={analysis} canSaveDraft={changePlan && (!!draft || plan?.status === 'utkast')} onOpen={()=>setView('analysis')}/>}
     {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}
     {program&&workspace&&<LocalPlanBoard program={program} orientationCode={workspace.education.orientationCode} options={shownOptions} refs={shownRefs}
-      focusIssue={view==='plan'?focusIssue:null} terms={draft?.kind==='create'?draftTerms:[]} refsEditable={canEditInline} disabled={!draft||draft.kind!=='create'||formLocked}
+      focusIssue={view==='plan'?activeFocusIssue:null} terms={draft?.kind==='create'?draftTerms:[]} refsEditable={canEditInline} disabled={!draft||draft.kind!=='create'||formLocked}
       onChange={(refs,terms)=>{if(draft){setDraft({...draft,refs,error:null});setDraftTerms(terms);}}}/>}
   </>;
   return <section className="protected-programplan" data-testid="protected-programplan-workspace" aria-busy={busy}>
@@ -384,7 +385,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         <div className="pps-actions">
           <LifecycleBadge lifecycle={workspace.lifecycle}/>
           <span className={ready?'pps-state pp-status pps-ready':'pps-state pp-status'}>{statusText}</span>
-          {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys<span className="pps-badge" data-fel={analysis.counts.fel>0} aria-label={`${problems} fel och risker`}>{problems}</span></Button>}
+          {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
           {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
           {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}

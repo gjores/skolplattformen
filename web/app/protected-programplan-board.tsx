@@ -236,7 +236,6 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
       </div>}
     </div>
     {children}
-    {target && target.kind !== 'start' && target.kind !== 'orientation' && <output className="pp-notice ppb-action"><strong>{focusIssue?.title}</strong><span>{target.kind === 'row' ? 'Ändra terminspoängen på den markerade raden.' : target.kind === 'balance' ? 'Jämför poängen i årskurskorten och flytta poäng mellan terminerna i tabellen.' : target.mode === 'add' ? 'Sök och lägg till en nivå under Programfördjupning.' : 'Ta bort en nivå med krysset på raden i Programfördjupning.'}</span></output>}
     <fieldset className="ppb-mobile-years" aria-label="Visa årskurs">{[0, 1, 2].map(y => <button key={y} type="button" aria-pressed={year === y} onClick={() => setYear(y)}>Åk {y + 1}</button>)}</fieldset>
     <div className="ppb-table-wrap"><table className="ppb-table">
       <caption className="pp-sr">Ämnen, nivåer och poäng per termin</caption>

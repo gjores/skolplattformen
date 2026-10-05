@@ -43,12 +43,13 @@ test('02: för många poäng sparas inte och markeras tills raden är rättad',a
 });
 
 test('03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut',async({page},info)=>{
-  await enter(page);await expect(w(page).getByRole('region',{name:'Innan planen är klar',exact:true})).toContainText('Alla nivåer är inte fördelade');
-  await expect(w(page).getByRole('region',{name:'Innan planen är klar',exact:true})).toContainText('Outnyttjat utrymme');
+  await enter(page);await expect(w(page).getByRole('button',{name:/^Analys/u})).toContainText('fel');
+  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page)).toContainText('nivåer saknar terminer');await expect(analysis(page)).toContainText('Outnyttjat utrymme');
+  await analysis(page).getByRole('button',{name:'Tillbaka till planen',exact:true}).click();
   for(const code of ['ANIM1000X','ANIM2000X']){const search=board(page).getByRole('searchbox',{name:'Lägg till ämne eller nivå'});await search.fill(code);const added=page.waitForResponse(matches('/api/programplaner/fordjupning'));await board(page).locator(`button[data-level-code="${code}"]`).click();expect((await added).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');}
   const pending=page.waitForResponse(matches('/api/programplaner/terminer'));await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();const r=await pending;expect(r.status()).toBe(200);await paired(r);
   await expect(board(page)).toContainText('allt fördelat');await expect(w(page).locator('.pp-status')).toContainText('Klar för beslut');
-  await expect(w(page).getByRole('region',{name:'Klar för beslut',exact:true})).toBeVisible();
+  await expect(w(page).locator('.pps-banner,.pps-ready-card,.pps-missing-card,.ppb-action')).toHaveCount(0);
   const actual=await read();const rows=new Map(actual.distribution.map((d:{rowKey:string;points:number[]})=>[d.rowKey,d.points]));
   expect(rows.get('meta:diplomaWork')).toEqual([0,0,0,0,50,50]);expect(rows.get('foundation:ENGE:1:ENGE1000X')).toEqual([50,50,0,0,0,0]);expect(rows.get('foundation:ENGE:1:ENGE2000X')).toEqual([0,0,50,50,0,0]);
   await expect(board(page).getByRole('button',{name:'Föreslå fördelning',exact:true})).toBeDisabled();await capture(page,info,'board-ready.png');
@@ -113,6 +114,8 @@ test('09: Flytta nivån behåller poängen, visar rätt årskurs och låter fele
   await cell(page,'Åk 2 HT').fill('');const firstSave=leave(page);
   try{await received;await year(page,info,3);await cell(page,'Åk 3 VT').fill('100');await w(page).getByRole('heading',{level:2}).first().click();}finally{release();}
   expect((await firstSave).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');await page.unroute('**/api/programplaner/terminer');
+  await expect(board(page).locator('[data-analysis-target]')).toHaveCount(0);await expect(board(page).locator('.ppb-action')).toHaveCount(0);
+  await capture(page,info,'analysis-action-resolved.png');
   await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page).getByRole('button',{name:'Flytta nivån →',exact:true})).toHaveCount(0);
   expect((await read()).distribution).toContainEqual({rowKey:higher,points:[0,0,0,0,0,100]});
   await page.reload();await navigate(page);await open(page);await year(page,info,3);await expect(cell(page,'Åk 3 VT')).toHaveValue('100');

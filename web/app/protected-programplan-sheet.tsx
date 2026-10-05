@@ -1,23 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { categoryDescription, categoryLabel, categoryOrder, partLabel, type Analysis, type IssueCategory, type PlanIssue, type PlanPart } from '@/lib/programplan-analysis.ts';
 
 const partColor: Record<PlanPart, string> = { foundation: '#2d4cc1', programmeSpecific: '#6f8cf0', orientation: '#a9bcff', specialization: '#0e8f83', other: '#c8d1df', meta: '#8a96a8' };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
-/** Felrad överst: tydlig, men blockerar inte sparande. */
-export function AnalysisBanner({ analysis, onOpen, disabled = false, canSaveDraft = true }: { analysis: Analysis; onOpen: () => void; disabled?: boolean; canSaveDraft?: boolean }) {
-  const { fel, risk } = analysis.counts;
-  if (fel) return <output className="pps-banner pps-banner-fel"><AlertCircle aria-hidden="true"/>
-    <p><strong>{plural(fel, 'fel', 'fel')} mot regelverket{risk ? ` och ${plural(risk, 'risk', 'risker')}` : ''}.</strong> {canSaveDraft ? 'Du kan spara utkastet, men planen kan inte fastställas förrän felen är åtgärdade.' : 'Planen kan inte fastställas förrän felen är åtgärdade.'}</p>
-    <button type="button" disabled={disabled} onClick={onOpen}>Visa analys →</button></output>;
-  return <output className="pps-banner pps-banner-ok"><CheckCircle2 aria-hidden="true"/>
-    <p><strong>Inga fel mot regelverket.</strong> {risk ? `${plural(risk, 'risk', 'risker')} att se över innan fastställande.` : 'Inga risker hittades.'}</p>
-    <button type="button" disabled={disabled} onClick={onOpen}>Visa analys →</button></output>;
-}
 
 /** Analysvy: kort per kategori, filter och en tabell med regel och åtgärd. */
 export function AnalysisView({ analysis, onBack, onFix, actionUnavailable }: { analysis: Analysis; onBack: () => void; onFix: (issue: PlanIssue) => void; actionUnavailable: (issue: PlanIssue) => string | null }) {
@@ -58,16 +47,5 @@ export function SaveDialog({ analysis, busy, onCancel, onConfirm, onAnalysis, ch
     {children}
     <div className="pps-dialog-actions"><Button variant="outline" disabled={busy} onClick={onCancel}>Tillbaka till uppgifterna</Button><Button variant="outline" disabled={busy} onClick={onAnalysis}>Visa analys</Button>
       <Button disabled={busy} onClick={onConfirm}>{busy ? 'Sparar…' : fel ? 'Spara ändå' : 'Spara utkast'}</Button></div>
-  </section>;
-}
-
-/** Klar för beslut räknas fram: allt fördelat, inga fel och startdatum. Visar vad som saknas. */
-export function ReadinessCard({ analysis, onOpen }: { analysis: Analysis; onOpen: () => void }) {
-  if (analysis.ready) return <section className="pps-card pps-ready-card" aria-label="Klar för beslut"><CheckCircle2 size={20} aria-hidden="true"/>
-    <div><h3>Klar för beslut</h3><p>Alla nivåer är fördelade och analysen har inga fel. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.</p></div></section>;
-  return <section className="pps-card pps-missing-card" aria-label="Innan planen är klar">
-    <h3>Innan planen är klar</h3>
-    <ul>{analysis.missing.map(m => <li key={m}>{m}</li>)}</ul>
-    <button type="button" className="pps-link" onClick={onOpen}>Visa analys →</button>
   </section>;
 }
