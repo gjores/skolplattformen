@@ -12,8 +12,14 @@ const packagePath=/^\/api\/programplaner\/(?:paketval|valpaket)(?:\/|$)/u;
 async function navigate(page:Page,name=/^Öppna utbildning Syntetisk SA utan plan,/u) {
   await waitForHydration(page);
   const mobile=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches),sidebar=page.locator('[data-slot="sidebar"][data-state]');
-  if(mobile?!await page.locator('[data-mobile="true"]').isVisible():await sidebar.getAttribute('data-state')==='collapsed')await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
-  await page.getByRole('button',{name:'Programplaner',exact:true}).click();
+  if(mobile){
+    const mobileSidebar=page.locator('[data-mobile="true"]');
+    if(!await mobileSidebar.isVisible())await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
+    await expect(mobileSidebar).toBeVisible();await mobileSidebar.getByRole('button',{name:'Programplaner',exact:true}).click();await expect(mobileSidebar).not.toBeVisible();
+  }else{
+    if(await sidebar.getAttribute('data-state')==='collapsed')await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
+    await page.getByRole('button',{name:'Programplaner',exact:true}).click();
+  }
   const list=workspace(page).getByRole('region',{name:'Alla programplaner',exact:true});
   await expect(list).toHaveAttribute('aria-busy','false');
   await list.getByRole('button',{name}).click();
@@ -57,7 +63,7 @@ async function allocateFrame(page:Page,planId:string,session=fixture.principal) 
   return read.body;
 }
 async function saveSchoolOffering(planId:string) {
-  const saved=await fixture.request(baseURL,fixture.principal,'/api/programplaner/valpaket',{packageId:null,expectedVersion:0,details:{unitId:fixture.unitId,kind:'individualChoice',name:'Syntetiskt tidigare sparat skolutbud',levels:[{subjectCode:'BILD',subjectVersion:1,itemCode:'BILD1B00X',points:100},{subjectCode:'IDRO',subjectVersion:1,itemCode:'IDRO2000X',points:100}]}});
+  const saved=await fixture.request(baseURL,fixture.principal,'/api/programplaner/valpaket',{packageId:null,expectedVersion:0,details:{unitId:fixture.unitId,kind:'individualChoice',name:'Syntetiskt tidigare sparat skolutbud',levels:[{subjectCode:'BILD',subjectVersion:2,itemCode:'BILD1B00X',points:100},{subjectCode:'IDRO',subjectVersion:1,itemCode:'IDRO2000X',points:100}]}});
   expect(saved.status).toBe(200);expect(saved.body.points).toBe(200);
   expect(await fixture.paired(saved.correlationId,fixture.principal,'programplan_package_saved',saved.body.packageId,'programplan_package')).toBe(true);
   const picked=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval',{planId,unitId:fixture.unitId,expectedRevision:0,blockId:'iv1',entries:[{ref:{type:'package',packageId:saved.body.packageId,version:1},distribution:[]}]});

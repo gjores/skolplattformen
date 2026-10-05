@@ -11,6 +11,7 @@ approved_by: "Användarbeställning 2026-10-05: Ändra appen så att det inte fi
 files_modified:
   - web/app/protected-programplan-workspace.tsx
   - web/app/protected-programplan-board.tsx
+  - web/app/globals.css
   - web/lib/programplan-analysis.ts
   - web/lib/programplan-analysis.test.mjs
   - web/lib/session-channel.ts
