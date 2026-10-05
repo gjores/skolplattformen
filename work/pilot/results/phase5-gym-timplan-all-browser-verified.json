@@ -1,0 +1,395 @@
+{
+  "status": "passed",
+  "scope": "local synthetic data, actual built Worker, Chromium desktop and WebKit iPhone 13",
+  "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+  "actualCases": 60,
+  "failed": 0,
+  "skipped": 0,
+  "retries": 0,
+  "cleanupCount": 60,
+  "allRemainingOwnedRowsZero": true,
+  "retainedAppendOnlyAudit": true,
+  "gyOriginalBusinessEvidence": {
+    "fixtures": 18,
+    "tables": 14,
+    "wholeRowHashUnchanged": true,
+    "tablesIncluded": [
+      "point_plans",
+      "point_plan_events",
+      "offerings",
+      "offering_units",
+      "timplans",
+      "timplan_cells",
+      "timplan_events",
+      "class_timplans",
+      "school_classes",
+      "pupil_placements",
+      "programplan_shape_upgrades",
+      "programplan_unit_packages",
+      "programplan_packages",
+      "gym_timplan_receipts"
+    ]
+  },
+  "layoutEvidence": {
+    "gyGeometries": 20,
+    "allGeometryWithinViewport": true,
+    "uniquePhotosViewed": 62,
+    "mobileDocumentWidth": 390,
+    "desktopDocumentWidth": 1440,
+    "tableOverflowRemainsLocal": true,
+    "visualIssuesFound": [],
+    "allDistinctPhotosViewed": true,
+    "photoManifest": "/private/tmp/gym-timplan-browser-photo-manifest.json",
+    "photoManifestSha256": "be30b3f3b4901e85c54dcfb41ce76caa060b8e78cda572ae8a31d610a6aed821",
+    "photoCountingMethod": "Deduplicate PNG bytes by SHA256 across saved outputPath files and actual raw-report image attachments; ignore duplicate attachments/ file copies, retain body-only PNGs."
+  },
+  "suites": [
+    {
+      "suite": "gym-timplan",
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "baseURL": "http://127.0.0.1:3059",
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browsers": [
+        "chromium",
+        "webkit"
+      ],
+      "stats": {
+        "startTime": "2026-10-05T21:50:42.083Z",
+        "duration": 150278.694,
+        "expected": 18,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cleanupCount": 18,
+      "remainingOwnedRowsZero": true,
+      "uniquePhotosViewed": 20,
+      "rawReport": "/private/tmp/gym-timplan-browser-attempt2.json",
+      "rawLog": "/private/tmp/gym-timplan-browser-attempt2.log",
+      "evidence": "/private/tmp/gym-timplan-browser-attempt2-evidence"
+    },
+    {
+      "suite": "legacy-timplan",
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "baseURL": "http://127.0.0.1:3012",
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browsers": [
+        "chromium",
+        "webkit"
+      ],
+      "stats": {
+        "startTime": "2026-10-05T21:57:00.622Z",
+        "duration": 55826.818,
+        "expected": 22,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cleanupCount": 22,
+      "remainingOwnedRowsZero": true,
+      "uniquePhotosViewed": 14,
+      "rawReport": "/private/tmp/gym-timplan-regression-legacy.json",
+      "rawLog": "/private/tmp/gym-timplan-regression-legacy-attempt2.log",
+      "evidence": "/private/tmp/gym-timplan-regression-legacy-evidence",
+      "photoProvenance": {
+        "savedOutputScreenshots": 8,
+        "additionalBodyBase64Attachments": 6,
+        "distinctTotal": 14,
+        "summaryImagesFieldExplanation": "The earlier helper reported 3 because it deduplicated identical attachment names across two projects. The raw report contains 6 distinct body PNGs from T11 and T10. Separate outputPath screenshots from T01, T02 and T04 are another 8 distinct PNGs, four per project.",
+        "exactPhotos": [
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-desktop",
+            "sha256": "8b3462eecbd1f7bb67f7264f2892ae34384d6ef216125b5b114cda317fc46666",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-desktop/grundskola.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-desktop",
+            "sha256": "17e65baedd2ad82916d76e344e3823edbad0d47e0e27021bf48e960508fe6c7a",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-desktop/introduktionsprogram.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-phone",
+            "sha256": "87feb27d174861758139c6a963ee61c2722260041b9adc2ade5f4cd0cb02963f",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-phone/grundskola.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-phone",
+            "sha256": "d09d05e52861ea32d3b72d1e267fb018a2d5d7e037923d9f9502357b64dd87ff",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-01-rätt-kol-95f4e-erlag-och-mobilpresentation-timplan-phone/introduktionsprogram.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-02-vald-cel-99d5a--dubbel-audit-och-omläsning-timplan-desktop",
+            "sha256": "d21cc77465710a72038b0c1498eab654c09408c7ceeb9657a2eb9f14203cdae5",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-02-vald-cel-99d5a--dubbel-audit-och-omläsning-timplan-desktop/cell-draft.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-02-vald-cel-99d5a--dubbel-audit-och-omläsning-timplan-phone",
+            "sha256": "e3821c9894d4de54f7b4184da74fa44f36bd6249853df907ac76f6b061fc4852",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-02-vald-cel-99d5a--dubbel-audit-och-omläsning-timplan-phone/cell-draft.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-04-verklig--c36e3--bara-efter-uttryckligt-val-timplan-desktop",
+            "sha256": "9985103764b2fcb8e7c9b20a8c7ef9896dc2da49096a00f5c53fe7f18a63dd6f",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-04-verklig--c36e3--bara-efter-uttryckligt-val-timplan-desktop/cell-compare.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "phase5-timplan-04-verklig--c36e3--bara-efter-uttryckligt-val-timplan-phone",
+            "sha256": "626b01cec019f4d5ed0712312d010411fb7aec83964f24c1a5bf7243b5e2fe22",
+            "path": "/private/tmp/gym-timplan-regression-legacy-evidence/phase5-timplan-04-verklig--c36e3--bara-efter-uttryckligt-val-timplan-phone/cell-compare.png",
+            "provenance": [
+              "Playwright outputPath screenshot saved by the actual passing test"
+            ],
+            "reviewed": true
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "timplan-desktop",
+            "testTitle": "11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning",
+            "sha256": "11d4041cd93522169d85e1dd465521faa9cc48e8b6002c9ee96df4a68fabac07",
+            "path": "/private/tmp/gym-timplan-regression-legacy-body-images/timplan-desktop-timplan-tillagd-skola.png",
+            "provenance": [
+              "body base64 PNG in /private/tmp/gym-timplan-regression-legacy.json; attachment timplan-tillagd-skola.png"
+            ],
+            "reviewed": true,
+            "reviewNote": "Decoded exact PNG body from passing raw Playwright report and viewed in this verification turn."
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "timplan-desktop",
+            "testTitle": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+            "sha256": "4468487a170e9eaf1b04a79bea1b796b2bc638a212d0670364340630cfe7e391",
+            "path": "/private/tmp/gym-timplan-regression-legacy-body-images/timplan-desktop-grundskola-regelstod.png",
+            "provenance": [
+              "body base64 PNG in /private/tmp/gym-timplan-regression-legacy.json; attachment grundskola-regelstod.png"
+            ],
+            "reviewed": true,
+            "reviewNote": "Decoded exact PNG body from passing raw Playwright report and viewed in this verification turn."
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "timplan-desktop",
+            "testTitle": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+            "sha256": "ea486ef8e5e0b5497a20a11b535c3d8a64774f9056fb60e6aa2bce78f578dbc5",
+            "path": "/private/tmp/gym-timplan-regression-legacy-body-images/timplan-desktop-im-regelstod.png",
+            "provenance": [
+              "body base64 PNG in /private/tmp/gym-timplan-regression-legacy.json; attachment im-regelstod.png"
+            ],
+            "reviewed": true,
+            "reviewNote": "Decoded exact PNG body from passing raw Playwright report and viewed in this verification turn."
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "timplan-phone",
+            "testTitle": "11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning",
+            "sha256": "958d1afd5cb71656c24ab23f3099af3125effc8db08c00b9b9330cf722e52b17",
+            "path": "/private/tmp/gym-timplan-regression-legacy-body-images/timplan-phone-timplan-tillagd-skola.png",
+            "provenance": [
+              "body base64 PNG in /private/tmp/gym-timplan-regression-legacy.json; attachment timplan-tillagd-skola.png"
+            ],
+            "reviewed": true,
+            "reviewNote": "Decoded exact PNG body from passing raw Playwright report and viewed in this verification turn."
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "timplan-phone",
+            "testTitle": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+            "sha256": "ec6b47533037c24eddf853164671052bb82e3d3067a2c75caace97be8db66152",
+            "path": "/private/tmp/gym-timplan-regression-legacy-body-images/timplan-phone-grundskola-regelstod.png",
+            "provenance": [
+              "body base64 PNG in /private/tmp/gym-timplan-regression-legacy.json; attachment grundskola-regelstod.png"
+            ],
+            "reviewed": true,
+            "reviewNote": "Decoded exact PNG body from passing raw Playwright report and viewed in this verification turn."
+          },
+          {
+            "suite": "legacy-timplan",
+            "project": "timplan-phone",
+            "testTitle": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+            "sha256": "70509b8eefd650f5ad98c63559257bc44e3d6b657e554fe16019e27aa54eba81",
+            "path": "/private/tmp/gym-timplan-regression-legacy-body-images/timplan-phone-im-regelstod.png",
+            "provenance": [
+              "body base64 PNG in /private/tmp/gym-timplan-regression-legacy.json; attachment im-regelstod.png"
+            ],
+            "reviewed": true,
+            "reviewNote": "Decoded exact PNG body from passing raw Playwright report and viewed in this verification turn."
+          }
+        ]
+      }
+    },
+    {
+      "suite": "programplan-frame",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "baseURL": "http://127.0.0.1:3012",
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browsers": [
+        "chromium",
+        "webkit"
+      ],
+      "stats": {
+        "startTime": "2026-10-05T21:58:28.429Z",
+        "duration": 102455.16500000001,
+        "expected": 10,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cleanupCount": 10,
+      "remainingOwnedRowsZero": true,
+      "uniquePhotosViewed": 16,
+      "rawReport": "/private/tmp/gym-timplan-regression-frame.json",
+      "rawLog": "/private/tmp/gym-timplan-regression-frame.log",
+      "evidence": "/private/tmp/gym-timplan-regression-frame-evidence"
+    },
+    {
+      "suite": "choice-blocks",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "baseURL": "http://127.0.0.1:3012",
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browsers": [
+        "chromium",
+        "webkit"
+      ],
+      "stats": {
+        "startTime": "2026-10-05T22:00:50.738Z",
+        "duration": 39703.460999999996,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cleanupCount": 6,
+      "remainingOwnedRowsZero": true,
+      "uniquePhotosViewed": 6,
+      "rawReport": "/private/tmp/gym-timplan-regression-blocks.json",
+      "rawLog": "/private/tmp/gym-timplan-regression-blocks.log",
+      "evidence": "/private/tmp/gym-timplan-regression-blocks-evidence"
+    },
+    {
+      "suite": "terms-readonly-12",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "baseURL": "http://127.0.0.1:3012",
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browsers": [
+        "chromium",
+        "webkit"
+      ],
+      "stats": {
+        "startTime": "2026-10-05T22:01:54.796Z",
+        "duration": 7834.518,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cleanupCount": 2,
+      "remainingOwnedRowsZero": true,
+      "uniquePhotosViewed": 2,
+      "rawReport": "/private/tmp/gym-timplan-regression-termsreadonly.json",
+      "rawLog": "/private/tmp/gym-timplan-regression-termsreadonly.log",
+      "evidence": "/private/tmp/gym-timplan-regression-termsreadonly-evidence"
+    },
+    {
+      "suite": "lifecycle-L07",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0,
+      "baseURL": "http://127.0.0.1:3012",
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browsers": [
+        "chromium",
+        "webkit"
+      ],
+      "stats": {
+        "startTime": "2026-10-05T22:02:33.833Z",
+        "duration": 12177.948,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cleanupCount": 2,
+      "remainingOwnedRowsZero": true,
+      "uniquePhotosViewed": 4,
+      "rawReport": "/private/tmp/gym-timplan-regression-lifecycleL07.json",
+      "rawLog": "/private/tmp/gym-timplan-regression-lifecycleL07.log",
+      "evidence": "/private/tmp/gym-timplan-regression-lifecycleL07-evidence"
+    }
+  ],
+  "preservedEarlierFailures": [
+    {
+      "rawReport": "/private/tmp/gym-timplan-browser-attempt1.json",
+      "kind": "actual WebKit phone layout failure",
+      "status": "fixed in verified production CSS; all 18 rerun passed",
+      "positiveEvidence": "/private/tmp/gym-timplan-browser-attempt2.json"
+    },
+    {
+      "rawReport": "/private/tmp/gym-timplan-regression-legacy-first-fail.json",
+      "kind": "beforeAll build-marker guard refused old root artifact, before fixture creation or DB test",
+      "status": "same verified 3ae5fe5 artifact subsequently installed byte-identically at root, guard unchanged; all22 passed"
+    }
+  ],
+  "dbOwnershipReturnedToRoot": true,
+  "photoCountCorrection": {
+    "previousCount": 56,
+    "correctedCount": 62,
+    "reason": "Six distinct legacy body-only image attachments were initially excluded by the temporary helper. All six are now decoded, preserved, viewed and included with SHA256 provenance."
+  }
+}

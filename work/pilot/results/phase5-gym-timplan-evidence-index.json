@@ -1,0 +1,144 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+  "reports": [
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-foundation-rollback.json",
+      "sha256": "81481fb11feada485887a7b909df47940d70a5ebbce32afc862443a8af4da44c"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-foundation-applied.json",
+      "sha256": "16c65587d0643e047845c73ab1af1ece8f89f49dfdb867301a9cdec83e9b2c5c"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-foundation-attempt-02-fail.json",
+      "sha256": "28d97fbc4094df9220973c2b6f71bf355f167be6e9713f5b44940c3cc3b9679c"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-grants-applied.json",
+      "sha256": "0afd7dbc18355f5bcde21ffcf95a0acc6196f0249d0e64a9fb5c2830ce99374c"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-sql-current.json",
+      "sha256": "855264f75ce3d54449077efb2c3a6ffbcdbc8916df6d18aeca546aba90837a8e"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-preflight-attempt1.json",
+      "sha256": "b1ad9f944efa379146d081133a396f6b42dad1328432542cee09adcddc18dbcc"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-api-final.json",
+      "sha256": "befa47cd4d3b677779a761399819565d1ba7bcbd630afc6f95acbabb82e258a6"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-api-repair.json",
+      "sha256": "5c93a4d99c18281abe696aa92f0ef277245723b2dffebceb0caa7cd39dc21b16"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-api-3012.json",
+      "sha256": "5c93a4d99c18281abe696aa92f0ef277245723b2dffebceb0caa7cd39dc21b16"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-browser-attempt1.json",
+      "sha256": "811823a88078f410402c9283a306e55f7847a71b5b89b9718072e6913fc0c808"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-browser-attempt2.json",
+      "sha256": "3f3bf918292c6f841e24df267a3323ba34e5589088e7921001e726fafefceb59"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-browser-attempt2-summary.json",
+      "sha256": "24c1803ffeb17efe8eb1060d263c2e7203e3f38d8bafc3adc5c55cfd5368ccf7"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-browser-verified.json",
+      "sha256": "da253c7f2d8e1cfc73ccc20447b852de93c46e4fc2652f3c844bb3d3bbbd6503"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-phone-repro.json",
+      "sha256": "743a63e2992649e29cb33c13cf4e4fe93ffb07e5d87a1d82b657b8bb1b2a4388"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-legacy-first-fail.json",
+      "sha256": "6fb368555d2f57f77b1eeaf52a7b6fd4db52ec80c3d70be4f6d77b7af1857456"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-runtime-before.json",
+      "sha256": "7c9479def068a1d3d259a8a25fe29c4c1ae95d561431cb9b67bfb7077c17e663"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-artifact-copy.json",
+      "sha256": "61b5b444e6bdedb75a5948c329eca128e883dd299a9fb8e03dfbf2e8e2c2561a"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-runtime-after.json",
+      "sha256": "4c160710f537caae9a63cd2a21d7d961f250b91423e06d91b7534717b52920df"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-runtime-after-serverchange.json",
+      "sha256": "4c160710f537caae9a63cd2a21d7d961f250b91423e06d91b7534717b52920df"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-legacy.json",
+      "sha256": "7317785d5f7d2ef7780e2c2913aa84558142a6c4eafbc48deed5c0246c56bf3a"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-legacy-summary.json",
+      "sha256": "2f64dbb144c2df6c72691dd4ef9ba3ee1d9fa7f4dd856d706012df0dd744ed77"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-frame.json",
+      "sha256": "ea9743bce2bc905d0137c605c1d1a8efb897594e5bbb460041721d3bfb0b559b"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-frame-summary.json",
+      "sha256": "a906e59fa50f24af3bbd49c1d04e6b6aaa0fad430ca435c91f3716d30e80ab04"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-blocks.json",
+      "sha256": "f54a137031a1db6778453046700df70bedd5a28e1523cab9fa2b0811733cd64a"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-blocks-summary.json",
+      "sha256": "717407b6e6d0a2374262ca5e1f1aca241795419f9adc9a22e790fc70de93160e"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-termsreadonly.json",
+      "sha256": "d6e4561de4c909acfe5b02655b7360cdea8732fc41730e2016b61164b3eeda6d"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-termsreadonly-summary.json",
+      "sha256": "abfb683e3a085557b2d48665d349c40d6510662671c6b60fe64f890515295169"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-lifecycleL07.json",
+      "sha256": "0328a6035efdf3f73f08ead7d0274531c7c7e9885368f47723899e60e49203ee"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-regression-lifecycleL07-summary.json",
+      "sha256": "d4d71ad9e4a1388ed71809c616d3765420d4ba3ab2d503679a1a11fd0be403da"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-checks.json",
+      "sha256": "9004467ada95867c277fb01f73ec3cddb12687c47f0d692a3ba691df5211e53e"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-all-browser-verified.json",
+      "sha256": "cf1623eebdd8c376f1b0cf92dc4676a5915e05884ce8c0e16296864681f2c1d9"
+    },
+    {
+      "path": "work/pilot/results/phase5-gym-timplan-browser-photo-manifest.json",
+      "sha256": "be30b3f3b4901e85c54dcfb41ce76caa060b8e78cda572ae8a31d610a6aed821"
+    }
+  ],
+  "verifiedLocalDate": "2026-10-06",
+  "browserCases": 60,
+  "cleanupAttachments": 60,
+  "finalWholeBusinessTablesPreserved": 14,
+  "localPhotoAssets": {
+    "path": "work/pilot/targets/protected/runtime/gym-timplan-evidence/photo-assets",
+    "distinctSha256": 62,
+    "allReviewed": true
+  }
+}

@@ -1,7 +1,8 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: programplan-timplan-transition
-status: in_progress
+status: completed
+completed: 2026-10-06
 type: execute
 created: 2026-10-05
 wave: 1
@@ -67,7 +68,7 @@ must_haves:
 
 # Programplan → skolans timutkast
 
-**Status: genomförande pågår; verklig Worker-/browserverifiering och leverans återstår.** Användaren har 2026-10-05 beställt att den bästa integrationen ska utformas och sedan genomföras. Dokumentet bygger på aktuell kod vid `85f9054` och read-only granskning av 05-25–35. Det innehåller inga nya produktprov eller PASS. Filnamespace är samordnat med executor: `gym-timplan` och `/api/timplaner/gym/{underlag,skapa,lasa,rad}`. RPC-signaturerna binds i delsteg 1; SQL/API/UI använder samma slutna kontrakt.
+**Status: avgränsad övergång genomförd och automatiskt verifierad 2026-10-06.** Användarens beställning 2026-10-05 har levererats på vanlig lokal 3012. Slutbygge `3ae5fe5`, 60 dator-/telefonfall, verklig Worker 11/157 och bevarande av 14 hela originaltabeller PASS. Se [SUMMARY](05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md) och [VERIFICATION](05-PROGRAMPLAN-TIMPLAN-TRANSITION-VERIFICATION.md). Genomförandeplanen nedan beskriver den beslutade omfattningen; full fas 5, formella beslut, garantikontroll och mänsklig bedömning är fortsatt öppna.
 
 <objective>
 Användaren kan fortsätta från utbildningens kompletta sparade poäng- och terminsram till sin skolas beständiga timutkast, fylla och spara timmar samt återgå till exakt använd programversion. Tidsplanering kan förberedas parallellt med formella beslut.

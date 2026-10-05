@@ -1,0 +1,385 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "--config=playwright.phase5-blocks.config.ts",
+      "--grep",
+      "B0[123]:",
+      "--max-failures=1"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-blocks.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "blocks-desktop",
+        "name": "blocks-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-blocks\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "blocks-phone",
+        "name": "blocks-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-blocks\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-blocks.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-blocks.spec.ts",
+      "file": "phase5-blocks.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "blocks-desktop",
+              "projectName": "blocks-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5207,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:00:51.140Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "new-sa-full-points.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B01-ny-SA25--b472f-h-läser-om-samma-fördelning-blocks-desktop/attachments/new-sa-full-points-png-3abc6253ae505025874033bcc60e49d171fee45f.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1MSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b64d97a280670b5136ff-8dd5535d208a61b96e85",
+          "file": "phase5-blocks.spec.ts",
+          "line": 23,
+          "column": 1
+        },
+        {
+          "title": "B02: rektor delar IV i två block och lägger till fördjupningsram, fördelar och läser om",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "blocks-desktop",
+              "projectName": "blocks-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6968,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:00:57.215Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "blocks-split-specialization.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B02-rektor-d-9b548-gsram-fördelar-och-läser-om-blocks-desktop/attachments/blocks-split-specialization-png-0826d0bda4709fac62b72f13fcbc77b3d02d3586.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo4MywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b64d97a280670b5136ff-8be1a90add4e3850b9fd",
+          "file": "phase5-blocks.spec.ts",
+          "line": 76,
+          "column": 1
+        },
+        {
+          "title": "B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "blocks-desktop",
+              "projectName": "blocks-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4649,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:01:04.191Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "legacy-new-version-swedish.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B03-äldre-fa-107cc-och-behåller-gamla-IV-poäng-blocks-desktop/attachments/legacy-new-version-swedish-png-0f2200a7d5bd6b022d14214b67708a68b4874c38.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoyOCwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b64d97a280670b5136ff-2c10b8b8b79338f8699f",
+          "file": "phase5-blocks.spec.ts",
+          "line": 106,
+          "column": 1
+        },
+        {
+          "title": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "blocks-phone",
+              "projectName": "blocks-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6925,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:01:09.202Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "new-sa-full-points.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B01-ny-SA25--b472f-h-läser-om-samma-fördelning-blocks-phone/attachments/new-sa-full-points-png-6aa0a88af778186b78c4443ac3e38ea94dba1836.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1NywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b64d97a280670b5136ff-ae79604b8e365853a147",
+          "file": "phase5-blocks.spec.ts",
+          "line": 23,
+          "column": 1
+        },
+        {
+          "title": "B02: rektor delar IV i två block och lägger till fördjupningsram, fördelar och läser om",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "blocks-phone",
+              "projectName": "blocks-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9062,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:01:16.967Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "blocks-split-specialization.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B02-rektor-d-9b548-gsram-fördelar-och-läser-om-blocks-phone/attachments/blocks-split-specialization-png-26f792172244c3a8f610908018aa58714efc2b83.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo4OSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b64d97a280670b5136ff-25184c55503520cbda6f",
+          "file": "phase5-blocks.spec.ts",
+          "line": 76,
+          "column": 1
+        },
+        {
+          "title": "B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "blocks-phone",
+              "projectName": "blocks-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4352,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:01:26.037Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "legacy-new-version-swedish.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B03-äldre-fa-107cc-och-behåller-gamla-IV-poäng-blocks-phone/attachments/legacy-new-version-swedish-png-d8efe26d73e60d98f27911a576e1dd11f2491ce7.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoyOCwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b64d97a280670b5136ff-507cc7a3a524278061a9",
+          "file": "phase5-blocks.spec.ts",
+          "line": 106,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-05T22:00:50.738Z",
+    "duration": 39703.460999999996,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

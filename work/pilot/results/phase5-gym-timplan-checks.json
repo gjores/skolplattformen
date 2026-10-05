@@ -1,0 +1,51 @@
+{
+  "scope": "local-synthetic-only",
+  "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+  "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+  "models": {
+    "passed": 524,
+    "failed": 0
+  },
+  "servers": {
+    "passed": 150,
+    "failed": 0
+  },
+  "harness": {
+    "passed": 9,
+    "failed": 0
+  },
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "logs": {
+    "models": {
+      "originalPath": "/private/tmp/gym-timplan-model-final.log",
+      "sha256": "89f6db7625021d60f10e5a153076a2050075e872b1f1488c93e74f7890c4d350"
+    },
+    "servers": {
+      "originalPath": "/private/tmp/gym-timplan-server-tests.log",
+      "sha256": "a0da3b39baea58e9ab2b9d28abc04469658f5cec003d4262f4f0c1649438ff52"
+    },
+    "harness": {
+      "originalPath": "/private/tmp/gym-timplan-harness-final.log",
+      "sha256": "6f279c0b1f8edf78587c1c5e663c3085d1b9ab49fbb1fe3d147779f989b3cc77"
+    },
+    "typecheck": {
+      "originalPath": "/private/tmp/gym-timplan-tsc-repair.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "lint": {
+      "originalPath": "/private/tmp/gym-timplan-lint-final4.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "protectedBuild": {
+      "originalPath": "/private/tmp/gym-timplan-build-repair.log",
+      "sha256": "a68d64a3769a53785f09f8c1674eb90d9d4c52c29b03acef36757c37563a2ef5"
+    },
+    "handbookBuild": {
+      "originalPath": "/private/tmp/gym-timplan-docs-final.log",
+      "sha256": "6921b041afe4fd2f83f18aa84b93ddad8c5aa3815d0e5cf16d227b2b59ddaa20"
+    }
+  }
+}

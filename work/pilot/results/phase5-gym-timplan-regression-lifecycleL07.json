@@ -1,0 +1,215 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "--config=playwright.phase5-lifecycle.config.ts",
+      "--grep",
+      "L07: huvudmannen",
+      "--max-failures=1"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-lifecycle.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "lifecycle-desktop",
+        "name": "lifecycle-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-lifecycle\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "lifecycle-phone",
+        "name": "lifecycle-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-lifecycle\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-lifecycle.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-lifecycle.spec.ts",
+      "file": "phase5-lifecycle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra planen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "lifecycle-desktop",
+              "projectName": "lifecycle-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3991,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:02:34.201Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "units-school-filter.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-desktop/attachments/units-school-filter-png-b9835e39d1a8be63ac8cf8b9154309f49766ddd7.png"
+                    },
+                    {
+                      "name": "units-principal-b-readonly.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-desktop/attachments/units-principal-b-readonly-png-948758bec1cd286b6735f6c4410125369209d80f.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo2NywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a69f2c0d599e41f9d38b-a74812e653fa1c513416",
+          "file": "phase5-lifecycle.spec.ts",
+          "line": 136,
+          "column": 1
+        },
+        {
+          "title": "L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra planen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "lifecycle-phone",
+              "projectName": "lifecycle-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6195,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:02:39.332Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "units-school-filter.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-phone/attachments/units-school-filter-png-ebb79cfa14e4a4b89d702c09611d1d63020f6128.png"
+                    },
+                    {
+                      "name": "units-principal-b-readonly.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-phone/attachments/units-principal-b-readonly-png-99c266a91c29a8f50e06b7af7484204975bca91a.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo2NywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a69f2c0d599e41f9d38b-e1a4afba36279dac3034",
+          "file": "phase5-lifecycle.spec.ts",
+          "line": 136,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-05T22:02:33.833Z",
+    "duration": 12177.948,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

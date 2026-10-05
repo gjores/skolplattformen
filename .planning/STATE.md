@@ -5,17 +5,17 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-23
 status: in_progress
-stopped_at: Paketen borttagna från programplanerna enligt senare användarbeslut; avgränsad rättning verifierad på dator och telefon och levererad på 3012. Full E och mänskligt prov väntar; äldre audit-FAIL och 05-22 metadata PARTIAL kvar. 05-25 väntar på hela 05-23
-last_updated: "2026-10-05"
-last_activity: 2026-10-05
-last_activity_desc: "Beslutad paketborttagning genomförd. Programram och äldre uppgifter bevarade; 20 aktuella browserfall, 648 modell/serverprov och handbok PASS. Vanlig 3012 kör 848afd4; separat utbud/studieplan/organisation återstår. Full 05-23/E inte klar."
-state_head: 848afd4
-worker_build_revision: 848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d
+stopped_at: Avgränsad programplan–timplan-övergång slutförd och verifierad på 3012. Nästa full 05-23/E enligt paketfri ram och omplanering av 05-25–35; beslut, yrkesram och mänsklig bedömning kvarstår.
+last_updated: "2026-10-06"
+last_activity: 2026-10-06
+last_activity_desc: "Skolvis timutkast från komplett sparad programram; 60 dator-/telefonfall, faktisk Worker 11/157 och 14-tabellsbevarande PASS. Vanlig 3012 kör 3ae5fe5; avgränsad leverans verifierad."
+state_head: 3ae5fe5
+worker_build_revision: 3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 89
-  completed_plans: 76
+  total_plans: 90
+  completed_plans: 77
 milestone_name: milestone
 ---
 
@@ -23,14 +23,16 @@ milestone_name: milestone
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-05)
+See: .planning/PROJECT.md (updated 2026-10-06)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Paketen är borttagna från programplanerna enligt senare användarbeslut 2026-10-05. Fasta nivåer, blockramar, terminer och skolkopplingar består; äldre utbud bevaras. Nästa är 05-23/E:s fullplansverifiering enligt reviderad ram. Separat skolutbud/elevval/individuella studieplaner/grupper/bemanning är ännu inte byggt. 05-25 väntar på hela 05-23 och yrkesfastställande dessutom på 05-17. Mänskliga prov och full fasverifiering är öppna.
+**Current focus:** Användarens beställda [övergång från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) är genomförd och automatiskt verifierad på 3012. Komplett sparad högskoleförberedande programram kan användas redan som utkast, med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Full 05-23/E, yrkesram 05-17, formella beslut, garantikontroll och mänsklig begriplighetsbedömning återstår. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
 
-**Beslutad och genomförd paketborttagning, 2026-10-05:** Programplanen har fasta nivåer och valbara blocks poäng/terminsram, utan paketkommandon, paketladdning eller paketanalys. Kullkopiering tar med ram/terminer/skolor utan paketval; äldre hela paket-/planrader bevaras. F01–F05 10 PASS, B01–B03 6 PASS, skrivskyddad terminsanalys 2 och delad plan 2 PASS; 6 äldre paket-UI-fall uttryckligen historiska skips. Node 512 + 136, harness 4, typ/lint/skyddat bygge/handbok PASS. Första browser-FAIL och byggavvikelser bevarade; slutlig städning av 20 fixturer noll egna verksamhetsrader. Vanlig 3012 kör 848afd4: 166 testade artefaktfiler byteidentiska, 12 ursprungliga tabellers helradshashar och 18 scenarier/44 auditpar bevarade utan reset. Se [REMOVE-PACKAGES-PLAN](phases/05-bevarade-utbildnings-och-klassfloden/05-23-REMOVE-PACKAGES-PLAN.md), [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-23-SUMMARY.md) och phase5-programplan-frame-rapporter. Avgränsad rättning klar, **hela 05-23/E in_progress, ADMIN-02/ADMIN-03 Pending och mänsklig begriplighet awaiting_user**. Äldre audit-FAIL/05-22 metadata PARTIAL kvar. Berörda 05-25–28 ska granska sina skolpaketsantaganden mot beslutet; inget skydd kringgås.
+**Beställd 2026-10-05; genomförd och verifierad 2026-10-06:** Programplanens Timplan leder till rätt skolas beständiga timutkast. Poäng/källversion fryses; timmar sparas separat över sex terminer. Samma programram kan användas av flera skolor. Rektor/skoladministratör ändrar inom skolmandatet; HM läser. Explicit nytt underlag bär bara timmar från oförändrade ramar; äldre timmar och klasskopplingar består. Nya browser18/18 och regression42/42, faktisk Worker på 3012 11/157, postgrants SQL37 och 14 hela originaltabeller/18 scenarier/44 auditpar PASS. 174 prövade artefaktfiler är byteidentiska på vanlig 3012 (`3ae5fe5`). Slutlig städning och bevarandekontroll efter alla 60 browserfall PASS. Se [PLAN](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) och [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md). **Avgränsad utkastleverans; ADMIN-02/03/04 och hela fas 5 är öppna.** 05-25–35 har replan_required; deras fastställd-/paketgrind ersätts endast för förberedande utkast.
+
+**Föregående paketborttagning, 2026-10-05:** Programplanen har fasta nivåer och valbara blocks poäng/terminsram, utan paketkommandon, paketladdning eller paketanalys. Kullkopiering tar med ram/terminer/skolor utan paketval; äldre hela paket-/planrader bevaras. F01–F05 10 PASS, B01–B03 6 PASS, skrivskyddad terminsanalys 2 och delad plan 2 PASS; 6 äldre paket-UI-fall uttryckligen historiska skips. Node 512 + 136, harness 4, typ/lint/skyddat bygge/handbok PASS. Första browser-FAIL och byggavvikelser bevarade; slutlig städning av 20 fixturer noll egna verksamhetsrader. Vanlig 3012 kör 848afd4: 166 testade artefaktfiler byteidentiska, 12 ursprungliga tabellers helradshashar och 18 scenarier/44 auditpar bevarade utan reset. Se [REMOVE-PACKAGES-PLAN](phases/05-bevarade-utbildnings-och-klassfloden/05-23-REMOVE-PACKAGES-PLAN.md), [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-23-SUMMARY.md) och phase5-programplan-frame-rapporter. Avgränsad rättning klar, **hela 05-23/E in_progress, ADMIN-02/ADMIN-03 Pending och mänsklig begriplighet awaiting_user**. Äldre audit-FAIL/05-22 metadata PARTIAL kvar. Berörda 05-25–28 ska granska sina skolpaketsantaganden mot beslutet; inget skydd kringgås.
 
 **Tidigare begärd arkitekturöversyn, före senare beställning 2026-10-05:** Användaren ifrågasätter paketens placering i programplanen och vill bedöma dem tillsammans med individuella studieplaner och tjänstefördelning. [Bedömningen](research/PAKETENS-PLATS-I-UTBILDNINGSFLODET-2026-10-05.md) föreslår programram → skolans utbud/valomgång → elevens konkreta studierader → grupper/bemanning, med tidig resursprognos och senare avstämning. Bibliotek/versioner och befintliga uppgifter kan återanvändas. Den senare beställningen ovan godkänner paketborttagningen, som nu är genomförd. Den fulla separata utbuds-/organisationsfunktionen är fortsatt ett förslag. E:s gamla paketUI-prov ersätts av ramprov i den reviderade planen; inga redan godkända krav återfrågas.
 
@@ -63,12 +65,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-23 — A/B/C/D genomförda; nästa E i ny executorsession. Hela planen är öppen.
-**Total Plans in Phase:** 34 PLAN-filer: 22 genomförda planer har SUMMARY (05-01–05-16, 05-18–05-22, 05-24); 05-23 har en partiell SUMMARY för steg A/B/C/D. 05-25–05-35 saknar SUMMARY. 05-17 saknar PLAN. Mänskliga prov och slutverifiering är separata.
-**Status:** 05-23 A/B/C/D automatiskt verifierat lokalt; E återstår. Äldre SQL-/metadataavvikelser kvarstår. Mänskligt prov awaiting_user; ADMIN-02/ADMIN-03 och full fas 5 inte slutgodkända.
+**Current Plan:** 05-23/E enligt paketfri ram. Avgränsad programplan–timplan-övergång är klar; 05-25–35 kräver omplanering.
+**Total Plans in Phase:** 36 PLAN-filer: 34 numrerade planer, paketborttagning och programplan–timplan-övergång. 05-23 har partiell SUMMARY; 05-25–35 saknar SUMMARY. 05-17 saknar PLAN. Mänskliga prov och full fasverifiering är separata.
+**Status:** Avgränsad skolvis timutkastövergång genomförd och automatiskt verifierad lokalt. Fulla ADMIN-02/03/04 och fas 5 är Pending; äldre SQL-/metadataavvikelser och mänskligt prov kvarstår.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-10-05
-**Last Activity Description:** 05-23 D genomförd med versionsbundna ämnespaket och skolans IV-analys. Nästa E för fullplansverifiering.
+**Last Activity:** 2026-10-06
+**Last Activity Description:** Skolans egna undervisningstimmar från fryst programram, med exakt källretur och uttryckligt nytt utkast vid ändrad källa.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
@@ -79,14 +81,14 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planinventering 2026-10-05: 89 skrivna PLAN-filer; 75 genomförda huvudplaner plus en avgränsad paketborttagningsplan (76 totalt). Huvudplan 05-23 har fortfarande partiell SUMMARY för A/B/C/D och den senare rättningen. Den avgränsade rättningens resultat ligger i samma SUMMARY och avslutar inte huvudplanen. 12 saknar SUMMARY: 04-22 och 05-25–05-35. En SUMMARY innebär inte att mänskligt prov eller full fas är godkänt. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planinventering 2026-10-06: 90 skrivna PLAN-filer; 75 genomförda huvudplaner plus två avgränsade planer för paketborttagning och timutkastövergång (77 totalt). Huvudplan 05-23 har fortfarande partiell SUMMARY för A/B/C/D och den senare rättningen. Paketborttagningens resultat ligger i samma SUMMARY; timutkastövergången har en egen SUMMARY/VERIFICATION. Ingen av dem avslutar huvudplanen. 12 saknar SUMMARY: 04-22 och 05-25–05-35. En SUMMARY innebär inte att mänskligt prov eller full fas är godkänt. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Completed plans with execution summary: 76 (75 huvudplaner + 1 avgränsad rättning, inte hela 05-23)
+- Completed plans with execution summary: 77 (75 huvudplaner + 2 avgränsade förändringar, inte hela 05-23)
 - Partial plan summary: 05-23 (steg A/B/C/D och avgränsad senare paketborttagning)
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
@@ -135,6 +137,8 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 ## Accumulated Context
 
 ## Decisions Made
+
+- 2026-10-05: Användaren beställer utformning och genomförande av övergång programplan → timplan. Komplett sparad högskoleförberedande ram kan ge ett förberedande skolutkast före formellt beslut; exakt källa fryses och timmar planeras separat. Paket återinförs inte. Gamla 05-25–35 ska omplaneras mot aktuell kod och upptagna migrationsnummer.
 
 Fullständiga beslut finns i PROJECT.md.
 
@@ -252,11 +256,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-10-05
-**Stopped At:** 05-23 A/B/C/D automatiskt verifierade. Paketens placering omprövas på användarens begäran; förslag redovisat, ombyggnad inte beslutad. E är tidigare planerat nästa steg. Mänskligt prov väntar på vanlig 3012. Full fas 5, yrkesregler 05-17 och fas 4:s checkpoint kvarstår.
+**Last Date:** 2026-10-06
+**Stopped At:** Övergångens kod, serverleverans och slutverifiering klara på 3012 (60 browserfall PASS). Full 05-23/E, yrkesram 05-17, beslut och fas 4-checkpoint kvarstår.
 **Resume File:** None
 
-**Planned Phase:** 5 — genomför 05-23 E före 05-25; mänskligt prov av programplanerna är separat och väntande. 05-17 saknar fortfarande genomförandeplan och ska levereras inför yrkesfastställande. Delegation och full fasverifiering kvarstår — 2026-10-05
+**Planned Phase:** 5 — fortsätt 05-23/E enligt paketfri ram och omplanering av 05-25–35. Yrkesfastställande kräver 05-17. Skolutbud, elevval, grupper och bemanning behöver separat planering.
 
 ### Senaste användarfynd, 2026-10-02
 

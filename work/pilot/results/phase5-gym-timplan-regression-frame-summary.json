@@ -1,0 +1,118 @@
+{
+  "file": "/private/tmp/gym-timplan-regression-frame.json",
+  "stats": {
+    "startTime": "2026-10-05T21:58:28.429Z",
+    "duration": 102455.16500000001,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": [],
+  "globalErrors": [],
+  "source": [
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "frame-desktop",
+      "title": "F01",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-desktop",
+      "title": "F02",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-desktop",
+      "title": "F03",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-desktop",
+      "title": "F04",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-desktop",
+      "title": "F05",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-phone",
+      "title": "F01",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-phone",
+      "title": "F02",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-phone",
+      "title": "F03",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-phone",
+      "title": "F04",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "frame-phone",
+      "title": "F05",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    }
+  ],
+  "geometries": [],
+  "images": [
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-desktop/attachments/frame-without-school-packages-png-e363cb0353de9ec59a7071678fb247c9e01e617a.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-d7cde-verka-programplanens-analys-frame-desktop/attachments/frame-analysis-preserves-school-offering-png-5c4151aa1db98c31f01a6f914ed4e7d5cb5522b6.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-desktop/attachments/copied-frame-without-school-offering-png-e9c652c1adb4057689d2591689693b6eefa4fbeb.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/administratör-utkast-frame-png-da3188f54d8457b2e474f41d13296918ed61f7ff.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/delad-rektor-utkast-frame-png-618bc8ffa018634ff72c6fc0bc6c405a01cd780b.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/administratör-faststalld-frame-png-0945086da1a5b8c530167b473777b7baef800650.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/delad-rektor-faststalld-frame-png-ffcc4e18a7e9b01b91a547d6c67baf8774406214.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-664bb-esked-och-bevarade-helrader-frame-desktop/attachments/older-offering-block-change-refused-png-e8dabb4a8ca8bfe8f556f75bacad0caf92e711a8.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-phone/attachments/frame-without-school-packages-png-4ea5af8c0ededf3174bde604ef0d60dc2ed2b4de.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-d7cde-verka-programplanens-analys-frame-phone/attachments/frame-analysis-preserves-school-offering-png-77f5454313d3f1d4208dd083e60193e66f77f41c.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-phone/attachments/copied-frame-without-school-offering-png-ba5a8dd75e417d7a7b8b896e37d39591f02136e2.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/administratör-utkast-frame-png-a4185022282277e3f616b13e4470e32b44d60c79.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/delad-rektor-utkast-frame-png-04c73b9f8680f7dda2cf0dc3a3b6df9e2a8251a1.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/administratör-faststalld-frame-png-8de48e25f48c7f6f8086425ae2df6accab829a04.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/delad-rektor-faststalld-frame-png-b858746a630fe8eae85461666d143568b9ea3ad3.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-664bb-esked-och-bevarade-helrader-frame-phone/attachments/older-offering-block-change-refused-png-4022fa052e1845522c5841c0b5ca01acdbce0d07.png"
+  ]
+}

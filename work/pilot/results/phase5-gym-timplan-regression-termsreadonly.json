@@ -1,0 +1,205 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "--config=playwright.phase5-terms.config.ts",
+      "--grep",
+      "12: en skrivskyddad plan",
+      "--max-failures=1"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-terms.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terms-desktop",
+        "name": "terms-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-terms\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terms-phone",
+        "name": "terms-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-terms\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-terms.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-terms.spec.ts",
+      "file": "phase5-terms.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2657,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:01:55.150Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "analysis-readonly.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-12-en-skrivsk-775e3-ör-risker-inte-kan-åtgärdas-terms-desktop/attachments/analysis-readonly-png-a051048338668d10a6d5a48a48537ed3f5e1110f.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoxOCwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-76459cdb74fcbd528d7c",
+          "file": "phase5-terms.spec.ts",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3288,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:01:58.856Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "analysis-readonly.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-12-en-skrivsk-775e3-ör-risker-inte-kan-åtgärdas-terms-phone/attachments/analysis-readonly-png-87f4101d8cd0bb316f9f003b1b727a326d2334b0.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoxOCwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-95a9e5c91cbb3927a3f9",
+          "file": "phase5-terms.spec.ts",
+          "line": 151,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-05T22:01:54.796Z",
+    "duration": 7834.518,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

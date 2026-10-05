@@ -1,0 +1,591 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "--config=playwright.phase5-timplan.config.ts",
+      "--max-failures=1"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-timplan.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-timplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "timplan-desktop",
+        "name": "timplan-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-timplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-timplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "timplan-phone",
+        "name": "timplan-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-timplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-timplan.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-timplan.spec.ts",
+      "file": "phase5-timplan.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 0,
+                  "error": {
+                    "message": "Error: Browserprovet kräver samma styrda källor som bygget.",
+                    "stack": "Error: Browserprovet kräver samma styrda källor som bygget.\n    at verifyBrowserTarget (/Users/petter.gjores/dev/skolplattform/work/pilot/phase5-browser-fixtures.mjs:30:82)\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-timplan.spec.ts:59:15",
+                    "location": {
+                      "file": "/Users/petter.gjores/dev/skolplattform/work/pilot/phase5-browser-fixtures.mjs",
+                      "column": 82,
+                      "line": 30
+                    },
+                    "snippet": "\u001b[90m   at \u001b[39m../../work/pilot/phase5-browser-fixtures.mjs:30\n\n  28 |   try { git(['merge-base','--is-ancestor',mark.revision,source]); }\n  29 |   catch { throw new Error('Browserprovet kräver ett bygge av aktuell UI/serverkod.'); }\n> 30 |   if(git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE_PATHS]))throw Error('Browserprovet kräver samma styrda källor som bygget.');\n     |                                                                                  ^\n  31 |   const response = await fetch(`${baseURL}/api/health/db`, {signal:AbortSignal.timeout(10000)});\n  32 |   const body = await response.json();\n  33 |   if (!response.ok || body.role !== 'skolplattform_worker' || body.runtime !== 'workerd') throw new Error('Browserprovets databasroll är inte byggd Worker.');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/work/pilot/phase5-browser-fixtures.mjs",
+                        "column": 82,
+                        "line": 30
+                      },
+                      "message": "Error: Browserprovet kräver samma styrda källor som bygget.\n\n   at ../../work/pilot/phase5-browser-fixtures.mjs:30\n\n  28 |   try { git(['merge-base','--is-ancestor',mark.revision,source]); }\n  29 |   catch { throw new Error('Browserprovet kräver ett bygge av aktuell UI/serverkod.'); }\n> 30 |   if(git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE_PATHS]))throw Error('Browserprovet kräver samma styrda källor som bygget.');\n     |                                                                                  ^\n  31 |   const response = await fetch(`${baseURL}/api/health/db`, {signal:AbortSignal.timeout(10000)});\n  32 |   const body = await response.json();\n  33 |   if (!response.ok || body.role !== 'skolplattform_worker' || body.runtime !== 'workerd') throw new Error('Browserprovets databasroll är inte byggd Worker.');\n    at verifyBrowserTarget (/Users/petter.gjores/dev/skolplattform/work/pilot/phase5-browser-fixtures.mjs:30:82)\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-timplan.spec.ts:59:15"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:53:35.447Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-timplan/phase5-timplan-11-rektor-p-21ee5-implan-för-delad-utbildning-timplan-desktop/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/petter.gjores/dev/skolplattform/work/pilot/phase5-browser-fixtures.mjs",
+                    "column": 82,
+                    "line": 30
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-b1fc6f7d688825585cdf",
+          "file": "phase5-timplan.spec.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "title": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-a472c086f07114e97570",
+          "file": "phase5-timplan.spec.ts",
+          "line": 155,
+          "column": 1
+        },
+        {
+          "title": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-692bda977e7ac3a20f16",
+          "file": "phase5-timplan.spec.ts",
+          "line": 233,
+          "column": 1
+        },
+        {
+          "title": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-3f71880cfc6162ba96a2",
+          "file": "phase5-timplan.spec.ts",
+          "line": 263,
+          "column": 1
+        },
+        {
+          "title": "03: huvudman och fastställd version är läsning utan redigering",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-8841649b0ff391dd09b6",
+          "file": "phase5-timplan.spec.ts",
+          "line": 282,
+          "column": 1
+        },
+        {
+          "title": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-35fcf7ab44f86da35ac1",
+          "file": "phase5-timplan.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "05: osparat skydd vid dialogstängning och byte till annan plan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-f4e0447117c30d103c35",
+          "file": "phase5-timplan.spec.ts",
+          "line": 329,
+          "column": 1
+        },
+        {
+          "title": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-9f2d8d5389e8a92f5628",
+          "file": "phase5-timplan.spec.ts",
+          "line": 361,
+          "column": 1
+        },
+        {
+          "title": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-204aa262b000e8c144f9",
+          "file": "phase5-timplan.spec.ts",
+          "line": 384,
+          "column": 1
+        },
+        {
+          "title": "08: pagination, tom lista, okänd rad och skyddad programplansnavigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-619196a3dcd71cb6ccc6",
+          "file": "phase5-timplan.spec.ts",
+          "line": 424,
+          "column": 1
+        },
+        {
+          "title": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-desktop",
+              "projectName": "timplan-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-98643b498fcac126c4c8",
+          "file": "phase5-timplan.spec.ts",
+          "line": 455,
+          "column": 1
+        },
+        {
+          "title": "11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-7bfe9eef002afca413f2",
+          "file": "phase5-timplan.spec.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "title": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-60f7a958962b10e8b20b",
+          "file": "phase5-timplan.spec.ts",
+          "line": 155,
+          "column": 1
+        },
+        {
+          "title": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-910f88f095a48f270034",
+          "file": "phase5-timplan.spec.ts",
+          "line": 233,
+          "column": 1
+        },
+        {
+          "title": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-a34f1274495347c8130b",
+          "file": "phase5-timplan.spec.ts",
+          "line": 263,
+          "column": 1
+        },
+        {
+          "title": "03: huvudman och fastställd version är läsning utan redigering",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-91e4f7aa433a55d9ef47",
+          "file": "phase5-timplan.spec.ts",
+          "line": 282,
+          "column": 1
+        },
+        {
+          "title": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-4d94603e3855326eaadd",
+          "file": "phase5-timplan.spec.ts",
+          "line": 298,
+          "column": 1
+        },
+        {
+          "title": "05: osparat skydd vid dialogstängning och byte till annan plan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-f04ea0876110a14f0221",
+          "file": "phase5-timplan.spec.ts",
+          "line": 329,
+          "column": 1
+        },
+        {
+          "title": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-329b0f54ff2d6b64795e",
+          "file": "phase5-timplan.spec.ts",
+          "line": 361,
+          "column": 1
+        },
+        {
+          "title": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-42e3e032c1fe30673894",
+          "file": "phase5-timplan.spec.ts",
+          "line": 384,
+          "column": 1
+        },
+        {
+          "title": "08: pagination, tom lista, okänd rad och skyddad programplansnavigation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-6b13a187d5d05ec4f950",
+          "file": "phase5-timplan.spec.ts",
+          "line": 424,
+          "column": 1
+        },
+        {
+          "title": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-4c1cb6aa525936c3c09f",
+          "file": "phase5-timplan.spec.ts",
+          "line": 455,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-05T21:53:35.045Z",
+    "duration": 775.125,
+    "expected": 0,
+    "skipped": 21,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

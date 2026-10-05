@@ -8,7 +8,7 @@ En skolplattform för svenska huvudmän, rektorer, skoladministratörer och lär
 
 Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
 
-**Aktuellt delresultat 2026-10-05:** 05-23 A/B/C är automatiskt verifierade lokalt med syntetiska data. Skolans språkpaket, terminsfördelning, analysmål och kopiering finns för huvudman/rektor/skoladministratör inom mandatet; administrator kan inte ändra själva planen. Vanlig 3012 kör 9790c54, befintliga verksamhetsrader bevarade. Generella ämnespaket återstår i D, fullplansprov i E. Hela 05-23/ADMIN-02/ADMIN-03 är öppna; äldre auditfall FAIL och 05-22 metadata PARTIAL. Språkexportkoder och verklig kommunanslutning är inte verifierade.
+**Aktuellt delresultat 2026-10-06:** Användarens beställda övergång från komplett sparad högskoleförberedande programram till skolans timutkast är genomförd. Exakt programversion/revision och poängterminer fryses; skolans timmar planeras separat. Ändrad källa tas in uttryckligt i en ny timversion. Paket är borttagna från programplanerna. Vanlig 3012 kör `3ae5fe5`, med 14 ursprungliga tabeller och 18 befintliga scenarier bevarade. 60 dator-/telefonfall och verklig Worker 11/157 PASS; se [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md). Full 05-23/E, ADMIN-02/03/04, formella beslut, yrkesram 05-17, garanterad tid och separat skolutbud/elevval/grupporganisation/bemanning är fortsatt öppna. Äldre audit-FAIL och 05-22 metadata PARTIAL kvarstår.
 
 ## Current Milestone
 

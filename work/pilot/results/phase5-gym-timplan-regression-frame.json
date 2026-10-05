@@ -1,0 +1,633 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "--config=playwright.phase5-programplan-frame.config.ts",
+      "--max-failures=1"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-programplan-frame.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "frame-desktop",
+        "name": "frame-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-programplan-frame\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "frame-phone",
+        "name": "frame-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-programplan-frame\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-programplan-frame.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-programplan-frame.spec.ts",
+      "file": "phase5-programplan-frame.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "F01: tomt skolutbud påverkar inte programplanens blockramar eller beslutsklarhet",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-desktop",
+              "projectName": "frame-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7351,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:58:28.858Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "frame-without-school-packages.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-desktop/attachments/frame-without-school-packages-png-e363cb0353de9ec59a7071678fb247c9e01e617a.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1MywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-0cb90ef57dc948fce8f4",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 97,
+          "column": 1
+        },
+        {
+          "title": "F02: tidigare sparat ofördelat IV-paket bevaras utan att påverka programplanens analys",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-desktop",
+              "projectName": "frame-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7003,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:58:37.270Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "frame-analysis-preserves-school-offering.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-d7cde-verka-programplanens-analys-frame-desktop/attachments/frame-analysis-preserves-school-offering-png-5c4151aa1db98c31f01a6f914ed4e7d5cb5522b6.png"
+                    },
+                    {
+                      "name": "separate-offering-preserved.json",
+                      "contentType": "application/json",
+                      "body": "eyJ2ZXJzaW9ucyI6MSwic2VsZWN0aW9ucyI6MSwid2hvbGVSb3dzVW5jaGFuZ2VkIjp0cnVlLCJwbGFuUm93VW5jaGFuZ2VkQWZ0ZXJBbmFseXNpcyI6dHJ1ZSwicGFja2FnZUFwaUF0dGVtcHRzIjpbXX0="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1NywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-70c12e4996ae178cdd15",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 108,
+          "column": 1
+        },
+        {
+          "title": "F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolans paketval",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-desktop",
+              "projectName": "frame-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8138,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:58:44.281Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "copied-frame-without-school-offering.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-desktop/attachments/copied-frame-without-school-offering-png-e9c652c1adb4057689d2591689693b6eefa4fbeb.png"
+                    },
+                    {
+                      "name": "copy-separation.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VQbGFuQW5kT2ZmZXJpbmdXaG9sZVJvd3NVbmNoYW5nZWQiOnRydWUsInNvdXJjZUhpc3RvcnlVbmNoYW5nZWQiOnRydWUsInNvdXJjZVBhY2thZ2VXaG9sZVJvd3NVbmNoYW5nZWQiOnRydWUsImNvcGllZENob2ljZUJsb2NrcyI6W3siaWQiOiJtb3NwIiwia2luZCI6Im1vZGVybkxhbmd1YWdlIiwibmFtZSI6Ik1vZGVybmEgc3Byw6VrIiwicG9pbnRzIjoyMDB9LHsiaWQiOiJpdjEiLCJraW5kIjoiaW5kaXZpZHVhbENob2ljZSIsIm5hbWUiOiJJbmRpdmlkdWVsbHQgdmFsIiwicG9pbnRzIjoyMDB9XSwiY29waWVkVGVybVBvaW50cyI6MjUwMCwiY29waWVkU2Nob29sQ291bnQiOjIsIm5ld1NjaG9vbFNlbGVjdGlvbnMiOjAsInBhY2thZ2VBcGlBdHRlbXB0cyI6W119"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo5OSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-cbf27d237d36c4987747",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 119,
+          "column": 1
+        },
+        {
+          "title": "F04: administratör och rektor på delad skola läser full ram utan termins- eller paketkommandon",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-desktop",
+              "projectName": "frame-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 20495,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:58:52.427Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "administratör-utkast-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/administratör-utkast-frame-png-da3188f54d8457b2e474f41d13296918ed61f7ff.png"
+                    },
+                    {
+                      "name": "delad rektor-utkast-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/delad-rektor-utkast-frame-png-618bc8ffa018634ff72c6fc0bc6c405a01cd780b.png"
+                    },
+                    {
+                      "name": "administratör-faststalld-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/administratör-faststalld-frame-png-0945086da1a5b8c530167b473777b7baef800650.png"
+                    },
+                    {
+                      "name": "delad rektor-faststalld-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/delad-rektor-faststalld-frame-png-ffcc4e18a7e9b01b91a547d6c67baf8774406214.png"
+                    },
+                    {
+                      "name": "readonly-separation.json",
+                      "contentType": "application/json",
+                      "body": "eyJyZWFkZXJzIjpbImFkbWluaXN0cmF0b3IiLCJzaGFyZWQtcHJpbmNpcGFsIl0sInN0YXR1c2VzIjpbInV0a2FzdCIsImZhc3RzdGFsbGQiXSwiZmFzdHN0YWxsZFByZXBhcmF0aW9uIjoib3duZWQgc3ludGhldGljIGZpeHR1cmUgb25seSwgbm8gcmVhbCBkZWNpc2lvbiIsImJhc2VsaW5lUGVyU3RhdHVzIjp0cnVlLCJ0ZXJtQW5kUGxhbkNvbW1hbmRzIjpbXSwicGFja2FnZUFwaUF0dGVtcHRzIjpbXSwic291cmNlUGxhbkFuZE9mZmVyaW5nV2hvbGVSb3dzVW5jaGFuZ2VkRHVyaW5nUmVhZHMiOnRydWUsInNvdXJjZUhpc3RvcnlVbmNoYW5nZWREdXJpbmdSZWFkcyI6dHJ1ZSwic291cmNlUGFja2FnZVdob2xlUm93c1VuY2hhbmdlZCI6dHJ1ZX0="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoyMjEsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6NCwibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjB9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-3ae204bc495cb928a3fb",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 153,
+          "column": 1
+        },
+        {
+          "title": "F05: äldre sparat utbud hindrar mindre IV-block med tydligt 409-besked och bevarade helrader",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-desktop",
+              "projectName": "frame-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5946,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:59:12.929Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "older-offering-block-change-refused.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-664bb-esked-och-bevarade-helrader-frame-desktop/attachments/older-offering-block-change-refused-png-e8dabb4a8ca8bfe8f556f75bacad0caf92e711a8.png"
+                    },
+                    {
+                      "name": "old-offering-refusal.json",
+                      "contentType": "application/json",
+                      "body": "eyJzdGF0dXMiOjQwOSwiY29kZSI6InByb2dyYW1wbGFuX2Jsb2NrX3BhY2thZ2VzX2luX3VzZSIsIm1pc2xlYWRpbmdSZXZpc2lvbkNvbmZsaWN0IjpmYWxzZSwic291cmNlUGxhbkFuZE9mZmVyaW5nV2hvbGVSb3dzVW5jaGFuZ2VkIjp0cnVlLCJzb3VyY2VIaXN0b3J5VW5jaGFuZ2VkIjp0cnVlLCJzb3VyY2VQYWNrYWdlV2hvbGVSb3dzVW5jaGFuZ2VkIjp0cnVlLCJwYWNrYWdlQXBpQXR0ZW1wdHMiOltdfQ=="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1MiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-4dd8de9ed6e25f1728fe",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 180,
+          "column": 1
+        },
+        {
+          "title": "F01: tomt skolutbud påverkar inte programplanens blockramar eller beslutsklarhet",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-phone",
+              "projectName": "frame-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6917,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:59:19.359Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjNhZTVmZTVhN2YxYzRhNThjNDU0ZDI4ZDQ3NGE2Y2JhYTljZDZjNWIiLCJidWlsZFJldmlzaW9uIjoiM2FlNWZlNWE3ZjFjNGE1OGM0NTRkMjhkNDc0YTZjYmFhOWNkNmM1YiIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "frame-without-school-packages.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-phone/attachments/frame-without-school-packages-png-4ea5af8c0ededf3174bde604ef0d60dc2ed2b4de.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1NywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-f8fc17576a73fd8574bd",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 97,
+          "column": 1
+        },
+        {
+          "title": "F02: tidigare sparat ofördelat IV-paket bevaras utan att påverka programplanens analys",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-phone",
+              "projectName": "frame-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6204,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:59:27.349Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "frame-analysis-preserves-school-offering.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-d7cde-verka-programplanens-analys-frame-phone/attachments/frame-analysis-preserves-school-offering-png-77f5454313d3f1d4208dd083e60193e66f77f41c.png"
+                    },
+                    {
+                      "name": "separate-offering-preserved.json",
+                      "contentType": "application/json",
+                      "body": "eyJ2ZXJzaW9ucyI6MSwic2VsZWN0aW9ucyI6MSwid2hvbGVSb3dzVW5jaGFuZ2VkIjp0cnVlLCJwbGFuUm93VW5jaGFuZ2VkQWZ0ZXJBbmFseXNpcyI6dHJ1ZSwicGFja2FnZUFwaUF0dGVtcHRzIjpbXX0="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo2MSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-4589b27aca2b0d37db9a",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 108,
+          "column": 1
+        },
+        {
+          "title": "F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolans paketval",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-phone",
+              "projectName": "frame-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8711,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:59:33.559Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "copied-frame-without-school-offering.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-phone/attachments/copied-frame-without-school-offering-png-ba5a8dd75e417d7a7b8b896e37d39591f02136e2.png"
+                    },
+                    {
+                      "name": "copy-separation.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VQbGFuQW5kT2ZmZXJpbmdXaG9sZVJvd3NVbmNoYW5nZWQiOnRydWUsInNvdXJjZUhpc3RvcnlVbmNoYW5nZWQiOnRydWUsInNvdXJjZVBhY2thZ2VXaG9sZVJvd3NVbmNoYW5nZWQiOnRydWUsImNvcGllZENob2ljZUJsb2NrcyI6W3siaWQiOiJtb3NwIiwia2luZCI6Im1vZGVybkxhbmd1YWdlIiwibmFtZSI6Ik1vZGVybmEgc3Byw6VrIiwicG9pbnRzIjoyMDB9LHsiaWQiOiJpdjEiLCJraW5kIjoiaW5kaXZpZHVhbENob2ljZSIsIm5hbWUiOiJJbmRpdmlkdWVsbHQgdmFsIiwicG9pbnRzIjoyMDB9XSwiY29waWVkVGVybVBvaW50cyI6MjUwMCwiY29waWVkU2Nob29sQ291bnQiOjIsIm5ld1NjaG9vbFNlbGVjdGlvbnMiOjAsInBhY2thZ2VBcGlBdHRlbXB0cyI6W119"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoxMDUsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6MiwibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjB9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-b5d46d2dc82bcd7df23a",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 119,
+          "column": 1
+        },
+        {
+          "title": "F04: administratör och rektor på delad skola läser full ram utan termins- eller paketkommandon",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-phone",
+              "projectName": "frame-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 22048,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:59:42.278Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "administratör-utkast-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/administratör-utkast-frame-png-a4185022282277e3f616b13e4470e32b44d60c79.png"
+                    },
+                    {
+                      "name": "delad rektor-utkast-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/delad-rektor-utkast-frame-png-04c73b9f8680f7dda2cf0dc3a3b6df9e2a8251a1.png"
+                    },
+                    {
+                      "name": "administratör-faststalld-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/administratör-faststalld-frame-png-8de48e25f48c7f6f8086425ae2df6accab829a04.png"
+                    },
+                    {
+                      "name": "delad rektor-faststalld-frame.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/delad-rektor-faststalld-frame-png-b858746a630fe8eae85461666d143568b9ea3ad3.png"
+                    },
+                    {
+                      "name": "readonly-separation.json",
+                      "contentType": "application/json",
+                      "body": "eyJyZWFkZXJzIjpbImFkbWluaXN0cmF0b3IiLCJzaGFyZWQtcHJpbmNpcGFsIl0sInN0YXR1c2VzIjpbInV0a2FzdCIsImZhc3RzdGFsbGQiXSwiZmFzdHN0YWxsZFByZXBhcmF0aW9uIjoib3duZWQgc3ludGhldGljIGZpeHR1cmUgb25seSwgbm8gcmVhbCBkZWNpc2lvbiIsImJhc2VsaW5lUGVyU3RhdHVzIjp0cnVlLCJ0ZXJtQW5kUGxhbkNvbW1hbmRzIjpbXSwicGFja2FnZUFwaUF0dGVtcHRzIjpbXSwic291cmNlUGxhbkFuZE9mZmVyaW5nV2hvbGVSb3dzVW5jaGFuZ2VkRHVyaW5nUmVhZHMiOnRydWUsInNvdXJjZUhpc3RvcnlVbmNoYW5nZWREdXJpbmdSZWFkcyI6dHJ1ZSwic291cmNlUGFja2FnZVdob2xlUm93c1VuY2hhbmdlZCI6dHJ1ZX0="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoyNDEsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6NCwibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjB9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-73404063504668b7ccb3",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 153,
+          "column": 1
+        },
+        {
+          "title": "F05: äldre sparat utbud hindrar mindre IV-block med tydligt 409-besked och bevarade helrader",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "frame-phone",
+              "projectName": "frame-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6459,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T22:00:04.338Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "older-offering-block-change-refused.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-664bb-esked-och-bevarade-helrader-frame-phone/attachments/older-offering-block-change-refused-png-4022fa052e1845522c5841c0b5ca01acdbce0d07.png"
+                    },
+                    {
+                      "name": "old-offering-refusal.json",
+                      "contentType": "application/json",
+                      "body": "eyJzdGF0dXMiOjQwOSwiY29kZSI6InByb2dyYW1wbGFuX2Jsb2NrX3BhY2thZ2VzX2luX3VzZSIsIm1pc2xlYWRpbmdSZXZpc2lvbkNvbmZsaWN0IjpmYWxzZSwic291cmNlUGxhbkFuZE9mZmVyaW5nV2hvbGVSb3dzVW5jaGFuZ2VkIjp0cnVlLCJzb3VyY2VIaXN0b3J5VW5jaGFuZ2VkIjp0cnVlLCJzb3VyY2VQYWNrYWdlV2hvbGVSb3dzVW5jaGFuZ2VkIjp0cnVlLCJwYWNrYWdlQXBpQXR0ZW1wdHMiOltdfQ=="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1NiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ce62111f3d99f68e9d7a-33a0348a2f73c91ee978",
+          "file": "phase5-programplan-frame.spec.ts",
+          "line": 180,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-05T21:58:28.429Z",
+    "duration": 102455.16500000001,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

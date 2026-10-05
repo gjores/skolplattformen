@@ -1,0 +1,756 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "--config=playwright.phase5-gym-timplan.config.ts",
+      "--max-failures=1"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-gym-timplan.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gym-timplan-desktop",
+        "name": "gym-timplan-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-gym-timplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "gym-timplan-phone",
+        "name": "gym-timplan-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-gym-timplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-gym-timplan.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-gym-timplan.spec.ts",
+      "file": "phase5-gym-timplan.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "T01: färdig utkastkälla blir skolans egna timmar med blankt, noll och exakt retur till källan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8892,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:36:23.886Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImM2YWFhNzg1OTA2MzgwN2Y3M2EyMzViY2ZmMWQ1NTVlNGM3MTdlNDQiLCJidWlsZFJldmlzaW9uIjoiYzZhYWE3ODU5MDYzODA3ZjczYTIzNWJjZmYxZDU1NWU0YzcxN2U0NCIsInNjb3BlIjoibG9jYWwtc3ludGhldGljLW9ubHkiLCJwcm90ZWN0ZWRTb3VyY2VzIjpbIndlYi9saWIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL2d5bS10aW1wbGFuLnRlc3QubWpzIiwid2ViL2xpYi9zZXJ2ZXIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL3NlcnZlci9neW0tdGltcGxhbi50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3RpbXBsYW5lci9neW0iLCJ3ZWIvYXBwL3Byb3RlY3RlZC1neW0tdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4uY3NzIiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi5jc3MiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1ob21lLnRzeCIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLXdvcmtzcGFjZS50c3giLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi1ib2FyZC50c3giLCJ3ZWIvbGliL3Byb3RlY3RlZC1wbGFuLWxvY2F0aW9uLnRzIiwid2ViL2xpYi9wcm90ZWN0ZWQtcGxhbi1sb2NhdGlvbi50ZXN0Lm1qcyIsIndlYi9saWIvc2VydmVyL2h0dHAudHMiLCJ3ZWIvbGliL3NlcnZlci1jbGllbnQudHMiLCJ3ZWIvbGliL3Vuc2F2ZWQtY2hhbmdlcy50c3giLCJ3ZWIvY29tcG9uZW50cy91aS9kaWFsb2cudHN4Iiwid2ViL2xpYi9tYW5kYXRlLXBvbGljeS50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Nlc3Npb24tY2hhbm5lbC50cyIsInN1cGFiYXNlL21pZ3JhdGlvbnMvMjAyNjEwMDUxMTAwMDBfcGhhc2U1X2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvbWlncmF0aW9ucy8yMDI2MTAwNTExMTAwMF9waGFzZTVfd29ya2VyX2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvdGVzdHMvcGhhc2U1X3Byb2dyYW1fdGltcGxhbl90cmFuc2l0aW9uLnRlc3Quc3FsIiwid29yay9waWxvdC9waGFzZTUtZ3ltLXRpbXBsYW4tZml4dHVyZXMubWpzIiwid2ViL2UyZS9waGFzZTUtZ3ltLXRpbXBsYW4uc3BlYy50cyIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1neW0tdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvZTJlL3BoYXNlNS10aW1wbGFuLnNwZWMudHMiLCJ3ZWIvcGxheXdyaWdodC5waGFzZTUtdGltcGxhbi5jb25maWcudHMiXSwiYnJvd3Nlck5hbWUiOiJjaHJvbWl1bSJ9"
+                    },
+                    {
+                      "name": "separate-school-hours.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-desktop/attachments/separate-school-hours-png-62aba258b3373e82336d9f92d861f66b2d83a329.png"
+                    },
+                    {
+                      "name": "reloaded-school-hours.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-desktop/attachments/reloaded-school-hours-png-69514cb4cbfdbf6fc66ad2ad7221e03d32fc4f81.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo3MSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-4ad910d60ca4e3c6816f",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 96,
+          "column": 1
+        },
+        {
+          "title": "T02: två skolor får olika timmar; administratör skriver eget gymutkast och HM läser",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15998,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:36:33.731Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "hm-reads-school-hours.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T02-två-96e9c-eget-gymutkast-och-HM-läser-gym-timplan-desktop/attachments/hm-reads-school-hours-png-bb179eff587fbdf138777b68823b4e6c1e135bcf.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoxNDMsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6NCwibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjAsImd5bVJlY2VpcHRzIjowLCJ0aW1wbGFucyI6MCwiY2xhc3NMaW5rcyI6MCwib3JpZ2luYWxCdXNpbmVzc1VuY2hhbmdlZCI6dHJ1ZSwiYmVmb3JlIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJhZnRlciI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjcyZjY2M2VmOGNlZDk3ZGU1NTI0M2U1N2U2ZWM4ZmY1OWFkMjEyZDY3YTc2ZjU5ZDFiZjBiY2YwZmRhNWUyM2QifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjQ3LCJzaGEyNTYiOiI2MjFmY2IyNzMyZDNkNTk5YjNlNzc5MTM4OGVjMDJlYmMyMDEzNzA3M2MyZDM0Yjk4N2ZhMGFlNjkzNjBiNGRiIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6IjJmYzJiMzc2NTdmYWMzM2M3ZTJjMWYyYjZjYmYxYzkzNmRjNTZmYjRmYmQwOTk5ODZlY2MyOTQ4NGU4MzM2NTAifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZGQxYTE1YzEyNjc2ZTA4YTdmY2ZhMjc5MDE0M2I0MTMzMDRmOTQ5NjI3ZmVlN2FiZjQ4YWE2ODRhNmZiMGEwOSJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6NCwic2hhMjU2IjoiYmE2OGUxNjVmMDFhMWI1NmEwMzFiYWE3YWY4NTQ4ZmUzODgwZDRhMGIzZjFmMzU3MGNlYmUxYTRkMzlmZDkzNiJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50Ijo0Niwic2hhMjU2IjoiMmYxY2Q4MTA0ZTk3ZWYzNmIyYTFiZWIzYWQwOWFlOGU1MzAyZjg4ZDQyMWIzYmVmOGY1OGIzMmFkMDIwYjUyZiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJjbGFzc190aW1wbGFucyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJzY2hvb2xfY2xhc3NlcyI6eyJjb3VudCI6Niwic2hhMjU2IjoiOTgxZjZlOGQxMTVlZTkzNDA2MGI4MGE2M2Y4MTMxZTA4YTYxZGQwOTM1YzQyNDE0MjJjZjhkMmU1YzVjMWE3MyJ9LCJwdXBpbF9wbGFjZW1lbnRzIjp7ImNvdW50Ijo2OCwic2hhMjU2IjoiZjE5YThmZDNkZWU4MjRiOGU3ZWY2NjY0YTliNzA3ZDJlNTZiNTA0YTg0MTc1Mjk3MTE4OGM3NmI4OWQ3YjQzYiJ9LCJwcm9ncmFtcGxhbl9zaGFwZV91cGdyYWRlcyI6eyJjb3VudCI6MTMsInNoYTI1NiI6ImJmOGEzM2I5NDgwMGI2ZTU2OTBjMzQxODg1YzVjZTY5MWVmMGY1MTVlM2Q3ZDBlNDM2NWM3MjZhZTRjOTEzYzUifSwicHJvZ3JhbXBsYW5fdW5pdF9wYWNrYWdlcyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJwcm9ncmFtcGxhbl9wYWNrYWdlcyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJneW1fdGltcGxhbl9yZWNlaXB0cyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-c7506ee66be0377c0af6",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 119,
+          "column": 1
+        },
+        {
+          "title": "T03: ändrad källram kräver uttrycklig ny version och bevarar gamla timmar och klasslänkar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11101,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:36:49.738Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "explicit-new-source-version.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T03-änd-9274e-amla-timmar-och-klasslänkar-gym-timplan-desktop/attachments/explicit-new-source-version-png-24d8aa901b74ff1f3de2feea89869d341b9047e9.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo3NiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-977b9eb50203285f01fa",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 137,
+          "column": 1
+        },
+        {
+          "title": "T04: ofullständig poängram ger konkret åtgärd och ingen tom timplan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4417,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:00.851Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "incomplete-source-action.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T04-ofu-b0969-tgärd-och-ingen-tom-timplan-gym-timplan-desktop/attachments/incomplete-source-action-png-b030f73247c32b90f3490124ad00cfb8d03164e4.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo0MSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-6b7458fe5d58813f3812",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 161,
+          "column": 1
+        },
+        {
+          "title": "T05: CAS-konflikt skriver aldrig över en annan sparad timrad",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5484,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:05.277Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "row-conflict-keeps-input.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-över-en-annan-sparad-timrad-gym-timplan-desktop/attachments/row-conflict-keeps-input-png-694da1b664aae58a4b70186c03a473a5bd8da8bd.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjozNywicHJlc2VydmVkQXVkaXRBbmNob3JzIjozLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-c489ae118780ee7947a7",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 170,
+          "column": 1
+        },
+        {
+          "title": "T06: tappat skapasvar återfinner samma kommando utan en andra timplansversion",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4933,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:10.768Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "create-response-recovered.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T06-tap-7fec8-an-en-andra-timplansversion-gym-timplan-desktop/attachments/create-response-recovered-png-ad265af11b14a1e614171edf0016743f389ab8ab.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjozMiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-5e69ef4e6a9659c136c9",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 181,
+          "column": 1
+        },
+        {
+          "title": "T07: datumlåst programkälla låser inte skolans timmar, men arkiverad utbildning gör det",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7036,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:15.707Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "archived-school-hours.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T07-dat-72489-rkiverad-utbildning-gör-det-gym-timplan-desktop/attachments/archived-school-hours-png-387a1feb369c52df5802039dc1aa8781b616398e.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo1NSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-755f9562ebc0ad25ff09",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 197,
+          "column": 1
+        },
+        {
+          "title": "T08: osparade timvärden skyddas och ny redigering under sparandet finns kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5996,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:22.753Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "edit-during-save-kept.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T08-osp-76f24--under-sparandet-finns-kvar-gym-timplan-desktop/attachments/edit-during-save-kept-png-9a61415c7895584460d76aedec3ae56ca112fe36.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo0MiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-5c275dfb742d38907cc2",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 208,
+          "column": 1
+        },
+        {
+          "title": "T09: förlorad session rensar osparad timdialog utan att skriva timvärden",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-desktop",
+              "projectName": "gym-timplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5104,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:28.758Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "expired-session-clears-hours.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T09-för-92a44-g-utan-att-skriva-timvärden-gym-timplan-desktop/attachments/expired-session-clears-hours-png-3d67f6f2311b9774c5b539d96ca16a1a6cc3035f.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoyOSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-dcf9204a70c37d072fb5",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 225,
+          "column": 1
+        },
+        {
+          "title": "T01: färdig utkastkälla blir skolans egna timmar med blankt, noll och exakt retur till källan",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7551,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at capture (/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts:79:85)\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts:108:3",
+                    "location": {
+                      "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts",
+                      "column": 85,
+                      "line": 79
+                    },
+                    "snippet": "  77 | }\n  78 | async function capture(page:Page,info:TestInfo,name:string) {\n> 79 |   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);\n     |                                                                                     ^\n  80 |   const path=info.outputPath(`${name}.png`);await page.screenshot({path,fullPage:true});await info.attach(`${name}.png`,{path,contentType:'image/png'});\n  81 | }\n  82 | function noPackages(page:Page) {"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts",
+                        "column": 85,
+                        "line": 79
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  77 | }\n  78 | async function capture(page:Page,info:TestInfo,name:string) {\n> 79 |   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);\n     |                                                                                     ^\n  80 |   const path=info.outputPath(`${name}.png`);await page.screenshot({path,fullPage:true});await info.attach(`${name}.png`,{path,contentType:'image/png'});\n  81 | }\n  82 | function noPackages(page:Page) {\n    at capture (/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts:79:85)\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts:108:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-05T21:37:34.234Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImM2YWFhNzg1OTA2MzgwN2Y3M2EyMzViY2ZmMWQ1NTVlNGM3MTdlNDQiLCJidWlsZFJldmlzaW9uIjoiYzZhYWE3ODU5MDYzODA3ZjczYTIzNWJjZmYxZDU1NWU0YzcxN2U0NCIsInNjb3BlIjoibG9jYWwtc3ludGhldGljLW9ubHkiLCJwcm90ZWN0ZWRTb3VyY2VzIjpbIndlYi9saWIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL2d5bS10aW1wbGFuLnRlc3QubWpzIiwid2ViL2xpYi9zZXJ2ZXIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL3NlcnZlci9neW0tdGltcGxhbi50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3RpbXBsYW5lci9neW0iLCJ3ZWIvYXBwL3Byb3RlY3RlZC1neW0tdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4uY3NzIiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi5jc3MiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1ob21lLnRzeCIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLXdvcmtzcGFjZS50c3giLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi1ib2FyZC50c3giLCJ3ZWIvbGliL3Byb3RlY3RlZC1wbGFuLWxvY2F0aW9uLnRzIiwid2ViL2xpYi9wcm90ZWN0ZWQtcGxhbi1sb2NhdGlvbi50ZXN0Lm1qcyIsIndlYi9saWIvc2VydmVyL2h0dHAudHMiLCJ3ZWIvbGliL3NlcnZlci1jbGllbnQudHMiLCJ3ZWIvbGliL3Vuc2F2ZWQtY2hhbmdlcy50c3giLCJ3ZWIvY29tcG9uZW50cy91aS9kaWFsb2cudHN4Iiwid2ViL2xpYi9tYW5kYXRlLXBvbGljeS50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Nlc3Npb24tY2hhbm5lbC50cyIsInN1cGFiYXNlL21pZ3JhdGlvbnMvMjAyNjEwMDUxMTAwMDBfcGhhc2U1X2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvbWlncmF0aW9ucy8yMDI2MTAwNTExMTAwMF9waGFzZTVfd29ya2VyX2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvdGVzdHMvcGhhc2U1X3Byb2dyYW1fdGltcGxhbl90cmFuc2l0aW9uLnRlc3Quc3FsIiwid29yay9waWxvdC9waGFzZTUtZ3ltLXRpbXBsYW4tZml4dHVyZXMubWpzIiwid2ViL2UyZS9waGFzZTUtZ3ltLXRpbXBsYW4uc3BlYy50cyIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1neW0tdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvZTJlL3BoYXNlNS10aW1wbGFuLnNwZWMudHMiLCJ3ZWIvcGxheXdyaWdodC5waGFzZTUtdGltcGxhbi5jb25maWcudHMiXSwiYnJvd3Nlck5hbWUiOiJ3ZWJraXQifQ=="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjozNiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI3MmY2NjNlZjhjZWQ5N2RlNTUyNDNlNTdlNmVjOGZmNTlhZDIxMmQ2N2E3NmY1OWQxYmYwYmNmMGZkYTVlMjNkIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo0Nywic2hhMjU2IjoiNjIxZmNiMjczMmQzZDU5OWIzZTc3OTEzODhlYzAyZWJjMjAxMzcwNzNjMmQzNGI5ODdmYTBhZTY5MzYwYjRkYiJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiIyZmMyYjM3NjU3ZmFjMzNjN2UyYzFmMmI2Y2JmMWM5MzZkYzU2ZmI0ZmJkMDk5OTg2ZWNjMjk0ODRlODMzNjUwIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImRkMWExNWMxMjY3NmUwOGE3ZmNmYTI3OTAxNDNiNDEzMzA0Zjk0OTYyN2ZlZTdhYmY0OGFhNjg0YTZmYjBhMDkifSwidGltcGxhbnMiOnsiY291bnQiOjQsInNoYTI1NiI6ImJhNjhlMTY1ZjAxYTFiNTZhMDMxYmFhN2FmODU0OGZlMzg4MGQ0YTBiM2YxZjM1NzBjZWJlMWE0ZDM5ZmQ5MzYifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6NDYsInNoYTI1NiI6IjJmMWNkODEwNGU5N2VmMzZiMmExYmViM2FkMDlhZThlNTMwMmY4OGQ0MjFiM2JlZjhmNThiMzJhZDAyMGI1MmYifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6Ijk4MWY2ZThkMTE1ZWU5MzQwNjBiODBhNjNmODEzMWUwOGE2MWRkMDkzNWM0MjQxNDIyY2Y4ZDJlNWM1YzFhNzMifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6ImYxOWE4ZmQzZGVlODI0YjhlN2VmNjY2NGE5YjcwN2QyZTU2YjUwNGE4NDE3NTI5NzExODhjNzZiODlkN2I0M2IifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJiZjhhMzNiOTQ4MDBiNmU1NjkwYzM0MTg4NWM1Y2U2OTFlZjBmNTE1ZTNkN2QwZTQzNjVjNzI2YWU0YzkxM2M1In0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNzJmNjYzZWY4Y2VkOTdkZTU1MjQzZTU3ZTZlYzhmZjU5YWQyMTJkNjdhNzZmNTlkMWJmMGJjZjBmZGE1ZTIzZCJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NDcsInNoYTI1NiI6IjYyMWZjYjI3MzJkM2Q1OTliM2U3NzkxMzg4ZWMwMmViYzIwMTM3MDczYzJkMzRiOTg3ZmEwYWU2OTM2MGI0ZGIifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiMmZjMmIzNzY1N2ZhYzMzYzdlMmMxZjJiNmNiZjFjOTM2ZGM1NmZiNGZiZDA5OTk4NmVjYzI5NDg0ZTgzMzY1MCJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkZDFhMTVjMTI2NzZlMDhhN2ZjZmEyNzkwMTQzYjQxMzMwNGY5NDk2MjdmZWU3YWJmNDhhYTY4NGE2ZmIwYTA5In0sInRpbXBsYW5zIjp7ImNvdW50Ijo0LCJzaGEyNTYiOiJiYTY4ZTE2NWYwMWExYjU2YTAzMWJhYTdhZjg1NDhmZTM4ODBkNGEwYjNmMWYzNTcwY2ViZTFhNGQzOWZkOTM2In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjQ2LCJzaGEyNTYiOiIyZjFjZDgxMDRlOTdlZjM2YjJhMWJlYjNhZDA5YWU4ZTUzMDJmODhkNDIxYjNiZWY4ZjU4YjMyYWQwMjBiNTJmIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiI5ODFmNmU4ZDExNWVlOTM0MDYwYjgwYTYzZjgxMzFlMDhhNjFkZDA5MzVjNDI0MTQyMmNmOGQyZTVjNWMxYTczIn0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiJmMTlhOGZkM2RlZTgyNGI4ZTdlZjY2NjRhOWI3MDdkMmU1NmI1MDRhODQxNzUyOTcxMTg4Yzc2Yjg5ZDdiNDNiIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYmY4YTMzYjk0ODAwYjZlNTY5MGMzNDE4ODVjNWNlNjkxZWYwZjUxNWUzZDdkMGU0MzY1YzcyNmFlNGM5MTNjNSJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19fQ=="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-phone/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-gym-timplan.spec.ts",
+                    "column": 85,
+                    "line": 79
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-7672d1bd0f43972b6627",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 96,
+          "column": 1
+        },
+        {
+          "title": "T02: två skolor får olika timmar; administratör skriver eget gymutkast och HM läser",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-12191b0682a7ca2444c7",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 119,
+          "column": 1
+        },
+        {
+          "title": "T03: ändrad källram kräver uttrycklig ny version och bevarar gamla timmar och klasslänkar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-2be257ff15b5e767501e",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 137,
+          "column": 1
+        },
+        {
+          "title": "T04: ofullständig poängram ger konkret åtgärd och ingen tom timplan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-b46f016facbb8c071538",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 161,
+          "column": 1
+        },
+        {
+          "title": "T05: CAS-konflikt skriver aldrig över en annan sparad timrad",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-211b2e2729ee7bbb2820",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 170,
+          "column": 1
+        },
+        {
+          "title": "T06: tappat skapasvar återfinner samma kommando utan en andra timplansversion",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-1c2fd44ac5d58c8545bc",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 181,
+          "column": 1
+        },
+        {
+          "title": "T07: datumlåst programkälla låser inte skolans timmar, men arkiverad utbildning gör det",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-8e8f0e9d0082c9f39589",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 197,
+          "column": 1
+        },
+        {
+          "title": "T08: osparade timvärden skyddas och ny redigering under sparandet finns kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-52274768d82b96946ef4",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 208,
+          "column": 1
+        },
+        {
+          "title": "T09: förlorad session rensar osparad timdialog utan att skriva timvärden",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "gym-timplan-phone",
+              "projectName": "gym-timplan-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "8da2d7cdabdbc27af3b5-8f0b74e9224d8457c773",
+          "file": "phase5-gym-timplan.spec.ts",
+          "line": 225,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-05T21:36:23.427Z",
+    "duration": 79386.729,
+    "expected": 9,
+    "skipped": 8,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

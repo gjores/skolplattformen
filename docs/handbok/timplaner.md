@@ -6,7 +6,7 @@ Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är unde
 
 ## Från programplan till gymnasiets timplan
 
-Öppna en sparad programplan och välj **Timplan**, eller välj **Timplaner → Gymnasium** och därefter utbildning. Välj skola om utbildningen används av flera skolor. Varje skola har egna timplansversioner och timmar.
+Öppna en sparad programplan och välj **Timplan**, eller välj **Timplaner → Gymnasium** och därefter utbildning. Välj skola om utbildningen används av flera skolor. Finns redan en timplan med samma underlag för den enda aktuella skolan öppnas den direkt. Varje skola har egna timplansversioner och timmar.
 
 Rektor och skoladministratör kan välja **Skapa timplansutkast** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Den här övergången stöder högskoleförberedande program med känd poängram; yrkesprogrammets ram behöver ännu verifieras.
 
@@ -18,9 +18,9 @@ Ett programutkast får användas för att förbereda undervisningstiden. Det än
 2. Fyll i hela timmar för de terminer som har poäng i underlaget. Ett tomt fält är **Ofördelat**; `0` betyder angivna noll timmar. Terminer som inte ingår kan inte fyllas i.
 3. Välj **Spara timmar** och invänta sparbeskedet. Hela raden sparas tillsammans. Ny inmatning under pågående sparning ligger kvar för nästa sparning.
 
-Årskurssummorna visar planerade timmar. **Visa bara ofördelade** hittar rader som ännu har tomma aktiva terminer. På telefon kan du välja en årskurs och rulla själva tabellen. Sidomladdning återöppnar samma sparade timplan. Osparade ändringar skyddas när du lämnar vyn.
+Årskurssummorna visar planerade timmar. **Visa bara ofördelade** hittar rader som ännu har tomma aktiva terminer. På telefon kan du välja en årskurs och rulla själva tabellen. När sidan laddas om öppnas samma sparade timplan igen. Osparade ändringar skyddas när du lämnar vyn.
 
-**Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget.
+**Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Timplan** i programplanen för att återgå till samma skolas timplan och årskursval under samma uppdrag.
 
 ### När programramen ändras
 

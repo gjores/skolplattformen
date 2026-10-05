@@ -1,0 +1,170 @@
+{
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "rollback": true,
+  "reset": false,
+  "testHash": "dd7d750c99103631ca3de4ba62d937de66b040b58cc73c5ba846cbd03b9ffe82",
+  "sourceHash": "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e",
+  "tap": {
+    "status": "PASS",
+    "total": 37,
+    "assertions": [
+      "ok 1 - all gym helpers closed to PUBLIC, anon, authenticated and Worker",
+      "ok 2 - four exact gym RPCs stay closed to clients; Worker is wholly closed or has the complete four-entry grant",
+      "ok 3 - receipts are closed and ordinary Worker cannot bypass restrictive gym row policies",
+      "ok 4 - complete saved source has the verified 2500-point frame",
+      "ok 5 - real create accepts a complete saved program draft and makes its own school draft",
+      "ok 6 - real Worker table reads preserve legacy controls and hide new gym plans, cells and actor history",
+      "ok 7 - real raw Worker plan, cell and actor-history writes cannot bypass gym RPCs",
+      "ok 8 - six empty terms have no automatic points-to-hours conversion",
+      "ok 9 - explicit zero is allocated; unused and blank terms remain false",
+      "ok 10 - audited read keeps explicit zero distinct from blank",
+      "ok 11 - inactive point term rejects even explicit zero hours",
+      "ok 12 - stale hour CAS cannot overwrite saved values",
+      "ok 13 - legacy read cannot project new gym matrices without their mask",
+      "ok 14 - legacy cell cannot bypass frozen gym hours",
+      "ok 15 - principal cannot create another school plan",
+      "ok 16 - HM reading access does not confer school hour editing",
+      "ok 17 - new school administrator gym access does not open legacy GR editing",
+      "ok 18 - new school administrator gym access does not open legacy IM editing",
+      "ok 19 - create and hours history derive the real session actor",
+      "ok 20 - hour changes leave the complete program source row unchanged",
+      "ok 21 - frozen source snapshot cannot be overwritten",
+      "ok 22 - identical replay uses original frozen source despite changed live revision",
+      "ok 23 - same command ID with changed payload cannot create or rewrite a plan",
+      "ok 24 - another valid school actor cannot take over an identity-bound receipt",
+      "ok 25 - new command ID does not bypass the already open school draft",
+      "ok 26 - explicit next version carries only exactly unchanged source rows and term shapes",
+      "ok 27 - changed term frame starts blank while an unchanged row retains its hours",
+      "ok 28 - all predecessor hour rows remain byte-JSON unchanged",
+      "ok 29 - superseding the school draft preserves its frozen source",
+      "ok 30 - structurally incomplete point terms cannot create a gym draft",
+      "ok 31 - failed partial-source creation leaves no plan, cells, receipt or success audit",
+      "ok 32 - archive closes gym hour mutation",
+      "ok 33 - archived school time remains auditable and readable",
+      "ok 34 - started live program does not lock its school draft hours",
+      "ok 35 - late mandatory DB audit failure rolls back the complete row command",
+      "ok 36 - audit rollback preserves the complete timplan, cell rows and actor-bound history",
+      "ok 37 - receipt history is immutable even for a privileged caller"
+    ]
+  },
+  "originalBusinessPreserved": true,
+  "aclJournalDefinitionsPreserved": true,
+  "before": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "72f663ef8ced97de55243e57e6ec8ff59ad212d67a76f59d1bf0bcf0fda5e23d"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "sha256": "621fcb2732d3d599b3e7791388ec02ebc20137073c2d34b987fa0ae69360b4db"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+    },
+    "timplans": {
+      "count": 4,
+      "sha256": "ba68e165f01a1b56a031baa7af8548fe3880d4a0b3f1f3570cebe1a4d39fd936"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "sha256": "2f1cd8104e97ef36b2a1beb3ad09ae8e5302f88d421b3bef8f58b32ad020b52f"
+    },
+    "timplan_events": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "after": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "72f663ef8ced97de55243e57e6ec8ff59ad212d67a76f59d1bf0bcf0fda5e23d"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "sha256": "621fcb2732d3d599b3e7791388ec02ebc20137073c2d34b987fa0ae69360b4db"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+    },
+    "timplans": {
+      "count": 4,
+      "sha256": "ba68e165f01a1b56a031baa7af8548fe3880d4a0b3f1f3570cebe1a4d39fd936"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "sha256": "2f1cd8104e97ef36b2a1beb3ad09ae8e5302f88d421b3bef8f58b32ad020b52f"
+    },
+    "timplan_events": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "workerFunctions": 25
+}

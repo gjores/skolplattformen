@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+  "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+  "stats": {
+    "startTime": "2026-10-05T21:50:42.083Z",
+    "duration": 150278.694,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserNames": [
+    "chromium",
+    "webkit"
+  ],
+  "actualCases": 18,
+  "retries": 0,
+  "cleanupCount": 18,
+  "remainingOwnedRowsZero": true,
+  "originalBusinessUnchanged": true,
+  "wholeRowOriginalTables": [
+    "point_plans",
+    "point_plan_events",
+    "offerings",
+    "offering_units",
+    "timplans",
+    "timplan_cells",
+    "timplan_events",
+    "class_timplans",
+    "school_classes",
+    "pupil_placements",
+    "programplan_shape_upgrades",
+    "programplan_unit_packages",
+    "programplan_packages",
+    "gym_timplan_receipts"
+  ],
+  "retainedAppendOnlyAudit": true,
+  "geometryCount": 20,
+  "allGeometryWithinViewport": true,
+  "visualReview": {
+    "uniquePhotos": 20,
+    "allViewed": true,
+    "desktop": 10,
+    "phone": 10,
+    "phoneTableOverflow": "local horizontal scroll, whole document remains 390 px",
+    "newIssues": []
+  },
+  "rawReport": "/private/tmp/gym-timplan-browser-attempt2.json",
+  "rawLog": "/private/tmp/gym-timplan-browser-attempt2.log",
+  "evidence": "/private/tmp/gym-timplan-browser-attempt2-evidence",
+  "previousFailRetained": "/private/tmp/gym-timplan-browser-attempt1.json"
+}

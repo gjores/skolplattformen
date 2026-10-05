@@ -1,0 +1,591 @@
+{
+  "file": "/private/tmp/gym-timplan-browser-attempt2.json",
+  "stats": {
+    "startTime": "2026-10-05T21:50:42.083Z",
+    "duration": 150278.694,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": [],
+  "globalErrors": [],
+  "source": [
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "scope": "local-synthetic-only",
+      "protectedSources": [
+        "web/lib/gym-timplan.ts",
+        "web/lib/gym-timplan.test.mjs",
+        "web/lib/server/gym-timplan.ts",
+        "web/lib/server/gym-timplan.test.mjs",
+        "web/app/api/timplaner/gym",
+        "web/app/protected-gym-timplan-workspace.tsx",
+        "web/app/protected-gym-timplan.css",
+        "web/app/protected-timplan-workspace.tsx",
+        "web/app/protected-timplan.css",
+        "web/app/protected-home.tsx",
+        "web/app/protected-programplan-workspace.tsx",
+        "web/app/protected-programplan-board.tsx",
+        "web/lib/protected-plan-location.ts",
+        "web/lib/protected-plan-location.test.mjs",
+        "web/lib/server/http.ts",
+        "web/lib/server-client.ts",
+        "web/lib/unsaved-changes.tsx",
+        "web/components/ui/dialog.tsx",
+        "web/lib/mandate-policy.ts",
+        "web/lib/server/audit-details.ts",
+        "web/lib/session-channel.ts",
+        "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+        "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+        "supabase/tests/phase5_program_timplan_transition.test.sql",
+        "work/pilot/phase5-gym-timplan-fixtures.mjs",
+        "web/e2e/phase5-gym-timplan.spec.ts",
+        "web/playwright.phase5-gym-timplan.config.ts",
+        "web/e2e/phase5-timplan.spec.ts",
+        "web/playwright.phase5-timplan.config.ts"
+      ],
+      "browserName": "chromium"
+    },
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "scope": "local-synthetic-only",
+      "protectedSources": [
+        "web/lib/gym-timplan.ts",
+        "web/lib/gym-timplan.test.mjs",
+        "web/lib/server/gym-timplan.ts",
+        "web/lib/server/gym-timplan.test.mjs",
+        "web/app/api/timplaner/gym",
+        "web/app/protected-gym-timplan-workspace.tsx",
+        "web/app/protected-gym-timplan.css",
+        "web/app/protected-timplan-workspace.tsx",
+        "web/app/protected-timplan.css",
+        "web/app/protected-home.tsx",
+        "web/app/protected-programplan-workspace.tsx",
+        "web/app/protected-programplan-board.tsx",
+        "web/lib/protected-plan-location.ts",
+        "web/lib/protected-plan-location.test.mjs",
+        "web/lib/server/http.ts",
+        "web/lib/server-client.ts",
+        "web/lib/unsaved-changes.tsx",
+        "web/components/ui/dialog.tsx",
+        "web/lib/mandate-policy.ts",
+        "web/lib/server/audit-details.ts",
+        "web/lib/session-channel.ts",
+        "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+        "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+        "supabase/tests/phase5_program_timplan_transition.test.sql",
+        "work/pilot/phase5-gym-timplan-fixtures.mjs",
+        "web/e2e/phase5-gym-timplan.spec.ts",
+        "web/playwright.phase5-gym-timplan.config.ts",
+        "web/e2e/phase5-timplan.spec.ts",
+        "web/playwright.phase5-timplan.config.ts"
+      ],
+      "browserName": "webkit"
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T01",
+      "nonzero": {
+        "preservedAuditEvents": 71,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T02",
+      "nonzero": {
+        "preservedAuditEvents": 144,
+        "preservedAuditAnchors": 4
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T03",
+      "nonzero": {
+        "preservedAuditEvents": 75,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T04",
+      "nonzero": {
+        "preservedAuditEvents": 41,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T05",
+      "nonzero": {
+        "preservedAuditEvents": 37,
+        "preservedAuditAnchors": 3
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T06",
+      "nonzero": {
+        "preservedAuditEvents": 32,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T07",
+      "nonzero": {
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T08",
+      "nonzero": {
+        "preservedAuditEvents": 42,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "title": "T09",
+      "nonzero": {
+        "preservedAuditEvents": 29,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T01",
+      "nonzero": {
+        "preservedAuditEvents": 71,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T02",
+      "nonzero": {
+        "preservedAuditEvents": 146,
+        "preservedAuditAnchors": 4
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T03",
+      "nonzero": {
+        "preservedAuditEvents": 76,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T04",
+      "nonzero": {
+        "preservedAuditEvents": 42,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T05",
+      "nonzero": {
+        "preservedAuditEvents": 37,
+        "preservedAuditAnchors": 3
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T06",
+      "nonzero": {
+        "preservedAuditEvents": 32,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T07",
+      "nonzero": {
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T08",
+      "nonzero": {
+        "preservedAuditEvents": 42,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    },
+    {
+      "project": "gym-timplan-phone",
+      "title": "T09",
+      "nonzero": {
+        "preservedAuditEvents": 30,
+        "preservedAuditAnchors": 2
+      },
+      "originalBusinessUnchanged": true,
+      "originalTables": 0
+    }
+  ],
+  "geometries": [
+    {
+      "project": "gym-timplan-desktop",
+      "name": "separate-school-hours-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "reloaded-school-hours-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "hm-reads-school-hours-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "explicit-new-source-version-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "incomplete-source-action-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "row-conflict-keeps-input-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "create-response-recovered-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "archived-school-hours-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "edit-during-save-kept-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [
+        {
+          "clientWidth": 1094,
+          "scrollWidth": 1094,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-desktop",
+      "name": "expired-session-clears-hours-geometry.json",
+      "documentWidth": 1440,
+      "clientWidth": 1440,
+      "innerWidth": 1440,
+      "visualWidth": 1440,
+      "scrollContainers": [],
+      "viewportWidth": 1440
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "separate-school-hours-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 552,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "reloaded-school-hours-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 904,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "hm-reads-school-hours-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 808,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "explicit-new-source-version-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 904,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "incomplete-source-action-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "row-conflict-keeps-input-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 904,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "create-response-recovered-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 904,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "archived-school-hours-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 808,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "edit-during-save-kept-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [
+        {
+          "clientWidth": 352,
+          "scrollWidth": 904,
+          "contain": "layout paint"
+        }
+      ],
+      "viewportWidth": 390
+    },
+    {
+      "project": "gym-timplan-phone",
+      "name": "expired-session-clears-hours-geometry.json",
+      "documentWidth": 390,
+      "clientWidth": 390,
+      "innerWidth": 390,
+      "visualWidth": 390,
+      "scrollContainers": [],
+      "viewportWidth": 390
+    }
+  ],
+  "images": [
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-desktop/attachments/separate-school-hours-png-62aba258b3373e82336d9f92d861f66b2d83a329.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-desktop/attachments/reloaded-school-hours-png-69514cb4cbfdbf6fc66ad2ad7221e03d32fc4f81.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T02-två-96e9c-eget-gymutkast-och-HM-läser-gym-timplan-desktop/attachments/hm-reads-school-hours-png-bb179eff587fbdf138777b68823b4e6c1e135bcf.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T03-änd-9274e-amla-timmar-och-klasslänkar-gym-timplan-desktop/attachments/explicit-new-source-version-png-24d8aa901b74ff1f3de2feea89869d341b9047e9.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T04-ofu-b0969-tgärd-och-ingen-tom-timplan-gym-timplan-desktop/attachments/incomplete-source-action-png-b030f73247c32b90f3490124ad00cfb8d03164e4.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-över-en-annan-sparad-timrad-gym-timplan-desktop/attachments/row-conflict-keeps-input-png-694da1b664aae58a4b70186c03a473a5bd8da8bd.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T06-tap-7fec8-an-en-andra-timplansversion-gym-timplan-desktop/attachments/create-response-recovered-png-ad265af11b14a1e614171edf0016743f389ab8ab.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T07-dat-72489-rkiverad-utbildning-gör-det-gym-timplan-desktop/attachments/archived-school-hours-png-387a1feb369c52df5802039dc1aa8781b616398e.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T08-osp-76f24--under-sparandet-finns-kvar-gym-timplan-desktop/attachments/edit-during-save-kept-png-9a61415c7895584460d76aedec3ae56ca112fe36.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T09-för-92a44-g-utan-att-skriva-timvärden-gym-timplan-desktop/attachments/expired-session-clears-hours-png-3d67f6f2311b9774c5b539d96ca16a1a6cc3035f.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-phone/attachments/separate-school-hours-png-abdcce3faf94b74216309ee1339599c51a2f12c1.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-phone/attachments/reloaded-school-hours-png-dff419f6748950da4c1da94f2ae60e0c08d62c7c.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T02-två-96e9c-eget-gymutkast-och-HM-läser-gym-timplan-phone/attachments/hm-reads-school-hours-png-9d186bec6ed6ba2e9516308d6f6a513b11664a13.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T03-änd-9274e-amla-timmar-och-klasslänkar-gym-timplan-phone/attachments/explicit-new-source-version-png-95a74f1a9ad15a9a4677764f74977646ed95ba03.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T04-ofu-b0969-tgärd-och-ingen-tom-timplan-gym-timplan-phone/attachments/incomplete-source-action-png-2430c0f1735a77425ace1b5273e7c4131d517e26.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-över-en-annan-sparad-timrad-gym-timplan-phone/attachments/row-conflict-keeps-input-png-3b835405b40647961acbd84f3439f297c425c0ed.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T06-tap-7fec8-an-en-andra-timplansversion-gym-timplan-phone/attachments/create-response-recovered-png-371c4920cfc9a091b4a0a8cd6e0b1ca8d159f6ad.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T07-dat-72489-rkiverad-utbildning-gör-det-gym-timplan-phone/attachments/archived-school-hours-png-c82f4d8fc1d50bb532842971bda9acf702175b9a.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T08-osp-76f24--under-sparandet-finns-kvar-gym-timplan-phone/attachments/edit-during-save-kept-png-71e1967b7f8561844f5a891a638c2f72543a34a1.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T09-för-92a44-g-utan-att-skriva-timvärden-gym-timplan-phone/attachments/expired-session-clears-hours-png-4617713f6d24f4dcb747070fb23210d98c396181.png"
+  ]
+}

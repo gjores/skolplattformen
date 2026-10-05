@@ -1,0 +1,1002 @@
+{
+  "proof": {
+    "sourceRevision": "c6aaa7859063807f73a235bcff1d555e4c717e44",
+    "buildRevision": "c6aaa7859063807f73a235bcff1d555e4c717e44",
+    "scope": "local-synthetic-only",
+    "protectedSources": [
+      "web/lib/gym-timplan.ts",
+      "web/lib/gym-timplan.test.mjs",
+      "web/lib/server/gym-timplan.ts",
+      "web/lib/server/gym-timplan.test.mjs",
+      "web/app/api/timplaner/gym",
+      "web/app/protected-gym-timplan-workspace.tsx",
+      "web/app/protected-gym-timplan.css",
+      "web/app/protected-timplan-workspace.tsx",
+      "web/app/protected-timplan.css",
+      "web/app/protected-home.tsx",
+      "web/app/protected-programplan-workspace.tsx",
+      "web/app/protected-programplan-board.tsx",
+      "web/lib/protected-plan-location.ts",
+      "web/lib/protected-plan-location.test.mjs",
+      "web/lib/server/http.ts",
+      "web/lib/server-client.ts",
+      "web/lib/unsaved-changes.tsx",
+      "web/components/ui/dialog.tsx",
+      "web/lib/mandate-policy.ts",
+      "web/lib/server/audit-details.ts",
+      "web/lib/session-channel.ts",
+      "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+      "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+      "supabase/tests/phase5_program_timplan_transition.test.sql",
+      "work/pilot/phase5-gym-timplan-fixtures.mjs",
+      "web/e2e/phase5-gym-timplan.spec.ts",
+      "web/playwright.phase5-gym-timplan.config.ts",
+      "web/e2e/phase5-timplan.spec.ts",
+      "web/playwright.phase5-timplan.config.ts"
+    ]
+  },
+  "initialGeometry": {
+    "innerWidth": 914,
+    "documentWidth": 914,
+    "selected": [
+      {
+        "selector": "#workspace",
+        "x": 0,
+        "width": 390,
+        "scrollWidth": 390,
+        "minWidth": "auto",
+        "overflowX": "visible"
+      },
+      {
+        "selector": ".gym-timplan",
+        "x": 18,
+        "width": 354,
+        "scrollWidth": 354,
+        "minWidth": "0px",
+        "overflowX": "visible"
+      },
+      {
+        "selector": ".gt-table-scroll",
+        "x": 18,
+        "width": 354,
+        "scrollWidth": 904,
+        "minWidth": "0px",
+        "overflowX": "auto"
+      },
+      {
+        "selector": ".gt-matrix",
+        "x": 19,
+        "width": 904.40625,
+        "scrollWidth": 904,
+        "minWidth": "0px",
+        "overflowX": "visible"
+      }
+    ]
+  },
+  "source": {
+    "ownedSource": true,
+    "planId": "eb4b28e8-9974-49cf-9bda-6c5e1312ab2a",
+    "sourcePlanId": "80002160-68df-4d9e-96a4-1d0af43c2ed8"
+  },
+  "geometry": {
+    "viewport": {
+      "innerWidth": 561,
+      "innerHeight": 956,
+      "devicePixelRatio": 3,
+      "visualWidth": 390
+    },
+    "document": {
+      "scrollWidth": 561,
+      "clientWidth": 390
+    },
+    "outside": [
+      {
+        "node": {
+          "tag": "TABLE",
+          "class": "gt-matrix",
+          "id": "",
+          "x": 19,
+          "width": 552.40625,
+          "right": 571.40625,
+          "clientWidth": 552,
+          "scrollWidth": 552,
+          "display": "table",
+          "widthCSS": "552.406px",
+          "minWidth": "0px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "SECTION",
+            "class": "gt-table-scroll",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 352,
+            "scrollWidth": 552,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "auto",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gym-timplan",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "MAIN",
+            "class": "workspace protected-workspace",
+            "id": "workspace",
+            "x": 0,
+            "width": 390,
+            "right": 390,
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "display": "block",
+            "widthCSS": "390px",
+            "minWidth": "auto",
+            "maxWidth": "1540px",
+            "overflowX": "visible",
+            "flex": "1 1 0%"
+          }
+        ]
+      },
+      {
+        "node": {
+          "tag": "CAPTION",
+          "class": "",
+          "id": "",
+          "x": 19,
+          "width": 552.40625,
+          "right": 571.40625,
+          "clientWidth": 552,
+          "scrollWidth": 552,
+          "display": "table-caption",
+          "widthCSS": "552.406px",
+          "minWidth": "0px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gt-table-scroll",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 352,
+            "scrollWidth": 552,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "auto",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gym-timplan",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "node": {
+          "tag": "THEAD",
+          "class": "",
+          "id": "",
+          "x": 19,
+          "width": 552.40625,
+          "right": 571.40625,
+          "clientWidth": 552,
+          "scrollWidth": 552,
+          "display": "table-header-group",
+          "widthCSS": "552.406px",
+          "minWidth": "0px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gt-table-scroll",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 352,
+            "scrollWidth": 552,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "auto",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gym-timplan",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "node": {
+          "tag": "TR",
+          "class": "",
+          "id": "",
+          "x": 19,
+          "width": 552.40625,
+          "right": 571.40625,
+          "clientWidth": 552,
+          "scrollWidth": 552,
+          "display": "table-row",
+          "widthCSS": "552.406px",
+          "minWidth": "0px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "THEAD",
+            "class": "",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table-header-group",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gt-table-scroll",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 352,
+            "scrollWidth": 552,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "auto",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "node": {
+          "tag": "TH",
+          "class": "",
+          "id": "",
+          "x": 475,
+          "width": 96.40625,
+          "right": 571.40625,
+          "clientWidth": 96,
+          "scrollWidth": 96,
+          "display": "table-cell",
+          "widthCSS": "96.4062px",
+          "minWidth": "0px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "TR",
+            "class": "",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table-row",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "THEAD",
+            "class": "",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table-header-group",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "node": {
+          "tag": "TBODY",
+          "class": "",
+          "id": "",
+          "x": 19,
+          "width": 552.40625,
+          "right": 571.40625,
+          "clientWidth": 552,
+          "scrollWidth": 552,
+          "display": "table-row-group",
+          "widthCSS": "552.406px",
+          "minWidth": "0px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gt-table-scroll",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 352,
+            "scrollWidth": 552,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "auto",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "SECTION",
+            "class": "gym-timplan",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "node": {
+          "tag": "TD",
+          "class": "",
+          "id": "",
+          "x": 475,
+          "width": 96.40625,
+          "right": 571.40625,
+          "clientWidth": 96,
+          "scrollWidth": 96,
+          "display": "table-cell",
+          "widthCSS": "96.4062px",
+          "minWidth": "88px",
+          "maxWidth": "none",
+          "overflowX": "visible",
+          "flex": "0 1 auto"
+        },
+        "parents": [
+          {
+            "tag": "TR",
+            "class": "",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table-row",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "TBODY",
+            "class": "",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table-row-group",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          },
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      }
+    ],
+    "selected": [
+      {
+        "selector": "html",
+        "nodes": [
+          {
+            "tag": "HTML",
+            "class": "",
+            "id": "",
+            "x": 0,
+            "width": 390,
+            "right": 390,
+            "clientWidth": 390,
+            "scrollWidth": 561,
+            "display": "block",
+            "widthCSS": "390px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": "body",
+        "nodes": [
+          {
+            "tag": "BODY",
+            "class": "__variable_geist_013ydlh __variable_geist_mono_0bm7fsx antialiased",
+            "id": "",
+            "x": 0,
+            "width": 390,
+            "right": 390,
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "display": "block",
+            "widthCSS": "390px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": "[data-slot=\"sidebar-inset\"]",
+        "nodes": []
+      },
+      {
+        "selector": "#workspace",
+        "nodes": [
+          {
+            "tag": "MAIN",
+            "class": "workspace protected-workspace",
+            "id": "workspace",
+            "x": 0,
+            "width": 390,
+            "right": 390,
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "display": "block",
+            "widthCSS": "390px",
+            "minWidth": "auto",
+            "maxWidth": "1540px",
+            "overflowX": "visible",
+            "flex": "1 1 0%"
+          }
+        ]
+      },
+      {
+        "selector": ".gym-timplan",
+        "nodes": [
+          {
+            "tag": "SECTION",
+            "class": "gym-timplan",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-tabs",
+        "nodes": [
+          {
+            "tag": "NAV",
+            "class": "gt-tabs",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "flex",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-head",
+        "nodes": [
+          {
+            "tag": "HEADER",
+            "class": "gt-head",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "flex",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-source-line",
+        "nodes": [
+          {
+            "tag": "DIV",
+            "class": "gt-source-line",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "flex",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-year-totals",
+        "nodes": [
+          {
+            "tag": "DIV",
+            "class": "gt-year-totals",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "grid",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-year-picker",
+        "nodes": [
+          {
+            "tag": "LABEL",
+            "class": "gt-year-picker",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "display": "flex",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-table-scroll",
+        "nodes": [
+          {
+            "tag": "SECTION",
+            "class": "gt-table-scroll",
+            "id": "",
+            "x": 18,
+            "width": 354,
+            "right": 372,
+            "clientWidth": 352,
+            "scrollWidth": 552,
+            "display": "block",
+            "widthCSS": "354px",
+            "minWidth": "0px",
+            "maxWidth": "100%",
+            "overflowX": "auto",
+            "flex": "0 1 auto"
+          }
+        ]
+      },
+      {
+        "selector": ".gt-matrix",
+        "nodes": [
+          {
+            "tag": "TABLE",
+            "class": "gt-matrix",
+            "id": "",
+            "x": 19,
+            "width": 552.40625,
+            "right": 571.40625,
+            "clientWidth": 552,
+            "scrollWidth": 552,
+            "display": "table",
+            "widthCSS": "552.406px",
+            "minWidth": "0px",
+            "maxWidth": "none",
+            "overflowX": "visible",
+            "flex": "0 1 auto"
+          }
+        ]
+      }
+    ]
+  },
+  "screenshot": "/private/tmp/gym-timplan-phone-repro.png",
+  "containedGeometry": {
+    "innerWidth": 390,
+    "documentWidth": 390,
+    "clientWidth": 390,
+    "visualWidth": 390,
+    "selected": [
+      {
+        "selector": "#workspace",
+        "x": 0,
+        "width": 390,
+        "clientWidth": 390,
+        "scrollWidth": 390,
+        "contain": "none",
+        "overflowX": "visible"
+      },
+      {
+        "selector": ".gym-timplan",
+        "x": 18,
+        "width": 354,
+        "clientWidth": 354,
+        "scrollWidth": 354,
+        "contain": "none",
+        "overflowX": "visible"
+      },
+      {
+        "selector": ".gt-table-scroll",
+        "x": 18,
+        "width": 354,
+        "clientWidth": 352,
+        "scrollWidth": 552,
+        "contain": "layout paint",
+        "overflowX": "auto"
+      },
+      {
+        "selector": ".gt-matrix",
+        "x": 19,
+        "width": 552.40625,
+        "clientWidth": 552,
+        "scrollWidth": 552,
+        "contain": "none",
+        "overflowX": "visible"
+      }
+    ]
+  },
+  "realEdit": {
+    "withoutForce": true,
+    "status": 200,
+    "pairedAudit": true
+  },
+  "containedScreenshot": "/private/tmp/gym-timplan-phone-contained.png",
+  "containedFinalGeometry": {
+    "innerWidth": 390,
+    "documentWidth": 390,
+    "clientWidth": 390,
+    "visualWidth": 390
+  },
+  "cleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 32,
+    "preservedAuditAnchors": 2,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0,
+    "gymReceipts": 0,
+    "timplans": 0,
+    "classLinks": 0,
+    "originalBusinessUnchanged": true,
+    "before": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "72f663ef8ced97de55243e57e6ec8ff59ad212d67a76f59d1bf0bcf0fda5e23d"
+      },
+      "point_plan_events": {
+        "count": 47,
+        "sha256": "621fcb2732d3d599b3e7791388ec02ebc20137073c2d34b987fa0ae69360b4db"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+      },
+      "timplans": {
+        "count": 4,
+        "sha256": "ba68e165f01a1b56a031baa7af8548fe3880d4a0b3f1f3570cebe1a4d39fd936"
+      },
+      "timplan_cells": {
+        "count": 46,
+        "sha256": "2f1cd8104e97ef36b2a1beb3ad09ae8e5302f88d421b3bef8f58b32ad020b52f"
+      },
+      "timplan_events": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "after": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "72f663ef8ced97de55243e57e6ec8ff59ad212d67a76f59d1bf0bcf0fda5e23d"
+      },
+      "point_plan_events": {
+        "count": 47,
+        "sha256": "621fcb2732d3d599b3e7791388ec02ebc20137073c2d34b987fa0ae69360b4db"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+      },
+      "timplans": {
+        "count": 4,
+        "sha256": "ba68e165f01a1b56a031baa7af8548fe3880d4a0b3f1f3570cebe1a4d39fd936"
+      },
+      "timplan_cells": {
+        "count": 46,
+        "sha256": "2f1cd8104e97ef36b2a1beb3ad09ae8e5302f88d421b3bef8f58b32ad020b52f"
+      },
+      "timplan_events": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  }
+}

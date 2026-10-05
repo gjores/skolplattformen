@@ -1,6 +1,8 @@
 # Timplaner — sammanhållen arbetsyta och analys
 
-**Planerat 2026-10-04. Ingen implementation eller nya produktprov utförda.** Förlagan är programplanernas aktuella tabell i 05-19 och Claudes pågående livscykelarbete. Alla arbetskopieändringar bevaras.
+**Historiskt planeringspaket 2026-10-04.** Förlagan är programplanernas aktuella tabell i 05-19 och Claudes pågående livscykelarbete. Alla arbetskopieändringar bevaras.
+
+**Aktuell avgränsning 2026-10-05:** Den beställda [övergången från programplan till skolans timutkast](05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) är genomförd och automatiskt verifierad 2026-10-06. En komplett sparad högskoleförberedande ram får användas redan som utkast, med exakt fryst version/revision och separata timmar. Paket är borttagna från programplanerna och krävs inte för denna övergång. Fyra nya slutna Worker-vägar är verifierade med verklig API-preflight och 11/157 på vanlig 3012; 60 browserfall samt bevarande av 14 hela originaltabeller PASS. Se den nya planens SUMMARY/VERIFICATION. Detta ersätter fastställd-/paketförutsättningen endast för förberedande utkast. Beslut, juridiska garantier, yrkesprofil och full 05-23/E återstår. 05-25–35 måste omplaneras mot det nya delresultatet; deras gamla migrationsnummer får inte köras oförändrade.
 
 ## Så ska användaren arbeta
 

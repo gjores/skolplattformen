@@ -1,0 +1,80 @@
+{
+  "file": "/private/tmp/gym-timplan-regression-blocks.json",
+  "stats": {
+    "startTime": "2026-10-05T22:00:50.738Z",
+    "duration": 39703.460999999996,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": [],
+  "globalErrors": [],
+  "source": [
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "blocks-desktop",
+      "title": "B01",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "blocks-desktop",
+      "title": "B02",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "blocks-desktop",
+      "title": "B03",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "blocks-phone",
+      "title": "B01",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "blocks-phone",
+      "title": "B02",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "blocks-phone",
+      "title": "B03",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    }
+  ],
+  "geometries": [],
+  "images": [
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B01-ny-SA25--b472f-h-läser-om-samma-fördelning-blocks-desktop/attachments/new-sa-full-points-png-3abc6253ae505025874033bcc60e49d171fee45f.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B02-rektor-d-9b548-gsram-fördelar-och-läser-om-blocks-desktop/attachments/blocks-split-specialization-png-0826d0bda4709fac62b72f13fcbc77b3d02d3586.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B03-äldre-fa-107cc-och-behåller-gamla-IV-poäng-blocks-desktop/attachments/legacy-new-version-swedish-png-0f2200a7d5bd6b022d14214b67708a68b4874c38.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B01-ny-SA25--b472f-h-läser-om-samma-fördelning-blocks-phone/attachments/new-sa-full-points-png-6aa0a88af778186b78c4443ac3e38ea94dba1836.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B02-rektor-d-9b548-gsram-fördelar-och-läser-om-blocks-phone/attachments/blocks-split-specialization-png-26f792172244c3a8f610908018aa58714efc2b83.png",
+    "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B03-äldre-fa-107cc-och-behåller-gamla-IV-poäng-blocks-phone/attachments/legacy-new-version-swedish-png-d8efe26d73e60d98f27911a576e1dd11f2491ce7.png"
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "file": "/private/tmp/gym-timplan-regression-legacy.json",
+  "stats": {
+    "startTime": "2026-10-05T21:57:00.622Z",
+    "duration": 55826.818,
+    "expected": 22,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": [],
+  "globalErrors": [],
+  "source": [
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "buildRevision": "3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "timplan-desktop",
+      "title": "11",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "10",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "01",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "02",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "03",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "04",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "05",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "06",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "07",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "08",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-desktop",
+      "title": "09",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "11",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "10",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "01",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "02",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "03",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "04",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "05",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "06",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "07",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "08",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    },
+    {
+      "project": "timplan-phone",
+      "title": "09",
+      "nonzero": {},
+      "originalBusinessUnchanged": null,
+      "originalTables": 0
+    }
+  ],
+  "geometries": [],
+  "images": [
+    "timplan-tillagd-skola.png",
+    "grundskola-regelstod.png",
+    "im-regelstod.png"
+  ]
+}
