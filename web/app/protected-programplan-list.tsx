@@ -10,7 +10,7 @@ import { programplanSchoolLabel } from '@/lib/programplan-lifecycle.ts';
 import { parseProgramplanSelection, type ProgramplanSelection } from '@/lib/programplan-education-contract.ts';
 
 type Props = {
-  disabled: boolean; onSecurityFailure: (error: unknown) => boolean;
+  disabled: boolean; canEditPlans: boolean; onSecurityFailure: (error: unknown) => boolean;
   onOpen: (id: string) => void; onCopy: (id: string) => void; onNew: () => void;
   onLoaded: (canCreateEducation: boolean) => void;
 };
@@ -20,7 +20,7 @@ const status = (o: ProgramplanEducationSummary) => o.draftId ? { text: o.latestV
   : o.latestVersion ? { text: `Version ${o.latestVersion}`, tone: 'saved' } : { text: 'Ingen programplan', tone: 'none' };
 
 /** Startsidan: alla utbildningar med programplaner, med öppna, kopiera och skapa ny. */
-export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, onCopy, onNew, onLoaded }: Props) {
+export default function ProgramplanList({ disabled, canEditPlans, onSecurityFailure, onOpen, onCopy, onNew, onLoaded }: Props) {
   const [offerings, setOfferings] = useState<ProgramplanOfferingRow[] | null>(null);
   const [selection, setSelection] = useState<ProgramplanSelection | null>(null);
   const [error, setError] = useState<string | null>(null), [busy, setBusy] = useState(false);
@@ -66,7 +66,7 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
   return <section className="ppl" aria-label="Alla programplaner" aria-busy={busy}>
     <div className="pps-head">
       <div className="pps-head-text"><h1 className="ppl-title">Programplaner</h1><p>Öppna en utbildnings programplan för att ändra den, kopiera den till en ny elevkull eller börja från början.</p></div>
-      <div className="pps-actions"><Button disabled={locked} onClick={onNew}><Plus size={16} aria-hidden="true"/>Ny programplan</Button></div>
+      {canEditPlans && <div className="pps-actions"><Button disabled={locked} onClick={onNew}><Plus size={16} aria-hidden="true"/>Ny programplan</Button></div>}
     </div>
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button variant="outline" disabled={locked} onClick={() => void load()}>Läs om listan</Button></div>}
     {!offerings && !error && <output>Hämtar utbildningar…</output>}

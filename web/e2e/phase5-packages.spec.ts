@@ -32,7 +32,7 @@ test('B04: sex språkförslag, borttaget tyskt nybörjarpaket, sparad fördelnin
 });
 test('B05: analys öppnar paketnivån med fel för ram och ordning, samt risk vid samma termin',async({page})=>{
  await putFrame();const block=fixture.basis().choiceBlocks.find(b=>b.id==='mosp')!,entry=proposeLanguagePackages(block)[0];
- entry.distribution=suggestPackageDistribution([0,0,100,0,100,0],entry.ref.levels).reverse();entry.distribution[0].points=[100,0,0,0,0,0];entry.distribution[1].points=[0,0,100,0,0,0];
+ entry.distribution=suggestPackageDistribution([0,0,100,0,100,0],entry.ref.levels).reverse();entry.distribution[0].points=[100,0,0,0,0,0];entry.distribution[1].points=[0,0,0,0,100,0];
  const put=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval',{planId:fixture.planId,unitId:fixture.unitId,expectedRevision:0,blockId:'mosp',entries:[entry]});expect(put.status).toBe(200);
  await enter(page);await board(page).getByRole('button',{name:/^Årskurs 3/u}).click();await workspace(page).getByRole('button',{name:/^Analys/u}).click();
  const issue=workspace(page).locator('tr').filter({hasText:/före/u}).filter({has:page.getByRole('button',{name:'Visa paket →',exact:true})}).first();await expect(issue).toBeVisible();await expect(workspace(page)).toContainText('paketet avviker från ramen');await issue.getByRole('button',{name:'Visa paket →',exact:true}).click();await expect(packages(page)).toBeVisible();await expect(packages(page).getByLabel('Franska MODO2000X, Åk 1 HT',{exact:true})).toBeFocused();
@@ -45,7 +45,7 @@ test('B06: rektor ändrar egen skolas paket men annan skolas utbud visas för l�
  await enter(page);await expect(packages(page).getByRole('button',{name:'Föreslå språkpaket',exact:true})).toBeEnabled();await packages(page).getByLabel('Skola för Moderna språk',{exact:true}).selectOption(fixture.secondUnitId);await expect(packages(page)).toContainText('Skolan ingår inte i ditt mandat');await expect(packages(page).getByRole('button',{name:'Lägg till paket',exact:true})).toHaveCount(0);
 });
 test('B07: skoladministratör kan välja paket i fastställd version och saknar planredigering',async({page})=>{
- await putFrame();await fixture.seedBoundLocked();await enter(page,fixture.admin);await proposal(page);
+ await putFrame();await fixture.seedBoundLocked();await enter(page,fixture.admin);await expect(workspace(page).getByRole('button',{name:'Ny programplan',exact:true})).toHaveCount(0);await proposal(page);
  await expect(board(page).locator('tr[data-row-key="block:mosp"] input')).toHaveCount(0);await expect(workspace(page).getByRole('button',{name:'Skapa ny version',exact:true})).toHaveCount(0);await expect(workspace(page).getByRole('button',{name:'Skolor',exact:true})).toHaveCount(0);
  const read=await fixture.request(baseURL,fixture.admin,'/api/programplaner/paketval/lasa',{planId:fixture.planId});expect(read.status).toBe(200);expect(read.body.units[0].revision).toBe(1);
 });
