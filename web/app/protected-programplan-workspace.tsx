@@ -329,12 +329,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     void openEducation(workspace.education.id, workspace.versionPage, workspace.catalog.catalogId, plan?.id ?? null, null, false, true).then(() => setNotice(message));
   }
   const planBody = boardActive && plan && program ? <>
-    {analysis&&termValues&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
+    {analysis&&termValues&&<AnalysisBanner analysis={analysis} canSaveDraft={changePlan && (!!draft || plan?.status === 'utkast')} onOpen={()=>setView('analysis')}/>}
     {analysis&&termValues&&plan.status==='utkast'&&<ReadinessCard analysis={analysis} onOpen={()=>setView('analysis')}/>}
     <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
       onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
-    {analysis&&(draft||plan)&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
+    {analysis&&(draft||plan)&&<AnalysisBanner analysis={analysis} canSaveDraft={changePlan && (!!draft || plan?.status === 'utkast')} onOpen={()=>setView('analysis')}/>}
     {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}
     {program&&workspace&&<LocalPlanBoard program={program} orientationCode={workspace.education.orientationCode} options={shownOptions} refs={shownRefs}
       terms={draft?.kind==='create'?draftTerms:[]} refsEditable={canEditInline} disabled={!draft||draft.kind!=='create'||formLocked}

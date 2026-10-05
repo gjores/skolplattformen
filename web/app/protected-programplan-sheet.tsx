@@ -9,10 +9,10 @@ const partColor: Record<PlanPart, string> = { foundation: '#2d4cc1', programmeSp
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 /** Felrad överst: tydlig, men blockerar inte sparande. */
-export function AnalysisBanner({ analysis, onOpen, disabled = false }: { analysis: Analysis; onOpen: () => void; disabled?: boolean }) {
+export function AnalysisBanner({ analysis, onOpen, disabled = false, canSaveDraft = true }: { analysis: Analysis; onOpen: () => void; disabled?: boolean; canSaveDraft?: boolean }) {
   const { fel, risk } = analysis.counts;
   if (fel) return <output className="pps-banner pps-banner-fel"><AlertCircle aria-hidden="true"/>
-    <p><strong>{plural(fel, 'fel', 'fel')} mot regelverket{risk ? ` och ${plural(risk, 'risk', 'risker')}` : ''}.</strong> Du kan spara utkastet, men planen kan inte fastställas förrän felen är åtgärdade.</p>
+    <p><strong>{plural(fel, 'fel', 'fel')} mot regelverket{risk ? ` och ${plural(risk, 'risk', 'risker')}` : ''}.</strong> {canSaveDraft ? 'Du kan spara utkastet, men planen kan inte fastställas förrän felen är åtgärdade.' : 'Planen kan inte fastställas förrän felen är åtgärdade.'}</p>
     <button type="button" disabled={disabled} onClick={onOpen}>Visa analys →</button></output>;
   return <output className="pps-banner pps-banner-ok"><CheckCircle2 aria-hidden="true"/>
     <p><strong>Inga fel mot regelverket.</strong> {risk ? `${plural(risk, 'risk', 'risker')} att se över innan fastställande.` : 'Inga risker hittades.'}</p>

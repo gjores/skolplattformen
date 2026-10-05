@@ -128,7 +128,9 @@ async function chooseSchools(page:Page,includeB:boolean){
   if(includeB)await schoolB(page).check();else await schoolB(page).uncheck();
   const pending=page.waitForResponse(matches(LIFECYCLE));await dialog(page).getByRole('button',{name:'Spara skolor',exact:true}).click();
   const response=await pending;expect(response.status()).toBe(200);expect(response.request().postDataJSON().command).toBe('units');
-  await expect(dialog(page)).toHaveCount(0);return response;
+  await expect(dialog(page)).toHaveCount(0);
+  await expect(w(page).getByRole('button',{name:'Skolor',exact:true})).toBeVisible();
+  await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});return response;
 }
 
 test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra',async({page},info)=>{
@@ -141,6 +143,8 @@ test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att
   await fixture.cookies(page.context(),fixture.principalB,baseURL);await page.goto('/');await navigate(page);await open(page,'Syntetisk bunden SA');
   await expect(w(page)).toContainText('Planen delas med skolor utanför ditt uppdrag och kan bara läsas');
   await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});
+  await expect(w(page).locator('.pps-banner-fel')).toContainText('Planen kan inte fastställas förrän felen är åtgärdade.');
+  await expect(w(page).locator('.pps-banner-fel')).not.toContainText('Du kan spara utkastet');
   await expect(w(page)).toContainText('Version 1');await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
   for(const name of ['Skolor','Ändra uppgifter','Arkivera','Ta bort','Föreslå fördelning'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);
   const request={offeringId:fixture.offeringId,versionPage:1,catalogId:null},a=await fixture.request(baseURL,fixture.hm,'/api/programplaner/underlag',request),b=await fixture.request(baseURL,fixture.principalB,'/api/programplaner/underlag',request);
