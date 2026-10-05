@@ -233,7 +233,7 @@ async function runBlockStepB(o) {
       await deny(c,fixture.hm,command(plan,blocks.map(b=>b.id==='iv1'?{...b,points:200}:b)),400);
       const stored=await call(fixture.principal,'terminer',{planId:plan.id,expectedRevision:plan.revision,distribution:[{rowKey:'block:fordj1',points:[0,0,100,100,0,0]}]});check(c,'allocated frame saved before orphan test',stored.status===200);
       const allocated=await current();await deny(c,fixture.hm,command(allocated,blocks.filter(b=>b.id!=='fordj1')),400);
-      const started=await fixture.startedEducation();await deny(c,fixture.hm,{planId:started.planId,expectedRevision:0,choiceBlocks:fixture.basis().choiceBlocks},403);
+      const started=await fixture.startedEducation();await deny(c,fixture.hm,{planId:started.planId,expectedRevision:0,choiceBlocks:fixture.basis().choiceBlocks},409);
       await fixture.seedBoundLocked();const sealed=await current();await deny(c,fixture.hm,command(sealed,blocks),403);
       // A newly injected owned legacy draft is invalid for block writes; no production rows are touched.
       await fixture.seedLegacyBound('utkast',undefined,'main');const legacy=await fixture.snapshot(fixture.planId);await deny(c,fixture.hm,{planId:fixture.planId,expectedRevision:legacy.revision,choiceBlocks:fixture.basis().choiceBlocks},400);

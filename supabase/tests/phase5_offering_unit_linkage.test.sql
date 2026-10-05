@@ -17,7 +17,7 @@ create function pg_temp.programplan_reference(refs jsonb default '[{"subjectCode
 returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code','SA25','version',4),'orientationCode','SABEP',
- 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs)$$;
+ 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs,'choiceBlocks','[{"id":"mosp","kind":"modernLanguage","points":200,"name":"Moderna språk"},{"id":"iv1","kind":"individualChoice","points":200,"name":"Individuellt val"}]'::jsonb)$$;
 insert into public.customers(id,name) values('55022000-0000-4000-8000-000000000001','Syntetiskt programplansprov');
 insert into public.organizers(id,customer_id,name,type) values('55022000-0000-4000-8000-000000000002','55022000-0000-4000-8000-000000000001','Syntetisk programplanshuvudman','Kommun');
 insert into public.identities(id,issuer,subject) values
