@@ -51,7 +51,9 @@ import MandateWorkspace from './mandate-workspace';
 import MfaStepUpNotice from './mfa-step-up';
 import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-workspace';
 import ProtectedTimplanWorkspace from './protected-timplan-workspace';
+import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
 import ProtectedProgramplanWorkspace from './protected-programplan-workspace';
+import { planLocationQuery, readPlanLocation, type GymTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 
 type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
@@ -150,7 +152,7 @@ function ProtectedNavigation({
           )}
           <SidebarMenuItem>
             <SidebarMenuButton isActive={view === 'timplaner'} aria-current={view === 'timplaner' ? 'page' : undefined}
-              onClick={() => go(session.context && ['huvudman','rektor'].includes(session.context.function) ? 'timplaner' : 'stangt')} className="nav-button">
+              onClick={() => go(session.context && ['huvudman','rektor','administrator'].includes(session.context.function) ? 'timplaner' : 'stangt')} className="nav-button">
               <CalendarClock size={19}/><span>Timplaner</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -219,6 +221,13 @@ function ProtectedShell() {
   const [expired, setExpired] = useState(false);
   const [lock, setLock] = useState<LockReason | null>(null);
   const [view, setView] = useState<ProtectedView>('stangt');
+  const [programplanTarget, setProgramplanTarget] = useState<ProgramplanLocation | null>(null);
+  const [timplanTarget, setTimplanTarget] = useState<GymTimplanLocation | null>(null);
+  const [timplanMode, setTimplanMode] = useState<'gym' | 'other'>('gym');
+  const [timplanYear, setTimplanYear] = useState('all');
+  const [planNavigation, setPlanNavigation] = useState(0);
+  const locationRef = useRef('');
+  const lastGymPlan = useRef<{ sourcePlanId: string; id: string } | null>(null);
   const [registerSetup, setRegisterSetup] = useState<RegisterSetup | null>(null);
   const [schoolYear, setSchoolYear] = useState<number | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
@@ -237,6 +246,7 @@ function ProtectedShell() {
     // Avbryt även redan hämtade men ännu inte levererade elev-/CSV-svar.
     setKnownEpoch(null);
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
+    setProgramplanTarget(null); setTimplanTarget(null); setTimplanMode('gym'); setTimplanYear('all'); lastGymPlan.current = null;
   }, []);
   const lockChangedContext = useCallback(() => {
     const wasSupport = sessionRef.current?.context?.function === 'support';
@@ -271,10 +281,16 @@ function ProtectedShell() {
         setKnownEpoch(loaded.epoch);
         const previous = sessionRef.current;
         const changed = previous !== null && (previous.epoch !== loaded.epoch || previous.context?.assignmentId !== loaded.context?.assignmentId);
-        if (changed) { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false); }
+        if (changed) { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setTimplanYear('all'); lastGymPlan.current = null; }
         sessionRef.current = loaded;
         setSession(loaded);
-        if (!previous || changed) setView(startView(loaded));
+        if (!previous || changed) {
+          const location = !changed && ['huvudman','rektor','administrator'].includes(loaded.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
+          setView(location?.view ?? startView(loaded));
+          setProgramplanTarget(location?.view === 'programplaner' ? location.programplan : null);
+          setTimplanTarget(location?.view === 'timplaner' ? location.gym : null); setTimplanMode('gym');
+          locationRef.current = window.location.pathname + window.location.search;
+        }
         setMfaRequired(false);
         return;
       } catch (error) {
@@ -327,6 +343,35 @@ function ProtectedShell() {
       window.removeEventListener('pageshow', pageShow);
     };
   }, [loadSession, clearSession, lockChangedContext]);
+
+  function writePlanLocation(location: PlanLocation, replace = false) {
+    const url = window.location.pathname + planLocationQuery(location);
+    if (window.location.pathname + window.location.search !== url) window.history[replace ? 'replaceState' : 'pushState'](null, '', url);
+    locationRef.current = url;
+  }
+  function goToProgramplan(target: ProgramplanLocation) {
+    if (hasUnsaved && !confirmDiscard()) return;
+    setProgramplanTarget(target); setPlanNavigation(value => value + 1); setView('programplaner'); writePlanLocation({ view: 'programplaner', programplan: target });
+  }
+  function goToTimplan(sourcePlanId: string) {
+    if (hasUnsaved && !confirmDiscard()) return;
+    const target: GymTimplanLocation = lastGymPlan.current?.sourcePlanId === sourcePlanId
+      ? { kind: 'plan', id: lastGymPlan.current.id } : { kind: 'source', id: sourcePlanId };
+    setTimplanTarget(target); setPlanNavigation(value => value + 1); setTimplanMode('gym'); setView('timplaner'); writePlanLocation({ view: 'timplaner', gym: target });
+  }
+  useEffect(() => {
+    const pop = () => {
+      if (!['huvudman','rektor','administrator'].includes(sessionRef.current?.context?.function ?? '')) return;
+      if (hasUnsaved && !confirmDiscard()) { window.history.pushState(null, '', locationRef.current); return; }
+      const location = readPlanLocation(window.location.search);
+      setProgramplanTarget(location?.view === 'programplaner' ? location.programplan : null);
+      setTimplanTarget(location?.view === 'timplaner' ? location.gym : null); setTimplanMode('gym');
+      setPlanNavigation(value => value + 1);
+      setView(location?.view ?? startView(sessionRef.current!));
+      locationRef.current = window.location.pathname + window.location.search;
+    };
+    window.addEventListener('popstate', pop); return () => window.removeEventListener('popstate', pop);
+  }, [hasUnsaved]);
 
   const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.assignmentId}` : null;
   useEffect(() => {
@@ -389,7 +434,13 @@ function ProtectedShell() {
       <a className="skip" href="#workspace">Till innehållet</a>
       <Sidebar className="app-sidebar">
         <ProtectedNavigation session={session} view={view} setView={next => {
-          if (next !== view && hasUnsaved && !confirmDiscard()) return;
+          if (hasUnsaved && !confirmDiscard()) return;
+          if (next === view && next !== 'programplaner' && next !== 'timplaner') return;
+          setProgramplanTarget(null); setTimplanTarget(null); setTimplanMode('gym');
+          setPlanNavigation(value => value + 1);
+          if (next === 'programplaner') writePlanLocation({ view: next, programplan: null });
+          else if (next === 'timplaner') writePlanLocation({ view: next, gym: null });
+          else if (readPlanLocation(window.location.search)) { window.history.pushState(null, '', window.location.pathname); locationRef.current = window.location.pathname; }
           setView(next);
         }} />
       </Sidebar>
@@ -421,8 +472,16 @@ function ProtectedShell() {
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={clearSession} />}
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
             {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={setSchoolYear} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
-            {view === 'timplaner' && ['huvudman','rektor'].includes(session.context!.function) && <ProtectedTimplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
-            {view === 'programplaner' && ['huvudman','rektor','administrator'].includes(session.context!.function) && <ProtectedProgramplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
+            {view === 'timplaner' && ['huvudman','rektor','administrator'].includes(session.context!.function) && <>
+              <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => { if (hasUnsaved && !confirmDiscard()) return; setTimplanTarget(null); setPlanNavigation(value => value + 1); setTimplanMode('gym'); writePlanLocation({ view: 'timplaner', gym: null }); }}>Gymnasium</Button>
+                {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'default' : 'outline'} aria-pressed={timplanMode === 'other'} onClick={() => { if (hasUnsaved && !confirmDiscard()) return; setTimplanTarget(null); setTimplanMode('other'); writePlanLocation({ view: 'timplaner', gym: null }); }}>Grundskola och introduktionsprogram</Button>}</nav>
+              {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}-${planNavigation}-${timplanTarget?.kind}-${timplanTarget?.id}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
+                year={timplanYear} onYear={setTimplanYear}
+                onOpened={(target, sourcePlanId) => { if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, id: target.id }; writePlanLocation({ view: 'timplaner', gym: target }, true); }} onProgramplan={goToProgramplan}/>
+                : <ProtectedTimplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
+            </>}
+            {view === 'programplaner' && ['huvudman','rektor','administrator'].includes(session.context!.function) && <ProtectedProgramplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}-${planNavigation}-${programplanTarget?.planId}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
+              onOpened={target => writePlanLocation({ view: 'programplaner', programplan: target }, true)}/>}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}

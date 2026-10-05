@@ -34,6 +34,8 @@ const ERROR_TEXT: Record<string, string> = {
   programplan_unit_packages_in_use: 'Skolan har tidigare sparat utbud kopplat till planen. Kopplingen bevaras och skolan kan därför inte tas bort här.',
   programplan_block_packages_in_use: 'Blocket används av tidigare sparat utbud. Uppgifterna bevaras och blockets poäng kan därför inte ändras eller blocket tas bort här.',
   programplan_start_passed: 'Utbildningen har redan startat. En ny plan kan bara skapas för en kull som inte har börjat.',
+  gym_timplan_source_not_ready: 'Programramen behöver kompletteras. Läs aktuellt underlag innan du skapar timplansutkastet.',
+  gym_timplan_archived: 'Utbildningen är arkiverad. Timplanen kan läsas men inte ändras.',
 };
 
 function isSessionMessage(value: unknown): value is SessionMessage {

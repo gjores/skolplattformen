@@ -26,12 +26,15 @@ import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
 import { parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import './protected-programplan.css';
+import type { ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 
-type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void };
+type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void; initialPlan?: ProgramplanLocation | null;
+  onOpened?: (target: ProgramplanLocation | null) => void; onTimplan?: (sourcePlanId: string) => void };
 const aborted = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
 const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för ändring', replace: 'Ändra fördjupning', clone: 'Skapa ny version' };
+function newCopy(name: string) { return { name: `${name} – kopia`.slice(0, 120), cohort: '', localCode: '', startedOn: '', command: null, error: null, uncertain: false }; }
 
-export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost }: Props) {
+export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost, initialPlan, onOpened, onTimplan }: Props) {
   const page = 1;
   const hasUnsaved = useHasUnsaved();
   const [flowRevision,setFlowRevision] = useState(0);
@@ -56,6 +59,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   useEffect(()=>{if(!reviewing)return;const frame=requestAnimationFrame(()=>reviewRef.current?.focus());return()=>cancelAnimationFrame(frame);},[reviewing]);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const generation = useRef(0), mounted = useRef(true), controller = useRef<AbortController | null>(null), saving = useRef(false);
+  const opened = useRef(onOpened); useEffect(() => { opened.current = onOpened; }, [onOpened]);
   const dirty = !!preparation?.catalogId || !!draft && draft.mode !== 'applied' && (draft.kind !== 'replace' || draft.startedOn !== draft.originalStart
     || !sameProgramplanLevels(draft.refs, draft.originalRefs) || draft.mode !== 'edit');
   const copyDirty = !!copy && !!(copy.cohort || copy.startedOn || copy.localCode || copy.command);
@@ -69,19 +73,20 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [invalidate, onSessionLost]);
   const loadList = useCallback(async (_next: number) => {
     invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setFocusIssue(null); setNotice(null); setError(null); setBusy(false); setShowFlow(false); setCopy(null); setFlowRevision(value=>value+1);
+    opened.current?.(null);
   }, [invalidate]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; invalidate(); }; }, [invalidate]);
-  async function readWorkspace(offeringId: string, versionPage: number, catalogId: string | null, signal: AbortSignal) {
+  const readWorkspace = useCallback(async (offeringId: string, versionPage: number, catalogId: string | null, signal: AbortSignal) => {
     const input = { offeringId, versionPage, catalogId };
     return parseProgramplanWorkspace(await api.post('/api/programplaner/underlag', input, signal), input);
-  }
-  async function readPlan(id: string, offeringId: string, signal: AbortSignal) {
+  }, []);
+  const readPlan = useCallback(async (id: string, offeringId: string, signal: AbortSignal) => {
     const value = parseProgramplan(await api.post('/api/programplaner/lasa', { planId: id }, signal));
     if (value.id !== id || value.offeringId !== offeringId) throw new Error('Planens identitet avviker.');
     return value;
-  }
-  async function readSelection(offeringId: string, versionPage: number, catalogId: string | null, explicitId: string | null,
-    signal: AbortSignal, automatic = true, initial?: ProgramplanWorkspace) {
+  }, []);
+  const readSelection = useCallback(async (offeringId: string, versionPage: number, catalogId: string | null, explicitId: string | null,
+    signal: AbortSignal, automatic = true, initial?: ProgramplanWorkspace) => {
     let fresh = initial ?? await readWorkspace(offeringId, versionPage, catalogId, signal);
     const initialEducation = fresh.education, count = fresh.versionCount;
     const matchingWorkspace = (next: ProgramplanWorkspace) => {
@@ -121,9 +126,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     }
     if (fresh.education.draftId === selected.id && selected.status !== 'utkast') throw new Error('Utkastets status ändrades.');
     return { fresh, selected, summary };
-  }
-  async function openEducation(offeringId: string, versionPage = 1, catalogId: string | null = null,
-    planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null, propagateError = false, force = false) {
+  }, [readPlan, readWorkspace]);
+  const openEducation = useCallback(async (offeringId: string, versionPage = 1, catalogId: string | null = null,
+    planId: string | null = null, keepPreparation: ProgramplanCommandKind | null = null, propagateError = false, force = false) => {
     if (busy && !force || !keepPreparation && !force && hasUnsaved && !confirmDiscard()) return;
     const r = begin();
     if (!keepPreparation) { setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); setFocusIssue(null); }
@@ -132,11 +137,17 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     try {
       const {fresh, selected, summary} = await readSelection(offeringId, versionPage, catalogId, planId, r.signal);
       if (current(r.token)) { setWorkspace(fresh); setPlan(selected); setPlanSummary(summary);
+        if (selected) onOpened?.({ offeringId: fresh.education.id, planId: selected.id });
         if (copyAfterOpen.current) { copyAfterOpen.current = false; if (selected?.basisReference) setCopy(newCopy(fresh.education.name)); else setNotice('Utbildningen har ingen kopplad programplan att kopiera. Öppna planen och koppla den till ett underlag först.'); } }
     } catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Aktuellt programplansunderlag kunde inte läsas. Välj utbildningen igen.'); if (propagateError) throw e; }
     finally { if (current(r.token)) setBusy(false); }
-  }
-  function newCopy(name: string) { return { name: `${name} – kopia`.slice(0, 120), cohort: '', localCode: '', startedOn: '', command: null, error: null, uncertain: false }; }
+  }, [begin, busy, current, hasUnsaved, onOpened, readSelection, securityFailure]);
+  const initialOpened = useRef(false);
+  useEffect(() => {
+    if (!initialPlan || initialOpened.current) return;
+    initialOpened.current = true;
+    queueMicrotask(() => { if (mounted.current) void openEducation(initialPlan.offeringId, 1, null, initialPlan.planId); });
+  }, [initialPlan, openEducation]);
   async function openCreatedCopy(command: ProgramplanEducationCreateRequest, value: unknown, terms: ProgramplanTermDistribution | null, sourceUnits: string[], signal: AbortSignal) {
     const created = parseProgramplanEducationCreated(value, command);
     let termsNote = '';
@@ -390,6 +401,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <LifecycleBadge lifecycle={workspace.lifecycle}/>
           <span className={ready?'pps-state pp-status pps-ready':'pps-state pp-status'}>{statusText}</span>
           {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
+          {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>onTimplan(plan.id)}>Timplan</Button>}
           {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
           {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||hasUnsaved||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}

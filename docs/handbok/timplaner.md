@@ -2,11 +2,41 @@
 title: Timplaner
 ---
 
-I den skyddade provmiljön kan huvudman och rektor öppna befintliga timplaner för grundskola och introduktionsprogram inom sina aktuella skoluppdrag. Uppgifterna i provmiljön är syntetiska.
+Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är underlag och omvandlas inte automatiskt till timmar. Uppgifterna i den skyddade provmiljön är syntetiska.
+
+## Från programplan till gymnasiets timplan
+
+Öppna en sparad programplan och välj **Timplan**, eller välj **Timplaner → Gymnasium** och därefter utbildning. Välj skola om utbildningen används av flera skolor. Varje skola har egna timplansversioner och timmar.
+
+Rektor och skoladministratör kan välja **Skapa timplansutkast** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Den här övergången stöder högskoleförberedande program med känd poängram; yrkesprogrammets ram behöver ännu verifieras.
+
+Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. Valbara block är ramar; språkpaket, elevval, grupper och bemanning hanteras senare. Alternativa ämnen och block räknas en gång.
+
+### Fördela skolans timmar
+
+1. Öppna skolans timplan och välj **Ändra** på en rad.
+2. Fyll i hela timmar för de terminer som har poäng i underlaget. Ett tomt fält är **Ofördelat**; `0` betyder angivna noll timmar. Terminer som inte ingår kan inte fyllas i.
+3. Välj **Spara timmar** och invänta sparbeskedet. Hela raden sparas tillsammans. Ny inmatning under pågående sparning ligger kvar för nästa sparning.
+
+Årskurssummorna visar planerade timmar. **Visa bara ofördelade** hittar rader som ännu har tomma aktiva terminer. På telefon kan du välja en årskurs och rulla själva tabellen. Sidomladdning återöppnar samma sparade timplan. Osparade ändringar skyddas när du lämnar vyn.
+
+**Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget.
+
+### När programramen ändras
+
+Timplanen skrivs inte om automatiskt. Välj **Välj nytt underlag** och därefter **Nytt timplansutkast** för skolan. Granskningen visar hur många rader som behåller tid och hur många som börjar ofördelade. Bara samma rad med oförändrade totalpoäng och poäng i samtliga sex terminer får behålla timmarna. Ett äldre öppet utkast bevaras som **Ersatt**; en fastställd föregångare ligger kvar oförändrad. Klasskopplingar flyttas inte.
+
+Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kvar för jämförelse. **Spara min fördelning** prövar din rad mot den nya revisionen. Ett oklart skapandesvar kan hämtas med samma begäran genom **Hämta sparad timplan**, så att ytterligare en timplan inte skapas.
+
+Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Fastställande och kontroll av garanterad undervisningstid återstår; ifyllda timmar är fortfarande förberedande planering.
+
+## Grundskola och introduktionsprogram
+
+Huvudman och rektor kan öppna befintliga timplaner inom sina aktuella skoluppdrag. Välj fliken **Grundskola och introduktionsprogram** under **Timplaner**. Skoladministratörens nya gymnasieåtkomst ger ingen åtkomst till dessa timplansceller.
 
 ## Öppna en plan
 
-Välj **Timplaner** i navigationen. Listan visar skola, utbildning, elevkull, version och status. Använd sidknapparna om listan har flera sidor och öppna den plan du vill läsa. En tom lista betyder att ditt uppdrag inte omfattar någon befintlig timplan i dessa skolformer.
+Listan visar skola, utbildning, elevkull, version och status. Använd sidknapparna om listan har flera sidor och öppna den plan du vill läsa. En tom lista betyder att ditt uppdrag inte omfattar någon befintlig timplan i dessa skolformer.
 
 Timplanen hör till en bestämd skola. När flera skolor använder samma utbildning har varje skola sina egna timplansversioner. Listan visar timplanens skola, och rektor kan läsa och ändra planer inom sitt aktuella skoluppdrag. En klasskoppling gäller en fastställd version på samma skola; en ny version flyttar inte den befintliga kopplingen.
 
@@ -48,6 +78,6 @@ Om anslutningen bryts under sparning kan beskedet vara osäkert. Läs då in pla
 
 ## Begränsningar
 
-Vyn visar och ändrar befintliga timplansceller. Skapande av timplaner, förslag, beslut, nya timplansversioner och klasskopplingar är ännu inte tillgängliga här. Gymnasiets utkast hanteras separat i Programplaner. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
+För grundskola och introduktionsprogram kan vyn läsa och ändra befintliga timplansceller. Skapande, förslag, beslut, nya versioner och klasskopplingar är ännu inte tillgängliga för dessa skolformer. Gymnasiets nya skolvisa utkast beskrivs ovan. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
 
 Alla läsningar och ändringar kräver att säkerhetsloggen fungerar. Om den inte kan skrivas lämnas inget innehåll ut och ändringen genomförs inte. Vid utloggning eller ändrat uppdrag rensas plan och osparat innehåll från arbetsytan.

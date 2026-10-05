@@ -59,7 +59,9 @@ Tillagda skolor kan använda utbildningen för sina egna elevplaceringar och kla
 
 En skola kan inte tas bort från planen så länge skolans klasser, elevplaceringar eller timplaner är kopplade till utbildningen.
 
-**Nuvarande begränsning:** att skapa klasser, skapa timplaner och koppla en klass till en timplan är ännu inte tillgängligt i den skyddade appen. Befintliga kopplingar bevaras.
+**Timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad högskoleförberedande programram, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
+
+Att skapa klasser och koppla en klass till en timplan är ännu inte tillgängligt i den skyddade appen. Befintliga kopplingar bevaras. Skapande av timplansutkast är inget fastställande av programplan eller timplan.
 
 ## Ny programplan
 

@@ -72,6 +72,7 @@ async function navigate(page: Page,label: string) {
     await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
   }
   await button.click();
+  if(label==='Timplaner')await page.getByRole('button',{name:'Grundskola och introduktionsprogram',exact:true}).click();
 }
 function planChoice(page:Page,label:string) {
   return workspace(page).getByRole('button',{name:new RegExp(`^${label}(?:,|$)`,'u')});
