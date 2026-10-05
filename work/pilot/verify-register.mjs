@@ -56,6 +56,18 @@ export function overallStatus(results, { subset = false } = {}) {
     REQUIRED_CASES.every(name => names.includes(name)) ? 'PASS' : 'FAIL';
 }
 
+// De två periodbytesproven behöver en entydig egen provgrund. Beständiga
+// visningsfixturer kan ha användarsparad historik/framtida perioder: behåll dem.
+export function currentRegisterProbePeriods(placements,classes,today,unitId){
+  const day=value=>typeof value==='string'?value.slice(0,10):value.toISOString().slice(0,10);
+  const current=row=>day(row.starts_on)<=today&&(row.ends_on===null||day(row.ends_on)>=today);
+  const active=placements.filter(row=>row.unit_id===unitId&&current(row));
+  if(active.length!==1)throw new Error('BLOCKED: current scoped placement fixture is not unique');
+  const activeClasses=classes.filter(row=>row.unit_id===unitId&&row.placement_id===active[0].id&&current(row));
+  if(activeClasses.length!==1)throw new Error('BLOCKED: current scoped class fixture is not unique');
+  return {placements:[{...active[0],ends_on:null}],classes:activeClasses.map(row=>({...row,ends_on:null}))};
+}
+
 const direct = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (direct) await main();
 
@@ -166,7 +178,7 @@ async function runCases({ options, results, manifest, db, sessions, setServer, a
   const change = async (session, pupilId, kind, payload, expectedVersion) => post(session, '/api/elever/andra', {
     ...card(pupilId), expectedVersion: expectedVersion ?? await version(pupilId), kind, payload,
   });
-  const clone = async sourceId => {
+  const clone = async (sourceId,{currentPeriodsOnly=false}={}) => {
     const id = crypto.randomUUID();
     await assertTarget('protected');
     await db.begin(async tx => {
@@ -177,13 +189,16 @@ async function runCases({ options, results, manifest, db, sessions, setServer, a
       await tx`insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,protected_identity,anonymous_name)
         select ${id},customer_id,organizer_id,'Syntetiskt 04-16 körprov',${number.personal_number},false,'Provperson'
         from public.pupils where id=${sourceId}`;
+      const placementRows=await tx`select id,customer_id,organizer_id,unit_id,offering_id,starts_on,ends_on from public.pupil_placements where pupil_id=${sourceId}`;
+      const classRows=await tx`select customer_id,organizer_id,unit_id,class_id,placement_id,starts_on,ends_on from public.pupil_class_memberships where pupil_id=${sourceId}`;
+      const periods=currentPeriodsOnly?currentRegisterProbePeriods(placementRows,classRows,today,F.unit):{placements:placementRows,classes:classRows};
       const placementMap = new Map();
-      for (const row of await tx`select id,customer_id,organizer_id,unit_id,offering_id,starts_on,ends_on from public.pupil_placements where pupil_id=${sourceId}`) {
+      for (const row of periods.placements) {
         const newId = crypto.randomUUID(); placementMap.set(row.id, newId);
         await tx`insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on,ends_on)
           values(${newId},${row.customer_id},${row.organizer_id},${id},${row.unit_id},${row.offering_id},${row.starts_on},${row.ends_on})`;
       }
-      for (const row of await tx`select customer_id,organizer_id,unit_id,class_id,placement_id,starts_on,ends_on from public.pupil_class_memberships where pupil_id=${sourceId}`) {
+      for (const row of periods.classes) {
         await tx`insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on,ends_on)
           values(${crypto.randomUUID()},${row.customer_id},${row.organizer_id},${id},${row.unit_id},${row.class_id},${placementMap.get(row.placement_id)},${row.starts_on},${row.ends_on})`;
       }
@@ -228,7 +243,7 @@ async function runCases({ options, results, manifest, db, sessions, setServer, a
         await event(first, 'pupil_list_read') && await event(second, 'pupil_read') && first.corr !== second.corr);
     });
     await run('placement-change', async checks => {
-      const pupil = await clone(F.namesakeA);
+      const pupil = await clone(F.namesakeA,{currentPeriodsOnly:true});
       const [placement] = await db`select id,offering_id,starts_on from public.pupil_placements where pupil_id=${pupil}`;
       const prior = await version(pupil);
       const response = await change(admins.ordinary, pupil, 'transfer', { placementId: placement.id, unitId: F.unit,
@@ -240,7 +255,7 @@ async function runCases({ options, results, manifest, db, sessions, setServer, a
         (await db`select count(*)::int as n from public.pupil_field_history where pupil_id=${pupil} and field='placement'`)[0].n >= 1);
     });
     await run('class-change', async checks => {
-      const pupil = await clone(F.namesakeA);
+      const pupil = await clone(F.namesakeA,{currentPeriodsOnly:true});
       const [placement] = await db`select id,offering_id from public.pupil_placements where pupil_id=${pupil}`;
       const response = await change(admins.ordinary, pupil, 'class', { placementId: placement.id, classId: F.classOtherEducation,
         startsOn: shiftDay(today, 1), endsOn: null });

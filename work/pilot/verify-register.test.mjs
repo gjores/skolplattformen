@@ -32,3 +32,32 @@ test('CLI rejects unknown cases, unsafe paths and invalid ports', () => {
   assert.equal(opts.subset, true);
   assert.deepEqual(opts.cases, REQUIRED_CASES.slice(0, 2));
 });
+
+test('period probes select today within the actor school and leave durable future/history untouched',async()=>{
+ const {currentRegisterProbePeriods}=await import('./verify-register.mjs');
+ const placements=[
+  {id:'future',unit_id:'school',starts_on:'2026-11-01',ends_on:null},
+  {id:'current',unit_id:'school',starts_on:'2026-09-01',ends_on:'2026-10-31'},
+  {id:'past',unit_id:'school',starts_on:'2025-09-01',ends_on:'2026-08-31'},
+ ];
+ const classes=[
+  {class_id:'futureClass',unit_id:'school',placement_id:'future',starts_on:'2026-11-01',ends_on:null},
+  {class_id:'currentClass',unit_id:'school',placement_id:'current',starts_on:'2026-09-15',ends_on:'2026-10-31'},
+  {class_id:'pastClass',unit_id:'school',placement_id:'current',starts_on:'2026-09-01',ends_on:'2026-09-14'},
+ ];
+ const before=JSON.stringify({placements,classes});
+ const own=currentRegisterProbePeriods(placements,classes,'2026-10-05','school');
+ assert.deepEqual(own.placements,[{...placements[1],ends_on:null}]);
+ assert.deepEqual(own.classes,[{...classes[1],ends_on:null}]);
+ assert.equal(JSON.stringify({placements,classes}),before);
+ assert.throws(()=>currentRegisterProbePeriods(placements,classes,'2026-10-05','otherSchool'),/scoped placement/);
+ assert.throws(()=>currentRegisterProbePeriods([...placements,{...placements[1],id:'duplicate'}],classes,'2026-10-05','school'),/not unique/);
+ assert.throws(()=>currentRegisterProbePeriods(placements,classes.filter(c=>c.class_id!=='currentClass'),'2026-10-05','school'),/scoped class/);
+});
+test('period probe dates accept database Date values and inclusive final day',async()=>{
+ const {currentRegisterProbePeriods}=await import('./verify-register.mjs');
+ const placement={id:'p',unit_id:'s',starts_on:new Date('2026-09-01T00:00:00Z'),ends_on:new Date('2026-10-05T00:00:00Z')};
+ const classes=[{placement_id:'p',unit_id:'s',class_id:'c',starts_on:'2026-09-01',ends_on:'2026-10-05'}];
+ assert.equal(currentRegisterProbePeriods([placement],classes,'2026-10-05','s').classes[0].class_id,'c');
+ assert.throws(()=>currentRegisterProbePeriods([placement],classes,'2026-10-06','s'),/scoped placement/);
+});
