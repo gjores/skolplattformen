@@ -149,7 +149,7 @@ test('B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan
 });
 
 test('B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läser om paketvalet',async({page},info)=>{
-  const {randomUUID}=await import('node:crypto');const {defaultProgramplanChoiceBlocks}=await import('../lib/programplan-choice-blocks.ts');const {default:catalog}=await import('../lib/programplan-catalog.generated.json');const program=catalog.programs.find(p=>p.code==='NA25'&&p.version===4)!;
+  const {randomUUID}=await import('node:crypto');const {defaultProgramplanChoiceBlocks}=await import('../lib/programplan-choice-blocks.ts');const {default:catalog}=await import('../lib/programplan-catalog.generated.json',{with:{type:'json'}});const program=catalog.programs.find(p=>p.code==='NA25'&&p.version===4)!;
   const basis={catalogId:fixture.catalogId,programRef:{code:'NA25',version:4},orientationCode:'NANAA',startedOn:fixture.basis().startedOn,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(program,'NANAA')};
   const created=await fixture.request(baseURL,fixture.hm,'/api/programplaner/utbildning/skapa',{commandId:randomUUID(),unitId:fixture.unitId,name:'Syntetisk NAVE',localCode:null,cohort:'Syntetisk framtida kull',basisReference:basis});expect(created.status).toBe(200);
   await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page,/^Öppna utbildning Syntetisk NAVE,/u);
