@@ -1,0 +1,56 @@
+{
+  "kind": "programplan-frame-terms-readonly-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "currentExpected": 2,
+  "currentPassed": 2,
+  "historicalSkipped": 0,
+  "historicalCaseIds": [],
+  "cases": [
+    {
+      "case": "12",
+      "project": "terms-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "12",
+      "project": "terms-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 2,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "buildRevisions": [
+    "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+  ],
+  "observedSourceRevisions": [
+    "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+  ],
+  "preservedAuditEvents": 35,
+  "preservedAuditAnchors": 2,
+  "raw": {
+    "path": "web/test-results/programplan-frame-terms-readonly-final.json",
+    "sha256": "b30ac258ed6b5de8f5b1c48128aab8770f3495b837ee7e8f5465877480429101",
+    "originalSha256": "61d490e1fdaa3e2da7efc0980e55c266f032fb054777c459cac746385bf2e17c"
+  },
+  "images": [
+    {
+      "path": "web/test-results/programplan-frame-evidence/terms-readonly/phase5-terms-12-en-skrivsk-775e3-ör-risker-inte-kan-åtgärdas-terms-desktop/attachments/analysis-readonly-png-a051048338668d10a6d5a48a48537ed3f5e1110f.png",
+      "sha256": "f75287323e282074532667920f4486341b655100f302a7f4a34b10599c61f00e"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/terms-readonly/phase5-terms-12-en-skrivsk-775e3-ör-risker-inte-kan-åtgärdas-terms-phone/attachments/analysis-readonly-png-87f4101d8cd0bb316f9f003b1b727a326d2334b0.png",
+      "sha256": "2258e1ceac402022ea993c03355f6e93098684ad3b988d180053490ae37d2cb0"
+    }
+  ],
+  "limits": [
+    "Lokala syntetiska sessionsbevis, ingen verklig kommunanslutning.",
+    "Telefonprov i iPhone/WebKit-emulering.",
+    "Mänsklig begriplighet och hela05-23/E fortfarande öppna."
+  ]
+}

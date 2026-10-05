@@ -1,0 +1,64 @@
+{
+  "kind": "programplan-frame-lifecycle-readonly-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "currentExpected": 2,
+  "currentPassed": 2,
+  "historicalSkipped": 0,
+  "historicalCaseIds": [],
+  "cases": [
+    {
+      "case": "L07",
+      "project": "lifecycle-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "L07",
+      "project": "lifecycle-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 2,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "buildRevisions": [
+    "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+  ],
+  "observedSourceRevisions": [
+    "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+  ],
+  "preservedAuditEvents": 133,
+  "preservedAuditAnchors": 4,
+  "raw": {
+    "path": "web/test-results/programplan-frame-lifecycle-readonly-final.json",
+    "sha256": "e93939c703b494be65e256a6c3382d7d3186edcab228d473b30a910cdef39893",
+    "originalSha256": "1625c392b055a5cf8977e50b97740f02e467478b8634c4cfcf5055c503bbc726"
+  },
+  "images": [
+    {
+      "path": "web/test-results/programplan-frame-evidence/lifecycle-readonly/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-desktop/attachments/units-school-filter-png-b9835e39d1a8be63ac8cf8b9154309f49766ddd7.png",
+      "sha256": "38b98c34366dce6b48c47c48dd2e4fa55e9f6d3364d0a1452aadf8251089fd01"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/lifecycle-readonly/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-desktop/attachments/units-principal-b-readonly-png-948758bec1cd286b6735f6c4410125369209d80f.png",
+      "sha256": "f74a5a6b24b72f3ffb0faf8dddc90b0911da213a5cb679e34fe39e2f160e2792"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/lifecycle-readonly/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-phone/attachments/units-school-filter-png-ebb79cfa14e4a4b89d702c09611d1d63020f6128.png",
+      "sha256": "a913d64c17c50b33ecf917de21779464d97d0c9b7fd55f3ba8ee257e0527ce62"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/lifecycle-readonly/phase5-lifecycle-L07-huvud-87282--utan-rätt-att-ändra-planen-lifecycle-phone/attachments/units-principal-b-readonly-png-99c266a91c29a8f50e06b7af7484204975bca91a.png",
+      "sha256": "a1942a7d7f96f2ccb6527c4edae22237a773af7c1b7664105073bebe5867c6a1"
+    }
+  ],
+  "limits": [
+    "Lokala syntetiska sessionsbevis, ingen verklig kommunanslutning.",
+    "Telefonprov i iPhone/WebKit-emulering.",
+    "Mänsklig begriplighet och hela05-23/E fortfarande öppna."
+  ]
+}

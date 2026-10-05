@@ -1,0 +1,266 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "mode": "after",
+  "trial": {
+    "status": "PASS",
+    "target": "protected",
+    "mode": "current",
+    "roles": 2,
+    "educationsPerRole": 9,
+    "programs": [
+      "SA25",
+      "EK25",
+      "NA25",
+      "TE25",
+      "ES25",
+      "VO25"
+    ],
+    "auditedReads": 44,
+    "businessRowsPreserved": true,
+    "schoolForm": "GY",
+    "sharedFlowSelectionVerified": true,
+    "selectionProgramsPerRole": 6,
+    "scenarios": [
+      {
+        "role": "rektor",
+        "scenario": 40,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 2,
+        "bound": true,
+        "savedChoices": 3
+      },
+      {
+        "role": "rektor",
+        "scenario": 41,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 3,
+        "bound": true,
+        "savedChoices": 3
+      },
+      {
+        "role": "rektor",
+        "scenario": 42,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 29,
+        "bound": true,
+        "savedChoices": 3
+      },
+      {
+        "role": "rektor",
+        "scenario": 43,
+        "versionCount": 1,
+        "currentStatus": "faststalld",
+        "currentVersion": 1,
+        "revision": 0,
+        "bound": false,
+        "savedChoices": 1
+      },
+      {
+        "role": "rektor",
+        "scenario": 44,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 1,
+        "bound": true,
+        "savedChoices": 5
+      },
+      {
+        "role": "rektor",
+        "scenario": 45,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "rektor",
+        "scenario": 46,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "rektor",
+        "scenario": 47,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "rektor",
+        "scenario": 48,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "huvudman",
+        "scenario": 40,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 2,
+        "bound": true,
+        "savedChoices": 3
+      },
+      {
+        "role": "huvudman",
+        "scenario": 41,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 3,
+        "bound": true,
+        "savedChoices": 3
+      },
+      {
+        "role": "huvudman",
+        "scenario": 42,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 29,
+        "bound": true,
+        "savedChoices": 3
+      },
+      {
+        "role": "huvudman",
+        "scenario": 43,
+        "versionCount": 1,
+        "currentStatus": "faststalld",
+        "currentVersion": 1,
+        "revision": 0,
+        "bound": false,
+        "savedChoices": 1
+      },
+      {
+        "role": "huvudman",
+        "scenario": 44,
+        "versionCount": 1,
+        "currentStatus": "utkast",
+        "currentVersion": 1,
+        "revision": 1,
+        "bound": true,
+        "savedChoices": 5
+      },
+      {
+        "role": "huvudman",
+        "scenario": 45,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "huvudman",
+        "scenario": 46,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "huvudman",
+        "scenario": 47,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      },
+      {
+        "role": "huvudman",
+        "scenario": 48,
+        "versionCount": 0,
+        "currentStatus": "no_plan",
+        "currentVersion": null,
+        "revision": null,
+        "bound": false,
+        "savedChoices": 0
+      }
+    ],
+    "proof": "current trial scenarios, actual built Worker and existing school mandates with locally minted sessions; no interactive IdP or human result implied"
+  },
+  "twelveBusinessTables": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "health": {
+    "runtime": "workerd",
+    "role": "skolplattform_worker"
+  },
+  "businessRowsPreserved": true,
+  "originalBusinessRowsPreserved": true,
+  "originalScenariosPreserved": true,
+  "workerBuildRevision": "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+}

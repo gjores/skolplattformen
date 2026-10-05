@@ -1,0 +1,168 @@
+{
+  "kind": "programplan-frame-main-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "currentExpected": 10,
+  "currentPassed": 10,
+  "historicalSkipped": 0,
+  "historicalCaseIds": [],
+  "cases": [
+    {
+      "case": "F01",
+      "project": "frame-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F02",
+      "project": "frame-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F03",
+      "project": "frame-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F04",
+      "project": "frame-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F05",
+      "project": "frame-desktop",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F01",
+      "project": "frame-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F02",
+      "project": "frame-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F03",
+      "project": "frame-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F04",
+      "project": "frame-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    },
+    {
+      "case": "F05",
+      "project": "frame-phone",
+      "status": "passed",
+      "expected": "passed",
+      "attempts": 1
+    }
+  ],
+  "cleanupCount": 10,
+  "cleanupVerified": true,
+  "sourceBuildVerified": true,
+  "buildRevisions": [
+    "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+  ],
+  "observedSourceRevisions": [
+    "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d"
+  ],
+  "preservedAuditEvents": 817,
+  "preservedAuditAnchors": 24,
+  "raw": {
+    "path": "web/test-results/programplan-frame-main-final.json",
+    "sha256": "8f955ac27d6431c52b27030e083fd6eb8806dc88967c9a1525f2bebb1e633d80",
+    "originalSha256": "4865e51f1313c69569bf57c7a0007d6dd29103adfa26d2183193ee08e9709c7e"
+  },
+  "images": [
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-desktop/attachments/frame-without-school-packages-png-e363cb0353de9ec59a7071678fb247c9e01e617a.png",
+      "sha256": "98c450b8f7f51fbc809525a41cd3e1a0c7abb96a702e75a1a2a6333b377d2d2d"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-d7cde-verka-programplanens-analys-frame-desktop/attachments/frame-analysis-preserves-school-offering-png-5c4151aa1db98c31f01a6f914ed4e7d5cb5522b6.png",
+      "sha256": "a0daac38e6fb48753b4982ff5ae2f36a50b572f7dbaa4fca5963932b5bdce865"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-desktop/attachments/copied-frame-without-school-offering-png-e9c652c1adb4057689d2591689693b6eefa4fbeb.png",
+      "sha256": "c89c576639fefd5b635151b2301209c1c14bf736959f846c8833bd5f7c16e2b0"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/administratör-utkast-frame-png-da3188f54d8457b2e474f41d13296918ed61f7ff.png",
+      "sha256": "216d0a40cc159cf66c40c1d4055a6ca92859a15a8a9e22588e4b068ad17ee144"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/delad-rektor-utkast-frame-png-618bc8ffa018634ff72c6fc0bc6c405a01cd780b.png",
+      "sha256": "e244f93f9bbd5293d1268faaaeb0be38051353451a72370e0d5424002bb3683e"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/administratör-faststalld-frame-png-0945086da1a5b8c530167b473777b7baef800650.png",
+      "sha256": "c75de1feacc67f4aeff9c347b0339de1bbf765ba8bd33e4220224972c9835c9d"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/attachments/delad-rektor-faststalld-frame-png-ffcc4e18a7e9b01b91a547d6c67baf8774406214.png",
+      "sha256": "cf80ec16fd87d5286ecb9c93e47b7cdefce362e19ec982ea012ee04517dba9f3"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-664bb-esked-och-bevarade-helrader-frame-desktop/attachments/older-offering-block-change-refused-png-e8dabb4a8ca8bfe8f556f75bacad0caf92e711a8.png",
+      "sha256": "e50166a64247b707d8c94e1f250974935d049980f70a7b593b96e5b9f04a59ef"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-phone/attachments/frame-without-school-packages-png-4ea5af8c0ededf3174bde604ef0d60dc2ed2b4de.png",
+      "sha256": "6016a443f6cd3ba14112255300eebb9a297888b1123d9d7cb02e42dd5bb080d1"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-d7cde-verka-programplanens-analys-frame-phone/attachments/frame-analysis-preserves-school-offering-png-77f5454313d3f1d4208dd083e60193e66f77f41c.png",
+      "sha256": "5fb0d9e7be412d1760c8bf90ca23b153c596d969aebe13b8a097b42ccacdb609"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-phone/attachments/copied-frame-without-school-offering-png-ba5a8dd75e417d7a7b8b896e37d39591f02136e2.png",
+      "sha256": "76732b433dd8647d2c0ff0c0288f8d7fad840aba7e7522c24494f374dfb68de4"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/administratör-utkast-frame-png-a4185022282277e3f616b13e4470e32b44d60c79.png",
+      "sha256": "5f9517f372741a89552d8c6a2c769e7ca6b8484b5398e5013492e4e0a7a62081"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/delad-rektor-utkast-frame-png-04c73b9f8680f7dda2cf0dc3a3b6df9e2a8251a1.png",
+      "sha256": "ece8eb185f7031b3181ddaf674bba3c217b0ca7d4b89920a485d2505895cde7b"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/administratör-faststalld-frame-png-8de48e25f48c7f6f8086425ae2df6accab829a04.png",
+      "sha256": "b627d00c1bb97a4b58ee910b492647508c0d3200a30844b33c34d3cf4b2e7dcd"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/attachments/delad-rektor-faststalld-frame-png-b858746a630fe8eae85461666d143568b9ea3ad3.png",
+      "sha256": "f075a36b5a509a585a85b9d26c636cb4061121b54064b9e10baba399227ff6b3"
+    },
+    {
+      "path": "web/test-results/programplan-frame-evidence/main/phase5-programplan-frame-F-664bb-esked-och-bevarade-helrader-frame-phone/attachments/older-offering-block-change-refused-png-4022fa052e1845522c5841c0b5ca01acdbce0d07.png",
+      "sha256": "419ccd0a04294c78c4ac88f4ed53c575e1d0e4d80ed517f4f3df619d8a85795a"
+    }
+  ],
+  "limits": [
+    "Lokala syntetiska sessionsbevis, ingen verklig kommunanslutning.",
+    "Telefonprov i iPhone/WebKit-emulering.",
+    "Mänsklig begriplighet och hela05-23/E fortfarande öppna."
+  ]
+}

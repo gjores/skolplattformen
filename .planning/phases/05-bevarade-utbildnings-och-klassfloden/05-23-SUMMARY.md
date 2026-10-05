@@ -7,14 +7,16 @@ next_step: E
 requirements: [ADMIN-02, ADMIN-03]
 requirements-finally-verified: []
 human_result: awaiting_user
-worker_build_revision: a307d26d0e6ca712e07a96b052a01c451b18b966
+worker_build_revision: 848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d
 ---
 
 # 05-23 — full poängsumma och valbara block
 
-Steg A, B, C och D är genomförda och automatiskt verifierade lokalt med syntetiska data. Nya och uppgraderade utkast har Svenska/SvA och blockramar; huvudman/rektor kan ändra block och skolans språkpaket kan väljas av huvudman, rektor och skoladministratör. Generella ämnespaket finns nu för IV, fördjupning och HU/NA-val. Hela 05-23 är fortfarande in_progress: E:s fullplansverifiering återstår. Mänsklig begriplighet är awaiting_user. A/B/C nedan är historiska delbevis; D anger aktuellt beteende och bygge.
+Steg A, B, C och D är genomförda och automatiskt verifierade lokalt med syntetiska data enligt tidigare beställning. **Senare användarbeslut 2026-10-05 tar bort paketen från programplansvyn:** fasta nivåer, blockpoäng, terminsram och skolkopplingar består. Skolans paketval, bibliotek och paketanalys ingår inte längre i denna arbetsyta. Äldre lagrade uppgifter och backendens versions-/mandatskydd bevaras; separat skolutbud/elevval/organisation är ännu inte implementerat. Se den avgränsade REMOVE-PACKAGES-PLAN och aktuella resultat nedan. Hela 05-23 är fortfarande in_progress: E:s fullplansverifiering återstår enligt reviderad ram. Mänsklig begriplighet är awaiting_user. C/D:s paketUI-resultat nedan är historiska, inte aktuella UI-bevis.
 
 ## Steg A — nya planer, svenskrader och blockramar
+
+Historiska genomförandeavsnitt följer nedan. Aktuell avgränsad rättning dokumenteras sist i denna SUMMARY.
 
 Källcommits: `ef365fc` (grundformen), `84ba403` (legacy-förhandsvisning) och `b819a50` (numerisk SQL-rättning). Migrationerna `20261004150000_phase5_programplan_choice_blocks.sql` och `20261004150100_phase5_programplan_block_numeric.sql` är tillämpade och journalförda på det isolerade målet `protected`. Ingen reset eller verksamhetsbackfill har gjorts. Aktuella före-definitioner inventerades med `pg_get_functiondef`; se [FUNCTION-INVENTORY](05-23-FUNCTION-INVENTORY.md).
 
@@ -204,3 +206,25 @@ Vanlig 3012 kör slutbygget med äldre klientfiler bevarade. Privata miljö-/lå
 **A/B/C/D automatiskt verifierade lokalt; hela 05-23 är in_progress och ADMIN-02/ADMIN-03 Pending.** E ska köra fullplansmatrisen, slutlig handbok och mänskligt paketprov från aktuell 21-entrypoints-baslinje. Historiska full-SQL-/metadataavvikelser ska fortsatt redovisas. 05-25 väntar på hela 05-23; yrkesfastställande kräver dessutom 05-17, som fortfarande saknar PLAN.
 
 Mänskligt D-prov är **awaiting_user**: skapa ett paket i Visa paket, välj det och fördela dess nivåer; skapa ny version och kontrollera att gamla val bevaras på dator/telefon. Ingen automatisk rapport tillskriver användaren ett godkännande.
+
+## Senare användarbeslut — paket ur programplanerna, 2026-10-05
+
+Beställning: ”Ändra appen så att det inte finns i programplanerna.” Den avgränsade [REMOVE-PACKAGES-PLAN](05-23-REMOVE-PACKAGES-PLAN.md) är genomförd. Produktkällor: `4fc13a0`; prov-/byggkällor och aktuellt Workerbygge: `848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d`.
+
+Programplansvyn innehåller fasta nivåer, blockens typ/poäng och terminsram. Paketexpansion, paketdialoger, biblioteksladdning och skolvis paketanalys är frikopplade från workspace/board. Öppning, analys, Läs om och kullkopiering skickar inga paketval-/valpaketanrop. Beslutsklarheten använder programmets fasta innehåll och ram; paketens frånvaro, saknade exakta paketversioner eller ofördelat äldre skolutbud stoppar inte en färdig ram. Saknade blockterminer är fortfarande fel. Den fristående paketanalysen och backendens kontrakt/mandat finns kvar.
+
+Kopiera till ny elevkull tar med fasta fördjupningsnivåer, programram, terminer och alla kopplade skolor, utan skolans paketval. Källplan, utbildning, historik och hela gamla paket-/versionsrader bevaras. Backendkloning till ny planversion är oförändrad. Äldre utbud kan fortfarande hindra att en refererad skola/blockram tas bort eller krymps. Beskedet förklarar då att uppgifterna bevaras; blockens explicita `programplan_block_packages_in_use` hanteras före generell 409 så att det inte blir en falsk revisionskonflikt.
+
+Aktuella automatiska prov mot samma byggda Worker, dator och iPhone/WebKit:
+
+- F01–F05: **10/10 PASS**. Tomt utbud, äldre ofördelat IV-paket, HM-kopiering med två skolor, admin/delad rektor som läser utkast och syntetiskt fastställd version, samt verklig 409 vid krympt äldre refererat IV-block. Fastställandet i F04 är uttrycklig syntetisk fixturförberedelse, inte levererat fastställandebeslut. Läs-/kopieringsprov jämför hela originalrader och begär noll paketnätverk från sidan.
+- B01–B03: **6/6 PASS**. Full SA25-ram 2 500 p, Svenska/SvA, IV 2 × 100 p, eget fördjupningsblock 200 p med terminsfördelning/återläsning och äldre låst version som får nytt utkast. B08/B09/B11: **6 historiska skips**, aldrig PASS. Paketvyns separata C/D-spec är också uttryckligen historisk.
+- Terminer12 och livscykelL07: **2 + 2 PASS**, med skrivskyddad analys och delad plan. Totalt **20 aktuella browserfall**, 20 städningsbilagor med noll egna verksamhets-/paket-/kopplings-/sessionsrader och bevarad audit. Fyra relevanta dator-/telefonbilder granskade; blockeditorernas passande geometri ingår i B02.
+- Modell/server **512 + 136 = 648 PASS**, rent browserharness 4 PASS, TypeScript, oxlint, skyddat bygge och handboksbygge PASS. Ingen migration, grantändring, reset eller omförberedelse av användarplaner.
+- Vanlig 3012 kör nu det testade bygget som workerd. **166 testade artefaktfiler är byteidentiska efter kopiering**, privata miljöfiler är undantagna och äldre klientfiler bevarade. Current-läsning före/efter: **18/18 scenarier, 44 auditpar per kontroll och 12 kompletta verksamhetstabellers helradshashar oförändrade**, inklusive paket-/versionslagringen.
+
+Bevis: [samlad kontrollrapport](../../../work/pilot/results/phase5-programplan-frame-checks.json), [huvudmatris](../../../work/pilot/results/phase5-programplan-frame-main-browser.json), [block](../../../work/pilot/results/phase5-programplan-frame-blocks-browser.json), [terminer](../../../work/pilot/results/phase5-programplan-frame-terms-readonly-browser.json), [delad plan](../../../work/pilot/results/phase5-programplan-frame-lifecycle-readonly-browser.json) samt runtime-before/after med samma prefix. Rårapporter, loggar och bilder har lokala sökvägar och SHA256 i kontrollrapporterna.
+
+Första matrisen behålls som **FAIL**, 1 PASS/9 FAIL med 10 verifierat städade fixturer. BILD-fixturen hade version 1 trots pinnad katalogversion 2 och nekades korrekt 400. Den ignorerade runtime-kopian saknade Tailwind-utilityCSS, vilket blockerade mobilmenyn. Explicita CSS-källor räckte inte för samma ignorerade placering; slutligt bygge utfördes i separat ägd versionsbunden Git-checkout utanför den ignorerade katalogen och utilities/klick verifierades. Se [första försöket](../../../work/pilot/results/phase5-programplan-frame-attempt1.json). Principen om explicita källor stöds av [Tailwinds dokumentation](https://tailwindcss.com/docs/detecting-classes-in-source-files), men placeringens faktiska prov avgör här. Ett första riktat terminsurval hittade 0 fall; korrekt titelsökning körde 2, och tomt urval räknas inte som PASS.
+
+**Kvarstående:** separat skolutbud/elevval/individuella studieplaner/grupper och tjänstefördelning är inte implementerade här. Programblock innebär inte automatiskt parallellt veckoschema; användarens exempel med en språklärare och språkgrupper på olika dagar består som krav på framtida skolorganisation. Hela 05-23/E är fortfarande in_progress, mänsklig begriplighet awaiting_user och ADMIN-02/ADMIN-03 Pending. Full SQL/E är inte omkörda; äldre audit-FAIL och 05-22:s metadata PARTIAL kvarstår. Berörda 05-25–28 behöver granska skolpaketsantaganden mot detta senare beslut; inga förutsättningsgrindar kringgås. Inga verkliga kommunanslutningsbevis.

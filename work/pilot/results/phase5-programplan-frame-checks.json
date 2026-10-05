@@ -1,0 +1,124 @@
+{
+  "kind": "programplan-frame-scoped-correction",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "correctionComplete": true,
+  "whole05_23Complete": false,
+  "humanResult": "awaiting_user",
+  "workerBuildRevision": "848afd40e8acedee1a2d5d1f4d3b801c6cc30d3d",
+  "modelTests": {
+    "status": "PASS",
+    "passed": 512
+  },
+  "serverTests": {
+    "status": "PASS",
+    "passed": 136
+  },
+  "pureBrowserHarness": {
+    "status": "PASS",
+    "passed": 4
+  },
+  "typescript": "PASS",
+  "oxlint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "currentBrowserCases": 20,
+  "historicalBrowserSkips": 6,
+  "currentFixtureCleanupCount": 20,
+  "businessTablesPreserved": 12,
+  "originalScenariosPreserved": 18,
+  "auditedReadsPerRuntimeCheck": 44,
+  "runtime3012": {
+    "status": "PASS",
+    "runtime": "workerd",
+    "ownedSessionRemainsRunning": true,
+    "copiedArtifactFiles": 166,
+    "testedArtifactBytesMatch": true,
+    "privateEnvFilesExcluded": true,
+    "oldClientAssetsPreserved": true
+  },
+  "visualReview": {
+    "reviewedImages": 4,
+    "subjects": [
+      "full frame desktop",
+      "full frame phone",
+      "locked administrator frame phone",
+      "historical offering guard phone"
+    ],
+    "result": "PASS"
+  },
+  "logs": {
+    "node-model": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-node.log",
+      "sha256": "91e9a735fffb4d3d05fab211714c005fed40169e419b2c94ade04e8e23fc3324"
+    },
+    "node-server": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-server.log",
+      "sha256": "67bd2d5cb1f8f02cf04fc68aa4a81c7f664314ae1be4a89b3152b63c31393bc2"
+    },
+    "harness": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-harness.log",
+      "sha256": "49f75cb1a310ed42d0e0bcfab20d833a29658522a0b50f032c71a12e984356b3"
+    },
+    "typescript": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "oxlint": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "handbook": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-docs.log",
+      "sha256": "2a1d111b0045c680bd3da9a4cc0ea9ae8ceef269a23f01f0a1391aba88c7e739"
+    },
+    "build": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-build-worktree.log",
+      "sha256": "3b169d50affcbea32c5913d8e3e9c266fa8507e80bdddf62b2faa57d43958690"
+    },
+    "ignored-build-first": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-build.log",
+      "sha256": "1ba93ee13cfaf7412f7f65b15b4e4e98615a92b2a52df07631b237726efafe07"
+    },
+    "ignored-build-retry": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-build-final.log",
+      "sha256": "5c643100f4caa48086606965cb67a29b3069f4baf7aa49c231c42bc599335e88"
+    },
+    "browser-final": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-browser-final.log",
+      "sha256": "c1eaa04981033f03fad48b9650ec0ebfeccaff78268f1acd8b5cfd773a2db75e"
+    },
+    "blocks": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-blocks.log",
+      "sha256": "14d99ee92e2aa75ac2709539fe2185eb44a9c2447b1e789b2bcda6a88893854f"
+    },
+    "terms-initial-empty-filter": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-terms-readonly.log",
+      "sha256": "bef44b71926303f638fcf3917875642de7e01f8828d85d994561945390fde863"
+    },
+    "terms-final": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-terms-readonly-final.log",
+      "sha256": "9d204d019c3e627abfd2c21b11c3b76f5ad5ad784a6bd951ab199128fd028762"
+    },
+    "lifecycle": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-lifecycle-readonly.log",
+      "sha256": "a0d15778da22a56f61fb2013da55cf108bfe574bca5cef5607a7155a9cf4da53"
+    },
+    "runtime-after": {
+      "path": "web/test-results/programplan-frame-logs/programplan-frame-runtime-after.log",
+      "sha256": "5bf34acb54ba33259f5ebe3ac039fdba27edfd08d01b6d797cf0901fb3f7aa19"
+    }
+  },
+  "firstAttempt": "work/pilot/results/phase5-programplan-frame-attempt1.json",
+  "corrections": [
+    "Test fixture BILD version2 matches pinned catalog.",
+    "Ignored runtime copy omitted utilityCSS. Explicit CSS source registration alone did not restore it there; final build and pointer-based phone proofs use a separate owned Git checkout.",
+    "Initial targeted terms grep matched no tests; corrected exact title selected2; empty selection is not counted as PASS."
+  ],
+  "limits": [
+    "Separat skolutbud/elevval/grupporganisation och bemanning är inte implementerade.",
+    "Backendens paketAPI, grants och äldre data bevarade; ingen migration eller reset.",
+    "FullSQL och hela E är inte omkörda eller godkända; historiskt auditFAIL och05-22metadataPARTIAL kvarstår.",
+    "ADMIN-02/ADMIN-03 är fortsatt Pending; inga verkliga kommunanslutningsbevis."
+  ]
+}

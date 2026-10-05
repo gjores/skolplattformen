@@ -6,7 +6,11 @@ wave: 1
 depends_on: ["05-23-A", "05-23-B", "05-23-C", "05-23-D"]
 requirements: [ADMIN-02, ADMIN-03]
 autonomous: true
-status: in_progress
+status: completed
+completed_at: "2026-10-05"
+whole_05_23_complete: false
+requirements-finally-verified: []
+verification: "work/pilot/results/phase5-programplan-frame-checks.json"
 approved_by: "Användarbeställning 2026-10-05: Ändra appen så att det inte finns i programplanerna."
 files_modified:
   - web/app/protected-programplan-workspace.tsx

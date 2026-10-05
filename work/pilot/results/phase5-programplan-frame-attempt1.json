@@ -1,0 +1,75 @@
+{
+  "kind": "programplan-frame-first-attempt",
+  "scope": "local-synthetic-only",
+  "status": "FAIL",
+  "cases": [
+    {
+      "case": "F01",
+      "project": "frame-desktop",
+      "status": "passed"
+    },
+    {
+      "case": "F02",
+      "project": "frame-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "F03",
+      "project": "frame-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "F04",
+      "project": "frame-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "F05",
+      "project": "frame-desktop",
+      "status": "failed"
+    },
+    {
+      "case": "F01",
+      "project": "frame-phone",
+      "status": "failed"
+    },
+    {
+      "case": "F02",
+      "project": "frame-phone",
+      "status": "failed"
+    },
+    {
+      "case": "F03",
+      "project": "frame-phone",
+      "status": "failed"
+    },
+    {
+      "case": "F04",
+      "project": "frame-phone",
+      "status": "failed"
+    },
+    {
+      "case": "F05",
+      "project": "frame-phone",
+      "status": "failed"
+    }
+  ],
+  "passed": 1,
+  "failed": 9,
+  "cleanupCount": 10,
+  "cleanupVerified": true,
+  "buildRevisions": [
+    "4fc13a0196b35b8ccd9cb2886337288f6ddb252d"
+  ],
+  "raw": {
+    "path": "web/test-results/phase5-programplan-frame-attempt1.json",
+    "sha256": "4eabf71ace69af3cddb417fd194819cd1887256932d672b2e8a302e4486fdd4c"
+  },
+  "causes": [
+    "F02–F05: fixturen använde BILD subjectVersion1 medan den pinnade katalogen har2; servern nekade korrekt400.",
+    "F01 telefon: ignorerad runtime-kopia gav saknad Tailwind utilityCSS och blockerad mobilmeny.",
+    "En ombyggnad med explicita CSS-källor i samma ignorerade katalog saknade fortfarande utilities; flytt till ägd separat Git-checkout verifierade att de återfanns."
+  ],
+  "resolution": "BILD-fixturen rättad till2, normal mobilklikning består; slutligt omprov från separat versionsbunden checkout redovisas separat.",
+  "preservedFailureArtifacts": "web/test-results/programplan-frame-evidence/attempt1"
+}
