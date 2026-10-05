@@ -112,6 +112,8 @@ test('04: fördjupning läggs till och tas bort direkt i tabellen, sök och peky
 });
 
 test('05: kopiera äldre låst källa uttryckligt och bevara källa/historik',async({page},info)=>{
+  // 05-20: fastställd plan utan startunderlag är låst (start okänd); ett framtida startår gör en ny version möjlig.
+  await fixture.futureStartYear(fixture.lockedOfferingId);
   const before=await fixture.snapshot(fixture.lockedPlanId),history=await fixture.history(fixture.lockedPlanId);
   await enter(page);await education(page,'Syntetisk tidigare beslutad SA');await version(page,'Version 3 · Fastställd');await catalog(page);
   const d=page.getByRole('region',{name:'Skapa ny version',exact:true});await d.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);await d.getByRole('checkbox').check();await capture(page,info,'programplan-legacy-clone.png');const r=await save(page,'klona');expect(r.status()).toBe(200);const body=await r.json();expect(body.version).toBe(4);expect(body.id).not.toBe(fixture.lockedPlanId);await paired(r,'programplan_draft_cloned',body.id);await expect(editor(page)).toHaveCount(0);expect(await fixture.snapshot(fixture.lockedPlanId)).toEqual(before);expect(await fixture.history(fixture.lockedPlanId)).toEqual(history);
