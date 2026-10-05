@@ -1,6 +1,6 @@
 'use client';
 
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
 import {api,ApiError} from '@/lib/server-client.ts';
@@ -23,21 +23,24 @@ export default function ProgramplanPackageDialog(props:Props){
   const pending=useRef<{request:ProgramplanValpaketWriteRequest;previous:ProgramplanValpaket[]}|null>(null),inFlight=useRef(false);
   const dirty=props.source?!same({unitId:unitId||null,kind,name,levels},{unitId:props.source.unitId,kind:props.source.kind,name:props.source.name,levels:props.source.levels}):!!name||levels.length>0||unitId!==props.unitId||kind!==props.kind;
   useUnsavedChanges(`packages-${props.scope}-dialog`,dirty||busy);
+  const mounted=useRef(true),controller=useRef(new AbortController());
+  useEffect(()=>{mounted.current=true;const c=new AbortController();controller.current=c;return()=>{mounted.current=false;c.abort();};},[]);
+  const inactive=(e:unknown)=>!mounted.current||e instanceof DOMException&&e.name==='AbortError';
   const total=levels.reduce((n,l)=>n+l.points,0),locked=busy||uncertain||mfa;
   const candidates=catalog.subjects.filter(s=>s.schoolTypes.includes('GY')&&s.typeOfSyllabus==='GRADE_SUBJECT_SYLLABUS'&&programplanValpaketSubjectAllowed(kind,s.code)&&s.startDate&&props.startedOn>=s.startDate&&(!s.endDate||props.startedOn<=s.endDate)&&(!s.canceledDate||props.startedOn<s.canceledDate)).flatMap(s=>s.items.map(i=>({subjectCode:s.code,subjectVersion:s.version,itemCode:i.code,points:i.points}))).filter(l=>!props.fixedLevelKeys.includes(programplanPackageLevelKey(l))&&(kind!=='specialization'||props.options.some(o=>o.subjectCode===l.subjectCode&&o.subjectVersion===l.subjectVersion&&o.itemCode===l.itemCode&&o.points===l.points)));
   const choices=candidates.filter(l=>!levels.some(p=>programplanPackageLevelKey(p)===programplanPackageLevelKey(l))&&`${programplanPackageLevelName(l)} ${l.itemCode}`.toLocaleLowerCase('sv').includes(search.toLocaleLowerCase('sv'))).slice(0,80);
   function close(){if(!busy&&(!dirty||confirmDiscard()))props.onClose();}
   function matches(value:ProgramplanValpaket,request:ProgramplanValpaketWriteRequest){return value.version===request.expectedVersion+1&&(request.packageId===null||value.packageId===request.packageId)&&same({unitId:value.unitId,kind:value.kind,name:value.name,levels:value.levels},request.details);}
-  async function reread(){return parseProgramplanValpaketList(await api.post('/api/programplaner/valpaket/lista',{unitId:unitId||props.unitId}));}
-  async function reconcile(){const own=pending.current;if(!own)return false;const list=await reread();if(list.unitId!==(unitId||props.unitId))throw Error('Fel skola i svaret.');const found=list.packages.filter(p=>matches(p,own.request)&&!own.previous.some(before=>before.packageId===p.packageId&&before.version===p.version));if(found.length===1){props.onSaved(list,found[0]);return true;}return false;}
-  async function check(){if(inFlight.current)return;inFlight.current=true;setBusy(true);try{if(!await reconcile())setMessage('Sparandet är fortfarande obekräftat. Dina uppgifter finns kvar. Stäng dialogen och granska skolans utbud innan du skapar ett nytt paket.');}catch(e){if(!props.onSecurityFailure(e))setMessage('Sparstatus kunde inte läsas. Försök läsa igen.');}finally{inFlight.current=false;setBusy(false);}}
+  async function reread(){return parseProgramplanValpaketList(await api.post('/api/programplaner/valpaket/lista',{unitId:unitId||props.unitId},controller.current.signal));}
+  async function reconcile(){if(!mounted.current)return false;const own=pending.current;if(!own)return false;const list=await reread();if(!mounted.current)return false;if(list.unitId!==(unitId||props.unitId))throw Error('Fel skola i svaret.');const found=list.packages.filter(p=>matches(p,own.request)&&!own.previous.some(before=>before.packageId===p.packageId&&before.version===p.version));if(found.length===1){props.onSaved(list,found[0]);return true;}return false;}
+  async function check(){if(inFlight.current)return;inFlight.current=true;setBusy(true);try{if(!await reconcile())setMessage('Sparandet är fortfarande obekräftat. Dina uppgifter finns kvar. Stäng dialogen och granska skolans utbud innan du skapar ett nytt paket.');}catch(e){if(!inactive(e)&&!props.onSecurityFailure(e))setMessage('Sparstatus kunde inte läsas. Försök läsa igen.');}finally{inFlight.current=false;if(mounted.current)setBusy(false);}}
   async function save(){if(inFlight.current||locked||!name.trim()||total!==props.points||levels.some(l=>!candidates.some(c=>same(c,l))))return;
     const request:ProgramplanValpaketWriteRequest={packageId:props.source?.packageId??null,expectedVersion:props.source?.version??0,details:{unitId:unitId||null,kind,name:name.trim(),levels}};
     inFlight.current=true;setBusy(true);setMessage(null);let submitted=false;
-    try{const before=await reread();if(before.unitId!==(unitId||props.unitId))throw Error('Fel skola i svaret.');pending.current={request,previous:before.packages};submitted=true;const value=parseProgramplanValpaket(await api.post('/api/programplaner/valpaket',request));if(!matches(value,request))throw Error('Obekräftat svar.');if(!await reconcile())throw Error('Paketet kunde inte återläsas.');}
-    catch(e){if(props.onSecurityFailure(e))return;if(!submitted){setMessage('Skolans utbud kunde inte läsas. Paketet har inte skickats. Försök igen.');return;}if(e instanceof ApiError&&e.hasExplicitCode){setMfa(e.code==='mfa_required');setMessage(e.status===409?'Paketet har fått en ny version. Dina uppgifter finns kvar. Stäng och öppna Ny version igen.':e.message);if(e.status===409)setUncertain(true);}
-      else{try{if(!await reconcile()){setUncertain(true);setMessage('Sparandet kunde inte bekräftas. Läs sparstatus innan du försöker igen.');}}catch(inner){if(!props.onSecurityFailure(inner)){setUncertain(true);setMessage('Sparstatus kunde inte läsas. Dina uppgifter finns kvar.');}}}}
-    finally{inFlight.current=false;setBusy(false);}
+    try{const before=await reread();if(!mounted.current)return;if(before.unitId!==(unitId||props.unitId))throw Error('Fel skola i svaret.');pending.current={request,previous:before.packages};submitted=true;const value=parseProgramplanValpaket(await api.post('/api/programplaner/valpaket',request,controller.current.signal));if(!matches(value,request))throw Error('Obekräftat svar.');if(!await reconcile())throw Error('Paketet kunde inte återläsas.');}
+    catch(e){if(inactive(e)||props.onSecurityFailure(e))return;if(!submitted){setMessage('Skolans utbud kunde inte läsas. Paketet har inte skickats. Försök igen.');return;}if(e instanceof ApiError&&e.hasExplicitCode){setMfa(e.code==='mfa_required');setMessage(e.status===409?'Paketet har fått en ny version. Dina uppgifter finns kvar. Stäng och öppna Ny version igen.':e.message);if(e.status===409)setUncertain(true);}
+      else{try{if(!await reconcile()){setUncertain(true);setMessage('Sparandet kunde inte bekräftas. Läs sparstatus innan du försöker igen.');}}catch(inner){if(!inactive(inner)&&!props.onSecurityFailure(inner)){setUncertain(true);setMessage('Sparstatus kunde inte läsas. Dina uppgifter finns kvar.');}}}}
+    finally{inFlight.current=false;if(mounted.current)setBusy(false);}
   }
   return <Dialog open onOpenChange={open=>{if(!open)close();}}><DialogContent className="pp-dialog ppk-dialog" showCloseButton={!busy}>
     <DialogTitle>{props.source?'Ny version av valpaket':'Nytt valpaket'}</DialogTitle><DialogDescription>{props.source?`Version ${props.source.version} bevaras i planer som redan använder den.`:'Skapa skolans utbud och lägg sedan till paketet i blocket.'}</DialogDescription>
