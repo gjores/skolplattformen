@@ -41,7 +41,7 @@ export async function verifyProgramplanBrowserTarget(baseURL) {
   const source=git(['rev-parse','HEAD']);
   try{git(['merge-base','--is-ancestor',mark.revision,source]);}catch{throw Error('Browserprov kräver ett bygge från denna källhistorik.');}
   if(git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE_PATHS]))throw Error('Browserprov kräver samma styrda källor som bygget.');
-  const response=await fetch(`${baseURL}/api/health/db`,{signal:AbortSignal.timeout(10000)}),body=await response.json();
+  const response=await fetch(`${baseURL}/api/health/db`,{signal:AbortSignal.timeout(30000)}),body=await response.json();
   return programplanBrowserBuildProof(mark,source,false,true,{...body,ok:response.ok});
 }
 

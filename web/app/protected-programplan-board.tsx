@@ -116,7 +116,7 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
   }, [plan.id, plan.status, rows, readTerms, failed]);
 
   const update = (key: string, points: ProgramplanTermPoints) => { setValues(v => { const next = new Map(v); next.set(key, points); return next; }); if (state === 'error') { setState('idle'); setMessage(null); } };
-  const commit = () => { if (editable && ['idle', 'error'].includes(state)) queueMicrotask(() => void save()); };
+  const commit = () => { if (editable && ['idle', 'saving', 'error'].includes(state)) queueMicrotask(() => void save()); };
   const setCell = (row: ProgramplanTermRow, i: number, raw: string) => { const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints; const n = raw.trim() === '' ? 0 : Number(raw); p[i] = Number.isFinite(n) ? n : NaN; update(row.key, p); };
   const fillCell = (row: ProgramplanTermRow, i: number) => {
     const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints, rest = row.points - sum(p);
