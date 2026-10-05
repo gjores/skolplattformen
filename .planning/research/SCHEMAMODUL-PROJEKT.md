@@ -4,6 +4,8 @@ Datum: 2026-10-01. Status: användarbeställd projektinriktning och planeringsun
 
 ## Användarens beslut
 
+- 2026-10-05: användaren beställer en översyn av hur Skolverkets lärarlegitimation och undervisningsbehörigheter kan beaktas och integreras. [Research och föreslaget L1–L4-spår](LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) kopplas till S1:s person-/käll-/regelkontrakt, S2:s syntetiska begränsningar, S3:s tjänstefördelning och schema samt S4:s faktiska adapterprov. Detta är planeringsunderlag; API-åtkomst, leveransomfattning och genomförande återstår.
+
 - 2026-10-05: Analysen ska vara sammanhållen för programplan och timplan och senare jämföra med schemat. APL ska ses över i samma kedja, med tydlig skillnad mellan planerad, schemalagd och genomförd tid samt lärande. [Registrerad todo](../todos/pending/2026-10-05-samordna-plananalys-schema-och-apl.md) anger kommande utredning och verifieringsmål. Ta med versionsbundna samband och APL-underlag i S1:s kontraktsarbete och jämförelse-/synkprov i S4; full placering och handledaruppföljning behöver egna avgränsade planer.
 - Schemaläggning ska utvecklas tillsammans med programplaner, timplaner, individuella studieplaner och övriga relevanta planeringsmoduler.
 - Specifika roller och regler behöver hanteras redan i grundarbetet, före öppnande av nya datavägar.
@@ -36,6 +38,7 @@ Detta är avsedda ansvarsgränser att precisera i kontraktssteget, inte redan im
 | Timplan | Beslutad undervisningstid och fördelning på relevant år/period/innehåll. | Undervisningsbehov med enhet, period, källa och exakt version. Fastställda timmar ändras genom rätt planflöde. |
 | Individuell studieplan | Elevens valda utbildningsinnehåll, giltighet, avvikelser och egna versioner. | Vilka aktiviteter eleven behöver delta i under perioden, för att upptäcka individkonflikter även över klassgränser. |
 | Tjänstefördelning och undervisningsgrupper | Läraruppdrag, undervisningsrelationer, daterat medlemskap och kapacitet. | Aktuella resurs-ID:n och begränsningar. En lärartilldelning är inte ensam bevis för rätt att ändra schemat. |
+| Lärarlegitimation och undervisningsbehörighet | Skolverkets källuppgifter, kontrollerad personmatchning, daterade observationer och separat regel-/kodmappning. Lokalt undantags-/fördelningsbeslut hålls skilt från myndighetsfakta. | Stabil lärarresurs och revisionsbunden matchning för rätt skolform, ämne och årskurs; ändrat/okänt underlag ger synlig avvikelse. Personnummer och fullständigt utdrag behövs inte i motor/AI. |
 | Läsår och kalender | Perioder, lov, studiedagar och gruppspecifika avvikelser. | Faktiska datum och tillfällen, tidszon och undantag utöver normalveckan. |
 | Schemaläggning | Placeringar, resursbokningar, fixeringar, förslag, godkända/publicerade versioner och avvikelser. | Underlag från ovanstående ägare; återrapportering av planerade, inställda och faktiskt genomförda minuter som skilda uppgifter. |
 
@@ -63,6 +66,18 @@ Dokumentera vem som tillsätter och återkallar varje uppdrag och om granskare/g
 Regler ska ha ID, ursprung, version, giltighet, omfattning, ansvarig och typ: obligatorisk begränsning eller prioriterat önskemål. Prioritet/vikt är uttrycklig. Juridiska regler, lokala beslut, resursfakta och personliga önskemål ska kunna skiljas åt. En beräkningsmotor eller AI får inte tyst försvaga obligatoriska regler. Saknat eller motstridigt underlag ska ge en begriplig avvikelse.
 
 ## Delar som ska gå att kombinera
+
+### Undervisningsbehörighet som planeringsunderlag
+
+Skolverkets ämnes-/årskursbehörighet, rektorns lokala läraruppdrag och operationsbunden systemåtkomst är separata kontroller. S1 ska definiera en stabil kundbunden personalresurs som kan ha flera skoluppdrag och finnas utan användarkonto. Nuvarande grupp-/schemaexempel använder lärarnamn; namn eller e-post får inte bli registermatchningsnyckel. Personnummerbindning kräver en egen skyddad och kontrollerad väg. Ett positivt myndighetsutdrag får inte skapa konto eller elevåtkomst.
+
+Definiera ett gemensamt internt underlag för bekräftad XML-leverans, ett eventuellt bekräftat API och kompatibel extern personalmodul enligt MODUL-03. Markera källa, ursprungsgranskning, utdrags-/mottagningstid, kontraktsversion och kodmappning. Manuell uppgift får inte presenteras som ett kontrollerat myndighetsutdrag. S1 behöver även precisera uppdaterings-/färskhetsregler, åtkomst, skolenhetsurval och tillämpliga undantag innan de blir obligatoriska motorregler. SS 12000-stöd innebär inte automatiskt att dessa uppgifter finns hos motparten.
+
+L3/S3 jämför undervisningsuppdraget mot rätt skolform, ämne, årskurs, språk och specialisering, med separat Gy11/Gy25-mappning. Okänt, saknat eller inaktuellt underlag ska skiljas från konstaterad avvikelse och från verifierad matchning. Programplan/timplan kan ange innehåll/tid innan bemanning finns och får inte påstå en lärarbehörighetskontroll genom sin innehållsanalys. Exakta gransknings-/blockeringsregler och eventuella tillåtna undantag behöver egen regelkälla, ansvar och giltighet.
+
+S2 ska pröva syntetiska kompetensbegränsningar för motor och eventuell AI. S3 binder kontrollresultatet till exakt personal-, uppdrags-, regel- och behörighetsrevision; nytt underlag gör äldre körresultat inaktuella inför nytt beslut. Återkontroll sker vid granskning/publicering. Publicerade scheman och lokala uppdrag behåller historik och får en synlig konsekvens, utan automatisk omfördelning eller kontoåterkallelse. S4 provar adapterbyte, saknade/ändrade uppgifter och faktiskt vald leverans med eget anslutningsbevis. Samtliga mål är ännu oprövade och finns som LLEG-01–04/L1–L4 i [underlaget](LARARBEHORIGHET-SKOLVERKET-2026-10-05.md).
+
+### Modulkontrakt och adapterförmågor
 
 Utforma separata kontrakt för planunderlag, regelvalidering, beräkning, schemaredigering, granskning/publicering samt import/export och uppföljning. Ett separat AI-gränssnitt prövas i utvärderingen om det behövs; det är inget obligatoriskt produktberoende. Exempel på möjliga kombinationer:
 
@@ -141,6 +156,7 @@ Fas 5 behåller ADMIN-01–04 och befintliga fastställanderegler. Kontrollen ov
 
 - [Produktresearch och Royal-provfall](SCHEMALAGGNING-2026-10-01.md).
 - [GSD-punkt](../todos/pending/2026-10-01-utvardera-automatisk-schemalaggning.md).
+- [Lärarbehörigheter från Skolverket](LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) och [registrerat planeringsarbete](../todos/pending/2026-10-05-integrera-skolverkets-lararbehorigheter.md): L1/personmatchning och kontrakt ska beaktas i S1; ingen API-åtkomst eller faktisk integration är verifierad.
 - `../../docs/programplansgrund-kontrakt.md` och `../../docs/produktunderlag/12-informationsmodell-och-designkontrakt.md` som källor med sina uttryckliga statusgränser.
 - Första nästa projektsteg är S1: ta fram gemensamma kontrakt, behörighetsoperationer och testunderlag. Royal-provningen kan ge information till motor-/adapterval, men får inte ensam bestämma vår informationsmodell eller interna behörigheter.
 

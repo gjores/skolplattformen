@@ -117,6 +117,19 @@ Användaren har beställt ett sammanhängande delprojekt som ska beaktas redan i
 - **SCHEMA-07**: Ändringar i plan-, grupp-, resurs- och kalendermoduler ger versionsbunden, avstämd synk och synliga konsekvenser i schemat, utan dubbletter, förlorade ändringar eller automatisk ombindning av tidigare beslut.
 - **SCHEMA-08**: Behörig personal kan jämföra, låsa, granska och publicera rätt schemaversion och följa undervisningsbehov, schemalagd, inställd och genomförd tid som skilda uppgifter.
 
+### Lärarlegitimation och undervisningsbehörighet — planeringsöversyn 2026-10-05
+
+Användaren har beställt en översyn av hur Skolverkets lärarregister kan beaktas och integreras. Följande är **föreslagna planeringsmål**, inte fastställda leveranskrav, nya pilotkrav eller verifierade funktioner. [Research och integrationsförslag](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) anger ansvariga steg L1–L4 och framtida verifieringsfall; genomförandeplacering och omfattning återstår. Pilotens 42 krav och deras fasfördelning behålls.
+
+| Föreslaget mål | Ansvarigt steg | Avsett resultat | Verifiering |
+| --- | --- | --- | --- |
+| LLEG-01 | L1, tillsammans med S1 | Rätt intern lärarresurs binds kontrollerat till myndighetsunderlaget; källa, lokalt uppdrag och systemåtkomst hålls isär. | Ej genomförd; namnlika/omatchade personer, flera uppdrag, lärare utan konto och kundgräns. |
+| LLEG-02 | L2 | Behörig personal kan granska och tillämpa en versionsbunden XML-leverans med radfel, omkörning, historik och spårbarhet; en bekräftad API-adapter kan använda samma kontrakt. | Ej genomförd; dubblett/äldre/tom leverans, felaktig XML, konflikter och auditrollback. |
+| LLEG-03 | L3, kopplat till S3 | Tjänstefördelning och schema visar behörighetsmatchning per skolform, ämne och årskurs samt okänt underlag och konsekvenser av ändrad källa. | Ej genomförd; Gy11/Gy25, språk/specialisering, regelprofil, undantag och ändrad revision inför publicering. |
+| LLEG-04 | L4, kopplat till S4 | Vald faktisk XML-/API-leverans och avsedd informationshantering/drift kan granskas med separat anslutningsbevis och färskhetsregler. | Ej genomförd; åtkomst/ändamål, verkligt leveransprov, avbrott, återställning och avslut. |
+
+GROUP-01 och SCHEMA-01/03/07/08 har beröringspunkter; MODUL-03 ska medge kompatibelt externt personalunderlag. ACL-02 avser fortsatt lokala läraruppdrag. Elevimportens INT-02–06 och anslutningsprovet INT-07 uppfylls inte av en lärarregisterimport. Offentligt dokumenterat API för personuppslag är ännu inte verifierat.
+
 ## Out of Scope
 
 | Funktion | Skäl |
@@ -187,4 +200,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-10-01 — SCHEMA-01–08 och MODUL-01–04 registrerade; v1:s 42 krav och deras fasfördelning behålls, inga nya verifieringsresultat.*
+*Last updated: 2026-10-05 — föreslagna planeringsmål LLEG-01–04 kopplade till L1–L4; SCHEMA-01–08 och MODUL-01–04 behålls. V1:s 42 krav och deras fasfördelning är oförändrade, inga nya verifieringsresultat.*

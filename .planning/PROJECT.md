@@ -87,6 +87,10 @@ Användaren vill utveckla schemaläggning tillsammans med programplaner, timplan
 
 Användaren har också beslutat att kunden ska kunna köpa moduler var för sig. MODUL-01–04 anger separat kundbunden modultillgång, personbundna mandat, öppna databeroenden och kontrollerat tillägg/avslut. En kund ska exempelvis kunna köpa schema och tillföra planunderlag från ett befintligt system utan att köpa alla våra planeringsmoduler. Säljbar modulkatalog, tillval, priser och beställnings-/betalningsprocess återstår; ingen licens- eller betalningsfunktion är byggd.
 
+### Lärarregister — planeringsöversyn 2026-10-05
+
+Planeringsöversyn 2026-10-05: användaren vill se hur Skolverkets lärarlegitimation och undervisningsbehörigheter kan integreras. [Researchunderlaget](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) och schemadelprojektet anger ett separat föreslaget L1–L4-spår för personmatchning, XML-import, tjänstefördelning/schema och verkligt anslutnings-/driftprov. LLEG-01–04 är planeringsmål som behöver avgränsas före implementation. Myndighetsbehörighet, lokalt uppdrag och systemåtkomst hålls isär; pilotens 42 krav och pågående planordning behålls. XML-format är dokumenterat, men offentlig API-åtkomst för personuppslag och faktisk leverans är inte verifierade.
+
 ### Befintlig teknik och begränsningar
 
 Arbetskatalog: `/Users/petter.gjores/dev/skolplattform`. Webbappen finns i `web/` och bygger på React, TypeScript, Vinext/Vite och Supabase/Postgres. Lokal förhandsvisning har använt port 5188; telefonförhandsvisningen har separat startkommando. `web/package.json` och låsfilen är källor för exakta beroenden.

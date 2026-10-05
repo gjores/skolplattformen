@@ -198,6 +198,8 @@ Fas 5 genomförs i avgränsade delplaner på användarens instruktion. Fas 4:s k
 
 Planeringsgräns 2026-10-01: användarens [delprojekt för sammanhängande schemamoduler](research/SCHEMAMODUL-PROJEKT.md) ska beaktas i berörda återstående planer. Redovisa stabila ID:n, exakta plan-/katalogversioner, undervisningstidens enheter, giltighet, klasskopplingar och ändringsansvar så programplaner, timplaner och framtida studieplan/schema kan samverka. ADMIN-01–04 behålls; Rustmotor och nya schemafunktioner får egna genomförandeplaner. AI utvärderas separat; eventuell AI-koppling planeras bara efter införandebeslut.
 
+Planeringsöversyn 2026-10-05: [Skolverkets undervisningsbehörigheter](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) behöver senare kunna jämföras med bevarade ämnes-/nivå-/skolreferenser. Program-/timplansanalys ska inte påstå verifierad lärarbemanning. Stabil lärarresurs, personmatchning och behörighetsimport hör till det separata föreslagna L1–L4-spåret och schemadelprojektet; de byggs inte in i nästa 05-22-plan.
+
 **UI hint**: yes
 
 Denna fas äger slutverifieringen av bevarandekraven. Referensflödena provas redan i fas 1 och vid varje berörd ändring i fas 2–4; regressionsskydd skjuts inte upp till fas 5. Grundskola och gymnasium provas där respektive arbetsflöde är tillämpligt.
@@ -220,6 +222,8 @@ Denna fas äger slutverifieringen av bevarandekraven. Referensflödena provas re
 
 Ett simulerat API kan användas för interna kontrakts- och felprov och redovisas som sådant. Val av verklig källa, skrivansvar och kontrakt behöver fastställas innan den verkliga adaptern godkänns. Faktiskt anslutningsprov har egen kravägare i fas 7. UX prövas vid varje berörd förändring; fasen äger den samlade verifieringen.
 
+Lärarregisterspårets L2 kan återanvända dessa importmönster, men får eget person-/behörighetskontrakt, kund-/skolmandat och verifieringsresultat. INT-02–06 behåller elev-/placeringsavgränsningen; en lärarimport räknas inte som dessa kravs leverans.
+
 ### Phase 7: Verifierad kommunanslutning
 
 **Goal**: Pilotansvarig kan skilja interna prov från godkända faktiska anslutningar för personalidentitet, kontolivscykel och elevregister.
@@ -235,6 +239,8 @@ Ett simulerat API kan användas för interna kontrakts- och felprov och redovisa
 **UI hint**: yes
 
 **Extern godkännandegräns:** Vald pilotkund, IdP, kontokälla, registerleverantör, tilldelad åtkomst och överenskomna acceptansvillkor krävs. Saknas de förblir berörda krav öppna och fasen får inte markeras genomförd. Anslutningsprov förbereds från fas 1 och får köras tidigare när deras förutsättningar är uppfyllda; fasen samlar deras slutliga godkännande.
+
+Om Skolverkets lärarregister väljs får L4 eget bevis för faktisk XML-/API-leverans och egna acceptansvillkor. Det ersätter inte INT-07:s elevregisterprov eller IAM-02/IAM-06. Någon offentlig API-åtkomst till läraruppslag har ännu inte verifierats.
 
 ### Phase 8: Prövad pilotdrift och informationshantering
 
@@ -254,11 +260,17 @@ Ett simulerat API kan användas för interna kontrakts- och felprov och redovisa
 
 Informationshantering kan bygga på kundens etablerade process; en egen publik diarietjänst ingår inte. Drift- och avtalsfrågor förbereds från fas 1. Inga verkliga elevuppgifter får föras in innan kundens driftbeslut och tillämpliga godkännanden finns; ett godkänt syntetiskt prov ändrar inte denna gräns.
 
+Inför faktisk användning av lärarregisterspåret kompletteras underlaget med personal-/personnummerflöden, ändamål för kontroll respektive löpande planering, åtkomst, källbevarande/gallring, färskhet, återställning och avslut. L4:s föreslagna gränser finns i researchunderlaget; ingen sådan drift är godkänd genom planeringsöversynen.
+
 ## Registrerat delprojekt: sammanhängande schemamoduler
 
 Användarinriktning 2026-10-01. SCHEMA-01–08 finns bland senare produkt- och utvärderingskrav med verifieringsmål i [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md). Föreslagen ordning: S1 gemensamma kontrakt/mandat/regler; S2 avskild Rust-/motorprototyp och jämförande AI-utvärdering med möjlighet att avstå från AI; S3 plan–grupp–schema med granskning och synk; S4 komponentbyte och vald extern adapter. Dessa är ej genomförda planeringssteg i delprojektet, inte nya numrerade faser i v1.0. Genomförandeplaceringen återstår; kompatibilitetsfrågorna ska beaktas redan i fas 5. Den befintliga schematodon är uppdaterad, inte duplicerad.
 
 MODUL-01–04 kompletterar projektet med användarens beslut om separat köp av moduler. S1 ska definiera köpbara gränser, beroenden och kundens modultillgång skild från personmandat. S4 provar olika köpta kombinationer, externt planunderlag och tillägg/avslut med bevarad historik. Prissättning och betalningsväg är öppna; ingen kommersiell funktion är verifierad.
+
+### Föreslaget lärarregisterspår — planeringsöversyn 2026-10-05
+
+[Underlaget](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) och [uppgiften](todos/pending/2026-10-05-integrera-skolverkets-lararbehorigheter.md) beskriver L1 kontrakt/personmatchning tillsammans med S1, L2 skyddad XML-import, L3 tjänstefördelning och regelkontroll i S3 samt L4 faktiskt anslutnings-/driftprov kopplat till S4. S2 ska kunna pröva syntetiska behörighetsbegränsningar. LLEG-01–04 är föreslagna planeringsmål med ett ansvarigt steg och väntande verifiering, inte tillägg till pilotens godkända krav eller nya numrerade faser. Omfattning och genomförandeplaner återstår. Aktuell fas 5-ordning behålls.
 
 ## Genomförande och verifiering
 
