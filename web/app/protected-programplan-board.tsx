@@ -377,7 +377,7 @@ function ChoiceBlockEditor({part, blocks, values, locked, onSave}: {part: 'speci
     next.push(...own.filter(o=>!originals.some(b=>b.id===o.id)));
     if (await onSave(next)) setEditing(false);
   }
-  return <section aria-label={part === 'individualChoice' ? 'Block för individuellt val' : 'Valbara fördjupningsblock'}>
+  return <section className="ppb-choice-editor" aria-label={part === 'individualChoice' ? 'Block för individuellt val' : 'Valbara fördjupningsblock'}>
     {!editing ? <Button variant="outline" disabled={locked} onClick={open}>{part === 'individualChoice' ? 'Dela i block' : 'Lägg till valbart block'}</Button> : <>
       <p>{part === 'individualChoice' ? 'Fördela 200 poäng på ett eller flera block.' : 'Ange namn och poäng för skolans valbara programfördjupning.'} Töm och spara fördelningen innan ett block tas bort eller får andra poäng.</p>
       {own.map(b=><div className="pp-new-fields" key={b.id}>

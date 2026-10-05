@@ -137,7 +137,7 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb-bar{display:block;height:6px;border-radius:3px;background:#f0f2f6;overflow:hidden;margin-top:4px}.ppb-bar i{display:block;height:100%;background:#365ce6;border-radius:3px}
 .ppb-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.ppb-toolbar>p{margin:0;font-size:.9375rem;color:#46586d}.ppb-toolbar strong{color:#202b3b;font-variant-numeric:tabular-nums}.ppb-tools{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .ppb-save{font-size:.8125rem;color:#657185;min-width:110px}.ppb-save-dirty{color:#946200}.ppb-save-saving{color:#2d4cc1}.ppb-save-idle::before{content:"✓ ";color:#2b6a35}
-.ppb-table-wrap{background:#fff;border:1px solid #e3e7ee;border-radius:12px;overflow:auto}
+.ppb-table-wrap{background:#fff;border:1px solid #e3e7ee;border-radius:12px;overflow:auto;container-type:inline-size}
 .ppb-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.875rem;table-layout:fixed;min-width:880px}
 .ppb-table col,.ppb-table th,.ppb-table td{box-sizing:border-box}.ppb-table thead th{position:sticky;top:0;z-index:1;background:#f7f8fa;border-bottom:1px solid #e3e7ee;padding:10px 6px;font-size:.75rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#657185;text-align:center}
 .ppb-table thead th:first-child{width:30%;text-align:left;padding-left:18px}.ppb-table .ppb-num{width:64px;text-align:right;padding-right:12px;font-variant-numeric:tabular-nums}.ppb-table .ppb-state{width:150px;text-align:left;padding-left:10px}
@@ -170,6 +170,8 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb-row-tools{display:flex;gap:0}.ppb-row-tools button{width:40px;height:40px}.ppb-group th{padding:12px 12px 6px!important}.ppb-add-row td{padding:10px 12px 14px!important}
 .ppb-table tbody th[scope=row] span{display:block;overflow-wrap:anywhere}}
 @media(max-width:800px){.ppb-term input{width:54px;max-width:none}.ppb-table .ppb-term{min-width:60px}}
+/* Blockformuläret ryms i tabellens synliga bredd även när terminsraderna rullas. */
+@media(max-width:800px){.ppb-choice-editor{max-width:calc(100cqi - 24px)}}
 
 /* 05-20: livscykelns statusmärken och låsbesked. */
 .ppl-phase-framtida{background:#e7f0fc;color:#24558c}.ppl-phase-pagaende{background:#edf7ef;color:#22552b}.ppl-phase-avslutad{background:#f0f2f6;color:#4d5a6d}.ppl-phase-okand{background:#fff5e1;color:#7a4b00}.ppl-phase-arkiverad{background:#eceef2;color:#4d5a6d;border:1px dashed #9aa6b6}.ppl-archived-toggle{margin-left:auto;padding:0}.ppl-lock{margin-block:.75rem}

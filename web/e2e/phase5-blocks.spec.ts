@@ -64,17 +64,28 @@ async function saveBlocks(page:Page,region:ReturnType<Page['getByRole']>) {
   expect(await fixture.paired(r.headers()['x-correlation-id'],fixture.principal,'programplan_blocks_changed')).toBe(true);
   await expect(board(page)).toContainText('Allt sparat');return r;
 }
+async function editorFits(region:ReturnType<Page['getByRole']>) {
+  expect(await region.evaluate(el=>{
+    const clip=el.closest('.ppb-table-wrap')!.getBoundingClientRect();
+    return [...el.querySelectorAll('input,button,p')].every(control=>{
+      const rect=control.getBoundingClientRect();
+      return rect.left>=clip.left && rect.right<=clip.right;
+    });
+  })).toBe(true);
+}
 test('B02: rektor delar IV i två block och lägger till fördjupningsram, fördelar och läser om',async({page},info)=>{
   await enterExisting(page);
   const iv=board(page).getByRole('region',{name:'Block för individuellt val',exact:true});
   await iv.getByRole('button',{name:'Dela i block',exact:true}).click();await iv.getByLabel('Poäng för block iv1',{exact:true}).fill('100');
   await iv.getByRole('button',{name:'Lägg till block',exact:true}).click();
   const name=iv.locator('input[aria-label^="Namn på block "]').last();await name.fill('Individuellt val 2');
+  await editorFits(iv);
   const first=await saveBlocks(page,iv),split=await first.json();
   expect(split.basisReference.choiceBlocks.filter((b:{kind:string})=>b.kind==='individualChoice').map((b:{points:number})=>b.points)).toEqual([100,100]);
   const spec=board(page).getByRole('region',{name:'Valbara fördjupningsblock',exact:true});
   await spec.getByRole('button',{name:'Lägg till valbart block',exact:true}).click();await spec.getByRole('button',{name:'Lägg till block',exact:true}).click();
   await spec.locator('input[aria-label^="Namn på block "]').fill('Valbar profil');await spec.locator('input[aria-label^="Poäng för block "]').fill('200');
+  await editorFits(spec);
   const second=await saveBlocks(page,spec),saved=await second.json(),block=saved.basisReference.choiceBlocks.find((b:{kind:string})=>b.kind==='specialization');expect(block.points).toBe(200);
   const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/terminer'&&r.request().method()==='POST');
   await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await pending).status()).toBe(200);await expect(board(page)).toContainText('allt fördelat');
