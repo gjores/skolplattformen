@@ -1,0 +1,35 @@
+{
+  "target": "protected",
+  "rollback": true,
+  "reset": false,
+  "sourceHash": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541",
+  "tenFullTablesPreserved": true,
+  "allOldFunctionAclsPreserved": true,
+  "replacedDefinitions": [
+    "phase5_change_programplan_education",
+    "phase5_clone_programplan_draft",
+    "phase5_programplan_actor",
+    "phase5_programplan_audit",
+    "phase5_programplan_event_actor",
+    "phase5_replace_programplan_blocks"
+  ],
+  "newFunctions": [
+    "phase5_programplan_ladders",
+    "phase5_programplan_languages",
+    "phase5_programplan_resolved_selections",
+    "phase5_programplan_unit_package_audit",
+    "phase5_programplan_unit_package_guard",
+    "phase5_programplan_unit_package_result",
+    "phase5_programplan_validate_selection",
+    "phase5_read_programplan_unit_packages",
+    "phase5_write_programplan_unit_packages"
+  ],
+  "workerEntryCount": 17,
+  "newTableRls": true,
+  "newTableClientGrants": 0,
+  "tenFullHashesRestored": true,
+  "allDefinitionsAndAclsRestored": true,
+  "status": "PASS",
+  "rawPath": "web/test-results/phase5-23-c-final/preservation.json",
+  "rawSha256": "fcba5ed34e20197f9fadb7e9da15def1dc865c70319985773db393a711799fcd"
+}

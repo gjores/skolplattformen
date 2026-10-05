@@ -1,0 +1,70 @@
+{
+  "kind": "05-23-C-independent-code-review",
+  "reviewer": "blocks_c_sql",
+  "status": "PASS_CODE_REVIEW_ACTUAL_VERIFICATION_PENDING",
+  "reviewedCommit": "cb8cc63d65c7037b7386d56aa13152a7e95ec843",
+  "scope": "Oberoende l\u00e4sning av root/domain UI, kontrakt, analys, server och actual Worker-runner; inga produkt\u00e4ndringar fr\u00e5n granskaren.",
+  "findings": [
+    {
+      "id": "C-R1",
+      "severity": "P2",
+      "status": "FIXED_CODE_AND_NODE_TEST",
+      "description": "F\u00f6rdr\u00f6jda helsvar fr\u00e5n skolvisa skrivningar kunde \u00e5terst\u00e4lla en annan skolas redan bekr\u00e4ftade revision. Monoton sammanslagning per skola bevarar nyare inneh\u00e5ll och avvisar avvikande plan/skolupps\u00e4ttning.",
+      "evidence": "mergeProgramplanUnitPackages, acceptPackages; nya Node-vektorer passerar."
+    },
+    {
+      "id": "C-R2",
+      "severity": "P2",
+      "status": "FIXED_CODE_BROWSER_PENDING",
+      "description": "\u00c5tg\u00e4rdsl\u00e4nk f\u00f6r paket kunde fokusera dold termin p\u00e5 telefon. Board v\u00e4ljer m\u00e5lradens \u00e5r och komponenten fokuserar motsvarande data-package-term."
+    },
+    {
+      "id": "C-R3",
+      "severity": "P2",
+      "status": "FIXED_CODE_BROWSER_PENDING",
+      "description": "Spr\u00e5kstarter i programf\u00f6rdjupning kunde inneh\u00e5lla otill\u00e5tna niv\u00e5er. Startval filtreras nu mot programspecifika options och redan fasta niv\u00e5er; tomt urval visar inget till\u00e4ggsformul\u00e4r."
+    },
+    {
+      "id": "C-R4",
+      "severity": "P2",
+      "status": "FIXED_CODE_BROWSER_PENDING",
+      "description": "Kopiering kunde p\u00e5b\u00f6rjas med f\u00f6r\u00e5ldrad skolupps\u00e4ttning. K\u00e4llans plan/skol-id och antal kontrolleras f\u00f6re skapande av den nya utbildningen."
+    },
+    {
+      "id": "C-R5",
+      "severity": "P2",
+      "status": "FIXED_CODE_BROWSER_PENDING",
+      "description": "Struktur\u00e4ndring kunde remontera och f\u00f6rlora osparade skolpaket. Scopebundna useHasUnsaved sp\u00e4rrar nu changeBlocks och changeSpecialization medan paket \u00e4r osparade eller sparas."
+    }
+  ],
+  "positiveChecks": [
+    "Servern verifierar strikt beg\u00e4ran, skolmandat och svar, med MFA/CSRF/aktuell session och obligatorisk audit.",
+    "Skolvis CAS, v\u00e4ntande \u00e4ndringar under p\u00e5g\u00e5ende skrivning och ok\u00e4nt svar beh\u00e5ller lokala v\u00e4rden; oml\u00e4sning bekr\u00e4ftar exakt revision och inneh\u00e5ll f\u00f6re vidare skrivning.",
+    "Kopieringsfel f\u00f6r skolor/paket redovisas efter skapande och skapar ingen tyst dubbelkopia.",
+    "Actual-runner anv\u00e4nder assertTarget, 16 explicit definierade fall, originalradshashar, ACL-\u00e5terst\u00e4llning och k\u00e4llhashar."
+  ],
+  "verification": {
+    "command": "cd web && node --test lib/programplan-packages.test.mjs",
+    "passed": 6,
+    "failed": 0,
+    "actualWorker": "Root ansvarar; \u00e4nnu inget bevis fr\u00e5n granskaren.",
+    "browser": "Root ansvarar; \u00e4nnu inget bevis fr\u00e5n granskaren."
+  },
+  "limitations": [
+    "Spr\u00e5kstarter och visningsnamn anv\u00e4nder nuvarande genererade katalog. Skyddad milj\u00f6 har en katalogpin; fler historiska katalogversioner kr\u00e4ver separat verifiering.",
+    "Review \u00e4r kodgranskning och Node-prov, inte actual Worker- eller browsergodk\u00e4nnande."
+  ],
+  "sourceHashes": {
+    "web/app/protected-programplan-packages.tsx": "311a0d5e27438f82f46f9e485fcd1c6a8f17af8a850f41a9b4a120ff54fe5fdc",
+    "web/app/protected-programplan-board.tsx": "1f5adec69cad632a8c74c86a0eb041bb1002d25410b6133ec9abf44557a9ff49",
+    "web/app/protected-programplan-workspace.tsx": "8504eeac7a55ba10516f729f3404b033384370df70d6b8fc396b11a26697d914",
+    "web/lib/programplan-packages.ts": "2f18f46d1690a4f5a0a5c7947f8aa5163b657c14f5e85c301b8884fa1964cfef",
+    "web/lib/programplan-analysis.ts": "7c13e5f397899b2be87a5c31ce706a1ebc5d04b9588068e71d7dc23b133d5d87",
+    "web/lib/server/programplan-packages.ts": "eaaaad3e0f9314e6bdc45a0dfa2e31435d03c08115b3c58e4a5356e55a5865ff",
+    "web/app/api/programplaner/paketval/route.ts": "ad36266c62e94a1e648e9abd769c0397c9bd5135b5aa225f16bdb8edc25350f1",
+    "web/app/api/programplaner/paketval/lasa/route.ts": "112a62e7c127e9947d171b45c3d88e63a5f93363b2b5cc6d1eea43ff071b42e0",
+    "work/pilot/verify-programplan-packages-api.mjs": "c9c84313dd5b5b340cc35960678a61fe16647f9544b98957110499552c50897f"
+  },
+  "rawPath": "web/test-results/phase5-23-c-final/review.json",
+  "rawSha256": "1d61a7a87a906143c18940fb0979156b0fb1600c2e79f3d7251c9bf93c0105dc"
+}

@@ -1,0 +1,14 @@
+{
+  "target": "protected",
+  "rollback": true,
+  "reset": false,
+  "sourceHash": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541",
+  "languagesParity": true,
+  "laddersParity": true,
+  "total": 534,
+  "passed": 534,
+  "failed": [],
+  "status": "PASS",
+  "rawPath": "web/test-results/phase5-23-c-final/parity.json",
+  "rawSha256": "1c418d5a9028baf77f37351bc127b62261fa566503833789407ab72cafb2f1e7"
+}

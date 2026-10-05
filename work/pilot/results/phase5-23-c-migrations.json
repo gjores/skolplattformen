@@ -1,0 +1,40 @@
+{
+  "scope": "local-synthetic-only",
+  "target": "protected",
+  "status": "PASS",
+  "reset": false,
+  "applications": [
+    {
+      "target": "protected",
+      "projectId": "skolplattform-pilot-protected",
+      "migration": "20261004154000_phase5_programplan_unit_packages.sql",
+      "status": "PASS",
+      "reset": false,
+      "grants": false,
+      "journalOnly": false,
+      "sourceHash": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541"
+    },
+    {
+      "target": "protected",
+      "projectId": "skolplattform-pilot-protected",
+      "migration": "20261004155000_phase5_worker_programplan_unit_packages.sql",
+      "status": "PASS",
+      "reset": false,
+      "grants": true,
+      "journalOnly": false,
+      "sourceHash": "fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2"
+    }
+  ],
+  "preflightStatus": "PASS",
+  "preflightCases": 16,
+  "preflightCleanupStatus": "PASS",
+  "preflightSourceCommit": "b16687e385df4f7c938823ad23dfd68bef79c5c5",
+  "preflightWorkerBuildRevision": "b16687e385df4f7c938823ad23dfd68bef79c5c5",
+  "workerEntryCountAfterGrant": 19,
+  "onlyTwoNewWorkerEntryPoints": [
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)"
+  ],
+  "previousBusinessTablesPreserved": true,
+  "historicalPreflightIsAtGrantTime": true
+}

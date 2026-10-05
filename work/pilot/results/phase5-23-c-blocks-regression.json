@@ -1,0 +1,712 @@
+{
+  "kind": "phase5-programplan-blocks-api",
+  "scope": "local-synthetic-only",
+  "step": "b",
+  "preflight": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual built workerd restricted DB role",
+          "ok": true
+        },
+        {
+          "name": "exact seventeen Worker entrypoints",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "blocks-save-reread",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "principal saves IV 2x100 and specialization with CAS and paired audit",
+          "ok": true
+        },
+        {
+          "name": "HM rereads exact persisted block identity and row keys",
+          "ok": true
+        },
+        {
+          "name": "new block rows sum to 2500 with existing specialization",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "blocks-cas",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "one concurrent winner and one conflict",
+          "ok": true
+        },
+        {
+          "name": "winner exact basis persisted with paired audit",
+          "ok": true
+        },
+        {
+          "name": "denied 409 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "block-id-retired",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "new unused block saved with paired audit",
+          "ok": true
+        },
+        {
+          "name": "unallocated block removed with paired audit",
+          "ok": true
+        },
+        {
+          "name": "denied 400 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "shape-upgrade",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "three applied non-grant B migrations and no remaining bound legacy drafts",
+          "ok": true
+        },
+        {
+          "name": "closed upgrade before-values log",
+          "ok": true
+        },
+        {
+          "name": "upgrade standard blocks and remaps IV without inventing allocation",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "clone-upgrades-legacy",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "legacy source cloned into current shape and audited",
+          "ok": true
+        },
+        {
+          "name": "clone keeps exact old IV points on new frame",
+          "ok": true
+        },
+        {
+          "name": "sealed source entire row and history unchanged",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "clone-keeps-historical-block-id",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "v2 inherits exact source identity with paired audit",
+          "ok": true
+        },
+        {
+          "name": "v2 removes identity with paired audit",
+          "ok": true
+        },
+        {
+          "name": "v3 from v1 keeps historical block after v2 retirement",
+          "ok": true
+        },
+        {
+          "name": "other blocks editable while inherited identity retained",
+          "ok": true
+        },
+        {
+          "name": "sealed v1 entire row and history unchanged",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mfa-csrf-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "denied 403 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 401 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 403 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 409 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 401 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "db audit failure leaves entire business unchanged",
+          "ok": true
+        },
+        {
+          "name": "db no success audit survives",
+          "ok": true
+        },
+        {
+          "name": "worker audit failure leaves entire business unchanged",
+          "ok": true
+        },
+        {
+          "name": "worker no success audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-clients-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual direct clients denied",
+          "ok": true
+        },
+        {
+          "name": "helpers and tables remain closed",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "blocks-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "denied 403 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 403 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 400 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 400 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "allocated frame saved before orphan test",
+          "ok": true
+        },
+        {
+          "name": "denied 400 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 409 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 403 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "denied 400 without business change",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker audit",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "0abd86f6-b7a5-4455-ae19-20c4da111d01"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "6454ee4c-bd03-458c-83fc-8dc3c709fbdc"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "48008322-f333-4aae-96ba-7b8e022754cf"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e11bfb5a-8a05-4829-b3e6-2c70f346b39d"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "972ad574-dd9d-4c07-a979-ad98b1ed7d56"
+    },
+    {
+      "route": "block",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "74b22f6b-8925-4c7e-a008-e6182cc9123c"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "aca06765-e076-42ec-80be-92dd482b9006"
+    },
+    {
+      "route": "block",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "ff98bd8e-429e-4452-8d23-b5e770f19ff2"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "a32101f6-a9d8-435b-b756-ed3da82128ee"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "10e0a796-e51b-47e7-aaa7-c1ad0352435c"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "d131d631-cafd-41d9-888f-f7231f57017a"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "b588f98b-d69d-4839-8792-c7bf997634f7"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "76362091-9bf7-4f88-a048-1d387fd61479"
+    },
+    {
+      "route": "block",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "3340afc5-c893-4cf5-8331-cb518d2f8b9e"
+    },
+    {
+      "route": "klona",
+      "status": 200,
+      "code": null,
+      "correlationId": "4c40a31f-0c09-4255-82ed-04af2d685f5c"
+    },
+    {
+      "route": "terminer/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "dd3e78ba-01f9-486c-9582-824081e20ff3"
+    },
+    {
+      "route": "klona",
+      "status": 200,
+      "code": null,
+      "correlationId": "06a7228d-42ad-40f0-bddd-978af804f47f"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "4011f770-2c40-4280-bad6-3bf39709253c"
+    },
+    {
+      "route": "klona",
+      "status": 200,
+      "code": null,
+      "correlationId": "3c7520c4-2f13-41d1-a431-54ccfb896f2d"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "879e7234-9c33-4603-adfb-2a3a78c8ec4a"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "9244ae56-ee56-4800-a679-ba7a889a5067"
+    },
+    {
+      "route": "block",
+      "status": 403,
+      "code": "mfa_required",
+      "correlationId": "d5b3eab0-511c-45d3-a3cc-99b279afa0d0"
+    },
+    {
+      "route": "block",
+      "status": 401,
+      "code": "no_session",
+      "correlationId": "00b7da76-b8c6-46e4-b817-500450787603"
+    },
+    {
+      "route": "block",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "7d86a351-f410-40ed-b8e8-6b5a7d524f36"
+    },
+    {
+      "route": "block",
+      "status": 409,
+      "code": "context_changed",
+      "correlationId": "f5f0faa0-0b81-4139-b200-42a103883b31"
+    },
+    {
+      "route": "block",
+      "status": 401,
+      "code": "session_expired",
+      "correlationId": "cb5ed1f9-308b-4297-95df-caa70b8b221a"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "313c3123-47d9-466d-bed7-a1ca02eed320"
+    },
+    {
+      "route": "block",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "e07ad9df-1a4a-4d97-a3ac-79707ba00b1a"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "00fb0fe5-48d9-4a89-8295-b6581c389c79"
+    },
+    {
+      "route": "block",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "f57020be-0fed-49b6-86cb-60f2bc745a26"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "77da80c8-b1a0-47fd-a113-301cf341cd95"
+    },
+    {
+      "route": "block",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "a7063567-da79-42cd-8ce9-ca34e074a914"
+    },
+    {
+      "route": "block",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "14630aa3-f3e6-42e2-ad9e-c100034506ca"
+    },
+    {
+      "route": "block",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "22096570-1773-4489-baf9-72f95af150fe"
+    },
+    {
+      "route": "block",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "3a005975-5ed0-4357-a4b9-9cc5d5c6dcbd"
+    },
+    {
+      "route": "terminer",
+      "status": 200,
+      "code": null,
+      "correlationId": "a6acfc08-2fe4-448a-97b8-51bdc1eb0caa"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "36cb2e7f-93f9-435e-99a2-ab8c4fbd522e"
+    },
+    {
+      "route": "block",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "6cdaa402-357b-4e44-9e6a-bb84aebf5335"
+    },
+    {
+      "route": "block",
+      "status": 409,
+      "code": "programplan_locked",
+      "correlationId": "699131bc-ca5d-4630-a33b-c34ed8f51e25"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e8c0e417-d99b-4a21-a6f0-b26bea71a9d5"
+    },
+    {
+      "route": "block",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "259de26d-7a8a-4b68-b864-7ea24b7531c7"
+    },
+    {
+      "route": "block",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "ebac4e1e-67d7-474a-8fd6-715ad518e5fc"
+    }
+  ],
+  "complete": true,
+  "sourceCommit": "8c719eedd4ce5cff8978fd1307e4cb065b9c1bd4",
+  "workerBuildRevision": "8c719eedd4ce5cff8978fd1307e4cb065b9c1bd4",
+  "aclUnchanged": true,
+  "cleanup": {
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 63,
+    "preservedAuditAnchors": 4,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 193,
+      "hash": "3b63aca3b66d96d61b12423af7b1056b"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 193,
+      "hash": "3b63aca3b66d96d61b12423af7b1056b"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    }
+  },
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T17:48:37.645Z",
+  "sourceHashes": {
+    "web/lib/programplan-catalog.ts": "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+    "web/lib/programplan-choice-blocks.ts": "6c4223e2143b60bf45196a26e3ebeaf173f6ce1215980a5ab2e3c1cdaddf8e92",
+    "web/lib/programplan-terms.ts": "bed02c4e2d13c09fc6666fd2ada579224101d2ec78884b44ded2a95928e7e000",
+    "web/lib/programplan-terms-contract.ts": "bfb3e01fc65a42daae70f3eba660f9dc72a0f8c6de59803193cdbb8e041c3eb9",
+    "web/lib/programplan-contract.ts": "de699634c9e2221444e5ce36640f934cfc5d89ae0c0a59bd0649efd1179f9e2d",
+    "web/lib/protected-programplan.ts": "aa66b40ea0707d2e31667809dde5219c31821d8daf917637bff90c8cd93da429",
+    "web/lib/server/programplan-planning.ts": "c003d4e7721644a734c29c5a416af2446fb9738b6f4212c6fa1ee51bae5261b4",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/app/protected-programplan-board.tsx": "54626b207abb1baf39153ea6800747a078178bccb969891bf9169a9bd01e930b",
+    "web/app/protected-programplan-flow.tsx": "318647a96c7c1c022c9c20b84d6ffdc593a51eb2885ee50ba7bbaf80ca2b7d96",
+    "web/app/protected-programplan-workspace.tsx": "7707cb7b91b6b47edee300491a8c3038358b8324a3dabd72fc20b3ed25f6deee",
+    "web/app/api/programplaner/skapa/route.ts": "435c9c2553cb916e8c039f413ca34a28ac79db2da9b4929af1bc46f1dcc65023",
+    "web/app/api/programplaner/lasa/route.ts": "a986adb9f6e5bca0a91465d40c948aa5de4cc3fbeb4cdededeb4334881f7514b",
+    "web/app/api/programplaner/terminer/route.ts": "cdfa49c5d8e9a9712e52220f1a03a1dab2f097f8de449ae2a8d8cd595845b7a4",
+    "web/app/api/programplaner/terminer/lasa/route.ts": "bc02607f7d03d057dc218477ed61d2b9afbcda2130326a228007d65175b8c623",
+    "supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd",
+    "supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090",
+    "work/pilot/verify-programplan-blocks-api.mjs": "c58515f33eab8cd18729432db4d53a7c5bb35bca365dcac136d0e4685b037c0d",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "15352ce352fb47c892f58f7d931b53f0ab3805455c212f3394fc6f9730f6efee",
+    "web/app/api/programplaner/block/route.ts": "9b24ae2cd227c9dcc2d7e074560f0073987917d3cec667c8ede647864d1a3aef",
+    "web/lib/programplan-analysis.ts": "7c13e5f397899b2be87a5c31ce706a1ebc5d04b9588068e71d7dc23b133d5d87",
+    "supabase/migrations/20261004151000_phase5_programplan_block_commands.sql": "1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267",
+    "supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql": "4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5",
+    "supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql": "166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14",
+    "supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf",
+    "web/app/protected-home.tsx": "0ac019db370aa9e317014227bdd793638363b297fa393e643db0cdce9073b705",
+    "web/app/protected-programplan.css": "20f87810f5759f6c9d2768347718fff3917b14435dddfcd798e978a1c6984fae",
+    "web/lib/unsaved-changes.tsx": "8393a10fca298b812519a4062f5a7aaa2244d623dde035b9cc14d03f72ac6228",
+    "web/lib/session-channel.ts": "214fc4023bf2d0ae1ef2228901af9116c27b6c49b9b963b5da4449f06c4cf98c",
+    "web/lib/mandate-policy.ts": "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+    "web/lib/server/http.ts": "a24aba73bf9aaed8007dedcea243de4cf9e1775b4e9964f2e3e9a7d255dd3375",
+    "web/lib/server/audit-details.ts": "079549e5232b5d3ceefc142cb549861eb3dc6aed74cc6feed81a7e6b292b6ca2",
+    "web/lib/server/programplan-lifecycle.ts": "f49dd8065282a78c78b9ba1a7810f8489771162530f137caef7ebc4849c43598",
+    "web/app/api/programplaner/val/route.ts": "02cb1e9c4ae9c041ae1c39681c50c433dacfa649f6c75c89e00f33f8ef65fed3",
+    "web/app/protected-programplan-list.tsx": "6249ee8db8a2cf09f2a49f867246dc7ae60b856903a87561b439f729349c9295",
+    "web/app/api/programplaner/lista/route.ts": "77c908aa825b5aa2fa88b083ec439dd91983f2fd681c98378c0c4229bcd6175f",
+    "web/app/api/programplaner/underlag/route.ts": "f38b11855de30d2ff53987cb86b3af6871890785a1bd1046a38baa62594d5e1e",
+    "web/lib/programplan-languages.ts": "41c4f1b54c82eb871b32b6f3e67f6a8cb99a5819ff7b740fae53e426b2777005",
+    "web/lib/programplan-packages.ts": "2f18f46d1690a4f5a0a5c7947f8aa5163b657c14f5e85c301b8884fa1964cfef",
+    "web/lib/server/programplan-packages.ts": "eaaaad3e0f9314e6bdc45a0dfa2e31435d03c08115b3c58e4a5356e55a5865ff",
+    "web/app/protected-programplan-packages.tsx": "405587ba96006df2ca23d010ad759a9a4df809dd1ef7c3aa775ca9fec3256605",
+    "web/app/api/programplaner/paketval/route.ts": "ad36266c62e94a1e648e9abd769c0397c9bd5135b5aa225f16bdb8edc25350f1",
+    "web/app/api/programplaner/paketval/lasa/route.ts": "112a62e7c127e9947d171b45c3d88e63a5f93363b2b5cc6d1eea43ff071b42e0",
+    "work/pilot/verify-programplan-packages-api.mjs": "cadca0b4a5968b0922762e00549d5a4b5fafff1dc307aa405205d30fbb714da3",
+    "supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541",
+    "supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql": "fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2"
+  }
+}

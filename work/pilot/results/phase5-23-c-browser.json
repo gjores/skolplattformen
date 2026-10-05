@@ -1,0 +1,87 @@
+{
+  "kind": "phase5-23-c-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "workerBuildRevision": "9790c540059a22b9bb01c55090123b5634294319",
+  "productRevision": "8c719eedd4ce5cff8978fd1307e4cb065b9c1bd4",
+  "suites": [
+    {
+      "suite": "packages",
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "rawPath": "web/test-results/phase5-23-c-final/packages/phase5-packages.json",
+      "rawSha256": "423353a858a5233fef902f8b31dcb16b09c2000a0ba2a2c095bd862f8ae03a88"
+    },
+    {
+      "suite": "blocks",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "rawPath": "web/test-results/phase5-23-c-final/blocks/phase5-blocks.json",
+      "rawSha256": "7c9040fbf6ba54aa7ef353e1b96e360ca305c6b88babb85efa7d93d9e5d3d718"
+    },
+    {
+      "suite": "programplan",
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "rawPath": "web/test-results/phase5-23-c-final/programplan/phase5-programplan.json",
+      "rawSha256": "363050cf60c20f2f9ae334b9f5fca6c34c3be5093c84e0302560e7cceae62c2f"
+    },
+    {
+      "suite": "terms",
+      "passed": 25,
+      "failed": 0,
+      "skipped": 1,
+      "rawPath": "web/test-results/phase5-23-c-final/terms/phase5-terms.json",
+      "rawSha256": "b6c4a725c2dbfdb912640e493a164946882212fa5525bef6ece34ae0cb0e573c"
+    },
+    {
+      "suite": "lifecycle",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "rawPath": "web/test-results/phase5-23-c-final/lifecycle/phase5-lifecycle.json",
+      "rawSha256": "993d3aac0304ac794150f05c09773a6c9892077d5ca8694983cf9827a6c39957"
+    }
+  ],
+  "priorFailures": [
+    {
+      "run": "browser-first",
+      "passed": 10,
+      "failed": 6,
+      "rawPath": "web/test-results/phase5-23-c-final/browser-first/phase5-packages.json",
+      "rawSha256": "6c774f8293825230277a5b8b84bc01328d7d897dc1dc92302d7d8f20774ece6b"
+    },
+    {
+      "run": "browser-second",
+      "passed": 15,
+      "failed": 1,
+      "rawPath": "web/test-results/phase5-23-c-final/browser-second/phase5-packages.json",
+      "rawSha256": "bf19a928788ea934d76b6ed8270b67b9eb2c54ac4f32c6628e1b2d47d31db33e"
+    },
+    {
+      "run": "lifecycle-first",
+      "passed": 18,
+      "failed": 2,
+      "rawPath": "web/test-results/phase5-23-c-final/lifecycle-first/phase5-lifecycle.json",
+      "rawSha256": "810c130a00738ae7f26f5bc75e969e03c3ae7d12f59c5d8e1f76ed64106932f9"
+    },
+    {
+      "run": "lifecycle-build-gate",
+      "passed": 0,
+      "failed": 2,
+      "rawPath": "web/test-results/phase5-23-c-final/lifecycle-build-gate/phase5-lifecycle.json",
+      "rawSha256": "0c4fc28f488f625cf9bffb5f09f113ebac62f8ee336babd0a4eef5f7d5e796c9"
+    }
+  ],
+  "lifecycleFinalCoverage": {
+    "passed": 20,
+    "failed": 0,
+    "source": "first18PASS plus2correctedPASS; first failures retained"
+  },
+  "cleanupEvidenceCount": 142,
+  "allOwnBusinessRowsRemoved": true,
+  "appendOnlyAuditPreserved": true
+}

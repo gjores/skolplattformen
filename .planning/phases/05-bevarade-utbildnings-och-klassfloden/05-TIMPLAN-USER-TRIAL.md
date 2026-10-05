@@ -25,3 +25,10 @@ Användaren rapporterar: ”alla tester kring timplaner funkar”. De ovan förb
 5. Pröva en osparad ändring och Avbryt, samt läsbarhet på dator och telefon. Som huvudman ska planerna bara kunna läsas.
 
 Återstående användarprov för elevregistret följs separat i 04-HUMAN-UAT.md. Att provunderlaget finns slutför inte någon fas eller checkpoint.
+
+
+## 05-23 C — språkpaket, 2026-10-05
+
+Status: **awaiting_user**. Vanlig 3012 kör verifierat C-bygge 9790c54; ladda om öppna flikar. Ingen förberedelse/reset av befintliga programplaner har gjorts. Automatiskt C-API 16/16, paketbrowser 16/16 och berörd regression PASS. Före/efter lästes 18 bevarade scenarier med 44 auditpar per omgång; 11 hela verksamhetstabeller identiska. Detta är agentens syntetiska prov, inte användarens begriplighetsgodkännande.
+
+Öppna en plan med blockram och välj **Visa paket**. Välj skola, pröva språkförslag och lämna en ändrad terminsrad för autospar. Följ en paketåtgärd från Analys och kontrollera målskola/nivå/årskurs på dator och telefon. Som skoladministratör kan du välja skolans paket men inte ändra själva planen. Andra skolors paket är läsbara; arkiverad utbildning är låst. Generella ämnespaket återstår i D; exportkoder är inte verifierade.

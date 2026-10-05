@@ -179,8 +179,8 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 | INT-06 | Phase 6 | Pending |
 | INT-07 | Phase 7 | Pending |
 | ADMIN-01 | Phase 5 | Pending |
-| ADMIN-02 | Phase 5 | Pending — delbevis 05-15/05-16, 05-18 och 05-20 (livscykel: framtida plan ändras, startad plan låst, automatiskt verifierad); 05-23 A/B ger v2-svenskrader/blockramar och SA2500 genom Worker; 13 äldre utkast uppgraderade och HM/rektors blockändring samt terminsordning verifierade lokalt. Skolpaket/fullplan C–E återstår. Mänsklig begriplighet och fulla beslutsregler återstår |
-| ADMIN-03 | Phase 5 | Pending — delbevis 05-20: kopia kräver framtida kullstart och bevarar originalet; 05-23 B uppgraderar legacyklon med bevarade termer och historiska blockidentiteter, originalets hela rad/historik oförändrade. Mänskligt prov och fullplan C–E återstår |
+| ADMIN-02 | Phase 5 | Pending — delbevis 05-15/05-16, 05-18 och 05-20 (livscykel: framtida plan ändras, startad plan låst, automatiskt verifierad); 05-23 A/B ger v2-svenskrader/blockramar och SA2500 genom Worker; 13 äldre utkast uppgraderade och HM/rektors blockändring samt terminsordning verifierade lokalt. C ger skolvisa språkpaket med scoped mandat, terminsram och analys, 16/16 API/browser PASS. Generella ämnespaket/fullplan D/E återstår. Mänsklig begriplighet och fulla beslutsregler återstår |
+| ADMIN-03 | Phase 5 | Pending — delbevis 05-20: kopia kräver framtida kullstart och bevarar originalet; 05-23 B uppgraderar legacyklon med bevarade termer och historiska blockidentiteter, originalets hela rad/historik oförändrade. C kopierar skolpaket till ny version och båda skolornas exakta paket till ny elevkull; originalets hela plan/paket/historik bevaras. Mänskligt prov och fullplan D/E återstår |
 | ADMIN-04 | Phase 5 | Pending — delbevis 05-22: skolbunden fastställd klass–timplansversion och ny version flyttar inte kopplingen, verifierat lokalt; appkommandon/läsårsunderlag/mänskligt prov återstår. Första backfillens fyra updated_at är separat PARTIAL-avvikelse |
 | UX-01 | Phase 6 | Pending |
 | INFO-01 | Phase 8 | Pending |

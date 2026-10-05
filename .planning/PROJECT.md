@@ -8,6 +8,8 @@ En skolplattform för svenska huvudmän, rektorer, skoladministratörer och lär
 
 Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
 
+**Aktuellt delresultat 2026-10-05:** 05-23 A/B/C är automatiskt verifierade lokalt med syntetiska data. Skolans språkpaket, terminsfördelning, analysmål och kopiering finns för huvudman/rektor/skoladministratör inom mandatet; administrator kan inte ändra själva planen. Vanlig 3012 kör 9790c54, befintliga verksamhetsrader bevarade. Generella ämnespaket återstår i D, fullplansprov i E. Hela 05-23/ADMIN-02/ADMIN-03 är öppna; äldre auditfall FAIL och 05-22 metadata PARTIAL. Språkexportkoder och verklig kommunanslutning är inte verifierade.
+
 ## Current Milestone
 
 **v1.0 — Säker administration inför en pilot.** Användaren valde den 2026-09-10 inloggning, behörigheter, elevregister och en kommunintegration som första milstolpe. Hela produktvisionen finns kvar, men undervisning, fullständiga ärendeprocesser och alla leverantörsanslutningar ska inte färdigställas samtidigt.

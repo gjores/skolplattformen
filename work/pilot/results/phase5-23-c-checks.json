@@ -1,0 +1,25 @@
+{
+  "kind": "phase5-23-c-checks",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "sourceCommit": "9790c540059a22b9bb01c55090123b5634294319",
+  "workerBuildRevision": "9790c540059a22b9bb01c55090123b5634294319",
+  "checks": {
+    "nodeModelServer": {
+      "passed": 629,
+      "failed": 0
+    },
+    "harness": {
+      "passed": 5,
+      "failed": 0
+    },
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "fullSqlSeparateStatus": "FAIL-known-phase2_audit-13",
+  "humanResult": "awaiting_user",
+  "modelTestSourceCommit": "8c719eedd4ce5cff8978fd1307e4cb065b9c1bd4",
+  "appLibIdenticalToModelTest": true
+}

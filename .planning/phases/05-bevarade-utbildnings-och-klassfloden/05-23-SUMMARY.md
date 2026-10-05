@@ -2,17 +2,17 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "23"
 status: in_progress
-completed_steps: [A, B]
-next_step: C
+completed_steps: [A, B, C]
+next_step: D
 requirements: [ADMIN-02, ADMIN-03]
 requirements-finally-verified: []
 human_result: awaiting_user
-worker_build_revision: 2b452370d66c11277c9783cdee428c7f15925df7
+worker_build_revision: 9790c540059a22b9bb01c55090123b5634294319
 ---
 
 # 05-23 — full poängsumma och valbara block
 
-Steg A och B är genomförda och automatiskt verifierade lokalt med syntetiska data. Nya och uppgraderade utkast har Svenska/SvA-rader och valbara block. Huvudman/rektor kan dela individuellt val och lägga till fördjupningsblock. Hela 05-23 är fortfarande in_progress: skolornas paketval och fullplansverifiering återstår i C–E. Mänsklig begriplighetsbedömning är awaiting_user. Avsnitt A nedan är dess historiska leveransbevis; B anger aktuellt beteende och bygge.
+Steg A, B och C är genomförda och automatiskt verifierade lokalt med syntetiska data. Nya och uppgraderade utkast har Svenska/SvA och blockramar; huvudman/rektor kan ändra block och skolans språkpaket kan väljas av huvudman, rektor och skoladministratör. Hela 05-23 är fortfarande in_progress: generella ämnespaket och fullplansverifiering återstår i D/E. Mänsklig begriplighet är awaiting_user. A/B nedan är historiska bevis; C anger aktuellt beteende och bygge.
 
 ## Steg A — nya planer, svenskrader och blockramar
 
@@ -108,10 +108,47 @@ En ny oberoende verifierare granskade kodkedja, data, skydd och bilder; se [B-VE
 
 Vanlig **3012 kör slutligt 2b45237**, med tidigare klientfiler bevarade för öppna flikar. Privat `.dev.vars` och låsfiler följde inte med vid byggbytet. Ingen automatisk omladdning eller reset av användarplaner; byggkopian och föregående byggbackup är städade efter bevarande av råbevis och verifierad källpush (6fadda4). Slutlig GSD-beviscommit pushas separat.
 
-### Överlämning till ny session — steg C
+### Historisk överlämning från B — före genomförandet av C
 
 A och B är klara; hela planen och ADMIN-02/ADMIN-03 förblir öppna. Läs STATE, 05-23-PLAN/CONTEXT och A/B-bevis. Nästa nya executorsession genomför C: skolans språkpaket och terminsram, mandat för huvudman/rektor/administrator, utfällbar blockrad och skrivskydd över andra skolor. Inventera aktuella SQL-definitioner (inklusive 152100) före ersättning; exakt 17 Worker-entrypoints är baslinjen. Separat C-preflight krävs innan 155000-grant. Generella valpaket för fördjupning/IV/HU/NA hör till D; full regression och slutligt mänskligt paketprov till E.
 
 05-17 saknar PLAN och är ingen förutsättning för A/B. Yrkesprogrammets total/bortval och yrkesfastställande kräver separat 05-17-arbete; inga totalsummor gissas. 05-25 väntar på hela 05-23.
 
 Mänskligt A/B-prov: `awaiting_user` — ny SA-plan, Svenska/SvA 1–3, IV 2×100, fördjupningsblock, fördela/spara/läs om och ny version av äldre plan på dator/telefon. Paketval kan ännu inte provas i appen.
+
+## Steg C — skolans språkpaket
+
+Huvudman, rektor och skoladministratör kan välja och fördela språkpaket för skolor i sitt mandat via **Visa paket** på blockraden. Andra skolors paket kan läsas i en delad plan. Administrator läser listans programnamn och planer men får inte skapa, klona eller ändra planens ram/nivåer. Fastställd/ersatt version och passerad kullstart hindrar inte skolans paketarbete; arkiverad utbildning är låst. Paketens skolvisa revision ändras, medan programplanens hela rad och revision bevaras.
+
+- Franska, spanska och tyska har sex uttryckliga startförslag. Förslaget sparas först efter användarval. Övriga katalogbundna språkstarter, svenskt teckenspråk, modersmål och minoritetsspråk valideras med exakt nivåordning och poäng; programfördjupning filtreras mot programmets tillåtna nivåer och redan fasta nivåer. 42 lokala språkkoder och 18 trappor har TS–SQL-paritet. Exportkoder till Skolverket/UHR är uttryckligen **inte verifierade**.
+- Varje paket har sex terminer och ska följa blockets terminsram. Ofullständig fördelning kan sparas och visas i analysen; ogiltiga nivåer eller överpoäng nekas. Analysen skiljer skolorna åt och visar ramfel, nivåordningsfel och överlappningsrisk med mål till rätt skola, paketnivå och synlig årskurs. IV:s ämnesrättigheter analyseras per skola.
+- Utfällningen ligger under den enda blockraden och tillför ingen stor informationsruta. Telefon visar vald årskurs. Radvis sparning köar en sista ändring under pågående sparning; okänt svar stäms av genom läsning utan blind omskrivning. Monoton sammanslagning per skola hindrar sena helsvar från att återställa nyare paket. Osparade paket bevaras vid filtrering och blockerar strukturbyte/kopiering tills de hanterats.
+- Sparade paket skyddar skol-/blockborttagning och ändrad blockpoäng med konkret besked. Ny version kopierar skolrader med revision 1 och redovisar antal kopierade skolrader. UI-kopia till en ny elevkull kopierar två skolors exakta paket efter skolvalet och namnger skolan vid fel; originalets hela plan, paket och historik bevaras.
+
+### Tillämpning och kontroller
+
+Migration 154000 (`443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541`) bygger den stängda skolpaketstabellen, kontrakt och kommandon från aktuellt inventerade definitioner. Migration 155000 (`fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2`) öppnar bara två nya Worker-entrypoints efter separat 16/16 preflight och återställda ACL. Totalt 19. Båda är tillämpade och journalförda på isolerat protected utan reset. Ingen tillämpad fil ändrades. Föredefinitioner: [C-FUNCTION-INVENTORY](05-23-C-FUNCTION-INVENTORY.md).
+
+| Kontroll | Resultat |
+|---|---|
+| Node modell/server / harness | 629/629 / 5/5 PASS |
+| TypeScript, oxlint, skyddat bygge, handbok | PASS |
+| SQL riktat | 13 programplansfiler 986/986 samt två timplansfiler 86/86 PASS i yttre rollback; nya C-filen 74/74 ingår i de 986 |
+| TS–SQL-paritet / bevarande | 534/534; hela språk-/trappinventeringen identisk / tio gamla helradsmängder, gamla ACL och ej ersatta definitioner bevarade; rollback återställer allt |
+| C-API preflight / slutlig Worker | 16/16 / 16/16 PASS; MFA/CSRF, skolmandat, adminläsning, CAS, arkivlås, auditrollback och klientnekanden |
+| API-regression | B 11/11, programplan 48/48, terminer 31/31, livscykel 39/39, utbildning 43/43 PASS; full verksamhet och cleanup PASS |
+| Paketbrowser / regression | 16/16; block 6/6, programplan 40/40, terminer 25/25 (+1 avsiktligt hoppat), livscykel 20/20 över basomgång 18 + riktat omprov 2 PASS på dator/telefon |
+| Full SQL | **FAIL 2411/2412 i 34 filer**, bara känt äldre `phase2_audit` #13 (`History denied` mot förväntad serverkontext); alla fas 5-filer PASS. Kördes efter C-grunden, före permanent C-grant; riktad C-grant och aktuell 19-entrypoints-Worker har egna verkliga bevis |
+| Ordinarie 3012 | C-API 16/16 PASS; 18 aktuella bevarade scenarier och 44 auditpar per read-only omgång före/efter; elva hela verksamhetstabeller och aktuella scenarier identiska |
+
+Produktkod verifierades på `8c719eedd4ce5cff8978fd1307e4cb065b9c1bd4`; slutligt Workerbygge är `9790c540059a22b9bb01c55090123b5634294319`. Enda skillnaden är livscykelprovets uttryckliga förväntning att skolpaketsåtgärder finns även när själva planen är skrivskyddad. API/browser, bevarande och minimerade rapporter: `work/pilot/results/phase5-23-c-*.json`. Lokala rårapporter, loggar och bilder ligger i `web/test-results/phase5-23-c-final/`. Historisk preflight från `b16687e` bevisar granttidens kod; senare UI-/harnessrättningar har färska normala API/browserbevis. Den första preflighten 15/16 och två browseromgångar 10/16 respektive 15/16 är bevarade som FAIL. Slutlig full paketomgång 16/16 ersätter dem inte i historiken. Livscykelns första 18/20 och ett 0/2-omprov stoppat av käll-/bygggrinden är också bevarade; korrekt byggt riktat omprov ger 2/2 och samlad täckning 20.
+
+Verkliga provfynd rättades: adminlistans läsuppslag nekades; språkfältets tillgängliga namn var otydligt; telefonfokus kom före rätt årskursrender; initiala sparade paket kunde tappas vid remontering och filtrering kunde dölja osparade paket. Ett B05-prov hade först samma ram som paketet och korrigerades till separat ramavvikelse utan att sänka verksamhetskravet. En äldre Node-förväntning om nekad adminläsning uppdaterades; slutlig svit passerar med skrivningar fortsatt nekade. Oberoende granskning och verifiering: [C-VERIFICATION](05-23-C-VERIFICATION.md). Automatisk syntetisk verifiering är inte interaktiv IdP/MFA, mänskligt begriplighetsgodkännande eller verklig kommunanslutning.
+
+Vanlig 3012 är omstartad med verifierat C-bygge. Äldre klientfiler bevarades; privata `.dev.vars`/låsfiler kopierades inte. Befintliga användarplaner återskapades inte och öppna flikar laddas inte om automatiskt. Egen byggkopia städad efter råbevis, serverkontroll och källpush. 05-22:s fyra historiska updated_at-avvikelser förblir PARTIAL.
+
+### Nästa — steg D i ny executorsession
+
+A/B/C är automatiskt verifierade lokalt. **Hela 05-23 är in_progress och ADMIN-02/ADMIN-03 är Pending.** D ska leverera generella ämnespaket i IV/fördjupning/HU/NA och deras versionsbundna urval; E full regression och mänskligt paketprov. Utgå från aktuell 19-entrypoints-baslinje, C:s SQL-definitioner och paketkopiering. Separat D-preflight krävs före 157000-grant. 05-25 väntar på hela 05-23; yrkesfastställande kräver dessutom 05-17, som fortfarande saknar PLAN.
+
+Mänskligt C-prov är **awaiting_user**: öppna Visa paket, välj skola, pröva språkförslag och terminsändring, följ analysåtgärd och bedöm dator/telefon. Ingen automatisk rapport tillskriver användaren ett godkännande.
