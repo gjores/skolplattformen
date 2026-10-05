@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyseTimplan, GRUNDSKOLA_PROFILE } from './timplan-analysis.ts';
+import * as analysis from './timplan-analysis.ts';
+
+const { analyseTimplan, GRUNDSKOLA_PROFILE, IM_PROFILE, DEFAULT_LOCAL_PARAMETERS } = analysis;
 
 // Fryst regelprofil för proven. Den är medvetet skriven för hand: den inbyggda profilen
 // måste vara identisk med den, så att en felskriven siffra upptäcks.
@@ -240,4 +242,146 @@ test('skolans val: summan av minskningarna får inte överstiga profilens ram', 
   assert.deepEqual(fel.affectedRows, ['skolansval']);
   assert.equal(rules(a, 'reduction-limit', 'fel').length, 0);
   assert.equal(rules(a, 'stage-total', 'fel').length, 0);
+});
+
+// ---- Introduktionsprogram, lokala risker och beslutsklarhet --------------------------------------------
+
+const IM_SOURCE = {
+  url: 'https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema',
+  label: 'Skolverket: undervisningstid, lärotider och schema', verifiedOn: '2026-10-04', validFrom: null, validTo: null,
+};
+const IM = {
+  id: 'im-2026-10', schoolKind: 'introduktionsprogram', source: IM_SOURCE, minTeachingHoursPerWeek: 23,
+  rows: [
+    { rowId: 'im-sv', name: 'Svenska eller svenska som andraspråk, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-ma', name: 'Matematik, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-en', name: 'Engelska, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-sh', name: 'Samhällskunskap, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-idh', name: 'Idrott och hälsa', kind: 'undervisning' },
+    { rowId: 'im-praktik', name: 'Praktik och yrkesorientering', kind: 'annan' },
+    { rowId: 'im-mentor', name: 'Studiehandledning och mentorstid', kind: 'annan' },
+  ],
+};
+const imCells = (over = {}) => ({ 'im-sv': [8], 'im-ma': [6], 'im-en': [4], 'im-sh': [4], 'im-idh': [4], 'im-praktik': [4], 'im-mentor': [1], ...over });
+const imInput = (over = {}) => input({ schoolKind: 'introduktionsprogram', profile: IM, cells: imCells(), grades: undefined, ...over });
+const runIm = over => analyseTimplan(imInput(over));
+const imCellsFrom = values => Object.fromEntries(['im-sv', 'im-ma', 'im-en', 'im-sh', 'im-idh', 'im-praktik', 'im-mentor'].map((id, i) => [id, [values[i]]]));
+
+test('den inbyggda IM-profilen och de lokala parametrarna har namngivna värden', () => {
+  assert.deepEqual(IM_PROFILE, IM);
+  assert.deepEqual(DEFAULT_LOCAL_PARAMETERS, { subjectEveryYearMinStageHours: 100, imLowMarginHours: 2, imOtherActivityMaxPercent: 40 });
+});
+
+test('IM med hög total veckotid men för lite bekräftad undervisning saknar styrkt ram', () => {
+  const a = runIm({ cells: imCellsFrom([5, 4, 3, 3, 2, 10, 3]) });
+  const fel = one(a, 'im-teaching', 'fel');
+  assert.deepEqual([fel.actual, fel.expected, fel.unit], [17, 23, 'timmar per vecka']);
+  assert.match(fel.detail, /30/);
+  assert.deepEqual(fel.actionTarget, { type: 'row', rowId: 'im-sv', columnIds: ['vecka'] });
+  assert.equal(fel.sourceUrl, IM_SOURCE.url);
+  assert.equal(rules(a, 'im-teaching', 'ok').length, 0);
+  assert.equal(a.blocksDecision, true);
+  assert.ok(a.blockingIssueIds.includes(fel.issueId));
+});
+
+test('klassificeringen kommer från profilen: okänd tid och klientpåståenden räknas inte som undervisning', () => {
+  const a = runIm({ cells: imCellsFrom([5, 4, 3, 3, 2, 10, 3]), classification: { 'im-praktik': 'undervisning' } });
+  assert.equal(one(a, 'im-teaching', 'fel').actual, 17);
+  const withExtra = runIm({ cells: { ...imCellsFrom([5, 4, 3, 3, 2, 10, 3]), 'im-extra': [10] } });
+  const unclassified = one(withExtra, 'time-unclassified', 'info');
+  assert.deepEqual([unclassified.mandatory, unclassified.actual, unclassified.affectedRows], [true, 10, ['im-extra']]);
+  assert.equal(one(withExtra, 'im-teaching', 'fel').actual, 17);
+});
+
+test('minst 23 bekräftade timmar ger Uppfyllt för ramen men Att kontrollera för individuell tillämpning', () => {
+  const a = runIm();
+  const ok = one(a, 'im-teaching', 'ok');
+  assert.deepEqual([ok.actual, ok.expected], [26, 23]);
+  assert.match(ok.detail, /inte.*genomförd/i);
+  const individual = one(a, 'im-individual', 'info');
+  assert.equal(individual.mandatory, false);
+  assert.equal(a.counts.fel, 0);
+  assert.equal(a.blocksDecision, false);
+  assert.deepEqual(a.blockingIssueIds, []);
+  assert.deepEqual(a.readinessReasons, []);
+});
+
+test('lokal marginal och balans är namngivna riskparametrar, aldrig lag', () => {
+  const thin = runIm({ cells: imCellsFrom([7, 6, 4, 3, 3, 4, 1]) });
+  const margin = one(thin, 'im-low-margin', 'risk');
+  assert.deepEqual([margin.basis, margin.sourceUrl, margin.localParameter], ['lokal', null, { name: 'imLowMarginHours', value: 2 }]);
+  assert.equal(thin.blocksDecision, false, 'en risk blockerar inte');
+  assert.equal(rules(runIm({ cells: imCellsFrom([7, 6, 4, 3, 3, 4, 1]), localParameters: { imLowMarginHours: 0 } }), 'im-low-margin').length, 0);
+
+  const heavy = runIm({ cells: imCellsFrom([8, 6, 4, 4, 4, 14, 4]) });
+  const share = one(heavy, 'im-other-share', 'risk');
+  assert.deepEqual([share.localParameter, share.basis], [{ name: 'imOtherActivityMaxPercent', value: 40 }, 'lokal']);
+  assert.equal(rules(runIm(), 'im-other-share').length, 0);
+});
+
+test('IM: saknad rad, ogiltigt värde och okänd profil behandlas som i grundskolan', () => {
+  const cells = imCells(); delete cells['im-ma']; cells['im-en'] = [4, 4];
+  const a = runIm({ cells });
+  assert.equal(one(a, 'row-missing', 'fel').affectedRows[0], 'im-ma');
+  assert.equal(one(a, 'row-shape', 'fel').affectedRows[0], 'im-en');
+  assert.equal(rules(a, 'im-teaching').length, 0, 'ramen kan inte bevisas när en undervisningsrad saknas');
+  const unknown = runIm({ profile: null });
+  assert.equal(one(unknown, 'profile-unknown', 'info').mandatory, true);
+  assert.equal(unknown.counts.ok, 0);
+});
+
+test('ändrad giltighet och planerad tid redovisas öppet', () => {
+  const im = runIm();
+  const validity = one(im, 'profile-validity', 'info');
+  assert.equal(validity.mandatory, false);
+  assert.equal(validity.sourceUrl, IM_SOURCE.url);
+  assert.equal(rules(run(), 'profile-validity').length, 0, 'grundskoleprofilen anger sin giltighet');
+  for (const a of [im, run()]) {
+    const planned = one(a, 'planned-not-delivered', 'info');
+    assert.equal(planned.mandatory, false);
+    assert.match(planned.detail, /inte faktiskt genomförd/);
+  }
+});
+
+test('grundskolans lokala risk: ett stort ämne utan tid i en årskurs, med namngiven parameter', () => {
+  const cells = baseline(); cells.matematik = [210, 210, 0, ...cells.matematik.slice(3)];
+  const a = run({ cells });
+  const risk = one(a, 'subject-every-year', 'risk');
+  assert.deepEqual(risk.actionTarget, { type: 'cell', rowId: 'matematik', columnId: 'ak3' });
+  assert.deepEqual([risk.basis, risk.sourceUrl, risk.localParameter], ['lokal', null, { name: 'subjectEveryYearMinStageHours', value: 100 }]);
+  assert.equal(a.counts.fel, 0);
+  assert.equal(a.blocksDecision, false);
+  assert.equal(rules(run({ cells, localParameters: { subjectEveryYearMinStageHours: 500 } }), 'subject-every-year').length, 0);
+});
+
+test('beslutsklarhet: fel och obligatoriska kontroller blockerar, allmän information och risker gör det inte', () => {
+  const clean = run();
+  assert.equal(clean.blocksDecision, false);
+  assert.ok(clean.issues.some(i => i.category === 'info' && !i.mandatory && !i.blocksDecision));
+  assert.ok(clean.issues.every(i => i.blocksDecision === (i.category === 'fel' || (i.category === 'info' && i.mandatory))));
+
+  const cells = baseline(); cells.extra = [0, 0, 0, 0, 0, 5, 0, 0, 0];
+  const mandatory = run({ cells });
+  assert.equal(mandatory.blocksDecision, true);
+  assert.deepEqual(mandatory.blockingIssueIds, ['gr:row-unknown:extra']);
+
+  const broken = baseline(); broken.matematik[2] = 100;
+  assert.equal(run({ cells: broken }).blocksDecision, true);
+  assert.equal(run({ profile: null }).blocksDecision, true);
+});
+
+test('egna osparade värden och saknad revision hindrar beslut utan att ändra analysen', () => {
+  const saved = run();
+  const unsaved = run({ valuesAre: 'own-unsaved' });
+  assert.equal(saved.scope, 'saved');
+  assert.equal(unsaved.scope, 'own-unsaved');
+  assert.equal(unsaved.blocksDecision, true);
+  assert.deepEqual(unsaved.readinessReasons.map(r => r.code), ['own-unsaved']);
+  assert.deepEqual(unsaved.issues, saved.issues);
+  assert.deepEqual(unsaved.blockingIssueIds, []);
+
+  const noRevision = run({ savedRevision: null });
+  assert.deepEqual(noRevision.readinessReasons.map(r => r.code), ['no-saved-revision']);
+  assert.equal(noRevision.blocksDecision, true);
+  assert.deepEqual(run({ analysisVersion: '' }).readinessReasons.map(r => r.code), ['analysis-version-missing']);
 });
