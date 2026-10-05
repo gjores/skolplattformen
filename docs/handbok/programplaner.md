@@ -94,7 +94,11 @@ Tabellen har en rad per nivå, grupperad i gymnasiegemensamma ämnen, programgem
 
 **Programfördjupning** ändras direkt i sin grupp. Sök under **Lägg till ämne eller nivå** eller välj ett förslag; bara nivåer som Skolverket tillåter som programfördjupning för programmet visas. Gruppens rubrik visar valda poäng av ramen. Ta bort en nivå med krysset på raden. Har nivån fördelade poäng töms de först. Varje ändring sparas direkt.
 
-Alternativa ämnen, till exempel svenska eller svenska som andraspråk, och ämnen som saknar nivåer i underlaget ingår men fördelas inte i tabellen. De listas under tabellen.
+I nya planer har **Svenska/svenska som andraspråk** tre rader, en per nivå med 100 poäng. Fördela dem på terminer som andra nivåer. Elevens val mellan ämnena görs senare i studieplanen.
+
+**Valbara block** har en egen rad med poäng som fördelas på terminer. Moderna språk ingår där programmet kräver det, språkämne ingår på Humanistiska programmets språkinriktning och naturvetenskapligt ämne på Naturvetenskapsprogrammets inriktning naturvetenskap och samhälle. Individuellt val är ett block på 200 poäng. Blockens poäng räknas med i planens summa; med full programfördjupning kan en ny samhällsvetenskapsplan fördelas till 2 500 poäng.
+
+**Nuvarande begränsning:** skolans valpaket i blocken kan ännu inte redigeras. Befintliga sparade planer behåller sin tidigare form tills uppgraderingen är genomförd. I den äldre formen listas alternativa ämnen och ämnen utan nivåer under tabellen som sådant som ingår men inte fördelas där.
 
 På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet.
 

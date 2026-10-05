@@ -30,3 +30,11 @@ test('05-22 journalrättning kräver rätt källa och faktiskt rollbackbevis',as
  assert.throws(()=>verifyBackfillJournal(before+'\n',source,proof),/not the reviewed/);
  for(const change of [{status:'FAIL'},{target:'baseline'},{rollback:false},{fullExistingTimplanRowsPreserved:false},{touchTriggerRestored:false},{sourceHash:'other'}])assert.throws(()=>verifyBackfillJournal(before,source,{...proof,...change}),/rollback proof required/);
 });
+
+test('05-23 A målskydd tillåter exakt blockunderlaget och inga grants',()=>{
+ const migration='20261004150000_phase5_programplan_choice_blocks.sql';
+ assert.deepEqual(parseApplyArgs(['--migration',migration]),{migration,grants:null});
+ assert.throws(()=>parseApplyArgs(['--migration',migration,'--grants','proof.json']),/grants not allowed/);
+ for(const name of ['20261004151000_phase5_programplan_block_commands.sql','../'+migration])assert.throws(()=>parseApplyArgs(['--migration',name]),/unknown migration/);
+ assert.throws(()=>parseApplyArgs(['--migration',migration,'--sync-backfill-journal','proof.json']),/only for reviewed/);
+});

@@ -23,3 +23,11 @@ test('tolvfältssvar bevarar alla olösta val och explicit obunden äldre plan',
  for(const mutate of [p=>p.actor='private',p=>p.id='no',p=>p.education.secret=1,p=>p.education.programCode='EK25',p=>p.education.orientationCode='SASAP',p=>p.catalogId=null,p=>p.catalogId=`sha256:${'b'.repeat(64)}`,p=>p.decidedOn='2026-02-30',p=>p.status='forslag',p=>p.version=0,p=>p.revision='0',p=>p.resolution.decisionReady=true,p=>p.resolution.writeReady=false,p=>p.resolution.diagnostics=[{code:'private SQL'}],p=>p.resolution.unresolvedChoices[0].secret=1,p=>p.resolution.unresolvedChoices[2].kind='unknown',p=>p.resolution.unresolvedChoices[0].points=null,p=>p.resolution.status='blocked']){const p=plan();mutate(p);assert.throws(()=>c.parseProgramplan(p));}
  for(const mutate of [p=>p.resolution.status='resolved',p=>p.resolution.diagnostics=[{code:'catalog_unavailable'}],p=>p.basisReference=reference()]){const p=structuredClone(legacy);mutate(p);assert.throws(()=>c.parseProgramplan(p));}
 });
+
+test('05-23 reply resolution accepts new block diagnoses without opening arbitrary fields',async()=>{
+ const {parseProgramplanResolution}=await import('./programplan-contract.ts');
+ for(const code of ['invalid_choice_blocks','duplicate_choice_block','missing_slot_block','unexpected_slot_block','slot_block_mismatch','individual_choice_points_mismatch']){
+ const value={status:'blocked',diagnostics:[{code}],unresolvedChoices:[],decisionReady:false};assert.deepEqual(parseProgramplanResolution(value),value);
+ assert.throws(()=>parseProgramplanResolution({...value,diagnostics:[{code,extra:'foreign'}]}));
+ }
+});

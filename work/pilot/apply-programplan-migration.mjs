@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 05-20–05-22: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
+// 05-20–05-23 A: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
 // Kontrollerar journal och tidigare exakt Worker-ACL; grants kräver PASS-preflight med samma källor.
 import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
 import { assertTarget } from './verify-target.mjs';
@@ -10,7 +10,7 @@ import { resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const BASE=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES];
-// Endast granskade 05-20–05-22-migrationer, i ordning, med förväntad ACL före tillämpning.
+// Endast granskade 05-20–05-23 A-migrationer, i ordning, med förväntad ACL före tillämpning.
 const ALLOWED={
  '20261004120000_phase5_programplan_lifecycle.sql':{before:BASE,grants:false},
  '20261004121000_phase5_worker_programplan_lifecycle.sql':{before:BASE,grants:true},
@@ -18,6 +18,7 @@ const ALLOWED={
  '20261004130000_phase5_programplan_units.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
  '20261004140000_phase5_offering_unit_linkage.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
  '20261004141000_phase5_timplan_units.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
+ '20261004150000_phase5_programplan_choice_blocks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004120000','20261004121000','20261004122000','20261004130000','20261004140000','20261004141000']},
 };
 export function parseApplyArgs(argv){
  const o={migration:null,grants:null};
@@ -57,6 +58,10 @@ async function main(){
    const journal=await tx`select version,statements from supabase_migrations.schema_migrations where version=${version} for update`;
    if(journal.length!==0&&!o.backfillJournal)throw Error('REFUSED: migration already in journal');
    if(o.backfillJournal&&journal.length!==1)throw Error('REFUSED: existing journal required for backfill sync');
+   if(spec.dependencies){
+    const prerequisite=await tx`select version from supabase_migrations.schema_migrations where version=any(${spec.dependencies})`;
+    if(!exactFunctions(prerequisite.map(r=>r.version),spec.dependencies))throw Error('REFUSED: required 05-20/05-21/05-22 migrations missing');
+   }
    const later=await tx`select version from supabase_migrations.schema_migrations where version>${version}`;
    if(later.length)throw Error('REFUSED: later migration already applied');
    const actual=await tx`select 'public.'||p.proname||'('||array_to_string(array(select format_type(t,null) from unnest(p.proargtypes::oid[]) t),',')||')' signature from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'execute')`;

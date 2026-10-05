@@ -22,7 +22,10 @@ function integer(v: unknown, max = 2147483647): number { if (typeof v !== 'numbe
 export function parseProgramplanTermDistribution(v: unknown): ProgramplanTermDistribution {
   const rows = array(v, 2000).map(v => {
     const r = shape(v, ['rowKey', 'points']);
-    if (typeof r.rowKey !== 'string' || r.rowKey.length > 320 || !/^(?:meta:(?:individualChoice|diplomaWork)|(?:foundation|programmeSpecific|orientation|specialization):\p{L}[\p{L}\p{N}_-]*:[1-9][0-9]{0,5}:\p{L}[\p{L}\p{N}_-]*)$/u.test(r.rowKey)) bad();
+    const code = String.raw`\p{L}[\p{L}\p{N}_-]*`, version = '[1-9][0-9]{0,5}', part = '(?:foundation|programmeSpecific|orientation|specialization)';
+    const level = `${code}:${version}:${code}`;
+    const keyPattern = new RegExp(`^(?:meta:(?:individualChoice|diplomaWork)|${part}:${level}|alternative:${part}:${level}(?:\\+${level})+|block:[a-z][a-z0-9]{0,15})$`, 'u');
+    if (typeof r.rowKey !== 'string' || r.rowKey.length > 320 || !keyPattern.test(r.rowKey)) bad();
     const values = array(r.points, 6); if (values.length !== 6) bad();
     return { rowKey: r.rowKey, points: values.map(v => integer(v, 10000)) as ProgramplanTermPoints };
   });

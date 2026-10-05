@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.ts';
+import { defaultProgramplanChoiceBlocks } from '@/lib/programplan-choice-blocks.ts';
 import type { CatalogProgram, ProgramplanLevelRef } from '@/lib/programplan-catalog.ts';
 import { programplanReference, sameProgramplanLevels, type ProgramplanOption } from '@/lib/protected-programplan.ts';
-import { PROGRAMPLAN_TERMS, firstYear, programplanLevelRanks, programplanTermRows, suggestProgramplanTerms, validateProgramplanTermDistribution,
+import { PROGRAMPLAN_TERMS, firstYear, programplanLevelRanks, programplanTermRows, programplanTermTarget, suggestProgramplanTerms, validateProgramplanTermDistribution,
   type ProgramplanTermDistribution, type ProgramplanTermPart, type ProgramplanTermPoints, type ProgramplanTermRow } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply, type ProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import type { PlanIssue } from '@/lib/programplan-analysis.ts';
@@ -197,9 +198,12 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
   const available = options.filter(o => !chosen.has(`${o.subjectCode}:${o.itemCode}`));
   const matches = q ? available.filter(o => `${o.subjectName} ${o.name} ${o.itemCode}`.toLocaleLowerCase('sv').includes(q)).slice(0, 12) : available.slice(0, 3);
   const termTotals = PROGRAMPLAN_TERMS.map((_, i) => rows.reduce((s, r) => s + ((values.get(r.key) ?? blank())[i] || 0), 0));
-  const total = rows.reduce((s, r) => s + r.points, 0), assigned = termTotals.reduce((a, b) => a + b, 0);
+  const rowTotal = rows.reduce((s, r) => s + r.points, 0), total = programplanTermTarget(program, rows), assigned = termTotals.reduce((a, b) => a + b, 0);
+  const missingRowsPoints = Math.max(0, total - rowTotal);
   const openRows = rows.filter(r => sum(values.get(r.key) ?? blank()) < r.points);
-  const unresolved = [...program.foundation, ...program.programmeSpecific, ...(program.orientations.find(o => o.code === orientationCode)?.subjects ?? [])].filter(s => s.optional || !s.levels.length || s.subjectVersion === null);
+  const unresolved = [...program.foundation, ...program.programmeSpecific, ...(program.orientations.find(o => o.code === orientationCode)?.subjects ?? [])].filter(s => (s.optional || !s.levels.length || s.subjectVersion === null)
+    && !rows.some(r => r.key.startsWith('alternative:') && r.key.split(':').slice(2).join(':').split('+').some(ref => ref.split(':')[0] === s.code))
+    && !rows.some(r => r.key === `block:${({ MOSP: 'mosp', SPRK: 'sprk', NAVE: 'nave' } as Record<string, string>)[s.code]}`));
   const shownRows = onlyOpen ? rows.filter(r => openRows.includes(r) || dirtyKeys.includes(r.key)) : rows;
   const gridRef = useRef<HTMLElement | null>(null), handledFocus = useRef<PlanIssue | null>(null);
   const target = focusIssue?.target;
@@ -228,7 +232,7 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
       <span>Årskurs {y + 1}</span><strong>{fmt(s)} <small>poäng</small></strong><span className="ppb-year-terms">HT {fmt(termTotals[y * 2])} · VT {fmt(termTotals[y * 2 + 1])}</span>
       <span className="ppb-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, total ? s / (total / 3) * 100 : 0)}%` }}/></span></button>; })}</div>
     <div className="ppb-toolbar">
-      <p><strong>{fmt(assigned)}</strong> av {fmt(total)} poäng fördelade{openRows.length ? ` · ${openRows.length} ${openRows.length === 1 ? 'nivå' : 'nivåer'} kvar` : ' · allt fördelat'}</p>
+      <p><strong>{fmt(assigned)}</strong> av {fmt(total)} poäng fördelade{openRows.length ? ` · ${openRows.length} ${openRows.length === 1 ? 'nivå' : 'nivåer'} kvar` : missingRowsPoints ? ` · ${fmt(missingRowsPoints)} poäng återstår att lägga till` : ' · allt fördelat'}</p>
       {status !== null && <output className={`ppb-save ppb-save-${statusTone}`}>{status}</output>}
       {editable && <div className="ppb-tools">
         <Button variant="outline" disabled={locked || openRows.length === 0} onClick={onSuggest} title={openRows.length ? 'Fyller bara i nivåer som saknar terminer' : 'Alla nivåer har redan terminer'}><Wand2 size={15} aria-hidden="true"/>Föreslå fördelning</Button>
@@ -254,7 +258,7 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
           {list.map(row => { const p = values.get(row.key) ?? blank(), s = sum(p), bad = invalid(row), dirty = dirtyKeys.includes(row.key);
             const ref = refs.find(r => row.key === `specialization:${r.subjectCode}:${r.subjectVersion}:${r.itemCode}`);
             return <tr key={row.key} data-row-key={row.key} data-analysis-target={targetRow === row.key || undefined} className={bad ? 'ppb-row ppb-bad' : dirty ? 'ppb-row ppb-dirty' : 'ppb-row'} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onRowLeave(); }}>
-              <th scope="row"><span>{row.name}</span><small>{row.levelName}{row.key.startsWith('meta:') ? '' : ` · ${row.key.split(':')[3]}`}</small></th>
+              <th scope="row"><span>{row.name}</span><small>{row.levelName}{row.key.startsWith('meta:') || row.key.startsWith('alternative:') || row.key.startsWith('block:') ? '' : ` · ${row.key.split(':')[3]}`}</small></th>
               <td className="ppb-num">{row.points}</td>
               {p.map((n, i) => <td key={i} className={`ppb-term ppb-y${Math.floor(i / 2)}`}>{editable
                 ? <input inputMode="numeric" value={n === 0 ? '' : Number.isFinite(n) ? String(n) : ''} placeholder="·" disabled={locked} aria-invalid={bad}
@@ -293,7 +297,7 @@ type LocalProps = {
 };
 /** Samma tabell innan planen finns sparad: val och fördelning hålls lokalt och sparas med planen. */
 export function LocalPlanBoard({ focusIssue, program, orientationCode, options, refs, terms, refsEditable, disabled, onChange }: LocalProps) {
-  const rows = useMemo(() => { try { return programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs }); } catch { return []; } }, [program, orientationCode, refs]);
+  const rows = useMemo(() => { try { return programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs, choiceBlocks: defaultProgramplanChoiceBlocks(program, orientationCode) }); } catch { return []; } }, [program, orientationCode, refs]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
   const values = useMemo(() => toMap(terms), [terms]);
   const set = (next: Map<string, ProgramplanTermPoints>, nextRefs = refs) => onChange(nextRefs, fromMap(rows, next).filter(d => rows.some(r => r.key === d.rowKey)));
@@ -314,5 +318,5 @@ export function LocalPlanBoard({ focusIssue, program, orientationCode, options, 
 
 /** Är en lokal fördelning giltig mot planens rader? */
 export function localTermsValid(program: CatalogProgram, orientationCode: string | null, refs: ProgramplanLevelRef[], terms: ProgramplanTermDistribution): boolean {
-  try { validateProgramplanTermDistribution(programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs }), terms); return true; } catch { return false; }
+  try { validateProgramplanTermDistribution(programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs, choiceBlocks: defaultProgramplanChoiceBlocks(program, orientationCode) }), terms); return true; } catch { return false; }
 }

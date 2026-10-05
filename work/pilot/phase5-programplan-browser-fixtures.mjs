@@ -9,6 +9,7 @@ import { assertTarget } from './verify-target.mjs';
 import { extractProgramplanFixture, cleanupProgramplanFixture } from './verify-programplan-locks.mjs';
 import { trialEducationSpecs } from './prepare-programplan-user-trial.mjs';
 import { nextCohortStart, stockholmToday } from '../../web/lib/programplan-lifecycle.ts';
+import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
@@ -22,7 +23,8 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'web/lib/programplan-lifecycle.ts','web/lib/server/programplan-lifecycle.ts','web/app/protected-programplan-lifecycle.tsx','web/app/protected-programplan-list.tsx','web/lib/server/http.ts','web/lib/session-channel.ts',
   'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts',
   'web/app/protected-programplan-board.tsx','web/lib/programplan-analysis.ts','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql',
-  'supabase/migrations/20261004130000_phase5_programplan_units.sql','work/pilot/verify-programplan-lifecycle-api.mjs'];
+  'supabase/migrations/20261004130000_phase5_programplan_units.sql','work/pilot/verify-programplan-lifecycle-api.mjs',
+  'web/lib/programplan-choice-blocks.ts','supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','web/e2e/phase5-blocks.spec.ts','web/playwright.phase5-blocks.config.ts'];
 /** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull startade för 30 dagar sedan (inom katalogens giltighet). */
 export const FUTURE_START=nextCohortStart(),STARTED_START=new Date(Date.parse(`${stockholmToday()}T12:00:00Z`)-30*864e5).toISOString().slice(0,10);
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
@@ -94,7 +96,13 @@ export async function createProgramplanBrowserFixture() {
     const request=async(baseURL,session,route,body)=>{const r=await fetch(`${baseURL}${route}`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:`sp_session=${session.token}`,'X-Context-Epoch':String(session.epoch),'Sec-Fetch-Site':'same-origin',Origin:baseURL},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});return {status:r.status,body:await r.json(),correlationId:r.headers.get('x-correlation-id')};};
     const catalogId=(await snapshot()).catalog_id;
     const basis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn=FUTURE_START)=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
-    return {principal,second,principalB,partialHm,hm,noMfa,hmNoMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),secondUnitId:id(32),nonGymUnitId:id(33),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,snapshot,plans,history,events,paired,request,cleanup,
+    // A new v2 tracer; existing fixture plans deliberately retain the legacy shape until step B.
+    const choiceBasis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM2000X',points:100}],startedOn=FUTURE_START)=>{
+      const program=JSON.parse(readFileSync(path.join(root,'web/lib/programplan-catalog.generated.json'),'utf8')).programs.find(p=>p.code==='SA25'&&p.version===4);
+      if(!program)throw Error('REFUSED: pinned SA catalog program missing');
+      return {...basis(refs,startedOn),choiceBlocks:defaultProgramplanChoiceBlocks(program,'SABEP')};
+    };
+    return {principal,second,principalB,partialHm,hm,noMfa,hmNoMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),secondUnitId:id(32),nonGymUnitId:id(33),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,choiceBasis,snapshot,plans,history,events,paired,request,cleanup,
       async addProgramTrials(){
         await assertTarget('protected');const specs=trialEducationSpecs.filter(s=>s.program!=='SA25');
         await db.begin(async tx=>{await owned(tx);for(const spec of specs)await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)

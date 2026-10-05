@@ -8,6 +8,7 @@ import { parseProgramplanOfferingList, type ProgramplanOfferingRow } from '@/lib
 import { parseProgramplanSelection, parseProgramplanEducationCreated, type ProgramplanSelection, type ProgramplanSelectionRequest, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import { educationStatusForCommand, newEducationCommand } from '@/lib/protected-programplan-education.ts';
 import { programplanOptions, programplanLevelName } from '@/lib/protected-programplan.ts';
+import { defaultProgramplanChoiceBlocks } from '@/lib/programplan-choice-blocks.ts';
 import type { ProgramplanLevelRef } from '@/lib/programplan-catalog.ts';
 import { LocalPlanBoard, localTermsValid } from './protected-programplan-board';
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
@@ -101,7 +102,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
     if(!reviewing||locked||saving.current||!data?.canCreateEducation||!program||!orientationChosen)return;
     if(!command&&program&&!localTermsValid(program,orientation,refs,terms)){setReviewing(false);setError('Rätta rader med fler poäng än nivån har innan du sparar.');return;}
     let own=command;
-    try{own??=newEducationCommand({unitId:unitId!,name,cohort,localCode:localCode.trim()||null,basisReference:{catalogId:data.projection!.catalogId,programRef:{code:program.code,version:program.version},orientationCode:orientation,startedOn,specializationRefs:refs}},crypto.randomUUID());}
+    try{own??=newEducationCommand({unitId:unitId!,name,cohort,localCode:localCode.trim()||null,basisReference:{catalogId:data.projection!.catalogId,programRef:{code:program.code,version:program.version},orientationCode:orientation,startedOn,specializationRefs:refs,choiceBlocks:defaultProgramplanChoiceBlocks(program,orientation)}},crypto.randomUUID());}
     catch{setReviewing(false);setError('Ange utbildningens namn, elevkull och verkliga startdatum. Kontrollera fördjupningsvalen.');return;}
     setCommand(own);setRetryAllowed(false);saving.current=true;const r=begin();setBusy(true);setError(null);setMfa(false);
     try{const reply=await api.post('/api/programplaner/utbildning/skapa',own,r.signal);if(current(r.token))await openCreated(own,reply);}

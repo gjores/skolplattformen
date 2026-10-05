@@ -1,3 +1,4 @@
+import { defaultProgramplanChoiceBlocks } from './programplan-choice-blocks.ts';
 import { parseProgramplanBasisReference, type ProgramplanBasisReference, type ProgramplanLevelRef } from './programplan-catalog.ts';
 import { parseProgramplan, type Programplan } from './programplan-contract.ts';
 import type { ProgramplanWorkspace, ProgramplanVersionSummary } from './programplan-workspace-contract.ts';
@@ -37,7 +38,9 @@ export function sameProgramplanLevels(a: ProgramplanLevelRef[], b: ProgramplanLe
 }
 export function sameProgramplanPin(a: ProgramplanBasisReference | null, b: ProgramplanBasisReference | null): boolean {
   return !!a && !!b && a.catalogId === b.catalogId && a.programRef.code === b.programRef.code && a.programRef.version === b.programRef.version
-    && a.orientationCode === b.orientationCode && a.startedOn === b.startedOn;
+    && a.orientationCode === b.orientationCode && a.startedOn === b.startedOn
+    && (a.choiceBlocks === undefined && b.choiceBlocks === undefined || !!a.choiceBlocks && !!b.choiceBlocks && a.choiceBlocks.length === b.choiceBlocks.length
+      && a.choiceBlocks.every((block, i) => block.id === b.choiceBlocks![i].id && block.kind === b.choiceBlocks![i].kind && block.points === b.choiceBlocks![i].points && block.name === b.choiceBlocks![i].name));
 }
 export function programplanOptions(workspace: ProgramplanWorkspace): ProgramplanOption[] {
   const { catalog, education } = workspace;
@@ -86,7 +89,7 @@ export function newProgramplanBasis(workspace: ProgramplanWorkspace, startedOn: 
   const { catalog, education } = workspace;
   if (catalog.status !== 'selected' || !catalog.catalogId || !catalog.program) throw new Error('Välj ett tillgängligt katalogunderlag.');
   return parseProgramplanBasisReference({ catalogId: catalog.catalogId, programRef: { code: catalog.program.code, version: catalog.program.version },
-    orientationCode: education.orientationCode, startedOn, specializationRefs: refs.map(programplanReference) });
+    orientationCode: education.orientationCode, startedOn, specializationRefs: refs.map(programplanReference), choiceBlocks: defaultProgramplanChoiceBlocks(catalog.program, education.orientationCode) });
 }
 export type ProgramplanCommandKind = 'create' | 'bind' | 'replace' | 'clone';
 export type ProgramplanDraft = {

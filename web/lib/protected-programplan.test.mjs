@@ -104,3 +104,16 @@ test('saved level names require exact source identity, version and points; ambig
   const option=first(),r=ref();assert.equal(programplanLevelName(r,[option]),`${option.subjectName} · ${option.name}`);
   for(const choices of [[],[{...option,subjectVersion:2}],[{...option,points:200}],[option,{...option,name:'Other'}]])assert.equal(programplanLevelName(r,choices),r.itemCode);
 });
+
+test('05-23 new client basis always contains v2 default blocks and exact school orientation slots',()=>{
+ assert.deepEqual(basis().choiceBlocks.map(b=>[b.id,b.points]),[['mosp',200],['iv1',200]]);
+ const hu=artifact.programs.find(p=>p.code==='HU25'),w=workspace();w.catalog.program=hu;w.education.orientationCode='HUSPK';
+ assert.deepEqual(newProgramplanBasis(w,'2026-08-17',[]).choiceBlocks.map(b=>[b.id,b.points]),[['mosp',200],['sprk',300],['iv1',200]]);
+});
+test('05-23 frozen pin and command reply detect block changes or missing v2 form',()=>{
+ const a=basis(),legacy={...a};delete legacy.choiceBlocks;
+ assert.equal(sameProgramplanPin(a,legacy),false);
+ assert.equal(sameProgramplanPin(a,{...a,choiceBlocks:[...a.choiceBlocks].reverse()}),false);
+ assert.equal(sameProgramplanPin(a,{...a,choiceBlocks:a.choiceBlocks.map(b=>({...b,name:'Changed'}))}),false);
+ assert.throws(()=>programplanCommandReply({...result(),basisReference:legacy},cleanDraft()));
+});

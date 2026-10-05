@@ -1,3 +1,5 @@
+import { programTotal } from './programplan-table.ts';
+import { programplanChoiceBlocks, programplanAlternativeGroups } from './programplan-choice-blocks.ts';
 import type { CatalogBlockSubject, CatalogProgram, ProgramplanBasisReference } from './programplan-catalog.ts';
 import { ProgramplanContractError } from './programplan-catalog.ts';
 
@@ -17,15 +19,24 @@ export function programplanTermRows(program: CatalogProgram, basis: ProgramplanB
       key: `${part}:${s.code}:${s.subjectVersion}:${l.code}`, name: s.name, levelName: l.name, points: l.points, part,
     })));
   }
+  function alternatives(subjects: CatalogBlockSubject[], part: ProgramplanTermPart): ProgramplanTermRow[] {
+    return basis.choiceBlocks === undefined ? [] : programplanAlternativeGroups(subjects).flatMap(group => group[0].levels.map((level, i) => ({
+      key: `alternative:${part}:${group.map(s => `${s.code}:${s.subjectVersion}:${s.levels[i].code}`).join('+')}`,
+      name: group.map(s => s.name.toLocaleLowerCase('sv')).join('/').replace(/^./u, c => c.toLocaleUpperCase('sv')),
+      levelName: level.name, points: level.points, part,
+    })));
+  }
   const chosen = basis.specializationRefs.map(ref => {
     const s = program.specialization.find(s => s.code === ref.subjectCode && s.subjectVersion === ref.subjectVersion);
     const l = s?.levels.find(l => l.code === ref.itemCode && l.points === ref.points);
     if (!s || !l) throw new ProgramplanContractError('invalid_programplan_terms');
     return { key: `specialization:${s.code}:${s.subjectVersion}:${l.code}`, name: s.name, levelName: l.name, points: l.points, part: 'specialization' as const };
   });
-  const rows = [...fixed(program.foundation, 'foundation'), ...fixed(program.programmeSpecific, 'programmeSpecific'),
-    ...fixed(orientation?.subjects ?? [], 'orientation'), ...chosen,
-    { key: 'meta:individualChoice', name: 'Individuellt val', levelName: 'Ram för individuellt val', points: 200, part: 'individualChoice' as const },
+  const rows = [...fixed(program.foundation, 'foundation'), ...alternatives(program.foundation, 'foundation'),
+    ...fixed(program.programmeSpecific, 'programmeSpecific'), ...alternatives(program.programmeSpecific, 'programmeSpecific'),
+    ...fixed(orientation?.subjects ?? [], 'orientation'), ...alternatives(orientation?.subjects ?? [], 'orientation'), ...chosen,
+    ...programplanChoiceBlocks(program, basis).map(b => ({key: b.rowKey, name: b.name, levelName: 'Valbart block', points: b.points, part: b.part})),
+    ...(basis.choiceBlocks === undefined ? [{ key: 'meta:individualChoice', name: 'Individuellt val', levelName: 'Ram för individuellt val', points: 200, part: 'individualChoice' as const }] : []),
     { key: 'meta:diplomaWork', name: 'Gymnasiearbete', levelName: 'Gymnasiearbete', points: 100, part: 'diplomaWork' as const }];
   if (new Set(rows.map(r => r.key)).size !== rows.length) throw new ProgramplanContractError('invalid_programplan_terms');
   return rows;
@@ -39,6 +50,11 @@ export function validateProgramplanTermDistribution(rows: ProgramplanTermRow[], 
       || d.points.reduce((a, b) => a + b, 0) > row.points) throw new ProgramplanContractError('invalid_programplan_terms');
     seen.add(d.rowKey);
   }
+}
+/** Hela programmets poäng är målet även medan fördjupning ännu saknas i ett v2-utkast. */
+export function programplanTermTarget(program: CatalogProgram, rows: ProgramplanTermRow[]): number {
+  const rowTotal = rows.reduce((sum, row) => sum + row.points, 0);
+  return rows.some(row => row.key.startsWith('block:')) ? programTotal(program) ?? rowTotal : rowTotal;
 }
 export function programplanTermTotals(rows: ProgramplanTermRow[], distribution: ProgramplanTermDistribution) {
   validateProgramplanTermDistribution(rows, distribution);
@@ -57,10 +73,14 @@ export function programplanLevelRanks(program: CatalogProgram): Map<string, numb
     if (ranks.has(`${s.code}:${l.code}`)) continue;
     const next = counts.get(s.code) ?? 0; ranks.set(`${s.code}:${l.code}`, next); counts.set(s.code, next + 1);
   }
+  for (const subjects of blocks) for (const group of programplanAlternativeGroups(subjects)) group[0].levels.forEach((level, i) => {
+    ranks.set(`alternative:${group.map(s => `${s.code}:${s.subjectVersion}:${s.levels[i].code}`).join('+')}`, i);
+  });
   return ranks;
 }
-const subjectOf = (row: ProgramplanTermRow) => row.key.split(':')[1];
-const levelOf = (row: ProgramplanTermRow) => row.key.split(':')[3];
+export const programplanRowSubject = (row: ProgramplanTermRow) => row.key.startsWith('alternative:') ? `alternative:${row.key.split(':')[2]}` : row.key.startsWith('block:') ? row.key : row.key.split(':')[1];
+const subjectOf = programplanRowSubject;
+export const programplanRowRank = (row: ProgramplanTermRow, ranks: Map<string, number>) => row.key.startsWith('alternative:') ? ranks.get(`alternative:${row.key.split(':').slice(2).join(':')}`) ?? 0 : ranks.get(`${subjectOf(row)}:${row.key.split(':')[3]}`) ?? 0;
 const halves = (points: number, year: number): ProgramplanTermPoints => {
   const p: ProgramplanTermPoints = [0, 0, 0, 0, 0, 0]; p[year * 2] = Math.floor(points / 2); p[year * 2 + 1] = points - Math.floor(points / 2); return p;
 };
@@ -92,7 +112,7 @@ export function suggestProgramplanTerms(rows: ProgramplanTermRow[], distribution
   for (const row of rows.filter(r => r.part !== 'diplomaWork' && r.part !== 'individualChoice')) subjects.set(subjectOf(row), [...(subjects.get(subjectOf(row)) ?? []), row]);
   const single: ProgramplanTermRow[] = [];
   for (const levels of subjects.values()) {
-    levels.sort((a, b) => (ranks.get(`${subjectOf(a)}:${levelOf(a)}`) ?? 0) - (ranks.get(`${subjectOf(b)}:${levelOf(b)}`) ?? 0));
+    levels.sort((a, b) => programplanRowRank(a, ranks) - programplanRowRank(b, ranks));
     if (levels.length === 1 && (levels[0].part === 'foundation' || levels[0].part === 'programmeSpecific')) { if (empty(levels[0])) single.push(levels[0]); continue; }
     let previous = -1;
     for (const row of levels) {

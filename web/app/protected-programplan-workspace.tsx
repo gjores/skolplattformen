@@ -10,6 +10,7 @@ import { parseProgramplanWorkspace,
   type ProgramplanWorkspace, type ProgramplanVersionSummary } from '@/lib/programplan-workspace-contract.ts';
 import { programplanCommand, programplanCommandReply, programplanDiagnostic, programplanOptions, programplanReference,
   programplanStatus, resolveLegacyProgramplan, sameProgramplanLevels, sameProgramplanPin, programplanSelectedId, assertProgramplanSummary, programplanLevelName, type ProgramplanDraft, type ProgramplanCommandKind } from '@/lib/protected-programplan.ts';
+import { defaultProgramplanChoiceBlocks } from '@/lib/programplan-choice-blocks.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import { AnalysisView, SaveDialog } from './protected-programplan-sheet';
@@ -204,7 +205,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     const startedOn = source?.startedOn ?? '';
     setDraft({ kind, offeringId: workspace.education.id, educationName: workspace.education.name, schoolName: workspace.education.schoolName, planId: kind === 'create' ? null : plan!.id, expectedRevision: plan?.revision ?? 0,
       expectedLatestVersion: workspace.education.latestVersion, pin: { catalogId: workspace.catalog.catalogId,
-        programRef: { code: workspace.catalog.program.code, version: workspace.catalog.program.version }, orientationCode: workspace.education.orientationCode, startedOn },
+        programRef: { code: workspace.catalog.program.code, version: workspace.catalog.program.version }, orientationCode: workspace.education.orientationCode, startedOn,
+        ...((kind === 'create' || kind === 'bind' || !source) ? {choiceBlocks: defaultProgramplanChoiceBlocks(workspace.catalog.program, workspace.education.orientationCode)} : source.choiceBlocks !== undefined ? {choiceBlocks: source.choiceBlocks} : {}) },
       startedOn, originalStart: startedOn, refs: refs.map(programplanReference), originalRefs: refs.map(programplanReference), sourceBound: !!source,
       legacyConfirmed: false, options, mode: 'edit', error: null, mfa: false, uncertain: false });
     setDraftTerms([]); setReviewing(false); setNotice(null); setPreparation(null);

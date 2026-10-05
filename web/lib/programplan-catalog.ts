@@ -1,3 +1,4 @@
+import { parseProgramplanChoiceBlocks, programplanChoiceBlockDiagnostics, programplanAlternativeGroups, defaultProgramplanChoiceBlocks, type ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
 export type CatalogDates = { startDate: string | null; endDate: string | null; canceledDate: string | null; skolfs: string | null };
 export type CatalogItem = { code: string; name: string; points: number };
 export type CatalogSubject = CatalogDates & {
@@ -22,7 +23,7 @@ const verifiedCatalogs = new WeakSet<object>();
 export type ProgramplanLevelRef = { subjectCode: string; subjectVersion: number; itemCode: string; points: number };
 export type ProgramplanBasisReference = {
   catalogId: string; programRef: {code: string; version: number}; orientationCode: string | null;
-  startedOn: string; specializationRefs: ProgramplanLevelRef[];
+  startedOn: string; specializationRefs: ProgramplanLevelRef[]; choiceBlocks?: ProgramplanChoiceBlock[];
 };
 export type ProgramplanDiagnostic = { code: string; subjectCode?: string; itemCode?: string; blockId?: string };
 export type ProgramplanUnresolvedChoice = {
@@ -192,7 +193,7 @@ export function parseProgramplanBasisReference(value: unknown): ProgramplanBasis
     const raw=record(value);
     if (!Object.hasOwn(raw,'catalogId') || !Object.hasOwn(raw,'programRef')) invalid('unpinned_basis');
     if (!Object.hasOwn(raw,'startedOn') || raw.startedOn==null || raw.startedOn==='') invalid('unknown_education_start');
-    const r=fields(value,['catalogId','programRef','orientationCode','startedOn','specializationRefs']);
+    const r=fields(value,['catalogId','programRef','orientationCode','startedOn','specializationRefs'],['choiceBlocks']);
     if (typeof r.catalogId!=='string' || !/^sha256:[0-9a-f]{64}$/u.test(r.catalogId)) invalid('invalid_catalog_id');
     const p=fields(r.programRef,['code','version']);
     const refs=array(r.specializationRefs,200).map(value=>{
@@ -200,7 +201,8 @@ export function parseProgramplanBasisReference(value: unknown): ProgramplanBasis
       return {subjectCode:code(ref.subjectCode),subjectVersion:integer(ref.subjectVersion,1),itemCode:code(ref.itemCode),points:integer(ref.points,0,10000)};
     });
     return {catalogId:r.catalogId,programRef:{code:code(p.code),version:integer(p.version,1)},
-      orientationCode:r.orientationCode===null?null:code(r.orientationCode),startedOn:catalogDate(r.startedOn),specializationRefs:refs};
+      orientationCode:r.orientationCode===null?null:code(r.orientationCode),startedOn:catalogDate(r.startedOn),specializationRefs:refs,
+      ...(Object.hasOwn(r,'choiceBlocks') ? {choiceBlocks:parseProgramplanChoiceBlocks(r.choiceBlocks)} : {})};
   } catch (error) {
     if (error instanceof ProgramplanContractError && error.code==='invalid_catalog') invalid('invalid_basis_reference');
     throw error;
@@ -231,7 +233,7 @@ export function resolveProgramplanBasis(catalog: VerifiedProgramplanCatalog, val
   const o=ref.orientationCode===null?null:p.orientations.find(o=>o.code===ref.orientationCode);
   if (!o && ref.orientationCode!==null) return blockedProgramplanBasis('orientation_not_found',catalog.catalogId,ref.programRef);
   if (ref.orientationCode===null && p.orientations.length) return blockedProgramplanBasis('orientation_required',catalog.catalogId,ref.programRef);
-  const diagnostics: ProgramplanDiagnostic[]=[], unresolvedChoices: ProgramplanUnresolvedChoice[]=[];
+  const diagnostics: ProgramplanDiagnostic[]=programplanChoiceBlockDiagnostics(p,ref), unresolvedChoices: ProgramplanUnresolvedChoice[]=[];
   const diagnose=(code:string,subjectCode?:string,itemCode?:string,blockId?:string)=>diagnostics.push({code,...(subjectCode?{subjectCode}:{}),...(itemCode?{itemCode}:{}),...(blockId?{blockId}:{})});
   const checkSubject=(s:CatalogSubject,blockId?:string)=>{
     if (s.typeOfSyllabus!=='GRADE_SUBJECT_SYLLABUS') diagnose('unsupported_regime',s.code,undefined,blockId);
@@ -240,8 +242,10 @@ export function resolveProgramplanBasis(catalog: VerifiedProgramplanCatalog, val
   };
   const pins=new Map<string,number>();
   const levels=(subjects:CatalogBlockSubject[],blockId:string):ResolvedProgramplanLevel[]=>subjects.flatMap(block=>{
-    if (block.optional) unresolvedChoices.push({kind:'optional_subject',blockId,subjectCode:block.code,points:block.points});
-    if (!block.levels.length) { unresolvedChoices.push({kind:'subject_levels_unresolved',blockId,subjectCode:block.code,points:block.points}); return []; }
+    const resolvedAlternative=ref.choiceBlocks !== undefined && programplanAlternativeGroups(subjects).some(group=>group.includes(block));
+    const resolvedSlot=ref.choiceBlocks !== undefined && defaultProgramplanChoiceBlocks(p,ref.orientationCode).some(slot=>slot.id === ({MOSP:'mosp',SPRK:'sprk',NAVE:'nave'} as Record<string,string>)[block.code]);
+    if (block.optional && !resolvedAlternative) unresolvedChoices.push({kind:'optional_subject',blockId,subjectCode:block.code,points:block.points});
+    if (!block.levels.length) { if(!resolvedSlot) unresolvedChoices.push({kind:'subject_levels_unresolved',blockId,subjectCode:block.code,points:block.points}); return []; }
     const s=catalog.subjects.find(s=>s.code===block.code&&s.version===block.subjectVersion);
     if (!s) {diagnose('historical_version_missing',block.code,undefined,blockId);return [];}
     checkSubject(s,blockId);pins.set(s.code,s.version);
