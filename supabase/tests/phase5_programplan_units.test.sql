@@ -83,7 +83,10 @@ create function pg_temp.units_actor(role text) returns void language plpgsql as 
  else perform pg_temp.programplan_actor((select id from programplan_roles where name=role),'55008000-0000-4000-8000-000000000022','55008000-0000-4000-8000-000000000012','55008000-0000-4000-8000-000000000082');end if;end$$;
 -- Rektor B får endast mandat för B; parent HM har både skolor.
 select pg_temp.units_actor('hm');
-select public.phase3_replace_mandate((select id from programplan_roles where name='principal2'),'{"unitIds":["55008000-0000-4000-8000-000000000031"]}');
+delete from public.mandate_units where assignment_id=(select id from programplan_roles where name='principal2');
+insert into public.mandate_units select id,'55008000-0000-4000-8000-000000000001','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000031' from programplan_roles where name='principal2';
+update public.access_assignments set unit_id='55008000-0000-4000-8000-000000000031' where id=(select id from programplan_roles where name='principal2');
+insert into public.assignment_units(assignment_id,unit_id) select staff_assignment_id,'55008000-0000-4000-8000-000000000031' from public.access_assignments where id=(select id from programplan_roles where name='principal2');
 create temporary table ur(name text primary key,value jsonb);
 insert into ur select 'added',pg_temp.units_cmd(40,0,'["55008000-0000-4000-8000-000000000030","55008000-0000-4000-8000-000000000031"]');
 select is((select value->'lifecycle'->>'revision' from ur where name='added'),'1','skolval höjer revision');
@@ -99,6 +102,26 @@ select throws_ok($q$select pg_temp.units_cmd(40,1,'["55008000-0000-4000-8000-000
 select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',0,'[]')$q$,'42501','Programplan denied','partiellt mandat blockerar fördelning');
 select throws_ok($q$select public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000040',1,pg_temp.programplan_reference())$q$,'42501','Programplan denied','partiellt mandat blockerar utkast');
 select pg_temp.units_actor('hm');
+-- Alla befintliga skrivvägar använder mandat för hela planen.
+create temporary table partial_writers(name text,sql text);
+insert into partial_writers values
+ ('binda', $q$select public.phase5_bind_programplan_draft('55008000-0000-4000-8000-000000000050',0,pg_temp.programplan_reference())$q$),
+ ('fördjupning',$q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000050',0,'[]')$q$),
+ ('klona',$q$select public.phase5_clone_programplan_draft('55008000-0000-4000-8000-000000000050',0,1,null)$q$),
+ ('arkivera',$q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',1,'archive','{}')$q$),
+ ('ändra uppgifter',$q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',1,'update','{"name":"N","localCode":null,"cohort":"K","startedOn":null}')$q$),
+ ('radera',$q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',1,'delete','{}')$q$),
+ ('skolval',$q$select pg_temp.units_cmd(40,1,'["55008000-0000-4000-8000-000000000030"]')$q$);
+-- Huvudmannen har nu bara huvudskolan, men mandatet är fortfarande giltigt.
+delete from public.mandate_units where assignment_id='55008000-0000-4000-8000-000000000060' and unit_id='55008000-0000-4000-8000-000000000031';
+select throws_ok(sql,'42501',null,'partiell huvudman nekas: '||name) from partial_writers;
+insert into public.mandate_units values('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000001','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000031');
+-- Skola hos annan huvudman, även inom samma kund, får inte läggas till.
+insert into public.organizers(id,customer_id,name,type) values('55008000-0000-4000-8000-000000000004','55008000-0000-4000-8000-000000000001','Annan syntetisk huvudman','Kommun');
+insert into public.school_units(id,organizer_id,code,name,municipality_code) values('55008000-0000-4000-8000-000000000034','55008000-0000-4000-8000-000000000004','55008034','Främmande skola','0000');
+insert into public.school_unit_types(unit_id,school_type) values('55008000-0000-4000-8000-000000000034','GY');
+select throws_ok($q$select pg_temp.units_cmd(40,1,'["55008000-0000-4000-8000-000000000030","55008000-0000-4000-8000-000000000034"]')$q$,'42501',null,'främmande huvudmans skola nekas');
+select throws_ok($q$insert into public.offering_units(offering_id,unit_id,organizer_id) values('55008000-0000-4000-8000-000000000040','55008000-0000-4000-8000-000000000034','55008000-0000-4000-8000-000000000002')$q$,'23503',null,'FK kräver att skolan hör till samma huvudman');
 select throws_ok($q$select pg_temp.units_cmd(40,0,'["55008000-0000-4000-8000-000000000030"]')$q$,'40001',null,'gammal revision nekas');
 select throws_ok($q$select pg_temp.units_cmd(40,1,'[]')$q$,'22023',null,'tomt skolval nekas');
 select throws_ok($q$select pg_temp.units_cmd(40,1,'["55008000-0000-4000-8000-000000000031"]')$q$,'22023',null,'huvudskola krävs');
@@ -127,6 +150,8 @@ insert into public.school_years(organizer_id,unit_id,start_year,ht_start,ht_end,
 update states set label='pågående' where n=90;
 select lives_ok(format('select pg_temp.units_cmd(%s,0,''["55008000-0000-4000-8000-000000000030","55008000-0000-4000-8000-000000000031"]'')',n),'tillägg tillåts för '||label) from states;
 select throws_ok(format('select pg_temp.units_cmd(%s,1,''["55008000-0000-4000-8000-000000000030"]'')',n),'42501','Programplan started','borttagning nekas för '||label) from states;
+select lives_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000090',1,'archive','{}')$q$,'arkivera delad pågående plan');
+select throws_ok($q$select pg_temp.units_cmd(90,2,'["55008000-0000-4000-8000-000000000030"]')$q$,'42501','Programplan archived','arkiverad delad plan blockerar borttagning');
 select lives_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',2,'archive','{}')$q$,'arkivera framtida plan');
 select throws_ok($q$select pg_temp.units_cmd(40,3,'["55008000-0000-4000-8000-000000000030","55008000-0000-4000-8000-000000000031"]')$q$,'42501','Programplan archived','arkiv blockerar tillägg');
 select throws_ok($q$select pg_temp.units_cmd(40,3,'["55008000-0000-4000-8000-000000000030"]')$q$,'42501','Programplan archived','arkiv blockerar även oförändrat skolval');

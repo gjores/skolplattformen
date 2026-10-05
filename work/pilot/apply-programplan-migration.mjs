@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 05-20: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
+// 05-20/05-21: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
 // Kontrollerar journal och tidigare exakt Worker-ACL; grants kräver PASS-preflight med samma källor.
 import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
 import { assertTarget } from './verify-target.mjs';
@@ -10,11 +10,12 @@ import { resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const BASE=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES];
-// Endast 05-20:s migrationer, i ordning, med förväntad ACL före tillämpning.
+// Endast granskade 05-20/05-21-migrationer, i ordning, med förväntad ACL före tillämpning.
 const ALLOWED={
  '20261004120000_phase5_programplan_lifecycle.sql':{before:BASE,grants:false},
  '20261004121000_phase5_worker_programplan_lifecycle.sql':{before:BASE,grants:true},
  '20261004122000_phase5_programplan_lifecycle_locks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
+ '20261004130000_phase5_programplan_units.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
 };
 export function parseApplyArgs(argv){
  const o={migration:null,grants:null};
