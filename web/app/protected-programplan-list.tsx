@@ -65,7 +65,7 @@ export default function ProgramplanList({ disabled, canEditPlans, onSecurityFail
   const locked = disabled || busy;
   return <section className="ppl" aria-label="Alla programplaner" aria-busy={busy}>
     <div className="pps-head">
-      <div className="pps-head-text"><h1 className="ppl-title">Programplaner</h1><p>Öppna en utbildnings programplan för att ändra den, kopiera den till en ny elevkull eller börja från början.</p></div>
+      <div className="pps-head-text"><h1 className="ppl-title">Programplaner</h1><p>{canEditPlans ? 'Öppna en utbildnings programplan för att ändra den, kopiera den till en ny elevkull eller börja från början.' : 'Öppna en programplan för att läsa den och välja skolans paket.'}</p></div>
       {canEditPlans && <div className="pps-actions"><Button disabled={locked} onClick={onNew}><Plus size={16} aria-hidden="true"/>Ny programplan</Button></div>}
     </div>
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button variant="outline" disabled={locked} onClick={() => void load()}>Läs om listan</Button></div>}
@@ -78,7 +78,7 @@ export default function ProgramplanList({ disabled, canEditPlans, onSecurityFail
         <small>{shown.length === visible.length ? `${visible.length} utbildningar` : `${shown.length} av ${visible.length} utbildningar`}</small>
       </div>
       {visible.length === 0 && offerings.length > 0 ? <div className="ppl-empty"><p>Alla utbildningar är arkiverade. Välj Visa arkiverade för att se dem.</p></div>
-        : offerings.length === 0 ? <div className="ppl-empty"><p><strong>Inga utbildningar ännu.</strong> Skapa den första programplanen med Ny programplan.</p></div>
+        : offerings.length === 0 ? <div className="ppl-empty"><p><strong>Inga utbildningar ännu.</strong> {canEditPlans ? 'Skapa den första programplanen med Ny programplan.' : 'Det finns inga programplaner att läsa eller välja paket i.'}</p></div>
         : shown.length === 0 ? <div className="ppl-empty"><p>Ingen utbildning matchar sökningen.</p></div>
         : <table className="ppl-table"><thead><tr><th scope="col">Utbildning</th><th scope="col">Program och inriktning</th><th scope="col">Elevkull</th><th scope="col">Programplan</th><th scope="col">Status</th><th scope="col"><span className="pp-sr">Åtgärder</span></th></tr></thead>
           <tbody>{shown.map(o => { const s = status(o); return <tr key={o.id}>
