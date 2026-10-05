@@ -106,7 +106,7 @@ test('09: Flytta nivån behåller poängen, visar rätt årskurs och låter fele
   await expect(board(page).locator(`tr[data-row-key="${higher}"]`)).toHaveAttribute('data-analysis-target','true');
   await expect(board(page)).toContainText('300 av');await expect(w(page).getByRole('button',{name:'Spara utkast',exact:true})).toHaveCount(0);
   await capture(page,info,'analysis-fix-order.png');
-  await cell(page,'Åk 2 HT').fill('');await year(page,info,3);await cell(page,'Åk 3 VT').fill('100');expect((await leave(page)).status()).toBe(200);
+  await cell(page,'Åk 2 HT').fill('');await year(page,info,3);await cell(page,'Åk 3 VT').fill('100');expect((await leave(page)).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');
   await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page).getByRole('button',{name:'Flytta nivån →',exact:true})).toHaveCount(0);
   expect((await read()).distribution).toContainEqual({rowKey:higher,points:[0,0,0,0,0,100]});
   await page.reload();await navigate(page);await open(page);await year(page,info,3);await expect(cell(page,'Åk 3 VT')).toHaveValue('100');
@@ -129,7 +129,7 @@ test('11: Jämna ut behåller full fördelning och Ta bort nivåer går till fö
   await store(unbalanced,saved.revision);await page.reload();await navigate(page);await open(page);
   await fix(page,'Jämna ut →');await expect(board(page).locator('.ppb-year').first()).toBeFocused();await expect(board(page)).toContainText('allt fördelat');expect((await read()).distribution).toEqual(unbalanced);
   // Verklig fördjupningsskrivning gör ramen för stor, utan att ändra terminsfördelningen.
-  const current=await read();const refs=[...fixture.basis().specializationRefs,...['ANIM1000X','ANIM2000X','ARTI1000X'].map(code=>({subjectCode:code.slice(0,4),subjectVersion:1,itemCode:code,points:100}))];
+  const current=await read();const refs=[...fixture.basis().specializationRefs,...['ANIM1000X','ANIM2000X','ARTI1000X'].map(code=>({subjectCode:code.slice(0,4),subjectVersion:code.startsWith('ARTI')?2:1,itemCode:code,points:100}))];
   const over=await fixture.request(baseURL,fixture.principal,'/api/programplaner/fordjupning',{planId:fixture.planId,expectedRevision:current.revision,specializationRefs:refs});expect(over.status).toBe(200);
   await page.reload();await navigate(page);await open(page);await fix(page,'Ta bort nivåer →');await expect(board(page).getByRole('button',{name:'Ta bort ENGE3000X',exact:true})).toBeFocused();
   const cleared=page.waitForResponse(matches('/api/programplaner/terminer')),removed=page.waitForResponse(matches('/api/programplaner/fordjupning'));await board(page).getByRole('button',{name:'Ta bort ENGE3000X',exact:true}).click();expect((await cleared).status()).toBe(200);expect((await removed).status()).toBe(200);expect((await fixture.snapshot()).specialization).not.toContain('ENGE3000X');
