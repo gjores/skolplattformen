@@ -330,6 +330,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       : preparation.kind === 'clone' && workspace?.education.draftId
         ? 'Utbildningen har nu ett utkast. Avbryt förberedelsen och öppna utkastet innan du skapar en ny version.' : null;
   function nextAction() {
+    if(hasUnsaved)return;
     if (anotherDraft && workspace) { void openEducation(workspace.education.id, 1, null, workspace.education.draftId); return; }
     if (nextKind === 'replace' || nextKind === 'clone' && plan?.basisReference) edit(nextKind);
     else setPreparation({kind: nextKind, catalogId: null});
@@ -427,9 +428,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <LifecycleBadge lifecycle={workspace.lifecycle}/>
           <span className={ready?'pps-state pp-status pps-ready':'pps-state pp-status'}>{statusText}</span>
           {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
-          {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
+          {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
-          {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
+          {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||hasUnsaved||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.editDetails&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('update')}><Pencil size={16} aria-hidden="true"/>Ändra uppgifter</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&context.function !== 'administrator' && programplanSchoolActions(workspace.lifecycle, context.function === 'huvudman' ? 'huvudman' : 'rektor').add&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('units')}>Skolor</Button>}
