@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';import {randomUUID,createHash}from'node:crypto';import{readFileSync,writeFileSync}from'node:fs';import{createRequire}from'node:module';import{execFileSync}from'node:child_process';import{resolve}from'node:path';import{fileURLToPath}from'node:url';
+import { nextCohortStart } from '../../web/lib/programplan-lifecycle.ts';
 import{assertTarget}from'./verify-target.mjs';import{extractProgramplanFixture,cleanupProgramplanFixture}from'./verify-programplan-locks.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export const EDUCATION_LOCK_CASES=['same-command-replay','new-command-duplicate','status-after-committed-create','mandate-revoked-after-lock'];
@@ -7,7 +8,7 @@ export async function runEducationLocks(outFile=resolve(root,'work/pilot/results
  const target=await assertTarget('protected'),db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(target.dbUrl,{max:5,prepare:false,onnotice:()=>{}}),prefix=randomUUID().slice(0,8),id=n=>`${prefix}-0000-4000-8000-${String(n).padStart(12,'0')}`;
  const report={kind:'phase5-programplan-education-locks',scope:'local-synthetic-only',status:'FAIL',cases:[],sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim()};let a,b,setup=false,active;
  const context=(tx,s=80)=>tx`select set_config('app.customer_id',${id(1)},true),set_config('app.identity_id',${id(10)},true),set_config('app.membership_id',${id(20)},true),set_config('app.assignment_id',${id(60)},true),set_config('app.session_id',${id(s)},true),set_config('app.correlation_id',${randomUUID()},true)`;
- const basis={catalogId:'sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:'2026-08-01',specializationRefs:[]};
+ const basis={catalogId:'sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:nextCohortStart(),specializationRefs:[]};
  const create=async(tx,command,name)=>{const[r]=await tx`select public.phase5_create_programplan_education(${command},${id(30)},${name},null,'Lock kull',${tx.json(basis)}::jsonb) as result`;return r.result;};
  try{
   await db.begin(async tx=>{await tx.unsafe(extractProgramplanFixture(readFileSync(resolve(root,'supabase/tests/phase5_programplan_drafts.test.sql'),'utf8'),prefix));await tx`insert into public.school_unit_types(unit_id,school_type) values(${id(30)},'GY')`;await tx`insert into public.app_sessions(id,token_hash,identity_id,membership_id,assignment_id,expires_at,absolute_expires_at) values(${id(84)},decode(md5(${id(84)})||md5(${id(84)}),'hex'),${id(10)},${id(20)},${id(60)},now()+interval '1 hour',now()+interval '8 hours')`;});setup=true;

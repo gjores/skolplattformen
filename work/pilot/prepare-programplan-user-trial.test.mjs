@@ -58,3 +58,12 @@ test('current readiness preserves human changes and selects exact off-page draft
   assert.throws(()=>selectCurrentTrialPlan({...w,education:{latestVersion:61,draftId:'draft'}},[latest,draft]),/REFUSED/u);
   assert.equal(selectCurrentTrialPlan({education:{latestVersion:0,draftId:null},versionCount:0},[]),null);
 });
+
+test('05-20: framtida provutbildningar är egna, frysta och krockar inte med 2026-exemplen',async()=>{
+  const {futureTrialEducationSpecs}=await import('./prepare-programplan-user-trial.mjs');
+  assert.equal(Object.isFrozen(futureTrialEducationSpecs),true);
+  const numbers=[...trialEducationSpecs,...futureTrialEducationSpecs].flatMap(s=>[s.number,s.plan]).filter(n=>n!==null);
+  assert.equal(new Set(numbers).size,numbers.length);
+  assert.deepEqual(futureTrialEducationSpecs.map(s=>s.kind),['bound','locked',null,'bound']);
+  for(const spec of futureTrialEducationSpecs){const row={id:`55100110-0000-4000-8000-${String(spec.number).padStart(12,'0')}`,organizer_id:school.organizer_id,unit_id:school.unit_id,kind:'gymnasium',name:spec.name,program_code:spec.program,orientation_code:spec.orientation};requireOwnedTrialEducation(row,spec,school.organizer_id);assert.throws(()=>requireOwnedTrialEducation({...row,name:'Annan'},spec,school.organizer_id),/REFUSED/u);}
+});

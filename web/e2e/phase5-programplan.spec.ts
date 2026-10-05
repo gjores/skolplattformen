@@ -1,7 +1,7 @@
 // Verklig byggd Worker/SQL, egen syntetisk kund perfall. Lokalt mintade
 // sessionsbevis; inget interaktivt IdP-prov eller faktiskt skolbeslut.
 import { expect,test,type Page,type Response,type Locator,type TestInfo } from '@playwright/test';
-import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget } from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
+import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget,FUTURE_START} from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
 import { waitForHydration } from './helpers/keycloak.ts';
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
 let fixture:Fixture;
@@ -69,7 +69,7 @@ test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning
   await expect(w(page).getByRole('button',{name:'Ändra fördjupning',exact:true})).toHaveCount(0);await expect(w(page)).toContainText('Utkast · Version');
   await expect(board(page)).toContainText('(alternativ)');await expect(board(page)).toContainText('(nivåer saknas)');await expect(w(page).getByRole('region',{name:'Innan planen är klar',exact:true})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await capture(page,info,'programplan-read.png');
-  await underlying(page);await expect(details).toContainText(fixture.catalogId);await expect(details).toContainText('Utbildningsstart: 2026-08-01');await expect(details).toContainText('Fastställande är stängt');
+  await underlying(page);await expect(details).toContainText(fixture.catalogId);await expect(details).toContainText(`Utbildningsstart: ${FUTURE_START}`);await expect(details).toContainText('Fastställande är stängt');
   await expect(w(page).getByRole('button',{name:/Fastställ/u})).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);
 
 });
@@ -86,16 +86,16 @@ test('02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsnin
   const d=page.getByRole('region',{name:'Skapa programplan',exact:true});
   await expect(d.getByLabel('Utbildningens exakta startdatum')).toHaveValue('');await d.getByLabel('Utbildningens exakta startdatum').fill('2024-08-17');await add(d);await add(d,'ENGE3000X');
   const bad=await save(page,'skapa');expect(bad.status()).toBe(400);await expect(d.getByLabel('Utbildningens exakta startdatum')).toHaveValue('2024-08-17');await expect(d).toContainText('ANIM1000X');await expect(d).toContainText('ENGE3000X');expect(await fixture.plans(fixture.emptyOfferingId)).toEqual([]);
-  await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');let writes=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/skapa')writes++;});await review(page);const pending=page.waitForResponse(matches('/api/programplaner/skapa'));await d.getByRole('region',{name:'Kontrollera före sparning'}).getByRole('button',{name:/^Spara (utkast|ändå)$/u}).click({clickCount:2});const r=await pending;expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_created',body.id);
-  await expect(editor(page)).toHaveCount(0);await expect(w(page)).toContainText('Utkastet sparades');const actual=await fixture.snapshot(body.id);expect(actual.basis_reference.startedOn).toBe('2026-08-17');expect(actual.basis_reference.catalogId).toBe(fixture.catalogId);expect(actual.specialization).toEqual(['ANIM1000X','ENGE3000X']);expect(actual.status).toBe('utkast');expect(actual.decided_on).toBe(null);
-  expect(writes).toBe(1);const freshSession=await fixture.newPrincipal();await fixture.cookies(page.context(),freshSession,baseURL);await page.reload();await navigate(page);await education(page,'Syntetisk SA utan plan');const reread=await version(page);await paired(reread,'programplan_read',body.id,freshSession);await underlying(page);await expect(w(page)).toContainText('Utbildningsstart: 2026-08-17');
+  await d.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);let writes=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/skapa')writes++;});await review(page);const pending=page.waitForResponse(matches('/api/programplaner/skapa'));await d.getByRole('region',{name:'Kontrollera före sparning'}).getByRole('button',{name:/^Spara (utkast|ändå)$/u}).click({clickCount:2});const r=await pending;expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_created',body.id);
+  await expect(editor(page)).toHaveCount(0);await expect(w(page)).toContainText('Utkastet sparades');const actual=await fixture.snapshot(body.id);expect(actual.basis_reference.startedOn).toBe(FUTURE_START);expect(actual.basis_reference.catalogId).toBe(fixture.catalogId);expect(actual.specialization).toEqual(['ANIM1000X','ENGE3000X']);expect(actual.status).toBe('utkast');expect(actual.decided_on).toBe(null);
+  expect(writes).toBe(1);const freshSession=await fixture.newPrincipal();await fixture.cookies(page.context(),freshSession,baseURL);await page.reload();await navigate(page);await education(page,'Syntetisk SA utan plan');const reread=await version(page);await paired(reread,'programplan_read',body.id,freshSession);await underlying(page);await expect(w(page)).toContainText(`Utbildningsstart: ${FUTURE_START}`);
 });
 
 test('03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse',async({page})=>{
   await enter(page);await education(page,'Syntetisk obunden SA');await version(page);await catalog(page);
   const d=page.getByRole('region',{name:'Gör utkastet redo för ändring',exact:true});await expect(d.getByLabel('Utbildningens exakta startdatum')).toHaveValue('');
   let writes=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/binda')writes++;});await review(page);await d.getByRole('region',{name:'Kontrollera före sparning'}).getByRole('button',{name:/^Spara (utkast|ändå)$/u}).click();await expect(d).toContainText('Ange ett verkligt');expect(writes).toBe(0);
-  await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');await d.getByRole('checkbox').check();await expect(d.getByRole('button',{name:/Ta bort/u})).toHaveCount(0);
+  await d.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);await d.getByRole('checkbox').check();await expect(d.getByRole('button',{name:/Ta bort/u})).toHaveCount(0);
   const r=await save(page,'binda');expect(r.status()).toBe(200);await paired(r,'programplan_basis_bound',fixture.legacyPlanId);
   await expect(editor(page)).toHaveCount(0);const actual=await fixture.snapshot(fixture.legacyPlanId);expect(actual.specialization).toEqual(['ENGE3000X','ANIM1000X']);expect(actual.version).toBe(1);expect(actual.revision).toBe(1);
 });
@@ -114,7 +114,7 @@ test('04: fördjupning läggs till och tas bort direkt i tabellen, sök och peky
 test('05: kopiera äldre låst källa uttryckligt och bevara källa/historik',async({page},info)=>{
   const before=await fixture.snapshot(fixture.lockedPlanId),history=await fixture.history(fixture.lockedPlanId);
   await enter(page);await education(page,'Syntetisk tidigare beslutad SA');await version(page,'Version 3 · Fastställd');await catalog(page);
-  const d=page.getByRole('region',{name:'Skapa ny version',exact:true});await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');await d.getByRole('checkbox').check();await capture(page,info,'programplan-legacy-clone.png');const r=await save(page,'klona');expect(r.status()).toBe(200);const body=await r.json();expect(body.version).toBe(4);expect(body.id).not.toBe(fixture.lockedPlanId);await paired(r,'programplan_draft_cloned',body.id);await expect(editor(page)).toHaveCount(0);expect(await fixture.snapshot(fixture.lockedPlanId)).toEqual(before);expect(await fixture.history(fixture.lockedPlanId)).toEqual(history);
+  const d=page.getByRole('region',{name:'Skapa ny version',exact:true});await d.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);await d.getByRole('checkbox').check();await capture(page,info,'programplan-legacy-clone.png');const r=await save(page,'klona');expect(r.status()).toBe(200);const body=await r.json();expect(body.version).toBe(4);expect(body.id).not.toBe(fixture.lockedPlanId);await paired(r,'programplan_draft_cloned',body.id);await expect(editor(page)).toHaveCount(0);expect(await fixture.snapshot(fixture.lockedPlanId)).toEqual(before);expect(await fixture.history(fixture.lockedPlanId)).toEqual(history);
   // Konkurrerande nytt utkast stoppar även clone-CAS utan en extra version.
   await fixture.seedBoundLocked();await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page);await version(page,'Version 1 · Fastställd');await w(page).getByRole('button',{name:'Skapa ny version',exact:true}).click();
   const other=await fixture.request(baseURL,fixture.second,'/api/programplaner/skapa',{offeringId:fixture.offeringId,expectedLatestVersion:1,basisReference:fixture.basis([animation])});expect(other.status).toBe(200);expect(await fixture.paired(other.correlationId,fixture.second,'programplan_draft_created',other.body.id)).toBe(true);
@@ -134,11 +134,11 @@ test('07: verklig tvåsessionskonflikt stoppar och planen läses om',async({page
 });
 
 test('08: annan session binder till annan grund; eget formulär kan inte återanvändas',async({page})=>{
-  await enter(page);await education(page,'Syntetisk obunden SA');await version(page);await catalog(page);const d=editor(page);await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');await d.getByRole('checkbox').check();
-  const other=await fixture.request(baseURL,fixture.second,'/api/programplaner/binda',{planId:fixture.legacyPlanId,expectedRevision:0,basisReference:fixture.basis([english,animation],'2026-08-01')});expect(other.status).toBe(200);expect(await fixture.paired(other.correlationId,fixture.second,'programplan_basis_bound',fixture.legacyPlanId)).toBe(true);
-  expect((await save(page,'binda')).status()).toBe(409);await expect(d).toContainText('kan inte skickas igen automatiskt');await expect(d.getByRole('button',{name:'Använd mina val',exact:true})).toBeDisabled();await expect(d.getByLabel('Utbildningens exakta startdatum')).toHaveValue('2026-08-17');expect((await fixture.snapshot(fixture.legacyPlanId)).basis_reference.startedOn).toBe('2026-08-01');
-  await discard(page,true,()=>d.getByRole('button',{name:'Avbryt',exact:true}).click());await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page,'Syntetisk SA utan plan');await catalog(page);const creation=editor(page);await creation.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');await add(creation);
-  const competing=await fixture.request(baseURL,fixture.second,'/api/programplaner/skapa',{offeringId:fixture.emptyOfferingId,expectedLatestVersion:0,basisReference:fixture.basis([english],'2026-08-17')});expect(competing.status).toBe(200);expect(await fixture.paired(competing.correlationId,fixture.second,'programplan_draft_created',competing.body.id)).toBe(true);
+  await enter(page);await education(page,'Syntetisk obunden SA');await version(page);await catalog(page);const d=editor(page);await d.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);await d.getByRole('checkbox').check();
+  const other=await fixture.request(baseURL,fixture.second,'/api/programplaner/binda',{planId:fixture.legacyPlanId,expectedRevision:0,basisReference:fixture.basis([english,animation],`${FUTURE_START.slice(0,4)}-08-01`)});expect(other.status).toBe(200);expect(await fixture.paired(other.correlationId,fixture.second,'programplan_basis_bound',fixture.legacyPlanId)).toBe(true);
+  expect((await save(page,'binda')).status()).toBe(409);await expect(d).toContainText('kan inte skickas igen automatiskt');await expect(d.getByRole('button',{name:'Använd mina val',exact:true})).toBeDisabled();await expect(d.getByLabel('Utbildningens exakta startdatum')).toHaveValue(FUTURE_START);expect((await fixture.snapshot(fixture.legacyPlanId)).basis_reference.startedOn).toBe(`${FUTURE_START.slice(0,4)}-08-01`);
+  await discard(page,true,()=>d.getByRole('button',{name:'Avbryt',exact:true}).click());await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page,'Syntetisk SA utan plan');await catalog(page);const creation=editor(page);await creation.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);await add(creation);
+  const competing=await fixture.request(baseURL,fixture.second,'/api/programplaner/skapa',{offeringId:fixture.emptyOfferingId,expectedLatestVersion:0,basisReference:fixture.basis([english],FUTURE_START)});expect(competing.status).toBe(200);expect(await fixture.paired(competing.correlationId,fixture.second,'programplan_draft_created',competing.body.id)).toBe(true);
   expect((await save(page,'skapa')).status()).toBe(409);await expect(creation.getByRole('button',{name:'Använd mina val',exact:true})).toBeDisabled();await expect(creation).toContainText('Dina fördjupningsval: Animation · Nivå 1 (100 poäng)');expect((await fixture.snapshot(competing.body.id)).version).toBe(1);expect(await fixture.plans(fixture.emptyOfferingId)).toHaveLength(1);
 });
 
@@ -219,16 +219,16 @@ test('16: fem ytterligare program skapas, granskas och läses med rätt programg
   for(const spec of specs){
     await education(page,spec.name,spec.program,spec.orientation);await catalog(page);
     const d=page.getByRole('region',{name:'Skapa programplan',exact:true});
-    await d.getByLabel('Utbildningens exakta startdatum').fill('2026-08-17');
+    await d.getByLabel('Utbildningens exakta startdatum').fill(FUTURE_START);
     const selector=d.locator('button[data-level-code]').first();
     const code=await selector.getAttribute('data-level-code');expect(code).toBeTruthy();await selector.click();
     await review(page);const summary=d.getByRole('region',{name:'Kontrollera före sparning',exact:true});
-    await expect(summary).toContainText(spec.name);await expect(summary).toContainText('2026-08-17');await expect(summary).toContainText('1 vald nivå');
+    await expect(summary).toContainText(spec.name);await expect(summary).toContainText(FUTURE_START);await expect(summary).toContainText('1 vald nivå');
     expect(await fixture.plans(spec.id)).toEqual([]);
     if(spec.program==='VO25')await capture(page,info,'programplan-vard-review.png');
     const r=await save(page,'skapa');expect(r.status()).toBe(200);const body=await r.json();await paired(r,'programplan_draft_created',body.id);
     await expect(editor(page)).toHaveCount(0);if(spec.program==='VO25')await expect(board(page)).toContainText('Programmet har ingen inriktning.');const row=await fixture.snapshot(body.id);
-    expect(row.offering_id).toBe(spec.id);expect(row.basis_reference.programRef).toEqual({code:spec.program,version:spec.version});expect(row.basis_reference.orientationCode).toBe(spec.orientation);expect(row.basis_reference.startedOn).toBe('2026-08-17');expect(row.specialization).toEqual([code]);expect(row.status).toBe('utkast');expect(row.decided_on).toBe(null);
+    expect(row.offering_id).toBe(spec.id);expect(row.basis_reference.programRef).toEqual({code:spec.program,version:spec.version});expect(row.basis_reference.orientationCode).toBe(spec.orientation);expect(row.basis_reference.startedOn).toBe(FUTURE_START);expect(row.specialization).toEqual([code]);expect(row.status).toBe('utkast');expect(row.decided_on).toBe(null);
     await expect(board(page)).toContainText(code!);
     await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page,spec.name,spec.program,spec.orientation);
     await expect(board(page)).toContainText(code!);await expect(board(page)).toContainText('Allt sparat');
@@ -241,7 +241,7 @@ async function newEducation(page:Page,name:string,code='SA25',orientation:string
   await chooseProgram(page,code,orientation);await w(page).getByRole('button',{name:'Ny utbildning',exact:true}).click();
   const form=w(page).getByRole('region',{name:'Ny utbildning och programfördjupning',exact:true});
   await form.getByLabel('Utbildningens namn',{exact:true}).fill(name);await form.getByLabel('Elevkull',{exact:true}).fill('Syntetisk ny kull 2026');
-  await form.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill('2026-08-17');return form;
+  await form.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill(FUTURE_START);return form;
 }
 
 test('17: samma flöde skapar utbildning och första utkast, med och utan inriktning',async({page},info)=>{
@@ -255,12 +255,12 @@ test('17: samma flöde skapar utbildning och första utkast, med och utan inrikt
     await form.getByRole('button',{name:'Granska utkast',exact:true}).click();if(code==='VO25')await capture(page,info,'shared-new-vo-review.png');
     const pending=page.waitForResponse(matches('/api/programplaner/utbildning/skapa'));await form.getByRole('button',{name:'Spara utbildning och utkast',exact:true}).click();const r=await pending;expect(r.status()).toBe(200);const body=await r.json();
     await paired(r,'programplan_education_created',body.education.id,fixture.hm,'education');await expect(w(page).getByRole('heading',{name,exact:true})).toBeVisible();
-    const plan=await fixture.snapshot(body.plan.id);expect(plan.offering_id).toBe(body.education.id);expect(plan.specialization).toEqual([level]);expect(plan.basis_reference.programRef.code).toBe(code);expect(plan.basis_reference.orientationCode).toBe(orientation);expect(plan.basis_reference.startedOn).toBe('2026-08-17');expect(plan.status).toBe('utkast');expect(plan.version).toBe(1);expect(plan.revision).toBe(0);
+    const plan=await fixture.snapshot(body.plan.id);expect(plan.offering_id).toBe(body.education.id);expect(plan.specialization).toEqual([level]);expect(plan.basis_reference.programRef.code).toBe(code);expect(plan.basis_reference.orientationCode).toBe(orientation);expect(plan.basis_reference.startedOn).toBe(FUTURE_START);expect(plan.status).toBe('utkast');expect(plan.version).toBe(1);expect(plan.revision).toBe(0);
     await expect(board(page)).toContainText('Allt sparat');await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();
   }
   await fixture.cookies(page.context(),fixture.principal,baseURL);await page.reload();await navigate(page);await education(page,'Syntetisk ny VO25','VO25',null);await expect(board(page)).toContainText('Allt sparat');
   await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await chooseProgram(page);await expect(w(page).getByRole('button',{name:'Ny utbildning',exact:true})).toHaveCount(0);
-  const denied=await fixture.request(baseURL,fixture.principal,'/api/programplaner/utbildning/skapa',{commandId:crypto.randomUUID(),unitId:fixture.unitId,name:'Syntetisk otillåten ny',localCode:null,cohort:'Syntetisk',basisReference:fixture.basis([],'2026-08-17')});expect(denied.status).toBe(403);
+  const denied=await fixture.request(baseURL,fixture.principal,'/api/programplaner/utbildning/skapa',{commandId:crypto.randomUUID(),unitId:fixture.unitId,name:'Syntetisk otillåten ny',localCode:null,cohort:'Syntetisk',basisReference:fixture.basis([],FUTURE_START)});expect(denied.status).toBe(403);
 });
 
 test('18: tappat skapandesvar läses med samma kvitto utan en andra utbildning',async({page},info)=>{
