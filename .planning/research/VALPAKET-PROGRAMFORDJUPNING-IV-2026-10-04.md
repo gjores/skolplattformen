@@ -82,11 +82,11 @@ Användaren såg att SA bara summerar till 2 000 poäng. Kontrollerat med `progr
 | Valplats i katalogen | Poäng | Program | Tillåtna val |
 |---|---|---|---|
 | Svenska eller svenska som andraspråk | 300 | Alla 29 | SVEN 1–3 eller SVEA 1–3. Byte tillåts efter avslutad nivå (4 kap. 11 §). |
-| Moderna språk (`MOSP`, inga nivåer) | 200 | EK, HU, NA, SA, SM | Två nivåer i följd på trappan nybörjare 1 → grund 1 → fortsättning 1 → fortsättning 2 → fördjupning 1–3 (MODY, MODG, MODO, MODF). |
+| Moderna språk (`MOSP`, inga nivåer) | 100 (EK, NA), 200 (HU, SA), 300 (SM) | EK, HU, NA, SA, SM | Två nivåer i följd på trappan nybörjare 1 → grund 1 → fortsättning 1 → fortsättning 2 → fördjupning 1–3 (MODY, MODG, MODO, MODF). |
 | Språkämne (`SPRK`) | 300 | HU/språk | Lista i 4 kap. 1 a § |
 | Ett naturvetenskapligt ämne (`NAVE`) | — | NA/naturvetenskap och samhälle | Lista i 4 kap. 1 a § |
 
-Alla planer saknar alltså minst 300 poäng (svenska). EK, HU, NA, SA och SM saknar 500 poäng.
+Alla planer saknar alltså minst 300 poäng (svenska). Därtill saknas Moderna språk: 100 p på EK och NA, 200 p på HU och SA och 300 p på SM. Rättat 2026-10-05; tidigare stod det 500 p totalt på alla fem.
 
 **Moderna språk enligt SKOLFS 2024:628 (bilaga 1):** Gy11:s Moderna språk 1–7 motsvaras av nybörjare nivå 1, grund nivå 1, fortsättning nivå 1–2 och fördjupning nivå 1–3. Varje språk är ett eget språkämne inom en gemensam ämnesplan, så nivåkoden (till exempel `MODO1000X`) anger inte vilket språk det gäller. Enligt 4 kap. 9 § ska undervisningen utgå från grundskolans nivå om eleven har betyg i språket. Enligt 4 kap. 10 § ska franska, spanska och tyska erbjudas både som fortsättningsspråk och som nytt språk. Enligt 4 kap. 10 a och 17 § kan svenskt teckenspråk för hörande eller modersmål ersätta moderna språk.
 

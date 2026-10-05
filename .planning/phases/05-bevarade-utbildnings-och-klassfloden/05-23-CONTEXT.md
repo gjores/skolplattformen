@@ -5,7 +5,7 @@ Användarbeslut 2026-10-04, genom frågor i chatten. Numret ändrades från 05-2
 ## Problem
 
 Programplanerna når inte programmets poängsumma. Ett exempel är samhällsvetenskapsprogrammet med 2 000 av 2 500 poäng. Svenska/svenska som andraspråk (300 p på alla program) och delar där det nationella underlaget kräver ett val får inga rader:
-- Moderna språk 200 p på EK, HU, NA, SA och SM.
+- Moderna språk på EK (100 p), HU (200 p), NA (100 p), SA (200 p) och SM (300 p). Poängen kontrollerades i katalogen 2026-10-05; tidigare stod det felaktigt 200 p på alla.
 - HU/språk: Språkämne 300 p.
 - NA/naturvetenskap och samhälle: ett naturvetenskapligt ämne.
 
@@ -21,6 +21,7 @@ Skolor vill också erbjuda valbara paket i programfördjupning och individuellt 
 - **D-06 Moderna språk.**
   - Planen föreslår automatiskt sex paket: franska, spanska och tyska i både fortsättningsspår och nybörjarspår. Skolan kan ta bort paket och lägga till andra.
   - Ett paket består av **två steg i följd** på trappan nybörjare 1 → grund 1 → fortsättning 1 → fortsättning 2 → fördjupning 1–3 (MODY, MODG, MODO, MODF).
+  - Paketets storlek bestäms av blockets poäng. Se D-16.
   - Språket väljs ur en **fast språklista** med kod och svenskt namn.
   - Paket med **modersmål** eller **svenskt teckenspråk för hörande** får finnas i samma block (gymnasieförordningen 4 kap. 10 a och 17 §).
   - Saknas franska, spanska eller tyska i något av spåren visas det som **att kontrollera**, inte som fel (4 kap. 10 §).
@@ -33,6 +34,10 @@ Skolor vill också erbjuda valbara paket i programfördjupning och individuellt 
 - **D-13 Nivåordning.** Börjar en högre nivå innan den lägre har börjat är det **fel**. Överlappar nivåerna i samma termin är det en **risk**. Regeln gäller fasta rader och inom varje paket, och ersätter dagens kontroll per läsår.
 - **D-14 Visning.** Blocket visas som **en rad i programplanens tabell som kan fällas ut**. Raden visar poäng, terminsram och en kort sammanfattning. Utfälld visar den skolans paket och hur nivåerna fördelas inom ramen, plus ”Lägg till paket”.
 - **D-15 Platser.** Paketen har inga platsgränser i denna leverans. Platser hör till elevval och schema.
+- **D-16 Paketstorlek (2026-10-05).** Ett språkpaket består av så många steg i följd att poängen blir blockets: ett steg på 100 p (EK, NA), två steg på 200 p (HU, SA) och tre steg på 300 p (SM).
+- **D-17 Paketval i ersatt och arkiverad version (2026-10-05).** Skolans paketval får ändras i utkast, i fastställd version och i ersatt version, eftersom en ersatt version kan vara underlag för en pågående kull. Arkiverade planer är låsta.
+- **D-18 Läsrätt för skoladministratör (2026-10-05).** Skoladministratören får läsa programplanerna för sina egna skolor, så att paket kan väljas enligt D-10. Rätt att ändra planen ingår inte.
+- **D-19 Elevens rättigheter i individuellt val (2026-10-05).** Saknas nästa nivå i idrott och hälsa, ett estetiskt ämne eller, på yrkesprogram, behörighetsnivåerna i skolans utbud för individuellt val, visar analysen det som **risk**, inte fel. Lagen tillåter undantag vid synnerliga skäl.
 
 ## Gränser
 
