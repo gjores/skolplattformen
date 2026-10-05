@@ -1,0 +1,55 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS_WITH_EXISTING_SQL_FAILURE",
+  "sourceCommit": "b819a50c0116194e52fdf089ee7f7d134640da2c",
+  "node": {
+    "passed": 593,
+    "failed": 0
+  },
+  "types": "PASS",
+  "lint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "sqlTargeted": {
+    "passed": 326,
+    "failed": 0
+  },
+  "sqlFull": {
+    "passed": 2289,
+    "failed": 1,
+    "knownFailure": "phase2_audit#13"
+  },
+  "logs": {
+    "phase5-23-a-node-correction.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-node-correction.log",
+      "sha256": "536ca6c31227b4a9aab1887b43ce89c947ac8d5403a7875324df0ea718677a1b"
+    },
+    "phase5-23-a-types-final.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-types-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "phase5-23-a-lint-final.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "phase5-23-a-build-correction.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-build-correction.log",
+      "sha256": "579b0cd7b23217e4851782d05397f484b7f0c307297038f088b7400ed79bf8ff"
+    },
+    "phase5-23-a-docs.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-docs.log",
+      "sha256": "1d919c62a6f69582c896cf7bb115006d7cbfb5d788968d1866f1d64580ccc83a"
+    },
+    "phase5-23-a-sql-correction.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-sql-correction.log",
+      "sha256": "72f0337ae18546b8abc03ae1376ecb0b00bc7b79f37a3acd93db61750f61b9f7"
+    },
+    "phase5-23-a-sql-all-correction.log": {
+      "path": "web/test-results/phase5-23-a-final/phase5-23-a-sql-all-correction.log",
+      "sha256": "24c53f0f5871c7f5a0e8e1d86332dc30a7d94e51597252e9440260295ceeb9f4"
+    }
+  },
+  "planComplete": false,
+  "stepComplete": "A",
+  "nextStep": "B"
+}

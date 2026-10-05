@@ -1,0 +1,87 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "migration": "20261004150000_phase5_programplan_choice_blocks.sql",
+  "before": {
+    "point_plans": {
+      "count": 19,
+      "hash": "9fb3a93adc9ba747d2d0282a57000953"
+    },
+    "point_plan_events": {
+      "count": 45,
+      "hash": "76473502ba435c41f1af54241969a350"
+    },
+    "offerings": {
+      "count": 33,
+      "hash": "14fe140ed7b9d6c026c7a5b79c7de1a3"
+    },
+    "offering_units": {
+      "count": 118,
+      "hash": "74a235f37e72f90bf9d26244a8a3ba56"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    }
+  },
+  "sourceHash": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd",
+  "migrationApplied": true,
+  "after": {
+    "point_plans": {
+      "count": 19,
+      "hash": "9fb3a93adc9ba747d2d0282a57000953"
+    },
+    "point_plan_events": {
+      "count": 45,
+      "hash": "76473502ba435c41f1af54241969a350"
+    },
+    "offerings": {
+      "count": 33,
+      "hash": "14fe140ed7b9d6c026c7a5b79c7de1a3"
+    },
+    "offering_units": {
+      "count": 118,
+      "hash": "74a235f37e72f90bf9d26244a8a3ba56"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    }
+  },
+  "businessPreserved": true,
+  "previousFunctionAclPreserved": true,
+  "otherFunctionDefinitionsPreserved": true,
+  "journalRecorded": true
+}

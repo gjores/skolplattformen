@@ -1,0 +1,433 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "workerBuildRevision": "84ba403",
+  "suites": [
+    {
+      "name": "phase5-blocks",
+      "rawReport": "web/test-results/phase5-23-a-final/blocks/phase5-blocks.json",
+      "sha256": "7096bad0fa16123b53329c3fcf0dc32f6e802f50f99497c915e146d7774074ea",
+      "stats": {
+        "startTime": "2026-10-05T12:16:19.651Z",
+        "duration": 19250.467,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+          "project": "blocks-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+          "project": "blocks-phone",
+          "status": "expected"
+        }
+      ],
+      "pathAttachments": 2,
+      "cleanupAttachments": 2,
+      "cleanupAllPass": true
+    },
+    {
+      "name": "phase5-programplan",
+      "rawReport": "web/test-results/phase5-23-a-final/programplan/phase5-programplan.json",
+      "sha256": "3952b4d390426f755c9cb7da49786e84f2c5b33a9ef58d79b00723e71fece00c",
+      "stats": {
+        "startTime": "2026-10-05T12:17:53.832Z",
+        "duration": 244609.83,
+        "expected": 40,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "04: fördjupning läggs till och tas bort direkt i tabellen, sök och pekytor",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "07: verklig tvåsessionskonflikt stoppar och planen läses om",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "09: MFA och DB/Worker-auditfel ändrar ingenting",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "15: utgången session och avslutat givande mandat rensar den öppna planen",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+          "project": "programplan-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "04: fördjupning läggs till och tas bort direkt i tabellen, sök och pekytor",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "07: verklig tvåsessionskonflikt stoppar och planen läses om",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "09: MFA och DB/Worker-auditfel ändrar ingenting",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "15: utgången session och avslutat givande mandat rensar den öppna planen",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+          "project": "programplan-phone",
+          "status": "expected"
+        },
+        {
+          "name": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+          "project": "programplan-phone",
+          "status": "expected"
+        }
+      ],
+      "pathAttachments": 22,
+      "cleanupAttachments": 40,
+      "cleanupAllPass": true
+    },
+    {
+      "name": "phase5-terms",
+      "rawReport": "web/test-results/phase5-23-a-final/terms/phase5-terms.json",
+      "sha256": "aeebbfe1be36a6debfa622652ab4caac3e16a732f2b066cb1eb23b4d11eae2b3",
+      "stats": {
+        "startTime": "2026-10-05T12:21:59.423Z",
+        "duration": 148896.714,
+        "expected": 25,
+        "skipped": 1,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "name": "01: klick i tom termin lägger hela nivån, sparas när raden lämnas och finns kvar efter omladdning",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "02: för många poäng sparas inte och markeras tills raden är rättad",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "04: konkurrerande revision visas och egna värden kan sparas uttryckligen",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "05: MFA och loggfel lämnar värdena kvar utan skrivning",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "07: borttagen fördjupningsnivå töms först och försvinner ur tabellen",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "08: telefon visar en årskurs i taget med stora pekytor",
+          "project": "terms-desktop",
+          "status": "skipped"
+        },
+        {
+          "name": "09: Flytta nivån behåller poängen, visar rätt årskurs och låter felet rättas beständigt",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "10: Fördela och Flytta går till rätt rad, Lägg till nivå till sökfältet och sparar bara egna ändringar",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "11: Jämna ut behåller full fördelning och Ta bort nivåer går till fördjupningsradens kryss",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "13: Ange datum går till det osparade utkastets datumfält utan att tappa lokala poäng",
+          "project": "terms-desktop",
+          "status": "expected"
+        },
+        {
+          "name": "01: klick i tom termin lägger hela nivån, sparas när raden lämnas och finns kvar efter omladdning",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "02: för många poäng sparas inte och markeras tills raden är rättad",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "04: konkurrerande revision visas och egna värden kan sparas uttryckligen",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "05: MFA och loggfel lämnar värdena kvar utan skrivning",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "07: borttagen fördjupningsnivå töms först och försvinner ur tabellen",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "08: telefon visar en årskurs i taget med stora pekytor",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "09: Flytta nivån behåller poängen, visar rätt årskurs och låter felet rättas beständigt",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "10: Fördela och Flytta går till rätt rad, Lägg till nivå till sökfältet och sparar bara egna ändringar",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "11: Jämna ut behåller full fördelning och Ta bort nivåer går till fördjupningsradens kryss",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas",
+          "project": "terms-phone",
+          "status": "expected"
+        },
+        {
+          "name": "13: Ange datum går till det osparade utkastets datumfält utan att tappa lokala poäng",
+          "project": "terms-phone",
+          "status": "expected"
+        }
+      ],
+      "pathAttachments": 15,
+      "cleanupAttachments": 26,
+      "cleanupAllPass": true
+    }
+  ],
+  "passedBehaviors": 67,
+  "intentionallySkipped": 1,
+  "correctionBuildRevision": "b819a50c0116194e52fdf089ee7f7d134640da2c",
+  "correctionB01": {
+    "status": "PASS",
+    "passed": 2,
+    "rawReport": "web/test-results/phase5-23-a-final/blocks-correction/phase5-blocks.json",
+    "sha256": "44a9809265ec971939fea600d02dd72f53b85dacf382b18494bec39d2b150f5b",
+    "stats": {
+      "startTime": "2026-10-05T12:28:51.840Z",
+      "duration": 14526.506,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+        "project": "blocks-desktop",
+        "status": "expected"
+      },
+      {
+        "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+        "project": "blocks-phone",
+        "status": "expected"
+      }
+    ],
+    "pathAttachments": 2,
+    "cleanupAttachments": 2,
+    "cleanupAllPass": true
+  }
+}

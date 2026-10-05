@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "target": "protected",
+  "rollback": true,
+  "permanentMigration": false,
+  "vectors": 142,
+  "passed": 142,
+  "failures": []
+}

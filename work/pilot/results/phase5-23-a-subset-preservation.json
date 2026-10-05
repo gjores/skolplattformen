@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "target": "protected",
+  "readOnly": true,
+  "cutoffSource": "RED log creation time after original inventory",
+  "cutoff": "2026-10-05T11:56:46.647Z",
+  "tables": {
+    "point_plans": {
+      "count": 18,
+      "hash": "16b350d5d9a7b5beb3609d0eb6e6201d",
+      "originalRowsHashIdentical": true
+    },
+    "point_plan_events": {
+      "count": 43,
+      "hash": "3d6914ae41030102d6cd666cde0cfa1d",
+      "originalRowsHashIdentical": true
+    },
+    "offerings": {
+      "count": 32,
+      "hash": "e51caf123ca4e36dba20fa8d69c52d2b",
+      "originalRowsHashIdentical": true
+    },
+    "offering_units": {
+      "count": 117,
+      "hash": "dd527a96570560672a967f3887612c3a",
+      "originalRowsHashIdentical": true
+    }
+  }
+}

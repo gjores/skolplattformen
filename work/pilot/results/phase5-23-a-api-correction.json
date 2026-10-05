@@ -1,0 +1,187 @@
+{
+  "kind": "phase5-programplan-blocks-api",
+  "scope": "local-synthetic-only",
+  "step": "a",
+  "preflight": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual built workerd and restricted DB role",
+          "ok": true
+        },
+        {
+          "name": "exact sixteen Worker entrypoints",
+          "ok": true
+        },
+        {
+          "name": "choice helper has no Worker or client grant",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "ts-sql-parity",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "SA25/SABEP/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "SA25/SAMJK/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "SA25/SASAP/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "HU25/HUSPK/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "NA25/NANAA/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "EK25/EKEKI/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "SM25/null/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "BA25/BABYI/v2 exact ordered TS/SQL rows",
+          "ok": true
+        },
+        {
+          "name": "SA25/SABEP/legacy exact ordered TS/SQL rows",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "v2-create-save-reread",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "v2 created through HM Worker and paired audit",
+          "ok": true
+        },
+        {
+          "name": "new SA rows total exactly 2500 with three alternatives and two block rows",
+          "ok": true
+        },
+        {
+          "name": "all 2500 points persisted by Worker with revision and audit",
+          "ok": true
+        },
+        {
+          "name": "same v2 allocation reread by principal with paired audit",
+          "ok": true
+        },
+        {
+          "name": "v2 blocks remain exactly pinned on plan read",
+          "ok": true
+        },
+        {
+          "name": "existing source plan unchanged",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "route": "/api/programplaner/skapa",
+      "status": 200,
+      "correlationId": "6f5be752-0228-47e2-b702-9f19219cbc3b"
+    },
+    {
+      "route": "/api/programplaner/terminer",
+      "status": 200,
+      "correlationId": "deae4bab-e3ae-470a-bcf7-8f5cf2e3eb37"
+    },
+    {
+      "route": "/api/programplaner/terminer/lasa",
+      "status": 200,
+      "correlationId": "2c3b725b-ff09-4eb7-a21b-b19850417153"
+    },
+    {
+      "route": "/api/programplaner/lasa",
+      "status": 200,
+      "correlationId": "4fbcd585-7add-4c03-850d-1b4d6c576ad8"
+    }
+  ],
+  "complete": true,
+  "sourceCommit": "b819a50c0116194e52fdf089ee7f7d134640da2c",
+  "workerBuildRevision": "b819a50c0116194e52fdf089ee7f7d134640da2c",
+  "parityVectors": 9,
+  "cleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 8,
+    "preservedAuditAnchors": 2,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "aclUnchanged": true,
+  "originalHashes": [
+    {
+      "plans": "cad2f77d284e9b2c6ac5e1ad4dbe8958",
+      "offerings": "6f7c9be08bbaed0e393537ef264e1150",
+      "history": "d9d339b5336d94f204585316bf6a1de2",
+      "classes": "79f0a1cc4a63125623116910576cedf5",
+      "placements": "32ed21e11609d5b287ac29012a0357e4",
+      "timplans": "d74896a39c566865743027caa39927bd",
+      "classbindings": "d751713988987e9331980363e24189ce"
+    }
+  ],
+  "finalHashes": [
+    {
+      "plans": "cad2f77d284e9b2c6ac5e1ad4dbe8958",
+      "offerings": "6f7c9be08bbaed0e393537ef264e1150",
+      "history": "d9d339b5336d94f204585316bf6a1de2",
+      "classes": "79f0a1cc4a63125623116910576cedf5",
+      "placements": "32ed21e11609d5b287ac29012a0357e4",
+      "timplans": "d74896a39c566865743027caa39927bd",
+      "classbindings": "d751713988987e9331980363e24189ce"
+    }
+  ],
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T12:28:51.006Z",
+  "sourceHashes": {
+    "web/lib/programplan-catalog.ts": "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+    "web/lib/programplan-choice-blocks.ts": "3337f943873be68aa716cd067f9fd6ece81e1fc49e530747d53fd228fe68d35e",
+    "web/lib/programplan-terms.ts": "ec856c89ca7d5b08025bf0203f9b1542228c38b1d0d3a181da9bcf1f97ae6ed2",
+    "web/lib/programplan-terms-contract.ts": "bfb3e01fc65a42daae70f3eba660f9dc72a0f8c6de59803193cdbb8e041c3eb9",
+    "web/lib/programplan-contract.ts": "221c57bc99efa9dea8e53e7c172f1f461b1def28475dc01f6915b05075681f61",
+    "web/lib/protected-programplan.ts": "7326c0ca9da7f521aeae218f9ab666e60d43f5d2f98c979e47335eca35a71090",
+    "web/lib/server/programplan-planning.ts": "106ebdd882e77420201a804a86f6be25da73df0eab7e68e3de8aeac24b0a8e56",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/app/protected-programplan-board.tsx": "ba43b18c8d126c43e403971f9013de2bef61e66bac11628137b11f6236df52a6",
+    "web/app/protected-programplan-flow.tsx": "318647a96c7c1c022c9c20b84d6ffdc593a51eb2885ee50ba7bbaf80ca2b7d96",
+    "web/app/protected-programplan-workspace.tsx": "d7b945300829abb1b77c8d4cd01941c91c70857baddeec3f91842caa86183ce8",
+    "web/app/api/programplaner/skapa/route.ts": "435c9c2553cb916e8c039f413ca34a28ac79db2da9b4929af1bc46f1dcc65023",
+    "web/app/api/programplaner/lasa/route.ts": "47d0bf3a09a4a9e4285ac2b66caac25dc2e98a03073b7b07ebb41b4107bef3da",
+    "web/app/api/programplaner/terminer/route.ts": "cdfa49c5d8e9a9712e52220f1a03a1dab2f097f8de449ae2a8d8cd595845b7a4",
+    "web/app/api/programplaner/terminer/lasa/route.ts": "3e997213d8de3de6d2408247c9a1802110ecc5c1b11a422be8effee04eeebd1d",
+    "supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd",
+    "supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090",
+    "work/pilot/verify-programplan-blocks-api.mjs": "67424ca2cb82010eb207d1e2bb49842cf547e406e5e612c5e586888e0dfa25b6",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "b778d29d82cfc31e719a33d71b4815ce4c355160cb92c386370771c3a53efd99"
+  }
+}

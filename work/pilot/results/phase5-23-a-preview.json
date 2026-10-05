@@ -1,0 +1,14 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "workerBuildRevision": "b819a50c0116194e52fdf089ee7f7d134640da2c",
+  "previousBuildRevision": "ce887482648a1cc1a0257d3d380769f35519a5cb",
+  "retainedPreviousClientAssets": 35,
+  "automaticTabReload": false,
+  "existingPlanUpgrade": false,
+  "afterBusinessRowsPreserved": true,
+  "auditedReads": 44,
+  "previewPort": 3012,
+  "isolatedBuildCheckoutRemoved": true,
+  "previousBuildBackupRemoved": true
+}

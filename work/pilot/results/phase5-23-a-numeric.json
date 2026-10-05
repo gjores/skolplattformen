@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "target": "protected",
+  "permanentMigration": false,
+  "rollback": true,
+  "migration": "20261004150100_phase5_programplan_block_numeric.sql",
+  "sourceHash": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090",
+  "previousFunctionHash": "abe98b67a92edba38839c371cb23d440905b0ffac048eefdcd3c9fc2318ff480",
+  "journalDependency": "20261004150000",
+  "red": {
+    "tests": 326,
+    "failed": 3,
+    "passed": 323,
+    "error": "22P02",
+    "cases": [
+      "200.0",
+      "200.00",
+      "split IV 100.0 + 1e2"
+    ]
+  },
+  "green": {
+    "tests": 326,
+    "passed": 326,
+    "failed": 0
+  },
+  "numericCases": [
+    "200.0",
+    "200.00",
+    "2e2",
+    "2.00e2",
+    "200",
+    "200.5",
+    "0",
+    "-200",
+    "10001",
+    "1e100",
+    "string",
+    "null",
+    "boolean",
+    "split IV"
+  ],
+  "parserTests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "snapshotBusinessPreserved": true,
+  "originalMigrationUnchanged": true,
+  "reset": false
+}
