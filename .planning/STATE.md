@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-23
 status: in_progress
-stopped_at: 05-23 A/B/C/D genomförda och verifierade lokalt; nästa ny executorsession E för fullplansverifiering. Mänskligt prov väntar; äldre auditfall FAIL och 05-22 metadata PARTIAL. 05-25 väntar på hela 05-23
+stopped_at: 05-23 A/B/C/D genomförda; användaren har beställt omprövning av paketens placering före fortsatt E. Förslag granskat, ingen ombyggnad beslutad. Mänskligt prov väntar; äldre auditfall FAIL och 05-22 metadata PARTIAL. 05-25 väntar på hela 05-23
 last_updated: "2026-10-05"
 last_activity: 2026-10-05
-last_activity_desc: "05-23 D: oföränderliga versionsbundna ämnespaket, IV-analys och skyddad dialog. Node 646, D-API 11, browser 6 och paritet 33 PASS. Originaldata bevarade efter rättad provstädning; 3012 kör a307d26. Nästa E; äldre audit/metadata kvar."
+last_activity_desc: "Begärd översyn av paketens placering: förslag om egen skolutbud-/elevvalsarbetsyta och koppling till studieplan/grupper/bemanning. Förslag, ingen ombyggnad beslutad. D:s verifiering och 3012-bygge a307d26 består; E:s omfattning ska bedömas mot senare användarbeslut."
 state_head: a307d26
 worker_build_revision: a307d26d0e6ca712e07a96b052a01c451b18b966
 progress:
@@ -26,9 +26,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-05)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** 05-23 A/B/C/D genomförda och automatiskt verifierade lokalt. Skolans språk- och ämnespaket kan skapas, väljas och fördelas av huvudman/rektor/skoladministratör inom mandatet. Nästa E för fullplansprov och slutlig handbok. 05-25 väntar på hela 05-23; yrkesfastställande kräver dessutom 05-17. Mänskliga prov och full fasverifiering är fortsatt öppna.
+**Current focus:** Användarbeställd översyn av paketens plats i programplan, skolutbud, studieplan och tjänstefördelning. Förslag finns, ombyggnad är inte beslutad. 05-23 A/B/C/D är genomförda och automatiskt verifierade lokalt; den tidigare ordningen har E som nästa genomförandesteg. 05-25 väntar på hela 05-23; yrkesfastställande kräver dessutom 05-17. Mänskliga prov och full fasverifiering är fortsatt öppna.
 
 ## Current Position
+
+**Begärd arkitekturöversyn, 2026-10-05:** Användaren ifrågasätter paketens placering i programplanen och vill bedöma dem tillsammans med individuella studieplaner och tjänstefördelning. [Bedömningen](research/PAKETENS-PLATS-I-UTBILDNINGSFLODET-2026-10-05.md) föreslår programram → skolans utbud/valomgång → elevens konkreta studierader → grupper/bemanning, med tidig resursprognos och senare avstämning. Bibliotek/versioner och befintliga uppgifter kan återanvändas. Förslaget är inte godkänt; ingen produktkod eller databas ändrad. E:s tidigare genomförandeordning består som planering och får inte tolkas som beslut om slutlig UI-placering. Ny beställning/avgränsning behövs för ombyggnad; inga redan godkända krav återfrågas.
 
 **05-23 steg D, 2026-10-05:** Oföränderliga ämnespaket/versioner för IV/fördjupning/HU/NA, exakt versionsbundet skolval, mandat för källa/mål och skydd mot tappat svar/409 är genomförda. Skolans samlade IV-utbud analyseras; saknad idrott/yrkesbehörighet ger risk, estetisk lista Att kontrollera. Migration 156000/157000 utan reset, exakt 21 Worker-entrypoints. Node 646, harness 5, riktad SQL 137+428, TS/SQL-paritet 33, D-preflight/API/3012 vardera 11 och API-regression C16/B11/program48/terminer31/livscykel39/utbildning43 PASS. D/C/B-browser 6/16/6 och fyra bilder på dator/telefon PASS. Typ/lint/bygge/handbok PASS. Första runtime-FAIL fann 74 kvarlämnade ägda syntetiska skolkopplingar; städningsrättning och exakt återställning av originalmängden bevisade. Slutlig 3012 kör a307d26 med tolv hela tabeller och 18 scenarier/44 auditpar bevarade. Se SUMMARY/D-VERIFICATION/D-FUNCTION-INVENTORY och phase5-23-d-rapporter. Full SQL inte omkörd: C:s historiska 2411/2412 FAIL samt 05-22 metadata PARTIAL kvar. **Hela 05-23 in_progress, ADMIN-02/ADMIN-03 Pending; nästa E.** Mänsklig begriplighet awaiting_user, inga verkliga kommunbevis.
 
@@ -246,7 +248,7 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-05
-**Stopped At:** 05-23 A/B/C/D automatiskt verifierade; nästa E i ny executorsession. Mänskligt prov väntar på vanlig 3012. Full fas 5, yrkesregler 05-17 och fas 4:s checkpoint kvarstår.
+**Stopped At:** 05-23 A/B/C/D automatiskt verifierade. Paketens placering omprövas på användarens begäran; förslag redovisat, ombyggnad inte beslutad. E är tidigare planerat nästa steg. Mänskligt prov väntar på vanlig 3012. Full fas 5, yrkesregler 05-17 och fas 4:s checkpoint kvarstår.
 **Resume File:** None
 
 **Planned Phase:** 5 — genomför 05-23 E före 05-25; mänskligt prov av programplanerna är separat och väntande. 05-17 saknar fortfarande genomförandeplan och ska levereras inför yrkesfastställande. Delegation och full fasverifiering kvarstår — 2026-10-05
