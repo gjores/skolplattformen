@@ -118,3 +118,70 @@ test('L06: kopia med passerat startdatum stoppas i formuläret och av servern',a
   await expect(form).toContainText('Utbildningen har redan startat. En ny plan kan bara skapas för en kull som inte har börjat.');
   expect((await fixture.plans(fixture.offeringId)).length).toBe(1);await page.unroute('**/api/programplaner/utbildning/skapa');
 });
+
+const schools=(page:Page)=>dialog(page).getByRole('region',{name:'Skolor',exact:true});
+const schoolB=(page:Page)=>schools(page).getByRole('checkbox',{name:'Syntetisk gymnasieskola B',exact:true});
+async function chooseSchools(page:Page,includeB:boolean){
+  await w(page).getByRole('button',{name:'Skolor',exact:true}).click();await expect(dialog(page)).toHaveAccessibleName('Skolor');
+  await expect(schools(page)).toContainText('Skapad här');
+  const primary=schools(page).getByRole('checkbox',{name:/Syntetisk programplansskola/u});await expect(primary).toBeChecked();await expect(primary).toBeDisabled();
+  if(includeB)await schoolB(page).check();else await schoolB(page).uncheck();
+  const pending=page.waitForResponse(matches(LIFECYCLE));await dialog(page).getByRole('button',{name:'Spara skolor',exact:true}).click();
+  const response=await pending;expect(response.status()).toBe(200);expect(response.request().postDataJSON().command).toBe('units');
+  await expect(dialog(page)).toHaveCount(0);return response;
+}
+
+test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra',async({page},info)=>{
+  const beforeB=await fixture.request(baseURL,fixture.principalB,'/api/programplaner/lista',{page:1});expect(beforeB.status).toBe(200);expect(beforeB.body.offerings.some((o:{id:string})=>o.id===fixture.offeringId)).toBe(false);
+  const original=await fixture.snapshot();await enter(page);await open(page,'Syntetisk bunden SA');await chooseSchools(page,true);
+  expect((await fixture.units(fixture.offeringId)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);expect(await fixture.snapshot()).toEqual(original);
+  await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await expect(list(page)).toHaveAttribute('aria-busy','false');
+  await list(page).getByLabel('Skola',{exact:true}).selectOption(fixture.secondUnitId);await expect(row(page,'Syntetisk bunden SA')).toContainText('Syntetisk programplansskola + 1');await expect(row(page,'Syntetisk obunden SA')).toHaveCount(0);
+  expect(await noOverflow(page)).toBe(true);await capture(page,info,'units-school-filter.png');
+  await fixture.cookies(page.context(),fixture.principalB,baseURL);await page.goto('/');await navigate(page);await open(page,'Syntetisk bunden SA');
+  await expect(w(page)).toContainText('Planen delas med skolor utanför ditt uppdrag och kan bara läsas');
+  await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});
+  await expect(w(page)).toContainText('Version 1');await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
+  for(const name of ['Skolor','Ändra uppgifter','Arkivera','Ta bort','Föreslå fördelning'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);
+  const request={offeringId:fixture.offeringId,versionPage:1,catalogId:null},a=await fixture.request(baseURL,fixture.hm,'/api/programplaner/underlag',request),b=await fixture.request(baseURL,fixture.principalB,'/api/programplaner/underlag',request);
+  expect(b.status).toBe(200);expect(b.body.versions).toEqual(a.body.versions);expect(b.body.lifecycle.units.find((u:{id:string})=>u.id===fixture.unitId).inMandate).toBe(false);
+  expect(await noOverflow(page)).toBe(true);await capture(page,info,'units-principal-b-readonly.png');
+});
+
+test('L08: B tas bort före kullstart, läggs till efter start och kan då inte tas bort',async({page},info)=>{
+  const started=await fixture.startedEducation();await enter(page);await open(page,'Syntetisk bunden SA');await chooseSchools(page,true);await chooseSchools(page,false);
+  expect((await fixture.units(fixture.offeringId)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId]);
+  await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await expect(list(page)).toHaveAttribute('aria-busy','false');await open(page,'Syntetisk pågående SA');await chooseSchools(page,true);
+  await w(page).getByRole('button',{name:'Skolor',exact:true}).click();await expect(schoolB(page)).toBeChecked();await expect(schoolB(page)).toBeDisabled();await expect(schools(page)).toContainText('Skolan kan inte tas bort när kullen har börjat');
+  expect(await noOverflow(page)).toBe(true);await capture(page,info,'units-started-removal-locked.png');
+  await dialog(page).getByRole('button',{name:'Avbryt',exact:true}).click();
+  // Direkta försök omfattas också av serverns statusregel.
+  const startedId=started.offeringId;
+  const current=await fixture.request(baseURL,fixture.hm,'/api/programplaner/underlag',{offeringId:startedId,versionPage:1,catalogId:null});
+  const denied=await fixture.request(baseURL,fixture.hm,LIFECYCLE,{offeringId:startedId,expectedRevision:current.body.lifecycle.revision,command:'units',details:{unitIds:[fixture.unitId]}});
+  expect(denied.status).toBe(409);expect(denied.body.code).toBe('programplan_locked');expect((await fixture.units(startedId)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);
+});
+
+test('L09: kopiering till ny elevkull bevarar skolor, innehåll och original',async({page},info)=>{
+  await enter(page);await open(page,'Syntetisk bunden SA');await chooseSchools(page,true);const original=await fixture.snapshot();
+  await w(page).getByRole('button',{name:'Kopiera',exact:true}).click();const form=w(page).getByRole('region',{name:'Kopiera till ny utbildning',exact:true});
+  await form.getByLabel('Utbildningens namn',{exact:true}).fill('Syntetisk delad kopia SA');await form.getByLabel('Elevkull',{exact:true}).fill('Syntetisk kopierad kull');await form.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill(FUTURE_START);
+  const created=page.waitForResponse(matches('/api/programplaner/utbildning/skapa')),units=page.waitForResponse(matches(LIFECYCLE));await form.getByRole('button',{name:'Spara kopia',exact:true}).click();
+  const response=await created;expect(response.status()).toBe(200);const body=await response.json(),schoolResponse=await units;
+  expect(schoolResponse.status()).toBe(200);expect(schoolResponse.request().postDataJSON()).toMatchObject({offeringId:body.education.id,command:'units',details:{unitIds:[fixture.unitId,fixture.secondUnitId]}});
+  await expect(w(page).getByRole('heading',{name:'Syntetisk delad kopia SA',exact:true})).toBeVisible();await expect(w(page)).toContainText('Kopian sparades');
+  expect((await fixture.units(body.education.id)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);const copy=await fixture.snapshot(body.plan.id);
+  expect(copy.specialization).toEqual(original.specialization);expect(copy.basis_reference).toEqual(original.basis_reference);expect(await fixture.snapshot()).toEqual(original);
+  const b=await fixture.request(baseURL,fixture.principalB,'/api/programplaner/underlag',{offeringId:body.education.id,versionPage:1,catalogId:null});expect(b.status).toBe(200);expect(b.body.education.name).toBe('Syntetisk delad kopia SA');
+  expect(await noOverflow(page)).toBe(true);await capture(page,info,'units-copied-new-cohort.png');
+  // Fel i skolsteget lämnar den redan sparade kopian och ger en konkret återhämtningsväg.
+  await w(page).getByRole('button',{name:'Kopiera',exact:true}).click();const recovery=w(page).getByRole('region',{name:'Kopiera till ny utbildning',exact:true});
+  await recovery.getByLabel('Utbildningens namn',{exact:true}).fill('Syntetisk kopia med skolstegfel');await recovery.getByLabel('Elevkull',{exact:true}).fill('Syntetisk återhämtningskull');await recovery.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill(FUTURE_START);
+  await page.route('**'+LIFECYCLE,route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({code:'audit_unavailable'})}));
+  const failureCreated=page.waitForResponse(matches('/api/programplaner/utbildning/skapa')),failedSchools=page.waitForResponse(matches(LIFECYCLE));await recovery.getByRole('button',{name:'Spara kopia',exact:true}).click();
+  const saved=await failureCreated;expect(saved.status()).toBe(200);const partial=await saved.json();expect((await failedSchools).status()).toBe(500);
+  await expect(w(page).getByRole('heading',{name:'Syntetisk kopia med skolstegfel',exact:true})).toBeVisible();await expect(w(page)).toContainText('Skolorna kunde inte kopieras och behöver väljas igen under Skolor.');
+  expect((await fixture.units(partial.education.id)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId]);expect(await fixture.snapshot(partial.plan.id)).toBeTruthy();expect(await fixture.snapshot()).toEqual(original);
+  await page.unroute('**'+LIFECYCLE);await chooseSchools(page,true);expect((await fixture.units(partial.education.id)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);
+  expect(await noOverflow(page)).toBe(true);await capture(page,info,'units-copy-recovery.png');
+});

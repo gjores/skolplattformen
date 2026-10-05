@@ -109,7 +109,7 @@ test('strikt units-kommando: 1–100 unika skolor, bara unitIds i details', () =
   assert.deepEqual(parseProgramplanLifecycleCommand(command), command);
   const ids = Array.from({ length: 100 }, (_, n) => `55102000-0000-4000-8000-${String(n).padStart(12, '0')}`);
   assert.equal(parseProgramplanLifecycleCommand({ ...command, details: { unitIds: ids } }).details.unitIds.length, 100);
-  for (const details of [{ unitIds: [] }, { unitIds: [unit, unit.toUpperCase()] }, { unitIds: [...ids, schoolB] }, { unitIds: ['x'] }, { unitIds: [unit], organizerId: id }, { unitIds: [, unit] }])
+  for (const details of [{ unitIds: [] }, { unitIds: [unit, unit.toUpperCase()] }, { unitIds: [...ids, schoolB] }, { unitIds: ['x'] }, { unitIds: [unit], organizerId: id }, { unitIds: Array(2) }])
     assert.throws(() => parseProgramplanLifecycleCommand({ ...command, details }));
 });
 test('units-svar kvitterar exakt skolurval och revision, inte en annan sparning', () => {

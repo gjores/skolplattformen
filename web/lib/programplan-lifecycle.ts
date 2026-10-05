@@ -5,20 +5,28 @@ import { ProgramplanContractError } from './programplan-catalog.ts';
 export type ProgramplanPhase = 'framtida' | 'pagaende' | 'avslutad' | 'okand';
 export type ProgramplanLifecycleUnit = { id: string; name: string; primary: boolean; inMandate: boolean };
 export type ProgramplanLifecycle = { phase: ProgramplanPhase; startsOn: string | null; archived: boolean; revision: number; units: ProgramplanLifecycleUnit[] };
-export type ProgramplanLifecycleCommandName = 'delete' | 'archive' | 'restore' | 'update';
+export type ProgramplanLifecycleCommandName = 'delete' | 'archive' | 'restore' | 'update' | 'units';
 export type ProgramplanEducationDetails = { name: string; localCode: string | null; cohort: string; startedOn: string | null };
 export type ProgramplanLifecycleCommand =
   | { offeringId: string; expectedRevision: number; command: 'delete' | 'archive' | 'restore'; details: Record<string, never> }
-  | { offeringId: string; expectedRevision: number; command: 'update'; details: ProgramplanEducationDetails };
+  | { offeringId: string; expectedRevision: number; command: 'update'; details: ProgramplanEducationDetails }
+  | { offeringId: string; expectedRevision: number; command: 'units'; details: { unitIds: string[] } };
 export type ProgramplanLifecycleReply = { offeringId: string; command: ProgramplanLifecycleCommandName; lifecycle: ProgramplanLifecycle | null };
 export type ProgramplanLifecycleActions = { editDetails: boolean; changePlan: boolean; delete: boolean; archive: boolean; restore: boolean };
 
-export function programplanSchoolActions(_lifecycle: ProgramplanLifecycle, _role: 'huvudman' | 'rektor'): { add: boolean; remove: boolean } { return { add: false, remove: false }; }
-export function programplanSchoolLabel(lifecycle: ProgramplanLifecycle): string { return lifecycle.units.find(u => u.primary)!.name; }
+/** D-05: tillägg efter start är tillåtet, borttagning bara före start. */
+export function programplanSchoolActions(lifecycle: ProgramplanLifecycle, role: 'huvudman' | 'rektor'): { add: boolean; remove: boolean } {
+  const allowed = role === 'huvudman' && !lifecycle.archived && lifecycle.units.length > 0 && lifecycle.units.every(u => u.inMandate);
+  return { add: allowed, remove: allowed && lifecycle.phase === 'framtida' };
+}
+export function programplanSchoolLabel(lifecycle: ProgramplanLifecycle): string {
+  const name = lifecycle.units.find(u => u.primary)!.name;
+  return lifecycle.units.length > 1 ? `${name} + ${lifecycle.units.length - 1}` : name;
+}
 
 export const programplanPhaseLabel: Record<ProgramplanPhase, string> = { framtida: 'Framtida', pagaende: 'Pågående', avslutad: 'Avslutad', okand: 'Start okänd' };
 export const programplanLifecycleEvent: Record<ProgramplanLifecycleCommandName, string> = {
-  delete: 'programplan_education_deleted', archive: 'programplan_education_archived', restore: 'programplan_education_restored', update: 'programplan_education_updated',
+  delete: 'programplan_education_deleted', archive: 'programplan_education_archived', restore: 'programplan_education_restored', update: 'programplan_education_updated', units: 'programplan_education_units_changed',
 };
 
 function bad(): never { throw new ProgramplanContractError('invalid_programplan_lifecycle'); }
@@ -65,13 +73,14 @@ export function programplanPhaseAt(startsOn: string | null, startYear: number | 
 /** D-01: tillåtna åtgärder. Rektor ändrar bara planen i en framtida, ej arkiverad utbildning. */
 export function programplanLifecycleActions(lifecycle: ProgramplanLifecycle, role: 'huvudman' | 'rektor'): ProgramplanLifecycleActions {
   const open = !lifecycle.archived && lifecycle.phase === 'framtida', hm = role === 'huvudman';
-  const inMandate = lifecycle.units.some(u => u.primary && u.inMandate);
+  const inMandate = lifecycle.units.length > 0 && lifecycle.units.every(u => u.inMandate);
   return { editDetails: hm && open && inMandate, changePlan: open && inMandate, delete: hm && open && inMandate,
     archive: hm && !lifecycle.archived && inMandate, restore: hm && lifecycle.archived && inMandate };
 }
 /** Kort förklaring när planen inte går att ändra. */
 export function programplanLockReason(lifecycle: ProgramplanLifecycle): string | null {
   if (lifecycle.archived) return 'Planen är arkiverad och kan bara läsas. Ta fram den ur arkivet för att se den bland övriga planer.';
+  if (lifecycle.units.some(u => !u.inMandate)) return 'Planen delas med skolor utanför ditt uppdrag och kan bara läsas';
   if (lifecycle.phase === 'pagaende') return 'Elevkullen har börjat. En pågående plan kan inte ändras, bara arkiveras.';
   if (lifecycle.phase === 'avslutad') return 'Utbildningen är avslutad. Planen kan inte ändras, bara arkiveras.';
   if (lifecycle.phase === 'okand') return 'Utbildningens start är okänd och en version är fastställd. Planen skyddas och kan inte ändras, bara arkiveras.';
@@ -101,7 +110,7 @@ function text(v: unknown, max: number, optional = false): string | null {
 export function parseProgramplanLifecycle(v: unknown): ProgramplanLifecycle {
   const r = object(v, ['phase', 'startsOn', 'archived', 'revision', 'units']);
   if (typeof r.phase !== 'string' || !Object.hasOwn(programplanPhaseLabel, r.phase) || typeof r.archived !== 'boolean') bad();
-  const units = list(r.units, 50).map(u => {
+  const units = list(r.units, 100).map(u => {
     const x = object(u, ['id', 'name', 'primary', 'inMandate']);
     if (typeof x.primary !== 'boolean' || typeof x.inMandate !== 'boolean' || typeof x.name !== 'string' || x.name.length > 1000) bad();
     return { id: uuid(x.id), name: x.name, primary: x.primary, inMandate: x.inMandate };
@@ -118,6 +127,11 @@ export function parseProgramplanLifecycleCommand(v: unknown): ProgramplanLifecyc
   const r = object(v, ['offeringId', 'expectedRevision', 'command', 'details']);
   const base = { offeringId: uuid(r.offeringId), expectedRevision: integer(r.expectedRevision, 2147483646) };
   if (r.command === 'update') return { ...base, command: 'update', details: parseProgramplanEducationDetails(r.details) };
+  if (r.command === 'units') {
+    const details = object(r.details, ['unitIds']), unitIds = list(details.unitIds, 100).map(uuid);
+    if (!unitIds.length || new Set(unitIds).size !== unitIds.length) bad();
+    return { ...base, command: 'units', details: { unitIds } };
+  }
   if (r.command !== 'delete' && r.command !== 'archive' && r.command !== 'restore') bad();
   object(r.details, []);
   return { ...base, command: r.command, details: {} };
@@ -128,5 +142,6 @@ export function parseProgramplanLifecycleReply(v: unknown, expected: Programplan
   if (expected.command === 'delete') { if (r.lifecycle !== null) bad(); return { offeringId: expected.offeringId, command: 'delete', lifecycle: null }; }
   const lifecycle = parseProgramplanLifecycle(r.lifecycle);
   if (lifecycle.revision !== expected.expectedRevision + 1 || lifecycle.archived !== (expected.command === 'archive')) bad();
+  if (expected.command === 'units' && (lifecycle.units.length !== expected.details.unitIds.length || lifecycle.units.some(u => !expected.details.unitIds.includes(u.id)))) bad();
   return { offeringId: expected.offeringId, command: expected.command, lifecycle };
 }

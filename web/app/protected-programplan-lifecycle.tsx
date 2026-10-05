@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { parseProgramplanLifecycleReply, programplanPhaseLabel, startsAfter, stockholmToday, type ProgramplanLifecycle, type ProgramplanLifecycleCommand,
+import { parseProgramplanLifecycleReply, programplanPhaseLabel, programplanSchoolActions, startsAfter, stockholmToday, type ProgramplanLifecycle, type ProgramplanLifecycleCommand,
   type ProgramplanLifecycleReply } from '@/lib/programplan-lifecycle.ts';
+import { parseProgramplanSelection, type ProgramplanSelection } from '@/lib/programplan-education-contract.ts';
+import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import MfaStepUpNotice from './mfa-step-up';
 
 /** Statusmärke. Visar bara serverns lifecycle, räknar aldrig själv. */
@@ -20,7 +22,7 @@ export type LifecycleTarget = {
   /** Startdatum får ändras bara när utbildningen har en enda version som är ett bundet utkast. */
   startEditable: boolean;
 };
-export type LifecycleDialogKind = 'delete' | 'archive' | 'restore' | 'update';
+export type LifecycleDialogKind = 'delete' | 'archive' | 'restore' | 'update' | 'units';
 type Props = {
   kind: LifecycleDialogKind; target: LifecycleTarget; onClose: () => void;
   /** Lyckad ändring. Anroparen läser om innan något nytt kan skickas. */
@@ -29,12 +31,74 @@ type Props = {
   onStale: (message: string) => void;
   onSecurityFailure: (error: unknown) => boolean;
 };
-const TITLES: Record<LifecycleDialogKind, string> = { delete: 'Ta bort programplanen?', archive: 'Arkivera programplanen?', restore: 'Ta fram programplanen ur arkivet?', update: 'Ändra uppgifter' };
-const ACTION: Record<LifecycleDialogKind, string> = { delete: 'Ta bort', archive: 'Arkivera', restore: 'Ta fram ur arkivet', update: 'Spara uppgifter' };
-const BUSY: Record<LifecycleDialogKind, string> = { delete: 'Tar bort…', archive: 'Arkiverar…', restore: 'Tar fram…', update: 'Sparar…' };
+const TITLES: Record<LifecycleDialogKind, string> = { delete: 'Ta bort programplanen?', archive: 'Arkivera programplanen?', restore: 'Ta fram programplanen ur arkivet?', update: 'Ändra uppgifter', units: 'Skolor' };
+const ACTION: Record<LifecycleDialogKind, string> = { delete: 'Ta bort', archive: 'Arkivera', restore: 'Ta fram ur arkivet', update: 'Spara uppgifter', units: 'Spara skolor' };
+const BUSY: Record<LifecycleDialogKind, string> = { delete: 'Tar bort…', archive: 'Arkiverar…', restore: 'Tar fram…', update: 'Sparar…', units: 'Sparar…' };
+
+/** Skolvalet hämtas från huvudmannens mandatavgränsade val-API. */
+function SchoolsDialog({ target, onClose, onChanged, onStale, onSecurityFailure }: Omit<Props, 'kind'>) {
+  const [schools, setSchools] = useState<ProgramplanSelection['units'] | null>(null);
+  const initial = useMemo(() => target.lifecycle.units.map(u => u.id), [target.lifecycle.units]);
+  const [selected, setSelected] = useState(initial), [busy, setBusy] = useState(false), [mfa, setMfa] = useState(false), [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const dirty = initial.length !== selected.length || initial.some(id => !selected.includes(id));
+  useUnsavedChanges(`programplan-schools-${target.offeringId}`, dirty || busy);
+  useEffect(() => {
+    const controller = new AbortController();
+    const input = { unitId: null, catalogId: null, programRef: null };
+    void api.post('/api/programplaner/val', input, controller.signal).then(value => {
+      if (controller.signal.aborted) return;
+      const choices = parseProgramplanSelection(value, input);
+      if (!choices.canCreateEducation || initial.some(id => !choices.units.some(u => u.id === id))) throw new Error('Skolornas mandat har ändrats. Läs om planen.');
+      setSchools(choices.units);
+    }).catch(e => {
+      if (controller.signal.aborted || onSecurityFailure(e)) return;
+      setLoadError(true); setError(e instanceof ApiError ? e.message : 'Skolorna kunde inte hämtas. Stäng rutan och läs om planen.');
+    });
+    return () => controller.abort();
+    // Target is immutable for this mounted dialog; a fresh workspace remounts it.
+  }, [target.offeringId, initial, onSecurityFailure]);
+  const actions = programplanSchoolActions(target.lifecycle, 'huvudman');
+  const close = () => { if (busy) return; if (mfa) onStale('Inget har ändrats. Verifiera med engångskod och försök sedan igen.'); else if (!dirty || confirmDiscard()) onClose(); };
+  async function submit() {
+    if (busy || !schools || loadError || mfa || !dirty || !actions.add) return;
+    const own: ProgramplanLifecycleCommand = { offeringId: target.offeringId, expectedRevision: target.lifecycle.revision, command: 'units', details: { unitIds: selected } };
+    setBusy(true); setError(null);
+    try {
+      const reply = parseProgramplanLifecycleReply(await api.post('/api/programplaner/utbildning/livscykel', own), own);
+      onChanged('Skolorna sparades. Samma programplan visas på alla valda skolor.', reply);
+    } catch (e) {
+      if (onSecurityFailure(e)) return;
+      if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') setMfa(true);
+      else if (e instanceof ApiError && e.hasExplicitCode && e.status === 400) setError(`Kunde inte spara skolorna. ${e.message}`);
+      else onStale(e instanceof ApiError && e.hasExplicitCode && e.status === 409 ? e.message : 'Skolvalet kunde inte bekräftas. Listan har lästs om; kontrollera skolorna innan du försöker igen.');
+    } finally { setBusy(false); }
+  }
+  return <Dialog open onOpenChange={open => { if (!open) close(); }}><DialogContent className="pp-dialog ppl-lifecycle-dialog" showCloseButton={!busy}>
+    <DialogTitle>Skolor</DialogTitle><DialogDescription>Välj vilka skolor som använder {target.name}. De ser samma versioner och innehåll.</DialogDescription>
+    <section aria-label="Skolor">
+      {!schools && !loadError && <output>Hämtar skolor…</output>}
+      {schools?.map(school => {
+        const primary = target.lifecycle.units.some(u => u.id === school.id && u.primary), originallySelected = initial.includes(school.id);
+        return <label className="pp-check" key={school.id}><input type="checkbox" checked={selected.includes(school.id)}
+          disabled={busy || mfa || primary || !actions.add || originallySelected && !actions.remove || !selected.includes(school.id) && selected.length >= 100}
+          onChange={e => setSelected(ids => e.target.checked ? [...ids, school.id] : ids.filter(id => id !== school.id))}/>
+          <span>{school.name}{primary && <small> · Skapad här</small>}</span></label>;
+      })}
+      {!actions.remove && <p>Skolan kan inte tas bort när kullen har börjat</p>}
+      <p>Klasser, elevplaceringar och timplaner hör tills vidare bara till skolan där utbildningen skapades.</p>
+    </section>
+    {error && <p className="pp-alert" role="alert">{error}</p>}
+    {mfa && <MfaStepUpNotice message="Skolvalet kräver verifiering med engångskod." detail="Inget har ändrats. Läs om planen efter verifieringen."/>}
+    <div className="pp-dialog-actions"><Button variant="outline" disabled={busy} onClick={close}>Avbryt</Button><Button disabled={busy || !schools || loadError || mfa || !dirty || !actions.add} onClick={() => void submit()}>{busy ? 'Sparar…' : 'Spara skolor'}</Button></div>
+  </DialogContent></Dialog>;
+}
 
 /** Huvudmannens livscykeldialoger: ta bort, arkivera, ta fram och ändra uppgifter. */
-export function LifecycleDialog({ kind, target, onClose, onChanged, onStale, onSecurityFailure }: Props) {
+export function LifecycleDialog(props: Props) {
+  return props.kind === 'units' ? <SchoolsDialog {...props}/> : <EducationLifecycleDialog {...props} kind={props.kind}/>;
+}
+function EducationLifecycleDialog({ kind, target, onClose, onChanged, onStale, onSecurityFailure }: Props & { kind: Exclude<LifecycleDialogKind, 'units'> }) {
   const [confirmed, setConfirmed] = useState(kind === 'update'), [busy, setBusy] = useState(false), [mfa, setMfa] = useState(false), [error, setError] = useState<string | null>(null);
   const [name, setName] = useState(target.name), [cohort, setCohort] = useState(target.cohort), [localCode, setLocalCode] = useState(target.localCode ?? '');
   const [startedOn, setStartedOn] = useState(target.lifecycle.startsOn ?? '');
