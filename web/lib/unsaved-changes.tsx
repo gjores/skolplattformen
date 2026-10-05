@@ -71,8 +71,9 @@ export function useUnsavedChanges(id: string, dirty: boolean): void {
   }, [dirty, id, setDirty]);
 }
 
-export function useHasUnsaved(): boolean {
-  return useRegistry().dirtyIds.size > 0;
+export function useHasUnsaved(prefix?:string): boolean {
+  const ids=useRegistry().dirtyIds;
+  return prefix?[...ids].some(id=>id.startsWith(prefix)):ids.size>0;
 }
 
 export function confirmDiscard(): boolean {

@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { Eraser, Plus, Search, SplitSquareHorizontal, Wand2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useUnsavedChanges,useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.ts';
 import { defaultProgramplanChoiceBlocks, type ProgramplanChoiceBlock } from '@/lib/programplan-choice-blocks.ts';
 import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference } from '@/lib/programplan-catalog.ts';
@@ -45,6 +45,7 @@ const sameRow = (a?: ProgramplanTermPoints, b?: ProgramplanTermPoints) => (a ?? 
 /** Programplanen som en tabell: ämnen, programfördjupning och sex terminer. Sparas automatiskt när en rad lämnas. */
 export default function ProgramplanBoard({ schoolPackages, focusIssue, plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onTerms }: Props) {
   const basis = plan.basisReference!;
+  const packagesUnsaved=useHasUnsaved(`packages-${scope}-${plan.id}-`);
   const rows = useMemo(() => programplanTermRows(program, basis), [program, basis]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
   // 05-20: arbetsytan skickar locked när planen har startat eller är arkiverad (serverns lifecycle).
@@ -136,6 +137,7 @@ export default function ProgramplanBoard({ schoolPackages, focusIssue, plan, pro
   }
 
   async function changeSpecialization(refs: ProgramplanLevelRef[], cleared?: string) {
+    if(packagesUnsaved){setMessage('Spara eller läs om skolans paket innan du ändrar planens nivåer.');return;}
     if (!editable || working) return;
     setWorking(true); setMessage(null);
     try {
@@ -162,6 +164,7 @@ export default function ProgramplanBoard({ schoolPackages, focusIssue, plan, pro
   }
 
   async function changeBlocks(choiceBlocks: ProgramplanChoiceBlock[]): Promise<boolean> {
+    if(packagesUnsaved){setMessage('Spara eller läs om skolans paket innan du ändrar planens block.');return false;}
     if (!editable || working || saving.current || !basis.choiceBlocks) return false;
     setWorking(true); setMessage(null);
     let expected: number | null = null;
