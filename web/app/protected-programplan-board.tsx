@@ -205,19 +205,19 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
   const target = focusIssue?.target;
   const targetRow = target?.kind === 'row' ? target.rowKey : target?.kind === 'specialization' && target.mode === 'remove' ? rows.find(r=>r.part==='specialization')?.key : null;
   useEffect(() => {
-    if (!focusIssue || handledFocus.current === focusIssue || !target) return;
+    if (!focusIssue || handledFocus.current === focusIssue || !target || target.kind === 'start' || target.kind === 'orientation') return;
     const term = targetRow ? (values.get(targetRow)?.findIndex(n=>n>0) ?? -1) : -1;
     let focusFrame = 0;
     const frame = requestAnimationFrame(() => {
       setOnlyOpen(false); if (targetRow) setYear(term < 0 ? 0 : Math.floor(term / 2));
       focusFrame = requestAnimationFrame(() => {
-      const grid = gridRef.current;
-      const row = targetRow ? grid?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(targetRow)}"]`) : null;
-      const control = target.kind === 'specialization' && target.mode === 'add' ? grid?.querySelector<HTMLInputElement>('input[type="search"]')
-        : target.kind === 'specialization' ? row?.querySelector<HTMLButtonElement>('button[aria-label^="Ta bort"]')
-        : row?.querySelector<HTMLInputElement>(`input[data-term="${term < 0 ? 0 : term}"]`) ?? grid?.querySelector<HTMLButtonElement>('.ppb-year');
-      (row ?? control)?.scrollIntoView({block:'center'}); control?.focus({preventScroll:true});
-      handledFocus.current = focusIssue;
+        const grid = gridRef.current;
+        const row = targetRow ? grid?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(targetRow)}"]`) : null;
+        const control = target.kind === 'specialization' && target.mode === 'add' ? grid?.querySelector<HTMLInputElement>('input[type="search"]')
+          : target.kind === 'specialization' ? row?.querySelector<HTMLButtonElement>('button[aria-label^="Ta bort"]')
+          : row?.querySelector<HTMLInputElement>(`input[data-term="${term < 0 ? 0 : term}"]`) ?? grid?.querySelector<HTMLButtonElement>('.ppb-year');
+        (row ?? control)?.scrollIntoView({block:'center'}); control?.focus({preventScroll:true});
+        handledFocus.current = focusIssue;
       });
     });
     return () => { cancelAnimationFrame(frame); cancelAnimationFrame(focusFrame); };
