@@ -40,8 +40,21 @@ export type TimplanIssue = {
   basis: 'regel' | 'lokal' | 'underlag'; sourceUrl: string | null; validFrom: string | null; validTo: string | null;
   localParameter: { name: string; value: number } | null;
   /** Obligatorisk kontrollpunkt (bara för Att kontrollera). */
-  mandatory: boolean; affectedRows: string[]; affectedColumns: string[]; actionTarget: ActionTarget;
+  mandatory: boolean;
+  /** Fel och obligatoriska kontrollpunkter hindrar beslut; risker, allmän information och Uppfyllt gör det inte. */
+  blocksDecision: boolean;
+  affectedRows: string[]; affectedColumns: string[]; actionTarget: ActionTarget;
 };
+/** Lokala planeringsbedömningar. De är aldrig lagkrav och redovisas som risk med parameterns namn. */
+export type LocalParameters = {
+  /** Ett ämne med minst så många timmar i ett stadium bör ha tid i varje årskurs. */
+  subjectEveryYearMinStageHours: number;
+  /** IM: bekräftad undervisning mindre än så här över gränsen ger en lågmarginalsrisk. */
+  imLowMarginHours: number;
+  /** IM: andel annan aktivitet (procent av undervisning och annan aktivitet) över vilken balansen flaggas. */
+  imOtherActivityMaxPercent: number;
+};
+export const DEFAULT_LOCAL_PARAMETERS: LocalParameters = { subjectEveryYearMinStageHours: 100, imLowMarginHours: 2, imOtherActivityMaxPercent: 40 };
 export type AnalysisInput = {
   schoolKind: 'grundskola' | 'introduktionsprogram';
   schoolId: string; savedRevision: number | null; analysisVersion: string;
@@ -50,10 +63,16 @@ export type AnalysisInput = {
   /** Årskurser som planens kolumner motsvarar (grundskola). Standard: 1–9. */
   grades?: number[]; cells: Record<string, number[]>;
   valuesAre: 'saved' | 'own-unsaved';
+  localParameters?: Partial<LocalParameters>;
 };
+export type ReadinessReason = { code: 'own-unsaved' | 'no-saved-revision' | 'analysis-version-missing'; text: string };
 export type TimplanAnalysis = {
   analysisVersion: string; schoolKind: AnalysisInput['schoolKind']; schoolId: string; savedRevision: number | null;
+  /** Gäller analysen serverns sparade revision eller användarens egna osparade värden. */
+  scope: 'saved' | 'own-unsaved';
   profileId: string | null; issues: TimplanIssue[]; counts: Record<Category, number>;
+  /** Beslutsunderlaget är inte klart: blockerande resultat eller skäl som rör underlaget. Räknas aldrig fram från totalsumman. */
+  blocksDecision: boolean; blockingIssueIds: string[]; readinessReasons: ReadinessReason[];
 };
 
 const hours = (låg: number, mellan: number, hög: number): StageHours => ({ låg, mellan, hög });
@@ -92,6 +111,27 @@ export const GRUNDSKOLA_PROFILE: GrundskolaProfile = {
   schoolChoice: { rowId: 'skolansval', maxHours: 600, maxReductionPercent: 20 },
 };
 
+/**
+ * Introduktionsprogram: i genomsnitt minst 23 timmars undervisning per vecka (Skolverket, läst 2026-10-04).
+ * Källan anger inget startdatum, så giltigheten redovisas som okänd. Raderna klassificeras här och bara här:
+ * undervisning räknas mot ramen, annan aktivitet (praktik, mentorstid) gör det inte.
+ */
+export const IM_PROFILE: ImProfile = {
+  id: 'im-2026-10', schoolKind: 'introduktionsprogram',
+  source: { url: 'https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema',
+    label: 'Skolverket: undervisningstid, lärotider och schema', verifiedOn: '2026-10-04', validFrom: null, validTo: null },
+  minTeachingHoursPerWeek: 23,
+  rows: [
+    { rowId: 'im-sv', name: 'Svenska eller svenska som andraspråk, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-ma', name: 'Matematik, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-en', name: 'Engelska, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-sh', name: 'Samhällskunskap, grundskolenivå', kind: 'undervisning' },
+    { rowId: 'im-idh', name: 'Idrott och hälsa', kind: 'undervisning' },
+    { rowId: 'im-praktik', name: 'Praktik och yrkesorientering', kind: 'annan' },
+    { rowId: 'im-mentor', name: 'Studiehandledning och mentorstid', kind: 'annan' },
+  ],
+};
+
 const STAGES: Stage[] = ['låg', 'mellan', 'hög'];
 const STAGE_KEY: Record<Stage, string> = { låg: 'lag', mellan: 'mellan', hög: 'hog' };
 const STAGE_NAME: Record<Stage, string> = { låg: 'lågstadiet', mellan: 'mellanstadiet', hög: 'högstadiet' };
@@ -128,10 +168,20 @@ function collector() {
       actual: d.actual ?? null, expected: d.expected ?? null, unit: d.unit ?? null,
       basis: d.basis ?? 'regel', sourceUrl: d.source?.url ?? null, validFrom: d.source?.validFrom ?? null, validTo: d.source?.validTo ?? null,
       localParameter: d.localParameter ?? null, mandatory: d.category === 'info' && d.mandatory === true,
+      blocksDecision: d.category === 'fel' || (d.category === 'info' && d.mandatory === true),
       affectedRows: d.rows ?? [], affectedColumns: d.columns ?? [], actionTarget: d.target ?? null,
     });
   };
   return { issues, add };
+}
+
+function resolveLocalParameters(overrides: Partial<LocalParameters> | undefined): LocalParameters {
+  const result = { ...DEFAULT_LOCAL_PARAMETERS };
+  for (const key of Object.keys(result) as (keyof LocalParameters)[]) {
+    const value = overrides?.[key];
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) result[key] = value;
+  }
+  return result;
 }
 
 function profileProblem(input: AnalysisInput): string | null {
@@ -145,7 +195,7 @@ function profileProblem(input: AnalysisInput): string | null {
   return null;
 }
 
-function grundskola(add: Add, input: AnalysisInput, p: GrundskolaProfile): void {
+function grundskola(add: Add, input: AnalysisInput, p: GrundskolaProfile, params: LocalParameters): void {
   const src = p.source;
   const pct = p.schoolChoice.maxReductionPercent;
   const grades = input.grades ?? ALL_GRADES;
@@ -263,6 +313,23 @@ function grundskola(add: Add, input: AnalysisInput, p: GrundskolaProfile): void 
     }
   }
 
+  for (const stage of complete) {
+    const candidates = [
+      ...p.subjects.filter(s => !s.shared?.stages.includes(stage)).map(s => ({ rowId: s.rowId, name: s.name })),
+      ...p.groups.flatMap(g => g.memberStages.includes(stage) ? g.members : [{ rowId: g.rowId, name: g.name }]),
+    ];
+    for (const row of candidates) {
+      if (!has(row.rowId)) continue;
+      const total = sum(row.rowId, stage), emptyAt = idx[stage].find(i => planned.get(row.rowId)![i] === 0);
+      if (total < params.subjectEveryYearMinStageHours || emptyAt === undefined) continue;
+      add(`gr:subject-every-year:${row.rowId}:${STAGE_KEY[stage]}`, { ruleId: 'subject-every-year', category: 'risk', basis: 'lokal',
+        localParameter: { name: 'subjectEveryYearMinStageHours', value: params.subjectEveryYearMinStageHours },
+        title: `${row.name}: ingen tid i åk ${grades[emptyAt]}`,
+        detail: `${fmt(total)} timmar i ${STAGE_NAME[stage]} men inga i åk ${grades[emptyAt]}. Ett ämne med minst ${fmt(params.subjectEveryYearMinStageHours)} timmar i stadiet läses normalt varje årskurs. Det är en lokal bedömning, inget lagkrav.`,
+        rows: [row.rowId], columns: [columnId(grades[emptyAt])], target: { type: 'cell', rowId: row.rowId, columnId: columnId(grades[emptyAt]) } });
+    }
+  }
+
   let sharedChecked = false;
   for (const s of p.subjects) {
     if (!s.shared || !has(s.rowId)) continue;
@@ -338,6 +405,60 @@ function grundskola(add: Add, input: AnalysisInput, p: GrundskolaProfile): void 
   }
 }
 
+function introduktionsprogram(add: Add, input: AnalysisInput, p: ImProfile, params: LocalParameters): void {
+  const src = p.source, column = ['vecka'], expected = p.minTeachingHoursPerWeek;
+  const names = new Map(p.rows.map(r => [r.rowId, r.name] as const));
+  const planned = new Map<string, number>();
+  for (const [rowId, name] of names) {
+    const raw: unknown = Object.hasOwn(input.cells, rowId) ? input.cells[rowId] : undefined;
+    if (raw === undefined) {
+      add(`im:row-missing:${rowId}`, { ruleId: 'row-missing', category: 'fel', basis: 'underlag', title: `${name}: raden saknas`,
+        detail: 'Raden finns inte i planen. En saknad rad räknas inte som noll, och de kontroller som behöver den kan inte genomföras.',
+        rows: [rowId], columns: column, target: rowTarget(rowId, column) });
+    } else if (!validRow(raw, 1)) {
+      add(`im:row-shape:${rowId}`, { ruleId: 'row-shape', category: 'fel', basis: 'underlag', title: `${name}: raden har ogiltigt värde`,
+        detail: 'Raden ska ha ett heltal mellan 0 och 2 000 timmar per vecka. Värdet räknas inte.', rows: [rowId], columns: column, target: rowTarget(rowId, column) });
+    } else planned.set(rowId, raw[0]);
+  }
+  const unclassifiedRows = Object.entries(input.cells).filter(([rowId, raw]) => !names.has(rowId) && !(Array.isArray(raw) && raw.every(n => n === 0)));
+  const unclassified = unclassifiedRows.reduce((n, [, raw]) => n + (Array.isArray(raw) ? raw.reduce((m, v) => m + (Number.isInteger(v) && v > 0 ? v : 0), 0) : 0), 0);
+  if (unclassifiedRows.length > 0) {
+    add('im:time-unclassified', { ruleId: 'time-unclassified', category: 'info', mandatory: true, basis: 'underlag', unit: 'timmar per vecka', actual: unclassified,
+      title: 'Oklassificerad tid i planen',
+      detail: `${fmt(unclassified)} timmar per vecka ligger på rader som regelprofilen inte klassificerar (${unclassifiedRows.map(([id]) => id).join(', ')}). De räknas inte som undervisning.`,
+      rows: unclassifiedRows.map(([id]) => id), columns: column });
+  }
+
+  const sumOf = (kind: 'undervisning' | 'annan') => p.rows.filter(r => r.kind === kind).reduce((n, r) => n + (planned.get(r.rowId) ?? 0), 0);
+  const teachingRows = p.rows.filter(r => r.kind === 'undervisning').map(r => r.rowId), otherRows = p.rows.filter(r => r.kind === 'annan').map(r => r.rowId);
+  const confirmed = sumOf('undervisning'), other = sumOf('annan');
+  if (teachingRows.every(id => planned.has(id))) {
+    const target = rowTarget(teachingRows[0], column);
+    const common = { ruleId: 'im-teaching', unit: 'timmar per vecka' as const, actual: confirmed, expected, rows: teachingRows, columns: column, target };
+    if (confirmed < expected) {
+      const total = otherRows.every(id => planned.has(id)) ? ` Planen har totalt ${fmt(confirmed + other)} timmar per vecka, men ${fmt(other)} av dem är annan aktivitet och räknas inte som undervisning.` : '';
+      add('im:im-teaching', { ...common, category: 'fel', source: src, title: 'Styrkt undervisningsram saknas',
+        detail: `${fmt(confirmed)} timmar per vecka är bekräftad undervisning enligt profilens klassificering, kravet är i genomsnitt minst ${fmt(expected)}.${total}` });
+    } else {
+      add('im:im-teaching', { ...common, category: 'ok', source: src, title: 'Undervisningsramen är uppfylld i planen',
+        detail: `${fmt(confirmed)} timmar per vecka är undervisning enligt profilens klassificering, kravet är i genomsnitt minst ${fmt(expected)}. Det visar planerad tid i en gemensam plan, inte genomförd tid och inte någon enskild elevs program.` });
+      if (confirmed < expected + params.imLowMarginHours) {
+        add('im:im-low-margin', { ...common, ruleId: 'im-low-margin', category: 'risk', basis: 'lokal', expected: expected + params.imLowMarginHours,
+          localParameter: { name: 'imLowMarginHours', value: params.imLowMarginHours }, title: 'Låg marginal över undervisningsramen',
+          detail: `${fmt(confirmed)} timmar per vecka ger ${fmt(confirmed - expected)} timmars marginal. Det är en lokal bedömning (marginal under ${fmt(params.imLowMarginHours)} timmar), inget lagkrav.` });
+      }
+    }
+    if (otherRows.every(id => planned.has(id)) && confirmed + other > 0 && other * 100 > params.imOtherActivityMaxPercent * (confirmed + other)) {
+      add('im:im-other-share', { ruleId: 'im-other-share', category: 'risk', basis: 'lokal', unit: 'timmar per vecka', actual: other, expected: null,
+        localParameter: { name: 'imOtherActivityMaxPercent', value: params.imOtherActivityMaxPercent }, title: 'Mycket annan aktivitet jämfört med undervisning',
+        detail: `${fmt(other)} av ${fmt(confirmed + other)} timmar per vecka är praktik och mentorstid. Det är en lokal balansbedömning (över ${fmt(params.imOtherActivityMaxPercent)} procent), inget lagkrav.`,
+        rows: otherRows, columns: column, target: rowTarget(otherRows[0], column) });
+    }
+  }
+  add('im:im-individual', { ruleId: 'im-individual', category: 'info', mandatory: false, source: src, title: 'Individuell tillämpning kontrolleras separat',
+    detail: 'En gemensam plan visar inte vilken undervisning varje elev får. Rektor beslutar den individuella fördelningen, och den prövas inte här.' });
+}
+
 export function analyseTimplan(input: AnalysisInput): TimplanAnalysis {
   const { issues, add } = collector();
   const problem = profileProblem(input);
@@ -346,13 +467,32 @@ export function analyseTimplan(input: AnalysisInput): TimplanAnalysis {
     add('profil:profile-unknown', { ruleId: 'profile-unknown', category: 'info', mandatory: true, basis: 'underlag',
       title: 'Regelprofil saknas eller gäller inte planen',
       detail: `${problem} Inga rättsliga påståenden görs, och planen kan inte fastställas förrän profilen är kontrollerad.` });
-  } else if (profile?.schoolKind === 'grundskola') grundskola(add, input, profile);
+  } else if (profile) {
+    const params = resolveLocalParameters(input.localParameters);
+    if (profile.schoolKind === 'grundskola') grundskola(add, input, profile, params);
+    else introduktionsprogram(add, input, profile, params);
+    add('allm:planned-not-delivered', { ruleId: 'planned-not-delivered', category: 'info', mandatory: false, basis: 'underlag',
+      title: 'Planerad tid är inte genomförd undervisning',
+      detail: 'Timplanen visar planerad tid. Den är inte faktiskt genomförd undervisning och bevisar inte någon enskild elevs genomförda timmar.' });
+    if (profile.source.validFrom === null) {
+      add('allm:profile-validity', { ruleId: 'profile-validity', category: 'info', mandatory: false, source: profile.source,
+        title: 'Källan anger ingen startdag för regeln',
+        detail: `${profile.source.label} anger ingen startdag. Kontrollera att regeln gäller för utbildningens elevkull.` });
+    }
+  }
 
   issues.sort((a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) || (a.issueId < b.issueId ? -1 : a.issueId > b.issueId ? 1 : 0));
   const counts: Record<Category, number> = { fel: 0, risk: 0, info: 0, ok: 0 };
   for (const issue of issues) counts[issue.category]++;
+  const scope = input.valuesAre === 'saved' ? 'saved' : 'own-unsaved';
+  const readinessReasons: ReadinessReason[] = [];
+  if (scope === 'own-unsaved') readinessReasons.push({ code: 'own-unsaved', text: 'Analysen gäller egna osparade värden. Beslut baseras på serverns sparade revision.' });
+  else if (!Number.isSafeInteger(input.savedRevision) || (input.savedRevision as number) < 0) readinessReasons.push({ code: 'no-saved-revision', text: 'Det finns ingen sparad revision att besluta om.' });
+  if (typeof input.analysisVersion !== 'string' || input.analysisVersion.trim() === '') readinessReasons.push({ code: 'analysis-version-missing', text: 'Analysens version saknas, så resultatet kan inte hänföras till en regelversion.' });
+  const blockingIssueIds = issues.filter(i => i.blocksDecision).map(i => i.issueId);
   return {
     analysisVersion: input.analysisVersion, schoolKind: input.schoolKind, schoolId: input.schoolId,
-    savedRevision: input.savedRevision, profileId: profile?.id ?? null, issues, counts,
+    savedRevision: input.savedRevision, scope, profileId: profile?.id ?? null, issues, counts,
+    blocksDecision: blockingIssueIds.length > 0 || readinessReasons.length > 0, blockingIssueIds, readinessReasons,
   };
 }
