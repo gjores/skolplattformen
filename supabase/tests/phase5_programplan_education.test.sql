@@ -9,10 +9,10 @@ create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns v
  set_config('app.correlation_id','55008000-0000-4000-8000-000000000099',true);
 end $$;
 create function pg_temp.programplan_reference(refs jsonb default '[{"subjectCode":"ENGE","subjectVersion":1,"itemCode":"ENGE3000X","points":100}]'::jsonb)
-returns jsonb language sql immutable as $$select jsonb_build_object(
+returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code','SA25','version',4),'orientationCode','SABEP',
- 'startedOn','2026-08-01','specializationRefs',refs)$$;
+ 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs)$$;
 insert into public.customers(id,name) values('55008000-0000-4000-8000-000000000001','Syntetiskt programplansprov');
 insert into public.organizers(id,customer_id,name,type) values('55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000001','Syntetisk programplanshuvudman','Kommun');
 insert into public.identities(id,issuer,subject) values
@@ -73,7 +73,7 @@ insert into education_results select public.phase5_create_programplan_education(
 select is((select result->'education'->>'name' from education_results),'Ny utbildning','name explicitly trimmed');
 select is((select result->'education'->>'status' from education_results),'planerad','status planned');
 select is((select result->'plan'->>'status' from education_results),'utkast','first draft');
-select is((select result->'education'->>'startYear' from education_results),'2026','start year comes from explicit start');
+select is((select result->'education'->>'startYear' from education_results),(extract(year from current_date)::integer+1)::text,'start year comes from explicit start');
 select is((select count(*) from public.programplan_education_receipts where command_id='55008000-0000-4000-8000-000000000901'),1::bigint,'one private receipt');
 select is((select result->'plan'->>'version' from education_results),'1','first version');
 select is((select result->>'replayed' from education_results),'false','first save not replay');

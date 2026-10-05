@@ -2,7 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 -- Preserve the historical ACL profile only inside this rollback-only regression.
-revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb) from skolplattform_worker;
+revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb),public.phase5_change_programplan_education(uuid,integer,text,jsonb) from skolplattform_worker;
 
 -- Historical eight-entrypoint profile: explicit local revokes roll back at EOF.
 -- The actual final ten-entrypoint ACL is asserted by phase5_programplan_workspace_worker.
@@ -15,10 +15,10 @@ create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns v
  set_config('app.correlation_id','55008000-0000-4000-8000-000000000099',true);
 end $$;
 create function pg_temp.programplan_reference(refs jsonb default '[{"subjectCode":"ENGE","subjectVersion":1,"itemCode":"ENGE3000X","points":100}]'::jsonb)
-returns jsonb language sql immutable as $$select jsonb_build_object(
+returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code','SA25','version',4),'orientationCode','SABEP',
- 'startedOn','2026-08-01','specializationRefs',refs)$$;
+ 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs)$$;
 insert into public.customers(id,name) values('55008000-0000-4000-8000-000000000001','Syntetiskt programplansprov');
 insert into public.organizers(id,customer_id,name,type) values('55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000001','Syntetisk programplanshuvudman','Kommun');
 insert into public.identities(id,issuer,subject) values
@@ -152,7 +152,8 @@ update public.customers set closed_at=null where id='55008000-0000-4000-8000-000
 select is((select revision from public.point_plans where id='55008000-0000-4000-8000-000000000050'),2,'all role/session/revocation denials preserve the winner revision');
 select is((select count(*) from public.security_events where object_id='55008000-0000-4000-8000-000000000050' and action='programplan_specialization_changed'),2::bigint,'denied calls add no successful mutation audit');
 
-select throws_ok($q$update public.point_plans set basis_reference=jsonb_set(basis_reference,'{startedOn}','"2026-09-01"') where id='55008000-0000-4000-8000-000000000050'$q$,'42501',null,'pinned education start cannot be changed directly');
+select throws_ok($q$update public.point_plans set basis_reference=jsonb_set(basis_reference,'{startedOn}','"2026-09-01"') where id='55008000-0000-4000-8000-000000000050'$q$,'40001',null,'pinned education start cannot be changed directly without revision');
+-- 05-20: startdatumet i ett utkast får ändras via update-kommandot (revision +1); direkt ändring utan revision ger nu 40001 i stället för 42501.
 select throws_ok($q$update public.point_plans set basis_reference=jsonb_set(basis_reference,'{orientationCode}','"SASAP"') where id='55008000-0000-4000-8000-000000000050'$q$,'42501',null,'pinned orientation cannot be changed directly');
 select throws_ok($q$update public.point_plans set status='faststalld',decided_on=public.app_today() where id='55008000-0000-4000-8000-000000000050'$q$,'42501',null,'there is no new direct fastställande path');
 select throws_ok($q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000052',0,'[]')$q$,'42501',null,'older decided source cannot be edited');
@@ -164,6 +165,9 @@ select throws_ok($q$select public.phase5_create_programplan_draft('55008000-0000
 insert into programplan_results values('created',public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000045',0,jsonb_set(jsonb_set(pg_temp.programplan_reference('[]'),'{programRef}','{"code":"ES25","version":3}'),'{orientationCode}','"ESBIF"')));
 select ok((select value @> '{"version":1,"revision":0,"status":"utkast","decidedOn":null,"resolution":{"status":"resolved","decisionReady":false}}'::jsonb and value->>'id'<>'55008000-0000-4000-8000-000000000050' from programplan_results where name='created'),'create returns actual new ID/version/revision with no decision');
 select is((select count(*) from public.point_plans where offering_id='55008000-0000-4000-8000-000000000045' and status='utkast'),1::bigint,'create stores exactly one open draft');
+-- 05-20: okänd start (fastställd utan startunderlag) är låst. Ett framtida startår ger en framtida plan så att
+-- klonens egna valideringar prövas som förut.
+update public.offerings set start_year=extract(year from current_date)::integer+1 where id='55008000-0000-4000-8000-000000000042';
 select throws_ok($q$select public.phase5_clone_programplan_draft('55008000-0000-4000-8000-000000000052',0,3,null)$q$,'22023',null,'unbound decided source requires explicit legacy basis');
 select throws_ok($q$select public.phase5_clone_programplan_draft('55008000-0000-4000-8000-000000000052',0,2,pg_temp.programplan_reference())$q$,'40001',null,'clone checks current latest business version');
 select throws_ok($q$select public.phase5_clone_programplan_draft('55008000-0000-4000-8000-000000000052',1,3,pg_temp.programplan_reference())$q$,'40001',null,'clone checks source revision');

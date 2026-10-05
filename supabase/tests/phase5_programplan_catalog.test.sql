@@ -4,6 +4,8 @@ select no_plan();
 -- Historical eight-entrypoint profile: explicit local revokes roll back at EOF.
 -- The actual final ten-entrypoint ACL is asserted by phase5_programplan_workspace_worker.
 revoke execute on function public.phase5_list_programplan_offerings(integer),public.phase5_programplan_workspace(uuid,integer,text) from skolplattform_worker;
+-- Historisk ACL-profil: senare grants (05-11 utbildning, 05-18 terminer, 05-20 livscykel) återkallas lokalt och rullas tillbaka.
+revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb),public.phase5_change_programplan_education(uuid,integer,text,jsonb) from skolplattform_worker;
 -- These INSERT probes are synthetic and the complete transaction rolls back.
 create function pg_temp.catalog_fixture() returns jsonb language sql immutable as $f$
 select '{"schemaVersion":1,"source":{"url":"https://catalog.example.test/v1","apiVersion":"synthetic-1","fetched":"2026-09-05"},"subjects":[{"code":"TEST","name":"Syntetiskt ämne","typeOfSyllabus":"GRADE_SUBJECT_SYLLABUS","schoolTypes":["GY"],"version":1,"startDate":"2026-01-01","endDate":null,"canceledDate":null,"skolfs":null,"items":[{"code":"TEST1000X","name":"Nivå 1","points":100}]}],"programs":[{"code":"TP25","name":"Syntetiskt program","category":"PRELIMINARY_PROGRAM_FOR_HIGHER_EDUCATION","version":1,"startDate":"2026-01-01","endDate":null,"canceledDate":null,"skolfs":null,"foundation":[{"code":"TEST","name":"Syntetiskt ämne","points":200,"optional":false,"subjectVersion":1,"levels":[{"code":"TEST1000X","name":"Nivå 1","points":100}]}],"programmeSpecific":[],"orientations":[],"specialization":[]}]}'::jsonb
@@ -13,7 +15,7 @@ create function pg_temp.catalog_insert(p jsonb,c text default null) returns void
  coalesce(c,'sha256:'||encode(extensions.digest(convert_to(public.phase5_programplan_canonical(p),'UTF8'),'sha256'),'hex')),p);
 end $$;
 create function pg_temp.catalog_ref(p text default 'SA25',v int default 4,o text default 'SABEP',d text default '2026-08-01',refs jsonb default '[]'::jsonb)
-returns jsonb language sql immutable as $$select jsonb_build_object(
+returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code',p,'version',v),'orientationCode',o,'startedOn',d,'specializationRefs',refs)$$;
 create function pg_temp.catalog_diagnostic(r jsonb,c text) returns boolean language sql as $$

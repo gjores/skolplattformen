@@ -14,10 +14,10 @@ create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns v
  set_config('app.correlation_id','55101000-0000-4000-8000-000000000099',true);
 end $$;
 create function pg_temp.programplan_reference(refs jsonb default '[{"subjectCode":"ENGE","subjectVersion":1,"itemCode":"ENGE3000X","points":100}]'::jsonb)
-returns jsonb language sql immutable as $$select jsonb_build_object(
+returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code','SA25','version',4),'orientationCode','SABEP',
- 'startedOn','2026-08-01','specializationRefs',refs)$$;
+ 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs)$$;
 insert into public.customers(id,name) values('55101000-0000-4000-8000-000000000001','Syntetiskt programplansprov');
 insert into public.organizers(id,customer_id,name,type) values('55101000-0000-4000-8000-000000000002','55101000-0000-4000-8000-000000000001','Syntetisk programplanshuvudman','Kommun');
 insert into public.identities(id,issuer,subject) values
@@ -87,10 +87,10 @@ insert into workspace_results values('list',public.phase5_list_programplan_offer
  ('missing',public.phase5_programplan_workspace('55101000-0000-4000-8000-000000000045',1,'sha256:'||repeat('0',64)));
 select is((select (value->>'count')::int from workspace_results where name='list'),4,'principal sees four own-school gymnasieutbildningar including no-plan education');
 select is((select count(*) from jsonb_object_keys((select value from workspace_results where name='list'))),4::bigint,'list has exactly four fields');
-select ok((select bool_and((select count(*) from jsonb_object_keys(o))=13) from workspace_results cross join lateral jsonb_array_elements(value->'offerings') o where name='list'),'education summaries have exactly thirteen fields');
+select ok((select bool_and((select count(*) from jsonb_object_keys(o))=14 and o ? 'lifecycle') from workspace_results cross join lateral jsonb_array_elements(value->'offerings') o where name='list'),'education summaries have exactly thirteen fields plus lifecycle (05-20)');
 select ok((select bool_and(o->>'unitId'='55101000-0000-4000-8000-000000000030' and o->>'kind'='gymnasium') from workspace_results cross join lateral jsonb_array_elements(value->'offerings') o where name='list'),'other school and other schoolforms absent');
 select ok((select value->'education' @> '{"id":"55101000-0000-4000-8000-000000000045","localCode":"SYNTETISK-ES","startYear":2026,"latestVersion":0,"draftId":null}'::jsonb and value->'versions'='[]'::jsonb and value->>'versionCount'='0' from workspace_results where name='empty-education'),'education without plan retains real metadata and zero max version');
-select is((select count(*) from jsonb_object_keys((select value from workspace_results where name='empty-education'))),8::bigint,'workspace has exactly eight fields');
+select is((select count(*) from jsonb_object_keys((select value from workspace_results where name='empty-education'))),9::bigint,'workspace has exactly eight fields plus lifecycle (05-20)');
 select ok((select value->'catalog' @> '{"status":"unselected","catalogId":null,"diagnostic":null,"payload":null}'::jsonb and value->'decisionReady'='false'::jsonb from workspace_results where name='empty-education'),'NULL explicitly leaves catalog unselected and decision closed');
 select is((select value->'versions'->0->'legacySpecialization' from workspace_results where name='legacy'),'["UNKNOWN_LEGACY","ANIM1000X","UNKNOWN_LEGACY"]'::jsonb,'legacy unknown and duplicate values preserved in original order');
 select ok((select value->'education'->'startYear'='null'::jsonb and value->'versions'->0->'basisReference'='null'::jsonb from workspace_results where name='legacy'),'free cohort is not education start and legacy is not auto-bound');
