@@ -106,7 +106,7 @@ test('04: fördjupning läggs till och tas bort direkt i tabellen, sök och peky
   const added=await addLevel(page,'ANIM1000X');expect(added.status()).toBe(200);await paired(added,'programplan_specialization_changed');await expect(board(page)).toContainText('ANIM1000X');expect((await fixture.snapshot()).specialization).toEqual(['ENGE3000X','ANIM1000X']);
   await expect(board(page)).toContainText('200 av 300 poäng');
   expect((await removeLevel(page,'ANIM1000X')).status()).toBe(200);expect((await removeLevel(page,'ENGE3000X')).status()).toBe(200);expect((await fixture.snapshot()).specialization).toEqual([]);
-  const area=board(page).locator('.ppb-add-row');await area.evaluate(async el=>{await Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>undefined)));});
+  const area=board(page).locator('.ppb-add-row');await area.evaluateAll(async rows=>{await Promise.all(rows.flatMap(el=>el.getAnimations().map(a=>a.finished.catch(()=>undefined))));});
   const targets=await area.locator('button,input').evaluateAll(elements=>elements.map(el=>{const r=el.getBoundingClientRect();return {width:r.width,height:r.height};}).filter(r=>r.width>0&&r.height>0));expect(targets.filter(r=>r.width<44||r.height<42)).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await capture(page,info,'programplan-dialog.png');
 });

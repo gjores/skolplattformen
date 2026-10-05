@@ -132,11 +132,11 @@ test('10: Fördela och Flytta går till rätt rad, Lägg till nivå till sökfä
   expect((await fixture.snapshot()).specialization).toContain('ANIM1000X');await capture(page,info,'analysis-fix-specialization.png');
 });
 
-test('11: Jämna ut behåller full fördelning och Ta bort nivåer går till fördjupningsradens kryss',async({page})=>{
+test('11: Jämna ut behåller befintlig fördelning och Ta bort nivåer går till fördjupningsradens kryss',async({page})=>{
   await enter(page);const pending=page.waitForResponse(matches('/api/programplaner/terminer'));await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await pending).status()).toBe(200);
   const saved=await read();const unbalanced=saved.distribution.map((d:{rowKey:string;points:number[]})=>({rowKey:d.rowKey,points:[0,0,0,0,d.points.reduce((a,b)=>a+b,0),0]}));
   await store(unbalanced,saved.revision);await page.reload();await navigate(page);await open(page);
-  await fix(page,'Jämna ut →');await expect(board(page).locator('.ppb-year').first()).toBeFocused();await expect(board(page)).toContainText('allt fördelat');expect((await read()).distribution).toEqual(unbalanced);
+  await fix(page,'Jämna ut →');await expect(board(page).locator('.ppb-year').first()).toBeFocused();await expect(board(page)).toContainText('200 poäng återstår att lägga till');expect((await read()).distribution).toEqual(unbalanced);
   // Verklig fördjupningsskrivning gör ramen för stor, utan att ändra terminsfördelningen.
   const current=await read();const refs=[...fixture.basis().specializationRefs,...['ANIM1000X','ANIM2000X','ARTI1000X'].map(code=>({subjectCode:code.slice(0,4),subjectVersion:code.startsWith('ARTI')?2:1,itemCode:code,points:100}))];
   const over=await fixture.request(baseURL,fixture.principal,'/api/programplaner/fordjupning',{planId:fixture.planId,expectedRevision:current.revision,specializationRefs:refs});expect(over.status).toBe(200);
