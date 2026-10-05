@@ -151,7 +151,7 @@ test('11: Jämna ut behåller befintlig fördelning och Ta bort nivåer går til
 test('12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas',async({page},info)=>{
   await fixture.startedEducation();await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);
   const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});await expect(list).toHaveAttribute('aria-busy','false');await list.getByRole('button',{name:/^Öppna utbildning Syntetisk pågående SA,/u}).click();await expect(board(page)).toContainText('Allt sparat');
-  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page)).toContainText('Elevkullen har börjat.');await expect(analysis(page).locator('.pps-link').filter({hasNotText:'Visa paket'})).toHaveCount(0);await expect(analysis(page).getByRole('button',{name:'Visa paket →',exact:true}).first()).toBeVisible();await capture(page,info,'analysis-readonly.png');
+  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page)).toContainText('Elevkullen har börjat.');await expect(analysis(page).locator('.pps-link')).toHaveCount(0);await expect(analysis(page).getByRole('button',{name:'Visa paket →',exact:true})).toHaveCount(0);await capture(page,info,'analysis-readonly.png');
 });
 
 

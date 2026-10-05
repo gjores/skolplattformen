@@ -1,6 +1,6 @@
 # Paketens plats i utbildningsflödet
 
-Datum: 2026-10-05. Status: **arkitektur- och verksamhetsförslag efter användarens begärda omprövning**, inte godkänd ombyggnad. Användaren ifrågasätter om paketen hör hemma i programplanen och vill bedöma kopplingen till studieplaner och tjänstefördelning. Tidigare genomförda A/B/C/D och deras provresultat består; de bevisar funktion enligt den tidigare beställningen, inte att placeringen är den bästa. Ingen produktkod, databas, handbok eller befintlig plan har ändrats i denna översyn.
+Datum: 2026-10-05. **Senare beslut:** användaren beställde ”Ändra appen så att det inte finns i programplanerna.” Den avgränsade [genomförandeplanen](../phases/05-bevarade-utbildnings-och-klassfloden/05-23-REMOVE-PACKAGES-PLAN.md) tar bort paketvyn, paketladdningen och paketanalysen från programplanerna, med bevarade ramar och lagrade uppgifter. Faktisk leverans och verifiering dokumenteras i [05-23-SUMMARY](../phases/05-bevarade-utbildnings-och-klassfloden/05-23-SUMMARY.md). Tidigare C/D-UI-prov är historiska. Den fulla separata utbuds-/elevvals-/organisationsfunktionen nedan är fortsatt ett förslag och ännu inte implementerad.
 
 ## Bedömning
 
@@ -36,7 +36,7 @@ En gemensam terminsram är inte bevis för att alternativen måste gå samtidigt
 
 ## Användarens tillägg: skolans organisatoriska förutsättningar
 
-Användaren förtydligar 2026-10-05 att en skola exempelvis kan ha en enda språklärare och behöva lägga språkgrupper på olika dagar. Skolan behöver då kunna organisera blocken i olika kombinationer för att undervisningen ska vara genomförbar. Detta är en tillagd verksamhetsförutsättning; hela föregående ombyggnadsförslag är fortfarande inte godkänt.
+Användaren förtydligar 2026-10-05 att en skola exempelvis kan ha en enda språklärare och behöva lägga språkgrupper på olika dagar. Skolan behöver då kunna organisera blocken i olika kombinationer för att undervisningen ska vara genomförbar. Detta är en tillagd verksamhetsförutsättning. Senare beställning godkänner borttagningen från programplanen, utan att i sig beställa hela den separata organisationsfunktionen.
 
 Det förstärker behovet av en **skolvis undervisningsorganisation** mellan utbildningens valbara ram och de konkreta schematillfällena:
 
@@ -56,9 +56,9 @@ Föreslagna verifieringsfall för STUDY-01/GROUP-01 och SCHEMA-01/03/07:
 4. Samma nivå/språk från olika program kan organiseras i gemensam grupp under förenliga villkor. Paket med flera nivåer kan samtidigt organiseras i flera grupper över tid.
 5. Om en organisationskombination saknar tillräcklig lärartid eller ger kända elevkonflikter ska bristen förklaras före bekräftat erbjudande. Okänd resurs, ofullständig kontroll eller avbruten schemaberäkning får inte redovisas som bevisad omöjlighet eller full genomförbarhet.
 
-Dessa fall är planeringsmål, inte körda prov eller nya levererade funktioner. Den gamla formuleringen att blocket automatiskt blir ett gemensamt schemafönster behöver omprövas i fortsatt planering; den genomförda D-leveransen kontrollerar terminsramar och bevisar inte veckoschemats organisation.
+Dessa fall är planeringsmål, inte körda prov eller nya levererade funktioner. Den gamla formuleringen att blocket automatiskt blir ett gemensamt schemafönster ersätts av användarens senare förtydligande; en terminsram bevisar inte veckoschemats organisation.
 
-## Vad den aktuella implementationen visar
+## Vad D-implementationen visade före borttagningen
 
 Berörd kod är läst, inklusive `web/lib/programplan-packages.ts`, `web/lib/programplan-analysis.ts`, `web/app/protected-programplan-packages.tsx` och `web/app/protected-programplan-workspace.tsx`. Den äldre kodkartan beskriver inte automatiskt det nuvarande skyddade läget.
 

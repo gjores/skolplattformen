@@ -13,6 +13,8 @@ Skolor vill också erbjuda valbara paket i programfördjupning och individuellt 
 
 ## Beslut
 
+**Senare beslut 2026-10-05:** användaren beställer att pakethanteringen tas bort från programplanerna. [REMOVE-PACKAGES-PLAN](05-23-REMOVE-PACKAGES-PLAN.md) ersätter D-14:s utfällbara paketvy, skolvis paketanalys och klientens paketkopiering till ny elevkull. Programram, fasta nivåer, blockpoäng, terminsfördelning och skolkopplingar består; äldre lagrade paket/versioner och deras backendmandat bevaras. Ingen ny separat utbudsvy beställs här. D-05:s automatiska gemensamma schemafönster gäller inte: skolan ska senare kunna organisera samma ram i olika kombinationer, exempelvis språkgrupper på olika dagar med en enda lärare. Besluten nedan beskriver tidigare beställning där den senare ändringen inte uttryckligen ersätter dem.
+
 - **D-01 Svenska/SvA är inget valbart block.** Varje nivå visas som en vanlig rad, ”Svenska/svenska som andraspråk nivå 1”, ”… nivå 2” och ”… nivå 3”. Raderna fördelas på terminer som andra rader och följer nivåordningen. Elevens val mellan ämnena görs i studieplanen senare. Markeringen av vilka nivåer som kan väljas bort på yrkesprogram kommer i 05-17.
 - **D-02 Benämning.** Platsen där eleven väljer heter **valbart block**. Innehållet heter **valpaket**. ”Modul” används inte.
 - **D-03 Användning.** Valbara block används för Moderna språk, HU:s språkämne, NA:s naturvetenskapliga ämne, programfördjupning och individuellt val, och alla ingår i samma leverans. Programfördjupningen består av fasta nivåer, som i dag, plus valbara block.

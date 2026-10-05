@@ -2,6 +2,9 @@ import {expect,test,type Page} from '@playwright/test';
 import {FUTURE_START,createProgramplanBrowserFixture,verifyProgramplanBrowserTarget} from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
 import {waitForHydration} from './helpers/keycloak.ts';
 import {proposeLanguagePackages,suggestPackageDistribution} from '../lib/programplan-packages.ts';
+// Historiska C/D-UI-prov. Senare användarbeslut flyttar paketen ur programplanerna.
+// Aktuell ram, analys och bevarande prövas i phase5-programplan-frame.spec.ts.
+test.skip(true,'Historiska paketkontroller är borttagna från programplansvyn 2026-10-05.');
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
 let fixture:Fixture;
 const baseURL=process.env.PHASE5_BASE_URL??'http://127.0.0.1:3059';

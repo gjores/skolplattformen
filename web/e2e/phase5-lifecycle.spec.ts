@@ -147,7 +147,7 @@ test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att
   await w(page).getByRole('button',{name:/^Analys/u}).click();
   const analysis=w(page).getByRole('region',{name:'Analys av programplanen',exact:true});
   await expect(analysis).toContainText('Planen delas med skolor utanför ditt uppdrag');
-  await expect(analysis.locator('.pps-link').filter({hasNotText:'Visa paket'})).toHaveCount(0);await expect(analysis.getByRole('button',{name:'Visa paket →',exact:true}).first()).toBeVisible();
+  await expect(analysis.locator('.pps-link')).toHaveCount(0);await expect(analysis.getByRole('button',{name:'Visa paket →',exact:true})).toHaveCount(0);
   await analysis.getByRole('button',{name:'Tillbaka till planen',exact:true}).click();
   await expect(w(page)).toContainText('Version 1');await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
   for(const name of ['Skolor','Ändra uppgifter','Arkivera','Ta bort','Föreslå fördelning'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);

@@ -25,6 +25,7 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'web/app/protected-programplan-board.tsx','web/lib/programplan-analysis.ts','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql',
   'supabase/migrations/20261004130000_phase5_programplan_units.sql','work/pilot/verify-programplan-lifecycle-api.mjs',
   'web/lib/programplan-choice-blocks.ts','supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','web/e2e/phase5-blocks.spec.ts','web/playwright.phase5-blocks.config.ts','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql','web/lib/programplan-languages.ts','web/lib/programplan-packages.ts','web/lib/server/programplan-packages.ts','web/app/protected-programplan-packages.tsx','web/e2e/phase5-packages.spec.ts','web/playwright.phase5-packages.config.ts','supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql','supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql','supabase/migrations/20261004156000_phase5_programplan_packages.sql','supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql','web/app/protected-programplan-package-dialog.tsx','work/pilot/verify-programplan-locks.mjs'];
+SOURCE_PATHS.push('web/e2e/phase5-programplan-frame.spec.ts','web/playwright.phase5-programplan-frame.config.ts');
 /** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull startade för 30 dagar sedan (inom katalogens giltighet). */
 export const FUTURE_START=nextCohortStart(),STARTED_START=new Date(Date.parse(`${stockholmToday()}T12:00:00Z`)-30*864e5).toISOString().slice(0,10);
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
@@ -36,7 +37,10 @@ export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,
 export async function verifyProgramplanBrowserTarget(baseURL) {
   if(!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL))throw Error('Endast lokal browserprovserver tillåts.');
   await assertTarget('protected');
-  const mark=JSON.parse(readFileSync(path.join(root,'web/dist-protected/build-mode.json'),'utf8'));
+  // Separat ägt bygge kan prövas medan användarens ordinarie server kör vidare.
+  const buildRoot=process.env.PHASE5_BUILD_ROOT?path.resolve(process.env.PHASE5_BUILD_ROOT):path.join(root,'web/dist-protected');
+  if(buildRoot!==path.join(root,'web/dist-protected')&&!buildRoot.startsWith(path.join(root,'work/pilot/targets/protected/runtime/')))throw Error('Browserbygget måste ligga i projektets egna skyddade runtime-kopia.');
+  const mark=JSON.parse(readFileSync(path.join(buildRoot,'build-mode.json'),'utf8'));
   if(mark.mode!=='protected'||!mark.revision)throw Error('Skyddat versionshanterat bygge saknas.');
   const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   if(git(['status','--porcelain','--',...SOURCE_PATHS]))throw Error('Browserprov kräver versionshanterad UI/serverkod.');
@@ -108,6 +112,16 @@ export async function createProgramplanBrowserFixture() {
       return {...basis(refs,startedOn),choiceBlocks:defaultProgramplanChoiceBlocks(program,'SABEP')};
     };
     return {principal,second,principalB,partialHm,admin,hm,noMfa,hmNoMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),secondUnitId:id(32),nonGymUnitId:id(33),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,legacyBasis,choiceBasis,snapshot,plans,history,events,paired,request,cleanup,
+      /** Whole rows: the plan UI must leave the separately stored school offering untouched. */
+      async packageSnapshot(plan){
+        await assertTarget('protected');await owned(db);
+        const [row]=await db`select organizer_id::text from public.point_plans where id=${plan}`;
+        if(row?.organizer_id!==id(2))throw Error('REFUSED: foreign fixture plan');
+        return {
+          versions:await db`select to_jsonb(p) as row from public.programplan_packages p where organizer_id=${id(2)} order by package_id,version`,
+          selections:await db`select to_jsonb(p) as row from public.programplan_unit_packages p where organizer_id=${id(2)} and plan_id=${plan} order by unit_id`
+        };
+      },
       async addProgramTrials(){
         await assertTarget('protected');const specs=trialEducationSpecs.filter(s=>s.program!=='SA25');
         await db.begin(async tx=>{await owned(tx);for(const spec of specs)await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)

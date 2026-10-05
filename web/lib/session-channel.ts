@@ -31,8 +31,8 @@ const ERROR_TEXT: Record<string, string> = {
   audit_unavailable: 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.',
   programplan_locked: 'Planen har startat eller arkiverats och kan inte längre ändras. Listan har lästs om.',
   programplan_in_use: 'Utbildningen används av klasser, elevplaceringar, timplaner eller tillstånd och kan inte tas bort.',
-  programplan_unit_packages_in_use: 'Skolan har sparade paket. Ta bort skolans paket innan du tar bort skolan från planen.',
-  programplan_block_packages_in_use: 'Blocket har sparade paket. Ta bort paketen innan du ändrar blockets poäng eller tar bort blocket.',
+  programplan_unit_packages_in_use: 'Skolan har tidigare sparat utbud kopplat till planen. Kopplingen bevaras och skolan kan därför inte tas bort här.',
+  programplan_block_packages_in_use: 'Blocket används av tidigare sparat utbud. Uppgifterna bevaras och blockets poäng kan därför inte ändras eller blocket tas bort här.',
   programplan_start_passed: 'Utbildningen har redan startat. En ny plan kan bara skapas för en kull som inte har börjat.',
 };
 

@@ -100,7 +100,7 @@ test('split IV rights aggregate all blocks once per school and aesthetic remains
  const issues=analyseProgramplanPackages(x);assert.equal(issues.filter(i=>i.id.includes('right-sport')).length,1);assert.equal(issues.find(i=>i.id.includes('right-sport')).category,'ok');const aesthetic=issues.filter(i=>i.id.includes('right-art'));assert.equal(aesthetic.length,1);assert.equal(aesthetic[0].category,'info');assert.match(aesthetic[0].detail,/BILD, IDRO/);assert.ok(!issues.some(i=>i.id.includes('export')));
  x.packages.units[0].selections.pop();assert.equal(analyseProgramplanPackages(x).find(i=>i.id.endsWith('right-sport')).category,'risk');
 });
-test('missing immutable version blocks decision and is never resolved through newest package',()=>{
+test('missing immutable version is a school offering error and never resolves through newest package',()=>{
  const x=di(),p=dv([dl('IDRO','IDRO2000X')]);x.valpaket=[{...p,version:2}];x.packages.units[0].selections=[{blockId:'iv1',entries:[de(p)]}];const issues=analyseProgramplanPackages(x);assert.ok(issues.some(i=>i.id.includes('missing-version')&&i.category==='fel'));assert.ok(issues.some(i=>i.id.endsWith('right-sport')&&i.category==='risk'));
  x.valpaket=[p];assert.equal(analyseProgramplanPackages(x).some(i=>i.id.includes('missing-version')),false);
 });
@@ -113,9 +113,53 @@ test('generic sequence uses subject rank independent of package array order and 
 test('same exact level across IV blocks is a school-scoped risk and comparability stays Att kontrollera',()=>{
  const x=di(),p=dv([dl('IDRO','IDRO2000X')]);x.valpaket=[p];x.packages.units[0].selections=['iv1','iv2'].map(blockId=>({blockId,entries:[de(p)]}));const issues=analyseProgramplanPackages(x),duplicate=issues.find(i=>i.id.includes('duplicate'));assert.equal(duplicate.category,'risk');assert.equal(duplicate.unitId,du);assert.equal(issues.find(i=>i.id.includes('comparability')).category,'info');
 });
-test('IV right risks do not prevent a complete high-school plan from being ready for decision',()=>{
+test('IV right risks remain in school offering analysis while a complete programme frame is ready',()=>{
  const x=di();x.basisReference.specializationRefs=[dl('ANIM','ANIM1000X'),dl('ARTI','ARTI1000X'),dl('DIGA','DIGA1000X')];x.refs=x.basisReference.specializationRefs;
  x.terms.rows=programplanTermRows(x.program,x.basisReference);x.terms.distribution=x.terms.rows.map(r=>({rowKey:r.key,points:[r.points,0,0,0,0,0]}));
  const art=dv([dl('BILD','BILD1B00X')]),science=dv([dl('KEMI','KEMI1000X')],{packageId:'55002300-0000-4000-8000-000000000003'});x.valpaket=[art,science];const language=proposeLanguagePackages(x.basisReference.choiceBlocks.find(b=>b.id==='mosp'));language.forEach(e=>e.distribution=e.ref.levels.map(l=>({levelKey:programplanPackageLevelKey(l),points:[100,0,0,0,0,0]})));x.packages.units[0].selections=[{blockId:'mosp',entries:language},{blockId:'iv1',entries:[de(art)]},{blockId:'iv2',entries:[de(science)]}];
- const a=analyseProgramplan(x);assert.equal(a.counts.fel,0,JSON.stringify(a.issues.filter(i=>i.category==='fel')));assert.equal(a.ready,true);assert.ok(a.issues.some(i=>i.id.endsWith('right-sport')&&i.category==='risk'));assert.ok(a.issues.some(i=>i.id.endsWith('right-art')&&i.category==='info'));
+ const a=analyseProgramplan(x);assert.equal(a.counts.fel,0,JSON.stringify(a.issues.filter(i=>i.category==='fel')));assert.equal(a.ready,true);assert.equal(a.issues.some(i=>i.target?.kind==='package'),false);
+ const packageIssues=analyseProgramplanPackages(x);assert.ok(packageIssues.some(i=>i.id.endsWith('right-sport')&&i.category==='risk'));assert.ok(packageIssues.some(i=>i.id.endsWith('right-art')&&i.category==='info'));
+});
+
+function completeProgrammeFrame() {
+ const x=di();
+ x.basisReference.specializationRefs=[dl('ANIM','ANIM1000X'),dl('ARTI','ARTI1000X'),dl('DIGA','DIGA1000X')];
+ x.refs=x.basisReference.specializationRefs;
+ x.terms.rows=programplanTermRows(x.program,x.basisReference);
+ x.terms.distribution=x.terms.rows.map(r=>({rowKey:r.key,points:[r.points,0,0,0,0,0]}));
+ return x;
+}
+
+test('same complete programme frame ignores missing and invalid legacy school packages',()=>{
+ const x=completeProgrammeFrame();
+ const baseline=analyseProgramplan({...x,units:undefined,packages:undefined,valpaket:undefined});
+ assert.equal(baseline.ready,true);
+ assert.equal(baseline.counts.fel,0);
+ const p=dv([dl('IDRO','IDRO2000X')]);
+ const variants=[
+  {name:'unsaved offerings',packages:undefined,valpaket:[],expectedError:'missing'},
+  {name:'missing selected version',packages:{planId:dp,units:[{unitId:du,revision:1,selections:[{blockId:'iv1',entries:[de(p)]}]}]},valpaket:[{...p,version:2}],expectedError:'missing-version'},
+  {name:'wrong package kind',packages:{planId:dp,units:[{unitId:du,revision:1,selections:[{blockId:'iv1',entries:[de(p)]}]}]},valpaket:[{...p,kind:'specialization'}],expectedError:'invalid'},
+ ];
+ for(const {name,expectedError,...offerings} of variants){
+  const legacyInput={...x,...offerings};
+  const packageIssues=analyseProgramplanPackages(legacyInput);
+  assert.ok(packageIssues.some(i=>i.category==='fel'&&i.id.includes(expectedError)),name);
+  assert.deepEqual(analyseProgramplan(legacyInput),baseline,name);
+ }
+});
+
+test('missing block term allocation still prevents a programme decision without school package findings',()=>{
+ const x=completeProgrammeFrame();
+ x.terms.distribution=x.terms.distribution.filter(d=>d.rowKey!=='block:mosp');
+ const p=dv([dl('IDRO','IDRO2000X')]);
+ x.packages.units[0].selections=[{blockId:'iv1',entries:[de(p)]}];
+ x.valpaket=[{...p,version:2}];
+ const a=analyseProgramplan(x);
+ assert.equal(a.ready,false);
+ assert.equal(a.counts.fel,1);
+ assert.equal(a.issues.find(i=>i.id==='terms-open').target.rowKey,'block:mosp');
+ assert.ok(a.missing.includes('Alla nivåer är inte fördelade på terminer.'));
+ assert.equal(a.issues.some(i=>i.id.startsWith('packages-')||i.target?.kind==='package'),false);
+ assert.ok(analyseProgramplanPackages(x).some(i=>i.id.includes('missing-version')&&i.category==='fel'));
 });

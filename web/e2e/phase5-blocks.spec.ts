@@ -132,7 +132,8 @@ async function newPackage(page:Page,region:ReturnType<Page['getByRole']>,name:st
 }
 async function selectPackage(page:Page,region:ReturnType<Page['getByRole']>){const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/paketval'&&r.request().method()==='POST');await region.getByRole('button',{name:'Lägg till valpaket',exact:true}).click();expect((await pending).status()).toBe(200);await expect(region).toContainText('Sparat');}
 
-test('B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan planen är klar',async({page},info)=>{
+// Historiska D-UI-prov: paketplaceringen ersätts av programplan-frame-proven.
+test.skip('B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan planen är klar',async({page},info)=>{
   const basis=fixture.choiceBasis();basis.choiceBlocks=basis.choiceBlocks.flatMap(b=>b.kind==='individualChoice'?[{...b,points:100},{...b,id:'iv2',name:'Individuellt val 2',points:100}]:[b]);
   const created=await fixture.request(baseURL,fixture.hm,'/api/programplaner/skapa',{offeringId:fixture.emptyOfferingId,expectedLatestVersion:0,basisReference:basis});expect(created.status).toBe(200);
   await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);
@@ -148,7 +149,7 @@ test('B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan
   await page.reload();await navigate(page);const reopened=await openPackages(page,'iv1','Individuellt val');await expect(reopened).toContainText(longName);await expect(reopened.getByRole('region',{name:/^Valpaket/u})).toContainText('Version 1');await expect(reopened.getByLabel('Skolans valpaket')).toContainText('version 2');
 });
 
-test('B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läser om paketvalet',async({page},info)=>{
+test.skip('B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läser om paketvalet',async({page},info)=>{
   const {randomUUID}=await import('node:crypto');const {defaultProgramplanChoiceBlocks}=await import('../lib/programplan-choice-blocks.ts');const {default:catalog}=await import('../lib/programplan-catalog.generated.json',{with:{type:'json'}});const program=catalog.programs.find(p=>p.code==='NA25'&&p.version===4)!;
   const basis={catalogId:fixture.catalogId,programRef:{code:'NA25',version:4},orientationCode:'NANAA',startedOn:fixture.basis().startedOn,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(program,'NANAA')};
   const created=await fixture.request(baseURL,fixture.hm,'/api/programplaner/utbildning/skapa',{commandId:randomUUID(),unitId:fixture.unitId,name:'Syntetisk NAVE',localCode:null,cohort:'Syntetisk framtida kull',basisReference:basis});expect(created.status).toBe(200);
@@ -161,7 +162,7 @@ test('B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läse
   await page.reload();await navigate(page,/^Öppna utbildning Syntetisk NAVE,/u);const reopened=await openPackages(page,'nave','Ett naturvetenskapligt ämne');await expect(reopened).toContainText('BIOG2000X');await expect(reopened).not.toContainText('Avviker från blockets ram');
 });
 
-test('B11: tappat valpaketsvar återläses utan dubbel skrivning och en äldre dialog hindrar överskrivning',async({page})=>{
+test.skip('B11: tappat valpaketsvar återläses utan dubbel skrivning och en äldre dialog hindrar överskrivning',async({page})=>{
   await enterExisting(page);const region=await openPackages(page,'iv1','Individuellt val');await region.getByRole('button',{name:'Nytt valpaket',exact:true}).click();const dialog=page.getByRole('dialog');await dialog.getByLabel('Paketnamn').fill('Syntetiskt paket med tappat svar');
   for(const code of ['BILD1B00X','IDRO2000X']){await dialog.getByLabel('Sök paketnivå').fill(code);await dialog.getByRole('list',{name:'Tillåtna paketnivåer'}).getByRole('button').click();}
   let writes=0;let saved:{packageId:string;version:number;unitId:string;kind:string;name:string;levels:unknown[]};await page.route('**/api/programplaner/valpaket',async route=>{writes++;const response=await route.fetch();expect(response.status()).toBe(200);saved=await response.json();await route.abort('failed');});

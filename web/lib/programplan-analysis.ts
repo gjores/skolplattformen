@@ -31,14 +31,17 @@ export type AnalysisInput = {
   startedOn: string | null; sourceFetched: string | null;
   /** Diagnoser från serverns kontroll av den sparade planen, redan formulerade som text. */
   serverNotes?: string[];
-  units?:{id:string;name:string}[];
-  packages?:ProgramplanUnitPackages;
-  packagesCatalog?:ProgramplanCatalog;
-  /** All exact package versions returned by school-scoped package lists. */
-  valpaket?:ProgramplanValpaket[];
   basisReference?: ProgramplanBasisReference | null;
   /** Fördelning över terminer när planen är bunden till underlag. */
   terms?: { rows: ProgramplanTermRow[]; distribution: ProgramplanTermDistribution; ranks: Map<string, number> };
+};
+/** Skolans utbud kontrolleras separat från programplanens poäng- och terminsram. */
+export type ProgramplanPackageAnalysisInput = AnalysisInput & {
+  units?: { id: string; name: string }[];
+  packages?: ProgramplanUnitPackages;
+  packagesCatalog?: ProgramplanCatalog;
+  /** Exakta paketversioner från skolans paketbibliotek. */
+  valpaket?: ProgramplanValpaket[];
 };
 export type Analysis = { frame: ProgramFrame; issues: PlanIssue[]; counts: Record<IssueCategory, number>;
   /** Planen är klar för beslut: allt fördelat, inga fel och startdatum finns. Räknas fram, sparas inte. */
@@ -116,7 +119,6 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
   if (orientation) add({ id: 'orientation-ok', category: 'ok', title: 'Inriktningens ämnen följer programstrukturen', detail: `${fmt(orientation.points)} poäng enligt underlaget.`, part: 'orientation', rule: RULE_STRUCTURE, action: null });
   add({ id: 'other-ok', category: 'ok', title: 'Individuellt val och gymnasiearbete avsatta', detail: `${INDIVIDUAL_CHOICE_POINTS} + ${DIPLOMA_WORK_POINTS} poäng.`, part: 'other', rule: RULE_STRUCTURE, action: null });
 
-  issues.push(...analyseProgramplanPackages(input));
   issues.sort((a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category));
   const counts = { fel: 0, risk: 0, info: 0, ok: 0 } as Record<IssueCategory, number>;
   for (const issue of issues) counts[issue.category]++;
@@ -145,8 +147,8 @@ export function programplanLevelOrderIssues(rows: ProgramplanTermRow[], distribu
   return [...issues.values()];
 }
 
-/** Each school has its own offered packages; proposals are never counted as saved selections. */
-export function analyseProgramplanPackages(input:AnalysisInput):PlanIssue[]{
+/** Fristående skolutbudsanalys; paketval påverkar inte programplanens beslutsstatus. */
+export function analyseProgramplanPackages(input:ProgramplanPackageAnalysisInput):PlanIssue[]{
   if(!input.basisReference?.choiceBlocks||!input.units)return[];
   const blocks=programplanChoiceBlocks(input.program,input.basisReference),issues:PlanIssue[]=[];
   for(const unit of input.units){

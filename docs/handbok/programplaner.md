@@ -2,16 +2,16 @@
 title: Programplaner
 ---
 
-Programplanen gäller en utbildning och elevkull. Hela planen är en tabell: ämnen och nivåer, skolans programfördjupning och fördelningen över sex terminer ligger på samma ställe.
+Programplanen gäller en utbildning och elevkull. Hela planen är en tabell: fasta ämnen och nivåer, valbara block med poängram och fördelningen över sex terminer ligger på samma ställe.
 
-Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Ett sparat utkast är inte en fastställd plan.
+Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Skoladministratören kan läsa planen inom sitt skoluppdrag. Ett sparat utkast är inte en fastställd plan.
 
 ## Startsidan
 
 **Programplaner** visar alla utbildningar med programplanens version och planens status (se nedan). Sök på utbildning, program eller elevkull och filtrera per skola när du har flera. Arkiverade planer är dolda; välj **Visa arkiverade** (med antalet inom parentes) för att se dem.
 
 - **Öppna** visar planen.
-- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning, terminsfördelning och skolval. Ange namn, elevkull och verkligt startdatum, som måste ligga efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar. Om skolvalet inte kunde kopieras visas ett besked; välj skolorna igen under **Skolor** i kopian.
+- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning, terminsfördelning och skolval. Tidigare sparat skolutbud i källan följer inte med till den nya elevkullen. Ange namn, elevkull och verkligt startdatum, som måste ligga efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar. Om skolvalet inte kunde kopieras visas ett besked; välj skolorna igen under **Skolor** i kopian.
 - **Ny programplan** öppnar valet av program och inriktning. Där skapar huvudmannen en ny utbildning, eller lägger en plan på en befintlig utbildning som saknar plan.
 
 ## Planens status
@@ -73,7 +73,7 @@ Programunderlaget från Skolverket visas längst ned i finstilt. Om flera underl
 
 Överst visas utbildningens namn, status och knapparna **Analys**, **Kopiera** och **Läs om**. Under dem finns tre årskurskort med poäng per läsår, uppdelat på höst och vår.
 
-Tabellen har en rad per nivå, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och gymnasiearbete. Kolumnerna är nivåns poäng och de sex terminerna.
+Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och gymnasiearbete. Kolumnerna visar radens poäng och de sex terminerna.
 
 **Fördela poäng**
 
@@ -104,19 +104,11 @@ I **Programfördjupning** väljer du **Lägg till valbart block**, sedan **Lägg
 
 Töm blockets terminsrad och invänta **Allt sparat** innan du tar bort blocket eller ändrar dess poäng. Den sparade fördelningen ska aldrig försvinna när block ändras. De nationellt givna blocken för moderna språk, språkämne och naturvetenskapligt ämne har fasta namn och poäng. Deras terminsram fördelar du i tabellen. **Föreslå fördelning** lägger moderna språk jämnt i årskurs 1–2 och inriktningens samt egna fördjupningsblock i årskurs 2–3.
 
-**Skolans språkpaket.** Välj **Visa paket** på blockraden och välj skola. Huvudman, rektor och skoladministratör kan välja språkpaket och fördela deras nivåer på terminer för skolor inom sitt uppdrag. Paketens poäng räknas inom blockets ram och läggs inte ovanpå planens summa. Skolor utanför uppdraget visas för läsning. Paketen kan ändras även i fastställda och ersatta versioner och för påbörjade elevkullar; arkiverade utbildningar kan bara läsas. Skoladministratören kan läsa programplanen och välja paket men kan inte ändra planens block eller fasta nivåer.
+Om ett block eller en skola har tidigare sparat utbud kan en ändring av blockets ram eller skolkopplingen stoppas för att bevara uppgifterna. Appen visar orsaken. Det finns ännu ingen separat arbetsyta för att ändra det äldre utbudet.
 
-För moderna språk ger **Föreslå språkpaket** sex förslag: franska, spanska och tyska, vardera för nybörjare och fortsättning. Förslaget sparas först när du väljer **Använd förslaget** eller ändrar det. Välj **Lägg till språkpaket** för ett annat språk eller en annan startnivå. Moderna språk, svenskt teckenspråk för hörande, modersmål och nationella minoritetsspråk har sina egna nivåföljder. Ett paket ska fylla blockets poäng. **Föreslå fördelning** lägger nivåerna i ordning inom blockets terminer; kontrollera resultatet. Ändrade terminsvärden sparas när du lämnar raden. Vid konflikt eller oklar sparstatus finns dina värden kvar tills du läser om skolans paket.
+Blockets terminsram anger när poängen planeras i utbildningen. Den bestämmer inte schemadagar, undervisningsgrupper eller vilka grupper som måste gå parallellt. Skolans språkgrupper kan därför behöva olika dagar beroende på tillgängliga lärare.
 
-Skolans språkval är lokala koder; koder för export till Skolverket eller UHR är ännu inte verifierade. Ta bort skolans sparade paket innan du tar bort skolan eller ändrar blockets poäng. Ny version kopierar skolornas paket. Vid kopiering till en ny elevkull följer paketvalen med efter skolvalet; om någon skolas kopiering misslyckas anges skolan i beskedet.
-
-**Skolans valpaket.** Öppna **Visa paket** på ett block för individuellt val, programfördjupning, språkämne eller naturvetenskapligt ämne. Under **Skolans utbud** väljer du ett paket och **Lägg till valpaket**. Paketet ska fylla blockets poäng och får inte innehålla nivåer som redan är fasta i planen. Bara tillåtna ämnen, nivåer och paketversioner visas för blocket.
-
-Välj **Nytt valpaket**, ange namn, skola och typ och sök efter nivåer. Poängsumman ska motsvara blocket innan du kan välja **Skapa valpaket**. Huvudmannen kan också skapa paket för alla sina skolor. Rektor och skoladministratör skapar paket för skolor inom sitt uppdrag. Samma paket kan användas i flera planer på skolan.
-
-**Ny version** sparar en ny paketversion. Äldre paketversioner och planer som redan valt dem behåller sitt innehåll. Välj den nya versionen under **Skolans utbud** och lägg till den om planen ska erbjuda den. Ta bort ett paketval från blocket med **Ta bort**; själva paketversionen bevaras. Vid oklar sparning läser appen tillbaka skolans utbud. Om den inte kan bekräfta sparningen finns **Läs sparstatus** och dina uppgifter kvar i dialogen.
-
-Analysen kontrollerar skolans samlade utbud av individuellt val över alla IV-block. Saknad nästa nivå i idrott och hälsa ger en risk. För yrkesprogram kontrolleras även svenska eller svenska som andraspråk och engelska för grundläggande högskolebehörighet. Nivåer som förekommer i flera block ger en risk. Estetiska ämnen och jämförbara eller överlappande nivåer visas som **Att kontrollera** eftersom ämneslistorna ännu inte är avstämda. Risker hindrar inte statusen **Klar för beslut**.
+**Skolans utbud och elevval** hanteras inte i programplanen. Här finns inga kommandon för att skapa eller välja språkpaket och valpaket. En separat arbetsyta för skolans utbud, elevval och undervisningsorganisation är ännu inte tillgänglig. Tidigare sparade paketuppgifter bevaras.
 
 Bundna äldre utkast får svenskrader och standardblock med bibehållna fördjupningsval och terminsfördelningar. De nya raderna behöver fördelas. Äldre fastställda och ersatta versioner behåller sin faktiska form och visas som **Ofullständig**. Skapa en ny version för att komplettera dem; originalversionen ändras inte.
 
@@ -126,20 +118,20 @@ På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årsk
 
 **Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
-**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Visa paket** öppnar rätt block och skola. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Markeringen försvinner när raden är åtgärdad. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
+**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Markeringen försvinner när raden är åtgärdad. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
 
-Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan planens fasta nivåer och ram kan ändras. Skolans paket kan fortfarande ändras inom ditt skoluppdrag. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
+Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan planens fasta nivåer och ram kan ändras. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
 
 Planen räknas som **Klar för beslut** först när allt detta stämmer:
 
-- alla nivåer är fördelade på terminer,
+- alla fasta nivåer och valbara block är fördelade på terminer,
 - programfördjupningen fyller ramen, så att eleverna når programmets poäng,
 - ingen högre nivå börjar före en lägre nivå i samma ämne,
 - individuellt val omfattar 200 poäng och ett högskoleförberedande program totalt 2 500 poäng,
 - analysen inte har några andra fel,
 - utbildningens startdatum finns.
 
-Statusen visas vid utbildningens namn. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
+Statusen visas vid utbildningens namn. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
 
 Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. För yrkesprogram anger underlaget ännu inte om programmet omfattar 2 700 eller 2 800 poäng, så där kontrolleras ramen inte. Lagrumshänvisningarna i analysen ska verifieras innan planen används som beslutsunderlag. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
 
