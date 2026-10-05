@@ -20,9 +20,10 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'web/app/protected-programplan-terms.tsx','web/app/protected-programplan-terms.css','web/app/protected-programplan-sheet.tsx','web/lib/programplan-terms.ts','web/lib/programplan-terms-contract.ts','web/lib/server/programplan-terms.ts',
   'supabase/migrations/20261003120000_phase5_programplan_terms.sql','supabase/migrations/20261003121000_phase5_worker_programplan_terms.sql','web/e2e/phase5-terms.spec.ts','web/playwright.phase5-terms.config.ts',
   'web/lib/programplan-lifecycle.ts','web/lib/server/programplan-lifecycle.ts','web/app/protected-programplan-lifecycle.tsx','web/app/protected-programplan-list.tsx','web/lib/server/http.ts','web/lib/session-channel.ts',
-  'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts'];
-/** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull förra året. */
-export const FUTURE_START=nextCohortStart(),STARTED_START=`${Number(stockholmToday().slice(0,4))-1}-08-17`;
+  'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts',
+  'web/app/protected-programplan-board.tsx','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql'];
+/** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull startade för 30 dagar sedan (inom katalogens giltighet). */
+export const FUTURE_START=nextCohortStart(),STARTED_START=new Date(Date.parse(`${stockholmToday()}T12:00:00Z`)-30*864e5).toISOString().slice(0,10);
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
   if(mark?.mode!=='protected'||!/^([0-9a-f]{40})$/u.test(mark.revision??'')||!/^([0-9a-f]{40})$/u.test(sourceRevision??''))throw Error('Skyddat versionshanterat bygge saknas.');
   if(dirty||ancestor!==true)throw Error('Browserprov kräver aktuell versionshanterad UI/serverkod i bygget.');
@@ -73,7 +74,7 @@ export async function createProgramplanBrowserFixture() {
         values(${hash},${id(identityN)},${id(membershipN)},${assignmentId},${mfa?'2':'1'},${mfa?['pwd','otp']:['pwd']},now(),${manifest.idp.issuer},${manifest.idp.clientId},${[manifest.idp.clientId]},'local-keycloak-admin',1,now(),now()+interval '30 minutes',now()+interval '8 hours') returning id::text,context_epoch::int as epoch`;
       sessions.add(s.id);return {...s,token,identityId:id(identityN),membershipId:id(membershipN),assignmentId};
     };
-    const principal=await mint(11,21,roles.principal),second=await mint(12,22,roles.principal2),hm=await mint(10,20,id(60)),noMfa=await mint(11,21,roles.principal,false);
+    const principal=await mint(11,21,roles.principal),second=await mint(12,22,roles.principal2),hm=await mint(10,20,id(60)),noMfa=await mint(11,21,roles.principal,false),hmNoMfa=await mint(10,20,id(60),false);
     const snapshot=async(plan=id(50))=>{const [row]=await db`select to_jsonb(p) as plan from public.point_plans p where id=${plan} and organizer_id=${id(2)}`;return row?.plan;};
     const plans=async offering=>db`select id::text,version,revision,status from public.point_plans where offering_id=${offering} and organizer_id=${id(2)} order by version`;
     const history=async plan=>db`select to_jsonb(e) as event from public.point_plan_events e where point_plan_id=${plan} order by created_at,id`;
@@ -84,7 +85,7 @@ export async function createProgramplanBrowserFixture() {
     const request=async(baseURL,session,route,body)=>{const r=await fetch(`${baseURL}${route}`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:`sp_session=${session.token}`,'X-Context-Epoch':String(session.epoch),'Sec-Fetch-Site':'same-origin',Origin:baseURL},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});return {status:r.status,body:await r.json(),correlationId:r.headers.get('x-correlation-id')};};
     const catalogId=(await snapshot()).catalog_id;
     const basis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn=FUTURE_START)=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
-    return {principal,second,hm,noMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,snapshot,plans,history,events,paired,request,cleanup,
+    return {principal,second,hm,noMfa,hmNoMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,snapshot,plans,history,events,paired,request,cleanup,
       async addProgramTrials(){
         await assertTarget('protected');const specs=trialEducationSpecs.filter(s=>s.program!=='SA25');
         await db.begin(async tx=>{await owned(tx);for(const spec of specs)await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)
@@ -92,7 +93,7 @@ export async function createProgramplanBrowserFixture() {
         return specs.map(s=>({...s,id:id(600+s.number)}));
       },
       async newPrincipal(){return mint(11,21,roles.principal);},
-      /** Pågående utbildning: bundet utkast vars kull startade förra året (D-04: skrivskyddat, inte borttaget). */
+      /** Pågående utbildning: bundet utkast vars kull startade för 30 dagar sedan (D-04: skrivskyddat, inte borttaget). */
       async startedEducation(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year) values(${id(47)},${id(2)},${id(30)},'gymnasium','Syntetisk pågående SA','Syntetisk startad kull','SA25','SABEP',${Number(STARTED_START.slice(0,4))})`;await tx`set local session_replication_role=replica`;await tx`insert into public.point_plans(id,organizer_id,offering_id,version,specialization,catalog_id,basis_reference) values(${id(57)},${id(2)},${id(47)},1,array['ENGE3000X'],${catalogId},${tx.json(basis(undefined,STARTED_START))})`;});return{offeringId:id(47),planId:id(57)};},
       async addClass(offering){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`insert into public.school_classes(customer_id,organizer_id,unit_id,offering_id,name,start_year) values(${id(1)},${id(2)},${id(30)},${offering},'SYN1A',${Number(FUTURE_START.slice(0,4))})`;});},
       async offering(offering){const [row]=await db`select to_jsonb(o) as offering from public.offerings o where id=${offering} and organizer_id=${id(2)}`;return row?.offering??null;},

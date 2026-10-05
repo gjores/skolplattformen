@@ -3,14 +3,11 @@ import { parseProgramplan, type ProgramplanReadRequest, type ProgramplanBindRequ
   type ProgramplanCreateRequest, type ProgramplanCloneRequest } from '../programplan-contract.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type Tx } from './db.ts';
-import { mandateOperation } from './mandate-route.ts';
+import { lifecycleOperation } from './programplan-lifecycle.ts';
 export function programplanRequest<T>(parse: (value: unknown) => T, value: unknown): T {
   try { return parse(value); } catch (error) { if (error instanceof ProgramplanContractError) throw new Deny('bad_request',400); throw error; }
 }
-async function operation<T>(fn: () => Promise<T>): Promise<T> {
-  try { return await mandateOperation(fn); }
-  catch (error) { if (error && typeof error === 'object' && 'code' in error && error.code === '55000') throw new AuditUnavailable(); throw error; }
-}
+async function operation<T>(fn: () => Promise<T>): Promise<T> { return lifecycleOperation(fn); }
 function result(rows: {result: unknown}[], action: string, valid: (body: ReturnType<typeof parseProgramplan>) => boolean) {
   try {
     if (rows.length !== 1) throw new AuditUnavailable();

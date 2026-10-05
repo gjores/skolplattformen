@@ -23,7 +23,7 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
   const [offerings, setOfferings] = useState<ProgramplanOfferingRow[] | null>(null);
   const [selection, setSelection] = useState<ProgramplanSelection | null>(null);
   const [error, setError] = useState<string | null>(null), [busy, setBusy] = useState(false);
-  const [query, setQuery] = useState(''), [unit, setUnit] = useState('');
+  const [query, setQuery] = useState(''), [unit, setUnit] = useState(''), [showArchived, setShowArchived] = useState(false);
   const mounted = useRef(true), generation = useRef(0);
   const load = useCallback(async () => {
     const token = ++generation.current, controller = new AbortController();
@@ -53,7 +53,9 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
   const names: Names = Object.fromEntries((selection?.programs ?? []).map(p => [p.programRef.code, { name: p.name, orientations: Object.fromEntries(p.orientations.map(o => [o.code, o.name])) }]));
   const units = [...new Map((offerings ?? []).map(o => [o.unitId, o.schoolName])).entries()];
   const q = query.trim().toLocaleLowerCase('sv');
-  const shown = (offerings ?? []).filter(o => (!unit || o.unitId === unit) && (!q || `${o.name} ${o.localCode ?? ''} ${o.cohort} ${o.schoolName} ${names[o.programCode]?.name ?? o.programCode}`.toLocaleLowerCase('sv').includes(q)));
+  // Arkiverade planer är dolda tills Visa arkiverade väljs (filtret i klienten, statusen från servern).
+  const archivedCount = (offerings ?? []).filter(o => o.lifecycle.archived).length, visible = (offerings ?? []).filter(o => showArchived || !o.lifecycle.archived);
+  const shown = visible.filter(o => (!unit || o.unitId === unit) && (!q || `${o.name} ${o.localCode ?? ''} ${o.cohort} ${o.schoolName} ${names[o.programCode]?.name ?? o.programCode}`.toLocaleLowerCase('sv').includes(q)));
   const programLabel = (o: ProgramplanEducationSummary) => {
     const program = names[o.programCode];
     const orientation = o.orientationCode ? program?.orientations[o.orientationCode] ?? o.orientationCode : null;
@@ -71,9 +73,11 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
       <div className="ppl-tools">
         <label className="pps-search"><Search size={15} aria-hidden="true"/><span className="pp-sr">Sök utbildning</span><input type="search" value={query} placeholder="Sök utbildning, program eller elevkull" onChange={e => setQuery(e.target.value)}/></label>
         {units.length > 1 && <div className="pp-field ppl-unit"><label htmlFor="ppl-unit" className="pp-sr">Skola</label><select id="ppl-unit" value={unit} onChange={e => setUnit(e.target.value)}><option value="">Alla skolor</option>{units.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></div>}
-        <small>{shown.length === offerings.length ? `${offerings.length} utbildningar` : `${shown.length} av ${offerings.length} utbildningar`}</small>
+        {archivedCount > 0 && <label className="pp-check ppl-archived-toggle"><input type="checkbox" checked={showArchived} onChange={e => setShowArchived(e.target.checked)}/><span>Visa arkiverade ({archivedCount})</span></label>}
+        <small>{shown.length === visible.length ? `${visible.length} utbildningar` : `${shown.length} av ${visible.length} utbildningar`}</small>
       </div>
-      {offerings.length === 0 ? <div className="ppl-empty"><p><strong>Inga utbildningar ännu.</strong> Skapa den första programplanen med Ny programplan.</p></div>
+      {visible.length === 0 && offerings.length > 0 ? <div className="ppl-empty"><p>Alla utbildningar är arkiverade. Välj Visa arkiverade för att se dem.</p></div>
+        : offerings.length === 0 ? <div className="ppl-empty"><p><strong>Inga utbildningar ännu.</strong> Skapa den första programplanen med Ny programplan.</p></div>
         : shown.length === 0 ? <div className="ppl-empty"><p>Ingen utbildning matchar sökningen.</p></div>
         : <table className="ppl-table"><thead><tr><th scope="col">Utbildning</th><th scope="col">Program och inriktning</th><th scope="col">Elevkull</th><th scope="col">Programplan</th><th scope="col">Status</th><th scope="col"><span className="pp-sr">Åtgärder</span></th></tr></thead>
           <tbody>{shown.map(o => { const s = status(o); return <tr key={o.id}>

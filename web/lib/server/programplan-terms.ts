@@ -1,11 +1,8 @@
 import { parseProgramplanTermReply, type ProgramplanTermRead, type ProgramplanTermWrite } from '../programplan-terms-contract.ts';
 import { AuditUnavailable } from './authz.ts';
 import type { Tx } from './db.ts';
-import { mandateOperation } from './mandate-route.ts';
-async function operation<T>(fn: () => Promise<T>): Promise<T> {
-  try { return await mandateOperation(fn); }
-  catch (error) { if (error && typeof error === 'object' && 'code' in error && error.code === '55000') throw new AuditUnavailable(); throw error; }
-}
+import { lifecycleOperation } from './programplan-lifecycle.ts';
+async function operation<T>(fn: () => Promise<T>): Promise<T> { return lifecycleOperation(fn); }
 function result(rows: { result: unknown }[], input: ProgramplanTermRead, write?: ProgramplanTermWrite) {
   try {
     if (rows.length !== 1) throw new AuditUnavailable();

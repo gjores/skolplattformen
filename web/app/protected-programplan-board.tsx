@@ -16,6 +16,7 @@ import MfaStepUpNotice from './mfa-step-up';
 
 type Props = {
   plan: Programplan; program: CatalogProgram; options: ProgramplanOption[]; scope: string; disabled: boolean;
+  /** 05-20: planen har startat eller är arkiverad; tabellen blir skrivskyddad. */ locked?: boolean; lockReason?: string | null;
   onSecurityFailure: (error: unknown) => boolean;
   /** Läs om utbildningen efter en ändring av programfördjupningen. */
   onReload: () => Promise<void>;
@@ -36,11 +37,12 @@ const fromMap = (rows: ProgramplanTermRow[], m: Map<string, ProgramplanTermPoint
 const sameRow = (a?: ProgramplanTermPoints, b?: ProgramplanTermPoints) => (a ?? blank()).every((n, i) => n === (b ?? blank())[i]);
 
 /** Programplanen som en tabell: ämnen, programfördjupning och sex terminer. Sparas automatiskt när en rad lämnas. */
-export default function ProgramplanBoard({ plan, program, options, scope, disabled, onSecurityFailure, onReload, onTerms }: Props) {
+export default function ProgramplanBoard({ plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onTerms }: Props) {
   const basis = plan.basisReference!;
   const rows = useMemo(() => programplanTermRows(program, basis), [program, basis]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
-  const editable = plan.status === 'utkast' && !disabled;
+  // 05-20: arbetsytan skickar locked när planen har startat eller är arkiverad (serverns lifecycle).
+  const editable = plan.status === 'utkast' && !disabled && !lifecycleLocked;
   const [saved, setSaved] = useState<ProgramplanTermReply | null>(null);
   const [values, setValues] = useState<Map<string, ProgramplanTermPoints>>(new Map());
   const [state, setState] = useState<SaveState>('idle'), [message, setMessage] = useState<string | null>(null), [loadError, setLoadError] = useState<string | null>(null);
@@ -160,7 +162,7 @@ export default function ProgramplanBoard({ plan, program, options, scope, disabl
   return <PlanGrid program={program} orientationCode={basis.orientationCode} refs={basis.specializationRefs} options={options} rows={rows} values={values}
     dirtyKeys={dirtyKeys} editable={editable} refsEditable={editable} locked={locked} busy={state === 'saving' || working}
     status={state === 'saving' ? 'Sparar…' : dirtyKeys.length && state === 'idle' ? 'Osparade ändringar' : state === 'idle' ? 'Allt sparat' : ''} statusTone={state === 'idle' && dirtyKeys.length ? 'dirty' : state}
-    hint={editable ? `Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden.${anyInvalid ? ' Rader med för många poäng sparas inte förrän de är rättade.' : ''}` : plan.status !== 'utkast' ? `Version ${plan.version} är ${plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.` : null}
+    hint={lifecycleLocked ? lockReason : editable ? `Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden.${anyInvalid ? ' Rader med för många poäng sparas inte förrän de är rättade.' : ''}` : plan.status !== 'utkast' ? `Version ${plan.version} är ${plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.` : null}
     onCell={setCell} onFill={fillCell} onSplit={splitYear} onClear={clearRow} onSuggest={suggest} onRowLeave={commit}
     onAdd={o => void changeSpecialization([...basis.specializationRefs, programplanReference(o)])} onRemove={(ref, key) => void changeSpecialization(basis.specializationRefs.filter(r => r !== ref), key)}>
     {message && state !== 'mfa' && <div className={state === 'idle' ? 'pp-notice' : 'pp-alert'} role="alert"><p>{message}</p>

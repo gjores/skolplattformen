@@ -16,9 +16,9 @@ import { AnalysisBanner, AnalysisView, ReadinessCard, SaveDialog } from './prote
 import { analyseProgramplan } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
 import ProgramplanList from './protected-programplan-list';
-import { DeleteEducationDialog, LifecycleBadge } from './protected-programplan-lifecycle';
-import { programplanLifecycleActions } from '@/lib/programplan-lifecycle.ts';
-import { Trash2 } from 'lucide-react';
+import { LifecycleBadge, LifecycleDialog, nextDay, type LifecycleDialogKind } from './protected-programplan-lifecycle';
+import { programplanLifecycleActions, programplanLockReason, startsAfter, stockholmToday } from '@/lib/programplan-lifecycle.ts';
+import { Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 import ProgramplanBoard, { LocalPlanBoard, localTermsValid } from './protected-programplan-board';
 import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistribution } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
@@ -46,7 +46,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [showFlow, setShowFlow] = useState(false), [canCreate, setCanCreate] = useState(false);
   const [copy, setCopy] = useState<{ name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanEducationCreateRequest | null; error: string | null; uncertain: boolean } | null>(null);
   const copyAfterOpen = useRef(false);
-  const [lifecycleDialog, setLifecycleDialog] = useState<'delete' | null>(null);
+  const [lifecycleDialog, setLifecycleDialog] = useState<LifecycleDialogKind | null>(null);
   const reviewRef = useRef<HTMLElement | null>(null);
   const draftRef = useRef<HTMLElement | null>(null);
   const editing = draft !== null;
@@ -161,8 +161,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     try { const reply = await api.post('/api/programplaner/utbildning/skapa', own, r.signal); if (current(r.token)) await openCreatedCopy(own, reply, sourceTerms, r.signal); }
     catch (e) {
       if (!current(r.token) || aborted(e) || securityFailure(e)) return;
-      if (e instanceof ApiError && e.hasExplicitCode && ['mfa_required', 'bad_request', 'audit_unavailable'].includes(e.code)) {
-        setCopy(c => c && { ...c, command: e.code === 'bad_request' ? null : own, error: `Kunde inte spara kopian. ${e.message}` });
+      if (e instanceof ApiError && e.hasExplicitCode && ['mfa_required', 'bad_request', 'audit_unavailable', 'programplan_start_passed'].includes(e.code)) {
+        setCopy(c => c && { ...c, command: e.code === 'bad_request' || e.code === 'programplan_start_passed' ? null : own, error: `Kunde inte spara kopian. ${e.message}` });
       } else {
         try {
           const status = educationStatusForCommand(await api.post('/api/programplaner/utbildning/status', { commandId: own.commandId }, r.signal), own);
@@ -305,12 +305,21 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const ready = !!plan && plan.status === 'utkast' && boardActive && !!analysis?.ready;
   const statusText = plan ? `${ready ? 'Klar för beslut' : programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
   const lifecycleActions = workspace ? programplanLifecycleActions(workspace.lifecycle, context.function === 'huvudman' ? 'huvudman' : 'rektor') : null;
-  const lifecycleTarget = workspace ? { offeringId: workspace.education.id, name: workspace.education.name, cohort: workspace.education.cohort, versions: workspace.versionCount, lifecycle: workspace.lifecycle } : null;
+  const lifecycleTarget = workspace ? { offeringId: workspace.education.id, name: workspace.education.name, cohort: workspace.education.cohort, localCode: workspace.education.localCode,
+    versions: workspace.versionCount, lifecycle: workspace.lifecycle,
+    startEditable: workspace.versionCount === 1 && workspace.versions[0]?.status === 'utkast' && !!workspace.versions[0]?.basisReference } : null;
+  // D-01: planen ändras bara när servern säger att den är framtida och inte arkiverad.
+  const changePlan = lifecycleActions?.changePlan ?? true, lockReason = workspace ? programplanLockReason(workspace.lifecycle) : null;
   function lifecycleStale(message: string) { setLifecycleDialog(null); void loadList(page).then(() => setNotice(message)); }
+  function lifecycleChanged(message: string, deleted: boolean) {
+    setLifecycleDialog(null);
+    if (deleted || !workspace) { void loadList(page).then(() => setNotice(message)); return; }
+    void openEducation(workspace.education.id, workspace.versionPage, workspace.catalog.catalogId, plan?.id ?? null, null, false, true).then(() => setNotice(message));
+  }
   const planBody = boardActive && plan && program ? <>
     {analysis&&termValues&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
     {analysis&&termValues&&plan.status==='utkast'&&<ReadinessCard analysis={analysis} onOpen={()=>setView('analysis')}/>}
-    <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}`} plan={plan} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
+    <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
       onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
     {analysis&&(draft||plan)&&<AnalysisBanner analysis={analysis} onOpen={()=>setView('analysis')}/>}
@@ -340,14 +349,18 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>setView('analysis')}>Analys<span className="pps-badge" data-fel={analysis.counts.fel>0} aria-label={`${problems} fel och risker`}>{problems}</span></Button>}
           {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>setCopy(newCopy(workspace.education.name))}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null)}><RefreshCw size={16}/>Läs om</Button>}
-          {!draft&&!preparation&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
+          {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
+          {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.editDetails&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('update')}><Pencil size={16} aria-hidden="true"/>Ändra uppgifter</Button>}
+          {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.archive&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('archive')}><Archive size={16} aria-hidden="true"/>Arkivera</Button>}
+          {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.restore&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('restore')}><ArchiveRestore size={16} aria-hidden="true"/>Ta fram ur arkivet</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.delete&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>setLifecycleDialog('delete')}><Trash2 size={16} aria-hidden="true"/>Ta bort</Button>}
         </div>
       </div>}
       {workspace&&!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
-      {lifecycleDialog==='delete'&&lifecycleTarget&&<DeleteEducationDialog target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
-        onChanged={message=>{setLifecycleDialog(null);void loadList(page).then(()=>setNotice(message));}} onStale={lifecycleStale}/>}
+      {lifecycleDialog&&lifecycleTarget&&<LifecycleDialog key={lifecycleDialog} kind={lifecycleDialog} target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
+        onChanged={(message,reply)=>lifecycleChanged(message,reply.command==='delete')} onStale={lifecycleStale}/>}
+      {workspace&&!draft&&!preparation&&lockReason&&view==='plan'&&<output className="pp-notice ppl-lock">{lockReason}</output>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={()=>{setView('plan');if(!draft&&!preparation)nextAction();}}/>}
       {view==='plan'&&<>
         {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">
@@ -358,9 +371,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
             <div className="pp-field"><label htmlFor="ppl-copy-name">Utbildningens namn</label><input id="ppl-copy-name" value={copy.name} maxLength={120} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,name:e.target.value,error:null})}/></div>
             <div className="pp-field"><label htmlFor="ppl-copy-cohort">Elevkull</label><input id="ppl-copy-cohort" value={copy.cohort} maxLength={120} placeholder="Till exempel 2027–2030" disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,cohort:e.target.value,error:null})}/></div>
             <div className="pp-field"><label htmlFor="ppl-copy-code">Lokal kod (valfri)</label><input id="ppl-copy-code" value={copy.localCode} maxLength={80} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,localCode:e.target.value,error:null})}/></div>
-            <div className="pp-field"><label htmlFor="ppl-copy-start">Utbildningens exakta startdatum</label><input id="ppl-copy-start" type="date" value={copy.startedOn} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,startedOn:e.target.value,error:null})}/></div>
+            <div className="pp-field"><label htmlFor="ppl-copy-start">Utbildningens exakta startdatum</label><input id="ppl-copy-start" type="date" min={nextDay(stockholmToday())} aria-invalid={!!copy.startedOn&&!startsAfter(copy.startedOn)} value={copy.startedOn} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,startedOn:e.target.value,error:null})}/></div>
           </div>
-          <div className="pp-dialog-actions"><Button variant="outline" disabled={busy} onClick={()=>{if(!copyDirty||confirmDiscard())setCopy(null);}}>Avbryt</Button><Button disabled={busy||!copy.name.trim()||!copy.cohort.trim()||!copy.startedOn} onClick={()=>void saveCopy()}>{busy?'Sparar…':copy.command?'Försök igen':'Spara kopia'}</Button></div>
+          <div className="pp-dialog-actions"><Button variant="outline" disabled={busy} onClick={()=>{if(!copyDirty||confirmDiscard())setCopy(null);}}>Avbryt</Button>{copy.startedOn&&!startsAfter(copy.startedOn)&&<p role="alert" className="pp-alert">Startdatumet måste ligga efter i dag. En kopia kan bara skapas för en kull som inte har börjat.</p>}
+          <Button disabled={busy||!copy.name.trim()||!copy.cohort.trim()||!copy.startedOn||!startsAfter(copy.startedOn)} onClick={()=>void saveCopy()}>{busy?'Sparar…':copy.command?'Försök igen':'Spara kopia'}</Button></div>
         </section>}
         {workspace&&preparation&&<section className="pp-next pps-card" aria-label="Programfördjupning"><h3>Välj underlag för {workspace.education.name}</h3>
           <p>Välj Skolverkets underlag som utkastet ska kopplas till och kontrollera hämtdatumet. Inget sparas förrän du sparar utkastet.</p>

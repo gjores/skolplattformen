@@ -170,5 +170,70 @@ create trigger lc_fail_audit before insert on public.security_events for each ro
 select throws_ok($q$select public.phase5_change_programplan_education((select (value->'education'->>'id')::uuid from lc where name='created2'),0,'delete','{}')$q$,'55000',null,'auditfel avbryter borttagningen');
 drop trigger lc_fail_audit on public.security_events;
 select ok(exists(select 1 from public.offerings where id=(select (value->'education'->>'id')::uuid from lc where name='created2')),'utbildningen finns kvar efter auditfel');
+
+-- 05-20 uppgift 2: D-01/D-04 i alla skrivande entrypoints, arkiv och ändrade uppgifter.
+select is(array(select p.proname::text from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%'
+ and has_function_privilege('skolplattform_worker',p.oid,'execute') and p.proname !~ '^phase5_(read_|list_)'
+ and p.proname not in ('phase5_programplan_workspace','phase5_programplan_selection','phase5_programplan_education_status') order by 1),
+ array['phase5_bind_programplan_draft','phase5_change_programplan_education','phase5_change_timplan_cell','phase5_clone_programplan_draft','phase5_create_programplan_draft',
+ 'phase5_create_programplan_education','phase5_replace_programplan_specialization','phase5_write_programplan_terms'],'exakt mängd skrivande Worker-funktioner');
+-- Pågående (start förra året) och avslutad (start för fyra år sedan) med bundna utkast.
+set local session_replication_role=replica;
+insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year) values
+ ('55008000-0000-4000-8000-000000000090','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000030','gymnasium','Syntetisk pågående SA','Startad kull','SA25','SABEP',extract(year from public.phase5_programplan_today()-30)::integer),
+ ('55008000-0000-4000-8000-000000000091','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000030','gymnasium','Syntetisk avslutad SA','Avslutad kull','SA25','SABEP',pg_temp.y(-4));
+insert into public.point_plans(id,organizer_id,offering_id,version,specialization,catalog_id,basis_reference) values
+ ('55008000-0000-4000-8000-000000000092','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000090',1,array['ENGE3000X'],'sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',jsonb_set(pg_temp.programplan_reference(),'{startedOn}',to_jsonb(to_char(public.phase5_programplan_today()-30,'YYYY-MM-DD')))),
+ ('55008000-0000-4000-8000-000000000093','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000091',1,array['ENGE3000X'],'sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',jsonb_set(pg_temp.programplan_reference(),'{startedOn}',to_jsonb(to_char(make_date(pg_temp.y(-4),8,17),'YYYY-MM-DD'))));
+set local session_replication_role=origin;
+select pg_temp.programplan_actor('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000020','55008000-0000-4000-8000-000000000010','55008000-0000-4000-8000-000000000080');
+insert into lc select 'archived40',public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',0,'archive','{}');
+select ok((select (value->'lifecycle'->>'archived')::boolean and (value->'lifecycle'->>'revision')::integer=1 from lc where name='archived40'),'framtida plan arkiverad med revision +1');
+create temporary table lock_states(label text,offering uuid,plan uuid,message text);
+insert into lock_states values('pågående','55008000-0000-4000-8000-000000000090','55008000-0000-4000-8000-000000000092','Programplan started'),('avslutad','55008000-0000-4000-8000-000000000091','55008000-0000-4000-8000-000000000093','Programplan started'),
+ ('okänd','55008000-0000-4000-8000-000000000042','55008000-0000-4000-8000-000000000052','Programplan started'),('arkiverad','55008000-0000-4000-8000-000000000040','55008000-0000-4000-8000-000000000050','Programplan archived');
+create temporary table lock_calls(writer text,template text);
+insert into lock_calls values
+ ('binda','select public.phase5_bind_programplan_draft(%2$L::uuid,0,pg_temp.programplan_reference())'),
+ ('fördjupning','select public.phase5_replace_programplan_specialization(%2$L::uuid,0,''[]''::jsonb)'),
+ ('nytt utkast','select public.phase5_create_programplan_draft(%1$L::uuid,1,pg_temp.programplan_reference())'),
+ ('klona','select public.phase5_clone_programplan_draft(%2$L::uuid,0,1,null)'),
+ ('terminer','select public.phase5_write_programplan_terms(%2$L::uuid,0,''[]''::jsonb)');
+select throws_ok(format(c.template,l.offering,l.plan),'42501',l.message,'huvudman: '||c.writer||' nekas för '||l.label||' plan') from lock_states l cross join lock_calls c;
+select throws_ok(format('select public.phase5_change_programplan_education(%L::uuid,%s,''update'',''{"name":"Ny","localCode":null,"cohort":"K","startedOn":null}'')',l.offering,case when l.label='arkiverad' then 1 else 0 end),'42501',l.message,'uppgifter kan inte ändras för '||l.label||' plan') from lock_states l;
+select throws_ok(format('select public.phase5_change_programplan_education(%L::uuid,%s,''delete'',''{}'')',l.offering,case when l.label='arkiverad' then 1 else 0 end),'42501',l.message,'kan inte tas bort: '||l.label||' plan') from lock_states l;
+select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
+select throws_ok(format(c.template,l.offering,l.plan),'42501',l.message,'rektor: '||c.writer||' nekas för '||l.label||' plan') from lock_states l cross join lock_calls c;
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000090',0,'archive','{}')$q$,'42501',null,'rektor kan inte arkivera');
+select ok((select status='utkast' from public.point_plans where id='55008000-0000-4000-8000-000000000092'),'utkast i pågående plan finns kvar (D-04)');
+select is((public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000092')->>'status'),'utkast','utkast i pågående plan kan läsas');
+select pg_temp.programplan_actor('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000020','55008000-0000-4000-8000-000000000010','55008000-0000-4000-8000-000000000080');
+insert into lc select 'archived90',public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000090',0,'archive','{}');
+select ok((select (value->'lifecycle'->>'archived')::boolean and value->'lifecycle'->>'phase'='pagaende' from lc where name='archived90'),'pågående plan kan arkiveras');
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000090',1,'archive','{}')$q$,'40001',null,'redan arkiverad');
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000091',0,'restore','{}')$q$,'40001',null,'ej arkiverad kan inte tas fram');
+select ok((public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000090',1,'restore','{}')->'lifecycle'->>'revision')='2','tas fram ur arkivet med revision +1');
+select ok((public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',1,'restore','{}')->'lifecycle'->>'archived')='false','framtida plan tas fram');
+select is((select count(*)::integer from public.organisation_events where organizer_id='55008000-0000-4000-8000-000000000002' and action in ('programplan_education_archived','programplan_education_restored')),4,'organisationshändelser för arkiv');
+select is((select count(*)::integer from public.security_events where source='db' and action in ('programplan_education_archived','programplan_education_restored') and details='{}'::jsonb and object_id in ('55008000-0000-4000-8000-000000000040','55008000-0000-4000-8000-000000000090')),4,'DB-audit för arkiv');
+-- Framtida plan ändras som förut, även av rektor.
+select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
+select is((public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000050',0,'[{"rowKey":"meta:diplomaWork","points":[0,0,0,0,0,100]}]')->>'revision'),'1','rektor fördelar terminer i framtida plan');
+select pg_temp.programplan_actor('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000020','55008000-0000-4000-8000-000000000010','55008000-0000-4000-8000-000000000080');
+-- Ändra uppgifter och startdatum.
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',2,'update','{"name":"","localCode":null,"cohort":"K","startedOn":null}')$q$,'22023',null,'tomt namn nekas');
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',2,'update','{"name":"N","cohort":"K","startedOn":null}')$q$,'22023',null,'exakt nyckelmängd');
+insert into lc select 'updated',public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',2,'update',jsonb_build_object('name',' Syntetisk ny SA ','localCode','SYN-1','cohort','Ny kull','startedOn',to_char(make_date(pg_temp.y(2),8,18),'YYYY-MM-DD')));
+select ok((select name='Syntetisk ny SA' and local_code='SYN-1' and cohort='Ny kull' and start_year=pg_temp.y(2) and lifecycle_revision=3 from public.offerings where id='55008000-0000-4000-8000-000000000040'),'namn, kod, kull och startår ändrade');
+select ok((select basis_reference->>'startedOn'=to_char(make_date(pg_temp.y(2),8,18),'YYYY-MM-DD') and revision=2 from public.point_plans where id='55008000-0000-4000-8000-000000000050'),'utkastets startdatum ändrat med revision +1');
+select is((select value->'lifecycle'->>'startsOn' from lc where name='updated'),to_char(make_date(pg_temp.y(2),8,18),'YYYY-MM-DD'),'svaret visar nytt startdatum');
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',3,'update',jsonb_build_object('name','Syntetisk ny SA','localCode',null,'cohort','Ny kull','startedOn',to_char(public.phase5_programplan_today(),'YYYY-MM-DD')))$q$,'22023','Education start passed','startdatum i dag nekas');
+select throws_ok($q$select public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000041',0,'update',jsonb_build_object('name','Syntetisk obunden SA','localCode',null,'cohort','Inte ett datum','startedOn',to_char(make_date(pg_temp.y(1),8,17),'YYYY-MM-DD')))$q$,'22023','Education start locked','startdatum kräver ett enda bundet utkast');
+select throws_ok($q$update public.point_plans set basis_reference=jsonb_set(basis_reference,'{orientationCode}','"SASAP"'),revision=revision+1 where id='55008000-0000-4000-8000-000000000050'$q$,'42501',null,'övrig basis förblir låst');
+-- D-04: ny utbildning med passerat startdatum nekas.
+select throws_ok($q$select public.phase5_create_programplan_education('55008000-0000-4000-8000-000000000702','55008000-0000-4000-8000-000000000030','Syntetisk bakåt SA',null,'K',jsonb_set(pg_temp.programplan_reference(),'{startedOn}',to_jsonb(to_char(public.phase5_programplan_today(),'YYYY-MM-DD'))))$q$,'22023','Education start passed','start i dag nekas');
+select throws_ok($q$select public.phase5_create_programplan_education('55008000-0000-4000-8000-000000000703','55008000-0000-4000-8000-000000000030','Syntetisk bakåt SA',null,'K',jsonb_set(pg_temp.programplan_reference(),'{startedOn}','"2020-08-17"'))$q$,'22023','Education start passed','passerad start nekas');
+insert into lc select 'sameyear',public.phase5_create_programplan_education('55008000-0000-4000-8000-000000000704','55008000-0000-4000-8000-000000000030','Syntetisk sen start SA',null,'K',jsonb_set(pg_temp.programplan_reference(),'{startedOn}',to_jsonb(to_char(public.phase5_programplan_today()+1,'YYYY-MM-DD'))));
+select is((select public.phase5_programplan_lifecycle(o)->>'phase' from public.offerings o where id=(select (value->'education'->>'id')::uuid from lc where name='sameyear')),'framtida','start i morgon är framtida och utkastet skapas');
 select * from finish();
 rollback;

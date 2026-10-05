@@ -3,8 +3,8 @@ import { parseProgramplanSelection,parseProgramplanSelectionRequest,parseProgram
  type ProgramplanSelectionRequest,type ProgramplanSelection,type ProgramplanEducationCreateRequest,type ProgramplanEducationStatusRequest } from '../programplan-education-contract.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny,type Tx } from './db.ts';
-import { mandateOperation } from './mandate-route.ts';
-async function operation<T>(fn:()=>Promise<T>):Promise<T>{try{return await mandateOperation(fn);}catch(e){if(e&&typeof e==='object'&&'code'in e&&e.code==='55000')throw new AuditUnavailable();throw e;}}
+import { lifecycleOperation } from './programplan-lifecycle.ts';
+async function operation<T>(fn: () => Promise<T>): Promise<T> { return lifecycleOperation(fn); }
 function row(rows:{result:unknown}[]){if(rows.length!==1)throw new AuditUnavailable();return rows[0].result;}
 async function selectionData(tx:Tx,input:ProgramplanSelectionRequest):Promise<ProgramplanSelection>{
  const result=row(await operation(()=>tx<{result:unknown}[]>`select public.phase5_programplan_selection(${input.unitId},${input.catalogId},${input.programRef===null?null:tx.json(input.programRef)}::jsonb) as result`));

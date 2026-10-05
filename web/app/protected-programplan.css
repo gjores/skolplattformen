@@ -175,3 +175,6 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb-row-tools{display:flex;gap:0}.ppb-row-tools button{width:40px;height:40px}.ppb-group th{padding:12px 12px 6px!important}.ppb-add-row td{padding:10px 12px 14px!important}
 .ppb-table tbody th[scope=row] span{display:block;overflow-wrap:anywhere}}
 @media(max-width:800px){.ppb-term input{width:54px;max-width:none}.ppb-table .ppb-term{min-width:60px}}
+
+/* 05-20: livscykelns statusmärken och låsbesked. */
+.ppl-phase-framtida{background:#e7f0fc;color:#24558c}.ppl-phase-pagaende{background:#edf7ef;color:#22552b}.ppl-phase-avslutad{background:#f0f2f6;color:#4d5a6d}.ppl-phase-okand{background:#fff5e1;color:#7a4b00}.ppl-phase-arkiverad{background:#eceef2;color:#4d5a6d;border:1px dashed #9aa6b6}.ppl-archived-toggle{margin-left:auto;padding:0}.ppl-lock{margin-block:.75rem}

@@ -16,7 +16,7 @@ import { parseProgramplanLifecycleReply } from '../../web/lib/programplan-lifecy
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const SOURCE=['web/lib/programplan-lifecycle.ts','web/lib/server/programplan-lifecycle.ts','web/app/api/programplaner/utbildning/livscykel/route.ts','web/lib/programplan-workspace-contract.ts',
  'web/lib/server/http.ts','supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql'];
-const LOCK_SOURCE='supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql';
+const LOCK_SOURCES=['supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql','web/lib/server/programplan-planning.ts','web/lib/server/programplan-terms.ts','web/lib/server/programplan-education.ts'];
 const ROUTE='utbildning/livscykel',DELETED='programplan_education_deleted';
 export const LIFECYCLE_API_CASES_T1=['built-worker','list-lifecycle','workspace-lifecycle','hm-delete-future','receipt-barrier','principal-denied','stale-revision','in-use-denied',
  'started-denied','unknown-denied','invalid-shape','no-MFA','no-session','origin-required','foreign-customer','mandatory-db-audit','mandatory-worker-audit','hm-delete-empty',
@@ -36,7 +36,7 @@ export async function runLifecycleApi(o) {
  try {
   const mark=JSON.parse(readFileSync(resolve(root,'web/dist-protected/build-mode.json'))),git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   locks=(await db`select exists(select 1 from supabase_migrations.schema_migrations where version='20261004122000') applied`)[0].applied;
-  const sources=locks?[...SOURCE,LOCK_SOURCE]:SOURCE;
+  const sources=locks?[...SOURCE,...LOCK_SOURCES]:SOURCE;
   if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...sources])||git(['diff','--name-only',mark.revision,'HEAD','--',...sources]))throw Error('BLOCKED_source_build');
   report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;report.locksApplied=locks;
   const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES],expected=[...old,...LIFECYCLE_ENTRIES];
@@ -97,7 +97,7 @@ export async function runLifecycleApi(o) {
     const r=await call(fixture.hm,ROUTE,command(started.offeringId,1,'restore'));check(c,'tas fram ur arkivet med ny revision',r.status===200&&r.body?.lifecycle?.archived===false&&r.body.lifecycle.revision===2&&await paired(r,fixture.hm,'programplan_education_restored',started.offeringId));
     await deny(c,fixture.principal,command(started.offeringId,2,'archive'),403,'forbidden');await deny(c,fixture.hm,command(started.offeringId,2,'restore'),409,'conflict');});
    await run('archived-locked',async c=>{const a=await call(fixture.hm,ROUTE,command(id40,0,'archive'));check(c,'framtida plan arkiverad',a.status===200);
-    await deny(c,fixture.principal,{planId:plan50,expectedRevision:0,distribution:[]},403,'forbidden','terminer');
+    await deny(c,fixture.principal,{planId:plan50,expectedRevision:0,distribution:[]},409,'programplan_locked','terminer');
     await deny(c,fixture.hm,command(id40,1,'delete'),409,'programplan_locked');
     const r=await call(fixture.hm,ROUTE,command(id40,1,'restore'));check(c,'framtagen plan kan ändras igen',r.status===200&&(await call(fixture.principal,'terminer',{planId:plan50,expectedRevision:0,distribution:[]})).status===200);});
    await run('update-details',async c=>{const details={name:'Syntetisk bunden SA, ny',localCode:'SYN-1',cohort:'Syntetisk kull nästa år',startedOn:null},r=await call(fixture.hm,ROUTE,command(id40,2,'update',details)),row=await fixture.offering(id40);
@@ -109,7 +109,7 @@ export async function runLifecycleApi(o) {
     await deny(c,fixture.hm,command(id,1,'update',{name:'Syntetisk startbyte SA',localCode:null,cohort:'Syntetisk kull',startedOn:STARTED_START}),400,'programplan_start_passed');});
    await run('update-start-denied',async c=>{await deny(c,fixture.hm,command(offering(41),0,'update',{name:'Syntetisk obunden SA',localCode:null,cohort:'Inte ett datum',startedOn:FUTURE_START}),400,'bad_request');});
    await run('started-writes-locked',async c=>{const p=started.planId,base={planId:p,expectedRevision:0};
-    for(const [route,body] of [['terminer',{...base,distribution:[]}],['fordjupning',{...base,specializationRefs:[]}],['binda',{...base,basisReference:fixture.basis()}]])await deny(c,fixture.principal,body,403,'forbidden',route);
+    for(const [route,body] of [['terminer',{...base,distribution:[]}],['fordjupning',{...base,specializationRefs:[]}],['binda',{...base,basisReference:fixture.basis()}]])await deny(c,fixture.principal,body,409,'programplan_locked',route);
     await deny(c,fixture.hm,command(started.offeringId,2,'update',{name:'Syntetisk pågående SA',localCode:null,cohort:'Syntetisk startad kull',startedOn:null}),409,'programplan_locked');
     const read=await call(fixture.principal,'terminer/lasa',{planId:p});check(c,'utkast i pågående plan kan läsas och finns kvar',read.status===200&&read.body?.status==='utkast');});
    await run('future-writes-open',async c=>{const r=await call(fixture.principal,'fordjupning',{planId:fixture.planId,expectedRevision:1,specializationRefs:[]});check(c,'framtida plan ändras som förut',r.status===200&&r.body?.revision===2);});
@@ -121,7 +121,7 @@ export async function runLifecycleApi(o) {
  } catch(e) {report.error=/^(BLOCKED|REFUSED)_/u.test(e.message??'')?e.message:'TEST_FAILED';report.code=/^[A-Z0-9]{5}$/u.test(e.code??'')?e.code:null;if(process.env.P520_DEBUG)console.error(e);}
  finally {
   try{await assertTarget('protected');if(triggerActive)await db.unsafe(`drop trigger if exists ${trigger} on public.security_events;drop function if exists public.${fn}()`);if(extraSessions.length)await db.begin(async tx=>{await tx`set local session_replication_role=replica`;await tx`delete from public.app_sessions where id=any(${extraSessions}::uuid[])`;});if(fixture)report.cleanup=await fixture.cleanup();if(foreign)report.foreignCleanup=await foreign.cleanup();if(o.preflight&&beforeAcl)await restore();if(original){report.originalHashes=original;report.finalHashes=await hashes();assert.deepEqual(report.finalHashes,original);report.originalBusinessPreserved=true;}report.cleanupStatus='PASS';}catch(e){report.cleanupStatus='FAIL';report.status='FAIL';if(process.env.P520_DEBUG)console.error(e);}
-  await db.end({timeout:5});report.completedAt=new Date().toISOString();report.sourceHashes=Object.fromEntries((locks?[...SOURCE,LOCK_SOURCE]:SOURCE).map(p=>[p,createHash('sha256').update(readFileSync(resolve(root,p))).digest('hex')]));mkdirSync(dirname(o.outFile),{recursive:true});writeFileSync(o.outFile,JSON.stringify(report,null,2)+'\n');
+  await db.end({timeout:5});report.completedAt=new Date().toISOString();report.sourceHashes=Object.fromEntries((locks?[...SOURCE,...LOCK_SOURCES]:SOURCE).map(p=>[p,createHash('sha256').update(readFileSync(resolve(root,p))).digest('hex')]));mkdirSync(dirname(o.outFile),{recursive:true});writeFileSync(o.outFile,JSON.stringify(report,null,2)+'\n');
  }
  return report;
 }
