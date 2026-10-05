@@ -34,6 +34,30 @@ Exempel: ett IV-alternativ Fotografi 100 p kan erbjudas för både SA och EK. Om
 
 En gemensam terminsram är inte bevis för att alternativen måste gå samtidigt på veckoschemat. Samtidighet bör vara en uttrycklig regel för en valomgång/grupporganisation om skolan behöver ett gemensamt valfönster. Terminsplacering, undervisningstimmar och veckoschema är skilda uppgifter.
 
+## Användarens tillägg: skolans organisatoriska förutsättningar
+
+Användaren förtydligar 2026-10-05 att en skola exempelvis kan ha en enda språklärare och behöva lägga språkgrupper på olika dagar. Skolan behöver då kunna organisera blocken i olika kombinationer för att undervisningen ska vara genomförbar. Detta är en tillagd verksamhetsförutsättning; hela föregående ombyggnadsförslag är fortfarande inte godkänt.
+
+Det förstärker behovet av en **skolvis undervisningsorganisation** mellan utbildningens valbara ram och de konkreta schematillfällena:
+
+- Programblockets identitet, poäng och terminsram består även när gruppernas veckoplacering skiljer sig åt. Ett valbart programblock ska inte automatiskt likställas med ett samtidigt schemablock.
+- Skolan kan organisera samma ram med parallella grupper, grupper vid olika tidpunkter eller en blandning. Exempelvis kan samma lärare undervisa en språkgrupp på tisdag och en annan på torsdag, om uppdrag och tillgänglighet tillåter det. Övrig undervisning behöver planeras utifrån vilka elever som faktiskt ingår i respektive grupp.
+- Organisationsalternativ ska koppla faktiska nivåer/språk, elevurval eller prognos, grupper, lärare, lokaler och perioder. Kopplingen behöver kunna gå över klasser/program när innehåll och villkor medger det; den får inte kräva en grupp per paket eller ett gemensamt veckofönster per programblock.
+- Valbara kombinationer ska granskas både mot utbildningsinnehållet och mot skolans planerade resurser. Ett utbildningsmässigt giltigt val är inte automatiskt organisatoriskt genomförbart. Resursbrist ska inte tyst omtolka elevens innehåll, behörighet eller rättigheter.
+- Prognos, planerad organisation och kontrollerat schema ska skiljas åt. En preliminär resurskontroll är inte bevis för att ett fullständigt schema finns. Ändrad lärartillgänglighet eller elevval ska ge ett synligt behov av omprövning, utan automatisk ändring av gamla studieplaner eller paketversioner.
+
+Detta gör arbetsordningen mer iterativ: skolutbud, preliminära kombinationer/grupper och bemanning prövas tillsammans före öppnat elevval, och justeras sedan efter bekräftade val. Bara de samtidighetskrav som skolan faktiskt beslutar ska ingå som obligatoriska schemavillkor.
+
+Föreslagna verifieringsfall för STUDY-01/GROUP-01 och SCHEMA-01/03/07:
+
+1. Två språkgrupper inom samma programblock använder samma lärare. Parallell placering ger resurskonflikt; placering på olika tillgängliga dagar tillåts utan ändrad programram eller paketinnehåll.
+2. Varje elevs språkval provas mot elevens övriga undervisning. Lärarens konfliktfrihet ensam räcker inte; elevens grupper får inte kollidera.
+3. Två skolor använder samma programram men olika gruppkombinationer och resurser. Organisationsändring på den ena skolan ändrar inte den andras organisation eller den gemensamma planversionen.
+4. Samma nivå/språk från olika program kan organiseras i gemensam grupp under förenliga villkor. Paket med flera nivåer kan samtidigt organiseras i flera grupper över tid.
+5. Om en organisationskombination saknar tillräcklig lärartid eller ger kända elevkonflikter ska bristen förklaras före bekräftat erbjudande. Okänd resurs, ofullständig kontroll eller avbruten schemaberäkning får inte redovisas som bevisad omöjlighet eller full genomförbarhet.
+
+Dessa fall är planeringsmål, inte körda prov eller nya levererade funktioner. Den gamla formuleringen att blocket automatiskt blir ett gemensamt schemafönster behöver omprövas i fortsatt planering; den genomförda D-leveransen kontrollerar terminsramar och bevisar inte veckoschemats organisation.
+
 ## Vad den aktuella implementationen visar
 
 Berörd kod är läst, inklusive `web/lib/programplan-packages.ts`, `web/lib/programplan-analysis.ts`, `web/app/protected-programplan-packages.tsx` och `web/app/protected-programplan-workspace.tsx`. Den äldre kodkartan beskriver inte automatiskt det nuvarande skyddade läget.

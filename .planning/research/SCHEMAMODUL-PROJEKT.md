@@ -32,6 +32,8 @@ Den äldre kodkartan i `.planning/codebase/ARCHITECTURE.md` beskriver 2026-09-11
 
 Detta är avsedda ansvarsgränser att precisera i kontraktssteget, inte redan implementerade datamodeller.
 
+Förtydligande från användaren 2026-10-05: skolans resurser kan kräva olika blockkombinationer, exempelvis språkgrupper på olika dagar när samma språklärare undervisar grupperna. Ett valbart block i programplanen är därför inte automatiskt ett krav på parallell undervisning. S1/S3 ska precisera skolvis undervisningsorganisation, valbara kombinationer och explicita samtidighetsvillkor med koppling till grupper, elevval och bemanning. Samma programram ska kunna användas med olika organisation på olika skolor. [Bedömning och föreslagna provfall](PAKETENS-PLATS-I-UTBILDNINGSFLODET-2026-10-05.md) konkretiserar SCHEMA-01/03/07 samt STUDY-01/GROUP-01; ingen ny numrerad pilotfas, ombyggnad eller genomförbar schemaberäkning är beslutad eller verifierad här.
+
 | Område | Eget ansvar | Vad schemamodulen behöver |
 | --- | --- | --- |
 | Utbildning och programplan | Utbildning/kull, ämnen, kurser/nivåer, innehåll, poäng, katalogreferenser och beslutade versioner. | Exakta innehålls- och versionsreferenser; inte en automatisk omräkning från poäng till minuter. |
