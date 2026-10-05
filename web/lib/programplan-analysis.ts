@@ -3,9 +3,9 @@
 // ett framtida fastställande. Bara regler som går att belägga med Skolverkets underlag tas med;
 // övrigt redovisas som "Att kontrollera" i stället för att gissas.
 
-import type { CatalogProgram, ProgramplanLevelRef } from './programplan-catalog.ts';
+import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference } from './programplan-catalog.ts';
 import { DIPLOMA_WORK_POINTS, INDIVIDUAL_CHOICE_POINTS, frameStatus, programFrame, type ProgramFrame } from './programplan-table.ts';
-import { firstYear, lastYear, type ProgramplanTermDistribution, type ProgramplanTermRow } from './programplan-terms.ts';
+import { PROGRAMPLAN_TERMS, programplanRowSubject, programplanRowRank, type ProgramplanTermDistribution, type ProgramplanTermRow } from './programplan-terms.ts';
 
 export type IssueCategory = 'fel' | 'risk' | 'info' | 'ok';
 export type PlanPart = 'foundation' | 'programmeSpecific' | 'orientation' | 'specialization' | 'other' | 'meta';
@@ -28,6 +28,7 @@ export type AnalysisInput = {
   startedOn: string | null; sourceFetched: string | null;
   /** Diagnoser från serverns kontroll av den sparade planen, redan formulerade som text. */
   serverNotes?: string[];
+  basisReference?: ProgramplanBasisReference | null;
   /** Fördelning över terminer när planen är bunden till underlag. */
   terms?: { rows: ProgramplanTermRow[]; distribution: ProgramplanTermDistribution; ranks: Map<string, number> };
 };
@@ -42,7 +43,7 @@ const RULE_STRUCTURE = 'Skolverkets programstruktur';
 export function analyseProgramplan(input: AnalysisInput): Analysis {
   const { program, orientationCode, refs } = input;
   const frame = programFrame(program, orientationCode);
-  const status = frameStatus(frame, refs);
+  const status = frameStatus(frame, refs, input.basisReference?.choiceBlocks);
   const issues: PlanIssue[] = [];
   const add = (issue: PlanIssue) => issues.push(issue);
 
@@ -56,12 +57,19 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
     add({ id: 'specialization-under', category: 'fel', title: 'Outnyttjat utrymme', detail: `${fmt(status.remaining!)} poäng programfördjupning är inte fördelade. Eleverna når inte programmets ${fmt(frame.total!)} poäng.`, part: 'specialization', rule: RULE_TOTAL, action: 'Lägg till nivå', target: { kind: 'specialization', mode: 'add' } });
   }
 
+  if (input.basisReference && input.basisReference.choiceBlocks === undefined) add({ id: 'legacy-incomplete', category: 'fel', title: 'Ofullständig plan', detail: 'Den äldre versionen saknar svenskrader och valbara block. Skapa en ny version för att komplettera planen.', part: 'meta', rule: RULE_STRUCTURE, action: null });
+  const current = input.basisReference?.choiceBlocks !== undefined;
+  if (current && input.basisReference!.choiceBlocks!.filter(b => b.kind === 'individualChoice').reduce((n,b) => n+b.points,0) !== 200) add({id:'individual-choice-points',category:'fel',title:'Individuellt val ska omfatta 200 poäng',detail:'Ändra blocken så att deras sammanlagda poäng blir 200.',part:'other',rule:RULE_TOTAL,action:null});
+  if (current && input.terms && frame.total !== null) {
+    const total = input.terms.rows.reduce((n,r) => n+r.points,0);
+    if (total !== frame.total) add({id:'total-points',category:'fel',title:'Planens poängsumma avviker',detail:`Planen omfattar ${fmt(total)} av ${fmt(frame.total)} poäng.`,part:'meta',rule:RULE_TOTAL,action:null});
+  }
   for (const section of frame.sections) {
-    const optional = section.rows.filter(r => r.note === 'Alternativ — en av dem läses');
+    const optional = current ? [] : section.rows.filter(r => r.note === 'Alternativ — en av dem läses');
     if (optional.length > 1) {
       add({ id: `alternatives-${section.id}`, category: 'info', title: `Alternativ: ${optional.map(r => r.subjectName).join(' eller ')}`, detail: 'Programstrukturen anger alternativa ämnen. Kontrollera att skolan erbjuder det alternativ eleverna behöver.', part: section.id, rule: RULE_STRUCTURE, action: null });
     }
-    for (const row of section.rows.filter(r => r.note === 'Nivåer saknas i underlaget')) {
+    for (const row of section.rows.filter(r => r.note === 'Nivåer saknas i underlaget' && !(current && ['MOSP','SPRK','NAVE'].includes(r.key)))) {
       add({ id: `levels-${section.id}-${row.key}`, category: 'risk', title: `${row.subjectName}: nivåer saknas`, detail: `Underlaget anger ${fmt(row.points)} poäng men inga nivåer. Skolan behöver bestämma vilka nivåer som erbjuds.`, part: section.id, rule: RULE_STRUCTURE, action: null });
     }
   }
@@ -75,19 +83,12 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
     termsComplete = open.length === 0;
     if (open.length) add({ id: 'terms-open', category: 'fel', title: open.length === 1 ? '1 nivå saknar terminer' : `${open.length} nivåer saknar terminer`, detail: `${open.slice(0, 4).map(r => `${r.name} ${r.levelName}`).join(', ')}${open.length > 4 ? ' med flera' : ''}. ${fmt(open.reduce((s, r) => s + r.points - (byKey.get(r.key)?.reduce((a, b) => a + b, 0) ?? 0), 0))} poäng är inte placerade.`, part: partOf(open[0]), rule: 'Fördelning över läsåren', action: 'Fördela', target: { kind: 'row', rowKey: open[0].key } });
     else add({ id: 'terms-ok', category: 'ok', title: 'Alla nivåer har terminer', detail: `${fmt(rows.reduce((s, r) => s + r.points, 0))} poäng fördelade över sex terminer.`, part: 'meta', rule: 'Fördelning över läsåren', action: null });
-    const subject = (row: ProgramplanTermRow) => row.key.split(':')[1], level = (row: ProgramplanTermRow) => row.key.split(':')[3];
-    for (const a of rows) for (const b of rows) {
-      if (a === b || subject(a) !== subject(b)) continue;
-      const ra = ranks.get(`${subject(a)}:${level(a)}`), rb = ranks.get(`${subject(b)}:${level(b)}`);
-      if (ra === undefined || rb === undefined || ra >= rb) continue;
-      const endA = lastYear(byKey.get(a.key)), startB = firstYear(byKey.get(b.key));
-      if (endA !== null && startB !== null && startB < endA) add({ id: `order-${b.key}`, category: 'fel', title: `${b.name} ${b.levelName} ligger före ${a.levelName}`, detail: `${b.levelName} börjar i åk ${startB + 1} men ${a.levelName} läses i åk ${endA + 1}. En högre nivå bygger på den lägre.`, part: partOf(b), rule: 'Nivåernas ordning', action: 'Flytta nivån', target: { kind: 'row', rowKey: b.key } });
-    }
+    issues.push(...programplanLevelOrderIssues(rows, distribution, ranks));
     const years = [0, 1, 2].map(y => distribution.reduce((s, d) => s + d.points[y * 2] + d.points[y * 2 + 1], 0));
     const total = rows.reduce((s, r) => s + r.points, 0), target = total / 3;
     if (termsComplete && years.some(y => Math.abs(y - target) > target * 0.15)) add({ id: 'terms-balance', category: 'risk', title: 'Ojämn arbetsbörda mellan läsåren', detail: `Åk 1: ${fmt(years[0])}, åk 2: ${fmt(years[1])}, åk 3: ${fmt(years[2])} poäng. Ett jämnt läsår är cirka ${fmt(Math.round(target))} poäng.`, part: 'meta', rule: 'Rimlig studiegång', action: 'Jämna ut', target: { kind: 'balance' } });
     const diploma = rows.find(r => r.part === 'diplomaWork'); const dp = diploma && byKey.get(diploma.key);
-    if (dp && dp.some(p => p > 0) && (firstYear(dp) ?? 2) < 2) add({ id: 'terms-diploma', category: 'risk', title: 'Gymnasiearbetet ligger före åk 3', detail: 'Gymnasiearbetet ska visa att eleven är förberedd för det programmet leder till och läggs normalt sist i utbildningen.', part: 'other', rule: 'Gymnasieförordningen 4 kap.', action: 'Flytta', target: { kind: 'row', rowKey: diploma!.key } });
+    if (dp && dp.some(p => p > 0) && dp.findIndex(p => p > 0) < 4) add({ id: 'terms-diploma', category: 'risk', title: 'Gymnasiearbetet ligger före åk 3', detail: 'Gymnasiearbetet ska visa att eleven är förberedd för det programmet leder till och läggs normalt sist i utbildningen.', part: 'other', rule: 'Gymnasieförordningen 4 kap.', action: 'Flytta', target: { kind: 'row', rowKey: diploma!.key } });
   }
   if (!input.startedOn) {
     add({ id: 'start-missing', category: 'risk', title: 'Utbildningens startdatum saknas', detail: 'Utkastet kan sparas, men planen kan inte kopplas till rätt underlag eller fastställas utan startdatum.', part: 'meta', rule: 'Krav för fastställande', action: 'Ange datum', target: { kind: 'start' } });
@@ -116,4 +117,21 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
     ...(!input.startedOn ? ['Utbildningens startdatum saknas.'] : []),
   ];
   return { frame, issues, counts, ready: missing.length === 0, missing };
+}
+
+/** Shared by plan and future package analysis: compare starts and actual shared terms. */
+export function programplanLevelOrderIssues(rows: ProgramplanTermRow[], distribution: ProgramplanTermDistribution, ranks: Map<string, number>): PlanIssue[] {
+  const byKey = new Map(distribution.map(d => [d.rowKey, d.points]));
+  const issues = new Map<string, PlanIssue>();
+  for (const lower of rows) for (const higher of rows) {
+    if (lower === higher || programplanRowSubject(lower) !== programplanRowSubject(higher) || programplanRowRank(lower, ranks) >= programplanRowRank(higher, ranks)) continue;
+    const lp = byKey.get(lower.key), hp = byKey.get(higher.key);
+    const startLow = lp?.findIndex(p => p > 0) ?? -1, startHigh = hp?.findIndex(p => p > 0) ?? -1;
+    if (startLow < 0 || startHigh < 0) continue;
+    const before = startHigh < startLow, overlap = lp!.some((p,i) => p > 0 && hp![i] > 0);
+    if (!before && !overlap) continue;
+    const id = `${before ? 'level-order' : 'level-overlap'}-${higher.key}`;
+    issues.set(id, {id,category:before?'fel':'risk',title:before?`${higher.name} ${higher.levelName} börjar före ${lower.levelName}`:`${higher.name}: nivåerna överlappar`,detail:before?`${higher.levelName} börjar ${PROGRAMPLAN_TERMS[startHigh]}, före ${lower.levelName} (${PROGRAMPLAN_TERMS[startLow]}).`:`${lower.levelName} och ${higher.levelName} läses under samma termin. Kontrollera studiegången.`,part:higher.part === 'individualChoice' || higher.part === 'diplomaWork' ? 'other' : higher.part,rule:'Nivåernas ordning',action:'Flytta nivån',target:{kind:'row',rowKey:higher.key}});
+  }
+  return [...issues.values()];
 }

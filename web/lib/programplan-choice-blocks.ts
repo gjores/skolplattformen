@@ -1,3 +1,5 @@
+import { parseProgramplanBasisReference } from './programplan-catalog.ts';
+import { programplanTermRows, validateProgramplanTermDistribution, type ProgramplanTermDistribution } from './programplan-terms.ts';
 import { ProgramplanContractError, type CatalogBlockSubject, type CatalogProgram, type ProgramplanBasisReference, type ProgramplanDiagnostic } from './programplan-catalog.ts';
 
 export type ProgramplanChoiceBlockKind = 'modernLanguage' | 'languageSubject' | 'naturalScience' | 'specialization' | 'individualChoice';
@@ -64,4 +66,19 @@ export function programplanAlternativeGroups(subjects: CatalogBlockSubject[]): C
     if (group) group.push(subject); else groups.push([subject]);
   }
   return groups.filter(g => g.length > 1);
+}
+
+/** Same deterministic shape and ordered allocation upgrade as the SQL helpers. */
+export function upgradeProgramplanBasis(program: CatalogProgram, reference: ProgramplanBasisReference, distribution: ProgramplanTermDistribution = []) {
+  const original = parseProgramplanBasisReference(reference);
+  validateProgramplanTermDistribution(programplanTermRows(program, original), distribution);
+  const basisReference = parseProgramplanBasisReference({ ...original, choiceBlocks: original.choiceBlocks ?? defaultProgramplanChoiceBlocks(program, original.orientationCode) });
+  const upgraded = distribution.map(d => ({ rowKey: original.choiceBlocks === undefined && d.rowKey === 'meta:individualChoice' ? 'block:iv1' : d.rowKey, points: [...d.points] as typeof d.points }));
+  validateProgramplanTermDistribution(programplanTermRows(program, basisReference), upgraded);
+  return { basisReference, distribution: upgraded };
+}
+export function requireCurrentProgramplanBasis(value: unknown): ProgramplanBasisReference {
+  const basis = parseProgramplanBasisReference(value);
+  if (basis.choiceBlocks === undefined) throw new ProgramplanContractError('invalid_basis_reference');
+  return basis;
 }

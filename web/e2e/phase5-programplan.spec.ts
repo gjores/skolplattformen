@@ -67,7 +67,7 @@ test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning
   const details=w(page).locator('.pp-underlying');await expect(details).not.toHaveAttribute('open','');
   await expect(board(page)).toContainText('Engelska');await expect(board(page)).toContainText('ENGE3000X');await expect(board(page)).toContainText('100 av 300 poäng');
   await expect(w(page).getByRole('button',{name:'Ändra fördjupning',exact:true})).toHaveCount(0);await expect(w(page)).toContainText('Utkast · Version');
-  await expect(board(page)).toContainText('(alternativ)');await expect(board(page)).toContainText('(nivåer saknas)');await expect(w(page).getByRole('button',{name:/^Analys/u})).toContainText('fel');
+  await expect(board(page).locator('tr[data-row-key^="alternative:"]')).toHaveCount(3);await expect(board(page)).toContainText('Svenska/svenska som andraspråk');await expect(board(page)).toContainText('Moderna språk');await expect(board(page).locator('tr[data-row-key="block:iv1"]')).toHaveCount(1);await expect(w(page).getByRole('button',{name:/^Analys/u})).toContainText('fel');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await capture(page,info,'programplan-read.png');
   await underlying(page);await expect(details).toContainText(fixture.catalogId);await expect(details).toContainText(`Utbildningsstart: ${FUTURE_START}`);await expect(details).toContainText('Fastställande är stängt');
   await expect(w(page).getByRole('button',{name:/Fastställ/u})).toHaveCount(0);expect((await fixture.snapshot()).revision).toBe(0);

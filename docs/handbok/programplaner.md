@@ -94,11 +94,17 @@ Tabellen har en rad per nivå, grupperad i gymnasiegemensamma ämnen, programgem
 
 **Programfördjupning** ändras direkt i sin grupp. Sök under **Lägg till ämne eller nivå** eller välj ett förslag; bara nivåer som Skolverket tillåter som programfördjupning för programmet visas. Gruppens rubrik visar valda poäng av ramen. Ta bort en nivå med krysset på raden. Har nivån fördelade poäng töms de först. Varje ändring sparas direkt.
 
-I nya planer har **Svenska/svenska som andraspråk** tre rader, en per nivå med 100 poäng. Fördela dem på terminer som andra nivåer. Elevens val mellan ämnena görs senare i studieplanen.
+I nya planer och uppgraderade utkast har **Svenska/svenska som andraspråk** tre rader, en per nivå med 100 poäng. Fördela dem på terminer som andra nivåer. Elevens val mellan ämnena görs senare i studieplanen.
 
 **Valbara block** har en egen rad med poäng som fördelas på terminer. Moderna språk ingår där programmet kräver det, språkämne ingår på Humanistiska programmets språkinriktning och naturvetenskapligt ämne på Naturvetenskapsprogrammets inriktning naturvetenskap och samhälle. Individuellt val är ett block på 200 poäng. Blockens poäng räknas med i planens summa; med full programfördjupning kan en ny samhällsvetenskapsplan fördelas till 2 500 poäng.
 
-**Nuvarande begränsning:** skolans valpaket i blocken kan ännu inte redigeras. Befintliga sparade planer behåller sin tidigare form tills uppgraderingen är genomförd. I den äldre formen listas alternativa ämnen och ämnen utan nivåer under tabellen som sådant som ingår men inte fördelas där.
+I **Individuellt val** väljer du **Dela i block**. Ändra namn och poäng, välj **Lägg till block** vid behov och **Spara block**. Blocken ska tillsammans vara 200 poäng, till exempel två block på 100 poäng. **Avbryt blockändring** lämnar de sparade blocken som de är.
+
+I **Programfördjupning** väljer du **Lägg till valbart block**, sedan **Lägg till block**. Ange namn och poäng och välj **Spara block**. Fasta fördjupningsnivåer och valbara fördjupningsblock räknas tillsammans mot programfördjupningens ram. Öppna samma formulär för att ändra namn eller poäng, eller välj **Ta bort block**.
+
+Töm blockets terminsrad och invänta **Allt sparat** innan du tar bort blocket eller ändrar dess poäng. Den sparade fördelningen ska aldrig försvinna när block ändras. De nationellt givna blocken för moderna språk, språkämne och naturvetenskapligt ämne har fasta namn och poäng. Deras terminsram fördelar du i tabellen. **Föreslå fördelning** lägger moderna språk jämnt i årskurs 1–2 och inriktningens samt egna fördjupningsblock i årskurs 2–3.
+
+**Nuvarande begränsning:** skolans valpaket i blocken kan ännu inte redigeras. Bundna äldre utkast får svenskrader och standardblock med bibehållna fördjupningsval och terminsfördelningar. De nya raderna behöver fördelas. Äldre fastställda och ersatta versioner behåller sin faktiska form och visas som **Ofullständig**. Skapa en ny version för att komplettera dem; originalversionen ändras inte.
 
 På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet.
 
@@ -114,11 +120,12 @@ Planen räknas som **Klar för beslut** först när allt detta stämmer:
 
 - alla nivåer är fördelade på terminer,
 - programfördjupningen fyller ramen, så att eleverna når programmets poäng,
-- ingen högre nivå ligger före en lägre nivå i samma ämne,
+- ingen högre nivå börjar före en lägre nivå i samma ämne,
+- individuellt val omfattar 200 poäng och ett högskoleförberedande program totalt 2 500 poäng,
 - analysen inte har några andra fel,
 - utbildningens startdatum finns.
 
-Statusen visas vid utbildningens namn. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
+Statusen visas vid utbildningens namn. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
 
 Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. För yrkesprogram anger underlaget ännu inte om programmet omfattar 2 700 eller 2 800 poäng, så där kontrolleras ramen inte. Lagrumshänvisningarna i analysen ska verifieras innan planen används som beslutsunderlag. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
 

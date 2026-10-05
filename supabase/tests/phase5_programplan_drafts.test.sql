@@ -18,7 +18,7 @@ create function pg_temp.programplan_reference(refs jsonb default '[{"subjectCode
 returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code','SA25','version',4),'orientationCode','SABEP',
- 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs)$$;
+ 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs,'choiceBlocks','[{"id":"mosp","kind":"modernLanguage","points":200,"name":"Moderna språk"},{"id":"iv1","kind":"individualChoice","points":200,"name":"Individuellt val"}]'::jsonb)$$;
 insert into public.customers(id,name) values('55008000-0000-4000-8000-000000000001','Syntetiskt programplansprov');
 insert into public.organizers(id,customer_id,name,type) values('55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000001','Syntetisk programplanshuvudman','Kommun');
 insert into public.identities(id,issuer,subject) values
@@ -160,9 +160,9 @@ select throws_ok($q$select public.phase5_replace_programplan_specialization('550
 select throws_ok($q$select public.phase5_bind_programplan_draft('55008000-0000-4000-8000-000000000052',0,pg_temp.programplan_reference())$q$,'42501',null,'older decided source cannot be bound in place');
 
 select throws_ok($q$select public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000040',1,pg_temp.programplan_reference())$q$,'40001',null,'create cannot open a second draft');
-select throws_ok($q$select public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000045',1,jsonb_set(jsonb_set(pg_temp.programplan_reference('[]'),'{programRef}','{"code":"ES25","version":3}'),'{orientationCode}','"ESBIF"'))$q$,'40001',null,'create requires actual latest version zero for an empty offering');
+select throws_ok($q$select public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000045',1,jsonb_set(jsonb_set(jsonb_set(pg_temp.programplan_reference('[]'),'{programRef}','{"code":"ES25","version":3}'),'{orientationCode}','"ESBIF"'),'{choiceBlocks}','[{"id":"iv1","kind":"individualChoice","points":200,"name":"Individuellt val"}]'))$q$,'40001',null,'create requires actual latest version zero for an empty offering');
 select throws_ok($q$select public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000045',0,pg_temp.programplan_reference('[]'))$q$,'22023',null,'create must match the offering actual program/orientation');
-insert into programplan_results values('created',public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000045',0,jsonb_set(jsonb_set(pg_temp.programplan_reference('[]'),'{programRef}','{"code":"ES25","version":3}'),'{orientationCode}','"ESBIF"')));
+insert into programplan_results values('created',public.phase5_create_programplan_draft('55008000-0000-4000-8000-000000000045',0,jsonb_set(jsonb_set(jsonb_set(pg_temp.programplan_reference('[]'),'{programRef}','{"code":"ES25","version":3}'),'{orientationCode}','"ESBIF"'),'{choiceBlocks}','[{"id":"iv1","kind":"individualChoice","points":200,"name":"Individuellt val"}]')));
 select ok((select value @> '{"version":1,"revision":0,"status":"utkast","decidedOn":null,"resolution":{"status":"resolved","decisionReady":false}}'::jsonb and value->>'id'<>'55008000-0000-4000-8000-000000000050' from programplan_results where name='created'),'create returns actual new ID/version/revision with no decision');
 select is((select count(*) from public.point_plans where offering_id='55008000-0000-4000-8000-000000000045' and status='utkast'),1::bigint,'create stores exactly one open draft');
 -- 05-20: okänd start (fastställd utan startunderlag) är låst. Ett framtida startår ger en framtida plan så att

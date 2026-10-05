@@ -117,3 +117,10 @@ test('05-23 frozen pin and command reply detect block changes or missing v2 form
  assert.equal(sameProgramplanPin(a,{...a,choiceBlocks:a.choiceBlocks.map(b=>({...b,name:'Changed'}))}),false);
  assert.throws(()=>programplanCommandReply({...result(),basisReference:legacy},cleanDraft()));
 });
+
+test('reviewed custom block pin is accepted exactly while changed points, IDs or order are rejected',()=>{
+ const d=cleanDraft('clone'),r={...result(),id:'55101100-0000-4000-8000-000000000070',version:4,revision:0};
+ d.pin.choiceBlocks=[...d.pin.choiceBlocks,{id:'pf1',kind:'specialization',points:300,name:'Valbart'}];r.basisReference.choiceBlocks=d.pin.choiceBlocks.map(b=>({...b}));
+ assert.equal(programplanCommandReply(r,d).id,r.id);
+ for(const change of [p=>p.basisReference.choiceBlocks.at(-1).points=100,p=>p.basisReference.choiceBlocks.at(-1).id='pf2',p=>p.basisReference.choiceBlocks.reverse()]) {const altered=structuredClone(r);change(altered);assert.throws(()=>programplanCommandReply(altered,d));}
+});

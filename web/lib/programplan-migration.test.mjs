@@ -35,7 +35,7 @@ test('05-23 A målskydd tillåter exakt blockunderlaget och inga grants',()=>{
  const migration='20261004150000_phase5_programplan_choice_blocks.sql';
  assert.deepEqual(parseApplyArgs(['--migration',migration]),{migration,grants:null});
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--grants','proof.json']),/grants not allowed/);
- for(const name of ['20261004151000_phase5_programplan_block_commands.sql','../'+migration])assert.throws(()=>parseApplyArgs(['--migration',name]),/unknown migration/);
+ for(const name of ['20261004154000_phase5_programplan_unit_packages.sql','../'+migration])assert.throws(()=>parseApplyArgs(['--migration',name]),/unknown migration/);
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--sync-backfill-journal','proof.json']),/only for reviewed/);
 });
 
@@ -45,4 +45,12 @@ test('05-23 A numerisk rättning är en separat migration utan grants eller jour
  assert.deepEqual(parseApplyArgs(['--migration',migration]),{migration,grants:null});
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--grants','proof.json']),/grants not allowed/);
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--sync-backfill-journal','proof.json']),/only for reviewed/);
+});
+
+for (const migration of ['20261004151000_phase5_programplan_block_commands.sql','20261004152000_phase5_programplan_shape_upgrade.sql']) test(`B allows exact ${migration} without grants`,()=>{
+ assert.deepEqual(parseApplyArgs(['--migration',migration]),{migration,grants:null});assert.throws(()=>parseApplyArgs(['--migration',migration,'--grants','proof.json']),/grants not allowed/);
+});
+test('B worker entrypoint requires preflight proof',()=>{
+ const migration='20261004153000_phase5_worker_programplan_blocks.sql';assert.throws(()=>parseApplyArgs(['--migration',migration]),/preflight.json.*required/);
+ assert.deepEqual(parseApplyArgs(['--migration',migration,'--grants','proof.json']),{migration,grants:'proof.json'});
 });

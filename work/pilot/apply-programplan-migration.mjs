@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 05-20–05-23 A: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
+// 05-20–05-23 B: tillämpar exakt en granskad migration på det isolerade lokala målet. Ingen reset.
 // Kontrollerar journal och tidigare exakt Worker-ACL; grants kräver PASS-preflight med samma källor.
 import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES, exactFunctions } from './verify-programplan-api.mjs';
 import { assertTarget } from './verify-target.mjs';
@@ -10,10 +10,13 @@ import { resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const BASE=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES];
-// Endast granskade 05-20–05-23 A-migrationer, i ordning, med förväntad ACL före tillämpning.
+// Endast granskade 05-20–05-23 B-migrationer, i ordning, med förväntad ACL före tillämpning.
 const ALLOWED={
+ '20261004151000_phase5_programplan_block_commands.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004150000','20261004150100']},
+ '20261004152000_phase5_programplan_shape_upgrade.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004151000']},
+ '20261004153000_phase5_worker_programplan_blocks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:true,preflightKind:'phase5-programplan-blocks-api',dependencies:['20261004151000','20261004152000']},
  '20261004120000_phase5_programplan_lifecycle.sql':{before:BASE,grants:false},
- '20261004121000_phase5_worker_programplan_lifecycle.sql':{before:BASE,grants:true},
+ '20261004121000_phase5_worker_programplan_lifecycle.sql':{before:BASE,grants:true,preflightKind:'phase5-programplan-lifecycle-api'},
  '20261004122000_phase5_programplan_lifecycle_locks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
  '20261004130000_phase5_programplan_units.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
  '20261004140000_phase5_offering_unit_linkage.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
@@ -30,8 +33,11 @@ export function parseApplyArgs(argv){
  if(o.backfillJournal&&o.migration!=='20261004141000_phase5_timplan_units.sql')throw Error('REFUSED: journal sync only for reviewed 05-22 backfill');
  return o;
 }
-export function verifyPreflight(evidence,read){
- if(evidence?.status!=='PASS'||evidence.preflight!==true||evidence.preflightAclRestored!==true||evidence.cleanupStatus!=='PASS'||evidence.originalBusinessPreserved!==true||evidence.complete!==true)throw Error('REFUSED: verified lifecycle API preflight required');
+export function verifyPreflight(evidence,read,expectedKind){
+ if(expectedKind&&evidence?.kind!==expectedKind)throw Error('REFUSED: preflight does not cover this migration');
+ if(!['phase5-programplan-lifecycle-api','phase5-programplan-api','phase5-programplan-blocks-api'].includes(evidence?.kind))throw Error('REFUSED: recognized programplan API preflight required');
+ if(evidence?.kind==='phase5-programplan-blocks-api'&&evidence.step!=='b')throw Error('REFUSED: block step B preflight required');
+ if(evidence?.status!=='PASS'||evidence.preflight!==true||evidence.preflightAclRestored!==true||evidence.cleanupStatus!=='PASS'||evidence.originalBusinessPreserved!==true||evidence.complete!==true)throw Error('REFUSED: verified programplan API preflight required');
  const hashes=Object.entries(evidence.sourceHashes??{});
  if(hashes.length<5)throw Error('REFUSED: preflight source evidence missing');
  for(const [path,hash] of hashes)if(createHash('sha256').update(read(path)).digest('hex')!==hash)throw Error('REFUSED: source changed since preflight');
@@ -49,7 +55,7 @@ export function verifyBackfillJournal(previous,source,proof){
 async function main(){
  const o=parseApplyArgs(process.argv.slice(2)),spec=ALLOWED[o.migration];
  const source=readFileSync(resolve(root,'supabase/migrations',o.migration),'utf8');
- if(o.grants)verifyPreflight(JSON.parse(readFileSync(resolve(root,o.grants),'utf8')),path=>readFileSync(resolve(root,path)));
+ if(o.grants)verifyPreflight(JSON.parse(readFileSync(resolve(root,o.grants),'utf8')),path=>readFileSync(resolve(root,path)),spec.preflightKind);
  const manifest=await assertTarget('protected');
  const db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(manifest.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
  try{

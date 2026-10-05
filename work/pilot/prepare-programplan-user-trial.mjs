@@ -6,6 +6,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { assertTarget } from './verify-target.mjs';
 import { verifyProgramplanCatalog, resolveProgramplanBasis } from '../../web/lib/programplan-catalog.ts';
 import { parseRawProgramplanWorkspace } from '../../web/lib/programplan-workspace-contract.ts';
+import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
 import { nextCohortStart } from '../../web/lib/programplan-lifecycle.ts';
 
 const customer = '33000000-0000-4000-8000-000000000001';
@@ -47,13 +48,13 @@ export async function prepareProgramplanUserTrial() {
   const target=await assertTarget('protected');
   const raw=JSON.parse(readFileSync(fileURLToPath(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url)),'utf8'));
   const catalog=await verifyProgramplanCatalog(raw);
-  const reference={catalogId:raw.catalogId,programRef:{code:'SA25',version:4},orientationCode:'SASAP',startedOn:'2026-08-17',specializationRefs:[{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100}]};
+  const reference={catalogId:raw.catalogId,programRef:{code:'SA25',version:4},orientationCode:'SASAP',startedOn:'2026-08-17',specializationRefs:[{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100}],choiceBlocks:defaultProgramplanChoiceBlocks(catalog.programs.find(p=>p.code==='SA25'&&p.version===4),'SASAP')};
   const futureStart=nextCohortStart(),futureYear=Number(futureStart.slice(0,4)),futureReference={...reference,startedOn:futureStart};
   if(resolveProgramplanBasis(catalog,futureReference).status!=='resolved')throw new Error('REFUSED: framtida provgrund kan inte lösas');
   const specs=[...trialEducationSpecs.map(spec=>({...spec,kind:legacyKind(spec.plan),future:false})),...futureTrialEducationSpecs.map(spec=>({...spec,future:true}))];
   if(resolveProgramplanBasis(catalog,reference).status!=='resolved')throw new Error('REFUSED: provets exakta kataloggrund kan inte lösas');
   for(const spec of trialEducationSpecs){
-    if(resolveProgramplanBasis(catalog,{...reference,programRef:{code:spec.program,version:spec.version},orientationCode:spec.orientation,specializationRefs:[]}).status!=='resolved')
+    if(resolveProgramplanBasis(catalog,{...reference,programRef:{code:spec.program,version:spec.version},orientationCode:spec.orientation,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(catalog.programs.find(p=>p.code===spec.program&&p.version===spec.version),spec.orientation)}).status!=='resolved')
       throw new Error('REFUSED: ett programs exakta kataloggrund kan inte lösas');
   }
   const require=createRequire(new URL('../../web/package.json',import.meta.url));

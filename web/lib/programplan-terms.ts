@@ -113,8 +113,15 @@ export function suggestProgramplanTerms(rows: ProgramplanTermRow[], distribution
     const first = Math.floor(row.points / 2), p: ProgramplanTermPoints = [0, 0, 0, 0, 0, 0];
     p[2] = Math.floor(first / 2); p[3] = first - p[2]; const second = row.points - first; p[4] = Math.floor(second / 2); p[5] = second - p[4]; put(row.key, p);
   }
+  for (const row of rows.filter(r => r.key.startsWith('block:') && r.part !== 'individualChoice' && empty(r))) {
+    const start = row.part === 'programmeSpecific' ? 0 : 2;
+    const p: ProgramplanTermPoints = [0,0,0,0,0,0];
+    const share = Math.floor(row.points / 4);
+    for (let i = start; i < start + 4; i++) p[i] = share + (i - start < row.points % 4 ? 1 : 0);
+    put(row.key, p);
+  }
   const subjects = new Map<string, ProgramplanTermRow[]>();
-  for (const row of rows.filter(r => r.part !== 'diplomaWork' && r.part !== 'individualChoice')) subjects.set(subjectOf(row), [...(subjects.get(subjectOf(row)) ?? []), row]);
+  for (const row of rows.filter(r => r.part !== 'diplomaWork' && r.part !== 'individualChoice' && !r.key.startsWith('block:'))) subjects.set(subjectOf(row), [...(subjects.get(subjectOf(row)) ?? []), row]);
   const single: ProgramplanTermRow[] = [];
   for (const levels of subjects.values()) {
     levels.sort((a, b) => programplanRowRank(a, ranks) - programplanRowRank(b, ranks));

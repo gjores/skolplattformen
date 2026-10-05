@@ -18,7 +18,7 @@ const {POST:selection}=await import('../../app/api/programplaner/val/route.ts');
 const {POST:create}=await import('../../app/api/programplaner/utbildning/skapa/route.ts');
 const {POST:status}=await import('../../app/api/programplaner/utbildning/status/route.ts');
 const routes={val:selection,'utbildning/skapa':create,'utbildning/status':status};
-const basis=()=>({catalogId:artifact.catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:'2026-08-01',specializationRefs:[]});
+const basis=()=>({catalogId:artifact.catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:'2026-08-01',specializationRefs:[],choiceBlocks:[{id:'mosp',kind:'modernLanguage',points:200,name:'Moderna språk'},{id:'iv1',kind:'individualChoice',points:200,name:'Individuellt val'}]});
 const createInput=()=>({commandId:id,unitId:unit,name:'Syntetisk',localCode:null,cohort:'Kull',basisReference:basis()});
 const selectionInput=()=>({unitId:unit,catalogId:artifact.catalogId,programRef:{code:'SA25',version:4}});
 function reset(route='val'){

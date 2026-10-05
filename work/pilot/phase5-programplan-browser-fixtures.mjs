@@ -24,7 +24,7 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts',
   'web/app/protected-programplan-board.tsx','web/lib/programplan-analysis.ts','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql',
   'supabase/migrations/20261004130000_phase5_programplan_units.sql','work/pilot/verify-programplan-lifecycle-api.mjs',
-  'web/lib/programplan-choice-blocks.ts','supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','web/e2e/phase5-blocks.spec.ts','web/playwright.phase5-blocks.config.ts'];
+  'web/lib/programplan-choice-blocks.ts','supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','web/e2e/phase5-blocks.spec.ts','web/playwright.phase5-blocks.config.ts','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql'];
 /** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull startade för 30 dagar sedan (inom katalogens giltighet). */
 export const FUTURE_START=nextCohortStart(),STARTED_START=new Date(Date.parse(`${stockholmToday()}T12:00:00Z`)-30*864e5).toISOString().slice(0,10);
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
@@ -85,7 +85,7 @@ export async function createProgramplanBrowserFixture() {
         values(${hash},${id(identityN)},${id(membershipN)},${assignmentId},${mfa?'2':'1'},${mfa?['pwd','otp']:['pwd']},now(),${manifest.idp.issuer},${manifest.idp.clientId},${[manifest.idp.clientId]},'local-keycloak-admin',1,now(),now()+interval '30 minutes',now()+interval '8 hours') returning id::text,context_epoch::int as epoch`;
       sessions.add(s.id);return {...s,token,identityId:id(identityN),membershipId:id(membershipN),assignmentId};
     };
-    const principal=await mint(11,21,roles.principal),second=await mint(12,22,roles.principal2),hm=await mint(10,20,id(60)),noMfa=await mint(11,21,roles.principal,false),hmNoMfa=await mint(10,20,id(60),false),principalB=await mint(12,22,roles.principalB),partialHm=await mint(10,20,id(61));
+    const principal=await mint(11,21,roles.principal),second=await mint(12,22,roles.principal2),hm=await mint(10,20,id(60)),noMfa=await mint(11,21,roles.principal,false),hmNoMfa=await mint(10,20,id(60),false),principalB=await mint(12,22,roles.principalB),partialHm=await mint(10,20,id(61)),admin=await mint(13,23,roles.admin);
     const snapshot=async(plan=id(50))=>{const [row]=await db`select to_jsonb(p) as plan from public.point_plans p where id=${plan} and organizer_id=${id(2)}`;return row?.plan;};
     const plans=async offering=>db`select id::text,version,revision,status from public.point_plans where offering_id=${offering} and organizer_id=${id(2)} order by version`;
     const history=async plan=>db`select to_jsonb(e) as event from public.point_plan_events e where point_plan_id=${plan} order by created_at,id`;
@@ -95,14 +95,19 @@ export async function createProgramplanBrowserFixture() {
     };
     const request=async(baseURL,session,route,body)=>{const r=await fetch(`${baseURL}${route}`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:`sp_session=${session.token}`,'X-Context-Epoch':String(session.epoch),'Sec-Fetch-Site':'same-origin',Origin:baseURL},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});return {status:r.status,body:await r.json(),correlationId:r.headers.get('x-correlation-id')};};
     const catalogId=(await snapshot()).catalog_id;
-    const basis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn=FUTURE_START)=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
-    // A new v2 tracer; existing fixture plans deliberately retain the legacy shape until step B.
+    const legacyBasis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}],startedOn=FUTURE_START)=>({catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn,specializationRefs:refs});
+    // B: ordinary writes use v2, while explicit legacy sources remain available for upgrade tests.
+    const basis=(refs,startedOn)=>{
+      const old=legacyBasis(refs,startedOn),program=JSON.parse(readFileSync(path.join(root,'web/lib/programplan-catalog.generated.json'),'utf8')).programs.find(p=>p.code==='SA25'&&p.version===4);
+      if(!program)throw Error('REFUSED: pinned SA catalog program missing');
+      return {...old,choiceBlocks:defaultProgramplanChoiceBlocks(program,'SABEP')};
+    };
     const choiceBasis=(refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM2000X',points:100}],startedOn=FUTURE_START)=>{
       const program=JSON.parse(readFileSync(path.join(root,'web/lib/programplan-catalog.generated.json'),'utf8')).programs.find(p=>p.code==='SA25'&&p.version===4);
       if(!program)throw Error('REFUSED: pinned SA catalog program missing');
       return {...basis(refs,startedOn),choiceBlocks:defaultProgramplanChoiceBlocks(program,'SABEP')};
     };
-    return {principal,second,principalB,partialHm,hm,noMfa,hmNoMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),secondUnitId:id(32),nonGymUnitId:id(33),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,choiceBasis,snapshot,plans,history,events,paired,request,cleanup,
+    return {principal,second,principalB,partialHm,admin,hm,noMfa,hmNoMfa,idpOrigin:new URL(manifest.idp.issuer).origin,unitId:id(30),secondUnitId:id(32),nonGymUnitId:id(33),foreignUnitId:id(31),planId:id(50),legacyPlanId:id(51),lockedPlanId:id(52),offeringId:id(40),legacyOfferingId:id(41),lockedOfferingId:id(42),emptyOfferingId:id(46),foreignOfferingId:id(43),customerId:id(1),catalogId,basis,legacyBasis,choiceBasis,snapshot,plans,history,events,paired,request,cleanup,
       async addProgramTrials(){
         await assertTarget('protected');const specs=trialEducationSpecs.filter(s=>s.program!=='SA25');
         await db.begin(async tx=>{await owned(tx);for(const spec of specs)await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)
@@ -126,9 +131,17 @@ export async function createProgramplanBrowserFixture() {
       async addPages(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);for(let n=100;n<152;n++)await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code) values(${id(n)},${id(2)},${id(30)},'gymnasium',${`Syntetisk sidutbildning ${n}`},'Syntetiskt prov','SA25','SABEP')`;for(let n=2;n<54;n++)await tx`insert into public.point_plans(id,organizer_id,offering_id,version,specialization,status,decided_on) values(${id(300+n)},${id(2)},${id(40)},${n},array['ENGE3000X'],'ersatt','2026-09-10')`;for(let n=2;n<54;n++)await tx`insert into public.point_plans(id,organizer_id,offering_id,version,specialization,status,decided_on) values(${id(400+n)},${id(2)},${id(41)},${n},array['ENGE3000X'],'ersatt','2026-09-10')`;});},
       async unknownLegacy(){await assertTarget('protected');await owned(db);await db`update public.point_plans set specialization=array['SYNTETISK_OKAND','ENGE3000X','ENGE3000X'] where id=${id(51)} and organizer_id=${id(2)}`;},
       async emptyOfferings(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`delete from public.point_plan_events where point_plan_id in(select id from public.point_plans where organizer_id=${id(2)})`;await tx`delete from public.point_plans where organizer_id=${id(2)}`;if(hasUnits){await tx`set local session_replication_role=replica`;await tx`delete from public.offering_units where organizer_id=${id(2)}`;}await tx`delete from public.offerings where organizer_id=${id(2)}`;});},
+      /** Only an owned synthetic source, to prove immutable legacy version cloning. */
+      async seedLegacyBound(status='faststalld',distribution=[{rowKey:'meta:individualChoice',points:[0,0,50,50,50,50]}],target='legacy'){
+        if(!['utkast','faststalld','ersatt'].includes(status)||!['legacy','main'].includes(target))throw Error('REFUSED: unknown fixture status or target');
+        const planNumber=target==='main'?50:51;
+        await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;
+          await tx`update public.point_plans set catalog_id=${catalogId},basis_reference=${tx.json(legacyBasis())},specialization=array['ENGE3000X'],status=${status}::public.plan_status,term_distribution=${tx.json(distribution)},decided_on=${status==='utkast'?null:'2026-09-10'}::date where id=${id(planNumber)} and organizer_id=${id(2)}`;
+        });return {planId:id(planNumber),offeringId:id(target==='main'?40:41)};
+      },
       async seedBoundLocked(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`update public.point_plans set status='faststalld',decided_on='2026-09-10' where id=${id(50)} and organizer_id=${id(2)}`;});},
       async auditFailure(source='worker',action='programplan_specialization_changed'){
-        if(!['worker','db'].includes(source)||!['programplan_specialization_changed','programplan_draft_created','programplan_basis_bound','programplan_draft_cloned','programplan_education_created','programplan_terms_changed','programplan_terms_read'].includes(action))throw Error('Ogiltig provkälla/åtgärd.');
+        if(!['worker','db'].includes(source)||!['programplan_specialization_changed','programplan_draft_created','programplan_basis_bound','programplan_draft_cloned','programplan_education_created','programplan_terms_changed','programplan_terms_read','programplan_blocks_changed'].includes(action))throw Error('Ogiltig provkälla/åtgärd.');
         await assertTarget('protected');await owned(db);await db.begin(async tx=>tx.unsafe(`create function public.${triggerFn}() returns trigger language plpgsql as $$begin if new.customer_id='${id(1)}'::uuid and new.source='${source}' and new.action='${action}' and new.outcome='ok' then raise exception 'Synthetic browser audit failure' using errcode='P0001'; end if; return new; end $$; create trigger ${trigger} before insert on public.security_events for each row execute function public.${triggerFn}();`));injected=true;
       },clearAuditFailure};
   }catch(error){await cleanup();const code=typeof error?.code==='string'&&/^[A-Z0-9]{5}$/u.test(error.code)?error.code:'unknown';throw Error(`Programplansbrowserfixturen kunde inte förberedas (SQLSTATE ${code}).`);}

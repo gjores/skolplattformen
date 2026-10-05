@@ -12,7 +12,7 @@ create function pg_temp.programplan_reference(refs jsonb default '[{"subjectCode
 returns jsonb language sql stable as $$select jsonb_build_object(
  'catalogId','sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',
  'programRef',jsonb_build_object('code','SA25','version',4),'orientationCode','SABEP',
- 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs)$$;
+ 'startedOn',to_char(make_date(extract(year from current_date)::integer+1,8,17),'YYYY-MM-DD'),'specializationRefs',refs,'choiceBlocks','[{"id":"mosp","kind":"modernLanguage","points":200,"name":"Moderna språk"},{"id":"iv1","kind":"individualChoice","points":200,"name":"Individuellt val"}]'::jsonb)$$;
 insert into public.customers(id,name) values('55008000-0000-4000-8000-000000000001','Syntetiskt programplansprov');
 insert into public.organizers(id,customer_id,name,type) values('55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000001','Syntetisk programplanshuvudman','Kommun');
 insert into public.identities(id,issuer,subject) values
@@ -93,7 +93,7 @@ select throws_ok($q$update public.point_plans set term_distribution='[]' where i
 select throws_ok($q$select public.phase5_write_programplan_terms('55008000-0000-4000-8000-000000000051',0,'[]')$q$,'42501',null,'unbound legacy plan cannot allocate');
 -- Exact unresolved handling: optional source levels absent, obligatory rows + meta present.
 select ok(not exists(select 1 from jsonb_array_elements(public.phase5_programplan_term_rows(pg_temp.programplan_reference())) r where r->>'key' like 'foundation:SVEN:%' or r->>'key' like 'foundation:SVEA:%'),'alternative national subjects remain unresolved');
-select ok(exists(select 1 from jsonb_array_elements(public.phase5_programplan_term_rows(pg_temp.programplan_reference())) r where r->>'key'='meta:individualChoice' and r->>'points'='200'),'individual choice frame retained');
+select ok(exists(select 1 from jsonb_array_elements(public.phase5_programplan_term_rows(pg_temp.programplan_reference())) r where r->>'key'='block:iv1' and r->>'points'='200'),'individual choice frame retained');
 -- Synthetic sealed snapshot predates binding; disable existing immutable guard only for fixture.
 alter table public.point_plans disable trigger point_plans_programplan_guard;
 update public.point_plans set status='faststalld',decided_on='2026-10-03' where id='55008000-0000-4000-8000-000000000050';

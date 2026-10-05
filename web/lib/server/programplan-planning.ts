@@ -1,6 +1,6 @@
 import { ProgramplanContractError } from '../programplan-catalog.ts';
 import { parseProgramplan, type ProgramplanReadRequest, type ProgramplanBindRequest, type ProgramplanReplaceRequest,
-  type ProgramplanCreateRequest, type ProgramplanCloneRequest } from '../programplan-contract.ts';
+  type ProgramplanBlocksRequest, type ProgramplanCreateRequest, type ProgramplanCloneRequest } from '../programplan-contract.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type Tx } from './db.ts';
 import { lifecycleOperation } from './programplan-lifecycle.ts';
@@ -36,4 +36,9 @@ export async function createProgramplan(tx: Tx, input: ProgramplanCreateRequest)
 export async function cloneProgramplan(tx: Tx, input: ProgramplanCloneRequest) {
   return result(await operation(() => tx<{result: unknown}[]>`select public.phase5_clone_programplan_draft(${input.sourcePlanId},${input.expectedSourceRevision},${input.expectedLatestVersion},${tx.json(input.explicitLegacyBasis)}::jsonb) as result`),
     'programplan_draft_cloned', body => body.id !== input.sourcePlanId && body.version === input.expectedLatestVersion+1 && body.revision === 0 && body.status === 'utkast' && body.decidedOn === null && body.basisReference !== null && (input.explicitLegacyBasis === null || same(body.basisReference,input.explicitLegacyBasis)));
+}
+
+export async function replaceProgramplanBlocks(tx: Tx, input: ProgramplanBlocksRequest) {
+  return result(await operation(() => tx<{result: unknown}[]>`select public.phase5_replace_programplan_blocks(${input.planId},${input.expectedRevision},${tx.json(input.choiceBlocks)}::jsonb) as result`),
+    'programplan_blocks_changed', body => body.id === input.planId && body.revision === input.expectedRevision+1 && body.status === 'utkast' && body.decidedOn === null && same(body.basisReference?.choiceBlocks,input.choiceBlocks));
 }

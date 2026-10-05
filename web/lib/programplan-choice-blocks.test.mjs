@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
 import {verifyProgramplanCatalog,resolveProgramplanBasis,parseProgramplanBasisReference} from './programplan-catalog.ts';
-import {defaultProgramplanChoiceBlocks,programplanChoiceBlocks,parseProgramplanChoiceBlocks} from './programplan-choice-blocks.ts';
+import {defaultProgramplanChoiceBlocks,programplanChoiceBlocks,parseProgramplanChoiceBlocks,upgradeProgramplanBasis} from './programplan-choice-blocks.ts';
 const verified=await verifyProgramplanCatalog(catalog), program=catalog.programs.find(p=>p.code==='SA25');
 const basis=()=>({catalogId:catalog.catalogId,programRef:{code:program.code,version:program.version},orientationCode:'SASAP',startedOn:'2026-08-01',specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(program,'SASAP')});
 test('standard blocks derive slot names and exact points from pinned program and orientation',()=>{
@@ -39,4 +39,14 @@ test('contract-valid constructor and prototype IDs remain safe array entries and
  assert.deepEqual(programplanChoiceBlocks(program,parsed).slice(-2).map(b=>[b.id,b.rowKey,b.part]),[['constructor','block:constructor','specialization'],['prototype','block:prototype','specialization']]);
  assert.deepEqual(ref,original);assert.equal(Object.getPrototypeOf(parsed.choiceBlocks),Array.prototype);
  assert.equal(Object.getPrototypeOf(parsed.choiceBlocks.at(-1)),Object.prototype);assert.equal(Object.hasOwn(Object.prototype,'points'),false);
+});
+
+test('legacy upgrade preserves ordered choices and terms, moves IV and adds only unallocated rows',()=>{
+ const legacy=basis();delete legacy.choiceBlocks;
+ const original=structuredClone(legacy),distribution=[{rowKey:'meta:individualChoice',points:[0,0,50,50,50,50]},{rowKey:'meta:diplomaWork',points:[0,0,0,0,50,50]}];
+ const result=upgradeProgramplanBasis(program,legacy,distribution);
+ assert.deepEqual(result.basisReference,{...legacy,choiceBlocks:defaultProgramplanChoiceBlocks(program,'SASAP')});
+ assert.deepEqual(result.distribution,[{...distribution[0],rowKey:'block:iv1'},distribution[1]]);
+ assert.deepEqual(legacy,original);assert.equal(distribution[0].rowKey,'meta:individualChoice');
+ assert.deepEqual(upgradeProgramplanBasis(program,result.basisReference,result.distribution),result);
 });

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as c from './programplan-contract.ts';
 const id='55009000-0000-4000-8000-000000000001';
-export const reference=()=>({catalogId:`sha256:${'a'.repeat(64)}`,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:'2026-08-01',specializationRefs:[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100}]});
+export const reference=()=>({catalogId:`sha256:${'a'.repeat(64)}`,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:'2026-08-01',choiceBlocks:[{id:'mosp',kind:'modernLanguage',points:200,name:'Moderna språk'},{id:'iv1',kind:'individualChoice',points:200,name:'Individuellt val'}],specializationRefs:[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100}]});
 export const plan=()=>({id,offeringId:id,unitId:id,schoolName:'Syntetisk skola',education:{name:'Syntetisk utbildning',cohort:'Fri text',programCode:'SA25',orientationCode:'SABEP'},version:1,revision:0,status:'utkast',decidedOn:null,catalogId:reference().catalogId,basisReference:reference(),resolution:{status:'resolved',diagnostics:[],unresolvedChoices:[{kind:'optional_subject',blockId:'foundation',subjectCode:'SVEN',points:300},{kind:'subject_levels_unresolved',blockId:'specialization',subjectCode:'MOD',points:100},{kind:'program_rules_unverified',blockId:'program',category:'studieförberedande'}],decisionReady:false}});
 /** @type {[string, object][]} */
 const forms=[['Read',{planId:id}],['Bind',{planId:id,expectedRevision:0,basisReference:reference()}],['Replace',{planId:id,expectedRevision:0,specializationRefs:reference().specializationRefs}],['Create',{offeringId:id,expectedLatestVersion:0,basisReference:reference()}],['Clone',{sourcePlanId:id,expectedSourceRevision:0,expectedLatestVersion:0,explicitLegacyBasis:null}]];
@@ -30,4 +30,16 @@ test('05-23 reply resolution accepts new block diagnoses without opening arbitra
  const value={status:'blocked',diagnostics:[{code}],unresolvedChoices:[],decisionReady:false};assert.deepEqual(parseProgramplanResolution(value),value);
  assert.throws(()=>parseProgramplanResolution({...value,diagnostics:[{code,extra:'foreign'}]}));
  }
+});
+
+test('new explicit commands require current shape while historical replies preserve legacy',()=>{
+ const old=reference();delete old.choiceBlocks;
+ assert.throws(()=>c.parseProgramplanCreate({offeringId:id,expectedLatestVersion:0,basisReference:old}));
+ assert.throws(()=>c.parseProgramplanBind({planId:id,expectedRevision:0,basisReference:old}));
+ assert.throws(()=>c.parseProgramplanClone({sourcePlanId:id,expectedSourceRevision:0,expectedLatestVersion:0,explicitLegacyBasis:old}));
+ const historical=plan();historical.basisReference=old;historical.status='faststalld';assert.deepEqual(c.parseProgramplan(historical),historical);
+});
+test('blocks request has closed contract and retains ordered custom blocks',()=>{
+ const value={planId:id,expectedRevision:3,choiceBlocks:reference().choiceBlocks};assert.deepEqual(c.parseProgramplanBlocks(value),value);
+ for(const bad of [{...value,role:'rektor'},{...value,expectedRevision:-1},{...value,choiceBlocks:[{...value.choiceBlocks[0],extra:1}]}])assert.throws(()=>c.parseProgramplanBlocks(bad));
 });

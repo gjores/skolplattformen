@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.ts';
-import { defaultProgramplanChoiceBlocks } from '@/lib/programplan-choice-blocks.ts';
+import { defaultProgramplanChoiceBlocks, type ProgramplanChoiceBlock } from '@/lib/programplan-choice-blocks.ts';
 import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference } from '@/lib/programplan-catalog.ts';
-import { programplanReference, sameProgramplanLevels, type ProgramplanOption } from '@/lib/protected-programplan.ts';
+import { programplanReference, sameProgramplanLevels, sameProgramplanPin, type ProgramplanOption } from '@/lib/protected-programplan.ts';
 import { PROGRAMPLAN_TERMS, firstYear, programplanLevelRanks, programplanTermRows, programplanPreviewRows, programplanTermTarget, suggestProgramplanTerms, validateProgramplanTermDistribution,
   type ProgramplanTermDistribution, type ProgramplanTermPart, type ProgramplanTermPoints, type ProgramplanTermRow } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply, type ProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
@@ -49,7 +49,7 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
   const [saved, setSaved] = useState<ProgramplanTermReply | null>(null);
   const [values, setValues] = useState<Map<string, ProgramplanTermPoints>>(new Map());
   const [state, setState] = useState<SaveState>('idle'), [message, setMessage] = useState<string | null>(null), [loadError, setLoadError] = useState<string | null>(null);
-  const [working, setWorking] = useState(false);
+  const [working, setWorking] = useState(false), [blockUncertain, setBlockUncertain] = useState(false);
   const valuesRef = useRef(values), savedRef = useRef(saved), saving = useRef(false), pending = useRef(false), mounted = useRef(true);
   const controller = useRef<AbortController | null>(null);
   useEffect(() => { valuesRef.current = values; }, [values]);
@@ -158,25 +158,56 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
     } finally { if (mounted.current) setWorking(false); }
   }
 
+  async function changeBlocks(choiceBlocks: ProgramplanChoiceBlock[]): Promise<boolean> {
+    if (!editable || working || saving.current || !basis.choiceBlocks) return false;
+    setWorking(true); setMessage(null);
+    let expected: number | null = null;
+    setBlockUncertain(false);
+    const submitted = { ...basis, choiceBlocks };
+    const confirms = (reply: Programplan) => reply.id === plan.id && reply.revision === (expected ?? -2) + 1 && reply.status === 'utkast' && reply.decidedOn === null
+      && sameProgramplanPin(reply.basisReference, submitted) && sameProgramplanLevels(reply.basisReference?.specializationRefs ?? [], basis.specializationRefs);
+    try {
+      if (dirtyKeys.length && !await save()) return false;
+      expected = savedRef.current!.revision;
+      const reply = parseProgramplan(await api.post('/api/programplaner/block', { planId: plan.id, expectedRevision: expected, choiceBlocks }, new AbortController().signal));
+      if (!confirms(reply)) throw new Error('Sparandet kunde inte bekräftas.');
+      await onReload(); return true;
+    } catch (e) {
+      if (!mounted.current || failed(e)) return false;
+      if (e instanceof ApiError && e.status === 409) { setState('conflict'); setMessage('Någon annan har ändrat planen. Läs om planen innan du ändrar blocken.'); }
+      else if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { setState('mfa'); setMessage('Verifiera med engångskod för att ändra blocken.'); }
+      else if (e instanceof ApiError && e.hasExplicitCode && ['bad_request','audit_unavailable','forbidden','programplan_locked'].includes(e.code)) setMessage(`Blocken kunde inte sparas. ${e.message}`);
+      else {
+        try {
+          const back = parseProgramplan(await api.post('/api/programplaner/lasa', {planId:plan.id}, new AbortController().signal));
+          if (confirms(back)) { await onReload(); return true; }
+          setBlockUncertain(true); setState('unknown'); setMessage('Blockändringen kunde inte bekräftas. Läs om planen innan du försöker igen.');
+        } catch (inner) { if (mounted.current && !failed(inner)) { setBlockUncertain(true); setState('unknown'); setMessage('Sparstatus kunde inte läsas. Läs om planen innan du försöker igen.'); } }
+      }
+      return false;
+    } finally { if (mounted.current) setWorking(false); }
+  }
+
   const locked = !editable || working || state === 'conflict' || state === 'unknown' || state === 'mfa';
 
   if (loadError) return <div className="pp-alert" role="alert"><p>{loadError}</p><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button></div>;
   if (!saved) return <output className="ppb-loading">Hämtar programplanen…</output>;
   return <PlanGrid focusIssue={focusIssue} program={program} orientationCode={basis.orientationCode} refs={basis.specializationRefs} options={options} rows={rows} values={values}
-    dirtyKeys={dirtyKeys} editable={editable} refsEditable={editable} locked={locked} busy={state === 'saving' || working}
+    choiceBlocks={basis.choiceBlocks} onBlocks={changeBlocks} dirtyKeys={dirtyKeys} editable={editable} refsEditable={editable} locked={locked} busy={state === 'saving' || working}
     status={state === 'saving' ? 'Sparar…' : dirtyKeys.length && state === 'idle' ? 'Osparade ändringar' : state === 'idle' ? 'Allt sparat' : ''} statusTone={state === 'idle' && dirtyKeys.length ? 'dirty' : state}
     hint={lifecycleLocked ? lockReason : editable ? `Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden.${anyInvalid ? ' Rader med för många poäng sparas inte förrän de är rättade.' : ''}` : plan.status !== 'utkast' ? `Version ${plan.version} är ${plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.` : null}
     onCell={setCell} onFill={fillCell} onSplit={splitYear} onClear={clearRow} onSuggest={suggest} onRowLeave={commit}
     onAdd={o => void changeSpecialization([...basis.specializationRefs, programplanReference(o)])} onRemove={(ref, key) => void changeSpecialization(basis.specializationRefs.filter(r => r !== ref), key)}>
     {message && state !== 'mfa' && <div className={state === 'idle' ? 'pp-notice' : 'pp-alert'} role="alert"><p>{message}</p>
       {state === 'conflict' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button>{dirtyKeys.length > 0 && <Button onClick={() => void keepMine()}>Spara mina värden</Button>}</div>}
-      {state === 'unknown' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button><Button onClick={() => { setState('idle'); void save(); }}>Försök spara igen</Button></div>}</div>}
+      {state === 'unknown' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button>{!blockUncertain && <Button onClick={() => { setState('idle'); void save(); }}>Försök spara igen</Button>}</div>}</div>}
     {state === 'mfa' && <MfaStepUpNotice message={message ?? 'Verifiering med engångskod krävs.'} detail="Dina värden finns kvar här. Om du väljer verifiering lämnar du sidan; osparade värden följer inte med."/>}
   </PlanGrid>;
 }
 
 
 type GridProps = {
+  choiceBlocks?: ProgramplanChoiceBlock[]; onBlocks?: (blocks: ProgramplanChoiceBlock[]) => Promise<boolean>;
   focusIssue?: PlanIssue | null;
   program: CatalogProgram; orientationCode: string | null; refs: ProgramplanLevelRef[]; options: ProgramplanOption[];
   rows: ProgramplanTermRow[]; values: Map<string, ProgramplanTermPoints>; dirtyKeys: string[];
@@ -187,12 +218,12 @@ type GridProps = {
   onAdd: (option: ProgramplanOption) => void; onRemove: (ref: ProgramplanLevelRef, rowKey: string) => void;
 };
 /** Den gemensamma tabellen: årskurskort, verktyg och ämnen med sex terminer. Samma vy för sparade utkast och nya planer. */
-export function PlanGrid({ focusIssue, program, orientationCode, refs, options, rows, values, dirtyKeys, editable, refsEditable, locked, busy, status, statusTone, hint, children,
+export function PlanGrid({ choiceBlocks, onBlocks, focusIssue, program, orientationCode, refs, options, rows, values, dirtyKeys, editable, refsEditable, locked, busy, status, statusTone, hint, children,
   onCell, onFill, onSplit, onClear, onSuggest, onRowLeave, onAdd, onRemove }: GridProps) {
   const [year, setYear] = useState(0), [onlyOpen, setOnlyOpen] = useState(false), [query, setQuery] = useState('');
   const invalid = (r: ProgramplanTermRow) => { const p = values.get(r.key) ?? blank(); return p.some(n => !Number.isSafeInteger(n) || n < 0) || sum(p) > r.points; };
   const frame = programFrame(program, orientationCode);
-  const status_ = frameStatus(frame, refs);
+  const status_ = frameStatus(frame, refs, choiceBlocks);
   const chosen = new Set(refs.map(r => `${r.subjectCode}:${r.itemCode}`));
   const q = query.trim().toLocaleLowerCase('sv');
   const available = options.filter(o => !chosen.has(`${o.subjectCode}:${o.itemCode}`));
@@ -273,6 +304,9 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
                   {ref && refsEditable && <button type="button" disabled={locked} aria-label={`Ta bort ${ref.itemCode}`} title="Ta bort från programfördjupningen" onClick={() => onRemove(ref, row.key)}><X size={15} aria-hidden="true"/></button>}
                 </span>}</td>
             </tr>; })}
+          {(extra || part === 'individualChoice') && editable && choiceBlocks && onBlocks && <tr className="ppb-add-row"><td colSpan={9}>
+            <ChoiceBlockEditor key={part} part={part === 'specialization' ? 'specialization' : 'individualChoice'} blocks={choiceBlocks} values={values} locked={locked || busy} onSave={onBlocks}/>
+          </td></tr>}
           {extra && refsEditable && <tr className="ppb-add-row"><td colSpan={9}>
             <label className="pps-search"><Search size={15} aria-hidden="true"/><span className="pp-sr">Lägg till ämne eller nivå</span><input type="search" value={query} disabled={locked} placeholder="Lägg till ämne eller nivå" onChange={e => setQuery(e.target.value)}/></label>
             <fieldset className="pps-suggestions" aria-label={q ? 'Sökträffar' : 'Förslag'}>{matches.map(o => <button type="button" key={o.itemCode} data-level-code={o.itemCode} disabled={locked}
@@ -304,7 +338,7 @@ export function LocalPlanBoard({ focusIssue, program, orientationCode, choiceBlo
   const set = (next: Map<string, ProgramplanTermPoints>, nextRefs = refs) => onChange(nextRefs, fromMap(rows, next).filter(d => rows.some(r => r.key === d.rowKey)));
   const update = (key: string, points: ProgramplanTermPoints) => set(new Map(values).set(key, points));
   const anyInvalid = rows.some(r => { const p = values.get(r.key) ?? blank(); return p.some(n => !Number.isSafeInteger(n) || n < 0) || sum(p) > r.points; });
-  return <PlanGrid focusIssue={focusIssue} program={program} orientationCode={orientationCode} refs={refs} options={options} rows={rows} values={values} dirtyKeys={[]}
+  return <PlanGrid choiceBlocks={choiceBlocks} focusIssue={focusIssue} program={program} orientationCode={orientationCode} refs={refs} options={options} rows={rows} values={values} dirtyKeys={[]}
     editable={!disabled} refsEditable={refsEditable && !disabled} locked={disabled} busy={false} status={null} statusTone="idle"
     hint={`Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Valen sparas när du sparar planen.${anyInvalid ? ' Rätta rader med för många poäng innan du sparar.' : ''}`}
     onCell={(row, i, raw) => { const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints; const n = raw.trim() === '' ? 0 : Number(raw); p[i] = Number.isFinite(n) ? n : NaN; update(row.key, p); }}
@@ -320,4 +354,39 @@ export function LocalPlanBoard({ focusIssue, program, orientationCode, choiceBlo
 /** Är en lokal fördelning giltig mot planens rader? */
 export function localTermsValid(program: CatalogProgram, orientationCode: string | null, refs: ProgramplanLevelRef[], terms: ProgramplanTermDistribution): boolean {
   try { validateProgramplanTermDistribution(programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs, choiceBlocks: defaultProgramplanChoiceBlocks(program, orientationCode) }), terms); return true; } catch { return false; }
+}
+
+function ChoiceBlockEditor({part, blocks, values, locked, onSave}: {part: 'specialization' | 'individualChoice'; blocks: ProgramplanChoiceBlock[]; values: Map<string,ProgramplanTermPoints>; locked: boolean; onSave: (blocks:ProgramplanChoiceBlock[])=>Promise<boolean>}) {
+  const [editing, setEditing] = useState(false), [own, setOwn] = useState<ProgramplanChoiceBlock[]>([]), [error,setError] = useState<string|null>(null);
+  const originals = blocks.filter(b=>b.kind === part);
+  const dirty = editing && JSON.stringify(own) !== JSON.stringify(originals);
+  useUnsavedChanges(`programplan-block-editor-${part}`,dirty);
+  const allocated = (id:string) => sum(values.get(`block:${id}`) ?? blank()) > 0;
+  function open() { setOwn(originals.map(b=>({...b}))); setError(null);setEditing(true); }
+  function add() { setOwn([...own,{id:`b${crypto.randomUUID().replaceAll('-','').slice(0,15)}`,kind:part,points:100,name:part === 'individualChoice' ? 'Individuellt val' : 'Valbar programfördjupning'}]); }
+  function update(id:string,changes:Partial<ProgramplanChoiceBlock>) {setOwn(own.map(b=>b.id===id?{...b,...changes}:b));setError(null);}
+  function remove(id:string) {
+    if (allocated(id)) {setError('Töm blockets terminsfördelning och spara först.');return;}
+    setOwn(own.filter(b=>b.id!==id));setError(null);
+  }
+  async function saveBlocks() {
+    if (own.some(b=>!b.name.trim() || !Number.isSafeInteger(b.points) || b.points < 1 || b.points > 10000)) {setError('Ange ett namn och ett helt antal poäng för varje block.');return;}
+    if (part === 'individualChoice' && own.reduce((n,b)=>n+b.points,0)!==200) {setError('Blocken för individuellt val ska tillsammans vara 200 poäng.');return;}
+    if (originals.some(b=>allocated(b.id) && (!own.some(o=>o.id===b.id) || own.find(o=>o.id===b.id)!.points!==b.points))) {setError('Töm blockets terminsfördelning och spara först.');return;}
+    const next = blocks.flatMap(b=>b.kind!==part?[b]:own.filter(o=>o.id===b.id));
+    next.push(...own.filter(o=>!originals.some(b=>b.id===o.id)));
+    if (await onSave(next)) setEditing(false);
+  }
+  return <section aria-label={part === 'individualChoice' ? 'Block för individuellt val' : 'Valbara fördjupningsblock'}>
+    {!editing ? <Button variant="outline" disabled={locked} onClick={open}>{part === 'individualChoice' ? 'Dela i block' : 'Lägg till valbart block'}</Button> : <>
+      <p>{part === 'individualChoice' ? 'Fördela 200 poäng på ett eller flera block.' : 'Ange namn och poäng för skolans valbara programfördjupning.'} Töm och spara fördelningen innan ett block tas bort eller får andra poäng.</p>
+      {own.map(b=><div className="pp-new-fields" key={b.id}>
+        <label>Namn på block<input aria-label={`Namn på block ${b.id}`} value={b.name} maxLength={1000} disabled={locked} onChange={e=>update(b.id,{name:e.target.value})}/></label>
+        <label>Poäng för block<input aria-label={`Poäng för block ${b.id}`} type="number" min={1} max={10000} value={b.points} disabled={locked} onChange={e=>update(b.id,{points:Number(e.target.value)})}/></label>
+        <Button variant="outline" disabled={locked} onClick={()=>remove(b.id)}>Ta bort block {b.name}</Button>
+      </div>)}
+      {error&&<p className="pp-alert" role="alert">{error}</p>}
+      <div className="pp-actions"><Button variant="outline" disabled={locked} onClick={add}>Lägg till block</Button><Button variant="outline" disabled={locked} onClick={()=>setEditing(false)}>Avbryt blockändring</Button><Button disabled={locked || !dirty} onClick={()=>void saveBlocks()}>Spara block</Button></div>
+    </>}
+  </section>;
 }

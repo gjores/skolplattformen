@@ -8,6 +8,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
+import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
 import { nextCohortStart } from '../../web/lib/programplan-lifecycle.ts';
 import { canonicalCatalogJson, resolveProgramplanBasis, verifyProgramplanCatalog } from '../../web/lib/programplan-catalog.ts';
 
@@ -98,7 +99,7 @@ export async function runProgramplanVerification({workerProfile='closed',outFile
       });
       setup=true;
       const ref = (refs=[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100}]) => ({catalogId:catalog.catalogId,
-        programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:nextCohortStart(),specializationRefs:refs});
+        programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:nextCohortStart(),specializationRefs:refs,choiceBlocks:defaultProgramplanChoiceBlocks(catalog.programs.find(p=>p.code==='SA25'&&p.version===4),'SABEP')});
       activeCase='catalog-parity';
       const inputs = catalog.programs.map(p=>({name:`program-${p.code}`,value:{catalogId:catalog.catalogId,programRef:{code:p.code,version:p.version},
         orientationCode:p.orientations[0]?.code??null,startedOn:nextCohortStart(),specializationRefs:[]}}));

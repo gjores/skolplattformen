@@ -45,7 +45,7 @@ test('analysen: ofördelat är fel, förslaget ger klar för beslut och fel niv�
   assert.ok(okRefs.issues.some(i => i.id === 'terms-ok'));
   const swapped = full.map(d => d.rowKey === keyOf('foundation', 'ENGE2000X') ? { ...d, points: [50, 50, 0, 0, 0, 0] } : d.rowKey === keyOf('foundation', 'ENGE1000X') ? { ...d, points: [0, 0, 50, 50, 0, 0] } : d);
   const wrong = analyseProgramplan(input({ rows, distribution: swapped, ranks }));
-  assert.ok(wrong.issues.some(i => i.id.startsWith('order-') && i.category === 'fel'));
+  assert.ok(wrong.issues.some(i => i.id.startsWith('level-order-') && i.category === 'fel'));
   assert.equal(wrong.ready, false);
   assert.ok(wrong.missing.length > 0);
 });
@@ -53,4 +53,15 @@ test('analysen: ofördelat är fel, förslaget ger klar för beslut och fel niv�
 test('utan underlag med terminer är planen aldrig klar', () => {
   const a = analyseProgramplan({ program, orientationCode: orientation, refs: [], startedOn: '2026-08-17', sourceFetched: null });
   assert.equal(a.ready, false);
+});
+
+test('v2 slots and custom specialization get their exact two-year frames', async()=>{
+ const {defaultProgramplanChoiceBlocks}=await import('./programplan-choice-blocks.ts');
+ for(const [code,orientationCode,slotKey] of [['SA25','SASAP','mosp'],['HU25','HUSPK','sprk'],['NA25','NANAA','nave']]){
+  const p=artifact.programs.find(p=>p.code===code),reference={catalogId:artifact.catalogId,programRef:{code:p.code,version:p.version},orientationCode,startedOn:'2026-08-17',specializationRefs:[],choiceBlocks:[...defaultProgramplanChoiceBlocks(p,orientationCode),{id:'pf1',kind:'specialization',points:100,name:'Valbar fördjupning'}]};
+  const rs=programplanTermRows(p,reference),ds=suggestProgramplanTerms(rs,[],programplanLevelRanks(p));
+  const slot=rs.find(r=>r.key===`block:${slotKey}`),parts=ds.find(d=>d.rowKey===slot.key).points;
+  assert.deepEqual(parts,slot.part==='programmeSpecific'?[slot.points/4,slot.points/4,slot.points/4,slot.points/4,0,0]:[0,0,slot.points/4,slot.points/4,slot.points/4,slot.points/4]);
+  assert.deepEqual(ds.find(d=>d.rowKey==='block:pf1').points,[0,0,25,25,25,25]);
+ }
 });

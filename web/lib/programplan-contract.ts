@@ -1,3 +1,4 @@
+import { parseProgramplanChoiceBlocks, requireCurrentProgramplanBasis, type ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
 import { catalogDate, parseProgramplanBasisReference, ProgramplanContractError,
   type ProgramplanBasisReference, type ProgramplanLevelRef, type ProgramplanDiagnostic, type ProgramplanUnresolvedChoice } from './programplan-catalog.ts';
 
@@ -58,7 +59,7 @@ export function parseProgramplanRead(value: unknown): ProgramplanReadRequest {
 }
 export function parseProgramplanBind(value: unknown): ProgramplanBindRequest {
   const r = shape(value, ['planId','expectedRevision','basisReference']);
-  return { planId: uuid(r.planId), expectedRevision: integer(r.expectedRevision), basisReference: parseProgramplanBasisReference(r.basisReference) };
+  return { planId: uuid(r.planId), expectedRevision: integer(r.expectedRevision), basisReference: requireCurrentProgramplanBasis(r.basisReference) };
 }
 export function parseProgramplanReplace(value: unknown): ProgramplanReplaceRequest {
   const r = shape(value, ['planId','expectedRevision','specializationRefs']);
@@ -66,12 +67,17 @@ export function parseProgramplanReplace(value: unknown): ProgramplanReplaceReque
 }
 export function parseProgramplanCreate(value: unknown): ProgramplanCreateRequest {
   const r = shape(value, ['offeringId','expectedLatestVersion','basisReference']);
-  return { offeringId: uuid(r.offeringId), expectedLatestVersion: integer(r.expectedLatestVersion), basisReference: parseProgramplanBasisReference(r.basisReference) };
+  return { offeringId: uuid(r.offeringId), expectedLatestVersion: integer(r.expectedLatestVersion), basisReference: requireCurrentProgramplanBasis(r.basisReference) };
 }
 export function parseProgramplanClone(value: unknown): ProgramplanCloneRequest {
   const r = shape(value, ['sourcePlanId','expectedSourceRevision','expectedLatestVersion','explicitLegacyBasis']);
   return { sourcePlanId: uuid(r.sourcePlanId), expectedSourceRevision: integer(r.expectedSourceRevision), expectedLatestVersion: integer(r.expectedLatestVersion),
-    explicitLegacyBasis: r.explicitLegacyBasis === null ? null : parseProgramplanBasisReference(r.explicitLegacyBasis) };
+    explicitLegacyBasis: r.explicitLegacyBasis === null ? null : requireCurrentProgramplanBasis(r.explicitLegacyBasis) };
+}
+export type ProgramplanBlocksRequest = ProgramplanReadRequest & { expectedRevision: number; choiceBlocks: ProgramplanChoiceBlock[] };
+export function parseProgramplanBlocks(value: unknown): ProgramplanBlocksRequest {
+  const r = shape(value, ['planId','expectedRevision','choiceBlocks']);
+  return { planId: uuid(r.planId), expectedRevision: integer(r.expectedRevision), choiceBlocks: parseProgramplanChoiceBlocks(r.choiceBlocks) };
 }
 const DIAGNOSTICS = new Set(['invalid_choice_blocks','duplicate_choice_block','missing_slot_block','unexpected_slot_block','slot_block_mismatch','individual_choice_points_mismatch','unpinned_basis','unknown_education_start','invalid_basis_reference','invalid_catalog_id','unverified_catalog','catalog_mismatch','catalog_integrity_failed','program_not_found','orientation_not_found','orientation_required','historical_version_missing','validity_metadata_missing','version_not_applicable_at_start','version_canceled_before_start','unsupported_regime','unsupported_school_type','subject_not_found','wrong_subject','item_not_found','points_mismatch','duplicate_selected_level','fixed_level_duplicate','not_specialization_option','invalid_catalog','duplicate_catalog_code','catalog_reference_missing','catalog_reference_mismatch','catalog_unavailable']);
 const BLOCKS = new Set(['foundation','programmeSpecific','orientation','specialization','program']);

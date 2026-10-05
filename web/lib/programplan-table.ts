@@ -10,6 +10,7 @@
 // Ämnespoängen är kontrollerade mot programstrukturen för humanistiska programmet (bilaga 4, HU25).
 
 import type { CatalogBlockSubject, CatalogProgram } from './programplan-catalog.ts';
+import type { ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
 import type { ProgramplanLevelRef } from './programplan-catalog.ts';
 
 export const HIGHER_EDUCATION_TOTAL_POINTS = 2500;
@@ -72,8 +73,8 @@ export function programFrame(program: CatalogProgram, orientationCode: string | 
 }
 
 export type FrameStatus = { chosen: number; room: number | null; remaining: number | null; over: boolean };
-export function frameStatus(frame: ProgramFrame, refs: ProgramplanLevelRef[]): FrameStatus {
-  const chosen = sum(refs.map(r => r.points));
+export function frameStatus(frame: ProgramFrame, refs: ProgramplanLevelRef[], blocks: ProgramplanChoiceBlock[] = []): FrameStatus {
+  const chosen = sum(refs.map(r => r.points)) + sum(blocks.filter(b => b.kind === 'specialization').map(b => b.points));
   const room = frame.specializationRoom;
   return { chosen, room, remaining: room === null ? null : room - chosen, over: room !== null && chosen > room };
 }
@@ -82,8 +83,8 @@ export function frameStatus(frame: ProgramFrame, refs: ProgramplanLevelRef[]): F
  * Kan nivån läggas till utan att gå utanför Skolverkets ram? Redan valda nivåer kan alltid tas bort.
  * Utan vald inriktning kan inget väljas; när bara totalsumman saknas begränsas valet av Skolverkets lista.
  */
-export function canAddLevel(frame: ProgramFrame, refs: ProgramplanLevelRef[], points: number): boolean {
+export function canAddLevel(frame: ProgramFrame, refs: ProgramplanLevelRef[], points: number, blocks: ProgramplanChoiceBlock[] = []): boolean {
   if (frame.unresolved === 'orientation') return false;
   const room = frame.specializationRoom;
-  return room === null || sum(refs.map(r => r.points)) + points <= room;
+  return room === null || frameStatus(frame, refs, blocks).chosen + points <= room;
 }

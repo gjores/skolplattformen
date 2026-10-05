@@ -1,4 +1,5 @@
-import { parseProgramplanBasisReference, parseProgramplanCatalog, ProgramplanContractError,
+import { requireCurrentProgramplanBasis } from './programplan-choice-blocks.ts';
+import { parseProgramplanCatalog, ProgramplanContractError,
  type CatalogProgram, type CatalogSubject, type CatalogPayload, type ProgramplanBasisReference } from './programplan-catalog.ts';
 import { parseProgramplanEducationSummary, type ProgramplanEducationSummary, type ProgramplanCatalogChoice } from './programplan-workspace-contract.ts';
 import { parseProgramplan, type Programplan } from './programplan-contract.ts';
@@ -31,7 +32,7 @@ export type ProgramplanEducationStatusRequest={commandId:string};
 export type ProgramplanEducationCreated={commandId:string;education:ProgramplanEducationSummary;plan:Programplan;replayed:boolean};
 export type ProgramplanEducationStatus={commandId:string;status:'not_found'}|{commandId:string;status:'created';education:ProgramplanEducationSummary;plan:Programplan};
 export function parseProgramplanSelectionRequest(v:unknown):ProgramplanSelectionRequest {const r=shape(v,['unitId','catalogId','programRef']);const result={unitId:r.unitId===null?null:uuid(r.unitId),catalogId:r.catalogId===null?null:hash(r.catalogId),programRef:ref(r.programRef)};if((result.catalogId!==null&&result.unitId===null)||(result.programRef!==null&&result.catalogId===null))bad();return result;}
-export function parseProgramplanEducationCreate(v:unknown):ProgramplanEducationCreateRequest {const r=shape(v,['commandId','unitId','name','localCode','cohort','basisReference']);return{commandId:uuid(r.commandId),unitId:uuid(r.unitId),name:text(r.name,120,true),localCode:r.localCode===null?null:text(r.localCode,80,true),cohort:text(r.cohort,120,true),basisReference:parseProgramplanBasisReference(r.basisReference)};}
+export function parseProgramplanEducationCreate(v:unknown):ProgramplanEducationCreateRequest {const r=shape(v,['commandId','unitId','name','localCode','cohort','basisReference']);return{commandId:uuid(r.commandId),unitId:uuid(r.unitId),name:text(r.name,120,true),localCode:r.localCode===null?null:text(r.localCode,80,true),cohort:text(r.cohort,120,true),basisReference:requireCurrentProgramplanBasis(r.basisReference)};}
 export function parseProgramplanEducationStatusRequest(v:unknown):ProgramplanEducationStatusRequest {return{commandId:uuid(shape(v,['commandId']).commandId)};}
 export function parseProgramplanSelection(v:unknown,expectedValue:ProgramplanSelectionRequest):ProgramplanSelection {
  const expected=parseProgramplanSelectionRequest(expectedValue),r=shape(v,['units','canCreateEducation','catalogs','selection','programs','projection','decisionReady']);
