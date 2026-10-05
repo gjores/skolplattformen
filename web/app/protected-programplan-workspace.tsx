@@ -365,7 +365,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,false,true)}/>
   </> : <>
     {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}
-    {program&&workspace&&<LocalPlanBoard program={program} orientationCode={workspace.education.orientationCode} options={shownOptions} refs={shownRefs}
+    {program&&workspace&&<LocalPlanBoard program={program} orientationCode={workspace.education.orientationCode} choiceBlocks={draft ? draft.pin.choiceBlocks : plan?.basisReference?.choiceBlocks} options={shownOptions} refs={shownRefs}
       focusIssue={view==='plan'?activeFocusIssue:null} terms={draft?.kind==='create'?draftTerms:[]} refsEditable={canEditInline} disabled={!draft||draft.kind!=='create'||formLocked}
       onChange={(refs,terms)=>{if(draft){setDraft({...draft,refs,error:null});setDraftTerms(terms);}}}/>}
   </>;

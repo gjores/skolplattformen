@@ -90,7 +90,11 @@ export async function runBlockApi(o) {
     });
     await run('v2-create-save-reread',async c=>{
       const sourceBefore=await fixture.snapshot(),basis=fixture.choiceBasis();
-      const created=await fixture.request(o.baseURL,fixture.hm,'/api/programplaner/skapa',{offeringId:fixture.emptyOfferingId,expectedLatestVersion:0,basisReference:basis});
+      const request=async(route,body,session=fixture.hm)=>{
+        const r=await fixture.request(o.baseURL,session,route,body);
+        report.calls.push({route,status:r.status,correlationId:r.correlationId,...(/^[a-z_]{1,40}$/u.test(r.body?.code??'')?{code:r.body.code}:{})});return r;
+      };
+      const created=await request('/api/programplaner/skapa',{offeringId:fixture.emptyOfferingId,expectedLatestVersion:0,basisReference:basis});
       const plan=parseProgramplan(created.body);
       check(c,'v2 created through HM Worker and paired audit',created.status===200&&plan.version===1&&plan.revision===0&&JSON.stringify(plan.basisReference)===JSON.stringify(basis)
         &&await fixture.paired(created.correlationId,fixture.hm,'programplan_draft_created',plan.id));
@@ -98,18 +102,17 @@ export async function runBlockApi(o) {
       const rows=programplanTermRows(program,basis),distribution=suggestProgramplanTerms(rows,[],programplanLevelRanks(program));
       check(c,'new SA rows total exactly 2500 with three alternatives and two block rows',rows.reduce((n,r)=>n+r.points,0)===2500&&rows.filter(r=>r.key.startsWith('alternative:')).length===3
         &&rows.some(r=>r.key==='block:mosp'&&r.points===200)&&rows.some(r=>r.key==='block:iv1'&&r.points===200)&&!rows.some(r=>r.key==='meta:individualChoice'));
-      const saved=await fixture.request(o.baseURL,fixture.hm,'/api/programplaner/terminer',{planId:plan.id,expectedRevision:0,distribution});
+      const saved=await request('/api/programplaner/terminer',{planId:plan.id,expectedRevision:0,distribution});
       const terms=parseProgramplanTermReply(saved.body);
       check(c,'all 2500 points persisted by Worker with revision and audit',saved.status===200&&terms.revision===1&&distribution.reduce((n,r)=>n+r.points.reduce((a,b)=>a+b,0),0)===2500
         &&JSON.stringify(terms.distribution)===JSON.stringify(distribution)&&await fixture.paired(saved.correlationId,fixture.hm,'programplan_terms_changed',plan.id));
-      const reread=await fixture.request(o.baseURL,fixture.principal,'/api/programplaner/terminer/lasa',{planId:plan.id});
+      const reread=await request('/api/programplaner/terminer/lasa',{planId:plan.id},fixture.principal);
       check(c,'same v2 allocation reread by principal with paired audit',reread.status===200&&JSON.stringify(parseProgramplanTermReply(reread.body))===JSON.stringify(terms)
         &&await fixture.paired(reread.correlationId,fixture.principal,'programplan_terms_read',plan.id));
-      const readPlan=await fixture.request(o.baseURL,fixture.hm,'/api/programplaner/lasa',{planId:plan.id});
+      const readPlan=await request('/api/programplaner/lasa',{planId:plan.id});
       check(c,'v2 blocks remain exactly pinned on plan read',readPlan.status===200&&JSON.stringify(parseProgramplan(readPlan.body).basisReference)===JSON.stringify(basis)
         &&await fixture.paired(readPlan.correlationId,fixture.hm,'programplan_read',plan.id));
       check(c,'existing source plan unchanged',JSON.stringify(await fixture.snapshot())===JSON.stringify(sourceBefore));
-      for(const r of [created,saved,reread,readPlan])report.calls.push({status:r.status,correlationId:r.correlationId});
     });
     report.complete=exactFunctions(report.cases.map(c=>c.name),BLOCK_STEP_A_CASES);
     report.status=report.complete&&report.cases.every(c=>c.status==='PASS')?'PASS':'FAIL';

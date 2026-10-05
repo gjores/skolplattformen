@@ -90,3 +90,17 @@ test('v2 uses whole verified program as allocation target while legacy and vocat
  const ba=catalog.programs.find(p=>p.code==='BA25'),ref={...basis,programRef:{code:ba.code,version:ba.version},orientationCode:ba.orientations[0].code,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(ba,ba.orientations[0].code)},rows=programplanTermRows(ba,ref);
  assert.equal(programplanTermTarget(ba,rows),rows.reduce((s,r)=>s+r.points,0));
 });
+
+test('command preview preserves legacy clone/replace rows and only displays v2 when command pin contains blocks',async()=>{
+ const {defaultProgramplanChoiceBlocks}=await import('./programplan-choice-blocks.ts');
+ const {programplanPreviewRows}=await import('./programplan-terms.ts');
+ const legacyRows=programplanTermRows(program,basis),legacyPreview=programplanPreviewRows(program,basis.orientationCode,basis.specializationRefs,undefined);
+ assert.deepEqual(legacyPreview,legacyRows);
+ assert.equal(legacyPreview.some(r=>r.key.startsWith('alternative:')||r.key.startsWith('block:')),false);
+ const legacyDistribution=[{rowKey:'meta:individualChoice',points:[0,0,50,50,50,50]}];
+ assert.doesNotThrow(()=>validateProgramplanTermDistribution(legacyPreview,legacyDistribution));
+ const choiceBlocks=defaultProgramplanChoiceBlocks(program,basis.orientationCode),v2Preview=programplanPreviewRows(program,basis.orientationCode,basis.specializationRefs,choiceBlocks);
+ assert.deepEqual(v2Preview,programplanTermRows(program,{...basis,choiceBlocks}));
+ assert.equal(v2Preview.filter(r=>r.key.startsWith('alternative:')).length,3);assert.ok(v2Preview.some(r=>r.key==='block:iv1'));
+ assert.throws(()=>validateProgramplanTermDistribution(v2Preview,legacyDistribution));
+});

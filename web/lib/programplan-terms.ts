@@ -41,6 +41,11 @@ export function programplanTermRows(program: CatalogProgram, basis: ProgramplanB
   if (new Set(rows.map(r => r.key)).size !== rows.length) throw new ProgramplanContractError('invalid_programplan_terms');
   return rows;
 }
+/** En osparad förhandsvisning måste använda kommandots form; undefined bevarar äldre planer. */
+export function programplanPreviewRows(program: CatalogProgram, orientationCode: string | null, refs: ProgramplanBasisReference['specializationRefs'], choiceBlocks: ProgramplanBasisReference['choiceBlocks']): ProgramplanTermRow[] {
+  return programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode,
+    startedOn: '', specializationRefs: refs, ...(choiceBlocks === undefined ? {} : { choiceBlocks }) });
+}
 export function validateProgramplanTermDistribution(rows: ProgramplanTermRow[], distribution: ProgramplanTermDistribution): void {
   const byKey = new Map(rows.map(r => [r.key, r]));
   const seen = new Set<string>();

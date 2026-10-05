@@ -7,9 +7,9 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplan, type Programplan } from '@/lib/programplan-contract.ts';
 import { defaultProgramplanChoiceBlocks } from '@/lib/programplan-choice-blocks.ts';
-import type { CatalogProgram, ProgramplanLevelRef } from '@/lib/programplan-catalog.ts';
+import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference } from '@/lib/programplan-catalog.ts';
 import { programplanReference, sameProgramplanLevels, type ProgramplanOption } from '@/lib/protected-programplan.ts';
-import { PROGRAMPLAN_TERMS, firstYear, programplanLevelRanks, programplanTermRows, programplanTermTarget, suggestProgramplanTerms, validateProgramplanTermDistribution,
+import { PROGRAMPLAN_TERMS, firstYear, programplanLevelRanks, programplanTermRows, programplanPreviewRows, programplanTermTarget, suggestProgramplanTerms, validateProgramplanTermDistribution,
   type ProgramplanTermDistribution, type ProgramplanTermPart, type ProgramplanTermPoints, type ProgramplanTermRow } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply, type ProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import type { PlanIssue } from '@/lib/programplan-analysis.ts';
@@ -292,12 +292,13 @@ export function PlanGrid({ focusIssue, program, orientationCode, refs, options, 
 type LocalProps = {
   focusIssue?: PlanIssue | null;
   program: CatalogProgram; orientationCode: string | null; options: ProgramplanOption[];
+  choiceBlocks: ProgramplanBasisReference['choiceBlocks'];
   refs: ProgramplanLevelRef[]; terms: ProgramplanTermDistribution; refsEditable: boolean; disabled: boolean;
   onChange: (refs: ProgramplanLevelRef[], terms: ProgramplanTermDistribution) => void;
 };
 /** Samma tabell innan planen finns sparad: val och fördelning hålls lokalt och sparas med planen. */
-export function LocalPlanBoard({ focusIssue, program, orientationCode, options, refs, terms, refsEditable, disabled, onChange }: LocalProps) {
-  const rows = useMemo(() => { try { return programplanTermRows(program, { catalogId: '', programRef: { code: program.code, version: program.version }, orientationCode, startedOn: '', specializationRefs: refs, choiceBlocks: defaultProgramplanChoiceBlocks(program, orientationCode) }); } catch { return []; } }, [program, orientationCode, refs]);
+export function LocalPlanBoard({ focusIssue, program, orientationCode, choiceBlocks, options, refs, terms, refsEditable, disabled, onChange }: LocalProps) {
+  const rows = useMemo(() => { try { return programplanPreviewRows(program, orientationCode, refs, choiceBlocks); } catch { return []; } }, [program, orientationCode, refs, choiceBlocks]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
   const values = useMemo(() => toMap(terms), [terms]);
   const set = (next: Map<string, ProgramplanTermPoints>, nextRefs = refs) => onChange(nextRefs, fromMap(rows, next).filter(d => rows.some(r => r.key === d.rowKey)));
