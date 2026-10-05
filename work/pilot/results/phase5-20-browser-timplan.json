@@ -1,0 +1,151 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-timplan.config.ts",
+      "--project=timplan-phone",
+      "--grep",
+      "09: committad"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-timplan.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-timplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "timplan-desktop",
+        "name": "timplan-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-timplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-timplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "timplan-phone",
+        "name": "timplan-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-timplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-timplan.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-timplan.spec.ts",
+      "file": "phase5-timplan.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "timplan-phone",
+              "projectName": "timplan-phone",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2634,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T20:24:56.141Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImQzN2Y1NjZiMzU3NTYyMzE3MWUwN2VmMzE1MGYxNmQ1NWM2ZjE0ZWQiLCJidWlsZFJldmlzaW9uIjoiZDM3ZjU2NmIzNTc1NjIzMTcxZTA3ZWYzMTUwZjE2ZDU1YzZmMTRlZCIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjbGVhbiI6dHJ1ZSwicHJlc2VydmVkQXVkaXRFdmVudHMiOjEwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsImJyb3dzZXJOYW1lIjoid2Via2l0In0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "eac451fbe84ae6bf9ca4-4c1cb6aa525936c3c09f",
+          "file": "phase5-timplan.spec.ts",
+          "line": 413,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-03T20:24:55.824Z",
+    "duration": 4446.183,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

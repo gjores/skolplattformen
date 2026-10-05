@@ -1,5 +1,9 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
+## Nytt prov 2026-10-05: livscykel och tabell med framtida kull
+
+Resultat: **awaiting_user**. 05-20 låser planer vars kull har startat, så 2026-exemplen nedan kan nu bara läsas och arkiveras. Använd i stället de fyra nya utbildningarna "Användarprov framtida kull – …" (start 2027-08-17) på Syntetisk skola 11, vanlig 3012. Stegen står i 05-20-SUMMARY under Mänskligt prov. Där ingår 05-19:s tabellprov på "bundet utkast" och livscykelns Ändra uppgifter, Arkivera, Ta fram och Ta bort.
+
 ## Nytt prov 2026-10-03: poäng per årskurs och termin
 
 05-18 lägger till **Årskurser och terminer** i en öppnad, underlagsbunden programplan. Mänskligt resultat: **awaiting_user**. Automatiska prov och bildgranskning redovisas separat i 05-18-SUMMARY och 05-18-REVIEW. Tidigare underkänd begriplighet ersätts inte av automatiska PASS.

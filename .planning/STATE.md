@@ -5,17 +5,17 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-24
 status: in_progress
-stopped_at: 05-24–05-35 planerade; timplansgenomförande återstår, 05-19:s mänskliga prov öppet
-last_updated: "2026-10-04"
-last_activity: 2026-10-04
-last_activity_desc: "05-24–05-35 planerade efter Claudes aktuella programplanslösning: sammanhållen timtabell, radvis autospar, analys med åtgärdslänkar, skolmandat och fryst källa till beslutsflöde. Inget genomförande av paketet. 05-19:s mänskliga prov och 05-20–05-23:s förutsättningar kvarstår."
-state_head: d37f566
-worker_build_revision: d37f566b3575623171e07ef3150f16d55c6f14ed
+stopped_at: 05-20 genomförd (livscykel); mänskligt prov 05-19/05-20 väntar på 3012 med framtida provdata; 05-24–05-35 planerade
+last_updated: "2026-10-05"
+last_activity: 2026-10-05
+last_activity_desc: "05-20 genomförd: programplanens status (framtida/pågående/avslutad/start okänd) räknas i SQL, framtida plan kan ändras och tas bort, övriga bara arkiveras, direkta tabellskrivningar stängda. SQL 1863/1864 (känt fas 2-fall), API 29+48+31, browser 12+40+15+20 PASS på ae41a03. Framtida provdata på 3012; mänskligt prov väntar."
+state_head: ae41a03
+worker_build_revision: ae41a039bb2c4f737c84f68036bf98b170fa12a2
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 87
-  completed_plans: 71
+  completed_plans: 72
 milestone_name: milestone
 ---
 
@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 **Current focus:** 05-24–05-35 är planerade för en sammanhållen timplansarbetsyta med analys efter den aktuella programplanslösningen. Nästa timplanssteg är 05-24:s GR/IM-analys; gymnasieflödet följer först efter verifierade programbesluts-/skol-/blockförutsättningar. 05-19:s mänskliga prov, programplansdelegation, full fas 5 och fas 4:s checkpoint kvarstår.
 
 ## Current Position
+
+**05-20, 2026-10-05:** Programplanens livscykel genomförd och automatiskt verifierad lokalt med syntetiska uppgifter (se 05-20-SUMMARY). Vanlig 3012 kör ae41a03 med fyra nya provutbildningar med kullstart 2027-08-17. Mänskligt prov av 05-19:s tabell och 05-20:s livscykel är awaiting_user. Kvar: fall 13 i phase2_audit (från 05-15) och Workerns skrivrätt på skolenheter, se deferred-items.md. Nästa programplanssteg är 05-21 (skolval).
 
 **Ny beställning och planering 2026-10-04:** Användaren har byggt om programplanerna med Claude och beställt motsvarande timplansarbetsyta med bra analysstöd. [05-24–05-35](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md) är planeringspaketet: tidig GR/IM-analys, skyddat programfastställande, fryst skolunderlag, skapande från fastställd programplan, sammanhållen timtabell, radvis autospar, analysåtgärder och beslutsflöde till separat mänskligt prov. **Inget av detta paket är genomfört.** 05-19 har en SUMMARY med automatiska prov och kända fel; 05-20 har pågående arbetskopieändringar, 05-21/22 har planer och 05-23 har beslutad CONTEXT. Dessa statusar går före äldre 05-18-text nedan. Historiska `state_head`, byggrevision och planräknare har inte använts som bevis för Claudes nya arbetskopia. Planeringen ändrar inga appfiler eller tillämpade migrationer. Nästa timplanssteg är 05-24; gymnasieflödet kräver angivna förutsättningsgrindar.
 

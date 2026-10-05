@@ -1,0 +1,1823 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-programplan.config.ts"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-programplan.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "programplan-desktop",
+        "name": "programplan-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-programplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "programplan-phone",
+        "name": "programplan-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-programplan\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-programplan.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-programplan.spec.ts",
+      "file": "phase5-programplan.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1839,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:11.160Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImQxZjM0Y2ExMmYxNTdhNGVmMTE2YjYzNGIwMjFkY2U1ZDhiNjJhOTQiLCJidWlsZFJldmlzaW9uIjoiZDFmMzRjYTEyZjE1N2E0ZWYxMTZiNjM0YjAyMWRjZTVkOGI2MmE5NCIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "programplan-read.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-läsning-programplan-desktop/attachments/programplan-read-png-130ba7f8bd74cc53a915cb02fc38936d1bccab3b.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjIwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-44d5e6db6ab4d95f9db6",
+          "file": "phase5-programplan.spec.ts",
+          "line": 58,
+          "column": 1
+        },
+        {
+          "title": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3732,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:13.472Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-guide.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-02-skap-a3268-åer-och-auditerad-omläsning-programplan-desktop/attachments/programplan-guide-png-ce12225b09257b8977794ab60a93962f45dcc642.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjY1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-54a854213ee30505646e",
+          "file": "phase5-programplan.spec.ts",
+          "line": 75,
+          "column": 1
+        },
+        {
+          "title": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2304,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:17.210Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-0a96574592be565dadfc",
+          "file": "phase5-programplan.spec.ts",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "04: ordnad fördjupning, borttagning, tomt utkast, tangentbord och telefon",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3158,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:19.520Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-dialog.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-04-ordn-903bc-ast-tangentbord-och-telefon-programplan-desktop/attachments/programplan-dialog-png-e902a91ebeef228cd03570c504ccfe863a106c9e.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjU2LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-a08bf3dc8c8c3bff318c",
+          "file": "phase5-programplan.spec.ts",
+          "line": 101,
+          "column": 1
+        },
+        {
+          "title": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3763,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:22.684Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-legacy-clone.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-05-kopi-68304-t-och-bevara-källa-historik-programplan-desktop/attachments/programplan-legacy-clone-png-e8f703dba90bb38cec5506d1b2af0680130dc01d.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjc3LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-89c9822ec6aae2b50fe4",
+          "file": "phase5-programplan.spec.ts",
+          "line": 116,
+          "column": 1
+        },
+        {
+          "title": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2238,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:26.453Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-4fee1400259e263a1820",
+          "file": "phase5-programplan.spec.ts",
+          "line": 126,
+          "column": 1
+        },
+        {
+          "title": "07: verklig tvåsessionskonflikt och uttrycklig omprövning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3343,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:28.699Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-conflict.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-07-verk-e8a2d-t-och-uttrycklig-omprövning-programplan-desktop/attachments/programplan-conflict-png-82df73cb1d28e8133da416061457482f920f8f23.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjU1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-97880fa668f3bee3b6dc",
+          "file": "phase5-programplan.spec.ts",
+          "line": 130,
+          "column": 1
+        },
+        {
+          "title": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3634,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:32.050Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjU4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-fb7ba78366314c549898",
+          "file": "phase5-programplan.spec.ts",
+          "line": 136,
+          "column": 1
+        },
+        {
+          "title": "09: MFA och DB/Worker-auditfel bevarar formulär och ändrar ingenting",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5011,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:35.691Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-mfa.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-09-MFA--22e16-rmulär-och-ändrar-ingenting-programplan-desktop/attachments/programplan-mfa-png-eca01adb8954d03d45f288806267a73d0cabb732.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjg4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-bf08c5e58b6592ad7342",
+          "file": "phase5-programplan.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "10: accepterad sparning följd av omläsningsfel behåller formulär; ingen dubbelwrite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2641,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:40.710Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-refresh-error.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-10-acce-262c5--formulär-ingen-dubbelwrite-programplan-desktop/attachments/programplan-refresh-error-png-2af43b654f35b973179720aa532685025c2b7f72.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-80c42c62b9b8c55c60ae",
+          "file": "phase5-programplan.spec.ts",
+          "line": 152,
+          "column": 1
+        },
+        {
+          "title": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4932,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:43.359Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjY1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-8c7f9d812c7b50deb6f0",
+          "file": "phase5-programplan.spec.ts",
+          "line": 159,
+          "column": 1
+        },
+        {
+          "title": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2397,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:48.298Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-c8843f2dea1f2d0ece33",
+          "file": "phase5-programplan.spec.ts",
+          "line": 169,
+          "column": 1
+        },
+        {
+          "title": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6686,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:50.706Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjE4NywicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiYnJvd3Nlck5hbWUiOiJjaHJvbWl1bSJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-236f7c05e0da735fedd6",
+          "file": "phase5-programplan.spec.ts",
+          "line": 190,
+          "column": 1
+        },
+        {
+          "title": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2402,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:57.399Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjUyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-65324098c6dd921f8650",
+          "file": "phase5-programplan.spec.ts",
+          "line": 203,
+          "column": 1
+        },
+        {
+          "title": "15: utgången session och avslutat givande mandat rensar det öppna formuläret",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2834,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:04:59.808Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjY0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-e87762b4a725bd8aec16",
+          "file": "phase5-programplan.spec.ts",
+          "line": 210,
+          "column": 1
+        },
+        {
+          "title": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10761,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:02.647Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-vard-review.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-16-fem--cd3cf-läses-med-rätt-programgrund-programplan-desktop/attachments/programplan-vard-review-png-1bc01b40303c538124b2a5d457647d46deeae83a.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjE5NSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiYnJvd3Nlck5hbWUiOiJjaHJvbWl1bSJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-a9c6388eb60f36acb05e",
+          "file": "phase5-programplan.spec.ts",
+          "line": 216,
+          "column": 1
+        },
+        {
+          "title": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14864,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:13.416Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "shared-new-vo-review.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-17-samm-3857e-ast-med-och-utan-inriktning-programplan-desktop/attachments/shared-new-vo-review-png-83282eec53ebc37bd37d6a8e412b32975607743d.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjk5LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-6ab3968348a6b0754a7c",
+          "file": "phase5-programplan.spec.ts",
+          "line": 246,
+          "column": 1
+        },
+        {
+          "title": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3802,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:28.295Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "shared-unknown-create.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-18-tapp-5e8e9-to-utan-en-andra-utbildning-programplan-desktop/attachments/shared-unknown-create-png-9f963697d4e9daacbf754afd0b1fb5ec01f526e9.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjM3LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-29e60733cecc73922581",
+          "file": "phase5-programplan.spec.ts",
+          "line": 265,
+          "column": 1
+        },
+        {
+          "title": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2708,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:32.108Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjMxLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-2d5abe8b0d1fcb445209",
+          "file": "phase5-programplan.spec.ts",
+          "line": 279,
+          "column": 1
+        },
+        {
+          "title": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-desktop",
+              "projectName": "programplan-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4026,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:34.827Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-list.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-20-star-4229d-g-utan-att-ändra-originalet-programplan-desktop/attachments/programplan-list-png-cf47b20482bb50ad16454eaa0533d68ea56d72e2.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjM1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6ImNocm9taXVtIn0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-1d4f6f3b637db1870a5a",
+          "file": "phase5-programplan.spec.ts",
+          "line": 291,
+          "column": 1
+        },
+        {
+          "title": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3631,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:39.351Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImQxZjM0Y2ExMmYxNTdhNGVmMTE2YjYzNGIwMjFkY2U1ZDhiNjJhOTQiLCJidWlsZFJldmlzaW9uIjoiZDFmMzRjYTEyZjE1N2E0ZWYxMTZiNjM0YjAyMWRjZTVkOGI2MmE5NCIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "programplan-read.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-läsning-programplan-phone/attachments/programplan-read-png-30e8144044e3eeeced1979a46a28f076ddb4c66b.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjIwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-291b7787b182cf191294",
+          "file": "phase5-programplan.spec.ts",
+          "line": 58,
+          "column": 1
+        },
+        {
+          "title": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5621,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:44.719Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-guide.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-02-skap-a3268-åer-och-auditerad-omläsning-programplan-phone/attachments/programplan-guide-png-394f16aaf1fbc090ef34bb8c7e73c660e2d4d709.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjY3LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-02b9dc73c99b5aeb2130",
+          "file": "phase5-programplan.spec.ts",
+          "line": 75,
+          "column": 1
+        },
+        {
+          "title": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3125,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:50.350Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-47bd7052aff55e836b9b",
+          "file": "phase5-programplan.spec.ts",
+          "line": 92,
+          "column": 1
+        },
+        {
+          "title": "04: ordnad fördjupning, borttagning, tomt utkast, tangentbord och telefon",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4523,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:53.485Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-dialog.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-04-ordn-903bc-ast-tangentbord-och-telefon-programplan-phone/attachments/programplan-dialog-png-161a82abecbbadc33683aff1c5518e068e5fb483.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjU0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-8c482e8adb95930f7032",
+          "file": "phase5-programplan.spec.ts",
+          "line": 101,
+          "column": 1
+        },
+        {
+          "title": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4831,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:05:58.020Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-legacy-clone.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-05-kopi-68304-t-och-bevara-källa-historik-programplan-phone/attachments/programplan-legacy-clone-png-1be8646d7741d116148fac5ba07ad66c6896799b.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjc5LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-3c99cbd25a231ffa54a7",
+          "file": "phase5-programplan.spec.ts",
+          "line": 116,
+          "column": 1
+        },
+        {
+          "title": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3004,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:02.863Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-ee755c3cc87a9756ea2d",
+          "file": "phase5-programplan.spec.ts",
+          "line": 126,
+          "column": 1
+        },
+        {
+          "title": "07: verklig tvåsessionskonflikt och uttrycklig omprövning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4691,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:05.875Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-conflict.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-07-verk-e8a2d-t-och-uttrycklig-omprövning-programplan-phone/attachments/programplan-conflict-png-014d328a9ff8a3a2da5cf019032ef2e11f9e1512.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjU1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-210af2d47ca779e927c2",
+          "file": "phase5-programplan.spec.ts",
+          "line": 130,
+          "column": 1
+        },
+        {
+          "title": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4431,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:10.576Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjU4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-f4ebfcf921ade35c82f3",
+          "file": "phase5-programplan.spec.ts",
+          "line": 136,
+          "column": 1
+        },
+        {
+          "title": "09: MFA och DB/Worker-auditfel bevarar formulär och ändrar ingenting",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6893,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:15.013Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-mfa.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-09-MFA--22e16-rmulär-och-ändrar-ingenting-programplan-phone/attachments/programplan-mfa-png-22bb3cbdb5ed5154df27d65ccc3be9c27e2ff754.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjg5LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-fdb0de2d094f49bfde07",
+          "file": "phase5-programplan.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "10: accepterad sparning följd av omläsningsfel behåller formulär; ingen dubbelwrite",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3440,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:21.916Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-refresh-error.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-10-acce-262c5--formulär-ingen-dubbelwrite-programplan-phone/attachments/programplan-refresh-error-png-911ecd19b063448ea293a4b1231cf86620f6bde7.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-390ee2abc711b23b1d02",
+          "file": "phase5-programplan.spec.ts",
+          "line": 152,
+          "column": 1
+        },
+        {
+          "title": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5150,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:25.365Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjY0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-40b6770e84c064985767",
+          "file": "phase5-programplan.spec.ts",
+          "line": 159,
+          "column": 1
+        },
+        {
+          "title": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3901,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:30.521Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ0LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-90af77dea61578654275",
+          "file": "phase5-programplan.spec.ts",
+          "line": 169,
+          "column": 1
+        },
+        {
+          "title": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 8297,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:34.429Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjE4NiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiYnJvd3Nlck5hbWUiOiJ3ZWJraXQifQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-04f4e65963a63900c0e5",
+          "file": "phase5-programplan.spec.ts",
+          "line": 190,
+          "column": 1
+        },
+        {
+          "title": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3507,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:42.735Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjUyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-293c01c009889f09a075",
+          "file": "phase5-programplan.spec.ts",
+          "line": 203,
+          "column": 1
+        },
+        {
+          "title": "15: utgången session och avslutat givande mandat rensar det öppna formuläret",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4204,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:46.255Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjY3LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-d98f607545496f44b54b",
+          "file": "phase5-programplan.spec.ts",
+          "line": 210,
+          "column": 1
+        },
+        {
+          "title": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 13529,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:06:50.467Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-vard-review.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-16-fem--cd3cf-läses-med-rätt-programgrund-programplan-phone/attachments/programplan-vard-review-png-b1f5553ceef0022b8869a1768a0725a3427928a6.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjE5MiwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoxLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiYnJvd3Nlck5hbWUiOiJ3ZWJraXQifQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-b552615df53b57ec7e1e",
+          "file": "phase5-programplan.spec.ts",
+          "line": 216,
+          "column": 1
+        },
+        {
+          "title": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9056,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:07:04.006Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "shared-new-vo-review.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-17-samm-3857e-ast-med-och-utan-inriktning-programplan-phone/attachments/shared-new-vo-review-png-74d47fe3cfebf34aefcd2f4b4e342f9fe3cfed19.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjEwMCwicHJlc2VydmVkQXVkaXRBbmNob3JzIjoyLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiYnJvd3Nlck5hbWUiOiJ3ZWJraXQifQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-34a03f5e3b0a1ee6d472",
+          "file": "phase5-programplan.spec.ts",
+          "line": 246,
+          "column": 1
+        },
+        {
+          "title": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6152,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:07:13.071Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "shared-unknown-create.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-18-tapp-5e8e9-to-utan-en-andra-utbildning-programplan-phone/attachments/shared-unknown-create-png-77a7a4d5e40e5454b35437b0a937c8bdadcde941.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjM1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-f99c9be891e27edd52ee",
+          "file": "phase5-programplan.spec.ts",
+          "line": 265,
+          "column": 1
+        },
+        {
+          "title": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2931,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:07:19.235Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjMxLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-14312eebb38a35c66c20",
+          "file": "phase5-programplan.spec.ts",
+          "line": 279,
+          "column": 1
+        },
+        {
+          "title": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "programplan-phone",
+              "projectName": "programplan-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2438,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:07:22.178Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "programplan-list.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-20-star-4229d-g-utan-att-ändra-originalet-programplan-phone/attachments/programplan-list-png-f2249f077f7f6bc7e16e5f8f147c000b6395165d.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjM1LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowLCJicm93c2VyTmFtZSI6IndlYmtpdCJ9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7f7b1980b8f0e3f04267-bfb2ba08cec721b0a079",
+          "file": "phase5-programplan.spec.ts",
+          "line": 291,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-03T17:04:10.829Z",
+    "duration": 193842.97900000002,
+    "expected": 40,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

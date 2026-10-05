@@ -1,0 +1,773 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-terms.config.ts"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-terms.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terms-desktop",
+        "name": "terms-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-terms\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "terms-phone",
+        "name": "terms-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-terms\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-terms.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-terms.spec.ts",
+      "file": "phase5-terms.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "01: sex terminer, poängsummor, verkligt sparande och omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4542,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:02:44.393Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImQxZjM0Y2ExMmYxNTdhNGVmMTE2YjYzNGIwMjFkY2U1ZDhiNjJhOTQiLCJidWlsZFJldmlzaW9uIjoiZDFmMzRjYTEyZjE1N2E0ZWYxMTZiNjM0YjAyMWRjZTVkOGI2MmE5NCIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "terms-editor.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-desktop/attachments/terms-editor-png-afee1063bad93c2b8cb34e9bf19316b4ebe4de32.png"
+                    },
+                    {
+                      "name": "terms-saved.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-desktop/attachments/terms-saved-png-4e3eef22dc4a95065fb023360c7eb0f8e4d2db79.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-04bd6266cb649b99004a",
+          "file": "phase5-terms.spec.ts",
+          "line": 24,
+          "column": 1
+        },
+        {
+          "title": "02: överfördelning, decimaler och avbryt med osparade värden",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1997,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:02:49.873Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjIyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-718d68738f1e0c34f494",
+          "file": "phase5-terms.spec.ts",
+          "line": 38,
+          "column": 1
+        },
+        {
+          "title": "03: verklig konkurrerande revision, jämförelse och uttryckligt omsparande",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2917,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:02:51.878Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjM3LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-568d87417c791316e4b7",
+          "file": "phase5-terms.spec.ts",
+          "line": 46,
+          "column": 1
+        },
+        {
+          "title": "04: loggfel och MFA lämnar inmatningen kvar utan skrivning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4236,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:02:54.804Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-353f32086f4b3f4f4cc0",
+          "file": "phase5-terms.spec.ts",
+          "line": 51,
+          "column": 1
+        },
+        {
+          "title": "05: tappat svar efter commit återläses utan dubbel skrivning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2866,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:02:59.049Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjMyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-08585e88f19089bc074b",
+          "file": "phase5-terms.spec.ts",
+          "line": 56,
+          "column": 1
+        },
+        {
+          "title": "06: okänd sparstatus låser omsparande tills läsning lyckas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2559,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:01.924Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjI4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-b86c7fb688047c721aac",
+          "file": "phase5-terms.spec.ts",
+          "line": 61,
+          "column": 1
+        },
+        {
+          "title": "07: nivåborttagning kräver rensning av fördelning först",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2611,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:04.490Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjI4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-b170fc50e495b941948a",
+          "file": "phase5-terms.spec.ts",
+          "line": 67,
+          "column": 1
+        },
+        {
+          "title": "08: ändrat innehåll och återkallat mandat stoppar gammalt formulär",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-desktop",
+              "projectName": "terms-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2540,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:07.110Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjI4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-1733a1d2401ab4defd5a",
+          "file": "phase5-terms.spec.ts",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "01: sex terminer, poängsummor, verkligt sparande och omläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5774,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:09.976Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6ImQxZjM0Y2ExMmYxNTdhNGVmMTE2YjYzNGIwMjFkY2U1ZDhiNjJhOTQiLCJidWlsZFJldmlzaW9uIjoiZDFmMzRjYTEyZjE1N2E0ZWYxMTZiNjM0YjAyMWRjZTVkOGI2MmE5NCIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "terms-editor.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-phone/attachments/terms-editor-png-1dbf7799cfb234729a06e2df5417c300c5fc1654.png"
+                    },
+                    {
+                      "name": "terms-saved.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-sex-termin-79238-ligt-sparande-och-omläsning-terms-phone/attachments/terms-saved-png-5a27cb8c89df33e01e966d8a0a96bd38311d49b9.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-7501bf89c533b21c7b5f",
+          "file": "phase5-terms.spec.ts",
+          "line": 24,
+          "column": 1
+        },
+        {
+          "title": "02: överfördelning, decimaler och avbryt med osparade värden",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2829,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:16.307Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjIyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-4832f688f8ec2bf8587b",
+          "file": "phase5-terms.spec.ts",
+          "line": 38,
+          "column": 1
+        },
+        {
+          "title": "03: verklig konkurrerande revision, jämförelse och uttryckligt omsparande",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3455,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:19.145Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjM3LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-aa1a036e97f55c18a631",
+          "file": "phase5-terms.spec.ts",
+          "line": 46,
+          "column": 1
+        },
+        {
+          "title": "04: loggfel och MFA lämnar inmatningen kvar utan skrivning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4967,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:22.608Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQ4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-041ad3aaeaec78eb307c",
+          "file": "phase5-terms.spec.ts",
+          "line": 51,
+          "column": 1
+        },
+        {
+          "title": "05: tappat svar efter commit återläses utan dubbel skrivning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3370,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:27.584Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjMyLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-415077672a07aeeae9a3",
+          "file": "phase5-terms.spec.ts",
+          "line": 56,
+          "column": 1
+        },
+        {
+          "title": "06: okänd sparstatus låser omsparande tills läsning lyckas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3084,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:30.962Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjI4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-609424c474c12bd6b6bd",
+          "file": "phase5-terms.spec.ts",
+          "line": 61,
+          "column": 1
+        },
+        {
+          "title": "07: nivåborttagning kräver rensning av fördelning först",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3119,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:34.053Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjI4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-05697848e55665b0f16b",
+          "file": "phase5-terms.spec.ts",
+          "line": 67,
+          "column": 1
+        },
+        {
+          "title": "08: ändrat innehåll och återkallat mandat stoppar gammalt formulär",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "terms-phone",
+              "projectName": "terms-phone",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3137,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T17:03:37.179Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjI4LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjIsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "73a837268e67472c9e68-4f9fe504334e445683a2",
+          "file": "phase5-terms.spec.ts",
+          "line": 71,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-03T17:02:43.975Z",
+    "duration": 56383.210999999996,
+    "expected": 16,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

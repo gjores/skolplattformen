@@ -1,0 +1,334 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-lifecycle.config.ts",
+      "-g",
+      "L01|L03"
+    ],
+    "configFile": "/Users/petter.gjores/dev/skolplattform/web/playwright.phase5-lifecycle.config.ts",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "lifecycle-desktop",
+        "name": "lifecycle-desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-lifecycle\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "lifecycle-phone",
+        "name": "lifecycle-phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-lifecycle\\.spec\\.ts/"
+        ],
+        "timeout": 120000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-lifecycle.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-lifecycle.spec.ts",
+      "file": "phase5-lifecycle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "L01: status i listan och arbetsytan kommer från servern",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "lifecycle-desktop",
+              "projectName": "lifecycle-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 7407,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true })\nExpected: \u001b[32m\"false\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true })\u001b[22m\n\u001b[2m    5 × locator resolved to <section class=\"ppl\" aria-busy=\"true\" aria-label=\"Alla programplaner\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"true\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true })\nExpected: \u001b[32m\"false\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true })\u001b[22m\n\u001b[2m    5 × locator resolved to <section class=\"ppl\" aria-busy=\"true\" aria-label=\"Alla programplaner\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"true\"\u001b[22m\n\n    at navigate (/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts:17:496)\n    at enter (/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts:18:209)\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts:24:50",
+                    "location": {
+                      "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts",
+                      "column": 496,
+                      "line": 17
+                    },
+                    "snippet": "  15 | test.beforeEach(async()=>{fixture=await createProgramplanBrowserFixture();});\n  16 | test.afterEach(async({},info)=>{if(fixture)await info.attach('cleanup.json',{body:JSON.stringify(await fixture.cleanup()),contentType:'application/json'});});\n> 17 | async function navigate(page:Page){await waitForHydration(page);const mobile=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches),sidebar=page.locator('[data-slot=\"sidebar\"][data-state]');if(mobile?!await page.locator('[data-mobile=\"true\"]').isVisible():await sidebar.getAttribute('data-state')==='collapsed')await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();await page.getByRole('button',{name:'Programplaner',exact:true}).click();await expect(list(page)).toHaveAttribute('aria-busy','false');}\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ^\n  18 | async function enter(page:Page,session=fixture.hm){await fixture.cookies(page.context(),session,baseURL);await page.goto('/');await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();await navigate(page);}\n  19 | async function open(page:Page,name:string){await row(page,name).getByRole('button',{name:new RegExp(`^Öppna utbildning ${name},`,'u')}).click();await expect(w(page).getByRole('heading',{level:2,name,exact:true})).toBeVisible();}\n  20 | async function capture(page:Page,info:TestInfo,name:string){const path=info.outputPath(name);await page.screenshot({path,fullPage:true});await info.attach(name,{path,contentType:'image/png'});}"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts",
+                        "column": 496,
+                        "line": 17
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true })\nExpected: \u001b[32m\"false\"\u001b[39m\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Alla programplaner', exact: true })\u001b[22m\n\u001b[2m    5 × locator resolved to <section class=\"ppl\" aria-busy=\"true\" aria-label=\"Alla programplaner\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"true\"\u001b[22m\n\n\n  15 | test.beforeEach(async()=>{fixture=await createProgramplanBrowserFixture();});\n  16 | test.afterEach(async({},info)=>{if(fixture)await info.attach('cleanup.json',{body:JSON.stringify(await fixture.cleanup()),contentType:'application/json'});});\n> 17 | async function navigate(page:Page){await waitForHydration(page);const mobile=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches),sidebar=page.locator('[data-slot=\"sidebar\"][data-state]');if(mobile?!await page.locator('[data-mobile=\"true\"]').isVisible():await sidebar.getAttribute('data-state')==='collapsed')await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();await page.getByRole('button',{name:'Programplaner',exact:true}).click();await expect(list(page)).toHaveAttribute('aria-busy','false');}\n     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ^\n  18 | async function enter(page:Page,session=fixture.hm){await fixture.cookies(page.context(),session,baseURL);await page.goto('/');await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();await navigate(page);}\n  19 | async function open(page:Page,name:string){await row(page,name).getByRole('button',{name:new RegExp(`^Öppna utbildning ${name},`,'u')}).click();await expect(w(page).getByRole('heading',{level:2,name,exact:true})).toBeVisible();}\n  20 | async function capture(page:Page,info:TestInfo,name:string){const path=info.outputPath(name);await page.screenshot({path,fullPage:true});await info.attach(name,{path,contentType:'image/png'});}\n    at navigate (/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts:17:496)\n    at enter (/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts:18:209)\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts:24:50"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-04T23:24:22.684Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjYwNDM2NzQ2MjUyNTY0NjJiMTI0YmFjOGU2MGE3YmI3OGRkMzY0ZmMiLCJidWlsZFJldmlzaW9uIjoiZjZjZDAxNDUyZjY2NGM4MWY5ZjI4Mzg1NTEwYWVhOTVkOGVlNzIwMiIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjMsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6MSwibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjB9"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L01-statu-e0505-etsytan-kommer-från-servern-lifecycle-desktop/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-lifecycle.spec.ts",
+                    "column": 496,
+                    "line": 17
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a69f2c0d599e41f9d38b-0aaab3e3c045b1920fd4",
+          "file": "phase5-lifecycle.spec.ts",
+          "line": 23,
+          "column": 1
+        },
+        {
+          "title": "L03: framtida plan tas bort efter bekräftelse; utbildning med klass nekas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "lifecycle-desktop",
+              "projectName": "lifecycle-desktop",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6256,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-04T23:24:31.888Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjYwNDM2NzQ2MjUyNTY0NjJiMTI0YmFjOGU2MGE3YmI3OGRkMzY0ZmMiLCJidWlsZFJldmlzaW9uIjoiZjZjZDAxNDUyZjY2NGM4MWY5ZjI4Mzg1NTEwYWVhOTVkOGVlNzIwMiIsImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzY29wZSI6ImxvY2FsLXN5bnRoZXRpYy1vbmx5In0="
+                    },
+                    {
+                      "name": "lifecycle-delete-dialog.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-desktop/attachments/lifecycle-delete-dialog-png-7e45720c0923dbe2ebe60512967d96c9e9fd0572.png"
+                    },
+                    {
+                      "name": "lifecycle-delete-denied.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-desktop/attachments/lifecycle-delete-denied-png-de9a575376e2946047807ae241fe1f131d8ae663.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a69f2c0d599e41f9d38b-20b61a3e1125182c48c4",
+          "file": "phase5-lifecycle.spec.ts",
+          "line": 35,
+          "column": 1
+        },
+        {
+          "title": "L01: status i listan och arbetsytan kommer från servern",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "lifecycle-phone",
+              "projectName": "lifecycle-phone",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5434,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-04T23:24:39.234Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjYwNDM2NzQ2MjUyNTY0NjJiMTI0YmFjOGU2MGE3YmI3OGRkMzY0ZmMiLCJidWlsZFJldmlzaW9uIjoiZjZjZDAxNDUyZjY2NGM4MWY5ZjI4Mzg1NTEwYWVhOTVkOGVlNzIwMiIsImJyb3dzZXJOYW1lIjoid2Via2l0Iiwic2NvcGUiOiJsb2NhbC1zeW50aGV0aWMtb25seSJ9"
+                    },
+                    {
+                      "name": "lifecycle-list.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L01-statu-e0505-etsytan-kommer-från-servern-lifecycle-phone/attachments/lifecycle-list-png-277b49ce999ff22afb28413cb5aa80d2e3e3e114.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjE2LCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a69f2c0d599e41f9d38b-c0e0f9a092b996681845",
+          "file": "phase5-lifecycle.spec.ts",
+          "line": 23,
+          "column": 1
+        },
+        {
+          "title": "L03: framtida plan tas bort efter bekräftelse; utbildning med klass nekas",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "lifecycle-phone",
+              "projectName": "lifecycle-phone",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5071,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-04T23:24:45.809Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "lifecycle-delete-dialog.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-phone/attachments/lifecycle-delete-dialog-png-1fa4d24e686305474e53995d8d197a870fff2d6a.png"
+                    },
+                    {
+                      "name": "lifecycle-delete-denied.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-phone/attachments/lifecycle-delete-denied-png-27a8faf12c636d2c2db29dd256293510287353bb.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJjdXN0b21lcnMiOjAsInNlc3Npb25zIjowLCJwbGFucyI6MCwicmVjZWlwdHMiOjAsImVkdWNhdGlvbkV2ZW50cyI6MCwib2ZmZXJpbmdzIjowLCJtYW5kYXRlcyI6MCwicHJlc2VydmVkQXVkaXRFdmVudHMiOjQwLCJwcmVzZXJ2ZWRBdWRpdEFuY2hvcnMiOjEsIm1pbnRlZFNlc3Npb25zIjowLCJ0cmlnZ2VycyI6MCwiZnVuY3Rpb25zIjowfQ=="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a69f2c0d599e41f9d38b-c11fa0da62dbde6896e4",
+          "file": "phase5-lifecycle.spec.ts",
+          "line": 35,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-04T23:24:22.135Z",
+    "duration": 28799.030000000028,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
