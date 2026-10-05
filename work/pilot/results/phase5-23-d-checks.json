@@ -1,0 +1,141 @@
+{
+  "kind": "phase5-23-D-scoped-checks",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "planComplete": false,
+  "humanResult": "awaiting_user",
+  "nextStep": "E",
+  "workerBuildRevision": "a307d26d0e6ca712e07a96b052a01c451b18b966",
+  "modelServer": {
+    "status": "PASS",
+    "tests": 646,
+    "log": {
+      "path": "web/test-results/phase5-23-d-logs/phase5-23-d-node.log",
+      "sha256": "6b24af17fc8aa4b55aa13d877f24a9a26236f7c10e1c2582bbda78c5aee6a52b"
+    }
+  },
+  "pureHarness": {
+    "status": "PASS",
+    "tests": 5
+  },
+  "typescript": "PASS",
+  "oxlint": "PASS",
+  "protectedBuild": {
+    "status": "PASS",
+    "log": {
+      "path": "web/test-results/phase5-23-d-logs/phase5-23-d-build.log",
+      "sha256": "b40c547571977fe8e7c1cf433b10399e7c911bb4beefeb1df4f6f68fd24e654a"
+    }
+  },
+  "handbookBuild": {
+    "status": "PASS",
+    "log": {
+      "path": "web/test-results/phase5-23-d-logs/phase5-23-d-docs.log",
+      "sha256": "4e290ac7abefb2a1ca2403c7e322ea0f6969418f5eb3e4c8fa25e63907aae22c"
+    }
+  },
+  "sqlRollback": {
+    "status": "PASS",
+    "tests": 565,
+    "report": "work/pilot/results/phase5-23-d-sql-rollback.json"
+  },
+  "parity": {
+    "status": "PASS",
+    "vectors": 33,
+    "currentSourceHashes": 10,
+    "outerRollback": true
+  },
+  "api": {
+    "api": {
+      "status": "PASS",
+      "cases": 11,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 63,
+      "report": "work/pilot/results/phase5-23-d-api.json"
+    },
+    "c-api": {
+      "status": "PASS",
+      "cases": 16,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 53,
+      "report": "work/pilot/results/phase5-23-d-c-api.json"
+    },
+    "b-api": {
+      "status": "PASS",
+      "cases": 11,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 53,
+      "report": "work/pilot/results/phase5-23-d-b-api.json"
+    },
+    "program-api": {
+      "status": "PASS",
+      "cases": 48,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 19,
+      "report": "work/pilot/results/phase5-23-d-program-api.json"
+    },
+    "terms-api": {
+      "status": "PASS",
+      "cases": 31,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 7,
+      "report": "work/pilot/results/phase5-23-d-terms-api.json"
+    },
+    "lifecycle-api": {
+      "status": "PASS",
+      "cases": 39,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 18,
+      "report": "work/pilot/results/phase5-23-d-lifecycle-api.json"
+    },
+    "education-api": {
+      "status": "PASS",
+      "cases": 43,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 7,
+      "report": "work/pilot/results/phase5-23-d-education-api.json"
+    },
+    "3012-api": {
+      "status": "PASS",
+      "cases": 11,
+      "cleanupStatus": "PASS",
+      "originalBusinessPreserved": true,
+      "currentSourceHashes": 63,
+      "report": "work/pilot/results/phase5-23-d-3012-api.json"
+    }
+  },
+  "browser": {
+    "D": 6,
+    "C": 16,
+    "B": 6,
+    "status": "PASS",
+    "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+    "productSourcesUnchanged": true,
+    "desktopAndPhone": true,
+    "ownBusinessRowsRemaining": 0
+  },
+  "runtime": {
+    "status": "PASS",
+    "scenarios": 18,
+    "auditedReadsPerTrial": 44,
+    "wholeOriginalTables": 12,
+    "originalRowsAndScenariosPreserved": true,
+    "reset": false
+  },
+  "historicalGaps": {
+    "fullSql": "Not rerun in D; C 2411/2412 FAIL phase2_audit #13",
+    "05-22Metadata": "PARTIAL; four historical updated_at changes remain",
+    "estheticSubjectList": "Att kontrollera; exact list not located within bounded search",
+    "requirements": [
+      "ADMIN-02 Pending",
+      "ADMIN-03 Pending"
+    ]
+  }
+}

@@ -2,17 +2,17 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "23"
 status: in_progress
-completed_steps: [A, B, C]
-next_step: D
+completed_steps: [A, B, C, D]
+next_step: E
 requirements: [ADMIN-02, ADMIN-03]
 requirements-finally-verified: []
 human_result: awaiting_user
-worker_build_revision: 9790c540059a22b9bb01c55090123b5634294319
+worker_build_revision: a307d26d0e6ca712e07a96b052a01c451b18b966
 ---
 
 # 05-23 — full poängsumma och valbara block
 
-Steg A, B och C är genomförda och automatiskt verifierade lokalt med syntetiska data. Nya och uppgraderade utkast har Svenska/SvA och blockramar; huvudman/rektor kan ändra block och skolans språkpaket kan väljas av huvudman, rektor och skoladministratör. Hela 05-23 är fortfarande in_progress: generella ämnespaket och fullplansverifiering återstår i D/E. Mänsklig begriplighet är awaiting_user. A/B nedan är historiska bevis; C anger aktuellt beteende och bygge.
+Steg A, B, C och D är genomförda och automatiskt verifierade lokalt med syntetiska data. Nya och uppgraderade utkast har Svenska/SvA och blockramar; huvudman/rektor kan ändra block och skolans språkpaket kan väljas av huvudman, rektor och skoladministratör. Generella ämnespaket finns nu för IV, fördjupning och HU/NA-val. Hela 05-23 är fortfarande in_progress: E:s fullplansverifiering återstår. Mänsklig begriplighet är awaiting_user. A/B/C nedan är historiska delbevis; D anger aktuellt beteende och bygge.
 
 ## Steg A — nya planer, svenskrader och blockramar
 
@@ -147,8 +147,60 @@ Verkliga provfynd rättades: adminlistans läsuppslag nekades; språkfältets ti
 
 Vanlig 3012 är omstartad med verifierat C-bygge. Äldre klientfiler bevarades; privata `.dev.vars`/låsfiler kopierades inte. Befintliga användarplaner återskapades inte och öppna flikar laddas inte om automatiskt. Egen byggkopia städad efter råbevis, serverkontroll och källpush. 05-22:s fyra historiska updated_at-avvikelser förblir PARTIAL.
 
-### Nästa — steg D i ny executorsession
+### Historisk överlämning från C — före genomförandet av D
 
 A/B/C är automatiskt verifierade lokalt. **Hela 05-23 är in_progress och ADMIN-02/ADMIN-03 är Pending.** D ska leverera generella ämnespaket i IV/fördjupning/HU/NA och deras versionsbundna urval; E full regression och mänskligt paketprov. Utgå från aktuell 19-entrypoints-baslinje, C:s SQL-definitioner och paketkopiering. Separat D-preflight krävs före 157000-grant. 05-25 väntar på hela 05-23; yrkesfastställande kräver dessutom 05-17, som fortfarande saknar PLAN.
 
 Mänskligt C-prov är **awaiting_user**: öppna Visa paket, välj skola, pröva språkförslag och terminsändring, följ analysåtgärd och bedöm dator/telefon. Ingen automatisk rapport tillskriver användaren ett godkännande.
+
+
+## Steg D — skolans versionsbundna ämnespaket
+
+Huvudman, rektor och skoladministratör kan skapa ämnespaket för egna mandatsskolor och välja dem i individuellt val, programfördjupning och HU/NA:s ämnesblock. Huvudmannen kan även skapa paket för alla egna skolor. **Visa paket** öppnar skolans val och terminer; **Lägg till paket** öppnar ett kompakt formulär med ämnestyp, tillåtna nivåer och poäng. Inga nya stora informationsrutor har tillförts.
+
+- Varje paketversion är oföränderlig. Ny version ändrar inte tidigare val; de pekar på exakt paket-id och version. Samma version kan återanvändas i flera planer. Ett paket motsvarar blockets poäng och katalog. Fasta nivåer, inklusive Svenska/SvA-alternativ, får inte återväljas. HU/NA och fördjupning har ämnes-/nivåfilter; moderna språk använder fortfarande C:s separata språkform.
+- Servern kontrollerar både källans och målets skolmandat. Rektor/administrator kan inte versionera huvudmannens gemensamma källa. Andra skolors listning visar endast exakta redan valda versioner i läsbara delade planer. Direkt klientåtkomst till tabell och interna funktioner är stängd. Skrivningar kräver MFA/CSRF, senaste version och både DB-/Worker-audit.
+- Tappat svar följs av återläsning före ny skrivning. Verklig versionskonflikt behåller formulärets värden och blockerar överskrivning. Laddning väntar på samtliga skolors bibliotek; byte/omläsning skyddar osparade paket och sena svar. Global sammanslagning bevarar äldre valda versioner.
+- IV-analysen samlar skolans samtliga IV-block. Identiska nivåer i flera block ger risk; saknad idrott/yrkesbehörighet ger risk och hindrar inte i sig Klar för beslut. Den exakta estetiska ämneslistan kunde inte beläggas i den avgränsade primärkällesökningen och visas **Att kontrollera**. Detta är inget bevis för att föreskrift saknas. Jämförbara nivåer och språkexportkoder är också fortsatt overifierade.
+
+### Migration och källkedja
+
+Foundation 156000 är tillämpad och journalförd på isolerat protected utan reset: SHA256 `7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38`. Separat Worker-grant 157000: SHA256 `2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2`. Grant öppnades först efter faktisk 11/11 preflight och återställda ACL, exakt **19 → 21 → 19** i provet; permanent slutläge är **21**. Inga tillämpade migrationsfiler ändrades. Aktuella föredefinitioner/ACL och rollbackbevis: [D-FUNCTION-INVENTORY](05-23-D-FUNCTION-INVENTORY.md).
+
+Produktcommits `b4816c7`, `654423d` och `1388361`; provunderlag `9aab07c`, `a4e6ad6` och `a307d26`. Slutlig Workerrevision **a307d26d0e6ca712e07a96b052a01c451b18b966** har samma produktkod i app/lib/SQL som browserbygget a4e6ad6 och preflightbygget 1388361. Preflightens källhashar beskriver granttidens kod; senare provverktygsändringar har färska normala API-/paritetsbevis.
+
+### Faktiska kontroller
+
+| Kontroll | Resultat |
+|---|---|
+| Modell/server, harness | 646/646 och 5/5 PASS |
+| TypeScript, oxlint, skyddat bygge, handbok | PASS; slutligt bygge a307d26 i egen byggkopia |
+| Riktad SQL och historiska beroenden | 137 + 428 = 565 PASS i yttre rollback; gamla ACL/funktioner och hela originalmängder bevarade |
+| Samma konkreta TS/SQL-vektorer | 33/33 PASS; katalog, datum, typ, fasta alternativ, poäng, fördelning, gamla versioner och klientnekanden |
+| D-preflight, permanent grant, normalt D-API | 11/11 PASS; separat grant utan reset; slutligt API 11/11 på 21-entrypoints-Worker |
+| Färsk API-regression på a307d26 | C 16/16, B 11/11, programplan 48/48, terminer 31/31, livscykel 39/39, utbildningar 43/43 PASS |
+| D-browser, dator och iPhone 13 | 6/6 PASS: IV 2×100/versionsbindning, NAVE och verkligt tappat svar/409 |
+| C/B-browserregression | 16/16 och 6/6 PASS på produktidentiskt a4e6ad6; samtliga 28 browserfixturer städade, append-only audit/ankare behållna |
+| Visuell kontroll | Fyra originalbilder på dator/telefon granskade; långa paketnamn, knappar och terminsfält ryms |
+| Ordinarie 3012 | D-API 11/11 PASS på a307d26; 18 befintliga scenarier, 44 auditpar per läsomgång och tolv hela originaltabeller identiska före/efter D och slutligt API |
+| Full SQL | Inte omkörd i D. C:s senaste fullsvit är historiskt **FAIL 2411/2412**, endast äldre phase2_audit #13. 05-22:s fyra historiska updated_at-avvikelser förblir PARTIAL |
+
+Versionshanterade minimerade rapporter: `work/pilot/results/phase5-23-d-*.json`. Lokala rå-TAP ligger under `/private/tmp/phase5-23-d/`; råbrowserrapporter, bilagor och bildhashar under `web/test-results/phase5-23-d-*`. Sammanfattade kontroller och logghashar finns i `phase5-23-d-checks.json`. Oberoende målgranskning: [D-VERIFICATION](05-23-D-VERIFICATION.md).
+
+### Rättade fynd och bevarande
+
+C:s SQL-validerare läste fasta nivåer/fördjupning via ett obefintligt `resolution.basis`. D kontrollerar verkliga terminsrader och den pinnade katalogen; både TS/SQL-vektorer och faktiskt API bevisar spärrarna. Granskningens dialog-/scope-/laddningsfynd rättades och proverna omfattar sena svar, global versionssammanslagning, omläsning och osparade värden.
+
+Två första browseromgångar var 4/6 med NAVE-provfel (JSON-importattribut, därefter ofullständigt regionnamn). Rå FAIL-rapporter behålls; slutlig komplett omgång är 6/6. Första paritetsomgången stoppades av provets hashfunktion för en avsiktlig bråkvektor och är också bevarad. Inga misslyckade omgångar döps om till godkända. NAVE-fixturen är avsiktligt 2200/2500: dess PASS bevisar paketflödet, inte en färdig NA-plan.
+
+Första övergripande runtimejämförelsen var **FAIL**: offering_units 267→341, medan övriga elva tabeller och alla 18 scenarier var identiska. En äldre gemensam provstädning stängde av FK-cascade utan att explicit rensa skolkopplingar. Huvud-API:s tidigare hashkontroll omfattade inte tabellen. Rapporten `program-api-before-cleanup-fix` bevarar det tidigare gröna beteendeprovet med ofullständigt städningsbevis; `runtime-first-fail` bevarar fyndet.
+
+Exakt 74 kopplingar från två identifierade, redan borttagna syntetiska provgrafer avgränsades med prov-id, tid och frånvaro av levande kunder/skolor/utbildningar. Före rensning gav exklusion av endast dessa 74 exakt ursprungliga 267 rader och helradshash. Efter transaktionskontrollerad rensning återstod exakt samma originalmängd; äldre kvarvarande provrader lämnades orörda. `cleanup-correction` dokumenterar detta. a307d26 rättar ägarskapskontrollerad städning för paket/skolkopplingar och kräver noll rester; huvud-API hashar nu skolkopplingstabellen och bevakar den delade hjälparkällan. Alla sju API-sviter kördes därefter om sekventiellt. Färsk runtime-after är PASS för samtliga tolv tabeller och 18 scenarier.
+
+Vanlig 3012 kör slutbygget med äldre klientfiler bevarade. Privata miljö-/låsfiler kopierades inte. Inga befintliga användarplaner återskapades, ingen reset och ingen automatisk omladdning. Egen byggkopia städas efter bevarade råbevis och verifierad push. Alla körprov gäller lokala syntetiska data och mintade sessioner; de innebär inte interaktiv IdP-/MFA-acceptans eller verklig kommunanslutning.
+
+### Nästa — steg E i ny executorsession
+
+**A/B/C/D automatiskt verifierade lokalt; hela 05-23 är in_progress och ADMIN-02/ADMIN-03 Pending.** E ska köra fullplansmatrisen, slutlig handbok och mänskligt paketprov från aktuell 21-entrypoints-baslinje. Historiska full-SQL-/metadataavvikelser ska fortsatt redovisas. 05-25 väntar på hela 05-23; yrkesfastställande kräver dessutom 05-17, som fortfarande saknar PLAN.
+
+Mänskligt D-prov är **awaiting_user**: skapa ett paket i Visa paket, välj det och fördela dess nivåer; skapa ny version och kontrollera att gamla val bevaras på dator/telefon. Ingen automatisk rapport tillskriver användaren ett godkännande.

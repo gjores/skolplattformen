@@ -1,0 +1,534 @@
+{
+  "kind": "phase5-programplan-choice-packages-parity",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "individual-choice-valid",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "dc370a38feb6b9969959eb960a8b3aa236953e7759eb2c68f62b261e427922b8",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "old-version-one-after-version-two",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "dc370a38feb6b9969959eb960a8b3aa236953e7759eb2c68f62b261e427922b8",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "latest-version-two-exact",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "e385de1c26a11e9aad4e82a165009c9a1b9373923e5cd81c47fec883852629fd",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "global-package-own-school",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "c230efec5a919c6dc1c1e08578d29ceb083f2fe66fd06aff70d6032fb61d7ec9",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "natural-science-valid",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "64b5a43780f9e499632d5678066e44330b980c8a97155b575dc5c06eaa06f529",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "language-subject-valid",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "0dbe838d396565de8ad61d583f4d0406aa613be77f6818b94d3f5f13c80175aa",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "specialization-valid",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "0f99e2e00eb0b12baf7e87042791f46c911825fcafcff7ee89b18e0953b3fe18",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "other-school-unavailable",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "42501",
+      "vectorHash": "8130dcb155de4e9e008ed95d6b3b11cb8b8baa8571ce00d79f791ff677606ac1",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "package-points-differ-from-block",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "58dda3b03ee0accdcfb92f53de1e8f63759fcde995016f8a904dcf047159ce31",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "wrong-kind-for-block",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "fac7411fbd5dac3ac0eb5a52a561cca46407c98950fef1e3c7ce40b941bc49af",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "generic-modern-language-forbidden",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "56b18fae41bf577d06312d0a3b0ff911770311c2c255b3de5f6d5b886e88721b",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "latin-one-already-fixed-in-hu",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "f396ebd0f307afb76ffe1c59166e39e3c788af6c1c12d9ef41983ce4b51e28c9",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "biology-one-already-fixed-in-na",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "dc44e360b4c0f2675f8d3d604bab4d57113e8ac9d44178383a7bd203ce7ecee8",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "swedish-alternative-one-two-fixed",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "385dec30abdb49c75ba2a43d4c9b4577c50c608ba6fa4030e06b4d7245614c8b",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "swedish-second-language-alternative-fixed",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "68226d4ac70660c4c155ecd6a7de61b4ba907595438b5dfed636627a6bc1df12",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "selected-specialization-level-already-fixed",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "a43638433090dde8d1cddfbd60ed8642f4c14941048aa41dc7659f81fe4614dd",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "specialization-outside-program-options",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "a7d7fcde72491bc78a38b4d8a487a538d1de0e7cef505c795fb8d465511a126c",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "missing-exact-version-no-latest-fallback",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "programplan_package_version_missing",
+      "sqlCode": "22023",
+      "vectorHash": "faa65e519a8302f7a75357db1fdedcbec554ba2033fca5778057d210c545a640",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-within-level",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "aa7b044d9463759ce8088e80afd606b5dcb07e4a6aef6b8bb6838af6b5038bdb",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-unfinished-saveable",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "03f315b9e4172dff8ca1331de7da4d7f509ae8c3ffb63b849ed26d1bd46cbc18",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-outside-frame-saveable",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "e101aa39262eb917c53e8dff200d613b4934db9cd7319f9fdf52022cfd39ed64",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-exceeds-level",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "76543a66dbae7ce6c4488f35d54780ced3d8804b6a2f88792ad68a3a1ecc1297",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-unknown-level",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "e79c46f91bbc514cfefb0f9e1b8f9bef6388ba7248d2f2829572119e9eacae99",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-fractional-points",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "694f2aaba8b3b777e44df89d105c23b1b250db07435ab8e8a4bf5becd6bdaa25",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "distribution-duplicate-row",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "c548f2d66b05b2ab28311e6faba9bb7cc014a6714eb1a611e61bb3d8edba37f4",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "package-ref-extra-levels-denied",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "e87d7d2f2d63ff9f91b6342a9da4cdb2e647facef34ad24402578cb2787ebfe4",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "package-another-catalogue",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "73f100b1f201ddd330684ac8dc024a0bb1ad7cda8e5f2dd786bdb594d199fe43",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "package-subject-startDate-denied",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "2752996f9275bf4b9a824a3c44e2e54b6ffa2c72025dd163c3356dd9ca5c4ce6",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "package-subject-endDate-denied",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "22af0a1394d896c51e4ffdca4ac8469e2a56d104aabb5bdf834e2878484f06aa",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "package-subject-canceledDate-denied",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "f12051bea582fdab87447ced609e8795bbf9afcf0b35e41bdeb819c4b09ed73c",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "foreign-organizer-global-reference-denied",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "programplan_package_version_missing",
+      "sqlCode": "42501",
+      "vectorHash": "fc2a60f7d13ec86df1eec28e2a68271a00e52e5bd8ee1bc89714acc6a1e41987",
+      "availableListScope": "organizer-scoped-list"
+    },
+    {
+      "name": "C-language-contiguous-smoke",
+      "status": "PASS",
+      "expected": "accept",
+      "tsAccepted": true,
+      "sqlAccepted": true,
+      "normalizedEqual": true,
+      "tsCode": null,
+      "sqlCode": null,
+      "vectorHash": "bcf0ff02f6b3b5576b52c56f8597d0de134c517b924449a7cbccd0c0d9451075",
+      "availableListScope": "same-synthetic-package-versions"
+    },
+    {
+      "name": "C-language-gap-smoke",
+      "status": "PASS",
+      "expected": "deny",
+      "tsAccepted": false,
+      "sqlAccepted": false,
+      "normalizedEqual": null,
+      "tsCode": "invalid_programplan_packages",
+      "sqlCode": "22023",
+      "vectorHash": "d2578f05cbeea913745ae65e4b498a8b5a5b098aecd72120cb2b3b2423cdd2b6",
+      "availableListScope": "same-synthetic-package-versions"
+    }
+  ],
+  "complete": true,
+  "rollback": true,
+  "reset": false,
+  "grantsChanged": false,
+  "startedAt": "2026-10-05T19:02:03.104Z",
+  "workerCountBefore": 21,
+  "scopedDefinitionHash": "ff76113431cdf8409da09bad2c626632026fb95d8749111c13befc6887066642",
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "originalBusinessPreserved": true,
+  "workerCountAfter": 21,
+  "aclUnchanged": true,
+  "cleanup": {
+    "customers": 0,
+    "packages": 0,
+    "selections": 0,
+    "audit": 0
+  },
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T19:02:09.716Z",
+  "sourceHashes": {
+    "work/pilot/verify-programplan-choice-packages-parity.mjs": "9742b673fa0ab5a399c41ff029bd55d6c3a5d31a049d22bfe7de06a7bc2242de",
+    "work/pilot/verify-programplan-locks.mjs": "e44ccd314deb546e6dc3ffb5f3a962098497935e6c1a333e45808348ff1de0a1",
+    "supabase/tests/phase5_programplan_drafts.test.sql": "a5ff44e14d4e2236ea0a1271ca88314cdc5df9b92d0bd2afbf4929a38c007a99",
+    "web/lib/programplan-packages.ts": "b48454c450d2a63dc652c4017ba616d1e5b4c753315530d2157dce2bd3cf505e",
+    "web/lib/programplan-catalog.ts": "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+    "web/lib/programplan-choice-blocks.ts": "6c4223e2143b60bf45196a26e3ebeaf173f6ce1215980a5ab2e3c1cdaddf8e92",
+    "web/lib/programplan-terms.ts": "bed02c4e2d13c09fc6666fd2ada579224101d2ec78884b44ded2a95928e7e000",
+    "web/lib/programplan-catalog.generated.json": "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124",
+    "supabase/migrations/20261004156000_phase5_programplan_packages.sql": "7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38",
+    "supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql": "2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2"
+  }
+}

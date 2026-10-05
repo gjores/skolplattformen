@@ -1,0 +1,105 @@
+{
+  "scope": "local-synthetic-only",
+  "target": "protected",
+  "status": "PASS",
+  "tests": 565,
+  "files": [
+    {
+      "file": "phase5_programplan_catalog.test.sql",
+      "status": "PASS",
+      "tests": 60,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_programplan_drafts.test.sql",
+      "status": "PASS",
+      "tests": 108,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_programplan_lifecycle.test.sql",
+      "status": "PASS",
+      "tests": 125,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_programplan_unit_packages.test.sql",
+      "status": "PASS",
+      "tests": 137,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_programplan_worker.test.sql",
+      "status": "PASS",
+      "tests": 31,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_programplan_workspace_worker.test.sql",
+      "status": "PASS",
+      "tests": 18,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_timplan_selection.test.sql",
+      "status": "PASS",
+      "tests": 59,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    },
+    {
+      "file": "phase5_timplan_worker.test.sql",
+      "status": "PASS",
+      "tests": 27,
+      "rollback": true,
+      "reset": false,
+      "functionsAndAclRestored": true,
+      "foundationBusinessPreserved": true,
+      "foundationAclPreserved": true,
+      "foundationFunctionsPreserved": true,
+      "originalBusinessPreserved": true
+    }
+  ],
+  "rawReportsDirectory": "/private/tmp/phase5-23-d/"
+}

@@ -1,0 +1,101 @@
+{
+  "kind": "phase5-programplan-choice-packages-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan planen är klar",
+      "project": "blocks-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läser om paketvalet",
+      "project": "blocks-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B11: tappat valpaketsvar återläses utan dubbel skrivning och en äldre dialog hindrar överskrivning",
+      "project": "blocks-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B08: IV 2 × 100, versionsbundna valpaket och saknad idrott ger risk medan planen är klar",
+      "project": "blocks-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B09: NA25 naturvetenskap och samhälle erbjuder rätt NAVE-nivå och läser om paketvalet",
+      "project": "blocks-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B11: tappat valpaketsvar återläses utan dubbel skrivning och en äldre dialog hindrar överskrivning",
+      "project": "blocks-phone",
+      "status": "passed"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-05T18:41:06.864Z",
+    "duration": 39188.054000000004,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "buildProofs": [
+    {
+      "sourceRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "cleanupStatus": "PASS",
+  "cleanupBilags": 6,
+  "ownBusinessRowsRemaining": 0,
+  "auditEventsAndAnchorsPreserved": true,
+  "rawReport": "web/test-results/phase5-23-d-browser-final.json",
+  "rawSha256": "c21a59dedda0b2e510b55abd616b76373233c57ca8af40c734ae6842afb851d1",
+  "screenshots": [
+    {
+      "path": "web/test-results/phase5-23-d-final/phase5-blocks-B08-IV-2-×-1-64936-r-risk-medan-planen-är-klar-blocks-desktop/attachments/iv-long-name-version1-png-4f640500e2add7f6a7c87a125f2d2ccb3c8944da.png",
+      "sha256": "72f923ed85e9257ea72c691f24230c506f42b32cd720bbb33485525f55a113d4"
+    },
+    {
+      "path": "web/test-results/phase5-23-d-final/phase5-blocks-B09-NA25-nat-ed002-ivå-och-läser-om-paketvalet-blocks-desktop/attachments/na-nave-package-png-1ccdfef4d446469f4b675e1bd550468d50ddc4ef.png",
+      "sha256": "a8b3aaf99ed104b8061d289b91616a4397baa03df95c9de969fbf97bc9ea0776"
+    },
+    {
+      "path": "web/test-results/phase5-23-d-final/phase5-blocks-B08-IV-2-×-1-64936-r-risk-medan-planen-är-klar-blocks-phone/attachments/iv-long-name-version1-png-7d07abf5907e63e3ab0ad7327d51c9b01cdc688a.png",
+      "sha256": "63955be7cd6066a1ee721045e07f999f0cd0baf06f11acd332094ca47ae78c93"
+    },
+    {
+      "path": "web/test-results/phase5-23-d-final/phase5-blocks-B09-NA25-nat-ed002-ivå-och-läser-om-paketvalet-blocks-phone/attachments/na-nave-package-png-bfb168bfcf2885fef0609b54e9668fa27a8d081e.png",
+      "sha256": "55de9738d57aa369f4bdf7e07c09fba0ad6147ec668eb6549b9359cb0709fa0f"
+    }
+  ],
+  "visualReview": [
+    "desktop",
+    "phone"
+  ],
+  "previousRuns": [
+    {
+      "report": "web/test-results/phase5-23-d-browser-first.json",
+      "passed": 4,
+      "failed": 2,
+      "cause": "NAVE provets dynamiska JSON-import saknade importattribut."
+    },
+    {
+      "report": "web/test-results/phase5-23-d-browser-second.json",
+      "passed": 4,
+      "failed": 2,
+      "cause": "NAVE provets regionnamn saknade katalogens ord Ett."
+    }
+  ]
+}

@@ -1,0 +1,1286 @@
+{
+  "kind": "phase5-programplan-blocks-api",
+  "scope": "local-synthetic-only",
+  "step": "c",
+  "preflight": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual restricted built workerd",
+          "ok": true
+        },
+        {
+          "name": "exact nineteen Worker entrypoints",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "language-parity",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "whole language and ladder inventories match TS exactly",
+          "ok": true
+        },
+        {
+          "name": "language export explicitly unverified",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-save-reread",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "same selections persisted and reread with paired audit",
+          "ok": true
+        },
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "same selections persisted and reread with paired audit",
+          "ok": true
+        },
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "same selections persisted and reread with paired audit",
+          "ok": true
+        },
+        {
+          "name": "package editing changes neither plan revision nor whole plan row",
+          "ok": true
+        },
+        {
+          "name": "second school linked through actual HM command",
+          "ok": true
+        },
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "two school choices stay independent",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-foreign-school-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual paketval denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "principal can read other linked school choices without write privilege",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-not-plan-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual paketval denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-cas-concurrent",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual concurrent writes have one winner and one conflict",
+          "ok": true
+        },
+        {
+          "name": "winner persists exactly once",
+          "ok": true
+        },
+        {
+          "name": "concurrent audit confirms its outcome",
+          "ok": true
+        },
+        {
+          "name": "concurrent audit confirms its outcome",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "ladder-language-points-rejected",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 400 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "valid out-of-frame and reverse term choice saved for visible analysis",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "admin-plan-write-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "administrator list read with paired audit",
+          "ok": true
+        },
+        {
+          "name": "administrator label lookup is scoped read only",
+          "ok": true
+        },
+        {
+          "name": "administrator label lookup is scoped read only",
+          "ok": true
+        },
+        {
+          "name": "administrator plan and term reads allowed by D18",
+          "ok": true
+        },
+        {
+          "name": "administrator terms read has paired audit",
+          "ok": true
+        },
+        {
+          "name": "actual block denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual terminer denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual fordjupning denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual skapa denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual binda denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual klona denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual utbildning/livscykel denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "unit-removal-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual utbildning/livscykel denied 409 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "split IV creates removable custom block through actual Worker",
+          "ok": true
+        },
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "actual block denied 409 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "db audit failure rolls back packages revision history and whole graph",
+          "ok": true
+        },
+        {
+          "name": "no success audit survives failure",
+          "ok": true
+        },
+        {
+          "name": "worker audit failure rolls back packages revision history and whole graph",
+          "ok": true
+        },
+        {
+          "name": "no success audit survives failure",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-clients-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "anon direct RPC denied",
+          "ok": true
+        },
+        {
+          "name": "anon direct RPC denied",
+          "ok": true
+        },
+        {
+          "name": "authenticated direct RPC denied",
+          "ok": true
+        },
+        {
+          "name": "authenticated direct RPC denied",
+          "ok": true
+        },
+        {
+          "name": "helper and package table privileges closed",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mfa-csrf-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual paketval denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 401 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 403 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 409 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 401 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-sealed-allowed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "sealed plan stays sealed and unchanged by school choice",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "clone-copies-selections",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual clone returns copied school count and paired audit",
+          "ok": true
+        },
+        {
+          "name": "each cloned school has exact selections and revision one",
+          "ok": true
+        },
+        {
+          "name": "source whole plan school rows and history unchanged",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-replaced-allowed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "closed matching Worker result with package CAS",
+          "ok": true
+        },
+        {
+          "name": "actual paired DB/Worker audit with same actor and plan",
+          "ok": true
+        },
+        {
+          "name": "replaced source school choice editable without plan mutation",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "packages-archived-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual archive succeeds",
+          "ok": true
+        },
+        {
+          "name": "actual paketval denied 409 with minimized result",
+          "ok": true
+        },
+        {
+          "name": "entire business graph unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only committable denied Worker audit",
+          "ok": true
+        },
+        {
+          "name": "archived selections still readable",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "3d7b2ab8-5cdb-4d3e-a144-7c8c5d3a6f70"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e7c5817b-089b-49a3-804a-5e1330db17f5"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "bf19ab3c-861f-4f04-847e-ce11230cfa63"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "bee79530-11f2-4aea-9761-d26f7fabc4d3"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "7523a91e-7a5d-4c41-9568-45f2e638a5e1"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "7223d3ad-ede8-4c99-8e5d-ffdbf88c8434"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "6a0d6026-9126-461e-b12b-454646f4ffe9"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e0bac38a-4f46-44d6-9cee-edd55485d5de"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "a419ac74-9ae8-4238-b090-e61c1b97f288"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e8af139a-c6c2-4692-b64a-28ad6558e04d"
+    },
+    {
+      "route": "underlag",
+      "status": 200,
+      "code": null,
+      "correlationId": "beb5c8f3-7c7b-4dee-80ed-2288a6f20fac"
+    },
+    {
+      "route": "utbildning/livscykel",
+      "status": 200,
+      "code": null,
+      "correlationId": "24f12b97-83e0-4753-9fb2-c06380134d9f"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "50c721b5-014c-411d-a49f-efe2c87c8f02"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "cb38a7b9-a545-4b42-985c-444b210be25f"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "6a9777e0-9736-487d-aa8e-47eb32b685b8"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "0adc1224-7056-4f36-a86d-e25465b0efc6"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "166d95f0-975c-463f-8541-53aabea7db08"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "827e3b5b-1597-4c93-a87a-ff40e8ed4a73"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "02cfde8f-cdef-4c77-9588-6522d3807b8d"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "42865ab8-1992-49c5-98a7-e06124034f99"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "9027cd9f-cb01-454f-92b3-87d78223ad93"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "107bec83-a6bc-4afa-98c0-787eef946501"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "c3d4aec2-e689-4a81-9d23-d69471041c0b"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "9ab0b1eb-fec3-4e01-8940-5cf649670275"
+    },
+    {
+      "route": "paketval",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "ee210bf6-04dd-492e-8178-3f7fbccc8951"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "7fb89e95-f49a-40ae-bbaf-4092ed68752d"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "c348f3a6-43cc-48c0-b7b2-ba1c35c8c89c"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "2bffb341-4587-472f-9832-549bc7b8052c"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "f99c43bd-c268-4df2-9c55-585f0704ad13"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "9d1b12c5-1c94-45b8-8777-0786c233409f"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "3ec9e5ff-33f6-4219-8106-82e465c4756f"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "ad971b8f-ebe7-4b08-ba0b-beef26ef4024"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "bef5b578-8232-4e95-bd78-a3fa936d52c4"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "cde253b2-7afe-45a7-bfb9-44e1c824fd37"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "54917b3a-ada2-4633-9367-d8df43ee7d2d"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "6a57cb7c-68c7-46f1-a3d2-033f598ae419"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "ed721da1-f06d-4102-8f08-176e723e746f"
+    },
+    {
+      "route": "lista",
+      "status": 200,
+      "code": null,
+      "correlationId": "244f63e0-dda2-4af3-aada-c8323761f9f4"
+    },
+    {
+      "route": "val",
+      "status": 200,
+      "code": null,
+      "correlationId": "c96b0f00-3a90-4f52-ad89-1f9bfcca52c9"
+    },
+    {
+      "route": "val",
+      "status": 200,
+      "code": null,
+      "correlationId": "4ca876cb-ef72-4946-a4c1-1ca2785ec45a"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "f618e867-6b5b-4013-a0b5-bdc43dea19f1"
+    },
+    {
+      "route": "terminer/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "06be61ae-2716-4965-937f-9a244821d90b"
+    },
+    {
+      "route": "underlag",
+      "status": 200,
+      "code": null,
+      "correlationId": "6af78e8e-ab53-4fdc-9072-9281c8651c11"
+    },
+    {
+      "route": "block",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "c94f535d-8c41-4e6b-8f33-8f33ae8a72f4"
+    },
+    {
+      "route": "terminer",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "b4d02d01-d729-4d55-a89d-123e2aaadca9"
+    },
+    {
+      "route": "fordjupning",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "4fb8ea73-2893-480c-889d-6aeb1e0fac4a"
+    },
+    {
+      "route": "skapa",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "42033df9-de19-4bd2-99d3-e51e93e95bc7"
+    },
+    {
+      "route": "binda",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "2912cb01-72cc-4b6c-bc42-da38baeadf4b"
+    },
+    {
+      "route": "klona",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "e0788902-06ae-402b-9b9c-f97440e4705a"
+    },
+    {
+      "route": "utbildning/livscykel",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "3bbd5d17-c251-4371-a0df-5741e4aa3700"
+    },
+    {
+      "route": "underlag",
+      "status": 200,
+      "code": null,
+      "correlationId": "ffcae819-b15b-4acd-82d1-0743432e7bb7"
+    },
+    {
+      "route": "utbildning/livscykel",
+      "status": 409,
+      "code": "programplan_unit_packages_in_use",
+      "correlationId": "5ea96f57-11ad-4d99-93b8-997f52ea75c7"
+    },
+    {
+      "route": "lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "f81401cc-b512-4955-866a-89a482809c2d"
+    },
+    {
+      "route": "block",
+      "status": 200,
+      "code": null,
+      "correlationId": "9385a23d-ca84-4688-a17d-c26d3a484f10"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "5ee90729-4af4-421f-bd1a-75787eb98486"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "e4ff2649-71c1-4842-9e48-6d72c9c249c9"
+    },
+    {
+      "route": "block",
+      "status": 409,
+      "code": "programplan_block_packages_in_use",
+      "correlationId": "0d7f450b-5176-45d2-bbc1-3123af290441"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "f1a79bc7-b56b-4ab7-9447-73e0ed3fecf5"
+    },
+    {
+      "route": "paketval",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "638fb473-23a6-4fb7-ac31-3d8d8a5c7eee"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "0cf61e81-8dae-4356-97a4-527a42383982"
+    },
+    {
+      "route": "paketval",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "014f7c37-48c9-403b-893c-12d7847894bf"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "9767fde4-7ca1-4445-86b6-8b07f4d6b195"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "mfa_required",
+      "correlationId": "a1f5445a-05f5-4b3d-b596-5afd4b2863b9"
+    },
+    {
+      "route": "paketval",
+      "status": 401,
+      "code": "no_session",
+      "correlationId": "3652d653-1bab-4671-9fa0-db4ef012e08e"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "3908916c-0cac-4261-81cf-9f39a30ea766"
+    },
+    {
+      "route": "paketval",
+      "status": 409,
+      "code": "context_changed",
+      "correlationId": "42fb6507-e516-4db0-83ea-5f98d860f11c"
+    },
+    {
+      "route": "paketval",
+      "status": 401,
+      "code": "session_expired",
+      "correlationId": "180c79d3-3859-432c-befc-d8c4cd078f2c"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "279f2d3a-f7c0-4202-857f-69f0e1ea16d9"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "4ff8828b-ec66-4b73-8a07-d8e56816f6ae"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "b5494344-9fea-4759-b5c5-7762f67107e1"
+    },
+    {
+      "route": "klona",
+      "status": 200,
+      "code": null,
+      "correlationId": "794358fd-0b8c-4797-8687-f8a16a79d2fc"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "a0db652a-0799-4104-a615-e1651909fa79"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "4acb19ce-0641-483c-b9da-a53a3470346a"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "ddfdfdcf-db0d-4378-b1a0-635fe906ae97"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "05e7ae16-87cc-468d-9e37-f44c560321dd"
+    },
+    {
+      "route": "underlag",
+      "status": 200,
+      "code": null,
+      "correlationId": "6dd8b1b0-3ab3-4ddc-9133-d297d6f30a73"
+    },
+    {
+      "route": "utbildning/livscykel",
+      "status": 200,
+      "code": null,
+      "correlationId": "01684e59-bd10-4bfd-a04d-6aaeedd87564"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "a206ed20-a458-49bd-b502-06dfd7d0454a"
+    },
+    {
+      "route": "paketval",
+      "status": 409,
+      "code": "programplan_locked",
+      "correlationId": "0e3751f3-5ee4-407d-ac9e-07a9b59b8825"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "0fd69c3f-f22a-46ac-b2de-63750cb1423e"
+    }
+  ],
+  "complete": true,
+  "sourceCommit": "a307d26d0e6ca712e07a96b052a01c451b18b966",
+  "workerBuildRevision": "a307d26d0e6ca712e07a96b052a01c451b18b966",
+  "aclUnchanged": true,
+  "cleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 128,
+    "preservedAuditAnchors": 4,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T18:57:17.601Z",
+  "sourceHashes": {
+    "web/lib/programplan-catalog.ts": "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+    "web/lib/programplan-choice-blocks.ts": "6c4223e2143b60bf45196a26e3ebeaf173f6ce1215980a5ab2e3c1cdaddf8e92",
+    "web/lib/programplan-terms.ts": "bed02c4e2d13c09fc6666fd2ada579224101d2ec78884b44ded2a95928e7e000",
+    "web/lib/programplan-terms-contract.ts": "bfb3e01fc65a42daae70f3eba660f9dc72a0f8c6de59803193cdbb8e041c3eb9",
+    "web/lib/programplan-contract.ts": "de699634c9e2221444e5ce36640f934cfc5d89ae0c0a59bd0649efd1179f9e2d",
+    "web/lib/protected-programplan.ts": "aa66b40ea0707d2e31667809dde5219c31821d8daf917637bff90c8cd93da429",
+    "web/lib/server/programplan-planning.ts": "c003d4e7721644a734c29c5a416af2446fb9738b6f4212c6fa1ee51bae5261b4",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/app/protected-programplan-board.tsx": "e3ab29feb3a8c2469e26444953e68e67ed32434c5fdde6abaef03568ebd4ae03",
+    "web/app/protected-programplan-flow.tsx": "318647a96c7c1c022c9c20b84d6ffdc593a51eb2885ee50ba7bbaf80ca2b7d96",
+    "web/app/protected-programplan-workspace.tsx": "a9ae514bb93061b503d94ae5d186cce6fb0b251c530fa9a0305c4f8b577c91bb",
+    "web/app/api/programplaner/skapa/route.ts": "435c9c2553cb916e8c039f413ca34a28ac79db2da9b4929af1bc46f1dcc65023",
+    "web/app/api/programplaner/lasa/route.ts": "a986adb9f6e5bca0a91465d40c948aa5de4cc3fbeb4cdededeb4334881f7514b",
+    "web/app/api/programplaner/terminer/route.ts": "cdfa49c5d8e9a9712e52220f1a03a1dab2f097f8de449ae2a8d8cd595845b7a4",
+    "web/app/api/programplaner/terminer/lasa/route.ts": "bc02607f7d03d057dc218477ed61d2b9afbcda2130326a228007d65175b8c623",
+    "supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd",
+    "supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090",
+    "work/pilot/verify-programplan-blocks-api.mjs": "a034fcf0a7abf72a57942f73b52b2c88980f31529fd5e249828fa733c3fb2d20",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "b711fe661ff63679bf64dc016c4693c0c76641ab229a4a02249bf1393fb9c3ed",
+    "web/app/api/programplaner/block/route.ts": "9b24ae2cd227c9dcc2d7e074560f0073987917d3cec667c8ede647864d1a3aef",
+    "web/lib/programplan-analysis.ts": "190d4b6321fa9ff0f46a28fdabcf28ab12b5948444e39b9058a740328fef4db7",
+    "supabase/migrations/20261004151000_phase5_programplan_block_commands.sql": "1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267",
+    "supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql": "4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5",
+    "supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql": "166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14",
+    "supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf",
+    "web/app/protected-home.tsx": "0ac019db370aa9e317014227bdd793638363b297fa393e643db0cdce9073b705",
+    "web/app/protected-programplan.css": "50aca89ec0ba1ed340dbf9b234289eb1d1c74406dffa926da18a9280fd5263a5",
+    "web/lib/unsaved-changes.tsx": "8393a10fca298b812519a4062f5a7aaa2244d623dde035b9cc14d03f72ac6228",
+    "web/lib/session-channel.ts": "214fc4023bf2d0ae1ef2228901af9116c27b6c49b9b963b5da4449f06c4cf98c",
+    "web/lib/mandate-policy.ts": "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+    "web/lib/server/http.ts": "a24aba73bf9aaed8007dedcea243de4cf9e1775b4e9964f2e3e9a7d255dd3375",
+    "web/lib/server/audit-details.ts": "6a44668174614a19ff02e36db9a5dd54830fecbad39ab5d34708c6d5dd3a3743",
+    "web/lib/server/programplan-lifecycle.ts": "f49dd8065282a78c78b9ba1a7810f8489771162530f137caef7ebc4849c43598",
+    "web/app/api/programplaner/val/route.ts": "02cb1e9c4ae9c041ae1c39681c50c433dacfa649f6c75c89e00f33f8ef65fed3",
+    "web/app/protected-programplan-list.tsx": "6249ee8db8a2cf09f2a49f867246dc7ae60b856903a87561b439f729349c9295",
+    "web/app/api/programplaner/lista/route.ts": "77c908aa825b5aa2fa88b083ec439dd91983f2fd681c98378c0c4229bcd6175f",
+    "web/app/api/programplaner/underlag/route.ts": "f38b11855de30d2ff53987cb86b3af6871890785a1bd1046a38baa62594d5e1e",
+    "web/lib/programplan-languages.ts": "41c4f1b54c82eb871b32b6f3e67f6a8cb99a5819ff7b740fae53e426b2777005",
+    "web/lib/programplan-packages.ts": "b48454c450d2a63dc652c4017ba616d1e5b4c753315530d2157dce2bd3cf505e",
+    "web/lib/server/programplan-packages.ts": "63a291419b064fc392b862c9331d89d2b946fbb3cc3230717011b09ffe61e601",
+    "web/app/protected-programplan-packages.tsx": "4038f0b5695e14b4b8398a900dccc9c3823e58a50b4964f1f78c1ba993c3cf91",
+    "web/app/api/programplaner/paketval/route.ts": "ad36266c62e94a1e648e9abd769c0397c9bd5135b5aa225f16bdb8edc25350f1",
+    "web/app/api/programplaner/paketval/lasa/route.ts": "112a62e7c127e9947d171b45c3d88e63a5f93363b2b5cc6d1eea43ff071b42e0",
+    "work/pilot/verify-programplan-packages-api.mjs": "b4f4b3f3c0af9f2b8cf7ba41741e3ee2cf3c3f912ba29a87e7f8a2f45d085064",
+    "supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541",
+    "supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql": "fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2",
+    "work/pilot/verify-programplan-choice-packages-api.mjs": "21833dca1f81a841307aa5a81ce38a84274f9c6cc6a46814b3ae32f779abb410",
+    "web/app/api/programplaner/valpaket/route.ts": "6cc163c2276b3bc8acb0e3c0788344f4bbb1a36fece43a0e3c0e0404e220a0ac",
+    "web/app/api/programplaner/valpaket/lista/route.ts": "477ee7b6b124c1199fed15efc2e46e0befd646a873c2b26880c7c8277c5d44fc",
+    "web/app/protected-programplan-package-dialog.tsx": "92699395c5630f0f9fa438216986467ee4f99808aeea2800ef3a5e851587654f",
+    "supabase/migrations/20261004156000_phase5_programplan_packages.sql": "7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38",
+    "supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql": "2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2",
+    "work/pilot/verify-programplan-locks.mjs": "e44ccd314deb546e6dc3ffb5f3a962098497935e6c1a333e45808348ff1de0a1"
+  }
+}

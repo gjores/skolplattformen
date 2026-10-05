@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "name": "B04: sex språkförslag, borttaget tyskt nybörjarpaket, sparad fördelning och scoped kontroll",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B05: analys öppnar paketnivån med fel för ram och ordning, samt risk vid samma termin",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B06: rektor ändrar egen skolas paket men annan skolas utbud visas för läsning",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B07: skoladministratör kan välja paket i fastställd version och saknar planredigering",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B10: paket kan läggas till, fördelas och sparas även på telefon utan klippta kontroller",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "C11: en sista radändring under sparning köas och osparade paket skyddas vid planändring",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "C12: tappat svar efter sparning återläses utan en andra skrivning",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "C13: kopia till ny elevkull får båda skolornas exakta paket och originalet bevaras",
+      "project": "packages-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B04: sex språkförslag, borttaget tyskt nybörjarpaket, sparad fördelning och scoped kontroll",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B05: analys öppnar paketnivån med fel för ram och ordning, samt risk vid samma termin",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B06: rektor ändrar egen skolas paket men annan skolas utbud visas för läsning",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B07: skoladministratör kan välja paket i fastställd version och saknar planredigering",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B10: paket kan läggas till, fördelas och sparas även på telefon utan klippta kontroller",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "C11: en sista radändring under sparning köas och osparade paket skyddas vid planändring",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "C12: tappat svar efter sparning återläses utan en andra skrivning",
+      "project": "packages-phone",
+      "status": "passed"
+    },
+    {
+      "name": "C13: kopia till ny elevkull får båda skolornas exakta paket och originalet bevaras",
+      "project": "packages-phone",
+      "status": "passed"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-05T18:45:47.275Z",
+    "duration": 93130.179,
+    "expected": 16,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cleanupBilags": 16,
+  "ownBusinessRowsRemaining": 0,
+  "auditEventsAndAnchorsPreserved": true,
+  "buildProofs": [
+    {
+      "sourceRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "rawReport": "web/test-results/phase5-23-d-language-browser-final.json",
+  "rawSha256": "32f14b3f93ffc8f4a0aec83f53c8ffab30b4832456e5332744f8ed8cd197f796"
+}

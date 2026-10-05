@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "cases": [
+    {
+      "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+      "project": "blocks-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B02: rektor delar IV i två block och lägger till fördjupningsram, fördelar och läser om",
+      "project": "blocks-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng",
+      "project": "blocks-desktop",
+      "status": "passed"
+    },
+    {
+      "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+      "project": "blocks-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B02: rektor delar IV i två block och lägger till fördjupningsram, fördelar och läser om",
+      "project": "blocks-phone",
+      "status": "passed"
+    },
+    {
+      "name": "B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng",
+      "project": "blocks-phone",
+      "status": "passed"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-05T18:48:03.209Z",
+    "duration": 39182.335,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cleanupBilags": 6,
+  "ownBusinessRowsRemaining": 0,
+  "auditEventsAndAnchorsPreserved": true,
+  "buildProofs": [
+    {
+      "sourceRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "buildRevision": "a4e6ad6092115c789207e03d1ab4db56bd22a8f3",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "rawReport": "web/test-results/phase5-23-d-block-browser-final.json",
+  "rawSha256": "acbfc87e0f9bcd5dee3deba29cbf82d5ccb48c0edaa4fdd4ca6de280f39f54a0"
+}

@@ -1,0 +1,27 @@
+{
+  "kind": "phase5-programplan-owned-fixture-cleanup-correction",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "reset": false,
+  "deletedOwnOrphanLinks": 74,
+  "fixturePrefix": "5169d3aa",
+  "organizerIds": [
+    "5169d3aa-0000-4000-8000-000000000002",
+    "67faff5e-0000-4000-8000-000000000002"
+  ],
+  "timeWindow": [
+    "2026-10-05T18:44:13.531Z",
+    "2026-10-05T18:44:35.742Z"
+  ],
+  "noLiveOrganizersOfferingsOrUnits": true,
+  "excludedOwnLinksMatchOriginalBeforeWrite": true,
+  "originalLinksByteIdenticalAfterCleanup": true,
+  "original": {
+    "count": 267,
+    "hash": "096f4b9a7f128b85a2486f68aebdc346"
+  },
+  "after": {
+    "count": 267,
+    "hash": "096f4b9a7f128b85a2486f68aebdc346"
+  }
+}
