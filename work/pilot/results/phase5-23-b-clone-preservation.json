@@ -1,0 +1,12 @@
+{
+  "target": "protected",
+  "rollback": true,
+  "reset": false,
+  "sourceHash": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf",
+  "nineFullTablesPreserved": true,
+  "exactFunctionSetAndAclsPreserved": true,
+  "workerEntryCount": 16,
+  "nineFullHashesRestored": true,
+  "allDefinitionsAndAclsRestored": true,
+  "status": "PASS"
+}

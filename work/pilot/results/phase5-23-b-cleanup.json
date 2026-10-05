@@ -1,0 +1,11 @@
+{
+  "kind": "phase5-23-b-cleanup",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "ownedBuildCloneRemoved": true,
+  "oldBuildBackupRemoved": true,
+  "relocatedRawEvidenceRetained": true,
+  "originalTargetWorkdirPreserved": true,
+  "activePreviewRoot": "web/dist-protected",
+  "workerRevision": "2b452370d66c11277c9783cdee428c7f15925df7"
+}

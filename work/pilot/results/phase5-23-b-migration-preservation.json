@@ -1,0 +1,119 @@
+{
+  "kind": "phase5-23-b-migration-preservation",
+  "target": "protected",
+  "reset": false,
+  "status": "PASS",
+  "grant": false,
+  "checks": {
+    "exact16before": true,
+    "commandMigrationAllBusinessRowsPreserved": true,
+    "previousACLsPreserved": true,
+    "otherDefinitionsPreserved": true,
+    "newHelpersAndCommandClosed": true,
+    "pointPlanCountPreserved": true,
+    "eligibleDraftsExactExpectedRowsIncludingTimestampsAndLogs": true,
+    "eightOtherBusinessTablesPreserved": true,
+    "allPreviousACLsStillPreserved": true,
+    "beforeLogClosedTouchTriggerEnabled": true
+  },
+  "migrations": [
+    {
+      "target": "protected",
+      "projectId": "skolplattform-pilot-protected",
+      "migration": "20261004151000_phase5_programplan_block_commands.sql",
+      "status": "PASS",
+      "reset": false,
+      "grants": false,
+      "journalOnly": false,
+      "sourceHash": "1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267"
+    },
+    {
+      "target": "protected",
+      "projectId": "skolplattform-pilot-protected",
+      "migration": "20261004152000_phase5_programplan_shape_upgrade.sql",
+      "status": "PASS",
+      "reset": false,
+      "grants": false,
+      "journalOnly": false,
+      "sourceHash": "4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5"
+    }
+  ],
+  "beforeHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "a5b359e6ddcf8fa3e48152bf63a5eaff"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 119,
+      "hash": "11cd63a1ff1fd3f49cde3d3954b3ffe7"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    }
+  },
+  "beforeWorkerCount": 16,
+  "upgradedDrafts": 13,
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 119,
+      "hash": "11cd63a1ff1fd3f49cde3d3954b3ffe7"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    }
+  }
+}

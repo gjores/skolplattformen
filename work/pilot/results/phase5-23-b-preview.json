@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "revision": "2b452370d66c11277c9783cdee428c7f15925df7",
+  "retainedPreviousClientFiles": 44,
+  "privateFilesExcluded": true,
+  "kind": "phase5-23-b-preview",
+  "scope": "local-synthetic-only",
+  "port": 3012,
+  "runtime": "workerd",
+  "role": "skolplattform_worker",
+  "beforeAndAfterTrial": "PASS",
+  "trialScenarios": 18,
+  "auditedReadsPerRun": 44,
+  "currentScenariosUnchanged": true,
+  "businessRowsPreserved": true,
+  "automaticReload": false,
+  "reset": false
+}

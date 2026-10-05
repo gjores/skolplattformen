@@ -1,0 +1,92 @@
+{
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "rollback": true,
+  "reset": false,
+  "status": "PASS",
+  "total": 912,
+  "red": {
+    "total": 15,
+    "failed": 6,
+    "sqlState": "22023",
+    "reason": "older sealed source blocked after later version retires its existing block identity"
+  },
+  "files": [
+    {
+      "file": "phase5_programplan_blocks.test.sql",
+      "total": 33,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_catalog.test.sql",
+      "total": 60,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_choice_blocks.test.sql",
+      "total": 326,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_clone_identity.test.sql",
+      "total": 15,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_drafts.test.sql",
+      "total": 108,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_education.test.sql",
+      "total": 50,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_lifecycle.test.sql",
+      "total": 125,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_terms.test.sql",
+      "total": 29,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_units.test.sql",
+      "total": 54,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_worker.test.sql",
+      "total": 31,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_workspace.test.sql",
+      "total": 63,
+      "fail": [],
+      "diagnostics": []
+    },
+    {
+      "file": "phase5_programplan_workspace_worker.test.sql",
+      "total": 18,
+      "fail": [],
+      "diagnostics": []
+    }
+  ],
+  "sourceHashes": {
+    "supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf",
+    "supabase/tests/phase5_programplan_clone_identity.test.sql": "d0dcbac6d354a15d9cfe61fd5a01b203c2f7c88dc168f94435cf51c0294724d0"
+  }
+}

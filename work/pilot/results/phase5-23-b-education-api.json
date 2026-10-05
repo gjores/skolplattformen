@@ -1,0 +1,1627 @@
+{
+  "kind": "phase5-programplan-education-api",
+  "scope": "local-synthetic-only",
+  "startedAt": "2026-10-05T14:00:44.150Z",
+  "status": "PASS",
+  "complete": true,
+  "preflight": false,
+  "cases": [
+    {
+      "name": "worker-role",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual built Worker",
+          "ok": true
+        },
+        {
+          "name": "exact current Worker functions",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual scoped GY schools and authority",
+          "ok": true
+        },
+        {
+          "name": "audited read",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual scoped GY schools and authority",
+          "ok": true
+        },
+        {
+          "name": "audited read",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "empty-GY-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "no offering required for exact school source",
+          "ok": true
+        },
+        {
+          "name": "audited empty school selection",
+          "ok": true
+        },
+        {
+          "name": "first education and draft saved in a previously empty GY school",
+          "ok": true
+        },
+        {
+          "name": "empty-school creation audited atomically",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "exact-program-source",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "exact SA25 programme",
+          "ok": true
+        },
+        {
+          "name": "verified projection audit",
+          "ok": true
+        },
+        {
+          "name": "exact VO25 programme",
+          "ok": true
+        },
+        {
+          "name": "verified projection audit",
+          "ok": true
+        },
+        {
+          "name": "exact TE25 programme",
+          "ok": true
+        },
+        {
+          "name": "verified projection audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-implicit-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "no implicit programme or source",
+          "ok": true
+        },
+        {
+          "name": "required read audit",
+          "ok": true
+        },
+        {
+          "name": "no implicit programme or source",
+          "ok": true
+        },
+        {
+          "name": "required read audit",
+          "ok": true
+        },
+        {
+          "name": "no implicit programme or source",
+          "ok": true
+        },
+        {
+          "name": "required read audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-create",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "exact education and draft round trip",
+          "ok": true
+        },
+        {
+          "name": "one offering plan receipt and business event",
+          "ok": true
+        },
+        {
+          "name": "principal rereads actual new education and first draft",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "empty-specialization",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "explicit empty draft created",
+          "ok": true
+        },
+        {
+          "name": "atomic audited save",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-orientation",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "VO no orientation retained",
+          "ok": true
+        },
+        {
+          "name": "atomic audited save",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "different-profiles",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "different orientations remain separate",
+          "ok": true
+        },
+        {
+          "name": "both distinct creations audited",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "replay",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "new session same actor replays original IDs",
+          "ok": true
+        },
+        {
+          "name": "no duplicate and current-session audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "changed-request",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "separate-UUID-duplicate",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "status-original-snapshot",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "immutable original result after actual subsequent plan change",
+          "ok": true
+        },
+        {
+          "name": "current authorized status audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "other-actor-absence",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "foreign command returns only absence",
+          "ok": true
+        },
+        {
+          "name": "foreign status audited without original result",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "lost-response-after-commit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "dropped committed result recovered by same command",
+          "ok": true
+        },
+        {
+          "name": "recovery and replay audited",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "lost-before-commit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "failed transaction leaves only absence",
+          "ok": true
+        },
+        {
+          "name": "same UUID safe retry creates once",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "rektor-and-other-functions-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "foreign-unit-customer",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "wrong-school-kind",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-source-reference",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "malformed-input",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "origin-required",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-MFA",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-context",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-ended",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandate-ended",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        },
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "parent-ended",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "membership-blocked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "customer-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial",
+          "ok": true
+        },
+        {
+          "name": "no partial business write",
+          "ok": true
+        },
+        {
+          "name": "only required denied audit survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "whole-source-integrity",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "stored full hash mismatch stops source",
+          "ok": true
+        },
+        {
+          "name": "no business writes or success audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-val",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "mandatory audit failure stops response",
+          "ok": true
+        },
+        {
+          "name": "all objects and success events roll back",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-utbildning/skapa",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "mandatory audit failure stops response",
+          "ok": true
+        },
+        {
+          "name": "all objects and success events roll back",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "db-audit-utbildning/status",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "mandatory audit failure stops response",
+          "ok": true
+        },
+        {
+          "name": "all objects and success events roll back",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-val",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "mandatory audit failure stops response",
+          "ok": true
+        },
+        {
+          "name": "all objects and success events roll back",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-utbildning/skapa",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "mandatory audit failure stops response",
+          "ok": true
+        },
+        {
+          "name": "all objects and success events roll back",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "worker-audit-utbildning/status",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "mandatory audit failure stops response",
+          "ok": true
+        },
+        {
+          "name": "all objects and success events roll back",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "receipt-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "receipt fault fails atomically",
+          "ok": true
+        },
+        {
+          "name": "no orphan offering plan receipt or history",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "denied-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "denied audit failure minimized",
+          "ok": true
+        },
+        {
+          "name": "no protected result or writes",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-SQL-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual table helper entrypoint denials",
+          "ok": true
+        },
+        {
+          "name": "exact Worker grants and closed public",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "original-business-preserved",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "no unrelated receipt created",
+          "ok": true
+        },
+        {
+          "name": "only explicit owned creates",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "persistent-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "append-only audit retained",
+          "ok": true
+        },
+        {
+          "name": "all response correlations exist",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "case": "hm-selection",
+      "status": 200,
+      "code": null,
+      "correlationId": "1a6dea61-0240-41e0-a579-356876e97867",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "principal-selection",
+      "status": 200,
+      "code": null,
+      "correlationId": "018bc15f-af17-4673-a5c8-c771e7567bfc",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "empty-GY-school",
+      "status": 200,
+      "code": null,
+      "correlationId": "e82c441a-82af-4b4b-8b0a-8b2925aafb15",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "empty-GY-school",
+      "status": 200,
+      "code": null,
+      "correlationId": "94983590-40ec-4d79-be54-3782670fe445",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "exact-program-source",
+      "status": 200,
+      "code": null,
+      "correlationId": "d568a7b7-534f-4d72-8c34-28a1a4f469e3",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "exact-program-source",
+      "status": 200,
+      "code": null,
+      "correlationId": "69875de7-d440-4043-afc7-d2ae8bdff17d",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "exact-program-source",
+      "status": 200,
+      "code": null,
+      "correlationId": "fd33a315-edf6-4f59-b592-082ff3cf9fd9",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "no-implicit-selection",
+      "status": 200,
+      "code": null,
+      "correlationId": "393bc308-c64e-4c06-b829-064504f9f011",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "no-implicit-selection",
+      "status": 200,
+      "code": null,
+      "correlationId": "a8a7d568-17ff-4e4a-b203-b6cbd7c2e790",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "no-implicit-selection",
+      "status": 200,
+      "code": null,
+      "correlationId": "f9a08ab9-6c6f-4c6a-a275-0a746c67af59",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "hm-create",
+      "status": 200,
+      "code": null,
+      "correlationId": "a374f6de-9166-4f1c-bff6-112353733d18",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "empty-specialization",
+      "status": 200,
+      "code": null,
+      "correlationId": "624e3735-f484-4e7f-b5ac-1e66aff55802",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "no-orientation",
+      "status": 200,
+      "code": null,
+      "correlationId": "cac9e19e-db6f-49f6-8816-d3959f062f79",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "different-profiles",
+      "status": 200,
+      "code": null,
+      "correlationId": "8a79c666-f047-4c5f-bffc-5c582bbe5456",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "different-profiles",
+      "status": 200,
+      "code": null,
+      "correlationId": "e43adeca-dfe3-4294-af4e-38cd308d28d6",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "replay",
+      "status": 200,
+      "code": null,
+      "correlationId": "9623ec01-b244-40cc-b0d6-96fcf7feb455",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "changed-request",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "8804bc97-c868-4b64-bf8a-effc043fa2d8",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "separate-UUID-duplicate",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "fe1cf937-5503-49c2-a09f-616a0b6033ac",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "status-original-snapshot",
+      "status": 200,
+      "code": null,
+      "correlationId": "6b56c95f-f647-4af2-8c11-2895bfe062ab",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "other-actor-absence",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "17fa1da6-1740-407f-a535-0e555d8fe78d",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "other-actor-absence",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "3d095b07-7180-4f80-924e-df03f8ce44fc",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "other-actor-absence",
+      "status": 200,
+      "code": null,
+      "correlationId": "6f646e67-66e7-4f99-ab86-2dfdbd413f51",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "lost-response-after-commit",
+      "status": 200,
+      "code": null,
+      "correlationId": "72167f84-051a-4843-b83a-31131da85071",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "lost-response-after-commit",
+      "status": 200,
+      "code": null,
+      "correlationId": "955e46a6-60cb-46b2-8000-2ca195534e3f",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "lost-response-after-commit",
+      "status": 200,
+      "code": null,
+      "correlationId": "cba50697-97e6-4e90-af25-aa581259a750",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "lost-before-commit",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "06ae8ea4-aeb2-458a-81ee-1ab3a10b56eb",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "lost-before-commit",
+      "status": 200,
+      "code": null,
+      "correlationId": "3377a3fc-737f-4b0a-a45b-82c33e6681b0",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "lost-before-commit",
+      "status": 200,
+      "code": null,
+      "correlationId": "9722117e-00ac-4854-a1d5-d8b89c7abb06",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "rektor-and-other-functions-denied",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "6542876c-68ad-47da-8bee-49636bb0b752",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "rektor-and-other-functions-denied",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "35d3dc2e-461f-49ae-90c7-014a80262870",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "rektor-and-other-functions-denied",
+      "status": 403,
+      "code": "assignment_expired",
+      "correlationId": "106e8ec2-00c9-4375-b8e7-05895e16f25e",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "rektor-and-other-functions-denied",
+      "status": 403,
+      "code": "assignment_expired",
+      "correlationId": "493901de-28a3-48b6-999e-0960038033a5",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "rektor-and-other-functions-denied",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "a3227ebd-99e9-44a5-b236-8524318e2bf7",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "rektor-and-other-functions-denied",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "64c15533-797d-4616-9025-bffb4cbfc00c",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "foreign-unit-customer",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "024ee6c9-9236-46a1-8311-5cec1085f279",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "foreign-unit-customer",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "79df23f3-630a-4f59-99ea-7965416e01a6",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "foreign-unit-customer",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "38a37c05-fccc-4b48-bda4-d25768defe29",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "wrong-school-kind",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "13a9b914-b104-4ec0-bb64-14f0d92cc78d",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "invalid-source-reference",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "ac11f0a4-79a4-4d14-990a-e412396c9b5a",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "invalid-source-reference",
+      "status": 400,
+      "code": "programplan_start_passed",
+      "correlationId": "84923d75-b842-4522-ad31-22be9deef3dd",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "invalid-source-reference",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "7a99f199-be49-44df-9c48-b9712f0d9189",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "invalid-source-reference",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "8be0b410-8bdc-4c0d-a740-761dba57ce52",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "442ed75d-dfcd-4d4e-be32-3c3851ddb457",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "05c83669-edfb-4675-9db0-b8ec1c758313",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "b5e6df5b-bc60-4375-b138-355270a48199",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "19dddb9c-6e30-4be6-a8c8-cc1e619fd273",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "93a409aa-3503-4d70-8c05-e4adbca16cb2",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "58ec37d6-dfac-41be-8d67-aac927943b3b",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "d0a77eda-8581-4c69-ab34-6052f79c38e2",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "malformed-input",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "cf50fa63-6348-4ee8-908a-220a40bf1fdb",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "origin-required",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "be7d7379-e41b-4ede-8506-be354dd1c004",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "origin-required",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "e65baf0f-1fc6-4fd8-9d23-e90bf84f2f1f",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "origin-required",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "a2c5664e-3b08-4297-b2c7-e4fe1b22c1c6",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "origin-required",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "0704ef8d-654a-48d5-bdf0-7ee868ff5a29",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "origin-required",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "b2a0e728-03ee-4f60-b866-7510bcbfda8c",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "origin-required",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "bc9f556f-3790-4834-9a97-0752684318b0",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "no-session",
+      "status": 401,
+      "code": "no_session",
+      "correlationId": "e411b944-8426-4513-9c2a-276769f1aa49",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "no-MFA",
+      "status": 403,
+      "code": "mfa_required",
+      "correlationId": "dee1c5f0-ddb6-45fd-a70f-277e0ea73fc1",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "stale-context",
+      "status": 409,
+      "code": "context_changed",
+      "correlationId": "b2cab161-d597-4fd7-8bfc-ecf24043e984",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "session-ended",
+      "status": 401,
+      "code": "session_revoked",
+      "correlationId": "a70a0f29-b62b-4ccf-8fb4-da41c6d044c5",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "session-ended",
+      "status": 401,
+      "code": "session_expired",
+      "correlationId": "f83ef6c4-7f0e-4e52-a282-0eda92fbc6fa",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "mandate-ended",
+      "status": 403,
+      "code": "assignment_ended",
+      "correlationId": "dd26dc7b-b3a0-40c1-804d-94251bd1f321",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "mandate-ended",
+      "status": 403,
+      "code": "assignment_ended",
+      "correlationId": "b0ac27df-3579-4f22-b416-47de251792e4",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "parent-ended",
+      "status": 403,
+      "code": "assignment_expired",
+      "correlationId": "1001eb17-647a-481e-afd0-1e091c6423ff",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "membership-blocked",
+      "status": 403,
+      "code": "membership_blocked",
+      "correlationId": "35c82d44-cbbb-48b9-be7b-03f38047a9b1",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "customer-closed",
+      "status": 403,
+      "code": "customer_closed",
+      "correlationId": "d459238e-3054-4eac-b266-c864d0d21b69",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "whole-source-integrity",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "6024f280-c3dc-460d-a10a-9eb58e820f2e",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "db-audit-val",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "411ced38-b488-4e21-b513-12742b78543b",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "db-audit-utbildning/skapa",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "9300b50c-4be4-4645-8815-21babe152b83",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "db-audit-utbildning/status",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "fc1b7e59-5a99-405c-ac18-c4822a62eda2",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "worker-audit-val",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "65e3c122-5c42-4608-8a19-938ee5d1b734",
+      "action": "programplan_selection_read"
+    },
+    {
+      "case": "worker-audit-utbildning/skapa",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "c38fe001-3a04-4e30-a8ce-c04675d1f995",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "worker-audit-utbildning/status",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "cbd006c2-c9f3-4926-817b-894ec9a018ed",
+      "action": "programplan_education_status_read"
+    },
+    {
+      "case": "receipt-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "b6443511-01f0-4333-9eff-9f597891aa63",
+      "action": "programplan_education_created"
+    },
+    {
+      "case": "denied-audit-failure",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "15c80b30-9919-4b71-b7df-a4b330ea378d",
+      "action": "programplan_education_created"
+    }
+  ],
+  "sourceCommit": "6fadda40d0ca713ab00b31549d824b4a2c1c52a5",
+  "workerBuildRevision": "2b452370d66c11277c9783cdee428c7f15925df7",
+  "auditEvents": 112,
+  "cleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 112,
+    "preservedAuditAnchors": 2,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "foreignCleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 2,
+    "preservedAuditAnchors": 1,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": [
+    {
+      "offerings": "e4c2a2b909af34aaf84feeafeda1f578",
+      "plans": "20b502dda12857a560dbf9ed170cdd4f",
+      "history": "7eccccde48877c53ae065feb663059e9",
+      "educationhistory": "7931a6202f47ff2b13ca3a52b542abff",
+      "receipts": "63757f7e8057fbb22be82e8ced60ae07",
+      "classbindings": "d751713988987e9331980363e24189ce",
+      "catalogs": "b3c1b14ec5914717862ff99a18e6fa11"
+    }
+  ],
+  "finalHashes": [
+    {
+      "offerings": "e4c2a2b909af34aaf84feeafeda1f578",
+      "plans": "20b502dda12857a560dbf9ed170cdd4f",
+      "history": "7eccccde48877c53ae065feb663059e9",
+      "educationhistory": "7931a6202f47ff2b13ca3a52b542abff",
+      "receipts": "63757f7e8057fbb22be82e8ced60ae07",
+      "classbindings": "d751713988987e9331980363e24189ce",
+      "catalogs": "b3c1b14ec5914717862ff99a18e6fa11"
+    }
+  ],
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "cleanupFailures": [],
+  "completedAt": "2026-10-05T14:00:55.185Z",
+  "sourceHashes": {
+    "web/lib/programplan-education-contract.ts": "b401fc76e560031093d72391c435800dc0a75711337393b53a1da995378b3564",
+    "web/lib/server/programplan-education.ts": "56b059f94f240ee60c569036869847c1d0aa1007f33e2dfdb15ea2897946a5ee",
+    "web/app/api/programplaner/val/route.ts": "66d6c020e0efeee6b43967d95191d1b65c014855f873d4a115f05d22755a0684",
+    "web/app/api/programplaner/utbildning/skapa/route.ts": "ca4e0263c13a68512f41177fc2c0e97b73270d095c51d549f47d38f6be22a51f",
+    "web/app/api/programplaner/utbildning/status/route.ts": "0204abcbda7c1513661e589a5aebeed8709a30c775ac77b84938aaf9242b92df",
+    "supabase/migrations/20261002120000_phase5_programplan_education.sql": "9754346a6c5f00c02b282725379905e2bc3db8944a5774a9ea7e4dd604847b55",
+    "work/pilot/verify-programplan-education-api.mjs": "be1a76a9125b684575020b958217ad824ab8117077cc428f7484386d173312fc"
+  }
+}

@@ -1,0 +1,1556 @@
+{
+  "kind": "phase5-programplan-lifecycle-api",
+  "scope": "local-synthetic-only",
+  "preflight": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "verklig byggd workerd-roll",
+          "ok": true
+        },
+        {
+          "name": "exakt sexton Worker-funktioner",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "list-lifecycle",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "statusen kommer från SQL i listan",
+          "ok": true
+        },
+        {
+          "name": "startdatum och huvudskola",
+          "ok": true
+        },
+        {
+          "name": "statusen kommer från SQL i listan",
+          "ok": true
+        },
+        {
+          "name": "startdatum och huvudskola",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "workspace-lifecycle",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "arbetsytan visar samma status som listan",
+          "ok": true
+        },
+        {
+          "name": "pågående i arbetsytan",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-delete-future",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "framtida utbildning skapad",
+          "ok": true
+        },
+        {
+          "name": "borttagning med strikt svar",
+          "ok": true
+        },
+        {
+          "name": "utbildning och versioner borta, minimerad audit och organisationshändelse kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "receipt-barrier",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "replay återskapar inte",
+          "ok": true
+        },
+        {
+          "name": "status not_found och kvitto kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-revision",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 409 conflict utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "in-use-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 409 programplan_in_use utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "started-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "unknown-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-shape",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-MFA",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 403 mfa_required utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 401 no_session utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "origin-required",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "origin krävs",
+          "ok": true
+        },
+        {
+          "name": "origin krävs",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "foreign-customer",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandatory-db-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "auditfel stoppar och rullar tillbaka",
+          "ok": true
+        },
+        {
+          "name": "ingen lyckad händelse kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandatory-worker-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "auditfel stoppar och rullar tillbaka",
+          "ok": true
+        },
+        {
+          "name": "ingen lyckad händelse kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "archive-restore",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "pågående plan kan arkiveras",
+          "ok": true
+        },
+        {
+          "name": "arkiverad syns som arkiverad i listan",
+          "ok": true
+        },
+        {
+          "name": "tas fram ur arkivet med ny revision",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 conflict utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "archived-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "framtida plan arkiverad",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "framtagen plan kan ändras igen",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "update-details",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "namn, kod och kull ändrade",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "update-start",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "startdatum i ensamt utkast och startår ändrade i samma transaktion",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 programplan_start_passed utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "update-start-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "started-writes-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "utkast i pågående plan kan läsas och finns kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "future-writes-open",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "framtida plan ändras som förut",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "past-start-create-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "skapande med start 2026-09-05 nekas",
+          "ok": true
+        },
+        {
+          "name": "skapande med start 2026-10-05 nekas",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "past-start-copy-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "kopia med passerat start nekas",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-shared-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "skolval sparas med strikt svar och parvis audit",
+          "ok": true
+        },
+        {
+          "name": "B och huvudskolan läser samma versioner och innehåll",
+          "ok": true
+        },
+        {
+          "name": "listan på B visar samma version och skolor",
+          "ok": true
+        },
+        {
+          "name": "inMandate beskriver B-rektorns faktiska uppdrag",
+          "ok": true
+        },
+        {
+          "name": "skolaudit innehåller bara antal",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-partial-readonly",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "HM med alla skolor får skriva innehåll",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-shape-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 400 bad_request utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-scope-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-stale-revision",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "nekas 409 conflict utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "framtida B tas bort med revision +1",
+          "ok": true
+        },
+        {
+          "name": "nekas 403 forbidden utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-status-rules",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "pagaende: tillägg tillåts",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "avslutad: tillägg tillåts",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "okand: tillägg tillåts",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-archive-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "arkivering bevarar skolor",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        },
+        {
+          "name": "nekas 409 programplan_locked utan skrivning",
+          "ok": true
+        },
+        {
+          "name": "endast nekad Worker-händelse",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-mandatory-db-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "auditfel rullar tillbaka skolrader och revision",
+          "ok": true
+        },
+        {
+          "name": "ingen lyckad skolhändelse kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-mandatory-worker-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "auditfel rullar tillbaka skolrader och revision",
+          "ok": true
+        },
+        {
+          "name": "ingen lyckad skolhändelse kvar",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "units-copy",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "kopieringskedjans skolkommando ger båda skolorna",
+          "ok": true
+        },
+        {
+          "name": "originalets innehåll bevarat",
+          "ok": true
+        },
+        {
+          "name": "B läser nya kullen",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-delete-empty",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "utbildning utan versioner tas bort",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-clients-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "direkta klienter och Worker nekas",
+          "ok": true
+        },
+        {
+          "name": "hjälpare stängd",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "persistent-minimal-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "DB-händelser utan namn eller planinnehåll",
+          "ok": true
+        },
+        {
+          "name": "varje svar korrelerat",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "status": 200,
+      "route": "lista",
+      "correlationId": "67acf2ca-17c1-4247-b833-0a9adc60414d"
+    },
+    {
+      "status": 200,
+      "route": "lista",
+      "correlationId": "bb97ecc5-d3e3-408e-8330-c8e2f603755e"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "7c6544c6-e0fb-444b-8d62-d8e7f8a086be"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "ebb7e0f3-13de-49d8-b6b8-792cd0d1ca16"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "9b77aa3c-5dd7-4502-9b56-d2aebb5ee191"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "60ffc0aa-11c8-4271-a95e-998c09f244b3"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "0a0de44c-9e48-4caa-bda9-0629d83302cb"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "c1e13e7d-6470-489e-ae00-67f7fd3e0917"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/skapa",
+      "correlationId": "3e618d36-7319-48b2-8d63-5987ed53cd4f"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/status",
+      "correlationId": "6746f8dd-3672-493e-b53f-fb12f0e53bc1"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "429fe2a7-b61c-4a7a-ab88-e7864ed56134"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "f88256cb-6628-41e8-8108-c3bd4150173b"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "5acf4a62-9999-45b3-a662-d7d21643378b"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "dd0c7188-f825-4244-8090-011b29177d11"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "5c1ca294-ca8f-4c02-82a5-297d62650456"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "9f4a512c-7f48-4a5d-baaa-5611757f7924"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "f7646ff5-7c1a-41c9-a4de-ed3099cd5dd1"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "cc907eca-6062-4dce-8c50-2f09ef731b13"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "2a7d2d67-fa10-43e6-b615-65b7845c5004"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "64f7f550-99cc-46f3-80b7-6a9c474f54d5"
+    },
+    {
+      "status": 401,
+      "route": "utbildning/livscykel",
+      "correlationId": "ea8f9dd6-a3c6-4abe-9a3e-87e6d65fd148"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "35ecfff6-c256-4639-9f85-2daf3f40fd14"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "20346357-0297-4181-9aa9-c2cec846c0da"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "d0655b26-2388-4df3-9169-fbe7d92316bd"
+    },
+    {
+      "status": 500,
+      "route": "utbildning/livscykel",
+      "correlationId": "bd3cf4d3-5657-40c8-9248-0fd6cdbc6f8c"
+    },
+    {
+      "status": 500,
+      "route": "utbildning/livscykel",
+      "correlationId": "77bc267c-413a-4557-b7ea-7ef9b5a8c5b8"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "d012f609-08ec-479d-930e-374ccc09bd8c"
+    },
+    {
+      "status": 200,
+      "route": "lista",
+      "correlationId": "e673716b-962c-432d-a369-2d713c8a3bb4"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "f5835b56-9a7d-478f-9c92-61a286109009"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "181be964-672f-4928-87ec-0ff8ca3ee8d2"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "3534c608-3028-4ce7-9d9e-b653ecf58793"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "2bddb81e-653e-40c1-9ffd-a16da44ce2e3"
+    },
+    {
+      "status": 409,
+      "route": "terminer",
+      "correlationId": "fae27733-e3d4-40a8-a7fe-9363e7de4bc7"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "c64eb796-204f-4ead-9170-cc2bae52ef61"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "c3cbdbb3-6cbd-4dc6-926a-2b931a7525e8"
+    },
+    {
+      "status": 200,
+      "route": "terminer",
+      "correlationId": "cd7f5a28-8daa-4ccb-bc78-523f557c26c1"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "2534bc6a-abfd-46d0-94f3-1ed2c48703da"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "051aff4b-3b0c-4202-bf66-92f68c5baf8e"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "09a83d3a-eb13-41a6-a72d-cac14a1a94a0"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "6dd595d5-80bc-47bc-9f01-bee6a30a32b9"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "f18582ca-513e-4426-b08f-91c54f3d112f"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "18e0386e-e7ad-4b58-ba08-defee1189bb0"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "4d847f41-828d-45a9-b558-077d871f17de"
+    },
+    {
+      "status": 409,
+      "route": "terminer",
+      "correlationId": "2114ea8a-b856-4262-a190-5338f1e053a2"
+    },
+    {
+      "status": 409,
+      "route": "fordjupning",
+      "correlationId": "62efa28c-e6a5-4765-8ea8-41c37de3a8bd"
+    },
+    {
+      "status": 409,
+      "route": "binda",
+      "correlationId": "51b102ef-9c9f-4838-86a6-7d3ba9a51e90"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "8cc58e22-107f-4175-8d20-c7b53dc07041"
+    },
+    {
+      "status": 200,
+      "route": "terminer/lasa",
+      "correlationId": "78edd3fa-b7d0-4f27-a116-acde6f6d74c4"
+    },
+    {
+      "status": 200,
+      "route": "fordjupning",
+      "correlationId": "7f025c9e-6222-41f6-8834-a78778b65d16"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/skapa",
+      "correlationId": "f2ffd371-c71e-4ffb-a6e7-b3565e905106"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/skapa",
+      "correlationId": "28106917-cc96-4283-b5cb-4bdd447974cc"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/skapa",
+      "correlationId": "89eac29f-81a0-439b-9721-1da0afade516"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "917322a1-45ec-4cc9-b4ce-7864c84f74b0"
+    },
+    {
+      "status": 403,
+      "route": "underlag",
+      "correlationId": "12e1b835-9e31-444d-8d7c-7583e25ddf86"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "5326f8d3-932e-46d6-9a50-02b51ca1eb0f"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "54bcaffe-6f0e-4ef6-87fc-467b7032228b"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "35df3a7d-fa22-484b-9691-3c0e8e7a90fe"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "7c8bafb2-b7bc-49d9-bf1d-082c3b6dcb89"
+    },
+    {
+      "status": 200,
+      "route": "lista",
+      "correlationId": "430798fb-31d1-4816-81ee-bfb1a082d74f"
+    },
+    {
+      "status": 403,
+      "route": "terminer",
+      "correlationId": "6fc7f225-57ea-47a9-bc37-614ef5b361e5"
+    },
+    {
+      "status": 403,
+      "route": "fordjupning",
+      "correlationId": "869a3251-0a48-4264-bf1b-a68be0391371"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "b3973a33-0ec5-41a7-9a0a-aa4a89f8e798"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "87e9591b-fd6a-413d-88a4-47244e297469"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "d795c6e8-18eb-41fd-aff4-75084d875dca"
+    },
+    {
+      "status": 403,
+      "route": "terminer",
+      "correlationId": "d28522dc-4447-4856-8ac2-372f45178349"
+    },
+    {
+      "status": 403,
+      "route": "fordjupning",
+      "correlationId": "91329413-9001-43e3-8481-fc294eecb6f9"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "c9e33f55-18f7-4ef6-8e78-c5bf8b328bec"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "c2a14092-926c-4dc2-add1-0baf8abbf73d"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "5619176c-99d0-4fec-bf0f-39ba0979e74b"
+    },
+    {
+      "status": 403,
+      "route": "terminer",
+      "correlationId": "f236a2bb-c4c4-4a00-9312-da6035e3dbc9"
+    },
+    {
+      "status": 403,
+      "route": "fordjupning",
+      "correlationId": "3dfab7d3-c2a5-498f-8f7c-5a1826b84c02"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "86f59cc3-b0f7-4f3c-9a17-8d705684dedc"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "d744bfd5-eed7-4311-b996-fffe54646e6f"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "b196b100-3395-49c5-8a40-bbd41e07200f"
+    },
+    {
+      "status": 200,
+      "route": "terminer",
+      "correlationId": "b74edc9f-85da-4cb4-ae67-a1de55983d16"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "6169a3a2-471a-4f8d-af74-079141e6def8"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "e74142e2-6cf1-4bda-8fd5-3403d8794727"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "6074c93b-9515-4791-a866-db391fe95f21"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "8acec4ec-d13c-4556-ad16-c08494a1195a"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "424bfb1b-2ff9-4f23-b1d6-275731ecc6b1"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "7f381e2b-cd6d-4405-8e81-8f60530cff54"
+    },
+    {
+      "status": 400,
+      "route": "utbildning/livscykel",
+      "correlationId": "ca15f5f3-3601-441c-8bc8-af8fb509dfc0"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "4f5f6697-95e5-4415-9efd-9d71776fcb40"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "88780a73-3b1f-42f4-9cd9-9219170d3b2b"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "fc5c8c68-9f6f-484f-b4ee-b644dad880fb"
+    },
+    {
+      "status": 403,
+      "route": "utbildning/livscykel",
+      "correlationId": "3ba526a4-3cf0-490d-801b-e5cbf56e9162"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "9a4aebf2-2550-47ca-876b-7691845f25e2"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "3d39de52-db28-43af-9b09-1c4b24b1d491"
+    },
+    {
+      "status": 403,
+      "route": "underlag",
+      "correlationId": "69beb376-be22-4b79-862d-c87cf01e6a97"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "8c8f7f79-3113-488d-a236-3f23160b9c80"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "1154e83f-0c35-4237-935d-8cf040dcdf7a"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "50729874-b06e-4fe4-bcad-13403b300aa3"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "d1e385c2-91bd-46c9-87cd-4d472f7abb87"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "d24337a6-3746-4655-b414-311bbd65fbce"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "0f7372a0-6fe8-4438-83e9-10d84c20392d"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "4f81be2b-f6a1-4612-ac26-26bc235dd179"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "5783c79a-2eb3-40a9-943d-63c5552d570e"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "a5be3f26-5562-4d14-aa87-434bfc6d6f95"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "117a77f0-15db-45b6-a63f-dab6156f34b7"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "af12605c-ce2d-4907-b790-4fa4b223d834"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "edc2fd0b-7eec-4e57-8143-05288153b5be"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "1c87300c-0ea3-4232-a212-c2d2dbe23eb2"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "33be0bf1-76e6-42a1-9de6-d4aeeb86a508"
+    },
+    {
+      "status": 409,
+      "route": "utbildning/livscykel",
+      "correlationId": "c2916022-ecf3-4b6f-bcc6-afafeb063361"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "28c19527-fb59-479e-99ea-caaaf1153b44"
+    },
+    {
+      "status": 500,
+      "route": "utbildning/livscykel",
+      "correlationId": "a4d1bab5-d4b0-4683-b162-74dfd642ca9c"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "ff4f540f-f272-474d-b71d-69333af1a4fd"
+    },
+    {
+      "status": 500,
+      "route": "utbildning/livscykel",
+      "correlationId": "b0c5bbf1-5958-4bd7-91c4-76bd71a77ab9"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "a8dc7426-0757-4d96-a787-b4fb86049431"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "29d45abc-e5fd-460a-8b22-392b7d1c64e7"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/skapa",
+      "correlationId": "b3582e80-a5c3-4457-8580-2e2bba41a70a"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "4f8d86f6-d6ca-437f-9d4e-5d5af5b41293"
+    },
+    {
+      "status": 200,
+      "route": "underlag",
+      "correlationId": "23ed3074-e5d3-42a1-932a-c05008e31a11"
+    },
+    {
+      "status": 200,
+      "route": "utbildning/livscykel",
+      "correlationId": "f6ca8b73-0467-40ca-b564-28fad180df3d"
+    }
+  ],
+  "complete": true,
+  "sourceCommit": "2b452370d66c11277c9783cdee428c7f15925df7",
+  "workerBuildRevision": "2b452370d66c11277c9783cdee428c7f15925df7",
+  "locksApplied": true,
+  "unitsApplied": true,
+  "cleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 176,
+    "preservedAuditAnchors": 3,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "foreignCleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 0,
+    "preservedAuditAnchors": 0,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": {
+    "plans": "20b502dda12857a560dbf9ed170cdd4f",
+    "offerings": "e4c2a2b909af34aaf84feeafeda1f578",
+    "classes": "79f0a1cc4a63125623116910576cedf5",
+    "offeringUnits": "41a00d7dcdc472dead579bdc5b5b42a9"
+  },
+  "finalHashes": {
+    "plans": "20b502dda12857a560dbf9ed170cdd4f",
+    "offerings": "e4c2a2b909af34aaf84feeafeda1f578",
+    "classes": "79f0a1cc4a63125623116910576cedf5",
+    "offeringUnits": "41a00d7dcdc472dead579bdc5b5b42a9"
+  },
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T13:58:23.425Z",
+  "sourceHashes": {
+    "web/lib/programplan-lifecycle.ts": "8aa23155b2254cd230f5397d942f707e1fdf76f08ff20d87139c19db94d92338",
+    "web/lib/server/programplan-lifecycle.ts": "e6c222ef241ae902b344f50c7cb210f8975275afb775e684b3eba991dc8fb1a4",
+    "web/app/api/programplaner/utbildning/livscykel/route.ts": "e459c734ba502421a0fefa9e18a3d7f10fe29b0a7093dfe0300cf8afae894f9b",
+    "web/lib/programplan-workspace-contract.ts": "f35e2eec36470ab6a5f014d207ab27e7744488edb6a70c94e45291647d14438e",
+    "web/lib/server/http.ts": "8c155af876fb5fd06324210ce8c5ac97104a03c7c3a4427912937ee0bd217ba5",
+    "supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql": "2bb8b170cf8c6bcb49b9b4c9d5b5c8d0b7111d4c0c4c3e30f57278b3bb15bdf5",
+    "supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql": "acd5895abfe97f9866c40f00d3157261f02b84859ab282be1202a40d8ad16b4e",
+    "supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql": "13bc47f6db5815042f4efb5abf1474b069fd591f01a195cd110b5b7636d3fac4",
+    "web/lib/server/programplan-planning.ts": "3f53a698605fb35ebd85e166ed051cc7bee4ea730b76d51cbbda5227d7e88887",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/lib/server/programplan-education.ts": "56b059f94f240ee60c569036869847c1d0aa1007f33e2dfdb15ea2897946a5ee",
+    "supabase/migrations/20261004130000_phase5_programplan_units.sql": "b5ea67768554e7166daa6fab5522aeb83ed50a18b2996c173656439e19d2bdad",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "7454a0514b347191bee6deaeb07e5bfd54022f90d7f0685fd908683e5b02374b",
+    "work/pilot/verify-programplan-lifecycle-api.mjs": "8a6d409b726d1c6f6be8ccac24cc516ac616ad28ec745698a055e12b9c3793d3",
+    "web/app/protected-programplan-lifecycle.tsx": "b31bddb250976d5691bb7acd4d6b1c9eaa493438811ae382b23a5e4dddf3cb97",
+    "web/app/protected-programplan-list.tsx": "14cb86a95e2a966c77722b9e9531ea275dde348d934b50a2156a3c8537f77648",
+    "web/app/protected-programplan-workspace.tsx": "2eda636b9d5c1ad5b578792ed884b25166785743aab75ac35e73e0e592606f90",
+    "web/e2e/phase5-lifecycle.spec.ts": "71fca5be5bc5470c225eb425e7212e48a72f64b413e579b465cf0d232e8cdd5f"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "target": "protected",
+  "rollback": true,
+  "reset": false,
+  "commandMigrationFullRowsPreserved": true,
+  "upgradedDrafts": 14,
+  "upgradeFullRowsAndLogs": true,
+  "lockedDraftUpgraded": true,
+  "eightOtherTablesPreserved": true,
+  "oldAclsPreserved": true,
+  "upgradeLogClosed": true,
+  "upgradedDraftCanDeleteWithRetainedBeforeLog": true,
+  "allNineFullHashesRestored": true,
+  "status": "PASS"
+}

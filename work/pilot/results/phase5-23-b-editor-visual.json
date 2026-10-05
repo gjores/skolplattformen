@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "results": [
+    {
+      "kind": "desktop",
+      "status": "PASS",
+      "globalOverflow": false
+    },
+    {
+      "kind": "phone",
+      "status": "PASS",
+      "globalOverflow": false
+    }
+  ],
+  "artifacts": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/editor",
+  "sourceRevision": "2b45237",
+  "geometryAssertion": "All inputs, buttons and help paragraphs fit within visible table container",
+  "beforePhoneRight": 405.75,
+  "afterPhoneRight": 359,
+  "phoneClipRight": 372,
+  "widthCorrection": "PASS",
+  "visualReview": "desktop and phone reviewed",
+  "rawGreen": "web/test-results/phase5-23-b-final/logs/phase5-23-b-editor-width-green.log",
+  "rawRed": "web/test-results/phase5-23-b-final/logs/phase5-23-b-editor-width-red.log"
+}

@@ -2,17 +2,17 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "23"
 status: in_progress
-completed_steps: [A]
-next_step: B
+completed_steps: [A, B]
+next_step: C
 requirements: [ADMIN-02, ADMIN-03]
 requirements-finally-verified: []
 human_result: awaiting_user
-worker_build_revision: b819a50c0116194e52fdf089ee7f7d134640da2c
+worker_build_revision: 2b452370d66c11277c9783cdee428c7f15925df7
 ---
 
 # 05-23 — full poängsumma och valbara block
 
-Steg A är genomfört och automatiskt verifierat lokalt med syntetiska data. Nya planer får separata Svenska/SvA-rader och blockramar. SA25 med 300 p programfördjupning sparas och läses om med 2 500 p. Planen som helhet är inte genomförd: äldre utkast, full analys, blockändringar och skolornas paketval återstår i B–E.
+Steg A och B är genomförda och automatiskt verifierade lokalt med syntetiska data. Nya och uppgraderade utkast har Svenska/SvA-rader och valbara block. Huvudman/rektor kan dela individuellt val och lägga till fördjupningsblock. Hela 05-23 är fortfarande in_progress: skolornas paketval och fullplansverifiering återstår i C–E. Mänsklig begriplighetsbedömning är awaiting_user. Avsnitt A nedan är dess historiska leveransbevis; B anger aktuellt beteende och bygge.
 
 ## Steg A — nya planer, svenskrader och blockramar
 
@@ -58,16 +58,60 @@ Dator-/telefonbilder är visuellt granskade: läsbara Svenska/SvA-rader, blockra
 - Under första read-only inventeringen tillkom verksamhetsrader från annat aktivt flöde. Dessa behölls. Delmängdsbevis identifierar alla ursprungliga rader; migrationerna har dessutom separata helradsbevis före/efter. 05-22:s historiska fyra ändrade `updated_at` återställs inte genom A och förblir PARTIAL.
 - Full SQL:s äldre auditfall förväntar annan feltext. Det räknas som FAIL och är inte dolt som ett godkänt prov. Alla fas 5-filer passerar.
 
-### Överlämning till ny session — steg B
+## Steg B — äldre utkast, blockändring och terminsanalys
 
-Läs detta avsnitt, aktuell STATE och 05-23-PLAN/CONTEXT. A är klart; ingen fullplans- eller kravslutmarkering ska göras. Nästa steg B:
+Källcommits: `b6675af` (B), `50c830a` (fixtur/låssvar), `939e109` (historisk blockkloning), `3223297` (ersatt källfixtur), `1978024` (browserförväntningar), `2b45237` (verklig mobilbreddsrättning) och `6fadda4` (utbildningsharness). Slutlig produkt-/Workerrevision är `2b452370d66c11277c9783cdee428c7f15925df7`; den sista commiten ändrar endast testharnessen, vars produktkällor är identiska med bygget.
 
-1. Inventera aktuella SQL-definitioner före samma-signatursersättning; 150100:s helper är aktuell, inte texten i 150000.
-2. Bygg blockändringskommandot med CAS/MFA/CSRF/audit och exakt ny Worker-ACL efter preflight.
-3. Uppgradera endast äldre **utkast** till nya Svenska/SvA-rader och block. Bevisa oförändrade fastställda/ersatta versioner och ändrade utkast med hela radhashar.
-4. Genomför total-/legacyanalys och terminsbaserad nivåordning. V2-alternativens fulla nivåordningsanalys ingår ännu inte i A.
-5. Provkör B:s SQL/API/browser, uppdatera handbok och skriv ett eget ”Steg B” med commit/push och migrationer. C–E och paketval är fortsatt öppna.
+- Huvudman och rektor med mandat för alla planens skolor kan **Dela i block** för individuellt val (sammanlagt 200 p) och **Lägg till valbart block** för programfördjupning. Alla skrivningar går genom riktig Worker med MFA, CSRF, CAS och atomisk DB-/Worker-audit. Administrator har ingen plan-/blockskrivning; dess utökade läsning och skolpaket hör till C.
+- Slotblock från katalogen har fast identitet/ram. Ett fördelat block måste tömmas och sparas innan det tas bort eller får andra poäng. Borttagna id får inte återanvändas inom utbildningen. Giltig kloning från en äldre fastställd/ersatt version behåller däremot hela källans blockidentiteter och ändrar inte källan.
+- Faktisk migration uppgraderade **13 bundna legacyutkast**, även redan låsta utbildningars utkast. Endast underlag, terminsfördelning och revision+1 ändrades. Alla andra fält, inklusive updated_at, och fastställda/ersatta helrader bevarades. Förevärden sparas i den stängda `programplan_shape_upgrades` utan ny raderingsspärr.
+- Gamla terminsrader och deras ordning bevaras, `meta:individualChoice` blir `block:iv1`, nya svenskrader får inte fabricerade nollrader. Legacy-fastställda versioner visas **Ofullständig** med möjlighet till ny version. Analysen räknar programmets total och använder nivåernas starttermin: högre nivå före lägre är fel, gemensam termin är risk, även för Svenska/SvA.
+- Handboken anger verifierade blockkommandon och kvarstående skolpaket. Byggd utan publicering.
 
-05-17 saknar PLAN och är inte förutsättning för A/B. Yrkesprogrammets total/bortval och yrkesfastställande kräver separat 05-17-arbete; ingen total gissas. 05-25 väntar fortfarande på hela 05-23.
+### Migrationer och bevarande
 
-Mänskligt A-prov: `awaiting_user` — skapa en ny SA-plan, välj programfördjupning och kontrollera Svenska/SvA 1–3, blockramarna och totalsumman på dator/telefon. Planens slutliga mänskliga paketprov hör till steg E och kan ännu inte genomföras.
+Tillämpade och journalförda på avsett isolerat `protected`, utan reset:
+
+| Migration | SHA-256 | Bevis |
+|---|---|---|
+| 151000 block commands | `1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267` | Oförändrade verksamhetsrader/äldre ACL; nya hjälpare och kommando stängda |
+| 152000 shape upgrade | `4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5` | Exakt 13 uppgraderade utkast, fullrad/tidsstämplar och stängda föreloggar |
+| 152100 clone identity | `26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf` | Separat rättning: hela tio verksamhetsmängder, äldre ACL och övriga definitioner oförändrade |
+| 153000 Worker blocks | `166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14` | Efter återställd 11/11 preflight; endast blockgrant, exakt 17 entrypoints |
+
+Aktuella före-definitioner/ACL och triggerläge inventerades innan ersättning; se [B-FUNCTION-INVENTORY](05-23-B-FUNCTION-INVENTORY.md). Ingen tillämpad migrationsfil ändrades. 152100 behövdes när faktisk preflight fann att en utbildningsomfattande retired-ID-spärr också nekade legitim historisk kloning. Kontrollerad, låst källkontext ger just denna kloning tillåtelse; create-draft tömmer kontexten, och återinförande efter borttagning nekas fortfarande.
+
+### Kontroller och rapporter
+
+Minimerade versionshanterade rapporter: `work/pilot/results/phase5-23-b-*.json`. Lokala rårapporter, SHA, loggar, bilder och flyttade bilagor: `web/test-results/phase5-23-b-final/`. Första misslyckade omgångarna behålls; sammanlagd slutlig täckning är uttryckligen från basomgång plus riktade omprov.
+
+| Kontroll | Resultat |
+|---|---|
+| Node modell/server | 609/609 PASS på 939e109; modell/serverkällor oförändrade i slutbygget |
+| TypeScript, oxlint, skyddat bygge | PASS; upprepat efter mobilrättning på 2b45237 |
+| Handboksbygge | PASS |
+| Riktad SQL i rollback | 897/897 före separat klonrättning; därefter 912/912 i tolv filer |
+| Upgrade rollback / TS–SQL-paritet | 14 behöriga utkast med exakt helradsbevis / 210/210 vektorer PASS |
+| Block-API preflight / faktisk grant | 11/11 PASS, ACL återställd och ursprungliga hela verksamhetsmängder bevarade / endast avsedd grant |
+| Block-API slutlig Worker | 11/11 PASS, inklusive historisk kloning, CAS, lås, auditrollback och direkta klientnekanden |
+| API-regression | Programplan 48/48, terminer 31/31, livscykel 39/39, utbildningar 43/43 PASS; egna fixturer städade och original bevarade |
+| Blockbrowser B01–B03 | 6/6 PASS, dator och iPhone 13, upprepat på slutligt 2b45237 |
+| Program-/termins-/livscykelbrowser | Slutlig täckning 40/40, 25/25 (+1 avsiktligt skip), 20/20 PASS |
+| Browserstädning | 96 städningsbilagor med noll egna kvarvarande verksamhetsrader/felinjektioner; append-only audit/ankare bevarade |
+| Editorns verkliga mobilbredd | RED: högerkant 405,75 > tabellkant 372; GREEN: 359 ≤ 372. Alla fält, knappar och hjälptexter ryms; båda formulären visuellt granskade på dator/telefon |
+| Full SQL efter alla rättningar | **FAIL 2337/2338**, endast känt phase2_audit #13 (`History denied` mot förväntad serverkontext); alla fas 5-filer PASS |
+| Användarprov före/efter serverbyte | 18 aktuella scenarier/nio utbildningar/två roller och 44 auditloggade läsningar per omgång; befintliga verksamhetsrader bevarade |
+
+Programbrowserns första 38/40 och terminsbrowserns 23/25 (+skip) behålls som FAIL. De nya tre tilläggsraderna krävde mätning av alla knappar i stället för en enda locator; terminsfallet ska visa 200 p kvar när faktiskt 2 300 av 2 500 är fördelade. Dessa prov rättades utan att produktkraven sänktes; omprov 2/2 per svit PASS. Efter mobilrättningen passerar blocksvit 6/6 och programmets pekytefall 2/2. En omkörning mot fel standardport stoppades i uppsättningen; råfel/logg behålls, rätt 3059 ger PASS. Utbildnings-API:s första 40/43 berodde på äldre skolantal, SA-block kopierade till VO och passerat-startdatumets explicita kod; aktuella exakta kontrakt ger 43/43. Preflightens tidiga låsförväntning och konkurrerande fastställda källfixturer korrigerades före grant. Ingen felomgång döps om till godkänd.
+
+En ny oberoende verifierare granskade kodkedja, data, skydd och bilder; se [B-VERIFICATION](05-23-B-VERIFICATION.md). Lokal syntetisk verifiering innebär inte mänskligt begriplighetsgodkännande, interaktiv MFA/IdP-verifiering eller verklig kommunanslutning. 05-22:s historiska fyra updated_at-avvikelser är fortsatt PARTIAL och återställs inte här.
+
+Vanlig **3012 kör slutligt 2b45237**, med tidigare klientfiler bevarade för öppna flikar. Privat `.dev.vars` och låsfiler följde inte med vid byggbytet. Ingen automatisk omladdning eller reset av användarplaner; byggkopian och föregående byggbackup är städade efter bevarande av råbevis och verifierad källpush (6fadda4). Slutlig GSD-beviscommit pushas separat.
+
+### Överlämning till ny session — steg C
+
+A och B är klara; hela planen och ADMIN-02/ADMIN-03 förblir öppna. Läs STATE, 05-23-PLAN/CONTEXT och A/B-bevis. Nästa nya executorsession genomför C: skolans språkpaket och terminsram, mandat för huvudman/rektor/administrator, utfällbar blockrad och skrivskydd över andra skolor. Inventera aktuella SQL-definitioner (inklusive 152100) före ersättning; exakt 17 Worker-entrypoints är baslinjen. Separat C-preflight krävs innan 155000-grant. Generella valpaket för fördjupning/IV/HU/NA hör till D; full regression och slutligt mänskligt paketprov till E.
+
+05-17 saknar PLAN och är ingen förutsättning för A/B. Yrkesprogrammets total/bortval och yrkesfastställande kräver separat 05-17-arbete; inga totalsummor gissas. 05-25 väntar på hela 05-23.
+
+Mänskligt A/B-prov: `awaiting_user` — ny SA-plan, Svenska/SvA 1–3, IV 2×100, fördjupningsblock, fördela/spara/läs om och ny version av äldre plan på dator/telefon. Paketval kan ännu inte provas i appen.

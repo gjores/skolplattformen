@@ -1,0 +1,119 @@
+{
+  "kind": "phase5-23-b-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "suites": [
+    {
+      "suite": "blocks",
+      "passed": 6,
+      "skipped": 0,
+      "failed": 0,
+      "rawSha256": "81951a156dead5cab24b5dfb730b61f70b7141c71d97370d62b2b05a00c0fe97",
+      "rawPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/blocks/phase5-blocks.json",
+      "localPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/blocks/phase5-blocks-local.json"
+    },
+    {
+      "suite": "programplan",
+      "passed": 38,
+      "skipped": 0,
+      "failed": 2,
+      "rawSha256": "26b0a6d8de5b77e44edd96226e56d2577846fdb4adda91a9507171a37330ba4a",
+      "rawPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/programplan/phase5-programplan.json",
+      "localPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/programplan/phase5-programplan-local.json"
+    },
+    {
+      "suite": "terms",
+      "passed": 23,
+      "skipped": 1,
+      "failed": 2,
+      "rawSha256": "96e04b651ef5c5c26e2b0f8094f04b5203c3cac4712d5adbdae9c0e9ae25f8d9",
+      "rawPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/terms/phase5-terms.json",
+      "localPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/terms/phase5-terms-local.json"
+    },
+    {
+      "suite": "lifecycle",
+      "passed": 20,
+      "skipped": 0,
+      "failed": 0,
+      "rawSha256": "c715274c46ec2651a03fc457db4760d3fd01c94fea21808e6a3255d8f55ad836",
+      "rawPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/lifecycle/phase5-lifecycle.json",
+      "localPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/lifecycle/phase5-lifecycle-local.json"
+    },
+    {
+      "suite": "terms-correction",
+      "passed": 2,
+      "skipped": 0,
+      "failed": 0,
+      "rawSha256": "c46dde81ddfeeaa05e4e6861ee5c87b836f93fd8b5e108d953a33c4dca709e92",
+      "rawPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/terms-correction/phase5-terms-correction.json",
+      "localPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/terms-correction/phase5-terms-correction-local.json"
+    },
+    {
+      "suite": "programplan-correction",
+      "passed": 2,
+      "skipped": 0,
+      "failed": 0,
+      "rawSha256": "a07e90a2887ad3cf4813113ff4d323f809c2c245da7754cc5856269794dd932a",
+      "rawPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/programplan-correction/phase5-programplan-correction.json",
+      "localPath": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final/programplan-correction/phase5-programplan-correction-local.json"
+    }
+  ],
+  "finalCoverageAcrossRuns": [
+    {
+      "suite": "blocks",
+      "passed": 6,
+      "skipped": 0,
+      "failed": 0
+    },
+    {
+      "suite": "programplan",
+      "passed": 40,
+      "skipped": 0,
+      "failed": 0
+    },
+    {
+      "suite": "terms",
+      "passed": 25,
+      "skipped": 1,
+      "failed": 0
+    },
+    {
+      "suite": "lifecycle",
+      "passed": 20,
+      "skipped": 0,
+      "failed": 0
+    }
+  ],
+  "resolvedFirstRunFailures": [
+    {
+      "suite": "programplan",
+      "case": "04",
+      "project": "programplan-desktop",
+      "resolvedBy": "programplan-correction"
+    },
+    {
+      "suite": "programplan",
+      "case": "04",
+      "project": "programplan-phone",
+      "resolvedBy": "programplan-correction"
+    },
+    {
+      "suite": "terms",
+      "case": "11",
+      "project": "terms-desktop",
+      "resolvedBy": "terms-correction"
+    },
+    {
+      "suite": "terms",
+      "case": "11",
+      "project": "terms-phone",
+      "resolvedBy": "terms-correction"
+    }
+  ],
+  "firstRunFailuresRetained": true,
+  "cleanupAttachments": 96,
+  "cleanupAllOwnedCountsZero": true,
+  "preservedAppendOnlyAudit": true,
+  "attachmentPaths": 73,
+  "artifacts": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-23-b-final"
+}

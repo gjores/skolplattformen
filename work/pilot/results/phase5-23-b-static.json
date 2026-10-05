@@ -1,0 +1,36 @@
+{
+  "kind": "phase5-23-b-static",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "sourceCommit": "939e10980d57e285cc10b8d7b287db233ac8f880",
+  "node": {
+    "passed": 609,
+    "total": 609,
+    "status": "PASS"
+  },
+  "typescript": "PASS",
+  "oxlint": "PASS",
+  "handbookBuild": "PASS",
+  "protectedBuild": "PASS",
+  "sourceHashes": {
+    "web/lib/programplan-choice-blocks.ts": "6c4223e2143b60bf45196a26e3ebeaf173f6ce1215980a5ab2e3c1cdaddf8e92",
+    "web/lib/programplan-analysis.ts": "f72b626ad709893412edf4753a05b801100689f750ffda2566750a2d950e977f",
+    "web/app/protected-programplan-board.tsx": "47ef1e15c135cecf93da81c2dae2f3eeb80e8293ef1901d4eadf854035a6e396",
+    "web/app/protected-programplan-workspace.tsx": "2eda636b9d5c1ad5b578792ed884b25166785743aab75ac35e73e0e592606f90",
+    "docs/handbok/programplaner.md": "211179803cc16198cb4e25918802d7911e8c160b9ce92cfc0cc940644fcd0615"
+  },
+  "rawLogs": "web/test-results/phase5-23-b-final/logs/",
+  "finalWorkerRevision": "2b452370d66c11277c9783cdee428c7f15925df7",
+  "finalUiChecks": {
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "protectedBuild": "PASS",
+    "geometry": "PASS",
+    "modelSourcesUnchangedSince609Tests": true
+  },
+  "finalUiSourceHashes": {
+    "web/app/protected-programplan-board.tsx": "b63dfb4a60c2e56d4c461184709671f8ee5395d481e0cca3c9acdad26d6ebeaf",
+    "web/app/protected-programplan.css": "a158572f757e769eefd3e2f7360ff8af61027182fa0144419261ce11842506d0",
+    "web/e2e/phase5-blocks.spec.ts": "82b976c46d0419386433eeb871f8b2a21018b9cf1aa45effd30f29072e75e85a"
+  }
+}

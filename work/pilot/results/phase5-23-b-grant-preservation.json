@@ -1,0 +1,103 @@
+{
+  "kind": "phase5-23-b-migration-preservation",
+  "target": "protected",
+  "reset": false,
+  "status": "PASS",
+  "grant": true,
+  "checks": {
+    "exact16before": true,
+    "allBusinessRowsPreserved": true,
+    "allDefinitionsPreserved": true,
+    "onlyBlockACLChanged": true,
+    "exact17after": true
+  },
+  "migrations": [
+    {
+      "target": "protected",
+      "projectId": "skolplattform-pilot-protected",
+      "migration": "20261004153000_phase5_worker_programplan_blocks.sql",
+      "status": "PASS",
+      "reset": false,
+      "grants": true,
+      "journalOnly": false,
+      "sourceHash": "166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14"
+    }
+  ],
+  "beforeHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 119,
+      "hash": "11cd63a1ff1fd3f49cde3d3954b3ffe7"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    }
+  },
+  "beforeWorkerCount": 16,
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "814e77686ba870f39bce7fbff3a35e6b"
+    },
+    "point_plan_events": {
+      "count": 47,
+      "hash": "21fa46fef35eb2f30ec5d834b08d14de"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 119,
+      "hash": "11cd63a1ff1fd3f49cde3d3954b3ffe7"
+    },
+    "timplans": {
+      "count": 4,
+      "hash": "7b0075f553817ec886592d3efd694fc2"
+    },
+    "timplan_cells": {
+      "count": 46,
+      "hash": "2df60780ec954cf7baa3266a25a97f0a"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    }
+  }
+}

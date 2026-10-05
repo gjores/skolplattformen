@@ -106,3 +106,21 @@ Giltig legacy-termform hade inga optional Svenska/SvA-rader. Alla tillämpliga g
 - Migrationparser: 11/11 Node-kontroller PASS. applyverktyget kräver rätt preflightkind för varje grantmigration och stage b för blocks.
 
 Inga permanenta migrationer, journalposter, grants, commits eller pushar gjordes av SQL-executorn. Aktuell tillämpning och faktisk Worker/webbläsarbevisning utförs av samordnaren. Hela 05-23 är fortsatt öppen.
+
+## Separat rättning 152100 efter tillämpning av B151000/B152000
+
+Aktuell pg_get_functiondef och ACL läst read-only före rättning; tillämpade migrationsfiler ändras inte.
+
+| Funktion | Signatur | SHA-256 | ACL |
+|---|---|---|---|
+| phase5_clone_programplan_draft | source_plan_id uuid, expected_source_revision integer, expected_latest_version integer, explicit_legacy_basis jsonb | 18412d9ab0fd52fa6efecaa4e8936ae79d69b6f204ff070c3357f2d2499e7da0 | {postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres} |
+| phase5_create_programplan_draft | offering_id uuid, expected_latest_version integer, basis_reference jsonb | c7d2ed3a5bcd92d23cccec77f82aa1893fba486b569fed88012071bdb22a056b | {postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres} |
+| phase5_programplan_guard |  | 80bcb64a5c1219e9da4f1ccdad97edef8aee251240eb3cae4bd006848479a3d1 | {postgres=X/postgres,service_role=X/postgres} |
+| phase5_programplan_require_unused_block_ids | offering_id uuid, reference jsonb | 7e571c4f72ff983d4e4b342219a613b9b5f5749932a89d1f13e4d0d0ede1b302 | {postgres=X/postgres} |
+
+152100 ersätter endast guard, clone och create-draft med samma signatur och samma ACL. Den redan stängda retired-ID-hjälparen är oförändrad. UPDATE kontrollerar nyintroducerade ID:n; block som finns i versionens old-basis får behållas. INSERT från clone med kontrollerad intern källkontext kräver att hela underlaget, fördelningen, utbildningen, huvudmannen, valen och nya versionsnumret motsvarar den låsta fastställda/ersatta källan. Clone återställer kontext efter INSERT och efter fel; create-draft tömmer kontext runt INSERT och kan därför inte användas för att kringgå retired-ID-spärren. Tillämpade 151000 och 152000 ändrades inte.
+
+- Slutligt RED på faktiskt tillämpat 151000/152000: 15 kontrollfall, 6 förväntade följdfel. Det första konkreta felet är 22023 när en äldre ersatt källa klonas efter att v2 retirerat dess block-ID. /private/tmp/phase5-23-b/clone-red.json.
+- GREEN i rollback med 152100: 912/912 pgTAP i tolv programplansfiler. Nya clone-identity-filen 15/15: v1→v2→retirering→fastställning→kloning av v1→ändring av annat block, create och förfalskad create-context nekas, återinförande efter borttagning nekas, båda gamla källrader bevaras helt, auditfel återställer alla versioner/historikrader/temporär kontext. Se work/pilot/results/phase5-23-b-clone-identity-rollback.json.
+- 152100 helrad/ACL-proof: alla nio fulla verksamhetstabeller oförändrade genom migrationen, samma funktionsmängd och gamla ACL, exakt 16 Worker-entrypoints. Alla ursprungliga definitioner, ACL och nio hashar återställda efter rollback. Se work/pilot/results/phase5-23-b-clone-preservation.json.
+- Källa SHA-256: 26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf. Migrationsverktyget tillåter rättningen utan grants och kräver den före separat 153000 grant. Faktisk tillämpning och ny Worker-preflight görs av root.
