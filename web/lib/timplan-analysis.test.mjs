@@ -9,7 +9,6 @@ const SOURCE = {
   label: 'Skolverket: timplan för grundskolan från 2024/2025', verifiedOn: '2026-10-04', validFrom: '2024-07-01', validTo: null,
 };
 const h = (låg, mellan, hög) => ({ låg, mellan, hög });
-const none = h(0, 0, 0);
 const GR = {
   id: 'gr-2024-25', schoolKind: 'grundskola', source: SOURCE, stageHours: h(1882, 2334, 2634), total: 6890,
   subjects: [
