@@ -21,7 +21,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 export const BLOCK_SOURCE_PATHS=['web/lib/programplan-catalog.ts','web/lib/programplan-choice-blocks.ts','web/lib/programplan-terms.ts','web/lib/programplan-terms-contract.ts','web/lib/programplan-contract.ts',
   'web/lib/protected-programplan.ts','web/lib/server/programplan-planning.ts','web/lib/server/programplan-terms.ts','web/app/protected-programplan-board.tsx','web/app/protected-programplan-flow.tsx','web/app/protected-programplan-workspace.tsx',
   'web/app/api/programplaner/skapa/route.ts','web/app/api/programplaner/lasa/route.ts','web/app/api/programplaner/terminer/route.ts','web/app/api/programplaner/terminer/lasa/route.ts',
-  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs','web/app/api/programplaner/block/route.ts','web/lib/programplan-analysis.ts','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql','web/lib/programplan-languages.ts','web/lib/programplan-packages.ts','web/lib/server/programplan-packages.ts','web/app/protected-programplan-packages.tsx','web/app/api/programplaner/paketval/route.ts','web/app/api/programplaner/paketval/lasa/route.ts','work/pilot/verify-programplan-packages-api.mjs','supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql','supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql'];
+  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs','web/app/api/programplaner/block/route.ts','web/lib/programplan-analysis.ts','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql','web/app/protected-home.tsx','web/app/protected-programplan.css','web/lib/unsaved-changes.tsx','web/lib/session-channel.ts','web/lib/mandate-policy.ts','web/lib/server/http.ts','web/lib/server/audit-details.ts','web/lib/server/programplan-lifecycle.ts','web/app/api/programplaner/lista/route.ts','web/app/api/programplaner/underlag/route.ts','web/lib/programplan-languages.ts','web/lib/programplan-packages.ts','web/lib/server/programplan-packages.ts','web/app/protected-programplan-packages.tsx','web/app/api/programplaner/paketval/route.ts','web/app/api/programplaner/paketval/lasa/route.ts','work/pilot/verify-programplan-packages-api.mjs','supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql','supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql'];
 const SOURCE=BLOCK_SOURCE_PATHS;
 export const BLOCK_STEP_A_CASES=['built-worker','ts-sql-parity','v2-create-save-reread'];
 export const BLOCK_STEP_B_CASES=['built-worker','blocks-save-reread','blocks-cas','block-id-retired','shape-upgrade','clone-upgrades-legacy','clone-keeps-historical-block-id','mfa-csrf-session','audit-rollback','direct-clients-closed','blocks-denied'];
@@ -140,7 +140,7 @@ export async function runBlockApi(o) {
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const r=await runBlockApi(parseBlockApiArgs(process.argv.slice(2)));
-  console.log(JSON.stringify({status:r.status,passed:r.cases.filter(c=>c.status==='PASS').length,total:(r.step==='b'?BLOCK_STEP_B_CASES:BLOCK_STEP_A_CASES).length,error:r.error,cleanup:r.cleanupStatus}));
+  console.log(JSON.stringify({status:r.status,passed:r.cases.filter(c=>c.status==='PASS').length,step:r.step,total:r.cases.length,error:r.error,cleanup:r.cleanupStatus}));
   if(r.status!=='PASS')process.exitCode=1;
 }
 
@@ -272,5 +272,3 @@ async function runBlockStepB(o) {
   }
   return report;
 }
-
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){const o=parseBlockApiArgs(process.argv.slice(2));const r=await runBlockApi(o);console.log(JSON.stringify({status:r.status,step:r.step,passed:r.cases.filter(c=>c.status==='PASS').length,total:r.cases.length,cleanup:r.cleanupStatus,error:r.error}));if(r.status!=='PASS')process.exitCode=1;}
