@@ -8,17 +8,48 @@ Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast
 
 ## Startsidan
 
-**Programplaner** visar alla utbildningar med programplanens status. Sök på utbildning, program eller elevkull och filtrera per skola när du har flera.
+**Programplaner** visar alla utbildningar med programplanens version och planens status (se nedan). Sök på utbildning, program eller elevkull och filtrera per skola när du har flera. Arkiverade planer är dolda; välj **Visa arkiverade** (med antalet inom parentes) för att se dem.
 
 - **Öppna** visar planen.
-- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning och terminsfördelning. Ange namn, elevkull och verkligt startdatum. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar.
+- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning och terminsfördelning. Ange namn, elevkull och verkligt startdatum, som måste ligga efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar.
 - **Ny programplan** öppnar valet av program och inriktning. Där skapar huvudmannen en ny utbildning, eller lägger en plan på en befintlig utbildning som saknar plan.
+
+## Planens status
+
+Varje plan har en status som räknas fram från elevkullens start. Du väljer den inte själv.
+
+| Status | Betyder |
+| --- | --- |
+| **Framtida** | Elevkullen har inte börjat. |
+| **Pågående** | Från startdagen till dagen före samma datum tre kalenderår senare. Det täcker även sommaren efter sista läsåret. En kull som började 29 februari räknas till och med 27 februari tre år senare. |
+| **Avslutad** | Från samma datum tre kalenderår efter starten. |
+| **Start okänd** | Startdatum saknas och bara startåret är känt och har inletts, eller så saknas startunderlag helt men en version är fastställd. Statusen gissas aldrig. |
+
+Startdagen är det tidigaste startdatumet bland planens versioner. Saknas det används höstterminens start för utbildningens skola och startår. Finns bara startåret är planen framtida före 1 januari det året och avslutad från 1 januari fyra år senare. En plan utan startunderlag och utan fastställd version räknas som framtida. Dagens datum räknas i svensk tid.
+
+**Vad du kan göra**
+
+| Status | Huvudman | Rektor |
+| --- | --- | --- |
+| Framtida | Ändra planen, **Ändra uppgifter**, **Ta bort** och **Arkivera** | Ändra planen |
+| Pågående, avslutad eller start okänd | **Arkivera** | Läsa |
+| Arkiverad | **Ta fram ur arkivet** | Läsa |
+
+Att ändra planen omfattar programfördjupning, terminsfördelning, nya versioner och koppling till underlag. När planen inte kan ändras visas tabellen utan inmatningsfält, knapparna för ny version döljs och en kort förklaring visas överst. Ett utkast som inte hann fastställas låses också när elevkullen börjar. Det tas inte bort och kan fortfarande läsas.
+
+Knapparna finns i planens huvud:
+
+- **Ändra uppgifter** ändrar namn, lokal kod och elevkull. Startdatumet kan ändras bara när utbildningen har en enda version som är ett utkast, och det nya datumet måste ligga efter i dag.
+- **Ta bort** tar bort utbildningen och alla dess versioner permanent, efter att du bekräftat med en kryssruta. Det går bara för en framtida plan och nekas om klasser, elevplaceringar, timplaner eller tillstånd hör till utbildningen. Borttagningen sparas i loggen.
+- **Arkivera** döljer planen i listan. Versioner, beslut och historik bevaras och planen kan inte ändras medan den är arkiverad. **Ta fram ur arkivet** gör den synlig igen; därefter avgör statusen vad som får ändras.
+
+Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte kan bekräftas läses listan om innan du kan försöka igen. Om planen hann starta under tiden visas det i beskedet.
 
 ## Ny programplan
 
 1. Kontrollera skolan och välj **Befintlig utbildning** eller, som huvudman, **Ny utbildning**.
 2. Välj **Program** och därefter **Inriktning**. Ett program utan inriktning visar detta direkt.
-3. För en ny utbildning anger du namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**, alltså den verkliga dagen enligt utbildningens uppgifter. Välj programfördjupning, välj **Granska utkast** och sedan **Spara utbildning och utkast**.
+3. För en ny utbildning anger du namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**, alltså den verkliga dagen enligt utbildningens uppgifter. Datumet måste ligga efter i dag: en ny plan kan bara skapas för en elevkull som inte har börjat. Välj programfördjupning, välj **Granska utkast** och sedan **Spara utbildning och utkast**.
 
 Programunderlaget från Skolverket visas längst ned i finstilt. Om flera underlag finns behöver du välja ett innan du går vidare.
 
