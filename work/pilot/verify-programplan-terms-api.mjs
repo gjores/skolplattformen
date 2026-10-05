@@ -9,7 +9,7 @@ import { resolve,dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
 import { createProgramplanBrowserFixture } from './phase5-programplan-browser-fixtures.mjs';
-import { TIMPLAN_ENTRIES,PROGRAMPLAN_ENTRIES,WORKSPACE_ENTRIES,EDUCATION_ENTRIES,exactFunctions } from './verify-programplan-api.mjs';
+import { TIMPLAN_ENTRIES,PROGRAMPLAN_ENTRIES,WORKSPACE_ENTRIES,EDUCATION_ENTRIES,LIFECYCLE_ENTRIES,exactFunctions } from './verify-programplan-api.mjs';
 import { parseProgramplanTermReply } from '../../web/lib/programplan-terms-contract.ts';
 import { programplanTermRows } from '../../web/lib/programplan-terms.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -32,7 +32,8 @@ export async function runTermsApi(options) {
   const mark=JSON.parse(readFileSync(resolve(root,'web/dist-protected/build-mode.json'))),git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...SOURCE])||git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE]))throw Error('BLOCKED_source_build');
   report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
-  const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES],expected=[...old,...TERMS];
+  // 05-20: livscykelns dispatcher ingår i den faktiska ACL:en efter dess preflight.
+  const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...LIFECYCLE_ENTRIES],expected=[...old,...TERMS];
   beforeAcl=await acl();if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
   if(o.preflight){for(const f of TERMS)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);}
   fixture=await createProgramplanBrowserFixture();foreign=await createProgramplanBrowserFixture();
@@ -43,7 +44,7 @@ export async function runTermsApi(options) {
   const unchanged=async callback=>{const before=await fixture.snapshot(),history=await fixture.history(fixture.planId),r=await callback();return{r,unchanged:JSON.stringify(before)===JSON.stringify(await fixture.snapshot())&&JSON.stringify(history)===JSON.stringify(await fixture.history(fixture.planId))};};
   const deny=async(c,s,route,body,status,code)=>{const result=await unchanged(()=>call(s,route,body));check(c,'minimal denial with no write',result.r.status===status&&(!code||result.r.body?.code===code)&&result.unchanged);const e=await fixture.events(result.r.corr);check(c,'only denied Worker event',e.length===1&&e[0].source==='worker'&&e[0].outcome==='denied');};
   const inject=async(source,action,callback)=>{await assertTarget('protected');await db.unsafe(`create function public.${fn}() returns trigger language plpgsql as $$begin if new.customer_id='${fixture.customerId}'::uuid and new.source='${source}' and new.action='${action}' then raise exception 'Synthetic terms audit failure' using errcode='55000';end if;return new;end$$;create trigger ${trigger} before insert on public.security_events for each row execute function public.${fn}()`);triggerActive=true;try{return await callback();}finally{await db.unsafe(`drop trigger ${trigger} on public.security_events;drop function public.${fn}()`);triggerActive=false;}};
-  await run('built-worker',async c=>{const r=await fetch(`${o.baseURL}/api/health/db`),b=await r.json();check(c,'real built workerd role',r.status===200&&b.role==='skolplattform_worker'&&b.runtime==='workerd');check(c,'exact fifteen Worker functions',exactFunctions((await acl()).filter(r=>r.granted).map(r=>r.f),expected));});
+  await run('built-worker',async c=>{const r=await fetch(`${o.baseURL}/api/health/db`),b=await r.json();check(c,'real built workerd role',r.status===200&&b.role==='skolplattform_worker'&&b.runtime==='workerd');check(c,'exact sixteen Worker functions',exactFunctions((await acl()).filter(r=>r.granted).map(r=>r.f),expected));});
   await run('exact-row-parity',async c=>{const catalog=JSON.parse(readFileSync(resolve(root,'web/lib/programplan-catalog.generated.json'))),program=catalog.programs.find(p=>p.code==='SA25'),tsRows=programplanTermRows(program,fixture.basis()).map(r=>({key:r.key,points:r.points}));const [sql]=await db`select public.phase5_programplan_term_rows(${db.json(fixture.basis())}) rows`;check(c,'TS and SQL same exact source rows in order',JSON.stringify(tsRows)===JSON.stringify(sql.rows));});
   for(const [name,s]of[['hm-read',fixture.hm],['principal-read',fixture.principal]])await run(name,async c=>check(c,'audited empty read',await success(await call(s,'terminer/lasa',read()),s,'terminer/lasa')));
   await run('hm-save',async c=>check(c,'audited exact distribution',await success(await call(fixture.hm,'terminer',write(0)),fixture.hm,'terminer')));
