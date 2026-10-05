@@ -221,9 +221,13 @@ select is((select revision from public.point_plans where id='55008000-0000-4000-
 insert into public.point_plans(id,organizer_id,offering_id,version,status,decided_on)
 values('55008000-0000-4000-8000-000000000151','55008000-0000-4000-8000-000000000102','55008000-0000-4000-8000-000000000040',2,'ersatt','2026-09-12');
 select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000151')$q$,'42501',null,'broken plan/organizer/offering relation is not accepted as scoped');
+-- Avsiktligt skadat legacy-underlag: 05-21:s FK/trigger hindrar att det skapas normalt.
+-- Replikläget gäller bara denna syntetiska injektion; läsprovet körs med vanliga regler.
+set local session_replication_role=replica;
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)
 values('55008000-0000-4000-8000-000000000141','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000130','gymnasium','Syntetiskt bruten skolrelation','Syntetiskt prov','SA25','SABEP');
 insert into public.point_plans(id,organizer_id,offering_id,version) values('55008000-0000-4000-8000-000000000152','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000141',1);
+set local session_replication_role=origin;
 select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000152')$q$,'42501',null,'broken offering/school/organizer relation is denied');
 
 select is((select count(*) from public.point_plan_events where point_plan_id='55008000-0000-4000-8000-000000000050'),2::bigint,'two successful replacements each create one business history row');

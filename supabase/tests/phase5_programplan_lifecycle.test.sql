@@ -186,6 +186,11 @@ insert into public.point_plans(id,organizer_id,offering_id,version,specializatio
  ('55008000-0000-4000-8000-000000000092','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000090',1,array['ENGE3000X'],'sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',jsonb_set(pg_temp.programplan_reference(),'{startedOn}',to_jsonb(to_char(public.phase5_programplan_today()-30,'YYYY-MM-DD')))),
  ('55008000-0000-4000-8000-000000000093','55008000-0000-4000-8000-000000000002','55008000-0000-4000-8000-000000000091',1,array['ENGE3000X'],'sha256:fa42ec44e663703bbf69ccd7b78c28d28ad275b144c57241f9f450a7a7252ace',jsonb_set(pg_temp.programplan_reference(),'{startedOn}',to_jsonb(to_char(make_date(pg_temp.y(-4),8,17),'YYYY-MM-DD'))));
 set local session_replication_role=origin;
+-- Startade syntetiska utkast har skapats utan huvudskoletriggern ovan.
+-- Ge dem samma huvudskolekoppling som varje vanligt utbildningsskapande får.
+insert into public.offering_units(offering_id,unit_id,organizer_id)
+ select id,unit_id,organizer_id from public.offerings
+ where id in ('55008000-0000-4000-8000-000000000090','55008000-0000-4000-8000-000000000091');
 select pg_temp.programplan_actor('55008000-0000-4000-8000-000000000060','55008000-0000-4000-8000-000000000020','55008000-0000-4000-8000-000000000010','55008000-0000-4000-8000-000000000080');
 insert into lc select 'archived40',public.phase5_change_programplan_education('55008000-0000-4000-8000-000000000040',0,'archive','{}');
 select ok((select (value->'lifecycle'->>'archived')::boolean and (value->'lifecycle'->>'revision')::integer=1 from lc where name='archived40'),'framtida plan arkiverad med revision +1');
