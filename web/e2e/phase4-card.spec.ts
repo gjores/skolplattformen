@@ -28,7 +28,10 @@ test('05-22: elev på tillagd skola placeras i delad utbildning och okopplat val
     expect(body.options.educations.some(education=>education.id===register.unlinkedOfferingId)).toBe(false);
     expect(body.pupils.map(pupil=>pupil.id)).toEqual([register.pupilId]);
     await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy','false');
-    await expect(page.getByLabel('Utbildning',{exact:true}).locator('option',{hasText:'Syntetisk grundskola'})).toHaveCount(1);
+    const educationFilter=page.locator('.pupil-register').getByRole('combobox',{name:'Utbildning',exact:true});
+    await expect(educationFilter).toBeVisible();
+    await expect(educationFilter.locator(`option[value="${register.offeringId}"]`)).toHaveText('Syntetisk grundskola');
+    await expect(educationFilter.locator(`option[value="${register.unlinkedOfferingId}"]`)).toHaveCount(0);
     const {body:card}=await openCard(page);
     expect(card.id).toBe(register.pupilId);
     expect(card.unitId).toBe(register.unitId);
@@ -60,6 +63,7 @@ test('05-22: elev på tillagd skola placeras i delad utbildning och okopplat val
     await noOverflow(page);
     await info.attach('delad-utbildning-elevkort.png',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
     await page.getByRole('button',{name:'Tillbaka till elevlistan',exact:true}).click();
+    await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy','false');
     const refreshed=page.waitForResponse(response=>isPath(response,'/api/elever/lista','POST'));
     await page.reload();expect((await refreshed).status()).toBe(200);await waitForHydration(page);
     await openCard(page);
