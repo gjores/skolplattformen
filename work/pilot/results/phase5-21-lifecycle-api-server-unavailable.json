@@ -1,0 +1,341 @@
+{
+  "kind": "phase5-programplan-lifecycle-api",
+  "scope": "local-synthetic-only",
+  "preflight": false,
+  "status": "FAIL",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "list-lifecycle",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "workspace-lifecycle",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "hm-delete-future",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "receipt-barrier",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "principal-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "stale-revision",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "in-use-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "started-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "unknown-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "invalid-shape",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "no-MFA",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "origin-required",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "foreign-customer",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "mandatory-db-audit",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "mandatory-worker-audit",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "archive-restore",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "archived-locked",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "update-details",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "update-start",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "update-start-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "started-writes-locked",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "future-writes-open",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "past-start-create-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "past-start-copy-denied",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "executable TEST_FAILED",
+          "ok": false
+        }
+      ]
+    }
+  ],
+  "calls": [],
+  "complete": false,
+  "sourceCommit": "e869440c6e84553373841aa8b9eba4aba5ab6c30",
+  "workerBuildRevision": "e869440c6e84553373841aa8b9eba4aba5ab6c30",
+  "locksApplied": true,
+  "unitsApplied": true,
+  "error": "TEST_FAILED",
+  "code": null,
+  "cleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 0,
+    "preservedAuditAnchors": 0,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "foreignCleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 0,
+    "preservedAuditAnchors": 0,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": {
+    "plans": "6b9ac996c06dbd0610cf87278c4eaddf",
+    "offerings": "fc50eaf9945009cd624a1f0c1910fc3c",
+    "classes": "79f0a1cc4a63125623116910576cedf5",
+    "offeringUnits": "785aaec35ebe6fb399b2f3c573ca9470"
+  },
+  "finalHashes": {
+    "plans": "6b9ac996c06dbd0610cf87278c4eaddf",
+    "offerings": "fc50eaf9945009cd624a1f0c1910fc3c",
+    "classes": "79f0a1cc4a63125623116910576cedf5",
+    "offeringUnits": "785aaec35ebe6fb399b2f3c573ca9470"
+  },
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T07:45:07.596Z",
+  "sourceHashes": {
+    "web/lib/programplan-lifecycle.ts": "8aa23155b2254cd230f5397d942f707e1fdf76f08ff20d87139c19db94d92338",
+    "web/lib/server/programplan-lifecycle.ts": "e6c222ef241ae902b344f50c7cb210f8975275afb775e684b3eba991dc8fb1a4",
+    "web/app/api/programplaner/utbildning/livscykel/route.ts": "e459c734ba502421a0fefa9e18a3d7f10fe29b0a7093dfe0300cf8afae894f9b",
+    "web/lib/programplan-workspace-contract.ts": "f35e2eec36470ab6a5f014d207ab27e7744488edb6a70c94e45291647d14438e",
+    "web/lib/server/http.ts": "8c155af876fb5fd06324210ce8c5ac97104a03c7c3a4427912937ee0bd217ba5",
+    "supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql": "2bb8b170cf8c6bcb49b9b4c9d5b5c8d0b7111d4c0c4c3e30f57278b3bb15bdf5",
+    "supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql": "acd5895abfe97f9866c40f00d3157261f02b84859ab282be1202a40d8ad16b4e",
+    "supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql": "13bc47f6db5815042f4efb5abf1474b069fd591f01a195cd110b5b7636d3fac4",
+    "web/lib/server/programplan-planning.ts": "106ebdd882e77420201a804a86f6be25da73df0eab7e68e3de8aeac24b0a8e56",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/lib/server/programplan-education.ts": "56b059f94f240ee60c569036869847c1d0aa1007f33e2dfdb15ea2897946a5ee",
+    "supabase/migrations/20261004130000_phase5_programplan_units.sql": "b5ea67768554e7166daa6fab5522aeb83ed50a18b2996c173656439e19d2bdad",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "0e5bb84a8eaa0d0b1e04065206a44ecbcec942cf98de7921a30c69d18683ad4d",
+    "work/pilot/verify-programplan-lifecycle-api.mjs": "c5de36dfa96032c6e5bc5f11df248a3555228d972010dfd20fa237c0c0f81464",
+    "web/app/protected-programplan-lifecycle.tsx": "7a94946c4a79f25506d016883dd3f877e083a97f57f45ad6bc703af3b5e9d935",
+    "web/app/protected-programplan-list.tsx": "14cb86a95e2a966c77722b9e9531ea275dde348d934b50a2156a3c8537f77648",
+    "web/app/protected-programplan-workspace.tsx": "c4d5c63ec370e265f91a4a30decff6c887ff1d0170adb64592dce8af09aec9a5",
+    "web/e2e/phase5-lifecycle.spec.ts": "eb55dcc4629cba34af93a4a86c34cf237160cfb92b678ace2c74d9f9aca01d73"
+  }
+}

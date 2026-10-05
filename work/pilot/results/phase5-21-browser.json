@@ -1,0 +1,1060 @@
+{
+  "kind": "phase5-21-browser",
+  "scope": "local-synthetic-only",
+  "status": "PASS_WITH_RETEST",
+  "unresolvedCases": [],
+  "fullProgramplanRun": "FAIL",
+  "fullTermsRun": "FAIL",
+  "stats": {
+    "lifecycle": {
+      "startTime": "2026-10-05T08:07:03.682Z",
+      "duration": 130917.915,
+      "expected": 18,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "programplan": {
+      "startTime": "2026-10-05T08:09:16.109Z",
+      "duration": 297838.89300000004,
+      "expected": 39,
+      "skipped": 0,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "terms": {
+      "startTime": "2026-10-05T08:16:59.787Z",
+      "duration": 127777.32900000001,
+      "expected": 14,
+      "skipped": 1,
+      "unexpected": 1,
+      "flaky": 0
+    },
+    "timplan": {
+      "startTime": "2026-10-05T08:20:45.350Z",
+      "duration": 86994.438,
+      "expected": 20,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "programplan-retest": {
+      "startTime": "2026-10-05T08:16:06.971Z",
+      "duration": 8371.955,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "terms-retest": {
+      "startTime": "2026-10-05T08:19:58.338Z",
+      "duration": 7392.03,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "sources": [
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "buildRevision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "cases": [
+    {
+      "suite": "lifecycle",
+      "name": "L01: status i listan och arbetsytan kommer från servern",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L03: framtida plan tas bort efter bekräftelse; utbildning med klass nekas",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L02: huvudmannen ändrar namn, kull och startdatum i en framtida plan",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L04: pågående plan är låst och kan arkiveras och tas fram",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L05: konflikt, MFA och okänt svar läser om listan innan något nytt skickas",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L06: kopia med passerat startdatum stoppas i formuläret och av servern",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L08: B tas bort före kullstart, läggs till efter start och kan då inte tas bort",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L09: kopiering till ny elevkull bevarar skolor, innehåll och original",
+      "project": "lifecycle-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L01: status i listan och arbetsytan kommer från servern",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L03: framtida plan tas bort efter bekräftelse; utbildning med klass nekas",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L02: huvudmannen ändrar namn, kull och startdatum i en framtida plan",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L04: pågående plan är låst och kan arkiveras och tas fram",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L05: konflikt, MFA och okänt svar läser om listan innan något nytt skickas",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L06: kopia med passerat startdatum stoppas i formuläret och av servern",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L08: B tas bort före kullstart, läggs till efter start och kan då inte tas bort",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "lifecycle",
+      "name": "L09: kopiering till ny elevkull bevarar skolor, innehåll och original",
+      "project": "lifecycle-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "04: fördjupning läggs till och tas bort direkt i tabellen, sök och pekytor",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "07: verklig tvåsessionskonflikt stoppar och planen läses om",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+      "project": "programplan-desktop",
+      "status": "unexpected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "09: MFA och DB/Worker-auditfel ändrar ingenting",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "15: utgången session och avslutat givande mandat rensar den öppna planen",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "02: skapa med verkligt startdatum, ordnade nivåer och auditerad omläsning",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "03: äldre bindning bevarar val/ordning och kräver datum/bekräftelse",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "04: fördjupning läggs till och tas bort direkt i tabellen, sök och pekytor",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "05: kopiera äldre låst källa uttryckligt och bevara källa/historik",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "06: bunden låst syntetisk källa kopieras med oförändrad grund",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "07: verklig tvåsessionskonflikt stoppar och planen läses om",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "09: MFA och DB/Worker-auditfel ändrar ingenting",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "10: accepterad ändring följd av omläsningsfel ger ingen dubbelwrite",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "11: tappat verkligt writesvar stäms av genom verklig omläsning",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "13: sidurval, äldre version, okända äldre val och tomt uppdrag",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "15: utgången session och avslutat givande mandat rensar den öppna planen",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "16: fem ytterligare program skapas, granskas och läses med rätt programgrund",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "17: samma flöde skapar utbildning och första utkast, med och utan inriktning",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "18: tappat skapandesvar läses med samma kvitto utan en andra utbildning",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "19: osparade nyuppgifter skyddas och misslyckat programval lämnar ingen gammal grund",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan",
+      "name": "20: startlistan öppnar och kopierar en plan till en ny utbildning utan att ändra originalet",
+      "project": "programplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "01: klick i tom termin lägger hela nivån, sparas när raden lämnas och finns kvar efter omladdning",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "02: för många poäng sparas inte och markeras tills raden är rättad",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "04: konkurrerande revision visas och egna värden kan sparas uttryckligen",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "05: MFA och loggfel lämnar värdena kvar utan skrivning",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "07: borttagen fördjupningsnivå töms först och försvinner ur tabellen",
+      "project": "terms-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "08: telefon visar en årskurs i taget med stora pekytor",
+      "project": "terms-desktop",
+      "status": "skipped",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "01: klick i tom termin lägger hela nivån, sparas när raden lämnas och finns kvar efter omladdning",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "02: för många poäng sparas inte och markeras tills raden är rättad",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "03: föreslå fördelning fyller alla tomma rader och planen blir klar för beslut",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "04: konkurrerande revision visas och egna värden kan sparas uttryckligen",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "05: MFA och loggfel lämnar värdena kvar utan skrivning",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+      "project": "terms-phone",
+      "status": "unexpected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "07: borttagen fördjupningsnivå töms först och försvinner ur tabellen",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms",
+      "name": "08: telefon visar en årskurs i taget med stora pekytor",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "03: huvudman och fastställd version är läsning utan redigering",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "05: osparat skydd vid dialogstängning och byte till annan plan",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "08: pagination, tom lista, okänd rad och skyddad programplansnavigation",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+      "project": "timplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "10: skolformsanpassat regelstöd, källor och påminnelse vid ändring",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "02: vald cell sparas en gång med faktisk revision, dubbel audit och omläsning",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "03: huvudman och fastställd version är läsning utan redigering",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "04: verklig revisionskonflikt läses om och skrivs bara efter uttryckligt val",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "05: osparat skydd vid dialogstängning och byte till annan plan",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "08: pagination, tom lista, okänd rad och skyddad programplansnavigation",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "timplan",
+      "name": "09: committad ändring med tappat svar ger okänt utfall och kräver omläsning",
+      "project": "timplan-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "programplan-retest",
+      "name": "08: annan session binder till annan grund; eget formulär kan inte återanvändas",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    },
+    {
+      "suite": "terms-retest",
+      "name": "06: tappat svar efter commit läses tillbaka utan en andra skrivning",
+      "project": "terms-phone",
+      "status": "expected",
+      "attempts": 1,
+      "cleanupChecked": true,
+      "cleanupPassed": true
+    }
+  ],
+  "screenshots": [
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L01-statu-e0505-etsytan-kommer-från-servern-lifecycle-desktop/attachments/lifecycle-list-png-f31c3755054848bb715ad3573d351797fb244b8a.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-desktop/attachments/lifecycle-delete-dialog-png-7e45720c0923dbe2ebe60512967d96c9e9fd0572.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-desktop/attachments/lifecycle-delete-denied-png-de9a575376e2946047807ae241fe1f131d8ae663.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L02-huvud-1c3e1-artdatum-i-en-framtida-plan-lifecycle-desktop/attachments/lifecycle-edit-dialog-png-c2539360d15c2029590171bcdc04a2cb6a741a19.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L04-pågåe-46fad--kan-arkiveras-och-tas-fram-lifecycle-desktop/attachments/lifecycle-archived-png-a692be5f7cda38684e6d150c56aaa757d5e356ca.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L04-pågåe-46fad--kan-arkiveras-och-tas-fram-lifecycle-desktop/attachments/lifecycle-archive-filter-png-135733897d29e03fa4b19ca02d26f874df7dbb94.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L06-kopia-8e08c-i-formuläret-och-av-servern-lifecycle-desktop/attachments/lifecycle-copy-past-png-2086f5423a447c0fca6d63220e69650bc1831450.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-948cf-ma-plan-utan-rätt-att-ändra-lifecycle-desktop/attachments/units-school-filter-png-bd381760963be95f852cf97b91c39239bc82eafe.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-948cf-ma-plan-utan-rätt-att-ändra-lifecycle-desktop/attachments/units-principal-b-readonly-png-90af0568d182762e085b93797ad442dd6afe3965.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L08-B-tas-1e51d-rt-och-kan-då-inte-tas-bort-lifecycle-desktop/attachments/units-started-removal-locked-png-652ef0aeed6a15dc8cf8093784e08d2b9f1f28b7.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-innehåll-och-original-lifecycle-desktop/attachments/units-copied-new-cohort-png-d797c8d48a0787ee8ebaebd8ae3953fe525089a5.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-innehåll-och-original-lifecycle-desktop/attachments/units-copy-recovery-png-7d9f9e7a9f6b67b41c58388299419d2746923193.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L01-statu-e0505-etsytan-kommer-från-servern-lifecycle-phone/attachments/lifecycle-list-png-277b49ce999ff22afb28413cb5aa80d2e3e3e114.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-phone/attachments/lifecycle-delete-dialog-png-1fa4d24e686305474e53995d8d197a870fff2d6a.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-phone/attachments/lifecycle-delete-denied-png-27a8faf12c636d2c2db29dd256293510287353bb.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L02-huvud-1c3e1-artdatum-i-en-framtida-plan-lifecycle-phone/attachments/lifecycle-edit-dialog-png-6d7dfe9e9841c5a49be0b39a2270da17f017e929.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L04-pågåe-46fad--kan-arkiveras-och-tas-fram-lifecycle-phone/attachments/lifecycle-archived-png-5fadbc3d459733f2b0fa524c63dcddd8f9c1e6b1.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L04-pågåe-46fad--kan-arkiveras-och-tas-fram-lifecycle-phone/attachments/lifecycle-archive-filter-png-985568b79ab90d4105a78618d0de1cbc5691e47e.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L06-kopia-8e08c-i-formuläret-och-av-servern-lifecycle-phone/attachments/lifecycle-copy-past-png-196aa3687c119408df6ab4abbc05a2b472815d12.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-948cf-ma-plan-utan-rätt-att-ändra-lifecycle-phone/attachments/units-school-filter-png-5efd9dd45dfd6a9ab98df0d4c3f688cf85d7d921.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-948cf-ma-plan-utan-rätt-att-ändra-lifecycle-phone/attachments/units-principal-b-readonly-png-de2591bc385b23868bb1f5e1f58157eb4e655ac5.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L08-B-tas-1e51d-rt-och-kan-då-inte-tas-bort-lifecycle-phone/attachments/units-started-removal-locked-png-b444b6c196b489da5cb8420a9758475354cd0097.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-innehåll-och-original-lifecycle-phone/attachments/units-copied-new-cohort-png-7f7c96a8db434943e921303984643122d35f6012.png",
+    "web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-innehåll-och-original-lifecycle-phone/attachments/units-copy-recovery-png-e0d1c13db166f6a8ee5bf43c081917703314d72f.png",
+    "web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-läsning-programplan-desktop/attachments/programplan-read-png-130ba7f8bd74cc53a915cb02fc38936d1bccab3b.png",
+    "web/test-results/phase5-programplan/phase5-programplan-02-skap-a3268-åer-och-auditerad-omläsning-programplan-desktop/attachments/programplan-guide-png-ce12225b09257b8977794ab60a93962f45dcc642.png",
+    "web/test-results/phase5-programplan/phase5-programplan-04-förd-7aba4--i-tabellen-sök-och-pekytor-programplan-desktop/attachments/programplan-dialog-png-dd8cddb0fa2df3f425de45ac5c863279593acc86.png",
+    "web/test-results/phase5-programplan/phase5-programplan-05-kopi-68304-t-och-bevara-källa-historik-programplan-desktop/attachments/programplan-legacy-clone-png-e8f703dba90bb38cec5506d1b2af0680130dc01d.png",
+    "web/test-results/phase5-programplan/phase5-programplan-07-verk-aec0a-stoppar-och-planen-läses-om-programplan-desktop/attachments/programplan-conflict-png-ac6a6f0a6589e0f92ab7978db44e1ef1c7ebe315.png",
+    "web/test-results/phase5-programplan/phase5-programplan-09-MFA--bdce7-r-auditfel-ändrar-ingenting-programplan-desktop/attachments/programplan-mfa-png-8c4ab0445cdfaba00904721bd5616cd4e7ef68f3.png",
+    "web/test-results/phase5-programplan/phase5-programplan-10-acce-973dd-gsfel-ger-ingen-dubbelwrite-programplan-desktop/attachments/programplan-refresh-error-png-5862b45c72a471d6d053ee4ab723632054ba00d5.png",
+    "web/test-results/phase5-programplan/phase5-programplan-16-fem--cd3cf-läses-med-rätt-programgrund-programplan-desktop/attachments/programplan-vard-review-png-1bc01b40303c538124b2a5d457647d46deeae83a.png",
+    "web/test-results/phase5-programplan/phase5-programplan-17-samm-3857e-ast-med-och-utan-inriktning-programplan-desktop/attachments/shared-new-vo-review-png-83282eec53ebc37bd37d6a8e412b32975607743d.png",
+    "web/test-results/phase5-programplan/phase5-programplan-18-tapp-5e8e9-to-utan-en-andra-utbildning-programplan-desktop/attachments/shared-unknown-create-png-9f963697d4e9daacbf754afd0b1fb5ec01f526e9.png",
+    "web/test-results/phase5-programplan/phase5-programplan-20-star-4229d-g-utan-att-ändra-originalet-programplan-desktop/attachments/programplan-list-png-cf47b20482bb50ad16454eaa0533d68ea56d72e2.png",
+    "web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-läsning-programplan-phone/attachments/programplan-read-png-30e8144044e3eeeced1979a46a28f076ddb4c66b.png",
+    "web/test-results/phase5-programplan/phase5-programplan-02-skap-a3268-åer-och-auditerad-omläsning-programplan-phone/attachments/programplan-guide-png-394f16aaf1fbc090ef34bb8c7e73c660e2d4d709.png",
+    "web/test-results/phase5-programplan/phase5-programplan-04-förd-7aba4--i-tabellen-sök-och-pekytor-programplan-phone/attachments/programplan-dialog-png-ed1d13f1d454d211b6742fca7276d77a8fb43f10.png",
+    "web/test-results/phase5-programplan/phase5-programplan-05-kopi-68304-t-och-bevara-källa-historik-programplan-phone/attachments/programplan-legacy-clone-png-1be8646d7741d116148fac5ba07ad66c6896799b.png",
+    "web/test-results/phase5-programplan/phase5-programplan-07-verk-aec0a-stoppar-och-planen-läses-om-programplan-phone/attachments/programplan-conflict-png-13fbce3a45a65517a3303a674c9e968787677463.png",
+    "web/test-results/phase5-programplan/phase5-programplan-09-MFA--bdce7-r-auditfel-ändrar-ingenting-programplan-phone/attachments/programplan-mfa-png-bc2f9966148495dbc052c365063c0e7fb92e894b.png",
+    "web/test-results/phase5-programplan/phase5-programplan-10-acce-973dd-gsfel-ger-ingen-dubbelwrite-programplan-phone/attachments/programplan-refresh-error-png-2fb0ab01b30827b15f0cee692bc1a816b77c826f.png",
+    "web/test-results/phase5-programplan/phase5-programplan-16-fem--cd3cf-läses-med-rätt-programgrund-programplan-phone/attachments/programplan-vard-review-png-b1f5553ceef0022b8869a1768a0725a3427928a6.png",
+    "web/test-results/phase5-programplan/phase5-programplan-17-samm-3857e-ast-med-och-utan-inriktning-programplan-phone/attachments/shared-new-vo-review-png-74d47fe3cfebf34aefcd2f4b4e342f9fe3cfed19.png",
+    "web/test-results/phase5-programplan/phase5-programplan-18-tapp-5e8e9-to-utan-en-andra-utbildning-programplan-phone/attachments/shared-unknown-create-png-77a7a4d5e40e5454b35437b0a937c8bdadcde941.png",
+    "web/test-results/phase5-programplan/phase5-programplan-20-star-4229d-g-utan-att-ändra-originalet-programplan-phone/attachments/programplan-list-png-f2249f077f7f6bc7e16e5f8f147c000b6395165d.png",
+    "web/test-results/phase5-terms/phase5-terms-01-klick-i-to-76936-finns-kvar-efter-omladdning-terms-desktop/attachments/board-editing-png-7f9c332433760cba273d55340aa536fdd281c50a.png",
+    "web/test-results/phase5-terms/phase5-terms-03-föreslå-fö-7889a-planen-blir-klar-för-beslut-terms-desktop/attachments/board-ready-png-7b17c30251a7087f3776eadc68f5d953ac28d2ce.png",
+    "web/test-results/phase5-terms/phase5-terms-03-föreslå-fö-7889a-planen-blir-klar-för-beslut-terms-desktop/attachments/board-analysis-png-204fb5ebd83f72b6665b7892c221bacba530a458.png",
+    "web/test-results/phase5-terms/phase5-terms-01-klick-i-to-76936-finns-kvar-efter-omladdning-terms-phone/attachments/board-editing-png-d5b7c62c05b186339f560e79e204e433383d631d.png",
+    "web/test-results/phase5-terms/phase5-terms-03-föreslå-fö-7889a-planen-blir-klar-för-beslut-terms-phone/attachments/board-ready-png-fe8c90b023ec749b4a895e86290c068c407f6a87.png",
+    "web/test-results/phase5-terms/phase5-terms-03-föreslå-fö-7889a-planen-blir-klar-för-beslut-terms-phone/attachments/board-analysis-png-cf216ba7cff9009c18c2f6207c74984df7dc8980.png",
+    "web/test-results/phase5-terms/phase5-terms-08-telefon-vi-f042b-s-i-taget-med-stora-pekytor-terms-phone/attachments/board-phone-png-5755f83c068b854bfb90f611587228bdb829199a.png"
+  ],
+  "visuallyReviewed": [
+    "lifecycle: units-started-removal-locked desktop/phone",
+    "lifecycle: units-principal-b-readonly desktop/phone",
+    "lifecycle: units-school-filter desktop/phone",
+    "lifecycle: units-copied-new-cohort desktop/phone",
+    "lifecycle: units-copy-recovery desktop/phone"
+  ]
+}

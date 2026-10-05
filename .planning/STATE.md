@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-25
+current_plan: 05-22
 status: in_progress
-stopped_at: 05-24 genomförd (GR/IM-analysmotor som ren funktion, 25/25 nodprov; ingen vy eller API kopplad); nästa 05-25. Mänskligt prov 05-19/05-20 väntar på 3012
+stopped_at: 05-21 genomförd och automatiskt verifierad; nästa 05-22. Mänskligt prov av programplanerna väntar på 3012. 05-25 väntar på 05-22/23; yrkesfastställande kräver 05-17
 last_updated: "2026-10-05"
 last_activity: 2026-10-05
-last_activity_desc: "05-24 genomförd: regelförankrad timplananalys för grundskola och IM (web/lib/timplan-analysis.ts). HKK 40 timmar gemensamt för låg/mellan, NO/SO utan dubbelräkning, IM räknar bara profilklassificerad undervisning, blocksDecision skilt från kategori. 25/25 nodprov, tsc och oxlint PASS. Syntetiska data; ingen app-, SQL- eller verklig anslutning."
-state_head: ae41a03
-worker_build_revision: ae41a039bb2c4f737c84f68036bf98b170fa12a2
+last_activity_desc: "05-21 skolval levererat: delad plan, mandat för alla skolor vid skrivning och skolval i kullkopiering. SQL 54/54, API 39/39, lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov och timplan 20/20 PASS; full SQL 1917/1918 med äldre fas 2-fel. Mänskligt prov väntar. Nästa 05-22."
+state_head: 9f80719
+worker_build_revision: 9f80719975d0cb3424ceb92daa0bf78a7378b015
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 87
-  completed_plans: 72
+  total_plans: 88
+  completed_plans: 74
 milestone_name: milestone
 ---
 
@@ -26,49 +26,49 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** 05-24–05-35 är planerade för en sammanhållen timplansarbetsyta med analys efter den aktuella programplanslösningen. Nästa timplanssteg är 05-24:s GR/IM-analys; gymnasieflödet följer först efter verifierade programbesluts-/skol-/blockförutsättningar. 05-19:s mänskliga prov, programplansdelegation, full fas 5 och fas 4:s checkpoint kvarstår.
+**Current focus:** 05-21:s skolval är automatiskt verifierat. Nästa genomförandeplan är 05-22 (full skolkoppling för klasser, elevplaceringar och timplaner), därefter 05-23. 05-24:s rena GR/IM-analys är genomförd; 05-25 väntar på sina förutsättningar och yrkesprofiler kräver dessutom 05-17. Mänskliga programplansprov, delegation, full fas 5 och fas 4:s checkpoint kvarstår.
 
 ## Current Position
 
-**05-20, 2026-10-05:** Programplanens livscykel genomförd och automatiskt verifierad lokalt med syntetiska uppgifter (se 05-20-SUMMARY). Vanlig 3012 kör ae41a03 med fyra nya provutbildningar med kullstart 2027-08-17. Mänskligt prov av 05-19:s tabell och 05-20:s livscykel är awaiting_user. Kvar: fall 13 i phase2_audit (från 05-15) och Workerns skrivrätt på skolenheter, se deferred-items.md. Nästa programplanssteg är 05-21 (skolval).
+**05-21, 2026-10-05:** Huvudmannen väljer programplanens skolor; alla kopplade skolor läser samma versioner. Skrivning kräver mandat för alla skolor, och kullkopiering tar med skolvalet. Se 05-21-SUMMARY/VERIFICATION. Riktad SQL 54/54, API 39/39, verkliga lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov (+1 hoppat) och timplan 20/20 PASS; Node 571/571, typ/lint/skyddat bygge/handbok PASS. Full SQL 1917/1918 är FAIL på det äldre phase2_audit-fallet 13. Vanlig 3012 kör 9f80719; tidigare syntetiska provdata är bevarade. Mänsklig begriplighet är awaiting_user. Klasser, elevplaceringar och timplaner på tillagda skolor återstår i 05-22.
 
-**Ny beställning och planering 2026-10-04:** Användaren har byggt om programplanerna med Claude och beställt motsvarande timplansarbetsyta med bra analysstöd. [05-24–05-35](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md) är planeringspaketet: tidig GR/IM-analys, skyddat programfastställande, fryst skolunderlag, skapande från fastställd programplan, sammanhållen timtabell, radvis autospar, analysåtgärder och beslutsflöde till separat mänskligt prov. **Inget av detta paket är genomfört.** 05-19 har en SUMMARY med automatiska prov och kända fel; 05-20 har pågående arbetskopieändringar, 05-21/22 har planer och 05-23 har beslutad CONTEXT. Dessa statusar går före äldre 05-18-text nedan. Historiska `state_head`, byggrevision och planräknare har inte använts som bevis för Claudes nya arbetskopia. Planeringen ändrar inga appfiler eller tillämpade migrationer. Nästa timplanssteg är 05-24; gymnasieflödet kräver angivna förutsättningsgrindar.
+**Planeringspaketet 2026-10-04–05:** [05-24–05-35](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md) omfattar sammanhållen timtabell och analys. Endast 05-24:s rena GR/IM-analys är genomförd i paketet. 05-19–05-21 har genomförandesammanfattningar; 05-22 och 05-23 har planer. Nästa programplanssteg är 05-22 → 05-23; därefter återgår arbetet till 05-25:s grind. 05-17 saknar PLAN och behöver yrkesregler levererade inför yrkesfastställande. Inga äldre wave-nummer ersätter dessa faktiska beroenden.
 
 **Aktuellt läge 2026-10-04:** 05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos.
 
 **Användarprov 2026-10-01:** användaren rapporterar att alla tidigare timplansprov fungerar, registrerat i 05-TIMPLAN-USER-TRIAL.md. Ny regelhandledning och programplansvyn kräver fortfarande mänsklig förståelsebedömning; deras automatiska prov är separata. Fas 4:s checkpoint kvarstår.
 
-Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-16 samt 05-18 automatiskt genomförda till nytt konkret mänskligt prov. Fas 4 kvarstår på 24 av 25 planer.
+Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-16, 05-18–05-21 och 05-24 automatiskt genomförda; mänskliga prov och full fasverifiering kvarstår. Fas 4 kvarstår på 24 av 25 planer.
 Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-24 — timplansanalys för GR/IM, planerad som första steg i 05-24–05-35. Paketet är inte genomfört. Tidigare mänskliga prov och fasens fullständiga krav är inte godkända.
-**Total Plans in Phase:** 33 skrivna: 18 med genomförandesammanfattning (05-01–05-19 utom 05-17), 05-20–05-22 utan slutlig SUMMARY och 12 nya planerade timplanssteg (05-24–05-35). 05-17 och 05-23 saknar ännu PLAN. Mänskliga prov och slutverifiering är separata.
-**Status:** Timplanspaketet är planerat och inte genomfört. 05-19:s SUMMARY redovisar den nya programtabellen, automatiska prov och känt utloggningsfel; ny mänsklig begriplighet är awaiting_user. Äldre verifieringshistorik bevaras nedan.
+**Current Plan:** 05-22 — full skolkoppling för klasser, elevplaceringar och timplaner; planerad och inte genomförd.
+**Total Plans in Phase:** 34 PLAN-filer: 21 har SUMMARY (05-01–05-16, 05-18–05-21, 05-24); 05-22, 05-23 och 05-25–05-35 saknar SUMMARY. 05-17 saknar PLAN. Mänskliga prov och slutverifiering är separata.
+**Status:** 05-21 automatiskt verifierad lokalt med syntetiska uppgifter. Mänskligt programplansprov är awaiting_user; ADMIN-02/ADMIN-03 och full fas 5 är inte slutgodkända. 05-24–05-35 är fortsatt ett delvis genomfört planeringspaket.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-10-04
-**Last Activity Description:** 05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos.
+**Last Activity:** 2026-10-05
+**Last Activity Description:** 05-21:s skolval, mandat och kullkopiering genomförda. Se senaste sammanfattning och verifiering; nästa 05-22.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
-**Senaste genomförandebevis, 2026-10-04:** Terminer 16/16, programplaner 40/40 och kompletterat API 31/31 PASS; SQL 236/236 och Node 417/417 PASS. Timplan 20 beteenden PASS över 19+1, externa setupfel bevarade separat. Typ/lint/skyddat bygge/handbok PASS, fyra terminsbilder granskade. Vanlig 3012 kör d37f566; inga produktkälldifferenser från d1f34ca där terms/program prövades. Läs 05-18-SUMMARY/REVIEW. Mänskligt prov väntar.
+**Historiska genomförandebevis, 2026-10-04:** Terminer 16/16, programplaner 40/40 och kompletterat API 31/31 PASS; SQL 236/236 och Node 417/417 PASS. Timplan 20 beteenden PASS över 19+1, externa setupfel bevarade separat. Typ/lint/skyddat bygge/handbok PASS, fyra terminsbilder granskade. Vanlig 3012 kör d37f566; inga produktkälldifferenser från d1f34ca där terms/program prövades. Läs 05-18-SUMMARY/REVIEW. Mänskligt prov väntar.
 
 **Tidigare genomförandebevis, 2026-10-02:** 05-15/05-16 har samma program → inriktning → programfördjupning för nya och befintliga utbildningar. På `023e68b`: programbrowser 38/38, timplan 20/20, nya utbildnings-API 43/43, 128 riktade Node-prov, typ/lint/bygge/handbok PASS. Tio bilder granskade. Vanlig 3012, nio bevarade utbildningar och fyra lokala inloggningar verifierade. Ny mänsklig begriplighetsbedömning väntar; gemensamma paket är en pending todo.
 
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planinventering 2026-10-04: 87 skrivna PLAN-filer, varav 71 har en genomförandesammanfattning. 16 saknar SUMMARY: 04-22, 05-20–05-22 och 05-24–05-35. En SUMMARY innebär inte att mänskligt prov eller full fas är godkänt. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
+Planinventering 2026-10-05: 88 skrivna PLAN-filer, varav 74 har en genomförandesammanfattning. 14 saknar SUMMARY: 04-22, 05-22, 05-23 och 05-25–05-35. En SUMMARY innebär inte att mänskligt prov eller full fas är godkänt. Detta är inte procent färdig produkt; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans with execution summary: 71
+- Total plans with execution summary: 74
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
 
@@ -81,7 +81,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 **Recent Trend:**
 
-- Last 5 plans: 05-13, 05-14, 05-15, 05-16 och 05-18 automatiskt genomförda; nytt mänskligt begriplighetsprov återstår.
+- Last 5 plans: 05-18, 05-19, 05-20, 05-24 och 05-21 automatiskt genomförda; nytt mänskligt begriplighetsprov återstår.
 - Trend: Ej tillämpligt
 
 | Phase 01 P01 | 5min | 2 tasks | 3 files |
@@ -228,11 +228,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-10-04
-**Stopped At:** 05-18 automatiskt verifierad: poäng per årskurs och termin i skyddad programplansversion, 16 browser / 31 API / 236 SQL. Mänskligt prov väntar på vanlig 3012; ADMIN-02/full fas 5 och fas 4:s checkpoint kvarstår. Delegation och timplansskapande har egna todos.
+**Last Date:** 2026-10-05
+**Stopped At:** 05-21 skolval automatiskt verifierat; nästa 05-22. Mänskligt prov väntar på vanlig 3012. Full fas 5, yrkesregler 05-17 och fas 4:s checkpoint kvarstår.
 **Resume File:** None
 
-**Planned Phase:** 5 — mänskligt prov av 05-18:s terminsfördelning, 05-16:s gemensamma flöde och timplanshandledning; återstående nationella beslut, delegation, timplansskapande, kullkopiering och klasskoppling har separata steg — 2026-10-04
+**Planned Phase:** 5 — genomför 05-22 → 05-23 före 05-25; mänskligt prov av programplanerna är separat och väntande. 05-17 saknar fortfarande genomförandeplan och ska levereras inför yrkesfastställande. Delegation och full fasverifiering kvarstår — 2026-10-05
 
 ### Senaste användarfynd, 2026-10-02
 
@@ -247,7 +247,7 @@ Historik före senaste underkännande: ännu mer pedagogik och fler gymnasieprog
 05-14:s mänskliga prov är underkänt som rörigt och osammanhängande. Användaren vill ha program → inriktning → programfördjupning och samma UI för nya/befintliga utbildningar. Historisk frontend läst och visuellt jämförd; se 05-PROGRAMFLOW-HISTORICAL-REVIEW och 05-15-FLOW-CONTEXT. 05-15 har verifierat atomiskt skapande för huvudmannen och säkert kvitto; 05-16 använder samma arbetsyta och ämnesgrupperade fördjupningsval. Ingen rektorsbehörighet eller nationell beslutsrätt utvidgas. Tidigare automatiska prov ovan är historik.
 
 
-## Senaste automatiska bevis och överlämning — 2026-10-02
+## Historiska automatiska bevis och överlämning — 2026-10-02
 
 05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
 

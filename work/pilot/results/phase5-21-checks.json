@@ -1,0 +1,36 @@
+{
+  "kind": "phase5-21-checks",
+  "scope": "local-synthetic-only",
+  "node": {
+    "command": "cd web && node --test lib/*.test.mjs lib/server/*.test.mjs",
+    "tests": 571,
+    "passed": 571,
+    "failed": 0,
+    "status": "PASS",
+    "logSha256": "3a4c1684a4dd406eec859cba88ecdfbdc3df20e1d01655346c535117a06b043e"
+  },
+  "typescript": {
+    "command": "cd web && npx tsc --noEmit",
+    "status": "PASS"
+  },
+  "lint": {
+    "command": "cd web && npx oxlint app lib",
+    "status": "PASS"
+  },
+  "protectedBuild": {
+    "command": "cd web && npm run build:protected",
+    "status": "PASS",
+    "mark": {
+      "mode": "protected",
+      "revision": "9f80719975d0cb3424ceb92daa0bf78a7378b015",
+      "builtAt": "2026-10-05T08:05:39.034Z",
+      "node": "v25.9.0"
+    },
+    "logSha256": "dea1f5a01f62c5e7bac0d4595f49756584125cd307ea3e3341748815c477f93b"
+  },
+  "handbookBuild": {
+    "command": "npm run docs:build",
+    "status": "PASS",
+    "logSha256": "f83e9316968ae72e7ae49fb62456702ed77194926b8e8166273573a3c519fae6"
+  }
+}

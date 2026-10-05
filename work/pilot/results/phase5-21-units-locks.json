@@ -1,0 +1,74 @@
+{
+  "kind": "phase5-programplan-units-locks",
+  "scope": "local-synthetic SQL only; observed PostgreSQL locks; no HTTP/MFA proof",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "same-revision-single-commit",
+      "status": "PASS",
+      "observedLock": {
+        "blocker": 81123,
+        "waiter": 81125,
+        "waitEvent": "transactionid"
+      },
+      "oneCommit": true,
+      "loserSqlstate": "40001",
+      "noLoserAudit": true
+    },
+    {
+      "name": "outer-rollback-preserves-units",
+      "status": "PASS",
+      "unitsRevisionAuditPreserved": true
+    },
+    {
+      "name": "b-mandate-revoked-after-customer-lock",
+      "status": "PASS",
+      "observedLock": {
+        "blocker": 81123,
+        "waiter": 81125,
+        "waitEvent": "advisory"
+      },
+      "deniedSqlstate": "42501",
+      "noPartialSchoolWrite": true,
+      "mandateRecheckedAfterWait": true
+    }
+  ],
+  "sourceCommit": "d92b8f0b45b8772662553a2fe954bfc21bf415dc",
+  "cleanup": {
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 1,
+    "preservedAuditAnchors": 1,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": {
+    "offerings": "fc50eaf9945009cd624a1f0c1910fc3c",
+    "plans": "6b9ac996c06dbd0610cf87278c4eaddf",
+    "classes": "79f0a1cc4a63125623116910576cedf5",
+    "offeringunits": "785aaec35ebe6fb399b2f3c573ca9470",
+    "preservedaudit": "ba1d01df05e7395d21b7303dda7e0882"
+  },
+  "finalHashes": {
+    "offerings": "fc50eaf9945009cd624a1f0c1910fc3c",
+    "plans": "6b9ac996c06dbd0610cf87278c4eaddf",
+    "classes": "79f0a1cc4a63125623116910576cedf5",
+    "offeringunits": "785aaec35ebe6fb399b2f3c573ca9470",
+    "preservedaudit": "ba1d01df05e7395d21b7303dda7e0882"
+  },
+  "originalBusinessAndAuditPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-05T07:48:42.990Z",
+  "sourceHashes": {
+    "supabase/migrations/20261004130000_phase5_programplan_units.sql": "b5ea67768554e7166daa6fab5522aeb83ed50a18b2996c173656439e19d2bdad",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "0e5bb84a8eaa0d0b1e04065206a44ecbcec942cf98de7921a30c69d18683ad4d",
+    "work/pilot/verify-programplan-units-locks.mjs": "7f9bd58f3b3fd2f6de0459168bcb33c22e77304ec94a379ebbed0c503c962241"
+  }
+}
