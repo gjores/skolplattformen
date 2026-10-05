@@ -143,8 +143,12 @@ test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att
   await fixture.cookies(page.context(),fixture.principalB,baseURL);await page.goto('/');await navigate(page);await open(page,'Syntetisk bunden SA');
   await expect(w(page)).toContainText('Planen delas med skolor utanför ditt uppdrag och kan bara läsas');
   await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});
-  await expect(w(page).locator('.pps-banner-fel')).toContainText('Planen kan inte fastställas förrän felen är åtgärdade.');
-  await expect(w(page).locator('.pps-banner-fel')).not.toContainText('Du kan spara utkastet');
+  await expect(w(page).getByRole('button',{name:/^Analys/u})).toContainText('fel');
+  await w(page).getByRole('button',{name:/^Analys/u}).click();
+  const analysis=w(page).getByRole('region',{name:'Analys av programplanen',exact:true});
+  await expect(analysis).toContainText('Planen delas med skolor utanför ditt uppdrag');
+  await expect(analysis.locator('.pps-link')).toHaveCount(0);
+  await analysis.getByRole('button',{name:'Tillbaka till planen',exact:true}).click();
   await expect(w(page)).toContainText('Version 1');await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
   for(const name of ['Skolor','Ändra uppgifter','Arkivera','Ta bort','Föreslå fördelning'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);
   const request={offeringId:fixture.offeringId,versionPage:1,catalogId:null},a=await fixture.request(baseURL,fixture.hm,'/api/programplaner/underlag',request),b=await fixture.request(baseURL,fixture.principalB,'/api/programplaner/underlag',request);
