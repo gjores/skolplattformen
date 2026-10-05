@@ -1,5 +1,11 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
+## Följdprov 2026-10-05: färre informationsrutor
+
+Användaren säger ”Ser bättre ut nu men det är lite mycket extra info-rutor.” Detta ger positiv återkoppling på den rättade vyn men inget slutgodkännande. De upprepade analys-, klarstatus- och åtgärdsrutorna har tagits bort. Statusen står vid namnet och Analys visar antal fel/risker. En rättad rad slutar vara markerad.
+
+På vanlig 3012, byggrevision `4b1addc`: ladda om när egna ändringar är sparade. Bedöm om planen nu är lättare att överblicka och om Analys fortfarande gör återstående fel/risker tydliga. Automatiskt 29 körda dator-/telefonprov PASS (+1 avsiktligt hoppat), 30 egna fixturer städade; detta är separat från mänsklig bedömning som är **awaiting_user**. Se debug/programplan-analysis-actions.md och programplan-compact-ui.json. 05-22/23 och full fas 5 kvarstår.
+
 ## Användarfynd 2026-10-05: analysens åtgärdslänkar
 
 **FAIL i användarprov:** användaren rapporterar att ”Flytta nivån” och sannolikt alla åtgärdslänkar leder till en vy där riskerna inte går att åtgärda. De två bilderna visar ett nivåordningsfel och därefter en tabell med 0 fördelade poäng utan redigerbara terminsfält.

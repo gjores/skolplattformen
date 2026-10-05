@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-22
 status: in_progress
-stopped_at: Analysens åtgärdslänkar och köad terminsparning rättade; 05-21 genomförd och automatiskt verifierad; nästa 05-22. Mänskligt prov av programplanerna väntar på 3012. 05-25 väntar på 05-22/23; yrkesfastställande kräver 05-17
+stopped_at: Analysens åtgärdslänkar rättade och upprepade informationsrutor borttagna efter användarprov; 05-21 genomförd; nästa 05-22. Ny mänsklig bedömning väntar på 3012. 05-25 väntar på 05-22/23; yrkesfastställande kräver 05-17
 last_updated: "2026-10-05"
 last_activity: 2026-10-05
 last_activity_desc: "05-21 skolval levererat: delad plan, mandat för alla skolor vid skrivning och skolval i kullkopiering. SQL 54/54, API 39/39, lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov och timplan 20/20 PASS; full SQL 1917/1918 med äldre fas 2-fel. Mänskligt prov väntar. Nästa 05-22."
-state_head: db5fb9b
-worker_build_revision: db5fb9bf58f7fda2ae394584b10146c6c5e22c11
+state_head: 4b1addc
+worker_build_revision: 4b1addca5e73f6eb67692806e957489560c93353
 progress:
   total_phases: 8
   completed_phases: 3
@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 **Current focus:** 05-21:s skolval är automatiskt verifierat. Nästa genomförandeplan är 05-22 (full skolkoppling för klasser, elevplaceringar och timplaner), därefter 05-23. 05-24:s rena GR/IM-analys är genomförd; 05-25 väntar på sina förutsättningar och yrkesprofiler kräver dessutom 05-17. Mänskliga programplansprov, delegation, full fas 5 och fas 4:s checkpoint kvarstår.
 
 ## Current Position
+
+**Följdprov/förenkling, 2026-10-05:** Användaren säger att vyn ser bättre ut men har för många informationsrutor. Analys-/klarstatus-/åtgärdsrutorna har tagits bort; status står vid namnet och Analys visar antal fel/risker. Radmarkeringen försvinner när samma rad är rättad. Terminsprov 25/25 (+1 avsiktligt hoppat), utbildningsurval 2/2 och delad skrivskyddad plan 2/2 PASS, 30 fixturer städade. 8 riktade Node-prov, typ/lint/skyddat bygge/handbok PASS. Dator- och telefonbilder granskade. Vanlig 3012 kör `4b1addc`; endast testanpassning skiljer från terminsprovets `197e5b9`. Öppna flikar laddas inte om automatiskt. Se programplan-compact-ui.json och debug/programplan-analysis-actions.md. Ny mänsklig bedömning väntar; nästa plan förblir 05-22.
 
 **Användarfynd/rättning, 2026-10-05:** Analysens gemensamma åtgärdslänk öppnade ett låst fördjupningsformulär med tom visningsfördelning. Varje åtgärd går nu till rätt rad, sökfält, årskurskort eller datum; skrivskydd förklaras. En sista radändring medan tidigare sparning pågick kunde bli osparad och köas nu korrekt. På `db5fb9b`: 25 körda dator-/telefonprov PASS (+1 avsiktligt hoppat datorfall), nya åtgärdsfall 10/10, cleanup 26/26, Node 571/571, typ/lint/skyddat bygge/handbok PASS. Första misslyckade provomgången bevaras. Vanlig 3012 kör det nya bygget; befintliga användarplaner bevaras och öppna flikar laddas inte om automatiskt. Se debug/programplan-analysis-actions.md och användarprovet. Mänskligt prov efter rättning är awaiting_user, nästa genomförandeplan förblir 05-22.
 

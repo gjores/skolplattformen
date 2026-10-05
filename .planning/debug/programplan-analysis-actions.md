@@ -34,3 +34,13 @@ Den första omgången på `5a7d822` är FAIL: 11 PASS, 5 FAIL och 10 som inte k�
 Nytt mänskligt prov efter rättning är awaiting_user. 05-22/23, ADMIN-02/03 och full fas 5 förblir öppna. Befintliga användarutkast ska bevaras.
 
 Vanlig 3012 kör det testade bygget. Färsk käll-/bygg-/Worker-/DB-kontroll PASS efter installation. Äldre klientfiler har behållits så att en redan öppen flik fungerar tills användaren själv laddar om. Inget befintligt användarutkast återställs eller skrivs av denna rättning. Datorns nivåflyttningsbild, telefonens nivåflyttning och skrivskyddsbilden är visuellt granskade. Se `work/pilot/results/programplan-analysis-actions.json`; rårapporter/bilder finns lokalt i `web/test-results/programplan-analysis-actions-final/`.
+
+## Följdprov: färre informationsrutor, 2026-10-05
+
+Användaren säger ”Ser bättre ut nu men det är lite mycket extra info-rutor.” Bilden visar upprepad analys- och klarstatus samt en gammal åtgärdstext trots att allt är fördelat. Detta är positiv återkoppling med ett kvarstående UI-fynd, inte ett mänskligt slutgodkännande.
+
+De tre stora informationsrutorna har tagits bort. Statusen visas vid namnet och Analys-knappen anger antal fel och risker. Analysens detaljer och faktiska åtgärdslänkar finns kvar. Navigeringsmarkeringen används bara så länge samma problem fortfarande gäller den markerade raden; en rättad rad förblir inte markerad på grund av ett annat ofördelat ämne.
+
+**PASS:** terminsprov 25/25 körda (+1 avsiktligt hoppat datorfall) på `197e5b9`; utbildningsurval 2/2 och delad skrivskyddad plan 2/2 på `4b1addc`. Endast det befintliga delningsprovets assertions skiljer mellan revisionerna, produktkoden är identisk. 30 egna fixturer städade med verksamhetsrader/sessioner/triggers = 0, audit och ankare bevarade. 8 riktade Node-prov, typkontroll, oxlint, skyddat bygge och handboksbygge PASS. Klarstatus på dator/telefon och rättad rad på telefon är visuellt granskade.
+
+Vanlig 3012 kör `4b1addca5e73f6eb67692806e957489560c93353`; käll-/bygg-/Worker-/DB-kontroll PASS. Äldre klientfiler bevaras och användarens flik laddas inte om automatiskt. Se `work/pilot/results/programplan-compact-ui.json`; rårapporter och bilder finns lokalt i `web/test-results/programplan-compact-final/`. Ny mänsklig bedömning är awaiting_user. Nästa 05-22 och kvarstående fasgodkännanden ändras inte.
