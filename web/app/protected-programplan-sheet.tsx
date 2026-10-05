@@ -20,7 +20,7 @@ export function AnalysisBanner({ analysis, onOpen, disabled = false, canSaveDraf
 }
 
 /** Analysvy: kort per kategori, filter och en tabell med regel och åtgärd. */
-export function AnalysisView({ analysis, onBack, onFix }: { analysis: Analysis; onBack: () => void; onFix: () => void }) {
+export function AnalysisView({ analysis, onBack, onFix, actionUnavailable }: { analysis: Analysis; onBack: () => void; onFix: (issue: PlanIssue) => void; actionUnavailable: (issue: PlanIssue) => string | null }) {
   const [filter, setFilter] = useState<IssueCategory | 'alla'>('alla');
   const shown = filter === 'alla' ? analysis.issues : analysis.issues.filter(i => i.category === filter);
   return <section className="pps-analysis" aria-label="Analys av programplanen">
@@ -30,20 +30,20 @@ export function AnalysisView({ analysis, onBack, onFix }: { analysis: Analysis; 
       <fieldset className="pps-chips" aria-label="Filtrera">{(['alla', ...categoryOrder] as const).map(c => <button type="button" key={c} aria-pressed={filter === c} className={`pps-chip pps-cat-${c}`} onClick={() => setFilter(c)}>
         {c === 'alla' ? 'Alla' : c === 'fel' ? 'Fel' : c === 'risk' ? 'Risker' : categoryLabel[c]}<span>{c === 'alla' ? analysis.issues.length : analysis.counts[c]}</span></button>)}<small>Sorterat efter allvar</small></fieldset>
       <table className="pps-issue-table"><thead><tr><th scope="col">Kategori</th><th scope="col">Vad vi hittade</th><th scope="col">Del av planen</th><th scope="col">Regel</th><th scope="col">Åtgärd</th></tr></thead>
-        <tbody>{shown.map(issue => <IssueRow key={issue.id} issue={issue} onFix={onFix}/>)}</tbody></table>
+        <tbody>{shown.map(issue => <IssueRow key={issue.id} issue={issue} onFix={onFix} unavailable={actionUnavailable(issue)}/>)}</tbody></table>
       {shown.length === 0 && <p className="pps-empty">Inget att visa i den här kategorin.</p>}
     </div>
     <p className="pps-footnote">Fel mot regelverket hindrar inte att utkastet sparas, men planen kan inte fastställas förrän de är åtgärdade. Risker och kontrollpunkter är vägledning. Lagrum och regler ska verifieras innan planen används som beslutsunderlag.</p>
     <Button variant="outline" onClick={onBack}>Tillbaka till planen</Button>
   </section>;
 }
-function IssueRow({ issue, onFix }: { issue: PlanIssue; onFix: () => void }) {
+function IssueRow({ issue, onFix, unavailable }: { issue: PlanIssue; onFix: (issue: PlanIssue) => void; unavailable: string | null }) {
   return <tr className={`pps-cat-${issue.category}`}>
     <td><span className="pps-pill"><i/>{categoryLabel[issue.category]}</span></td>
     <td><strong>{issue.title}</strong><span>{issue.detail}</span></td>
     <td><span className="pps-part"><i style={{ background: partColor[issue.part] }}/>{partLabel[issue.part]}</span></td>
     <td className="pps-rule">{issue.rule}</td>
-    <td>{issue.action && <button type="button" className="pps-link" onClick={onFix}>{issue.action} →</button>}</td>
+    <td>{issue.action && (unavailable ? <span className="pps-rule">{unavailable}</span> : <button type="button" className="pps-link" onClick={()=>onFix(issue)}>{issue.action} →</button>)}</td>
   </tr>;
 }
 

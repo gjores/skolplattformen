@@ -90,3 +90,62 @@ test('08: telefon visar en årskurs i taget med stora pekytor',async({page},info
   const box=await cell(page,'Åk 2 HT').boundingBox();expect(box!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await capture(page,info,'board-phone.png');
 });
+
+
+// Användarfynd 2026-10-05: analysens åtgärder får inte öppna replace-formuläret med 0 poäng.
+const analysis=(page:Page)=>w(page).getByRole('region',{name:'Analys av programplanen',exact:true});
+async function fix(page:Page,name:string){await w(page).getByRole('button',{name:/^Analys/u}).click();await analysis(page).getByRole('button',{name,exact:true}).click();await expect(board(page)).toBeVisible();}
+async function store(distribution:{rowKey:string;points:number[]}[],revision=0){const r=await fixture.request(baseURL,fixture.principal,'/api/programplaner/terminer',{planId:fixture.planId,expectedRevision:revision,distribution});expect(r.status).toBe(200);}
+
+test('09: Flytta nivån behåller poängen, visar rätt årskurs och låter felet rättas beständigt',async({page},info)=>{
+  const higher='specialization:ENGE:1:ENGE3000X';
+  await store([{rowKey:'foundation:ENGE:1:ENGE1000X',points:[100,0,0,0,0,0]},{rowKey:'foundation:ENGE:1:ENGE2000X',points:[0,0,0,0,100,0]},{rowKey:higher,points:[0,0,100,0,0,0]}]);
+  await enter(page);await board(page).getByRole('button',{name:'Visa bara ofördelade',exact:true}).click();
+  await fix(page,'Flytta nivån →');
+  await expect(board(page)).toHaveAttribute('data-year','1');await expect(cell(page,'Åk 2 HT')).toBeFocused();await expect(cell(page,'Åk 2 HT')).toHaveValue('100');
+  await expect(board(page).locator(`tr[data-row-key="${higher}"]`)).toHaveAttribute('data-analysis-target','true');
+  await expect(board(page)).toContainText('300 av');await expect(w(page).getByRole('button',{name:'Spara utkast',exact:true})).toHaveCount(0);
+  await capture(page,info,'analysis-fix-order.png');
+  await cell(page,'Åk 2 HT').fill('');await year(page,info,3);await cell(page,'Åk 3 VT').fill('100');expect((await leave(page)).status()).toBe(200);
+  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page).getByRole('button',{name:'Flytta nivån →',exact:true})).toHaveCount(0);
+  expect((await read()).distribution).toContainEqual({rowKey:higher,points:[0,0,0,0,0,100]});
+  await page.reload();await navigate(page);await open(page);await year(page,info,3);await expect(cell(page,'Åk 3 VT')).toHaveValue('100');
+});
+
+test('10: Fördela och Flytta går till rätt rad, Lägg till nivå till sökfältet och sparar bara egna ändringar',async({page},info)=>{
+  await store([{rowKey:'meta:diplomaWork',points:[0,0,100,0,0,0]}]);await enter(page);
+  await fix(page,'Fördela →');await expect(cell(page,'Åk 1 HT','Engelska Nivå 1')).toBeFocused();
+  await expect(board(page)).toContainText('100 av');expect((await read()).revision).toBe(1);
+  await fix(page,'Flytta →');await expect(cell(page,'Åk 2 HT','Gymnasiearbete Gymnasiearbete')).toBeFocused();await expect(cell(page,'Åk 2 HT','Gymnasiearbete Gymnasiearbete')).toHaveValue('100');
+  await fix(page,'Lägg till nivå →');await expect(board(page).getByRole('searchbox',{name:'Lägg till ämne eller nivå'})).toBeFocused();
+  await board(page).getByRole('searchbox',{name:'Lägg till ämne eller nivå'}).fill('ANIM1000X');const added=page.waitForResponse(matches('/api/programplaner/fordjupning'));await board(page).locator('button[data-level-code="ANIM1000X"]').click();expect((await added).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');
+  expect((await read()).distribution).toContainEqual({rowKey:'meta:diplomaWork',points:[0,0,100,0,0,0]});
+  expect((await fixture.snapshot()).specialization).toContain('ANIM1000X');await capture(page,info,'analysis-fix-specialization.png');
+});
+
+test('11: Jämna ut behåller full fördelning och Ta bort nivåer går till fördjupningsradens kryss',async({page})=>{
+  await enter(page);const pending=page.waitForResponse(matches('/api/programplaner/terminer'));await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await pending).status()).toBe(200);
+  const saved=await read();const unbalanced=saved.distribution.map((d:{rowKey:string;points:number[]})=>({rowKey:d.rowKey,points:[0,0,0,0,d.points.reduce((a,b)=>a+b,0),0]}));
+  await store(unbalanced,saved.revision);await page.reload();await navigate(page);await open(page);
+  await fix(page,'Jämna ut →');await expect(board(page).locator('.ppb-year').first()).toBeFocused();await expect(board(page)).toContainText('allt fördelat');expect((await read()).distribution).toEqual(unbalanced);
+  // Verklig fördjupningsskrivning gör ramen för stor, utan att ändra terminsfördelningen.
+  const current=await read();const refs=[...fixture.basis().specializationRefs,...['ANIM1000X','ANIM2000X','ARTI1000X'].map(code=>({subjectCode:code.slice(0,4),subjectVersion:1,itemCode:code,points:100}))];
+  const over=await fixture.request(baseURL,fixture.principal,'/api/programplaner/fordjupning',{planId:fixture.planId,expectedRevision:current.revision,specializationRefs:refs});expect(over.status).toBe(200);
+  await page.reload();await navigate(page);await open(page);await fix(page,'Ta bort nivåer →');await expect(board(page).getByRole('button',{name:'Ta bort ENGE3000X',exact:true})).toBeFocused();
+  const cleared=page.waitForResponse(matches('/api/programplaner/terminer')),removed=page.waitForResponse(matches('/api/programplaner/fordjupning'));await board(page).getByRole('button',{name:'Ta bort ENGE3000X',exact:true}).click();expect((await cleared).status()).toBe(200);expect((await removed).status()).toBe(200);expect((await fixture.snapshot()).specialization).not.toContain('ENGE3000X');
+});
+
+test('12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas',async({page},info)=>{
+  await fixture.startedEducation();await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);
+  const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});await expect(list).toHaveAttribute('aria-busy','false');await list.getByRole('button',{name:/^Öppna utbildning Syntetisk pågående SA,/u}).click();await expect(board(page)).toContainText('Allt sparat');
+  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page)).toContainText('Elevkullen har börjat.');await expect(analysis(page).locator('.pps-link')).toHaveCount(0);await capture(page,info,'analysis-readonly.png');
+});
+
+
+test('13: Ange datum går till det osparade utkastets datumfält utan att tappa lokala poäng',async({page})=>{
+  await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);
+  const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});await expect(list).toHaveAttribute('aria-busy','false');await list.getByRole('button',{name:/^Öppna utbildning Syntetisk SA utan plan,/u}).click();
+  await w(page).getByRole('button',{name:'Skapa programplan',exact:true}).click();await w(page).getByLabel('Välj underlag',{exact:true}).selectOption(fixture.catalogId);await expect(w(page)).toHaveAttribute('aria-busy','false');await w(page).getByRole('button',{name:'Fortsätt till startdatum och val',exact:true}).click();
+  await cell(page,'Åk 1 HT','Engelska Nivå 1').fill('75');await w(page).getByRole('button',{name:/^Analys/u}).click();await analysis(page).getByRole('button',{name:'Ange datum →',exact:true}).click();
+  await expect(w(page).getByLabel('Utbildningens exakta startdatum',{exact:true})).toBeFocused();await expect(cell(page,'Åk 1 HT','Engelska Nivå 1')).toHaveValue('75');expect((await fixture.plans(fixture.emptyOfferingId)).length).toBe(0);
+});

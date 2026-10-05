@@ -21,7 +21,7 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'supabase/migrations/20261003120000_phase5_programplan_terms.sql','supabase/migrations/20261003121000_phase5_worker_programplan_terms.sql','web/e2e/phase5-terms.spec.ts','web/playwright.phase5-terms.config.ts',
   'web/lib/programplan-lifecycle.ts','web/lib/server/programplan-lifecycle.ts','web/app/protected-programplan-lifecycle.tsx','web/app/protected-programplan-list.tsx','web/lib/server/http.ts','web/lib/session-channel.ts',
   'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts',
-  'web/app/protected-programplan-board.tsx','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql',
+  'web/app/protected-programplan-board.tsx','web/lib/programplan-analysis.ts','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql',
   'supabase/migrations/20261004130000_phase5_programplan_units.sql','work/pilot/verify-programplan-lifecycle-api.mjs'];
 /** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull startade för 30 dagar sedan (inom katalogens giltighet). */
 export const FUTURE_START=nextCohortStart(),STARTED_START=new Date(Date.parse(`${stockholmToday()}T12:00:00Z`)-30*864e5).toISOString().slice(0,10);

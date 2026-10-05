@@ -98,6 +98,10 @@ På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årsk
 
 **Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
+**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
+
+Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan den kan ändras. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
+
 Planen räknas som **Klar för beslut** först när allt detta stämmer:
 
 - alla nivåer är fördelade på terminer,
