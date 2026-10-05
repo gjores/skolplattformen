@@ -1,5 +1,5 @@
 import { ProgramplanContractError } from '../programplan-catalog.ts';
-import { parseProgramplan, type ProgramplanReadRequest, type ProgramplanBindRequest, type ProgramplanReplaceRequest,
+import { parseProgramplan, parseProgramplanCloneReply, type ProgramplanReadRequest, type ProgramplanBindRequest, type ProgramplanReplaceRequest,
   type ProgramplanBlocksRequest, type ProgramplanCreateRequest, type ProgramplanCloneRequest } from '../programplan-contract.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type Tx } from './db.ts';
@@ -34,8 +34,13 @@ export async function createProgramplan(tx: Tx, input: ProgramplanCreateRequest)
     'programplan_draft_created', body => body.offeringId === input.offeringId && body.version === input.expectedLatestVersion+1 && body.revision === 0 && body.status === 'utkast' && body.decidedOn === null && same(body.basisReference,input.basisReference));
 }
 export async function cloneProgramplan(tx: Tx, input: ProgramplanCloneRequest) {
-  return result(await operation(() => tx<{result: unknown}[]>`select public.phase5_clone_programplan_draft(${input.sourcePlanId},${input.expectedSourceRevision},${input.expectedLatestVersion},${tx.json(input.explicitLegacyBasis)}::jsonb) as result`),
-    'programplan_draft_cloned', body => body.id !== input.sourcePlanId && body.version === input.expectedLatestVersion+1 && body.revision === 0 && body.status === 'utkast' && body.decidedOn === null && body.basisReference !== null && (input.explicitLegacyBasis === null || same(body.basisReference,input.explicitLegacyBasis)));
+  const rows=await operation(()=>tx<{result:unknown}[]>`select public.phase5_clone_programplan_draft(${input.sourcePlanId},${input.expectedSourceRevision},${input.expectedLatestVersion},${tx.json(input.explicitLegacyBasis)}::jsonb) as result`);
+  try {
+    if(rows.length!==1)throw new AuditUnavailable();
+    const body=parseProgramplanCloneReply(rows[0].result);
+    if(body.id===input.sourcePlanId||body.version!==input.expectedLatestVersion+1||body.revision!==0||body.status!=='utkast'||body.decidedOn!==null||body.basisReference===null||(input.explicitLegacyBasis!==null&&!same(body.basisReference,input.explicitLegacyBasis)))throw new AuditUnavailable();
+    return{body,event:{action:'programplan_draft_cloned',objectType:'programplan',objectId:body.id,details:{copiedPackageUnits:body.copiedPackageUnits}}};
+  } catch {throw new AuditUnavailable();}
 }
 
 export async function replaceProgramplanBlocks(tx: Tx, input: ProgramplanBlocksRequest) {

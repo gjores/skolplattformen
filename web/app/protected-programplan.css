@@ -179,3 +179,19 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 @media(max-width:800px){.ppl-table td:nth-child(2),.ppl-table td:nth-child(3){grid-column:1/-1;overflow-wrap:anywhere}.ppl-table td:nth-child(5){justify-self:start}}
 
 .ppb-row[data-analysis-target] > th,.ppb-row[data-analysis-target] > td{box-shadow:inset 0 2px #5b8ec1,inset 0 -2px #5b8ec1;background:#eef5fc}
+
+/* Paket ligger under den gemensamma blockramen och räknas inte en gång till. */
+.ppk-toggle{display:block;margin-top:8px;color:var(--pp-accent,#2454ae);font-weight:600;text-align:left}
+.ppk{padding:16px;max-width:calc(100cqi - 24px);min-width:0;background:#f8fafc;color:#253247}
+.ppk-toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.ppk select{max-width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:7px;background:white}
+.ppk button{border:1px solid #cbd5e1;border-radius:6px;padding:7px 10px;background:white}
+.ppk button:disabled{opacity:.5}.ppk button:focus-visible,.ppk select:focus-visible{outline:2px solid #2454ae;outline-offset:2px}
+.ppk-entry{border-top:1px solid #dbe2eb;padding:12px 0}.ppk-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:14px}
+.ppk-table th,.ppk-table td{padding:6px;border-bottom:1px solid #e2e8f0;text-align:left}.ppk-table th:first-child{width:30%}.ppk-table th small{display:block;color:#64748b;font-weight:400}
+.ppk-table input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:4px;padding:8px;text-align:center;background:white}
+.ppk-add{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}.ppk-add label{display:flex;gap:4px;flex-direction:column;min-width:0;max-width:100%}
+.ppk output{display:block;margin-top:8px}.ppk-detail[hidden]{display:none}
+@media(max-width:700px){.ppk{padding:10px}.ppk-toolbar{align-items:flex-start;gap:8px}.ppk-toolbar label{max-width:100%}.ppk-table th:first-child{width:40%}.ppk-table th:nth-child(2){width:48px}.ppk-add{flex-direction:column}.ppk-add select{width:100%}.ppk-table th,.ppk-table td{padding:4px}}
+
+.ppk-mismatch{background:#fff4e4}.ppk-mismatch input{border-color:#b97818}.ppk-frame-note{color:#86510c;font-size:14px}

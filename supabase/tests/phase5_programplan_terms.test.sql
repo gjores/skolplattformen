@@ -103,7 +103,7 @@ select throws_ok($q$update public.point_plans set term_distribution='[]',revisio
 insert into term_result values(public.phase5_clone_programplan_draft('55008000-0000-4000-8000-000000000050',1,1,null));
 select is((select p.term_distribution from public.point_plans p where p.id=(select (value->>'id')::uuid from term_result where value ? 'id')),(select value->'distribution' from term_result where value ? 'distribution'),'new version copies term distribution exactly');
 select pg_temp.programplan_actor((select id from programplan_roles where name='admin'),'55008000-0000-4000-8000-000000000023','55008000-0000-4000-8000-000000000013','55008000-0000-4000-8000-000000000083');
-select throws_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'administrator cannot bypass pending delegation');
+select lives_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000050')$q$,'administrator reads scoped terms under D18');
 select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
 select throws_ok($q$select public.phase5_read_programplan_terms('55008000-0000-4000-8000-000000000053')$q$,'42501',null,'foreign school denied');
 update public.app_sessions set revoked_at=clock_timestamp() where id='55008000-0000-4000-8000-000000000081';

@@ -1,6 +1,13 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Historical ACL profile: later B/C grants are revoked only in this rollback fixture.
+do $profile$ declare signature text;begin
+ foreach signature in array array['public.phase5_replace_programplan_blocks(uuid,integer,jsonb)','public.phase5_read_programplan_unit_packages(uuid)','public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)'] loop
+  if to_regprocedure(signature) is not null then execute 'revoke execute on function '||signature||' from skolplattform_worker';end if;
+ end loop;
+end $profile$;
+
 -- Preserve the historical ACL profile only inside this rollback-only regression.
 revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb),public.phase5_change_programplan_education(uuid,integer,text,jsonb) from skolplattform_worker;
 
@@ -122,7 +129,7 @@ select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-80
 select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000999')$q$,'42501',null,'missing plan has the same scope denial');
 select throws_ok($q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000053',999,'[]')$q$,'42501',null,'foreign school denied before exposing revision conflict');
 select pg_temp.programplan_actor((select id from programplan_roles where name='admin'),'55008000-0000-4000-8000-000000000023','55008000-0000-4000-8000-000000000013','55008000-0000-4000-8000-000000000083');
-select throws_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'42501',null,'administrator gains no programplan read mandate');
+select lives_ok($q$select public.phase5_read_programplan('55008000-0000-4000-8000-000000000050')$q$,'administrator reads scoped programplan under D18');
 select throws_ok($q$select public.phase5_replace_programplan_specialization('55008000-0000-4000-8000-000000000050',2,'[]')$q$,'42501',null,'administrator gains no programplan draft mandate');
 select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55008000-0000-4000-8000-000000000021','55008000-0000-4000-8000-000000000011','55008000-0000-4000-8000-000000000081');
 select set_config('app.app_role','huvudman',true);
@@ -175,7 +182,7 @@ insert into programplan_results values('cloned',public.phase5_clone_programplan_
 select ok((select value @> '{"version":4,"revision":0,"status":"utkast","decidedOn":null,"resolution":{"decisionReady":false}}'::jsonb and value->>'id'<>'55008000-0000-4000-8000-000000000052' and value->'basisReference'=pg_temp.programplan_reference() from programplan_results where name='cloned'),'explicit legacy clone creates max+1 with the exact original selected choices');
 select is((select to_jsonb(p) from public.point_plans p where id='55008000-0000-4000-8000-000000000052'),(select value from programplan_before where name='decided'),'cloning leaves all old source ID/status/decision/choices/null-basis fields untouched');
 select is((select jsonb_agg(to_jsonb(e) order by e.id) from public.point_plan_events e where point_plan_id='55008000-0000-4000-8000-000000000052'),(select value from programplan_before where name='old_history'),'clone never copies or rewrites source decision history');
-select ok((select details=jsonb_build_object('sourcePlanId','55008000-0000-4000-8000-000000000052') and source='db' and session_id='55008000-0000-4000-8000-000000000081' from public.security_events where object_id=((select value->>'id' from programplan_results where name='cloned')::uuid) and action='programplan_draft_cloned'),'clone audit contains only server-derived source plan metadata');
+select ok((select details=jsonb_build_object('sourcePlanId','55008000-0000-4000-8000-000000000052','copiedPackageUnits',0) and source='db' and session_id='55008000-0000-4000-8000-000000000081' from public.security_events where object_id=((select value->>'id' from programplan_results where name='cloned')::uuid) and action='programplan_draft_cloned'),'clone audit contains only server-derived source plan metadata');
 
 -- A future decided pinned source is synthetic test setup, not an opened decision command.
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)

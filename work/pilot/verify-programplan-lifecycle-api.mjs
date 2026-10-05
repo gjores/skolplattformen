@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { BLOCK_ENTRIES } from './verify-programplan-api.mjs';
+import { BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES } from './verify-programplan-api.mjs';
 // 05-20/05-21: livscykel-API mot verklig byggd Worker, endast lokalt syntetiskt mål.
 // Preflight öppnar dispatchern tillfälligt och återställer exakt tidigare ACL.
 import assert from 'node:assert/strict';
@@ -44,7 +44,7 @@ export async function runLifecycleApi(o) {
   if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...sources])||git(['diff','--name-only',mark.revision,'HEAD','--',...sources]))throw Error('BLOCKED_source_build');
   report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;report.locksApplied=locks;report.unitsApplied=unitsApplied;
   const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES],expected=[...old,...LIFECYCLE_ENTRIES];
-  beforeAcl=await acl();if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
+  beforeAcl=await acl();if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
   if(o.preflight)for(const f of LIFECYCLE_ENTRIES)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);
   fixture=await createProgramplanBrowserFixture();foreign=await createProgramplanBrowserFixture();
   const started=await fixture.startedEducation();

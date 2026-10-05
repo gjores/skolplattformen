@@ -1,6 +1,6 @@
 import { defaultProgramplanChoiceBlocks } from './programplan-choice-blocks.ts';
 import { parseProgramplanBasisReference, type ProgramplanBasisReference, type ProgramplanLevelRef } from './programplan-catalog.ts';
-import { parseProgramplan, type Programplan } from './programplan-contract.ts';
+import { parseProgramplanCloneReply, parseProgramplan, type Programplan } from './programplan-contract.ts';
 import type { ProgramplanWorkspace, ProgramplanVersionSummary } from './programplan-workspace-contract.ts';
 
 // A missing historical page is different from an education without a plan.
@@ -110,7 +110,7 @@ export function programplanCommand(draft: ProgramplanDraft) {
     expectedLatestVersion: draft.expectedLatestVersion, explicitLegacyBasis: draft.sourceBound ? null : basis } };
 }
 export function programplanCommandReply(value: unknown, draft: ProgramplanDraft): Programplan {
-  const plan = parseProgramplan(value);
+  const plan = draft.kind==='clone'?parseProgramplanCloneReply(value):parseProgramplan(value);
   if (plan.offeringId !== draft.offeringId || plan.status !== 'utkast' || plan.decidedOn !== null || !plan.basisReference) throw new Error('Sparandet kunde inte bekräftas.');
   const reference = { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs };
   if (!sameProgramplanPin(plan.basisReference, reference) || !sameProgramplanLevels(plan.basisReference.specializationRefs, draft.refs)) throw new Error('Sparandet kunde inte bekräftas.');

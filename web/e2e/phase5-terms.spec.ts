@@ -2,6 +2,7 @@
 // webbläsaren injicerar bara transportfel. Ersätter 05-18:s separata terminskort.
 import { expect,test,type Page,type Response,type TestInfo } from '@playwright/test';
 import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget } from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
+import {proposeLanguagePackages,createLanguagePackage,suggestPackageDistribution} from '../lib/programplan-packages.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
 let fixture:Fixture;
@@ -48,7 +49,10 @@ test('03: föreslå fördelning fyller alla tomma rader och planen blir klar fö
   await analysis(page).getByRole('button',{name:'Tillbaka till planen',exact:true}).click();
   for(const code of ['ANIM1000X','ANIM2000X']){const search=board(page).getByRole('searchbox',{name:'Lägg till ämne eller nivå'});await search.fill(code);const added=page.waitForResponse(matches('/api/programplaner/fordjupning'));await board(page).locator(`button[data-level-code="${code}"]`).click();expect((await added).status()).toBe(200);await expect(board(page)).toContainText('Allt sparat');}
   const pending=page.waitForResponse(matches('/api/programplaner/terminer'));await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();const r=await pending;expect(r.status()).toBe(200);await paired(r);
-  await expect(board(page)).toContainText('allt fördelat');await expect(w(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await expect(board(page)).toContainText('allt fördelat');
+  const packageTerms=await read();let packageRevision=0;
+  for(const block of fixture.basis().choiceBlocks){const frame=packageTerms.distribution.find((d:{rowKey:string;points:number[]})=>d.rowKey===`block:${block.id}`)?.points;const entries=block.kind==='modernLanguage'?proposeLanguagePackages(block):[{ref:createLanguagePackage('it','modern',2,block.points),distribution:[]}];const selected=entries.map(e=>({...e,distribution:suggestPackageDistribution(frame,e.ref.levels)}));const put=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval',{planId:fixture.planId,unitId:fixture.unitId,expectedRevision:packageRevision,blockId:block.id,entries:selected});expect(put.status).toBe(200);packageRevision++;}
+  await page.reload();await enter(page);await expect(w(page).locator('.pp-status')).toContainText('Klar för beslut');
   await expect(w(page).locator('.pps-banner,.pps-ready-card,.pps-missing-card,.ppb-action')).toHaveCount(0);
   const actual=await read();const rows=new Map(actual.distribution.map((d:{rowKey:string;points:number[]})=>[d.rowKey,d.points]));
   expect(rows.get('meta:diplomaWork')).toEqual([0,0,0,0,50,50]);expect(rows.get('foundation:ENGE:1:ENGE1000X')).toEqual([50,50,0,0,0,0]);expect(rows.get('foundation:ENGE:1:ENGE2000X')).toEqual([0,0,50,50,0,0]);
@@ -147,7 +151,7 @@ test('11: Jämna ut behåller befintlig fördelning och Ta bort nivåer går til
 test('12: en skrivskyddad plan förklarar varför risker inte kan åtgärdas',async({page},info)=>{
   await fixture.startedEducation();await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);
   const list=w(page).getByRole('region',{name:'Alla programplaner',exact:true});await expect(list).toHaveAttribute('aria-busy','false');await list.getByRole('button',{name:/^Öppna utbildning Syntetisk pågående SA,/u}).click();await expect(board(page)).toContainText('Allt sparat');
-  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page)).toContainText('Elevkullen har börjat.');await expect(analysis(page).locator('.pps-link')).toHaveCount(0);await capture(page,info,'analysis-readonly.png');
+  await w(page).getByRole('button',{name:/^Analys/u}).click();await expect(analysis(page)).toContainText('Elevkullen har börjat.');await expect(analysis(page).locator('.pps-link').filter({hasNotText:'Visa paket'})).toHaveCount(0);await expect(analysis(page).getByRole('button',{name:'Visa paket →',exact:true}).first()).toBeVisible();await capture(page,info,'analysis-readonly.png');
 });
 
 

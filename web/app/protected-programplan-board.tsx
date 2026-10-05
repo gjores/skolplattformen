@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Eraser, Plus, Search, SplitSquareHorizontal, Wand2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -15,8 +15,10 @@ import { parseProgramplanTermReply, type ProgramplanTermReply } from '@/lib/prog
 import type { PlanIssue } from '@/lib/programplan-analysis.ts';
 import { programFrame, frameStatus } from '@/lib/programplan-table.ts';
 import MfaStepUpNotice from './mfa-step-up';
+import ProgramplanPackageBlock,{type SchoolPackagesProps} from './protected-programplan-packages';
 
 type Props = {
+  schoolPackages?: SchoolPackagesProps;
   focusIssue?: PlanIssue | null;
   plan: Programplan; program: CatalogProgram; options: ProgramplanOption[]; scope: string; disabled: boolean;
   /** 05-20: planen har startat eller är arkiverad; tabellen blir skrivskyddad. */ locked?: boolean; lockReason?: string | null;
@@ -40,7 +42,7 @@ const fromMap = (rows: ProgramplanTermRow[], m: Map<string, ProgramplanTermPoint
 const sameRow = (a?: ProgramplanTermPoints, b?: ProgramplanTermPoints) => (a ?? blank()).every((n, i) => n === (b ?? blank())[i]);
 
 /** Programplanen som en tabell: ämnen, programfördjupning och sex terminer. Sparas automatiskt när en rad lämnas. */
-export default function ProgramplanBoard({ focusIssue, plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onTerms }: Props) {
+export default function ProgramplanBoard({ schoolPackages, focusIssue, plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onTerms }: Props) {
   const basis = plan.basisReference!;
   const rows = useMemo(() => programplanTermRows(program, basis), [program, basis]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
@@ -192,7 +194,7 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
 
   if (loadError) return <div className="pp-alert" role="alert"><p>{loadError}</p><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button></div>;
   if (!saved) return <output className="ppb-loading">Hämtar programplanen…</output>;
-  return <PlanGrid focusIssue={focusIssue} program={program} orientationCode={basis.orientationCode} refs={basis.specializationRefs} options={options} rows={rows} values={values}
+  return <PlanGrid schoolPackages={schoolPackages} focusIssue={focusIssue} program={program} orientationCode={basis.orientationCode} refs={basis.specializationRefs} options={options} rows={rows} values={values}
     choiceBlocks={basis.choiceBlocks} onBlocks={changeBlocks} dirtyKeys={dirtyKeys} editable={editable} refsEditable={editable} locked={locked} busy={state === 'saving' || working}
     status={state === 'saving' ? 'Sparar…' : dirtyKeys.length && state === 'idle' ? 'Osparade ändringar' : state === 'idle' ? 'Allt sparat' : ''} statusTone={state === 'idle' && dirtyKeys.length ? 'dirty' : state}
     hint={lifecycleLocked ? lockReason : editable ? `Klicka i en tom terminsruta för att lägga nivåns återstående poäng där, eller skriv antal. Ändringar sparas när du lämnar raden.${anyInvalid ? ' Rader med för många poäng sparas inte förrän de är rättade.' : ''}` : plan.status !== 'utkast' ? `Version ${plan.version} är ${plan.status === 'faststalld' ? 'fastställd' : 'ersatt'} och kan inte ändras. Skapa en ny version för att ändra.` : null}
@@ -207,6 +209,7 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
 
 
 type GridProps = {
+  schoolPackages?: SchoolPackagesProps;
   choiceBlocks?: ProgramplanChoiceBlock[]; onBlocks?: (blocks: ProgramplanChoiceBlock[]) => Promise<boolean>;
   focusIssue?: PlanIssue | null;
   program: CatalogProgram; orientationCode: string | null; refs: ProgramplanLevelRef[]; options: ProgramplanOption[];
@@ -218,8 +221,9 @@ type GridProps = {
   onAdd: (option: ProgramplanOption) => void; onRemove: (ref: ProgramplanLevelRef, rowKey: string) => void;
 };
 /** Den gemensamma tabellen: årskurskort, verktyg och ämnen med sex terminer. Samma vy för sparade utkast och nya planer. */
-export function PlanGrid({ choiceBlocks, onBlocks, focusIssue, program, orientationCode, refs, options, rows, values, dirtyKeys, editable, refsEditable, locked, busy, status, statusTone, hint, children,
+export function PlanGrid({ schoolPackages, choiceBlocks, onBlocks, focusIssue, program, orientationCode, refs, options, rows, values, dirtyKeys, editable, refsEditable, locked, busy, status, statusTone, hint, children,
   onCell, onFill, onSplit, onClear, onSuggest, onRowLeave, onAdd, onRemove }: GridProps) {
+  const [expanded,setExpanded]=useState<Set<string>>(new Set());
   const [year, setYear] = useState(0), [onlyOpen, setOnlyOpen] = useState(false), [query, setQuery] = useState('');
   const invalid = (r: ProgramplanTermRow) => { const p = values.get(r.key) ?? blank(); return p.some(n => !Number.isSafeInteger(n) || n < 0) || sum(p) > r.points; };
   const frame = programFrame(program, orientationCode);
@@ -241,6 +245,7 @@ export function PlanGrid({ choiceBlocks, onBlocks, focusIssue, program, orientat
   const targetRow = target?.kind === 'row' ? target.rowKey : target?.kind === 'specialization' && target.mode === 'remove' ? rows.find(r=>r.part==='specialization')?.key : null;
   useEffect(() => {
     if (!focusIssue || handledFocus.current === focusIssue || !target || target.kind === 'start' || target.kind === 'orientation') return;
+    if(target.kind==='package'){const frame=requestAnimationFrame(()=>{setExpanded(s=>new Set([...s,target.blockId]));setOnlyOpen(false);handledFocus.current=focusIssue;});return()=>cancelAnimationFrame(frame);}
     const term = targetRow ? (values.get(targetRow)?.findIndex(n=>n>0) ?? -1) : -1;
     let focusFrame = 0;
     const frame = requestAnimationFrame(() => {
@@ -288,8 +293,9 @@ export function PlanGrid({ choiceBlocks, onBlocks, focusIssue, program, orientat
             {PROGRAMPLAN_TERMS.map((t, i) => <td key={t} className={`ppb-term ppb-y${Math.floor(i / 2)}`} aria-hidden="true"/>)}<td className="ppb-state" aria-hidden="true"/></tr>
           {list.map(row => { const p = values.get(row.key) ?? blank(), s = sum(p), bad = invalid(row), dirty = dirtyKeys.includes(row.key);
             const ref = refs.find(r => row.key === `specialization:${r.subjectCode}:${r.subjectVersion}:${r.itemCode}`);
-            return <tr key={row.key} data-row-key={row.key} data-analysis-target={targetRow === row.key || undefined} className={bad ? 'ppb-row ppb-bad' : dirty ? 'ppb-row ppb-dirty' : 'ppb-row'} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onRowLeave(); }}>
-              <th scope="row"><span>{row.name}</span><small>{row.levelName}{row.key.startsWith('meta:') || row.key.startsWith('alternative:') || row.key.startsWith('block:') ? '' : ` · ${row.key.split(':')[3]}`}</small></th>
+            const block=choiceBlocks?.find(b=>row.key===`block:${b.id}`);
+            return <Fragment key={row.key}><tr data-row-key={row.key} data-analysis-target={targetRow === row.key || undefined} className={bad ? 'ppb-row ppb-bad' : dirty ? 'ppb-row ppb-dirty' : 'ppb-row'} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onRowLeave(); }}>
+              <th scope="row"><span>{row.name}</span><small>{row.levelName}{row.key.startsWith('meta:') || row.key.startsWith('alternative:') || row.key.startsWith('block:') ? '' : ` · ${row.key.split(':')[3]}`}</small>{block&&schoolPackages&&<button type="button" className="ppk-toggle" aria-expanded={expanded.has(block.id)} aria-controls={`packages-${block.id}`} onClick={()=>setExpanded(s=>{const next=new Set(s);if(next.has(block.id))next.delete(block.id);else next.add(block.id);return next;})}>{expanded.has(block.id)?'Dölj paket':'Visa paket'} · {schoolPackages.packages?.units.filter(u=>u.selections.some(s=>s.blockId===block.id&&s.entries.length>0)).length??0}/{schoolPackages.units.length} skolor</button>}</th>
               <td className="ppb-num">{row.points}</td>
               {p.map((n, i) => <td key={i} className={`ppb-term ppb-y${Math.floor(i / 2)}`}>{editable
                 ? <input inputMode="numeric" value={n === 0 ? '' : Number.isFinite(n) ? String(n) : ''} placeholder="·" disabled={locked} aria-invalid={bad}
@@ -303,7 +309,7 @@ export function PlanGrid({ choiceBlocks, onBlocks, focusIssue, program, orientat
                   {s > 0 && <button type="button" disabled={locked} aria-label={`Töm ${row.name} ${row.levelName}`} title="Töm raden" onClick={() => onClear(row)}><Eraser size={15} aria-hidden="true"/></button>}
                   {ref && refsEditable && <button type="button" disabled={locked} aria-label={`Ta bort ${ref.itemCode}`} title="Ta bort från programfördjupningen" onClick={() => onRemove(ref, row.key)}><X size={15} aria-hidden="true"/></button>}
                 </span>}</td>
-            </tr>; })}
+            </tr>{block&&schoolPackages&&<tr hidden={!expanded.has(block.id)} className="ppk-detail"><td colSpan={9}><ProgramplanPackageBlock {...schoolPackages} block={block} frame={p} options={options} focusIssue={expanded.has(block.id)?focusIssue:null}/></td></tr>}</Fragment>; })}
           {(extra || part === 'individualChoice') && editable && choiceBlocks && onBlocks && <tr className="ppb-add-row"><td colSpan={9}>
             <ChoiceBlockEditor key={part} part={part === 'specialization' ? 'specialization' : 'individualChoice'} blocks={choiceBlocks} values={values} locked={locked || busy} onSave={onBlocks}/>
           </td></tr>}

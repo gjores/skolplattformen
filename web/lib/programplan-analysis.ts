@@ -3,14 +3,17 @@
 // ett framtida fastställande. Bara regler som går att belägga med Skolverkets underlag tas med;
 // övrigt redovisas som "Att kontrollera" i stället för att gissas.
 
-import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference } from './programplan-catalog.ts';
+import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference, ProgramplanCatalog } from './programplan-catalog.ts';
+import {programplanChoiceBlocks} from './programplan-choice-blocks.ts';
+import {programplanPackageKey,programplanPackageLevelKey,validateProgramplanPackageEntries,type ProgramplanUnitPackages} from './programplan-packages.ts';
+import {programplanLanguageName} from './programplan-languages.ts';
 import { DIPLOMA_WORK_POINTS, INDIVIDUAL_CHOICE_POINTS, frameStatus, programFrame, type ProgramFrame } from './programplan-table.ts';
 import { PROGRAMPLAN_TERMS, programplanRowSubject, programplanRowRank, type ProgramplanTermDistribution, type ProgramplanTermRow } from './programplan-terms.ts';
 
 export type IssueCategory = 'fel' | 'risk' | 'info' | 'ok';
 export type PlanPart = 'foundation' | 'programmeSpecific' | 'orientation' | 'specialization' | 'other' | 'meta';
-export type PlanIssueTarget = { kind: 'row'; rowKey: string } | { kind: 'specialization'; mode: 'add' | 'remove' } | { kind: 'balance' } | { kind: 'start' } | { kind: 'orientation' };
-export type PlanIssue = { id: string; category: IssueCategory; title: string; detail: string; part: PlanPart; rule: string; action: string | null; target?: PlanIssueTarget };
+export type PlanIssueTarget = { kind: 'row'; rowKey: string } | { kind: 'specialization'; mode: 'add' | 'remove' } | { kind: 'balance' } | { kind: 'start' } | { kind: 'orientation' } | {kind:'package';blockId:string;unitId:string;entryKey?:string;levelKey?:string};
+export type PlanIssue = { id: string; category: IssueCategory; title: string; detail: string; part: PlanPart; rule: string; action: string | null; target?: PlanIssueTarget; unitId?:string };
 
 export const categoryLabel: Record<IssueCategory, string> = { fel: 'Fel mot regelverk', risk: 'Risk', info: 'Att kontrollera', ok: 'Uppfyllt' };
 export const categoryDescription: Record<IssueCategory, string> = {
@@ -28,6 +31,9 @@ export type AnalysisInput = {
   startedOn: string | null; sourceFetched: string | null;
   /** Diagnoser från serverns kontroll av den sparade planen, redan formulerade som text. */
   serverNotes?: string[];
+  units?:{id:string;name:string}[];
+  packages?:ProgramplanUnitPackages;
+  packagesCatalog?:ProgramplanCatalog;
   basisReference?: ProgramplanBasisReference | null;
   /** Fördelning över terminer när planen är bunden till underlag. */
   terms?: { rows: ProgramplanTermRow[]; distribution: ProgramplanTermDistribution; ranks: Map<string, number> };
@@ -108,6 +114,7 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
   if (orientation) add({ id: 'orientation-ok', category: 'ok', title: 'Inriktningens ämnen följer programstrukturen', detail: `${fmt(orientation.points)} poäng enligt underlaget.`, part: 'orientation', rule: RULE_STRUCTURE, action: null });
   add({ id: 'other-ok', category: 'ok', title: 'Individuellt val och gymnasiearbete avsatta', detail: `${INDIVIDUAL_CHOICE_POINTS} + ${DIPLOMA_WORK_POINTS} poäng.`, part: 'other', rule: RULE_STRUCTURE, action: null });
 
+  issues.push(...analyseProgramplanPackages(input));
   issues.sort((a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category));
   const counts = { fel: 0, risk: 0, info: 0, ok: 0 } as Record<IssueCategory, number>;
   for (const issue of issues) counts[issue.category]++;
@@ -134,4 +141,46 @@ export function programplanLevelOrderIssues(rows: ProgramplanTermRow[], distribu
     issues.set(id, {id,category:before?'fel':'risk',title:before?`${higher.name} ${higher.levelName} börjar före ${lower.levelName}`:`${higher.name}: nivåerna överlappar`,detail:before?`${higher.levelName} börjar ${PROGRAMPLAN_TERMS[startHigh]}, före ${lower.levelName} (${PROGRAMPLAN_TERMS[startLow]}).`:`${lower.levelName} och ${higher.levelName} läses under samma termin. Kontrollera studiegången.`,part:higher.part === 'individualChoice' || higher.part === 'diplomaWork' ? 'other' : higher.part,rule:'Nivåernas ordning',action:'Flytta nivån',target:{kind:'row',rowKey:higher.key}});
   }
   return [...issues.values()];
+}
+
+/** Each school has its own offered packages; proposals are never counted as saved selections. */
+export function analyseProgramplanPackages(input:AnalysisInput):PlanIssue[]{
+  if(!input.basisReference?.choiceBlocks||!input.units)return[];
+  const blocks=programplanChoiceBlocks(input.program,input.basisReference),issues:PlanIssue[]=[];
+  for(const unit of input.units){
+    const saved=input.packages?.units.find(u=>u.unitId===unit.id),allLevels=new Map<string,Set<string>>();
+    for(const block of blocks){
+      const entries=saved?.selections.find(s=>s.blockId===block.id)?.entries??[],prefix=`packages-${unit.id}-${block.id}`;
+      const part:PlanPart=block.part==='individualChoice'?'other':block.part;
+      const add=(suffix:string,category:IssueCategory,title:string,detail:string,entryKey?:string,levelKey?:string,rule='Skolans valbara utbud')=>issues.push({id:`${prefix}-${suffix}`,unitId:unit.id,category,title,detail:`${unit.name}: ${detail}`,part,rule,action:'Visa paket',target:{kind:'package',unitId:unit.id,blockId:block.id,...(entryKey?{entryKey}:{}),...(levelKey?{levelKey}:{})}});
+      if(!saved||saved.revision===0||!entries.length)add('missing','fel',`${block.name}: paketval saknas`,'Välj och spara skolans paket. Ett förslag räknas först när det är sparat.');
+      if(entries.length===1)add('single','risk',`${block.name}: bara ett paket`,'Skolans utbud ger bara ett alternativ. Kontrollera att det möter elevernas behov.');
+      const frame=input.terms?.distribution.find(d=>d.rowKey===block.rowKey)?.points??[0,0,0,0,0,0];
+      for(const entry of entries){
+        const key=programplanPackageKey(entry.ref),levels=entry.ref.levels,distribution=new Map(entry.distribution.map(d=>[d.levelKey,d.points]));
+        try{validateProgramplanPackageEntries(input.program,input.basisReference,block.id,[entry],input.packagesCatalog);}catch{add(`invalid-${key}`,'fel',`${block.name}: paketets innehåll är ogiltigt`,'Kontrollera språk, sammanhängande nivåer, poäng och nivåer som redan finns i planen.',key);}
+        if(levels.reduce((n,l)=>n+l.points,0)!==block.points)add(`points-${key}`,'fel',`${block.name}: paketets poäng avviker`,`Varje paket ska omfatta ${fmt(block.points)} poäng.`,key);
+        const sum=[0,0,0,0,0,0];
+        for(const level of levels){const levelKey=programplanPackageLevelKey(level),p=distribution.get(levelKey)??[0,0,0,0,0,0];p.forEach((n,i)=>sum[i]+=n);if(p.reduce((n,x)=>n+x,0)!==level.points)add(`open-${key}-${levelKey}`,'fel',`${block.name}: en paketnivå saknar terminer`,`${level.itemCode} ska ha ${fmt(level.points)} poäng fördelade.`,key,levelKey);
+          const identity=`${entry.ref.languageCode??'-'}:${levelKey}`,found=allLevels.get(identity)??new Set<string>();found.add(block.id);allLevels.set(identity,found);}
+        if(sum.some((n,i)=>n!==frame[i]))add(`frame-${key}`,'fel',`${block.name}: paketet avviker från ramen`,'Paketets poäng per termin ska motsvara blockets terminsram. Ändra paketets fördelning.',key);
+        // The ladder crosses subject codes. Its array order is the accepted progression.
+        for(let lower=0;lower<levels.length;lower++)for(let higher=lower+1;higher<levels.length;higher++){
+          const lp=distribution.get(programplanPackageLevelKey(levels[lower])),hp=distribution.get(programplanPackageLevelKey(levels[higher]));const ls=lp?.findIndex(p=>p>0)??-1,hs=hp?.findIndex(p=>p>0)??-1;if(ls<0||hs<0)continue;
+          if(hs<ls)add(`order-${key}-${higher}`,'fel',`${block.name}: högre nivå börjar före lägre`,`${levels[higher].itemCode} börjar ${PROGRAMPLAN_TERMS[hs]}, före ${levels[lower].itemCode} (${PROGRAMPLAN_TERMS[ls]}).`,key,programplanPackageLevelKey(levels[higher]),'Nivåernas ordning');
+          else if(lp!.some((p,i)=>p>0&&hp![i]>0))add(`overlap-${key}-${higher}`,'risk',`${block.name}: paketnivåerna överlappar`,`${levels[lower].itemCode} och ${levels[higher].itemCode} läses samma termin. Kontrollera studiegången.`,key,programplanPackageLevelKey(levels[higher]),'Nivåernas ordning');}
+      }
+      if(block.kind==='modernLanguage')for(const lang of ['fr','es','de'])for(const start of ['MODO1000X','MODY1000X'])if(!entries.some(e=>e.ref.languageCode===lang&&e.ref.levels[0]?.itemCode===start))add(`track-${lang}-${start}`,'info',`${programplanLanguageName(lang)} ${start==='MODY1000X'?'nybörjare':'fortsättning'} saknas`,'Kontrollera skolans språkutbud för detta spår.','',undefined,'Gymnasieförordningen 4 kap. 10 §');
+      if(entries.length)add('export','info','Språkkoder behöver kontrolleras före export','Språklistan är inte avstämd mot Skolverket och UHR och används inte i export.');
+      if(block.kind==='individualChoice'){
+        const fixed=input.terms?.rows.filter(r=>r.key.includes(':IDRO:'))??[];const max=fixed.reduce((n,r)=>Math.max(n,Number(r.key.split(':').at(-1)?.match(/^IDRO(\d)/u)?.[1]??0)),0);const next=`IDRO${max+1}000X`;
+        if(!entries.some(e=>e.ref.levels.some(l=>l.subjectCode==='IDRO'&&l.itemCode===next)))add('right-sport','risk','Individuellt val: nästa nivå i idrott saknas',`${next} erbjuds inte. Eleven har rätt att läsa nästa nivå i idrott och hälsa; undantag får göras vid synnerliga skäl.`,undefined,undefined,'Gymnasieförordningen 4 kap. 7 § p. 1');
+        add('right-art','info','Individuellt val: kontrollera estetiskt ämne',`Föreskriftens ämneslista är inte avstämd. Utbudets ämnen: ${[...new Set(entries.flatMap(e=>e.ref.levels.map(l=>l.subjectCode)))].join(', ')||'inget sparat utbud'}. Rättigheten får undantas vid synnerliga skäl.`,undefined,undefined,'Gymnasieförordningen 4 kap. 7 § p. 2');
+        if(programFrame(input.program,input.orientationCode).unresolved==='total')for(const [subject,count]of [['SVEN',3],['ENGE',2]]as const){const fixedCodes=input.terms?.rows.map(r=>r.key)??[];const missing=Array.from({length:count},(_,i)=>`${subject}${i+1}000X`).filter(code=>!fixedCodes.some(k=>k.includes(code)||(subject==='SVEN'&&k.includes(code.replace('SVEN','SVEA'))))&&!entries.some(e=>e.ref.levels.some(l=>l.itemCode===code||(subject==='SVEN'&&l.itemCode===code.replace('SVEN','SVEA')))));if(missing.length)add(`right-${subject}`,'risk','Individuellt val: behörighetsnivåer saknas',`${missing.join(', ')} finns varken i studievägen eller utbudet. Kontrollera rätten till grundläggande behörighet; undantag får göras vid synnerliga skäl.`,undefined,undefined,'Gymnasieförordningen 4 kap. 7 § p. 3, 23 §');}
+      }
+    }
+    for(const [level,ids]of allLevels)if(ids.size>1){const blockId=[...ids][0];issues.push({id:`packages-${unit.id}-duplicate-${level}`,unitId:unit.id,category:'risk',title:'Samma nivå erbjuds i flera block',detail:`${unit.name}: ${level} finns i ${[...ids].join(', ')}. Kontrollera vid elevval.`,part:'meta',rule:'Elevens studiegång',action:'Visa paket',target:{kind:'package',unitId:unit.id,blockId}});}
+    if(blocks.length)issues.push({id:`packages-${unit.id}-comparability`,unitId:unit.id,category:'info',title:'Kontrollera jämförbara och överlappande nivåer',detail:`${unit.name}: Föreskriften om alternativa och jämförbara nivåer är inte avstämd. Kontrollera elevens kombination av paket och fasta nivåer.`,part:'meta',rule:'Gymnasieförordningen 4 kap. 8 §',action:'Visa paket',target:{kind:'package',unitId:unit.id,blockId:blocks[0].id}});
+  }
+  return [...new Map(issues.map(i=>[i.id,i])).values()];
 }

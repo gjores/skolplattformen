@@ -46,3 +46,5 @@ test('registermetadata tillåter varken värden, skyddsmarkörer eller felaktiga
   for (const count of [-1, 1.2, Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.deepEqual(sanitizeAuditDetails({ count }), {});
   assert.deepEqual(sanitizeAuditDetails({ fields: Array(100).fill('displayName') }), {});
 });
+
+ test('package metadata is bounded structural data and never includes language or distribution values',()=>{const input={unitId:'33000000-0000-4000-8000-000000000041',blockId:'mosp',packageRevision:2,copiedPackageUnits:1,count:6};assert.deepEqual(sanitizeAuditDetails({...input,entries:[{languageCode:'fr'}],distribution:[100],schoolName:'Hemlig'}),input);for(const value of [-1,1.2,Infinity,'2'])assert.deepEqual(sanitizeAuditDetails({packageRevision:value,copiedPackageUnits:value}),{});for(const blockId of ['name with spaces','__proto__','constructor','a'.repeat(17)])assert.deepEqual(sanitizeAuditDetails({blockId}),{});});

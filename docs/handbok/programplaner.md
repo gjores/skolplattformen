@@ -104,7 +104,13 @@ I **Programfördjupning** väljer du **Lägg till valbart block**, sedan **Lägg
 
 Töm blockets terminsrad och invänta **Allt sparat** innan du tar bort blocket eller ändrar dess poäng. Den sparade fördelningen ska aldrig försvinna när block ändras. De nationellt givna blocken för moderna språk, språkämne och naturvetenskapligt ämne har fasta namn och poäng. Deras terminsram fördelar du i tabellen. **Föreslå fördelning** lägger moderna språk jämnt i årskurs 1–2 och inriktningens samt egna fördjupningsblock i årskurs 2–3.
 
-**Nuvarande begränsning:** skolans valpaket i blocken kan ännu inte redigeras. Bundna äldre utkast får svenskrader och standardblock med bibehållna fördjupningsval och terminsfördelningar. De nya raderna behöver fördelas. Äldre fastställda och ersatta versioner behåller sin faktiska form och visas som **Ofullständig**. Skapa en ny version för att komplettera dem; originalversionen ändras inte.
+**Skolans språkpaket.** Välj **Visa paket** på blockraden och välj skola. Huvudman, rektor och skoladministratör kan välja språkpaket och fördela deras nivåer på terminer för skolor inom sitt uppdrag. Paketens poäng räknas inom blockets ram och läggs inte ovanpå planens summa. Skolor utanför uppdraget visas för läsning. Paketen kan ändras även i fastställda och ersatta versioner och för påbörjade elevkullar; arkiverade utbildningar kan bara läsas. Skoladministratören kan läsa programplanen och välja paket men kan inte ändra planens block eller fasta nivåer.
+
+För moderna språk ger **Föreslå språkpaket** sex förslag: franska, spanska och tyska, vardera för nybörjare och fortsättning. Förslaget sparas först när du väljer **Använd förslaget** eller ändrar det. Välj **Lägg till språkpaket** för ett annat språk eller en annan startnivå. Moderna språk, svenskt teckenspråk för hörande, modersmål och nationella minoritetsspråk har sina egna nivåföljder. Ett paket ska fylla blockets poäng. **Föreslå fördelning** lägger nivåerna i ordning inom blockets terminer; kontrollera resultatet. Ändrade terminsvärden sparas när du lämnar raden. Vid konflikt eller oklar sparstatus finns dina värden kvar tills du läser om skolans paket.
+
+Skolans språkval är lokala koder; koder för export till Skolverket eller UHR är ännu inte verifierade. Generella ämnespaket i valbara block kommer i nästa steg. Ta bort skolans sparade paket innan du tar bort skolan eller ändrar blockets poäng. Ny version kopierar skolornas paket. Vid kopiering till en ny elevkull följer paketvalen med efter skolvalet; om någon skolas kopiering misslyckas anges skolan i beskedet.
+
+Bundna äldre utkast får svenskrader och standardblock med bibehållna fördjupningsval och terminsfördelningar. De nya raderna behöver fördelas. Äldre fastställda och ersatta versioner behåller sin faktiska form och visas som **Ofullständig**. Skapa en ny version för att komplettera dem; originalversionen ändras inte.
 
 På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet.
 
@@ -112,9 +118,9 @@ På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årsk
 
 **Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
-**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Markeringen försvinner när raden är åtgärdad. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
+**Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Visa paket** öppnar rätt block och skola. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Markeringen försvinner när raden är åtgärdad. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
 
-Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan den kan ändras. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
+Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan planens fasta nivåer och ram kan ändras. Skolans paket kan fortfarande ändras inom ditt skoluppdrag. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
 
 Planen räknas som **Klar för beslut** först när allt detta stämmer:
 

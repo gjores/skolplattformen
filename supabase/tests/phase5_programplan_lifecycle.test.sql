@@ -1,6 +1,13 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Historical ACL profile: later B/C grants are revoked only in this rollback fixture.
+do $profile$ declare signature text;begin
+ foreach signature in array array['public.phase5_replace_programplan_blocks(uuid,integer,jsonb)','public.phase5_read_programplan_unit_packages(uuid)','public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)'] loop
+  if to_regprocedure(signature) is not null then execute 'revoke execute on function '||signature||' from skolplattform_worker';end if;
+ end loop;
+end $profile$;
+
 -- Programplan fixture: reusable synthetic setup; no grants or assertions.
 create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns void language plpgsql as $$begin
  perform set_config('app.customer_id','55008000-0000-4000-8000-000000000001',true),

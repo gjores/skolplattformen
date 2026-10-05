@@ -2,7 +2,7 @@
 export type AuditJson = null | boolean | number | string | AuditJson[] | { [key: string]: AuditJson | undefined };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const FUNCTIONS = new Set(['kundadmin','granskare','huvudman','rektor','administrator','larare','elevhalsa','elevhalsoansvarig','it','support']);
-const CODES = new Set(['no_session','session_expired','session_revoked','no_context','membership_blocked','customer_closed','mfa_required','forbidden','assignment_expired','assignment_ended','assignment_upcoming','invitation_invalid','conflict','context_changed','registry_unavailable','db_unreachable','csrf','idp_registration_failed','login_state_invalid','not_found','bad_request','internal_error','audit_unavailable','programplan_locked','programplan_in_use','programplan_start_passed']);
+const CODES = new Set(['no_session','session_expired','session_revoked','no_context','membership_blocked','customer_closed','mfa_required','forbidden','assignment_expired','assignment_ended','assignment_upcoming','invitation_invalid','conflict','context_changed','registry_unavailable','db_unreachable','csrf','idp_registration_failed','login_state_invalid','not_found','bad_request','internal_error','audit_unavailable','programplan_locked','programplan_in_use','programplan_unit_packages_in_use','programplan_block_packages_in_use','programplan_start_passed']);
 const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/elever','/api/timplaner','/api/programplaner','/api/other']);
 // Event names and field names describe operations, never the values involved.
 export const PUPIL_REGISTER_ACTIONS = [
@@ -35,9 +35,10 @@ export function sanitizeAuditDetails(input: Record<string, unknown> | undefined)
   const clean: Record<string, AuditJson> = {};
   for (const [key, value] of Object.entries(input ?? {})) {
     if (['emailMismatch','principalNamed','stepUp'].includes(key) && typeof value === 'boolean') clean[key] = value;
-    else if (['count','revokedSessions'].includes(key) && typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) clean[key] = value;
-    else if (['assignmentId','organizerId','from','to'].includes(key) && (value === null || (typeof value === 'string' && UUID.test(value)))) clean[key] = value;
+    else if (['count','revokedSessions','copiedPackageUnits','packageRevision'].includes(key) && typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) clean[key] = value;
+    else if (['assignmentId','organizerId','unitId','from','to'].includes(key) && (value === null || (typeof value === 'string' && UUID.test(value)))) clean[key] = value;
     else if (['from','to'].includes(key) && isoTime(value)) clean[key] = value;
+    else if (key === 'blockId' && typeof value === 'string' && /^[a-z][a-z0-9]{0,15}$/u.test(value) && !['constructor','prototype','__proto__'].includes(value)) clean[key] = value;
     else if (key === 'code' && typeof value === 'string' && (CODES.has(value) || /^\d{8}$/.test(value))) clean[key] = value;
     else if (key === 'accessFunction' && typeof value === 'string' && FUNCTIONS.has(value)) clean[key] = value;
     else if (key === 'status' && (value === 'active' || value === 'blocked')) clean[key] = value;

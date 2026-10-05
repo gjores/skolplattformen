@@ -45,6 +45,7 @@ export async function cleanupProgramplanFixture(db, prefix) {
     await tx`delete from public.programplan_education_receipts where customer_id=${id(1)}`;
     await tx`delete from public.organisation_events where organizer_id=${id(2)}`;
     await tx`delete from public.point_plan_events where point_plan_id in(select id from public.point_plans where organizer_id=${id(2)})`;
+    if((await tx`select to_regclass('public.programplan_unit_packages') present`)[0].present)await tx`delete from public.programplan_unit_packages where organizer_id=${id(2)}`;
     await tx`delete from public.point_plans where organizer_id=${id(2)}`;
     await tx`delete from public.assignment_units where assignment_id in(select id from public.assignments where organizer_id=${id(2)})`;
     await tx`delete from public.staff_assignment_bindings where customer_id=${id(1)}`;

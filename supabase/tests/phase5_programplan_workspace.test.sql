@@ -141,8 +141,8 @@ select pg_temp.programplan_actor('55101000-0000-4000-8000-000000000060','5510100
 select is((public.phase5_list_programplan_offerings(1)->>'count')::int,60,'HM sees both actual mandated schools');
 select lives_ok($q$select public.phase5_programplan_workspace('55101000-0000-4000-8000-000000000043',1,null)$q$,'HM reads second mandated school');
 select pg_temp.programplan_actor((select id from programplan_roles where name='admin'),'55101000-0000-4000-8000-000000000023','55101000-0000-4000-8000-000000000013','55101000-0000-4000-8000-000000000083');
-select throws_ok($q$select public.phase5_list_programplan_offerings(1)$q$,'42501',null,'administrator has no education-list right');
-select throws_ok($q$select public.phase5_programplan_workspace('55101000-0000-4000-8000-000000000045',1,null)$q$,'42501',null,'administrator cannot obtain public catalog through protected education route');
+select lives_ok($q$select public.phase5_list_programplan_offerings(1)$q$,'administrator lists scoped educations under D18');
+select lives_ok($q$select public.phase5_programplan_workspace('55101000-0000-4000-8000-000000000045',1,null)$q$,'administrator reads scoped workspace and catalog under D18');
 select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55101000-0000-4000-8000-000000000021','55101000-0000-4000-8000-000000000011','55101000-0000-4000-8000-000000000081');
 update public.app_sessions set revoked_at=clock_timestamp() where id='55101000-0000-4000-8000-000000000081';
 select throws_ok($q$select public.phase5_list_programplan_offerings(1)$q$,'42501',null,'revoked session prevents list');

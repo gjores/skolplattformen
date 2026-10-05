@@ -23,6 +23,8 @@ export type ErrorCode =
   | 'audit_unavailable'
   | 'programplan_locked'
   | 'programplan_in_use'
+  | 'programplan_unit_packages_in_use'
+  | 'programplan_block_packages_in_use'
   | 'programplan_start_passed';
 
 export function correlationId(): string {

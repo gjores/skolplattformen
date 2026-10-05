@@ -35,7 +35,7 @@ test('05-23 A målskydd tillåter exakt blockunderlaget och inga grants',()=>{
  const migration='20261004150000_phase5_programplan_choice_blocks.sql';
  assert.deepEqual(parseApplyArgs(['--migration',migration]),{migration,grants:null});
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--grants','proof.json']),/grants not allowed/);
- for(const name of ['20261004154000_phase5_programplan_unit_packages.sql','../'+migration])assert.throws(()=>parseApplyArgs(['--migration',name]),/unknown migration/);
+ for(const name of ['20261004156000_unknown.sql','../'+migration])assert.throws(()=>parseApplyArgs(['--migration',name]),/unknown migration/);
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--sync-backfill-journal','proof.json']),/only for reviewed/);
 });
 
@@ -54,3 +54,12 @@ test('B worker entrypoint requires preflight proof',()=>{
  const migration='20261004153000_phase5_worker_programplan_blocks.sql';assert.throws(()=>parseApplyArgs(['--migration',migration]),/preflight.json.*required/);
  assert.deepEqual(parseApplyArgs(['--migration',migration,'--grants','proof.json']),{migration,grants:'proof.json'});
 });
+
+ test('C foundation and grants are separate; B proof cannot open C',async()=>{
+ const {verifyPreflight}=await import('../../work/pilot/apply-programplan-migration.mjs');const {createHash}=await import('node:crypto');
+ const foundation='20261004154000_phase5_programplan_unit_packages.sql',grant='20261004155000_phase5_worker_programplan_unit_packages.sql';
+ assert.deepEqual(parseApplyArgs(['--migration',foundation]),{migration:foundation,grants:null});assert.throws(()=>parseApplyArgs(['--migration',foundation,'--grants','proof.json']),/not allowed/);
+ assert.throws(()=>parseApplyArgs(['--migration',grant]),/required/);
+ const content='reviewed';const hash=createHash('sha256').update(content).digest('hex');const proof={kind:'phase5-programplan-blocks-api',step:'c',status:'PASS',preflight:true,preflightAclRestored:true,cleanupStatus:'PASS',originalBusinessPreserved:true,complete:true,sourceHashes:Object.fromEntries([1,2,3,4,5].map(i=>['source'+i,hash]))};
+ assert.doesNotThrow(()=>verifyPreflight(proof,()=>content,proof.kind,'c'));assert.throws(()=>verifyPreflight({...proof,step:'b'},()=>content,proof.kind,'c'),/matching block step/);assert.throws(()=>verifyPreflight(proof,()=>content+'changed',proof.kind,'c'),/source changed/);
+ });

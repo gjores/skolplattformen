@@ -71,9 +71,9 @@ test('successful write reply must match actual offering, ordered values, frozen 
   assert.throws(()=>programplanCommandReply({...r,basisReference:{...basis(),specializationRefs:[]}},d));
 });
 test('create and clone accept only new server IDs and latest+1/revision0; copied source remains distinct',()=>{
-  const d=cleanDraft('clone'),r={...result(),id:'55101100-0000-4000-8000-000000000070',version:4,revision:0};assert.equal(programplanCommandReply(r,d).id,r.id);
+  const d=cleanDraft('clone'),r={...result(),copiedPackageUnits:0,id:'55101100-0000-4000-8000-000000000070',version:4,revision:0};assert.equal(programplanCommandReply(r,d).id,r.id);
   for(const change of [{id:planId},{version:3},{revision:1}])assert.throws(()=>programplanCommandReply({...r,...change},d));
-  d.kind='create';d.planId=null;assert.equal(programplanCommandReply(r,d).version,4);
+  d.kind='create';d.planId=null;const {copiedPackageUnits:_copiedPackageUnits,...created}=r;assert.equal(programplanCommandReply(created,d).version,4);
 });
 
 test('current selection uses actual draft ID beyond the history page, exact latest ID and explicit old ID',()=>{
@@ -119,7 +119,7 @@ test('05-23 frozen pin and command reply detect block changes or missing v2 form
 });
 
 test('reviewed custom block pin is accepted exactly while changed points, IDs or order are rejected',()=>{
- const d=cleanDraft('clone'),r={...result(),id:'55101100-0000-4000-8000-000000000070',version:4,revision:0};
+ const d=cleanDraft('clone'),r={...result(),copiedPackageUnits:0,id:'55101100-0000-4000-8000-000000000070',version:4,revision:0};
  d.pin.choiceBlocks=[...d.pin.choiceBlocks,{id:'pf1',kind:'specialization',points:300,name:'Valbart'}];r.basisReference.choiceBlocks=d.pin.choiceBlocks.map(b=>({...b}));
  assert.equal(programplanCommandReply(r,d).id,r.id);
  for(const change of [p=>p.basisReference.choiceBlocks.at(-1).points=100,p=>p.basisReference.choiceBlocks.at(-1).id='pf2',p=>p.basisReference.choiceBlocks.reverse()]) {const altered=structuredClone(r);change(altered);assert.throws(()=>programplanCommandReply(altered,d));}

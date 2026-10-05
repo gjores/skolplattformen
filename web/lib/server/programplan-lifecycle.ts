@@ -8,6 +8,7 @@ export function lifecycleSqlFailure(error: unknown): Deny | null {
   if (!error || typeof error !== 'object' || !('hint' in error)) return null;
   const hint = (error as { hint?: unknown }).hint, code = 'code' in error ? (error as { code?: unknown }).code : null;
   if (code === '42501' && (hint === 'programplan_started' || hint === 'programplan_archived')) return new Deny('programplan_locked', 409);
+  if (code === '55006' && (hint === 'programplan_unit_packages_in_use' || hint === 'programplan_block_packages_in_use')) return new Deny(hint,409);
   if (code === '55006' && hint === 'programplan_in_use') return new Deny('programplan_in_use', 409);
   if (code === '22023' && hint === 'programplan_start_passed') return new Deny('programplan_start_passed', 400);
   return null;

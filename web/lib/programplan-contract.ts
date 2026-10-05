@@ -128,3 +128,11 @@ export function parseProgramplan(value: unknown): Programplan {
     version: integer(r.version,2147483647,1), revision: integer(r.revision,2147483647), status: r.status,
     decidedOn: r.decidedOn === null ? null : catalogDate(r.decidedOn), catalogId: pin, basisReference, resolution };
 }
+
+export type ProgramplanCloneReply = Programplan & {copiedPackageUnits:number};
+/** Clone count belongs only to the clone command, never to a stored plan read. */
+export function parseProgramplanCloneReply(value:unknown):ProgramplanCloneReply {
+  const r=shape(value,['id','offeringId','unitId','schoolName','education','version','revision','status','decidedOn','catalogId','basisReference','resolution','copiedPackageUnits']);
+  const {copiedPackageUnits,...plan}=r;
+  return {...parseProgramplan(plan),copiedPackageUnits:integer(copiedPackageUnits,1000)};
+}

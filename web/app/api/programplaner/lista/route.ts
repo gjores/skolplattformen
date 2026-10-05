@@ -6,7 +6,7 @@ import { listProgramplanOfferings } from '../../../../lib/server/programplan-wor
 import { parseProgramplanListRequest } from '../../../../lib/programplan-workspace-contract.ts';
 
 export async function POST(request: Request): Promise<Response> {
-  return protectedRoute(request, 'programplan_offerings_listed', { mutating: false, audit: 'required', functions: ['huvudman','rektor'] }, async (_ctx, tx) => {
+  return protectedRoute(request, 'programplan_offerings_listed', { mutating: false, audit: 'required', functions: ['huvudman','rektor','administrator'] }, async (_ctx, tx) => {
     if (!assertSameOrigin(request)) throw new Deny('csrf', 403);
     let body: unknown; try { body = await request.json(); } catch { throw new Deny('bad_request', 400); }
     return listProgramplanOfferings(tx, programplanRequest(parseProgramplanListRequest, body));

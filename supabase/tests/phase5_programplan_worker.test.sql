@@ -1,6 +1,13 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
+-- Historical ACL profile: later B/C grants are revoked only in this rollback fixture.
+do $profile$ declare signature text;begin
+ foreach signature in array array['public.phase5_replace_programplan_blocks(uuid,integer,jsonb)','public.phase5_read_programplan_unit_packages(uuid)','public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)'] loop
+  if to_regprocedure(signature) is not null then execute 'revoke execute on function '||signature||' from skolplattform_worker';end if;
+ end loop;
+end $profile$;
+
 -- Preserve the historical ACL profile only inside this rollback-only regression.
 revoke execute on function public.phase5_programplan_selection(uuid,text,jsonb),public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb),public.phase5_programplan_education_status(uuid),public.phase5_read_programplan_terms(uuid),public.phase5_write_programplan_terms(uuid,integer,jsonb),public.phase5_change_programplan_education(uuid,integer,text,jsonb) from skolplattform_worker;
 

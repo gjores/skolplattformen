@@ -69,9 +69,9 @@ const DELEGATES: Partial<Record<MandateFunction, MandateFunction[]>> = {
   kundadmin: ['kundadmin', 'granskare'],
 };
 const ACTIONS: Record<MandateFunction, string[]> = {
-  huvudman: ['organization.read'],
-  rektor: ['pupil.read'],
-  administrator: ['pupil.read', 'pupil.export'],
+  huvudman: ['organization.read','programplan.read','programplan.write','programplan.packages.read','programplan.packages.write'],
+  rektor: ['pupil.read','programplan.read','programplan.write','programplan.packages.read','programplan.packages.write'],
+  administrator: ['pupil.read', 'pupil.export','programplan.read','programplan.packages.read','programplan.packages.write'],
   larare: ['pupil.read'],
   elevhalsa: ['pupil.read'],
   elevhalsoansvarig: [],
@@ -279,7 +279,11 @@ export function decideMandate(input: {
     return result('scope_denied');
   const fields = r.action.startsWith('pupil.')
     ? BASE_FIELDS
-    : r.action.startsWith('connection.')
+    : r.action.startsWith('programplan.')
+      ? r.action === 'programplan.packages.write' || r.action === 'programplan.packages.read'
+        ? ['selections','revision','unit_id','id']
+        : ['id','unit_id','offering_id','version','revision','status','basis_reference','term_distribution']
+      : r.action.startsWith('connection.')
       ? ['enabled', 'version']
       : r.action === 'organization.read'
         ? ['id', 'display_name']

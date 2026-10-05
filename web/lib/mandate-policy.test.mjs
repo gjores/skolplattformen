@@ -666,3 +666,13 @@ test('business-requires-organizer', () =>
     run(make({ organizerId: null }), read({ organizerId: null })).allowed,
     false,
   ));
+
+test('programplan scope lets HM/rektor/admin read and choose own school packages; administrator never writes plan',()=>{
+ const request=read({action:'programplan.packages.write',fields:['selections','revision'],resource:{unitId:'s1'}});
+ for(const fn of ['huvudman','rektor','administrator']){
+  const a=make({function:fn});assert.equal(run(a,request).allowed,true);assert.equal(run(a,{...request,resource:{unitId:'s2'}}).reasonCode,'scope_denied');assert.equal(run(a,read({action:'programplan.read',fields:['id','basis_reference','term_distribution'],resource:{unitId:'s1'}})).allowed,true);
+  assert.equal(run(a,read({action:'programplan.write',fields:['basis_reference'],resource:{unitId:'s1'}})).allowed,fn!=='administrator');
+ }
+ for(const fn of ['larare','support','it','kundadmin','granskare','elevhalsa'])assert.equal(run(make({function:fn}),request).allowed,false);
+ assert.equal(run(make({function:'administrator'}),{...request,fields:['personal_number']}).reasonCode,'fields_denied');
+});
