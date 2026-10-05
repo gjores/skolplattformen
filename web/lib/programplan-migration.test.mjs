@@ -38,3 +38,11 @@ test('05-23 A målskydd tillåter exakt blockunderlaget och inga grants',()=>{
  for(const name of ['20261004151000_phase5_programplan_block_commands.sql','../'+migration])assert.throws(()=>parseApplyArgs(['--migration',name]),/unknown migration/);
  assert.throws(()=>parseApplyArgs(['--migration',migration,'--sync-backfill-journal','proof.json']),/only for reviewed/);
 });
+
+
+test('05-23 A numerisk rättning är en separat migration utan grants eller journalrättning',()=>{
+ const migration='20261004150100_phase5_programplan_block_numeric.sql';
+ assert.deepEqual(parseApplyArgs(['--migration',migration]),{migration,grants:null});
+ assert.throws(()=>parseApplyArgs(['--migration',migration,'--grants','proof.json']),/grants not allowed/);
+ assert.throws(()=>parseApplyArgs(['--migration',migration,'--sync-backfill-journal','proof.json']),/only for reviewed/);
+});

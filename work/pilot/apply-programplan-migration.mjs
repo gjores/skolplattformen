@@ -18,6 +18,7 @@ const ALLOWED={
  '20261004130000_phase5_programplan_units.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
  '20261004140000_phase5_offering_unit_linkage.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
  '20261004141000_phase5_timplan_units.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},
+ '20261004150100_phase5_programplan_block_numeric.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004150000']},
  '20261004150000_phase5_programplan_choice_blocks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004120000','20261004121000','20261004122000','20261004130000','20261004140000','20261004141000']},
 };
 export function parseApplyArgs(argv){

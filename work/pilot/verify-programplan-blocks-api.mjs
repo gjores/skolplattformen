@@ -19,7 +19,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const SOURCE=['web/lib/programplan-catalog.ts','web/lib/programplan-choice-blocks.ts','web/lib/programplan-terms.ts','web/lib/programplan-terms-contract.ts','web/lib/programplan-contract.ts',
   'web/lib/protected-programplan.ts','web/lib/server/programplan-planning.ts','web/lib/server/programplan-terms.ts','web/app/protected-programplan-board.tsx','web/app/protected-programplan-flow.tsx','web/app/protected-programplan-workspace.tsx',
   'web/app/api/programplaner/skapa/route.ts','web/app/api/programplaner/lasa/route.ts','web/app/api/programplaner/terminer/route.ts','web/app/api/programplaner/terminer/lasa/route.ts',
-  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs'];
+  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs'];
 export const BLOCK_STEP_A_CASES=['built-worker','ts-sql-parity','v2-create-save-reread'];
 export function parseBlockApiArgs(args) {
   const o={step:'a',preflight:false,baseURL:'http://127.0.0.1:3059',outFile:resolve(root,'work/pilot/results/phase5-23-a-api.json')};
