@@ -69,10 +69,13 @@ test('L02: huvudmannen ändrar namn, kull och startdatum i en framtida plan',asy
 test('L04: pågående plan är låst och kan arkiveras och tas fram',async({page},info)=>{
   await fixture.startedEducation();await enter(page);await open(page,'Syntetisk pågående SA');
   await expect(w(page).locator('.ppl-lock')).toContainText('Elevkullen har börjat');
+  // Vänta tills tabellen har laddats, så att frånvaron av inmatningsfält faktiskt prövas.
+  const table=w(page).getByRole('region',{name:'Programplanen',exact:true});await expect(table).toContainText('Engelska',{timeout:30_000});await expect(table).toContainText('Elevkullen har börjat');
   for(const name of ['Ta bort','Ändra uppgifter','Föreslå fördelning'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);
   await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
   await act(page,'Arkivera');expect((await submit(page,'Arkivera')).status()).toBe(200);
   await expect(w(page).locator('.pps-head [data-phase]')).toHaveText('Arkiverad · Pågående');await expect(w(page).locator('.ppl-lock')).toContainText('arkiverad');
+  await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
   await capture(page,info,'lifecycle-archived.png');
   await w(page).getByRole('button',{name:'Alla programplaner'}).click();await expect(list(page)).toHaveAttribute('aria-busy','false',{timeout:30_000});
   await expect(row(page,'Syntetisk pågående SA')).toHaveCount(0);await list(page).getByLabel('Visa arkiverade (1)').check();await expect(row(page,'Syntetisk pågående SA')).toHaveCount(1);
@@ -81,7 +84,7 @@ test('L04: pågående plan är låst och kan arkiveras och tas fram',async({page
   await expect(w(page).locator('.pps-head [data-phase]')).toHaveText('Pågående');
   await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');await navigate(page);await open(page,'Syntetisk pågående SA');
   for(const name of ['Arkivera','Ta bort','Ändra uppgifter'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);
-  await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
+  await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
 });
 
 test('L05: konflikt, MFA och okänt svar läser om listan innan något nytt skickas',async({page})=>{
