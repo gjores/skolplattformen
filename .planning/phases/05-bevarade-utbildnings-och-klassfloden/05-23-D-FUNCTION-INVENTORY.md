@@ -88,3 +88,13 @@ Rå definitioner, helradshashar, TAP och rapporter finns lokalt under `/private/
 - `supabase/migrations/20261004156000_phase5_programplan_packages.sql`: `7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38`
 - `supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql`: `2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2`
 - `supabase/tests/phase5_programplan_unit_packages.test.sql`: `abefe06cfa9f285470b1856ee3f868ab54a01bd6a51f79199931f8f55cf2811b`
+
+## Färsk D-paritet efter foundation/grant
+
+`work/pilot/verify-programplan-choice-packages-parity.mjs` har körts mot faktiskt tillämpad 156000 på `protected`, efter samordnarens tillämpning av 157000. Den skapar ett eget syntetiskt datagraf i en yttre transaktion och kör 33 identiska referens-/block-/post-/skolkontexter genom `validateProgramplanPackageEntries` i TS och den faktiska `phase5_programplan_validate_scoped_selection` i SQL. Giltiga fall jämför även exakt upplöst nyckel, referens, nivåer, poäng och fördelning. Alla 33 fall PASS.
+
+Vektorerna omfattar alla fyra generiska typer, version 1 efter version 2, exakt versionssaknad utan fallback, global/annan skola/främmande huvudman, katalogbyte, HU:s fasta LATI1, NA:s fasta BIOG1, fasta Svenska/SvA-alternativ, fast fördjupningsnivå, fördjupningsalternativ, ämnens start/slut/annulleringsdatum, poängavvikelse, giltig/ofullständig/ramavvikande fördelning samt överflöde, främmande rad, bråk, dubblerad rad och extra refnycklar. Två C-språkfall provar obruten trappa respektive otillåtet steg. Den främmande huvudmannens globala paket ingår inte i TS:s huvudmannabundna tillgänglighetslista; SQL spärrar samma referens genom organizer-kontrollen.
+
+Paritetsprovet jämför kompletta rader i ovanstående elva tabeller plus `programplan_packages` före och efter rollback. Alla tolv antal/hashar är oförändrade. Samtliga funktioners ACL är exakt oförändrade och Worker-mängden är 21 före/efter. Egna kunder, paket, skolval och auditrader: noll efter provet. Ingen grant, migration, journal, reset eller produktkälla ändras av provet.
+
+Slutrapport: `work/pilot/results/phase5-23-d-parity.json`, status PASS, 33/33. En första partiell körning nådde 23 gröna fall och stoppades av provets egen hashfunktion, som nekade den avsiktliga bråkvektorn innan rapportering. Hashningen rättades till vanlig JSON för ogiltiga provvektorer; första FAIL-rapporten bevaras under `/private/tmp/phase5-23-d/parity-first-fail.json`. Den körningens tolv tabeller och ACL var också återställda, men den räknas inte som paritets-PASS.
