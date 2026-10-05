@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-22
 status: in_progress
-stopped_at: 05-21 genomförd och automatiskt verifierad; nästa 05-22. Mänskligt prov av programplanerna väntar på 3012. 05-25 väntar på 05-22/23; yrkesfastställande kräver 05-17
+stopped_at: Analysens åtgärdslänkar och köad terminsparning rättade; 05-21 genomförd och automatiskt verifierad; nästa 05-22. Mänskligt prov av programplanerna väntar på 3012. 05-25 väntar på 05-22/23; yrkesfastställande kräver 05-17
 last_updated: "2026-10-05"
 last_activity: 2026-10-05
 last_activity_desc: "05-21 skolval levererat: delad plan, mandat för alla skolor vid skrivning och skolval i kullkopiering. SQL 54/54, API 39/39, lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov och timplan 20/20 PASS; full SQL 1917/1918 med äldre fas 2-fel. Mänskligt prov väntar. Nästa 05-22."
-state_head: 9f80719
-worker_build_revision: 9f80719975d0cb3424ceb92daa0bf78a7378b015
+state_head: db5fb9b
+worker_build_revision: db5fb9bf58f7fda2ae394584b10146c6c5e22c11
 progress:
   total_phases: 8
   completed_phases: 3
@@ -30,7 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 
 ## Current Position
 
-**05-21, 2026-10-05:** Huvudmannen väljer programplanens skolor; alla kopplade skolor läser samma versioner. Skrivning kräver mandat för alla skolor, och kullkopiering tar med skolvalet. Se 05-21-SUMMARY/VERIFICATION. Riktad SQL 54/54, API 39/39, verkliga lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov (+1 hoppat) och timplan 20/20 PASS; Node 571/571, typ/lint/skyddat bygge/handbok PASS. Full SQL 1917/1918 är FAIL på det äldre phase2_audit-fallet 13. Vanlig 3012 kör 9f80719; tidigare syntetiska provdata är bevarade. Mänsklig begriplighet är awaiting_user. Klasser, elevplaceringar och timplaner på tillagda skolor återstår i 05-22.
+**Användarfynd/rättning, 2026-10-05:** Analysens gemensamma åtgärdslänk öppnade ett låst fördjupningsformulär med tom visningsfördelning. Varje åtgärd går nu till rätt rad, sökfält, årskurskort eller datum; skrivskydd förklaras. En sista radändring medan tidigare sparning pågick kunde bli osparad och köas nu korrekt. På `db5fb9b`: 25 körda dator-/telefonprov PASS (+1 avsiktligt hoppat datorfall), nya åtgärdsfall 10/10, cleanup 26/26, Node 571/571, typ/lint/skyddat bygge/handbok PASS. Första misslyckade provomgången bevaras. Vanlig 3012 kör det nya bygget; befintliga användarplaner bevaras och öppna flikar laddas inte om automatiskt. Se debug/programplan-analysis-actions.md och användarprovet. Mänskligt prov efter rättning är awaiting_user, nästa genomförandeplan förblir 05-22.
+
+**05-21, 2026-10-05:** Huvudmannen väljer programplanens skolor; alla kopplade skolor läser samma versioner. Skrivning kräver mandat för alla skolor, och kullkopiering tar med skolvalet. Se 05-21-SUMMARY/VERIFICATION. Riktad SQL 54/54, API 39/39, verkliga lås 3/3, browser livscykel 18/18, program 39/40 + 1/1 omprov, terminer 14/15 + 1/1 omprov (+1 hoppat) och timplan 20/20 PASS; Node 571/571, typ/lint/skyddat bygge/handbok PASS. Full SQL 1917/1918 är FAIL på det äldre phase2_audit-fallet 13. Vid skolprovet körde vanlig 3012 9f80719; det aktuella bygget är db5fb9b enligt följdrättningen ovan. Tidigare syntetiska provdata är bevarade. Mänsklig begriplighet är awaiting_user. Klasser, elevplaceringar och timplaner på tillagda skolor återstår i 05-22.
 
 **Planeringspaketet 2026-10-04–05:** [05-24–05-35](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md) omfattar sammanhållen timtabell och analys. Endast 05-24:s rena GR/IM-analys är genomförd i paketet. 05-19–05-21 har genomförandesammanfattningar; 05-22 och 05-23 har planer. Nästa programplanssteg är 05-22 → 05-23; därefter återgår arbetet till 05-25:s grind. 05-17 saknar PLAN och behöver yrkesregler levererade inför yrkesfastställande. Inga äldre wave-nummer ersätter dessa faktiska beroenden.
 

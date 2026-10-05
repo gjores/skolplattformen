@@ -1,0 +1,482 @@
+{
+  "status": "PASS",
+  "date": "2026-10-05",
+  "scope": "local-synthetic-only",
+  "buildRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+  "cases": [
+    {
+      "case": "01",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "02",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "03",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "04",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "05",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "06",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "07",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "08",
+      "project": "terms-desktop",
+      "expected": "skipped",
+      "status": "skipped",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "09",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "10",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "11",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "12",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "13",
+      "project": "terms-desktop",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "01",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "02",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "03",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "04",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "05",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "06",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "07",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "08",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "09",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "10",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "11",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "12",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    },
+    {
+      "case": "13",
+      "project": "terms-phone",
+      "expected": "passed",
+      "status": "passed",
+      "attempts": 1,
+      "errors": []
+    }
+  ],
+  "passed": 25,
+  "expectedSkipped": 1,
+  "actionMatrixVerified": true,
+  "sourceBuilds": [
+    {
+      "sourceRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+      "buildRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+      "buildRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "cleanupCount": 26,
+  "cleanupVerified": true,
+  "preservedAuditEvents": 897,
+  "preservedAuditAnchors": 27,
+  "firstRun": {
+    "status": "FAIL",
+    "cases": [
+      {
+        "case": "01",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "failed",
+        "attempts": 1,
+        "errors": [
+          "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        ]
+      },
+      {
+        "case": "02",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "failed",
+        "attempts": 1,
+        "errors": [
+          "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        ]
+      },
+      {
+        "case": "03",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "failed",
+        "attempts": 1,
+        "errors": [
+          "TimeoutError: The operation was aborted due to timeout"
+        ]
+      },
+      {
+        "case": "04",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "05",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "06",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "07",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "08",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "09",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "10",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "11",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "12",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "13",
+        "project": "terms-desktop",
+        "expected": "passed",
+        "status": "skipped",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "01",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "02",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "03",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "04",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "failed",
+        "attempts": 1,
+        "errors": [
+          "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        ]
+      },
+      {
+        "case": "05",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "06",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "07",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "08",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "09",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "failed",
+        "attempts": 1,
+        "errors": [
+          "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        ]
+      },
+      {
+        "case": "10",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "11",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "12",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      },
+      {
+        "case": "13",
+        "project": "terms-phone",
+        "expected": "passed",
+        "status": "passed",
+        "attempts": 1,
+        "errors": []
+      }
+    ],
+    "cleanupCount": 15
+  },
+  "checks": {
+    "node": "571/571 PASS",
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "limits": [
+    "Lokalt mintade sessionsbevis, inget nytt interaktivt IdP-prov.",
+    "Telefon använder iPhone/WebKit-emulering.",
+    "Fördröjt svar i 09 kommer från verklig Worker/SQL-commit.",
+    "Mänskligt prov efter rättning är awaiting_user; 05-22/23 och full fas 5 kvarstår."
+  ],
+  "ordinaryPreview": {
+    "url": "http://127.0.0.1:3012",
+    "status": "PASS",
+    "sourceRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+    "buildRevision": "db5fb9bf58f7fda2ae394584b10146c6c5e22c11",
+    "runtime": "workerd",
+    "previousClientAssetsPreserved": true
+  }
+}

@@ -1,5 +1,13 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
+## Användarfynd 2026-10-05: analysens åtgärdslänkar
+
+**FAIL i användarprov:** användaren rapporterar att ”Flytta nivån” och sannolikt alla åtgärdslänkar leder till en vy där riskerna inte går att åtgärda. De två bilderna visar ett nivåordningsfel och därefter en tabell med 0 fördelade poäng utan redigerbara terminsfält.
+
+Orsak verifierad i koden: alla analysrader anropade samma `nextAction()`, som öppnade fördjupningsformuläret (`replace`) även när den sparade terminstabellen redan var aktiv. Formuläret använde tom lokal terminsfördelning och låsta terminsfält. Klicket i sig raderade ingen sparad fördelning.
+
+Rättningen ger varje åtgärd ett eget mål i den aktuella tabellen eller datumformuläret. Skrivskyddade planer visar orsaken, och en inriktning som inte kan ändras här får ingen missvisande länk. Automatiska dator-/telefonprov och nytt mänskligt prov särredovisas i `.planning/debug/programplan-analysis-actions.md`. Mänskligt resultat efter rättning är **awaiting_user**. 05-22/23 och full fas 5 är fortfarande öppna.
+
 ## Nytt prov 2026-10-05: livscykel och tabell med framtida kull
 
 Resultat: **awaiting_user**. 05-20 låser planer vars kull har startat, så 2026-exemplen nedan kan nu bara läsas och arkiveras. Använd i stället de fyra nya utbildningarna "Användarprov framtida kull – …" (start 2027-08-17) på Syntetisk skola 11, vanlig 3012. Stegen står i 05-20-SUMMARY under Mänskligt prov. Där ingår 05-19:s tabellprov på "bundet utkast" och livscykelns Ändra uppgifter, Arkivera, Ta fram och Ta bort.
