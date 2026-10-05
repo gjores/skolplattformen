@@ -133,7 +133,7 @@ async function chooseSchools(page:Page,includeB:boolean){
   await expect(w(page).getByRole('region',{name:'Programplanen',exact:true})).toContainText('Engelska',{timeout:30_000});return response;
 }
 
-test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra',async({page},info)=>{
+test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att ändra planen',async({page},info)=>{
   const beforeB=await fixture.request(baseURL,fixture.principalB,'/api/programplaner/lista',{page:1});expect(beforeB.status).toBe(200);expect(beforeB.body.offerings.some((o:{id:string})=>o.id===fixture.offeringId)).toBe(false);
   const original=await fixture.snapshot();await enter(page);await open(page,'Syntetisk bunden SA');await chooseSchools(page,true);
   expect((await fixture.units(fixture.offeringId)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);expect(await fixture.snapshot()).toEqual(original);
@@ -147,7 +147,7 @@ test('L07: huvudmannen lägger till skola B som läser samma plan utan rätt att
   await w(page).getByRole('button',{name:/^Analys/u}).click();
   const analysis=w(page).getByRole('region',{name:'Analys av programplanen',exact:true});
   await expect(analysis).toContainText('Planen delas med skolor utanför ditt uppdrag');
-  await expect(analysis.locator('.pps-link')).toHaveCount(0);
+  await expect(analysis.locator('.pps-link').filter({hasNotText:'Visa paket'})).toHaveCount(0);await expect(analysis.getByRole('button',{name:'Visa paket →',exact:true}).first()).toBeVisible();
   await analysis.getByRole('button',{name:'Tillbaka till planen',exact:true}).click();
   await expect(w(page)).toContainText('Version 1');await expect(w(page).locator('input[inputmode="numeric"]')).toHaveCount(0);
   for(const name of ['Skolor','Ändra uppgifter','Arkivera','Ta bort','Föreslå fördelning'])await expect(w(page).getByRole('button',{name,exact:true})).toHaveCount(0);
