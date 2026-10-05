@@ -19,7 +19,8 @@ const zero=():ProgramplanTermPoints=>[0,0,0,0,0,0];
 const equal=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
 export default function ProgramplanPackageBlock({block,frame,focusIssue,options,fixedLevelKeys=[],...props}:SchoolPackagesProps&{block:ProgramplanChoiceBlock;frame:ProgramplanTermPoints;options:ProgramplanOption[];fixedLevelKeys?:string[];focusIssue?:PlanIssue|null}){
   const initialUnit=props.units.find(u=>u.inMandate)?.id??props.units[0]?.id??'';
-  const [unitId,setUnitId]=useState(initialUnit),[entries,setEntries]=useState<ProgramplanPackageEntry[]>([]),[proposal,setProposal]=useState(false);
+  const initialEntries=props.packages?.units.find(u=>u.unitId===initialUnit)?.selections.find(s=>s.blockId===block.id)?.entries??EMPTY;
+  const [unitId,setUnitId]=useState(initialUnit),[entries,setEntries]=useState<ProgramplanPackageEntry[]>(initialEntries),[proposal,setProposal]=useState(false);
   const [message,setMessage]=useState<string|null>(null),[state,setState]=useState<'idle'|'saving'|'conflict'|'unknown'|'error'|'mfa'>('idle');
   const [language,setLanguage]=useState('fr'),[start,setStart]=useState('modern:2');
   const starts=languagePackageStartOptions(block).filter(s=>s.levels.every(l=>!fixedLevelKeys.includes(programplanPackageLevelKey(l))&&(block.kind!=='specialization'||options.some(o=>o.subjectCode===l.subjectCode&&o.subjectVersion===l.subjectVersion&&o.itemCode===l.itemCode&&o.points===l.points)))), selectedStart=starts.find(s=>`${s.ladderId}:${s.startIndex}`===start)??starts[0];
