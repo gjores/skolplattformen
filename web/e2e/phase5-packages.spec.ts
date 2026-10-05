@@ -55,3 +55,17 @@ test('B10: paket kan läggas till, fördelas och sparas även på telefon utan k
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(await packages(page).evaluate(el=>{const clip=el.closest('.ppb-table-wrap')!.getBoundingClientRect();return [...el.querySelectorAll('input,select,button')].filter(c=>c.getBoundingClientRect().width>0).every(c=>{const r=c.getBoundingClientRect();return r.left>=clip.left&&r.right<=clip.right;});})).toBe(true);
  const path=info.outputPath('package-controls.png');await page.screenshot({path,fullPage:true});await info.attach('package-controls.png',{path,contentType:'image/png'});
 });
+test('C11: en sista radändring under sparning köas och osparade paket skyddas vid planändring',async({page})=>{
+ await putFrame();await enter(page);const add=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/paketval');await packages(page).getByRole('button',{name:'Lägg till paket',exact:true}).click();expect((await add).status()).toBe(200);
+ let writes=0;await page.route('**/api/programplaner/paketval',async route=>{writes++;const reply=await route.fetch();if(writes===1)await new Promise(r=>setTimeout(r,1000));await route.fulfill({response:reply});});
+ const input=packages(page).getByLabel('Franska MODO1000X, Åk 1 HT',{exact:true});await input.fill('75');await packages(page).getByLabel('Skola för Moderna språk',{exact:true}).focus();await expect(packages(page)).toContainText('Sparar…');
+ await input.fill('50');await packages(page).getByLabel('Skola för Moderna språk',{exact:true}).focus();await expect.poll(()=>writes).toBe(2);await expect(packages(page)).toContainText('Sparat');await page.unroute('**/api/programplaner/paketval');
+ const read=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval/lasa',{planId:fixture.planId});expect(read.body.units[0].revision).toBe(3);expect(read.body.units[0].selections[0].entries[0].distribution.find(d=>d.levelKey==='MODO:1:MODO1000X').points[0]).toBe(50);
+ await input.fill('101');await packages(page).getByLabel('Skola för Moderna språk',{exact:true}).focus();await expect(packages(page)).toContainText('Rätta raden först');let structureWrites=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/fordjupning')structureWrites++;});
+ await board(page).getByRole('searchbox',{name:'Lägg till ämne eller nivå'}).fill('ANIM1000X');await board(page).locator('button[data-level-code="ANIM1000X"]').click();await expect(board(page)).toContainText('Spara eller läs om skolans paket innan du ändrar planens nivåer.');expect(structureWrites).toBe(0);await expect(input).toHaveValue('101');
+});
+test('C12: tappat svar efter sparning återläses utan en andra skrivning',async({page})=>{
+ await putFrame();await enter(page);let writes=0;await page.route('**/api/programplaner/paketval',async route=>{writes++;await route.fetch();await route.fulfill({status:200,contentType:'application/json',body:'{}'});});
+ await packages(page).getByRole('button',{name:'Lägg till paket',exact:true}).click();await expect(packages(page)).toContainText('Sparat');expect(writes).toBe(1);
+ const back=await fixture.request(baseURL,fixture.principal,'/api/programplaner/paketval/lasa',{planId:fixture.planId});expect(back.status).toBe(200);expect(back.body.units[0].revision).toBe(1);expect(back.body.units[0].selections[0].entries).toHaveLength(1);
+});
