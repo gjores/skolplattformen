@@ -13,6 +13,9 @@ export type ProgramplanLifecycleCommand =
 export type ProgramplanLifecycleReply = { offeringId: string; command: ProgramplanLifecycleCommandName; lifecycle: ProgramplanLifecycle | null };
 export type ProgramplanLifecycleActions = { editDetails: boolean; changePlan: boolean; delete: boolean; archive: boolean; restore: boolean };
 
+export function programplanSchoolActions(_lifecycle: ProgramplanLifecycle, _role: 'huvudman' | 'rektor'): { add: boolean; remove: boolean } { return { add: false, remove: false }; }
+export function programplanSchoolLabel(lifecycle: ProgramplanLifecycle): string { return lifecycle.units.find(u => u.primary)!.name; }
+
 export const programplanPhaseLabel: Record<ProgramplanPhase, string> = { framtida: 'Framtida', pagaende: 'Pågående', avslutad: 'Avslutad', okand: 'Start okänd' };
 export const programplanLifecycleEvent: Record<ProgramplanLifecycleCommandName, string> = {
   delete: 'programplan_education_deleted', archive: 'programplan_education_archived', restore: 'programplan_education_restored', update: 'programplan_education_updated',

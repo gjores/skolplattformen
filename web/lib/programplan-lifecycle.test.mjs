@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { programplanPhaseAt, addCalendarYears, stockholmToday, nextCohortStart, startsAfter, programplanLifecycleActions, programplanLockReason,
-  parseProgramplanLifecycle, parseProgramplanLifecycleCommand, parseProgramplanLifecycleReply, programplanPhaseLabel } from './programplan-lifecycle.ts';
+  parseProgramplanLifecycle, parseProgramplanLifecycleCommand, parseProgramplanLifecycleReply, programplanPhaseLabel, programplanSchoolActions, programplanSchoolLabel } from './programplan-lifecycle.ts';
 
 const id = '55102000-0000-4000-8000-000000000001', unit = '55102000-0000-4000-8000-000000000002';
 const lifecycle = (over = {}) => ({ phase: 'framtida', startsOn: '2027-08-17', archived: false, revision: 0, units: [{ id: unit, name: 'Syntetisk skola', primary: true, inMandate: true }], ...over });
@@ -84,4 +84,40 @@ test('gammal borttagning och ändring i organisation-store skriver inte till off
     await assert.rejects(() => updateOfferingRow(id, { name: 'Ny' }), { message: OFFERING_LIFECYCLE_ONLY });
     assert.deepEqual(tables, []);
   } finally { installClientForTests(null); }
+});
+
+const schoolB = '55102000-0000-4000-8000-000000000003';
+const shared = (over = {}) => lifecycle({ units: [...lifecycle().units, { id: schoolB, name: 'Skola B', primary: false, inMandate: true }], ...over });
+test('delad plan kräver alla skolors mandat vid varje ändring, men får läsas', () => {
+  const partial = shared({ units: [...lifecycle().units, { id: schoolB, name: 'Skola B', primary: false, inMandate: false }] });
+  assert.equal(programplanLifecycleActions(partial, 'rektor').changePlan, false);
+  assert.equal(programplanLifecycleActions(partial, 'huvudman').delete, false);
+  assert.equal(programplanLifecycleActions(partial, 'huvudman').archive, false);
+  assert.equal(programplanLifecycleActions(partial, 'huvudman').restore, false);
+  assert.equal(programplanLockReason(partial), 'Planen delas med skolor utanför ditt uppdrag och kan bara läsas');
+  assert.equal(programplanLifecycleActions(shared(), 'rektor').changePlan, true);
+  assert.equal(programplanSchoolLabel(shared()), 'Syntetisk skola + 1');
+});
+test('skolval: huvudman lägger till även efter start, tar bort bara framtida', () => {
+  assert.deepEqual(programplanSchoolActions(shared(), 'huvudman'), { add: true, remove: true });
+  for (const phase of ['pagaende', 'avslutad', 'okand']) assert.deepEqual(programplanSchoolActions(shared({ phase }), 'huvudman'), { add: true, remove: false });
+  assert.deepEqual(programplanSchoolActions(shared({ archived: true }), 'huvudman'), { add: false, remove: false });
+  assert.deepEqual(programplanSchoolActions(shared(), 'rektor'), { add: false, remove: false });
+});
+test('strikt units-kommando: 1–100 unika skolor, bara unitIds i details', () => {
+  const command = { offeringId: id, expectedRevision: 4, command: 'units', details: { unitIds: [unit, schoolB] } };
+  assert.deepEqual(parseProgramplanLifecycleCommand(command), command);
+  const ids = Array.from({ length: 100 }, (_, n) => `55102000-0000-4000-8000-${String(n).padStart(12, '0')}`);
+  assert.equal(parseProgramplanLifecycleCommand({ ...command, details: { unitIds: ids } }).details.unitIds.length, 100);
+  for (const details of [{ unitIds: [] }, { unitIds: [unit, unit.toUpperCase()] }, { unitIds: [...ids, schoolB] }, { unitIds: ['x'] }, { unitIds: [unit], organizerId: id }, { unitIds: [, unit] }])
+    assert.throws(() => parseProgramplanLifecycleCommand({ ...command, details }));
+});
+test('units-svar kvitterar exakt skolurval och revision, inte en annan sparning', () => {
+  const expected = { offeringId: id, expectedRevision: 4, command: 'units', details: { unitIds: [schoolB, unit] } };
+  const reply = { offeringId: id, command: 'units', lifecycle: shared({ revision: 5 }) };
+  assert.deepEqual(parseProgramplanLifecycleReply(reply, expected), reply);
+  assert.throws(() => parseProgramplanLifecycleReply({ ...reply, lifecycle: lifecycle({ revision: 5 }) }, expected));
+  assert.throws(() => parseProgramplanLifecycleReply({ ...reply, lifecycle: shared({ revision: 4 }) }, expected));
+  const units = Array.from({ length: 100 }, (_, n) => ({ id: `55102000-0000-4000-8000-${String(n).padStart(12, '0')}`, name: 'Skola', primary: n === 0, inMandate: true }));
+  assert.equal(parseProgramplanLifecycle(lifecycle({ units })).units.length, 100);
 });
