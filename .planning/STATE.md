@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-24
+current_plan: 05-25
 status: in_progress
-stopped_at: 05-20 genomförd (livscykel); mänskligt prov 05-19/05-20 väntar på 3012 med framtida provdata; 05-24–05-35 planerade
+stopped_at: 05-24 genomförd (GR/IM-analysmotor som ren funktion, 25/25 nodprov; ingen vy eller API kopplad); nästa 05-25. Mänskligt prov 05-19/05-20 väntar på 3012
 last_updated: "2026-10-05"
 last_activity: 2026-10-05
-last_activity_desc: "05-20 genomförd: programplanens status (framtida/pågående/avslutad/start okänd) räknas i SQL, framtida plan kan ändras och tas bort, övriga bara arkiveras, direkta tabellskrivningar stängda. SQL 1863/1864 (känt fas 2-fall), API 29+48+31, browser 12+40+15+20 PASS på ae41a03. Framtida provdata på 3012; mänskligt prov väntar."
+last_activity_desc: "05-24 genomförd: regelförankrad timplananalys för grundskola och IM (web/lib/timplan-analysis.ts). HKK 40 timmar gemensamt för låg/mellan, NO/SO utan dubbelräkning, IM räknar bara profilklassificerad undervisning, blocksDecision skilt från kategori. 25/25 nodprov, tsc och oxlint PASS. Syntetiska data; ingen app-, SQL- eller verklig anslutning."
 state_head: ae41a03
 worker_build_revision: ae41a039bb2c4f737c84f68036bf98b170fa12a2
 progress:
