@@ -76,8 +76,13 @@ async function saveHours(page:Page,plan:GymTimplan,row:GymTimplanRow,hours:GymTi
   await expect(dialog).toHaveCount(0);return readPlan(plan.id,session);
 }
 async function capture(page:Page,info:TestInfo,name:string) {
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  const viewport=page.viewportSize();if(!viewport)throw Error('Browserprovet kräver en uttrycklig viewport.');
+  const geometry=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,innerWidth,
+    visualWidth:visualViewport?.width??null,scrollContainers:[...document.querySelectorAll('.gt-table-scroll')].map(element=>({clientWidth:element.clientWidth,scrollWidth:element.scrollWidth,contain:getComputedStyle(element).contain}))}));
+  await info.attach(`${name}-geometry.json`,{body:JSON.stringify({...geometry,viewportWidth:viewport.width}),contentType:'application/json'});
   const path=info.outputPath(`${name}.png`);await page.screenshot({path,fullPage:true});await info.attach(`${name}.png`,{path,contentType:'image/png'});
+  expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.clientWidth+1);
+  expect(geometry.innerWidth).toBeLessThanOrEqual(viewport.width+1);
 }
 function noPackages(page:Page) {
   const attempts:string[]=[];page.on('request',request=>{const pathname=new URL(request.url()).pathname;

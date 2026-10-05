@@ -91,10 +91,16 @@ select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pron
  where n.nspname='public' and p.proname=any(array['phase5_gym_timplan_scope','phase5_gym_timplan_source','phase5_gym_timplan_require_source','phase5_gym_timplan_audit','phase5_gym_timplan_event_actor','phase5_gym_timplan_guard','phase5_gym_timplan_cells_guard','phase5_gym_timplan_matrix_guard','phase5_gym_timplan_receipt_guard','phase5_gym_timplan_result'])
  and (exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl where acl.grantee=0 and acl.privilege_type='EXECUTE')
  or has_function_privilege('anon',p.oid,'execute') or has_function_privilege('authenticated',p.oid,'execute') or has_function_privilege('skolplattform_worker',p.oid,'execute'))),'all gym helpers closed to PUBLIC, anon, authenticated and Worker');
-select ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
- where n.nspname='public' and p.proname=any(array['phase5_gym_timplan_underlag','phase5_create_gym_timplan','phase5_read_gym_timplan','phase5_write_gym_timplan_row'])
- and (exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl where acl.grantee=0 and acl.privilege_type='EXECUTE')
- or has_function_privilege('anon',p.oid,'execute') or has_function_privilege('authenticated',p.oid,'execute') or has_function_privilege('skolplattform_worker',p.oid,'execute'))),'foundation RPCs remain closed before real Worker preflight');
+with gym_entries(signature) as (values
+ ('public.phase5_gym_timplan_underlag(uuid)'),
+ ('public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)'),
+ ('public.phase5_read_gym_timplan(uuid)'),
+ ('public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)'))
+select ok(count(p.oid)=4 and count(*) filter(where has_function_privilege('skolplattform_worker',p.oid,'execute')) in (0,4)
+ and bool_and(not exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl where acl.grantee=0 and acl.privilege_type='EXECUTE')
+ and not has_function_privilege('anon',p.oid,'execute') and not has_function_privilege('authenticated',p.oid,'execute')),
+ 'four exact gym RPCs stay closed to clients; Worker is wholly closed or has the complete four-entry grant')
+from gym_entries e left join pg_proc p on p.oid=to_regprocedure(e.signature);
 select ok(not has_table_privilege('skolplattform_worker','public.gym_timplan_receipts','SELECT,INSERT,UPDATE,DELETE,TRUNCATE')
  and not exists(select 1 from pg_roles where rolname='skolplattform_worker' and (rolsuper or rolbypassrls))
  and (select count(*)=3 from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
