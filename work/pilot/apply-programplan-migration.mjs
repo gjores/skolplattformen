@@ -14,7 +14,8 @@ const BASE=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...ED
 const ALLOWED={
  '20261004151000_phase5_programplan_block_commands.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004150000','20261004150100']},
  '20261004152000_phase5_programplan_shape_upgrade.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004151000']},
- '20261004153000_phase5_worker_programplan_blocks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:true,preflightKind:'phase5-programplan-blocks-api',dependencies:['20261004151000','20261004152000']},
+ '20261004152100_phase5_programplan_block_clone_identity.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false,dependencies:['20261004151000','20261004152000']},
+ '20261004153000_phase5_worker_programplan_blocks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:true,preflightKind:'phase5-programplan-blocks-api',dependencies:['20261004151000','20261004152000','20261004152100']},
  '20261004120000_phase5_programplan_lifecycle.sql':{before:BASE,grants:false},
  '20261004121000_phase5_worker_programplan_lifecycle.sql':{before:BASE,grants:true,preflightKind:'phase5-programplan-lifecycle-api'},
  '20261004122000_phase5_programplan_lifecycle_locks.sql':{before:[...BASE,...LIFECYCLE_ENTRIES],grants:false},

@@ -24,7 +24,7 @@ const SOURCE_PATHS=['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs',
   'supabase/migrations/20261004120000_phase5_programplan_lifecycle.sql','supabase/migrations/20261004121000_phase5_worker_programplan_lifecycle.sql','web/e2e/phase5-lifecycle.spec.ts','web/playwright.phase5-lifecycle.config.ts',
   'web/app/protected-programplan-board.tsx','web/lib/programplan-analysis.ts','supabase/migrations/20261004122000_phase5_programplan_lifecycle_locks.sql',
   'supabase/migrations/20261004130000_phase5_programplan_units.sql','work/pilot/verify-programplan-lifecycle-api.mjs',
-  'web/lib/programplan-choice-blocks.ts','supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','web/e2e/phase5-blocks.spec.ts','web/playwright.phase5-blocks.config.ts','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql'];
+  'web/lib/programplan-choice-blocks.ts','supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','web/e2e/phase5-blocks.spec.ts','web/playwright.phase5-blocks.config.ts','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql'];
 /** Provdatum relativt dagens datum i Europe/Stockholm: framtida kull nästa år, pågående kull startade för 30 dagar sedan (inom katalogens giltighet). */
 export const FUTURE_START=nextCohortStart(),STARTED_START=new Date(Date.parse(`${stockholmToday()}T12:00:00Z`)-30*864e5).toISOString().slice(0,10);
 export function programplanBrowserBuildProof(mark,sourceRevision,dirty,ancestor,health) {
@@ -138,6 +138,13 @@ export async function createProgramplanBrowserFixture() {
         await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;
           await tx`update public.point_plans set catalog_id=${catalogId},basis_reference=${tx.json(legacyBasis())},specialization=array['ENGE3000X'],status=${status}::public.plan_status,term_distribution=${tx.json(distribution)},decided_on=${status==='utkast'?null:'2026-09-10'}::date where id=${id(planNumber)} and organizer_id=${id(2)}`;
         });return {planId:id(planNumber),offeringId:id(target==='main'?40:41)};
+      },
+      async seedHistoricalBlocks(){
+        await assertTarget('protected');const reference=basis();reference.choiceBlocks.push({id:'history1',kind:'specialization',points:100,name:'Historiskt valbart block'});
+        await db.begin(async tx=>{await owned(tx);await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code) values(${id(49)},${id(2)},${id(30)},'gymnasium','Syntetisk blockhistorik','Syntetisk framtida kull','SA25','SABEP')`;await tx`set local session_replication_role=replica`;await tx`insert into public.point_plans(id,organizer_id,offering_id,version,specialization,catalog_id,basis_reference,status,decided_on) values(${id(59)},${id(2)},${id(49)},1,array['ENGE3000X'],${catalogId},${tx.json(reference)},'faststalld','2026-09-10')`;});return{planId:id(59),offeringId:id(49)};
+      },
+      async sealOwnedPlan(plan){
+        await assertTarget('protected');await db.begin(async tx=>{await owned(tx);const[row]=await tx`select organizer_id::text from public.point_plans where id=${plan}`;if(row?.organizer_id!==id(2))throw Error('REFUSED: foreign fixture plan');await tx`set local session_replication_role=replica`;await tx`update public.point_plans set status='faststalld',decided_on='2026-09-10' where id=${plan} and organizer_id=${id(2)}`;});
       },
       async seedBoundLocked(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;await tx`update public.point_plans set status='faststalld',decided_on='2026-09-10' where id=${id(50)} and organizer_id=${id(2)}`;});},
       async auditFailure(source='worker',action='programplan_specialization_changed'){

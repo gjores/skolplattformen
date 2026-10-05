@@ -20,9 +20,9 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 const SOURCE=['web/lib/programplan-catalog.ts','web/lib/programplan-choice-blocks.ts','web/lib/programplan-terms.ts','web/lib/programplan-terms-contract.ts','web/lib/programplan-contract.ts',
   'web/lib/protected-programplan.ts','web/lib/server/programplan-planning.ts','web/lib/server/programplan-terms.ts','web/app/protected-programplan-board.tsx','web/app/protected-programplan-flow.tsx','web/app/protected-programplan-workspace.tsx',
   'web/app/api/programplaner/skapa/route.ts','web/app/api/programplaner/lasa/route.ts','web/app/api/programplaner/terminer/route.ts','web/app/api/programplaner/terminer/lasa/route.ts',
-  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs','web/app/api/programplaner/block/route.ts','web/lib/programplan-analysis.ts','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql'];
+  'supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql','supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql','work/pilot/verify-programplan-blocks-api.mjs','work/pilot/phase5-programplan-browser-fixtures.mjs','web/app/api/programplaner/block/route.ts','web/lib/programplan-analysis.ts','supabase/migrations/20261004151000_phase5_programplan_block_commands.sql','supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql','supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql','supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql'];
 export const BLOCK_STEP_A_CASES=['built-worker','ts-sql-parity','v2-create-save-reread'];
-export const BLOCK_STEP_B_CASES=['built-worker','blocks-save-reread','blocks-cas','block-id-retired','shape-upgrade','clone-upgrades-legacy','mfa-csrf-session','audit-rollback','direct-clients-closed','blocks-denied'];
+export const BLOCK_STEP_B_CASES=['built-worker','blocks-save-reread','blocks-cas','block-id-retired','shape-upgrade','clone-upgrades-legacy','clone-keeps-historical-block-id','mfa-csrf-session','audit-rollback','direct-clients-closed','blocks-denied'];
 export function parseBlockApiArgs(args) {
   const o={step:'a',preflight:false,baseURL:'http://127.0.0.1:3059',outFile:resolve(root,'work/pilot/results/phase5-23-a-api.json')};
   for(let i=0;i<args.length;i++) {
@@ -197,8 +197,8 @@ async function runBlockStepB(o) {
     });
     await run('shape-upgrade',async c=>{
       const [row]=await db`select count(*)::int n from public.point_plans where status='utkast' and basis_reference is not null and not basis_reference ? 'choiceBlocks'`;
-      const [journal]=await db`select count(*)::int n from supabase_migrations.schema_migrations where version in('20261004151000','20261004152000')`;
-      check(c,'two applied non-grant B migrations and no remaining bound legacy drafts',row.n===0&&journal.n===2);
+      const [journal]=await db`select count(*)::int n from supabase_migrations.schema_migrations where version in('20261004151000','20261004152000','20261004152100')`;
+      check(c,'three applied non-grant B migrations and no remaining bound legacy drafts',row.n===0&&journal.n===3);
       const [closed]=await db`select not exists(select 1 from unnest(array['anon','authenticated','skolplattform_worker','service_role']) r where has_table_privilege(r,'public.programplan_shape_upgrades','select,insert,update,delete')) closed`;
       check(c,'closed upgrade before-values log',closed.closed);
       const before=fixture.legacyBasis(),[upgraded]=await db`select public.phase5_programplan_upgrade_shape(${db.json(before)}) basis,public.phase5_programplan_upgrade_terms(${db.json(before)},'[{"rowKey":"meta:individualChoice","points":[0,0,50,50,50,50]}]'::jsonb) terms`;
@@ -210,6 +210,19 @@ async function runBlockStepB(o) {
       check(c,'legacy source cloned into current shape and audited',await success(cloned,fixture.principal,'programplan_draft_cloned',cloneId)&&Array.isArray(cloned.body.basisReference.choiceBlocks)&&cloned.body.revision===0);
       if(cloneId){const read=await call(fixture.principal,'terminer/lasa',{planId:cloneId});check(c,'clone keeps exact old IV points on new frame',read.status===200&&read.body.distribution.some(r=>r.rowKey==='block:iv1'&&JSON.stringify(r.points)==='[0,0,50,50,50,50]')&&!read.body.distribution.some(r=>r.rowKey==='meta:individualChoice'));}
       check(c,'sealed source entire row and history unchanged',JSON.stringify(await fixture.snapshot(fixture.legacyPlanId))===JSON.stringify(before)&&JSON.stringify(await fixture.history(fixture.legacyPlanId))===JSON.stringify(history));
+    });
+    await run('clone-keeps-historical-block-id',async c=>{
+      const source=await fixture.seedHistoricalBlocks(),before=await fixture.snapshot(source.planId),history=await fixture.history(source.planId);
+      const first=await call(fixture.principal,'klona',{sourcePlanId:source.planId,expectedSourceRevision:before.revision,expectedLatestVersion:1,explicitLegacyBasis:null});
+      check(c,'v2 inherits exact source identity with paired audit',await success(first,fixture.principal,'programplan_draft_cloned',first.body?.id));
+      const retired=await call(fixture.principal,'block',command(first.body,first.body.basisReference.choiceBlocks.filter(b=>b.id!=='history1')));
+      check(c,'v2 removes identity with paired audit',await success(retired,fixture.principal,'programplan_blocks_changed',first.body.id));
+      await fixture.sealOwnedPlan(first.body.id);
+      const cloned=await call(fixture.principal,'klona',{sourcePlanId:source.planId,expectedSourceRevision:before.revision,expectedLatestVersion:2,explicitLegacyBasis:null});
+      check(c,'v3 from v1 keeps historical block after v2 retirement',await success(cloned,fixture.principal,'programplan_draft_cloned',cloned.body?.id)&&cloned.body.version===3&&cloned.body.basisReference.choiceBlocks.some(b=>b.id==='history1'));
+      const edited=await call(fixture.principal,'block',command(cloned.body,cloned.body.basisReference.choiceBlocks.map(b=>b.id==='iv1'?{...b,name:'Individuellt val i ny version'}:b)));
+      check(c,'other blocks editable while inherited identity retained',await success(edited,fixture.principal,'programplan_blocks_changed',cloned.body.id));
+      check(c,'sealed v1 entire row and history unchanged',JSON.stringify(before)===JSON.stringify(await fixture.snapshot(source.planId))&&JSON.stringify(history)===JSON.stringify(await fixture.history(source.planId)));
     });
     await run('mfa-csrf-session',async c=>{
       const plan=await current(),body=command(plan,plan.basisReference.choiceBlocks);
