@@ -243,7 +243,8 @@ export function PlanGrid({ schoolPackages, choiceBlocks, onBlocks, focusIssue, p
   const unresolved = [...program.foundation, ...program.programmeSpecific, ...(program.orientations.find(o => o.code === orientationCode)?.subjects ?? [])].filter(s => (s.optional || !s.levels.length || s.subjectVersion === null)
     && !rows.some(r => r.key.startsWith('alternative:') && r.key.split(':').slice(2).join(':').split('+').some(ref => ref.split(':')[0] === s.code))
     && !rows.some(r => r.key === `block:${({ MOSP: 'mosp', SPRK: 'sprk', NAVE: 'nave' } as Record<string, string>)[s.code]}`));
-  const shownRows = onlyOpen ? rows.filter(r => openRows.includes(r) || dirtyKeys.includes(r.key)) : rows;
+  const packageChanges=useHasUnsaved(schoolPackages?`packages-${schoolPackages.scope}-${schoolPackages.planId}-`:'packages-none-');
+  const shownRows = onlyOpen ? rows.filter(r => openRows.includes(r) || dirtyKeys.includes(r.key) || packageChanges&&r.key.startsWith('block:')) : rows;
   const gridRef = useRef<HTMLElement | null>(null), handledFocus = useRef<PlanIssue | null>(null);
   const target = focusIssue?.target;
   const targetRow = target?.kind === 'row' ? target.rowKey : target?.kind === 'specialization' && target.mode === 'remove' ? rows.find(r=>r.part==='specialization')?.key : null;
