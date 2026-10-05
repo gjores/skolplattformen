@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { parseProgramplanOfferingList, type ProgramplanEducationSummary, type ProgramplanOfferingRow } from '@/lib/programplan-workspace-contract.ts';
 import { LifecycleBadge } from './protected-programplan-lifecycle';
+import { programplanSchoolLabel } from '@/lib/programplan-lifecycle.ts';
 import { parseProgramplanSelection, type ProgramplanSelection } from '@/lib/programplan-education-contract.ts';
 
 type Props = {
@@ -51,11 +52,11 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
   useEffect(() => { mounted.current = true; const counter = generation; queueMicrotask(() => { if (mounted.current) void load(); }); return () => { mounted.current = false; counter.current++; }; }, [load]);
 
   const names: Names = Object.fromEntries((selection?.programs ?? []).map(p => [p.programRef.code, { name: p.name, orientations: Object.fromEntries(p.orientations.map(o => [o.code, o.name])) }]));
-  const units = [...new Map((offerings ?? []).map(o => [o.unitId, o.schoolName])).entries()];
+  const units = [...new Map((offerings ?? []).flatMap(o => o.lifecycle.units.filter(u => u.inMandate).map(u => [u.id, u.name] as const))).entries()];
   const q = query.trim().toLocaleLowerCase('sv');
   // Arkiverade planer är dolda tills Visa arkiverade väljs (filtret i klienten, statusen från servern).
   const archivedCount = (offerings ?? []).filter(o => o.lifecycle.archived).length, visible = (offerings ?? []).filter(o => showArchived || !o.lifecycle.archived);
-  const shown = visible.filter(o => (!unit || o.unitId === unit) && (!q || `${o.name} ${o.localCode ?? ''} ${o.cohort} ${o.schoolName} ${names[o.programCode]?.name ?? o.programCode}`.toLocaleLowerCase('sv').includes(q)));
+  const shown = visible.filter(o => (!unit || o.lifecycle.units.some(u => u.id === unit && u.inMandate)) && (!q || `${o.name} ${o.localCode ?? ''} ${o.cohort} ${o.lifecycle.units.map(u => u.name).join(' ')} ${names[o.programCode]?.name ?? o.programCode}`.toLocaleLowerCase('sv').includes(q)));
   const programLabel = (o: ProgramplanEducationSummary) => {
     const program = names[o.programCode];
     const orientation = o.orientationCode ? program?.orientations[o.orientationCode] ?? o.orientationCode : null;
@@ -81,7 +82,7 @@ export default function ProgramplanList({ disabled, onSecurityFailure, onOpen, o
         : shown.length === 0 ? <div className="ppl-empty"><p>Ingen utbildning matchar sökningen.</p></div>
         : <table className="ppl-table"><thead><tr><th scope="col">Utbildning</th><th scope="col">Program och inriktning</th><th scope="col">Elevkull</th><th scope="col">Programplan</th><th scope="col">Status</th><th scope="col"><span className="pp-sr">Åtgärder</span></th></tr></thead>
           <tbody>{shown.map(o => { const s = status(o); return <tr key={o.id}>
-            <th scope="row"><button type="button" className="ppl-name" disabled={locked} aria-label={`Öppna utbildning ${o.name}, ${o.cohort}, ${o.schoolName}`} onClick={() => onOpen(o.id)}>{o.name}</button><small>{[o.localCode, units.length > 1 ? o.schoolName : null].filter(Boolean).join(' · ')}</small></th>
+            <th scope="row"><button type="button" className="ppl-name" disabled={locked} aria-label={`Öppna utbildning ${o.name}, ${o.cohort}, ${o.schoolName}`} onClick={() => onOpen(o.id)}>{o.name}</button><small>{[o.localCode, units.length > 1 || o.lifecycle.units.length > 1 ? programplanSchoolLabel(o.lifecycle) : null].filter(Boolean).join(' · ')}</small></th>
             <td>{programLabel(o)}</td><td>{o.cohort}</td>
             <td><span className={`ppl-status ppl-${s.tone}`}>{s.text}</span></td>
             <td><LifecycleBadge lifecycle={o.lifecycle}/></td>

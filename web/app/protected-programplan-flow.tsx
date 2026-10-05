@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges, confirmDiscard } from '@/lib/unsaved-changes.tsx';
-import { parseProgramplanOfferingList, type ProgramplanEducationSummary } from '@/lib/programplan-workspace-contract.ts';
+import { parseProgramplanOfferingList, type ProgramplanOfferingRow } from '@/lib/programplan-workspace-contract.ts';
 import { parseProgramplanSelection, parseProgramplanEducationCreated, type ProgramplanSelection, type ProgramplanSelectionRequest, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import { educationStatusForCommand, newEducationCommand } from '@/lib/protected-programplan-education.ts';
 import { programplanOptions, programplanLevelName } from '@/lib/protected-programplan.ts';
@@ -19,7 +19,7 @@ import { startsAfter, stockholmToday } from '@/lib/programplan-lifecycle.ts';
 type Props = { onOpen: (id: string, catalogId: string | null, planId?: string) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new' };
 const empty: ProgramplanSelectionRequest = { unitId: null, catalogId: null, programRef: null };
 export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope, initialMode = 'existing' }: Props) {
-  const [data,setData]=useState<ProgramplanSelection|null>(null), [offerings,setOfferings]=useState<ProgramplanEducationSummary[]>([]);
+  const [data,setData]=useState<ProgramplanSelection|null>(null), [offerings,setOfferings]=useState<ProgramplanOfferingRow[]>([]);
   const [chosenMode,setMode]=useState<'existing'|'new'>(initialMode),[orientation,setOrientation]=useState<string|null>(null),[orientationChosen,setOrientationChosen]=useState(false);
   const [programCode,setProgramCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[mfa,setMfa]=useState(false);
   const [name,setName]=useState(''),[cohort,setCohort]=useState(''),[localCode,setLocalCode]=useState(''),[startedOn,setStartedOn]=useState('');
@@ -66,7 +66,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
   const selectedProgram=data?.programs.find(p=>p.programRef.code===data.selection.programRef?.code&&p.programRef.version===data.selection.programRef?.version);
   const programValue=selectedProgram?`${selectedProgram.programRef.code}:${selectedProgram.programRef.version}`:programCode;
   const knownCodes=new Set(data?.programs.map(p=>p.programRef.code)??[]);
-  const schoolOfferings=offerings.filter(o=>!unitId||o.unitId===unitId);
+  const schoolOfferings=offerings.filter(o=>!unitId||o.lifecycle.units.some(u=>u.id===unitId&&u.inMandate));
   const legacyCodes=[...new Set(schoolOfferings.map(o=>o.programCode))].filter(code=>!knownCodes.has(code));
   const orientationRows=selectedProgram?.orientations??[];
   const olderOrientations=[...new Set(schoolOfferings.filter(o=>o.programCode===programCode).map(o=>o.orientationCode))].filter(code=>!orientationRows.some(o=>o.code===code));

@@ -11,7 +11,7 @@ Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast
 **Programplaner** visar alla utbildningar med programplanens version och planens status (se nedan). Sök på utbildning, program eller elevkull och filtrera per skola när du har flera. Arkiverade planer är dolda; välj **Visa arkiverade** (med antalet inom parentes) för att se dem.
 
 - **Öppna** visar planen.
-- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning och terminsfördelning. Ange namn, elevkull och verkligt startdatum, som måste ligga efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar.
+- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning, terminsfördelning och skolval. Ange namn, elevkull och verkligt startdatum, som måste ligga efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar. Om skolvalet inte kunde kopieras visas ett besked; välj skolorna igen under **Skolor** i kopian.
 - **Ny programplan** öppnar valet av program och inriktning. Där skapar huvudmannen en ny utbildning, eller lägger en plan på en befintlig utbildning som saknar plan.
 
 ## Planens status
@@ -44,6 +44,18 @@ Knapparna finns i planens huvud:
 - **Arkivera** döljer planen i listan. Versioner, beslut och historik bevaras och planen kan inte ändras medan den är arkiverad. **Ta fram ur arkivet** gör den synlig igen; därefter avgör statusen vad som får ändras.
 
 Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte kan bekräftas läses listan om innan du kan försöka igen. Om planen hann starta under tiden visas det i beskedet.
+
+## Skolor som använder planen
+
+Huvudmannen väljer **Skolor** i den öppnade planen, markerar sina gymnasieskolor och väljer **Spara skolor**. Samma programplan med samma versioner och innehåll visas på alla valda skolor. Skolan där utbildningen skapades är märkt **Skapad här** och kan aldrig avmarkeras.
+
+Skolor kan läggas till i framtida, pågående och avslutade planer, och när starten är okänd. En skola kan bara tas bort från en framtida plan. Arkiverade planer kan inte få skolvalet ändrat.
+
+Den som ändrar programplanen behöver aktuellt mandat för samtliga kopplade skolor. Rektor med mandat för bara en del av skolorna kan läsa planen och ser beskedet **Planen delas med skolor utanför ditt uppdrag och kan bara läsas**. Huvudmannen ändrar skolvalet.
+
+Listan visar skolans namn och antalet ytterligare skolor, till exempel **Skola A + 1**. Skolfiltret hittar planen på alla kopplade skolor inom ditt uppdrag.
+
+**Nuvarande begränsning:** klasser, elevplaceringar och timplaner hör fortfarande bara till skolan där utbildningen skapades. Skolvalet ger ännu inte tillagda skolor dessa kopplingar.
 
 ## Ny programplan
 
