@@ -55,7 +55,11 @@ Den som ändrar programplanen behöver aktuellt mandat för samtliga kopplade sk
 
 Listan visar skolans namn och antalet ytterligare skolor, till exempel **Skola A + 1**. Skolfiltret hittar planen på alla kopplade skolor inom ditt uppdrag.
 
-**Nuvarande begränsning:** klasser, elevplaceringar och timplaner hör fortfarande bara till skolan där utbildningen skapades. Skolvalet ger ännu inte tillagda skolor dessa kopplingar.
+Tillagda skolor kan använda utbildningen för sina egna elevplaceringar och klasser. På elevkortet visas utbildningen som ett val för den kopplade skolan. Varje skola har sina egna timplaner; en klass kan bara kopplas till en fastställd timplansversion på samma skola. En ny timplansversion flyttar inte klassens befintliga koppling.
+
+En skola kan inte tas bort från planen så länge skolans klasser, elevplaceringar eller timplaner är kopplade till utbildningen.
+
+**Nuvarande begränsning:** att skapa klasser, skapa timplaner och koppla en klass till en timplan är ännu inte tillgängligt i den skyddade appen. Befintliga kopplingar bevaras.
 
 ## Ny programplan
 

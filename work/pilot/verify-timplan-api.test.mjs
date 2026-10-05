@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { REQUIRED_CASES, REQUIRED_SELECTION_CASES, parseArgs, overallStatus, validWorkerFunctions } from './verify-timplan-api.mjs';
+import { TIMPLAN_ENTRIES, PROGRAMPLAN_ENTRIES, WORKSPACE_ENTRIES, EDUCATION_ENTRIES, TERM_ENTRIES, LIFECYCLE_ENTRIES } from './verify-programplan-api.mjs';
 const passed = name => ({ name, status: 'PASS', checks: [{ kind: 'response', ok: true }, { kind: 'persistent', ok: true }] });
+test('livscykelprofilen kräver exakt sexton entrypoints och nekar extra eller saknad grant',()=>{
+  const all=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES,...LIFECYCLE_ENTRIES];
+  assert.equal(validWorkerFunctions(all,TIMPLAN_ENTRIES,true,true,true,true),true);
+  for(const entries of [all.slice(1),[...all,'public.phase5_timplan_scope(uuid,boolean)'],[...all,all[0]],all.filter(f=>!LIFECYCLE_ENTRIES.includes(f))])assert.equal(validWorkerFunctions(entries,TIMPLAN_ENTRIES,true,true,true,true),false);
+  assert.equal(validWorkerFunctions(all,TIMPLAN_ENTRIES,true,true,true),false);
+  const args=parseArgs(['--target','protected','--out','/tmp/p522-timplan.json','--lifecycle']);
+  for(const flag of ['selection','programplan','workspace','education','lifecycle'])assert.equal(args[flag],true);
+  assert.throws(()=>parseArgs(['--target','protected','--out','/tmp/p522-timplan.json','--lifecycle','--preflight']));
+});
 test('alla namngivna fall och oberoende beständigt bevis krävs', () => {
   assert.equal(overallStatus(REQUIRED_CASES.map(passed)), 'PASS');
   assert.equal(overallStatus(REQUIRED_CASES.slice(1).map(passed)), 'FAIL');

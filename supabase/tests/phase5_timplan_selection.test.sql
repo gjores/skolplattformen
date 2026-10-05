@@ -34,15 +34,15 @@ insert into planning_roles values ('principal2',public.phase3_grant_mandate('{"m
 select pg_temp.planning_actor((select id from planning_roles where name='principal'),'55005000-0000-4000-8000-000000000021','55005000-0000-4000-8000-000000000011');
 insert into planning_roles values ('admin',public.phase3_grant_mandate('{"membershipId":"55005000-0000-4000-8000-000000000023","function":"administrator","scopeKind":"school","unitIds":["55005000-0000-4000-8000-000000000030"]}'));
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,program_code) values ('55005000-0000-4000-8000-000000000040','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000030','grundskola','Syntetisk utbildning','Syntetiskt prov',array[1,4,9]::smallint[],null);
-insert into public.timplans(id,organizer_id,offering_id,version,basis) values ('55005000-0000-4000-8000-000000000050','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',1,'Syntetisk grund');
+insert into public.timplans(id,organizer_id,offering_id,version,basis,unit_id) values ('55005000-0000-4000-8000-000000000050','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',1,'Syntetisk grund','55005000-0000-4000-8000-000000000030');
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,program_code) values ('55005000-0000-4000-8000-000000000041','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000031','grundskola','Syntetisk utbildning','Syntetiskt prov',null,null);
-insert into public.timplans(id,organizer_id,offering_id,version,basis) values ('55005000-0000-4000-8000-000000000051','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000041',1,'Syntetisk grund');
+insert into public.timplans(id,organizer_id,offering_id,version,basis,unit_id) values ('55005000-0000-4000-8000-000000000051','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000041',1,'Syntetisk grund','55005000-0000-4000-8000-000000000031');
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,program_code) values ('55005000-0000-4000-8000-000000000042','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000030','gymnasium','Syntetisk utbildning','Syntetiskt prov',null,'EK25');
-insert into public.timplans(id,organizer_id,offering_id,version,basis) values ('55005000-0000-4000-8000-000000000052','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000042',1,'Syntetisk grund');
+insert into public.timplans(id,organizer_id,offering_id,version,basis,unit_id) values ('55005000-0000-4000-8000-000000000052','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000042',1,'Syntetisk grund','55005000-0000-4000-8000-000000000030');
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,program_code) values ('55005000-0000-4000-8000-000000000043','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000030','introduktionsprogram','Syntetisk utbildning','Syntetiskt prov',null,null);
-insert into public.timplans(id,organizer_id,offering_id,version,basis) values ('55005000-0000-4000-8000-000000000053','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000043',1,'Syntetisk grund');
+insert into public.timplans(id,organizer_id,offering_id,version,basis,unit_id) values ('55005000-0000-4000-8000-000000000053','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000043',1,'Syntetisk grund','55005000-0000-4000-8000-000000000030');
 insert into public.timplan_cells values ('55005000-0000-4000-8000-000000000050','matematik',array[100,200,300]::smallint[]),('55005000-0000-4000-8000-000000000050','no',array[10,0,0]::smallint[]),('55005000-0000-4000-8000-000000000050','biologi',array[0,20,30]::smallint[]),('55005000-0000-4000-8000-000000000053','im-ma',array[5]::smallint[]);
-insert into public.timplans(id,organizer_id,offering_id,version,status,decided_on) values ('55005000-0000-4000-8000-000000000054','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',2,'faststalld',public.app_today());
+insert into public.timplans(id,organizer_id,offering_id,version,status,decided_on,unit_id) values ('55005000-0000-4000-8000-000000000054','55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',2,'faststalld',public.app_today(),'55005000-0000-4000-8000-000000000030');
 insert into public.class_timplans(unit_id,class_name,start_year,timplan_id,column_id) values ('55005000-0000-4000-8000-000000000030','SYNTETISK',extract(year from public.app_today())::int,'55005000-0000-4000-8000-000000000054','ak4');
 -- End planning fixture.
 
@@ -122,12 +122,12 @@ insert into public.customers(id,name) values ('55005000-0000-4000-8000-000000000
 insert into public.organizers(id,customer_id,name,type) values ('55005000-0000-4000-8000-000000000102','55005000-0000-4000-8000-000000000101','Other synthetic organizer','Kommun');
 insert into public.school_units(id,organizer_id,code,name,municipality_code) values ('55005000-0000-4000-8000-000000000130','55005000-0000-4000-8000-000000000102','55005099','Other synthetic school','0000');
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort) values ('55005000-0000-4000-8000-000000000140','55005000-0000-4000-8000-000000000102','55005000-0000-4000-8000-000000000130','grundskola','Other synthetic offering','Synthetic');
-insert into public.timplans(id,organizer_id,offering_id,version) values ('55005000-0000-4000-8000-000000000150','55005000-0000-4000-8000-000000000102','55005000-0000-4000-8000-000000000140',1);
+insert into public.timplans(id,organizer_id,offering_id,version,unit_id) values ('55005000-0000-4000-8000-000000000150','55005000-0000-4000-8000-000000000102','55005000-0000-4000-8000-000000000140',1,'55005000-0000-4000-8000-000000000130');
 select is((public.phase5_list_timplans(1)->>'count')::int,3,'foreign customer never increases list count');
 select ok(not exists(select 1 from jsonb_array_elements(public.phase5_list_timplans(1)->'plans') p where p->>'id'='55005000-0000-4000-8000-000000000150'),'foreign customer plan hidden in list');
 -- Multi-page scope shares a deterministic order and exact total.
-insert into public.timplans(id,organizer_id,offering_id,version,basis,status,decided_on)
-select ('55005000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,'55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',n+2,'Syntetisk grund','ersatt',public.app_today() from generate_series(1,55) n;
+insert into public.timplans(id,organizer_id,offering_id,version,basis,status,decided_on,unit_id)
+select ('55005000-0000-4000-8000-'||lpad((200+n)::text,12,'0'))::uuid,'55005000-0000-4000-8000-000000000002','55005000-0000-4000-8000-000000000040',n+2,'Syntetisk grund','ersatt',public.app_today(),'55005000-0000-4000-8000-000000000030' from generate_series(1,55) n;
 create temporary table pages as select public.phase5_list_timplans(1) as first,public.phase5_list_timplans(2) as second;
 select is((select (first->>'count')::int from pages),58,'pagination count includes all scoped versions');
 select is((select jsonb_array_length(first->'plans') from pages),50,'first page fixed at 50');

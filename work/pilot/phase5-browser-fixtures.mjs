@@ -14,7 +14,8 @@ const MARKER = 'Syntetiskt 05-06 browserprov';
 const SOURCE_PATHS = ['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs','web/scripts/preview-worker-modules.mjs','web/app/protected-timplan-workspace.tsx','web/app/timplan-guidance.tsx','web/app/protected-home.tsx',
   'web/app/protected-timplan.css','web/lib/protected-timplan.ts','web/lib/server/timplan-planning.ts','web/lib/server-client.ts','web/lib/unsaved-changes.tsx',
   'web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts',
-  'work/pilot/phase5-browser-fixtures.mjs','web/e2e/phase5-timplan.spec.ts','web/playwright.phase5-timplan.config.ts'];
+  'work/pilot/phase5-browser-fixtures.mjs','web/e2e/phase5-timplan.spec.ts','web/playwright.phase5-timplan.config.ts',
+  'work/pilot/phase4-browser-fixtures.mjs','web/e2e/phase4-card.spec.ts','web/playwright.phase4-card.config.ts'];
 
 export async function verifyBrowserTarget(baseURL) {
   if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL)) throw new Error('Endast lokal browserprovserver tillåts.');
@@ -43,7 +44,7 @@ export async function createTimplanBrowserFixture() {
   const code = String(parseInt(prefix.slice(0,5),16)).padStart(6,'0').slice(-6);
   const trigger = `p5_browser_fail_${prefix}`, triggerFn = `p5_browser_fail_fn_${prefix}`;
   const roles = {}, sessions = new Set();
-  let created=false, injected=false, legacyAssignmentIds=[];
+  let created=false, injected=false, sharedCreated=false, registerCreated=false, legacyAssignmentIds=[];
   const owned = async tx => {
     const rows=await tx`select id from public.customers where id=${id(1)} and name=${MARKER}`;
     if (rows.length!==1) throw new Error('Browserfixturens ägarskap kunde inte verifieras.');
@@ -71,11 +72,21 @@ export async function createTimplanBrowserFixture() {
         await tx`set local session_replication_role=replica`;
         await tx`delete from public.app_sessions where id=any(${[...sessions]}::uuid[])`;
         await removePlans(tx);
+        // Egna registerrader i 05-22-varianten; säkerhetsloggen lämnas orörd.
+        await tx`delete from public.pupil_source_values where customer_id=${id(1)}`;
+        await tx`delete from public.pupil_field_history where customer_id=${id(1)}`;
+        await tx`delete from public.pupil_field_state where customer_id=${id(1)}`;
+        await tx`delete from public.pupil_home_municipalities where customer_id=${id(1)}`;
+        await tx`delete from public.pupil_class_memberships where customer_id=${id(1)}`;
+        await tx`delete from public.pupil_placements where customer_id=${id(1)}`;
+        await tx`delete from public.pupils where customer_id=${id(1)}`;
+        await tx`delete from public.school_classes where customer_id=${id(1)}`;
         await tx`delete from public.staff_assignment_bindings where customer_id=${id(1)}`;
         await tx`delete from public.mandate_units where customer_id=${id(1)}`;
         await tx`delete from public.access_assignments where customer_id=${id(1)}`;
         await tx`delete from public.assignment_units where assignment_id=any(${legacyAssignmentIds}::uuid[])`;
         await tx`delete from public.assignments where organizer_id=${id(2)}`;
+        await tx`delete from public.offering_units where organizer_id=${id(2)}`;
         await tx`delete from public.offerings where organizer_id=${id(2)}`;
         await tx`delete from public.school_unit_types where unit_id in(select id from public.school_units where organizer_id=${id(2)})`;
         await tx`delete from public.school_units where organizer_id=${id(2)}`;
@@ -95,6 +106,15 @@ export async function createTimplanBrowserFixture() {
         and not exists(select 1 from public.access_assignments where customer_id=${id(1)})
         and not exists(select 1 from public.offerings where organizer_id=${id(2)})
         and not exists(select 1 from public.timplans where organizer_id=${id(2)})
+        and not exists(select 1 from public.offering_units where organizer_id=${id(2)})
+        and not exists(select 1 from public.pupils where customer_id=${id(1)})
+        and not exists(select 1 from public.pupil_placements where customer_id=${id(1)})
+        and not exists(select 1 from public.pupil_field_history where customer_id=${id(1)})
+        and not exists(select 1 from public.pupil_field_state where customer_id=${id(1)})
+        and not exists(select 1 from public.pupil_source_values where customer_id=${id(1)})
+        and not exists(select 1 from public.pupil_class_memberships where customer_id=${id(1)})
+        and not exists(select 1 from public.pupil_home_municipalities where customer_id=${id(1)})
+        and not exists(select 1 from public.school_classes where customer_id=${id(1)})
         and not exists(select 1 from public.school_unit_types where unit_id=any(${[id(30),id(31)]}::uuid[])) as clean,
         (select count(*)::int from public.security_events where customer_id=${id(1)}) as "preservedAuditEvents",
         (select count(*)::int from public.identities i where i.id=any(${[10,11,12,13,14].map(id)}::uuid[]) and exists(select 1 from public.security_events e where e.actor_identity_id=i.id)) as "preservedAuditAnchors"`;
@@ -164,7 +184,59 @@ export async function createTimplanBrowserFixture() {
         });
       },
       async cookies(context,session,baseURL){await context.addCookies([{name:'sp_session',value:session.token,url:baseURL,httpOnly:true,sameSite:'Lax'}]);},
-      async addPages(){await assertTarget('protected'); await db.begin(async tx=>{await owned(tx);for(let n=3;n<=58;n++)await tx`insert into public.timplans(id,organizer_id,offering_id,version,basis,status,decided_on) values(${id(200+n)},${id(2)},${id(40)},${n},'Syntetisk grund','ersatt',public.app_today())`;});},
+      async sharedSchool(){
+        if(sharedCreated)throw new Error('Den egna delade skolfixturen är redan skapad.');
+        await assertTarget('protected');
+        let assignment;
+        await db.begin(async tx=>{
+          await owned(tx);
+          await tx`insert into public.offering_units(offering_id,unit_id,organizer_id) values(${id(40)},${id(31)},${id(2)})`;
+          await tx`select set_config('app.customer_id',${id(1)},true),set_config('app.assignment_id',${id(60)},true),
+            set_config('app.membership_id',${id(20)},true),set_config('app.identity_id',${id(10)},true),set_config('app.correlation_id',${randomUUID()},true)`;
+          const [mandate]=await tx`select public.phase3_grant_mandate(jsonb_build_object('membershipId',${id(24)}::uuid,'function','rektor','scopeKind','school','unitIds',jsonb_build_array(${id(31)}::uuid))) as id`;
+          assignment=mandate.id;
+          await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis) values(${id(55)},${id(2)},${id(40)},${id(31)},1,'Syntetisk grund')`;
+          await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${id(55)},'matematik',array[120,220,320]::smallint[])`;
+          legacyAssignmentIds=(await tx`select id from public.assignments where organizer_id=${id(2)}`).map(row=>row.id);
+        });
+        sharedCreated=true;
+        return {session:await mint(14,24,assignment),planId:id(55),offeringId:id(40),unitId:id(31)};
+      },
+      async prepareRegister(principalSession){
+        if(!sharedCreated || registerCreated)throw new Error('Elevfixturen kräver en ny egen delad skolfixtur.');
+        await assertTarget('protected');
+        let assignment,dates;
+        await db.begin(async tx=>{
+          await owned(tx);
+          const [calendar]=await tx`select public.app_today()::text as today,(public.app_today()-1)::text as yesterday,(public.app_today()+1)::text as tomorrow,
+            (extract(year from public.app_today())::int-case when extract(month from public.app_today())<7 then 1 else 0 end) as year`;
+          dates=calendar;
+          await tx`update public.offerings set start_year=${dates.year} where organizer_id=${id(2)}`;
+          await tx`select set_config('app.customer_id',${id(1)},true),set_config('app.assignment_id',${principalSession.assignmentId},true),
+            set_config('app.membership_id',${principalSession.membershipId},true),set_config('app.identity_id',${principalSession.identityId},true),set_config('app.correlation_id',${randomUUID()},true)`;
+          const [mandate]=await tx`select public.phase3_grant_mandate(jsonb_build_object('membershipId',${id(23)}::uuid,'function','administrator','scopeKind','school','unitIds',jsonb_build_array(${id(31)}::uuid))) as id`;
+          assignment=mandate.id;
+          await tx`insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name)
+            values(${id(70)},${id(1)},${id(2)},'Syntetisk delad elev','TEST-20100101-4008','Syntetisk elev')`;
+          await tx`insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on)
+            values(${id(71)},${id(1)},${id(2)},${id(70)},${id(31)},${id(41)},public.app_today()-30)`;
+        });
+        registerCreated=true;
+        return {session:await mint(13,23,assignment),pupilId:id(70),unitId:id(31),offeringId:id(40),unlinkedOfferingId:id(42),...dates};
+      },
+      async registerSnapshot(){
+        const [pupil]=await db`select version from public.pupils where id=${id(70)} and customer_id=${id(1)}`;
+        const placements=await db`select id,unit_id,offering_id,starts_on::text,ends_on::text from public.pupil_placements where pupil_id=${id(70)} and customer_id=${id(1)} order by starts_on,id`;
+        return {version:pupil?.version,placements};
+      },
+      async registerAudited(correlationId,session,action){
+        const rows=await events(correlationId);
+        return rows.length===1 && rows.every(e=>e.source==='worker' && e.action===action && e.outcome==='ok'
+          && e.actor_identity_id===session.identityId && e.membership_id===session.membershipId && e.assignment_id===session.assignmentId
+          && e.session_id===session.id && e.customer_id===id(1) && e.object_type==='pupil' && e.object_id===id(70)
+          && !JSON.stringify(e.details).includes('Syntetisk delad elev') && !JSON.stringify(e.details).includes('TEST-'));
+      },
+      async addPages(){await assertTarget('protected'); await db.begin(async tx=>{await owned(tx);for(let n=3;n<=58;n++)await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis,status,decided_on) values(${id(200+n)},${id(2)},${id(40)},${id(30)},${n},'Syntetisk grund','ersatt',public.app_today())`;});},
       async emptyPlans(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await removePlans(tx);});},
       async unknownRow(){await assertTarget('protected');await db.begin(async tx=>{await owned(tx);await tx`insert into public.timplan_cells values(${id(50)},'syntetisk_okand',array[1,2,3]::smallint[])`;});},
       async expire(session){await assertTarget('protected');await owned(db);await db`update public.app_sessions set expires_at=now()-interval '1 second' where id=${session.id} and identity_id=${session.identityId}`;},

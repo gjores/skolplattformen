@@ -170,6 +170,19 @@ test('L08: B tas bort före kullstart, läggs till efter start och kan då inte 
   expect(denied.status).toBe(409);expect(denied.body.code).toBe('programplan_locked');expect((await fixture.units(startedId)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);
 });
 
+test('L10: tillagd skola med klass kan inte tas bort och kopplingen bevaras',async({page},info)=>{
+  await enter(page);await open(page,'Syntetisk bunden SA');await chooseSchools(page,true);
+  await fixture.addClass(fixture.offeringId,fixture.secondUnitId);const before=await fixture.offering(fixture.offeringId);
+  await w(page).getByRole('button',{name:'Skolor',exact:true}).click();await expect(schoolB(page)).toBeChecked();await schoolB(page).uncheck();
+  const pending=page.waitForResponse(matches(LIFECYCLE));await dialog(page).getByRole('button',{name:'Spara skolor',exact:true}).click();const r=await pending;
+  expect(r.status()).toBe(409);expect((await r.json()).code).toBe('programplan_in_use');
+  await expect(dialog(page)).toHaveCount(0);await expect(w(page)).toContainText('Skolan används av klasser, elevplaceringar eller timplaner och kan inte tas bort från planen.');
+  await expect(list(page)).toHaveAttribute('aria-busy','false');expect(await fixture.offering(fixture.offeringId)).toEqual(before);
+  expect((await fixture.units(fixture.offeringId)).map((u:{unit_id:string})=>u.unit_id)).toEqual([fixture.unitId,fixture.secondUnitId]);
+  await open(page,'Syntetisk bunden SA');await w(page).getByRole('button',{name:'Skolor',exact:true}).click();await expect(schoolB(page)).toBeChecked();
+  expect(await noOverflow(page)).toBe(true);await capture(page,info,'units-in-use-removal-denied.png');
+});
+
 test('L09: kopiering till ny elevkull bevarar skolor, innehåll och original',async({page},info)=>{
   await enter(page);await open(page,'Syntetisk bunden SA');await chooseSchools(page,true);const original=await fixture.snapshot();
   await w(page).getByRole('button',{name:'Kopiera',exact:true}).click();const form=w(page).getByRole('region',{name:'Kopiera till ny utbildning',exact:true});

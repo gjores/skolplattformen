@@ -1,13 +1,74 @@
 // Riktade 04-13-prov av elevkort, ändringsdialog och exportdialog mot verklig lokal
-// OIDC och byggd protected-Worker. Inga lyckade mutationer: p3.admin saknar
+// OIDC och byggd protected-Worker. De äldre fallen gör inga lyckade mutationer: p3.admin saknar
 // engångskod, så ändring, personnummer och nedladdning nekas med mfa_required före
-// SQL. Loggar skriver inga elevvärden. Ersätter inte 04-19:s samlade verifiering.
+// SQL. 05-22:s delade utbildning provas separat med egen kund och lokalt mintad MFA-session.
+// Loggar skriver inga elevvärden. Ersätter inte 04-19:s samlade verifiering.
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page, type Response } from '@playwright/test';
 import { loginViaKeycloak, waitForHydration } from './helpers/keycloak.ts';
 import type { PupilList } from '../lib/pupil-register-model.ts';
+import { createSharedOfferingRegisterFixture } from '../../work/pilot/phase4-browser-fixtures.mjs';
+import { verifyBrowserTarget } from '../../work/pilot/phase5-browser-fixtures.mjs';
+
+test('05-22: elev på tillagd skola placeras i delad utbildning och okopplat val nekas',async({page},info)=>{
+  const baseURL=process.env.PHASE4_BASE_URL??'http://127.0.0.1:3000';
+  const proof=await verifyBrowserTarget(baseURL);
+  await info.attach('source-build.json',{body:JSON.stringify({...proof,scope:'local-synthetic-only',authentication:'locally-minted-session'}),contentType:'application/json'});
+  const own=await createSharedOfferingRegisterFixture();
+  try{
+    const {register}=own;
+    await own.cookies(page.context(),register.session,baseURL);
+    const listed=page.waitForResponse(response=>isPath(response,'/api/elever/lista','POST'));
+    await page.goto('/?vy=elever');await waitForHydration(page);
+    const list=await listed;expect(list.status()).toBe(200);
+    const body=await list.json() as PupilList;
+    expect(body.options.educations).toContainEqual(expect.objectContaining({id:register.offeringId,unitId:register.unitId,name:'Syntetisk grundskola'}));
+    expect(body.options.educations.some(education=>education.id===register.unlinkedOfferingId)).toBe(false);
+    expect(body.pupils.map(pupil=>pupil.id)).toEqual([register.pupilId]);
+    await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy','false');
+    await expect(page.getByLabel('Utbildning',{exact:true}).locator('option',{hasText:'Syntetisk grundskola'})).toHaveCount(1);
+    const {body:card}=await openCard(page);
+    expect(card.id).toBe(register.pupilId);
+    expect(card.unitId).toBe(register.unitId);
+    expect(card.capabilities.canEdit).toBe(true);
+    await page.getByRole('button',{name:'Byt utbildning',exact:true}).click();
+    const dialog=page.getByRole('dialog');
+    await dialog.getByLabel('Ny utbildning',{exact:true}).selectOption(register.offeringId);
+    await dialog.getByLabel('Gäller från',{exact:true}).fill(register.today);
+    const changed=page.waitForResponse(response=>isPath(response,'/api/elever/andra','POST'));
+    await dialog.getByRole('button',{name:'Spara utbildningsbytet',exact:true}).click();
+    const change=await changed;
+    expect(change.status()).toBe(200);
+    expect(change.request().postDataJSON()).toMatchObject({pupilId:register.pupilId,kind:'education',payload:{educationId:register.offeringId,startsOn:register.today}});
+    expect(await own.registerAudited(change.headers()['x-correlation-id'],register.session,'pupil_education_changed')).toBe(true);
+    await expect(page.locator('.pupil-card')).toContainText('Syntetisk grundskola');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const after=await own.registerSnapshot();
+    expect(after.version).toBe(card.version+1);
+    expect(after.placements).toHaveLength(2);
+    expect(after.placements[0]).toMatchObject({unit_id:register.unitId,ends_on:register.yesterday});
+    expect(after.placements[1]).toMatchObject({unit_id:register.unitId,offering_id:register.offeringId,starts_on:register.today,ends_on:null});
+    const denied=await own.request(baseURL,register.session,'/api/elever/andra',{
+      pupilId:register.pupilId,schoolYear:register.year,caseId:null,expectedVersion:after.version,kind:'education',
+      payload:{placementId:after.placements[1].id,educationId:register.unlinkedOfferingId,startsOn:register.tomorrow},
+    });
+    expect(denied.status).toBe(400);
+    expect(denied.body.code).toBe('bad_request');
+    expect(await own.registerSnapshot()).toEqual(after);
+    await noOverflow(page);
+    await info.attach('delad-utbildning-elevkort.png',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
+    await page.getByRole('button',{name:'Tillbaka till elevlistan',exact:true}).click();
+    const refreshed=page.waitForResponse(response=>isPath(response,'/api/elever/lista','POST'));
+    await page.reload();expect((await refreshed).status()).toBe(200);await waitForHydration(page);
+    await openCard(page);
+    await expect(page.locator('.pupil-card')).toContainText('Syntetisk grundskola');
+    expect(await own.registerSnapshot()).toEqual(after);
+  }finally{
+    await info.attach('cleanup.json',{body:JSON.stringify(await own.cleanup()),contentType:'application/json'});
+  }
+});
 
 let passwords: Record<string, string>;
 test.beforeAll(() => {

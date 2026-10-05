@@ -9,6 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
+import { createTimplanBrowserFixture } from './phase5-browser-fixtures.mjs';
 
 const root = path.resolve(fileURLToPath(import.meta.url), '../../..');
 const here = fileURLToPath(import.meta.url);
@@ -44,6 +45,20 @@ export const PHASE4_USERS = Object.freeze({
   organizer: 'p3.huvudman',
   principal: 'p3.rektor',
 });
+
+// 05-22:s elevplaceringsprov äger en separat syntetisk kund per browserfall.
+// Basen skapar riktiga mandat och lokala sessionsbevis; inga globala fas 4-rader ändras.
+export async function createSharedOfferingRegisterFixture() {
+  const fixture = await createTimplanBrowserFixture();
+  try {
+    const school = await fixture.sharedSchool();
+    const register = await fixture.prepareRegister(school.session);
+    return { ...fixture, register };
+  } catch (error) {
+    await fixture.cleanup();
+    throw error;
+  }
+}
 
 if (process.argv[1] && path.resolve(process.argv[1]) === here) {
   if (process.argv.slice(2).join(' ') !== '--target protected') {

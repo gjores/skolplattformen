@@ -71,6 +71,7 @@ function SchoolsDialog({ target, onClose, onChanged, onStale, onSecurityFailure 
       if (onSecurityFailure(e)) return;
       if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') setMfa(true);
       else if (e instanceof ApiError && e.hasExplicitCode && e.status === 400) setError(`Kunde inte spara skolorna. ${e.message}`);
+      else if (e instanceof ApiError && e.hasExplicitCode && e.code === 'programplan_in_use') onStale('Skolan används av klasser, elevplaceringar eller timplaner och kan inte tas bort från planen. Listan har lästs om.');
       else onStale(e instanceof ApiError && e.hasExplicitCode && e.status === 409 ? e.message : 'Skolvalet kunde inte bekräftas. Listan har lästs om; kontrollera skolorna innan du försöker igen.');
     } finally { setBusy(false); }
   }
@@ -86,7 +87,7 @@ function SchoolsDialog({ target, onClose, onChanged, onStale, onSecurityFailure 
           <span>{school.name}{primary && <small> · Skapad här</small>}</span></label>;
       })}
       {!actions.remove && <p>Skolan kan inte tas bort när kullen har börjat</p>}
-      <p>Klasser, elevplaceringar och timplaner hör tills vidare bara till skolan där utbildningen skapades.</p>
+      <p>Varje skola har egna elevplaceringar, klasser och timplaner. En skola med sådana kopplingar kan inte tas bort.</p>
     </section>
     {error && <p className="pp-alert" role="alert">{error}</p>}
     {mfa && <MfaStepUpNotice message="Skolvalet kräver verifiering med engångskod." detail="Inget har ändrats. Läs om planen efter verifieringen."/>}

@@ -13,6 +13,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { assertTarget } from './verify-target.mjs';
+import { TERM_ENTRIES, LIFECYCLE_ENTRIES } from './verify-programplan-api.mjs';
 const root = path.resolve(fileURLToPath(import.meta.url), '../../..');
 const web = path.join(root, 'web');
 const RESULTS = path.join(root, 'work/pilot/results');
@@ -21,7 +22,7 @@ const SELECTION_ENTRYPOINT = 'public.phase5_list_timplans(integer)';
 const PROGRAMPLAN_ENTRYPOINTS = ['public.phase5_read_programplan(uuid)','public.phase5_bind_programplan_draft(uuid,integer,jsonb)','public.phase5_replace_programplan_specialization(uuid,integer,jsonb)','public.phase5_create_programplan_draft(uuid,integer,jsonb)','public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)'];
 const WORKSPACE_ENTRYPOINTS = ['public.phase5_list_programplan_offerings(integer)','public.phase5_programplan_workspace(uuid,integer,text)'];
 const EDUCATION_ENTRYPOINTS = ['public.phase5_programplan_selection(uuid,text,jsonb)','public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)','public.phase5_programplan_education_status(uuid)'];
-export function validWorkerFunctions(actual, entries, programplan=false, workspace=false, education=false) {const expected=[...entries,...(programplan?PROGRAMPLAN_ENTRYPOINTS:[]),...(workspace?WORKSPACE_ENTRYPOINTS:[]),...(education?EDUCATION_ENTRYPOINTS:[])];return actual.length===expected.length&&new Set(actual).size===expected.length&&actual.every(f=>expected.includes(f));}
+export function validWorkerFunctions(actual, entries, programplan=false, workspace=false, education=false, lifecycle=false) {const expected=[...entries,...(programplan?PROGRAMPLAN_ENTRYPOINTS:[]),...(workspace?WORKSPACE_ENTRYPOINTS:[]),...(education?EDUCATION_ENTRYPOINTS:[]),...(lifecycle?[...TERM_ENTRIES,...LIFECYCLE_ENTRIES]:[])];return actual.length===expected.length&&new Set(actual).size===expected.length&&actual.every(f=>expected.includes(f));}
 const HELPERS = ['public.phase5_timplan_scope(uuid,boolean)', 'public.phase5_timplan_audit(uuid,text)'];
 const MARKER = 'Syntetiskt 05-04 API-prov';
 export const REQUIRED_CASES = ['worker-role','principal-read','hm-read','principal-write-reload','revision-conflict','concurrent-write','hm-write-denied','admin-denied','other-school','other-customer','missing-object','no-mfa','csrf','stale-context','parent-revoked','session-expired','session-revoked','membership-blocked','customer-closed','no-session','invalid-input','decided-plan','gymnasium-write','denied-audit-failure','db-audit-read-failure','db-audit-write-failure','worker-audit-write-failure','client-sql-denied','persistent-audit'];
@@ -41,6 +42,7 @@ export function parseArgs(argv) {
     if(a==='--target') o.target=value(); else if(a==='--out') o.out=path.resolve(value());
     else if(a==='--port') o.port=Number(value()); else if(a==='--preflight') o.preflight=true; else if(a==='--selection') o.selection=true; else if(a==='--programplan') o.programplan=true; else if(a==='--workspace') {o.workspace=true;o.programplan=true;}
     else if(a==='--education') {o.education=true;o.workspace=true;o.programplan=true;}
+    else if(a==='--lifecycle') {o.lifecycle=true;o.education=true;o.workspace=true;o.programplan=true;o.selection=true;}
     else throw new Error(`okänt argument ${a}`);
   }
   if(o.target!=='protected') throw new Error('--target protected krävs');
@@ -108,7 +110,7 @@ async function main() {
         insert into public.organizers(id,customer_id,name,type) values('${id(102)}','${id(101)}','Syntetisk huvudman','Kommun');
         insert into public.school_units(id,organizer_id,code,name,municipality_code) values('${id(130)}','${id(102)}','${code}99','Syntetisk skola','0000');
         insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort) values('${id(140)}','${id(102)}','${id(130)}','grundskola','Syntetisk utbildning','Synthetic');
-        insert into public.timplans(id,organizer_id,offering_id,version) values('${id(150)}','${id(102)}','${id(140)}',1);`);
+        insert into public.timplans(id,organizer_id,offering_id,unit_id,version) values('${id(150)}','${id(102)}','${id(140)}','${id(130)}',1);`);
       for(const row of await tx`select name,id from planning_roles`) roles[row.name]=row.id;
       legacyAssignmentIds=(await tx`select id from public.assignments where organizer_id=any(${[id(2),id(102)]}::uuid[])`).map(row=>row.id);
     });
@@ -168,7 +170,7 @@ async function main() {
       check(checks,'response','byggd protected-Worker med databasroll',await health());
       const a=await acl();
       const [all]=await db`select count(*)::int as n from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' and has_function_privilege('skolplattform_worker',p.oid,'EXECUTE')`;
-      check(checks,'persistent','exakt avgränsad Worker-EXECUTE-mängd',all.n===activeEntries.length+(o.programplan?5:0)+(o.workspace?2:0)+(o.education?3:0)&&validWorkerFunctions(a.filter(r=>r.granted).map(r=>r.f),activeEntries,o.programplan,o.workspace,o.education)&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
+      check(checks,'persistent','exakt avgränsad Worker-EXECUTE-mängd',all.n===activeEntries.length+(o.programplan?5:0)+(o.workspace?2:0)+(o.education?3:0)+(o.lifecycle?3:0)&&validWorkerFunctions(a.filter(r=>r.granted).map(r=>r.f),activeEntries,o.programplan,o.workspace,o.education,o.lifecycle)&&a.filter(r=>HELPERS.includes(r.f)).every(r=>!r.granted));
     });
     for(const [name,s] of [['principal-read',principal],['hm-read',hm]]) await run(name,async checks=>{
       const r=await read(s); allowed.push({r,s,action:'timplan_read'});
@@ -263,7 +265,7 @@ async function main() {
     if(o.selection){
       const list=(s=principal,page=1)=>call(s,'/api/timplaner/lista',{page});
       const remember=(r,s,action='timplan_list_read')=>{allowed.push({r,s,action});return r;};
-      const scopedIds=async unit=> (await db`select t.id from public.timplans t join public.offerings o on o.id=t.offering_id where t.organizer_id=${id(2)} and o.kind in ('grundskola','introduktionsprogram') and (${unit}::uuid is null or o.unit_id=${unit}::uuid)`).map(r=>r.id).sort();
+      const scopedIds=async unit=> (await db`select t.id from public.timplans t join public.offerings o on o.id=t.offering_id where t.organizer_id=${id(2)} and o.kind in ('grundskola','introduktionsprogram') and (${unit}::uuid is null or t.unit_id=${unit}::uuid)`).map(r=>r.id).sort();
       for(const [name,s,unit]of[['selection-hm',hm,null],['selection-principal',principal,id(30)]])await run(name,async checks=>{
         const r=remember(await list(s),s),expected=await scopedIds(unit);
         const keys=['id','offeringId','unitId','schoolName','educationName','cohort','kind','version','revision','status'];
@@ -276,7 +278,7 @@ async function main() {
         try{await denial(checks,()=>list(),403,'assignment_expired');}finally{await db`update public.access_assignments set ended_at=null where id=${id(60)}`;}
       });
       await run('selection-pagination',async checks=>{
-        await db`insert into public.timplans(id,organizer_id,offering_id,version,status,decided_on) select gen_random_uuid(),${id(2)}::uuid,${id(40)}::uuid,n,'ersatt',public.app_today() from generate_series(10,69) n`;
+        await db`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,status,decided_on) select gen_random_uuid(),${id(2)}::uuid,${id(40)}::uuid,${id(30)}::uuid,n,'ersatt',public.app_today() from generate_series(10,69) n`;
         const first=remember(await list(),principal),second=remember(await list(principal,2),principal),empty=remember(await list(principal,100000),principal),expected=await scopedIds(id(30));
         check(checks,'response','50 per sida utan dubblett eller dold trunkering',first.status===200&&second.status===200&&empty.status===200&&first.body.plans.length===50&&first.body.count===expected.length&&second.body.count===expected.length&&second.body.page===2&&same([...first.body.plans,...second.body.plans].map(p=>p.id).sort(),expected)&&empty.body.plans.length===0&&empty.body.count===expected.length);
         check(checks,'persistent','alla sidläsningar har minimerad sessionsaudit',(await Promise.all([first,second,empty].map(r=>paired(r,principal,'timplan_list_read')))).every(Boolean));

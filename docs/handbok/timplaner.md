@@ -8,6 +8,8 @@ I den skyddade provmiljön kan huvudman och rektor öppna befintliga timplaner f
 
 Välj **Timplaner** i navigationen. Listan visar skola, utbildning, elevkull, version och status. Använd sidknapparna om listan har flera sidor och öppna den plan du vill läsa. En tom lista betyder att ditt uppdrag inte omfattar någon befintlig timplan i dessa skolformer.
 
+Timplanen hör till en bestämd skola. När flera skolor använder samma utbildning har varje skola sina egna timplansversioner. Listan visar timplanens skola, och rektor kan läsa och ändra planer inom sitt aktuella skoluppdrag. En klasskoppling gäller en fastställd version på samma skola; en ny version flyttar inte den befintliga kopplingen.
+
 Grundskolans kolumner följer utbildningens sparade årskurser och ordning. För introduktionsprogram visas timmar per vecka. **Saknas** betyder att en rad eller cell saknar användbart underlag; det är inte ett sparat nollvärde. På telefon kan du välja en årskurs åt gången eller rulla själva tabellen i sidled.
 
 ## Ändra undervisningstid

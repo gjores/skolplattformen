@@ -14,6 +14,47 @@ const mainPlan='Öppna Syntetisk grundskola, Syntetiskt prov, version 1';
 const imPlan='Öppna Syntetisk IM, Syntetiskt prov, version 1';
 const lockedPlan='Öppna Syntetisk grundskola, Syntetiskt prov, version 2';
 
+test('11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning',async({page},testInfo)=>{
+  const school=await fixture.sharedSchool();
+  const primaryBefore=await fixture.snapshot();
+  const schoolBefore=await fixture.snapshot(school.planId);
+  await enter(page,school.session);
+  const listed=await fixture.request(baseURL,school.session,'/api/timplaner/lista',{page:1});
+  expect(listed.status).toBe(200);
+  expect(listed.body.plans.some((plan:{id:string;offeringId:string;unitId:string})=>
+    plan.id===school.planId && plan.offeringId===school.offeringId && plan.unitId===school.unitId)).toBe(true);
+  expect(listed.body.plans.some((plan:{id:string})=>plan.id===fixture.planId || plan.id===fixture.lockedPlanId)).toBe(false);
+  await expect(planChoice(page,mainPlan)).toHaveCount(1);
+  const read=await open(page);
+  expect(await read.json()).toMatchObject({id:school.planId,offeringId:school.offeringId,unitId:school.unitId,schoolName:'Syntetisk skola 31'});
+  await pairedResponse(read,school.session,'timplan_read',school.planId);
+  await expect(workspace(page)).toContainText('Syntetisk skola 31');
+  await edit(page,121,120);
+  const saved=await save(page);
+  expect(saved.status()).toBe(200);
+  await pairedResponse(saved,school.session,'timplan_cell_changed',school.planId);
+  await expect(workspace(page).getByRole('button',{name:'Ändra Matematik, Åk 9, 121 timmar',exact:true})).toBeVisible();
+  const schoolAfter=await fixture.snapshot(school.planId);
+  expect(schoolAfter.revision).toBe(schoolBefore.revision+1);
+  expect(schoolAfter.cells).toEqual({...schoolBefore.cells,matematik:[121,220,320]});
+  expect(await fixture.snapshot()).toEqual(primaryBefore);
+  const forbiddenRead=await fixture.request(baseURL,school.session,'/api/timplaner/lasa',{planId:fixture.planId});
+  const forbiddenWrite=await fixture.request(baseURL,school.session,'/api/timplaner/cell',{
+    planId:fixture.planId,expectedRevision:primaryBefore.revision,rowId:'matematik',columnIndex:0,hours:999,
+  });
+  expect(forbiddenRead.status).toBe(403);
+  expect(forbiddenWrite.status).toBe(403);
+  expect(forbiddenRead.body.code).toBe('forbidden');
+  expect(forbiddenWrite.body.code).toBe('forbidden');
+  expect(await fixture.snapshot()).toEqual(primaryBefore);
+  expect(await fixture.snapshot(school.planId)).toEqual(schoolAfter);
+  await page.reload();await navigate(page,'Timplaner');await open(page);
+  await expect(workspace(page).getByRole('button',{name:'Ändra Matematik, Åk 9, 121 timmar',exact:true})).toBeVisible();
+  expect(await fixture.snapshot(school.planId)).toEqual(schoolAfter);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await testInfo.attach('timplan-tillagd-skola.png',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
+});
+
 test.beforeAll(async({browserName},testInfo)=>{
   const proof=await verifyBrowserTarget(baseURL);
   await testInfo.attach('source-build.json',{body:JSON.stringify({...proof,browserName,scope:'local-synthetic-only'}),contentType:'application/json'});

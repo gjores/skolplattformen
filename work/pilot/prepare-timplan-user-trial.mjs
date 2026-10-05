@@ -28,13 +28,13 @@ try {
         values(${id(n)},${school.organizer_id},${unit},${kind}::public.offering_kind,${name},'Syntetiskt användarprov 2026',${kind==='grundskola'?[7,8,9]:null}::smallint[])`;
     }
     for (const [n,offering,version,locked] of [[51,40,2,true],[50,40,1,false],[52,41,1,false]]) {
-      const [existing] = await tx`select offering_id,organizer_id,version from public.timplans where id=${id(n)}`;
+      const [existing] = await tx`select offering_id,organizer_id,unit_id,version from public.timplans where id=${id(n)}`;
       if (existing) {
-        if (existing.offering_id!==id(offering)||existing.organizer_id!==school.organizer_id||existing.version!==version) throw new Error('REFUSED: provplanens ägarskap avviker');
+        if (existing.offering_id!==id(offering)||existing.organizer_id!==school.organizer_id||existing.unit_id!==unit||existing.version!==version) throw new Error('REFUSED: provplanens ägarskap avviker');
         continue; // Preserve all edits, revisions and cell values from previous runs.
       }
-      await tx`insert into public.timplans(id,organizer_id,offering_id,version,basis)
-        values(${id(n)},${school.organizer_id},${id(offering)},${version},'Syntetiskt användarprov – inga nationellt fastställda timvärden')`;
+      await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis)
+        values(${id(n)},${school.organizer_id},${id(offering)},${unit},${version},'Syntetiskt användarprov – inga nationellt fastställda timvärden')`;
       for (const row of offering===40?gr:Object.keys(im)) {
         const hours=offering===40?(row==='matematik'?[100,100,100]:row==='engelska'?[60,60,60]:[0,0,0]):[im[row]];
         await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${id(n)},${row},${hours}::smallint[])`;
