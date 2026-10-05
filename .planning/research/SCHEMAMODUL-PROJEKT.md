@@ -4,6 +4,7 @@ Datum: 2026-10-01. Status: användarbeställd projektinriktning och planeringsun
 
 ## Användarens beslut
 
+- 2026-10-05: Analysen ska vara sammanhållen för programplan och timplan och senare jämföra med schemat. APL ska ses över i samma kedja, med tydlig skillnad mellan planerad, schemalagd och genomförd tid samt lärande. [Registrerad todo](../todos/pending/2026-10-05-samordna-plananalys-schema-och-apl.md) anger kommande utredning och verifieringsmål. Ta med versionsbundna samband och APL-underlag i S1:s kontraktsarbete och jämförelse-/synkprov i S4; full placering och handledaruppföljning behöver egna avgränsade planer.
 - Schemaläggning ska utvecklas tillsammans med programplaner, timplaner, individuella studieplaner och övriga relevanta planeringsmoduler.
 - Specifika roller och regler behöver hanteras redan i grundarbetet, före öppnande av nya datavägar.
 - Rust ska ingå som ett uttryckligt teknikspår med en körbar prototyp. Placeringen i arkitekturen och val av beräkningsmotor behöver prövas; en full backendomskrivning är inte beslutad.

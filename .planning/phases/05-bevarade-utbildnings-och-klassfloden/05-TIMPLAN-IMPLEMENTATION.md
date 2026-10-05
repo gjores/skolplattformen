@@ -42,6 +42,8 @@ Poäng är inte timmar. En gemensam timplan är inte bevis för faktiskt genomf�
 
 ## Skydd och bevarade flöden
 
+**Användarbeslut 2026-10-05:** Analysen ska vara sammanhållen mellan programplan och timplan och senare visa sambandet med schemat. APL behöver en egen genomgång över samma kedja. Se [registrerad todo](../../todos/pending/2026-10-05-samordna-plananalys-schema-och-apl.md) för avgränsning, ansvariga planeringssteg och verifieringsmål. Precisera detta i återstående 05-29/05-31 och slutprov 05-34/05-35 före genomförandet; bevara separata beslutsstatusar och kopplingen till exakt källversion. Schemakorrelation och full APL-placering/uppföljning kräver egna senare steg. Detta tillägg är planeringsinriktning, inte ett nytt genomförandebevis.
+
 Rektor och serverfunktionen `administrator` får skapa, redigera och lämna förslag inom sina aktuella skolmandat. HM granskar, återremitterar och fastställer den gemensamma planen. Admin får ingen HM-beslutsrätt eller programplansredigeringsrätt genom denna leverans.
 
 Timplanens version fryser programplanens ID/revision, katalog, exakta rader/block, poängterminer, juridisk profil och skolans paketrevision. Paketutbudet får ändras enligt 05-23 D-11, men ändringen får inte skriva om timplanens historiska underlag. Ny källa visas för explicit jämförelse.
