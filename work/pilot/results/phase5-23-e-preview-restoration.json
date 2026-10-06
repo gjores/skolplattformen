@@ -1,0 +1,20 @@
+{
+  "kind": "phase5-23-e-preview-restoration",
+  "status": "PASS",
+  "baseURL": "http://127.0.0.1:3012",
+  "artifactRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+  "artifactFilesUnchanged": 719,
+  "processId": 65846,
+  "health": {
+    "ok": true,
+    "runtime": "workerd",
+    "role": "skolplattform_worker"
+  },
+  "beforeScenarios": 18,
+  "afterScenarios": 18,
+  "auditedReadsPerRound": 44,
+  "scenariosExactlyEqual": true,
+  "businessRowsPreserved": true,
+  "firstAfterReadStatus": "UNAVAILABLE",
+  "note": "Read-only process/cwd inspection proved no living root preview owner before removing only two ignored stale private lease files. Reused preserved artifact; no app rebuild, reset or business rewrite."
+}

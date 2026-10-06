@@ -1,0 +1,246 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "blocks",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3",
+  "status": "FAIL",
+  "exitCode": 1,
+  "stats": {
+    "startTime": "2026-10-06T13:23:41.128Z",
+    "duration": 88882.99,
+    "expected": 3,
+    "skipped": 6,
+    "unexpected": 3,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 po\u00e4ng och l\u00e4ser om samma f\u00f6rdelning",
+      "project": "blocks-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "new-sa-full-points.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B01-ny-SA25--b472f-h-l\u00e4ser-om-samma-f\u00f6rdelning-blocks-desktop/attachments/new-sa-full-points-png-3abc6253ae505025874033bcc60e49d171fee45f.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B02: sparade blockramar och terminer best\u00e5r utan blockhantering i programplanen",
+      "project": "blocks-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "block-frames-without-controls.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B02-sparade--aa43a-ckhantering-i-programplanen-blocks-desktop/attachments/block-frames-without-controls-png-5f1fde9438657a9b2da91e33d4c256df41e0cbf7.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B03: \u00e4ldre fastst\u00e4lld version \u00e4r Ofullst\u00e4ndig, ny version f\u00e5r svenska och beh\u00e5ller gamla IV-po\u00e4ng",
+      "project": "blocks-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "legacy-new-version-swedish.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B03-\u00e4ldre-fa-107cc-och-beh\u00e5ller-gamla-IV-po\u00e4ng-blocks-desktop/attachments/legacy-new-version-swedish-png-0f2200a7d5bd6b022d14214b67708a68b4874c38.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B08: IV 2 \u00d7 100, versionsbundna valpaket och saknad idrott ger risk medan planen \u00e4r klar",
+      "project": "blocks-desktop",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "B09: NA25 naturvetenskap och samh\u00e4lle erbjuder r\u00e4tt NAVE-niv\u00e5 och l\u00e4ser om paketvalet",
+      "project": "blocks-desktop",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "B11: tappat valpaketsvar \u00e5terl\u00e4ses utan dubbel skrivning och en \u00e4ldre dialog hindrar \u00f6verskrivning",
+      "project": "blocks-desktop",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 po\u00e4ng och l\u00e4ser om samma f\u00f6rdelning",
+      "project": "blocks-phone",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            },
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B01-ny-SA25--b472f-h-l\u00e4ser-om-samma-f\u00f6rdelning-blocks-phone/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B02: sparade blockramar och terminer best\u00e5r utan blockhantering i programplanen",
+      "project": "blocks-phone",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            },
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B02-sparade--aa43a-ckhantering-i-programplanen-blocks-phone/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B03: \u00e4ldre fastst\u00e4lld version \u00e4r Ofullst\u00e4ndig, ny version f\u00e5r svenska och beh\u00e5ller gamla IV-po\u00e4ng",
+      "project": "blocks-phone",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            },
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-blocks/phase5-blocks-B03-\u00e4ldre-fa-107cc-och-beh\u00e5ller-gamla-IV-po\u00e4ng-blocks-phone/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "B08: IV 2 \u00d7 100, versionsbundna valpaket och saknad idrott ger risk medan planen \u00e4r klar",
+      "project": "blocks-phone",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "B09: NA25 naturvetenskap och samh\u00e4lle erbjuder r\u00e4tt NAVE-niv\u00e5 och l\u00e4ser om paketvalet",
+      "project": "blocks-phone",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "B11: tappat valpaketsvar \u00e5terl\u00e4ses utan dubbel skrivning och en \u00e4ldre dialog hindrar \u00f6verskrivning",
+      "project": "blocks-phone",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

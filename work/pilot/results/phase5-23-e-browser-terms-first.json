@@ -1,0 +1,556 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "terms",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "9d66cb2441ab0a406c85f1fd0701455ec2db26c3",
+  "status": "FAIL",
+  "exitCode": 1,
+  "stats": {
+    "startTime": "2026-10-06T13:50:27.167Z",
+    "duration": 195122.376,
+    "expected": 24,
+    "skipped": 1,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "01: klick i tom termin l\u00e4gger hela niv\u00e5n, sparas n\u00e4r raden l\u00e4mnas och finns kvar efter omladdning",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "board-editing.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-klick-i-to-76936-finns-kvar-efter-omladdning-terms-desktop/attachments/board-editing-png-7f9c332433760cba273d55340aa536fdd281c50a.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02: f\u00f6r m\u00e5nga po\u00e4ng sparas inte och markeras tills raden \u00e4r r\u00e4ttad",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03: f\u00f6resl\u00e5 f\u00f6rdelning fyller alla tomma rader och planen blir klar f\u00f6r beslut",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "board-ready.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-03-f\u00f6resl\u00e5-f\u00f6-7889a-planen-blir-klar-f\u00f6r-beslut-terms-desktop/attachments/board-ready-png-7b17c30251a7087f3776eadc68f5d953ac28d2ce.png"
+            },
+            {
+              "name": "board-analysis.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-03-f\u00f6resl\u00e5-f\u00f6-7889a-planen-blir-klar-f\u00f6r-beslut-terms-desktop/attachments/board-analysis-png-204fb5ebd83f72b6665b7892c221bacba530a458.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04: konkurrerande revision visas och egna v\u00e4rden kan sparas uttryckligen",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05: MFA och loggfel l\u00e4mnar v\u00e4rdena kvar utan skrivning",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06: tappat svar efter commit l\u00e4ses tillbaka utan en andra skrivning",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07: borttagen f\u00f6rdjupningsniv\u00e5 t\u00f6ms f\u00f6rst och f\u00f6rsvinner ur tabellen",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08: telefon visar en \u00e5rskurs i taget med stora pekytor",
+      "project": "terms-desktop",
+      "expectedStatus": "skipped",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09: Flytta niv\u00e5n beh\u00e5ller po\u00e4ngen, visar r\u00e4tt \u00e5rskurs och l\u00e5ter felet r\u00e4ttas best\u00e4ndigt",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            },
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-09-Flytta-niv-c6747-ter-felet-r\u00e4ttas-best\u00e4ndigt-terms-desktop/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10: F\u00f6rdela och Flytta g\u00e5r till r\u00e4tt rad, L\u00e4gg till niv\u00e5 till s\u00f6kf\u00e4ltet och sparar bara egna \u00e4ndringar",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "analysis-fix-specialization.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-10-F\u00f6rdela-oc-e608d--sparar-bara-egna-\u00e4ndringar-terms-desktop/attachments/analysis-fix-specialization-png-c848576f0ee402a9d884ecc8c15966eb9f2813ad.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11: J\u00e4mna ut beh\u00e5ller befintlig f\u00f6rdelning och Ta bort niv\u00e5er g\u00e5r till f\u00f6rdjupningsradens kryss",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12: en skrivskyddad plan f\u00f6rklarar varf\u00f6r risker inte kan \u00e5tg\u00e4rdas",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "analysis-readonly.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-12-en-skrivsk-775e3-\u00f6r-risker-inte-kan-\u00e5tg\u00e4rdas-terms-desktop/attachments/analysis-readonly-png-a051048338668d10a6d5a48a48537ed3f5e1110f.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13: Ange datum g\u00e5r till det osparade utkastets datumf\u00e4lt utan att tappa lokala po\u00e4ng",
+      "project": "terms-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01: klick i tom termin l\u00e4gger hela niv\u00e5n, sparas n\u00e4r raden l\u00e4mnas och finns kvar efter omladdning",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "board-editing.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-01-klick-i-to-76936-finns-kvar-efter-omladdning-terms-phone/attachments/board-editing-png-d5b7c62c05b186339f560e79e204e433383d631d.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02: f\u00f6r m\u00e5nga po\u00e4ng sparas inte och markeras tills raden \u00e4r r\u00e4ttad",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03: f\u00f6resl\u00e5 f\u00f6rdelning fyller alla tomma rader och planen blir klar f\u00f6r beslut",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "board-ready.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-03-f\u00f6resl\u00e5-f\u00f6-7889a-planen-blir-klar-f\u00f6r-beslut-terms-phone/attachments/board-ready-png-fe8c90b023ec749b4a895e86290c068c407f6a87.png"
+            },
+            {
+              "name": "board-analysis.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-03-f\u00f6resl\u00e5-f\u00f6-7889a-planen-blir-klar-f\u00f6r-beslut-terms-phone/attachments/board-analysis-png-cf216ba7cff9009c18c2f6207c74984df7dc8980.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04: konkurrerande revision visas och egna v\u00e4rden kan sparas uttryckligen",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05: MFA och loggfel l\u00e4mnar v\u00e4rdena kvar utan skrivning",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06: tappat svar efter commit l\u00e4ses tillbaka utan en andra skrivning",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07: borttagen f\u00f6rdjupningsniv\u00e5 t\u00f6ms f\u00f6rst och f\u00f6rsvinner ur tabellen",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08: telefon visar en \u00e5rskurs i taget med stora pekytor",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "board-phone.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-08-telefon-vi-f042b-s-i-taget-med-stora-pekytor-terms-phone/attachments/board-phone-png-5755f83c068b854bfb90f611587228bdb829199a.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09: Flytta niv\u00e5n beh\u00e5ller po\u00e4ngen, visar r\u00e4tt \u00e5rskurs och l\u00e5ter felet r\u00e4ttas best\u00e4ndigt",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "analysis-fix-order.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-09-Flytta-niv-c6747-ter-felet-r\u00e4ttas-best\u00e4ndigt-terms-phone/attachments/analysis-fix-order-png-d968109ae2ea72e140577f91fb03e173c47bab5d.png"
+            },
+            {
+              "name": "analysis-action-resolved.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-09-Flytta-niv-c6747-ter-felet-r\u00e4ttas-best\u00e4ndigt-terms-phone/attachments/analysis-action-resolved-png-e9a402b367650c47aec19e3d1517516beb187d75.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10: F\u00f6rdela och Flytta g\u00e5r till r\u00e4tt rad, L\u00e4gg till niv\u00e5 till s\u00f6kf\u00e4ltet och sparar bara egna \u00e4ndringar",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "analysis-fix-specialization.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-10-F\u00f6rdela-oc-e608d--sparar-bara-egna-\u00e4ndringar-terms-phone/attachments/analysis-fix-specialization-png-e869be38e31759de6c8bfff496480b3e883cf5de.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11: J\u00e4mna ut beh\u00e5ller befintlig f\u00f6rdelning och Ta bort niv\u00e5er g\u00e5r till f\u00f6rdjupningsradens kryss",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12: en skrivskyddad plan f\u00f6rklarar varf\u00f6r risker inte kan \u00e5tg\u00e4rdas",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "analysis-readonly.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-terms/phase5-terms-12-en-skrivsk-775e3-\u00f6r-risker-inte-kan-\u00e5tg\u00e4rdas-terms-phone/attachments/analysis-readonly-png-87f4101d8cd0bb316f9f003b1b727a326d2334b0.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13: Ange datum g\u00e5r till det osparade utkastets datumf\u00e4lt utan att tappa lokala po\u00e4ng",
+      "project": "terms-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

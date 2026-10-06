@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "note": "Preserved initial API pass on first artifact; isolated CSS scan corrected before final matrix; not a substitute for final same-artifact run.",
+  "reports": [
+    {
+      "name": "phase5-23-e-api-d.json",
+      "status": "PASS",
+      "cases": 11,
+      "checks": 198,
+      "sha256": "c07e6451179f044682235aa364943a93417568f5174f32086e2f41cd078fa20e",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-b.json",
+      "status": "PASS",
+      "cases": 11,
+      "checks": 57,
+      "sha256": "f5828737af1ad4d1f32bc95b7805744bb78056087a0e7768f7894cb76081aabf",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-c.json",
+      "status": "PASS",
+      "cases": 16,
+      "checks": 132,
+      "sha256": "ba1cfe29584dc90d8a97f6e12e94e8a3b39db70abb8d939a89845f0b4549d135",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-terms.json",
+      "status": "PASS",
+      "cases": 31,
+      "checks": 69,
+      "sha256": "e21a6a2ab1aff04f35d31c444769b4976a72e0d0bfa1eb01a28b7ab6a5575129",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-programplan.json",
+      "status": "PASS",
+      "cases": 48,
+      "checks": 278,
+      "sha256": "e2bb4c2f5459b83146ccd99e71c0343e3ddd1b41242d7fd0fb24cb577fb790b4",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-a.json",
+      "status": "PASS",
+      "cases": 3,
+      "checks": 18,
+      "sha256": "0c50e3316a864571b66265a9da5827d3884e68a9c8d569ae085c616101dd065e",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-gym.json",
+      "status": "PASS",
+      "cases": 11,
+      "checks": 157,
+      "sha256": "e53f79ea2abf1729ffdeaf6d632d720a2876cf1f60f0091509db9fe8ab998f30",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    },
+    {
+      "name": "phase5-23-e-api-lifecycle.json",
+      "status": "PASS",
+      "cases": 39,
+      "checks": 168,
+      "sha256": "f3301b6e2d423333eaf33ee14d1751d4a5dfc044c0fd267357dc97bdb14dfe18",
+      "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3"
+    }
+  ]
+}

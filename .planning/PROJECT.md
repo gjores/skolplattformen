@@ -1,5 +1,7 @@
 # Skolplattformen
 
+**Teknisk E 2026-10-06 — fortfarande öppen:** Full SQL 2 512/2 512 och modell/server 674/674 PASS. Fokusbuggen efter Flytta nivån med aktivt ofördeladfilter är rättad och hela terminsomgången 25/25 PASS på dator/telefon. På rättat separat bygge `e9ca1e7` passerar även block 6, ram 10 och livscykel 20; programplaner ger 31/40, med tidsgränser/väntelägen som behöver utredas. Slutlig timplans-/API-matris återstår på samma artefakt. En egen timeout-fixtur städad; alla 14 ursprungliga helradsmängder inklusive tidsstämplar, ACL och funktionsfingeravtryck PASS efter städningen. Vanlig 3012 svarade först inte vid efterläsningen. Efter verifierad återstart från samma `5dd7baf`-bygge är alla 719 artefaktfiler oförändrade och samma 18 scenarier/44 auditpar PASS utan omförberedelse; första otillgängligheten bevaras. Se [E-mellanläge](phases/05-bevarade-utbildnings-och-klassfloden/05-23-E-VERIFICATION.md). 05-23 är in_progress, 98 planer/77 genomförda och 3/8 faser verifierade. Båda nya gapen och ADMIN-02/03/04 består; 05-36–43 är planerade men inte påbörjade.
+
 ## What This Is
 
 En skolplattform för svenska huvudmän, rektorer, skoladministratörer och lärare med tydlig administration av elever, studieplaner, grupper, schema, utbildningar och undervisningstid. Produkten ska vara modern, lätt att arbeta i på dator och telefon och kunna anslutas till olika kommuners system och säkerhetskrav. Detta GSD-projekt vidareutvecklar den befintliga arbetsversionen; det börjar inte om från en tom kodbas.

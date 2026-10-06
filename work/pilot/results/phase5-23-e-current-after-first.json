@@ -1,0 +1,10 @@
+{
+  "kind": "phase5-23-e-current-after",
+  "status": "UNAVAILABLE",
+  "baseURL": "http://127.0.0.1:3012",
+  "auditedReads": 0,
+  "scenarios": [],
+  "businessRowsPreserved": null,
+  "reason": "ECONNREFUSED on initial health fetch before session minting. No after-read PASS.",
+  "ordinaryArtifactRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908"
+}

@@ -1,0 +1,57 @@
+{
+  "kind": "phase5-23-e-static",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "checks": [
+    {
+      "name": "model-server",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": 674,
+      "logSha256": "67495dd93a2119faba4dda9bd6d1c23c7a8824fdc4f844cb789547a6b8c153ae"
+    },
+    {
+      "name": "fixture-helpers",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": 19,
+      "logSha256": "86cf4012a4d6e8a6f33c520e537e896b897f28c397080ed9cb0e11341783e002"
+    },
+    {
+      "name": "sql",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": 2512,
+      "logSha256": "afbd6adfe83130c8b5fbd3f763904d69d78179bc85e1c52e6ae6abfa9bc348f6"
+    },
+    {
+      "name": "typescript",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": null,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": null,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "protected-build",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": null,
+      "logSha256": "a95d4ec39c32b196a31a070402aeeeb77fb7a8b31256c67c7e2e3b2da8620890"
+    },
+    {
+      "name": "handbook-build",
+      "status": "PASS",
+      "exitCodeObserved": 0,
+      "count": null,
+      "logSha256": "714bad631cb5f49c49dd1293030882cbc2ade3df97ab68c6e8869a1775119503"
+    }
+  ],
+  "note": "Exit codes observed in completed tool calls. SQL and fixture helper sources unchanged by focus-only UI fix; their earlier fresh PASS is retained."
+}

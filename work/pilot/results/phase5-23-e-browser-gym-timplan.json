@@ -1,0 +1,368 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "gym-timplan",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "9d66cb2441ab0a406c85f1fd0701455ec2db26c3",
+  "status": "FAIL",
+  "exitCode": 1,
+  "stats": {
+    "startTime": "2026-10-06T13:58:04.312Z",
+    "duration": 2873.3820000000005,
+    "expected": 0,
+    "skipped": 24,
+    "unexpected": 2,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "T01: f\u00e4rdig utkastk\u00e4lla blir skolans egna timmar med blankt, noll och exakt retur till k\u00e4llan",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-desktop/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T02: tv\u00e5 skolor f\u00e5r olika timmar; administrat\u00f6r skriver eget gymutkast och HM l\u00e4ser",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T03: \u00e4ndrad k\u00e4llram kr\u00e4ver uttrycklig ny version och bevarar gamla timmar och klassl\u00e4nkar",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T04: ofullst\u00e4ndig po\u00e4ngram ger konkret \u00e5tg\u00e4rd och ingen tom timplan",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T05: CAS-konflikt skriver aldrig \u00f6ver en annan sparad timrad",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T06: tappat skapasvar \u00e5terfinner samma kommando utan en andra timplansversion",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T07: datuml\u00e5st programk\u00e4lla l\u00e5ser inte skolans timmar, men arkiverad utbildning g\u00f6r det",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T08: osparade timv\u00e4rden skyddas och ny cellinmatning under sparandet finns kvar",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T09: f\u00f6rlorad session rensar osparade terminsceller utan att skriva timv\u00e4rden",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T10: Tab mellan rader k\u00f6ar sparning med r\u00e4tt revision och \u00e5terl\u00e4ser b\u00e5da raderna",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T11: ogiltiga cellv\u00e4rden bevaras lokalt och skriver inga timmar innan r\u00e4ttning",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T12: tappat timsvar bekr\u00e4ftas genom \u00e5terl\u00e4sning utan dubbel radskrivning",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T13: ol\u00e4st sparstatus l\u00e5ser vidare skrivning tills verklig \u00e5terl\u00e4sning bekr\u00e4ftar timmarna",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T01: f\u00e4rdig utkastk\u00e4lla blir skolans egna timmar med blankt, noll och exakt retur till k\u00e4llan",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-phone/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T02: tv\u00e5 skolor f\u00e5r olika timmar; administrat\u00f6r skriver eget gymutkast och HM l\u00e4ser",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T03: \u00e4ndrad k\u00e4llram kr\u00e4ver uttrycklig ny version och bevarar gamla timmar och klassl\u00e4nkar",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T04: ofullst\u00e4ndig po\u00e4ngram ger konkret \u00e5tg\u00e4rd och ingen tom timplan",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T05: CAS-konflikt skriver aldrig \u00f6ver en annan sparad timrad",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T06: tappat skapasvar \u00e5terfinner samma kommando utan en andra timplansversion",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T07: datuml\u00e5st programk\u00e4lla l\u00e5ser inte skolans timmar, men arkiverad utbildning g\u00f6r det",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T08: osparade timv\u00e4rden skyddas och ny cellinmatning under sparandet finns kvar",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T09: f\u00f6rlorad session rensar osparade terminsceller utan att skriva timv\u00e4rden",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T10: Tab mellan rader k\u00f6ar sparning med r\u00e4tt revision och \u00e5terl\u00e4ser b\u00e5da raderna",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T11: ogiltiga cellv\u00e4rden bevaras lokalt och skriver inga timmar innan r\u00e4ttning",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T12: tappat timsvar bekr\u00e4ftas genom \u00e5terl\u00e4sning utan dubbel radskrivning",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "name": "T13: ol\u00e4st sparstatus l\u00e5ser vidare skrivning tills verklig \u00e5terl\u00e4sning bekr\u00e4ftar timmarna",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "skipped",
+      "results": [
+        {
+          "status": "skipped",
+          "retry": 0,
+          "attachments": []
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

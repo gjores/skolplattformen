@@ -1,0 +1,492 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "lifecycle",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "status": "PASS",
+  "exitCode": 0,
+  "stats": {
+    "startTime": "2026-10-06T14:06:37.968Z",
+    "duration": 83558.432,
+    "expected": 20,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "L01: status i listan och arbetsytan kommer fr\u00e5n servern",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "lifecycle-list.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L01-statu-e0505-etsytan-kommer-fr\u00e5n-servern-lifecycle-desktop/attachments/lifecycle-list-png-f31c3755054848bb715ad3573d351797fb244b8a.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L03: framtida plan tas bort efter bekr\u00e4ftelse; utbildning med klass nekas",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-delete-dialog.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-desktop/attachments/lifecycle-delete-dialog-png-7e45720c0923dbe2ebe60512967d96c9e9fd0572.png"
+            },
+            {
+              "name": "lifecycle-delete-denied.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-desktop/attachments/lifecycle-delete-denied-png-de9a575376e2946047807ae241fe1f131d8ae663.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L02: huvudmannen \u00e4ndrar namn, kull och startdatum i en framtida plan",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-edit-dialog.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L02-huvud-1c3e1-artdatum-i-en-framtida-plan-lifecycle-desktop/attachments/lifecycle-edit-dialog-png-c2539360d15c2029590171bcdc04a2cb6a741a19.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L04: p\u00e5g\u00e5ende plan \u00e4r l\u00e5st och kan arkiveras och tas fram",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-archived.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L04-p\u00e5g\u00e5e-46fad--kan-arkiveras-och-tas-fram-lifecycle-desktop/attachments/lifecycle-archived-png-a692be5f7cda38684e6d150c56aaa757d5e356ca.png"
+            },
+            {
+              "name": "lifecycle-archive-filter.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L04-p\u00e5g\u00e5e-46fad--kan-arkiveras-och-tas-fram-lifecycle-desktop/attachments/lifecycle-archive-filter-png-135733897d29e03fa4b19ca02d26f874df7dbb94.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L05: konflikt, MFA och ok\u00e4nt svar l\u00e4ser om listan innan n\u00e5got nytt skickas",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L06: kopia med passerat startdatum stoppas i formul\u00e4ret och av servern",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-copy-past.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L06-kopia-8e08c-i-formul\u00e4ret-och-av-servern-lifecycle-desktop/attachments/lifecycle-copy-past-png-2086f5423a447c0fca6d63220e69650bc1831450.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L07: huvudmannen l\u00e4gger till skola B som l\u00e4ser samma plan utan r\u00e4tt att \u00e4ndra planen",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-school-filter.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-r\u00e4tt-att-\u00e4ndra-planen-lifecycle-desktop/attachments/units-school-filter-png-b9835e39d1a8be63ac8cf8b9154309f49766ddd7.png"
+            },
+            {
+              "name": "units-principal-b-readonly.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-r\u00e4tt-att-\u00e4ndra-planen-lifecycle-desktop/attachments/units-principal-b-readonly-png-948758bec1cd286b6735f6c4410125369209d80f.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L08: B tas bort f\u00f6re kullstart, l\u00e4ggs till efter start och kan d\u00e5 inte tas bort",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-started-removal-locked.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L08-B-tas-1e51d-rt-och-kan-d\u00e5-inte-tas-bort-lifecycle-desktop/attachments/units-started-removal-locked-png-652ef0aeed6a15dc8cf8093784e08d2b9f1f28b7.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L10: tillagd skola med klass kan inte tas bort och kopplingen bevaras",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-in-use-removal-denied.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L10-tilla-d9d6f-bort-och-kopplingen-bevaras-lifecycle-desktop/attachments/units-in-use-removal-denied-png-3cc38758a9ca9abb471bae4065c026f68d4bab43.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L09: kopiering till ny elevkull bevarar skolor, inneh\u00e5ll och original",
+      "project": "lifecycle-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-copied-new-cohort.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-inneh\u00e5ll-och-original-lifecycle-desktop/attachments/units-copied-new-cohort-png-d797c8d48a0787ee8ebaebd8ae3953fe525089a5.png"
+            },
+            {
+              "name": "units-copy-recovery.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-inneh\u00e5ll-och-original-lifecycle-desktop/attachments/units-copy-recovery-png-7d9f9e7a9f6b67b41c58388299419d2746923193.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L01: status i listan och arbetsytan kommer fr\u00e5n servern",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "lifecycle-list.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L01-statu-e0505-etsytan-kommer-fr\u00e5n-servern-lifecycle-phone/attachments/lifecycle-list-png-277b49ce999ff22afb28413cb5aa80d2e3e3e114.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L03: framtida plan tas bort efter bekr\u00e4ftelse; utbildning med klass nekas",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-delete-dialog.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-phone/attachments/lifecycle-delete-dialog-png-1fa4d24e686305474e53995d8d197a870fff2d6a.png"
+            },
+            {
+              "name": "lifecycle-delete-denied.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L03-framt-1f6ed--utbildning-med-klass-nekas-lifecycle-phone/attachments/lifecycle-delete-denied-png-27a8faf12c636d2c2db29dd256293510287353bb.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L02: huvudmannen \u00e4ndrar namn, kull och startdatum i en framtida plan",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-edit-dialog.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L02-huvud-1c3e1-artdatum-i-en-framtida-plan-lifecycle-phone/attachments/lifecycle-edit-dialog-png-6d7dfe9e9841c5a49be0b39a2270da17f017e929.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L04: p\u00e5g\u00e5ende plan \u00e4r l\u00e5st och kan arkiveras och tas fram",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-archived.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L04-p\u00e5g\u00e5e-46fad--kan-arkiveras-och-tas-fram-lifecycle-phone/attachments/lifecycle-archived-png-5fadbc3d459733f2b0fa524c63dcddd8f9c1e6b1.png"
+            },
+            {
+              "name": "lifecycle-archive-filter.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L04-p\u00e5g\u00e5e-46fad--kan-arkiveras-och-tas-fram-lifecycle-phone/attachments/lifecycle-archive-filter-png-985568b79ab90d4105a78618d0de1cbc5691e47e.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L05: konflikt, MFA och ok\u00e4nt svar l\u00e4ser om listan innan n\u00e5got nytt skickas",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L06: kopia med passerat startdatum stoppas i formul\u00e4ret och av servern",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "lifecycle-copy-past.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L06-kopia-8e08c-i-formul\u00e4ret-och-av-servern-lifecycle-phone/attachments/lifecycle-copy-past-png-196aa3687c119408df6ab4abbc05a2b472815d12.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L07: huvudmannen l\u00e4gger till skola B som l\u00e4ser samma plan utan r\u00e4tt att \u00e4ndra planen",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-school-filter.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-r\u00e4tt-att-\u00e4ndra-planen-lifecycle-phone/attachments/units-school-filter-png-ebb79cfa14e4a4b89d702c09611d1d63020f6128.png"
+            },
+            {
+              "name": "units-principal-b-readonly.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L07-huvud-87282--utan-r\u00e4tt-att-\u00e4ndra-planen-lifecycle-phone/attachments/units-principal-b-readonly-png-99c266a91c29a8f50e06b7af7484204975bca91a.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L08: B tas bort f\u00f6re kullstart, l\u00e4ggs till efter start och kan d\u00e5 inte tas bort",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-started-removal-locked.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L08-B-tas-1e51d-rt-och-kan-d\u00e5-inte-tas-bort-lifecycle-phone/attachments/units-started-removal-locked-png-b444b6c196b489da5cb8420a9758475354cd0097.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L10: tillagd skola med klass kan inte tas bort och kopplingen bevaras",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-in-use-removal-denied.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L10-tilla-d9d6f-bort-och-kopplingen-bevaras-lifecycle-phone/attachments/units-in-use-removal-denied-png-499c2ac45e678249e8c591df96e83facf1939c09.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L09: kopiering till ny elevkull bevarar skolor, inneh\u00e5ll och original",
+      "project": "lifecycle-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "units-copied-new-cohort.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-inneh\u00e5ll-och-original-lifecycle-phone/attachments/units-copied-new-cohort-png-7f7c96a8db434943e921303984643122d35f6012.png"
+            },
+            {
+              "name": "units-copy-recovery.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-lifecycle/phase5-lifecycle-L09-kopie-c2753-kolor-inneh\u00e5ll-och-original-lifecycle-phone/attachments/units-copy-recovery-png-e0d1c13db166f6a8ee5bf43c081917703314d72f.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

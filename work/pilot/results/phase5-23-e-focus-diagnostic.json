@@ -1,0 +1,46 @@
+{
+  "kind": "phase5-23-e-focus-diagnostic",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "note": "Unchanged isolated diagnostic before actual focus fix; does not replace failed full run.",
+  "rawSha256": "87b83917b4baa2972ef940fdbe699a8486899b1d30e9d800f78169f22e884762",
+  "stats": {
+    "startTime": "2026-10-06T13:54:45.774Z",
+    "duration": 11696.403,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "attachments": [
+    {
+      "name": "source-build.json",
+      "data": {
+        "sourceRevision": "9d66cb2441ab0a406c85f1fd0701455ec2db26c3",
+        "buildRevision": "9d66cb2441ab0a406c85f1fd0701455ec2db26c3",
+        "browserName": "chromium",
+        "scope": "local-synthetic-only"
+      }
+    },
+    {
+      "name": "cleanup.json",
+      "data": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 52,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ]
+}

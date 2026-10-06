@@ -9,9 +9,12 @@ requirements-finally-verified: []
 human_result: user_reported_pass_current_basic_flow
 human_result_date: 2026-10-06
 worker_build_revision: a7c78e18584327374f916fa070525db48225c34f
+verification_worker_build_revision: e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15
 ---
 
 # 05-23 — full poängsumma och valbara block
+
+**Teknisk E 2026-10-06 — fortfarande öppen:** Full SQL 2 512/2 512 och modell/server 674/674 PASS. Fokusbuggen efter Flytta nivån med aktivt ofördeladfilter är rättad och hela terminsomgången 25/25 PASS på dator/telefon. På rättat separat bygge `e9ca1e7` passerar även block 6, ram 10 och livscykel 20; programplaner ger 31/40, med tidsgränser/väntelägen som behöver utredas. Slutlig timplans-/API-matris återstår på samma artefakt. En egen timeout-fixtur städad; alla 14 ursprungliga helradsmängder inklusive tidsstämplar, ACL och funktionsfingeravtryck PASS efter städningen. Vanlig 3012 svarade först inte vid efterläsningen. Efter verifierad återstart från samma `5dd7baf`-bygge är alla 719 artefaktfiler oförändrade och samma 18 scenarier/44 auditpar PASS utan omförberedelse; första otillgängligheten bevaras. Se [E-mellanläge](05-23-E-VERIFICATION.md). 05-23 är in_progress, 98 planer/77 genomförda och 3/8 faser verifierade. Båda nya gapen och ADMIN-02/03/04 består; 05-36–43 är planerade men inte påbörjade.
 
 **Användarresultat 2026-10-06:** Det aktuella grundflödet är användarrapporterat godkänt genom ”detta funkar!”. [Samlat användarresultat](05-PROGRAMPLAN-USER-TRIAL.md) redovisar moment och ospecificerade enheter/roller. Grundflödets mänskliga vänteläge är avslutat; äldre awaiting_user nedan är historik och borttagna editorprov godkänns inte retroaktivt. Hela 05-23 är fortsatt in_progress: E:s tekniska fullplansverifiering och ADMIN-02/03 återstår.
 

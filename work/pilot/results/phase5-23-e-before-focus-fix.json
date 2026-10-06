@@ -1,0 +1,99 @@
+{
+  "kind": "phase5-23-e-before-focus-fix",
+  "workerBuildRevision": "9d66cb2441ab0a406c85f1fd0701455ec2db26c3",
+  "artifactFingerprint": "49b577705a24eb4b458b1d4a17ec7291f99382302353205f88ac670bac2e608f",
+  "groups": [
+    {
+      "name": "blocks",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:41:24.320Z",
+        "duration": 39071.214,
+        "expected": 6,
+        "skipped": 6,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "rawSha256": "eba869c34ea4c5c93dddff68481e3a70d846ffe36a99800cfb23c6909c236828"
+    },
+    {
+      "name": "programplan-frame",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:42:03.786Z",
+        "duration": 111915.89600000001,
+        "expected": 10,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "rawSha256": "014418d1709f5c38b6591f288df2ab2cb9059af60b2ed0d8e7ee788e5024e203"
+    },
+    {
+      "name": "lifecycle",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:43:56.321Z",
+        "duration": 105113.791,
+        "expected": 20,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "rawSha256": "3ac63c103a88d47982e685de356784fe82a7cc91640ffcfc94700b140837297c"
+    },
+    {
+      "name": "programplan",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:45:42.011Z",
+        "duration": 284511.821,
+        "expected": 40,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "rawSha256": "3b33904a30643b8822eea980d847a37048abf0171ab266e9803b84771bd08c0b"
+    },
+    {
+      "name": "terms",
+      "status": "FAIL",
+      "stats": {
+        "startTime": "2026-10-06T13:50:27.167Z",
+        "duration": 195122.376,
+        "expected": 24,
+        "skipped": 1,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "rawSha256": "b9d5390ec29b0fc86a388592665cbbb5420dea0975f3e55f39d0ee51b6ff812a"
+    },
+    {
+      "name": "timplan",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:55:14.446Z",
+        "duration": 167921.931,
+        "expected": 22,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "rawSha256": "ea367c453109fbd34efb603fe0d9c20d4c69753bedcdc42192c1180fd7d0e3fe"
+    },
+    {
+      "name": "gym-timplan",
+      "status": "FAIL",
+      "stats": {
+        "startTime": "2026-10-06T13:58:04.312Z",
+        "duration": 2873.3820000000005,
+        "expected": 0,
+        "skipped": 24,
+        "unexpected": 2,
+        "flaky": 0
+      },
+      "rawSha256": "2f834ecd5b9d9007c828a3895d9928a87cab636f65c7beec3f600152ed7b0dff"
+    }
+  ],
+  "note": "Terms09 legitimate focus failure retained; unchanged single diagnostic PASS is separate. Gym setup stopped on source-change guard before fixtures; no weakened guard."
+}

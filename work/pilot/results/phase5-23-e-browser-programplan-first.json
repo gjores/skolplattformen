@@ -1,0 +1,844 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "programplan",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3",
+  "status": "FAIL",
+  "exitCode": 1,
+  "stats": {
+    "startTime": "2026-10-06T13:32:02.696Z",
+    "duration": 286133.098,
+    "expected": 39,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden l\u00e4sning",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "programplan-read.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-l\u00e4sning-programplan-desktop/attachments/programplan-read-png-130ba7f8bd74cc53a915cb02fc38936d1bccab3b.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02: skapa med verkligt startdatum, ordnade niv\u00e5er och auditerad oml\u00e4sning",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-guide.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-02-skap-a3268-\u00e5er-och-auditerad-oml\u00e4sning-programplan-desktop/attachments/programplan-guide-png-ce12225b09257b8977794ab60a93962f45dcc642.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03: \u00e4ldre bindning bevarar val/ordning och kr\u00e4ver datum/bekr\u00e4ftelse",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04: f\u00f6rdjupning l\u00e4ggs till och tas bort direkt i tabellen, s\u00f6k och pekytor",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-dialog.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-04-f\u00f6rd-7aba4--i-tabellen-s\u00f6k-och-pekytor-programplan-desktop/attachments/programplan-dialog-png-dd8cddb0fa2df3f425de45ac5c863279593acc86.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05: kopiera \u00e4ldre l\u00e5st k\u00e4lla uttryckligt och bevara k\u00e4lla/historik",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-legacy-clone.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-05-kopi-68304-t-och-bevara-k\u00e4lla-historik-programplan-desktop/attachments/programplan-legacy-clone-png-e8f703dba90bb38cec5506d1b2af0680130dc01d.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06: bunden l\u00e5st syntetisk k\u00e4lla kopieras med of\u00f6r\u00e4ndrad grund",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07: verklig tv\u00e5sessionskonflikt stoppar och planen l\u00e4ses om",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-conflict.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-07-verk-aec0a-stoppar-och-planen-l\u00e4ses-om-programplan-desktop/attachments/programplan-conflict-png-ac6a6f0a6589e0f92ab7978db44e1ef1c7ebe315.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08: annan session binder till annan grund; eget formul\u00e4r kan inte \u00e5teranv\u00e4ndas",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09: MFA och DB/Worker-auditfel \u00e4ndrar ingenting",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-mfa.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-09-MFA--bdce7-r-auditfel-\u00e4ndrar-ingenting-programplan-desktop/attachments/programplan-mfa-png-8c4ab0445cdfaba00904721bd5616cd4e7ef68f3.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10: accepterad \u00e4ndring f\u00f6ljd av oml\u00e4sningsfel ger ingen dubbelwrite",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-refresh-error.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-10-acce-973dd-gsfel-ger-ingen-dubbelwrite-programplan-desktop/attachments/programplan-refresh-error-png-5862b45c72a471d6d053ee4ab723632054ba00d5.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11: tappat verkligt writesvar st\u00e4ms av genom verklig oml\u00e4sning",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13: sidurval, \u00e4ldre version, ok\u00e4nda \u00e4ldre val och tomt uppdrag",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14: huvudman kan arbeta; f\u00f6rlorat uppdrag/sessionepoch rensar inneh\u00e5ll",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "15: utg\u00e5ngen session och avslutat givande mandat rensar den \u00f6ppna planen",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16: fem ytterligare program skapas, granskas och l\u00e4ses med r\u00e4tt programgrund",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-vard-review.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-16-fem--cd3cf-l\u00e4ses-med-r\u00e4tt-programgrund-programplan-desktop/attachments/programplan-vard-review-png-1bc01b40303c538124b2a5d457647d46deeae83a.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "17: samma fl\u00f6de skapar utbildning och f\u00f6rsta utkast, med och utan inriktning",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "shared-new-vo-review.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-17-samm-3857e-ast-med-och-utan-inriktning-programplan-desktop/attachments/shared-new-vo-review-png-83282eec53ebc37bd37d6a8e412b32975607743d.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "18: tappat skapandesvar l\u00e4ses med samma kvitto utan en andra utbildning",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "shared-unknown-create.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-18-tapp-5e8e9-to-utan-en-andra-utbildning-programplan-desktop/attachments/shared-unknown-create-png-9f963697d4e9daacbf754afd0b1fb5ec01f526e9.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "19: osparade nyuppgifter skyddas och misslyckat programval l\u00e4mnar ingen gammal grund",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20: startlistan \u00f6ppnar och kopierar en plan till en ny utbildning utan att \u00e4ndra originalet",
+      "project": "programplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-list.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-20-star-4229d-g-utan-att-\u00e4ndra-originalet-programplan-desktop/attachments/programplan-list-png-cf47b20482bb50ad16454eaa0533d68ea56d72e2.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01: tydligt utbildningsurval, uttrycklig katalog/start och bunden l\u00e4sning",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "programplan-read.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-l\u00e4sning-programplan-phone/attachments/programplan-read-png-30e8144044e3eeeced1979a46a28f076ddb4c66b.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02: skapa med verkligt startdatum, ordnade niv\u00e5er och auditerad oml\u00e4sning",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-guide.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-02-skap-a3268-\u00e5er-och-auditerad-oml\u00e4sning-programplan-phone/attachments/programplan-guide-png-394f16aaf1fbc090ef34bb8c7e73c660e2d4d709.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03: \u00e4ldre bindning bevarar val/ordning och kr\u00e4ver datum/bekr\u00e4ftelse",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04: f\u00f6rdjupning l\u00e4ggs till och tas bort direkt i tabellen, s\u00f6k och pekytor",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-dialog.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-04-f\u00f6rd-7aba4--i-tabellen-s\u00f6k-och-pekytor-programplan-phone/attachments/programplan-dialog-png-ed1d13f1d454d211b6742fca7276d77a8fb43f10.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05: kopiera \u00e4ldre l\u00e5st k\u00e4lla uttryckligt och bevara k\u00e4lla/historik",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-legacy-clone.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-05-kopi-68304-t-och-bevara-k\u00e4lla-historik-programplan-phone/attachments/programplan-legacy-clone-png-1be8646d7741d116148fac5ba07ad66c6896799b.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06: bunden l\u00e5st syntetisk k\u00e4lla kopieras med of\u00f6r\u00e4ndrad grund",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07: verklig tv\u00e5sessionskonflikt stoppar och planen l\u00e4ses om",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-conflict.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-07-verk-aec0a-stoppar-och-planen-l\u00e4ses-om-programplan-phone/attachments/programplan-conflict-png-13fbce3a45a65517a3303a674c9e968787677463.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08: annan session binder till annan grund; eget formul\u00e4r kan inte \u00e5teranv\u00e4ndas",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09: MFA och DB/Worker-auditfel \u00e4ndrar ingenting",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-mfa.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-09-MFA--bdce7-r-auditfel-\u00e4ndrar-ingenting-programplan-phone/attachments/programplan-mfa-png-bc2f9966148495dbc052c365063c0e7fb92e894b.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10: accepterad \u00e4ndring f\u00f6ljd av oml\u00e4sningsfel ger ingen dubbelwrite",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-refresh-error.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-10-acce-973dd-gsfel-ger-ingen-dubbelwrite-programplan-phone/attachments/programplan-refresh-error-png-2fb0ab01b30827b15f0cee692bc1a816b77c826f.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11: tappat verkligt writesvar st\u00e4ms av genom verklig oml\u00e4sning",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13: sidurval, \u00e4ldre version, ok\u00e4nda \u00e4ldre val och tomt uppdrag",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "unexpected",
+      "results": [
+        {
+          "status": "failed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            },
+            {
+              "name": "error-context",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-13-sidu-683ab--\u00e4ldre-val-och-tomt-uppdrag-programplan-phone/error-context.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14: huvudman kan arbeta; f\u00f6rlorat uppdrag/sessionepoch rensar inneh\u00e5ll",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "15: utg\u00e5ngen session och avslutat givande mandat rensar den \u00f6ppna planen",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16: fem ytterligare program skapas, granskas och l\u00e4ses med r\u00e4tt programgrund",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-vard-review.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-16-fem--cd3cf-l\u00e4ses-med-r\u00e4tt-programgrund-programplan-phone/attachments/programplan-vard-review-png-b1f5553ceef0022b8869a1768a0725a3427928a6.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "17: samma fl\u00f6de skapar utbildning och f\u00f6rsta utkast, med och utan inriktning",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "shared-new-vo-review.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-17-samm-3857e-ast-med-och-utan-inriktning-programplan-phone/attachments/shared-new-vo-review-png-74d47fe3cfebf34aefcd2f4b4e342f9fe3cfed19.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "18: tappat skapandesvar l\u00e4ses med samma kvitto utan en andra utbildning",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "shared-unknown-create.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-18-tapp-5e8e9-to-utan-en-andra-utbildning-programplan-phone/attachments/shared-unknown-create-png-77a7a4d5e40e5454b35437b0a937c8bdadcde941.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "19: osparade nyuppgifter skyddas och misslyckat programval l\u00e4mnar ingen gammal grund",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20: startlistan \u00f6ppnar och kopierar en plan till en ny utbildning utan att \u00e4ndra originalet",
+      "project": "programplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "programplan-list.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-programplan/phase5-programplan-20-star-4229d-g-utan-att-\u00e4ndra-originalet-programplan-phone/attachments/programplan-list-png-f2249f077f7f6bc7e16e5f8f147c000b6395165d.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

@@ -1,0 +1,152 @@
+{
+  "kind": "phase5-23-e-residue-cleanup",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "fixturePrefix": "3df95345",
+  "ownership": "Exact marker and UUID graph; created 124 ms after timed-out programplan-desktop02 started. Older fixture excluded.",
+  "counts": {
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "offerings": 0,
+    "preserved_audit_events": 70,
+    "preserved_audit_anchors": 1
+  },
+  "firstPreservationStatus": "FAIL",
+  "firstCounts": {
+    "point_plans": 25,
+    "point_plan_events": 56,
+    "offerings": 40,
+    "offering_units": 267,
+    "timplans": 7,
+    "timplan_cells": 121,
+    "timplan_events": 67,
+    "class_timplans": 0,
+    "school_classes": 6,
+    "pupil_placements": 68,
+    "programplan_shape_upgrades": 13,
+    "programplan_unit_packages": 0,
+    "programplan_packages": 0,
+    "gym_timplan_receipts": 3
+  },
+  "originalFullRowsPreservedAfterCleanup": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "4d0502616fcba11b33791f4e46625fc0af3989e97ca60f2be3ddea6a37a9b592"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "0bf503456175ab3006cc32fb59f6cbedd8704335088b4f4073aa78114657d2a0"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "c3e296dece7c3eb9aad35fc53bbf6559e7e4ebc982f0a0e1b913c470806ddc58"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "90a4b1e7634ad222f3420e4b9e102f8a2202326183b5e43b5c1cc7fd0481a3f8"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "5d997fd3590ae22c11a42c3443a50fc11d84527159fcc6358d1b65c04c2c03a6"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "ee4129a7961459556f89e8a1841cca45cdfb4452481316bb0fc9f6a5fa212219"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "0be89662c36de41177d3f5e6b353dbc6029949a12ba8a6ace283bba0058ea054"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "81d6d16d437c91e644aa6e80b70e8e7db806000416436a73587cea8004952154"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "cf70cb008bb96cd91653dda4957dc9db9a996ec110fc3bb88e3cbb794d044101"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "8631446ccbb1085f667777d3b2c3a65dcae11c6ee5c3297e685058f16a1007bf"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "b3b97d9d20e96836cb5ac29bb611a16e78c7899e95fe97805f85b76534d411de"
+    }
+  },
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "4d0502616fcba11b33791f4e46625fc0af3989e97ca60f2be3ddea6a37a9b592"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "0bf503456175ab3006cc32fb59f6cbedd8704335088b4f4073aa78114657d2a0"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "c3e296dece7c3eb9aad35fc53bbf6559e7e4ebc982f0a0e1b913c470806ddc58"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "90a4b1e7634ad222f3420e4b9e102f8a2202326183b5e43b5c1cc7fd0481a3f8"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "5d997fd3590ae22c11a42c3443a50fc11d84527159fcc6358d1b65c04c2c03a6"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "ee4129a7961459556f89e8a1841cca45cdfb4452481316bb0fc9f6a5fa212219"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "0be89662c36de41177d3f5e6b353dbc6029949a12ba8a6ace283bba0058ea054"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "81d6d16d437c91e644aa6e80b70e8e7db806000416436a73587cea8004952154"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "cf70cb008bb96cd91653dda4957dc9db9a996ec110fc3bb88e3cbb794d044101"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "8631446ccbb1085f667777d3b2c3a65dcae11c6ee5c3297e685058f16a1007bf"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "b3b97d9d20e96836cb5ac29bb611a16e78c7899e95fe97805f85b76534d411de"
+    }
+  },
+  "aclPreserved": true,
+  "migrationFunctionFingerprintPreserved": true,
+  "auditAndAnchorsPreserved": true,
+  "note": "Canonical owned cleanup completed; first report export path failed after DB cleanup, this separate read-only proof confirms all remaining counts and original 14 full tables."
+}

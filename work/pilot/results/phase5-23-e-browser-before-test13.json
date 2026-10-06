@@ -1,0 +1,62 @@
+{
+  "kind": "phase5-23-e-intermediate-browser",
+  "status": "FAIL",
+  "scope": "local-synthetic-only",
+  "workerBuildRevision": "1bf65ebbd6a0a530e5808adf38ed10319d97d6b3",
+  "artifactFingerprint": "346afbe96a34c448176b1c5c21b4ff7110ef1284882591f01546adb8d4d638e2",
+  "configs": [
+    {
+      "config": "blocks",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:27:53.029Z",
+        "duration": 37828.238,
+        "expected": 6,
+        "skipped": 6,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "reportSHA256": "e4d60b4645ed0686cfd6d3bb9bafc9be6b8463cd3a88912445e908e8442c7bb5"
+    },
+    {
+      "config": "programplan-frame",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:28:31.247Z",
+        "duration": 110370.27,
+        "expected": 10,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "reportSHA256": "0b01ea580d7eb4016e24adfdbcd08d6940847b2731b98ff4086173ba7964cc57"
+    },
+    {
+      "config": "lifecycle",
+      "status": "PASS",
+      "stats": {
+        "startTime": "2026-10-06T13:30:22.128Z",
+        "duration": 100134.251,
+        "expected": 20,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "reportSHA256": "0faa35fb3f8162d06bbca6d736427d31ff41ad8dedc586610671ba5039b620ea"
+    },
+    {
+      "config": "programplan",
+      "status": "FAIL",
+      "stats": {
+        "startTime": "2026-10-06T13:32:02.696Z",
+        "duration": 286133.098,
+        "expected": 39,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "reportSHA256": "953f17245186e32653b43677f1f5e6b5556940ad5b3fd07b1595ce99827472c7"
+    }
+  ],
+  "note": "Correct CSS. 39/40 programplan with mobile case13 stale deleted-fixture link; later test-only correction and complete final rerun. Intermediate passes do not substitute final same-artifact matrix."
+}
