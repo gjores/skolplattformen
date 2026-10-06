@@ -177,23 +177,23 @@ test('F04: administratör och rektor på delad skola läser full ram utan termin
   await info.attach('readonly-separation.json',{body:JSON.stringify({readers:['administrator','shared-principal'],statuses:['utkast','faststalld'],faststalldPreparation:'owned synthetic fixture only, no real decision',baselinePerStatus:true,termAndPlanCommands:commands,packageApiAttempts:attempts,sourcePlanAndOfferingWholeRowsUnchangedDuringReads:true,sourceHistoryUnchangedDuringReads:true,sourcePackageWholeRowsUnchanged:true}),contentType:'application/json'});
 });
 
-test('F05: äldre sparat utbud hindrar mindre IV-block med tydligt 409-besked och bevarade helrader',async({page},info)=>{
+test('F05: äldre skolutbud bevaras utan blockhantering och API avvisar mindre IV-block med 409',async({page},info)=>{
   const planId=await createPlan(),schoolBefore=await saveSchoolOffering(planId),attempts=await observeNoPackageRequests(page);
   // Keep frame terms empty: the server's historical offering guard must be the
   // actual reason for refusal, rather than the local allocated-frame guard.
   await enter(page);await noPackageControls(page);const original=await fixture.snapshot(planId),originalOffering=await fixture.offering(fixture.emptyOfferingId),originalHistory=await fixture.history(planId);
-  const iv=board(page).getByRole('region',{name:'Block för individuellt val',exact:true});
-  await iv.getByRole('button',{name:'Dela i block',exact:true}).click();await iv.getByLabel('Poäng för block iv1',{exact:true}).fill('100');await iv.getByRole('button',{name:'Lägg till block',exact:true}).click();
-  await iv.locator('input[aria-label^="Namn på block "]').last().fill('Individuellt val 2');await expect(iv.locator('input[aria-label^="Poäng för block "]').last()).toHaveValue('100');
-  const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/programplaner/block'&&response.request().method()==='POST');
-  await iv.getByRole('button',{name:'Spara block',exact:true}).click();const response=await pending;expect(response.status()).toBe(409);expect((await response.json()).code).toBe('programplan_block_packages_in_use');
-  expect(response.request().postDataJSON()).toMatchObject({planId,expectedRevision:original.revision});expect(response.request().postDataJSON().choiceBlocks.filter((block:{kind:string})=>block.kind==='individualChoice').map((block:{points:number})=>block.points)).toEqual([100,100]);
-  await expect(board(page)).toContainText(/tidigare sparat utbud/iu);await expect(board(page)).toContainText(/bevaras/iu);await expect(board(page)).not.toContainText('Någon annan har ändrat planen');await expect(board(page)).not.toContainText('Läs om planen innan du ändrar blocken');
-  await expect(iv.getByLabel('Poäng för block iv1',{exact:true})).toHaveValue('100');await expect(iv.getByRole('button',{name:'Spara block',exact:true})).toBeEnabled();await noPackageControls(page);
+  await expect(board(page).getByRole('button',{name:/^(Dela i block|Lägg till valbart block|Lägg till block|Spara block|Ta bort block)/u})).toHaveCount(0);
+  await expect(board(page).locator('.ppb-choice-editor')).toHaveCount(0);
+  await expect(board(page).locator('tr[data-row-key="block:iv1"] .ppb-num')).toHaveText('200');
+  // The removed editor no longer emits this command. Exercise the retained
+  // server guard directly against the real Worker, preserving its 409 proof.
+  const choiceBlocks=original.basis_reference.choiceBlocks.flatMap((block:{id:string;kind:string;points:number;name:string})=>block.kind==='individualChoice'?[{...block,points:100},{...block,id:'iv2',name:'Individuellt val 2',points:100}]:[block]);
+  const response=await fixture.request(baseURL,fixture.principal,'/api/programplaner/block',{planId,expectedRevision:original.revision,choiceBlocks});
+  expect(response.status).toBe(409);expect(response.body.code).toBe('programplan_block_packages_in_use');
   expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.offering(fixture.emptyOfferingId)).toEqual(originalOffering);expect(await fixture.history(planId)).toEqual(originalHistory);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   const path=info.outputPath('older-offering-block-change-refused.png');await page.screenshot({path,fullPage:true});await info.attach('older-offering-block-change-refused.png',{path,contentType:'image/png'});
-  await iv.getByRole('button',{name:'Avbryt blockändring',exact:true}).click();await page.reload();await navigate(page);await noPackageControls(page);await expect(board(page).locator('tr[data-row-key="block:iv1"] .ppb-num')).toHaveText('200');
+  await page.reload();await navigate(page);await noPackageControls(page);await expect(board(page).locator('tr[data-row-key="block:iv1"] .ppb-num')).toHaveText('200');
   expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
-  await info.attach('old-offering-refusal.json',{body:JSON.stringify({status:409,code:'programplan_block_packages_in_use',misleadingRevisionConflict:false,sourcePlanAndOfferingWholeRowsUnchanged:true,sourceHistoryUnchanged:true,sourcePackageWholeRowsUnchanged:true,packageApiAttempts:attempts}),contentType:'application/json'});
+  await info.attach('old-offering-refusal.json',{body:JSON.stringify({status:409,code:'programplan_block_packages_in_use',commandOrigin:'direct-real-worker-api',blockManagementAbsent:true,sourcePlanAndOfferingWholeRowsUnchanged:true,sourceHistoryUnchanged:true,sourcePackageWholeRowsUnchanged:true,packageApiAttempts:attempts}),contentType:'application/json'});
 });
