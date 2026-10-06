@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { assertTarget } from './verify-target.mjs';
+import { protectedBuildRoot } from './verify-programplan-api.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const require = createRequire(path.join(root, 'web/package.json'));
@@ -15,12 +16,12 @@ const SOURCE_PATHS = ['web/scripts/run-mode.mjs','web/scripts/preview-worker.mjs
   'web/app/protected-timplan.css','web/lib/protected-timplan.ts','web/lib/server/timplan-planning.ts','web/lib/server-client.ts','web/lib/unsaved-changes.tsx',
   'web/app/api/timplaner/lista/route.ts','web/app/api/timplaner/lasa/route.ts','web/app/api/timplaner/cell/route.ts',
   'work/pilot/phase5-browser-fixtures.mjs','web/e2e/phase5-timplan.spec.ts','web/playwright.phase5-timplan.config.ts',
-  'work/pilot/phase4-browser-fixtures.mjs','web/e2e/phase4-card.spec.ts','web/playwright.phase4-card.config.ts'];
+  'work/pilot/verify-programplan-api.mjs','work/pilot/phase4-browser-fixtures.mjs','web/e2e/phase4-card.spec.ts','web/playwright.phase4-card.config.ts'];
 
 export async function verifyBrowserTarget(baseURL) {
   if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL)) throw new Error('Endast lokal browserprovserver tillåts.');
   await assertTarget('protected');
-  const mark = JSON.parse(readFileSync(path.join(root,'web/dist-protected/build-mode.json'),'utf8'));
+  const mark = JSON.parse(readFileSync(path.join(protectedBuildRoot(),'build-mode.json'),'utf8'));
   if (mark.mode !== 'protected' || !mark.revision) throw new Error('Verifierat skyddat bygge saknas.');
   const git = args => execFileSync('git', args, {cwd: root, encoding:'utf8', stdio:['ignore','pipe','ignore']}).trim();
   if (git(['status','--porcelain','--',...SOURCE_PATHS])) throw new Error('Browserprovet kräver versionshanterad UI/serverkod.');
