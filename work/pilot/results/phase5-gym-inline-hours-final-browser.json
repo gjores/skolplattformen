@@ -1,0 +1,3839 @@
+{
+  "scope": "local-synthetic-only",
+  "rawReport": "work/pilot/targets/protected/runtime/inline-hours-evidence/inline-hours-browser-final.json",
+  "rawSha256": "19b1e1ea09ab5576905fa494578bc7ae4ba410ceb3a3b464e417699e6ed4c06a",
+  "stats": {
+    "startTime": "2026-10-06T07:22:14.141Z",
+    "duration": 205947.10199999998,
+    "expected": 26,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sources": [
+    {
+      "sourceRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+      "buildRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+      "scope": "local-synthetic-only",
+      "protectedSources": [
+        "web/lib/gym-timplan.ts",
+        "web/lib/gym-timplan.test.mjs",
+        "web/lib/server/gym-timplan.ts",
+        "web/lib/server/gym-timplan.test.mjs",
+        "web/app/api/timplaner/gym",
+        "web/app/protected-gym-timplan-workspace.tsx",
+        "web/app/protected-gym-timplan-hours.tsx",
+        "web/app/protected-gym-timplan.css",
+        "web/app/protected-timplan-workspace.tsx",
+        "web/app/protected-timplan.css",
+        "web/app/protected-home.tsx",
+        "web/app/protected-programplan-workspace.tsx",
+        "web/app/protected-programplan-board.tsx",
+        "web/lib/protected-plan-location.ts",
+        "web/lib/protected-plan-location.test.mjs",
+        "web/lib/server/http.ts",
+        "web/lib/server-client.ts",
+        "web/lib/unsaved-changes.tsx",
+        "web/components/ui/dialog.tsx",
+        "web/lib/mandate-policy.ts",
+        "web/lib/server/audit-details.ts",
+        "web/lib/session-channel.ts",
+        "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+        "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+        "supabase/tests/phase5_program_timplan_transition.test.sql",
+        "work/pilot/phase5-gym-timplan-fixtures.mjs",
+        "web/e2e/phase5-gym-timplan.spec.ts",
+        "web/playwright.phase5-gym-timplan.config.ts",
+        "web/e2e/phase5-timplan.spec.ts",
+        "web/playwright.phase5-timplan.config.ts"
+      ],
+      "browserName": "chromium"
+    },
+    {
+      "sourceRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+      "buildRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+      "scope": "local-synthetic-only",
+      "protectedSources": [
+        "web/lib/gym-timplan.ts",
+        "web/lib/gym-timplan.test.mjs",
+        "web/lib/server/gym-timplan.ts",
+        "web/lib/server/gym-timplan.test.mjs",
+        "web/app/api/timplaner/gym",
+        "web/app/protected-gym-timplan-workspace.tsx",
+        "web/app/protected-gym-timplan-hours.tsx",
+        "web/app/protected-gym-timplan.css",
+        "web/app/protected-timplan-workspace.tsx",
+        "web/app/protected-timplan.css",
+        "web/app/protected-home.tsx",
+        "web/app/protected-programplan-workspace.tsx",
+        "web/app/protected-programplan-board.tsx",
+        "web/lib/protected-plan-location.ts",
+        "web/lib/protected-plan-location.test.mjs",
+        "web/lib/server/http.ts",
+        "web/lib/server-client.ts",
+        "web/lib/unsaved-changes.tsx",
+        "web/components/ui/dialog.tsx",
+        "web/lib/mandate-policy.ts",
+        "web/lib/server/audit-details.ts",
+        "web/lib/session-channel.ts",
+        "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+        "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+        "supabase/tests/phase5_program_timplan_transition.test.sql",
+        "work/pilot/phase5-gym-timplan-fixtures.mjs",
+        "web/e2e/phase5-gym-timplan.spec.ts",
+        "web/playwright.phase5-gym-timplan.config.ts",
+        "web/e2e/phase5-timplan.spec.ts",
+        "web/playwright.phase5-timplan.config.ts"
+      ],
+      "browserName": "webkit"
+    }
+  ],
+  "globalErrors": [],
+  "tests": [
+    {
+      "title": "T01: färdig utkastkälla blir skolans egna timmar med blankt, noll och exakt retur till källan",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 71,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T02: två skolor får olika timmar; administratör skriver eget gymutkast och HM läser",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 143,
+        "preservedAuditAnchors": 4,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T03: ändrad källram kräver uttrycklig ny version och bevarar gamla timmar och klasslänkar",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 76,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T04: ofullständig poängram ger konkret åtgärd och ingen tom timplan",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 41,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T05: CAS-konflikt skriver aldrig över en annan sparad timrad",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 43,
+        "preservedAuditAnchors": 3,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T06: tappat skapasvar återfinner samma kommando utan en andra timplansversion",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 31,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T07: datumlåst programkälla låser inte skolans timmar, men arkiverad utbildning gör det",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T08: osparade timvärden skyddas och ny cellinmatning under sparandet finns kvar",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T09: förlorad session rensar osparade terminsceller utan att skriva timvärden",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 29,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T10: Tab mellan rader köar sparning med rätt revision och återläser båda raderna",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 43,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T11: ogiltiga cellvärden bevaras lokalt och skriver inga timmar innan rättning",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 36,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T12: tappat timsvar bekräftas genom återläsning utan dubbel radskrivning",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 36,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T13: oläst sparstatus låser vidare skrivning tills verklig återläsning bekräftar timmarna",
+      "project": "gym-timplan-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 38,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T01: färdig utkastkälla blir skolans egna timmar med blankt, noll och exakt retur till källan",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 71,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T02: två skolor får olika timmar; administratör skriver eget gymutkast och HM läser",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 146,
+        "preservedAuditAnchors": 4,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T03: ändrad källram kräver uttrycklig ny version och bevarar gamla timmar och klasslänkar",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 76,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T04: ofullständig poängram ger konkret åtgärd och ingen tom timplan",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 42,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T05: CAS-konflikt skriver aldrig över en annan sparad timrad",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 43,
+        "preservedAuditAnchors": 3,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T06: tappat skapasvar återfinner samma kommando utan en andra timplansversion",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 32,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T07: datumlåst programkälla låser inte skolans timmar, men arkiverad utbildning gör det",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T08: osparade timvärden skyddas och ny cellinmatning under sparandet finns kvar",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 40,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T09: förlorad session rensar osparade terminsceller utan att skriva timvärden",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 30,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T10: Tab mellan rader köar sparning med rätt revision och återläser båda raderna",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 43,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T11: ogiltiga cellvärden bevaras lokalt och skriver inga timmar innan rättning",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 36,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T12: tappat timsvar bekräftas genom återläsning utan dubbel radskrivning",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 36,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    },
+    {
+      "title": "T13: oläst sparstatus låser vidare skrivning tills verklig återläsning bekräftar timmarna",
+      "project": "gym-timplan-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 38,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0,
+        "gymReceipts": 0,
+        "timplans": 0,
+        "classLinks": 0,
+        "originalBusinessUnchanged": true,
+        "before": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        },
+        "after": {
+          "point_plans": {
+            "count": 20,
+            "sha256": "ae3ae73756c645831247629ab287d05c8294efa13dc9fc166ce9db448279800c"
+          },
+          "point_plan_events": {
+            "count": 53,
+            "sha256": "d9350584e8dddfef67ba0f7ece9cbe31c4df00716fbacf365d84ee34775c3892"
+          },
+          "offerings": {
+            "count": 34,
+            "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+          },
+          "offering_units": {
+            "count": 267,
+            "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+          },
+          "timplans": {
+            "count": 6,
+            "sha256": "a35a2c40f506cbe71a2850fbcefe93de7024b3172c5ebe161d6e3c42868767f3"
+          },
+          "timplan_cells": {
+            "count": 96,
+            "sha256": "475cfaf8edf1e8809c54dd5fac2915b12f7492660785868795e7dfcc11516ebe"
+          },
+          "timplan_events": {
+            "count": 2,
+            "sha256": "6a1dd4cd4ef73ce4138ca121587f7f42a998415079a31b790cdcc94d23f32e8a"
+          },
+          "class_timplans": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "school_classes": {
+            "count": 6,
+            "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+          },
+          "pupil_placements": {
+            "count": 68,
+            "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+          },
+          "programplan_shape_upgrades": {
+            "count": 13,
+            "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+          },
+          "programplan_unit_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "programplan_packages": {
+            "count": 0,
+            "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          },
+          "gym_timplan_receipts": {
+            "count": 2,
+            "sha256": "90e46a72b8c6050e054ffd15acebfd3795a72a209c79e0a819454d1ae7df2b2c"
+          }
+        }
+      }
+    }
+  ],
+  "imageCount": 30
+}

@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-23
 status: in_progress
-stopped_at: Avgränsad blockrättning slutförd på 3012: blockramar kvar, blockhantering bort. Nästa full 05-23/E och omplanering av 05-25–35; beslut, yrkesram och mänsklig bedömning kvarstår.
+stopped_at: Direkta timceller slutförda på 3012. Nästa full 05-23/E och omplanering av 05-25–35; tabellöversikternas todo, beslut, yrkesram och mänsklig bedömning kvarstår.
 last_updated: "2026-10-06"
 last_activity: 2026-10-06
-last_activity_desc: "Registrerad todo: tabellöversikt för timplaner samt sökning, filtrering och sortering i båda planöversikterna. Genomförande återstår; senaste verifierade appbygge på 3012 är a7c78e1."
-state_head: a7c78e1
-worker_build_revision: a7c78e18584327374f916fa070525db48225c34f
+last_activity_desc: "Gymnasietimplanens timmar fylls direkt i terminsceller med radvis autospar. 26 dator-/telefonprov PASS; 3012 kör prövade 5dd7baf. Separat tabell-/sök-/filter-/sorteringstodo kvarstår."
+state_head: 5dd7baf
+worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
   completed_phases: 3
@@ -30,7 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-06)
 
 ## Current Position
 
-**Senaste avgränsade rättning 2026-10-06:** ”Behåll blockramarna, ta bort blockhanteringen.” Skapa/dela/ändra/ta bort block är borta från programplanen; sparade blockrader, poäng, terminer och fasta nivåval består. B01–B03 6/6, F01–F05 10/10 och T01/T03 4/4 på dator/telefon PASS; typ/lint/skyddat bygge/handbok PASS. Första ram-FAIL bevarad och provet anpassat till borttagen UI-väg med fortsatt verkligt 409-API-skydd. 20 slutliga cleanupbilagor noll egna verksamhetsrader. Vanlig 3012 kör `a7c78e1`, 174 prövade artefaktfiler byteidentiska; färsk baslinje över 14 hela tabeller och 18 scenarier/44 auditpar bevarad. Se [rättningen](debug/programplan-block-controls.md) och phase5-programplan-block-controls-rapporter. Hela 05-23/E och ADMIN-02/03/04 förblir öppna; planinventeringen 90/77 ändras inte.
+**Senaste avgränsade rättning 2026-10-06:** Gymnasietimplanens timmar fylls direkt i aktiva terminsceller och sparas när raden lämnas eller Enter trycks. Köade radskrivningar, ny inmatning under sparning, konfliktjämförelse och återläsning vid okänt svar bevarar arbetet. T01–T13 på dator/telefon 26/26 PASS, 26 städningsbilagor, riktade modell/server 24 PASS och typ/lint/skyddat bygge/handbok PASS. Vanlig 3012 kör `5dd7baf`, 174 prövade filer byteidentiska. De 18 befintliga scenarierna/44 läspar består. Initial databasjämförelse FAIL bevarad: två verksamhetshändelser inträffade före första prov; kompletterande jämförelse av alla 14 hela tabeller från provstart till serverbyte PASS, inklusive dessa uppgifter. Se [rättning och bevis](debug/gym-timplan-inline-hours.md). Separat [tabellöversikts-todo](todos/pending/2026-10-06-tabelloversikter-med-sokning-filter-och-sortering-for-planer.md) är pending. Fulla krav/fasstatus och planinventering 90/77 ändras inte.
+
+**Föregående avgränsade rättning 2026-10-06:** ”Behåll blockramarna, ta bort blockhanteringen.” Skapa/dela/ändra/ta bort block är borta från programplanen; sparade blockrader, poäng, terminer och fasta nivåval består. B01–B03 6/6, F01–F05 10/10 och T01/T03 4/4 på dator/telefon PASS; typ/lint/skyddat bygge/handbok PASS. Första ram-FAIL bevarad och provet anpassat till borttagen UI-väg med fortsatt verkligt 409-API-skydd. 20 slutliga cleanupbilagor noll egna verksamhetsrader. Vanlig 3012 kör `a7c78e1`, 174 prövade artefaktfiler byteidentiska; färsk baslinje över 14 hela tabeller och 18 scenarier/44 auditpar bevarad. Se [rättningen](debug/programplan-block-controls.md) och phase5-programplan-block-controls-rapporter. Hela 05-23/E och ADMIN-02/03/04 förblir öppna; planinventeringen 90/77 ändras inte.
 
 **Beställd 2026-10-05; genomförd och verifierad 2026-10-06:** Programplanens Timplan leder till rätt skolas beständiga timutkast. Poäng/källversion fryses; timmar sparas separat över sex terminer. Samma programram kan användas av flera skolor. Rektor/skoladministratör ändrar inom skolmandatet; HM läser. Explicit nytt underlag bär bara timmar från oförändrade ramar; äldre timmar och klasskopplingar består. Nya browser18/18 och regression42/42, faktisk Worker på 3012 11/157, postgrants SQL37 och 14 hela originaltabeller/18 scenarier/44 auditpar PASS. 174 prövade artefaktfiler är byteidentiska på vanlig 3012 (`3ae5fe5`). Slutlig städning och bevarandekontroll efter alla 60 browserfall PASS. Se [PLAN](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) och [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md). **Avgränsad utkastleverans; ADMIN-02/03/04 och hela fas 5 är öppna.** 05-25–35 har replan_required; deras fastställd-/paketgrind ersätts endast för förberedande utkast.
 
@@ -72,7 +74,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Avgränsad skolvis timutkastövergång genomförd och automatiskt verifierad lokalt. Fulla ADMIN-02/03/04 och fas 5 är Pending; äldre SQL-/metadataavvikelser och mänskligt prov kvarstår.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-06
-**Last Activity Description:** Skolans egna undervisningstimmar från fryst programram, med exakt källretur och uttryckligt nytt utkast vid ändrad källa.
+**Last Activity Description:** Direkta timceller i gymnasiets skolutkast, radvis autospar och uttrycklig återhämtning vid konflikt/okänt svar; 26 dator-/telefonprov PASS.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 

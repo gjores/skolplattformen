@@ -1,0 +1,131 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "correctionComplete": true,
+  "whole05_23Complete": false,
+  "wholePhase5Complete": false,
+  "humanResult": "awaiting_user",
+  "userDecision": "Fyll timmar direkt i terminsceller som i programplanen",
+  "productRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+  "workerBuildRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+  "typescript": "PASS",
+  "oxlint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "targetedModelServerTests": 24,
+  "browserPassed": 26,
+  "browserRetries": 0,
+  "browserSkipped": 0,
+  "fixtureCleanup": 26,
+  "businessTablesPreservedSinceBrowserStart": 14,
+  "all26FixturesPreservedSameBaseline": true,
+  "scenariosPreserved": 18,
+  "auditedReadsPerRuntimeCheck": 44,
+  "runtime3012": {
+    "runtime": "workerd",
+    "role": "skolplattform_worker"
+  },
+  "initialRuntimeComparison": {
+    "status": "FAIL",
+    "report": "work/pilot/results/phase5-gym-inline-hours-runtime-after-initial.json",
+    "reason": "Two business events were saved between the initial read and first browser fixture; initial comparison retained. No actor attribution or data reset.",
+    "events": [
+      {
+        "kind": "programplan",
+        "action": "programplan_terms_changed",
+        "created_at": "2026-10-06T07:21:26.029Z"
+      },
+      {
+        "kind": "timplan",
+        "action": "gym_timplan_created",
+        "created_at": "2026-10-06T07:21:38.993Z"
+      }
+    ]
+  },
+  "subsequentPreservation": {
+    "status": "PASS",
+    "report": "work/pilot/results/phase5-gym-inline-hours-preservation.json",
+    "basis": "All 26 browser fixtures and current server have exactly the same 14-table whole-row baseline, including the intervening changes."
+  },
+  "artifactCopy": {
+    "status": "PASS",
+    "buildRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+    "files": 174,
+    "mismatch": [],
+    "privateEnvFilesExcluded": true,
+    "olderClientAssetsRetained": true
+  },
+  "visualReview": {
+    "status": "PASS",
+    "images": [
+      {
+        "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/final/phase5-gym-timplan-T10-Tab-1679c--och-återläser-båda-raderna-gym-timplan-desktop/inline-two-rows-reloaded.png",
+        "sha256": "2824953c0d95c8474079ea80662f7961be3503560f31f7b93928d009963eec3e"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/final/phase5-gym-timplan-T10-Tab-1679c--och-återläser-båda-raderna-gym-timplan-phone/inline-two-rows-reloaded.png",
+        "sha256": "963d3d7fb7977cd2454f6cc59484750cd262770e2034a20672b35946a9ba68a2"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/final/phase5-gym-timplan-T05-CAS-10bfa-över-en-annan-sparad-timrad-gym-timplan-desktop/row-conflict-keeps-input.png",
+        "sha256": "e8bd43c2eb86adb6d2c83526262c1a42563a6f940225e223ffaf42e6b4403721"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/final/phase5-gym-timplan-T05-CAS-10bfa-över-en-annan-sparad-timrad-gym-timplan-phone/row-conflict-keeps-input.png",
+        "sha256": "38d14c43d53ddf42763c134d7a35c6b983640c185473ecdd87c1122c80351c9d"
+      }
+    ]
+  },
+  "logs": {
+    "inline-hours-tsc-ready.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-tsc-ready.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "inline-hours-lint-ready.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-lint-ready.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "inline-hours-node.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-node.log",
+      "sha256": "7998a0d2ca155318bc5705d7b40e7cef2e5944dcb167a5c629fc2732bbdf9912"
+    },
+    "inline-hours-docs.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-docs.log",
+      "sha256": "502aa01deea130725326f35802fdd1f6f6052c0d66cd1be4558d56b5a54da651"
+    },
+    "inline-hours-build.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-build.log",
+      "sha256": "2a53bbcda2cb2f3410cd0ad2b14f5cc30afded05cf1a7b4c1a8710cc2e11ed68"
+    },
+    "inline-hours-browser-first.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-browser-first.log",
+      "sha256": "9601a429622fa1e547a1a28fcc6d23b3cc5ba82eb90b0cc78b57fc82c3e61704"
+    },
+    "inline-hours-runtime-before.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-runtime-before.log",
+      "sha256": "0c060b2702eb14a8fab9e6a45c1f3c1c0bd7bbda5f88467af29d35dd49cd3123"
+    },
+    "inline-hours-runtime-after.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-runtime-after.log",
+      "sha256": "c754b8aa794376a515fa5cc309d90f21b4f4c5b3ac57ae6e5b221d447f265f13"
+    },
+    "inline-hours-preservation.log": {
+      "path": "work/pilot/targets/protected/runtime/inline-hours-evidence/logs/inline-hours-preservation.log",
+      "sha256": "dd75bcf4731533afcf1e9ebe48d0686e27d6c25b6fbf6861dc09dda9eb602380"
+    }
+  },
+  "notRerun": [
+    "full model/server suites",
+    "full SQL suite",
+    "separate 11-case/157-check API harness",
+    "adjacent legacy/programplan browser suites"
+  ],
+  "unchangedScope": [
+    "no SQL/API/model change",
+    "formal decisions and guarantee still open",
+    "vocational 05-17 still open",
+    "full ADMIN-02/03/04 Pending",
+    "plan counts 90/77",
+    "table/search/filter/sort todo still pending"
+  ]
+}

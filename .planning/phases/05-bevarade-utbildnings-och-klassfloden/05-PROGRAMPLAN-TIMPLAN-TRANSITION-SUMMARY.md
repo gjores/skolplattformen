@@ -6,7 +6,8 @@ completed: 2026-10-06
 requirements: [ADMIN-02, ADMIN-04]
 verified_scope: local-synthetic-only
 source_commit: 3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b
-worker_build_revision: 3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b
+latest_ui_commit: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
+worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 full_phase_status: open
 human_status: awaiting_user
 ---
@@ -14,6 +15,8 @@ human_status: awaiting_user
 # Programplan → skolans timutkast
 
 **Den avgränsade övergången är genomförd, automatiskt verifierad och levererad på lokal 3012.** Användaren beställde utformning och genomförande 2026-10-05. En komplett sparad högskoleförberedande programram kan nu ge skolans beständiga timutkast, även före programbeslut. Formella beslut, garantikontroll och hela fas 5 är fortsatt öppna.
+
+**Senare UI-rättning 2026-10-06:** Timmar fylls direkt i terminsceller och hela raden autosparas när raden lämnas eller Enter trycks. Dator/telefon T01–T13 26/26, riktade modell/server 24, typ/lint/skyddat bygge/handbok PASS. Vanlig 3012 kör `5dd7baf`, 174 byteidentiska artefaktfiler. Initial databasjämförelse FAIL från två verksamhetshändelser före provstart bevaras; alla 26 fixturer och slutservern har exakt samma 14-tabellsbaslinje vid provstart, inklusive dessa uppgifter. 18 befintliga scenarier består. [Avgränsad rättning](../../debug/gym-timplan-inline-hours.md) och [kontrollindex](../../../work/pilot/results/phase5-gym-inline-hours-checks.json) anger aktuell verifiering; tabellen nedan avser övergångens ursprungliga bygge.
 
 ## Genomförd integration
 
@@ -23,11 +26,11 @@ Exakt programplans-ID, version, revision, katalog, rader och sex poängterminer 
 
 Rektor och skoladministratör ändrar sina egna nya gymnasieutkast med aktuellt skolmandat, MFA/CSRF, revisionskontroll och atomisk DB-/Worker-audit. HM läser. Endast utkast får dessa nya skrivförmågor. Gamla GR/IM-flöden finns i separat flik för HM/rektor; administratörens gymnasieåtkomst öppnar inga GR/IM-celler. Utbildningens start låser inte timplaneringen; arkivering stoppar ny skrivning.
 
-**Spara timmar** sparar hela timraden. Egen inmatning under pågående sparning ligger kvar för nästa sparning. Revisionskonflikt hämtar sparad rad för jämförelse. Ett tappat skapandesvar återhämtas med samma kommando och skapar ingen extra version. Session-/uppdragsbyte rensar lokala uppgifter.
+**Direkta terminsceller** sparar hela timraden när raden lämnas eller Enter trycks. Tab inom raden behåller inmatningen; flera rader köas mot senaste revision. Egen inmatning under pågående sparning ligger kvar och sparas därefter. Revisionskonflikt hämtar sparad rad för jämförelse och uttryckligt val. Okänt svar återläses; oläst status låser vidare skrivning tills aktuell timplan har hämtats. Ett tappat skapandesvar återhämtas med samma kommando och skapar ingen extra version. Session-/uppdragsbyte rensar lokala uppgifter.
 
 Ändrad programram skriver inte om timmar. Ett uttryckligt nytt timutkast får nytt ID/version; bara exakt samma radnyckel, totalpoäng och samtliga sex poängterminer bär timmar vidare. Ett tidigare utkast bevaras som ersatt med hela sin matris. En fastställd föregångare lämnas helt oförändrad. Klasskopplingar flyttas inte.
 
-## Verifierat resultat
+## Övergångens ursprungliga verifiering
 
 Alla DB-prov kördes sekventiellt i lokal skyddad miljö med ägda syntetiska fixturer, utan reset. Audit och identitetsankare bevaras. [Bevisindex](../../../work/pilot/results/phase5-gym-timplan-evidence-index.json) binder rårapporterna med SHA-256; [målverifieringen](05-PROGRAMPLAN-TIMPLAN-TRANSITION-VERIFICATION.md) kopplar kod och verkliga resultat till planens fem målsanningar.
 
@@ -43,7 +46,7 @@ Alla DB-prov kördes sekventiellt i lokal skyddad miljö med ägda syntetiska fi
 
 Foundation `20261005110000` applicerades efter hash-/baselinegrind med exakt tidigare 21 Worker-vägar kvar. `20261005111000` öppnade exakt fyra nya RPC-vägar efter riktig tillfällig preflight och återställd ACL. Nu finns exakt 25 tillåtna Worker-entrypoints. Helpers, kvittenstabell och klientroller förblir stängda. Äldre tabellgrants bevaras, med restriktiv RLS som stänger nya gymnasierader för råa anrop.
 
-Slutbygget är `3ae5fe5`. Ursprunglig implementation är `c6aaa78`; mobilrättningen är `3ae5fe5`. Handboken beskriver faktiskt beteende och begränsningar. Bilder/loggar ligger lokalt utanför Git; rå JSON-bevis innehåller granskad syntetisk metadata. Ingen verklig kommunanslutning påstås.
+Övergångens ursprungliga slutbygge är `3ae5fe5`. Ursprunglig implementation är `c6aaa78`; mobilrättningen är `3ae5fe5`. Handboken beskriver faktiskt beteende och begränsningar. Bilder/loggar ligger lokalt utanför Git; rå JSON-bevis innehåller granskad syntetisk metadata. Ingen verklig kommunanslutning påstås.
 
 ## Upptäckta avvikelser och korrigeringar
 

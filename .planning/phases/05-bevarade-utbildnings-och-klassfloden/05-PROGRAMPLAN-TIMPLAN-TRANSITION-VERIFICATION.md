@@ -14,9 +14,11 @@ human_status: awaiting_user
 remaining_verification: []
 ---
 
-# Verifiering av programplan → skolans timutkast
+# Ursprunglig verifiering av programplan → skolans timutkast
 
-Den beställda övergångens fem målsanningar är **PASS** med verkliga kod-, SQL-, Worker- och browserbevis. Vanlig lokal `3012` kör samma skyddade bygge som de 18 godkända gymtimplansproven: `3ae5fe5`, med 174 byteidentiska artefaktfiler. Även samtliga 42 angränsande browserregressioner passerar; totalt 60/60 aktuella fall med 60 städningsbilagor. Efter hela matrisen är 14 ursprungliga verksamhetstabellers fulla rader och 18 befintliga scenarier fortfarande exakt bevarade. Den här rapportens PASS gäller den avgränsade övergången och slutgodkänner inte ADMIN-02/03/04, hela 05-23/E, fas 5, verklig kommunanslutning eller användarens begriplighetsprov.
+Den beställda övergångens fem målsanningar är **PASS** med verkliga kod-, SQL-, Worker- och browserbevis. Vid denna ursprungliga verifiering körde vanlig lokal `3012` samma skyddade bygge som de 18 godkända gymtimplansproven: `3ae5fe5`, med 174 byteidentiska artefaktfiler. Även samtliga 42 angränsande browserregressioner passerar; totalt 60/60 aktuella fall med 60 städningsbilagor. Efter hela matrisen är 14 ursprungliga verksamhetstabellers fulla rader och 18 befintliga scenarier fortfarande exakt bevarade. Den här rapportens PASS gäller den avgränsade övergången och slutgodkänner inte ADMIN-02/03/04, hela 05-23/E, fas 5, verklig kommunanslutning eller användarens begriplighetsprov.
+
+**Senare ändring 2026-10-06:** Radens timdialog är ersatt med direkta terminsceller och radvis autospar på `5dd7baf`, som nu kör på vanlig 3012. Den nya avgränsade kontrollen har 26/26 dator-/telefonprov och riktade modell/server 24 PASS. [Rättningsrapporten](../../debug/gym-timplan-inline-hours.md) och [aktuellt kontrollindex](../../../work/pilot/results/phase5-gym-inline-hours-checks.json) redovisar nya bevis samt den bevarade initiala baslinjeavvikelsen och kompletterande PASS från provstart. Nedanstående fulla SQL/API/regressionsbevis gäller ursprungliga `3ae5fe5`; de påstås inte omkörda för cellrättningen.
 
 Beställningen och planen är från 2026-10-05. Avslutande verifiering sker 2026-10-06 svensk tid; råbevisens ursprungliga UTC-tider behålls.
 
