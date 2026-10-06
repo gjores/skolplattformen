@@ -3,13 +3,15 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 topic: planning-year
 created: 2026-10-06
 status: decisions_captured
-implementation_status: not_started
+implementation_status: model_contract_complete
 requirements: [PLANERING-01, PLANERING-02, PLANERING-03, PLANERING-04, PLANERING-05]
 ---
 
 # Läsåret som sammanhang för planeringen
 
 Användaren beställde under röstsessionen 2026-10-06 en GSD-plan för att få ihop utbildningar, programplaner och timplaner kring ett valt läsår. Samma princip ska senare användas för individuella studieplaner, grupper, tjänstefördelning och schemaläggning. Beställningen gäller **planering av genomförandet**; dessa nya funktioner är inte implementerade av denna kontextfil.
+
+**Genomförandestatus 2026-10-06:** [05-36](05-36-SUMMARY.md) är därefter genomförd som ren modell och läskontrakt. Skyddad SQL/API/UI i 05-37–43 återstår; samtalsbesluten nedan består.
 
 ## Beslut från samtalet
 
@@ -61,6 +63,6 @@ Senare moduler ska konsumera en uttrycklig kontext med kund, skola, läsår, per
 
 Den äldre [läsårslins-todon](../../todos/pending/2026-09-12-l-s-rslins-st-lla-sig-i-ett-l-s-r-som-i-plan-digital.md) beskriver dåvarande läge och förslag. Dess globala år, automatiska klasskoppling och stora gemensamma statusflöde ersätts av besluten ovan. Den beställda [tabellöversikten](../../todos/pending/2026-10-06-tabelloversikter-med-sokning-filter-och-sortering-for-planer.md) genomförs inom samma paket, inte genom en konkurrerande lista.
 
-Äldre 05-25–35 har redan `replan_required`. Årsöversiktens tabellarbete ersätter motsvarande öppnings-/tabell-/filterarbete i den gamla 05-30-planen. Formella beslut, garantikontroll, 05-17:s yrkesram, full 05-23/E, nya klasskommandon och mänsklig begriplighetsbedömning kvarstår separat. Bygg inte den redan levererade programplan–timplan-övergången eller radvisa timsparningen igen.
+Äldre 05-25–35 har redan `replan_required`. Årsöversiktens tabellarbete ersätter motsvarande öppnings-/tabell-/filterarbete i den gamla 05-30-planen. 05-23/E är tekniskt avslutad separat. Formella beslut, garantikontroll, 05-17:s yrkesram, nya klasskommandon och övrig mänsklig begriplighetsbedömning kvarstår. Bygg inte den redan levererade programplan–timplan-övergången eller radvisa timsparningen igen.
 
 Underlag: [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md), [genomförandesteg](05-PLANNING-YEAR-IMPLEMENTATION.md), [schemadelprojekt](../../research/SCHEMAMODUL-PROJEKT.md).

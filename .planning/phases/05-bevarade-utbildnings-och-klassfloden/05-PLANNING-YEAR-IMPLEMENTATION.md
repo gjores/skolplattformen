@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 topic: planning-year
 created: 2026-10-06
-status: planned_not_implemented
+status: in_progress
 plans: ["05-36", "05-37", "05-38", "05-39", "05-40", "05-41", "05-42", "05-43"]
 requirements: [PLANERING-01, PLANERING-02, PLANERING-03, PLANERING-04, PLANERING-05]
 worker_build_revision_at_planning: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -10,7 +10,7 @@ worker_build_revision_at_planning: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 
 # Genomförande: läsåret som sammanhang för planeringen
 
-Detta är användarbeställd **genomförandeplanering**, inte implementation eller godkänd verifiering. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
+**Aktuellt delresultat:** [05-36-SUMMARY](05-36-SUMMARY.md) och [oberoende verifiering](05-36-VERIFICATION.md) är klara: ren modell/läskontrakt med 70 Node-prov, 20 oberoende prober och typ/lint PASS. Nästa plan 05-37 är inte startad. SQL/API/UI i 05-37–43 och samtliga fulla PLANERING-krav kvarstår. Detta index beskriver både beställd planering och faktiskt avgränsad leverans. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
 
 [Plangranskningen är klar](05-PLANNING-YEAR-PLAN-CHECK.md): åtta planer och 21 uppgifter har kontrollerade beroenden, avgränsningar och verifieringssteg. Inga granskningsfynd kvarstår. Detta bekräftar planens kvalitet; genomförande och verksamhetsprov återstår.
 
@@ -24,7 +24,7 @@ Byte av läsår är ett urval. Det ändrar inga statusar, beslut, fastställda v
 
 | Plan | Wave inom paketet | Uppgifter | Leverans och viktig gräns |
 | --- | --- | --- | --- |
-| [05-36](05-36-PLAN.md) | 1 | 2 | Ren läsårs-/snittmodell och strikt kontrakt. Januaristart, frysta datum, null/0 och GR/IM; inga DB-anrop. |
+| [05-36](05-36-PLAN.md) | 1 | 2 | **Genomförd**, se SUMMARY/VERIFICATION. Ren läsårs-/snittmodell och strikt kontrakt. Januaristart, frysta datum, null/0 och GR/IM; inga DB-anrop. |
 | [05-37](05-37-PLAN.md) | 2 | 3 | Stängda SQL-läsprojektioner och faktisk foundation/paritet/ACL/bevaring. Inga Workergrants. |
 | [05-38](05-38-PLAN.md) | 3 | 3 | Tre läsrutter i Worker, riktig temporär preflight med exakt återställning, därefter tre exakta permanenta läsgrants och samma slutmatris. |
 | [05-39](05-39-PLAN.md) | 4 | 2 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
@@ -49,6 +49,8 @@ Avgränsningarna följer verkliga riskgränser: ren årsregel före data, stäng
 - Programramens poäng, skolans timram, antal klasser och introduktionsprogrammens veckotid hålls isär. Poäng summeras unikt per programplans-ID/version, årsindex och kanonisk rad. Timmar summeras unikt per timplans-ID/version, skola, årsindex/kolumn och rad. Klassantal räknas separat; samma ram multipliceras inte per klass eller skolrad. Kullramstimmar är inte tjänstefördelning utan grupper/samläsning/resurser.
 - Årssnittet styr vilka kolumner som visas. Sparningen ska behålla alla sex gymnasievärden och grundskolans originalkolumner och sin exakta plan/skola/version/revision. Årbyte väntar vid pågående/okänt sparutfall och ett sent svar får inte uppdatera en annan kontext.
 
+**Producentkontrakt efter 05-36:** 05-37 ska leverera hela det verkliga frysta/ursprungliga radinventariet, kontrollera faktisk kund/skola/planversion/klassresolver och behålla saknade förväntade rader som null/diagnos. Parserns `complete` autenticerar inte originalets fullständighet eller mandat. En planversion har en enda konsekvent originalkolumnkarta/timcellinventering; en programkälla har samma poänginventarium på varje skola. Okänd klassidentitet ger ofullständigt klassmått. NO/SO räknas via aktiva matrisrader; IM:s veckosumma är planerad ram inklusive annan aktivitet, inte verifierad undervisningstid. Se 05-36-SUMMARY:s bindande integrationsgräns innan SQL och dess paritetsprov skrivs.
+
 ## Genomförande- och verifieringsgränser
 
 **Inga nya externa beroenden eller bibliotek** behövs enligt inventeringen. De föreslagna migrationsnamnen är `20261006120000_phase5_planning_year_reads.sql` och `20261006121000_phase5_worker_planning_year_reads.sql`; de var lediga vid planering men måste kontrolleras mot källor/andra planer och faktisk migrationsjournal igen före utförande. Ny RPC-namnrymd är `phase5_planning_year_`; gamla grants/definitioner ska jämföras exakt. Ingen textbackfill eller verksamhetsmutation följer av dessa läsprojektioner.
@@ -69,6 +71,6 @@ Löpande commit/push av färdiga kontrollerade steg till aktuell origin-gren är
 | PLANERING-04 | 36–38,40–43 | Källbunden årsdel, deduplicerade mått, full matris/originalindex, osparat arbete, pågående skrivningar och okänt sparutfall hanterade. |
 | PLANERING-05 | 37,38,41,43 | Verklig SQL/Worker/browser, exakta grants/audit/bevaring, handbok och begränsat S1/S3-kontrakt. |
 
-Användarens nya krav kompletterar den ursprungliga pilotens 42 krav; de omklassar inte det godkännandet. Full 05-23/E, yrkesram 05-17, beslut/garantikontroll, ADMIN-02/03/04 och hela fas 5 är fortsatt öppna. Äldre 05-25–35 ska omplaneras innan utförande. Först när faktiskt tabell-/årsarbete är verifierat får de två samordnade pending-todos sin riktiga leveransstatus; deras äldre automatiska klasskopplings-/globala-statusförslag byggs inte.
+Användarens nya krav kompletterar den ursprungliga pilotens 42 krav; de omklassar inte det godkännandet. 05-23/E är tekniskt avslutad separat. Yrkesram 05-17, beslut/garantikontroll, ADMIN-02/03/04 och hela fas 5 är fortsatt öppna. Äldre 05-25–35 ska omplaneras innan utförande. Först när faktiskt tabell-/årsarbete är verifierat får de två samordnade pending-todos sin riktiga leveransstatus; deras äldre automatiska klasskopplings-/globala-statusförslag byggs inte.
 
-Det mänskliga provet kommer efter det konkreta resultatet och redovisas separat som awaiting_user tills användaren svarar. Samma redan fattade beslut ska inte återfrågas, och mänskligt vänteläge blockerar inte automatisk verifiering eller kontrollerad push. Detta index ger ingen SUMMARY/PASS, verklig kommunanslutning eller pilotdriftsacceptans.
+Det mänskliga provet kommer efter det konkreta resultatet och redovisas separat som awaiting_user tills användaren svarar. Samma redan fattade beslut ska inte återfrågas, och mänskligt vänteläge blockerar inte automatisk verifiering eller kontrollerad push. 05-36:s avgränsade SUMMARY/PASS godkänner inte SQL/API/UI, verklig kommunanslutning eller pilotdrift.

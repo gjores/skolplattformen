@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-36
+current_plan: 05-37
 status: in_progress
-stopped_at: 05-23 A–E PASS enligt aktuell ram. Nästa plan 05-36 är inte påbörjad. Båda nya gapen, yrkesram, formella beslut, omplanering och fas 4-checkpoint kvarstår.
+stopped_at: 05-36 modell/kontrakt PASS. Nästa 05-37 inte påbörjad. Besluts-/mobilgap, yrkesram, äldre omplanering och fas 4-checkpoint kvarstår.
 last_updated: "2026-10-06"
 last_activity: 2026-10-06
-last_activity_desc: "05-23/E tekniskt PASS: 149 browserfall, 170 API-fall, SQL 2512 och full bevaring. Nästa plan 05-36; gap och fulla krav/fas kvarstår."
-state_head: e9ca1e7
+last_activity_desc: "05-36 färdig: Node 70, oberoende prober 20, typ/lint PASS; nästa 05-37. Fulla krav/fas och gap kvarstår."
+state_head: 7cd309d
 verification_worker_build_revision: e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -17,7 +17,7 @@ progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 98
-  completed_plans: 78
+  completed_plans: 79
 milestone_name: milestone
 ---
 
@@ -28,19 +28,21 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-06)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Läsårsstyrd planering är beställd och planerad i 05-36–43; genomförande återstår. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
+**Current focus:** Läsårsmodell och läskontrakt 05-36 är klara; skyddad SQL-läsning 05-37 är nästa steg, följd av 05-38–43. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
 
-**Teknisk slutverifiering 2026-10-06 — PASS:** 05-23 A–E är avslutad enligt aktuell ram. [E-verifieringen](phases/05-bevarade-utbildnings-och-klassfloden/05-23-E-VERIFICATION.md) visar 149 dator-/telefonfall, 170 API-fall/1 077 kontroller, 2 512 SQL-prov och 674 modell-/serverprov PASS. Sju uttryckliga skips gäller sex borttagna paketeditorfall och ett telefonfall på dator. 150 fixturer städade; 14 hela verksamhetstabeller inklusive tidsstämplar, ACL/funktionsfingeravtryck och samma 18 befintliga scenarier/44 auditpar före och efter bevarade. Programplanssvitens tidigare nio fel sammanfaller med datorvila; oförändrad återkörning ger 40/40 PASS. Felhistoriken består. Samma separata bygge `e9ca1e7`; vanlig 3012 behåller `5dd7baf`. Grundflödet är användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5, historisk 05-22 metadata PARTIAL och båda nya gapen kvarstår. Nästa plan är 05-36, ännu inte påbörjad; äldre 05-25–35 kräver omplanering.
+**Läsårsmodell 2026-10-06 — avgränsat PASS:** [05-36](phases/05-bevarade-utbildnings-och-klassfloden/05-36-SUMMARY.md) är genomförd: källstyrt GY-/GR-/IM-årssnitt, strikta läskontrakt och skilda poäng-/tim-/klassmått. 70 riktade Node-prov, 20 oberoende verifierarprober och typ/lint PASS. Ingen ny SQL/API/UI eller serverändring följer av modellsteget. PLANERING-01–05 och hela fas 5 är fortsatt Pending. Nästa plan är **05-37, stängd SQL-läsgrund**; 79 av 98 skrivna planer har SUMMARY.
+
+**Teknisk slutverifiering 2026-10-06 — PASS:** 05-23 A–E är avslutad enligt aktuell ram. [E-verifieringen](phases/05-bevarade-utbildnings-och-klassfloden/05-23-E-VERIFICATION.md) visar 149 dator-/telefonfall, 170 API-fall/1 077 kontroller, 2 512 SQL-prov och 674 modell-/serverprov PASS. Sju uttryckliga skips gäller sex borttagna paketeditorfall och ett telefonfall på dator. 150 fixturer städade; 14 hela verksamhetstabeller inklusive tidsstämplar, ACL/funktionsfingeravtryck och samma 18 befintliga scenarier/44 auditpar före och efter bevarade. Programplanssvitens tidigare nio fel sammanfaller med datorvila; oförändrad återkörning ger 40/40 PASS. Felhistoriken består. Samma separata bygge `e9ca1e7`; vanlig 3012 behåller `5dd7baf`. Grundflödet är användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5, historisk 05-22 metadata PARTIAL och båda nya gapen kvarstår. Läsårsmodellen 05-36 är därefter färdig; nästa plan är 05-37; äldre 05-25–35 kräver omplanering.
 
 **Mobilt UI-gap 2026-10-06:** Användaren föredrar programplanens årskursknappar framför dropdownen. [Registrerat förbättringsbehov](todos/pending/2026-10-06-arskursknappar-i-mobilens-timplan.md) kopplar till den motsvarande dropdown som finns i gymtimplanen enligt färsk kodkontroll; exakt målvy är en samtalstolkning att kontrollera vid rättning. Knappmodellen ska återanvändas med bevarad timinmatning/sparning och samordnas med 05-41. Pending, ingen UI-ändring eller nytt prov genomfört. Grundflödets tidigare godkännande består.
 
 **Nytt verksamhetsgap 2026-10-06:** Rektorn ska uttryckligen kunna färdigmarkera sitt arbete och en behörig huvudmannarepresentant ska kunna godkänna det. [Registrerat behov](todos/pending/2026-10-06-rektor-fardigmarkerar-och-huvudmannen-godkanner-planarbete.md) gäller aktuellt program-/timplansarbete. Dagens ”Klar för beslut” är framräknad analysstatus, inte rektorns överlämning. HM-programbeslut finns i äldre 05-25/26 och timplansförslag/beslut i 05-32/33, men är inte genomförda. Omplaneringen ska uttryckligen täcka båda aktörernas handlingar. Grundflödets användargodkännande består; beslutsgapet är pending och avslutas inte av teknisk 05-23/E eller läsårsplanerna 05-36–43.
 
-**Användarresultat 2026-10-06:** ”detta funkar!” efter provuppmaningen för öppna/ändra programplan, gå till rätt skolas timplan, fylla i timmar och kontrollera efter återöppning. Det aktuella grundflödet är **användarrapporterat godkänt**, utan särredovisade steg, roller, dator/telefon eller faktisk provrevision. Se [samlat användarresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-USER-TRIAL.md). Grundflödets mänskliga vänteläge är avslutat; äldre väntelägen/FAIL nedan är historik för respektive version. Ingen ny teknisk körning följer av beskedet. E:s tekniska fullplansverifiering är därefter PASS; övriga uttryckligen oprövade användarmoment, ADMIN-02/03/04, hela fas 5 och fas 4-checkpoint är fortsatt öppna. Läsårsplaneringen 05-36–43 är fortfarande bara planerad.
+**Användarresultat 2026-10-06:** ”detta funkar!” efter provuppmaningen för öppna/ändra programplan, gå till rätt skolas timplan, fylla i timmar och kontrollera efter återöppning. Det aktuella grundflödet är **användarrapporterat godkänt**, utan särredovisade steg, roller, dator/telefon eller faktisk provrevision. Se [samlat användarresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-USER-TRIAL.md). Grundflödets mänskliga vänteläge är avslutat; äldre väntelägen/FAIL nedan är historik för respektive version. Ingen ny teknisk körning följer av beskedet. E:s tekniska fullplansverifiering är därefter PASS; övriga uttryckligen oprövade användarmoment, ADMIN-02/03/04, hela fas 5 och fas 4-checkpoint är fortsatt öppna. Läsårsmodellen 05-36 är därefter genomförd; 05-37–43 återstår.
 
-**Ny planeringsbeställning 2026-10-06:** Användaren har beslutat om gemensamt valt år/skola inom planeringen och separat elevregisterår, med både nya och fortsättande kullar i årsöverblicken. [05-36–43](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md) har genomförbara delplaner för modell, skyddad läsning, kontext, sökbara tabeller, rätt årsdel i GY/GR/IM och slutprov/handbok. Samtalsbeslut och färsk kodinventering är sparade; gamla läsårs-/tabelltodos samordnas och förblir pending. PLANERING-01–05 är kompletterande Pending-krav; pilotens 42 ursprungliga krav/åtta faser består. Ingen ny app-/DB-/browserkörning eller SUMMARY följer av planen. Nuvarande serverbygge är fortsatt `5dd7baf`. Läs paketets planer selektivt vid genomförande; gamla replan_required-planer får inte dras igång bara för att wave-numret är lika. Efter E är planinventeringen 98 skrivna/78 genomförda; yrkesram och formella beslut är fortsatt öppna.
+**Ny planeringsbeställning 2026-10-06:** Användaren har beslutat om gemensamt valt år/skola inom planeringen och separat elevregisterår, med både nya och fortsättande kullar i årsöverblicken. [05-36–43](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md) har genomförbara delplaner för modell, skyddad läsning, kontext, sökbara tabeller, rätt årsdel i GY/GR/IM och slutprov/handbok. Samtalsbeslut och färsk kodinventering är sparade; gamla läsårs-/tabelltodos samordnas och förblir pending. PLANERING-01–05 är kompletterande Pending-krav; pilotens 42 ursprungliga krav/åtta faser består. Planeringsbeställningen gav i sig ingen körning; 05-36 har därefter fått separat modell-/kontrakts-SUMMARY. Ingen ny app-/DB-/browserkörning har gjorts. Nuvarande serverbygge är fortsatt `5dd7baf`. Läs paketets planer selektivt vid genomförande; gamla replan_required-planer får inte dras igång bara för att wave-numret är lika. Efter E är planinventeringen 98 skrivna/78 genomförda; yrkesram och formella beslut är fortsatt öppna.
 
 **Senaste avgränsade rättning 2026-10-06:** Gymnasietimplanens timmar fylls direkt i aktiva terminsceller och sparas när raden lämnas eller Enter trycks. Köade radskrivningar, ny inmatning under sparning, konfliktjämförelse och återläsning vid okänt svar bevarar arbetet. T01–T13 på dator/telefon 26/26 PASS, 26 städningsbilagor, riktade modell/server 24 PASS och typ/lint/skyddat bygge/handbok PASS. Vanlig 3012 kör `5dd7baf`, 174 prövade filer byteidentiska. De 18 befintliga scenarierna/44 läspar består. Initial databasjämförelse FAIL bevarad: två verksamhetshändelser inträffade före första prov; kompletterande jämförelse av alla 14 hela tabeller från provstart till serverbyte PASS, inklusive dessa uppgifter. Se [rättning och bevis](debug/gym-timplan-inline-hours.md). Separat [tabellöversikts-todo](todos/pending/2026-10-06-tabelloversikter-med-sokning-filter-och-sortering-for-planer.md) är pending. Fulla krav/fasstatus och planinventering 90/77 ändras inte.
 
@@ -81,12 +83,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-36, läsårsmodell — planerad men inte påbörjad. 05-23 A–E PASS; äldre 05-25–35 kräver omplanering.
-**Total Plans in Phase:** 44 PLAN-filer: 42 numrerade planer, paketborttagning och programplan–timplan-övergång. 05-23 har avslutad SUMMARY; 05-25–43 saknar SUMMARY. 05-17 saknar PLAN. Nya 05-36–43 är endast planerade; mänskliga prov och full fasverifiering är separata.
+**Current Plan:** 05-37, stängd SQL-läsgrund — inte påbörjad. 05-36 modell/kontrakt PASS. 05-23 A–E PASS; äldre 05-25–35 kräver omplanering.
+**Total Plans in Phase:** 44 PLAN-filer: 42 numrerade planer, paketborttagning och programplan–timplan-övergång. 05-23 har avslutad SUMMARY; 05-25–35 och 05-37–43 saknar SUMMARY. 05-17 saknar PLAN. 05-36 har avgränsad SUMMARY och verifiering; 05-37–43 är endast planerade; mänskliga prov och full fasverifiering är separata.
 **Status:** 05-23/E tekniskt PASS lokalt. Grundflödet användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5 och båda nya gapen är Pending; 05-22 metadata PARTIAL består.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-06
-**Last Activity Description:** E slutförd på samma separat prövade artefakt, programplan 40/40 utan ändrade asserts, resterande browser/API och full bevaring PASS. Nästa plan 05-36 är inte startad.
+**Last Activity Description:** 05-36 modell/kontrakt färdig; 70 riktade Node-prov, 20 oberoende prober, typ/lint PASS. Nästa 05-37 är inte startad; SQL/API/UI återstår.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
@@ -97,14 +99,14 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planinventering 2026-10-06 efter E: 98 skrivna PLAN-filer; 76 genomförda huvudplaner plus två avgränsade planer (78 totalt). 05-23 har avslutad SUMMARY för A–E enligt aktuell ram. 20 saknar SUMMARY: 04-22 och 05-25–05-43. En SUMMARY godkänner inte automatiskt fulla krav eller hela fasen; 3 av 8 faser är verifierade.
+Planinventering 2026-10-06 efter 05-36: 98 skrivna PLAN-filer; 77 genomförda huvudplaner plus två avgränsade planer (79 totalt). 05-23 A–E och den rena modellen 05-36 har avslutade SUMMARY. 19 saknar SUMMARY: 04-22, 05-25–35 och 05-37–43. En SUMMARY godkänner inte automatiskt fulla krav eller hela fasen; 3 av 8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Completed plans with execution summary: 78 (76 huvudplaner + 2 avgränsade förändringar)
+- Completed plans with execution summary: 79 (77 huvudplaner + 2 avgränsade förändringar)
 - Partial plan summary: Ingen aktiv; 05-23 A–E avslutad enligt aktuell ram
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
@@ -281,10 +283,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-06
-**Stopped At:** 05-23 A–E tekniskt PASS. Samma e9ca1e7-artefakt och full bevaring; vanlig 3012 behåller 5dd7baf. Nästa 05-36 är inte påbörjad. Gapen, 05-17, beslut, 05-22 metadata PARTIAL och fas 4-checkpoint kvarstår.
+**Stopped At:** 05-36 modell/kontrakt PASS; nästa 05-37 är inte påbörjad. E:s tekniska slutprov är separat tidigare PASS; vanlig 3012 berördes inte och behåller 5dd7baf. Gapen, 05-17, beslut, 05-22 metadata PARTIAL och fas 4-checkpoint kvarstår.
 **Resume File:** [Läsårsplaneringens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — nästa plan 05-36 i läsårspaketet 05-36–43. Äldre 05-25–35 kräver omplanering; yrkesfastställande kräver 05-17. Nya besluts-/mobilgap samt separat skolutbud/elevval/grupp-/bemanningsfunktion kvarstår.
+**Planned Phase:** 5 — nästa plan 05-37 efter genomförd modell 05-36 i läsårspaketet 05-36–43. Äldre 05-25–35 kräver omplanering; yrkesfastställande kräver 05-17. Nya besluts-/mobilgap samt separat skolutbud/elevval/grupp-/bemanningsfunktion kvarstår.
 
 ### Senaste användarfynd, 2026-10-02
 

@@ -1,0 +1,169 @@
+{
+  "plan": "05-36",
+  "date": "2026-10-06",
+  "node": "25.9.0",
+  "scope": "pure model and read contracts; synthetic fixtures only",
+  "sourceCommit": "7cd309d63a5be7fe6e739d4f51de2744ac5871d3",
+  "sha256": {
+    "web/lib/planning-year-model.ts": "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+    "web/lib/planning-year-model.test.mjs": "e907da6e7a1337fd01d4e230c0cd8b0dedcdbdd0c3f540ac397f88f95a25b1a2",
+    "web/lib/planning-year-contract.ts": "f366aba3567a243a21108b8613ea2c6cb3f2961ba9b7906f31d29033b8d859d1",
+    "web/lib/planning-year-contract.test.mjs": "da344b90642f93739d82358d5dd84d8fe9fb04739d9375d348a7876577952996"
+  },
+  "runs": [
+    {
+      "name": "model-red",
+      "tests": 9,
+      "pass": 0,
+      "fail": 9,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "planning years have a bounded July interval including 2100/01",
+        "server instants use Stockholm midnight and the shared July boundary",
+        "three verified autumn cohorts project to the original six-term indices",
+        "January and April keep the actual date and never shift term allocations",
+        "missing, malformed, unverified and conflicting start evidence stay unknown",
+        "frozen timplan source wins over renamed cohort and changed current education",
+        "GR uses the binding year and exact original plan column map",
+        "same-width GR reorder and a different plan version cannot prove old cell positions",
+        "IM keeps weekly hours without an assumed three-year projection"
+      ]
+    },
+    {
+      "name": "model-boundary-red",
+      "tests": 9,
+      "pass": 7,
+      "fail": 2,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "server instants use Stockholm midnight and the shared July boundary",
+        "missing, malformed, unverified and conflicting start evidence stay unknown"
+      ]
+    },
+    {
+      "name": "model-green",
+      "tests": 50,
+      "pass": 50,
+      "fail": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "failedTests": []
+    },
+    {
+      "name": "contract-red",
+      "tests": 13,
+      "pass": 2,
+      "fail": 11,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "setup uses the server date and current mandate capabilities without register calendars",
+        "selection rejects unknown filters, wrong schoolform combinations and unstamped later pages",
+        "list strictly echoes the full selection and result revision with exact page sizes",
+        "wire shapes reject custom prototypes, hidden fields, accessors and sparse arrays",
+        "two schools deduplicate one program alternative but keep each school frame and unique classes",
+        "null means unallocated, explicit zero stays complete, and points incompleteness is visible",
+        "legacy missing metadata survives with a named gap and never borrows the cohort text",
+        "GR grade binding survives an unknown original map with same-width mutable reordering",
+        "two GR grades in one plan count the same class once and the exact columns separately",
+        "IM weekly hours remain separate and forecasts require an explicit diagnosis",
+        "missing plans carry no fabricated version, source, cells or class application"
+      ]
+    },
+    {
+      "name": "contract-green-attempt1",
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "failedTests": []
+    },
+    {
+      "name": "contract-completeness-red",
+      "tests": 13,
+      "pass": 12,
+      "fail": 1,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "null means unallocated, explicit zero stays complete, and points incompleteness is visible"
+      ]
+    },
+    {
+      "name": "contract-identity-red",
+      "tests": 15,
+      "pass": 13,
+      "fail": 2,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "a single source or school plan cannot carry inconsistent canonical rows or column maps",
+        "an empty gym selection has zero frames while incomplete points also block a complete hour total"
+      ]
+    },
+    {
+      "name": "contract-domain-red",
+      "tests": 18,
+      "pass": 10,
+      "fail": 8,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "two schools deduplicate one program alternative but keep each school frame and unique classes",
+        "null means unallocated, explicit zero stays complete, and points incompleteness is visible",
+        "two GR grades in one plan count the same class once and the exact columns separately",
+        "IM weekly hours remain separate and forecasts require an explicit diagnosis",
+        "an empty gym selection has zero frames while incomplete points also block a complete hour total",
+        "GR group summaries never double-count member hours and unknown rows stay incomplete",
+        "unresolved legacy class identity preserves its verified year binding with an unknown class count",
+        "alternative member order or a constituent row cannot count the same programme item twice"
+      ]
+    },
+    {
+      "name": "contract-relevant-red",
+      "tests": 19,
+      "pass": 18,
+      "fail": 1,
+      "skipped": 0,
+      "exitCode": 1,
+      "failedTests": [
+        "relevant cohorts combine new, continuing and unknown without including finished frames"
+      ]
+    },
+    {
+      "name": "final-tests",
+      "tests": 70,
+      "pass": 70,
+      "fail": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "failedTests": []
+    }
+  ],
+  "finalCommand": "node --test lib/planning-year-model.test.mjs lib/planning-year-contract.test.mjs lib/pupil-register-model.test.mjs lib/cohort-model.test.mjs lib/gym-timplan.test.mjs",
+  "typescript": {
+    "command": "npx tsc --noEmit",
+    "exitCode": 0
+  },
+  "lint": {
+    "command": "npx oxlint lib",
+    "exitCode": 0,
+    "earlierFailures": [
+      "no-sparse-arrays",
+      "no-control-regex",
+      "unbound-method",
+      "no-misused-spread"
+    ],
+    "resolution": "Sparse fixture made with Reflect.deleteProperty; descriptor checks explicit; control-code scan uses charCodeAt."
+  },
+  "notRun": [
+    "database",
+    "server",
+    "browser",
+    "app build",
+    "documentation build"
+  ]
+}
