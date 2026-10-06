@@ -5,7 +5,8 @@ import type { GymTimplan } from './gym-timplan.ts';
 export const PLANNING_YEAR_LIMITS = { minimum: 2000, maximum: 2100 } as const;
 export type PlanningDiagnosis = 'missing-start' | 'invalid-start' | 'unverified-start' | 'conflicting-start'
   | 'outside-three-years' | 'allocation-before-start' | 'missing-binding' | 'binding-year-mismatch'
-  | 'unverified-column-map' | 'missing-column' | 'missing-hours' | 'missing-points' | 'missing-plan' | 'forecast';
+  | 'unverified-column-map' | 'missing-column' | 'missing-hours' | 'missing-points' | 'missing-plan' | 'missing-source'
+  | 'missing-class' | 'ambiguous-class' | 'unknown-row' | 'inactive-hours' | 'forecast';
 export type StartEvidence = {
   provenance: 'program-version' | 'timplan-source' | 'verified-academic-year' | 'legacy';
   startedOn: string | null;
@@ -71,7 +72,10 @@ export function projectGymYear(schoolYear: number, start: StartEvidence, termVal
     return unknown('invalid-start');
   // Date provenance requires a date. A separate explicitly verified academic year can be used without one.
   if (start.startedOn === null && (start.provenance !== 'verified-academic-year' || start.academicYear === null)) return unknown('missing-start');
-  const datedYear = start.startedOn === null ? null : Number(start.startedOn.slice(0, 4)) - (start.startedOn.slice(5, 7) < '07' ? 1 : 0);
+  let datedYear: number | null = null;
+  if (start.startedOn !== null) {
+    try { datedYear = currentSchoolYear(start.startedOn); } catch { return unknown('invalid-start'); }
+  }
   if (datedYear !== null && start.academicYear !== null && datedYear !== start.academicYear) return unknown('conflicting-start');
   const academicYear = datedYear ?? start.academicYear;
   if (academicYear === null || academicYear < 1 || academicYear > 9996) return unknown('invalid-start');
