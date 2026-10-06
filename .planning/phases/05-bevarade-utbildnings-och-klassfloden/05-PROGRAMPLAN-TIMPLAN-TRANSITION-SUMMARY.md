@@ -9,10 +9,13 @@ source_commit: 3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b
 latest_ui_commit: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 full_phase_status: open
-human_status: awaiting_user
+human_status: user_reported_pass_current_basic_flow
+human_result_date: 2026-10-06
 ---
 
 # Programplan → skolans timutkast
+
+**Användarresultat 2026-10-06:** Grundflödet programplan → rätt skolas timplan → timinmatning och återöppning är användarrapporterat godkänt genom ”detta funkar!”. Enskilda steg, enheter, roller och faktisk provrevision särredovisades inte; [samlat användarresultat](05-PROGRAMPLAN-USER-TRIAL.md) anger avgränsningen. Beskedet är mänsklig återkoppling, ingen ny teknisk provkörning eller full fasverifiering.
 
 **Den avgränsade övergången är genomförd, automatiskt verifierad och levererad på lokal 3012.** Användaren beställde utformning och genomförande 2026-10-05. En komplett sparad högskoleförberedande programram kan nu ge skolans beständiga timutkast, även före programbeslut. Formella beslut, garantikontroll och hela fas 5 är fortsatt öppna.
 
@@ -58,6 +61,6 @@ Legacyregressionens första försök nekades av källguarden före fixture: den 
 
 ## Planering och kvarstående gränser
 
-05-25–35 har `replan_required`: deras gamla fastställd-/paketgrind ersätts endast för förberedande utkast, och upptagna migrationsversioner får inte återanvändas. Överlappande utkastarbete ska inte byggas igen. Full 05-23/E och 05-17:s yrkesram är fortsatt öppna, liksom program-/timplansbeslut, garanterad undervisningstid och nya klasskommandon. ADMIN-02/03/04 förblir Pending; mänsklig begriplighetsbedömning är awaiting_user.
+05-25–35 har `replan_required`: deras gamla fastställd-/paketgrind ersätts endast för förberedande utkast, och upptagna migrationsversioner får inte återanvändas. Överlappande utkastarbete ska inte byggas igen. Full 05-23/E och 05-17:s yrkesram är fortsatt öppna, liksom program-/timplansbeslut, garanterad undervisningstid och nya klasskommandon. ADMIN-02/03/04 förblir Pending; grundflödets mänskliga prov är användarrapporterat godkänt 2026-10-06, med omfattningen ovan.
 
 Historisk full SQL-audit-FAIL och 05-22:s fyra `updated_at`-avvikelser är inte rättade eller omklassade av detta delarbete. Separat skolutbud, elevval, individuella studieplaner, kombinationer av språkgrupper/dagar och bemanning behöver planeras mot skolans resurser senare.

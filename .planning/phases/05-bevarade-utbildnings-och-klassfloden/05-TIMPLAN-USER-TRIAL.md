@@ -1,5 +1,11 @@
 # Timplaner — underlag för användarprov
 
+## Aktuellt användarresultat 2026-10-06 — gymnasiets timutkast
+
+Grundflödet programplan → rätt skolas timplan → timinmatning och återöppning är **användarrapporterat godkänt** genom ”detta funkar!”. Se [samlat användarresultat och avgränsning](05-PROGRAMPLAN-USER-TRIAL.md). Enskilda steg, roller och dator/telefon särredovisades inte. Ingen ny teknisk körning eller full fasverifiering följer av beskedet. Äldre prov nedan är historik; godkännandet utökas inte till GR/IM-regelhandledning eller borttaget paket-UI.
+
+## Tidigare förberedelse och prov
+
 Förberett 2026-10-01 efter användarens bild med tom timplanslista. Ingen mänsklig verifiering tillskrivs denna förberedelse.
 
 De automatiska browserproven använder egna tillfälliga kunder och städar sina planer. De gav därför inget bestående underlag på användarens inloggade skola. `work/pilot/prepare-timplan-user-trial.mjs` lägger till tre separata provplaner på befintliga **Syntetisk skola 11** i **Syntetisk fas 3 kund 1**:

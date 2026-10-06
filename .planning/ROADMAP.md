@@ -2,6 +2,8 @@
 
 ## Overview
 
+**Användarresultat 2026-10-06:** Grundflödet programplan → rätt skolas timplan → timinmatning/återöppning är användarrapporterat godkänt. Se [omfattning och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-USER-TRIAL.md). Teknisk 05-23/E, fulla krav/fasstatus och genomförandet av 05-36–43 kvarstår; äldre provstatusar längre ner beskriver respektive dåvarande omgång.
+
 **Milestone:** v1.0 — Säker administration inför en pilot
 
 **Status:** Godkänd av användaren 2026-09-11 — 42 detaljkrav och åtta faser är fastställda. Fas 1–3 är genomförda och verifierade lokalt syntetiskt; fas 4 genomförs (24 av 25 planer klara; mänskligt användarprov och fasverifiering återstår).

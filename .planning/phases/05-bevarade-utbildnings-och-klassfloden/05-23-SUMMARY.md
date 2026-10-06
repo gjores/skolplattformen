@@ -6,15 +6,18 @@ completed_steps: [A, B, C, D]
 next_step: E
 requirements: [ADMIN-02, ADMIN-03]
 requirements-finally-verified: []
-human_result: awaiting_user
+human_result: user_reported_pass_current_basic_flow
+human_result_date: 2026-10-06
 worker_build_revision: a7c78e18584327374f916fa070525db48225c34f
 ---
 
 # 05-23 — full poängsumma och valbara block
 
+**Användarresultat 2026-10-06:** Det aktuella grundflödet är användarrapporterat godkänt genom ”detta funkar!”. [Samlat användarresultat](05-PROGRAMPLAN-USER-TRIAL.md) redovisar moment och ospecificerade enheter/roller. Grundflödets mänskliga vänteläge är avslutat; äldre awaiting_user nedan är historik och borttagna editorprov godkänns inte retroaktivt. Hela 05-23 är fortsatt in_progress: E:s tekniska fullplansverifiering och ADMIN-02/03 återstår.
+
 **Senaste förtydligande 2026-10-06:** ”Behåll blockramarna, ta bort blockhanteringen.” Befintliga ramar/poäng/terminer består; blockeditorn och skapa/dela/ändra/ta bort block finns inte längre i programplansvyn. Avgränsad rättning klar på 3012 (`a7c78e1`): blockbrowser 6, ram 10 och timövergång 4 PASS på dator/telefon, typ/lint/bygge/handbok PASS. Färsk 14-tabellsbaslinje och 18 scenarier/44 auditpar bevarade. Första ram-FAIL bevarad, kvarvarande API:s 409-skydd fortsatt prövat. Se [rättningen](../../debug/programplan-block-controls.md) och `phase5-programplan-block-controls-*.json`. Historiska block-/paketeditorprov nedan beskriver tidigare UI; hela 05-23/E och ADMIN-02/03/04 är fortsatt öppna.
 
-Steg A, B, C och D är genomförda och automatiskt verifierade lokalt med syntetiska data enligt tidigare beställning. **Senare användarbeslut 2026-10-05 tar bort paketen från programplansvyn:** fasta nivåer, blockpoäng, terminsram och skolkopplingar består. Skolans paketval, bibliotek och paketanalys ingår inte längre i denna arbetsyta. Äldre lagrade uppgifter och backendens versions-/mandatskydd bevaras; separat skolutbud/elevval/organisation är ännu inte implementerat. Se den avgränsade REMOVE-PACKAGES-PLAN och aktuella resultat nedan. Hela 05-23 är fortfarande in_progress: E:s fullplansverifiering återstår enligt reviderad ram. Mänsklig begriplighet är awaiting_user. C/D:s paketUI-resultat nedan är historiska, inte aktuella UI-bevis.
+Steg A, B, C och D är genomförda och automatiskt verifierade lokalt med syntetiska data enligt tidigare beställning. **Senare användarbeslut 2026-10-05 tar bort paketen från programplansvyn:** fasta nivåer, blockpoäng, terminsram och skolkopplingar består. Skolans paketval, bibliotek och paketanalys ingår inte längre i denna arbetsyta. Äldre lagrade uppgifter och backendens versions-/mandatskydd bevaras; separat skolutbud/elevval/organisation är ännu inte implementerat. Se den avgränsade REMOVE-PACKAGES-PLAN och aktuella resultat nedan. Hela 05-23 är fortfarande in_progress: E:s fullplansverifiering återstår enligt reviderad ram. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06; se avgränsningen ovan. C/D:s paketUI-resultat nedan är historiska, inte aktuella UI-bevis.
 
 ## Steg A — nya planer, svenskrader och blockramar
 

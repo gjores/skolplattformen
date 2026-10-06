@@ -1,5 +1,11 @@
 # Samlat användarprov: programplaner och timplanshandledning
 
+## Aktuellt användarresultat 2026-10-06
+
+**Resultat: användarrapporterat godkänt för det aktuella grundflödet.** Användaren svarar ”detta funkar!” efter uppmaningen att öppna och ändra en programplan, gå vidare till rätt skolas timplan samt fylla i timmar och kontrollera dem efter återöppning. Dessa moment registreras som fungerande enligt användarens besked. Enskilda provsteg, roller, dator/telefon och exakt körd byggrevision särredovisades inte. Senast dokumenterat appbygge är `5dd7baf`; ingen ny teknisk körning följer av återkopplingen.
+
+Det aktuella grundflödets mänskliga vänteläge är därmed avslutat. Tidigare FAIL och awaiting_user nedan bevaras som historik för respektive dåvarande provomgång. Beskedet omfattar inte uttryckligen GR/IM-regelhandledning, livscykelns alla åtgärder eller borttagna paket-/blockeditorer. E:s tekniska fullplansverifiering, ADMIN-02/03/04, hela fas 5 och fas 4:s separata checkpoint kvarstår. Läsårsplanerna 05-36–43 är ännu inte genomförda.
+
 ## Följdprov 2026-10-05: färre informationsrutor
 
 Användaren säger ”Ser bättre ut nu men det är lite mycket extra info-rutor.” Detta ger positiv återkoppling på den rättade vyn men inget slutgodkännande. De upprepade analys-, klarstatus- och åtgärdsrutorna har tagits bort. Statusen står vid namnet och Analys visar antal fel/risker. En rättad rad slutar vara markerad.
