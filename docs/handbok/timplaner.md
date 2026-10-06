@@ -14,9 +14,9 @@ Ett programutkast får användas för att förbereda undervisningstiden. Det än
 
 ### Fördela skolans timmar
 
-1. Öppna skolans timplan och välj **Ändra** på en rad.
-2. Fyll i hela timmar för de terminer som har poäng i underlaget. Ett tomt fält är **Ofördelat**; `0` betyder angivna noll timmar. Terminer som inte ingår kan inte fyllas i.
-3. Välj **Spara timmar** och invänta sparbeskedet. Hela raden sparas tillsammans. Ny inmatning under pågående sparning ligger kvar för nästa sparning.
+1. Öppna skolans timplan och fyll i timmar direkt i tabellens terminsceller.
+2. Ange hela timmar mellan 0 och 2 000 för terminer som har poäng i underlaget. Ett tomt fält är ofördelat; `0` betyder angivna noll timmar. Terminer som inte ingår kan inte fyllas i.
+3. Lämna raden eller tryck Enter för att spara och invänta **Allt sparat**. Du kan gå med Tab mellan celler på samma rad innan den sparas. Hela raden sparas tillsammans; ny inmatning under pågående sparning följer med nästa sparning.
 
 Årskurssummorna visar planerade timmar. **Visa bara ofördelade** hittar rader som ännu har tomma aktiva terminer. På telefon kan du välja en årskurs och rulla själva tabellen. När sidan laddas om öppnas samma sparade timplan igen. Osparade ändringar skyddas när du lämnar vyn.
 
@@ -26,7 +26,7 @@ Ett programutkast får användas för att förbereda undervisningstiden. Det än
 
 Timplanen skrivs inte om automatiskt. Välj **Välj nytt underlag** och därefter **Nytt timplansutkast** för skolan. Granskningen visar hur många rader som behåller tid och hur många som börjar ofördelade. Bara samma rad med oförändrade totalpoäng och poäng i samtliga sex terminer får behålla timmarna. Ett äldre öppet utkast bevaras som **Ersatt**; en fastställd föregångare ligger kvar oförändrad. Klasskopplingar flyttas inte.
 
-Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kvar för jämförelse. **Spara min fördelning** prövar din rad mot den nya revisionen. Ett oklart skapandesvar kan hämtas med samma begäran genom **Hämta sparad timplan**, så att ytterligare en timplan inte skapas.
+Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kvar i cellerna för jämförelse. Radens besked visar sparade timmar; **Spara min fördelning** prövar din rad mot den nya revisionen och **Använd sparade värden** lämnar din lokala ändring. Kan sparstatus inte läsas väljer du **Läs aktuell timplan** innan du sparar igen. Ett oklart skapandesvar kan hämtas med samma begäran genom **Hämta sparad timplan**, så att ytterligare en timplan inte skapas.
 
 Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Fastställande och kontroll av garanterad undervisningstid återstår; ifyllda timmar är fortfarande förberedande planering.
 

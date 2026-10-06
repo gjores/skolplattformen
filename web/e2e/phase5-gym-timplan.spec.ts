@@ -60,20 +60,24 @@ async function openExisting(page:Page,version=1,schoolName='Syntetisk programpla
   if(await gymTable(page).isVisible())return;
   await button.click();await expect(gymTable(page)).toBeVisible();
 }
-async function rowDialog(page:Page,row:GymTimplanRow) {
-  await gymTable(page).getByRole('button',{name:`Ändra ${row.name} ${row.levelName}`,exact:true}).click();
-  const dialog=page.getByRole('dialog',{name:'Fördela undervisningstid',exact:true});await expect(dialog).toBeVisible();return dialog;
+function rowInputs(page:Page,row:GymTimplanRow) {
+  return gymTable(page).locator(`tr[data-row-key="${row.key}"]`);
+}
+function cell(page:Page,row:GymTimplanRow,index:number) {
+  return rowInputs(page,row).getByLabel(`${row.name} ${row.levelName}, ${PROGRAMPLAN_TERMS[index]}`,{exact:true});
 }
 async function saveHours(page:Page,plan:GymTimplan,row:GymTimplanRow,hours:GymTimplanHours,session=fixture.principal) {
-  const dialog=await rowDialog(page,row);
+  await expect(page.getByRole('dialog',{name:'Fördela undervisningstid',exact:true})).toHaveCount(0);
+  await expect(gymTable(page).getByRole('button',{name:/^Ändra /u})).toHaveCount(0);
   for(const [index,value] of hours.entries()){
-    const input=dialog.getByLabel(`Timmar, ${PROGRAMPLAN_TERMS[index]}`,{exact:true});
-    if(row.pointTerms[index]===0){expect(value).toBeNull();await expect(input).toBeDisabled();}else await input.fill(value===null?'':String(value));
+    const input=cell(page,row,index);
+    if(row.pointTerms[index]===0){expect(value).toBeNull();await expect(input).toHaveCount(0);}else await input.fill(value===null?'':String(value));
   }
-  const pending=page.waitForResponse(responseFor(ROW));await dialog.getByRole('button',{name:'Spara timmar',exact:true}).click();const response=await pending;
+  const last=row.pointTerms.findLastIndex(value=>value>0),pending=page.waitForResponse(responseFor(ROW));
+  await cell(page,row,last).press('Enter');const response=await pending;
   expect(response.status()).toBe(200);expect(response.request().postDataJSON()).toEqual({planId:plan.id,expectedRevision:plan.revision,rowKey:row.key,hours});
   expect(await fixture.pairedGym(response.headers()['x-correlation-id'],session,'gym_timplan_row_changed',plan.id)).toBe(true);
-  await expect(dialog).toHaveCount(0);return readPlan(plan.id,session);
+  await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');return readPlan(plan.id,session);
 }
 async function capture(page:Page,info:TestInfo,name:string) {
   const viewport=page.viewportSize();if(!viewport)throw Error('Browserprovet kräver en uttrycklig viewport.');
@@ -129,7 +133,7 @@ test('T02: två skolor får olika timmar; administratör skriver eget gymutkast 
   planB=await saveHours(page,planB,row,[40,41,null,null,null,null],fixture.principalB);expect(planB.unitId).toBe(fixture.secondUnitId);
   await enterTransition(page,fixture.admin);await openExisting(page);planA=await readPlan(a.id,fixture.admin);expect(planA.canPlan).toBe(true);
   planA=await saveHours(page,planA,row,[27,28,null,null,null,null],fixture.admin);expect((await readPlan(b.id,fixture.principalB)).hours[row.key]).toEqual([40,41,null,null,null,null]);
-  const before=await fixture.timplanSnapshot(a.id);await enterTransition(page,fixture.hm);await openExisting(page);await expect(gymTable(page).getByRole('button',{name:/^Ändra /u})).toHaveCount(0);
+  const before=await fixture.timplanSnapshot(a.id);await enterTransition(page,fixture.hm);await openExisting(page);await expect(gymTable(page).locator('input')).toHaveCount(0);
   const denied=await fixture.request(baseURL,fixture.hm,ROW,{planId:a.id,expectedRevision:planA.revision,rowKey:row.key,hours:[99,99,null,null,null,null]});expect(denied.status).toBe(403);
   expect(await fixture.timplanSnapshot(a.id)).toEqual(before);expect((await readPlan(a.id,fixture.hm)).hours[row.key]).toEqual([27,28,null,null,null,null]);
   await gymWorkspace(page).getByRole('button',{name:'Öppna programplan',exact:true}).click();await expect(programWorkspace(page)).toBeVisible();
@@ -174,13 +178,16 @@ test('T04: ofullständig poängram ger konkret åtgärd och ingen tom timplan',a
 
 test('T05: CAS-konflikt skriver aldrig över en annan sparad timrad',async({page},info)=>{
   await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const created=(await createFromUI(page)).reply,plan=await readPlan(created.id),row=plan.rows[0];
-  const dialog=await rowDialog(page,row);await dialog.getByLabel('Timmar, Åk 1 HT',{exact:true}).fill('70');
+  const inputs=rowInputs(page,row);await cell(page,row,0).fill('70');
   const other=await fixture.request(baseURL,fixture.second,ROW,{planId:plan.id,expectedRevision:plan.revision,rowKey:row.key,hours:[44,null,null,null,null,null]});expect(other.status).toBe(200);
-  const whole=await fixture.timplanSnapshot(plan.id),pending=page.waitForResponse(responseFor(ROW));await dialog.getByRole('button',{name:'Spara timmar',exact:true}).click();expect((await pending).status()).toBe(409);
-  await expect(dialog.getByLabel('Timmar, Åk 1 HT',{exact:true})).toHaveValue('70');await expect(dialog).toContainText('Aktuell timplan har hämtats');
-  await expect(dialog.getByRole('button',{name:'Spara min fördelning',exact:true})).toBeVisible();
+  const whole=await fixture.timplanSnapshot(plan.id),pending=page.waitForResponse(responseFor(ROW));await cell(page,row,0).press('Enter');expect((await pending).status()).toBe(409);
+  await expect(cell(page,row,0)).toHaveValue('70');await expect(inputs).toContainText('Aktuell timplan har hämtats');
+  await expect(inputs.getByRole('button',{name:'Spara min fördelning',exact:true})).toBeVisible();
   expect(await fixture.timplanSnapshot(plan.id)).toEqual(whole);expect((await readPlan(plan.id)).hours[row.key]).toEqual([44,null,null,null,null,null]);
   await capture(page,info,'row-conflict-keeps-input');
+  const chosen=page.waitForResponse(responseFor(ROW));await inputs.getByRole('button',{name:'Spara min fördelning',exact:true}).click();expect((await chosen).status()).toBe(200);
+  await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');expect((await readPlan(plan.id)).hours[row.key][0]).toBe(70);
+  await capture(page,info,'row-conflict-confirmed');
 });
 
 test('T06: tappat skapasvar återfinner samma kommando utan en andra timplansversion',async({page},info)=>{
@@ -206,31 +213,79 @@ test('T07: datumlåst programkälla låser inte skolans timmar, men arkiverad ut
   const archived=await fixture.request(baseURL,fixture.hm,'/api/programplaner/utbildning/livscykel',{offeringId:source.offeringId,expectedRevision:underlag.body.lifecycle.revision,command:'archive',details:{}});expect(archived.status).toBe(200);
   const before=await fixture.timplanSnapshot(plan.id),denied=await fixture.request(baseURL,fixture.principal,ROW,{planId:plan.id,expectedRevision:plan.revision,rowKey:row.key,hours:[50,50,null,null,null,null]});expect(denied.status).toBe(409);
   expect(await fixture.timplanSnapshot(plan.id)).toEqual(before);const reread=await readPlan(plan.id);expect(reread.archived).toBe(true);expect(reread.hours[row.key]).toEqual([15,16,null,null,null,null]);
-  await page.reload();await reopenFromList(page);await expect(gymTable(page).getByRole('button',{name:/^Ändra /u})).toHaveCount(0);
+  await page.reload();await reopenFromList(page);await expect(gymTable(page).locator('input')).toHaveCount(0);
   await capture(page,info,'archived-school-hours');
 });
 
-test('T08: osparade timvärden skyddas och ny redigering under sparandet finns kvar',async({page},info)=>{
+test('T08: osparade timvärden skyddas och ny cellinmatning under sparandet finns kvar',async({page},info)=>{
   await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const created=(await createFromUI(page)).reply,plan=await readPlan(created.id),row=plan.rows[0];
-  const dialog=await rowDialog(page,row),input=dialog.getByLabel('Timmar, Åk 1 HT',{exact:true});await input.fill('30');
-  const discard=page.waitForEvent('dialog'),cancel=dialog.getByRole('button',{name:'Avbryt',exact:true}).click();
-  const prompt=await discard;expect(prompt.message()).toContain('osparade ändringar');await prompt.dismiss();await cancel;await expect(input).toHaveValue('30');
-  let release:()=>void=()=>{},entered:()=>void=()=>{};
+  const input=cell(page,row,0);await input.fill('30.5');await input.press('Enter');
+  await expect(rowInputs(page,row)).toContainText('Ange hela timmar');
+  const discard=page.waitForEvent('dialog'),cancel=gymWorkspace(page).getByRole('button',{name:'Öppna programplan',exact:true}).click();
+  const prompt=await discard;expect(prompt.message()).toContain('osparade ändringar');await prompt.dismiss();await cancel;await expect(input).toHaveValue('30.5');
+  await input.fill('30');let release:()=>void=()=>{},entered:()=>void=()=>{};const writes:number[]=[];
   const held=new Promise<void>(resolve=>{release=resolve;}),workerAccepted=new Promise<void>(resolve=>{entered=resolve;});let intercepted=false;
   await page.route('**'+ROW,async route=>{
+    writes.push(route.request().postDataJSON().hours[0]);
     if(intercepted){await route.continue();return;}intercepted=true;const response=await route.fetch();expect(response.status()).toBe(200);entered();await held;await route.fulfill({response});
   });
-  await dialog.getByRole('button',{name:'Spara timmar',exact:true}).click();await workerAccepted;
-  await input.fill('41');release();await expect(dialog.getByRole('button',{name:'Spara timmar',exact:true})).toBeEnabled();await expect(input).toHaveValue('41');
-  const first=await readPlan(plan.id);expect(first.hours[row.key][0]).toBe(30);
-  const pending=page.waitForResponse(responseFor(ROW));await dialog.getByRole('button',{name:'Spara timmar',exact:true}).click();expect((await pending).status()).toBe(200);
-  await expect(dialog).toHaveCount(0);expect((await readPlan(plan.id)).hours[row.key][0]).toBe(41);await capture(page,info,'edit-during-save-kept');
+  await input.press('Enter');await workerAccepted;await input.fill('41');release();
+  await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');await expect(input).toHaveValue('41');
+  expect(writes).toEqual([30,41]);expect((await readPlan(plan.id)).hours[row.key][0]).toBe(41);await capture(page,info,'edit-during-inline-save-kept');
 });
 
-test('T09: förlorad session rensar osparad timdialog utan att skriva timvärden',async({page},info)=>{
+test('T09: förlorad session rensar osparade terminsceller utan att skriva timvärden',async({page},info)=>{
   await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const created=(await createFromUI(page)).reply,plan=await readPlan(created.id),row=plan.rows[0];
-  const before=await fixture.timplanSnapshot(plan.id),dialog=await rowDialog(page,row);await dialog.getByLabel('Timmar, Åk 1 HT',{exact:true}).fill('88');
-  await fixture.expire(fixture.principal);const pending=page.waitForResponse(responseFor(ROW));await dialog.getByRole('button',{name:'Spara timmar',exact:true}).click();expect((await pending).status()).toBe(401);
+  const before=await fixture.timplanSnapshot(plan.id);await cell(page,row,0).fill('88');
+  await fixture.expire(fixture.principal);const pending=page.waitForResponse(responseFor(ROW));await cell(page,row,0).press('Enter');expect((await pending).status()).toBe(401);
   await expect(gymWorkspace(page)).toHaveCount(0);await expect(page.getByRole('dialog',{name:'Fördela undervisningstid',exact:true})).toHaveCount(0);
   expect(await fixture.timplanSnapshot(plan.id)).toEqual(before);await capture(page,info,'expired-session-clears-hours');
+});
+
+test('T10: Tab mellan rader köar sparning med rätt revision och återläser båda raderna',async({page},info)=>{
+  await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const plan=await readPlan((await createFromUI(page)).reply.id),a=plan.rows[0],b=plan.rows[1];
+  const firstTerm=b.pointTerms.findIndex(p=>p>0),lastTerm=b.pointTerms.findLastIndex(p=>p>0);
+  let release:()=>void=()=>{},entered:()=>void=()=>{};const held=new Promise<void>(resolve=>{release=resolve;}),accepted=new Promise<void>(resolve=>{entered=resolve;});
+  const writes:{rowKey:string;expectedRevision:number}[]=[];
+  await page.route('**'+ROW,async route=>{
+    const body=route.request().postDataJSON();writes.push({rowKey:body.rowKey,expectedRevision:body.expectedRevision});
+    if(writes.length>1){await route.continue();return;}
+    const response=await route.fetch();expect(response.status()).toBe(200);entered();await held;await route.fulfill({response});
+  });
+  await cell(page,a,0).fill('30');await cell(page,a,1).fill('31');await cell(page,a,1).press('Tab');await accepted;
+  await expect(cell(page,b,firstTerm)).toBeFocused();await cell(page,b,firstTerm).fill('40');await cell(page,b,lastTerm).fill('41');await cell(page,b,lastTerm).press('Enter');
+  expect(writes).toHaveLength(1);release();await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');
+  expect(writes).toEqual([{rowKey:a.key,expectedRevision:plan.revision},{rowKey:b.key,expectedRevision:plan.revision+1}]);
+  const result=await readPlan(plan.id);expect(result.hours[a.key].slice(0,2)).toEqual([30,31]);expect(result.hours[b.key][firstTerm]).toBe(40);expect(result.hours[b.key][lastTerm]).toBe(41);
+  await page.reload();await expect(gymTable(page)).toBeVisible();await expect(cell(page,a,0)).toHaveValue('30');await expect(cell(page,b,lastTerm)).toHaveValue('41');
+  await capture(page,info,'inline-two-rows-reloaded');
+});
+
+test('T11: ogiltiga cellvärden bevaras lokalt och skriver inga timmar innan rättning',async({page},info)=>{
+  await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const plan=await readPlan((await createFromUI(page)).reply.id),row=plan.rows[0],before=await fixture.timplanSnapshot(plan.id);
+  let writes=0;page.on('request',request=>{if(request.method()==='POST'&&new URL(request.url()).pathname===ROW)writes++;});
+  for(const value of ['2001','1.5','-1','abc']){
+    await cell(page,row,0).fill(value);await cell(page,row,0).press('Enter');await expect(rowInputs(page,row)).toContainText('Ange hela timmar');await expect(cell(page,row,0)).toHaveValue(value);await expect(cell(page,row,0)).toHaveAttribute('aria-invalid','true');
+    expect(await fixture.timplanSnapshot(plan.id)).toEqual(before);
+  }
+  expect(writes).toBe(0);await cell(page,row,0).fill('2000');await cell(page,row,0).press('Enter');await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');
+  expect(writes).toBe(1);expect((await readPlan(plan.id)).hours[row.key][0]).toBe(2000);await capture(page,info,'inline-invalid-corrected');
+});
+
+test('T12: tappat timsvar bekräftas genom återläsning utan dubbel radskrivning',async({page},info)=>{
+  await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const plan=await readPlan((await createFromUI(page)).reply.id),row=plan.rows[0];let writes=0;
+  await page.route('**'+ROW,async route=>{writes++;const response=await route.fetch();expect(response.status()).toBe(200);await route.abort('failed');});
+  await cell(page,row,0).fill('32');await cell(page,row,0).press('Enter');await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');
+  expect(writes).toBe(1);const after=await readPlan(plan.id);expect(after.revision).toBe(plan.revision+1);expect(after.hours[row.key][0]).toBe(32);await expect(cell(page,row,0)).toHaveValue('32');
+  await capture(page,info,'inline-lost-answer-recovered');
+});
+
+test('T13: oläst sparstatus låser vidare skrivning tills verklig återläsning bekräftar timmarna',async({page},info)=>{
+  await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const plan=await readPlan((await createFromUI(page)).reply.id),row=plan.rows[0];let writes=0;
+  await page.route('**'+ROW,async route=>{writes++;const response=await route.fetch();expect(response.status()).toBe(200);await route.abort('failed');});
+  await page.route('**'+READ,async route=>{const response=await route.fetch();expect(response.status()).toBe(200);await route.abort('failed');});
+  await cell(page,row,0).fill('33');await cell(page,row,0).press('Enter');await expect(rowInputs(page,row)).toContainText('Sparstatus kunde inte läsas');await expect(cell(page,row,0)).toHaveValue('33');await expect(cell(page,row,0)).toBeDisabled();
+  expect(writes).toBe(1);expect((await readPlan(plan.id)).hours[row.key][0]).toBe(33);
+  await page.unroute('**'+READ);await rowInputs(page,row).getByRole('button',{name:'Läs aktuell timplan',exact:true}).click();await expect(gymWorkspace(page).locator('.gt-save-state')).toHaveText('Allt sparat');
+  expect(writes).toBe(1);await expect(cell(page,row,0)).toHaveValue('33');await expect(cell(page,row,0)).toBeEnabled();await capture(page,info,'inline-unread-status-recovered');
 });

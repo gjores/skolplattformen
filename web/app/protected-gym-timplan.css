@@ -39,6 +39,20 @@
 .gt-matrix tbody td { text-align: right; min-width: 5.5rem; }
 .gt-matrix tbody td small { display: block; font-size: .75rem; color: #7b879a; margin-top: .2rem; }
 .gt-unallocated { font-size: .8rem; color: #8c610d; }
+.gt-term-input { width: 4.5rem; min-height: 44px; padding: .45rem .4rem; border: 1px solid #dde4ee; border-radius: .4rem; background: #fbfcfe; color: #243044; text-align: center; font-variant-numeric: tabular-nums; }
+.gt-term-input::placeholder { color: #b8c3d5; }
+.gt-term-input:focus { outline: 2px solid #3e5ce7; outline-offset: 1px; background: white; }
+.gt-term-input[aria-invalid="true"] { border-color: #b93939; background: #fff3f2; }
+.gt-term-input:disabled { color: #8893a5; background: #f3f5f9; }
+.gt-row-dirty { background: #fffdf7; }
+.gt-row-state { white-space: nowrap; font-size: .8rem; color: #617087; }
+.gt-save-state { display: inline; margin-left: .8rem; font-size: .85rem; color: #316b42; }
+.gt-save-warning { color: #8c610d; }
+.gt-row-error { font-size: .85rem; color: #a32e2e; margin-top: .6rem; max-width: 24rem; }
+.gt-row-error p { margin: .4rem 0; }
+.gt-row-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.gt-matrix tfoot th,.gt-matrix tfoot td { padding: .8rem .65rem; background: #f3f5f9; font-weight: 650; text-align: right; }
+.gt-matrix tfoot th { text-align: left; }
 .gt-inactive { color: #a5afbf; }
 .gt-error,.gt-source-missing { padding: 1rem; border: 1px solid #e4c88a; border-radius: .75rem; margin-bottom: 1rem; background: #fff8eb; }
 .gt-source-missing ul { list-style: disc; padding-left: 1.3rem; margin-top: .5rem; }

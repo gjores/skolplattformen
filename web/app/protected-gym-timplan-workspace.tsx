@@ -1,23 +1,22 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Clock3, FileText, Pencil, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Clock3, FileText, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { confirmDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplanOfferingList, parseProgramplanWorkspace, type ProgramplanOfferingList } from '@/lib/programplan-workspace-contract.ts';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { statusLabel } from '@/lib/protected-timplan.ts';
-import { gymTimplanCanEdit, gymTimplanTotals, parseGymTimplan, parseGymTimplanCreateReply, parseGymTimplanHourInput,
-  parseGymTimplanRowReply, parseGymTimplanUnderlag, type GymTimplan, type GymTimplanCreateRequest,
-  type GymTimplanHours, type GymTimplanRow, type GymTimplanUnderlag, type GymTimplanUnit } from '@/lib/gym-timplan.ts';
+import { gymTimplanCanEdit, parseGymTimplan, parseGymTimplanCreateReply, parseGymTimplanUnderlag, type GymTimplan, type GymTimplanCreateRequest,
+  type GymTimplanUnderlag, type GymTimplanUnit } from '@/lib/gym-timplan.ts';
 import type { GymTimplanLocation, ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedGymTimplanHours from './protected-gym-timplan-hours';
 import './protected-gym-timplan.css';
 
-type RowDraft = { row: GymTimplanRow; values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'applied' | 'unread'; error: string | null; mfa: boolean };
 type CreateDraft = { request: GymTimplanCreateRequest; schoolName: string; previousVersion: number | null;
   preserved: number; cleared: number; error: string | null; uncertain: boolean; stale: boolean; mfa: boolean };
 type Props = { context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
@@ -25,33 +24,29 @@ type Props = { context: ActiveContext; epoch: number; initialTarget: GymTimplanL
   onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
-const sameValues = (values: string[], hours: GymTimplanHours) => values.every((value, i) => parseGymTimplanHourInput(value) === hours[i]);
-const rowLabel = (row: GymTimplanRow) => `${row.name} ${row.levelName}`;
-const editableValues = (draft: RowDraft): GymTimplanHours | null => {
-  const values = draft.values.map(parseGymTimplanHourInput);
-  return values.some(value => value === undefined) ? null : values as GymTimplanHours;
-};
 
 export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTarget, year, onYear, onSessionLost, onOpened, onProgramplan }: Props) {
   const [list, setList] = useState<ProgramplanOfferingList | null>(null), [page, setPage] = useState(1);
   const [underlag, setUnderlag] = useState<GymTimplanUnderlag | null>(null), [plan, setPlan] = useState<GymTimplan | null>(null);
-  const [draft, setDraft] = useState<RowDraft | null>(null), [creating, setCreating] = useState<CreateDraft | null>(null);
-  const [showSource, setShowSource] = useState(false), [onlyMissing, setOnlyMissing] = useState(false);
+  const [creating, setCreating] = useState<CreateDraft | null>(null);
+  const [showSource, setShowSource] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const active = useRef(true), generation = useRef(0), controller = useRef<AbortController | null>(null), saving = useRef(false);
   const opened = useRef(onOpened); useEffect(() => { opened.current = onOpened; }, [onOpened]);
-  const dirty = !!draft && (draft.mode !== 'applied' && (!sameValues(draft.values, draft.original) || draft.mode !== 'edit')) || !!creating?.uncertain;
-  useUnsavedChanges(`gym-timplan-${epoch}-${context.assignmentId}`, dirty || busy && (!!draft || !!creating));
+  const unsavedId = `gym-timplan-${epoch}-${context.assignmentId}`;
+  const hoursDirty = useHasUnsaved(`${unsavedId}-hours`);
+  const dirty = hoursDirty || !!creating?.uncertain;
+  useUnsavedChanges(unsavedId, !!creating?.uncertain || busy && !!creating);
   const invalidate = useCallback(() => { generation.current++; controller.current?.abort(); controller.current = null; }, []);
   const begin = useCallback(() => { invalidate(); const c = new AbortController(); controller.current = c; return { token: generation.current, signal: c.signal }; }, [invalidate]);
   const current = useCallback((token: number) => active.current && generation.current === token, []);
   const securityFailure = useCallback((caught: unknown) => {
     if (!(caught instanceof ApiError) || !(caught.status === 401 || caught.status === 403 && caught.code !== 'mfa_required')) return false;
-    invalidate(); setList(null); setUnderlag(null); setPlan(null); setDraft(null); setCreating(null); setShowSource(false); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
+    invalidate(); setList(null); setUnderlag(null); setPlan(null); setCreating(null); setShowSource(false); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
   }, [invalidate, onSessionLost]);
 
   const loadList = useCallback(async (nextPage = 1) => {
-    const r = begin(); setPage(nextPage); setList(null); setUnderlag(null); setPlan(null); setError(null); setNotice(null); setBusy(true); setOnlyMissing(false);
+    const r = begin(); setPage(nextPage); setList(null); setUnderlag(null); setPlan(null); setError(null); setNotice(null); setBusy(true);
     try {
       const result = parseProgramplanOfferingList(await api.post('/api/programplaner/lista', { page: nextPage }, r.signal), nextPage);
       if (current(r.token)) { setList(result); opened.current(null); }
@@ -139,54 +134,8 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
         mfa: caught instanceof ApiError && caught.code === 'mfa_required', error: explicit ? message(caught, 'Kunde inte skapa timplanen.') : 'Svaret kunde inte bekräftas. Försök igen med samma begäran för att hämta den sparade timplanen.' });
     } finally { saving.current = false; if (current(r.token)) setBusy(false); }
   }
-  function edit(row: GymTimplanRow) {
-    if (!plan || busy || !gymTimplanCanEdit(plan)) return;
-    const original = plan.hours[row.key]; setNotice(null);
-    setDraft({ row, original, values: original.map(value => value === null ? '' : String(value)), mode: 'edit', error: null, mfa: false });
-  }
-  async function refreshDraft(own: RowDraft, uncertain: boolean, token: number, signal: AbortSignal) {
-    setPlan(null);
-    try {
-      const fresh = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: plan!.id }, signal), plan!.id);
-      if (!current(token)) return;
-      setPlan(fresh); setDraft(now => now && ({ ...now, mode: uncertain && sameValues(now.values, fresh.hours[own.row.key]) ? 'applied' : 'compare', mfa: false,
-        error: 'Aktuell timplan har hämtats. Jämför den sparade tiden med din fördelning innan du sparar igen.' }));
-    } catch (caught) {
-      if (current(token) && !aborted(caught) && !securityFailure(caught)) setDraft(now => now && ({ ...now, mode: 'unread', mfa: false, error: 'Aktuell timplan kunde inte läsas. Din fördelning finns kvar. Läs om innan du sparar igen.' }));
-    }
-  }
-  const retryPlanId = useRef<string | null>(null);
-  async function reloadDraft() {
-    if (!draft || busy || !retryPlanId.current) return;
-    const r = begin(); setBusy(true);
-    try {
-      const fresh = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: retryPlanId.current }, r.signal), retryPlanId.current);
-      if (current(r.token)) { setPlan(fresh); setDraft(now => now && ({ ...now, mode: 'compare', mfa: false, error: 'Aktuell timplan har hämtats. Jämför innan du sparar igen.' })); }
-    } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setDraft(now => now && ({ ...now, mode: 'unread', error: message(caught, 'Timplanen kunde inte läsas.') })); }
-    finally { if (current(r.token)) setBusy(false); }
-  }
-  async function saveRow() {
-    if (!plan || !draft || busy || saving.current || !gymTimplanCanEdit(plan) || !['edit', 'compare'].includes(draft.mode)) return;
-    const values = editableValues(draft);
-    if (!values) { setDraft({ ...draft, error: 'Ange hela timmar mellan 0 och 2 000, eller lämna fältet tomt.' }); return; }
-    const own = draft, r = begin(), request = { planId: plan.id, expectedRevision: plan.revision, rowKey: draft.row.key, hours: values };
-    retryPlanId.current = plan.id; saving.current = true; setBusy(true); setDraft({ ...own, error: null, mfa: false }); let accepted = false;
-    try {
-      parseGymTimplanRowReply(await api.post('/api/timplaner/gym/rad', request, r.signal), request); accepted = true;
-      const fresh = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: plan.id }, r.signal), plan.id);
-      if (!current(r.token)) return;
-      setPlan(fresh); setDraft(now => !now || sameValues(now.values, values) ? null : { ...now, original: fresh.hours[now.row.key], mode: 'edit', error: null, mfa: false });
-      setNotice('Timmarna sparades.');
-    } catch (caught) {
-      if (!current(r.token) || aborted(caught) || securityFailure(caught)) return;
-      if (accepted || !(caught instanceof ApiError) || !caught.hasExplicitCode || caught.status === 409) await refreshDraft(own, accepted || !(caught instanceof ApiError) || !caught.hasExplicitCode, r.token, r.signal);
-      else setDraft(now => now && ({ ...now, mode: 'edit', error: message(caught, 'Timmarna kunde inte sparas.'), mfa: caught.code === 'mfa_required' }));
-    } finally { saving.current = false; if (current(r.token)) setBusy(false); }
-  }
-  function leave(action: () => void) { if (!busy && (!dirty || confirmDiscard())) { setDraft(null); setCreating(null); action(); } }
-  const totals = plan ? gymTimplanTotals(plan) : null, editable = plan ? gymTimplanCanEdit(plan) : false;
-  const visibleColumns = PROGRAMPLAN_TERMS.map((label, i) => ({ label, i })).filter(({ i }) => year === 'all' || Math.floor(i / 2) === Number(year));
-  const visibleRows = plan?.rows.filter(row => !onlyMissing || totals!.missingRows.includes(row.key)) ?? [];
+  function leave(action: () => void) { if (!busy && (!dirty || confirmDiscard())) { setCreating(null); action(); } }
+  const editable = plan ? gymTimplanCanEdit(plan) : false;
 
   return <section className="gym-timplan" data-testid="protected-gym-timplan-workspace" aria-busy={busy}>
     {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => void loadList(page))}>Välj utbildning igen</Button></div>}
@@ -218,38 +167,23 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
       })}</div></section>
     </>}
     {plan && <>
-      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource?.planId ?? plan.source.planId))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || !!draft} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button></div>
+      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource?.planId ?? plan.source.planId))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button></div>
       <header className="gt-head"><div><h1>{plan.source.education.name}</h1><p>{plan.schoolName} · {plan.source.education.cohort}</p><span className="gt-state">{statusLabel[plan.status]} · Timplan version {plan.version}</span></div>
         <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: plan.offeringId, planId: plan.source.planId }))}><FileText size={16}/>Öppna programplan</Button></header>
-      <div className="gt-source-line"><button type="button" onClick={() => setShowSource(true)}><FileText size={15}/>Underlag: Programplan v{plan.source.version}, revision {plan.source.revision} ({statusLabel[plan.source.status].toLocaleLowerCase('sv')})</button><span>{editable ? 'Välj en rad för att fördela timmar' : plan.archived ? 'Utbildningen är arkiverad' : 'Läsvy'}</span></div>
+      <div className="gt-source-line"><button type="button" onClick={() => setShowSource(true)}><FileText size={15}/>Underlag: Programplan v{plan.source.version}, revision {plan.source.revision} ({statusLabel[plan.source.status].toLocaleLowerCase('sv')})</button><span>{editable ? 'Fyll i timmar direkt i terminscellerna' : plan.archived ? 'Utbildningen är arkiverad' : 'Läsvy'}</span></div>
       {plan.sourceChanged && <p className="gt-changed">Programplanen har ändrats. Den sparade tidsfördelningen använder fortfarande underlaget ovan. {plan.currentSource && <Button variant="link" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource!.planId))}>Välj nytt underlag</Button>}</p>}
-      <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{totals!.terms[y * 2] + totals!.terms[y * 2 + 1]} <small>timmar</small></strong><span>HT {totals!.terms[y * 2]} · VT {totals!.terms[y * 2 + 1]}</span></div>)}</div>
-      <div className="gt-toolbar"><p><strong>{totals!.total} timmar</strong> planerade · {totals!.missingRows.length ? `${totals!.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'}</p><Button variant="outline" disabled={busy} onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
-      <label className="gt-year-picker">Visa årskurs<select value={year} onChange={event => onYear(event.target.value)}><option value="all">Alla årskurser</option>{[0, 1, 2].map(y => <option key={y} value={y}>Årskurs {y + 1}</option>)}</select></label>
-      <section className="gt-table-scroll" aria-label="Skolans undervisningstid"
-        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla timmarna även i läsvyn.
-        tabIndex={0}>
-        <table className="gt-matrix"><caption>Undervisningstimmar per termin. Poängen under timmarna kommer från programplanen. ”Ofördelat” är ännu inte ifyllt; 0 är angivna noll timmar.</caption>
-          <thead><tr><th scope="col">Ämne, nivå eller block</th><th scope="col">Poäng</th>{visibleColumns.map(({ label, i }) => <th key={i} scope="col">{label}</th>)}{editable && <th scope="col"><span className="sr-only">Åtgärd</span></th>}</tr></thead>
-          <tbody>{visibleRows.map(row => <tr key={row.key} data-row-key={row.key}><th scope="row"><strong>{row.name}</strong><span>{row.levelName}</span></th><td>{row.points}</td>{visibleColumns.map(({ i }) => <td key={i}>{row.pointTerms[i] === 0 ? <span className="gt-inactive" aria-label="Ingår inte denna termin">—</span> : <><span className={plan.hours[row.key][i] === null ? 'gt-unallocated' : ''}>{plan.hours[row.key][i] ?? 'Ofördelat'}</span><small>{row.pointTerms[i]} p</small></>}</td>)}{editable && <td><Button size="sm" variant="ghost" disabled={busy} aria-label={`Ändra ${rowLabel(row)}`} onClick={() => edit(row)}><Pencil size={15}/><span>Ändra</span></Button></td>}</tr>)}</tbody>
-        </table>{!visibleRows.length && <p className="gt-empty">Alla rader har angiven tid i de aktiva terminerna.</p>}
-      </section>
+      <ProtectedGymTimplanHours key={plan.id} plan={plan} year={year} onYear={onYear} unsavedId={`${unsavedId}-hours`}
+        onSaved={setPlan} onSaving={setBusy} onSecurityFailure={securityFailure}/>
       <p className="gt-boundary">Planerade timmar är ett separat utkast. Fastställande och kontroll av garanterad undervisningstid återstår.</p>
     </>}
     <Dialog open={showSource && !!plan} onOpenChange={setShowSource}><DialogContent className="gt-source-dialog"><DialogTitle>Sparat programunderlag</DialogTitle><DialogDescription>Programplan version {plan?.source.version}, revision {plan?.source.revision}. Detta är den frysta poängram som timplanen använder.</DialogDescription>
-      {plan && <div className="gt-table-scroll"><table className="gt-matrix"><caption>{plan.source.education.name} · {plan.source.education.cohort} · {plan.rows.reduce((n, r) => n + r.points, 0)} poäng</caption><thead><tr><th>Ämne, nivå eller block</th>{PROGRAMPLAN_TERMS.map(term => <th key={term}>{term}</th>)}</tr></thead><tbody>{plan.rows.map(row => <tr key={row.key}><th>{rowLabel(row)}</th>{row.pointTerms.map((points, i) => <td key={i}>{points}</td>)}</tr>)}</tbody></table></div>}
+      {plan && <div className="gt-table-scroll"><table className="gt-matrix"><caption>{plan.source.education.name} · {plan.source.education.cohort} · {plan.rows.reduce((n, r) => n + r.points, 0)} poäng</caption><thead><tr><th>Ämne, nivå eller block</th>{PROGRAMPLAN_TERMS.map(term => <th key={term}>{term}</th>)}</tr></thead><tbody>{plan.rows.map(row => <tr key={row.key}><th>{`${row.name} ${row.levelName}`}</th>{row.pointTerms.map((points, i) => <td key={i}>{points}</td>)}</tr>)}</tbody></table></div>}
       <Button variant="outline" onClick={() => setShowSource(false)}>Stäng underlaget</Button></DialogContent></Dialog>
     <Dialog open={!!creating} onOpenChange={open => { if (!open) leave(() => setCreating(null)); }}><DialogContent><DialogTitle>Skapa timplansutkast</DialogTitle><DialogDescription>{creating?.schoolName} · Programplan version {underlag?.source.version}, revision {underlag?.source.revision}. Poängramen kopieras som underlag; timmar anges separat.</DialogDescription>
       {creating && <>{creating.previousVersion !== null ? <p>Version {creating.previousVersion} bevaras. {creating.preserved} rader har samma poäng och terminsram och behåller sin tid. {creating.cleared} rader börjar ofördelade.</p> : <p>Alla undervisningstimmar börjar ofördelade.</p>}
         {creating.error && <p role="alert">{creating.error}</p>}{creating.mfa && <MfaStepUpNotice message={creating.error ?? 'Verifiering med engångskod krävs.'}/>}
         <div className="gt-dialog-actions"><Button variant="outline" disabled={busy} onClick={() => leave(() => setCreating(null))}>Avbryt</Button>{creating.stale ? <Button disabled={busy} onClick={() => { setCreating(null); void loadUnderlag(creating.request.sourcePlanId); }}>Läs aktuellt underlag</Button> : <Button disabled={busy} onClick={() => void createPlan()}>{busy ? 'Sparar…' : creating.uncertain ? 'Hämta sparad timplan' : 'Skapa timplansutkast'}</Button>}</div>
       </>}</DialogContent></Dialog>
-    <Dialog open={!!draft} onOpenChange={open => { if (!open) leave(() => setDraft(null)); }}><DialogContent><DialogTitle>Fördela undervisningstid</DialogTitle><DialogDescription>{draft && rowLabel(draft.row)}. Timmar i terminerna där programplanen har poäng. Tomt fält betyder ännu ofördelat.</DialogDescription>
-      {draft && <><div className="gt-hour-inputs">{PROGRAMPLAN_TERMS.map((term, i) => <label key={term}>{term}<input aria-label={`Timmar, ${term}`} inputMode="numeric" type="text" value={draft.values[i]} disabled={draft.row.pointTerms[i] === 0 || draft.mode === 'applied'} placeholder={draft.row.pointTerms[i] ? 'Ofördelat' : '—'} onChange={event => { const value = event.target.value; setDraft(now => now && ({ ...now, values: now.values.map((old, j) => j === i ? value : old), mode: now.mode === 'applied' ? 'edit' : now.mode, error: null })); }}/><small>{draft.row.pointTerms[i]} poäng i underlaget</small></label>)}</div>
-        {draft.error && <p role="alert">{draft.error}</p>}{draft.mfa && <MfaStepUpNotice message={draft.error ?? 'Verifiering med engångskod krävs.'}/>}
-        {draft.mode === 'compare' && plan && <div className="gt-compare"><strong>Sparat nu</strong><p>{PROGRAMPLAN_TERMS.map((term, i) => `${term}: ${plan.hours[draft.row.key][i] ?? 'ofördelat'}`).join(' · ')}</p></div>}
-        {draft.mode === 'applied' && <p>Din fördelning är redan sparad.</p>}
-        <div className="gt-dialog-actions"><Button variant="outline" disabled={busy} onClick={() => leave(() => setDraft(null))}>{draft.mode === 'applied' ? 'Stäng' : 'Avbryt'}</Button>{draft.mode === 'unread' ? <Button disabled={busy} onClick={() => void reloadDraft()}>Läs aktuell timplan</Button> : draft.mode !== 'applied' && <Button disabled={busy || !editable || !editableValues(draft)} onClick={() => void saveRow()}>{busy ? 'Sparar…' : draft.mode === 'compare' ? 'Spara min fördelning' : 'Spara timmar'}</Button>}</div>
-      </>}</DialogContent></Dialog>
+
   </section>;
 }

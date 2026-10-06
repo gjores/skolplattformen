@@ -12,7 +12,7 @@ import { programplanTermRows, programplanLevelRanks, suggestProgramplanTerms } f
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
 const SOURCE_PATHS=['web/lib/gym-timplan.ts','web/lib/gym-timplan.test.mjs','web/lib/server/gym-timplan.ts','web/lib/server/gym-timplan.test.mjs',
-  'web/app/api/timplaner/gym','web/app/protected-gym-timplan-workspace.tsx','web/app/protected-gym-timplan.css','web/app/protected-timplan-workspace.tsx','web/app/protected-timplan.css',
+  'web/app/api/timplaner/gym','web/app/protected-gym-timplan-workspace.tsx','web/app/protected-gym-timplan-hours.tsx','web/app/protected-gym-timplan.css','web/app/protected-timplan-workspace.tsx','web/app/protected-timplan.css',
   'web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan-board.tsx',
   'web/lib/protected-plan-location.ts','web/lib/protected-plan-location.test.mjs','web/lib/server/http.ts',
   'web/lib/server-client.ts','web/lib/unsaved-changes.tsx','web/components/ui/dialog.tsx',
