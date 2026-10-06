@@ -3,7 +3,8 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 -- C assertions retain their historical profile; D begins from its actual nineteen-entrypoint base.
 do $profile$ declare signature text;begin
- foreach signature in array array['public.phase5_save_programplan_package(uuid,integer,jsonb)','public.phase5_list_programplan_packages(uuid)'] loop
+ -- Later gym entrypoints are excluded only from this historical rollback profile.
+ foreach signature in array array['public.phase5_save_programplan_package(uuid,integer,jsonb)','public.phase5_list_programplan_packages(uuid)','public.phase5_gym_timplan_underlag(uuid)','public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)','public.phase5_read_gym_timplan(uuid)','public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)'] loop
   if to_regprocedure(signature) is not null then execute 'revoke execute on function '||signature||' from skolplattform_worker';end if;
  end loop;
 end $profile$;

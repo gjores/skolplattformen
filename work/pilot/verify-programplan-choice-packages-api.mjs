@@ -8,7 +8,7 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {assertTarget} from './verify-target.mjs';
 import {createProgramplanBrowserFixture} from './phase5-programplan-browser-fixtures.mjs';
-import {TIMPLAN_ENTRIES,PROGRAMPLAN_ENTRIES,WORKSPACE_ENTRIES,EDUCATION_ENTRIES,TERM_ENTRIES,LIFECYCLE_ENTRIES,BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES,exactFunctions} from './verify-programplan-api.mjs';
+import {TIMPLAN_ENTRIES,PROGRAMPLAN_ENTRIES,WORKSPACE_ENTRIES,EDUCATION_ENTRIES,TERM_ENTRIES,LIFECYCLE_ENTRIES,BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES,GYM_ENTRIES,protectedBuildRoot,exactFunctions} from './verify-programplan-api.mjs';
 import {BLOCK_SOURCE_PATHS} from './verify-programplan-blocks-api.mjs';
 import {parseProgramplanValpaket,parseProgramplanValpaketList,parseProgramplanUnitPackages,programplanPackageLevelKey} from '../../web/lib/programplan-packages.ts';
 import {canonicalCatalogJson} from '../../web/lib/programplan-catalog.ts';
@@ -33,13 +33,13 @@ export async function runBlockStepD(o){
  const clearAudit=async()=>{if(!auditInjected)return;await assertTarget('protected');await owned(db);await db.unsafe(`drop trigger if exists ${trigger} on public.security_events;drop function if exists public.${triggerFn}()`);auditInjected=false;};
  const injectAudit=async(source,action)=>{assert(['db','worker'].includes(source));assert(['programplan_package_saved','programplan_packages_read'].includes(action));await assertTarget('protected');await owned(db);await db.begin(async tx=>{await tx.unsafe(`create function public.${triggerFn}() returns trigger language plpgsql as $$begin if new.customer_id='${fixture.customerId}'::uuid and new.source='${source}' and new.action='${action}' and new.outcome='ok' then raise exception 'Synthetic D audit failure' using errcode='P0001';end if;return new;end$$;create trigger ${trigger} before insert on public.security_events for each row execute function public.${triggerFn}();`);});auditInjected=true;};
  try{
-  const mark=JSON.parse(readFileSync(resolve(root,'web/dist-protected/build-mode.json'),'utf8'));
+  const mark=JSON.parse(readFileSync(resolve(protectedBuildRoot(),'build-mode.json'),'utf8'));
   const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...SOURCE])||git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE]))throw Error('BLOCKED_source_build');
   git(['merge-base','--is-ancestor',mark.revision,'HEAD']);report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
   const old=packageWorkerInventory(),expected=[...old,...PACKAGE_ENTRIES];
   if(old.length!==19||expected.length!==21||PACKAGE_ENTRIES.length!==2)throw Error('REFUSED_signature_inventory');
-  beforeAcl=await acl();report.beforeWorkerFunctions=beforeAcl.filter(r=>r.granted).map(r=>r.f);
+  beforeAcl=await acl();if(!o.preflight&&GYM_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...GYM_ENTRIES);report.beforeWorkerFunctions=beforeAcl.filter(r=>r.granted).map(r=>r.f);
   if(!exactFunctions(report.beforeWorkerFunctions,o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
   if(o.preflight){aclTouched=true;for(const f of PACKAGE_ENTRIES)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);}
   fixture=await createProgramplanBrowserFixture();const[owner]=await db`select organizer_id::text from public.offerings where id=${fixture.offeringId}`;organizerId=owner.organizer_id;await owned(db);

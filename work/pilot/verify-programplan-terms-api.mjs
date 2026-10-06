@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES } from './verify-programplan-api.mjs';
+import { BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES,GYM_ENTRIES,protectedBuildRoot } from './verify-programplan-api.mjs';
 // Real built Worker, local synthetic target only. Preflight restores exact prior ACL.
 import assert from 'node:assert/strict';
 import { randomUUID,randomBytes,createHash } from 'node:crypto';
@@ -23,6 +23,7 @@ export async function runTermsApi(options) {
  const manifest=await assertTarget('protected');
  const db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(manifest.dbUrl,{max:5,prepare:false,onnotice:()=>{}});
  const report={kind:'phase5-programplan-terms-api',scope:'local-synthetic-only',preflight:o.preflight,status:'FAIL',cases:[],calls:[],complete:false};
+ SOURCE.push('work/pilot/verify-programplan-api.mjs');
  let fixture,foreign,beforeAcl,original,triggerActive=false;const extraSessions=[];const suffix=randomUUID().slice(0,8),trigger='p518_fail_'+suffix,fn='p518_fail_fn_'+suffix;
  const acl=()=>db`select 'public.'||p.proname||'('||array_to_string(array(select format_type(t,null) from unnest(p.proargtypes::oid[]) t),',')||')' f,has_function_privilege('skolplattform_worker',p.oid,'execute') granted,p.proacl::text acl from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'phase5_%' order by p.oid`;
  const restore=async()=>{for(const f of TERMS){const r=beforeAcl.find(r=>r.f===f);await db.unsafe(`${r.granted?'grant':'revoke'} execute on function ${f} ${r.granted?'to':'from'} skolplattform_worker`);}assert.deepEqual(await acl(),beforeAcl);report.preflightAclRestored=true;};
@@ -30,12 +31,12 @@ export async function runTermsApi(options) {
  const check=(c,name,ok)=>c.push({name,ok:Boolean(ok)});
  const run=async(name,callback)=>{const checks=[];try{await callback(checks);}catch(e){check(checks,'executable '+(/^[A-Z0-9_]{1,40}$/u.test(e.code??'')?e.code:'TEST_FAILED'),false);}const status=checks.length&&checks.every(c=>c.ok)?'PASS':'FAIL';report.cases.push({name,status,checks});console.log(status+' '+name);};
  try {
-  const mark=JSON.parse(readFileSync(resolve(root,'web/dist-protected/build-mode.json'))),git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
+  const mark=JSON.parse(readFileSync(resolve(protectedBuildRoot(),'build-mode.json'))),git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...SOURCE])||git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE]))throw Error('BLOCKED_source_build');
   report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
   // 05-20: livscykelns dispatcher ingår i den faktiska ACL:en efter dess preflight.
   const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...LIFECYCLE_ENTRIES],expected=[...old,...TERMS];
-  beforeAcl=await acl();if(!o.preflight&&PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
+  beforeAcl=await acl();if(!o.preflight&&GYM_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...GYM_ENTRIES);if(!o.preflight&&PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(!o.preflight&&UNIT_PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...UNIT_PACKAGE_ENTRIES);if(BLOCK_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...BLOCK_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
   if(o.preflight){for(const f of TERMS)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);}
   fixture=await createProgramplanBrowserFixture();foreign=await createProgramplanBrowserFixture();
   const distribution=[{rowKey:'specialization:ENGE:1:ENGE3000X',points:[0,0,25,25,50,0]},{rowKey:'meta:diplomaWork',points:[0,0,0,0,0,100]}];

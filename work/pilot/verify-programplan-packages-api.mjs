@@ -8,7 +8,7 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {assertTarget} from './verify-target.mjs';
 import {createProgramplanBrowserFixture} from './phase5-programplan-browser-fixtures.mjs';
-import {TIMPLAN_ENTRIES,PROGRAMPLAN_ENTRIES,WORKSPACE_ENTRIES,EDUCATION_ENTRIES,TERM_ENTRIES,LIFECYCLE_ENTRIES,BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES,exactFunctions} from './verify-programplan-api.mjs';
+import {TIMPLAN_ENTRIES,PROGRAMPLAN_ENTRIES,WORKSPACE_ENTRIES,EDUCATION_ENTRIES,TERM_ENTRIES,LIFECYCLE_ENTRIES,BLOCK_ENTRIES,UNIT_PACKAGE_ENTRIES,PACKAGE_ENTRIES,GYM_ENTRIES,protectedBuildRoot,exactFunctions} from './verify-programplan-api.mjs';
 import {BLOCK_SOURCE_PATHS} from './verify-programplan-blocks-api.mjs';
 import {PROGRAMPLAN_LANGUAGES,PROGRAMPLAN_LANGUAGE_LADDERS,exportVerified} from '../../web/lib/programplan-languages.ts';
 import {parseProgramplanUnitPackages,proposeLanguagePackages,suggestPackageDistribution,programplanPackageLevelKey,createLanguagePackage} from '../../web/lib/programplan-packages.ts';
@@ -29,13 +29,13 @@ export async function runBlockStepC(o){
  const equal=(a,b)=>canonicalCatalogJson(a)===canonicalCatalogJson(b);
  const run=async(name,fn)=>{const checks=[];try{await fn(checks);}catch(e){check(checks,'executable '+(/^[A-Z0-9_]{1,40}$/u.test(e.code??'')?e.code:'TEST_FAILED'),false);}const status=checks.length&&checks.every(c=>c.ok)?'PASS':'FAIL';report.cases.push({name,status,checks});console.log(status+' '+name);};
  try{
-  const mark=JSON.parse(readFileSync(resolve(root,'web/dist-protected/build-mode.json'),'utf8'));
+  const mark=JSON.parse(readFileSync(resolve(protectedBuildRoot(),'build-mode.json'),'utf8'));
   const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
   if(mark.mode!=='protected'||!mark.revision||git(['status','--porcelain','--',...SOURCE])||git(['diff','--name-only',mark.revision,'HEAD','--',...SOURCE]))throw Error('BLOCKED_source_build');
   git(['merge-base','--is-ancestor',mark.revision,'HEAD']);report.sourceCommit=git(['rev-parse','HEAD']);report.workerBuildRevision=mark.revision;
   const old=[...TIMPLAN_ENTRIES,...PROGRAMPLAN_ENTRIES,...WORKSPACE_ENTRIES,...EDUCATION_ENTRIES,...TERM_ENTRIES,...LIFECYCLE_ENTRIES,...BLOCK_ENTRIES],expected=[...old,...UNIT_PACKAGE_ENTRIES];
   if(UNIT_PACKAGE_ENTRIES.length!==2)throw Error('REFUSED_missing_signature_inventory');
-  beforeAcl=await acl();if(!o.preflight&&PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
+  beforeAcl=await acl();if(!o.preflight&&GYM_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...GYM_ENTRIES);if(!o.preflight&&PACKAGE_ENTRIES.every(f=>beforeAcl.some(r=>r.f===f&&r.granted)))expected.push(...PACKAGE_ENTRIES);if(!exactFunctions(beforeAcl.filter(r=>r.granted).map(r=>r.f),o.preflight?old:expected))throw Error('REFUSED_ACL');original=await hashes();
   if(o.preflight){aclTouched=true;for(const f of UNIT_PACKAGE_ENTRIES)await db.unsafe(`grant execute on function ${f} to skolplattform_worker`);}
   fixture=await createProgramplanBrowserFixture();
   const call=async(session,route,body,headers={})=>{const r=await fetch(`${o.baseURL}/api/programplaner/${route}`,{method:'POST',headers:{'Content-Type':'application/json',Origin:o.baseURL,'Sec-Fetch-Site':'same-origin',...(session?{Cookie:`sp_session=${session.token}`,'X-Context-Epoch':String(session.epoch)}:{}),...headers},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});let value;try{value=await r.json();}catch{}const result={status:r.status,body:value,corr:r.headers.get('x-correlation-id'),cache:r.headers.get('cache-control')};report.calls.push({route,status:r.status,code:/^[a-z_]{1,60}$/u.test(value?.code??'')?value.code:null,correlationId:result.corr});return result;};

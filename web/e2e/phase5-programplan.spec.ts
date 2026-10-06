@@ -174,7 +174,7 @@ test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',asyn
   // Simulerad unload kontrollerar registreringen efter Reacts effekter; ingen faktisk mobilunload.
   await expect.poll(()=>page.evaluate(()=>window.dispatchEvent(new Event('beforeunload',{cancelable:true})))).toBe(false);
   await discard(page,false,()=>navigate(page,'Timplaner'));await expect(field).toHaveValue('101');await field.fill('100');await w(page).getByRole('heading',{level:2}).first().click();await expect(board(page)).toContainText('Allt sparat');
-  const stored=await page.evaluate(()=>JSON.stringify({local:Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),session:Object.fromEntries(Object.keys(sessionStorage).map(k=>[k,sessionStorage.getItem(k)]))}));expect(stored).not.toContain(fixture.planId);expect(page.url()).not.toContain(fixture.planId);
+  const stored=await page.evaluate(()=>JSON.stringify({local:Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),session:Object.fromEntries(Object.keys(sessionStorage).map(k=>[k,sessionStorage.getItem(k)]))}));expect(stored).not.toContain(fixture.planId);const planLink=new URL(page.url());expect(planLink.searchParams.get('vy')).toBe('programplaner');expect(planLink.searchParams.get('utbildning')).toBe(fixture.offeringId);expect(planLink.searchParams.get('programplan')).toBe(fixture.planId);
   let release!:()=>void,arrived!:()=>void;const waiting=new Promise<void>(r=>{arrived=r;}),delay=new Promise<void>(r=>{release=r;});
   await page.route('**/api/programplaner/lasa',async route=>{const result=await route.fetch();arrived();await delay;try{await route.fulfill({response:result});}catch{/* browser has left */}});
   await w(page).getByRole('button',{name:'Läs om',exact:true}).click();await waiting;
@@ -186,7 +186,7 @@ test('12: osparatskydd, sena svar, utloggning och inga plan-ID i webblager',asyn
   const loggedOut=await logoutResponse;expect(loggedOut.status()).toBe(200);
   expect(loggedOut.request().postData()).toBeNull();
   expect(await loggedOut.finished()).toBeNull();
-  await page.waitForURL(url=>url.origin===fixture.idpOrigin&&url.pathname==='/realms/skolplattform-test/protocol/openid-connect/logout');await page.waitForLoadState('load');
+  await page.waitForURL(url=>url.origin===fixture.idpOrigin&&url.pathname==='/realms/skolplattform-test/protocol/openid-connect/logout');await page.waitForLoadState('load');expect(page.url()).not.toContain(fixture.planId);
   expect((await fixture.request(baseURL,fixture.principal,'/api/programplaner/lista',{page:1})).status).toBe(401);
 });
 

@@ -106,10 +106,10 @@ select is(
 
 set local role skolplattform_worker;
 select set_config('app.app_role', '', true);
-select throws_like(
+select throws_ok(
   $$insert into public.organisation_events (organizer_id, actor, actor_role, action)
     values ('60000000-0000-4000-8000-000000000001', '00000000-0000-0000-0000-000000000000', 'larare', 'Saknar kontext')$$,
-  '%serverkontext%',
+  '42501', 'History denied',
   'händelse utan serverkontext nekas'
 );
 select set_config('app.app_role', 'huvudman', true);
