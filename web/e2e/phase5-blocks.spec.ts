@@ -58,49 +58,42 @@ async function enterExisting(page:Page,name=/^Öppna utbildning Syntetisk bunden
   await fixture.cookies(page.context(),fixture.principal,baseURL);await page.goto('/');
   await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();await navigate(page,name);
 }
-async function saveBlocks(page:Page,region:ReturnType<Page['getByRole']>) {
-  const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/block'&&r.request().method()==='POST');
-  await region.getByRole('button',{name:'Spara block',exact:true}).click();const r=await pending;expect(r.status()).toBe(200);
-  expect(await fixture.paired(r.headers()['x-correlation-id'],fixture.principal,'programplan_blocks_changed')).toBe(true);
-  await expect(board(page)).toContainText('Allt sparat');return r;
-}
-async function editorFits(region:ReturnType<Page['getByRole']>) {
-  expect(await region.evaluate(el=>{
-    const clip=el.closest('.ppb-table-wrap')!.getBoundingClientRect();
-    return [...el.querySelectorAll('input,button,p')].every(control=>{
-      const rect=control.getBoundingClientRect();
-      return rect.left>=clip.left && rect.right<=clip.right;
-    });
-  })).toBe(true);
-}
-test('B02: rektor delar IV i två block och lägger till fördjupningsram, fördelar och läser om',async({page},info)=>{
+test('B02: sparade blockramar och terminer består utan blockhantering i programplanen',async({page},info)=>{
+  // Ägda äldre block skapas via verklig Worker som fixtureförberedelse, inte genom en borttagen UI-väg.
+  const current=await fixture.request(baseURL,fixture.principal,'/api/programplaner/lasa',{planId:fixture.planId});
+  expect(current.status).toBe(200);
+  const choiceBlocks=[...current.body.basisReference.choiceBlocks.filter((b:{kind:string})=>b.kind!=='individualChoice'),
+    {id:'iv1',kind:'individualChoice',points:100,name:'Individuellt val 1'},
+    {id:'iv2',kind:'individualChoice',points:100,name:'Individuellt val 2'},
+    {id:'profile',kind:'specialization',points:200,name:'Valbar profil'}];
+  const prepared=await fixture.request(baseURL,fixture.principal,'/api/programplaner/block',
+    {planId:fixture.planId,expectedRevision:current.body.revision,choiceBlocks});
+  expect(prepared.status).toBe(200);
+  expect(await fixture.paired(prepared.correlationId,fixture.principal,'programplan_blocks_changed')).toBe(true);
+  const snapshot=await fixture.snapshot(),history=await fixture.history(fixture.planId);
+  let blockWrites=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/block')blockWrites++;});
   await enterExisting(page);
-  const iv=board(page).getByRole('region',{name:'Block för individuellt val',exact:true});
-  await iv.getByRole('button',{name:'Dela i block',exact:true}).click();await iv.getByLabel('Poäng för block iv1',{exact:true}).fill('100');
-  await iv.getByRole('button',{name:'Lägg till block',exact:true}).click();
-  const name=iv.locator('input[aria-label^="Namn på block "]').last();await name.fill('Individuellt val 2');
-  await editorFits(iv);
-  const first=await saveBlocks(page,iv),split=await first.json();
-  expect(split.basisReference.choiceBlocks.filter((b:{kind:string})=>b.kind==='individualChoice').map((b:{points:number})=>b.points)).toEqual([100,100]);
-  const spec=board(page).getByRole('region',{name:'Valbara fördjupningsblock',exact:true});
-  await spec.getByRole('button',{name:'Lägg till valbart block',exact:true}).click();await spec.getByRole('button',{name:'Lägg till block',exact:true}).click();
-  await spec.locator('input[aria-label^="Namn på block "]').fill('Valbar profil');await spec.locator('input[aria-label^="Poäng för block "]').fill('200');
-  await editorFits(spec);
-  const second=await saveBlocks(page,spec),saved=await second.json(),block=saved.basisReference.choiceBlocks.find((b:{kind:string})=>b.kind==='specialization');expect(block.points).toBe(200);
+  await expect(board(page).getByRole('button',{name:/^(Dela i block|Lägg till valbart block|Lägg till block|Spara block|Ta bort block)/u})).toHaveCount(0);
+  await expect(board(page).locator('.ppb-choice-editor')).toHaveCount(0);
+  await expect(board(page).locator('input[aria-label^="Namn på block "]')).toHaveCount(0);
+  await expect(board(page).locator('tr[data-row-key="block:iv1"]')).toContainText('Individuellt val 1');
+  await expect(board(page).locator('tr[data-row-key="block:iv2"]')).toContainText('Individuellt val 2');
+  await expect(board(page).locator('tr[data-row-key="block:profile"]')).toContainText('Valbar profil');
+  expect(await fixture.snapshot()).toEqual(snapshot);expect(await fixture.history(fixture.planId)).toEqual(history);
   const pending=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/terminer'&&r.request().method()==='POST');
-  await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await pending).status()).toBe(200);await expect(board(page)).toContainText('allt fördelat');
+  await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();expect((await pending).status()).toBe(200);
+  await expect(board(page)).toContainText('2 500 av 2 500 poäng fördelade');
   const read=await fixture.request(baseURL,fixture.principal,'/api/programplaner/terminer/lasa',{planId:fixture.planId});expect(read.status).toBe(200);
   expect(read.body.distribution.reduce((n:number,r:{points:number[]})=>n+r.points.reduce((a,b)=>a+b,0),0)).toBe(2500);
-  expect(read.body.distribution.find((r:{rowKey:string})=>r.rowKey===`block:${block.id}`).points.reduce((a:number,b:number)=>a+b,0)).toBe(200);
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  const path=info.outputPath('blocks-split-specialization.png');await page.screenshot({path,fullPage:true});await info.attach('blocks-split-specialization.png',{path,contentType:'image/png'});
-  // Orphans are refused locally before sending a write, even for a writable future draft.
-  let writes=0;page.on('request',r=>{if(new URL(r.url()).pathname==='/api/programplaner/block')writes++;});
-  await spec.getByRole('button',{name:'Lägg till valbart block',exact:true}).click();await spec.getByRole('button',{name:'Ta bort block Valbar profil',exact:true}).click();
-  await expect(spec).toContainText('Töm blockets terminsfördelning och spara först.');expect(writes).toBe(0);await spec.getByRole('button',{name:'Avbryt blockändring',exact:true}).click();
+  for(const id of ['iv1','iv2','profile'])expect(read.body.distribution.find((r:{rowKey:string})=>r.rowKey===`block:${id}`).points.reduce((a:number,b:number)=>a+b,0)).toBe(id==='profile'?200:100);
+  expect((await fixture.snapshot()).basis_reference.choiceBlocks).toEqual(choiceBlocks);
   await page.reload();await navigate(page,/^Öppna utbildning Syntetisk bunden SA,/u);
-  await expect(board(page).locator(`tr[data-row-key="block:${block.id}"]`)).toContainText('Valbar profil');
+  await expect(board(page)).toContainText('2 500 av 2 500 poäng fördelade');
+  await expect(board(page).getByRole('button',{name:/^(Dela i block|Lägg till valbart block)/u})).toHaveCount(0);
   const persisted=await fixture.request(baseURL,fixture.hm,'/api/programplaner/terminer/lasa',{planId:fixture.planId});expect(persisted.body.distribution).toEqual(read.body.distribution);
+  expect(blockWrites).toBe(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  const path=info.outputPath('block-frames-without-controls.png');await page.screenshot({path,fullPage:true});await info.attach('block-frames-without-controls.png',{path,contentType:'image/png'});
 });
 
 test('B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng',async({page},info)=>{

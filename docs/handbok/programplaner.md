@@ -100,13 +100,9 @@ I nya planer och uppgraderade utkast har **Svenska/svenska som andraspråk** tre
 
 **Valbara block** har en egen rad med poäng som fördelas på terminer. Moderna språk ingår där programmet kräver det, språkämne ingår på Humanistiska programmets språkinriktning och naturvetenskapligt ämne på Naturvetenskapsprogrammets inriktning naturvetenskap och samhälle. Individuellt val är ett block på 200 poäng. Blockens poäng räknas med i planens summa; med full programfördjupning kan en ny samhällsvetenskapsplan fördelas till 2 500 poäng.
 
-I **Individuellt val** väljer du **Dela i block**. Ändra namn och poäng, välj **Lägg till block** vid behov och **Spara block**. Blocken ska tillsammans vara 200 poäng, till exempel två block på 100 poäng. **Avbryt blockändring** lämnar de sparade blocken som de är.
+Blockramarnas namn och poäng visas som sparat underlag. I programplanen fördelar du deras poäng på terminer; här finns inga knappar eller formulär för att skapa eller dela block, ändra deras namn eller poäng eller ta bort dem. Tidigare sparad blockindelning och fördelning bevaras. En separat arbetsyta för blockorganisation är ännu inte tillgänglig.
 
-I **Programfördjupning** väljer du **Lägg till valbart block**, sedan **Lägg till block**. Ange namn och poäng och välj **Spara block**. Fasta fördjupningsnivåer och valbara fördjupningsblock räknas tillsammans mot programfördjupningens ram. Öppna samma formulär för att ändra namn eller poäng, eller välj **Ta bort block**.
-
-Töm blockets terminsrad och invänta **Allt sparat** innan du tar bort blocket eller ändrar dess poäng. Den sparade fördelningen ska aldrig försvinna när block ändras. De nationellt givna blocken för moderna språk, språkämne och naturvetenskapligt ämne har fasta namn och poäng. Deras terminsram fördelar du i tabellen. **Föreslå fördelning** lägger moderna språk jämnt i årskurs 1–2 och inriktningens samt egna fördjupningsblock i årskurs 2–3.
-
-Om ett block eller en skola har tidigare sparat utbud kan en ändring av blockets ram eller skolkopplingen stoppas för att bevara uppgifterna. Appen visar orsaken. Det finns ännu ingen separat arbetsyta för att ändra det äldre utbudet.
+**Föreslå fördelning** lägger moderna språk jämnt i årskurs 1–2 och inriktningens samt befintliga fördjupningsblock i årskurs 2–3.
 
 Blockets terminsram anger när poängen planeras i utbildningen. Den bestämmer inte schemadagar, undervisningsgrupper eller vilka grupper som måste gå parallellt. Skolans språkgrupper kan därför behöva olika dagar beroende på tillgängliga lärare.
 
