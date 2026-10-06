@@ -212,21 +212,26 @@ export function PlanGrid({ choiceBlocks, focusIssue, program, orientationCode, r
   useEffect(() => {
     if (!focusIssue || handledFocus.current === focusIssue || !target || target.kind === 'start' || target.kind === 'orientation') return;
     const term = targetRow ? (values.get(targetRow)?.findIndex(n=>n>0) ?? -1) : -1;
-    let focusFrame = 0;
-    const frame = requestAnimationFrame(() => {
-      setOnlyOpen(false); if (targetRow) setYear(term < 0 ? 0 : Math.floor(term / 2));
-      focusFrame = requestAnimationFrame(() => {
-        const grid = gridRef.current;
-        const row = targetRow ? grid?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(targetRow)}"]`) : null;
-        const control = target.kind === 'specialization' && target.mode === 'add' ? grid?.querySelector<HTMLInputElement>('input[type="search"]')
-          : target.kind === 'specialization' ? row?.querySelector<HTMLButtonElement>('button[aria-label^="Ta bort"]')
-          : row?.querySelector<HTMLInputElement>(`input[data-term="${term < 0 ? 0 : term}"]`) ?? grid?.querySelector<HTMLButtonElement>('.ppb-year');
-        (row ?? control)?.scrollIntoView({block:'center'}); control?.focus({preventScroll:true});
-        handledFocus.current = focusIssue;
+    const targetYear = term < 0 ? 0 : Math.floor(term / 2);
+    // Återställ urvalet först. Fokus väntar på renderingen där målraden finns.
+    if (onlyOpen || targetRow && year !== targetYear) {
+      const frame = requestAnimationFrame(() => {
+        setOnlyOpen(false); if (targetRow) setYear(targetYear);
       });
+      return () => cancelAnimationFrame(frame);
+    }
+    const frame = requestAnimationFrame(() => {
+      const grid = gridRef.current;
+      const row = targetRow ? grid?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(targetRow)}"]`) : null;
+      const control = target.kind === 'specialization' && target.mode === 'add' ? grid?.querySelector<HTMLInputElement>('input[type="search"]')
+        : target.kind === 'specialization' ? row?.querySelector<HTMLButtonElement>('button[aria-label^="Ta bort"]')
+        : row?.querySelector<HTMLInputElement>(`input[data-term="${term < 0 ? 0 : term}"]`) ?? grid?.querySelector<HTMLButtonElement>('.ppb-year');
+      if (!control?.getClientRects().length) return;
+      (row ?? control).scrollIntoView({block:'center'}); control.focus({preventScroll:true});
+      if (document.activeElement === control) handledFocus.current = focusIssue;
     });
-    return () => { cancelAnimationFrame(frame); cancelAnimationFrame(focusFrame); };
-  }, [focusIssue, target, targetRow, values]);
+    return () => cancelAnimationFrame(frame);
+  }, [focusIssue, target, targetRow, values, onlyOpen, year]);
 
   return <section ref={gridRef} className="ppb" aria-label="Programplanen" aria-busy={busy} data-year={year}>
     <div className="ppb-years">{[0, 1, 2].map(y => { const s = termTotals[y * 2] + termTotals[y * 2 + 1]; return <button type="button" key={y} className="ppb-year" aria-pressed={year === y} onClick={() => setYear(y)}>
