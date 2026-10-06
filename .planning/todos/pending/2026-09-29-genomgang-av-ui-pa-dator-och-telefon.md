@@ -15,6 +15,7 @@ Användaren begärde 2026-09-29 en samlad UI-genomgång: ”ser för taskigt ut�
 
 ## Solution
 
+- **Mobilt användarfynd 2026-10-06:** Programplanens årskursknappar fungerar bättre än dropdownen. Se [avgränsat förbättringsbehov för motsvarande timplansurval](2026-10-06-arskursknappar-i-mobilens-timplan.md); gymtimplanen är trolig målvy enligt kodkontroll, att bekräfta vid rättning. Detta innebär inte att alla dropdowns ska ändras.
 - Gå igenom listor, elevkort och dialoger på dator och telefon med fokus på läsbarhet, informationshierarki, avstånd och begripliga verksamhetsord.
 - Använd programplan/programplaner i stället för poängplan/poängplaner enligt användarbeslut 2026-09-29; se separat todo `2026-09-29-byt-poangplan-till-programplan.md`.
 - Visa klassperioder konsekvent och förklara varför samma klass kan ha separata perioder. Verifiera datamodellen innan eventuell sammanslagning; dölj inte verksamhetsmässiga skillnader.
