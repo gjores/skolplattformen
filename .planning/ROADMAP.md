@@ -2,6 +2,8 @@
 
 ## Overview
 
+**Kompletterat beslutsbehov 2026-10-06:** Rektorn ska uttryckligen kunna färdigmarkera program-/timplansarbete och huvudmannens behöriga representant ska kunna godkänna det. [Gap och verifieringsmål](todos/pending/2026-10-06-rektor-fardigmarkerar-och-huvudmannen-godkanner-planarbete.md) ska in i omplaneringen av 05-25/26 och 05-32/33. Automatisk ”Klar för beslut” är ingen överlämning. Behovet är pending; grundflödets godkända användarprov nedan kvarstår.
+
 **Användarresultat 2026-10-06:** Grundflödet programplan → rätt skolas timplan → timinmatning/återöppning är användarrapporterat godkänt. Se [omfattning och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-USER-TRIAL.md). Teknisk 05-23/E, fulla krav/fasstatus och genomförandet av 05-36–43 kvarstår; äldre provstatusar längre ner beskriver respektive dåvarande omgång.
 
 **Milestone:** v1.0 — Säker administration inför en pilot

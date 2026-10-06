@@ -14,6 +14,7 @@ Användaren vill att huvudmannen (HM) ska kunna delegera arbetet med programplan
 
 ## Solution
 
+- **Förtydligande 2026-10-06:** Rektor ska uttryckligen kunna färdigmarkera arbetet och huvudmannens behöriga representant godkänna det. Detta följs i [beslutsflödets todo](2026-10-06-rektor-fardigmarkerar-och-huvudmannen-godkanner-planarbete.md), med koppling till omplanering av 05-25/26 och 05-32/33. Rektorns färdigmarkering är en annan handling än automatisk analysberedskap och huvudmannens beslut.
 - Gör det möjligt för huvudmannen att tilldela och återkalla programplansarbete för rektor och skoladministratör inom uttryckligt angivna skolenheter.
 - Precisera vilka arbetsmoment delegationen omfattar, exempelvis skapa och bearbeta utkast samt lägga till ämnen/nivåer och programfördjupning. Skilj arbetsdelegation från rätten att fastställa en plan; beslutsrättens omfattning behöver klargöras i planeringen.
 - Visa tydligt vem som får arbeta med skolans programplaner och vilka åtgärder uppdraget medger. Använd den gemensamma arbetsytan för nya och befintliga utbildningar.

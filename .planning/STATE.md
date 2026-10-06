@@ -8,7 +8,7 @@ status: in_progress
 stopped_at: Aktuellt program-/timplansgrundflöde användarrapporterat godkänt. Teknisk 05-23/E återstår; 05-36–43 planerade men inte genomförda. Omplanering av 05-25–35, beslut och yrkesram kvarstår.
 last_updated: "2026-10-06"
 last_activity: 2026-10-06
-last_activity_desc: "Användaren bekräftar att programplan, övergång till rätt skolas timplan, timinmatning och återöppning fungerar. Grundflödets mänskliga prov godkänt; teknisk 05-23/E och implementation av 05-36–43 återstår."
+last_activity_desc: "Nytt användarbeställt gap: rektor färdigmarkerar planarbete och huvudmannens representant godkänner. Pending till omplanering av 05-25/26 och 05-32/33; tidigare grundflödesgodkännande består."
 state_head: 5dd7baf
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -29,6 +29,8 @@ See: .planning/PROJECT.md (updated 2026-10-06)
 **Current focus:** Läsårsstyrd planering är beställd och planerad i 05-36–43; genomförande återstår. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Full 05-23/E, yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**Nytt verksamhetsgap 2026-10-06:** Rektorn ska uttryckligen kunna färdigmarkera sitt arbete och en behörig huvudmannarepresentant ska kunna godkänna det. [Registrerat behov](todos/pending/2026-10-06-rektor-fardigmarkerar-och-huvudmannen-godkanner-planarbete.md) gäller aktuellt program-/timplansarbete. Dagens ”Klar för beslut” är framräknad analysstatus, inte rektorns överlämning. HM-programbeslut finns i äldre 05-25/26 och timplansförslag/beslut i 05-32/33, men är inte genomförda. Omplaneringen ska uttryckligen täcka båda aktörernas handlingar. Grundflödets användargodkännande består; beslutsgapet är pending och avslutas inte av teknisk 05-23/E eller läsårsplanerna 05-36–43.
 
 **Användarresultat 2026-10-06:** ”detta funkar!” efter provuppmaningen för öppna/ändra programplan, gå till rätt skolas timplan, fylla i timmar och kontrollera efter återöppning. Det aktuella grundflödet är **användarrapporterat godkänt**, utan särredovisade steg, roller, dator/telefon eller faktisk provrevision. Se [samlat användarresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-USER-TRIAL.md). Grundflödets mänskliga vänteläge är avslutat; äldre väntelägen/FAIL nedan är historik för respektive version. Ingen ny teknisk körning följer av beskedet. E:s tekniska fullplansverifiering, övriga uttryckligen oprövade användarmoment, ADMIN-02/03/04, hela fas 5 och fas 4-checkpoint är fortsatt öppna. Läsårsplaneringen 05-36–43 är fortfarande bara planerad.
 
@@ -78,7 +80,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Status:** Avgränsad skolvis timutkastövergång genomförd och automatiskt verifierad lokalt; aktuellt grundflöde användarrapporterat godkänt 2026-10-06. Fulla ADMIN-02/03/04 och fas 5 är Pending; teknisk 05-23/E och äldre SQL-/metadataavvikelser kvarstår.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-06
-**Last Activity Description:** Aktuellt program-/timplansgrundflöde användarrapporterat godkänt; teknisk 05-23/E och implementation/verifiering av 05-36–43 återstår.
+**Last Activity Description:** Rektorns färdigmarkering och huvudmannens godkännande registrerade som pending verksamhetsgap i fas 5. Grundflödet är fortsatt användarrapporterat godkänt; teknisk 05-23/E och genomförande av 05-36–43 återstår.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
@@ -207,6 +209,8 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 04]: 04-17: Elevprovet avvecklat (migration 20260930100000); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope behålls och läser bara registret; /api/prov borttagen men kvar som loggklass
 
 ## Pending Todos
+
+- 2026-10-06: [rektor färdigmarkerar och huvudmannens representant godkänner planarbete](todos/pending/2026-10-06-rektor-fardigmarkerar-och-huvudmannen-godkanner-planarbete.md). Verklig lucka i aktuellt skyddat flöde; komplettera 05-25/26 och samordna med 05-32/33 vid omplanering. Ingen implementation/verifiering påstås.
 
 - 2026-10-06: [tabellöversikter med sökning, filtrering och sortering för programplaner och timplaner](todos/pending/2026-10-06-tabelloversikter-med-sokning-filter-och-sortering-for-planer.md) beställt. Timplanernas startlista ska följa programplanernas tabellprincip; båda översikterna ska kunna sökas, filtreras och sorteras över hela det behöriga urvalet. Genomförande och dator-/telefonprov återstår; aktuell fasordning och kravstatus behålls.
 
