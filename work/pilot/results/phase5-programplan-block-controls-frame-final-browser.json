@@ -1,0 +1,271 @@
+{
+  "scope": "local-synthetic-only",
+  "rawReport": "work/pilot/targets/protected/runtime/block-controls-evidence/block-controls-browser-frame-final.json",
+  "rawSha256": "cc499be4d4499f07607767a75e07ce197652a0dc5c615efa55d59b9f12d244a9",
+  "stats": {
+    "startTime": "2026-10-06T06:47:41.156Z",
+    "duration": 162226.102,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sources": [
+    {
+      "sourceRevision": "a7c78e18584327374f916fa070525db48225c34f",
+      "buildRevision": "a7c78e18584327374f916fa070525db48225c34f",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "a7c78e18584327374f916fa070525db48225c34f",
+      "buildRevision": "a7c78e18584327374f916fa070525db48225c34f",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "globalErrors": [],
+  "tests": [
+    {
+      "title": "F01: tomt skolutbud påverkar inte programplanens blockramar eller beslutsklarhet",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 53,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F02: tidigare sparat ofördelat IV-paket bevaras utan att påverka programplanens analys",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 57,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolans paketval",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 99,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F04: administratör och rektor på delad skola läser full ram utan termins- eller paketkommandon",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 221,
+        "preservedAuditAnchors": 4,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F05: äldre skolutbud bevaras utan blockhantering och API avvisar mindre IV-block med 409",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 51,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F01: tomt skolutbud påverkar inte programplanens blockramar eller beslutsklarhet",
+      "project": "frame-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 55,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F02: tidigare sparat ofördelat IV-paket bevaras utan att påverka programplanens analys",
+      "project": "frame-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 59,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolans paketval",
+      "project": "frame-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 103,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F04: administratör och rektor på delad skola läser full ram utan termins- eller paketkommandon",
+      "project": "frame-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 233,
+        "preservedAuditAnchors": 4,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F05: äldre skolutbud bevaras utan blockhantering och API avvisar mindre IV-block med 409",
+      "project": "frame-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 54,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "imageCount": 16
+}

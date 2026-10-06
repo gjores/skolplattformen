@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "buildRevision": "a7c78e18584327374f916fa070525db48225c34f",
+  "files": 174,
+  "mismatch": [],
+  "privateEnvFilesExcluded": true,
+  "olderClientAssetsRetained": true
+}

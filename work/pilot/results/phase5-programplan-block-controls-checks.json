@@ -1,0 +1,123 @@
+{
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "correctionComplete": true,
+  "whole05_23Complete": false,
+  "humanResult": "awaiting_user",
+  "userDecision": "Behåll blockramarna, ta bort blockhanteringen",
+  "productRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+  "workerBuildRevision": "a7c78e18584327374f916fa070525db48225c34f",
+  "productSourcesUnchangedBetweenBlockAndFinalBuild": true,
+  "typescript": "PASS",
+  "oxlint": "PASS",
+  "protectedBuild": "PASS",
+  "handbookBuild": "PASS",
+  "browserPassed": 20,
+  "browserRetries": 0,
+  "browserSkippedFinal": 0,
+  "fixtureCleanupFinal": 20,
+  "firstFrameAttempt": {
+    "passed": 4,
+    "failed": 1,
+    "notRun": 5,
+    "cleanupCount": 5,
+    "cause": "Historiskt F05 klickade på den nu borttagna blockeditorn; samma server-409 bevarat som direkt verkligt Worker-prov."
+  },
+  "emptyGrepSetupNotCountedAsPass": true,
+  "businessTablesPreserved": 14,
+  "scenariosPreserved": 18,
+  "auditedReadsPerRuntimeCheck": 44,
+  "runtime3012": {
+    "runtime": "workerd",
+    "role": "skolplattform_worker"
+  },
+  "artifactCopy": {
+    "status": "PASS",
+    "buildRevision": "a7c78e18584327374f916fa070525db48225c34f",
+    "files": 174,
+    "mismatch": [],
+    "privateEnvFilesExcluded": true,
+    "olderClientAssetsRetained": true
+  },
+  "visualReview": {
+    "status": "PASS",
+    "images": [
+      {
+        "path": "work/pilot/targets/protected/runtime/block-controls-evidence/blocks/phase5-blocks-B02-sparade--aa43a-ckhantering-i-programplanen-blocks-desktop/block-frames-without-controls.png",
+        "sha256": "f8a909f63b47405e9b5e1ccb791d38d8b41fd0eccd90399ae69cff13ab697583"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/block-controls-evidence/blocks/phase5-blocks-B02-sparade--aa43a-ckhantering-i-programplanen-blocks-phone/block-frames-without-controls.png",
+        "sha256": "e3d0c4caece5959f82cf06f0ebef6b88aff20ff82b617c2a986884bda541f9e4"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/block-controls-evidence/frame-final/phase5-programplan-frame-F-76512-vkull-utan-skolans-paketval-frame-phone/copied-frame-without-school-offering.png",
+        "sha256": "a4f8cea9b40063d51fc2180edbd735251143385844a475542c778474aaa97265"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/block-controls-evidence/frame-final/phase5-programplan-frame-F-c8e23-sar-mindre-IV-block-med-409-frame-desktop/older-offering-block-change-refused.png",
+        "sha256": "ccac054db8e6a76793e85feccc6c8073904120058240129cc1eaf2e9d2323b26"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/block-controls-evidence/gym/phase5-gym-timplan-T03-änd-9274e-amla-timmar-och-klasslänkar-gym-timplan-phone/explicit-new-source-version.png",
+        "sha256": "e00c9d2f05c969428d1dbded9139aa98201898d2531ec52d477ef42a0fb90d64"
+      },
+      {
+        "path": "work/pilot/targets/protected/runtime/block-controls-evidence/gym/phase5-gym-timplan-T01-fär-13f3d-och-exakt-retur-till-källan-gym-timplan-desktop/reloaded-school-hours.png",
+        "sha256": "ba7e6f8b2f49d7ae708ce645c55e99423d25a88df572a2ad8626005d5d9203ac"
+      }
+    ]
+  },
+  "logs": {
+    "block-controls-tsc-final.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-tsc-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "block-controls-lint.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "block-controls-docs-final.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-docs-final.log",
+      "sha256": "84a13199af845816c7ebbdae653a714c9c5e316599f943fd10d68d37876aed8e"
+    },
+    "block-controls-build-final.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-build-final.log",
+      "sha256": "ae0ba7c4dc435a22fc24e7d2aae8d4d5ee55b51cdeefc8542181f54f8c8d4522"
+    },
+    "block-controls-browser-blocks.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-browser-blocks.log",
+      "sha256": "d6257901f6ec7749220e2c2adda021e9fd56478432b3ae0637ab0c2f6aa5f74b"
+    },
+    "block-controls-browser-blocks-no-tests.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-browser-blocks-no-tests.log",
+      "sha256": "bef44b71926303f638fcf3917875642de7e01f8828d85d994561945390fde863"
+    },
+    "block-controls-browser-frame.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-browser-frame.log",
+      "sha256": "00008de55bfa414b851004d5e352e0bcece048f4840c29676f934ea8f36d284e"
+    },
+    "block-controls-browser-frame-final.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-browser-frame-final.log",
+      "sha256": "2153bea3ca71dbc042ff8c3d23676b876be7a90520a2164d385cb575b9574475"
+    },
+    "block-controls-browser-gym.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-browser-gym.log",
+      "sha256": "b9ef74a7cb9fb2d44ec4d7599a4cda273b8af9bcf520ebe56c2e0a654f0297f9"
+    },
+    "block-controls-runtime-before.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-runtime-before.log",
+      "sha256": "0c060b2702eb14a8fab9e6a45c1f3c1c0bd7bbda5f88467af29d35dd49cd3123"
+    },
+    "block-controls-runtime-after.log": {
+      "path": "work/pilot/targets/protected/runtime/block-controls-evidence/logs/block-controls-runtime-after.log",
+      "sha256": "5bf34acb54ba33259f5ebe3ac039fdba27edfd08d01b6d797cf0901fb3f7aa19"
+    }
+  },
+  "limits": [
+    "Avgränsad UI-rättning; modell-/server-/SQL-grunder oförändrade och deras fulla sviter inte omkörda.",
+    "Full 05-23/E, ADMIN-02/03/04 och mänsklig begriplighet fortsatt öppna.",
+    "Separat skolutbud/elevval/blockorganisation/bemanning ännu inte implementerat.",
+    "Tidigare audit-FAIL och 05-22 metadata PARTIAL oförändrade."
+  ]
+}

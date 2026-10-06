@@ -1,0 +1,158 @@
+{
+  "scope": "local-synthetic-only",
+  "rawReport": "work/pilot/targets/protected/runtime/block-controls-evidence/block-controls-browser-frame-first.json",
+  "rawSha256": "9408c0402a00314d3ea75621a9c2c2433a9e9aa7e0be28c2a4b578ec1ff770bf",
+  "stats": {
+    "startTime": "2026-10-06T06:42:29.491Z",
+    "duration": 94995.32400000001,
+    "expected": 4,
+    "skipped": 5,
+    "unexpected": 1,
+    "flaky": 0
+  },
+  "sources": [
+    {
+      "sourceRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+      "buildRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "globalErrors": [
+    {
+      "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+    }
+  ],
+  "tests": [
+    {
+      "title": "F01: tomt skolutbud påverkar inte programplanens blockramar eller beslutsklarhet",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 53,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F02: tidigare sparat ofördelat IV-paket bevaras utan att påverka programplanens analys",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 56,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolans paketval",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 99,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F04: administratör och rektor på delad skola läser full ram utan termins- eller paketkommandon",
+      "project": "frame-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 220,
+        "preservedAuditAnchors": 4,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "F05: äldre sparat utbud hindrar mindre IV-block med tydligt 409-besked och bevarade helrader",
+      "project": "frame-desktop",
+      "status": "failed",
+      "retry": 0,
+      "errors": [
+        {
+          "location": {
+            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/phase5-programplan-frame.spec.ts",
+            "column": 65,
+            "line": 186
+          },
+          "message": "TimeoutError: locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('protected-programplan-workspace').getByRole('region', { name: 'Programplanen', exact: true }).getByRole('region', { name: 'Block för individuellt val', exact: true }).getByRole('button', { name: 'Dela i block', exact: true })\u001b[22m\n\n\n  184 |   await enter(page);await noPackageControls(page);const original=await fixture.snapshot(planId),originalOffering=await fixture.offering(fixture.emptyOfferingId),originalHistory=await fixture.history(planId);\n  185 |   const iv=board(page).getByRole('region',{name:'Block för individuellt val',exact:true});\n> 186 |   await iv.getByRole('button',{name:'Dela i block',exact:true}).click();await iv.getByLabel('Poäng för block iv1',{exact:true}).fill('100');await iv.getByRole('button',{name:'Lägg till block',exact:true}).click();\n      |                                                                 ^\n  187 |   await iv.locator('input[aria-label^=\"Namn på block \"]').last().fill('Individuellt val 2');await expect(iv.locator('input[aria-label^=\"Poäng för block \"]').last()).toHaveValue('100');\n  188 |   const pending=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/programplaner/block'&&response.request().method()==='POST');\n  189 |   await iv.getByRole('button',{name:'Spara block',exact:true}).click();const response=await pending;expect(response.status()).toBe(409);expect((await response.json()).code).toBe('programplan_block_packages_in_use');\n    at /Users/petter.gjores/dev/skolplattform/web/e2e/phase5-programplan-frame.spec.ts:186:65"
+        }
+      ],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 23,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "imageCount": 7
+}

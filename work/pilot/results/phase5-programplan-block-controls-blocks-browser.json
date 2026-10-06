@@ -1,0 +1,175 @@
+{
+  "scope": "local-synthetic-only",
+  "rawReport": "work/pilot/targets/protected/runtime/block-controls-evidence/block-controls-browser-blocks.json",
+  "rawSha256": "82e4e05e9bccf055717dc50cac3a7fd2d4f818deab5e39ccef33aab2ab3d2902",
+  "stats": {
+    "startTime": "2026-10-06T06:41:06.835Z",
+    "duration": 48875.329000000005,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "sources": [
+    {
+      "sourceRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+      "buildRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+      "browserName": "chromium",
+      "scope": "local-synthetic-only"
+    },
+    {
+      "sourceRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+      "buildRevision": "f2110052919e4c3756f8d6971db1a384f7193f61",
+      "browserName": "webkit",
+      "scope": "local-synthetic-only"
+    }
+  ],
+  "globalErrors": [],
+  "tests": [
+    {
+      "title": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+      "project": "blocks-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 51,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "B02: sparade blockramar och terminer består utan blockhantering i programplanen",
+      "project": "blocks-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 55,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng",
+      "project": "blocks-desktop",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 27,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "B01: ny SA25 visar svenska och valbara block, sparar 2 500 poäng och läser om samma fördelning",
+      "project": "blocks-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 55,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "B02: sparade blockramar och terminer består utan blockhantering i programplanen",
+      "project": "blocks-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 57,
+        "preservedAuditAnchors": 2,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    },
+    {
+      "title": "B03: äldre fastställd version är Ofullständig, ny version får svenska och behåller gamla IV-poäng",
+      "project": "blocks-phone",
+      "status": "passed",
+      "retry": 0,
+      "errors": [],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 28,
+        "preservedAuditAnchors": 1,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      }
+    }
+  ],
+  "imageCount": 6
+}

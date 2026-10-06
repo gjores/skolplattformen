@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-23
 status: in_progress
-stopped_at: Avgränsad programplan–timplan-övergång slutförd och verifierad på 3012. Nästa full 05-23/E enligt paketfri ram och omplanering av 05-25–35; beslut, yrkesram och mänsklig bedömning kvarstår.
+stopped_at: Avgränsad blockrättning slutförd på 3012: blockramar kvar, blockhantering bort. Nästa full 05-23/E och omplanering av 05-25–35; beslut, yrkesram och mänsklig bedömning kvarstår.
 last_updated: "2026-10-06"
 last_activity: 2026-10-06
-last_activity_desc: "Skolvis timutkast från komplett sparad programram; 60 dator-/telefonfall, faktisk Worker 11/157 och 14-tabellsbevarande PASS. Vanlig 3012 kör 3ae5fe5; avgränsad leverans verifierad."
-state_head: 3ae5fe5
-worker_build_revision: 3ae5fe5a7f1c4a58c454d28d474a6cbaa9cd6c5b
+last_activity_desc: "Användarens förtydligande: behåll blockramarna, ta bort blockhanteringen. 20 dator-/telefonfall och färskt 14-tabellsbevarande PASS; vanlig 3012 kör a7c78e1."
+state_head: a7c78e1
+worker_build_revision: a7c78e18584327374f916fa070525db48225c34f
 progress:
   total_phases: 8
   completed_phases: 3
@@ -26,9 +26,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-06)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Användarens beställda [övergång från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) är genomförd och automatiskt verifierad på 3012. Komplett sparad högskoleförberedande programram kan användas redan som utkast, med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Full 05-23/E, yrkesram 05-17, formella beslut, garantikontroll och mänsklig begriplighetsbedömning återstår. Äldre 05-25–35 kräver omplanering mot den nya övergången.
+**Current focus:** Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Full 05-23/E, yrkesram 05-17, formella beslut, garantikontroll och mänsklig begriplighetsbedömning återstår. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**Senaste avgränsade rättning 2026-10-06:** ”Behåll blockramarna, ta bort blockhanteringen.” Skapa/dela/ändra/ta bort block är borta från programplanen; sparade blockrader, poäng, terminer och fasta nivåval består. B01–B03 6/6, F01–F05 10/10 och T01/T03 4/4 på dator/telefon PASS; typ/lint/skyddat bygge/handbok PASS. Första ram-FAIL bevarad och provet anpassat till borttagen UI-väg med fortsatt verkligt 409-API-skydd. 20 slutliga cleanupbilagor noll egna verksamhetsrader. Vanlig 3012 kör `a7c78e1`, 174 prövade artefaktfiler byteidentiska; färsk baslinje över 14 hela tabeller och 18 scenarier/44 auditpar bevarad. Se [rättningen](debug/programplan-block-controls.md) och phase5-programplan-block-controls-rapporter. Hela 05-23/E och ADMIN-02/03/04 förblir öppna; planinventeringen 90/77 ändras inte.
 
 **Beställd 2026-10-05; genomförd och verifierad 2026-10-06:** Programplanens Timplan leder till rätt skolas beständiga timutkast. Poäng/källversion fryses; timmar sparas separat över sex terminer. Samma programram kan användas av flera skolor. Rektor/skoladministratör ändrar inom skolmandatet; HM läser. Explicit nytt underlag bär bara timmar från oförändrade ramar; äldre timmar och klasskopplingar består. Nya browser18/18 och regression42/42, faktisk Worker på 3012 11/157, postgrants SQL37 och 14 hela originaltabeller/18 scenarier/44 auditpar PASS. 174 prövade artefaktfiler är byteidentiska på vanlig 3012 (`3ae5fe5`). Slutlig städning och bevarandekontroll efter alla 60 browserfall PASS. Se [PLAN](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) och [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md). **Avgränsad utkastleverans; ADMIN-02/03/04 och hela fas 5 är öppna.** 05-25–35 har replan_required; deras fastställd-/paketgrind ersätts endast för förberedande utkast.
 

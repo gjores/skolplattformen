@@ -2,6 +2,8 @@
 
 Datum: 2026-10-05. **Senare beslut:** användaren beställde ”Ändra appen så att det inte finns i programplanerna.” Den avgränsade [genomförandeplanen](../phases/05-bevarade-utbildnings-och-klassfloden/05-23-REMOVE-PACKAGES-PLAN.md) tar bort paketvyn, paketladdningen och paketanalysen från programplanerna, med bevarade ramar och lagrade uppgifter. Faktisk leverans och verifiering dokumenteras i [05-23-SUMMARY](../phases/05-bevarade-utbildnings-och-klassfloden/05-23-SUMMARY.md). Tidigare C/D-UI-prov är historiska. Den fulla separata utbuds-/elevvals-/organisationsfunktionen nedan är fortsatt ett förslag och ännu inte implementerad.
 
+**Förtydligande 2026-10-06:** ”Behåll blockramarna, ta bort blockhanteringen.” Befintliga blockrader, poäng och terminsfördelning består i programplanen. Skapa/dela/ändra/ta bort block ska inte vara tillgängligt där. Det beslutet går före tidigare blockeditorförslag; se [avgränsad rättning](../debug/programplan-block-controls.md).
+
 ## Bedömning
 
 Pakethanteringen bör ha sin huvudsakliga arbetsyta i **skolans utbud och elevval**. Programplanen behöver fortsatt beskriva det valbara utrymmet: typ, poäng och planerad terminsram. Den enskilda elevens val ska bli konkret innehåll i studieplanen. Tjänstefördelningen använder därefter undervisningsbehovet från dessa nivåer och deras perioder.
