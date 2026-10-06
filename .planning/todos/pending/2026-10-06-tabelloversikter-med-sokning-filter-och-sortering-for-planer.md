@@ -4,7 +4,7 @@ title: Tabellöversikter med sökning, filtrering och sortering för programplan
 area: planering
 status: pending
 phase: "05"
-requirements: [ADMIN-02, ADMIN-04]
+requirements: [ADMIN-02, ADMIN-04, PLANERING-03]
 files:
   - web/app/protected-programplan-list.tsx
   - web/app/protected-gym-timplan-workspace.tsx
@@ -19,6 +19,12 @@ files:
 Användaren beställde 2026-10-06 att timplaner ska presenteras i en tabell som programplanerna och att båda tabellerna ska stödja sökning, filtrering och sortering. Beställningen ska registreras som todo för senare genomförande.
 
 Skärmbilden visar gymnasiets startlista på `/?vy=timplaner`, där utbildningar/programramar visas som stora kort. Aktuell kod i `protected-gym-timplan-workspace.tsx` bekräftar kortlistan med sidindelning. Programplanernas översikt har redan tabell, fritextsökning, skolfilter och visning av arkiverade utbildningar, men endast en fast namnordning. Uppgiften gäller översikterna där användaren hittar och öppnar planer; de öppnade planernas poäng- och timmatriser är separata vyer.
+
+## Samordnad GSD-plan 2026-10-06
+
+Det senare röstbeslutet gör läsår och skola till ett gemensamt urval inom planeringen, med separat elevregisterår. Tabellerna ska därför genomföras i [05-36–43](../../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md), särskilt 05-40, utifrån samma verkliga års-/kull-/skolunderlag. [Läsårslins-todon](2026-09-12-l-s-rslins-st-lla-sig-i-ett-l-s-r-som-i-plan-digital.md) samordnas utan dubbla listimplementationer. Befintliga terminsmatriser/radvis sparning återanvänds. Läs [kontext](../../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](../../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-DISCOVERY.md).
+
+Status är fortsatt pending: planen är skriven, tabell-/sök-/filter-/sorteringsförändringen är inte implementerad eller användarprovad.
 
 ## Planerad förändring
 
@@ -37,4 +43,4 @@ Skärmbilden visar gymnasiets startlista på `/?vy=timplaner`, där utbildningar
 
 Relaterat: [samlad UI-genomgång](2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md), [genomförd programplan–timplan-övergång](../../phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md) och [timplanernas omplaneringsunderlag](../../phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md).
 
-Status: registrerad användarbeställning, **inte implementerad**. Avgränsad genomförandeplan och användarprov återstår; aktuell fasordning och kravstatus ändras inte av denna todo.
+Status: registrerad användarbeställning, **inte implementerad**. Genomförande och användarprov återstår enligt den samordnade planen; fulla huvudkrav och fasstatus är fortsatt öppna.

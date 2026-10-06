@@ -95,6 +95,26 @@ Senarelagda delar av visionen. De är inte borttagna produktmål och behöver eg
 - **HOST-01**: Leverans för kommunal egen drift efter provad installation, uppgradering och förvaltning.
 - **PARITY-01**: Fortsatt genomgång av SchoolSoft-funktionsregistret med varje relevant område märkt byggt, planerat, senarelagt eller ej tillämpligt och verifiering skild från leverantörsbeskrivning.
 
+### Läsårsstyrd planering — kompletterande användarbeslut 2026-10-06
+
+Användaren har beslutat om ett gemensamt läsår inom planeringsområdet, med separat läsårsval i elevregister/löpande administration, och beställt en GSD-plan. Nedan spåras den kompletterande beställningen till nya 05-36–43. Pilotens ursprungliga 42 v1-krav och åtta faser är oförändrade. Planering är inte genomförande: samtliga nya krav är **Pending**, utan verksamhets-PASS.
+
+- **PLANERING-01**: Ett session-/uppdragsbundet planeringsår och skolurval följer med inom planeringsvyerna, inklusive retur/back/omladdning, utan att ändra elevregistrets eget urval. Byte av identitet/kund/uppdrag rensar kontext och sena svar.
+- **PLANERING-02**: Valt läsår visar nya och fortsättande gymnasiekullar samt rätt årskursunderlag för GR/IM utifrån strukturerade källor. Saknade, motstridiga eller endast prognostiserade uppgifter visas tydligt; inget årbyte skapar elever, kalender, klasser eller bindningar.
+- **PLANERING-03**: Programplaner och timplaner återfinns i sammanhängande tabellöversikter med serveravgränsad sökning, kombinerade filter, stabil sortering och korrekt sidindelning över hela det behöriga urvalet.
+- **PLANERING-04**: Årsöverblick och öppnade planer visar rätt poäng-/tim-/årskolumn och exakt källversion. Frysta underlag, fastställda planer, explicita klasskopplingar, terminsindex och osparat arbete bevaras; årsval ändrar inte dagens mandat eller planlås.
+- **PLANERING-05**: Verkliga skyddade SQL-/Worker-/dator-/telefonprov verifierar separation, skolmandat, årsprojektion, bevarande och aktuell dokumentation. Framtida studieplan/grupp/tjänst/schema får ett gemensamt käll-/periodkontrakt till S1/S3 utan att dessa moduler påstås implementerade.
+
+| Krav | Genomförandesteg | Verifieringsstatus |
+| --- | --- | --- |
+| PLANERING-01 | 05-36, 05-39; samlat prov 05-43 | Pending — kontextseparation, URL/retur och sessionsbyte ännu inte provade. |
+| PLANERING-02 | 05-36–38, 05-40, 05-42; samlat prov 05-43 | Pending — gymkullar, GR-årsbindning, IM och okänt underlag ännu inte provade. |
+| PLANERING-03 | 05-36–38, 05-40; samlat prov 05-43 | Pending — års-/sök-/filter-/sortering över sidgränser ännu inte provad. |
+| PLANERING-04 | 05-36–38, 05-41–42; samlat prov 05-43 | Pending — årssnitt, fryst källa och spar-/klassbevarande ännu inte provade. |
+| PLANERING-05 | 05-37–38, 05-43; framtida S1/S3 för nya moduler | Pending — automatisk matris och mänsklig begriplighet separata; inget schema-/tjänste-/studieplans-PASS. |
+
+Se [beslut och gränser](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-CONTEXT.md), [färsk kodinventering](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-DISCOVERY.md) och [genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md). ADMIN-02/03/04, STUDY-01, GROUP-01 och SCHEMA-01/07 behåller sina egna återstående leveransgränser.
+
 ### Kundens köpbara moduler — användarbeslut 2026-10-01
 
 Gemensamt produktkrav: kunden ska kunna köpa och använda moduler var för sig och kombinera dem med befintliga externa system. Slutlig modulkatalog, priser och beställnings-/betalningsprocess återstår. Kraven nedan får första kontraktsarbete i schemadelprojektets S1 och verifieras i S4 enligt [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md); de är ännu inte implementerade eller verifierade och ändrar inte pilotens 42 v1-krav.
@@ -200,4 +220,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-10-05 — föreslagna planeringsmål LLEG-01–04 kopplade till L1–L4; SCHEMA-01–08 och MODUL-01–04 behålls. V1:s 42 krav och deras fasfördelning är oförändrade, inga nya verifieringsresultat.*
+*Last updated: 2026-10-06 — kompletterande PLANERING-01–05 spårade till planerade 05-36–43. LLEG-/SCHEMA-/MODUL-mål behålls. V1:s 42 krav och åtta faser är oförändrade; inga nya verksamhetsverifieringar av läsårsplaneringen.*

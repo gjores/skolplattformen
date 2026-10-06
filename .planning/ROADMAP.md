@@ -191,6 +191,17 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] 05-24-PLAN.md — Regelförankrad GR/IM-analys (ren funktion `timplan-analysis.ts`, 2026-10-05): HKK 40 timmar gemensamt för låg-/mellanstadiet, NO/SO utan dubbelräkning, IM räknar bara profilklassificerad undervisning, blocksDecision skilt från kategori. 25/25 nodprov, tsc/oxlint PASS; syntetiska data, ingen vy/API/SQL kopplad
 - [x] 05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md — Avgränsad skolvis timutkastövergång från komplett sparad högskoleförberedande programram, genomförd/verifierad 2026-10-06. Fryst källa, separata timmar, rätt skola/källretur, CAS/replay och uttrycklig ny version med bevarade klasslänkar. SQL37, Worker11/157, browser60 och 14-tabellsbevarande PASS; lokal 3012 på 3ae5fe5. Se separat SUMMARY/VERIFICATION. Fulla huvudkrav/fas 5 och mänskligt prov är öppna.
 
+**Kompletterande läsårsplanering — beslutad 2026-10-06, ännu inte genomförd:** [05-36–43](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md) samordnar den äldre läsårstodon och nya sökbara tabellöversikter. Planeringsåret följer med inom planeringen, elevregistret behåller sitt eget år. Gymnasiets nya/fortsättande kullar, GR-årsbindningar och IM:s skilda underlag ska visas utan automatiska elev-/klassflyttar eller nya planbeslut. PLANERING-01–05 är kompletterande Pending-krav; v1:s 42 krav/åtta faser består. Full 05-23/E och tidigare omplaneringsgrindar avslutas inte av detta paket. Välj bara dessa planer vid paketets genomförande, inte samtliga äldre fasplaner med samma wave-nummer.
+
+- [ ] [05-36-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-36-PLAN.md) — Ren läsårs-/kullmodell och kontrollerade års-/listkontrakt.
+- [ ] [05-37-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-37-PLAN.md) — Stängd SQL-läsgrund för scope, lista och årsöverblick, med bevarandefall.
+- [ ] [05-38-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-PLAN.md) — Verklig Worker/preflight och exakt öppning av verifierade läsgrants.
+- [ ] [05-39-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-39-PLAN.md) — Separat planeringskontext/URL och oberoende elevregisterår.
+- [ ] [05-40-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-PLAN.md) — Sökbara tabeller och läsårsöverblick för skolor/kullar/versioner.
+- [ ] [05-41-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-41-PLAN.md) — Rätt relativår i öppnade gymnasieplaner, med oförändrade terminsindex och sparskydd.
+- [ ] [05-42-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-42-PLAN.md) — Årsbunden GR-/IM-överblick och planöppning utan gissad klassprogression.
+- [ ] [05-43-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PLAN.md) — Samlad automatisk verifiering, handbok och S1/S3-kontrakt; mänsklig begriplighet separat.
+
 05-11 har öppnat programplansvyn efter 05-09/05-10:s verifierade API och förberett ett konkret samlat mänskligt prov på 3012. Användaren har 2026-10-01 godkänt automatisk fortsättning till nästa konkreta mänskliga prov. Programplanernas framtida direkta HM-fastställande ur utkast bevaras; nationella alternativ/ramar och historiskt obundna poster kräver uttrycklig kontroll. 05-15/05-16 har nu levererat gymnasieutbildningsskapande med första utkast för huvudmannen. Beslut, generellt GR/IM-skapande, kullkopiering och klasskoppling återstår som egna kontrollerbara steg. 05-12 genomfördes parallellt med 05-09 och utökar ingen regelkontroll eller beslutsrättighet.
 
 

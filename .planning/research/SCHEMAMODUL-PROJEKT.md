@@ -148,6 +148,12 @@ SCHEMA-01–08 registreras bland senare krav i `../REQUIREMENTS.md`; SCHEMA-05 �
 
 S1 ska resultera i ett konkret informations-/modulkontrakt, operation-/mandatmatris, regelmodell, modulkatalog med köpbara gränser/beroenden och syntetiska acceptansfall. S2 omfattar en avskild Rust-/motorprototyp och en jämförande AI-utvärdering utan skyddade verksamhetsskrivningar. S3 kopplar befintliga planflöden till grupper och schema med granskning, audit och dator-/telefonprov; AI införs bara efter separat beslut. S4 provar komponentbyte, vald extern adapter, kundens köpta modulurval, aktivering/avslut och uppföljning. Varje steg får egna GSD-genomförandeplaner och verifieringsresultat innan det markeras klart.
 
+## Gemensamt planeringsår — användarbeslut 2026-10-06
+
+Planeringsområdet ska ha ett gemensamt läsår/skolurval medan elevregister och löpande administration behåller eget läsår. Första avgränsade genomförandet är planerat i [05-36–43](../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md), med [beslut och verksamhetsgränser](../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-CONTEXT.md). Det är inte ännu implementerat eller verifierat.
+
+S1 ska ta emot ett års-/periodsnitt med kund, skola, stabila käll-ID:n och exakta versioner/revisioner, och hålla planeringsurval skilt från elevens placering och dagens operationsmandat. S3 ska använda samma valda år för konkreta studierader, undervisningsgrupper, resurser och schemaunderlag när dessa funktioner finns. Källägarskap och versionsavvikelser består; årsurval skapar ingen automatisk elevprogression, klasskoppling eller tjänstepublicering. Prognos, beslutade underlag, verkliga tillfällen och genomförd tid ska förbli skilda. Kalender-/grupp-/resursluckor visas innan ett årssnitt används som beräkningsgrund. PLANERING-05 ger kontraktsförberedelse och verifiering i befintliga planvyer, inte ett godkänt STUDY-01/GROUP-01/SCHEMA-01/07-genomförande.
+
 ## Vad som behöver beaktas redan i fas 5
 
 Innan berörda återstående planflöden byggs ska planen redovisa hur stabila ID:n, exakta planversioner, kurs-/nivåreferenser, undervisningstidens enheter, giltighet och klasskopplingar kan användas i delprojektet. Visa ägare för ändringar och vilka konsekvenser en ny version ger. Registrera luckor för S1 i stället för att införa en konkurrerande planmodell eller breda schemagrants som genväg.

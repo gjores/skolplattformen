@@ -52,6 +52,10 @@ Timplanens version fryser programplanens ID/revision, katalog, exakta rader/bloc
 
 Befintliga `ar1/ar2/ar3`-klasskopplingar behålls med en adapter till HT/VT. Ny timplansversion flyttar aldrig klasser automatiskt. Timplaner får inte ärva programplanernas särskilda datumlås; ändring av fastställd timplan sker genom nytt utkast och nytt beslut.
 
+## Senare läsårsplanering 2026-10-06
+
+[05-36–43](05-PLANNING-YEAR-IMPLEMENTATION.md) är det nya planerade paketet för planeringsår/skola, års-/kullöverblick, sökbara tabeller och rätt årsdel i nuvarande planvyer. Det har eget registerurval och bevarar explicita klasskopplingar. Det överlappande tabell-/list-/sorteringsarbetet i äldre 05-30 ska inte byggas en gång till; dess kvarvarande analys-/beslutsintegration behöver omplaneras mot den nya leveransen. Hela 05-25–35 har fortsatt replan_required. Nytt årsarbete innebär inte nya planbeslut, godkänd yrkesram, fastställd undervisningstid eller genomförd schema-/tjänste-/studieplansmodul. [Kontext](05-PLANNING-YEAR-CONTEXT.md) har företräde vid årsurval och separation från elevregistret.
+
 ## Genomförandesteg
 
 | Plan | Leverans | Wave | Beroende |
