@@ -1,0 +1,308 @@
+{
+  "kind": "phase5-23-e-final",
+  "scope": "local-synthetic-only",
+  "status": "PASS",
+  "completedAt": "2026-10-06T21:03:24.117354+00:00",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "artifactFingerprint": "fab8d1bcca6ddce94adcd7d64eb583d53bb8dee6e704d2286cd17aa292264d82",
+  "artifactFilesUnchanged": 174,
+  "ordinary3012BuildRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+  "ordinary3012FilesUnchanged": 719,
+  "reset": false,
+  "deployed": false,
+  "nodeTests": 674,
+  "fixtureHelperTests": 19,
+  "sqlTests": 2512,
+  "sqlFiles": 35,
+  "apiCases": 170,
+  "apiChecks": 1077,
+  "api": [
+    {
+      "name": "a",
+      "file": "phase5-23-e-resume-api-a.json",
+      "sha256": "80543ddf10dea42547fb5e108dc04622ee59eae5a490f55e3675063f50e0f4d3",
+      "cases": 3,
+      "checks": 18,
+      "status": "PASS"
+    },
+    {
+      "name": "b",
+      "file": "phase5-23-e-resume-api-b.json",
+      "sha256": "b3c3b1385603a7ef69f6f745186550b76fb2c114ed6c3b6de0e5ca19ee36649c",
+      "cases": 11,
+      "checks": 57,
+      "status": "PASS"
+    },
+    {
+      "name": "c",
+      "file": "phase5-23-e-resume-api-c.json",
+      "sha256": "51a24be143cbdb1bbd95f5fa725ba8e4e2fc9b374a76b75756d4d40bdc3a5217",
+      "cases": 16,
+      "checks": 132,
+      "status": "PASS"
+    },
+    {
+      "name": "d",
+      "file": "phase5-23-e-resume-api-d.json",
+      "sha256": "c46646946032191dbb2fbc02d9c4bd20311b0faa046110ab6f5ed7a5205abb6f",
+      "cases": 11,
+      "checks": 198,
+      "status": "PASS"
+    },
+    {
+      "name": "lifecycle",
+      "file": "phase5-23-e-resume-api-lifecycle.json",
+      "sha256": "7a8a54e211ab87122673d58b263f97ea42cf628d7902390560df3152c4aecc6a",
+      "cases": 39,
+      "checks": 168,
+      "status": "PASS"
+    },
+    {
+      "name": "terms",
+      "file": "phase5-23-e-resume-api-terms.json",
+      "sha256": "a6550d332c2ea54276b76e6acce1b676575ac24fe3bfa012310a1d88964c0750",
+      "cases": 31,
+      "checks": 69,
+      "status": "PASS"
+    },
+    {
+      "name": "programplan",
+      "file": "phase5-23-e-resume-api-programplan.json",
+      "sha256": "6099f04f26b7d2942f833d048dbfa9b6c23564f94d2de4a3edd3bd6b556c656e",
+      "cases": 48,
+      "checks": 278,
+      "status": "PASS"
+    },
+    {
+      "name": "gym",
+      "file": "phase5-23-e-resume-api-gym.json",
+      "sha256": "8fe9c6165487972457735ae0d4d1208a5850cd2a2674e4f59734b626e1323dc4",
+      "cases": 11,
+      "checks": 157,
+      "status": "PASS"
+    }
+  ],
+  "browserCases": 149,
+  "browserSkips": 7,
+  "browser": [
+    {
+      "name": "blocks",
+      "file": "phase5-23-e-browser-blocks.json",
+      "sha256": "e677915a9d25e1c4a2a4170e77dcea62acab3a3ca79074d24890476830cc54f1",
+      "pass": 6,
+      "skip": 6,
+      "status": "PASS",
+      "retainedSameArtifactPass": true
+    },
+    {
+      "name": "programplan-frame",
+      "file": "phase5-23-e-browser-programplan-frame.json",
+      "sha256": "9955cff82f847524baca0b96921a8881ea93127d2341eb165d9683282747698a",
+      "pass": 10,
+      "skip": 0,
+      "status": "PASS",
+      "retainedSameArtifactPass": true
+    },
+    {
+      "name": "lifecycle",
+      "file": "phase5-23-e-browser-lifecycle.json",
+      "sha256": "6d87886c271775b46f45cca48ca55f283cefda71e1fda4357b5d2bf1e3d80d2f",
+      "pass": 20,
+      "skip": 0,
+      "status": "PASS",
+      "retainedSameArtifactPass": true
+    },
+    {
+      "name": "programplan",
+      "file": "phase5-23-e-resume-browser-programplan.json",
+      "sha256": "2ff5c9dd8c6517f53f1967bab4b21a701f7d47c3f4fc4a6787e95ddd42447347",
+      "pass": 40,
+      "skip": 0,
+      "status": "PASS",
+      "retainedSameArtifactPass": false
+    },
+    {
+      "name": "terms",
+      "file": "phase5-23-e-browser-terms.json",
+      "sha256": "f68d63941c44a606c5972205cf151561706f23b8e7078fb2f860ac869feccf6a",
+      "pass": 25,
+      "skip": 1,
+      "status": "PASS",
+      "retainedSameArtifactPass": true
+    },
+    {
+      "name": "timplan",
+      "file": "phase5-23-e-resume-browser-timplan.json",
+      "sha256": "0d0d0fbf2fa1854f8a7deb2214033f8cf92b07e948369ea64036fef4827914db",
+      "pass": 22,
+      "skip": 0,
+      "status": "PASS",
+      "retainedSameArtifactPass": false
+    },
+    {
+      "name": "gym-timplan",
+      "file": "phase5-23-e-resume-browser-gym-timplan.json",
+      "sha256": "3df90aaddb4730c77c895fcb9200a2d8134449248dc761692bb4fc8c448794a8",
+      "pass": 26,
+      "skip": 0,
+      "status": "PASS",
+      "retainedSameArtifactPass": false
+    }
+  ],
+  "browserCleanups": 150,
+  "workerSignatures": [
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)"
+  ],
+  "businessHashesBefore": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "4d0502616fcba11b33791f4e46625fc0af3989e97ca60f2be3ddea6a37a9b592"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "0bf503456175ab3006cc32fb59f6cbedd8704335088b4f4073aa78114657d2a0"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "c3e296dece7c3eb9aad35fc53bbf6559e7e4ebc982f0a0e1b913c470806ddc58"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "90a4b1e7634ad222f3420e4b9e102f8a2202326183b5e43b5c1cc7fd0481a3f8"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "5d997fd3590ae22c11a42c3443a50fc11d84527159fcc6358d1b65c04c2c03a6"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "ee4129a7961459556f89e8a1841cca45cdfb4452481316bb0fc9f6a5fa212219"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "0be89662c36de41177d3f5e6b353dbc6029949a12ba8a6ace283bba0058ea054"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "81d6d16d437c91e644aa6e80b70e8e7db806000416436a73587cea8004952154"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "cf70cb008bb96cd91653dda4957dc9db9a996ec110fc3bb88e3cbb794d044101"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "8631446ccbb1085f667777d3b2c3a65dcae11c6ee5c3297e685058f16a1007bf"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "b3b97d9d20e96836cb5ac29bb611a16e78c7899e95fe97805f85b76534d411de"
+    }
+  },
+  "businessHashesAfter": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "4d0502616fcba11b33791f4e46625fc0af3989e97ca60f2be3ddea6a37a9b592"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "0bf503456175ab3006cc32fb59f6cbedd8704335088b4f4073aa78114657d2a0"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "c3e296dece7c3eb9aad35fc53bbf6559e7e4ebc982f0a0e1b913c470806ddc58"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "90a4b1e7634ad222f3420e4b9e102f8a2202326183b5e43b5c1cc7fd0481a3f8"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "5d997fd3590ae22c11a42c3443a50fc11d84527159fcc6358d1b65c04c2c03a6"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "ee4129a7961459556f89e8a1841cca45cdfb4452481316bb0fc9f6a5fa212219"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "0be89662c36de41177d3f5e6b353dbc6029949a12ba8a6ace283bba0058ea054"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "81d6d16d437c91e644aa6e80b70e8e7db806000416436a73587cea8004952154"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "cf70cb008bb96cd91653dda4957dc9db9a996ec110fc3bb88e3cbb794d044101"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "8631446ccbb1085f667777d3b2c3a65dcae11c6ee5c3297e685058f16a1007bf"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "b3b97d9d20e96836cb5ac29bb611a16e78c7899e95fe97805f85b76534d411de"
+    }
+  },
+  "businessRowsIncludingTimestampsPreserved": true,
+  "aclPreserved": true,
+  "migrationFunctionFingerprintPreserved": true,
+  "readScenarios": 18,
+  "auditedReadsPerRound": 44,
+  "humanResult": "user_reported_pass_current_basic_flow",
+  "requirementsFinallyVerified": [],
+  "historicMetadataPreservation": "05-22 PARTIAL retained",
+  "sleepDiagnosis": "phase5-23-e-resume-sleep-diagnosis.json",
+  "visualReport": "phase5-23-e-resume-visual.json",
+  "staticReport": "phase5-23-e-static.json",
+  "note": "Unchanged programplan40/40 awake rerun passed on preserved artifact. Four previously passing browser groups and static checks retained on identical sources/artifact. All eight APIs and remaining GR/IM+gym browsers run on same artifact. Historical failures retained. No interactive IdP or real municipal connection verified."
+}

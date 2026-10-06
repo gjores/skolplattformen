@@ -1,0 +1,1062 @@
+{
+  "kind": "phase5-gym-timplan-api",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "preflight": false,
+  "complete": true,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual workerd uses limited Worker role",
+          "ok": true
+        },
+        {
+          "name": "exact 25 entry privileges",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "source-school-scope",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "HM own school scope and complete 2500 point frame",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "R A own school scope and complete 2500 point frame",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "R B own school scope and complete 2500 point frame",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "limited HM own school scope and complete 2500 point frame",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "administrator own school scope and complete 2500 point frame",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "create-two-schools-replay",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "concurrent identical commands create exactly one version and one replay",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "school version counters are independent",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "same command returns same frozen source",
+          "ok": true
+        },
+        {
+          "name": "read HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "read exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "new hours are blank; point terms stay independent",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 409",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "row-null-cas",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "concurrent same-revision rows have one winner and one conflict",
+          "ok": true
+        },
+        {
+          "name": "row HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "row exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "concurrent conflict leaves exactly one row change/revision/history",
+          "ok": true
+        },
+        {
+          "name": "zero is an explicitly saved allocation",
+          "ok": true
+        },
+        {
+          "name": "row denied HTTP 409",
+          "ok": true
+        },
+        {
+          "name": "row denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "row HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "row exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "row denied HTTP 400",
+          "ok": true
+        },
+        {
+          "name": "row denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "read HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "read exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "HM sees saved zeros with other terms still blank",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "source-replacement",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "saved program source can change independently",
+          "ok": true
+        },
+        {
+          "name": "read HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "read exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "old draft remains frozen and announces changed source",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "explicit replacement keeps every old hour",
+          "ok": true
+        },
+        {
+          "name": "read HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "read exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "only exactly unchanged rows reuse hours",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "original receipt replay survives changed source and revision",
+          "ok": true
+        },
+        {
+          "name": "row denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "row denial preserves every business row",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "role-school-denials",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "create denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "read denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "read denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "read denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "read denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "old timplan API denies new six-term plans",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "source-not-ready",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "partial program source can be saved as work in progress",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "readiness provides concrete missing reasons",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 409",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "complete source is restored through real API",
+          "ok": true
+        },
+        {
+          "name": "a complete draft can expose its level-order error",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "Worker catalog analysis rejects invalid level order",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 409",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "valid frame is restored after Worker rollback proof",
+          "ok": true
+        },
+        {
+          "name": "unbound legacy basis is readable but cannot become a draft",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "db basis audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "db basis rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "db read audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "db read rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "db row audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "db row rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "db create audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "db create rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "worker basis audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "worker basis rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "worker read audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "worker read rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "worker row audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "worker row rolls back all rows/history and both success events",
+          "ok": true
+        },
+        {
+          "name": "worker create audit failure returns no content",
+          "ok": true
+        },
+        {
+          "name": "worker create rolls back all rows/history and both success events",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mfa-csrf-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "create denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "read denied HTTP 401",
+          "ok": true
+        },
+        {
+          "name": "read denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "read denied HTTP 401",
+          "ok": true
+        },
+        {
+          "name": "read denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "create denied HTTP 409",
+          "ok": true
+        },
+        {
+          "name": "create denial preserves every business row",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "clients-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "anon cannot execute public.phase5_gym_timplan_underlag(uuid)",
+          "ok": true
+        },
+        {
+          "name": "anon cannot execute public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+          "ok": true
+        },
+        {
+          "name": "anon cannot execute public.phase5_read_gym_timplan(uuid)",
+          "ok": true
+        },
+        {
+          "name": "anon cannot execute public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_gym_timplan_underlag(uuid)",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_read_gym_timplan(uuid)",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+          "ok": true
+        },
+        {
+          "name": "anon direct helper/table path is closed",
+          "ok": true
+        },
+        {
+          "name": "anon direct helper/table path is closed",
+          "ok": true
+        },
+        {
+          "name": "authenticated direct helper/table path is closed",
+          "ok": true
+        },
+        {
+          "name": "authenticated direct helper/table path is closed",
+          "ok": true
+        },
+        {
+          "name": "skolplattform_worker direct helper/table path is closed",
+          "ok": true
+        },
+        {
+          "name": "skolplattform_worker direct helper/table path is closed",
+          "ok": true
+        },
+        {
+          "name": "Worker cannot bypass restrictive row policies",
+          "ok": true
+        },
+        {
+          "name": "new GY rows cannot be read through preserved legacy table grants",
+          "ok": true
+        },
+        {
+          "name": "new GY rows cannot be read through preserved legacy table grants",
+          "ok": true
+        },
+        {
+          "name": "new GY rows cannot be read through preserved legacy table grants",
+          "ok": true
+        },
+        {
+          "name": "raw GY writes cannot bypass required RPC/audit",
+          "ok": true
+        },
+        {
+          "name": "raw write denial preserves all business rows",
+          "ok": true
+        },
+        {
+          "name": "raw GY writes cannot bypass required RPC/audit",
+          "ok": true
+        },
+        {
+          "name": "raw write denial preserves all business rows",
+          "ok": true
+        },
+        {
+          "name": "raw GY writes cannot bypass required RPC/audit",
+          "ok": true
+        },
+        {
+          "name": "raw write denial preserves all business rows",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "legacy-class-preservation",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "read denied HTTP 403",
+          "ok": true
+        },
+        {
+          "name": "read denial preserves every business row",
+          "ok": true
+        },
+        {
+          "name": "read HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "read exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "legacy three-column values/timestamps and explicit class links remain exact",
+          "ok": true
+        },
+        {
+          "name": "newer program draft coexists with decided source",
+          "ok": true
+        },
+        {
+          "name": "basis HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "basis exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "decided source remains usable despite higher draft version",
+          "ok": true
+        },
+        {
+          "name": "create HTTP 200 and private response",
+          "ok": true
+        },
+        {
+          "name": "create exact DB and Worker audit pair",
+          "ok": true
+        },
+        {
+          "name": "decided predecessor is exactly preserved while new school draft is created",
+          "ok": true
+        },
+        {
+          "name": "actual Worker waits on the owned live mandate lock",
+          "ok": true
+        },
+        {
+          "name": "mandate revoked while waiting denies the actual row command",
+          "ok": true
+        },
+        {
+          "name": "wait/revocation leaves all 14 business tables and success audit unchanged",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "sourceCommit": "a205559973273d1f744472bbdeb23a3b5b7e1bec",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "sourceHashes": {
+    "work/pilot/apply-gym-timplan-migration.mjs": "87069500c6a45a236959a40d0816683b5accfc19ec2958ffdff1ff8ce664355e",
+    "work/pilot/verify-gym-timplan-api.mjs": "d4168bed847bda8bb4abf8f9e6b941b2e80475ebc527c15613149d521b74736b",
+    "work/pilot/phase5-gym-timplan-fixtures.mjs": "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "51b947176323157c748979ae9c8cf0e4d5ccad967dbe176c40cb70b6b30d8e79",
+    "web/lib/gym-timplan.ts": "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6",
+    "web/lib/server/gym-timplan.ts": "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446",
+    "web/lib/server/audit-details.ts": "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+    "web/lib/mandate-policy.ts": "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+    "web/app/api/timplaner/gym/underlag/route.ts": "fdf608623ec7a8f921f402ec66e3f71cb46e94d67023b4d9b4de42d9e825ba52",
+    "web/app/api/timplaner/gym/skapa/route.ts": "01768ff2a37556dbe4622a1d73cad561eb7748b3e4187715fb91d6f4618836f0",
+    "web/app/api/timplaner/gym/lasa/route.ts": "9507269a21e5560d32890707bc33f1690302c63fb5f0ff2bc50925aebd4b9dad",
+    "web/app/api/timplaner/gym/rad/route.ts": "3f58766e98acf88ab649513542c6e2781ceff154a1a6d457fa889d02382d9721",
+    "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql": "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e",
+    "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql": "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a"
+  },
+  "baselineFingerprint": "2249725fb39fd4906a1643650fb8f674a4f64a15caa73ad7792ea3c48ec059fd",
+  "beforeWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "verifiedWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "restoredWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "preflightAclRestored": true,
+  "aclUnchanged": true,
+  "cleanupStatus": "PASS",
+  "cleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 97,
+    "preservedAuditAnchors": 4,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0,
+    "gymReceipts": 0,
+    "timplans": 0,
+    "classLinks": 0,
+    "originalBusinessUnchanged": true,
+    "before": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "fe940b9969fdda475b5c5308776aa1eb47d5c6eadd3218fea2bf622f2270e150"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "030a6c677deb99a4742f9a4a794c68d4bb2fb4b0470053953d34ec5adde0742d"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "0c8658f5af6aefda20eb8c0fa03fd3b3a4d9a93195938d34ef1b90d1c8223b55"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "c6ee99a8f65520310a22ec237dc6dc7937d2cd10e45d560257f1fde688d79742"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "10ef4c37e817a8d2a549a167fa07a825fffbc16508363077b0e626fe02877aa6"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "224e84ec235dd432a85dd475b823e1be33cd04cb3bcfad28e1c4073f670913eb"
+      }
+    },
+    "after": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "fe940b9969fdda475b5c5308776aa1eb47d5c6eadd3218fea2bf622f2270e150"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "030a6c677deb99a4742f9a4a794c68d4bb2fb4b0470053953d34ec5adde0742d"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "0c8658f5af6aefda20eb8c0fa03fd3b3a4d9a93195938d34ef1b90d1c8223b55"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "c6ee99a8f65520310a22ec237dc6dc7937d2cd10e45d560257f1fde688d79742"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "10ef4c37e817a8d2a549a167fa07a825fffbc16508363077b0e626fe02877aa6"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "224e84ec235dd432a85dd475b823e1be33cd04cb3bcfad28e1c4073f670913eb"
+      }
+    }
+  },
+  "originalBusinessPreserved": true,
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "fe940b9969fdda475b5c5308776aa1eb47d5c6eadd3218fea2bf622f2270e150"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "030a6c677deb99a4742f9a4a794c68d4bb2fb4b0470053953d34ec5adde0742d"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "0c8658f5af6aefda20eb8c0fa03fd3b3a4d9a93195938d34ef1b90d1c8223b55"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "c6ee99a8f65520310a22ec237dc6dc7937d2cd10e45d560257f1fde688d79742"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "10ef4c37e817a8d2a549a167fa07a825fffbc16508363077b0e626fe02877aa6"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "224e84ec235dd432a85dd475b823e1be33cd04cb3bcfad28e1c4073f670913eb"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "fe940b9969fdda475b5c5308776aa1eb47d5c6eadd3218fea2bf622f2270e150"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "030a6c677deb99a4742f9a4a794c68d4bb2fb4b0470053953d34ec5adde0742d"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "2fc2b37657fac33c7e2c1f2b6cbf1c936dc56fb4fbd099986ecc29484e833650"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "dd1a15c12676e08a7fcfa2790143b413304f949627fee7abf48aa684a6fb0a09"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "0c8658f5af6aefda20eb8c0fa03fd3b3a4d9a93195938d34ef1b90d1c8223b55"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "c6ee99a8f65520310a22ec237dc6dc7937d2cd10e45d560257f1fde688d79742"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "10ef4c37e817a8d2a549a167fa07a825fffbc16508363077b0e626fe02877aa6"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "981f6e8d115ee934060b80a63f8131e08a61dd0935c4241422cf8d2e5c5c1a73"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "f19a8fd3dee824b8e7ef6664a9b707d2e56b504a841752971188c76b89d7b43b"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "bf8a33b94800b6e5690c341885c5ce691ef0f515e3d7d0e4365c726ae4c913c5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "224e84ec235dd432a85dd475b823e1be33cd04cb3bcfad28e1c4073f670913eb"
+    }
+  },
+  "error": null
+}

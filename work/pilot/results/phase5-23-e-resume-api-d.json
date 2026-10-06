@@ -1,0 +1,1605 @@
+{
+  "kind": "phase5-programplan-blocks-api",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "step": "d",
+  "preflight": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual restricted built workerd",
+          "ok": true
+        },
+        {
+          "name": "exact twenty-one Worker entrypoints",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-create-version",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "version one whole immutable row remains exact",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "closed list DTO matches requested school",
+          "ok": true
+        },
+        {
+          "name": "paired package list audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "own school lists all versions and global package",
+          "ok": true
+        },
+        {
+          "name": "closed list DTO matches requested school",
+          "ok": true
+        },
+        {
+          "name": "paired package list audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "own school lists all versions and global package",
+          "ok": true
+        },
+        {
+          "name": "closed list DTO matches requested school",
+          "ok": true
+        },
+        {
+          "name": "paired package list audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "own school lists all versions and global package",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-immutable",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual immutable mutation denied without row change",
+          "ok": true
+        },
+        {
+          "name": "actual immutable mutation denied without row change",
+          "ok": true
+        },
+        {
+          "name": "actual immutable mutation denied without row change",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-foreign-school-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket/lista 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket/lista 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-kind-lists",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "closed list DTO matches requested school",
+          "ok": true
+        },
+        {
+          "name": "paired package list audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "all four valid kinds remain explicitly typed",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "actual education and first draft created atomically with audit",
+          "ok": true
+        },
+        {
+          "name": "exact immutable reference stored with school CAS",
+          "ok": true
+        },
+        {
+          "name": "actual education and first draft created atomically with audit",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-selection-reread",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "exact immutable reference stored with school CAS",
+          "ok": true
+        },
+        {
+          "name": "closed version DTO matches exact request",
+          "ok": true
+        },
+        {
+          "name": "paired package save audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "new library version never replaces selected version one",
+          "ok": true
+        },
+        {
+          "name": "actual education and first draft created atomically with audit",
+          "ok": true
+        },
+        {
+          "name": "exact immutable reference stored with school CAS",
+          "ok": true
+        },
+        {
+          "name": "same package offered by two plans",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied paketval 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-cas-concurrent",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "closed list DTO matches requested school",
+          "ok": true
+        },
+        {
+          "name": "paired package list audit and exact DB metadata",
+          "ok": true
+        },
+        {
+          "name": "concurrent CAS has one exact winner and one conflict",
+          "ok": true
+        },
+        {
+          "name": "concurrent audit matches committed outcome",
+          "ok": true
+        },
+        {
+          "name": "concurrent audit matches committed outcome",
+          "ok": true
+        },
+        {
+          "name": "one new immutable version and every old row intact",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 409",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "package-closed-shapes",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket/lista 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket/lista 400",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-rollback",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "db programplan_package_saved audit failure rolls back all business",
+          "ok": true
+        },
+        {
+          "name": "no success event survives audit failure",
+          "ok": true
+        },
+        {
+          "name": "db programplan_packages_read audit failure rolls back all business",
+          "ok": true
+        },
+        {
+          "name": "no success event survives audit failure",
+          "ok": true
+        },
+        {
+          "name": "worker programplan_package_saved audit failure rolls back all business",
+          "ok": true
+        },
+        {
+          "name": "no success event survives audit failure",
+          "ok": true
+        },
+        {
+          "name": "worker programplan_packages_read audit failure rolls back all business",
+          "ok": true
+        },
+        {
+          "name": "no success event survives audit failure",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-clients-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "anon actual RPC denied",
+          "ok": true
+        },
+        {
+          "name": "anon actual RPC denied",
+          "ok": true
+        },
+        {
+          "name": "authenticated actual RPC denied",
+          "ok": true
+        },
+        {
+          "name": "authenticated actual RPC denied",
+          "ok": true
+        },
+        {
+          "name": "immutable table and helper remain closed",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mfa-csrf-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 401",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 409",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket 401",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        },
+        {
+          "name": "minimized denied valpaket/lista 403",
+          "ok": true
+        },
+        {
+          "name": "all twelve business tables unchanged by denial",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event survives",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "81221843-71c1-4ec1-8836-ea7ab4d7247f"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "25a9df1d-3c0d-4909-843b-3012dabaddd2"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "a89d81b8-6d27-4925-980b-6491d4587bd8"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "24a64feb-38e6-49e8-af4c-795166b115b0"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 200,
+      "code": null,
+      "correlationId": "ed49608a-e0e1-4423-907b-858e23e4d478"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 200,
+      "code": null,
+      "correlationId": "8feb131b-4579-463f-b98c-e74eaa81b45d"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 200,
+      "code": null,
+      "correlationId": "c3a734e5-2484-47ab-9706-d860359152c6"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "b87d1494-cc4c-45f0-8341-1d29fd3d8a76"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "44b68670-7142-4279-9401-d54d9a188079"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "7449411d-e1aa-4fff-b1c4-83773dc2943c"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "7b5732a9-4a25-41b9-a33a-ee08ddfb11ad"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "f2e3e04e-6eb5-42f3-ad1e-06e7220d2569"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "aa6af6be-2617-48ec-a222-8f10fe8a5450"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "185fb9ed-bbca-4a7a-846c-5437580dcee9"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "0d517a5e-84c3-435f-a888-a053f7935931"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "1f0993a3-3448-4786-acc2-e1593b70eda9"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "71cc1174-3ee6-4a0d-a433-e1bc75a928f6"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "9e35518a-65b6-46a2-905e-c6a66109d5d8"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "42bd1fac-5fe2-4012-bbae-ea695d072231"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "44c94a3a-db62-4762-b0f6-b265397176ab"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "eb62df37-daf0-4ac1-bf9a-567363a9bf58"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "3f417b96-9281-45ea-b0c3-f22e6e057645"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "bbd651de-77f3-4033-9724-c098d2b3b99a"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "3cbcaa60-8702-4a7a-819b-f9da30197fa6"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 200,
+      "code": null,
+      "correlationId": "a0060a27-1223-4774-8fa5-03851e2978c0"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "bb123906-e4bb-4af4-ab0d-22aedd109f2b"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "769b065a-1376-45b6-9f7f-39ac1207f091"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "0cf04911-115e-413e-b897-6b85224af6a3"
+    },
+    {
+      "route": "utbildning/skapa",
+      "status": 200,
+      "code": null,
+      "correlationId": "8a7926b8-e7d5-47e7-8f37-3430064ad6bf"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "0d260026-7e78-40e3-abcd-c3b3360c07e9"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "ab93a3cd-aa07-4772-9c92-0a8cff8cc227"
+    },
+    {
+      "route": "utbildning/skapa",
+      "status": 200,
+      "code": null,
+      "correlationId": "0434558b-3ba1-4288-af03-75a30b8cb24a"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "8caedd41-93ab-4e08-8fb6-1f6d8ed71e15"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "5d281601-5e28-47ca-8ebe-328d6c1b9891"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e552ab78-d156-4244-8231-44d371f65a21"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "2d918d44-edff-44a8-b37e-f4ac6c26a316"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "d007c200-d77c-4271-92a3-f7298db92a41"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "798ec10c-f623-42af-86a0-3ec39fef9692"
+    },
+    {
+      "route": "utbildning/skapa",
+      "status": 200,
+      "code": null,
+      "correlationId": "b237d787-f1f6-46dc-9b80-5d7b672fb262"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "e92ed256-0b64-42be-ada9-f847348cf5bf"
+    },
+    {
+      "route": "paketval",
+      "status": 200,
+      "code": null,
+      "correlationId": "16edc65c-8c20-47bc-963e-bfcf96ba50bd"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "2803b79b-e455-4e86-bf53-1b52dc481d9f"
+    },
+    {
+      "route": "paketval/lasa",
+      "status": 200,
+      "code": null,
+      "correlationId": "f068395c-1ecd-422e-94bc-18743cfcb815"
+    },
+    {
+      "route": "paketval",
+      "status": 403,
+      "code": "forbidden",
+      "correlationId": "9a6acb19-a98b-4e77-9e2c-a69ae377d945"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "08a1ffb6-3411-471c-819f-654802d3eda0"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "ffce05f5-2f51-4220-bde4-91db2c4d4cc0"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "3220425a-7dab-4985-87b7-2b1803cbe058"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "aa9354a7-9e4d-4482-8cf6-57c445f299f2"
+    },
+    {
+      "route": "paketval",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "82f86467-a2f9-40cd-87e1-669c93ff91ff"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 200,
+      "code": null,
+      "correlationId": "3a9ba5f4-5897-404c-9874-22d987e42d5e"
+    },
+    {
+      "route": "valpaket",
+      "status": 200,
+      "code": null,
+      "correlationId": "fb2be8b1-63f3-4f3a-975c-7457941aff87"
+    },
+    {
+      "route": "valpaket",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "6d040c89-d81b-4660-b825-dd33e0cabf26"
+    },
+    {
+      "route": "valpaket",
+      "status": 409,
+      "code": "conflict",
+      "correlationId": "8140a28a-c780-4cc0-a99f-fd8690b648d3"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "77ee39e4-943d-478c-9119-65a11c1b81eb"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "dd125c44-c413-4224-9cf3-7f3838b758e6"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "f7e1bab0-cb14-4354-94ee-2604216bc281"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "fb862e9b-8a35-4947-b06e-323d2ee6b392"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "e4637c0d-f71d-40ec-acb5-2133382637c3"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "ae777e91-08fa-4ad5-98bf-2f54fdd78bd1"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "31c0888b-0aa7-4dec-b8f6-8b9503d2770b"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "f01750a7-2672-4333-9923-ebf2b86066c3"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "b9721d9c-8f2a-4ebc-96b8-4a1dae84b353"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "d6f85c78-4bb3-45ad-8518-f7ed11b4e8dd"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "bfafc065-f013-4b63-a76d-c46213908930"
+    },
+    {
+      "route": "valpaket",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "31679830-5076-45ae-bfbd-9a2a488f570d"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "89dd3891-6ca7-464c-b80b-960844a048b8"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 400,
+      "code": "bad_request",
+      "correlationId": "1fcdba17-5e01-4d40-a7ca-e7464843d7a1"
+    },
+    {
+      "route": "valpaket",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "9beedf42-7279-412a-9632-0cc4939987b5"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "ba8dff05-13ab-4cc4-897e-452503262056"
+    },
+    {
+      "route": "valpaket",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "6fe4e020-c6ba-43ab-a90b-e5a03eb81aa8"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 500,
+      "code": "audit_unavailable",
+      "correlationId": "79cc4d28-5a89-4e43-a241-c02cd3155148"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "mfa_required",
+      "correlationId": "d2ee1b57-063f-4e4b-bab9-b3433f0fa355"
+    },
+    {
+      "route": "valpaket",
+      "status": 401,
+      "code": "no_session",
+      "correlationId": "b7ece5fa-9003-4556-80ef-090a222a8b47"
+    },
+    {
+      "route": "valpaket",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "87975ec6-0ae0-45da-8305-e4d892b40ce4"
+    },
+    {
+      "route": "valpaket",
+      "status": 409,
+      "code": "context_changed",
+      "correlationId": "b373fbb8-7a17-4c44-973f-a792f2bd6d40"
+    },
+    {
+      "route": "valpaket",
+      "status": 401,
+      "code": "session_expired",
+      "correlationId": "e14256da-c901-484f-a6e9-f10267f868b1"
+    },
+    {
+      "route": "valpaket/lista",
+      "status": 403,
+      "code": "csrf",
+      "correlationId": "c6a15fc3-fefe-48fb-a7b7-0cc076b537f7"
+    }
+  ],
+  "complete": true,
+  "sourceCommit": "a205559973273d1f744472bbdeb23a3b5b7e1bec",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "beforeWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "verifiedWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "aclUnchanged": true,
+  "restoredWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "libraryCleanup": {
+    "remainingOwnPackages": 0
+  },
+  "cleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 107,
+    "preservedAuditAnchors": 4,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "f076b0af47e7e4c0eeabead66015994d"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "hash": "12e61a7e7c767a408c993fdbb462ed6e"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 7,
+      "hash": "9d8b3d254c91fd990a4ea1dedcb85a9c"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "hash": "917561498f3501b706b9eab1f3c61861"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "hash": "f076b0af47e7e4c0eeabead66015994d"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "hash": "12e61a7e7c767a408c993fdbb462ed6e"
+    },
+    "offerings": {
+      "count": 34,
+      "hash": "07a0b8f3d0db88dae7abd625085bb932"
+    },
+    "offering_units": {
+      "count": 267,
+      "hash": "096f4b9a7f128b85a2486f68aebdc346"
+    },
+    "timplans": {
+      "count": 7,
+      "hash": "9d8b3d254c91fd990a4ea1dedcb85a9c"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "hash": "917561498f3501b706b9eab1f3c61861"
+    },
+    "class_timplans": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "school_classes": {
+      "count": 6,
+      "hash": "73c0af1bc99a66cc0d2931b8da8bcb87"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "hash": "aa23ef97ff2a5b0230880445dcce4296"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "hash": "8e5640fa715fb39271be228586fec5e5"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-06T21:01:51.153Z",
+  "sourceHashes": {
+    "web/lib/programplan-catalog.ts": "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+    "web/lib/programplan-choice-blocks.ts": "6c4223e2143b60bf45196a26e3ebeaf173f6ce1215980a5ab2e3c1cdaddf8e92",
+    "web/lib/programplan-terms.ts": "bed02c4e2d13c09fc6666fd2ada579224101d2ec78884b44ded2a95928e7e000",
+    "web/lib/programplan-terms-contract.ts": "bfb3e01fc65a42daae70f3eba660f9dc72a0f8c6de59803193cdbb8e041c3eb9",
+    "web/lib/programplan-contract.ts": "de699634c9e2221444e5ce36640f934cfc5d89ae0c0a59bd0649efd1179f9e2d",
+    "web/lib/protected-programplan.ts": "aa66b40ea0707d2e31667809dde5219c31821d8daf917637bff90c8cd93da429",
+    "web/lib/server/programplan-planning.ts": "c003d4e7721644a734c29c5a416af2446fb9738b6f4212c6fa1ee51bae5261b4",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/app/protected-programplan-board.tsx": "6077ae42e0ae31e19c2594bcb5d4a742777e5d8e64d5d5851d003886785c6646",
+    "web/app/protected-programplan-flow.tsx": "318647a96c7c1c022c9c20b84d6ffdc593a51eb2885ee50ba7bbaf80ca2b7d96",
+    "web/app/protected-programplan-workspace.tsx": "e9e7b84c95c0bcd45b64cb3eb26ee7cb714fe0f9440bd37297f817916cc4846d",
+    "web/app/api/programplaner/skapa/route.ts": "435c9c2553cb916e8c039f413ca34a28ac79db2da9b4929af1bc46f1dcc65023",
+    "web/app/api/programplaner/lasa/route.ts": "a986adb9f6e5bca0a91465d40c948aa5de4cc3fbeb4cdededeb4334881f7514b",
+    "web/app/api/programplaner/terminer/route.ts": "cdfa49c5d8e9a9712e52220f1a03a1dab2f097f8de449ae2a8d8cd595845b7a4",
+    "web/app/api/programplaner/terminer/lasa/route.ts": "bc02607f7d03d057dc218477ed61d2b9afbcda2130326a228007d65175b8c623",
+    "supabase/migrations/20261004150000_phase5_programplan_choice_blocks.sql": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd",
+    "supabase/migrations/20261004150100_phase5_programplan_block_numeric.sql": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090",
+    "work/pilot/verify-programplan-blocks-api.mjs": "21809d132bf13c75d4173052f1edd00ac0e3b406f78ae07199bf477916b6d176",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "51b947176323157c748979ae9c8cf0e4d5ccad967dbe176c40cb70b6b30d8e79",
+    "web/app/api/programplaner/block/route.ts": "9b24ae2cd227c9dcc2d7e074560f0073987917d3cec667c8ede647864d1a3aef",
+    "web/lib/programplan-analysis.ts": "ac7838b8a1d435c6ae642115fb337d000612869273915ceab9222cda3b46ce9d",
+    "supabase/migrations/20261004151000_phase5_programplan_block_commands.sql": "1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267",
+    "supabase/migrations/20261004152000_phase5_programplan_shape_upgrade.sql": "4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5",
+    "supabase/migrations/20261004153000_phase5_worker_programplan_blocks.sql": "166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14",
+    "supabase/migrations/20261004152100_phase5_programplan_block_clone_identity.sql": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf",
+    "web/app/protected-home.tsx": "d18aabc1a47abd82e53c5a53e6bb2feb44f963a4bc28693656a838d487a2b727",
+    "web/app/protected-programplan.css": "50aca89ec0ba1ed340dbf9b234289eb1d1c74406dffa926da18a9280fd5263a5",
+    "web/lib/unsaved-changes.tsx": "8393a10fca298b812519a4062f5a7aaa2244d623dde035b9cc14d03f72ac6228",
+    "web/lib/session-channel.ts": "2cdbb631d7fa2cc565fa1e0fcbd8c18a49c11cb8d390bd4ea083ae064a34f085",
+    "web/lib/mandate-policy.ts": "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+    "web/lib/server/http.ts": "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2",
+    "web/lib/server/audit-details.ts": "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+    "web/lib/server/programplan-lifecycle.ts": "f49dd8065282a78c78b9ba1a7810f8489771162530f137caef7ebc4849c43598",
+    "web/app/api/programplaner/val/route.ts": "02cb1e9c4ae9c041ae1c39681c50c433dacfa649f6c75c89e00f33f8ef65fed3",
+    "web/app/protected-programplan-list.tsx": "6249ee8db8a2cf09f2a49f867246dc7ae60b856903a87561b439f729349c9295",
+    "web/app/api/programplaner/lista/route.ts": "77c908aa825b5aa2fa88b083ec439dd91983f2fd681c98378c0c4229bcd6175f",
+    "web/app/api/programplaner/underlag/route.ts": "f38b11855de30d2ff53987cb86b3af6871890785a1bd1046a38baa62594d5e1e",
+    "web/lib/programplan-languages.ts": "41c4f1b54c82eb871b32b6f3e67f6a8cb99a5819ff7b740fae53e426b2777005",
+    "web/lib/programplan-packages.ts": "b48454c450d2a63dc652c4017ba616d1e5b4c753315530d2157dce2bd3cf505e",
+    "web/lib/server/programplan-packages.ts": "63a291419b064fc392b862c9331d89d2b946fbb3cc3230717011b09ffe61e601",
+    "web/app/protected-programplan-packages.tsx": "4038f0b5695e14b4b8398a900dccc9c3823e58a50b4964f1f78c1ba993c3cf91",
+    "web/app/api/programplaner/paketval/route.ts": "ad36266c62e94a1e648e9abd769c0397c9bd5135b5aa225f16bdb8edc25350f1",
+    "web/app/api/programplaner/paketval/lasa/route.ts": "112a62e7c127e9947d171b45c3d88e63a5f93363b2b5cc6d1eea43ff071b42e0",
+    "work/pilot/verify-programplan-packages-api.mjs": "46188c77f274c892c93dc825f525bf61a712e0e1f4749ff8d08ab887fbdc7820",
+    "supabase/migrations/20261004154000_phase5_programplan_unit_packages.sql": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541",
+    "supabase/migrations/20261004155000_phase5_worker_programplan_unit_packages.sql": "fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2",
+    "work/pilot/verify-programplan-choice-packages-api.mjs": "c1bdc7a63116a65526eb55c2e8ee6455c07251a20c7888b1de80a61d6a074e04",
+    "web/app/api/programplaner/valpaket/route.ts": "6cc163c2276b3bc8acb0e3c0788344f4bbb1a36fece43a0e3c0e0404e220a0ac",
+    "web/app/api/programplaner/valpaket/lista/route.ts": "477ee7b6b124c1199fed15efc2e46e0befd646a873c2b26880c7c8277c5d44fc",
+    "web/app/protected-programplan-package-dialog.tsx": "92699395c5630f0f9fa438216986467ee4f99808aeea2800ef3a5e851587654f",
+    "supabase/migrations/20261004156000_phase5_programplan_packages.sql": "7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38",
+    "supabase/migrations/20261004157000_phase5_worker_programplan_packages.sql": "2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2",
+    "work/pilot/verify-programplan-locks.mjs": "e44ccd314deb546e6dc3ffb5f3a962098497935e6c1a333e45808348ff1de0a1",
+    "work/pilot/verify-programplan-api.mjs": "626cf54e147a8f13dbb7888be0062de8d08323c6b583599e0a1d17364dac73fe",
+    "work/pilot/apply-programplan-migration.mjs": "649ced67d60aca5514b2f41fe1eda84acd8dd96ff16a3fee253ddb60cbd2858e",
+    "web/lib/server/db.ts": "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+    "web/lib/server/authz.ts": "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+    "web/lib/server/events.ts": "f7705febcfc3300192930d2ee088a129742c38d15c737cd533fa24fcded65268",
+    "web/lib/server/session.ts": "2c94f0bd72f949f15a24d6c1c63a2749e5ce850452e3b3229829411ead6de992",
+    "web/lib/server/identity-provider.ts": "49dd4e48279048a0cdf34d694ee43ba14a02560529966ccb85a0c202225babb0",
+    "web/lib/server/mandate-route.ts": "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+    "web/lib/server/programplan-education.ts": "56b059f94f240ee60c569036869847c1d0aa1007f33e2dfdb15ea2897946a5ee",
+    "web/app/api/programplaner/utbildning/skapa/route.ts": "ca4e0263c13a68512f41177fc2c0e97b73270d095c51d549f47d38f6be22a51f"
+  }
+}

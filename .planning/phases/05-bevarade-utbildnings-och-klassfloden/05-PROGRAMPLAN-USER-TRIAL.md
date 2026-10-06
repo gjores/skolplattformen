@@ -4,7 +4,7 @@
 
 **Resultat: användarrapporterat godkänt för det aktuella grundflödet.** Användaren svarar ”detta funkar!” efter uppmaningen att öppna och ändra en programplan, gå vidare till rätt skolas timplan samt fylla i timmar och kontrollera dem efter återöppning. Dessa moment registreras som fungerande enligt användarens besked. Enskilda provsteg, roller, dator/telefon och exakt körd byggrevision särredovisades inte. Senast dokumenterat appbygge är `5dd7baf`; ingen ny teknisk körning följer av återkopplingen.
 
-Det aktuella grundflödets mänskliga vänteläge är därmed avslutat. Tidigare FAIL och awaiting_user nedan bevaras som historik för respektive dåvarande provomgång. Beskedet omfattar inte uttryckligen GR/IM-regelhandledning, livscykelns alla åtgärder eller borttagna paket-/blockeditorer. E:s tekniska fullplansverifiering, ADMIN-02/03/04, hela fas 5 och fas 4:s separata checkpoint kvarstår. Läsårsplanerna 05-36–43 är ännu inte genomförda.
+Det aktuella grundflödets mänskliga vänteläge är därmed avslutat. Tidigare FAIL och awaiting_user nedan bevaras som historik för respektive dåvarande provomgång. Beskedet omfattar inte uttryckligen GR/IM-regelhandledning, livscykelns alla åtgärder eller borttagna paket-/blockeditorer. E:s tekniska fullplansverifiering är därefter [PASS lokalt med syntetiska uppgifter](05-23-E-VERIFICATION.md). ADMIN-02/03/04, hela fas 5 och fas 4:s separata checkpoint kvarstår. Läsårsplanerna 05-36–43 är ännu inte genomförda.
 
 ## Följdprov 2026-10-05: färre informationsrutor
 

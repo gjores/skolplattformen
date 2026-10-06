@@ -1,0 +1,170 @@
+{
+  "kind": "phase5-23-e-programplan-sleep-diagnosis",
+  "scope": "local-test-host",
+  "rawReportSha256": "5d266120752699d4a52c2f50030fa75df4c02dc9b4d7a111b1535b97506cf348",
+  "failedCases": 9,
+  "failedWithSleepOverlap": 9,
+  "passedCases": 31,
+  "passedWithSleepOverlap": 2,
+  "failed": [
+    {
+      "case": "02",
+      "project": "programplan-desktop",
+      "status": "unexpected",
+      "start": "2026-10-06T16:08:04.983000+02:00",
+      "end": "2026-10-06T16:11:41.819000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:08:12+02:00",
+          "end": "2026-10-06T16:11:41+02:00",
+          "overlapSeconds": 209.0
+        }
+      ]
+    },
+    {
+      "case": "07",
+      "project": "programplan-desktop",
+      "status": "unexpected",
+      "start": "2026-10-06T16:12:21.372000+02:00",
+      "end": "2026-10-06T16:13:01.583000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:12:26+02:00",
+          "end": "2026-10-06T16:12:58+02:00",
+          "overlapSeconds": 32.0
+        }
+      ]
+    },
+    {
+      "case": "11",
+      "project": "programplan-desktop",
+      "status": "unexpected",
+      "start": "2026-10-06T16:13:38.943000+02:00",
+      "end": "2026-10-06T16:13:50.065000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:13:43+02:00",
+          "end": "2026-10-06T16:13:47+02:00",
+          "overlapSeconds": 4.0
+        }
+      ]
+    },
+    {
+      "case": "16",
+      "project": "programplan-desktop",
+      "status": "unexpected",
+      "start": "2026-10-06T16:14:33.168000+02:00",
+      "end": "2026-10-06T16:20:54.577000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:14:32+02:00",
+          "end": "2026-10-06T16:20:44+02:00",
+          "overlapSeconds": 370.832
+        }
+      ]
+    },
+    {
+      "case": "20",
+      "project": "programplan-desktop",
+      "status": "unexpected",
+      "start": "2026-10-06T16:21:24.298000+02:00",
+      "end": "2026-10-06T16:25:09.013000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:21:29+02:00",
+          "end": "2026-10-06T16:24:57+02:00",
+          "overlapSeconds": 208.0
+        }
+      ]
+    },
+    {
+      "case": "04",
+      "project": "programplan-phone",
+      "status": "unexpected",
+      "start": "2026-10-06T16:25:38.057000+02:00",
+      "end": "2026-10-06T16:26:46.636000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:25:42+02:00",
+          "end": "2026-10-06T16:26:42+02:00",
+          "overlapSeconds": 60.0
+        }
+      ]
+    },
+    {
+      "case": "09",
+      "project": "programplan-phone",
+      "status": "unexpected",
+      "start": "2026-10-06T16:27:28.512000+02:00",
+      "end": "2026-10-06T16:31:05.774000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:27:27+02:00",
+          "end": "2026-10-06T16:31:05+02:00",
+          "overlapSeconds": 216.488
+        }
+      ]
+    },
+    {
+      "case": "12",
+      "project": "programplan-phone",
+      "status": "unexpected",
+      "start": "2026-10-06T16:31:42.928000+02:00",
+      "end": "2026-10-06T16:32:00.811000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:31:50+02:00",
+          "end": "2026-10-06T16:31:56+02:00",
+          "overlapSeconds": 6.0
+        }
+      ]
+    },
+    {
+      "case": "15",
+      "project": "programplan-phone",
+      "status": "unexpected",
+      "start": "2026-10-06T16:32:38.301000+02:00",
+      "end": "2026-10-06T16:33:55.041000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:32:41+02:00",
+          "end": "2026-10-06T16:33:52+02:00",
+          "overlapSeconds": 71.0
+        }
+      ]
+    }
+  ],
+  "passingAtSleepTransition": [
+    {
+      "case": "15",
+      "project": "programplan-desktop",
+      "status": "expected",
+      "start": "2026-10-06T16:14:25.039000+02:00",
+      "end": "2026-10-06T16:14:33.156000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:14:32+02:00",
+          "end": "2026-10-06T16:20:44+02:00",
+          "overlapSeconds": 1.156
+        }
+      ]
+    },
+    {
+      "case": "08",
+      "project": "programplan-phone",
+      "status": "expected",
+      "start": "2026-10-06T16:27:18.678000+02:00",
+      "end": "2026-10-06T16:27:28.491000+02:00",
+      "sleepOverlaps": [
+        {
+          "start": "2026-10-06T16:27:27+02:00",
+          "end": "2026-10-06T16:31:05+02:00",
+          "overlapSeconds": 1.491
+        }
+      ]
+    }
+  ],
+  "conclusion": "All nine failures overlap deep sleep; two passing cases finish within 1.5 seconds of sleep transition, 29 have no overlap. Unchanged same-artifact awake rerun required.",
+  "timeoutsOrAssertionsChanged": false,
+  "separateCodeObservation": "Specialization working sets aria-busy while Allt sparat reflects only terms state; not independently established as cause of these failures."
+}

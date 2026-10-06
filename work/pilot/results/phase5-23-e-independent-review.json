@@ -1,0 +1,37 @@
+{
+  "kind": "phase5-23-e-independent-review",
+  "status": "PASS",
+  "scope": "revised-E-local-synthetic-only",
+  "reviewer": "GSD verifier subagent",
+  "finalReportSha256": "71813260f89a68adb451559f5179c9b5ed8fe47366dcd82ca7eadb0e6ce19654",
+  "checks": {
+    "referencedApiBrowserReportHashes": 15,
+    "apiCases": 170,
+    "apiChecks": 1077,
+    "browserPass": 149,
+    "browserSkip": 7,
+    "decodedCleanupAttachments": 150,
+    "sameArtifactBuildProofs": 14,
+    "originalBusinessFullTables": 14,
+    "wholeAclRows": 100,
+    "grantedWorkerSignatures": 25,
+    "artifactFiles": 174,
+    "ordinaryArtifactFiles": 719,
+    "sameExistingScenarios": 18,
+    "auditedReadsPerRound": 44,
+    "visualHashes": 11,
+    "staticLogHashesMatch": true,
+    "sourceHashesMatch": true,
+    "sourcesAndAssertionsUnchanged": true,
+    "credentialPatternsFound": false,
+    "planningStatusConsistent": true
+  },
+  "blockers": [],
+  "limitations": [
+    "Four earlier passing browser groups retained on identical artifact/sources.",
+    "Working/Allt sparat status observation documented separately; not independently reproduced as cause and not fixed.",
+    "No full phase/ADMIN02/03/04 completion, interactive IdP or real municipal connection.",
+    "Both user-reported completion/approval and mobile year-selector gaps remain Pending."
+  ],
+  "mutationsByReviewer": false
+}

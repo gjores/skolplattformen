@@ -1,0 +1,464 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "timplan",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "status": "PASS",
+  "exitCode": 0,
+  "stats": {
+    "startTime": "2026-10-06T20:56:23.347Z",
+    "duration": 61873.032999999996,
+    "expected": 22,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "11: rektor p\u00e5 tillagd skola l\u00e4ser och \u00e4ndrar bara sin egen timplan f\u00f6r delad utbildning",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "timplan-tillagd-skola.png",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10: skolformsanpassat regelst\u00f6d, k\u00e4llor och p\u00e5minnelse vid \u00e4ndring",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "grundskola-regelstod.png",
+              "path": null
+            },
+            {
+              "name": "im-regelstod.png",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01: r\u00e4tt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02: vald cell sparas en g\u00e5ng med faktisk revision, dubbel audit och oml\u00e4sning",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "draft-targets.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03: huvudman och fastst\u00e4lld version \u00e4r l\u00e4sning utan redigering",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04: verklig revisionskonflikt l\u00e4ses om och skrivs bara efter uttryckligt val",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "compare-targets.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05: osparat skydd vid dialogst\u00e4ngning och byte till annan plan",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekr\u00e4ftelse",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07: session, epoch och \u00e5terkallat mandat rensar uppgifter och sena verkliga svar",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08: pagination, tom lista, ok\u00e4nd rad och skyddad programplansnavigation",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09: committad \u00e4ndring med tappat svar ger ok\u00e4nt utfall och kr\u00e4ver oml\u00e4sning",
+      "project": "timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11: rektor p\u00e5 tillagd skola l\u00e4ser och \u00e4ndrar bara sin egen timplan f\u00f6r delad utbildning",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "timplan-tillagd-skola.png",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10: skolformsanpassat regelst\u00f6d, k\u00e4llor och p\u00e5minnelse vid \u00e4ndring",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "grundskola-regelstod.png",
+              "path": null
+            },
+            {
+              "name": "im-regelstod.png",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01: r\u00e4tt kolumnordning, IM-enhet, saknat underlag och mobilpresentation",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02: vald cell sparas en g\u00e5ng med faktisk revision, dubbel audit och oml\u00e4sning",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "draft-targets.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03: huvudman och fastst\u00e4lld version \u00e4r l\u00e4sning utan redigering",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04: verklig revisionskonflikt l\u00e4ses om och skrivs bara efter uttryckligt val",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "compare-targets.json",
+              "path": null
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05: osparat skydd vid dialogst\u00e4ngning och byte till annan plan",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06: MFA och obligatoriskt loggfel ger ingen falsk sparbekr\u00e4ftelse",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07: session, epoch och \u00e5terkallat mandat rensar uppgifter och sena verkliga svar",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08: pagination, tom lista, ok\u00e4nd rad och skyddad programplansnavigation",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09: committad \u00e4ndring med tappat svar ger ok\u00e4nt utfall och kr\u00e4ver oml\u00e4sning",
+      "project": "timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

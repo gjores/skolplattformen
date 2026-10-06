@@ -1,0 +1,93 @@
+{
+  "kind": "phase5-23-e-visual-review",
+  "status": "PASS",
+  "scope": "agent-visual-review-local-synthetic",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "reviewedImages": [
+    {
+      "group": "phase5-programplan",
+      "name": "programplan-read.png",
+      "project": "programplan-desktop",
+      "path": "web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-l\u00e4sning-programplan-desktop/programplan-read.png",
+      "sha256": "e68a259b040baba141e3a187bc2d591ceb5073aa55b17b382ebb77c285788fc4"
+    },
+    {
+      "group": "phase5-programplan",
+      "name": "programplan-read.png",
+      "project": "programplan-phone",
+      "path": "web/test-results/phase5-programplan/phase5-programplan-01-tydl-bcbd0-og-start-och-bunden-l\u00e4sning-programplan-phone/programplan-read.png",
+      "sha256": "0d8c98fb4b4ec1b329c146ae6fc5fc21f6d778ffbd3a90d7f2d03f61b7eb7f5c"
+    },
+    {
+      "group": "phase5-programplan-frame",
+      "name": "frame-without-school-packages.png",
+      "project": "frame-desktop",
+      "path": "web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-15f8a-kramar-eller-beslutsklarhet-frame-desktop/frame-without-school-packages.png",
+      "sha256": "c4c5ac63a90dd6e340295186393cfc3c903d68ab9cfa8a6fac23bf8da5ff53ae"
+    },
+    {
+      "group": "phase5-terms",
+      "name": "analysis-readonly.png",
+      "project": "terms-phone",
+      "path": "web/test-results/phase5-terms/phase5-terms-12-en-skrivsk-775e3-\u00f6r-risker-inte-kan-\u00e5tg\u00e4rdas-terms-phone/analysis-readonly.png",
+      "sha256": "2258e1ceac402022ea993c03355f6e93098684ad3b988d180053490ae37d2cb0"
+    },
+    {
+      "group": "phase5-programplan-frame",
+      "name": "frame-readonly-utkast-admin.png",
+      "project": "frame-desktop",
+      "path": "web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-desktop/frame-readonly-utkast-admin.png",
+      "sha256": "5905cfd233e4afb8fb14242496ce5b5f100090d275b2e42c10dc4757a6cd2f00"
+    },
+    {
+      "group": "phase5-programplan-frame",
+      "name": "frame-readonly-utkast-shared-principal.png",
+      "project": "frame-phone",
+      "path": "web/test-results/phase5-programplan-frame/phase5-programplan-frame-F-830f0-rmins--eller-paketkommandon-frame-phone/frame-readonly-utkast-shared-principal.png",
+      "sha256": "3af7652bbec696bd65752e30a7e15fb7685de479695fcca57a5156b3a4e995c6"
+    },
+    {
+      "group": "phase5-terms",
+      "name": "analysis-action-resolved.png",
+      "project": "terms-phone",
+      "path": "web/test-results/phase5-terms/phase5-terms-09-Flytta-niv-c6747-ter-felet-r\u00e4ttas-best\u00e4ndigt-terms-phone/analysis-action-resolved.png",
+      "sha256": "930bc139de84f6409ff8fa634ea67d0d58af2731a89b1f924af2ed4c5d473f88"
+    },
+    {
+      "group": "phase5-gym-timplan",
+      "name": "separate-school-hours.png",
+      "project": "gym-timplan-desktop",
+      "path": "web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-desktop/separate-school-hours.png",
+      "sha256": "afc0c58214bb56c35347f918c9f368db168f80e25968346f6d5d388492040953"
+    },
+    {
+      "group": "phase5-gym-timplan",
+      "name": "reloaded-school-hours.png",
+      "project": "gym-timplan-phone",
+      "path": "web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-phone/reloaded-school-hours.png",
+      "sha256": "bf3a2110a9d9252a1cb417a0174ba23e119794aa940f658a2839cdbfade37369"
+    },
+    {
+      "group": "phase5-gym-timplan",
+      "name": "separate-school-hours.png",
+      "project": "gym-timplan-phone",
+      "path": "web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-phone/separate-school-hours.png",
+      "sha256": "0f516f483d3b90efdd6b1aace621ef1e1c19a6234ed95bb6b6bab0200d870c96"
+    },
+    {
+      "group": "phase5-gym-timplan",
+      "name": "inline-two-rows-reloaded.png",
+      "project": "gym-timplan-desktop",
+      "path": "web/test-results/phase5-gym-timplan/phase5-gym-timplan-T10-Tab-1679c--och-\u00e5terl\u00e4ser-b\u00e5da-raderna-gym-timplan-desktop/inline-two-rows-reloaded.png",
+      "sha256": "2824953c0d95c8474079ea80662f7961be3503560f31f7b93928d009963eec3e"
+    }
+  ],
+  "observations": [
+    "Fasta niv\u00e5er och blockramar best\u00e5r utan paket-/blockkommandon; full ram2500po\u00e4ng synlig.",
+    "Programplanens \u00e5rskursknappar och mobilens valda terminssnitt synliga; skrivskyddad delad plan och administrat\u00f6r visar begr\u00e4nsningen.",
+    "Analysens termins\u00e5tg\u00e4rd visar r\u00e4tt \u00e5rskurs och bevarade po\u00e4ng; skrivskyddad analys f\u00f6rklarar begr\u00e4nsningar.",
+    "Gymtimplanens timmar/po\u00e4ng h\u00e5lls is\u00e4r, direktceller och \u00e5terl\u00e4sta30/31/40/41timmar synliga p\u00e5 dator; telefonens timmar bevarade efter omladdning.",
+    "Gymtimplanens breda tabell har horisontell rullning \u00e4ven i valt \u00e5rskurssnitt. Dropdownen best\u00e5r; anv\u00e4ndarens \u00e5rskursknappsgap \u00e4r pending."
+  ],
+  "humanApproval": "Only prior user_reported_pass_current_basic_flow; no new human approval inferred."
+}

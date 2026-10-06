@@ -1,0 +1,778 @@
+{
+  "kind": "phase5-programplan-terms-api",
+  "scope": "local-synthetic-only",
+  "preflight": false,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "real built workerd role",
+          "ok": true
+        },
+        {
+          "name": "exact sixteen Worker functions",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "exact-row-parity",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "TS and SQL same exact source rows in order",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "audited empty read",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-read",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "audited empty read",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "hm-save",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "audited exact distribution",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "principal-save-reread",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "saved/read exact revision and data",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "partial-draft",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "partial allocation allowed as draft",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "CAS-conflict",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "concurrent-CAS",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "one winner and one conflict",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "invalid-shape",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "unknown-and-alternative",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "over-allocation",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-MFA",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "no-session",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "origin-required",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "origin required and unchanged",
+          "ok": true
+        },
+        {
+          "name": "origin required and unchanged",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "foreign-school",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "foreign-customer",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "administrator-read-plan-write-denied",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "administrator reads audited school terms",
+          "ok": true
+        },
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-context",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "session-expired",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "parent-ended",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandatory-db-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "fault stops and rolls back all business",
+          "ok": true
+        },
+        {
+          "name": "no success event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "mandatory-worker-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "fault stops and rolls back all business",
+          "ok": true
+        },
+        {
+          "name": "no success event survives",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "read-audit-failure",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "required read audit fails closed db",
+          "ok": true
+        },
+        {
+          "name": "required read audit fails closed worker",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "allocated-specialization-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "allocated level cannot disappear",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "explicit-clear-then-remove",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "only chosen row cleared; other allocation persisted exactly",
+          "ok": true
+        },
+        {
+          "name": "level removal preserves all other stored term rows",
+          "ok": true
+        },
+        {
+          "name": "explicit level restored then allocation saved",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "sealed-plan-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "sealed distribution remains readable",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "replaced-plan-locked",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "minimal denial with no write",
+          "ok": true
+        },
+        {
+          "name": "only denied Worker event",
+          "ok": true
+        },
+        {
+          "name": "replaced immutable allocation readable",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "clone-distribution",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "version clone copies exact stored allocation",
+          "ok": true
+        },
+        {
+          "name": "clone edited and independently persisted with its own revision/audit",
+          "ok": true
+        },
+        {
+          "name": "source version, distribution and business history byte-preserved",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "direct-clients-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual direct clients denied",
+          "ok": true
+        },
+        {
+          "name": "helpers and table remain closed",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "persistent-minimal-audit",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "DB events retained without distribution values",
+          "ok": true
+        },
+        {
+          "name": "every response correlated",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "f540bc20-80b4-42b6-bc21-6630d3eb558c"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "a0ca44c7-f7c6-4c52-bcae-b7819aaa02d8"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "8e6171ef-cffe-4f9c-9309-0e2d6a1be836"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "3a54f502-21ec-43b6-8e41-af56c2db8a8a"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "a7115eb6-fccf-4b04-8371-dd7847eb2147"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "945a47ca-5caa-43e5-9dfe-1284efb7492c"
+    },
+    {
+      "status": 409,
+      "action": "programplan_terms_changed",
+      "correlationId": "36eee750-4e09-4754-97cc-83bae7cfad5a"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "c599076c-c3fa-4f09-9f4a-964387f499e0"
+    },
+    {
+      "status": 409,
+      "action": "programplan_terms_changed",
+      "correlationId": "480a768f-3cd2-4a70-a337-e926789ab5c2"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "af6a3944-557a-430a-9f6e-674196dab1b1"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "5d90c01b-4d16-43f9-846f-8addb51e47cd"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "16f82213-eefa-4af0-b03c-d0af237742e5"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "eb2aa4dc-2045-44e8-9c09-20c4e8c7cc5f"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "fb29f763-3792-4d8d-a208-5d99d30afaca"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "b746b68a-39a5-4c94-9645-1c60df41fd68"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "81ed7bc4-5f43-4830-a0d2-6937fa9b5bab"
+    },
+    {
+      "status": 400,
+      "action": "programplan_terms_changed",
+      "correlationId": "5ce1bd66-d340-421a-9f45-b6d907de0f87"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "739722ae-531e-4eee-8063-21608aa40cf2"
+    },
+    {
+      "status": 401,
+      "action": "programplan_terms_changed",
+      "correlationId": "ea3115b9-1232-4fb1-9c98-c03345adf6cc"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "1bbdf025-6b2a-4987-8ac9-0308658929e0"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "49442ddc-9fc9-4243-8270-84e3988289bc"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_read",
+      "correlationId": "78457062-3528-4633-8a49-c481ebf1ce26"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_read",
+      "correlationId": "9690089e-1fd3-4eea-a619-e2e3853c3249"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "2e1629ae-9339-4858-9387-eb4de6bf149f"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "0ee4eacf-8a32-4d65-8164-de5d8cd6d0e9"
+    },
+    {
+      "status": 409,
+      "action": "programplan_terms_changed",
+      "correlationId": "bc91d217-578c-4c34-8bce-0c46f0691421"
+    },
+    {
+      "status": 401,
+      "action": "programplan_terms_changed",
+      "correlationId": "9259a4cf-d035-4b82-819c-ca56383589d7"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "cbc536b3-9239-455c-a334-9c1536fb1c98"
+    },
+    {
+      "status": 500,
+      "action": "programplan_terms_changed",
+      "correlationId": "54868710-7730-482d-aded-df88c8086c34"
+    },
+    {
+      "status": 500,
+      "action": "programplan_terms_changed",
+      "correlationId": "0bb7500d-440e-4a3e-8568-9b6f28537138"
+    },
+    {
+      "status": 500,
+      "action": "programplan_terms_read",
+      "correlationId": "c0f7b8f2-e7ac-44dd-b0f6-1fe2bb310aa2"
+    },
+    {
+      "status": 500,
+      "action": "programplan_terms_read",
+      "correlationId": "84a34b2b-4f0d-4563-b6ba-0b2bede4479b"
+    },
+    {
+      "status": 400,
+      "action": "fordjupning",
+      "correlationId": "f0184e15-36ce-4833-8eb5-51bae453400b"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "343187df-a466-4b36-8c11-c97106da24e9"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "4c80710b-86f1-40dd-8e37-7219797f9127"
+    },
+    {
+      "status": 200,
+      "action": "fordjupning",
+      "correlationId": "a25ac839-14ff-47ba-9714-9e20892d495b"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "efba5b85-b69b-4ee7-be32-f3fcab09a26c"
+    },
+    {
+      "status": 200,
+      "action": "fordjupning",
+      "correlationId": "972d49b7-761c-456d-9587-728f4654cdaf"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "d1362d7f-e1a4-42b6-b946-03fc707bea6f"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "16ce9fad-216e-4c4a-9a93-dbd49f3cd9d5"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "ac585bab-388a-496b-99e0-d52eca551a3b"
+    },
+    {
+      "status": 403,
+      "action": "programplan_terms_changed",
+      "correlationId": "9106006d-c2e6-494a-9491-0dc18ca7b752"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "12ea3f1d-8d5a-4aa3-b50b-7cdd98a1fba3"
+    },
+    {
+      "status": 200,
+      "action": "klona",
+      "correlationId": "55d9d770-3eea-4fb4-85d6-2a0241efeb73"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "b2eb4ac7-f141-48cb-a330-7ac40990a1a6"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_changed",
+      "correlationId": "83a80038-c52d-4948-82c0-d3d01bac413c"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "471b35e9-ed4e-4d4a-b6fa-76320cdf6a8f"
+    },
+    {
+      "status": 200,
+      "action": "programplan_terms_read",
+      "correlationId": "0fe41e9d-6922-4465-a3fc-07766dda904e"
+    }
+  ],
+  "complete": true,
+  "sourceCommit": "a205559973273d1f744472bbdeb23a3b5b7e1bec",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "cleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 63,
+    "preservedAuditAnchors": 4,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "foreignCleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 0,
+    "preservedAuditAnchors": 0,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0
+  },
+  "originalHashes": [
+    {
+      "plans": "7fed95139e617a24ee4f89cc5097675f",
+      "offerings": "e4c2a2b909af34aaf84feeafeda1f578",
+      "history": "2d6aba0f3610460b1c36045d253244ab",
+      "classbindings": "d751713988987e9331980363e24189ce"
+    }
+  ],
+  "finalHashes": [
+    {
+      "plans": "7fed95139e617a24ee4f89cc5097675f",
+      "offerings": "e4c2a2b909af34aaf84feeafeda1f578",
+      "history": "2d6aba0f3610460b1c36045d253244ab",
+      "classbindings": "d751713988987e9331980363e24189ce"
+    }
+  ],
+  "originalBusinessPreserved": true,
+  "cleanupStatus": "PASS",
+  "completedAt": "2026-10-06T21:02:15.505Z",
+  "sourceHashes": {
+    "web/lib/programplan-terms.ts": "bed02c4e2d13c09fc6666fd2ada579224101d2ec78884b44ded2a95928e7e000",
+    "web/lib/programplan-terms-contract.ts": "bfb3e01fc65a42daae70f3eba660f9dc72a0f8c6de59803193cdbb8e041c3eb9",
+    "web/lib/server/programplan-terms.ts": "e5b10eab1442443e32b0c758f72c4edfa529be5e1b9a5f05082f32b1cdf8df26",
+    "web/app/api/programplaner/terminer/route.ts": "cdfa49c5d8e9a9712e52220f1a03a1dab2f097f8de449ae2a8d8cd595845b7a4",
+    "web/app/api/programplaner/terminer/lasa/route.ts": "bc02607f7d03d057dc218477ed61d2b9afbcda2130326a228007d65175b8c623",
+    "supabase/migrations/20261003120000_phase5_programplan_terms.sql": "628cd5573e9cf3f0d3cbce305c4ac373333ecb23985e4c3569febe3a7bb1ef6e",
+    "supabase/migrations/20261003121000_phase5_worker_programplan_terms.sql": "51692a79fbbb4e245a179e787d5129cfb4db666db1856a8084b8df72d8d55a3a",
+    "work/pilot/verify-programplan-api.mjs": "626cf54e147a8f13dbb7888be0062de8d08323c6b583599e0a1d17364dac73fe"
+  }
+}

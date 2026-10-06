@@ -1,0 +1,736 @@
+{
+  "kind": "phase5-23-e-browser",
+  "config": "gym-timplan",
+  "scope": "local-synthetic-only",
+  "baseURL": "http://127.0.0.1:3059",
+  "workerBuildRevision": "e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15",
+  "status": "PASS",
+  "exitCode": 0,
+  "stats": {
+    "startTime": "2026-10-06T20:57:25.663Z",
+    "duration": 211359.46899999998,
+    "expected": 26,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "tests": [
+    {
+      "name": "T01: f\u00e4rdig utkastk\u00e4lla blir skolans egna timmar med blankt, noll och exakt retur till k\u00e4llan",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "separate-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "separate-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-desktop/attachments/separate-school-hours-png-62aba258b3373e82336d9f92d861f66b2d83a329.png"
+            },
+            {
+              "name": "reloaded-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "reloaded-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-desktop/attachments/reloaded-school-hours-png-69514cb4cbfdbf6fc66ad2ad7221e03d32fc4f81.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T02: tv\u00e5 skolor f\u00e5r olika timmar; administrat\u00f6r skriver eget gymutkast och HM l\u00e4ser",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "hm-reads-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "hm-reads-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T02-tv\u00e5-96e9c-eget-gymutkast-och-HM-l\u00e4ser-gym-timplan-desktop/attachments/hm-reads-school-hours-png-bb179eff587fbdf138777b68823b4e6c1e135bcf.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T03: \u00e4ndrad k\u00e4llram kr\u00e4ver uttrycklig ny version och bevarar gamla timmar och klassl\u00e4nkar",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "explicit-new-source-version-geometry.json",
+              "path": null
+            },
+            {
+              "name": "explicit-new-source-version.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T03-\u00e4nd-9274e-amla-timmar-och-klassl\u00e4nkar-gym-timplan-desktop/attachments/explicit-new-source-version-png-24d8aa901b74ff1f3de2feea89869d341b9047e9.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T04: ofullst\u00e4ndig po\u00e4ngram ger konkret \u00e5tg\u00e4rd och ingen tom timplan",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "incomplete-source-action-geometry.json",
+              "path": null
+            },
+            {
+              "name": "incomplete-source-action.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T04-ofu-b0969-tg\u00e4rd-och-ingen-tom-timplan-gym-timplan-desktop/attachments/incomplete-source-action-png-b030f73247c32b90f3490124ad00cfb8d03164e4.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T05: CAS-konflikt skriver aldrig \u00f6ver en annan sparad timrad",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "row-conflict-keeps-input-geometry.json",
+              "path": null
+            },
+            {
+              "name": "row-conflict-keeps-input.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-\u00f6ver-en-annan-sparad-timrad-gym-timplan-desktop/attachments/row-conflict-keeps-input-png-694da1b664aae58a4b70186c03a473a5bd8da8bd.png"
+            },
+            {
+              "name": "row-conflict-confirmed-geometry.json",
+              "path": null
+            },
+            {
+              "name": "row-conflict-confirmed.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-\u00f6ver-en-annan-sparad-timrad-gym-timplan-desktop/attachments/row-conflict-confirmed-png-f0ee5f806a6ea0e0f34ddcafbbb4a733f5ea6804.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T06: tappat skapasvar \u00e5terfinner samma kommando utan en andra timplansversion",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "create-response-recovered-geometry.json",
+              "path": null
+            },
+            {
+              "name": "create-response-recovered.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T06-tap-7fec8-an-en-andra-timplansversion-gym-timplan-desktop/attachments/create-response-recovered-png-ad265af11b14a1e614171edf0016743f389ab8ab.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T07: datuml\u00e5st programk\u00e4lla l\u00e5ser inte skolans timmar, men arkiverad utbildning g\u00f6r det",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "archived-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "archived-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T07-dat-72489-rkiverad-utbildning-g\u00f6r-det-gym-timplan-desktop/attachments/archived-school-hours-png-387a1feb369c52df5802039dc1aa8781b616398e.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T08: osparade timv\u00e4rden skyddas och ny cellinmatning under sparandet finns kvar",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "edit-during-inline-save-kept-geometry.json",
+              "path": null
+            },
+            {
+              "name": "edit-during-inline-save-kept.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T08-osp-e32b8--under-sparandet-finns-kvar-gym-timplan-desktop/attachments/edit-during-inline-save-kept-png-daec467a050ff20d449943cb095dc39689c7139c.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T09: f\u00f6rlorad session rensar osparade terminsceller utan att skriva timv\u00e4rden",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "expired-session-clears-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "expired-session-clears-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T09-f\u00f6r-25296-r-utan-att-skriva-timv\u00e4rden-gym-timplan-desktop/attachments/expired-session-clears-hours-png-57b37b3da304d0080900ebf399623eb43e72c850.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T10: Tab mellan rader k\u00f6ar sparning med r\u00e4tt revision och \u00e5terl\u00e4ser b\u00e5da raderna",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-two-rows-reloaded-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-two-rows-reloaded.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T10-Tab-1679c--och-\u00e5terl\u00e4ser-b\u00e5da-raderna-gym-timplan-desktop/attachments/inline-two-rows-reloaded-png-2b0309c5d91c344b0c237bef7a3c180971d7cde0.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T11: ogiltiga cellv\u00e4rden bevaras lokalt och skriver inga timmar innan r\u00e4ttning",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-invalid-corrected-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-invalid-corrected.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T11-ogi-b89a6--inga-timmar-innan-r\u00e4ttning-gym-timplan-desktop/attachments/inline-invalid-corrected-png-1a4df47333a7fc3c06e84036e95dc472e4c82a11.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T12: tappat timsvar bekr\u00e4ftas genom \u00e5terl\u00e4sning utan dubbel radskrivning",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-lost-answer-recovered-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-lost-answer-recovered.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T12-tap-58d80-ng-utan-dubbel-radskrivning-gym-timplan-desktop/attachments/inline-lost-answer-recovered-png-905b7dbd0ff9f1ecc2c688faa0e5897d0482b148.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T13: ol\u00e4st sparstatus l\u00e5ser vidare skrivning tills verklig \u00e5terl\u00e4sning bekr\u00e4ftar timmarna",
+      "project": "gym-timplan-desktop",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-unread-status-recovered-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-unread-status-recovered.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T13-ol\u00e4-ca0bb-rl\u00e4sning-bekr\u00e4ftar-timmarna-gym-timplan-desktop/attachments/inline-unread-status-recovered-png-a96a571cab4310b1fda345b5bb1ba57e765a94c6.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T01: f\u00e4rdig utkastk\u00e4lla blir skolans egna timmar med blankt, noll och exakt retur till k\u00e4llan",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "source-build.json",
+              "path": null
+            },
+            {
+              "name": "separate-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "separate-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-phone/attachments/separate-school-hours-png-abdcce3faf94b74216309ee1339599c51a2f12c1.png"
+            },
+            {
+              "name": "reloaded-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "reloaded-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T01-f\u00e4r-13f3d-och-exakt-retur-till-k\u00e4llan-gym-timplan-phone/attachments/reloaded-school-hours-png-dff419f6748950da4c1da94f2ae60e0c08d62c7c.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T02: tv\u00e5 skolor f\u00e5r olika timmar; administrat\u00f6r skriver eget gymutkast och HM l\u00e4ser",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "hm-reads-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "hm-reads-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T02-tv\u00e5-96e9c-eget-gymutkast-och-HM-l\u00e4ser-gym-timplan-phone/attachments/hm-reads-school-hours-png-9d186bec6ed6ba2e9516308d6f6a513b11664a13.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T03: \u00e4ndrad k\u00e4llram kr\u00e4ver uttrycklig ny version och bevarar gamla timmar och klassl\u00e4nkar",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "explicit-new-source-version-geometry.json",
+              "path": null
+            },
+            {
+              "name": "explicit-new-source-version.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T03-\u00e4nd-9274e-amla-timmar-och-klassl\u00e4nkar-gym-timplan-phone/attachments/explicit-new-source-version-png-95a74f1a9ad15a9a4677764f74977646ed95ba03.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T04: ofullst\u00e4ndig po\u00e4ngram ger konkret \u00e5tg\u00e4rd och ingen tom timplan",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "incomplete-source-action-geometry.json",
+              "path": null
+            },
+            {
+              "name": "incomplete-source-action.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T04-ofu-b0969-tg\u00e4rd-och-ingen-tom-timplan-gym-timplan-phone/attachments/incomplete-source-action-png-2430c0f1735a77425ace1b5273e7c4131d517e26.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T05: CAS-konflikt skriver aldrig \u00f6ver en annan sparad timrad",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "row-conflict-keeps-input-geometry.json",
+              "path": null
+            },
+            {
+              "name": "row-conflict-keeps-input.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-\u00f6ver-en-annan-sparad-timrad-gym-timplan-phone/attachments/row-conflict-keeps-input-png-3b835405b40647961acbd84f3439f297c425c0ed.png"
+            },
+            {
+              "name": "row-conflict-confirmed-geometry.json",
+              "path": null
+            },
+            {
+              "name": "row-conflict-confirmed.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T05-CAS-10bfa-\u00f6ver-en-annan-sparad-timrad-gym-timplan-phone/attachments/row-conflict-confirmed-png-6bc424063fd8ab3debc292d612989049710c322c.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T06: tappat skapasvar \u00e5terfinner samma kommando utan en andra timplansversion",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "create-response-recovered-geometry.json",
+              "path": null
+            },
+            {
+              "name": "create-response-recovered.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T06-tap-7fec8-an-en-andra-timplansversion-gym-timplan-phone/attachments/create-response-recovered-png-371c4920cfc9a091b4a0a8cd6e0b1ca8d159f6ad.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T07: datuml\u00e5st programk\u00e4lla l\u00e5ser inte skolans timmar, men arkiverad utbildning g\u00f6r det",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "archived-school-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "archived-school-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T07-dat-72489-rkiverad-utbildning-g\u00f6r-det-gym-timplan-phone/attachments/archived-school-hours-png-c82f4d8fc1d50bb532842971bda9acf702175b9a.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T08: osparade timv\u00e4rden skyddas och ny cellinmatning under sparandet finns kvar",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "edit-during-inline-save-kept-geometry.json",
+              "path": null
+            },
+            {
+              "name": "edit-during-inline-save-kept.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T08-osp-e32b8--under-sparandet-finns-kvar-gym-timplan-phone/attachments/edit-during-inline-save-kept-png-541fa3905f958dc4ca4df3b2786877249269e128.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T09: f\u00f6rlorad session rensar osparade terminsceller utan att skriva timv\u00e4rden",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "expired-session-clears-hours-geometry.json",
+              "path": null
+            },
+            {
+              "name": "expired-session-clears-hours.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T09-f\u00f6r-25296-r-utan-att-skriva-timv\u00e4rden-gym-timplan-phone/attachments/expired-session-clears-hours-png-1ebfa86d495ea2a9ea2dcd8e881aecc4f3355b58.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T10: Tab mellan rader k\u00f6ar sparning med r\u00e4tt revision och \u00e5terl\u00e4ser b\u00e5da raderna",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-two-rows-reloaded-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-two-rows-reloaded.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T10-Tab-1679c--och-\u00e5terl\u00e4ser-b\u00e5da-raderna-gym-timplan-phone/attachments/inline-two-rows-reloaded-png-fe48125eee3884c5ac3805b7a823dc1a75a52550.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T11: ogiltiga cellv\u00e4rden bevaras lokalt och skriver inga timmar innan r\u00e4ttning",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-invalid-corrected-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-invalid-corrected.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T11-ogi-b89a6--inga-timmar-innan-r\u00e4ttning-gym-timplan-phone/attachments/inline-invalid-corrected-png-fe7848c0c54ed4ebb0621fa04003658e309a4c01.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T12: tappat timsvar bekr\u00e4ftas genom \u00e5terl\u00e4sning utan dubbel radskrivning",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-lost-answer-recovered-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-lost-answer-recovered.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T12-tap-58d80-ng-utan-dubbel-radskrivning-gym-timplan-phone/attachments/inline-lost-answer-recovered-png-c6b9e99b9c2dd49261cfde8655d195b029d6e8af.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T13: ol\u00e4st sparstatus l\u00e5ser vidare skrivning tills verklig \u00e5terl\u00e4sning bekr\u00e4ftar timmarna",
+      "project": "gym-timplan-phone",
+      "expectedStatus": "passed",
+      "status": "expected",
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "attachments": [
+            {
+              "name": "inline-unread-status-recovered-geometry.json",
+              "path": null
+            },
+            {
+              "name": "inline-unread-status-recovered.png",
+              "path": "/Users/petter.gjores/dev/skolplattform/web/test-results/phase5-gym-timplan/phase5-gym-timplan-T13-ol\u00e4-ca0bb-rl\u00e4sning-bekr\u00e4ftar-timmarna-gym-timplan-phone/attachments/inline-unread-status-recovered-png-413df8e3425a145dff3ba8611a328bab629cd1cf.png"
+            },
+            {
+              "name": "cleanup.json",
+              "path": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "globalErrors": 0
+}

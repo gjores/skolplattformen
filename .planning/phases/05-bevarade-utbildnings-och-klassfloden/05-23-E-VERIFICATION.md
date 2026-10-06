@@ -2,8 +2,8 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "23"
 step: E
-status: in_progress
-verified: null
+status: passed
+verified: 2026-10-06
 requirements: [ADMIN-02, ADMIN-03]
 requirements-finally-verified: []
 scope: local-synthetic-only
@@ -11,7 +11,7 @@ scope: local-synthetic-only
 
 # 05-23/E — aktuell full regression
 
-E har påbörjats 2026-10-06 efter användarens godkända grundprov, men är inte godkänd. Fokusbuggen är rättad; den senaste programplanssviten gav 31/40. Full matris återstår; aktuell efterläsning PASS efter återstart. ADMIN-02/03/04 och hela fas 5 är fortsatt Pending.
+E är avslutad 2026-10-06 enligt senare användarbeslut. Hela aktuella matrisen är PASS på samma separata byggartefakt. Grundflödet är användarrapporterat godkänt; ADMIN-02/03/04 och hela fas 5 är fortsatt Pending.
 
 ## Reviderad omfattning
 
@@ -35,7 +35,36 @@ Alla slutliga API-/browserprov riktas seriellt mot separat workerd på `http://1
 
 Ordinarie 3012:s artefakt är fortfarande `5dd7baf`, utan byte/reset. Servern svarade först inte vid efterläsningens inledande health-kontroll (ECONNREFUSED). Läsande process-/cwd-kontroll visade att ingen levande root-provmiljö ägde de privata låsfilerna. Endast två ignorerade privata restfiler togs bort, och samma bevarade bygge återstartades på 3012. Därefter passerade exakt samma 18 scenarier och 44 auditpar; första otillgängligheten bevaras. Muterande prov använder egna syntetiska kunder med ägarskapskontroll och städning. Obligatorisk säkerhetsaudit och dess ankare består. Före/efter jämförs hela rader inklusive tidsstämplar i 14 verksamhetstabeller, ACL och migrations-/funktionsfingeravtryck. Befintliga användarscenarier läses via current-läge, utan omförberedelse.
 
-## Slutresultat
+## Slutresultat 2026-10-06
+
+**PASS för aktuell 05-23/E, lokalt med syntetiska uppgifter.** [Samlad rapport](../../../work/pilot/results/phase5-23-e-final.json), [bildgranskning](../../../work/pilot/results/phase5-23-e-resume-visual.json) och [sömnkorrelation](../../../work/pilot/results/phase5-23-e-resume-sleep-diagnosis.json).
+
+| Kontroll | Slutresultat |
+|---|---|
+| Modell/server och fixturhjälpare | 674/674 och 19/19 PASS på identiska källor |
+| TypeScript, lint, skyddat bygge, handbok | PASS; inga nya produkt- eller handboksändringar vid återupptagandet |
+| Full SQL | 35 filer, 2 512/2 512 PASS |
+| Faktisk Worker/API, åtta grupper | 170/170 fall, 1 077/1 077 kontroller PASS |
+| Dator/Chromium och telefon/WebKit | Block 6, ram 10, livscykel 20, program 40, terminer 25, GR/IM-timplan 22, gymtimplan 26: 149/149 PASS |
+| Uttryckliga skips | Sex borttagna paketeditorfall; ett telefonlayoutfall på dator |
+| Städning | 150 bilagor, noll egna verksamhetsrader; obligatorisk säkerhetsaudit och ankare bevarade |
+| Bevarande efter samtliga muterande prov | 14 hela tabellmängder inklusive tidsstämplar, exakt 25-signaturs-ACL och migrations-/funktionsfingeravtryck PASS |
+| Befintliga användarscenarier före/efter | Samma 18 scenarier och 44 auditerade läsningar per omgång, utan omförberedelse |
+| Artefakter | Samma 174 testade filer och ordinarie 3012:s 719 kvarhållna filer oförändrade |
+
+Återupptagandet körde oförändrade programplans-, GR/IM- och gymtimplansprov samt alla åtta API-grupper. De fyra redan godkända browsergrupperna och statiska kontrollerna återanvänds från samma artefakt/identiska källor. Ingen testförväntan eller tidsgräns vidgades. Telefonlayoutfallet som runtime-skippas på dator skapar en fixtur; därför finns 150 städningsbilagor för 149 körda beteendefall. Varje grupps rapport och hash finns i slutrapporten.
+
+De tidigare nio programfelen överlappar faktisk Sleep→Wake enligt värddatorns strömlogg. 29 godkända fall hade ingen överlapp; två avslutades inom cirka 1,5 sekunder från en sömnövergång. Den oförändrade återkörningen på samma artefakt gav 40/40 på 3,9 minuter med vila pausad under körningen. Första 31/40-omgången och dess städningsavvikelse bevaras. Detta belägger miljöpåverkan; inga separata produktfel reproducerades i de nio fallen.
+
+En separat kodobservation: fördjupningens `working` styr `aria-busy`, medan ”Allt sparat” speglar terminsfördelningens state. Det kan ge en tillfälligt missvisande status under fördjupningsändring. Observationen är inte separat reproducerad som orsak till de nio felen; den räknas inte som rättad av återkörningen. Sparningens revisions-, avstämnings- och dubbelwrite-skydd passerar aktuella prov.
+
+Dator-/telefonbilder för fasta nivåer, full poängram, terminsåtgärder, delad skrivskyddad plan, administratörsvy och skolvis direkt timinmatning är tekniskt granskade. Granskade filer binds med SHA256 och byggrevision i bildrapporten. Grundflödets mänskliga godkännande består; övriga uttryckligen oprövade användarmoment godkänns inte retroaktivt.
+
+Vanlig 3012 behåller sitt befintliga `5dd7baf`-bygge; fokusfixen är verifierad i den separata artefakten. Ingen reset, omförberedelse, verklig kommunanslutning, ny interaktiv IdP-verifiering eller publicering utfördes. ADMIN-02/03/04, hela fas 5, yrkesram, beslut/garantiprövning, omplanering 05-25–35, båda nya gapen, 05-22 metadata PARTIAL och fas 4-checkpoint består. Nästa plan 05-36 är inte startad.
+
+**Oberoende GSD-granskning:** [PASS utan blockerare](../../../work/pilot/results/phase5-23-e-independent-review.json). Granskningen kontrollerade rapport-/källhashar, råbilagor, faktiskt fallantal, båda artefakterna, full databevaring och ärlig krav-/gapstatus.
+
+## Historiskt mellanläge före återupptagen körning
 
 **INCOMPLETE — inget slutligt E-PASS.** Se [minimerat mellanläge](../../../work/pilot/results/phase5-23-e-progress.json).
 
