@@ -201,7 +201,8 @@ test('13: sidurval, äldre version, okända äldre val och tomt uppdrag',async({
   await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page,'Syntetisk obunden SA');await expect(w(page).getByRole('region',{name:'Dina sparade fördjupningsval',exact:true})).toContainText('ANIM1000X');await underlying(page);await expect(w(page).getByRole('button',{name:'Version 1 · Utkast',exact:true})).toHaveCount(0);
   await fixture.unknownLegacy();await w(page).getByRole('button',{name:'Alla programplaner',exact:true}).click();await education(page,'Syntetisk obunden SA');await catalog(page,false);await expect(w(page)).toContainText('SYNTETISK_OKAND');await expect(w(page).getByRole('button',{name:'Fortsätt till startdatum och val',exact:true})).toBeDisabled();
   await discard(page,false,()=>w(page).getByRole('button',{name:'Avbryt förberedelse',exact:true}).click());await expect(w(page).getByLabel('Välj underlag',{exact:true})).toHaveValue(fixture.catalogId);await discard(page,true,()=>w(page).getByRole('button',{name:'Avbryt förberedelse',exact:true}).click());
-  await fixture.emptyOfferings();await page.reload();await navigate(page);await chooseProgram(page);await expect(w(page)).toContainText('Skolan har ingen utbildning med det här programmet och den här inriktningen.');
+  // Fixturen raderar sina planer. Tomt urval provas från start, utan återöppningslänk till den raderade planen.
+  await fixture.emptyOfferings();await page.goto('/');await navigate(page);await chooseProgram(page);await expect(w(page)).toContainText('Skolan har ingen utbildning med det här programmet och den här inriktningen.');
 });
 
 test('14: huvudman kan arbeta; förlorat uppdrag/sessionepoch rensar innehåll',async({page})=>{
