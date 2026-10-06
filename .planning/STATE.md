@@ -8,7 +8,7 @@ status: in_progress
 stopped_at: Avgränsad blockrättning slutförd på 3012: blockramar kvar, blockhantering bort. Nästa full 05-23/E och omplanering av 05-25–35; beslut, yrkesram och mänsklig bedömning kvarstår.
 last_updated: "2026-10-06"
 last_activity: 2026-10-06
-last_activity_desc: "Användarens förtydligande: behåll blockramarna, ta bort blockhanteringen. 20 dator-/telefonfall och färskt 14-tabellsbevarande PASS; vanlig 3012 kör a7c78e1."
+last_activity_desc: "Registrerad todo: tabellöversikt för timplaner samt sökning, filtrering och sortering i båda planöversikterna. Genomförande återstår; senaste verifierade appbygge på 3012 är a7c78e1."
 state_head: a7c78e1
 worker_build_revision: a7c78e18584327374f916fa070525db48225c34f
 progress:
@@ -199,6 +199,8 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 04]: 04-17: Elevprovet avvecklat (migration 20260930100000); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope behålls och läser bara registret; /api/prov borttagen men kvar som loggklass
 
 ## Pending Todos
+
+- 2026-10-06: [tabellöversikter med sökning, filtrering och sortering för programplaner och timplaner](todos/pending/2026-10-06-tabelloversikter-med-sokning-filter-och-sortering-for-planer.md) beställt. Timplanernas startlista ska följa programplanernas tabellprincip; båda översikterna ska kunna sökas, filtreras och sorteras över hela det behöriga urvalet. Genomförande och dator-/telefonprov återstår; aktuell fasordning och kravstatus behålls.
 
 - 2026-10-05: [integration av Skolverkets lärarlegitimation och undervisningsbehörighet](todos/pending/2026-10-05-integrera-skolverkets-lararbehorigheter.md) genomgången i [researchunderlaget](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md). Föreslagna mål LLEG-01–04 följs till L1 kontrakt/personmatchning, L2 XML-import, L3 tjänstefördelning/schema och L4 faktiskt anslutnings-/driftprov, med koppling till S1–S4. Lokala uppdrag och systemåtkomst hålls skilda från myndighetsbehörighet. API-åtkomst, omfattning, genomförandeplaner och alla integrationsprov återstår. Pilotens krav och nästa 05-22 behålls.
 
