@@ -8,7 +8,7 @@ import {PERFORMANCE_MIGRATION,PERFORMANCE_TEST,PERFORMANCE_ENTRY,PERFORMANCE_SOU
  assertPerformanceDiff,validatePerformanceBaseApi,validatePerformanceRollback,timingSummary,performanceTimingProof,
  performanceParityProof,performanceProgress,performanceCatalogFingerprint,performanceRollbackScript,historicalPlanningRollbackScript,extractOriginalPlanningRows,
  PERFORMANCE_RESERVE_POLICY,validateReusablePerformanceSql,validateCensoredTimingSample,validateOwnedDbCompletion,classifyPerformanceTimeout,
- performanceTimingLowerBoundProof,candidateDefinitionRollbackScript,canonicalPerformanceEvidencePath,computeAcceptedPerformanceTimingProof,validateReserveTimingEvidence,assertPerformanceEvidenceOutput,performanceProcessResult,performanceSqlNeedsCompletionProof,readHistoricalPerformanceSource,samePlanningTimingSelection,preservePerformanceReport} from './verify-planning-year-read-performance.mjs';
+ performanceTimingLowerBoundProof,candidateDefinitionRollbackScript,canonicalPerformanceEvidencePath,computeAcceptedPerformanceTimingProof,validateReserveTimingEvidence,assertPerformanceEvidenceOutput,performanceProcessResult,performanceSqlNeedsCompletionProof,readHistoricalPerformanceSource,samePlanningTimingSelection,preservePerformanceReport,performanceSafeTransportFailure,performanceTimingAttempt,recordPerformanceAttemptResponse,completePerformanceTimingAttempt} from './verify-planning-year-read-performance.mjs';
 import {parsePerformanceApplyArgs} from './apply-planning-year-read-performance.mjs';
 import {PLANNING_FOUNDATION,PLANNING_BASE_ENTRIES,PLANNING_ENTRIES,PLANNING_TABLES,sha} from './apply-planning-year-migration.mjs';
 import {PLANNING_API_CASES,PLANNING_API_SOURCE_PATHS,planningSelection} from './verify-planning-year-api.mjs';
@@ -332,4 +332,53 @@ test('rapid failed report updates retain both older and newer exact FAIL bytes',
   assert.ok(history.includes(original));assert.ok(history.some(raw=>JSON.parse(raw).proof==='newer'));assert.ok(history.some(raw=>JSON.parse(raw).proof==='newest'));
   assert.equal(history.length,4);
  }finally{for(const n of readdirSync('/private/tmp').filter(n=>n.startsWith(stem)))rmSync('/private/tmp/'+n,{force:true});}
+});
+
+const diagnosticAttempt=()=>performanceTimingAttempt({name:'list',iteration:2,phase:'before',startedAt:'2026-10-07T09:52:00.000Z',
+ auditBaseline:{count:12,maxEventId:'181747',sha256:'a'.repeat(64)},selection:planningSelection(2026,{view:'programplan',query:'private input'})});
+test('pending timing attempt persists only owned whitelisted metadata and a selection hash',()=>{
+ const attempt=diagnosticAttempt();assert.equal(attempt.case,'list');assert.equal(attempt.iteration,2);assert.equal(attempt.stage,'fetch');
+ assert.equal(attempt.auditBaseline.maxEventId,'181747');assert.match(attempt.selectionHash,/^[a-f0-9]{64}$/u);
+ assert.equal(JSON.stringify(attempt).includes('private input'),false);
+ assert.throws(()=>performanceTimingAttempt({name:'SECRET',iteration:1,phase:'before',startedAt:'secret',auditBaseline:{},selection:{}}));
+ const a=performanceTimingAttempt({name:'page2',iteration:1,phase:'before',startedAt:'2026-10-07T09:52:00.000Z',
+  auditBaseline:{count:12,maxEventId:'181747',sha256:'a'.repeat(64),token:'secret'},selection:planningSelection(2026)});
+ assert.equal(JSON.stringify(a).includes('secret'),false);
+});
+test('transport diagnostics never expose messages stacks nested secrets or unapproved codes',()=>{
+ const failure=Object.assign(new TypeError('https://secret.test/?token=secret'),{code:'ECONNRESET',cause:{code:'UND_ERR_SOCKET',message:'secret',token:'secret'}});
+ assert.deepEqual(performanceSafeTransportFailure(failure),{name:'TypeError',code:'ECONNRESET',causeCode:'UND_ERR_SOCKET'});
+ assert.deepEqual(performanceSafeTransportFailure({name:'secret',code:'PASSWORD_ABC',cause:{code:'secret'},stack:'secret'}),{name:null,code:null,causeCode:null});
+ assert.equal(JSON.stringify(performanceSafeTransportFailure(failure)).includes('secret'),false);
+});
+test('actual response and own signal snapshots distinguish fetch JSON and unrelated network failures',()=>{
+ const attempt=diagnosticAttempt(),network=Object.assign(new TypeError('secret'),{cause:{code:'ECONNREFUSED'}}),signal=new AbortController().signal;
+ recordPerformanceAttemptResponse(attempt,undefined,network,signal,12);
+ assert.equal(attempt.response,null);assert.equal(attempt.transportFailure.stage,'fetch');assert.equal(attempt.timeoutSignal.aborted,false);
+ assert.equal(classifyPerformanceTimeout(network,31000,signal),false);assert.equal(attempt.timeoutSignal.errorIsReason,false);
+ attempt.stage='response-json';const jsonError=new SyntaxError('secret body'),response=new Response('bad',{status:502,headers:{'x-correlation-id':'11111111-1111-1111-1111-111111111111'}});
+ recordPerformanceAttemptResponse(attempt,response,jsonError,signal,13);
+ assert.deepEqual(attempt.response,{httpStatus:502,correlationId:'11111111-1111-1111-1111-111111111111',correlationHeaderValid:true});
+ assert.equal(attempt.transportFailure.stage,'response-json');assert.equal(attempt.transportFailure.name,'SyntaxError');
+ recordPerformanceAttemptResponse(attempt,new Response('bad',{headers:{'x-correlation-id':'secret'}}),jsonError,signal,13);
+ assert.equal(attempt.response.correlationId,null);assert.equal(attempt.response.correlationHeaderValid,false);assert.equal(JSON.stringify(attempt).includes('secret'),false);
+ const timeout=new DOMException('secret','TimeoutError'),controller=new AbortController();controller.abort(timeout);
+ recordPerformanceAttemptResponse(attempt,undefined,timeout,controller.signal,31000);
+ assert.deepEqual(attempt.timeoutSignal,{kind:'AbortSignal.timeout',timeoutMs:30000,aborted:true,reasonName:'TimeoutError',errorIsReason:true});
+});
+test('completion error remains separate from the original transport failure and cannot manufacture audit proof',async()=>{
+ const attempt=diagnosticAttempt(),network=Object.assign(new TypeError('secret URL'),{cause:{code:'UND_ERR_SOCKET'}});
+ recordPerformanceAttemptResponse(attempt,undefined,network,new AbortController().signal,10);
+ const completion=Error('performance_owned_db_transaction_not_finished');
+ await assert.rejects(completePerformanceTimingAttempt(attempt,async()=>{throw completion;}),e=>e===completion);
+ assert.deepEqual(attempt.transportFailure,{stage:'fetch',name:'TypeError',code:null,causeCode:'UND_ERR_SOCKET'});
+ assert.deepEqual(attempt.completionFailure,{stage:'audit-group',reason:'AUDIT_GROUP_NOT_FINISHED',name:'Error',code:null,causeCode:null});
+ assert.equal(attempt.response,null);assert.equal(Object.hasOwn(attempt,'ownedDbTransactionFinished'),false);
+ assert.throws(()=>validateCensoredTimingSample({...attempt,status:'RIGHT_CENSORED',errorName:'TimeoutError',elapsedMs:31000,lowerBoundMs:30000}));
+ const locked=diagnosticAttempt();await assert.rejects(completePerformanceTimingAttempt(locked,async stage=>{stage('session-barrier');throw Error('secret DSN');}));
+ assert.equal(locked.completionFailure.stage,'session-barrier');assert.equal(locked.completionFailure.reason,'SESSION_BARRIER_FAILED');
+ assert.equal(JSON.stringify(locked).includes('secret'),false);
+ const success=diagnosticAttempt(),proof={ownedDbTransactionFinished:true};
+ assert.equal(await completePerformanceTimingAttempt(success,async stage=>{stage('session-barrier');return proof;}),proof);
+ assert.equal(success.completionFailure,null);
 });

@@ -1,7 +1,7 @@
 {
   "kind": "phase5-planning-year-read-performance-failure-history",
   "scope": "local-synthetic-only",
-  "status": "pending-corrected-fixture-full-rerun",
+  "status": "pending-transport-diagnostic-and-fresh-full-proof",
   "reset": false,
   "firstFailure": {
     "report": "phase5-38-read-performance-rollback-fail-1791356837808.json",
@@ -62,7 +62,7 @@
     "httpBeforeSamples": 9,
     "fullApiCases": 15
   },
-  "finalOutcome": "Pending. Latest full SQL FAIL is preserved and diagnosed as fixture expiry. New full143/46 + unchanged93/18 required with corrected synthetic lifetime/watchdog. Reserve stays conditional; no permanent apply or UI/SEARCH integration.",
+  "finalOutcome": "Pending. Corrected full SQL143/46 and immutable93/18 PASS; full HTTP proof failed with unknown completion. Separate owned recovery PASS preserves all originals, but supplies no full-plan timing acceptance. Safe attempt/transport/completion diagnostics added; fresh full proof remains required before apply/UI/SEARCH.",
   "secondFailure": {
     "report": "phase5-38-read-performance-rollback-fail-1791359038373.json",
     "sha256": "4f231086020d7f9e739fc0b36f28ab4829c7daf82852eb3356812145852d1603",
@@ -173,5 +173,38 @@
     "httpDeadlineMs": 30000,
     "newFullSqlProofRequired": true,
     "olderSqlReuseAcrossChangedTestForbidden": true
+  },
+  "fourthFailure": {
+    "report": "phase5-38-read-performance-http-completion-fail-20261007.json",
+    "sha256": "f8cc401085406e22d016a75d586caaee0f5af64a70c9180fd8be4f30f2dc1ddb",
+    "sourceCommit": "e3f1355f8c900779432d75fec799a9157a1b3430",
+    "sqlAssertions": 143,
+    "parityCases": 46,
+    "sqlStatus": "PASS",
+    "immutableOriginalSqlAssertions": 93,
+    "actualContractCases": 18,
+    "httpSamples": 1,
+    "firstHttpDurationMs": 18129.38525000005,
+    "httpCompletionUnknown": true,
+    "originalFailurePreserved": true,
+    "complete": false,
+    "cleanupDeferredAtFailure": true,
+    "finalSnapshotDeferredAtFailure": true,
+    "reason": "Second HTTP attempt had no new owned audit group; original transport exception was masked by completion wait and sanitizer. No HTTP timing PASS or reusable full report."
+  },
+  "ownedRecovery": {
+    "diagnostic": {
+      "report": "phase5-38-read-performance-pending-diagnostic.json",
+      "sha256": "6ab2d3ae955b6d399e5c0b37e2ebf0b680ee7a3100bc3b51f6343bd59c549591",
+      "notFullPlanProof": true,
+      "status": "OBSERVED"
+    },
+    "recovery": {
+      "report": "phase5-38-read-performance-pending-recovery.json",
+      "sha256": "d81e67925744247fdc8304b8b5a69c98a32aaf3ccfc944ed8315b0256b217b36",
+      "notFullPlanProof": true,
+      "status": "PASS"
+    },
+    "completionBoundary": "Exact owned session revoked under verified FOR UPDATE lock after no active DB query; only owned synthetic business graph removed. Original15/catalog/all audit/audited identity anchors preserved. Original full FAIL remains unchanged."
   }
 }

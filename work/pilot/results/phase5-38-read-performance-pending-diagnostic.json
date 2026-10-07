@@ -1,0 +1,108 @@
+{
+  "kind": "phase5-performance-pending-owned-diagnostic",
+  "notFullPlanProof": true,
+  "fullReportSha256": "f8cc401085406e22d016a75d586caaee0f5af64a70c9180fd8be4f30f2dc1ddb",
+  "owner": {
+    "customerId": "9355e0a0-0000-4000-8000-000000000001",
+    "organizerId": "9355e0a0-0000-4000-8000-000000000002",
+    "sessionId": "6dc1c61a-c058-4044-80d6-8e4c3c06843b"
+  },
+  "events": [
+    {
+      "id": "181732",
+      "correlation_id": "474721e1-c6bd-49f5-87eb-c829823ef6d6",
+      "source": "db",
+      "action": "programplan_draft_created",
+      "outcome": "ok"
+    },
+    {
+      "id": "181733",
+      "correlation_id": "474721e1-c6bd-49f5-87eb-c829823ef6d6",
+      "source": "worker",
+      "action": "programplan_draft_created",
+      "outcome": "ok"
+    },
+    {
+      "id": "181734",
+      "correlation_id": "51f5d12e-e509-4631-a527-4baa92ac2166",
+      "source": "db",
+      "action": "programplan_terms_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181735",
+      "correlation_id": "51f5d12e-e509-4631-a527-4baa92ac2166",
+      "source": "worker",
+      "action": "programplan_terms_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181736",
+      "correlation_id": "44225850-c07b-4f5d-9123-5b93e8f74327",
+      "source": "db",
+      "action": "programplan_education_units_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181737",
+      "correlation_id": "44225850-c07b-4f5d-9123-5b93e8f74327",
+      "source": "worker",
+      "action": "programplan_education_units_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181738",
+      "correlation_id": "a9ca4ab5-3bf5-4e3a-987a-eabeb83284b6",
+      "source": "db",
+      "action": "gym_timplan_basis_read",
+      "outcome": "ok"
+    },
+    {
+      "id": "181739",
+      "correlation_id": "a9ca4ab5-3bf5-4e3a-987a-eabeb83284b6",
+      "source": "worker",
+      "action": "gym_timplan_basis_read",
+      "outcome": "ok"
+    },
+    {
+      "id": "181744",
+      "correlation_id": "4211d32d-0f34-4e3a-a4ef-5de888e94e7f",
+      "source": "db",
+      "action": "planning_year_selection_read",
+      "outcome": "ok"
+    },
+    {
+      "id": "181745",
+      "correlation_id": "4211d32d-0f34-4e3a-a4ef-5de888e94e7f",
+      "source": "worker",
+      "action": "planning_year_selection_read",
+      "outcome": "ok"
+    },
+    {
+      "id": "181746",
+      "correlation_id": "4211d32d-0f34-4e3a-a4ef-5de888e94e7f",
+      "source": "db",
+      "action": "planning_year_list_read",
+      "outcome": "ok"
+    },
+    {
+      "id": "181747",
+      "correlation_id": "4211d32d-0f34-4e3a-a4ef-5de888e94e7f",
+      "source": "worker",
+      "action": "planning_year_list_read",
+      "outcome": "ok"
+    }
+  ],
+  "activity": {
+    "active_queries": 0,
+    "planning_queries": 0,
+    "waiting_locks": 0
+  },
+  "state": {
+    "valid_expiry": true,
+    "unrevoked": true,
+    "valid_absolute": true
+  },
+  "sessionLockReleased": true,
+  "rollback": true
+}

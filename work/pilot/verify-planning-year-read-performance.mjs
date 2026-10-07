@@ -374,6 +374,44 @@ export function classifyPerformanceTimeout(error,elapsedMs,signal){
  return error instanceof DOMException&&error.name==='TimeoutError'&&Number.isFinite(elapsedMs)&&elapsedMs>=30000
   &&signal instanceof AbortSignal&&signal.aborted&&signal.reason===error;
 }
+const SAFE_FAILURE_NAMES=new Set(['Error','TypeError','SyntaxError','RangeError','AbortError','TimeoutError','AggregateError']);
+const SAFE_TRANSPORT_CODES=new Set(['UND_ERR_CONNECT_TIMEOUT','UND_ERR_HEADERS_TIMEOUT','UND_ERR_BODY_TIMEOUT','UND_ERR_SOCKET',
+ 'UND_ERR_ABORTED','UND_ERR_DESTROYED','UND_ERR_CLOSED','UND_ERR_RESPONSE_STATUS_CODE','ECONNRESET','ECONNREFUSED','ECONNABORTED',
+ 'ETIMEDOUT','EPIPE','ENOTFOUND','EAI_AGAIN','ENETUNREACH','EHOSTUNREACH']);
+const safeFailureName=value=>SAFE_FAILURE_NAMES.has(value)?value:null;
+const safeTransportCode=value=>SAFE_TRANSPORT_CODES.has(value)?value:null;
+export function performanceSafeTransportFailure(error){
+ return {name:safeFailureName(error?.name),code:safeTransportCode(error?.code),causeCode:safeTransportCode(error?.cause?.code)};
+}
+export function performanceTimingAttempt({name,iteration,phase,startedAt,auditBaseline,selection}){
+ if(![...TIMING_CASES,'overview'].includes(name)||![1,2,3].includes(iteration)||!['before','after'].includes(phase)
+  ||typeof startedAt!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(startedAt)
+  ||!Number.isSafeInteger(auditBaseline?.count)||auditBaseline.count<0||!/^\d+$/u.test(auditBaseline.maxEventId??'')
+  ||!hashPattern.test(auditBaseline.sha256??''))throw Error('performance_attempt_metadata_invalid');
+ return {case:name,iteration,phase,startedAt,auditBaseline:{count:auditBaseline.count,maxEventId:auditBaseline.maxEventId,sha256:auditBaseline.sha256},
+  selectionHash:sha(JSON.stringify(selection)),stage:'fetch',response:null,transportFailure:null,timeoutSignal:null,completionFailure:null};
+}
+export function recordPerformanceAttemptResponse(attempt,response,error,signal,elapsedMs){
+ const received=response?.headers.get('x-correlation-id')??null;
+ const valid=typeof received==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/u.test(received);
+ attempt.response=response?{httpStatus:response.status,correlationId:valid?received:null,correlationHeaderValid:received===null?null:valid}:null;
+ attempt.elapsedMs=Number.isFinite(elapsedMs)&&elapsedMs>=0?elapsedMs:null;
+ attempt.transportFailure=error?{stage:attempt.stage,...performanceSafeTransportFailure(error)}:null;
+ // Snapshot at the transport outcome: a later timeout during audit waiting must not reclassify a network failure.
+ attempt.timeoutSignal={kind:'AbortSignal.timeout',timeoutMs:30000,aborted:signal.aborted,
+  reasonName:safeFailureName(signal.reason?.name),errorIsReason:!!error&&signal.reason===error};
+}
+export async function completePerformanceTimingAttempt(attempt,waitForCompletion){
+ attempt.stage='audit-group';
+ try{return await waitForCompletion(stage=>{if(['audit-group','session-barrier'].includes(stage))attempt.stage=stage;});}
+ catch(error){
+  const reasons={performance_unexpected_owned_audit_group:'UNEXPECTED_AUDIT_GROUP',performance_owned_db_transaction_not_finished:'AUDIT_GROUP_NOT_FINISHED',
+   performance_owned_session_mismatch:'OWNED_SESSION_MISMATCH',performance_owned_session_barrier_failed:'SESSION_BARRIER_FAILED'};
+  attempt.completionFailure={stage:attempt.stage,reason:reasons[error?.message]??(attempt.stage==='session-barrier'?'SESSION_BARRIER_FAILED':'AUDIT_READ_FAILED'),
+   ...performanceSafeTransportFailure(error)};
+  throw error;
+ }
+}
 export function validateOwnedDbCompletion(sample){
  const d=sample?.dbCompletion,session={id:sample?.sessionId,identityId:sample?.identityId,membershipId:sample?.membershipId,assignmentId:sample?.assignmentId};
  if(!sample.auditBaseline||!hashPattern.test(sample.auditBaseline.sha256??'')||!/^\d+$/u.test(sample.auditBaseline.maxEventId??'')
@@ -550,7 +588,7 @@ async function timingAuditBaseline(db,fixture){
   from public.security_events e where e.session_id=${fixture.hm.id} and e.customer_id=${fixture.customerId}`;
  return {...r};
 }
-async function awaitOwnedDbCompletion(db,fixture,baseline,expectedCorrelationId,route='lista'){
+async function awaitOwnedDbCompletion(db,fixture,baseline,expectedCorrelationId,route='lista',onStage=()=>{}){
  let events=[];
  for(const deadline=Date.now()+90000;Date.now()<deadline;){
   events=await db`select id::text id,correlation_id::text correlation_id,source,action,outcome,
@@ -560,7 +598,7 @@ async function awaitOwnedDbCompletion(db,fixture,baseline,expectedCorrelationId,
   const correlations=new Set(events.map(e=>e.correlation_id));
   if(events.length>4||correlations.size>1||events.some(e=>e.outcome!=='ok'||expectedCorrelationId&&e.correlation_id!==expectedCorrelationId))throw Error('performance_unexpected_owned_audit_group');
   if(events.length===4&&planningAuditPair(events,fixture.hm,fixture.customerId,route)){
-   const barrier=await ownedSessionBarrier(db,fixture);
+   onStage('session-barrier');const barrier=await ownedSessionBarrier(db,fixture);
    return {ownedDbTransactionFinished:true,sessionLockReleased:true,barrier,correlationId:events[0].correlation_id,
     auditCount:4,auditGroupHash:sha(JSON.stringify(events)),events:events.map(e=>({...e})),newEventIds:events.map(e=>e.id)};
   }
@@ -586,10 +624,10 @@ async function prepareOwnedPageRevision(db,fixture,input){
  return {kind:'OWNED_SQL_PREPARATION',transport:'postgres',httpResponse:false,correlationId,sessionId:fixture.hm.id,
   requestSelection:input,count:reply.count,rows:reply.rows.length,selectionRevision:reply.selectionRevision,auditCount:1,auditHash:sha(JSON.stringify([auditEvent])),auditEvent,barrier,ownedDbTransactionFinished:true};
 }
-async function timingFixtureReserve(baseURL,phase='before',allowCensor=true){
+export async function timingFixtureReserve(baseURL,phase='before',allowCensor=true){
  const {createPlanningYearFixture}=await import('./phase5-planning-year-fixtures.mjs');
  const target=await assertTarget('protected'),db=require('postgres')(target.dbUrl,{max:1,prepare:false,connect_timeout:10,onnotice:()=>{}});
- let fixture,cleanup,cleanupFailure,failure,cleanupDeferred=false,dbCompletionPending=false,sqlPreparation=null;const samples=[];
+ let fixture,cleanup,cleanupFailure,failure,cleanupDeferred=false,dbCompletionPending=false,sqlPreparation=null,pendingAttempt=null;const samples=[];
  try{
   fixture=await createPlanningYearFixture();const metadata=await fixture.setup(baseURL),input=planningSelection(metadata.planningYear,{view:'programplan',query:metadata.pageQuery,status:'utkast'});
   let revision;
@@ -597,18 +635,21 @@ async function timingFixtureReserve(baseURL,phase='before',allowCensor=true){
    if(name==='page2'&&!revision){sqlPreparation=await prepareOwnedPageRevision(db,fixture,input);revision=sqlPreparation.selectionRevision;}
    const selection={...input,...(name==='search'?{query:metadata.pageSearchQuery}:name==='page2'?{page:2,selectionRevision:revision}:{})};
    const before=await fixture.businessHashes(),auditBaseline=await timingAuditBaseline(db,fixture),startedAt=new Date().toISOString(),start=performance.now(),route=name==='overview'?'oversikt':'lista',signal=AbortSignal.timeout(30000);
-   let response,body,durationMs,error;dbCompletionPending=true;
+   let response,body,durationMs,error;
+   pendingAttempt=performanceTimingAttempt({name,iteration,phase,startedAt,auditBaseline,selection});dbCompletionPending=true;
    try{
     response=await fetch(`${baseURL}/api/planering/${route}`,{method:'POST',headers:{'Content-Type':'application/json',Cookie:`sp_session=${fixture.hm.token}`,
      'X-Context-Epoch':String(fixture.hm.epoch),'Sec-Fetch-Site':'same-origin',Origin:baseURL},body:JSON.stringify(selection),signal});
-    body=await response.json();durationMs=performance.now()-start;
+    pendingAttempt.stage='response-json';body=await response.json();durationMs=performance.now()-start;
    }catch(caught){error=caught;}
    const elapsedMs=performance.now()-start;
-   if(error&&!(allowCensor&&phase==='before'&&classifyPerformanceTimeout(error,elapsedMs,signal))){
-    // A transport/parse failure is never timing censor evidence. It still must not race cleanup.
-    await awaitOwnedDbCompletion(db,fixture,auditBaseline,response?.headers.get('x-correlation-id')??null,route);dbCompletionPending=false;throw error;
-   }
-   const dbCompletion=await awaitOwnedDbCompletion(db,fixture,auditBaseline,response?.headers.get('x-correlation-id')??null,route);dbCompletionPending=false;
+   recordPerformanceAttemptResponse(pendingAttempt,response,error,signal,elapsedMs);
+   // Keep transport diagnostics even when the exact audit/barrier wait itself fails.
+   // Neither a pre-Worker network error nor a missing audit group is censor evidence.
+   const dbCompletion=await completePerformanceTimingAttempt(pendingAttempt,onStage=>
+    awaitOwnedDbCompletion(db,fixture,auditBaseline,response?.headers.get('x-correlation-id')??null,route,onStage));dbCompletionPending=false;
+   if(error&&!(allowCensor&&phase==='before'&&classifyPerformanceTimeout(error,elapsedMs,signal)))throw error;
+   pendingAttempt.stage='sample-validation';
    const common={case:name,iteration,phase,requestSelection:selection,startedAt,sessionId:fixture.hm.id,identityId:fixture.hm.identityId,membershipId:fixture.hm.membershipId,
     assignmentId:fixture.hm.assignmentId,customerId:fixture.customerId,correlationId:dbCompletion.correlationId,auditBaseline,dbCompletion,
     auditPaired:true,businessUnchanged:equal(before,await fixture.businessHashes())};
@@ -624,6 +665,7 @@ async function timingFixtureReserve(baseURL,phase='before',allowCensor=true){
    }
    samples.push(sample);process.stdout.write(`${sample.status} ${phase} ${name} ${iteration}: ${error?'>=30000':Math.round(durationMs)} ms; owned DB transaction finished\n`);
    if(sample.status==='FAIL')throw Error('performance_http_timing_failed');
+   pendingAttempt=null;
   }
  }catch(error){failure=planningSafeFailure(error);cleanupDeferred=dbCompletionPending;}
  finally{
@@ -633,7 +675,7 @@ async function timingFixtureReserve(baseURL,phase='before',allowCensor=true){
   await db.end({timeout:5});
  }
  return {policy:allowCensor&&phase==='before'?PERFORMANCE_RESERVE_POLICY:null,ok:!failure&&!cleanupFailure&&!cleanupDeferred&&(allowCensor&&phase==='before'?reserveTimingEvidenceValid({policy:PERFORMANCE_RESERVE_POLICY,cleanupDeferred,sqlPreparation,samples}):timingSamplesComplete(samples,phase==='after'))&&planningCleanupPreserved(cleanup),
-  samples,sqlPreparation,cleanup,cleanupDeferred,cleanupFailure,failure,
+  samples,sqlPreparation,cleanup,cleanupDeferred,cleanupFailure,failure,pendingAttempt,
   pendingOwner:cleanupDeferred&&fixture?{customerId:fixture.customerId,organizerId:fixture.organizerId,sessionId:fixture.hm.id}:null};
 }
 
