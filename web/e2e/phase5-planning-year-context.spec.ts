@@ -9,6 +9,7 @@ import path from 'node:path';
 import { createPlanningYearFixture, verifyPlanningYearBrowserTarget } from '../../work/pilot/phase5-planning-year-fixtures.mjs';
 import { schoolYearLabel, selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
 import type { GymTimplan } from '../lib/gym-timplan.ts';
+import { parseProgramplanOfferingList } from '../lib/programplan-workspace-contract.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
 
 type Fixture = Awaited<ReturnType<typeof createPlanningYearFixture>>;
@@ -540,10 +541,20 @@ test('C08: faktisk sessionsutgång rensar även en blockerad skrivning och gamma
   await expect(page.getByRole('button', { name: 'Logga ut', exact: true })).toHaveCount(0);
   expect(new URL(page.url()).searchParams.has('planeringslasar')).toBe(false);
   const renewed = await ownedNode('session', () => fixture.newPrincipal()); await fixture.cookies(page.context(), renewed, baseURL);
+  const renewedList = page.waitForResponse(responseFor('/api/programplaner/lista'));
   const setup = page.waitForResponse(responseFor(SETUP)); await page.goto('/?vy=programplaner');
   const current = await setup; expect(current.status()).toBe(200); const available = await current.json();
   expect(await fixture.pairedPlanning(current.headers()['x-correlation-id'], renewed, 'planning_year_selection_read')).toBe(true);
   await readyPlanning(page, available.currentYear, fixture.unitId);
+  const actualList = await renewedList; expect(actualList.status()).toBe(200);
+  expect(actualList.headers()['cache-control']).toBe('no-store');
+  const listed = parseProgramplanOfferingList(await actualList.json(), 1);
+  expect(listed.offerings.length).toBeGreaterThan(0);
+  expect(await fixture.paired(actualList.headers()['x-correlation-id'], renewed, 'programplan_offerings_listed', null, 'education_collection')).toBe(true);
+  // Hela listladdningen läser även senare sidor och verkliga programval.
+  const renewedCollection = program(page).getByRole('region', { name: 'Alla programplaner', exact: true });
+  await expect(renewedCollection.getByRole('searchbox', { name: 'Sök utbildning', exact: true })).toBeVisible();
+  await expect(renewedCollection).toHaveAttribute('aria-busy', 'false');
   await expect(gym(page)).toHaveCount(0); expect(writes).toBe(1);
   await info.attach('expired-session.json', { body: JSON.stringify({ writes, actualExpiredRead: true, oldSelectionCleared: true, renewedScopeRead: true }), contentType: 'application/json' });
   await capture(page, info, 'fresh-session-current-year');
