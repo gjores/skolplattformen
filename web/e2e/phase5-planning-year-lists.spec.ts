@@ -211,7 +211,9 @@ test.beforeEach(async ({ page }) => {
     if ([LIST, OVERVIEW, SETUP].includes(pathname(reply))) { const check = actualAudit(reply, pathname(reply)); void check.catch(() => undefined); auditChecks.push(check); }
   });
   fixture = await createPlanningListFixture(); metadata = await fixture.setup(baseURL); session = fixture.hm;
+  // The list wrapper dispatches this GET-only route without a request body.
   const reply = await ownedRequest(baseURL, session, SETUP); expect(reply.status).toBe(200);
+  expect('noStore' in reply && reply.noStore).toBe(true);
   expect(await fixture.pairedPlanning(reply.correlationId, session, 'planning_year_selection_read')).toBe(true); setup = parsePlanningSetup(reply.body); setupComplete = true;
 });
 test.afterEach(async ({ page }, info) => {

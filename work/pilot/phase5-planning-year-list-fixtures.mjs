@@ -37,18 +37,30 @@ export async function createPlanningListFixture(){
    and t.offering_id=${offeringId} and t.unit_id=${unitId} and t.source_programplan_id=${sourcePlanId}
    and t.gym_basis->>'planId'=${sourcePlanId} and jsonb_array_length(t.gym_basis->'rows')>0`,1,'list_fixture_plan_ownership');
  };
- const actual=async(baseURL,session,route,body)=>{
+ const request=async(baseURL,session,route,body)=>{
   await assertTarget('protected');await owned(db);
-  let reply;
-  try{reply=await base.request(baseURL,session,route,body);}
-  catch(error){unknownCompletion=true;throw error;}
+  try{
+   if(route==='/api/planering/urval'){
+    if(body!==undefined)refuse('list_fixture_setup_body_forbidden');
+    const response=await fetch(`${baseURL}${route}`,{method:'GET',headers:{Cookie:`sp_session=${session.token}`,
+     'X-Context-Epoch':String(session.epoch),'Sec-Fetch-Site':'same-origin',Origin:baseURL},signal:AbortSignal.timeout(30000)});
+    const correlationId=response.headers.get('x-correlation-id'),noStore=response.headers.get('cache-control')==='no-store';
+    const reply={status:response.status,body:await response.json(),correlationId,noStore};
+    if(!noStore||! /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/u.test(correlationId??''))refuse('list_fixture_setup_headers_failed');
+    return reply;
+   }
+   return await base.request(baseURL,session,route,body);
+  }catch(error){unknownCompletion=true;throw error;}
+ };
+ const actual=async(baseURL,session,route,body)=>{
+  const reply=await request(baseURL,session,route,body);
   if(reply.status!==200)refuse('list_fixture_actual_response_failed');
   return reply;
  };
  const audit=async(reply,session,action,id,type='timplan')=>{
   if(!await base.pairedGym(reply.correlationId,session,action,id,type))refuse('list_fixture_actual_audit_failed');
  };
- const fixture={...base,
+ const fixture={...base,request,
   async setup(baseURL){
    if(started)refuse('list_fixture_setup_already_started');started=true;
    let initial;
