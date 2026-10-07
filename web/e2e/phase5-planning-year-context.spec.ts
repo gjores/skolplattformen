@@ -366,7 +366,7 @@ test('C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/ut
   await gym(page).getByRole('button', { name: 'Öppna programplan', exact: true }).click();
   await expect(board(page)).toContainText('Allt sparat');
   await program(page).getByRole('button', { name: 'Timplan', exact: true }).click(); await expect(gymTable(page)).toBeVisible();
-  const relative = gym(page).getByLabel('Visa årskurs', { exact: true });
+  const relative = gym(page).getByLabel('Visa årskurs');
   await relative.selectOption('1');
   await expect.poll(() => new URL(page.url()).searchParams.get('planeringsrelativar')).toBe('2');
   await page.reload(); await expect(gymTable(page)).toBeVisible(); await expect(relative).toHaveValue('1');
