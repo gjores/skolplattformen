@@ -422,8 +422,8 @@ test('L04: kombinerade årsfilter, omvänd sort, tomresultat och Rensa filter', 
   await expect(region(page)).toContainText('Inget underlag matchar valen.');
   const cleared = nextList(page, input => input.query === '' && input.status === 'all' && input.cohortRelation === 'relevant' && input.archive === 'active' && input.grade === null);
   await region(page).getByRole('button', { name: 'Rensa filter', exact: true }).click(); const fresh = await parsed(await cleared); await rowsMatch(page, fresh);
-  await expect(search(page)).toHaveValue(''); await expect(page.getByLabel('Planstatus', { exact: true })).toHaveValue('all');
-  await expect(page.getByLabel('Årskurs', { exact: true })).toHaveValue('');
+  await expect(search(page)).toHaveValue(''); await expect(page.getByRole('combobox', { name: 'Planstatus', exact: true })).toHaveValue('all');
+  await expect(page.getByRole('combobox', { name: 'Årskurs', exact: true })).toHaveValue('');
   await capture(page, info, 'combined-empty-clear');
 });
 
