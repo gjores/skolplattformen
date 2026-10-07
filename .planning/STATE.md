@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: UI05-39 två bevarade avslutsfel; båda egna återställningar PASS. Oberoende granskad avslutsordning provas först i C01, därefter full C16 och40–43.
+stopped_at: UI05-39 tredje ägda återställning PASS med full historikbevaring. Awaitad Back-URL provas avgränsat i C04 före färsk full C16 och40–43.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: 69bebae
-verification_worker_build_revision: 0913d5a0527e2975ce3059b8672b2c139bf07997
+state_head: 69deacd
+verification_worker_build_revision: dd44848ad37b4510594a44ef316505ae1c978649
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -31,6 +31,10 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 tredje ägda återställning 2026-10-07 — avgränsat PASS:** Separat läsande v2förkontroll SHA `1bd47180` och faktisk städning SHA `b8d0c8c4` på exakt skript `b957c5cb` PASS. Endast senaste syntetiska graf `acd9908c` och dess 13 egna sessioner städades; ursprungliga 15 heltabeller, katalog/rå ACL, full aktuell audit/identiteter, två tidigare kvarvarande mandatgrafer och nio mellanliggande cleanup-projektioner är hashbevarade före/efter/postcommit. Huvudkundens mandat-/identitetsankare består för dess 46 logghändelser. Första preflightFAIL och skrivprovFAIL förblir separata felbevis. Egen Cspec `7e8d48a0` inväntar exakt återställd Back-URL och samma värde/Sparar…/en skrivning före släppt kvitto; oberoende källreview/lint PASS. Färskt faktiskt avgränsat C04 och därefter full C16 krävs; 83/100 består, vanlig3012 fortfarande5dd7baf.
+
+**UI39 tredje återställningsförkontroll 2026-10-07:** Källgranskat skript `88a2f557` stoppade före mutation: äldre audit-rader valdes med textsorterat outputalias `id::text` under LIMIT. Obligatorisk tidigare kontrollsumma avvek och skyddsgrinden vägrade. Alla 15 originaltabeller, katalog/rå ACL och ursprungliga identiteter stämde; 13 egna sessioner låstes men ingen städning/revokering startade. [Första förkontrollens FAIL](../work/pilot/results/phase5-39-third-context-recovery-preflight-20261007.json) SHA `c32c9cdb` bevaras. Avgränsad v2 använder numeriskt kvalificerat `e.id` och samma historiska SHA-krav med separata rapporter. Ingen ny fixture före godkänd förkontroll och faktisk ägd städning; 83/100 består.
 
 **UI39 avgränsat C04-skrivprov 2026-10-07:** Efter labelrättningen gav faktiskt radkommando 200 och frivilliga års-/skol-/vy-/uppdragsval behölls. Omedelbar URL-jämförelse direkt efter browser-Back avvek före hållet svar släppts; första [diagnosrapporten](../work/pilot/results/phase5-39-context-bounded-writes-fifth-20261007.json) SHA `156e99f6` bevaras. Avslutet gav deferred för en aldrig fullkvitterad POST `/api/timplaner/gym/lasa` i stage seen; setup och påbörjade node-/fetchjobb var avslutade, inga unknown-flaggor, alla page/context-grindar stängda. Den isolerade Worker3060 är exakt stoppad/disposed (parent98053); ingen ny fixture eller snapshot/cleanup tills egen källgranskad återställning är verifierad. Händelseordning kontra produktspärr utreds; ingen full39-/mobil-PASS och83/100 består.
 
