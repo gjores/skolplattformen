@@ -7,8 +7,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createPlanningYearFixture, verifyPlanningYearBrowserTarget } from '../../work/pilot/phase5-planning-year-fixtures.mjs';
-import { planningYearLabel } from '../lib/planning-year-model.ts';
-import { selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
+import { schoolYearLabel, selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
 import type { GymTimplan } from '../lib/gym-timplan.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
 
@@ -216,7 +215,7 @@ test('C01: registeråret och två filter återkommer medan planeringsår/skola f
   await page.goto(`/${selectionToQuery(selected)}`);
   const listResponse = await actualList; expect(listResponse.status()).toBe(200);
   expect(listResponse.request().postDataJSON().selection).toEqual(selected);
-  await expect(page.getByRole('heading', { name: `Elever läsåret ${planningYearLabel(registerYear)}`, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: `Elever läsåret ${schoolYearLabel(registerYear)}`, exact: true })).toBeVisible();
   await navigate(page, 'Programplaner');
   await year(page).selectOption(String(metadata.planningYear));
   await school(page).selectOption('all');
