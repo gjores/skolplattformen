@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 egen skolscope granskad och integrerad; nytt isolerat bygge/G01+G10×2 före fullG38/C04×2.
+stopped_at: UI05-41 G01+G10×2 actualPASS/fullcleanup; fullG38 pågår på samma f355717-bygge, därefter C04×2.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-41 första egna klonens skolscope avgränsad efter exakta ägarkontroller; endast käll-PASS, nytt faktiskt prov återstår."
-state_head: 2689e90
-verification_worker_build_revision: 2689e90045724e135b0c52f3cf6f22cff3e8e64f
+last_activity_desc: "UI05-41 fyra dator-/telefonprov actualPASS, literal2027/start2026 och skolscope verifierade; fullG38 pågår."
+state_head: f355717
+verification_worker_build_revision: f355717834a9ac1c27301f703613d49721a7b944
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 G01+G10×2 faktiskt2026-10-08 — avgränsat PASS:** Source/buildf355717, G4bcec/fixtur271. Raw87ec774e, faktisk exit0 och oberoende artifactreview: fyra normalcleanup/full15 exaktSEARCH/audit-/identitetsankare/16ownflat ochforeign/list/GY/DDLzero PASS.24 explicita källor/49 skyddade och241 breda produktkällor binds separat till Git/bygge.18geometrier minst44px/contained och18 faktiska PNG. Literal2027/start2026 visaråk2 i både program/timplan på dator/telefon; startad programplan och arkiverad gymtimplan behåller låsen. Kanonisk URLnotis borta; fokushopplänksartefakt kvar. FullG38 kör seriellt på samma oförändrade f355-källa/bygge med egen bilagekatalog, därefterC04×2.85/100 och vanlig3012 består.
 
 **UI41 skolscope2026-10-08 — käll-PASS:** Selektiv ed1de618/fixtur271215ad/Gspec4bcec561 är ROOT- och oberoende granskad med17 rena prov. Enbart första egna klonens B-länk tas bort inom samma transaktion efter full ägar-/källkontroll, exakt två egna A+B-länkar och lås; exakt A och källägande återkontrolleras. Ursprunglig delning/historik och alla mandat består. G01 lägger till faktiskt kalenderprov2027/start2026→åk2 i båda vyerna; kanonisk gymnasium-URL tar bort provets normaliseringsnotis. G02–19/assertions/tidsgrindar är oförändrade. Tidigare caaf8637/850eb835/875c48af består; inga nya actualprov ännu. Nytt isolerat bygge och G01+G10×2 före fullG38/C04×2,85/100 och vanlig3012 består.
 
