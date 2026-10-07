@@ -1,5 +1,7 @@
 # Roadmap: Skolplattformen
 
+**API-läsning 2026-10-07 — avgränsat PASS:** [05-38](phases/05-bevarade-utbildnings-och-klassfloden/05-38-SUMMARY.md) har faktisk preflight och permanent slutmatris 15 fall/247 kontroller vardera PASS. Exakt tre läsgrants ger 28 Worker-entrypoints; 11 hjälpare är fortsatt stängda. Alla 15 hela originaltabeller/tidsstämplar, audit/identitetsankare och övriga definitioner/rättigheter bevarade. Nästa är [05-38-READ-PERFORMANCE](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-PLAN.md) för uppmätt långsam 52-raderslistning, därefter UI 05-39–43. 81 av 99 planer är genomförda; fulla PLANERING-/ADMIN-krav, fas 5 och båda gapen är fortsatt Pending. Ordinarie 3012 är oförändrad.
+
 **SQL-läsgrund 2026-10-07 — avgränsat PASS:** [05-37](phases/05-bevarade-utbildnings-och-klassfloden/05-37-SUMMARY.md) är genomförd och exakt tillämpad i isolerad lokal protected-databas. Både rollback och applied: 93 SQL-prov, 18 faktisk kontraktsparitet och 3 verkliga kundlåsväntor PASS; Node 6 och riktade lås 9 PASS. Alla 15 hela originaltabeller/tidsstämplar, säkerhetsaudit, gamla ACL/funktionsdefinitioner och journal bevarade. Tre nya läs-RPC och elva hjälpare är fortsatt stängda; samma 25 befintliga Worker-entrypoints. GR-originalkartor saknar proveniens och ger okända årstimmar. [Exakt inventering](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-FUNCTION-INVENTORY.md). Nästa plan är **05-38, skyddad API-läsning och exakt läsgrant**; 80 av 98 skrivna planer är genomförda. PLANERING-01–05/hela fas 5 och övriga gap är fortsatt Pending. Ordinarie 3012 är oförändrad.
 
 **Läsårsmodell 2026-10-06 — avgränsat PASS:** [05-36](phases/05-bevarade-utbildnings-och-klassfloden/05-36-SUMMARY.md) är genomförd: källstyrt GY-/GR-/IM-årssnitt, strikta läskontrakt och skilda poäng-/tim-/klassmått. 70 riktade Node-prov, 20 oberoende verifierarprober och typ/lint PASS. Ingen ny SQL/API/UI eller serverändring följer av modellsteget. PLANERING-01–05 och hela fas 5 är fortsatt Pending. Nästa plan är **05-37, stängd SQL-läsgrund**; 79 av 98 skrivna planer har SUMMARY.
@@ -169,7 +171,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-16 och 05-18–05-24 är automatiskt genomförda med dokumenterade gränser; 05-23 A–E PASS enligt aktuell ram. Grundflödet är användarrapporterat godkänt. 05-17 saknar PLAN; äldre 05-25–35 kräver omplanering. Nästa plan är 05-38 efter genomförd modell 05-36 och stängd SQL-läsgrund 05-37. Fulla krav/fas och övriga uttryckligen oprövade användarmoment kvarstår.
+**Plans**: 05-01–05-16 och 05-18–05-24 är automatiskt genomförda med dokumenterade gränser; 05-23 A–E PASS enligt aktuell ram. Grundflödet är användarrapporterat godkänt. 05-17 saknar PLAN; äldre 05-25–35 kräver omplanering. Nästa plan är 05-38-READ-PERFORMANCE efter genomförd API-läsning 05-38; därefter UI05-39–43. Fulla krav/fas och övriga uttryckligen oprövade användarmoment kvarstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -205,7 +207,8 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 
 - [x] [05-36-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-36-PLAN.md) — Ren läsårs-/kullmodell och kontrollerade års-/listkontrakt: 70 Node-prov, 20 oberoende prober, typ/lint PASS. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-36-SUMMARY.md). Ingen SQL/API/UI; fulla krav Pending.
 - [x] [05-37-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-37-PLAN.md) — Stängd SQL-läsgrund genomförd 2026-10-07: 93 SQL/18 paritet/3 lås före och efter apply, 15 helradstabeller och ACL/journal bevarade. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-37-SUMMARY.md). Tre nya RPC fortsatt stängda; nästa 05-38.
-- [ ] [05-38-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-PLAN.md) — Verklig Worker/preflight och exakt öppning av verifierade läsgrants.
+- [x] [05-38-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-PLAN.md) — Preflight/slutmatris15/247 PASS; tre exakta läsgrants och full bevaring.
+- [ ] [05-38-READ-PERFORMANCE-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-PLAN.md) — Exakt privat definitionsrättning med paritet och faktisk tidsmätning före UI05-39.
 - [ ] [05-39-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-39-PLAN.md) — Separat planeringskontext/URL och oberoende elevregisterår.
 - [ ] [05-40-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-PLAN.md) — Sökbara tabeller och läsårsöverblick för skolor/kullar/versioner.
 - [ ] [05-41-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-41-PLAN.md) — Rätt relativår i öppnade gymnasieplaner, med oförändrade terminsindex och sparskydd.

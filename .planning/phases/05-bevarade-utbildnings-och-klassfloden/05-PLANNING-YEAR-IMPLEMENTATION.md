@@ -3,14 +3,14 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 topic: planning-year
 created: 2026-10-06
 status: in_progress
-plans: ["05-36", "05-37", "05-38", "05-39", "05-40", "05-41", "05-42", "05-43"]
+plans: ["05-36", "05-37", "05-38", "05-38-READ-PERFORMANCE", "05-39", "05-40", "05-41", "05-42", "05-43"]
 requirements: [PLANERING-01, PLANERING-02, PLANERING-03, PLANERING-04, PLANERING-05]
 worker_build_revision_at_planning: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 ---
 
 # Genomförande: läsåret som sammanhang för planeringen
 
-**Aktuellt delresultat:** [05-36-SUMMARY](05-36-SUMMARY.md) och [oberoende verifiering](05-36-VERIFICATION.md) är klara: ren modell/läskontrakt med 70 Node-prov, 20 oberoende prober och typ/lint PASS. 05-37 är därefter tillämpad/verifierad som stängd SQL-foundation, se [SUMMARY](05-37-SUMMARY.md) och [inventering](05-PLANNING-YEAR-FUNCTION-INVENTORY.md): 93 SQL/18 paritet/3 lås både före/efter apply. Nästa plan 05-38 är inte startad. API/UI i 05-38–43 och samtliga fulla PLANERING-krav kvarstår. Detta index beskriver både beställd planering och faktiskt avgränsad leverans. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
+**Aktuellt delresultat:** [05-36-SUMMARY](05-36-SUMMARY.md) och [oberoende verifiering](05-36-VERIFICATION.md) är klara: ren modell/läskontrakt med 70 Node-prov, 20 oberoende prober och typ/lint PASS. 05-37 är därefter tillämpad/verifierad som stängd SQL-foundation, se [SUMMARY](05-37-SUMMARY.md) och [inventering](05-PLANNING-YEAR-FUNCTION-INVENTORY.md): 93 SQL/18 paritet/3 lås både före/efter apply. 05-38 har därefter faktisk preflight/slutprov15/247 PASS och exakt tre läsgrants (28 entries). Nästa är avgränsad prestandarättning före UI05-39–43. UI i 05-39–43 och samtliga fulla PLANERING-krav kvarstår. Detta index beskriver både beställd planering och faktiskt avgränsad leverans. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
 
 [Plangranskningen är klar](05-PLANNING-YEAR-PLAN-CHECK.md): åtta planer och 21 uppgifter har kontrollerade beroenden, avgränsningar och verifieringssteg. Inga granskningsfynd kvarstår. Detta bekräftar planens kvalitet; genomförande och verksamhetsprov återstår.
 
@@ -26,14 +26,15 @@ Byte av läsår är ett urval. Det ändrar inga statusar, beslut, fastställda v
 | --- | --- | --- | --- |
 | [05-36](05-36-PLAN.md) | 1 | 2 | **Genomförd**, se SUMMARY/VERIFICATION. Ren läsårs-/snittmodell och strikt kontrakt. Januaristart, frysta datum, null/0 och GR/IM; inga DB-anrop. |
 | [05-37](05-37-PLAN.md) | 2 | 3 | **Genomförd**, se SUMMARY/VERIFICATION. Stängda SQL-projektioner: 93 SQL/18 paritet/3 lås före/efter apply; 15 helradstabeller/ACL/journal bevarade. Inga nya Workergrants. |
-| [05-38](05-38-PLAN.md) | 3 | 3 | Tre läsrutter i Worker, riktig temporär preflight med exakt återställning, därefter tre exakta permanenta läsgrants och samma slutmatris. |
-| [05-39](05-39-PLAN.md) | 4 | 2 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
+| [05-38](05-38-PLAN.md) | 3 | 3 | **Genomförd**15/247 preflight/slutprov; tre läsrutter i Worker, riktig temporär preflight med exakt återställning, därefter tre exakta permanenta läsgrants och samma slutmatris. |
+| [05-38-READ-PERFORMANCE](05-38-READ-PERFORMANCE-PLAN.md) | 4 | 3 | Privat definitionsrättning med exakt gammal/ny-paritet, samma API-matris och uppmätt svarstid. |
+| [05-39](05-39-PLAN.md) | 4 efter korrektivet | 4 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
 | [05-40](05-40-PLAN.md) | 5 | 3 | Verklig årsöverblick, gemensam sök/filter/sort/pagination och program-/gymtimplanstabeller. |
 | [05-41](05-41-PLAN.md) | 6 | 3 | Rätt relativår i program/gymmatris, hela originalindex och osparat-/korsårssparskydd. |
 | [05-42](05-42-PLAN.md) | 7 | 2 | Tabell för grundskola/introduktionsprogram och rätt års-/kolumn-/versionsöppning, utan automatiska nya klasskopplingar. |
 | [05-43](05-43-PLAN.md) | 8 | 3 | Samlad seriell verifiering, handbok och S1/S3-kontrakt; verkligt användarprov separat. |
 
-Beroendekedja: `05-36 → 05-37 → 05-38 → 05-39 → 05-40 → 05-41 → 05-42 → 05-43`. Alla är automatiskt körbara när deras faktiska föregångare är genomförda; åtta waves beror på delade kontrakt, filer och samma isolerade DB-underlag. Detta är en selektiv komplettering inom fas 5, **inte en instruktion att köra alla fasens planer med samma wave-nummer**. Generisk execute-phase på hela fas 05 kan träffa äldre 05-25 eller andra replan_required-planer. Välj uttryckligt endast det här paketets plan-ID:n och följ dess beroenden. Saknad SUMMARY i en föregångare är inte leveransbevis; kontrollera faktisk kod, källbundna resultat och tillämpad SQL.
+Beroendekedja: `05-36 → 05-37 → 05-38 → 05-38-READ-PERFORMANCE → 05-39 → 05-40 → 05-41 → 05-42 → 05-43`. Alla är automatiskt körbara när deras faktiska föregångare är genomförda; åtta waves beror på delade kontrakt, filer och samma isolerade DB-underlag. Detta är en selektiv komplettering inom fas 5, **inte en instruktion att köra alla fasens planer med samma wave-nummer**. Generisk execute-phase på hela fas 05 kan träffa äldre 05-25 eller andra replan_required-planer. Välj uttryckligt endast det här paketets plan-ID:n och följ dess beroenden. Saknad SUMMARY i en föregångare är inte leveransbevis; kontrollera faktisk kod, källbundna resultat och tillämpad SQL.
 
 ## Varför åtta små planer
 

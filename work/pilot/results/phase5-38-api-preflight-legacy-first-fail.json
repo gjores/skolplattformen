@@ -1,0 +1,2780 @@
+{
+  "kind": "phase5-planning-year-api",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "preflight": true,
+  "reset": false,
+  "complete": true,
+  "status": "FAIL",
+  "cases": [
+    {
+      "name": "built-worker",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "actual workerd uses limited Worker role",
+          "ok": true
+        },
+        {
+          "name": "exact 28 read entry privileges",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "role-school-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "urval expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "urval exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "HM actual live customer and school scope",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "HM program frame without pupil mandate",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "urval exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "R A actual live customer and school scope",
+          "ok": true
+        },
+        {
+          "name": "R A cannot acquire another school",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "R A program frame without pupil mandate",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "urval exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "R B actual live customer and school scope",
+          "ok": true
+        },
+        {
+          "name": "R B cannot acquire another school",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "R B program frame without pupil mandate",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "urval exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "limited HM actual live customer and school scope",
+          "ok": true
+        },
+        {
+          "name": "limited HM cannot acquire another school",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "limited HM program frame without pupil mandate",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "urval exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "GY administrator actual live customer and school scope",
+          "ok": true
+        },
+        {
+          "name": "GY administrator cannot acquire another school",
+          "ok": true
+        },
+        {
+          "name": "GY administrator cannot read GR/IM",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "GY administrator program frame without pupil mandate",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "full-search-filter-sort-pages",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "52 full-scope rows, first page50",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "same revision page2 has remaining2 without duplicates",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "search finds full collection item beyond initial page",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "overview and reversed ordering use all52 rows",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "status filter applies to whole scope",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "grade/relation selects current firstyear",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "school has complete count and real revision",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "cohort has complete count and real revision",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "version has complete count and real revision",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "status has complete count and real revision",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "grade has complete count and real revision",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "points has complete count and real revision",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "gym-frozen-year-hours",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "two real school timplans freeze shared source",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "relativeyear1 keeps six originaltermcolumns",
+          "ok": true
+        },
+        {
+          "name": "relativeyear1 uses exact relevanttermhours",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "relativeyear2 keeps six originaltermcolumns",
+          "ok": true
+        },
+        {
+          "name": "relativeyear2 uses exact relevanttermhours",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "relativeyear3 keeps six originaltermcolumns",
+          "ok": true
+        },
+        {
+          "name": "relativeyear3 uses exact relevanttermhours",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "live source mutation cannot move frozen start/revision/cells",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "overview-frame-deduplication",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "shared program points count once across schools",
+          "ok": true
+        },
+        {
+          "name": "school timplan hours add independently",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "gr-old-binding-unknown-map",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "ak8 real year-bound old version wins newer draft",
+          "ok": true
+        },
+        {
+          "name": "ak8 unknown original map has required diagnosis",
+          "ok": true
+        },
+        {
+          "name": "ak8 preserves raw three-column English inventory",
+          "ok": true
+        },
+        {
+          "name": "ak8 keeps exactly bound real class IDs",
+          "ok": true
+        },
+        {
+          "name": "ak8 annual hours remain unknown",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "ak8 grade filter follows exact binding",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "ak9 real year-bound old version wins newer draft",
+          "ok": true
+        },
+        {
+          "name": "ak9 unknown original map has required diagnosis",
+          "ok": true
+        },
+        {
+          "name": "ak9 preserves raw three-column English inventory",
+          "ok": true
+        },
+        {
+          "name": "ak9 keeps exactly bound real class IDs",
+          "ok": true
+        },
+        {
+          "name": "ak9 annual hours remain unknown",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "ak9 grade filter follows exact binding",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "im-null-legacy",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "IM keeps actual weekly source and null cells",
+          "ok": true
+        },
+        {
+          "name": "weekly frame is partial, never yearly workload",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "future-missing-no-writes",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "oversikt expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "oversikt exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "future query preserves all15 business tables and timestamps",
+          "ok": true
+        },
+        {
+          "name": "missing and finished source diagnoses remain explicit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "scope-session-denials",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "urval expected HTTP401; actual HTTP401; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "urval denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP401; actual HTTP401; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP401; actual HTTP401; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP409; actual HTTP409; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP409; actual HTTP409; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP400; actual HTTP400; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP401; actual HTTP401; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "urval denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP409; actual HTTP409; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "stale-selection",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "lista expected HTTP200; actual HTTP200; no-store",
+          "ok": true
+        },
+        {
+          "name": "lista exact actor DB/Worker audit pairs",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP409; actual HTTP409; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista conflict directs whole selection reload",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP409; actual HTTP409; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt conflict directs whole selection reload",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "audit-required",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "db urval failed required audit returns503 without data",
+          "ok": true
+        },
+        {
+          "name": "db urval failure rolls back all success events and keeps original rows",
+          "ok": true
+        },
+        {
+          "name": "db lista failed required audit returns503 without data",
+          "ok": true
+        },
+        {
+          "name": "db lista failure rolls back all success events and keeps original rows",
+          "ok": true
+        },
+        {
+          "name": "db oversikt failed required audit returns503 without data",
+          "ok": true
+        },
+        {
+          "name": "db oversikt failure rolls back all success events and keeps original rows",
+          "ok": true
+        },
+        {
+          "name": "worker urval failed required audit returns503 without data",
+          "ok": true
+        },
+        {
+          "name": "worker urval failure rolls back all success events and keeps original rows",
+          "ok": true
+        },
+        {
+          "name": "worker lista failed required audit returns503 without data",
+          "ok": true
+        },
+        {
+          "name": "worker lista failure rolls back all success events and keeps original rows",
+          "ok": true
+        },
+        {
+          "name": "worker oversikt failed required audit returns503 without data",
+          "ok": true
+        },
+        {
+          "name": "worker oversikt failure rolls back all success events and keeps original rows",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "clients-helpers-closed",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "anon cannot execute public.phase5_planning_year_selection()",
+          "ok": true
+        },
+        {
+          "name": "anon cannot execute public.phase5_planning_year_list(jsonb)",
+          "ok": true
+        },
+        {
+          "name": "anon cannot execute public.phase5_planning_year_overview(jsonb)",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_planning_year_selection()",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_planning_year_list(jsonb)",
+          "ok": true
+        },
+        {
+          "name": "authenticated cannot execute public.phase5_planning_year_overview(jsonb)",
+          "ok": true
+        },
+        {
+          "name": "service_role cannot execute public.phase5_planning_year_selection()",
+          "ok": true
+        },
+        {
+          "name": "service_role cannot execute public.phase5_planning_year_list(jsonb)",
+          "ok": true
+        },
+        {
+          "name": "service_role cannot execute public.phase5_planning_year_overview(jsonb)",
+          "ok": true
+        },
+        {
+          "name": "all11 internal helpers remain Worker closed",
+          "ok": true
+        },
+        {
+          "name": "Worker has no bypass or superuser",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "legacy-read-regression",
+      "status": "FAIL",
+      "checks": [
+        {
+          "name": "/api/timplaner/gym/lasa old protected read remains200",
+          "ok": true
+        },
+        {
+          "name": "/api/timplaner/gym/lasa old read still audits DB and Worker",
+          "ok": true
+        },
+        {
+          "name": "/api/timplaner/lasa old protected read remains200",
+          "ok": true
+        },
+        {
+          "name": "/api/timplaner/lasa old read still audits DB and Worker",
+          "ok": true
+        },
+        {
+          "name": "/api/timplaner/lasa old protected read remains200",
+          "ok": false
+        },
+        {
+          "name": "/api/timplaner/lasa old read still audits DB and Worker",
+          "ok": false
+        },
+        {
+          "name": "/api/programplaner/lasa old protected read remains200",
+          "ok": true
+        },
+        {
+          "name": "/api/programplaner/lasa old read still audits DB and Worker",
+          "ok": true
+        },
+        {
+          "name": "legacy reads preserve all business rows",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "revoked-mandate",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "urval expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "urval denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "urval denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "urval denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "urval expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "urval denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "lista expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "lista denied read preserves every business row and no success audit",
+          "ok": true
+        },
+        {
+          "name": "oversikt expected HTTP403; actual HTTP403; no-store without planning data",
+          "ok": true
+        },
+        {
+          "name": "oversikt denied read preserves every business row and no success audit",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "name": "original-state-preservation",
+      "status": "PASS",
+      "checks": [
+        {
+          "name": "all15 original whole business rows/timestamps preserved",
+          "ok": true
+        },
+        {
+          "name": "original and new security audit and identity anchors retained",
+          "ok": true
+        },
+        {
+          "name": "all function definitions rawACL tableRLSACL journal preserved",
+          "ok": true
+        },
+        {
+          "name": "exact raw functionACL restored even after partial grant",
+          "ok": true
+        }
+      ]
+    }
+  ],
+  "sourceCommit": "be83c62413109a695b5ce9a88012a4738685e0d6",
+  "workerBuildRevision": "d59ec10f5b4469ce4e14e1e12a591aca2363a30b",
+  "sourceHashes": {
+    "work/pilot/verify-planning-year-api.mjs": "473b35bd691105419060f944beb398056380eadd2d9d5afcf066225d0b03ff7b",
+    "work/pilot/verify-planning-year-api.test.mjs": "7503204f6371056235b527c4c2bac9bf95ccc4a6f6489e4b50e1ed7d25ce9dab",
+    "work/pilot/phase5-planning-year-fixtures.mjs": "7b4a79d696e6e7f5521006a9f60a8e486fd85a9c40795133b15ade3cecc0677d",
+    "work/pilot/phase5-gym-timplan-fixtures.mjs": "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "51b947176323157c748979ae9c8cf0e4d5ccad967dbe176c40cb70b6b30d8e79",
+    "work/pilot/apply-planning-year-grants.mjs": "713c944cb88a14946039f9060a0b7705913e7e5980f1a68e607998ce346dbe10",
+    "work/pilot/apply-planning-year-migration.mjs": "45cf6cc5db0c500ce254c0d3991eb53d7b47621bc914fc0eb905439ab0019015",
+    "work/pilot/apply-gym-timplan-migration.mjs": "87069500c6a45a236959a40d0816683b5accfc19ec2958ffdff1ff8ce664355e",
+    "work/pilot/verify-programplan-api.mjs": "626cf54e147a8f13dbb7888be0062de8d08323c6b583599e0a1d17364dac73fe",
+    "work/pilot/verify-target.mjs": "984729588773c910a3f016bf1e42a0f9503caa22a21c8b702621cec75a3b009f",
+    "web/lib/planning-year-contract.ts": "f366aba3567a243a21108b8613ea2c6cb3f2961ba9b7906f31d29033b8d859d1",
+    "web/lib/planning-year-model.ts": "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+    "web/lib/server/planning-year.ts": "9f0b2038aba352966f7f6194ea85ff7ee7d5c2cc4c3054e9f438d637e45f304e",
+    "web/lib/server/authz.ts": "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+    "web/lib/server/mandate-route.ts": "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+    "web/lib/server/db.ts": "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+    "web/lib/server/events.ts": "f7705febcfc3300192930d2ee088a129742c38d15c737cd533fa24fcded65268",
+    "web/lib/server/http.ts": "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2",
+    "web/lib/server/audit-details.ts": "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+    "web/lib/mandate-policy.ts": "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+    "web/lib/server/gym-timplan.ts": "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446",
+    "web/lib/gym-timplan.ts": "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6",
+    "web/lib/programplan-catalog.generated.json": "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124",
+    "web/app/api/planering/urval/route.ts": "eedc533d872d4584b1493d81d62c660b165e6ad06b506f868b05bcbfa262f051",
+    "web/app/api/planering/lista/route.ts": "3964695006d1c262fadd34e91229c6e30f40840569a2303fe2c6446124928950",
+    "web/app/api/planering/oversikt/route.ts": "a83f8f6c845e1efe259bfc6f256d768dffd97b01e48c58731d79044f379fc64d",
+    "supabase/migrations/20261006120000_phase5_planning_year_reads.sql": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+    "supabase/migrations/20261006121000_phase5_worker_planning_year_reads.sql": "ef34e6a5f606d940e6851aed591a2cb84ff8af279c94994cbca9655326e2db82"
+  },
+  "baselineFingerprint": "524c51b76041859b1eb3ab70702ca0d015298a90f272be48f053545bf7ed6cd7",
+  "finalFingerprint": "524c51b76041859b1eb3ab70702ca0d015298a90f272be48f053545bf7ed6cd7",
+  "beforeAcl": [
+    {
+      "f": "public.phase5_timplan_scope(uuid,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_timplan_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_timplan(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_list_timplans(integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_shape(jsonb,text[])",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_text(jsonb,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_code(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_integer(jsonb,integer,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_array(jsonb,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_date(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_dates(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_item(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_canonical(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_block_valid(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_url(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_payload_valid(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_catalog_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_catalog_immutable()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_date_diagnostic(jsonb,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_blocked(text,text,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_subject_diagnostics(jsonb,text,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_resolve_programplan_basis(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_session_check()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_scope(uuid,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_basis(jsonb,offerings,text[])",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_event_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_result(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_audit(uuid,text,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_programplan(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_education(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_workspace_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_list_programplan_offerings(integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_workspace(uuid,integer,text)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit(uuid,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_education_audit(text,uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_selection(uuid,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_organisation_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_education_status(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_term_rows(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_terms(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_terms_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_terms_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_programplan_terms(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_phase_at(date,integer,boolean,date)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_today()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_starts_on(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_phase(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_lifecycle(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_writable(offerings,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_lifecycle_audit(text,uuid,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_primary_unit()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_choice_block_diagnostics(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_alternative_groups(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_choice_blocks(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_require_current_shape(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_upgrade_shape(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_upgrade_terms(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_require_unused_block_ids(uuid,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_languages()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_ladders()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_selection(jsonb,text,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_resolved_selections(uuid,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_package_audit(uuid,text,uuid,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_package_result(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_programplan_unit_packages(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_package_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_immutable()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_levels(text,text,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_result(programplan_packages)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_audit(text,uuid,uuid,integer,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_list_programplan_packages(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_scoped_selection(jsonb,text,jsonb,uuid,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_scope(uuid,uuid,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_source(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_require_source(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_event_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_cells_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_matrix_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_receipt_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_result(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_underlag(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_gym_timplan(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_academic_date(date)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_audit(text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_selection()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_validate(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_gym_cells(jsonb,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_measure(bigint,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_metrics(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_rows(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_sorted(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_revision(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_totals(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_list(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_overview(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    }
+  ],
+  "afterAcl": [
+    {
+      "f": "public.phase5_timplan_scope(uuid,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_timplan_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_timplan(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_list_timplans(integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_shape(jsonb,text[])",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_text(jsonb,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_code(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_integer(jsonb,integer,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_array(jsonb,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_date(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_dates(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_item(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_canonical(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_block_valid(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_url(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_payload_valid(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_catalog_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_catalog_immutable()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_date_diagnostic(jsonb,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_blocked(text,text,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_subject_diagnostics(jsonb,text,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_resolve_programplan_basis(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_session_check()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_scope(uuid,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_basis(jsonb,offerings,text[])",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_event_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_result(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_audit(uuid,text,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_programplan(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_education(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_workspace_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_list_programplan_offerings(integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_workspace(uuid,integer,text)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit(uuid,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_education_audit(text,uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_selection(uuid,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_organisation_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_education_status(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_term_rows(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_terms(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_terms_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_terms_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_programplan_terms(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_phase_at(date,integer,boolean,date)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_today()",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_starts_on(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_phase(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_lifecycle(offerings)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_writable(offerings,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_lifecycle_audit(text,uuid,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "f": "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,service_role=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_primary_unit()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_choice_block_diagnostics(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_alternative_groups(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_choice_blocks(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_require_current_shape(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_upgrade_shape(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_upgrade_terms(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_require_unused_block_ids(uuid,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_languages()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_ladders()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_selection(jsonb,text,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_resolved_selections(uuid,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_package_audit(uuid,text,uuid,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_package_result(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_programplan_unit_packages(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_unit_package_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_immutable()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_levels(text,text,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_result(programplan_packages)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_package_audit(text,uuid,uuid,integer,integer)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_list_programplan_packages(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_programplan_validate_scoped_selection(jsonb,text,jsonb,uuid,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_scope(uuid,uuid,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_source(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_require_source(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_audit(uuid,text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_event_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_cells_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_matrix_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_receipt_guard()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_result(uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_gym_timplan_underlag(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_read_gym_timplan(uuid)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+      "granted": true,
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_actor()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_academic_date(date)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_audit(text)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_selection()",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_validate(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_gym_cells(jsonb,uuid)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_measure(bigint,boolean)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_metrics(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_rows(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_sorted(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_revision(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_totals(jsonb,jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_list(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    },
+    {
+      "f": "public.phase5_planning_year_overview(jsonb)",
+      "granted": false,
+      "acl": "{postgres=X/postgres}"
+    }
+  ],
+  "beforeWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "verifiedWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+    "public.phase5_planning_year_selection()",
+    "public.phase5_planning_year_list(jsonb)",
+    "public.phase5_planning_year_overview(jsonb)"
+  ],
+  "restoredWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "preflightAclRestored": true,
+  "aclUnchanged": true,
+  "functionsAndJournalPreserved": true,
+  "cleanupStatus": "PASS",
+  "cleanup": {
+    "libraryVersions": 0,
+    "unitPackages": 0,
+    "offeringUnits": 0,
+    "customers": 0,
+    "sessions": 0,
+    "plans": 0,
+    "receipts": 0,
+    "educationEvents": 0,
+    "offerings": 0,
+    "mandates": 0,
+    "preservedAuditEvents": 196,
+    "preservedAuditAnchors": 4,
+    "mintedSessions": 0,
+    "triggers": 0,
+    "functions": 0,
+    "gymReceipts": 0,
+    "timplans": 0,
+    "classLinks": 0,
+    "originalBusinessUnchanged": true,
+    "before": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+      },
+      "school_years": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "after": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+      },
+      "school_years": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "originalBusiness": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+      },
+      "school_years": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "finalBusiness": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+      },
+      "school_years": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "originalAuditHash": "cb77892e8a7e2009b86a8ba1c83815dc32208df4bf761a50a77c238a7e248f15",
+    "finalAuditHash": "cb77892e8a7e2009b86a8ba1c83815dc32208df4bf761a50a77c238a7e248f15",
+    "originalIdentityHash": "e14d3c00a40d570b69f1304f471089d594f73cd711e77e0a2d6d14bea2a49911",
+    "finalIdentityHash": "e14d3c00a40d570b69f1304f471089d594f73cd711e77e0a2d6d14bea2a49911",
+    "originalBusinessPreserved": true,
+    "originalAuditPreserved": true,
+    "identityAnchorsPreserved": true,
+    "retainedAuditPreserved": true,
+    "retainedIdentityAnchorsPreserved": true,
+    "beforeRetainedAudit": {
+      "count": 172690,
+      "sha256": "8b5cd71e9b847d767d562893ac4f5747bf72baba3ff6bf4f4340b1b70f9b3931"
+    },
+    "afterRetainedAudit": {
+      "count": 172690,
+      "sha256": "8b5cd71e9b847d767d562893ac4f5747bf72baba3ff6bf4f4340b1b70f9b3931"
+    },
+    "beforeRetainedAnchors": {
+      "count": 4514,
+      "sha256": "60c4b939a8584c2f654d864d6d499a75094ccfb0b98c088335dacf1dc2d6e44a"
+    },
+    "afterRetainedAnchors": {
+      "count": 4514,
+      "sha256": "60c4b939a8584c2f654d864d6d499a75094ccfb0b98c088335dacf1dc2d6e44a"
+    },
+    "foreignRemaining": {
+      "offerings": 0,
+      "offeringUnits": 0,
+      "sessions": 0
+    },
+    "foreignRetainedAuditAnchors": {
+      "events": 2,
+      "anchoredEvents": 2
+    }
+  },
+  "cleanupFailure": null,
+  "originalBusinessPreserved": true,
+  "originalTimestampsPreserved": true,
+  "originalAuditPreserved": true,
+  "identityAnchorsPreserved": true,
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+    },
+    "school_years": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+    },
+    "school_years": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "error": null
+}

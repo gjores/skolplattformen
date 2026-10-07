@@ -1,0 +1,25 @@
+{
+  "kind": "phase5-planning-year-failure-history",
+  "firstAttempt": "phase5-38-api-preflight-first-fail.json",
+  "status": "historical-FAIL",
+  "scope": "local-synthetic-only",
+  "rawAclRestored": true,
+  "originalBusinessActuallyEqual": true,
+  "functionsAndJournalPreserved": true,
+  "findings": [
+    "macOS sleep/darkwake 2026-10-07 07:20–07:45 +0200 observed in pmset log; request timeouts and synthetic 30-minute session expiry",
+    "Cleanup SQL unquoted anchoredEvents returned anchoredevents; strict JS gate compared undefined. Fixed quoting, same actual preservation criteria.",
+    "Initial GR test expected null raw cells; actual raw legacy hours preserved and annual hours remain unknown. Expectation corrected.",
+    "Second awake attempt14/15: old strict IM read was given null mentor. Added separate complete legacy200 fixture and explicit incomplete400 case; actual planning unknown remains verified."
+  ],
+  "testCriteriaPreserved": true,
+  "permanentGrantsApplied": true,
+  "secondAttempt": "phase5-38-api-preflight-legacy-first-fail.json",
+  "finalOutcome": {
+    "preflight": "PASS15/247",
+    "final": "PASS15/247",
+    "cleanup": "PASS",
+    "grant": "exact3reads",
+    "workerEntries": 28
+  }
+}

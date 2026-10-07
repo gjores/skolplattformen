@@ -1,0 +1,146 @@
+{
+  "kind": "phase5-planning-year-grants",
+  "status": "PASS",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "reset": false,
+  "sourceHash": "ef34e6a5f606d940e6851aed591a2cb84ff8af279c94994cbca9655326e2db82",
+  "foundationHash": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+  "baselineFingerprint": "524c51b76041859b1eb3ab70702ca0d015298a90f272be48f053545bf7ed6cd7",
+  "afterFingerprint": "6165950e0f036247e30c360c7fd0ba49988b28e6e98d6153326bf94c48e5334b",
+  "changedAcl": [
+    "public.phase5_planning_year_list(jsonb)",
+    "public.phase5_planning_year_overview(jsonb)",
+    "public.phase5_planning_year_selection()"
+  ],
+  "originalDefinitionsTablesAndRowsPreserved": true,
+  "beforeWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "afterWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+    "public.phase5_planning_year_selection()",
+    "public.phase5_planning_year_list(jsonb)",
+    "public.phase5_planning_year_overview(jsonb)"
+  ],
+  "functions": [
+    {
+      "signature": "public.phase5_planning_year_academic_date(date)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "ff814446f517d1127c5ccd2259eed5634f7f13dd929aa168da4b4e81e6b8a41f"
+    },
+    {
+      "signature": "public.phase5_planning_year_actor()",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "d27a63ff882a1e804891978019b162403152923a3c672e1d72414cdc6cc71222"
+    },
+    {
+      "signature": "public.phase5_planning_year_audit(text)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "11e7355f5d15f03d2a090366238a8a9c1a00928c32ccc1c2b6c7863e08586cdb"
+    },
+    {
+      "signature": "public.phase5_planning_year_gym_cells(jsonb,uuid)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "c951b2643157ee185f9f991ee5667ed2dbc31fa25f99a2870fa023971470a4f4"
+    },
+    {
+      "signature": "public.phase5_planning_year_list(jsonb)",
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}",
+      "definitionHash": "cce58af94b9dfbfcd96b81244a1d390f9e003e97493a080641c99173296616ed"
+    },
+    {
+      "signature": "public.phase5_planning_year_measure(bigint,boolean)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "e8b94b29ac658c38bbc3d1e87f7af4353451e4faae3e65cfecf92f4876b5374a"
+    },
+    {
+      "signature": "public.phase5_planning_year_metrics(jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "3c45561376f01dbe713e85e4395d1bd7c7e7554891e038afba9aba6bd1365b23"
+    },
+    {
+      "signature": "public.phase5_planning_year_overview(jsonb)",
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}",
+      "definitionHash": "b442d029dcb2a1dca04a6447ff8dd99f21bc8134ddfeadf1b91af32b6a3d676b"
+    },
+    {
+      "signature": "public.phase5_planning_year_revision(jsonb,jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "e98fe73c4afe797ca61a0bde021c27fa99524f89fba355b3a00bc459af63ea80"
+    },
+    {
+      "signature": "public.phase5_planning_year_rows(jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "11b720970b78486bb7a51f6d54c490ad1758da09c20b8d4aae9c3423d99a1b44"
+    },
+    {
+      "signature": "public.phase5_planning_year_selection()",
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}",
+      "definitionHash": "10fec8854ee27c599c79a65c2e0696cce897a281233ca147dd6c9c7c2c7c30ab"
+    },
+    {
+      "signature": "public.phase5_planning_year_sorted(jsonb,jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "257289041b8a420ab12d8d3a29696d73e41e437e4d124e7d2ad9e077103e66ea"
+    },
+    {
+      "signature": "public.phase5_planning_year_totals(jsonb,jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "2970e1deb9eb37b9069989dd057d909d2111faa85c6a6bb545ad570ee887edcc"
+    },
+    {
+      "signature": "public.phase5_planning_year_validate(jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "156cec9a2314bbd77036cca630ebd1624b2f95a882ee96725ba1db6552f9a44a"
+    }
+  ]
+}
