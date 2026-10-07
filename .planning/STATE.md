@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 G01+G10×2 actualPASS/fullcleanup; fullG38 pågår på samma f355717-bygge, därefter C04×2.
+stopped_at: UI05-41 fullG38 PASS; separat C04 stoppade före skrivning vid retur via sourceobjekt. Normalcleanup; minimal källrättning före nytt C04.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-41 fyra dator-/telefonprov actualPASS, literal2027/start2026 och skolscope verifierade; fullG38 pågår."
+last_activity_desc: "UI05-41 fullG38/38cleanup PASS; C04 returfel bevarat och cacheorsak identifierad. Vanlig3012 består."
 state_head: f355717
 verification_worker_build_revision: f355717834a9ac1c27301f703613d49721a7b944
 worker_status: running_on_3012
@@ -31,6 +31,10 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 fullG38 och separat C04 2026-10-08:** FullG38 raw9a28ab25/source/buildf355717/G4bcec passerar38 fall utan retry/skips/fel.38normalcleanup/hela15 exaktSEARCH/6bevarandeflaggor/16ownflat ochforeignlistGYDDLzero;24explicita/49skyddade/241produkt-/2parserkällor,60geometrier minst44px/contained och60PNG ROOT-/oberoende kontrollerade. Full aktuell audit187791/befceecc och auditerade identiteter5116/42752a6 består efter sista cleanup. Bildbegränsning: providerWAIT kan ligga kvar efter accepterat lokalt årsbyte; shellnotisens tidigare rättning är separat.
+
+Separat C04 på samma bygge gav rå93548399/exit1: återgång Programplan→Timplan öppnade korrekt underlag med befintlig skolplan som knapp, men inte den tidigare exakt öppnade matrisen. Stopp före timskrivning; telefon ej startad. Ett normalcleanup/full15/auditidentity/16ownzero+foreignDDLzero PASS, ingen recovery behövs. Källorsak:41:s kanoniska sourceobjekt går runt shellens gamla stringbaserade returcache. Minimal strikt cachematchning även för sourceobjekt och rensning av providerWAIT endast vid accepterat lokalt årsbyte förbereds/granskas separat. Ingen actual42/final41,85/100 och vanlig3012 består. ROOTs rapporthelper och frysta releaseV4 hade dessutom för bred failure-name-matchning som felaktigt nekade G18:s avsiktliga audit-failure-bild; granskad avgränsning till cleanup-deferred/failure ändrar inga actualresultat/avslutskrav.
 
 **UI41 G01+G10×2 faktiskt2026-10-08 — avgränsat PASS:** Source/buildf355717, G4bcec/fixtur271. Raw87ec774e, faktisk exit0 och oberoende artifactreview: fyra normalcleanup/full15 exaktSEARCH/audit-/identitetsankare/16ownflat ochforeign/list/GY/DDLzero PASS.24 explicita källor/49 skyddade och241 breda produktkällor binds separat till Git/bygge.18geometrier minst44px/contained och18 faktiska PNG. Literal2027/start2026 visaråk2 i både program/timplan på dator/telefon; startad programplan och arkiverad gymtimplan behåller låsen. Kanonisk URLnotis borta; fokushopplänksartefakt kvar. FullG38 kör seriellt på samma oförändrade f355-källa/bygge med egen bilagekatalog, därefterC04×2.85/100 och vanlig3012 består.
 
