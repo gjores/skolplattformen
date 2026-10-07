@@ -1,14 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdtempSync,rmSync,symlinkSync,linkSync,readdirSync} from 'node:fs';
+import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {PERFORMANCE_MIGRATION,PERFORMANCE_TEST,PERFORMANCE_ENTRY,PERFORMANCE_SOURCE_PATHS,PERFORMANCE_SQL_CASES,PERFORMANCE_ORIGINAL_PARITY_CASES,
  PERFORMANCE_FOUNDATION_HASH,PERFORMANCE_ORIGINAL_TEST_HASH,PERFORMANCE_ORIGINAL_DEFINITION_HASH,parseReadPerformanceArgs,
  assertPerformanceDiff,validatePerformanceBaseApi,validatePerformanceRollback,timingSummary,performanceTimingProof,
- performanceParityProof,performanceProgress,performanceCatalogFingerprint,performanceRollbackScript,historicalPlanningRollbackScript,extractOriginalPlanningRows} from './verify-planning-year-read-performance.mjs';
+ performanceParityProof,performanceProgress,performanceCatalogFingerprint,performanceRollbackScript,historicalPlanningRollbackScript,extractOriginalPlanningRows,
+ PERFORMANCE_RESERVE_POLICY,validateReusablePerformanceSql,validateCensoredTimingSample,validateOwnedDbCompletion,classifyPerformanceTimeout,
+ performanceTimingLowerBoundProof,candidateDefinitionRollbackScript,canonicalPerformanceEvidencePath,computeAcceptedPerformanceTimingProof,validateReserveTimingEvidence,assertPerformanceEvidenceOutput,performanceProcessResult,performanceSqlNeedsCompletionProof,readHistoricalPerformanceSource,samePlanningTimingSelection,preservePerformanceReport} from './verify-planning-year-read-performance.mjs';
 import {parsePerformanceApplyArgs} from './apply-planning-year-read-performance.mjs';
 import {PLANNING_FOUNDATION,PLANNING_BASE_ENTRIES,PLANNING_ENTRIES,PLANNING_TABLES,sha} from './apply-planning-year-migration.mjs';
-import {PLANNING_API_CASES,PLANNING_API_SOURCE_PATHS} from './verify-planning-year-api.mjs';
+import {PLANNING_API_CASES,PLANNING_API_SOURCE_PATHS,planningSelection} from './verify-planning-year-api.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const clone=structuredClone;
 const cases=names=>names.map(name=>({name,status:'PASS',checks:[{ok:true}]}));
@@ -153,4 +156,180 @@ test('candidate SQL keeps literal PLpgSQL dollar quotes and replacement tokens b
  assert.equal((script.match(/as \$\$/gu)??[]).length,2);
  const literal="-- literal $$ $& $` $' tokens\n"+candidate;
  assert.ok(performanceRollbackScript(template,literal,foundation).includes(literal));
+});
+
+const reuseCheckNames=['exact target journal, private helper attributes, original/candidate definition and 28 Worker entries',
+ 'actual complete old/new JSONB and negative SQLSTATE parity','candidate SQL rollback restores every public definition rawACL table/RLS and journal',
+ 'exactly one predicted private definition change and no ACL/table/journal change','all93 original SQL tests and18 actual SQL/TypeScript contracts without skips',
+ 'historical closed-ACL assertion rollback restores exact rawACL28/full state','all15 original business whole rows and timestamps preserved after own cleanup',
+ 'original and newly retained audit and identity anchors preserved','original audit and identity whole rows preserved from coordinator start through every SQL and HTTP step',
+ 'full public definitions owners rawACL table/RLS and complete journal unchanged by verifier'];
+const httpCheck='actual serial 52-frame HTTP samples with exact audit pairs no-store stable revision and complete business preservation';
+const reuseContext=()=>({reportHash:'4f231086020d7f9e739fc0b36f28ab4829c7daf82852eb3356812145852d1603',readHistorical:read,readCurrent:read,
+ runtimePaths:['web/package.json','web/lib/programplan-catalog.ts','web/lib/server/planning-year.test.mjs']});
+function reuseComponent(){const e=rollback();return {...e,status:'FAIL',complete:false,sourceCommit:'c0b5e1705c45dfa11e3490feef83ff4b1b2b6318',failure:null,
+ checks:[...reuseCheckNames.map(name=>({name,ok:true})),{name:httpCheck,ok:false}],timings:{samples:[],failure:{code:'REQUEST_TIMEOUT'}}};}
+function completionSample(name='list',iteration=1){
+ const correlationId=`55000000-0000-4000-8000-${String(['list','search','page2'].indexOf(name)*3+iteration).padStart(12,'0')}`;
+ const session={sessionId:'55000000-0000-4000-8000-000000000080',identityId:'55000000-0000-4000-8000-000000000010',
+ membershipId:'55000000-0000-4000-8000-000000000020',assignmentId:'55000000-0000-4000-8000-000000000060',customerId:'55000000-0000-4000-8000-000000000001'};
+ const events=['planning_year_selection_read','planning_year_list_read'].flatMap(action=>['db','worker'].map(source=>({
+ correlation_id:correlationId,source,action,outcome:'ok',actor_identity_id:session.identityId,membership_id:session.membershipId,
+ assignment_id:session.assignmentId,session_id:session.sessionId,customer_id:session.customerId,object_type:'planning_year_collection',object_id:null}))).map((e,i)=>({...e,id:String(101+(['list','search','page2'].indexOf(name)*3+iteration-1)*4+(name==='page2'?1:0)+i)}));
+ const base=planningSelection(2026,{view:'programplan',query:'Syntetisk årsplaneringsram',status:'utkast'});
+ const requestSelection={...base,...(name==='search'?{query:'Syntetisk årsplaneringsram52'}:name==='page2'?{page:2,selectionRevision:'sha256:'+'c'.repeat(64)}:{})};
+ return {case:name,iteration,phase:'before',requestSelection,timeoutSignal:{kind:'AbortSignal.timeout',timeoutMs:30000,aborted:true,reasonName:'TimeoutError',errorIsReason:true},...session,correlationId,status:'RIGHT_CENSORED',errorName:'TimeoutError',elapsedMs:30002,lowerBoundMs:30000,
+ durationMs:null,httpStatus:null,count:null,rows:null,selectionRevision:null,noStore:null,auditPaired:true,businessUnchanged:true,
+ auditBaseline:{count:2,maxEventId:String(100+(['list','search','page2'].indexOf(name)*3+iteration-1)*4+(name==='page2'?1:0)),sha256:'a'.repeat(64)},dbCompletion:{ownedDbTransactionFinished:true,sessionLockReleased:true,
+ barrier:{sessionId:session.sessionId,lockMode:'FOR UPDATE',rollback:true},correlationId,auditCount:4,auditGroupHash:sha(JSON.stringify(events)),events,newEventIds:events.map(e=>e.id)}};
+}
+function sqlPrep(){
+ const owner=completionSample(),auditEvent={...owner.dbCompletion.events[2],id:'125',correlation_id:'55000000-0000-4000-8000-000000000099'};
+ return {kind:'OWNED_SQL_PREPARATION',transport:'postgres',httpResponse:false,requestSelection:owner.requestSelection,correlationId:auditEvent.correlation_id,sessionId:owner.sessionId,count:52,rows:50,selectionRevision:'sha256:'+'c'.repeat(64),auditCount:1,auditHash:sha(JSON.stringify([auditEvent])),auditEvent,barrier:owner.dbCompletion.barrier,ownedDbTransactionFinished:true};
+}
+function censoredBefore(){return ['list','search','page2'].flatMap(name=>[1,2,3].map(i=>completionSample(name,i)));}
+test('explicit reuse and applied rollback paths preserve defaults and reject aliases unsafe modes or overwritten input',()=>{
+ const folder=mkdtempSync('/private/tmp/performance-reserve-path-');
+ try{
+  const proof=join(folder,'proof.json'),alias=join(folder,'alias.json');writeFileSync(proof,'{}');symlinkSync(proof,alias);
+  // Only direct files in approved directories are supported, never arbitrary subdirectories.
+  assert.throws(()=>canonicalPerformanceEvidencePath(proof,{input:true}));
+  const direct=join('/private/tmp',`performance-proof-${Date.now()}.json`),sym=direct.replace('.json','-alias.json');writeFileSync(direct,'{}');symlinkSync(direct,sym);
+  try{
+   const args=['--target','protected','--mode','rollback','--base-url','http://127.0.0.1:3060','--out','/private/tmp/reserve-out.json'];
+   assert.equal(parseReadPerformanceArgs([...args,'--reuse-sql-evidence',direct]).reuseSqlEvidence,direct);
+   assert.throws(()=>parseReadPerformanceArgs([...args.slice(0,-1),sym,'--reuse-sql-evidence',direct]));
+   assert.throws(()=>parseReadPerformanceArgs([...args,'--reuse-sql-evidence',direct,'--rollback-evidence',direct]));
+   assert.throws(()=>parseReadPerformanceArgs([...args.map(v=>v==='rollback'?'applied':v),'--reuse-sql-evidence',direct]));
+   assert.equal(parseReadPerformanceArgs([...args.map(v=>v==='rollback'?'applied':v),'--rollback-evidence',direct]).rollbackEvidence,direct);
+   assert.throws(()=>parseReadPerformanceArgs([...args.slice(0,-1),direct.replace('/private/tmp/','/tmp/'),'--reuse-sql-evidence',direct]));
+  }finally{rmSync(sym);rmSync(direct);}
+ }finally{rmSync(folder,{recursive:true,force:true});}
+});
+test('SQL component reuse accepts only named sealed SQL success while historical coordinator FAIL stays FAIL',()=>{
+ const e=reuseComponent(),original=clone(e),component=validateReusablePerformanceSql(e,reuseContext());
+ assert.deepEqual(component.namedComponents,['performance143','performance46','original93','original18']);assert.deepEqual(e,original);assert.equal(e.status,'FAIL');assert.equal(e.complete,false);
+ for(const mutate of [e=>e.sql.exitCode=3,e=>e.sql.timedOut=true,e=>e.sql.tap.assertions[0]+=' # SKIP omitted',e=>e.originalSql.tap.assertions[0]+=' # TODO later',e=>e.sql.tap.total=142,e=>e.sql.tap.assertions.pop(),
+  e=>e.originalSql.tap.assertions[0]='not ok 1 actual failure',e=>e.parity.cases[0].newHash='b'.repeat(64),e=>e.originalSql.parity.cases.pop(),
+  e=>e.originalFoundationHash='b'.repeat(64),e=>e.originalTestHash='b'.repeat(64),e=>e.sourceHash='b'.repeat(64),e=>e.sourceHashes[PERFORMANCE_TEST]='b'.repeat(64),
+  e=>e.beforeWorkerFunctions.pop(),e=>e.afterAcl[0].acl='changed',e=>e.afterCatalog.functions[0].owner='other',e=>e.finalHashes.point_plans.count++,
+  e=>e.finalOriginalAnchors.audit.sha256='b'.repeat(64),e=>e.finalOriginalAnchors.identities.count++,e=>e.cleanup.retainedIdentityAnchorsPreserved=false,
+  e=>e.checks[0].ok=false,e=>e.checks.pop(),e=>e.checks.push({name:'ignored exception',ok:false}),e=>e.timings.failure.code='TEST_FAILED',
+  e=>e.failure={code:'SQL_PROOF_FAILED'},e=>e.complete=true,e=>e.reusableExplicitNamedSqlComponents={},e=>e.workerBuildRevision='bad']){
+  const bad=reuseComponent();mutate(bad);assert.throws(()=>validateReusablePerformanceSql(bad,reuseContext()));
+ }
+ for(const context of [{...reuseContext(),reportHash:'a'.repeat(64)}, {...reuseContext(),readHistorical:()=>Buffer.from('changed old SQL')},
+  {...reuseContext(),readCurrent:p=>Buffer.from(p.endsWith(PERFORMANCE_MIGRATION)?'wrong cache key':'source')},
+  {...reuseContext(),readCurrent:p=>Buffer.from(p.includes('fixtures.mjs')?'wrong fixture':'source')},
+  {...reuseContext(),runtimePaths:[]}, {...reuseContext(),readCurrent:p=>Buffer.from(p.endsWith('programplan-catalog.ts')?'wrong runtime':'source')}])assert.throws(()=>validateReusablePerformanceSql(reuseComponent(),context));
+});
+test('current canonical full SQL report may have the same c0b5 commit but a fresh exact hash',()=>{
+ const context={...reuseContext(),reportHash:'a'.repeat(64),currentFullReportHash:'a'.repeat(64)};
+ assert.doesNotThrow(()=>validateReusablePerformanceSql(reuseComponent(),context));
+ const bad=reuseComponent();bad.sql.exitCode=3;assert.throws(()=>validateReusablePerformanceSql(bad,context));
+ const allowed={...context,readCurrent:p=>Buffer.from(p==='work/pilot/verify-planning-year-read-performance.mjs'?'new explicit measurement/gate code':'source')};
+ assert.doesNotThrow(()=>validateReusablePerformanceSql(reuseComponent(),allowed));
+});
+test('censor classification requires the real timeout error and at least actual thirty seconds',()=>{
+ const signal=AbortSignal.abort(new DOMException('timeout','TimeoutError'));assert.equal(classifyPerformanceTimeout(signal.reason,30001,signal),true);
+ assert.equal(classifyPerformanceTimeout(signal.reason,30001,AbortSignal.abort()),false);
+ assert.equal(classifyPerformanceTimeout({name:'TimeoutError'},30001,signal),false);
+ for(const [error,time] of [[Error('timeout'),30001],[new DOMException('abort','AbortError'),30001],[new DOMException('timeout','TimeoutError'),29999],[{name:'TimeoutError'},NaN]])assert.equal(classifyPerformanceTimeout(error,time),false);
+ assert.doesNotThrow(()=>validateCensoredTimingSample(completionSample()));
+ for(const mutate of [s=>s.errorName='AbortError',s=>s.elapsedMs=29999,s=>s.lowerBoundMs=29999,s=>s.durationMs=30000,s=>s.count=52,s=>s.rows=50,
+  s=>s.selectionRevision='sha256:'+'a'.repeat(64),s=>s.httpStatus=200,s=>s.noStore=true,s=>s.httpStatus=503,s=>s.businessUnchanged=false,
+  s=>s.dbCompletion.ownedDbTransactionFinished=false,s=>s.dbCompletion.sessionLockReleased=false,s=>s.dbCompletion.barrier.rollback=false,
+  s=>s.dbCompletion.barrier.sessionId='wrong',s=>s.dbCompletion.auditCount=3,s=>s.dbCompletion.newEventIds[0]='100',s=>s.dbCompletion.newEventIds[1]=s.dbCompletion.newEventIds[0],
+  s=>s.dbCompletion.events[0].source='worker',s=>s.dbCompletion.events[0].outcome='denied',s=>s.dbCompletion.events[0].session_id='wrong',
+  s=>s.dbCompletion.events[0].correlation_id='wrong',s=>s.dbCompletion.events[0].actor_identity_id='wrong',s=>s.dbCompletion.auditGroupHash='b'.repeat(64)]){
+  const bad=completionSample();mutate(bad);assert.throws(()=>validateCensoredTimingSample(bad));
+ }
+ const headers=completionSample();headers.httpStatus=200;headers.noStore=true;assert.doesNotThrow(()=>validateCensoredTimingSample(headers));
+});
+test('audit completion never treats four wrong OK events or a lock without rollback as finished',()=>{
+ assert.doesNotThrow(()=>validateOwnedDbCompletion(completionSample()));
+ for(const mutate of [s=>s.dbCompletion.events[0].action='planning_year_overview_read',s=>s.dbCompletion.events[0].customer_id='wrong',
+  s=>s.dbCompletion.events[0].object_type='wrong',s=>s.dbCompletion.events[0].object_id='invented',s=>s.dbCompletion.events[0].assignment_id='wrong',
+  s=>s.dbCompletion.events[0].membership_id='wrong',s=>s.dbCompletion.events.pop(),s=>s.dbCompletion.barrier.lockMode='FOR SHARE']){
+  const bad=completionSample();mutate(bad);bad.dbCompletion.auditGroupHash=sha(JSON.stringify(bad.dbCompletion.events));assert.throws(()=>validateOwnedDbCompletion(bad));
+ }
+});
+test('lower bound is conservative and never invents exact old responses or speedup',()=>{
+ const before=censoredBefore(),after=samples(true,1000),proof=performanceTimingLowerBoundProof(before,after,sqlPrep());
+ assert.equal(proof.ok,true);assert.equal(proof.policy,PERFORMANCE_RESERVE_POLICY);assert.equal(proof.groups.list.beforeLowerBound.medianMs,30000);
+ assert.ok(proof.groups.list.speedupLowerBound>=3);assert.equal(Object.hasOwn(proof.groups.list,'speedup'),false);
+ assert.equal(performanceTimingProof(before,after).ok,false);
+ for(const mutate of [s=>s.pop(),s=>s[0].status='PASS',s=>s[0].durationMs=30000,s=>s[0].dbCompletion.barrier.rollback=false,
+  s=>s[1].correlationId=s[0].correlationId,s=>s[0].count=52]){const bad=censoredBefore();mutate(bad);assert.equal(performanceTimingLowerBoundProof(bad,after,sqlPrep()).ok,false);}
+ assert.equal(performanceTimingLowerBoundProof(before,samples(true,6000),sqlPrep()).ok,false);
+ const slow=samples(true,1000);slow[0].durationMs=10000;assert.equal(performanceTimingLowerBoundProof(before,slow,sqlPrep()).ok,false);
+ assert.equal(performanceTimingLowerBoundProof(before,after.filter(s=>s.case!=='overview'),sqlPrep()).ok,false);
+ assert.equal(computeAcceptedPerformanceTimingProof(rollback(),{timings:{samples:after}},read).ok,true);
+});
+test('short canonical helper proof is transaction rollback with literal exact candidate and no SQL case substitution',()=>{
+ const foundation=readFileSync(root+'supabase/migrations/'+PLANNING_FOUNDATION,'utf8'),candidate=readFileSync(root+'supabase/migrations/'+PERFORMANCE_MIGRATION,'utf8');
+ const script=candidateDefinitionRollbackScript(candidate,foundation);
+ assert.ok(script.includes(candidate));assert.equal((script.match(/PLANNING_PERFORMANCE_DEFINITION\|/gu)??[]).length,1);
+ assert.equal((script.match(/PLANNING_PERFORMANCE_CATALOG\|/gu)??[]).length,1);assert.match(script,/begin;[\s\S]*rollback;\s*$/u);assert.doesNotMatch(script,/\bcommit;/iu);
+ assert.throws(()=>candidateDefinitionRollbackScript(candidate,foundation+'\n-- changed'));
+});
+
+test('reserve requires actual SQL prefetch, exact page requests and unique serial owned audit groups',()=>{
+ const valid=()=>({policy:PERFORMANCE_RESERVE_POLICY,cleanupDeferred:false,samples:censoredBefore(),sqlPreparation:sqlPrep()});
+ assert.doesNotThrow(()=>validateReserveTimingEvidence(valid()));
+ for(const mutate of [e=>e.sqlPreparation=null,e=>e.sqlPreparation.auditHash='b'.repeat(64),e=>e.sqlPreparation.httpResponse=true,
+  e=>e.sqlPreparation.requestSelection.schoolYear++,e=>e.sqlPreparation.auditEvent.actor_identity_id='wrong',e=>e.sqlPreparation.barrier.rollback=false,
+  e=>e.samples[6].requestSelection.selectionRevision='sha256:'+'d'.repeat(64),e=>e.samples[4].requestSelection.schoolYear++,
+  e=>e.samples[1].auditBaseline.maxEventId='100',e=>e.samples[1].sessionId='wrong',e=>e.samples[1].identityId='wrong',
+  e=>e.samples[1].dbCompletion.newEventIds[0]=e.samples[0].dbCompletion.newEventIds[0],e=>e.samples.reverse(),
+  e=>e.samples[0].timeoutSignal.errorIsReason=false,e=>e.cleanupDeferred=true]){
+  const bad=valid();mutate(bad);assert.throws(()=>validateReserveTimingEvidence(bad));
+ }
+ assert.equal(performanceTimingLowerBoundProof(censoredBefore(),samples(true,1000)).ok,false);
+});
+test('evidence destinations reject broken symlinks, hardlink aliases and immutable/historical names',()=>{
+ const stem='/private/tmp/performance-alias-'+Date.now(),proof=stem+'.json',link=stem+'-link.json',broken=stem+'-broken.json';
+ writeFileSync(proof,'{}');linkSync(proof,link);symlinkSync(stem+'-missing.json',broken);
+ try{
+  assert.throws(()=>canonicalPerformanceEvidencePath(broken));assert.throws(()=>assertPerformanceEvidenceOutput(link,[proof]));
+  assert.throws(()=>assertPerformanceEvidenceOutput('/private/tmp/phase5-read-performance-sealed-full-'+ 'a'.repeat(64)+'.json'));
+  assert.throws(()=>assertPerformanceEvidenceOutput('/private/tmp/phase5-38-read-performance-rollback-fail-123.json'));
+  assert.throws(()=>parsePerformanceApplyArgs(['--migration',PERFORMANCE_MIGRATION,'--evidence',proof,'--out',link]));
+ }finally{for(const path of [proof,link,broken])rmSync(path,{force:true});}
+});
+test('SQL deadline aborts while the client is still alive and never treats exit zero as completed',async()=>{
+ let abortCalls=0;
+ const result=await performanceProcessResult(process.execPath,['-e','setInterval(()=>{},1000)'],{timeoutMs:20,onAbort:async()=>{abortCalls++;return {ownedBackendStopped:true};}});
+ assert.equal(abortCalls,1);assert.equal(result.timedOut,true);assert.equal(result.abortProof.ownedBackendStopped,true);assert.equal(performanceSqlNeedsCompletionProof(result),true);
+ for(const partial of [{exitCode:0,timedOut:true},{exitCode:0,outputOverflow:true},{exitCode:0,streamError:true},{exitCode:0,signal:'SIGTERM'},{exitCode:3}])assert.equal(performanceSqlNeedsCompletionProof(partial),true);
+ assert.equal(performanceSqlNeedsCompletionProof({exitCode:0,timedOut:false}),false);
+});
+
+test('eligible HTTP-only full report permits absent historical failure but rejects every SQL/pending failure',()=>{
+ const omitted=reuseComponent();delete omitted.failure;assert.doesNotThrow(()=>validateReusablePerformanceSql(omitted,reuseContext()));
+ const current=reuseComponent();current.failure={code:'REQUEST_TIMEOUT',reason:null};assert.doesNotThrow(()=>validateReusablePerformanceSql(current,reuseContext()));
+ for(const mutate of [e=>e.failure={code:'TEST_FAILED'},e=>e.sqlCompletionPending=true,e=>e.timings.cleanupDeferred=true,e=>e.originalSql.timedOut=true,
+  e=>e.sql.signal='SIGTERM',e=>e.originalSql.outputOverflow=true]){const bad=reuseComponent();mutate(bad);assert.throws(()=>validateReusablePerformanceSql(bad,reuseContext()));}
+});
+
+test('actual historical large generated catalog is read as bounded complete Git bytes',()=>{
+ const data=readHistoricalPerformanceSource('web/lib/programplan-catalog.generated.json','c0b5e1705c45dfa11e3490feef83ff4b1b2b6318');
+ assert.ok(data.length>1024*1024);assert.ok(data.length<8*1024*1024);assert.doesNotThrow(()=>JSON.parse(data.toString()));
+});
+test('actual JSONB selection echo compares exact primitive fields independent of PostgreSQL key order',()=>{
+ const input=planningSelection(2026,{view:'programplan',query:'Syntetisk årsplaneringsram',status:'utkast'}),jsonb=Object.fromEntries(Object.entries(input).reverse());
+ assert.equal(samePlanningTimingSelection(jsonb,input),true);assert.equal(samePlanningTimingSelection({...jsonb,extra:true},input),false);
+ assert.equal(samePlanningTimingSelection({...jsonb,schoolYear:2027},input),false);
+});
+
+test('rapid failed report updates retain both older and newer exact FAIL bytes',()=>{
+ const stem='performance-history-'+Date.now(),out='/private/tmp/'+stem+'.json',old={status:'FAIL',complete:false,proof:'older'};
+ writeFileSync(out,JSON.stringify(old));const original=readFileSync(out,'utf8');
+ try{
+  preservePerformanceReport(out,{status:'FAIL',complete:false,proof:'newer'});
+  preservePerformanceReport(out,{status:'FAIL',complete:false,proof:'newest'});
+  const history=readdirSync('/private/tmp').filter(n=>n.startsWith(stem+'-fail-')).map(n=>readFileSync('/private/tmp/'+n,'utf8'));
+  assert.ok(history.includes(original));assert.ok(history.some(raw=>JSON.parse(raw).proof==='newer'));assert.ok(history.some(raw=>JSON.parse(raw).proof==='newest'));
+  assert.equal(history.length,4);
+ }finally{for(const n of readdirSync('/private/tmp').filter(n=>n.startsWith(stem)))rmSync('/private/tmp/'+n,{force:true});}
 });
