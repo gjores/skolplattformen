@@ -45,12 +45,77 @@ async function ownedNode<T>(stage: NodeStage, operation: () => Promise<T>): Prom
   catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }
   finally { nodePending--; }
 }
-async function actualRouteFetch(route: Route): Promise<APIResponse> {
-  try {
-    const actual = await route.fetch();
-    completedActualRoutes.add(route.request()); pending.delete(route.request());
-    return actual;
-  } catch { browserUnknown = true; throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+
+type BrowserActor = Fixture['principal'];
+type BrowserCompletionStage = 'scope' | 'fetch' | 'body' | 'audit' | 'fulfill';
+type BrowserRouteStage = 'seen' | 'fetch' | 'body' | 'audit' | 'complete';
+type SafeBrowserRoute = { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserRouteStage };
+const actualRouteJobs = new Set<Promise<APIResponse>>(), browserRouteStates = new Map<Request, SafeBrowserRoute>();
+let activeBrowserContext: ReturnType<Page['context']> | null = null, contextCloseAllowed = false, prematureContextClose = false;
+let requestActors = new WeakMap<Request, BrowserActor>(), auditReplies = new WeakMap<object, Promise<void>>(), auditRequests = new WeakMap<Request, Promise<void>>();
+let browserCompletionFailure: { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserCompletionStage } | null = null;
+function routeMetadata(request: Request): Pick<SafeBrowserRoute, 'pathname' | 'method'> {
+  const pathname = new URL(request.url()).pathname, method = request.method();
+  return { pathname: /^\/api\/[a-z]+(?:\/[a-z]+)*$/u.test(pathname) ? pathname : '/api/unknown',
+    method: method === 'GET' || method === 'POST' ? method : 'OTHER' };
+}
+function recordBrowserRoute(request: Request, stage: BrowserRouteStage) {
+  browserRouteStates.set(request, { ...routeMetadata(request), stage });
+}
+function recordBrowserCompletionFailure(request: Request, stage: BrowserCompletionStage) {
+  browserUnknown = true;
+  browserCompletionFailure ??= { ...routeMetadata(request), stage };
+}
+function requestActor(request: Request): BrowserActor {
+  const captured = requestActors.get(request);
+  if (!captured) throw Error('OWNED_ACTOR_SCOPE');
+  return captured;
+}
+function cachedAudit(reply: Response | APIResponse, verify: () => Promise<void>): Promise<void> {
+  const request = 'request' in reply ? (reply as Response).request() : null;
+  const existing = auditReplies.get(reply) ?? (request ? auditRequests.get(request) : undefined);
+  if (existing) return existing;
+  const proof = Promise.resolve().then(verify);
+  auditReplies.set(reply, proof); if (request) auditRequests.set(request, proof);
+  return proof;
+}
+async function actualRouteFetch(route: Route, validate?: (actual: APIResponse) => Promise<void>): Promise<APIResponse> {
+  const request = route.request();
+  // Capture before transport; a later assignment switch cannot change this audit's actor.
+  const captured = requestActors.get(request);
+  const job = Promise.resolve().then(async () => {
+    let stage: BrowserCompletionStage = 'scope';
+    try {
+      const url = new URL(request.url());
+      if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/') || !captured) throw Error('OWNED_ROUTE_SCOPE');
+      stage = 'fetch'; recordBrowserRoute(request, 'fetch');
+      const actual = await route.fetch();
+      stage = 'body'; recordBrowserRoute(request, 'body'); await actual.body();
+      if (validate) await validate(actual);
+      if ([SETUP, LIST, ROW, GYREAD, TERMS, TERMSREAD].includes(url.pathname)) {
+        stage = 'audit'; recordBrowserRoute(request, 'audit');
+        const proof = audit(actual, url.pathname, request.method() === 'POST' ? request.postDataJSON() : undefined, captured);
+        auditRequests.set(request, proof); await proof;
+      }
+      recordBrowserRoute(request, 'complete'); completedActualRoutes.add(request); pending.delete(request);
+      return actual;
+    } catch { recordBrowserCompletionFailure(request, stage); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+  });
+  actualRouteJobs.add(job);
+  try { return await job; } finally { actualRouteJobs.delete(job); }
+}
+async function installActualPassthrough(page: Page) {
+  await page.context().route('**/api/**', async route => {
+    const request = route.request(), url = new URL(request.url());
+    if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) { await route.fallback(); return; }
+    const actual = await actualRouteFetch(route);
+    try { await route.fulfill({ response: actual }); }
+    catch {
+      if (!completedActualRoutes.has(request)) {
+        recordBrowserCompletionFailure(request, 'fulfill'); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN');
+      }
+    }
+  });
 }
 
 const sha=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
@@ -67,16 +132,18 @@ function gate(){let readyResolve!:(v:APIResponse)=>void,releaseResolve!:()=>void
  const ready=new Promise<APIResponse>(r=>{readyResolve=r;}),released=new Promise<void>(r=>{releaseResolve=r;});releases.push(releaseResolve);
  return {ready,released,readyResolve,release:releaseResolve};}
 async function request(...args:Parameters<Fixture['request']>){return ownedNode('request',()=>fixture.request(...args));}
-async function audit(reply:Response|APIResponse,route:string,ownedCommand?:{planId:string}){
- expect(reply.headers()['cache-control']).toMatch(/no-store/u);const corr=reply.headers()['x-correlation-id'];expect(corr).toBeTruthy();
- const actor=browserActor;
- if(reply.status()!==200){expect((await fixture.events(corr)).filter((e:{outcome:string})=>e.outcome==='ok')).toEqual([]);return;}
- if(route===SETUP||route===LIST){expect(await fixture.pairedPlanning(corr,actor,route===SETUP?'planning_year_selection_read':'planning_year_list_read')).toBe(true);return;}
- const command=ownedCommand??('request' in reply?(reply as Response).request().postDataJSON():null);
- const id=command?.planId;
- const action=route===ROW?'gym_timplan_row_changed':route===GYREAD?'gym_timplan_read':route===TERMS?'programplan_terms_changed':'programplan_terms_read';
- expect(await fixture.pairedGym(corr,actor,action,id,route===ROW||route===GYREAD?'timplan':'programplan')).toBe(true);
+function audit(reply: Response | APIResponse, route: string, ownedCommand?: { planId: string }, captured: BrowserActor = 'request' in reply ? requestActor((reply as Response).request()) : { ...browserActor }): Promise<void> {
+  return cachedAudit(reply, async () => {
+    expect(reply.headers()['cache-control']).toMatch(/no-store/u); const corr = reply.headers()['x-correlation-id']; expect(corr).toBeTruthy();
+    if (reply.status() !== 200) { expect((await ownedNode('readback', () => fixture.events(corr))).filter((e: { outcome: string }) => e.outcome === 'ok')).toEqual([]); return; }
+    if (route === SETUP || route === LIST) { expect(await ownedNode('readback', () => fixture.pairedPlanning(corr, captured, route === SETUP ? 'planning_year_selection_read' : 'planning_year_list_read'))).toBe(true); return; }
+    const command = ownedCommand ?? ('request' in reply ? (reply as Response).request().postDataJSON() : null);
+    const id = command?.planId;
+    const action = route === ROW ? 'gym_timplan_row_changed' : route === GYREAD ? 'gym_timplan_read' : route === TERMS ? 'programplan_terms_changed' : 'programplan_terms_read';
+    expect(await ownedNode('readback', () => fixture.pairedGym(corr, captured, action, id, route === ROW || route === GYREAD ? 'timplan' : 'programplan'))).toBe(true);
+  });
 }
+
 function selection(r:Cohort,view:PlanningSelection['view'],schoolYear=metadata.planningYear):PlanningSelection{
  return parsePlanningSelection(planningSelection(schoolYear,{view,unitId:fixture.unitId,query:r.query,status:'all',cohortRelation:'all',archive:'all'}));
 }
@@ -143,9 +210,25 @@ test.beforeEach(async({page})=>{
  if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');
  setupPending=false;nodePending=0;nodeUnknownStage=null;browserUnknown=false;completedActualRoutes=new WeakSet<Request>();
  fixture=undefined!;setupComplete=false;nodeUnknown=false;checks=[];dialogs=[];pending.clear();releases.length=0;
- page.on('request',r=>{if(pathname(r).startsWith('/api/')&&!completedActualRoutes.has(r))pending.add(r);});
- page.on('response',r=>{pending.delete(r.request());if(!controlledReplies.has(r.request())&&[SETUP,LIST,ROW,GYREAD,TERMS,TERMSREAD].includes(pathname(r))){const check=audit(r,pathname(r));void check.catch(()=>undefined);checks.push(check);}});
+
+  browserActor = undefined!;
+  browserCompletionFailure = null; actualRouteJobs.clear(); browserRouteStates.clear();
+  requestActors = new WeakMap<Request, BrowserActor>(); auditReplies = new WeakMap<object, Promise<void>>(); auditRequests = new WeakMap<Request, Promise<void>>();
+  activeBrowserContext = null; contextCloseAllowed = false; prematureContextClose = false;
+  const context = page.context();
+  if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL) || page.isClosed() || context.pages().length !== 1
+    || context.pages()[0] !== page || !context.browser()?.isConnected()) throw Error('OWNED_BROWSER_SCOPE');
+  activeBrowserContext = context;
+  context.once('close', () => { if (!contextCloseAllowed) { prematureContextClose = true; browserUnknown = true; } });
+ page.on('request', request => {
+    if (pathname(request).startsWith('/api/') && !completedActualRoutes.has(request)) {
+      pending.add(request); if (!browserRouteStates.has(request)) recordBrowserRoute(request, 'seen');
+      if (browserActor) requestActors.set(request, { ...browserActor });
+    }
+  });
+ page.on('response',r=>{pending.delete(r.request());if(!auditRequests.has(r.request())&&!controlledReplies.has(r.request())&&[SETUP,LIST,ROW,GYREAD,TERMS,TERMSREAD].includes(pathname(r))){const check=audit(r,pathname(r));void check.catch(()=>undefined);checks.push(check);}});
  page.on('dialog',async d=>{dialogs.push(d.type());await d.dismiss();});
+  await installActualPassthrough(page);
  fixture=await ownedNode('creation',()=>createPlanningGymFixture());
  if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');
  browserActor=fixture.principal;setupPending=true;
@@ -155,21 +238,36 @@ test.beforeEach(async({page})=>{
  setup=parsePlanningSetup(reply.body);setupComplete=true;
 });
 test.afterEach(async({page},info)=>{
- releases.splice(0).forEach(r=>r());let routesSettled=false,contextClosed=false;
- try{await page.unrouteAll({behavior:'wait'});routesSettled=true;}catch{browserUnknown=true;}
- try{await page.context().close();contextClosed=true;}catch{browserUnknown=true;}
- if(!fixture&&!recoveryRequired&&nodePending===0&&!nodeUnknown&&!browserUnknown&&pending.size===0&&routesSettled&&contextClosed)return;
- if(recoveryRequired||!setupComplete||setupPending||nodePending>0||nodeUnknown||browserUnknown||pending.size>0||!routesSettled||!contextClosed){
-  recoveryRequired=true;
-  // No fresh DB snapshot while completion is unknown; original evidence stays owned.
-  await info.attach('cleanup-deferred.json',{body:JSON.stringify({cleanupDeferred:true,databaseRecoveryRequired:true,
-   setupComplete,setupPending,pendingNodeRequests:nodePending,unknownNodeRequest:nodeUnknown,nodeUnknownStage,
-   unknownBrowserCompletion:browserUnknown,pendingRequests:pending.size,routesSettled,contextClosed,
-   ownedCustomerId:fixture?.customerId??null,ownedOrganizerId:fixture?.organizerId??null,foreignCustomerId:fixture?.foreignCustomerId??null,
-   originalBusiness:fixture?.originalBusiness??null,fixtureExposed:!!fixture}),contentType:'application/json'});
-  throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
- }
- const outcomes=await Promise.allSettled(checks);
+ releases.splice(0).forEach(r=>r());
+  let routesSettled = false, pageClosed = false, contextRoutesSettled = false, routeJobsSettled = false, contextClosed = false;
+  const context = page.context();
+  if (context !== activeBrowserContext || context.pages().some(candidate => candidate !== page)) browserUnknown = true;
+  try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; } catch { browserUnknown = true; }
+  try { await page.close(); pageClosed = true; } catch { browserUnknown = true; }
+  try { await context.unrouteAll({ behavior: 'wait' }); contextRoutesSettled = true; } catch { browserUnknown = true; }
+  const routeJobsAtDrain = actualRouteJobs.size;
+  await Promise.allSettled(actualRouteJobs); routeJobsSettled = actualRouteJobs.size === 0;
+  if (prematureContextClose) browserUnknown = true;
+  contextCloseAllowed = true;
+  try { await context.close(); contextClosed = true; } catch { browserUnknown = true; }
+ if(!fixture&&!recoveryRequired&&nodePending===0&&!nodeUnknown&&!browserUnknown&&pending.size===0&&routesSettled&&pageClosed&&contextRoutesSettled&&routeJobsSettled&&contextClosed)return;
+  const requireCompletion = async () => {
+   if(recoveryRequired||!setupComplete||setupPending||nodePending>0||nodeUnknown||browserUnknown||pending.size>0||!routesSettled||!pageClosed||!contextRoutesSettled||!routeJobsSettled||!contextClosed){
+    recoveryRequired=true;
+    // No fresh DB snapshot while completion is unknown; original evidence stays owned.
+    await info.attach('cleanup-deferred.json',{body:JSON.stringify({cleanupDeferred:true,databaseRecoveryRequired:true,
+     setupComplete,setupPending,pendingNodeRequests:nodePending,unknownNodeRequest:nodeUnknown,nodeUnknownStage,
+     unknownBrowserCompletion:browserUnknown,browserCompletionFailure, pendingRequests: pending.size,
+        pendingRoutes: [...pending].map(request => browserRouteStates.get(request) ?? { ...routeMetadata(request), stage: 'seen' }),
+        routesSettled, pageClosed, contextRoutesSettled, routeJobsSettled, routeJobsAtDrain, routeJobsRemaining: actualRouteJobs.size,
+        prematureContextClose, contextClosed,
+     ownedCustomerId:fixture?.customerId??null,ownedOrganizerId:fixture?.organizerId??null,foreignCustomerId:fixture?.foreignCustomerId??null,
+     originalBusiness:fixture?.originalBusiness??null,fixtureExposed:!!fixture}),contentType:'application/json'});
+    throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
+   }
+  };
+  await requireCompletion();
+ const outcomes=await Promise.allSettled(checks); await requireCompletion();
  try{const proof=await fixture.cleanup();await info.attach('cleanup.json',{body:JSON.stringify(proof),contentType:'application/json'});expect(searchCleanupPreserved(proof)).toBe(true);
  expect(Object.keys(proof.originalBusiness)).toHaveLength(15);expect(proof.finalBusiness).toEqual(proof.originalBusiness);expect(proof.gymYearRemaining.plans).toBe(0);
  }catch(error){await info.attach('cleanup-failure.json',{body:JSON.stringify({cleanupFailed:true,evidence:(error as {cleanupEvidence?:unknown}).cleanupEvidence??null}),contentType:'application/json'});throw error;}
