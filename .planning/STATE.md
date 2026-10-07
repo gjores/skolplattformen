@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 egen provdatumrättning käll-PASS; förstaFAIL består.3060stoppad.Ägd förkontroll/återhämtning före nyttbygge/G01×2/fullG38.
+stopped_at: UI05-41 ägd återställning PASS, datumrättning pushad.3060stoppad; nyttbygge/G01×2/fullG38/C04×2 återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-40 fullL36/cleanup/geometri PASS; nästa05-41. Vanlig3012 bevarad."
-state_head: 1f3e6b2
-verification_worker_build_revision: 1f3e6b2ebaa39ba84a8596b354e1d1a977860b41
+last_activity_desc: "UI05-41 första setupFAIL bevarad; egen datumrättning och separat ägd återställning kontrollerade. Vanlig3012 bevarad."
+state_head: e4ede6f
+verification_worker_build_revision: fb84d29594d0ddb65286d26ec39e5ca38acb13f6
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 första ägda återställning2026-10-08 — avgränsat PASS:** Fryst skript0d9031cf med oberoende SOURCE-review och12 rena kontroller. ROOTs läsande förkontroll completion9b0fd9fd/reserved3d0afd64 och separat apply completion859b3bca/reservedcd998c74 har faktisk exit0, känd DB-/filstängning och postcommitbevarande. Bara d82f49b9:s egen verksamhetsgraf och13 egna sessioner städade; dess39 audithändelser och nödvändiga mandat-/identitetsankare består. Ursprungliga15 heltabeller, SEARCH-katalog/rå ACL, full aktuell audit/äldre identiteter, senasteL18 och samtliga fyra äldre mandatgrafer hashbevarade före/efter/postcommit. SQLdiagnosen bekräftar första kull2025 mot SA25/4 som historical_version_missing. Immutable reservedFAIL är filreservation, ingen omskriven ursprunglig provrapport; första actualFAIL875c48af består. Inget UI41-beteende är godkänt ännu. Nästa nytt isolerat bygge av granskad datumrättning/G01×2/fullG38/C04×2;85/100 och vanlig3012 består.
 
 **UI41 provdatumrättning2026-10-08 — endast käll-PASS:** Första egna start2025 låg före frysta SA25/4:s giltighet2026-07-01; strict resolver/HTTP400 var korrekt. Eget gymprovår2028 ger kataloggiltiga kullar2026/27/28, medan baseL-historik2027 består och G06 väljer dess uttryckliga år. Fullbasis förhandsvalideras före egen source-mutation. Selektiv5a534e8e/fixtur618aa189/Gspecdbb77646, oberoende review och8 rena datum-/sexindexprov samt full typ/lint/syntax/list38 PASS. Första actualFAIL875c48af är oförändrad; ingen ny fixture/DB/API ännu.3060stoppad vidfb84bygget för exakt ägd återställning, därefter nytt isolerat bygge/G01×2/fullG38/C04×2.85/100 och vanlig3012 består.
 
