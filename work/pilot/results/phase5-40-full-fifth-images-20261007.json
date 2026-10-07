@@ -1,0 +1,218 @@
+[
+  {
+    "project": "planning-year-desktop",
+    "case": 1,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-4ecf1-ng-och-tangentbordsrullning-planning-year-desktop/attachments/program-pages-keyboard-png-e06eabe0027aea136702bbb4e91d4fdb51456a73.png",
+    "sha256": "5d31c9aabae1ceaacdb28c9ba5d6d13ef97e79f5a4363ef577f976b031ce6e82"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 2,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-6c9cc-t-gemener-hittar-senare-rad-planning-year-desktop/attachments/literal-later-code-png-2b6553e7e02c1c63cfffdc3f5efdc5208750bc94.png",
+    "sha256": "736bd10adb30e5b5be08c009eb5226322defbf921a3b4c9a28caff9aec8fcd0f"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 3,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-27bc4-ningar-söker-hela-samlingen-planning-year-desktop/attachments/pinned-program-search-png-047a108b4d490df4e27b8b58442c0ae9c5ee8286.png",
+    "sha256": "db72ec5dfed0094e96cb23f858a0a2b54a752f65ffe77154f943344a786171a3"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 4,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-01e14-omresultat-och-Rensa-filter-planning-year-desktop/attachments/combined-empty-clear-png-95ea75c1f96935a48164ea37f42e96476c4e4bba.png",
+    "sha256": "1d9328788bcebdf57ecd7771b98f0bc3d9b5e465c599e2b7c8d54e0563f4ec66"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 5,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-b0e87-plan-och-samma-frysta-källa-planning-year-desktop/attachments/two-schools-source-versus-plan-png-7de14545b9e2c7bffd125a0979054c30f735a847.png",
+    "sha256": "207957751dff8928795ed167bc609f6cb94917f5072da9c30f054e10d286a834"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 6,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-0fd5b-ionsval-utan-att-skapa-data-planning-year-desktop/attachments/missing-timplan-explicit-source-png-d0dfce14e8c2f6e7a0c87368b509c9ecb4f91c9d.png",
+    "sha256": "c1505096134ad0c3dbf6805ac643ffc4730395ca6b39b5f001d0a989919e3631"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 7,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-4d1d7-lla-eller-implicit-skapande-planning-year-desktop/attachments/missing-programplan-png-707c41358a7e025a63b03e40f3cb94719a9f37d4.png",
+    "sha256": "66769cd0c7160a47acf2f6c9e386c032ccb204b0f156429fa5b06654be7d2173"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 8,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-7f380-äser-sida1-med-samma-filter-planning-year-desktop/attachments/stale-page-restarts-png-e74179acfad1de09d2ed4c17c38b888262387297.png",
+    "sha256": "b6c1739d7e48b5622a6df4f78b709c848c0ec2a28a9b4d0948af334d0c1b7a5c"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 9,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-51986-rsätta-den-senare-sökningen-planning-year-desktop/attachments/late-search-discarded-png-ca29fe22b32462c26b122ac505db53a01a011691.png",
+    "sha256": "cf7363b274c44869c8344d3dc2dec8cebab37b7c04375d24be95d963d8bb568f"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 10,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-11d7b-kan-inte-ge-gamla-skolrader-planning-year-desktop/attachments/scope-race-foreign-excluded-png-2236c451e0e1db50272b7b9b7d3a0a91d4a191cb.png",
+    "sha256": "7d330cd79853d0eb2bc8ecb34d25fb85232a380b38a415ab28c692fe286ed835"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 11,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-594db-separat-från-skolans-timmar-planning-year-desktop/attachments/full-overview-deduplicated-points-png-9ba22276e1f454a28692d6dadff128bc57460fe0.png",
+    "sha256": "80f991f304d2e5524451dcc8f45d5411fdc87e9e5f72a9f2f7618d00cf429382"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 12,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-2fcb2-ir-tydliga-i-årsöverblicken-planning-year-desktop/attachments/gr-binding-im-unknown-png-a9ce26ca686f57ba80628494d46efd0e4ddec368.png",
+    "sha256": "ff1902270888f6882f948eee48db0eb60d8e2c7ae7d845edf8b488397ad22232"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 13,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-e1ed5--och-filter-består-vid-Back-planning-year-desktop/attachments/older-version-return-png-3d302e7391d18d67678bca79dbd4f2c48f23272e.png",
+    "sha256": "42996cae7dfb392ba02a4a578f1172deab58d6f860744001241f882fa95609cd"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 14,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-a00b8-et-utan-påhittat-startdatum-planning-year-desktop/attachments/create-copy-regression-png-13a9f1909f592b662dbb762360e82c53db874b02.png",
+    "sha256": "8a3bf61c8c91d4b957c6bd125f4605270c0a8618ec6a567efa204caba1f25d23"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 15,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-25f41--använder-uttryckligt-A-val-planning-year-desktop/attachments/return-all-create-school-a-png-d07cc32ef1e98921ee26b2d9357090c0b95d02d8.png",
+    "sha256": "2c12ae7c3697261b44036c7aae53abf09854b2f78171b11164d58b3bc9eba66f"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 16,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-4efe0-r-gemensam-programram-för-B-planning-year-desktop/attachments/manual-flow-school-b-png-4511461a0dbe8b22645b8d65cc59a6bd21d3e574.png",
+    "sha256": "29634f63b0158af1e9e9133cc43684a2b040399a8494b25be4746eb9e9ec6010"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 17,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-5dbb7-trots-faktiskt-nyare-utkast-planning-year-desktop/attachments/bound-older-gym-version-png-a665190190f0db924230e612fe9750653f1b12db.png",
+    "sha256": "3a237eebb91c28534199639eccde6b13a8f90953cbda3f7f4a5c5869586beb14"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 18,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-313c3-okänt-kvitto-behåller-spärr-planning-year-desktop/attachments/created-b-readback-url-recovery-png-ef9613eec15c12fcbd969cff651512514a3bfaca.png",
+    "sha256": "0beef78a17aef986ed652b739eecd16c30b2b89d3e3792625ba8e6986598184a"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 1,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-4ecf1-ng-och-tangentbordsrullning-planning-year-phone/attachments/program-pages-keyboard-png-47fca1a9861705ff17371fb0d1ce23e365e57537.png",
+    "sha256": "3c91c7dbc61dd06e47e8e39457ca2263f472459270db3a791319d4ac5d0d6179"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 2,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-6c9cc-t-gemener-hittar-senare-rad-planning-year-phone/attachments/literal-later-code-png-bf34c82eedfa012fa4a9c7b5f8186bb2731097d1.png",
+    "sha256": "8a186ab1524079031bff047166d166f6077fda9f1e6c2193143a5f2ce6893cd4"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 3,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-27bc4-ningar-söker-hela-samlingen-planning-year-phone/attachments/pinned-program-search-png-a1f91b22668bb04290ff44a8634b1ac0b0a6be24.png",
+    "sha256": "b2eb54df7f47085e600397bfebf01bc3b2ba81619c221cf1cc3f3aa59251a212"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 4,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-01e14-omresultat-och-Rensa-filter-planning-year-phone/attachments/combined-empty-clear-png-ecdcdb1916b181a437347cfa815f37cd209bb1e6.png",
+    "sha256": "a5d6340f729f390087560aee9e5d25e94119d21d2d1031fe4446179541a5f90d"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 5,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-b0e87-plan-och-samma-frysta-källa-planning-year-phone/attachments/two-schools-source-versus-plan-png-50645a2d0191a61f49a93c93b840a84a3e317630.png",
+    "sha256": "6f4390eb7d705f9efc5b408996b5bf59bf53d8acd7011af6673c785213cf7acf"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 6,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-0fd5b-ionsval-utan-att-skapa-data-planning-year-phone/attachments/missing-timplan-explicit-source-png-a5cb6392a04e3163ab0b38981a742b0723f76341.png",
+    "sha256": "656c1424ae4efe5c275abe36753f4560c47a0da0ec609d03b0a34ba78136afdc"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 7,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-4d1d7-lla-eller-implicit-skapande-planning-year-phone/attachments/missing-programplan-png-468f181529cb6386761758d4320151b4081b18ad.png",
+    "sha256": "dc9eae67c1e91fe94bcbf6dc7c36ddb02517f123b8eaa8519f82cd781ce68af3"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 8,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-7f380-äser-sida1-med-samma-filter-planning-year-phone/attachments/stale-page-restarts-png-8a6f8e06613dde960bbf0c8ad82203032b501bfd.png",
+    "sha256": "99fb659f55d46c6fbc2584598d2e0484fa5e0d4ceead277f4c265c8e511e732a"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 9,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-51986-rsätta-den-senare-sökningen-planning-year-phone/attachments/late-search-discarded-png-94edad943efb1676f5fc71ebb2f3f4d0da510380.png",
+    "sha256": "14d838eddf1cf09043d9978b11feb435360a8930e766ae9657653d3064fe343e"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 10,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-11d7b-kan-inte-ge-gamla-skolrader-planning-year-phone/attachments/scope-race-foreign-excluded-png-e434187a0e19a714fd2d2940c09bb2076ee2147e.png",
+    "sha256": "09f5656e9f62fc56564557e4fe464584aee0666ec6d43058b940e1d630c5635a"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 11,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-594db-separat-från-skolans-timmar-planning-year-phone/attachments/full-overview-deduplicated-points-png-2359b0c6c48bfd8c5543ec247899e0b94923f98f.png",
+    "sha256": "f4d9eb271def063be08eb53cc1defc86956b5ca3cbf0a0a7d85b4cb53e85833f"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 12,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-2fcb2-ir-tydliga-i-årsöverblicken-planning-year-phone/attachments/gr-binding-im-unknown-png-05e8f8f5abb08e648fc3bb5c91d54495bbbdc716.png",
+    "sha256": "8af576187dd1a226e8e57abded586f1219620b4c671a1d88c4955fa032485352"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 13,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-e1ed5--och-filter-består-vid-Back-planning-year-phone/attachments/older-version-return-png-05be207ea0a955e5e0277504d63e6af76ef3d946.png",
+    "sha256": "113174707a0d9a3573b269f572d3e111a921f9509b79edb39db7f358711642e5"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 14,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-a00b8-et-utan-påhittat-startdatum-planning-year-phone/attachments/create-copy-regression-png-f87857eb704e5e36848dc2ad995a88c06acc4840.png",
+    "sha256": "61d64a8e2ea7d2190ec48116f8565a572c084b40b45fd2d1dbab6b772745ba46"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 15,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-25f41--använder-uttryckligt-A-val-planning-year-phone/attachments/return-all-create-school-a-png-e4b58ecd1c9fe9ec34d9381fc39b819ac457764f.png",
+    "sha256": "4128cc14b9ce180803d0b3384d57d43de02ecff23ea6fca28f0b71500eba4acf"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 16,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-4efe0-r-gemensam-programram-för-B-planning-year-phone/attachments/manual-flow-school-b-png-e5874bc71fe3d63a8e29b563b5ae5a85a497bdd5.png",
+    "sha256": "bbebc676eae2917fd4b9dcf46acffb082cdc74fb66e0aab06916ebc5534276c3"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 17,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-5dbb7-trots-faktiskt-nyare-utkast-planning-year-phone/attachments/bound-older-gym-version-png-579dc586e9f22b5ed4b066810ee7ff0eceba3355.png",
+    "sha256": "8058e569b8f66ca92e8dab6c31fe0c47ba70656845251ee37e7c05bd0f2849e2"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 18,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-40-lists-actual-fifth-20261007/phase5-planning-year-lists-313c3-okänt-kvitto-behåller-spärr-planning-year-phone/attachments/created-b-readback-url-recovery-png-e57500240cfde7038a503b3c92eb09668245ffd8.png",
+    "sha256": "d17821ddf7d96efc3710bfc6b4feb9fed90d3b0b34d0484d959a0ddd1e9db408"
+  }
+]

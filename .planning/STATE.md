@@ -3,21 +3,21 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-40
+current_plan: 05-41
 status: in_progress
-stopped_at: UI05-40 fullfjärde18dator PASS;mobilL01 tangentbordsrullning FAIL.19fullcleanup PASS.Explicit sidledspilar för fokusbar rullyta före bounded/fullomprov.
-last_updated: "2026-10-07"
-last_activity: 2026-10-07
-last_activity_desc: "UI05-39 fullC16/cleanup/geometri PASS; nästa sökbara årstabeller05-40. Vanlig3012 bevarad."
-state_head: 07737ba
-verification_worker_build_revision: 07737baee91a32307e07a703be9b6befae91c20a
+stopped_at: UI05-40 fullL36/cleanup/source/geometri PASS; nästa05-41 årsprojektion och årskursknappar.
+last_updated: "2026-10-08"
+last_activity: 2026-10-08
+last_activity_desc: "UI05-40 fullL36/cleanup/geometri PASS; nästa05-41. Vanlig3012 bevarad."
+state_head: 1f3e6b2
+verification_worker_build_revision: 1f3e6b2ebaa39ba84a8596b354e1d1a977860b41
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 84
+  completed_plans: 85
 milestone_name: milestone
 ---
 
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI40 färdigt2026-10-08 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SUMMARY.md). FullL36 source/build1f3e6b2/L620,36normalcleanup/full15/audit-/identitetsankare/sourceclosure/geometri PASS. Alla första FAIL och boundedprov bevarade; ingen recovery. Bildernas childladdning och fokushopplänk är tydliga begränsningar, inget mänskligt PASS.85/100; nästa41→42→43 och konkret användarprov, fulla krav/verksamhetsgap består. Vanlig3012 fortsatt5dd7baf.
 
 **UI40 fjärde matris:** Source/build3c3d011 och oförändrad L620e40be. Avgränsat L18×2 PASS (raw7ed6be40), därefter fullmatris18/18 dator PASS. MobilL01:s faktiskt korrekta52 rader/50+2 pagination/serverordning PASS, men fokusbar tabell rullade inte med ArrowRight i WebKit. Raw1dc13a5e bevaras;17 mobilfall ej startade. Alla19 normalcleanup/15helrader/audit-/identitetsankare och egna/foreign/listzero PASS, ingen recovery. Bara rullytans egna omodifierade sidledspilar får explicit80px rullning; barnkontrollers tangenter, focus/aria, dataläsning och provgrindar består. Källreview/typ/lint, nytt bygge och boundedL01×2 före färskt fullL36 återstår.84/100 och vanlig3012 består.
 

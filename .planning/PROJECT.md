@@ -1,5 +1,8 @@
 # Skolplattformen
 
+**Sökbara årstabeller2026-10-08 — avgränsat PASS:** [05-40-SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SUMMARY.md). FullL36 dator/telefon source/build1f3e6b2; faktisk sök/filter/sort/50+2/exakt äldre skolversion/skapandemandat/årsöverblick samt full15/audit-/identitetscleanup/geometri PASS. Första fel bevarade.85/100 planer,3/8 verifierade faser; nästa41–43 och användarprov. Fulla krav/formella beslut/mobilårsknappar kvarstår; vanlig3012 oförändrad.
+
+
 **Planeringskontext2026-10-07 — avgränsat PASS:** [05-39-SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-39-SUMMARY.md). FullC16 dator/telefon, separata registerår/filter, retur/Back/reload, scopebyte och pågående/okända writes PASS. Samma source/build07737ba, full15/audit-/identitets-/owncleanup, kontrollstorlek44px och containment PASS. Alla första fel/egna recoveries bevarade. 84/100 planer,3/8 verifierade faser; nästa05-40–43 och konkret användarprov. Fulla krav/formella beslut/mobilårsknappar kvarstår; vanlig3012 oförändrad. Äldre besked nedan är historik.
 
 **Kod-/benämningssökning2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md). Fullrollback/exakt apply/applied271/38/23, oförändrade93/18×2 ochAPI15/247, faktisk sökning19/204 och12HTTP-svar under4,884s PASS. Endast privatrows/journal06123000 ändrade, samma28grants/full15/råACL/audit-/identitetsankare/cleanup. Första fel och exakt egen återhämtning bevarade.83/100 planer,3/8 verifierade faser; nästaUI05-39–43 och konkret användarprov. Fulla krav/verksamhetsgap/mobilgap består; vanlig3012 fortsatt5dd7baf. Äldre pågående SEARCHbesked nedan är historik.
