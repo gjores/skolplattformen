@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 -- Owned rollback-only fixture. Original 05-37/38 migrations and 93 tests remain immutable.
+-- Three-hour synthetic sessions outlast the two-hour SQL watchdog; production TTL is unchanged.
 create function pg_temp.programplan_actor(a uuid,m uuid,i uuid,s uuid) returns void language plpgsql as $$begin
  perform set_config('app.customer_id','55380000-0000-4000-8000-000000000001',true),
  set_config('app.assignment_id',a::text,true),set_config('app.membership_id',m::text,true),
@@ -35,19 +36,19 @@ insert into public.mandate_units values
  ('55380000-0000-4000-8000-000000000060','55380000-0000-4000-8000-000000000001','55380000-0000-4000-8000-000000000002','55380000-0000-4000-8000-000000000031');
 insert into public.app_sessions(id,token_hash,identity_id,membership_id,assignment_id,expires_at,absolute_expires_at)
 values('55380000-0000-4000-8000-000000000080',decode(md5('55380000-0000-4000-8000-000000000080')||md5('55380000-0000-4000-8000-000000000080'),'hex'),
- '55380000-0000-4000-8000-000000000010','55380000-0000-4000-8000-000000000020','55380000-0000-4000-8000-000000000060',clock_timestamp()+interval '1 hour',clock_timestamp()+interval '8 hours');
+ '55380000-0000-4000-8000-000000000010','55380000-0000-4000-8000-000000000020','55380000-0000-4000-8000-000000000060',clock_timestamp()+interval '3 hours',clock_timestamp()+interval '8 hours');
 select pg_temp.programplan_actor('55380000-0000-4000-8000-000000000060','55380000-0000-4000-8000-000000000020','55380000-0000-4000-8000-000000000010','55380000-0000-4000-8000-000000000080');
 create temporary table programplan_roles(name text primary key,id uuid);
 insert into programplan_roles values('hm','55380000-0000-4000-8000-000000000060'),
  ('principal',public.phase3_grant_mandate('{"membershipId":"55380000-0000-4000-8000-000000000021","function":"rektor","scopeKind":"school","unitIds":["55380000-0000-4000-8000-000000000030"]}')),
  ('principal2',public.phase3_grant_mandate('{"membershipId":"55380000-0000-4000-8000-000000000022","function":"rektor","scopeKind":"school","unitIds":["55380000-0000-4000-8000-000000000031"]}'));
 insert into public.app_sessions(id,token_hash,identity_id,membership_id,assignment_id,expires_at,absolute_expires_at) values
- ('55380000-0000-4000-8000-000000000081',decode(md5('55380000-0000-4000-8000-000000000081')||md5('55380000-0000-4000-8000-000000000081'),'hex'),'55380000-0000-4000-8000-000000000011','55380000-0000-4000-8000-000000000021',(select id from programplan_roles where name='principal'),clock_timestamp()+interval '1 hour',clock_timestamp()+interval '8 hours'),
- ('55380000-0000-4000-8000-000000000082',decode(md5('55380000-0000-4000-8000-000000000082')||md5('55380000-0000-4000-8000-000000000082'),'hex'),'55380000-0000-4000-8000-000000000012','55380000-0000-4000-8000-000000000022',(select id from programplan_roles where name='principal2'),clock_timestamp()+interval '1 hour',clock_timestamp()+interval '8 hours');
+ ('55380000-0000-4000-8000-000000000081',decode(md5('55380000-0000-4000-8000-000000000081')||md5('55380000-0000-4000-8000-000000000081'),'hex'),'55380000-0000-4000-8000-000000000011','55380000-0000-4000-8000-000000000021',(select id from programplan_roles where name='principal'),clock_timestamp()+interval '3 hours',clock_timestamp()+interval '8 hours'),
+ ('55380000-0000-4000-8000-000000000082',decode(md5('55380000-0000-4000-8000-000000000082')||md5('55380000-0000-4000-8000-000000000082'),'hex'),'55380000-0000-4000-8000-000000000012','55380000-0000-4000-8000-000000000022',(select id from programplan_roles where name='principal2'),clock_timestamp()+interval '3 hours',clock_timestamp()+interval '8 hours');
 select pg_temp.programplan_actor((select id from programplan_roles where name='principal'),'55380000-0000-4000-8000-000000000021','55380000-0000-4000-8000-000000000011','55380000-0000-4000-8000-000000000081');
 insert into programplan_roles values('admin',public.phase3_grant_mandate('{"membershipId":"55380000-0000-4000-8000-000000000023","function":"administrator","scopeKind":"school","unitIds":["55380000-0000-4000-8000-000000000030"]}'));
 insert into public.app_sessions(id,token_hash,identity_id,membership_id,assignment_id,expires_at,absolute_expires_at)
-values('55380000-0000-4000-8000-000000000083',decode(md5('55380000-0000-4000-8000-000000000083')||md5('55380000-0000-4000-8000-000000000083'),'hex'),'55380000-0000-4000-8000-000000000013','55380000-0000-4000-8000-000000000023',(select id from programplan_roles where name='admin'),clock_timestamp()+interval '1 hour',clock_timestamp()+interval '8 hours');
+values('55380000-0000-4000-8000-000000000083',decode(md5('55380000-0000-4000-8000-000000000083')||md5('55380000-0000-4000-8000-000000000083'),'hex'),'55380000-0000-4000-8000-000000000013','55380000-0000-4000-8000-000000000023',(select id from programplan_roles where name='admin'),clock_timestamp()+interval '3 hours',clock_timestamp()+interval '8 hours');
 
 select pg_temp.programplan_actor('55380000-0000-4000-8000-000000000060','55380000-0000-4000-8000-000000000020','55380000-0000-4000-8000-000000000010','55380000-0000-4000-8000-000000000080');
 create function pg_temp.planning_q(patch jsonb default '{}'::jsonb) returns jsonb language sql as $$select
@@ -155,6 +156,13 @@ declare q jsonb:=pg_temp.planning_q('{"query":"Performance ram","status":"utkast
  ref jsonb; dist jsonb; entry jsonb; payload jsonb; subject jsonb; items jsonb; levels jsonb; basis jsonb; n integer; affected integer;
  catalog text:='sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
 begin
+ -- Expiry is a broken fixture, not a matching negative result for either definition.
+ if not exists(select 1 from public.app_sessions s where s.id=pg_temp.performance_id(80)
+  and s.identity_id=pg_temp.performance_id(10) and s.membership_id=pg_temp.performance_id(20)
+  and s.assignment_id=pg_temp.performance_id(60) and s.revoked_at is null
+  and s.expires_at>clock_timestamp() and s.absolute_expires_at>clock_timestamp()) then
+  raise exception 'Expired owned performance fixture' using errcode='PZ003';
+ end if;
  begin
   set local session_replication_role=replica;
   case case_name

@@ -1,7 +1,7 @@
 {
   "kind": "phase5-planning-year-read-performance-failure-history",
   "scope": "local-synthetic-only",
-  "status": "pending-full-rerun",
+  "status": "pending-corrected-fixture-full-rerun",
   "reset": false,
   "firstFailure": {
     "report": "phase5-38-read-performance-rollback-fail-1791356837808.json",
@@ -62,7 +62,7 @@
     "httpBeforeSamples": 9,
     "fullApiCases": 15
   },
-  "finalOutcome": "Pending. Full SQL/contract/preservation PASS retained, but nine successful old HTTP samples and all applied/API/speedup proof still required. No permanent performance apply.",
+  "finalOutcome": "Pending. Latest full SQL FAIL is preserved and diagnosed as fixture expiry. New full143/46 + unchanged93/18 required with corrected synthetic lifetime/watchdog. Reserve stays conditional; no permanent apply or UI/SEARCH integration.",
   "secondFailure": {
     "report": "phase5-38-read-performance-rollback-fail-1791359038373.json",
     "sha256": "4f231086020d7f9e739fc0b36f28ab4829c7daf82852eb3356812145852d1603",
@@ -109,8 +109,69 @@
   },
   "fullRerun": {
     "startedAt": "2026-10-07T07:59:01Z",
-    "status": "running",
+    "status": "FAIL",
     "sourceChangesSinceCompleteSqlPass": false,
-    "sameTimingAndProofGates": true
+    "sameTimingAndProofGates": true,
+    "finishedAt": "2026-10-07T09:00:23Z"
+  },
+  "thirdFailure": {
+    "report": "phase5-38-read-performance-sql-expiry-fail-20261007.json",
+    "sha256": "ca810991d759ac4ac572ec190c1906e781d45a026567cdf0b0c970f45d57057f",
+    "sourceCommit": "c0b5e1705c45dfa11e3490feef83ff4b1b2b6318",
+    "sqlExitCode": 0,
+    "timedOut": true,
+    "ownedBackendStopped": true,
+    "sqlAssertions": 143,
+    "sqlStatus": "FAIL",
+    "parityCases": 46,
+    "unequalCases": 35,
+    "oldLastValidCase": "cache-cell-limit-fallback",
+    "oldLastValidState": "54000",
+    "remainingOldAndAllCandidateState": "42501",
+    "immutableOriginalSqlAssertions": 0,
+    "httpSamples": 0,
+    "catalogRawAclJournalUnchanged": true,
+    "whole15HashesEqual": true,
+    "originalAuditIdentityAnchorsUnchanged": true,
+    "cleanupStatus": "FAIL",
+    "cleanupReason": "HTTP fixture never created; absence of its cleanup is not reported as full cleanup PASS",
+    "cause": "Owned SQL fixture one-hour session expired during long old-definition matrix; watchdog also flagged. New corrected complete proof is required; older SQL PASS cannot bypass this result."
+  },
+  "expiryDiagnostics": [
+    {
+      "report": "phase5-38-read-performance-expiry-diagnostic.json",
+      "sha256": "84a1fc5afc24dd94ab063a1a283a3ec1f82e9f68697740303065fbb8e2a1559f",
+      "status": "PASS",
+      "cases": 12,
+      "notFullPlanProof": true,
+      "all15WholeRowsUnchanged": true,
+      "fullCatalogRawAclJournalUnchanged": true,
+      "auditUnchanged": true,
+      "identitiesUnchanged": true
+    },
+    {
+      "report": "phase5-38-read-performance-expiry-guard-diagnostic.json",
+      "sha256": "e2b59e343b870e11f8bea1fba2ad322a10b36cd9f63272f7501531e555ede225",
+      "status": "PASS",
+      "cases": 13,
+      "notFullPlanProof": true,
+      "all15WholeRowsUnchanged": true,
+      "fullCatalogRawAclJournalUnchanged": true,
+      "auditUnchanged": true,
+      "identitiesUnchanged": true
+    }
+  ],
+  "fixtureCorrection": {
+    "syntheticSessionLifetimeHours": 3,
+    "sqlWatchdogMinutes": 120,
+    "ownSessionGuardSqlstate": "PZ003",
+    "guardOutsideNegativeProbeCatch": true,
+    "performanceTestHash": "51f7a27b234678f04d6805614c7d0bd597a3e3cfec297d1109afbbd851969b62",
+    "immutableOriginal93Hash": "be8d975aa43a07fa6712c3b333709e8344ee50debf65f26200ce10649d80bd34",
+    "candidateMigrationHash": "83c12579fc275b4353f014ea749ca2af297e4825d04bd0c26a9311d219ffc997",
+    "productionSessionTtlChanged": false,
+    "httpDeadlineMs": 30000,
+    "newFullSqlProofRequired": true,
+    "olderSqlReuseAcrossChangedTestForbidden": true
   }
 }

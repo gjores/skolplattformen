@@ -1,0 +1,108 @@
+{
+  "kind": "phase5-performance-owned-session-expiry-diagnostic",
+  "scope": "local-synthetic-only",
+  "target": "protected",
+  "reset": false,
+  "rollback": true,
+  "status": "PASS",
+  "notFullPlanProof": true,
+  "cases": [
+    {
+      "definition": "original",
+      "expired": false,
+      "route": "selection",
+      "state": "00000",
+      "expectedState": "00000"
+    },
+    {
+      "definition": "original",
+      "expired": false,
+      "route": "list",
+      "state": "00000",
+      "expectedState": "00000"
+    },
+    {
+      "definition": "original",
+      "expired": false,
+      "route": "overview",
+      "state": "00000",
+      "expectedState": "00000"
+    },
+    {
+      "definition": "candidate",
+      "expired": false,
+      "route": "selection",
+      "state": "00000",
+      "expectedState": "00000"
+    },
+    {
+      "definition": "candidate",
+      "expired": false,
+      "route": "list",
+      "state": "00000",
+      "expectedState": "00000"
+    },
+    {
+      "definition": "candidate",
+      "expired": false,
+      "route": "overview",
+      "state": "00000",
+      "expectedState": "00000"
+    },
+    {
+      "definition": "candidate",
+      "expired": true,
+      "route": "selection",
+      "state": "42501",
+      "expectedState": "42501"
+    },
+    {
+      "definition": "candidate",
+      "expired": true,
+      "route": "list",
+      "state": "42501",
+      "expectedState": "42501"
+    },
+    {
+      "definition": "candidate",
+      "expired": true,
+      "route": "overview",
+      "state": "42501",
+      "expectedState": "42501"
+    },
+    {
+      "definition": "original",
+      "expired": true,
+      "route": "selection",
+      "state": "42501",
+      "expectedState": "42501"
+    },
+    {
+      "definition": "original",
+      "expired": true,
+      "route": "list",
+      "state": "42501",
+      "expectedState": "42501"
+    },
+    {
+      "definition": "original",
+      "expired": true,
+      "route": "overview",
+      "state": "42501",
+      "expectedState": "42501"
+    },
+    {
+      "definition": "fixture-guard",
+      "expired": true,
+      "route": "probe",
+      "state": "PZ003",
+      "expectedState": "PZ003"
+    }
+  ],
+  "sourceHash": "51f7a27b234678f04d6805614c7d0bd597a3e3cfec297d1109afbbd851969b62",
+  "candidateHash": "83c12579fc275b4353f014ea749ca2af297e4825d04bd0c26a9311d219ffc997",
+  "all15WholeRowsUnchanged": true,
+  "fullCatalogRawAclJournalUnchanged": true,
+  "auditUnchanged": true,
+  "identitiesUnchanged": true
+}
