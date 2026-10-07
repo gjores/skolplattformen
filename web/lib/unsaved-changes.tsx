@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -65,7 +66,9 @@ function useRegistry(): UnsavedRegistry {
 
 export function useUnsavedChanges(id: string, dirty: boolean): void {
   const { setDirty } = useRegistry();
-  useEffect(() => {
+  // Registreringen måste följa samma commit som skrivstatusen. Ett klick som
+  // lämnar en rad får annars läsa föregående spärr innan en passiv effekt körts.
+  useLayoutEffect(() => {
     setDirty(id, dirty);
     return () => setDirty(id, false);
   }, [dirty, id, setDirty]);

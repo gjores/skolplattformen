@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: UI05-39 tredje ägda återställning PASS med full historikbevaring. Awaitad Back-URL provas avgränsat i C04 före färsk full C16 och40–43.
+stopped_at: UI05-39 C04body och fullcleanup PASS men generell confirm gav FAIL. Registry registreras i layoutcommit före nästa event; nytt produktbygge och C04/fullC16 återstår.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: 69deacd
+state_head: f26fa5f
 verification_worker_build_revision: dd44848ad37b4510594a44ef316505ae1c978649
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 sjätte avgränsade C04 2026-10-07:** Samtliga verksamhetsassertioner PASS: blockerad navigation/Back, samma originalvärde och Sparar…, en faktisk skrivning/auditpar, bekräftad återläsning samt oförändrad programkälla/annan skola. Alla 15 heltabeller/audit-/identitets-/foreigncleanup PASS, ingen recovery behövs. Hela provet förblir FAIL eftersom en generell confirm registrerades; [första rapport](../work/pilot/results/phase5-39-context-bounded-back-sixth-20261007.json) SHA `4c431771` bevaras. Delad unsaved-registry använde passiv effekt efter renderad skrivstatus. Minsta produkträttning registrerar samma dirty/spärr-ID i layoutcommit före nästa event; samma-blur-klick och efterkvittensnavigation måste fortsatt bevisas av oförändrad C-spec. Typ/lint/riktade prov och nytt isolerat skyddat bygge krävs före nytt actualC04/fullC16. 83/100 består; vanlig3012 oförändrad.
 
 **UI39 tredje ägda återställning 2026-10-07 — avgränsat PASS:** Separat läsande v2förkontroll SHA `1bd47180` och faktisk städning SHA `b8d0c8c4` på exakt skript `b957c5cb` PASS. Endast senaste syntetiska graf `acd9908c` och dess 13 egna sessioner städades; ursprungliga 15 heltabeller, katalog/rå ACL, full aktuell audit/identiteter, två tidigare kvarvarande mandatgrafer och nio mellanliggande cleanup-projektioner är hashbevarade före/efter/postcommit. Huvudkundens mandat-/identitetsankare består för dess 46 logghändelser. Första preflightFAIL och skrivprovFAIL förblir separata felbevis. Egen Cspec `7e8d48a0` inväntar exakt återställd Back-URL och samma värde/Sparar…/en skrivning före släppt kvitto; oberoende källreview/lint PASS. Färskt faktiskt avgränsat C04 och därefter full C16 krävs; 83/100 består, vanlig3012 fortfarande5dd7baf.
 
