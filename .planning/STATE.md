@@ -3,21 +3,21 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-39
+current_plan: 05-40
 status: in_progress
-stopped_at: UI05-39 C08 desktop PASS/phone body+cleanup PASS men två selectfält23px. Avgränsad44px CSSrättning och nytt bygge före C08×2/fullC16.
+stopped_at: UI05-39 fullC16 dator/telefon och bevarande PASS; nästa selektiv05-40-integration och faktisk L36.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
-last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: c86f184
-verification_worker_build_revision: c86f184fc4fab22001253d6c58d9765ac64d4150
+last_activity_desc: "UI05-39 fullC16/cleanup/geometri PASS; nästa sökbara årstabeller05-40. Vanlig3012 bevarad."
+state_head: 07737ba
+verification_worker_build_revision: 07737baee91a32307e07a703be9b6befae91c20a
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 83
+  completed_plans: 84
 milestone_name: milestone
 ---
 
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 färdigt2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-39-SUMMARY.md). Färsk fullC01–08×dator/telefon16/16 PASS, samma source/build07737ba,9 explicita/49 expanderade källhashar och16 fullcleanup/15 heltabeller/audit-/identitetsankare/geometrier PASS. Alla första fel och fyra separata egna recoverykedjor består. Mobilselects44px och delad layoutregistrering faktiskt verifierade; inga omförsök/skips/deferred. Bildbegränsning: capture efter årsbyte kan visa barnets laddning och kvarvarande tidigare spärrnotis. Nästa05-40→41→42→43 och konkret användarprov. 84/100 planer,3/8 verifierade faser; fulla PLANERING-/ADMIN-krav/gap består och vanlig3012 fortsatt5dd7baf.
 
 **UI39 åttonde avgränsade C08 2026-10-07:** Desktop PASS; telefonens sessionsutgång, rensning och nya faktiska list/audit PASS, men geometri FAIL: båda planeringsselectfält var 23px i mobil-WebKit trots min-height44px. Första rapport `541f18a6` bevaras. Båda provens full15/audit-/identitets-/foreigncleanup PASS, ingen recovery behövs. Endast befintlig selectregel kompletteras med explicit height44px; oförändrad provgrind och färskt skyddat bygge krävs före C08×2/fullC16. 83/100 består, vanlig3012 oförändrad.
 
@@ -147,7 +149,7 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-40-SEARCH-DETAILS; därefter 05-39–43. Prestandakorrektiv fullständigt verifierat; API15/247 och28 entries består. Äldre05-25–35 kräver omplanering.
+**Current Plan:** 05-40; därefter05-41–43. SEARCH och separat planeringskontext05-39 fullständigt verifierade inom sina avgränsningar; API15/247 och28 entries består. Äldre05-25–35 kräver omplanering.
 **Total Plans in Phase:** 05-36–38 och prestandakorrektivet har SUMMARY/verifiering; SEARCH och UI05-39–43 återstår. 05-17 saknar PLAN. Mänskliga prov och full fasverifiering är separata.
 **Status:** 05-23/E tekniskt PASS lokalt. Grundflödet användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5 och båda nya gapen är Pending; 05-22 metadata PARTIAL består.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.

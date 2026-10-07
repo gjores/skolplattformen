@@ -1,5 +1,7 @@
 # Roadmap: Skolplattformen
 
+**Planeringskontext2026-10-07 — avgränsat PASS:** [05-39-SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-39-SUMMARY.md). FullC16 dator/telefon, separata registerår/filter, retur/Back/reload, scopebyte och pågående/okända writes PASS. Samma source/build07737ba, full15/audit-/identitets-/owncleanup, kontrollstorlek44px och containment PASS. Alla första fel/egna recoveries bevarade. 84/100 planer,3/8 verifierade faser; nästa05-40–43 och konkret användarprov. Fulla krav/formella beslut/mobilårsknappar kvarstår; vanlig3012 oförändrad. Äldre besked nedan är historik.
+
 **Kod-/benämningssökning2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md). Fullrollback/exakt apply/applied271/38/23, oförändrade93/18×2 ochAPI15/247, faktisk sökning19/204 och12HTTP-svar under4,884s PASS. Endast privatrows/journal06123000 ändrade, samma28grants/full15/råACL/audit-/identitetsankare/cleanup. Första fel och exakt egen återhämtning bevarade.83/100 planer,3/8 verifierade faser; nästaUI05-39–43 och konkret användarprov. Fulla krav/verksamhetsgap/mobilgap består; vanlig3012 fortsatt5dd7baf. Äldre pågående SEARCHbesked nedan är historik.
 
 
@@ -218,7 +220,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] [05-38-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-PLAN.md) — Preflight/slutmatris15/247 PASS; tre exakta läsgrants och full bevaring.
 - [x] [05-38-READ-PERFORMANCE-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-PLAN.md) — Fullrollback/exakt apply/applied143/46+93/18, faktisk förbättring7,68–15,21×, oförändradAPI15/247 och full15/ACL28/auditbevarande PASS. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-SUMMARY.md). Nästa SEARCH, sedanUI39–43; fulla krav kvarstår.
 - [x] [05-40-SEARCH-DETAILS-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-PLAN.md) — Full271/38/23+93/18×2/API15/247+sök19/204,12HTTP<4,884s/full15/ACL28/auditcleanupPASS. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md).
-- [ ] [05-39-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-39-PLAN.md) — Separat planeringskontext/URL och oberoende elevregisterår.
+- [x] [05-39-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-39-PLAN.md) — FullC16 dator/telefon, separat planeringskontext/URL/elevregisterår och fullcleanup PASS. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-39-SUMMARY.md).
 - [ ] [05-40-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-PLAN.md) — Sökbara tabeller och läsårsöverblick för skolor/kullar/versioner.
 - [ ] [05-41-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-41-PLAN.md) — Rätt relativår i öppnade gymnasieplaner, med oförändrade terminsindex och sparskydd.
 - [ ] [05-42-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-42-PLAN.md) — Årsbunden GR-/IM-överblick och planöppning utan gissad klassprogression.

@@ -107,7 +107,7 @@ Användaren har beslutat om ett gemensamt läsår inom planeringsområdet, med s
 
 | Krav | Genomförandesteg | Verifieringsstatus |
 | --- | --- | --- |
-| PLANERING-01 | 05-36, 05-39; samlat prov 05-43 | Pending — 05-36 delar endast datumregeln och definierar separat läsurval; kontext/URL/retur/sessionsbyte återstår. |
+| PLANERING-01 | 05-36, 05-39; samlat prov 05-43 | Pending samlat05-43/användarprov — 05-39 fullC16 dator/telefon verifierar separat kontext/URL/retur/Back/reload, två registerfilter och uppdrags-/sessionsrensning; full15/audit-/identitetscleanup PASS. |
 | PLANERING-02 | 05-36–38, 05-38-READ-PERFORMANCE, 05-40-SEARCH-DETAILS, 05-40, 05-42; samlat prov 05-43 | Pending — rena källprojektioner/GR-karta/IM och okända fall verifierade i 05-36; scoped stängd SQL-läsning verifierad i 05-37 (93 SQL/18 paritet/3 lås före/efter apply); Worker05-38 preflight/slutprov15/247 PASS; prestandarättning/UI återstår. |
 | PLANERING-03 | 05-36–38, 05-38-READ-PERFORMANCE, 05-40-SEARCH-DETAILS, 05-40; samlat prov 05-43 | Pending — 05-36 kontrollerar filter, svars-eko och resultatfingeravtryck; faktisk SQL-sökning/sort/count/50-radssidor verifierade i 05-37; Worker05-38 full52/sök/sort/50+2/audit PASS; prestandarättning/UI återstår. |
 | PLANERING-04 | 05-36–38, 05-38-READ-PERFORMANCE, 05-40-SEARCH-DETAILS, 05-41–42; samlat prov 05-43 | Pending — 05-36 verifierar originalindex, källkonsistens, dedup och null/0; SQL-proveniens, dedup och 15 helradstabeller verifierade i 05-37; GR-originalkarta är okänd. Worker05-38 proveniens/audit/bevaring PASS; UI och spar-/klassflödesprov återstår. |
