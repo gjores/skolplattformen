@@ -267,5 +267,19 @@
       "notFullPlanProof": true,
       "status": "PASS"
     }
+  },
+  "connectionCloseDiagnostic": {
+    "report": "phase5-38-read-performance-connection-close-diagnostic.json",
+    "sha256": "4fb14c53c56a8947241bd64a9016729c3da3d615b0173a97841599d6d8a776ac",
+    "status": "FAIL",
+    "notFullPlanProof": true,
+    "planningReadsStarted": false,
+    "planningTransportEvents": 0,
+    "failurePhase": "legacy-fixture-setup",
+    "originalFixtureSetupDeadlineMs": 15000,
+    "failure": "REQUEST_TIMEOUT",
+    "original15WholeRowsPreserved": true,
+    "auditAndIdentityAnchorsPreserved": true,
+    "inference": "This attempt cannot evaluate planning-read Connection:close; it failed earlier during fixture setup."
   }
 }

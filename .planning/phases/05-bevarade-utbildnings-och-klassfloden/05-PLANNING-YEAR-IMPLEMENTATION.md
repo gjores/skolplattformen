@@ -32,14 +32,14 @@ Byte av läsår är ett urval. Det ändrar inga statusar, beslut, fastställda v
 | [05-39](05-39-PLAN.md) | 6 | 4 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
 | [05-40](05-40-PLAN.md) | 7 | 3 | Verklig årsöverblick, gemensam sök/filter/sort/pagination och program-/gymtimplanstabeller. |
 | [05-41](05-41-PLAN.md) | 8 | 3 | Rätt relativår i program/gymmatris, hela originalindex och osparat-/korsårssparskydd. |
-| [05-42](05-42-PLAN.md) | 9 | 2 | Tabell för grundskola/introduktionsprogram och rätt års-/kolumn-/versionsöppning, utan automatiska nya klasskopplingar. |
+| [05-42](05-42-PLAN.md) | 9 | 3 | Skolbunden location, tabell för grundskola/introduktionsprogram och rätt års-/kolumn-/versionsöppning, utan automatiska nya klasskopplingar. |
 | [05-43](05-43-PLAN.md) | 10 | 3 | Samlad seriell verifiering, handbok och S1/S3-kontrakt; verkligt användarprov separat. |
 
 Beroendekedja: `05-36 → 05-37 → 05-38 → 05-38-READ-PERFORMANCE → 05-40-SEARCH-DETAILS → 05-39 → 05-40 → 05-41 → 05-42 → 05-43`. Alla är automatiskt körbara när deras faktiska föregångare är genomförda; tio sekventiella waves beror på delade kontrakt, filer och samma isolerade DB-underlag. Detta är en selektiv komplettering inom fas 5, **inte en instruktion att köra alla fasens planer med samma wave-nummer**. Generisk execute-phase på hela fas 05 kan träffa äldre 05-25 eller andra replan_required-planer. Välj uttryckligt endast det här paketets plan-ID:n och följ dess beroenden. Saknad SUMMARY i en föregångare är inte leveransbevis; kontrollera faktisk kod, källbundna resultat och tillämpad SQL.
 
 ## Varför avgränsade planer
 
-Avgränsningarna följer verkliga riskgränser: ren årsregel före data, stängd SQL före Worker, återställd preflight före grant, separat kontext före överblick och gym/GR-matriser separat. Därmed kan varje steg kontrolleras och pushas utan att färdigställa hela fas 5. Varje uppgift har högst fem implementationsfiler och varje plan har två till fyra uppgifter. 05-38/39/40/41/43 har fler än fem filer totalt genom tunna routes, delad UI-koppling och egna bevis; deras specifika omfattningsnoter håller varje uppgift avgränsad. Om en uppgift kräver ny datamodell, omfattande ombyggnad eller mer än dessa gränser, dela planen innan utförande och uppdatera beroenden/krav/index i stället för att gömma extra arbete i slutprov.
+Avgränsningarna följer verkliga riskgränser: ren årsregel före data, stängd SQL före Worker, återställd preflight före grant, separat kontext före överblick och gym/GR-matriser separat. Därmed kan varje steg kontrolleras och pushas utan att färdigställa hela fas 5. Varje uppgift har högst fem implementationsfiler och varje plan har två till fyra uppgifter. 05-38/39/40/41/42/43 har fler än fem filer totalt genom tunna routes, delad UI-koppling och egna bevis; deras specifika omfattningsnoter håller varje uppgift avgränsad. Om en uppgift kräver ny datamodell, omfattande ombyggnad eller mer än dessa gränser, dela planen innan utförande och uppdatera beroenden/krav/index i stället för att gömma extra arbete i slutprov.
 
 ## Några precisa kontrakt
 
