@@ -1,6 +1,6 @@
 // Positiva svar kommer från en byggd skyddad Worker och en ägd syntetisk DB-fixtur.
 // Alla fördröjningar/transportfel injiceras efter route.fetch mot den verkliga API-vägen.
-import { expect, test, type APIResponse, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type APIResponse, type Page, type Request, type Route, type TestInfo } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -16,6 +16,27 @@ type Fixture = Awaited<ReturnType<typeof createPlanningYearFixture>>;
 type Session = Fixture['principal'];
 type Metadata = Awaited<ReturnType<Fixture['setup']>>;
 let fixture: Fixture, metadata: Metadata;
+let setupComplete = false, setupPending = false, nodePending = 0, nodeUnknown = false;
+let nodeUnknownStage: 'creation' | 'setup' | 'readback' | 'session' | null = null, browserUnknown = false, recoveryRequired = false;
+const pendingRequests = new Set<Request>();
+let completedActualRoutes = new WeakSet<Request>();
+/** Internal setup calls are awaited serially by the original fixture. A rejection
+ * cannot prove that its last owned transaction finished; keep that uncertainty sticky. */
+async function ownedNode<T>(stage: 'creation' | 'setup' | 'readback' | 'session', operation: () => Promise<T>): Promise<T> {
+  nodePending++;
+  try { return await operation(); }
+  catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }
+  finally { nodePending--; }
+}
+/** A real route.fetch response proves server completion even when the test later
+ * withholds/aborts the browser response. Failed fetches never clear pending work. */
+async function actualRouteFetch(route: Route): Promise<APIResponse> {
+  try {
+    const actual = await route.fetch();
+    completedActualRoutes.add(route.request()); pendingRequests.delete(route.request());
+    return actual;
+  } catch { browserUnknown = true; throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+}
 const baseURL = process.env.PHASE5_BASE_URL ?? 'http://127.0.0.1:3061';
 const SETUP = '/api/planering/urval', ROW = '/api/timplaner/gym/rad', GYM_READ = '/api/timplaner/gym/lasa';
 const PROGRAM_READ = '/api/programplaner/lasa', SPECIALIZATION = '/api/programplaner/fordjupning';
@@ -79,7 +100,7 @@ async function readyPlanning(page: Page, wantedYear = metadata.planningYear, uni
   await expect(school(page)).toHaveValue(unitId);
 }
 async function readGym(planId: string, session: Session): Promise<GymTimplan> {
-  const reply = await fixture.request(baseURL, session, GYM_READ, { planId });
+  const reply = await ownedNode('readback', () => fixture.request(baseURL, session, GYM_READ, { planId }));
   expect(reply.status).toBe(200);
   expect(await fixture.pairedGym(reply.correlationId, session, 'gym_timplan_read', planId)).toBe(true);
   return reply.body as GymTimplan;
@@ -109,6 +130,9 @@ async function blockAttempts(page: Page, oldURL: string, oldYear: number, oldSch
 }
 
 test.beforeAll(async ({ browserName }, info) => {
+  expect(info.config.maxFailures, 'Actual körning måste stoppa vid första FAIL.').toBe(1);
+  expect(info.config.workers, 'Ägda DB-fixturer måste köras seriellt.').toBe(1);
+  expect(info.project.retries, 'Misslyckade fall får inte köras om automatiskt.').toBe(0);
   const proof = await verifyPlanningYearBrowserTarget(baseURL);
   const git = (args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   expect(git(['status', '--porcelain', '--', ...contextRuntime, ...contextTools])).toBe('');
@@ -118,14 +142,44 @@ test.beforeAll(async ({ browserName }, info) => {
   await info.attach('source-build.json', { body: JSON.stringify({ ...proof, browserName, sourceHashes }), contentType: 'application/json' });
 });
 test.beforeEach(async ({ page }) => {
+  // Never replace the owned recovery metadata with another fixture after unknown completion.
+  if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
   fixture = undefined!; metadata = undefined!; releasePending.length = 0; unexpectedDialogs = [];
+  setupComplete = false; setupPending = false; nodePending = 0; nodeUnknown = false; nodeUnknownStage = null; browserUnknown = false;
+  pendingRequests.clear(); completedActualRoutes = new WeakSet<Request>();
+  page.on('request', request => {
+    if (new URL(request.url()).pathname.startsWith('/api/') && !completedActualRoutes.has(request)) pendingRequests.add(request);
+  });
+  // No response means no completion proof. In particular, requestfailed does not
+  // clear a pending API request unless an actual route.fetch already completed it.
+  page.on('response', response => { pendingRequests.delete(response.request()); });
   page.on('dialog', async dialog => { unexpectedDialogs.push(dialog.type()); await dialog.dismiss(); });
-  fixture = await createPlanningYearFixture(); metadata = await fixture.setup(baseURL);
+  fixture = await ownedNode('creation', () => createPlanningYearFixture());
+  if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
+  setupPending = true;
+  try { metadata = await ownedNode('setup', () => fixture.setup(baseURL)); setupComplete = true; }
+  finally { setupPending = false; }
 });
 test.afterEach(async ({ page }, info) => {
   releasePending.splice(0).forEach(release => release());
-  await page.unrouteAll({ behavior: 'wait' });
-  if (!fixture) return;
+  let routesSettled = false, contextClosed = false;
+  try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; }
+  catch { browserUnknown = true; }
+  // Close the whole context before any ending audit/hash snapshot or cleanup.
+  try { await page.context().close(); contextClosed = true; }
+  catch { browserUnknown = true; }
+  if (!fixture && !recoveryRequired && nodePending === 0 && !nodeUnknown && !browserUnknown && pendingRequests.size === 0 && routesSettled && contextClosed) return;
+  if (recoveryRequired || !setupComplete || setupPending || nodePending > 0 || nodeUnknown || browserUnknown || pendingRequests.size > 0 || !routesSettled || !contextClosed) {
+    recoveryRequired = true;
+    // Original hashes were captured before setup. No new DB snapshot is taken
+    // while completion is unknown; audit and identity anchors remain untouched.
+    await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, databaseRecoveryRequired: true,
+      setupComplete, setupPending, pendingNodeRequests: nodePending, unknownNodeRequest: nodeUnknown, nodeUnknownStage,
+      unknownBrowserCompletion: browserUnknown, pendingRequests: pendingRequests.size, routesSettled, contextClosed,
+      ownedCustomerId: fixture?.customerId ?? null, ownedOrganizerId: fixture?.organizerId ?? null, foreignCustomerId: fixture?.foreignCustomerId ?? null,
+      originalBusiness: fixture?.originalBusiness ?? null, fixtureExposed: !!fixture }), contentType: 'application/json' });
+    throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
+  }
   try {
     const cleanup = await fixture.cleanup();
     await info.attach('cleanup.json', { body: JSON.stringify(cleanup), contentType: 'application/json' });
@@ -205,7 +259,7 @@ test('C03: faktiskt gammalt setup-svar kan inte återföra skolor efter uppdrags
   const hold = held(); let first = true, discarded = false;
   await page.route(`**${SETUP}`, async route => {
     if (!first) { await route.continue(); return; } first = false;
-    const actual = await route.fetch(); expect(actual.status()).toBe(200); hold.ready.resolve(actual);
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); hold.ready.resolve(actual);
     await hold.release.promise;
     try { await route.fulfill({ response: actual }); }
     catch { discarded = true; }
@@ -249,7 +303,7 @@ test('C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/ut
   if (!rowKey) throw Error('Ägd aktiv timrad saknas.');
   const expected = [...before.hours[rowKey]]; expected[0] = (expected[0] ?? 0) + 7;
   const hold = held(); let writes = 0;
-  await page.route(`**${ROW}`, async route => { writes++; const actual = await route.fetch(); expect(actual.status()).toBe(200);
+  await page.route(`**${ROW}`, async route => { writes++; const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200);
     expect(await fixture.pairedGym(actual.headers()['x-correlation-id'], session, 'gym_timplan_row_changed', planId)).toBe(true);
     hold.ready.resolve(actual); await hold.release.promise; await route.fulfill({ response: actual }); });
   const oldURL = page.url(); await input.fill(String(expected[0]));
@@ -275,9 +329,9 @@ test('C05: accepterad timrad med transportfel och misslyckad återläsning kräv
   const before = await readGym(planId, session), input = gymTable(page).locator('input[data-term="0"]').first();
   const rowKey = await input.getAttribute('data-row'); if (!rowKey) throw Error('Ägd aktiv timrad saknas.');
   const expected = [...before.hours[rowKey]]; expected[0] = (expected[0] ?? 0) + 9; let writes = 0, auditedReads = 0;
-  await page.route(`**${ROW}`, async route => { writes++; const actual = await route.fetch(); expect(actual.status()).toBe(200);
+  await page.route(`**${ROW}`, async route => { writes++; const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200);
     expect(await fixture.pairedGym(actual.headers()['x-correlation-id'], session, 'gym_timplan_row_changed', planId)).toBe(true); await route.abort('failed'); });
-  await page.route(`**${GYM_READ}`, async route => { const actual = await route.fetch(); expect(actual.status()).toBe(200); auditedReads++;
+  await page.route(`**${GYM_READ}`, async route => { const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); auditedReads++;
     expect(await fixture.pairedGym(actual.headers()['x-correlation-id'], session, 'gym_timplan_read', planId)).toBe(true);
     await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) }); });
   const oldURL = page.url(); await input.fill(String(expected[0])); await input.press('Enter');
@@ -297,16 +351,16 @@ test('C06: okänd fördjupningsskrivning och parent-läsfel behåller spärr eft
   const session = fixture.principal, planId = fixture.planId;
   await enter(page, session, planningQuery('programplaner', fixture.unitId, { planId, offeringId: fixture.offeringId }));
   await expect(board(page)).toContainText('Allt sparat'); let writes = 0, readFailures = 0;
-  await page.route(`**${SPECIALIZATION}`, async route => { writes++; const actual = await route.fetch(); expect(actual.status()).toBe(200);
+  await page.route(`**${SPECIALIZATION}`, async route => { writes++; const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200);
     expect(await fixture.paired(actual.headers()['x-correlation-id'], session, 'programplan_specialization_changed', planId)).toBe(true); await route.abort('failed'); });
-  await page.route(`**${PROGRAM_READ}`, async route => { const actual = await route.fetch(); expect(actual.status()).toBe(200); readFailures++;
+  await page.route(`**${PROGRAM_READ}`, async route => { const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); readFailures++;
     expect(await fixture.paired(actual.headers()['x-correlation-id'], session, 'programplan_read', planId)).toBe(true);
     await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) }); });
   await board(page).getByRole('searchbox', { name: 'Lägg till ämne eller nivå', exact: true }).fill('ANIM1000X');
   await board(page).locator('button[data-level-code="ANIM1000X"]').click();
   await expect(board(page)).toContainText('Sparstatus kunde inte läsas. Läs om planen innan du försöker igen.');
   const oldURL = page.url(); await year(page).selectOption(String(metadata.planningYear + 1)); await expect(year(page)).toHaveValue(String(metadata.planningYear));
-  await page.route('**/api/programplaner/underlag', async route => { const actual = await route.fetch(); expect(actual.status()).toBe(200); readFailures++;
+  await page.route('**/api/programplaner/underlag', async route => { const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); readFailures++;
     expect(await fixture.paired(actual.headers()['x-correlation-id'], session, 'programplan_workspace_read', fixture.offeringId, 'education')).toBe(true);
     await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) }); });
   await board(page).getByRole('button', { name: 'Läs om planen', exact: true }).click();
@@ -349,13 +403,13 @@ test('C07: aktivt skapande och okänt kvitto spärrar navigation fram till fakti
   await form.getByRole('button', { name: 'Granska utkast', exact: true }).click();
   const hold = held(); let writes = 0, statusReads = 0, planId = '', offeringId = '', commandId = '';
   await page.route('**/api/programplaner/utbildning/status', async route => {
-    const actual = await route.fetch(); expect(actual.status()).toBe(200); statusReads++;
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); statusReads++;
     expect(await fixture.paired(actual.headers()['x-correlation-id'], fixture.hm, 'programplan_education_status_read', commandId, 'education_command')).toBe(true);
     await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) });
   });
   await page.route('**/api/programplaner/utbildning/skapa', async route => {
     writes++; commandId = route.request().postDataJSON().commandId;
-    const actual = await route.fetch(); expect(actual.status()).toBe(200); const body = await actual.json();
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); const body = await actual.json();
     planId = body.plan.id; offeringId = body.education.id;
     expect(await fixture.paired(actual.headers()['x-correlation-id'], fixture.hm, 'programplan_education_created', offeringId, 'education')).toBe(true);
     hold.ready.resolve(actual); await hold.release.promise; await route.abort('failed');
@@ -369,7 +423,7 @@ test('C07: aktivt skapande och okänt kvitto spärrar navigation fram till fakti
   await year(page).selectOption(String(metadata.planningYear + 1)); await expect(year(page)).toHaveValue(String(metadata.planningYear));
   await page.unroute('**/api/programplaner/utbildning/status');
   await page.route('**/api/programplaner/underlag', async route => {
-    const actual = await route.fetch(); expect(actual.status()).toBe(200);
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200);
     expect(await fixture.paired(actual.headers()['x-correlation-id'], fixture.hm, 'programplan_workspace_read', offeringId, 'education')).toBe(true);
     await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) });
   });
@@ -392,20 +446,20 @@ test('C08: faktisk sessionsutgång rensar även en blockerad skrivning och gamma
   await enter(page, session, planningQuery('timplaner', fixture.unitId, { planId })); await expect(gymTable(page)).toBeVisible();
   const hold = held(); let writes = 0;
   await page.route(`**${ROW}`, async route => {
-    writes++; const actual = await route.fetch(); expect(actual.status()).toBe(200);
+    writes++; const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200);
     expect(await fixture.pairedGym(actual.headers()['x-correlation-id'], session, 'gym_timplan_row_changed', planId)).toBe(true);
     hold.ready.resolve(actual); await hold.release.promise; await route.abort('failed');
   });
   const input = gymTable(page).locator('input[data-term="0"]').first();
   await input.fill('37'); await input.press('Enter'); await hold.ready.promise;
   await year(page).selectOption(String(metadata.planningYear + 1)); await expect(year(page)).toHaveValue(String(metadata.planningYear));
-  await fixture.expire(session);
+  await ownedNode('session', () => fixture.expire(session));
   const denied = page.waitForResponse(responseFor(GYM_READ)); hold.release.resolve();
   const expired = await denied; expect(expired.status()).toBe(401); expect((await expired.json()).code).toBe('session_expired');
   await expect(gym(page)).toHaveCount(0); await expect(bar(page)).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Logga ut', exact: true })).toHaveCount(0);
   expect(new URL(page.url()).searchParams.has('planeringslasar')).toBe(false);
-  const renewed = await fixture.newPrincipal(); await fixture.cookies(page.context(), renewed, baseURL);
+  const renewed = await ownedNode('session', () => fixture.newPrincipal()); await fixture.cookies(page.context(), renewed, baseURL);
   const setup = page.waitForResponse(responseFor(SETUP)); await page.goto('/?vy=programplaner');
   const current = await setup; expect(current.status()).toBe(200); const available = await current.json();
   expect(await fixture.pairedPlanning(current.headers()['x-correlation-id'], renewed, 'planning_year_selection_read')).toBe(true);
