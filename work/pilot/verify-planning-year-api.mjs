@@ -174,7 +174,7 @@ async function main(){
     const input=q({schoolform:'grundskola',unitId:fixture.nonGymUnitId,schoolYear:year}),body=await success(checks,fixture.hm,'oversikt',input);
     const rows=body.rows.filter(r=>r.offeringId===metadata.gr.offeringId);
     checked(checks,`${column} real year-bound old version wins newer draft`,rows.length===1&&rows.every(r=>r.plan?.id===metadata.gr.oldPlanId&&r.underlag==='class-bound'&&r.application?.schoolYear===year&&r.application.columnId===column));
-    checked(checks,`${column} unknown original map retains real class references`,rows.every(r=>r.columnMap?.kind==='unknown'&&r.diagnostics.includes('unverified-column-map')&&r.cells.every(c=>c.hourValues===null))
+    checked(checks,`${column} unknown original map retains real class references`,rows.every(r=>r.columnMap?.kind==='unknown'&&r.diagnostics.includes('unverified-column-map')&&equal(r.cells.find(c=>c.rowKey==='engelska')?.hourValues,[111,222,333]))
      &&equal(rows.flatMap(r=>r.classes.map(c=>c.id)).sort(),[...expectedClassIds].sort())&&body.totals.annualHours.value===null);
     const grade=await success(checks,fixture.hm,'lista',{...input,grade:Number(column.slice(2))});checked(checks,`${column} grade filter follows exact binding`,grade.rows.length===1&&grade.rows.every(r=>r.application?.columnId===column));
    }
