@@ -5,7 +5,7 @@
 // zero skips/retries and
 // actual audit/full-row cleanup evidence before releasing 40; intended case lists are no PASS proof.
 // All positive data and controlled late responses come from route.fetch/owned actual APIs.
-import { expect, test, type APIResponse, type Locator, type Page, type Request, type Response, type TestInfo } from '@playwright/test';
+import { expect, test, type APIResponse, type Locator, type Page, type Request, type Response, type Route, type TestInfo } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -38,6 +38,24 @@ const listTools = ['work/pilot/phase5-planning-year-list-fixtures.mjs', 'web/e2e
 let fixture: Fixture, metadata: Metadata, setup: PlanningSetup, session: Session, setupComplete = false, nodeUnknown = false;
 const releases: (() => void)[] = [], pending = new Set<Request>();
 let auditChecks: Promise<void>[] = [], dialogs: string[] = [];
+type NodeStage = 'creation' | 'setup' | 'request' | 'fixture-mutation' | 'readback';
+let setupPending = false, nodePending = 0, nodeUnknownStage: NodeStage | null = null;
+let browserUnknown = false, recoveryRequired = false, completedActualRoutes = new WeakSet<Request>();
+async function ownedNode<T>(stage: NodeStage, operation: () => Promise<T>): Promise<T> {
+  if (recoveryRequired || nodeUnknown) throw Error('OWNED_RECOVERY_REQUIRED');
+  nodePending++;
+  try { return await operation(); }
+  catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }
+  finally { nodePending--; }
+}
+async function actualRouteFetch(route: Route): Promise<APIResponse> {
+  try {
+    const actual = await route.fetch();
+    completedActualRoutes.add(route.request()); pending.delete(route.request());
+    return actual;
+  } catch { browserUnknown = true; throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+}
+
 const region = (page: Page, view: PlanningSelection['view'] = 'programplan') => page.getByRole('region', { name: view === 'programplan' ? 'Alla programplaner' : 'Alla timplaner', exact: true });
 const bar = (page: Page) => page.getByRole('region', { name: 'Planeringsval', exact: true });
 const search = (page: Page) => page.getByLabel('Sök utbildning', { exact: true });
@@ -45,8 +63,7 @@ const pathname = (r: { url(): string }) => new URL(r.url()).pathname;
 const q = (patch: Partial<PlanningSelection> = {}): PlanningSelection => parsePlanningSelection(planningSelection(metadata.planningYear,
   { view: 'programplan', unitId: fixture.unitId, query: metadata.pageQuery, status: 'utkast', ...patch }));
 async function ownedRequest(...args: Parameters<Fixture['request']>) {
-  try { return await fixture.request(...args); }
-  catch (error) { nodeUnknown = true; throw error; }
+  return ownedNode('request', () => fixture.request(...args));
 }
 const json = (p: string) => JSON.parse(readFileSync(path.join(root, p), 'utf8'));
 const sha = (value: Buffer) => createHash('sha256').update(value).digest('hex');
@@ -203,32 +220,47 @@ test.beforeAll(async ({ browserName }, info) => {
     dependencyReports: { performance: sha(read('work/pilot/results/phase5-38-read-performance-final.json')), search: sha(read('work/pilot/results/phase5-40-search-details-final.json')) } }), contentType: 'application/json' });
 });
 test.beforeEach(async ({ page }) => {
+  if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
+  setupPending = false; nodePending = 0; nodeUnknownStage = null; browserUnknown = false; completedActualRoutes = new WeakSet<Request>();
   fixture = undefined!; metadata = undefined!; setupComplete = false; nodeUnknown = false; releases.length = 0; pending.clear(); auditChecks = []; dialogs = [];
   page.on('dialog', async dialog => { dialogs.push(dialog.type()); await dialog.dismiss(); });
-  page.on('request', request => { if (pathname(request).startsWith('/api/')) pending.add(request); });
+  page.on('request', request => { if (pathname(request).startsWith('/api/') && !completedActualRoutes.has(request)) pending.add(request); });
   page.on('response', reply => {
     pending.delete(reply.request());
     if ([LIST, OVERVIEW, SETUP].includes(pathname(reply))) { const check = actualAudit(reply, pathname(reply)); void check.catch(() => undefined); auditChecks.push(check); }
   });
-  fixture = await createPlanningListFixture(); metadata = await fixture.setup(baseURL); session = fixture.hm;
+  fixture = await ownedNode('creation', () => createPlanningListFixture());
+  if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
+  setupPending = true;
+  try { metadata = await ownedNode('setup', () => fixture.setup(baseURL)); }
+  finally { setupPending = false; }
+  if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
+  session = fixture.hm;
   // The list wrapper dispatches this GET-only route without a request body.
   const reply = await ownedRequest(baseURL, session, SETUP); expect(reply.status).toBe(200);
   expect('noStore' in reply && reply.noStore).toBe(true);
   expect(await fixture.pairedPlanning(reply.correlationId, session, 'planning_year_selection_read')).toBe(true); setup = parsePlanningSetup(reply.body); setupComplete = true;
 });
 test.afterEach(async ({ page }, info) => {
-  releases.splice(0).forEach(release => release()); await page.unrouteAll({ behavior: 'wait' });
-  // A failed assertion is evidence failure, not proof of a running DB request.
-  // Confirmed responses may still be cleaned; genuinely pending requests stay owned.
-  if (!fixture) return;
-  await page.close();
-  // The closed page cannot enqueue another response audit after this snapshot.
-  const auditResults = await Promise.allSettled(auditChecks);
-  if (!setupComplete || nodeUnknown || pending.size > 0) {
-    await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, pendingRequests: pending.size, unknownNodeRequest: nodeUnknown,
-      ownedCustomerId: fixture.customerId, ownedOrganizerId: fixture.organizerId }), contentType: 'application/json' });
-    throw Error('DB-avslutningen är okänd. Root måste återläsa de ägda anropen före städning.');
+  releases.splice(0).forEach(release => release());
+  let routesSettled = false, contextClosed = false;
+  try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; }
+  catch { browserUnknown = true; }
+  try { await page.context().close(); contextClosed = true; }
+  catch { browserUnknown = true; }
+  if (!fixture && !recoveryRequired && nodePending === 0 && !nodeUnknown && !browserUnknown && pending.size === 0 && routesSettled && contextClosed) return;
+  if (recoveryRequired || !setupComplete || setupPending || nodePending > 0 || nodeUnknown || browserUnknown || pending.size > 0 || !routesSettled || !contextClosed) {
+    recoveryRequired = true;
+    // Reuse the pre-setup original hashes; unknown completion forbids new DB snapshots.
+    await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, databaseRecoveryRequired: true,
+      setupComplete, setupPending, pendingNodeRequests: nodePending, unknownNodeRequest: nodeUnknown, nodeUnknownStage,
+      unknownBrowserCompletion: browserUnknown, pendingRequests: pending.size, routesSettled, contextClosed,
+      ownedCustomerId: fixture?.customerId ?? null, ownedOrganizerId: fixture?.organizerId ?? null, foreignCustomerId: fixture?.foreignCustomerId ?? null,
+      originalBusiness: fixture?.originalBusiness ?? null, fixtureExposed: !!fixture }), contentType: 'application/json' });
+    throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
   }
+  // Context closure prevents another response from adding an audit read to this set.
+  const auditResults = await Promise.allSettled(auditChecks);
   try {
     const cleanup = await fixture.cleanup(); await info.attach('cleanup.json', { body: JSON.stringify(cleanup), contentType: 'application/json' });
     expect(searchCleanupPreserved(cleanup)).toBe(true); expect(Object.keys(cleanup.originalBusiness)).toHaveLength(15);
@@ -350,7 +382,7 @@ test('L07: saknad programplan visas utan fabricerad källa eller implicit skapan
 });
 
 test('L08: faktisk409 efter egen kodändring återläser sida1 med samma filter', async ({ page }, info) => {
-  const initial = q({ sort: 'school' }); const first = await enter(page, initial) as PlanningList; await fixture.changeLocalCode();
+  const initial = q({ sort: 'school' }); const first = await enter(page, initial) as PlanningList; await ownedNode('fixture-mutation', () => fixture.changeLocalCode());
   const conflict = page.waitForResponse(reply => pathname(reply) === LIST && reply.status() === 409);
   const restarted = nextList(page, input => input.page === 1 && input.selectionRevision === null && input.query === initial.query);
   await region(page).getByRole('button', { name: 'Nästa sida', exact: true }).click(); const rejected = await conflict;
@@ -365,7 +397,7 @@ test('L09: fördröjt faktiskt söksvar kan inte ersätta den senare sökningen'
   await page.route(`**${LIST}`, async route => {
     const input = route.request().postDataJSON() as PlanningSelection;
     if (intercepted || input.query !== metadata.pageQuery) { await route.continue(); return; } intercepted = true;
-    const reply = await route.fetch(); expect(reply.status()).toBe(200); await actualAudit(reply, LIST); pending.delete(route.request()); held.ready.resolve(reply);
+    const reply = await actualRouteFetch(route); expect(reply.status()).toBe(200); await actualAudit(reply, LIST); pending.delete(route.request()); held.ready.resolve(reply);
     await held.release.promise; try { await route.fulfill({ response: reply }); } catch { /* Old request was cancelled after actual DB completion. */ }
   });
   await fixture.cookies(page.context(), session, baseURL); const opening = page.goto(url(q())); await held.ready.promise; await opening; await waitForHydration(page);
@@ -378,7 +410,7 @@ test('L10: fördröjt faktiskt skolsvar och främmande URL kan inte ge gamla sko
   await page.route(`**${LIST}`, async route => {
     const input = route.request().postDataJSON() as PlanningSelection;
     if (intercepted || input.unitId !== fixture.unitId) { await route.continue(); return; } intercepted = true;
-    const reply = await route.fetch(); expect(reply.status()).toBe(200); await actualAudit(reply, LIST); pending.delete(route.request()); held.ready.resolve(reply);
+    const reply = await actualRouteFetch(route); expect(reply.status()).toBe(200); await actualAudit(reply, LIST); pending.delete(route.request()); held.ready.resolve(reply);
     await held.release.promise; try { await route.fulfill({ response: reply }); } catch { /* Aborted old scope stays absent. */ }
   });
   await fixture.cookies(page.context(), session, baseURL); const opening = page.goto(url(q())); await held.ready.promise; await opening; await waitForHydration(page);
@@ -419,7 +451,7 @@ test('L12: GR-bunden äldre version och IM-okänd veckotid förblir tydliga i å
 });
 
 test('L13: äldre faktisk programversion öppnas trots nyare utkast och filter består vid Back', async ({ page }, info) => {
-  await fixture.sealOwnedPlan(fixture.planId);
+  await ownedNode('fixture-mutation', () => fixture.sealOwnedPlan(fixture.planId));
   const oldReply = await ownedRequest(baseURL, session, '/api/programplaner/lasa', { planId: fixture.planId }); expect(oldReply.status).toBe(200);
   const old = parseProgramplan(oldReply.body); expect(old.status).toBe('faststalld');
   const cloned = await ownedRequest(baseURL, session, '/api/programplaner/klona', { sourcePlanId: old.id, expectedSourceRevision: old.revision, expectedLatestVersion: old.version, explicitLegacyBasis: null });
@@ -537,14 +569,14 @@ test('L18: skapadB får URL först efter faktisk parent-återläsning; okänt kv
   const name = 'Syntetisk listskapning B', form = await prepareChosenEducation(page, fixture.secondUnitId, name);
   const held = hold(); let reads = 0, statusReads = 0, commandId = '';
   await page.route('**/api/programplaner/utbildning/status', async route => {
-    const actual = await route.fetch(); expect(actual.status()).toBe(200); statusReads++;
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); statusReads++;
     const status = parseProgramplanEducationStatus(await actual.json(), route.request().postDataJSON());
     expect(status.commandId).toBe(commandId); expect(status.status).toBe('created');
     expect(await fixture.paired(actual.headers()['x-correlation-id'], session, 'programplan_education_status_read', commandId, 'education_command')).toBe(true);
     pending.delete(route.request()); await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) });
   });
   await page.route('**/api/programplaner/underlag', async route => {
-    const actual = await route.fetch(); expect(actual.status()).toBe(200); reads++;
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); reads++;
     const workspace = parseProgramplanWorkspace(await actual.json(), route.request().postDataJSON()); expect(workspace.education.name).toBe(name);
     expect(workspace.lifecycle.units.some(unit => unit.id === fixture.secondUnitId && unit.inMandate)).toBe(true);
     expect(await fixture.paired(actual.headers()['x-correlation-id'], session, 'programplan_workspace_read', workspace.education.id, 'education')).toBe(true);

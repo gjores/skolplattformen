@@ -23,6 +23,7 @@ let completedActualRoutes = new WeakSet<Request>();
 /** Internal setup calls are awaited serially by the original fixture. A rejection
  * cannot prove that its last owned transaction finished; keep that uncertainty sticky. */
 async function ownedNode<T>(stage: 'creation' | 'setup' | 'readback' | 'session', operation: () => Promise<T>): Promise<T> {
+  if (recoveryRequired || nodeUnknown) throw Error('OWNED_RECOVERY_REQUIRED');
   nodePending++;
   try { return await operation(); }
   catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }
