@@ -62,5 +62,55 @@
     "httpBeforeSamples": 9,
     "fullApiCases": 15
   },
-  "finalOutcome": "Pending. Targeted diagnosis is not full rollback/API/performance PASS; no permanent performance apply yet."
+  "finalOutcome": "Pending. Full SQL/contract/preservation PASS retained, but nine successful old HTTP samples and all applied/API/speedup proof still required. No permanent performance apply.",
+  "secondFailure": {
+    "report": "phase5-38-read-performance-rollback-fail-1791359038373.json",
+    "sha256": "4f231086020d7f9e739fc0b36f28ab4829c7daf82852eb3356812145852d1603",
+    "sqlAssertions": 143,
+    "parityCases": 46,
+    "immutableOriginalSqlAssertions": 93,
+    "actualContractCases": 18,
+    "allSqlAndPreservationChecksPass": true,
+    "httpFailure": "REQUEST_TIMEOUT",
+    "httpSamples": 0,
+    "cleanupStatus": "PASS",
+    "complete": false
+  },
+  "httpDiagnostics": [
+    {
+      "report": "phase5-38-read-performance-http-diagnostic-fail-20261007T0749.json",
+      "sha256": "85ca20ef0995dddca06537170233fc4eace831ae86c6f1beac7d3bfb9e82f820",
+      "status": "FAIL",
+      "oldHttpReadTimeoutMs": 30000,
+      "cleanupStatus": "PASS",
+      "notFullPlanProof": true
+    },
+    {
+      "report": "phase5-38-read-performance-http-diagnostic.json",
+      "sha256": "95cade2f17c5f87ee9cf4492af7d2a1da37975eda956a6d44ffedbb7f30198f8",
+      "status": "PASS",
+      "samples": 1,
+      "durationMs": 28675.336791,
+      "count": 52,
+      "rows": 50,
+      "auditPaired": true,
+      "noStore": true,
+      "businessUnchanged": true,
+      "cleanupStatus": "PASS",
+      "notFullPlanProof": true
+    }
+  ],
+  "catalogStatisticsMaintenance": {
+    "operation": "ANALYZE public.programplan_catalogs",
+    "target": "protected",
+    "original15WholeRowsUnchanged": true,
+    "fullPublicCatalogRawAclAndJournalUnchanged": true,
+    "causality": "Timing followed statistics update; this alone does not establish why the earlier request timed out."
+  },
+  "fullRerun": {
+    "startedAt": "2026-10-07T07:59:01Z",
+    "status": "running",
+    "sourceChangesSinceCompleteSqlPass": false,
+    "sameTimingAndProofGates": true
+  }
 }
