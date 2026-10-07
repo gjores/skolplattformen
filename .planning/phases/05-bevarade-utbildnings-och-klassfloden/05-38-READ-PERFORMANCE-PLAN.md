@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "38-READ-PERFORMANCE"
 type: execute
-status: in_progress
+status: complete
 wave: 4
 depends_on: ["05-38"]
 prerequisite_for: ["05-39"]
@@ -42,7 +42,7 @@ must_haves:
 
 # 05-38 — Avgränsad rättning av programlistans svarstid
 
-**Status:** Påbörjad 2026-10-07 efter komplett faktisk 05-38 preflight/slutmatris15/247 PASS. Genomförs före 05-39. Inga nya milstolpekrav eller verksamhetsbeslut tillkommer. Användarens beställning att fortsätta tills användarprov behövs omfattar denna nödvändiga rättning.
+**Status:** Genomförd 2026-10-07. Färsk fullrollback/exakt apply/applied SQL143/46+93/18, verkliga tidsmål och oförändrad API15/247 PASS. [SUMMARY](05-38-READ-PERFORMANCE-SUMMARY.md) och [oberoende verifiering](05-38-READ-PERFORMANCE-VERIFICATION.md). Nästa SEARCH, sedan UI05-39–43. Fulla krav och mänskligt prov är separata; äldre FAIL nedan bevaras.
 
 **Färsk fullrollback/tillämpning 2026-10-07:** Fullrapporten `phase5-38-read-performance-rollback.json` är PASS: SQL143/46, oförändrad93/18, nio ordinarie HTTP-svar och full cleanup/15 helrader/katalog/rå ACL/auditankare. Gamla list-/sök-/sidmedianer är16,274/20,658/16,907s. Exakt06122000 är tillämpad efter jämförelse mot fullrollbackens sista audit-/identitetsankare;28 Worker-entrypoints och originalvärden består. Fullt applied-slutprov kör därefter utan SQL-återbruk eller reserv. Kandidatens faktiska prestanda/API-slutprov och fullplans-PASS återstår. Äldre FAIL nedan är bevarad historik.
 

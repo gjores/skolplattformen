@@ -27,7 +27,7 @@ Byte av läsår är ett urval. Det ändrar inga statusar, beslut, fastställda v
 | [05-36](05-36-PLAN.md) | 1 | 2 | **Genomförd**, se SUMMARY/VERIFICATION. Ren läsårs-/snittmodell och strikt kontrakt. Januaristart, frysta datum, null/0 och GR/IM; inga DB-anrop. |
 | [05-37](05-37-PLAN.md) | 2 | 3 | **Genomförd**, se SUMMARY/VERIFICATION. Stängda SQL-projektioner: 93 SQL/18 paritet/3 lås före/efter apply; 15 helradstabeller/ACL/journal bevarade. Inga nya Workergrants. |
 | [05-38](05-38-PLAN.md) | 3 | 3 | **Genomförd**15/247 preflight/slutprov; tre läsrutter i Worker, riktig temporär preflight med exakt återställning, därefter tre exakta permanenta läsgrants och samma slutmatris. |
-| [05-38-READ-PERFORMANCE](05-38-READ-PERFORMANCE-PLAN.md) | 4 | 3 | Privat definitionsrättning med exakt gammal/ny-paritet, samma API-matris och uppmätt svarstid. |
+| [05-38-READ-PERFORMANCE](05-38-READ-PERFORMANCE-PLAN.md) | 4 | 3 | **Genomförd:** fullrollback/apply/applied143/46+93/18, actualAPI15/247, förbättring7,68–15,21× och full15/ACL28/auditbevarande. [SUMMARY](05-38-READ-PERFORMANCE-SUMMARY.md). |
 | [05-40-SEARCH-DETAILS](05-40-SEARCH-DETAILS-PLAN.md) | 5 | 3 | Verklig lokal kod/program/inriktning, strikt äldre/utökat kontrakt och faktisk servermatchning; samma privata hjälpare och 28 grants. |
 | [05-39](05-39-PLAN.md) | 6 | 4 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
 | [05-40](05-40-PLAN.md) | 7 | 3 | Verklig årsöverblick, gemensam sök/filter/sort/pagination och program-/gymtimplanstabeller. |

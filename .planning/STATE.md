@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-38-READ-PERFORMANCE
+current_plan: 05-40-SEARCH-DETAILS
 status: in_progress
-stopped_at: 05-38 faktisk preflight/slutmatris15/247 PASS; 28 entrypoints. Fortsätter med avgränsad prestanda-/kodsökrättning före UI05-39–43 och mänskligt prov.
+stopped_at: Prestandakorrektiv fullrollback/apply/applied PASS, SQL143/46+93/18 och API15/247. Nästa SEARCH före UI05-39–43 och mänskligt prov.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
-last_activity_desc: "05-38 färdig: preflight/slutmatris15/247 PASS, tre grants, 28 entries, 15 helradstabeller och audit bevarade. Nästa prestandarättning och UI."
-state_head: f0b14fb
+last_activity_desc: "Prestandakorrektiv PASS: 7,68–15,21 gånger snabbare, fulla SQL/API/bevarandebevis; nästa kod-/benämningssökning."
+state_head: adf9b7e
 verification_worker_build_revision: d59ec10f5b4469ce4e14e1e12a591aca2363a30b
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -17,7 +17,7 @@ progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 81
+  completed_plans: 82
 milestone_name: milestone
 ---
 
@@ -28,9 +28,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-07)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Modell/SQL/API05-36–38 är avgränsat verifierade. Nu prestandarättning av52-raderslistan, därefter UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
+**Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Nu kod-/benämningssökning, därefter UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**Prestandakorrektiv färdigt 2026-10-07:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-SUMMARY.md) och oberoende3/3-verifiering PASS. Färsk fullrollback och applied vardera143/46+93/18;9 gamla och12 nya faktiska HTTP-svar, oförändrad API15/247, full15/katalog/rå ACL28/audit-/identitetsbevarande och cleanup PASS utan deferred eller återbruk/reserv. Median lista16,274→2,120s, sök20,658→1,358s, sida2 16,907→1,416s; överblick1,560s. Endast privat rows-definition/journal06122000 ändrad. Första FAIL och diagnoser står kvar. 82/100 genomförda,3/8 verifierade faser; nästa SEARCH och seriell39–43, vanlig3012 fortsatt5dd7baf. Tidigare pågående performancebesked nedan är historik.
 
 **Slutna GR/IM-provkällor 2026-10-07:** Managed förberedelsegren är pushad/fjärrverifierad tilldedc935. Egen42wrapper/spec har rättad transaction-returntyp, samma pending/unknown/late-factory-grind som C/L/G, två completionkontroller före/efter audit och stängd hel browsercontext. Externa C16/L36/G38 kräver fasta egna guardhashar, slutna9/18/24 inventeringar, tre rootgranskade fasrevisioner, respektive egen byggbindning och full15/audit-/identitets-/foreigncleanup. Oberoende källreview, riktad lint/syntax och färsk full typkontroll utan incremental PASS på exakt slutliga två provfiler plus tre produktfiler; källhashar före/efter oförändrade. Inget faktisk42-/mobil-/skriv-PASS eller canonicalUIintegration följer. Fullt applied-performanceprov pågår, därefter SEARCH och seriella39→40→41→42. 81/100 består.
 
@@ -107,12 +109,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-38-READ-PERFORMANCE; därefter 05-39–43. API05-38 actual preflight/slutprov15/247 PASS, 28 entries. Äldre05-25–35 kräver omplanering.
-**Total Plans in Phase:** 45 PLAN-filer; ny avgränsad prestandarättning. 05-36–38 har SUMMARY/verifiering, korrektivet och UI05-39–43 återstår. 05-17 saknar PLAN. Mänskliga prov och full fasverifiering är separata.
+**Current Plan:** 05-40-SEARCH-DETAILS; därefter 05-39–43. Prestandakorrektiv fullständigt verifierat; API15/247 och28 entries består. Äldre05-25–35 kräver omplanering.
+**Total Plans in Phase:** 05-36–38 och prestandakorrektivet har SUMMARY/verifiering; SEARCH och UI05-39–43 återstår. 05-17 saknar PLAN. Mänskliga prov och full fasverifiering är separata.
 **Status:** 05-23/E tekniskt PASS lokalt. Grundflödet användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5 och båda nya gapen är Pending; 05-22 metadata PARTIAL består.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
 **Last Activity:** 2026-10-07
-**Last Activity Description:** 05-38 actual preflight/slutprov15/247 PASS och tre exakta läsgrants; 28 entries, 15 helradstabeller och audit bevarade. Prestandarättning/UI följer.
+**Last Activity Description:** Fullt prestandakorrektiv PASS: SQL143/46+93/18 och API15/247; alla15 originaltabeller/audit/ACL28 bevarade. SEARCH och UI följer.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
@@ -123,14 +125,14 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Tidigare verifiering:** SQL-policy, personbundna tilldelningar, inbjudningar, återkallelse och lokal IT-konfiguration inkopplade. 510 SQL-prov och verkligt samtidighetsprov PASS; 277 modell-/serverprov och 15/15 isolerade API-fall PASS, mandat-/auditfallet utökat till 24 kontroller; giltig verksamhetsinbjudan rättad. Läs 03-04-SUMMARY: Worker-audit/gallring prövade (Worker-API i föregående miljö); källrapporten är sedan 2026-09-26 PASS lokalt på återskapad stack.
 
 Progress: [████░░░░░░] 38%
-Planinventering 2026-10-07 efter 05-38: 99 skrivna PLAN-filer; 81 genomförda inklusive separat paketborttagning. 18 återstår: 04-22, 05-25–35, prestandarättning och 05-39–43. En SUMMARY godkänner inte automatiskt fulla krav eller hela fasen; 3 av 8 faser är verifierade.
+Planinventering 2026-10-07 efter prestandakorrektivet: 100 skrivna PLAN-filer;82 genomförda inklusive separat paketborttagning. 18 återstår: 04-22, 05-25–35, SEARCH och05-39–43. En SUMMARY godkänner inte automatiskt fulla krav eller hela fasen;3 av8 faser är verifierade.
 Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Completed plans with execution summary: 81 (inklusive separat genomförd paketborttagning)
+- Completed plans with execution summary: 82 (inklusive separat genomförd paketborttagning)
 - Partial plan summary: Ingen aktiv; 05-23 A–E avslutad enligt aktuell ram
 - Average duration: Ej tillämpligt
 - Total execution time: Ej sammanräknad; registrerade uppgiftstider finns nedan.
@@ -307,10 +309,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-07
-**Stopped At:** 05-38 avslutad actual15/247 PASS. Fortsätter autonomt med prestandarättning/UI tills konkret användarprov enligt beställningen. Ordinarie3012 består; alla övriga krav/gap är öppna.
+**Stopped At:** Prestandakorrektiv fullrollback/apply/applied och actualAPI15/247 PASS. Fortsätter autonomt med SEARCH/UI tills konkret användarprov enligt beställningen. Ordinarie3012 består; alla övriga krav/gap är öppna.
 **Resume File:** [Läsårsplaneringens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — 05-38-READ-PERFORMANCE före UI05-39–43. Äldre05-25–35 kräver omplanering; besluts-/mobilgap samt fulla krav kvarstår.
+**Planned Phase:** 5 — 05-40-SEARCH-DETAILS före UI05-39–43. Äldre05-25–35 kräver omplanering; besluts-/mobilgap samt fulla krav kvarstår.
 
 ### Senaste användarfynd, 2026-10-02
 

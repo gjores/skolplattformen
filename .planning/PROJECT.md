@@ -1,5 +1,7 @@
 # Skolplattformen
 
+**Prestandakorrektiv 2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-SUMMARY.md) och oberoende3/3-verifiering avslutar05-38-READ-PERFORMANCE. Färsk fullrollback/applied SQL143/46+93/18, exakt apply,21 riktiga HTTP-mätningar och oförändradAPI15/247 PASS. Lista/sök/sida2 är7,68–15,21× snabbare; samtliga12 nya prover under2,154s. Endast en privat definition/journalpost ändrad; full15/ACL28/audit-/identitetsbevarande och cleanup PASS. FörstaFAIL består. 82/100 planer,3/8 verifierade faser. Nästa kod-/benämningssökning och UI05-39–43; fulla PLANERING-/ADMIN-krav, verksamhetsgap och mänskligt prov kvarstår. Ordinarie3012 fortsatt5dd7baf.
+
 **Färsk genomförandeprecisering 2026-10-07:** Kod-/benämningssökningen som 05-40 redan kräver saknas i dagens SQL/PlanningRow. [05-40-SEARCH-DETAILS](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-PLAN.md) är en avgränsad teknisk förutsättning efter prestandakorrektivet och före UI05-39–43; samma privata hjälpare/28 grants, ingen ny verksamhetsregel. Dessutom är sparstatus-/Back-gränser, exakt versionsöppning, 44px mobilknappar och GR:s okända kolumnkarta preciserade efter färsk kodgranskning. Planerna är ännu inte genomförda eller verifierade. Paketet har tio sekventiella waves; kör endast dess uttryckliga dependencykedja, inte hela fasens äldre planer.
 
 

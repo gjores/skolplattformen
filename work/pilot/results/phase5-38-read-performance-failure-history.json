@@ -1,7 +1,7 @@
 {
   "kind": "phase5-planning-year-read-performance-failure-history",
   "scope": "local-synthetic-only",
-  "status": "pending-transport-diagnostic-and-fresh-full-proof",
+  "status": "complete-fresh-full-proof",
   "reset": false,
   "firstFailure": {
     "report": "phase5-38-read-performance-rollback-fail-1791356837808.json",
@@ -62,7 +62,7 @@
     "httpBeforeSamples": 9,
     "fullApiCases": 15
   },
-  "finalOutcome": "Pending. Corrected full SQL143/46 and immutable93/18 PASS; full HTTP proof failed with unknown completion. Separate owned recovery PASS preserves all originals, but supplies no full-plan timing acceptance. Safe attempt/transport/completion diagnostics added; fresh full proof remains required before apply/UI/SEARCH.",
+  "finalOutcome": "PASS. Fresh full rollback and applied each143/46 plus immutable93/18; exact apply,9 complete old and12 complete new native HTTP samples, unchanged full API15/247, original15/rawACL28/audit/identity and owned cleanup preserved. Independent3/3 goals verified. Earlier failures remain FAIL; no censored reserve or reused SQL components accepted.",
   "secondFailure": {
     "report": "phase5-38-read-performance-rollback-fail-1791359038373.json",
     "sha256": "4f231086020d7f9e739fc0b36f28ab4829c7daf82852eb3356812145852d1603",
@@ -306,5 +306,31 @@
     "cleanupDeferred": false,
     "freshFullRollbackRequired": true,
     "reserveActivated": false
+  },
+  "completedProof": {
+    "completedOn": "2026-10-07",
+    "scope": "local-synthetic-only",
+    "acceptedTimingPolicy": "complete-http-baseline",
+    "reusedSql": false,
+    "censoredReserve": false,
+    "rollback": {
+      "report": "phase5-38-read-performance-rollback.json",
+      "sha256": "3aff40df4a93bd8a12a1c26921e82609377bc53127db2fe7ab8413d598f52799"
+    },
+    "apply": {
+      "report": "phase5-38-read-performance-apply.json",
+      "sha256": "16988ee015fa0c32d80fe78f6941fb77bfe575f1a6a356b41255f549803550c1"
+    },
+    "final": {
+      "report": "phase5-38-read-performance-final.json",
+      "sha256": "f0b4957345763ee0d37d3f9705434bbc4ca10a2a6bc8b09a134d4fe1261e938c"
+    },
+    "api": {
+      "report": "phase5-38-read-performance-api-final.json",
+      "sha256": "ae65c816977116fa8bd9da8f8f87ca7644fc4e3f67395ffc34d88e876b1aaafe",
+      "cases": 15,
+      "checks": 247
+    },
+    "verification": "../../../.planning/phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-VERIFICATION.md"
   }
 }
