@@ -46,6 +46,41 @@ export function planningApiCasesStatus(cases){return Array.isArray(cases)&&exact
 export async function withPlanningAclRestore(before,grant,restore,verify,run){
  try{await grant();return await run();}finally{await restore(before);if(!await verify(before))throw Error('planning_acl_restore_failed');}
 }
+const CLEANUP_ZERO_FIELDS=['customers','sessions','plans','receipts','educationEvents','offerings','mandates','mintedSessions',
+ 'triggers','functions','offeringUnits','unitPackages','libraryVersions','gymReceipts','timplans','classLinks'];
+function exactHashPair(before,after){return before&&after&&Number.isSafeInteger(before.count)&&before.count>=0
+ &&/^[a-f0-9]{64}$/u.test(before.sha256??'')&&equal(before,after);}
+export function planningCleanupPreserved(cleanup){
+ return cleanup?.originalBusinessUnchanged===true&&cleanup.originalAuditPreserved===true&&cleanup.identityAnchorsPreserved===true
+  &&cleanup.retainedAuditPreserved===true&&cleanup.retainedIdentityAnchorsPreserved===true
+  &&exactHashPair(cleanup.beforeRetainedAudit,cleanup.afterRetainedAudit)&&exactHashPair(cleanup.beforeRetainedAnchors,cleanup.afterRetainedAnchors)
+  &&CLEANUP_ZERO_FIELDS.every(k=>cleanup[k]===0)
+  &&['offerings','offeringUnits','sessions'].every(k=>cleanup.foreignRemaining?.[k]===0)
+  &&Number.isSafeInteger(cleanup.foreignRetainedAuditAnchors?.events)&&cleanup.foreignRetainedAuditAnchors.events>=0
+  &&cleanup.foreignRetainedAuditAnchors.events===cleanup.foreignRetainedAuditAnchors.anchoredEvents;
+}
+export function planningCleanupDiagnostics(value){
+ if(!value||typeof value!=='object'||Array.isArray(value))return null;
+ const result={};
+ for(const key of ['originalBusinessUnchanged','originalAuditPreserved','identityAnchorsPreserved','retainedAuditPreserved','retainedIdentityAnchorsPreserved']){
+  if(typeof value[key]==='boolean')result[key]=value[key];
+ }
+ for(const key of ['beforeRetainedAudit','afterRetainedAudit','beforeRetainedAnchors','afterRetainedAnchors']){
+  const pair=value[key];if(pair&&Number.isSafeInteger(pair.count)&&pair.count>=0&&/^[a-f0-9]{64}$/u.test(pair.sha256??''))result[key]={count:pair.count,sha256:pair.sha256};
+ }
+ for(const [key,keys] of [['foreignRemaining',['offerings','offeringUnits','sessions']],['foreignRetainedAuditAnchors',['events','anchoredEvents']]]){
+  if(value[key]&&keys.every(k=>Number.isSafeInteger(value[key][k])&&value[key][k]>=0))result[key]=Object.fromEntries(keys.map(k=>[k,value[key][k]]));
+ }
+ return result;
+}
+export function planningSafeFailure(error){
+ const code=error?.name==='TimeoutError'?'REQUEST_TIMEOUT':typeof error?.code==='string'&&/^[A-Z0-9_]{1,40}$/u.test(error.code)?error.code:'TEST_FAILED';
+ const controlled=new Set(['planning_fixture_preservation_failed','planning_fixture_ownership','planning_foreign_cleanup_ownership',
+  'planning_fixture_already_closed','planning_audit_cleanup_failed','planning_fixture_cleanup_failed','planning_final_state_failed',
+  'planning_acl_restore_failed','gym_fixture_cleanup_remaining','gym_fixture_ownership','fixture_cleanup_refused',
+  'Programplansbrowserfixturens städning misslyckades.','Originalens hela verksamhetsrader ändrades under provet.']);
+ return {code,reason:controlled.has(error?.message)?error.message:null};
+}
 export function validatePreflight(e,read){
  if(e?.kind!=='phase5-planning-year-api'||e.status!=='PASS'||e.target!=='protected'||e.scope!=='local-synthetic-only'||e.preflight!==true||e.complete!==true||e.reset!==false
   ||e.preflightAclRestored!==true||e.aclUnchanged!==true||e.functionsAndJournalPreserved!==true||e.cleanupStatus!=='PASS'
@@ -56,7 +91,7 @@ export function validatePreflight(e,read){
   ||! /^[a-f0-9]{40}$/u.test(e.sourceCommit??'')||! /^[a-f0-9]{40}$/u.test(e.workerBuildRevision??'')
   ||! /^[a-f0-9]{64}$/u.test(e.baselineFingerprint??'')||e.baselineFingerprint!==e.finalFingerprint
   ||!exactFunctions(Object.keys(e.originalHashes??{}),PLANNING_TABLES)||!equal(e.originalHashes,e.finalHashes)
-  ||!e.cleanup?.originalBusinessUnchanged)throw Error('REFUSED: complete actual Worker, raw ACL and original-state proof required');
+  ||!planningCleanupPreserved(e.cleanup))throw Error('REFUSED: complete actual Worker, raw ACL and original-state proof required');
  for(const path of PLANNING_API_SOURCE_PATHS)if(e.sourceHashes?.[path]!==sha(read(path)))throw Error('REFUSED: source changed since preflight');
 }
 export function planningSelection(year,changes={}){return {schoolYear:year,unitId:null,view:'timplan',schoolform:'gymnasium',query:'',status:'all',cohortRelation:'all',archive:'all',grade:null,sort:'name',direction:'asc',page:1,selectionRevision:null,...changes};}
@@ -76,7 +111,7 @@ async function main(){
  if(!exactFunctions(beforeFunctions,expected)){await db.end({timeout:3});throw Error('REFUSED: exact starting Worker privileges differ');}
  const baselineFingerprint=await planningFingerprint(db),originalHashes=await planningBusinessHashes(db);
  const sourceHashes=Object.fromEntries(PLANNING_API_SOURCE_PATHS.map(p=>[p,sha(readFileSync(join(root,p)))]));
- let fixture,metadata,cleanup,failure,verifiedFunctions=[],afterAcl=[],finalFingerprint=null,finalHashes=null,aclRestored=false;
+ let fixture,metadata,cleanup,cleanupFailure=null,failure,verifiedFunctions=[],afterAcl=[],finalFingerprint=null,finalHashes=null,aclRestored=false;
  const cases=[],state={};
  const trigger=`p5_planning_fail_${randomUUID().replaceAll('-','')}`,triggerFn=`${trigger}_fn`;let injected=false;
  const owned=async tx=>{
@@ -102,18 +137,18 @@ async function main(){
   return {status:response.status,body:await response.json(),correlationId:response.headers.get('x-correlation-id'),cache:response.headers.get('cache-control')};
  };
  const success=async(checks,session,route,input)=>{
-  const reply=await call(session,route,input);checked(checks,`${route} HTTP200 no-store`,reply.status===200&&reply.cache==='no-store');
+  const reply=await call(session,route,input);checked(checks,`${route} expected HTTP200; actual HTTP${reply.status}; no-store`,reply.status===200&&reply.cache==='no-store');
   checked(checks,`${route} exact actor DB/Worker audit pairs`,reply.status===200&&planningAuditPair(await fixture.events(reply.correlationId),session,fixture.customerId,route));
   if(reply.status!==200)throw Error('planning_response_failed');return reply.body;
  };
  const denied=async(checks,session,route,input,status,headers)=>{
   const before=await planningBusinessHashes(db),reply=await call(session,route,input,headers);
-  checked(checks,`${route} HTTP${status} no-store without planning data`,reply.status===status&&reply.cache==='no-store'
+  checked(checks,`${route} expected HTTP${status}; actual HTTP${reply.status}; no-store without planning data`,reply.status===status&&reply.cache==='no-store'
    &&Object.keys(reply.body).every(k=>['code','correlationId','details'].includes(k)));
   checked(checks,`${route} denied read preserves every business row and no success audit`,equal(before,await planningBusinessHashes(db))
    &&!(await fixture.events(reply.correlationId)).some(e=>e.outcome==='ok'));return reply;
  };
- const run=async(name,operation)=>{const checks=[];try{await operation(checks);}catch(error){checked(checks,`case completed (${/^[A-Z0-9_]{1,40}$/u.test(error?.code??'')?error.code:'TEST_FAILED'})`,false);}
+ const run=async(name,operation)=>{const checks=[];try{await operation(checks);}catch(error){checked(checks,`case completed (${planningSafeFailure(error).code})`,false);}
   const status=checks.length&&checks.every(c=>c.ok)?'PASS':'FAIL';cases.push({name,status,checks});process.stdout.write(`${status} ${name}\n`);};
  const q=changes=>planningSelection(metadata.planningYear,changes);
  const execute=async()=>{
@@ -174,8 +209,10 @@ async function main(){
     const input=q({schoolform:'grundskola',unitId:fixture.nonGymUnitId,schoolYear:year}),body=await success(checks,fixture.hm,'oversikt',input);
     const rows=body.rows.filter(r=>r.offeringId===metadata.gr.offeringId);
     checked(checks,`${column} real year-bound old version wins newer draft`,rows.length===1&&rows.every(r=>r.plan?.id===metadata.gr.oldPlanId&&r.underlag==='class-bound'&&r.application?.schoolYear===year&&r.application.columnId===column));
-    checked(checks,`${column} unknown original map retains real class references`,rows.every(r=>r.columnMap?.kind==='unknown'&&r.diagnostics.includes('unverified-column-map')&&equal(r.cells.find(c=>c.rowKey==='engelska')?.hourValues,[111,222,333]))
-     &&equal(rows.flatMap(r=>r.classes.map(c=>c.id)).sort(),[...expectedClassIds].sort())&&body.totals.annualHours.value===null);
+    checked(checks,`${column} unknown original map has required diagnosis`,rows.every(r=>r.columnMap?.kind==='unknown'&&r.diagnostics.includes('unverified-column-map')));
+    checked(checks,`${column} preserves raw three-column English inventory`,rows.every(r=>equal(r.cells.find(c=>c.rowKey==='engelska')?.hourValues,[111,222,333])));
+    checked(checks,`${column} keeps exactly bound real class IDs`,equal(rows.flatMap(r=>r.classes.map(c=>c.id)).sort(),[...expectedClassIds].sort()));
+    checked(checks,`${column} annual hours remain unknown`,body.totals.annualHours.value===null);
     const grade=await success(checks,fixture.hm,'lista',{...input,grade:Number(column.slice(2))});checked(checks,`${column} grade filter follows exact binding`,grade.rows.length===1&&grade.rows.every(r=>r.application?.columnId===column));
    }
   });
@@ -254,15 +291,15 @@ async function main(){
  }catch(error){failure=error;}
  finally{
   try{await clearInjection();}catch{failure??=Error('planning_audit_cleanup_failed');}
-  if(fixture)try{cleanup=await fixture.cleanup();}catch{failure??=Error('planning_fixture_cleanup_failed');}
+  if(fixture)try{cleanup=await fixture.cleanup();}catch(error){cleanupFailure={...planningSafeFailure(error),evidence:planningCleanupDiagnostics(error?.cleanupEvidence)};failure??=Error('planning_fixture_cleanup_failed');}
   try{afterAcl=await gymAcl(db);aclRestored=equal(beforeAcl,afterAcl);finalFingerprint=await planningFingerprint(db);finalHashes=await planningBusinessHashes(db);}catch{failure??=Error('planning_final_state_failed');}
   await db.end({timeout:5});
  }
- const clean=cleanup?.originalBusinessUnchanged===true&&equal(originalHashes,finalHashes);
+ const clean=planningCleanupPreserved(cleanup)&&equal(originalHashes,finalHashes);
  const auditPreserved=cleanup?.originalAuditPreserved===true,anchorsPreserved=cleanup?.identityAnchorsPreserved===true;
  await run('original-state-preservation',async checks=>{
   checked(checks,'all15 original whole business rows/timestamps preserved',clean);
-  checked(checks,'original security audit and identity anchors retained',auditPreserved&&anchorsPreserved);
+  checked(checks,'original and new security audit and identity anchors retained',auditPreserved&&anchorsPreserved&&planningCleanupPreserved(cleanup));
   checked(checks,'all function definitions rawACL tableRLSACL journal preserved',baselineFingerprint===finalFingerprint);
   checked(checks,'exact raw functionACL restored even after partial grant',aclRestored&&equal(beforeAcl,afterAcl));
  });
@@ -270,9 +307,9 @@ async function main(){
   status:!failure&&planningApiCasesStatus(cases)==='PASS'?'PASS':'FAIL',cases,sourceCommit:proof.sourceRevision,workerBuildRevision:proof.buildRevision,sourceHashes,
   baselineFingerprint,finalFingerprint,beforeAcl,afterAcl,beforeWorkerFunctions:beforeFunctions,verifiedWorkerFunctions:verifiedFunctions,restoredWorkerFunctions:functions(afterAcl),
   preflightAclRestored:aclRestored,aclUnchanged:aclRestored,functionsAndJournalPreserved:baselineFingerprint===finalFingerprint,
-  cleanupStatus:clean&&auditPreserved&&anchorsPreserved?'PASS':'FAIL',cleanup,originalBusinessPreserved:clean,originalTimestampsPreserved:clean,
+  cleanupStatus:clean&&auditPreserved&&anchorsPreserved?'PASS':'FAIL',cleanup,cleanupFailure,originalBusinessPreserved:clean,originalTimestampsPreserved:clean,
   originalAuditPreserved:auditPreserved,identityAnchorsPreserved:anchorsPreserved,originalHashes,finalHashes,
-  error:failure?/^[A-Z0-9_]{1,40}$/u.test(failure.code??'')?failure.code:'TEST_FAILED':null};
+  error:failure?planningSafeFailure(failure).code:null};
  // Retain first FAIL/PARTIAL when retrying the same controlled output path.
  if(existsSync(o.out)){const old=JSON.parse(readFileSync(o.out,'utf8'));if(old.status!=='PASS'){
   const history=o.out.replace(/\.json$/u,'-first-fail.json');if(!existsSync(history))copyFileSync(o.out,history);

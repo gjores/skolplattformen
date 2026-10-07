@@ -82,7 +82,7 @@ export async function createPlanningYearFixture(){
      const rows=await tx`select c.id from public.customers c join public.organizers o on o.customer_id=c.id
       where c.id=${foreignCustomerId} and o.id=${foreignOrganizerId} and c.name='Syntetisk främmande årsplaneringskund'`;
      if(rows.length!==1)throw Error('planning_foreign_cleanup_ownership');
-     // Alla fyra ID:n hör till denna fixtur och den främmande grafen har inga sessioner eller audit.
+     // Bara denna fixturs affärsdata och session tas bort; refererade auditankare behålls.
      await tx`set local session_replication_role=replica`;
      await tx`delete from public.app_sessions where id=${foreignSessionId} and identity_id=${foreignIdentityId}`;
      await tx`delete from public.offering_units where organizer_id=${foreignOrganizerId}`;
@@ -104,7 +104,7 @@ export async function createPlanningYearFixture(){
     const originalBusinessUnchanged=equal(proof.originalBusiness,proof.finalBusiness),originalAuditPreserved=proof.originalAuditHash===proof.finalAuditHash,
      identityAnchorsPreserved=proof.originalIdentityHash===proof.finalIdentityHash;
     const[foreignRemaining]=await db`select (select count(*)::integer from public.offerings where organizer_id=${foreignOrganizerId}) offerings,
-     (select count(*)::integer from public.offering_units where organizer_id=${foreignOrganizerId}) offeringUnits,
+     (select count(*)::integer from public.offering_units where organizer_id=${foreignOrganizerId}) "offeringUnits",
      (select count(*)::integer from public.app_sessions where id=${foreignSessionId}) sessions`;
     const[foreignRetainedAuditAnchors]=await db`select
      (select count(*)::integer from public.security_events where customer_id=${foreignCustomerId}) events,
@@ -112,14 +112,21 @@ export async function createPlanningYearFixture(){
       join public.memberships m on m.id=e.membership_id and m.identity_id=i.id and m.customer_id=e.customer_id
       join public.access_assignments a on a.id=e.assignment_id and a.membership_id=m.id and a.customer_id=e.customer_id
       join public.customers c on c.id=e.customer_id join public.organizers o on o.id=a.organizer_id and o.customer_id=c.id
-      where e.customer_id=${foreignCustomerId}) anchoredEvents`;
+      where e.customer_id=${foreignCustomerId}) "anchoredEvents"`;
     const retainedAuditPreserved=equal(beforeRetainedAudit,afterRetainedAudit),retainedIdentityAnchorsPreserved=equal(beforeRetainedAnchors,afterRetainedAnchors);
-    if(!originalBusinessUnchanged||!originalAuditPreserved||!identityAnchorsPreserved||!retainedAuditPreserved||!retainedIdentityAnchorsPreserved
-     ||Object.values(foreignRemaining).some(n=>n!==0)||foreignRetainedAuditAnchors.events!==foreignRetainedAuditAnchors.anchoredEvents)throw Error('planning_fixture_preservation_failed');
     evidence={...baseCleanup,...proof,originalBusinessUnchanged,originalBusinessPreserved:originalBusinessUnchanged,
      originalAuditPreserved,identityAnchorsPreserved,retainedAuditPreserved,retainedIdentityAnchorsPreserved,
      beforeRetainedAudit,afterRetainedAudit,beforeRetainedAnchors,afterRetainedAnchors,foreignRemaining,foreignRetainedAuditAnchors,
      before:proof.originalBusiness,after:proof.finalBusiness};
+    if(!originalBusinessUnchanged||!originalAuditPreserved||!identityAnchorsPreserved||!retainedAuditPreserved||!retainedIdentityAnchorsPreserved
+     ||Object.values(foreignRemaining).some(n=>n!==0)||foreignRetainedAuditAnchors.events!==foreignRetainedAuditAnchors.anchoredEvents){
+     const error=Error('planning_fixture_preservation_failed');
+     // Separat diagnos är inte ett godkänt cleanup-bevis. Endast hash, antal och booleska utfall.
+     error.cleanupEvidence={originalBusinessUnchanged,originalAuditPreserved,identityAnchorsPreserved,retainedAuditPreserved,
+      retainedIdentityAnchorsPreserved,beforeRetainedAudit,afterRetainedAudit,beforeRetainedAnchors,afterRetainedAnchors,
+      foreignRemaining,foreignRetainedAuditAnchors};
+     throw error;
+    }
    }catch(error){failure=error;}finally{closed=true;await db.end({timeout:3});}
    if(failure)throw failure;return evidence;
   };
