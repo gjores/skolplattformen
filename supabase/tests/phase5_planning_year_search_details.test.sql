@@ -131,6 +131,9 @@ from public.point_plans p where p.id=pg_temp.search_id(200);
 update public.timplan_cells set hours=array[null]::smallint[] where timplan_id=pg_temp.search_id(412) and row_id='im-mentor';
 insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code)
 values(pg_temp.search_id(470),pg_temp.search_id(2),pg_temp.search_id(30),'gymnasium','Syntetiskt legacyprogram','Okänd start','SA25','SABEP');
+-- Replica fixture inserts bypass the ordinary offering-unit trigger; scope must still be real.
+insert into public.offering_units(offering_id,unit_id,organizer_id)
+values(pg_temp.search_id(470),pg_temp.search_id(30),pg_temp.search_id(2));
 insert into public.point_plans(id,organizer_id,offering_id,version,specialization)
 values(pg_temp.search_id(471),pg_temp.search_id(2),pg_temp.search_id(470),1,array['ENGE3000X']);
 -- A second customer supplies an actual foreign scope, without granting a mandate.

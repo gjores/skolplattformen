@@ -32,6 +32,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 
 ## Current Position
 
+**Första SEARCH-SQL-prov 2026-10-07:** Fullrollback FAIL271 med sex avvikelser: äldre egen legacyram saknade verklig offering_units-koppling när provets replica-insert kringgick ordinarie trigger. Båda oförändrade93/18, alla38 kärnjämförelser, rå15helrader/katalog/ACL/ursprungsankare är bevarade; API/HTTP startades inte. Exakt första FAIL bevarad, inget apply. En explicit egen skolkoppling i endast nya SQL-fixturen rättas; förväntade antal och hela acceptansgrinden består. Färskt fullbevis krävs,82/100 oförändrat.
+
 **SEARCH-genomförande 2026-10-07:** Källintegration23cabdd/d7171de; 71 rena prov, full typkontroll och lint PASS. Separat managed runtimearbetskopia byggs på exakt granskad huvudrevision för SQL/API3060; vanlig3012:s byggfiler bevaras. Faktisk rollback/apply/applied och UI39–43 återstår. 82/100 består.
 
 **Prestandakorrektiv färdigt 2026-10-07:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-SUMMARY.md) och oberoende3/3-verifiering PASS. Färsk fullrollback och applied vardera143/46+93/18;9 gamla och12 nya faktiska HTTP-svar, oförändrad API15/247, full15/katalog/rå ACL28/audit-/identitetsbevarande och cleanup PASS utan deferred eller återbruk/reserv. Median lista16,274→2,120s, sök20,658→1,358s, sida2 16,907→1,416s; överblick1,560s. Endast privat rows-definition/journal06122000 ändrad. Första FAIL och diagnoser står kvar. 82/100 genomförda,3/8 verifierade faser; nästa SEARCH och seriell39–43, vanlig3012 fortsatt5dd7baf. Tidigare pågående performancebesked nedan är historik.
