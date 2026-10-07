@@ -424,19 +424,25 @@ function ProtectedShell() {
   }
   function programplanOpened(target: ProgramplanLocation | null) {
     if (sessionScope(sessionRef.current) !== contextKey) return;
+    const prior = planningLocationRef.current;
+    const firstOpenedTarget = !!target && prior?.view === 'programplaner' && !prior.programplan && !prior.overview;
     const next = planningAfterOpened(target?.unitId);
     // A changed school remounts the workspace. Pin the new verified target
     // before its selection changes, so a previous row cannot be reopened.
     if (next.scopeChanged) setProgramplanTarget(target);
-    writePlanLocation({ view: 'programplaner', programplan: target, planning: next.planning }, true);
+    // Preserve the annual list for Back without remounting this verified workspace.
+    // Existing targets and explicit null (local return or absent candidate) replace.
+    writePlanLocation({ view: 'programplaner', programplan: target, planning: next.planning }, !firstOpenedTarget);
   }
   function gymTimplanOpened(target: GymTimplanLocation | null, sourcePlanId?: string) {
     if (sessionScope(sessionRef.current) !== contextKey) return;
+    const prior = planningLocationRef.current;
+    const firstOpenedTarget = !!target && prior?.view === 'timplaner' && !prior.gym && !prior.other && !prior.overview;
     const next = planningAfterOpened(target?.unitId);
     if (next.scopeChanged) setTimplanTarget(target);
     if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, target };
     writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning, allYears: timplanYear === 'all',
-      ...(timplanYear !== 'all' ? { relativeYear: (Number(timplanYear) + 1) as 1 | 2 | 3 } : {}) }, true);
+      ...(timplanYear !== 'all' ? { relativeYear: (Number(timplanYear) + 1) as 1 | 2 | 3 } : {}) }, !firstOpenedTarget);
   }
   function planningFor(next: 'programplaner' | 'timplaner'): PlanLocation {
     const prior = planningLocationRef.current;
