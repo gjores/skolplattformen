@@ -54,7 +54,7 @@ import ProtectedTimplanWorkspace from './protected-timplan-workspace';
 import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
 import ProtectedProgramplanWorkspace from './protected-programplan-workspace';
 import ProtectedPlanningOverview from './protected-planning-overview';
-import { normalizePlanLocation, planningCollectionLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
+import { normalizePlanLocation, planningCollectionLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type OtherTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from './planning-context';
 import type { PlanningSelection, PlanningSetup } from '@/lib/planning-year-contract.ts';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
@@ -248,6 +248,7 @@ function ProtectedShell() {
   const [view, setView] = useState<ProtectedView>('stangt');
   const [programplanTarget, setProgramplanTarget] = useState<ProgramplanLocation | null>(null);
   const [timplanTarget, setTimplanTarget] = useState<GymTimplanLocation | null>(null);
+  const [otherTimplanTarget, setOtherTimplanTarget] = useState<OtherTimplanLocation | null>(null);
   const [timplanMode, setTimplanMode] = useState<'gym' | 'other'>('gym');
   const [planNavigation, setPlanNavigation] = useState(0);
   const locationRef = useRef('');
@@ -281,7 +282,7 @@ function ProtectedShell() {
     // Avbryt även redan hämtade men ännu inte levererade elev-/CSV-svar.
     setKnownEpoch(null);
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
-    setProgramplanTarget(null); setTimplanTarget(null); setTimplanMode('gym'); lastGymPlan.current = null;
+    setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null); setTimplanMode('gym'); lastGymPlan.current = null;
   }, []);
   const lockChangedContext = useCallback(() => {
     const wasSupport = sessionRef.current?.context?.function === 'support';
@@ -331,6 +332,7 @@ function ProtectedShell() {
           planningLocationRef.current = location; setPlanningLocation(location);
           setProgramplanTarget(location?.view === 'programplaner' ? location.programplan : null);
           setTimplanTarget(location?.view === 'timplaner' ? location.gym : null);
+          setOtherTimplanTarget(location?.view === 'timplaner' ? location.other ?? null : null);
           setTimplanMode(location?.view === 'timplaner' && (location.other || location.planning?.schoolform && location.planning.schoolform !== 'gymnasium') ? 'other' : 'gym');
           locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
         }
@@ -443,6 +445,16 @@ function ProtectedShell() {
     writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning,
       ...(target && prior?.view === 'timplaner' ? { relativeYear: prior.relativeYear, allYears: prior.allYears } : {}) }, !firstOpenedTarget);
   }
+  function otherTimplanOpened(target: OtherTimplanLocation | null) {
+    if (sessionScope(sessionRef.current) !== contextKey) return;
+    const prior = planningLocationRef.current;
+    const firstOpenedTarget = !!target && prior?.view === 'timplaner' && !prior.gym && !prior.other && !prior.overview;
+    const next = planningAfterOpened(target?.unitId);
+    if (next.scopeChanged) setOtherTimplanTarget(target);
+    // URL columns are written only after the workspace has read the actual
+    // annual binding. Current draft matrices carry no historical column claim.
+    writePlanLocation({ view: 'timplaner', gym: null, ...(target ? { other: target } : {}), planning: next.planning }, !firstOpenedTarget);
+  }
   function planningFor(next: 'programplaner' | 'timplaner'): PlanLocation {
     const prior = planningLocationRef.current;
     return next === 'programplaner' ? { view: next, programplan: null, planning: prior?.planning }
@@ -451,6 +463,7 @@ function ProtectedShell() {
   function applyPlanningLocation(location: PlanLocation) {
     setProgramplanTarget(location.view === 'programplaner' ? location.programplan : null);
     setTimplanTarget(location.view === 'timplaner' ? location.gym : null);
+    setOtherTimplanTarget(location.view === 'timplaner' ? location.other ?? null : null);
     setTimplanMode(location.view === 'timplaner' && (location.other || location.planning?.schoolform && location.planning.schoolform !== 'gymnasium') ? 'other' : 'gym');
     planningLocationRef.current = location; setPlanningLocation(location); setView(location.view); viewRef.current = location.view;
   }
@@ -493,7 +506,7 @@ function ProtectedShell() {
   function navigate(next: ProtectedView) {
     if (next === view && !isPlanningView(next) || !canNavigate()) return;
     if (view === 'elever') rememberRegister();
-    setProgramplanTarget(null); setTimplanTarget(null); setPlanNavigation(value => value + 1);
+    setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null); setPlanNavigation(value => value + 1);
     if (isPlanningView(next)) {
       const location = planningFor(next); applyPlanningLocation(location); writePlanLocation(location);
     } else {
@@ -528,7 +541,7 @@ function ProtectedShell() {
       setNavigationNotice(null); setPlanNavigation(value => value + 1);
       if (location) applyPlanningLocation(location);
       else {
-        setProgramplanTarget(null); setTimplanTarget(null);
+        setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null);
         if (nextView === 'elever') {
           const selected = currentRegisterSelection();
           if (selected) { registerSelectionRef.current = { key: contextKey, selection: selected }; setSchoolYear(selected.schoolYear);
@@ -655,7 +668,7 @@ function ProtectedShell() {
                   }}>Grundskola och introduktionsprogram</Button>}</nav>
                 {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
                   onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
-                  : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
+                  : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
               </>}
               {!overview && view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
                 onOpened={programplanOpened}/>}
