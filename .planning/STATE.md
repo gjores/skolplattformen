@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-40
 status: in_progress
-stopped_at: UI05-40 andra L36 L01–12 PASS;L13 väntan på exakt versions-URL rättad.13fullcleanup PASS; avgränsat nästa prov.
+stopped_at: UI05-40 boundedL13–17 PASS;L18 oväntad confirm vid remount.6fullcleanup PASS; initialread inväntar rensat registry före nytt bygge/prov.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "UI05-39 fullC16/cleanup/geometri PASS; nästa sökbara årstabeller05-40. Vanlig3012 bevarad."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI40 tredje avgränsade prov:** Sourcef5bd4f8/produktbyggeaa826f1, L13–17 dator PASS. L18:s verkliga skapande, okänt kvitto/spärr, full parentåterläsning, exakt skol-/plan-URL och reload PASS, men generell confirm registrerades vid skolbyte/remount. Raw3a56f4f5 bevaras; alla sex fullcleanup/15helrader/audit-/identitetsankare/foreign/listzero PASS, ingen recovery. Källorsak: nya workspace läste gamla Flow-registry före dess layoutcleanup och initialeffekt fångade gammal hasUnsaved. Endast initialmålet inväntar nu att osparat/spärr-registry är rensat innan vanlig icke-force-läsning startas. Inga guards, positiva assertions eller tidsgränser sänks. Nytt skyddat bygge och faktiskt L18×2 före fullL36 krävs;84/100 och vanlig3012 består.
 
 **UI40 andra faktiska matris:** Source/build aa826f1, L01–12 dator PASS inklusive L04:s oförändrade filtervärden. L13 läste rätt äldre fastställda plan trots nyare utkast men kontrollerade URL innan full workspaceverifiering/publicering var färdig. Första raw50f69b19 bevaras;23fall ej startade. Alla13normalcleanup/15helrader/audit-/identitetsankare/foreign/listzero PASS, ingen recovery. Endast samma exakta versions-ID inväntas nu med befintlig expect.poll-tidsgräns; ingen produktändring. Ny spec620e40be kräver avgränsat L13–18 och därefter fullL36.
 

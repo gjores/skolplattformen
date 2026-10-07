@@ -220,10 +220,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     finally { if (current(r.token)) setBusy(false); }
   }, [begin, busy, canNavigate, clearRecovery, current, hasUnsaved, publishReadSelection, readSelection, rememberRecovery, securityFailure]);
   useEffect(() => {
-    if (!initialPlan || initialOpened.current) return;
+    // A verified school change can remount before the former Flow's registry cleanup commits.
+    // Wait for that cleanup; the normal read must still pass every navigation guard.
+    if (!initialPlan || initialOpened.current || hasUnsaved || hasNavigationBlock) return;
     initialOpened.current = true;
     queueMicrotask(() => { if (mounted.current) void openEducation(initialPlan.offeringId, 1, null, initialPlan.planId, null, false, false, initialPlan); });
-  }, [initialPlan, openEducation]);
+  }, [initialPlan, openEducation, hasUnsaved, hasNavigationBlock]);
   function openAnnualRow(row: PlanningRow, copying = false) {
     if (!canNavigate() || busy || hasUnsaved && !confirmDiscard()) return;
     if (!planningSetup || row.customerId !== context.customerId || row.schoolform !== 'gymnasium'
