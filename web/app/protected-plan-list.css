@@ -1,0 +1,26 @@
+.plan-list { min-width: 0; width: 100%; }
+.plan-list-filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin: 1rem 0; }
+.plan-list-filters label { display: flex; flex-direction: column; gap: .25rem; min-width: 0; flex: 1 1 10rem; }
+.plan-list-filters label:first-child { flex: 2 1 20rem; }
+.plan-list input, .plan-list select, .plan-list button, .planning-overview button { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: .4rem; background: var(--background); color: inherit; font: inherit; }
+.plan-list input, .plan-list select { width: 100%; }
+.plan-list button, .planning-overview button { cursor: pointer; }
+.plan-list button:disabled { opacity: .55; cursor: default; }
+.plan-list :focus-visible, .planning-overview button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.plan-list-scroll { width: 100%; min-width: 0; overflow-x: auto; border: 1px solid var(--border); border-radius: .65rem; }
+.plan-list table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.plan-list caption { text-align: left; padding: .75rem; color: var(--muted-foreground); }
+.plan-list th, .plan-list td { text-align: left; vertical-align: top; padding: .6rem .75rem; border-bottom: 1px solid var(--border); min-width: 8rem; }
+.plan-list thead th { background: var(--muted); }
+.plan-list thead button { white-space: nowrap; font-weight: 600; border-color: transparent; background: transparent; }
+.plan-list small { display: block; margin-top: .25rem; color: var(--muted-foreground); font-weight: normal; overflow-wrap: anywhere; }
+.plan-list-actions { white-space: nowrap; }
+.plan-list-actions button + button { margin-left: .4rem; }
+.plan-list-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin: 1rem 0; }
+.planning-overview { min-width: 0; }
+.planning-overview-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .75rem; margin: 1rem 0; }
+.planning-overview-metrics div { padding: 1rem; border: 1px solid var(--border); border-radius: .65rem; }
+.planning-overview-metrics dt { font-size: .875rem; color: var(--muted-foreground); }
+.planning-overview-metrics dd { margin: .3rem 0 0; font-weight: 600; }
+.planning-overview-kulls { display: flex; gap: .5rem; flex-wrap: wrap; }
+@media (max-width: 600px) { .plan-list-filters { gap: .6rem; } .plan-list-filters label { flex: 1 1 100%; } .plan-list th, .plan-list td { padding: .5rem; } }
