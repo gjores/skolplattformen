@@ -1,4 +1,4 @@
-// SOURCE-ONLY 05-42. Actual C16/L36/G38 Playwright reports are mandatory before setup.
+// SOURCE-ONLY 05-42. Actual historical C16 + updated C04×2 + L36/G38 reports are mandatory before setup.
 // One worker, maxFailures1, retries0. Historical GR grade positions never prove an annual map.
 // Held/failing replies always follow the complete actual audited Worker answer.
 import {expect,test,type Page,type Response,type APIResponse,type Request,type Route,type TestInfo} from '@playwright/test';
@@ -43,8 +43,15 @@ let audits:Promise<void>[]=[],dialogs:string[]=[];const pending=new Set<Request>
 // These operator pins name root-reviewed phase trees; no revision is trusted from a report alone.
 const releaseInventories={
  C:{runtime:["web/app/planning-context.tsx","web/app/planning-context.css","web/app/context-switch.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-lifecycle.tsx","web/app/school-year-picker.tsx","web/app/pupil-register-workspace.tsx"],tools:["web/e2e/phase5-planning-year-context.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-context.spec.ts',specSha:'aa6fc4a80b9d7c4458f1c2a7a7d61607c223f3e3ec48cd5dc7d41b0ef02cde11',approvedEnv:'PHASE5_CONTEXT_APPROVED_SOURCE_REVISION',attachment:'source-build.json'},
- L:{runtime:["web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts"],tools:["work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-lists.spec.ts',specSha:'b3fe77c521e871181d627bf5749165481cf61eaa8c4e85e81ee258eb6522d4f5',approvedEnv:'PHASE5_LIST_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'},
+ L:{runtime:["web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts"],tools:["work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-lists.spec.ts',specSha:'5a466c016f39a91e1968f9c0d2c76bbcfc98311e26027d3e8786aea43af2bd6e',approvedEnv:'PHASE5_LIST_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'},
  G:{runtime:["web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts","web/lib/planning-year-model.ts","web/app/context-switch.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-lifecycle.tsx","web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css"],tools:["work/pilot/phase5-planning-year-gym-fixtures.mjs","web/e2e/phase5-planning-year-gym.spec.ts","work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/e2e/phase5-planning-year-context.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-gym.spec.ts',specSha:'b7a734c700a677c6b56e8958e637368f13e99edfa0fe092edecd83639c709d7d',approvedEnv:'PHASE5_GYM_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'}
+} as const;
+// The complete old C16 report remains independently pinned. C04 must also run
+// on the 05-41 button runtime, under an explicitly root-approved phase tree.
+const contextWriteRelease={
+ approvedEnv:'PHASE5_CONTEXT_WRITE_APPROVED_SOURCE_REVISION',
+ specSha:'205744fd428ab1bf77cbd7a477d10e74fb175015a390bad986c2d75f267d511b',
+ title:'C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/utloggning tills kvittens',
 } as const;
 const commonToolClosure=["work/pilot/phase5-planning-year-fixtures.mjs","work/pilot/phase5-gym-timplan-fixtures.mjs","work/pilot/phase5-programplan-browser-fixtures.mjs","work/pilot/verify-target.mjs","work/pilot/verify-programplan-locks.mjs","work/pilot/prepare-programplan-user-trial.mjs","work/pilot/apply-planning-year-migration.mjs","work/pilot/apply-gym-timplan-migration.mjs","work/pilot/verify-programplan-api.mjs","work/pilot/verify-planning-year-api.mjs","work/pilot/apply-planning-year-grants.mjs","supabase/tests/phase5_programplan_drafts.test.sql","supabase/migrations/20261006120000_phase5_planning_year_reads.sql","supabase/migrations/20261006121000_phase5_worker_planning_year_reads.sql","web/e2e/helpers/keycloak.ts","web/playwright.phase5-planning-year.config.ts","web/scripts/run-mode.mjs","web/scripts/preview-worker.mjs","web/scripts/preview-worker-modules.mjs","web/package.json","web/package-lock.json"] as const;
 const buildRoots=['web/app','web/lib','web/components','web/hooks','web/public','web/package.json','web/package-lock.json','web/vite.config.ts','web/tsconfig.json'];
@@ -75,8 +82,10 @@ function safeAttachment(a:Attachment){
  if(typeof a.body==='string')return JSON.parse(Buffer.from(a.body,'base64').toString());
  throw Error('EXTERNAL_ATTACHMENT_MISSING');
 }
-function validateActualRelease(file:string|undefined,prefix:keyof typeof releaseInventories,count:number){
- const inventory=releaseInventories[prefix],approved=process.env[inventory.approvedEnv];
+function validateActualRelease(file:string|undefined,prefix:keyof typeof releaseInventories,count:number,writeOnly=false){
+ if(writeOnly&&prefix!=='C')throw Error('CONTEXT_WRITE_PHASE_REQUIRED');
+ const inventory=writeOnly?{...releaseInventories.C,...contextWriteRelease}:releaseInventories[prefix],approved=process.env[inventory.approvedEnv];
+ const expectedCases=writeOnly?[4]:Array.from({length:count},(_,index)=>index+1);
  if(!approved||!/^[a-f0-9]{40}$/u.test(approved))throw Error('APPROVED_PHASE_SOURCE_REQUIRED');
  if(!file)throw Error('ACTUAL_RELEASE_REQUIRED');const full=realpathSync(path.resolve(root,file));
  if(!full.startsWith(path.join(root,'web/test-results')+path.sep)&&!full.startsWith(path.join(root,'work/pilot/results')+path.sep))throw Error('ACTUAL_RELEASE_SCOPE');
@@ -84,10 +93,10 @@ function validateActualRelease(file:string|undefined,prefix:keyof typeof release
  expect(report.errors).toEqual([]);expect(report.stats.unexpected).toBe(0);expect(report.stats.skipped).toBe(0);expect(report.stats.flaky).toBe(0);
  expect(report.config.workers).toBe(1);expect(report.config.maxFailures).toBe(1);report.config.projects.forEach((p:{retries:number})=>expect(p.retries).toBe(0));
  const found:{title:string;entry:ActualCase}[]=[];
- const walk=(suite:ActualSuite)=>{suite.specs?.forEach(s=>{if(new RegExp(`^${prefix}\\d{2}:`,'u').test(s.title))s.tests.forEach(entry=>found.push({title:s.title,entry}));});suite.suites?.forEach(walk);};report.suites.forEach(walk);
- expect(found).toHaveLength(count*2);const projects=['planning-year-desktop','planning-year-phone'],pairs=new Set<string>(),proofs=new Map<string,{sourceRevision:string;buildRevision:string;sourceHashes:unknown;runtimeClosureSha256:string;toolClosureSha256:string}>();
+ const walk=(suite:ActualSuite)=>{suite.specs?.forEach(s=>{if(writeOnly||new RegExp(`^${prefix}\\d{2}:`,'u').test(s.title))s.tests.forEach(entry=>found.push({title:s.title,entry}));});suite.suites?.forEach(walk);};report.suites.forEach(walk);
+ expect(found).toHaveLength(expectedCases.length*2);const projects=['planning-year-desktop','planning-year-phone'],pairs=new Set<string>(),proofs=new Map<string,{sourceRevision:string;buildRevision:string;sourceHashes:unknown;runtimeClosureSha256:string;toolClosureSha256:string}>();
  for(const {title,entry}of found){
-  const n=Number(title.slice(1,3));expect(n).toBeGreaterThanOrEqual(1);expect(n).toBeLessThanOrEqual(count);expect(projects).toContain(entry.projectName);
+  const n=Number(title.slice(1,3));expect(expectedCases).toContain(n);if(writeOnly)expect(title).toBe(contextWriteRelease.title);expect(projects).toContain(entry.projectName);
   const pair=`${entry.projectName}:${n}`;expect(pairs.has(pair)).toBe(false);pairs.add(pair);expect(entry.results).toHaveLength(1);
   const result=entry.results[0];expect(result.status).toBe('passed');expect(result.retry).toBe(0);
   expect(result.attachments.some(a=>/cleanup-(?:deferred|failure)/u.test(a.name))).toBe(false);
@@ -110,7 +119,8 @@ function validateActualRelease(file:string|undefined,prefix:keyof typeof release
    proofs.set(entry.projectName,{sourceRevision:approved,buildRevision:proof.buildRevision,sourceHashes:evidence.sourceHashes,runtimeClosureSha256:historicalBuildClosure(approved,proof.buildRevision),toolClosureSha256});
   }
  }
- for(const project of projects)for(let n=1;n<=count;n++)expect(pairs.has(`${project}:${n}`)).toBe(true);
+ if(writeOnly){expect(report.stats.expected).toBe(2);expect(report.config.projects.map((p:{name:string})=>p.name).sort()).toEqual([...projects].sort());}
+ for(const project of projects)for(const n of expectedCases)expect(pairs.has(`${project}:${n}`)).toBe(true);
  expect([...proofs.keys()].sort()).toEqual([...projects].sort());const own=proofs.get(projects[0])!;expect(proofs.get(projects[1])).toEqual(own);
  return {reportSha256:hash(bytes),cases:found.length,approvedSourceRevision:approved,workerBuildRevision:own.buildRevision,runtimeClosureSha256:own.runtimeClosureSha256,toolClosureSha256:own.toolClosureSha256};
 }
@@ -178,7 +188,7 @@ async function capture(page:Page,info:TestInfo,label:string){
 
 test.beforeAll(async({browserName},info)=>{
  expect(info.config.maxFailures).toBe(1);expect(info.config.workers).toBe(1);expect(info.project.retries).toBe(0);
- const actualPrerequisites={context:validateActualRelease(process.env.PHASE5_CONTEXT_ACTUAL_REPORT,'C',8),lists:validateActualRelease(process.env.PHASE5_LIST_ACTUAL_REPORT,'L',18),gym:validateActualRelease(process.env.PHASE5_GYM_ACTUAL_REPORT,'G',19)};
+ const actualPrerequisites={context:validateActualRelease(process.env.PHASE5_CONTEXT_ACTUAL_REPORT,'C',8),contextWrite:validateActualRelease(process.env.PHASE5_CONTEXT_WRITE_ACTUAL_REPORT,'C',1,true),lists:validateActualRelease(process.env.PHASE5_LIST_ACTUAL_REPORT,'L',18),gym:validateActualRelease(process.env.PHASE5_GYM_ACTUAL_REPORT,'G',19)};
  const bundle=Object.fromEntries([['final38','phase5-38-api-final'],['performanceRollback','phase5-38-read-performance-rollback'],['performanceFinal','phase5-38-read-performance-final'],['performanceApi','phase5-38-read-performance-api-final']].map(([k,f])=>[k,json(`work/pilot/results/${f}.json`)]));
  validateSearchDependencies(bundle);const rollback=json('work/pilot/results/phase5-40-search-details-rollback.json'),applied=json('work/pilot/results/phase5-40-search-details-apply.json'),final=json('work/pilot/results/phase5-40-search-details-final.json');
  validateSearchRollback(rollback,read);validateSearchApplied(applied,rollback,read);validateHistoricalSources(final,SEARCH_SOURCE_PATHS,historicalGitSource);
