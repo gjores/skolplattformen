@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "40-SEARCH-DETAILS"
 type: execute
-status: planned
+status: in_progress
 wave: 5
 depends_on: ["05-38-READ-PERFORMANCE"]
 prerequisite_for: ["05-40"]
@@ -44,7 +44,9 @@ must_haves:
 
 # 05-40 — Avgränsad sökrättning före tabellsteget
 
-**Status:** Planerad teknisk rättning av ett färskt verifierat gap i den redan beställda tabellsökningen. Root har granskat och infört den som förutsättning 2026-10-07; inget nytt verksamhetsbeslut krävs. Inte genomförd eller verifierad leverans. Ingen implementation, DB-/API-körning eller användarkontroll följer av att denna fil skrivs. Den pågående prestandaverifieringens källor lämnas orörda. Genomförande börjar först när 05-38-READ-PERFORMANCE har fullständigt tillämpat PASS före UI05-39–43. Detta håller äldre API-/fixturkällor oförändrade fram till den nya källbundna backendverifieringen.
+**Status:** Genomförande pågår 2026-10-07 efter fullständigt verifierat och tillämpat prestandakorrektiv. Åtta källor och tvåfils setup-completionrättning är integrerade i `23cabdd`/`d7171de`; 71 rena kontrakts-/server-/grindprov, full typkontroll utan incremental och app/lib-lint PASS. Faktiskt SEARCH SQL-/API-/bevarandebevis återstår; inget användarbeteende eller fullkrav är därmed godkänt.
+
+**Isolerat bygge och provkörning:** Förberedelsegrenen och huvudkopian är separata från den managed runtimearbetskopian `planning-year-runtime`. Den senare checkas ut på exakt versionshanterad, granskad huvudkopierevision. Bygge, ägd Worker3060 och coordinatorer körs där med egna byggmarkörer och rapporter; ignorerade beroenden och det befintliga lokala protected-manifestet länkas utan att privata värden versionshanteras. Detta krävs eftersom både den äldre provservern och ordinarie3012 använde huvudkopians `dist-protected`: ett nytt bygge där skulle ta bort gemensamma byggfiler. Endast den egna äldre3060-processen avslutas före serverbytet. Ordinarie3012 och dess byggfiler lämnas orörda fram till plan43. Efter faktisk kontroll bevaras rapporternas exakta bytes i huvudkopian; deras källrevision förblir den körda revisionen. Samma isolering används seriellt i39–42 med nytt eget bygge vid ändrad produktkod.
 
 **Färskt gap:** 05-40 uppgift 2 kräver sökning på namn/lokal kod/program/inriktning/kull. Både ursprungliga och föreslagna prestandavarianten av `phase5_planning_year_rows(jsonb)` söker nu endast `educationName`, `cohort` och `schoolName`. `PlanningRow` saknar kod-/program-/inriktningsmetadata. Detta kan inte rättas med klientfiltrering av första sidans 50 rader.
 
