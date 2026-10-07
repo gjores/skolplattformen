@@ -1,0 +1,1698 @@
+{
+  "kind": "phase5-performance-all-owned-connection-close-http-diagnostic",
+  "notFullPlanProof": true,
+  "intervention": {
+    "clientConnectionHeader": "close",
+    "onlyAllowedOwnedFixtureApiRequests": true,
+    "originalSetupDeadlineMs": 15000,
+    "originalPlanningDeadlineMs": 30000,
+    "workerArtifactChanged": false,
+    "httpDeadlineMs": 30000
+  },
+  "status": "PASS",
+  "sourceRevision": "6d9e05849c7e8f8bd47d2156053292818526b43c",
+  "workerBuildRevision": "d59ec10f5b4469ce4e14e1e12a591aca2363a30b",
+  "transportEvents": [
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:50.624Z",
+      "route": "/api/programplaner/skapa"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:50.665Z",
+      "route": "/api/programplaner/skapa"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:50.682Z",
+      "route": "/api/programplaner/skapa"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:05:51.314Z",
+      "route": "/api/programplaner/skapa",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:51.339Z",
+      "route": "/api/programplaner/terminer"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:51.340Z",
+      "route": "/api/programplaner/terminer"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:51.341Z",
+      "route": "/api/programplaner/terminer"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:05:51.747Z",
+      "route": "/api/programplaner/terminer",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:51.751Z",
+      "route": "/api/programplaner/utbildning/livscykel"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:51.752Z",
+      "route": "/api/programplaner/utbildning/livscykel"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:51.753Z",
+      "route": "/api/programplaner/utbildning/livscykel"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:05:51.831Z",
+      "route": "/api/programplaner/utbildning/livscykel",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:51.833Z",
+      "route": "/api/timplaner/gym/underlag"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:51.833Z",
+      "route": "/api/timplaner/gym/underlag"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:51.833Z",
+      "route": "/api/timplaner/gym/underlag"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:05:52.252Z",
+      "route": "/api/timplaner/gym/underlag",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:52.254Z",
+      "route": "/api/timplaner/gym/skapa"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:52.255Z",
+      "route": "/api/timplaner/gym/skapa"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:52.255Z",
+      "route": "/api/timplaner/gym/skapa"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:05:52.831Z",
+      "route": "/api/timplaner/gym/skapa",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:52.833Z",
+      "route": "/api/timplaner/gym/skapa"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:52.833Z",
+      "route": "/api/timplaner/gym/skapa"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:52.833Z",
+      "route": "/api/timplaner/gym/skapa"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:05:53.309Z",
+      "route": "/api/timplaner/gym/skapa",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:05:53.657Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:05:53.657Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:05:53.657Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:06:09.387Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:06:09.899Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:06:09.900Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:06:09.900Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:06:24.898Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:06:25.553Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:06:25.554Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:06:25.554Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:06:40.394Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:06:41.141Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:06:41.142Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:06:41.142Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:07:03.926Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:07:04.665Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:07:04.666Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:07:04.666Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:07:23.565Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:07:24.057Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:07:24.057Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:07:24.057Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:07:44.614Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:07:45.335Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:07:45.336Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:07:45.336Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:08:02.062Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:08:02.613Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:08:02.614Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:08:02.614Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:08:17.946Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    },
+    {
+      "channel": "undici:request:create",
+      "at": "2026-10-07T11:08:18.609Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:client:sendHeaders",
+      "at": "2026-10-07T11:08:18.610Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:bodySent",
+      "at": "2026-10-07T11:08:18.610Z",
+      "route": "/api/planering/lista"
+    },
+    {
+      "channel": "undici:request:headers",
+      "at": "2026-10-07T11:08:33.942Z",
+      "route": "/api/planering/lista",
+      "statusCode": 200
+    }
+  ],
+  "timings": {
+    "policy": null,
+    "ok": true,
+    "samples": [
+      {
+        "case": "list",
+        "iteration": 1,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 1,
+          "selectionRevision": null
+        },
+        "startedAt": "2026-10-07T11:05:53.656Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "da562664-26f1-4e99-9e36-bb15253f0e46",
+        "auditBaseline": {
+          "count": 8,
+          "maxEventId": "181810",
+          "sha256": "d9dceac652fa2fba9a319dc51e9ee50deb6ffe7a7171d2335dfa42ec4be91e09"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "da562664-26f1-4e99-9e36-bb15253f0e46",
+          "auditCount": 4,
+          "auditGroupHash": "b49baa66ee501c7b6e110dc908e6af341f63c6ca886d2f40aa29d2f0a4296f6a",
+          "events": [
+            {
+              "id": "181815",
+              "correlation_id": "da562664-26f1-4e99-9e36-bb15253f0e46",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181816",
+              "correlation_id": "da562664-26f1-4e99-9e36-bb15253f0e46",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181817",
+              "correlation_id": "da562664-26f1-4e99-9e36-bb15253f0e46",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181818",
+              "correlation_id": "da562664-26f1-4e99-9e36-bb15253f0e46",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181815",
+            "181816",
+            "181817",
+            "181818"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 15736.248667,
+        "httpStatus": 200,
+        "count": 52,
+        "rows": 50,
+        "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac",
+        "noStore": true
+      },
+      {
+        "case": "list",
+        "iteration": 2,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 1,
+          "selectionRevision": null
+        },
+        "startedAt": "2026-10-07T11:06:09.898Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "b9013e01-bd3b-445f-a1cc-bd3aa4f8d9f8",
+        "auditBaseline": {
+          "count": 12,
+          "maxEventId": "181818",
+          "sha256": "6ee033871465e54cb973ff02c902b30e95908c1e043a3967e82edf5d1088715e"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "b9013e01-bd3b-445f-a1cc-bd3aa4f8d9f8",
+          "auditCount": 4,
+          "auditGroupHash": "1e77c49bfa606f662ec24a879d2a53ee45d2512cd179b350bc7fa4bb6013d416",
+          "events": [
+            {
+              "id": "181819",
+              "correlation_id": "b9013e01-bd3b-445f-a1cc-bd3aa4f8d9f8",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181820",
+              "correlation_id": "b9013e01-bd3b-445f-a1cc-bd3aa4f8d9f8",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181821",
+              "correlation_id": "b9013e01-bd3b-445f-a1cc-bd3aa4f8d9f8",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181822",
+              "correlation_id": "b9013e01-bd3b-445f-a1cc-bd3aa4f8d9f8",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181819",
+            "181820",
+            "181821",
+            "181822"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 15006.897665999997,
+        "httpStatus": 200,
+        "count": 52,
+        "rows": 50,
+        "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac",
+        "noStore": true
+      },
+      {
+        "case": "list",
+        "iteration": 3,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 1,
+          "selectionRevision": null
+        },
+        "startedAt": "2026-10-07T11:06:25.552Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "8d130590-6cb9-45ed-bdf8-d0c7a30479a8",
+        "auditBaseline": {
+          "count": 16,
+          "maxEventId": "181822",
+          "sha256": "8c31f20893d95874e2661158b7a4f7ea5aba0af3ae24900d8695c375fb56773f"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "8d130590-6cb9-45ed-bdf8-d0c7a30479a8",
+          "auditCount": 4,
+          "auditGroupHash": "68ba9fbf31e374bd0fa06bb37e4ebde7e06b178c125ab7ce1156490931c1dbd9",
+          "events": [
+            {
+              "id": "181823",
+              "correlation_id": "8d130590-6cb9-45ed-bdf8-d0c7a30479a8",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181824",
+              "correlation_id": "8d130590-6cb9-45ed-bdf8-d0c7a30479a8",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181825",
+              "correlation_id": "8d130590-6cb9-45ed-bdf8-d0c7a30479a8",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181826",
+              "correlation_id": "8d130590-6cb9-45ed-bdf8-d0c7a30479a8",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181823",
+            "181824",
+            "181825",
+            "181826"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 14851.721916000002,
+        "httpStatus": 200,
+        "count": 52,
+        "rows": 50,
+        "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac",
+        "noStore": true
+      },
+      {
+        "case": "search",
+        "iteration": 1,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram 52",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 1,
+          "selectionRevision": null
+        },
+        "startedAt": "2026-10-07T11:06:41.139Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "e49c83bb-7ff0-4cdb-adef-a7df1311eb61",
+        "auditBaseline": {
+          "count": 20,
+          "maxEventId": "181826",
+          "sha256": "c0d5eb89c74226ddb20a2091a5bbc434008b2e232b5ca5a7a39d581228945ec7"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "e49c83bb-7ff0-4cdb-adef-a7df1311eb61",
+          "auditCount": 4,
+          "auditGroupHash": "19d441cdc0775f1856a5a4f3a4b639fba799d90dc6ccec07f7d22d6ba6a3032e",
+          "events": [
+            {
+              "id": "181827",
+              "correlation_id": "e49c83bb-7ff0-4cdb-adef-a7df1311eb61",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181828",
+              "correlation_id": "e49c83bb-7ff0-4cdb-adef-a7df1311eb61",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181829",
+              "correlation_id": "e49c83bb-7ff0-4cdb-adef-a7df1311eb61",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181830",
+              "correlation_id": "e49c83bb-7ff0-4cdb-adef-a7df1311eb61",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181827",
+            "181828",
+            "181829",
+            "181830"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 22793.693375000003,
+        "httpStatus": 200,
+        "count": 1,
+        "rows": 1,
+        "selectionRevision": "sha256:0c2188a87e3ee3ca53bcb03f54d4d0e42727721d6f23e261b0fb34a491880914",
+        "noStore": true
+      },
+      {
+        "case": "search",
+        "iteration": 2,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram 52",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 1,
+          "selectionRevision": null
+        },
+        "startedAt": "2026-10-07T11:07:04.665Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "316f9442-8f68-4f23-9ef9-8840d1f3ffc6",
+        "auditBaseline": {
+          "count": 24,
+          "maxEventId": "181830",
+          "sha256": "5869ff8f36d20f2b8c01c9c41da62463c3d967ff55898bec14adbe63544aaea4"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "316f9442-8f68-4f23-9ef9-8840d1f3ffc6",
+          "auditCount": 4,
+          "auditGroupHash": "2832423132410b8cd73accfa277dbcb6d2cdf87d0b9489b0a5b4e78990d083f8",
+          "events": [
+            {
+              "id": "181831",
+              "correlation_id": "316f9442-8f68-4f23-9ef9-8840d1f3ffc6",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181832",
+              "correlation_id": "316f9442-8f68-4f23-9ef9-8840d1f3ffc6",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181833",
+              "correlation_id": "316f9442-8f68-4f23-9ef9-8840d1f3ffc6",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181834",
+              "correlation_id": "316f9442-8f68-4f23-9ef9-8840d1f3ffc6",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181831",
+            "181832",
+            "181833",
+            "181834"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 18903.29362499999,
+        "httpStatus": 200,
+        "count": 1,
+        "rows": 1,
+        "selectionRevision": "sha256:0c2188a87e3ee3ca53bcb03f54d4d0e42727721d6f23e261b0fb34a491880914",
+        "noStore": true
+      },
+      {
+        "case": "search",
+        "iteration": 3,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram 52",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 1,
+          "selectionRevision": null
+        },
+        "startedAt": "2026-10-07T11:07:24.056Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "8f3242c4-5b0a-43d7-b74b-bca7266aa273",
+        "auditBaseline": {
+          "count": 28,
+          "maxEventId": "181834",
+          "sha256": "e24212c793aa1a99f1698de84954650248fdc17e38af1fcbd130ddbb7a6d5e45"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "8f3242c4-5b0a-43d7-b74b-bca7266aa273",
+          "auditCount": 4,
+          "auditGroupHash": "85acae3f1f549e5221794a3c5822bd7580a12adbf2d78ab53f8371d51e654f67",
+          "events": [
+            {
+              "id": "181835",
+              "correlation_id": "8f3242c4-5b0a-43d7-b74b-bca7266aa273",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181836",
+              "correlation_id": "8f3242c4-5b0a-43d7-b74b-bca7266aa273",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181837",
+              "correlation_id": "8f3242c4-5b0a-43d7-b74b-bca7266aa273",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181838",
+              "correlation_id": "8f3242c4-5b0a-43d7-b74b-bca7266aa273",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181835",
+            "181836",
+            "181837",
+            "181838"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 20567.165542000002,
+        "httpStatus": 200,
+        "count": 1,
+        "rows": 1,
+        "selectionRevision": "sha256:0c2188a87e3ee3ca53bcb03f54d4d0e42727721d6f23e261b0fb34a491880914",
+        "noStore": true
+      },
+      {
+        "case": "page2",
+        "iteration": 1,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 2,
+          "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac"
+        },
+        "startedAt": "2026-10-07T11:07:45.335Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "9f3e2870-f4a3-4b5f-8a42-6881d001bdfd",
+        "auditBaseline": {
+          "count": 32,
+          "maxEventId": "181838",
+          "sha256": "cb551bfafe2d90c32d621c4403ef8f7a1b69c3f67dd075c89686cc8894178b50"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "9f3e2870-f4a3-4b5f-8a42-6881d001bdfd",
+          "auditCount": 4,
+          "auditGroupHash": "97e628de8507ca4a4ee55eb9e9b616bf2b7d5e3eb1c7f3e1c8944a7a2cce9117",
+          "events": [
+            {
+              "id": "181839",
+              "correlation_id": "9f3e2870-f4a3-4b5f-8a42-6881d001bdfd",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181840",
+              "correlation_id": "9f3e2870-f4a3-4b5f-8a42-6881d001bdfd",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181841",
+              "correlation_id": "9f3e2870-f4a3-4b5f-8a42-6881d001bdfd",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181842",
+              "correlation_id": "9f3e2870-f4a3-4b5f-8a42-6881d001bdfd",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181839",
+            "181840",
+            "181841",
+            "181842"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 16730.748416000017,
+        "httpStatus": 200,
+        "count": 52,
+        "rows": 2,
+        "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac",
+        "noStore": true
+      },
+      {
+        "case": "page2",
+        "iteration": 2,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 2,
+          "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac"
+        },
+        "startedAt": "2026-10-07T11:08:02.613Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "7d72d5dd-d622-4af3-8845-bb3431fd1933",
+        "auditBaseline": {
+          "count": 36,
+          "maxEventId": "181842",
+          "sha256": "1d23f647d5d1ca56b21cdda846b2373315ee9c79477351581150fd98e7d29468"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "7d72d5dd-d622-4af3-8845-bb3431fd1933",
+          "auditCount": 4,
+          "auditGroupHash": "8994e788c4812e3027d5eaee7475179a6f37605936cbc677476cd069120f297e",
+          "events": [
+            {
+              "id": "181843",
+              "correlation_id": "7d72d5dd-d622-4af3-8845-bb3431fd1933",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181844",
+              "correlation_id": "7d72d5dd-d622-4af3-8845-bb3431fd1933",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181845",
+              "correlation_id": "7d72d5dd-d622-4af3-8845-bb3431fd1933",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181846",
+              "correlation_id": "7d72d5dd-d622-4af3-8845-bb3431fd1933",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181843",
+            "181844",
+            "181845",
+            "181846"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 15336.957792000001,
+        "httpStatus": 200,
+        "count": 52,
+        "rows": 2,
+        "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac",
+        "noStore": true
+      },
+      {
+        "case": "page2",
+        "iteration": 3,
+        "phase": "before",
+        "requestSelection": {
+          "schoolYear": 2027,
+          "unitId": null,
+          "view": "programplan",
+          "schoolform": "gymnasium",
+          "query": "Syntetisk årsplaneringsram",
+          "status": "utkast",
+          "cohortRelation": "all",
+          "archive": "all",
+          "grade": null,
+          "sort": "name",
+          "direction": "asc",
+          "page": 2,
+          "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac"
+        },
+        "startedAt": "2026-10-07T11:08:18.608Z",
+        "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+        "identityId": "43e2f02e-0000-4000-8000-000000000010",
+        "membershipId": "43e2f02e-0000-4000-8000-000000000020",
+        "assignmentId": "43e2f02e-0000-4000-8000-000000000060",
+        "customerId": "43e2f02e-0000-4000-8000-000000000001",
+        "correlationId": "986b4b77-057b-4666-8edb-63bb93f89ee9",
+        "auditBaseline": {
+          "count": 40,
+          "maxEventId": "181846",
+          "sha256": "91f157bcd0b7d886179f3676d6cbc630eb5e3cd2907ce572ec5bf86fd06ff333"
+        },
+        "dbCompletion": {
+          "ownedDbTransactionFinished": true,
+          "sessionLockReleased": true,
+          "barrier": {
+            "sessionId": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+            "lockMode": "FOR UPDATE",
+            "rollback": true
+          },
+          "correlationId": "986b4b77-057b-4666-8edb-63bb93f89ee9",
+          "auditCount": 4,
+          "auditGroupHash": "5cb2ecf132bf5a097ed95f9cfcbac6b1dc005d266f8b009656767f4f9ff77a65",
+          "events": [
+            {
+              "id": "181847",
+              "correlation_id": "986b4b77-057b-4666-8edb-63bb93f89ee9",
+              "source": "db",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181848",
+              "correlation_id": "986b4b77-057b-4666-8edb-63bb93f89ee9",
+              "source": "worker",
+              "action": "planning_year_selection_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181849",
+              "correlation_id": "986b4b77-057b-4666-8edb-63bb93f89ee9",
+              "source": "db",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            },
+            {
+              "id": "181850",
+              "correlation_id": "986b4b77-057b-4666-8edb-63bb93f89ee9",
+              "source": "worker",
+              "action": "planning_year_list_read",
+              "outcome": "ok",
+              "actor_identity_id": "43e2f02e-0000-4000-8000-000000000010",
+              "membership_id": "43e2f02e-0000-4000-8000-000000000020",
+              "assignment_id": "43e2f02e-0000-4000-8000-000000000060",
+              "session_id": "7bdceba1-ae84-4258-8e06-388b86cd0cac",
+              "customer_id": "43e2f02e-0000-4000-8000-000000000001",
+              "object_type": "planning_year_collection",
+              "object_id": null
+            }
+          ],
+          "newEventIds": [
+            "181847",
+            "181848",
+            "181849",
+            "181850"
+          ]
+        },
+        "auditPaired": true,
+        "businessUnchanged": true,
+        "status": "PASS",
+        "durationMs": 15337.154125000001,
+        "httpStatus": 200,
+        "count": 52,
+        "rows": 2,
+        "selectionRevision": "sha256:d525425ff48f1bda038e578af2e026a5600d83b60f63abf45613a3c533aa01ac",
+        "noStore": true
+      }
+    ],
+    "sqlPreparation": null,
+    "cleanup": {
+      "libraryVersions": 0,
+      "unitPackages": 0,
+      "offeringUnits": 0,
+      "customers": 0,
+      "sessions": 0,
+      "plans": 0,
+      "receipts": 0,
+      "educationEvents": 0,
+      "offerings": 0,
+      "mandates": 0,
+      "preservedAuditEvents": 48,
+      "preservedAuditAnchors": 3,
+      "mintedSessions": 0,
+      "triggers": 0,
+      "functions": 0,
+      "gymReceipts": 0,
+      "timplans": 0,
+      "classLinks": 0,
+      "originalBusinessUnchanged": true,
+      "before": {
+        "point_plans": {
+          "count": 20,
+          "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+        },
+        "point_plan_events": {
+          "count": 54,
+          "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+        },
+        "offerings": {
+          "count": 34,
+          "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+        },
+        "offering_units": {
+          "count": 267,
+          "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+        },
+        "timplans": {
+          "count": 7,
+          "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+        },
+        "timplan_cells": {
+          "count": 121,
+          "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+        },
+        "timplan_events": {
+          "count": 67,
+          "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+        },
+        "class_timplans": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "school_classes": {
+          "count": 6,
+          "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+        },
+        "pupil_placements": {
+          "count": 68,
+          "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+        },
+        "programplan_shape_upgrades": {
+          "count": 13,
+          "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+        },
+        "programplan_unit_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "programplan_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "gym_timplan_receipts": {
+          "count": 3,
+          "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+        },
+        "school_years": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      },
+      "after": {
+        "point_plans": {
+          "count": 20,
+          "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+        },
+        "point_plan_events": {
+          "count": 54,
+          "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+        },
+        "offerings": {
+          "count": 34,
+          "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+        },
+        "offering_units": {
+          "count": 267,
+          "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+        },
+        "timplans": {
+          "count": 7,
+          "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+        },
+        "timplan_cells": {
+          "count": 121,
+          "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+        },
+        "timplan_events": {
+          "count": 67,
+          "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+        },
+        "class_timplans": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "school_classes": {
+          "count": 6,
+          "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+        },
+        "pupil_placements": {
+          "count": 68,
+          "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+        },
+        "programplan_shape_upgrades": {
+          "count": 13,
+          "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+        },
+        "programplan_unit_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "programplan_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "gym_timplan_receipts": {
+          "count": 3,
+          "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+        },
+        "school_years": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      },
+      "originalBusiness": {
+        "point_plans": {
+          "count": 20,
+          "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+        },
+        "point_plan_events": {
+          "count": 54,
+          "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+        },
+        "offerings": {
+          "count": 34,
+          "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+        },
+        "offering_units": {
+          "count": 267,
+          "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+        },
+        "timplans": {
+          "count": 7,
+          "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+        },
+        "timplan_cells": {
+          "count": 121,
+          "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+        },
+        "timplan_events": {
+          "count": 67,
+          "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+        },
+        "class_timplans": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "school_classes": {
+          "count": 6,
+          "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+        },
+        "pupil_placements": {
+          "count": 68,
+          "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+        },
+        "programplan_shape_upgrades": {
+          "count": 13,
+          "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+        },
+        "programplan_unit_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "programplan_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "gym_timplan_receipts": {
+          "count": 3,
+          "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+        },
+        "school_years": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      },
+      "finalBusiness": {
+        "point_plans": {
+          "count": 20,
+          "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+        },
+        "point_plan_events": {
+          "count": 54,
+          "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+        },
+        "offerings": {
+          "count": 34,
+          "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+        },
+        "offering_units": {
+          "count": 267,
+          "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+        },
+        "timplans": {
+          "count": 7,
+          "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+        },
+        "timplan_cells": {
+          "count": 121,
+          "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+        },
+        "timplan_events": {
+          "count": 67,
+          "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+        },
+        "class_timplans": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "school_classes": {
+          "count": 6,
+          "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+        },
+        "pupil_placements": {
+          "count": 68,
+          "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+        },
+        "programplan_shape_upgrades": {
+          "count": 13,
+          "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+        },
+        "programplan_unit_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "programplan_packages": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "gym_timplan_receipts": {
+          "count": 3,
+          "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+        },
+        "school_years": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      },
+      "originalAuditHash": "89880d3465e418e4c60e12b1b40bf1fd1c6fc393f1aedfcaf3cd692538f227df",
+      "finalAuditHash": "89880d3465e418e4c60e12b1b40bf1fd1c6fc393f1aedfcaf3cd692538f227df",
+      "originalIdentityHash": "cabaff1e5682832cf50aabcf25d70e70f34b60e96374f9c90612ac9bdddb7fe9",
+      "finalIdentityHash": "cabaff1e5682832cf50aabcf25d70e70f34b60e96374f9c90612ac9bdddb7fe9",
+      "originalBusinessPreserved": true,
+      "originalAuditPreserved": true,
+      "identityAnchorsPreserved": true,
+      "retainedAuditPreserved": true,
+      "retainedIdentityAnchorsPreserved": true,
+      "beforeRetainedAudit": {
+        "count": 173251,
+        "sha256": "7d6cfe8f4a10b831be1bcb07e6793e92c726d76487f9aac0611ccbbadc6e6bfb"
+      },
+      "afterRetainedAudit": {
+        "count": 173251,
+        "sha256": "7d6cfe8f4a10b831be1bcb07e6793e92c726d76487f9aac0611ccbbadc6e6bfb"
+      },
+      "beforeRetainedAnchors": {
+        "count": 4549,
+        "sha256": "54de76923eb260fe552a6fa7eea811e8a3c8e4642a3e97bdef86bb62aa074f2b"
+      },
+      "afterRetainedAnchors": {
+        "count": 4549,
+        "sha256": "54de76923eb260fe552a6fa7eea811e8a3c8e4642a3e97bdef86bb62aa074f2b"
+      },
+      "foreignRemaining": {
+        "offerings": 0,
+        "offeringUnits": 0,
+        "sessions": 0
+      },
+      "foreignRetainedAuditAnchors": {
+        "events": 0,
+        "anchoredEvents": 0
+      }
+    },
+    "cleanupDeferred": false,
+    "pendingAttempt": null,
+    "pendingOwner": null
+  }
+}

@@ -8,7 +8,7 @@ import {PERFORMANCE_MIGRATION,PERFORMANCE_TEST,PERFORMANCE_ENTRY,PERFORMANCE_SOU
  assertPerformanceDiff,validatePerformanceBaseApi,validatePerformanceRollback,timingSummary,performanceTimingProof,
  performanceParityProof,performanceProgress,performanceCatalogFingerprint,performanceRollbackScript,historicalPlanningRollbackScript,extractOriginalPlanningRows,
  PERFORMANCE_RESERVE_POLICY,validateReusablePerformanceSql,validateCensoredTimingSample,validateOwnedDbCompletion,classifyPerformanceTimeout,
- performanceTimingLowerBoundProof,candidateDefinitionRollbackScript,canonicalPerformanceEvidencePath,computeAcceptedPerformanceTimingProof,validateReserveTimingEvidence,assertPerformanceEvidenceOutput,performanceProcessResult,performanceSqlNeedsCompletionProof,readHistoricalPerformanceSource,samePlanningTimingSelection,preservePerformanceReport,performanceSafeTransportFailure,performanceTimingAttempt,recordPerformanceAttemptResponse,completePerformanceTimingAttempt} from './verify-planning-year-read-performance.mjs';
+ performanceTimingLowerBoundProof,candidateDefinitionRollbackScript,canonicalPerformanceEvidencePath,computeAcceptedPerformanceTimingProof,validateReserveTimingEvidence,assertPerformanceEvidenceOutput,performanceProcessResult,performanceSqlNeedsCompletionProof,readHistoricalPerformanceSource,samePlanningTimingSelection,preservePerformanceReport,performanceSafeTransportFailure,performanceTimingAttempt,recordPerformanceAttemptResponse,completePerformanceTimingAttempt,installOwnedPerformanceTransport} from './verify-planning-year-read-performance.mjs';
 import {parsePerformanceApplyArgs} from './apply-planning-year-read-performance.mjs';
 import {PLANNING_FOUNDATION,PLANNING_BASE_ENTRIES,PLANNING_ENTRIES,PLANNING_TABLES,sha} from './apply-planning-year-migration.mjs';
 import {PLANNING_API_CASES,PLANNING_API_SOURCE_PATHS,planningSelection} from './verify-planning-year-api.mjs';
@@ -381,4 +381,61 @@ test('completion error remains separate from the original transport failure and 
  const success=diagnosticAttempt(),proof={ownedDbTransactionFinished:true};
  assert.equal(await completePerformanceTimingAttempt(success,async stage=>{stage('session-barrier');return proof;}),proof);
  assert.equal(success.completionFailure,null);
+});
+
+
+const transportFixture=()=>({hm:{token:'h'.repeat(43)},principal:{token:'p'.repeat(43)},principalB:{token:'b'.repeat(43)}});
+test('owned close transport preserves request options deadlines body auth and response',async()=>{
+ const original=globalThis.fetch,calls=[],reply={status:200};globalThis.fetch=(...args)=>{calls.push(args);return Promise.resolve(reply);};
+ const installedOriginal=globalThis.fetch,fixture=transportFixture(),restore=installOwnedPerformanceTransport('http://127.0.0.1:3060',fixture);
+ try{
+  const signal=new AbortController().signal,headers={'Content-Type':'application/json',Cookie:`sp_session=${fixture.hm.token}`,'X-Context-Epoch':'7'},body='{"selection":"unchanged"}';
+  const options={method:'POST',headers,signal,body,redirect:'error'};
+  assert.equal(await fetch('http://127.0.0.1:3060/api/planering/lista',options),reply);
+  assert.equal(calls[0][0],'http://127.0.0.1:3060/api/planering/lista');
+  assert.equal(calls[0][1].signal,signal);assert.equal(calls[0][1].body,body);assert.equal(calls[0][1].method,'POST');assert.equal(calls[0][1].redirect,'error');
+  assert.equal(calls[0][1].headers.get('connection'),'close');assert.equal(calls[0][1].headers.get('cookie'),headers.Cookie);
+  assert.equal(calls[0][1].headers.get('x-context-epoch'),'7');assert.equal(headers.Connection,undefined);
+  for(const [session,path]of[[fixture.principal,'/api/timplaner/gym/skapa'],[fixture.principalB,'/api/programplaner/skapa']]){
+   await fetch(new URL('http://127.0.0.1:3060'+path),{headers:new Headers({Cookie:`sp_session=${session.token}`}),signal});
+   assert.equal(calls.at(-1)[1].signal,signal);assert.equal(calls.at(-1)[1].headers.get('connection'),'close');
+  }
+  const getOptions={method:'GET',headers:{Cookie:`sp_session=${fixture.hm.token}`},signal};await fetch('http://127.0.0.1:3060/api/planering/urval',getOptions);
+  assert.equal(calls.at(-1)[1].method,'GET');assert.equal(Object.hasOwn(calls.at(-1)[1],'body'),false);
+ }finally{restore();assert.equal(globalThis.fetch,installedOriginal);globalThis.fetch=original;}
+});
+test('owned close transport refuses escaped scope and altered cookies without disclosing secrets',()=>{
+ const original=globalThis.fetch,calls=[];globalThis.fetch=(...args)=>{calls.push(args);return Promise.resolve({});};
+ const fixture=transportFixture(),restore=installOwnedPerformanceTransport('http://127.0.0.1:3060',fixture),cookie=`sp_session=${fixture.hm.token}`;
+ try{
+  for(const url of ['https://remote.test/api/planering/lista','http://localhost:3060/api/planering/lista','http://127.0.0.1:3061/api/planering/lista',
+   'http://127.0.0.1:3060/api/other','http://127.0.0.1:3060/api/planering/lista?q=secret','http://127.0.0.1:3060/api/planering/lista#fragment',
+   'http://user:secret@127.0.0.1:3060/api/planering/lista','http://127.0.0.1:3060/api/planering/../planering/lista']){
+   assert.throws(()=>fetch(url,{headers:{Cookie:cookie}}),error=>error.message==='performance_transport_scope_refused'&&!error.message.includes(fixture.hm.token));
+  }
+  for(const badCookie of ['',cookie+'; other=1',cookie+'; '+cookie,'sp_session=foreign'])assert.throws(()=>fetch('http://127.0.0.1:3060/api/planering/lista',{headers:{Cookie:badCookie}}));
+  assert.throws(()=>fetch(new Request('http://127.0.0.1:3060/api/planering/lista',{headers:{Cookie:cookie}})));
+  assert.equal(calls.length,0);
+ }finally{restore();globalThis.fetch=original;}
+ for(const base of ['https://remote.test','http://localhost:3060','http://127.0.0.1:3012','http://127.0.0.1:3060/','http://127.0.0.1:999'])assert.throws(()=>installOwnedPerformanceTransport(base,fixture));
+ assert.throws(()=>installOwnedPerformanceTransport('http://127.0.0.1:3060',{...fixture,principal:fixture.hm}));
+ assert.equal(globalThis.fetch,original);
+});
+test('owned close transport leaves unrelated fetch unchanged and restores on setup or timing failure',async()=>{
+ const original=globalThis.fetch,calls=[];const fake=(...args)=>{calls.push(args);return Promise.resolve({});};globalThis.fetch=fake;
+ try{
+  for(const stage of ['setup','timing']){
+   const fixture=transportFixture(),restore=installOwnedPerformanceTransport('http://127.0.0.1:3060',fixture),captured=globalThis.fetch;
+   try{
+    const options={method:'GET',headers:{'X-Unrelated':'same'},signal:new AbortController().signal};
+    await fetch('https://unrelated.test/read',options);assert.equal(calls.at(-1)[1],options);
+    throw Error(stage);
+   }catch(error){assert.equal(error.message,stage);}finally{restore();}
+   assert.equal(globalThis.fetch,fake);restore();assert.equal(globalThis.fetch,fake);
+   assert.throws(()=>captured('http://127.0.0.1:3060/api/planering/lista',{headers:{Cookie:`sp_session=${fixture.hm.token}`}}));
+  }
+ }finally{globalThis.fetch=original;}
+ const source=readFileSync(root+'work/pilot/verify-planning-year-read-performance.mjs','utf8');
+ assert.match(source,/fixture=await createPlanningYearFixture\(\);restoreTransport=installOwnedPerformanceTransport\(baseURL,fixture\);const metadata=await fixture\.setup/u);
+ assert.match(source,/finally\{\s*restoreTransport\?\.\(\);[\s\S]*?fixture\.cleanup\(\)/u);
 });

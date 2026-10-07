@@ -624,12 +624,41 @@ async function prepareOwnedPageRevision(db,fixture,input){
  return {kind:'OWNED_SQL_PREPARATION',transport:'postgres',httpResponse:false,correlationId,sessionId:fixture.hm.id,
   requestSelection:input,count:reply.count,rows:reply.rows.length,selectionRevision:reply.selectionRevision,auditCount:1,auditHash:sha(JSON.stringify([auditEvent])),auditEvent,barrier,ownedDbTransactionFinished:true};
 }
+// Own-fixture transport only: preserve every request option and existing deadline.
+// The closure keeps tokens in memory; no transport metadata contains credentials.
+export function installOwnedPerformanceTransport(baseURL,fixture){
+ if(typeof baseURL!=='string'||!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL))throw Error('performance_transport_scope_refused');
+ const origin=new URL(baseURL),port=Number(origin.port);
+ if(port<1024||port>65535||port===3012)throw Error('performance_transport_scope_refused');
+ const tokens=[fixture?.hm?.token,fixture?.principal?.token,fixture?.principalB?.token];
+ if(tokens.some(token=>typeof token!=='string'||! /^[A-Za-z0-9_-]{32,128}$/u.test(token))||new Set(tokens).size!==3)throw Error('performance_transport_scope_refused');
+ const cookies=new Set(tokens.map(token=>`sp_session=${token}`)),routes=new Set([
+  '/api/programplaner/skapa','/api/programplaner/terminer','/api/programplaner/utbildning/livscykel',
+  '/api/timplaner/gym/underlag','/api/timplaner/gym/skapa','/api/planering/urval','/api/planering/lista','/api/planering/oversikt']);
+ const originalFetch=globalThis.fetch;let active=true;
+ if(typeof originalFetch!=='function')throw Error('performance_transport_scope_refused');
+ const transport=(input,options)=>{
+  const request=typeof Request!=='undefined'&&input instanceof Request;
+  const rawURL=request?input.url:input instanceof URL?input.href:typeof input==='string'?input:null;
+  let url;try{url=rawURL===null?null:new URL(rawURL);}catch{url=null;}
+  const headers=new Headers(options?.headers??(request?input.headers:undefined)),cookie=headers.get('cookie')??'';
+  const owned=cookies.has(cookie),mentionsOwned=tokens.some(token=>cookie.includes(token));
+  const routeInScope=url?.origin===origin.origin&&routes.has(url.pathname);
+  if(!owned&&!mentionsOwned&&!routeInScope)return originalFetch(input,options);
+  if(!active||!owned||request||!url||!routes.has(url.pathname)||rawURL!==`${baseURL}${url.pathname}`)throw Error('performance_transport_scope_refused');
+  headers.set('Connection','close');
+  return originalFetch(input,{...options,headers});
+ };
+ globalThis.fetch=transport;
+ return ()=>{active=false;globalThis.fetch=originalFetch;};
+}
+
 export async function timingFixtureReserve(baseURL,phase='before',allowCensor=true){
  const {createPlanningYearFixture}=await import('./phase5-planning-year-fixtures.mjs');
  const target=await assertTarget('protected'),db=require('postgres')(target.dbUrl,{max:1,prepare:false,connect_timeout:10,onnotice:()=>{}});
- let fixture,cleanup,cleanupFailure,failure,cleanupDeferred=false,dbCompletionPending=false,sqlPreparation=null,pendingAttempt=null;const samples=[];
+ let fixture,cleanup,cleanupFailure,failure,restoreTransport,cleanupDeferred=false,dbCompletionPending=false,sqlPreparation=null,pendingAttempt=null;const samples=[];
  try{
-  fixture=await createPlanningYearFixture();const metadata=await fixture.setup(baseURL),input=planningSelection(metadata.planningYear,{view:'programplan',query:metadata.pageQuery,status:'utkast'});
+  fixture=await createPlanningYearFixture();restoreTransport=installOwnedPerformanceTransport(baseURL,fixture);const metadata=await fixture.setup(baseURL),input=planningSelection(metadata.planningYear,{view:'programplan',query:metadata.pageQuery,status:'utkast'});
   let revision;
   for(const name of phase==='after'?[...TIMING_CASES,'overview']:TIMING_CASES)for(let iteration=1;iteration<=3;iteration++){
    if(name==='page2'&&!revision){sqlPreparation=await prepareOwnedPageRevision(db,fixture,input);revision=sqlPreparation.selectionRevision;}
@@ -669,12 +698,14 @@ export async function timingFixtureReserve(baseURL,phase='before',allowCensor=tr
   }
  }catch(error){failure=planningSafeFailure(error);cleanupDeferred=dbCompletionPending;}
  finally{
+  restoreTransport?.();
   // Unknown database completion forbids both cleanup and a purported fresh preservation
   // snapshot. The owned fixture remains identifiable for a separate diagnosis.
   if(fixture&&!cleanupDeferred)try{cleanup=await fixture.cleanup();}catch(error){cleanupFailure={...planningSafeFailure(error),evidence:planningCleanupDiagnostics(error?.cleanupEvidence)};}
   await db.end({timeout:5});
  }
- return {policy:allowCensor&&phase==='before'?PERFORMANCE_RESERVE_POLICY:null,ok:!failure&&!cleanupFailure&&!cleanupDeferred&&(allowCensor&&phase==='before'?reserveTimingEvidenceValid({policy:PERFORMANCE_RESERVE_POLICY,cleanupDeferred,sqlPreparation,samples}):timingSamplesComplete(samples,phase==='after'))&&planningCleanupPreserved(cleanup),
+ return {transport:{kind:'owned-local-http-connection-close',connectionHeader:'close',originalSetupDeadlineMs:15000,planningDeadlineMs:30000},
+  policy:allowCensor&&phase==='before'?PERFORMANCE_RESERVE_POLICY:null,ok:!failure&&!cleanupFailure&&!cleanupDeferred&&(allowCensor&&phase==='before'?reserveTimingEvidenceValid({policy:PERFORMANCE_RESERVE_POLICY,cleanupDeferred,sqlPreparation,samples}):timingSamplesComplete(samples,phase==='after'))&&planningCleanupPreserved(cleanup),
   samples,sqlPreparation,cleanup,cleanupDeferred,cleanupFailure,failure,pendingAttempt,
   pendingOwner:cleanupDeferred&&fixture?{customerId:fixture.customerId,organizerId:fixture.organizerId,sessionId:fixture.hm.id}:null};
 }

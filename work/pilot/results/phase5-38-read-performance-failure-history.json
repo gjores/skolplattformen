@@ -281,5 +281,30 @@
     "original15WholeRowsPreserved": true,
     "auditAndIdentityAnchorsPreserved": true,
     "inference": "This attempt cannot evaluate planning-read Connection:close; it failed earlier during fixture setup."
+  },
+  "longResponseDiagnostic": {
+    "report": "phase5-38-read-performance-long-response-diagnostic.json",
+    "sha256": "853a13de62c54343ff92f7bd6dae67c9d98c7fd07ca4692fdbf0819266b0a27d",
+    "status": "PASS",
+    "notFullPlanProof": true,
+    "workerBuildRevision": "d59ec10f5b4469ce4e14e1e12a591aca2363a30b",
+    "scope": "Only owned fixture requests use Connection:close; no runtime change or established underlying cause.",
+    "diagnosticDeadlineMs": 120000,
+    "baselineEligible": false,
+    "cleanupDeferred": false
+  },
+  "nativeDeadlinesTransportDiagnostic": {
+    "report": "phase5-38-read-performance-all-owned-connection-close-diagnostic.json",
+    "sha256": "dd00690b868cc27e2053ff9981dba8fe5ee5c8c6ef4794bddb3663b732241d39",
+    "status": "PASS",
+    "notFullPlanProof": true,
+    "workerBuildRevision": "d59ec10f5b4469ce4e14e1e12a591aca2363a30b",
+    "scope": "Only owned fixture requests use Connection:close; no runtime change or established underlying cause.",
+    "setupDeadlineMs": 15000,
+    "planningDeadlineMs": 30000,
+    "samples": 9,
+    "cleanupDeferred": false,
+    "freshFullRollbackRequired": true,
+    "reserveActivated": false
   }
 }
