@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 ägd återställning PASS, datumrättning pushad.3060stoppad; nyttbygge/G01×2/fullG38/C04×2 återstår.
+stopped_at: UI05-41 G01×2 PASS; andra fullmatris G01–09 datorPASS/G10 fixturskolscopeFAIL.10normalcleanup; källa avgränsas före nyttprov/fullG38/C04×2.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-41 första setupFAIL bevarad; egen datumrättning och separat ägd återställning kontrollerade. Vanlig3012 bevarad."
-state_head: e4ede6f
-verification_worker_build_revision: fb84d29594d0ddb65286d26ec39e5ca38acb13f6
+last_activity_desc: "UI05-41 andra fullmatris stannade på provets delade skolscope; samtliga10cleanup PASS. Vanlig3012 bevarad."
+state_head: 2689e90
+verification_worker_build_revision: 2689e90045724e135b0c52f3cf6f22cff3e8e64f
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 andra fullmatris2026-10-08:** Source/build2689e90/Gdbb/fixtur618. Föregående G01×2 actual850eb835 PASS med2normalcleanup/24sources/241produktkällor/12bilder+geometrier på dator/telefon. Färsk fullmatriscaaf8637: G01–09 datorPASS, G10 FAIL före arkivkontroll eftersom egen första sidutbildning delas med skola utanför rektorsmandatet. Legitim mandatspärr prioriteras före den efterfrågade starttexten; ingen produktregel ändras för provet.28fall ej startade. Samtliga10normalcleanup/full15/audit-/identitetsankare/ownforeignlistGY-och-DDLzero PASS; ingen recovery behövs. Endast egen gymfixturs första klon avgränsas till skolaA så startspärren kan prövas isolerat. Bildernas tidigare ogiltiga GY-URLmarkör/fokushopplänk är redovisade begränsningar.3060 kör2689; ny källreview/bygge/riktadeprov/fullG38/C04×2 återstår.85/100 och vanlig3012 består.
 
 **UI41 första ägda återställning2026-10-08 — avgränsat PASS:** Fryst skript0d9031cf med oberoende SOURCE-review och12 rena kontroller. ROOTs läsande förkontroll completion9b0fd9fd/reserved3d0afd64 och separat apply completion859b3bca/reservedcd998c74 har faktisk exit0, känd DB-/filstängning och postcommitbevarande. Bara d82f49b9:s egen verksamhetsgraf och13 egna sessioner städade; dess39 audithändelser och nödvändiga mandat-/identitetsankare består. Ursprungliga15 heltabeller, SEARCH-katalog/rå ACL, full aktuell audit/äldre identiteter, senasteL18 och samtliga fyra äldre mandatgrafer hashbevarade före/efter/postcommit. SQLdiagnosen bekräftar första kull2025 mot SA25/4 som historical_version_missing. Immutable reservedFAIL är filreservation, ingen omskriven ursprunglig provrapport; första actualFAIL875c48af består. Inget UI41-beteende är godkänt ännu. Nästa nytt isolerat bygge av granskad datumrättning/G01×2/fullG38/C04×2;85/100 och vanlig3012 består.
 
