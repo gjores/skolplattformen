@@ -333,7 +333,7 @@ test('G05: ändrad aktuell källstart kan inte ändra timplanens frysta årssnit
 test('G06: klassbunden äldre timversion öppnas med samma frysta år trots nytt utkast',async({page},info)=>{
  const h=metadata.historyGym,r={...metadata.cohorts[2],offeringId:h.offeringId,sourcePlanId:h.sourcePlanId,planId:h.oldPlanId,query:h.query};
  const old=await fixture.timplanSnapshot(h.oldPlanId),newer=await fixture.timplanSnapshot(h.newPlanId),links=await fixture.classLinks();
- const row=await enter(page,r,'timplan');expect(row.application?.planId).toBe(h.oldPlanId);expect(row.underlag).toBe('class-bound');await visualYear(page,'timplan',1);
+ const row=await enter(page,r,'timplan',h.schoolYear);expect(row.application?.planId).toBe(h.oldPlanId);expect(row.underlag).toBe('class-bound');await visualYear(page,'timplan',1);
  expect(new URL(page.url()).searchParams.get('timplan')).toBe(h.oldPlanId);expect(new URL(page.url()).searchParams.get('timplansversion')).toBe('1');
  await expect(gym(page).locator('input.gt-term-input')).toHaveCount(0);expect(await fixture.timplanSnapshot(h.oldPlanId)).toEqual(old);expect(await fixture.timplanSnapshot(h.newPlanId)).toEqual(newer);expect(await fixture.classLinks()).toEqual(links);
  await page.reload();await visualYear(page,'timplan',1);expect(new URL(page.url()).searchParams.get('timplan')).toBe(h.oldPlanId);await capture(page,info,'bound-v1-new-v2');

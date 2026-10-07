@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 förstaG01 setupFAIL/underlag400; deferrednodeunknown.3060stoppad.Ägd förkontroll/återhämtning före ny fixtur.
+stopped_at: UI05-41 egen provdatumrättning käll-PASS; förstaFAIL består.3060stoppad.Ägd förkontroll/återhämtning före nyttbygge/G01×2/fullG38.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
 last_activity_desc: "UI05-40 fullL36/cleanup/geometri PASS; nästa05-41. Vanlig3012 bevarad."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 provdatumrättning2026-10-08 — endast käll-PASS:** Första egna start2025 låg före frysta SA25/4:s giltighet2026-07-01; strict resolver/HTTP400 var korrekt. Eget gymprovår2028 ger kataloggiltiga kullar2026/27/28, medan baseL-historik2027 består och G06 väljer dess uttryckliga år. Fullbasis förhandsvalideras före egen source-mutation. Selektiv5a534e8e/fixtur618aa189/Gspecdbb77646, oberoende review och8 rena datum-/sexindexprov samt full typ/lint/syntax/list38 PASS. Första actualFAIL875c48af är oförändrad; ingen ny fixture/DB/API ännu.3060stoppad vidfb84bygget för exakt ägd återställning, därefter nytt isolerat bygge/G01×2/fullG38/C04×2.85/100 och vanlig3012 består.
 
 **UI41 första faktiska setup2026-10-08:** Source/buildfb84d29/Ga753/fixtur9ff. G01 stoppade i setup efter första gymunderlag400;0verksamhetsPASS/37ej startade. Raw875c48af bevarad. Deferrednodeunknown stage setup för egen graf d82f49b9, original15 baslinje bevarad i bilaga, browser/page/context/routes helt avslutade.3060 exaktstoppad/disposed43550→43559→43562. Inga nya fixturer eller cleanup/prober före källgranskad ägd förkontroll/återhämtning;85/100 och vanlig3012 består. Orsak utreds i egen gymfixtur/strikt SQLunderlag, inga produktregler/provgrindar sänks.
 

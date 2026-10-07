@@ -7,6 +7,7 @@ import {createPlanningListFixture} from './phase5-planning-year-list-fixtures.mj
 import {parseGymTimplan,parseGymTimplanUnderlag,parseGymTimplanCreateReply,parseGymTimplanRowReply} from '../../web/lib/gym-timplan.ts';
 import {parseProgramplan} from '../../web/lib/programplan-contract.ts';
 import {parseProgramplanTermReply,parseProgramplanTermDistribution} from '../../web/lib/programplan-terms-contract.ts';
+import {verifyProgramplanCatalog,resolveProgramplanBasis} from '../../web/lib/programplan-catalog.ts';
 import {programplanTermRows,validateProgramplanTermDistribution} from '../../web/lib/programplan-terms.ts';
 
 /** @typedef {{offeringId:string,sourcePlanId:string,planId:string,unitId:string,startedOn:string,query:string,rowKey:string,rowName:string,levelName:string,pointTerms:number[],hours:number[],revision:number,sourceRevision:number,educationName:string,schoolName:string}} GymYearRecord */
@@ -55,6 +56,8 @@ export async function createPlanningGymFixture(){
    const catalogue=one(await tx`select payload from public.programplan_catalogs where catalog_id=${base.catalogId}`,'gym_year_catalog');
    const basis={...saved.basis_reference,startedOn},program=catalogue.payload.programs.find(p=>p.code===basis.programRef.code&&p.version===basis.programRef.version);
    if(!program)fail('gym_year_catalog_identity');
+   const verified=await verifyProgramplanCatalog({...catalogue.payload,catalogId:base.catalogId});
+   if(resolveProgramplanBasis(verified,basis).status!=='resolved')fail('gym_year_catalog_start_not_applicable');
    const rows=programplanTermRows(program,basis),row=rows.find(r=>r.key==='foundation:ENGE:1:ENGE1000X')??rows.find(r=>r.points===100&&!r.key.startsWith('block:')&&!r.key.startsWith('meta:'));
    if(!row)fail('gym_year_six_term_row_missing');
    const distribution=parseProgramplanTermDistribution(saved.term_distribution).map(d=>d.rowKey===row.key?{rowKey:d.rowKey,points:[...POINTS]}:d);
@@ -95,8 +98,10 @@ export async function createPlanningGymFixture(){
  const fixture={...base,request,
   async setup(baseURL){if(started)fail('gym_year_setup_started');started=true;
    let initial;try{initial=await base.setup(baseURL);}catch(error){unknown=true;throw error;}
-   metadata={...initial,baseURL,cohorts:/** @type {GymYearRecord[]} */ ([]),spring:/** @type {GymYearRecord[]} */ ([])};
-   for(let index=0;index<3;index++)metadata.cohorts.push(await prepare(index,`${initial.planningYear-2+index}-08-17`));
+   // SA25/version4 applies from 2026-07-01; all three own cohorts use that pinned version.
+   const planningYear=Math.max(initial.planningYear,2028);
+   metadata={...initial,planningYear,baseURL,cohorts:/** @type {GymYearRecord[]} */ ([]),spring:/** @type {GymYearRecord[]} */ ([])};
+   for(let index=0;index<3;index++)metadata.cohorts.push(await prepare(index,`${metadata.planningYear-2+index}-08-17`));
    Object.assign(fixture,metadata);return metadata;
   },
   async addSpringSources(){if(!metadata||metadata.spring.length)fail('gym_year_spring_state');
