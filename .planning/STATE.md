@@ -9,7 +9,7 @@ stopped_at: UI05-39 källintegrerad;75 riktade prov,typ/lint/källreview PASS. I
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: 66c467b
+state_head: c66d88f
 verification_worker_build_revision: 0913d5a0527e2975ce3059b8672b2c139bf07997
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 andra avslutsfel2026-10-07:** Färskt C01 på sourcec66d88f/oförändrat produktbyggedd44848 klarar separata register-/planeringsår, två registerfilter, navigation/retur/reload och faktisk datorgeometri/bild. Endast teardown FAIL: en pendingrequest kvar efter livepage-unroute; unknownsfalse och inget fetch/bodyfel. Första fullJSON55612b19/bilagor bevarade.3060stoppad med full dispose; ny egen recovery förde56cb1e förbereds före nästa fixture. Lokal Playwrightkälla stöder persistent contextroute + stoppaUI/page→awaitcontext/fetchjobs→contextclose, med exakt samma pending/unknownspärr. Ingen actualfullC16 eller mobilPASS.83/100 består.
 
 **UI39 faktisk återhämtning2026-10-07:** Läsande förkontroll och därefter exakt granskad6aeeb289 återhämtning PASS:3060stoppad, inga andra aktiva/öppna DB-transaktioner,13egna sessionslås/revokering och endast egen syntetisk affärsgrafstädning. Godkända ursprungliga15fullhashar/katalog/råACL/all audit+auditeradeidentiteter och huvudkundens retainedmandatankargraf består före/efter/postcommit. Separata faktiska rapporter bevaras, förstaC01FAIL förblirFAIL. Cspec169308 format/actualbodypassthrough har fullTS/lint/syntax/list16 och oberoende källreviewPASS, färsktfullC16 nästa.83/100 består.
 
