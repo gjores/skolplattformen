@@ -1,0 +1,13 @@
+{
+  "kind": "phase5-search-apply-process-failure-history",
+  "status": "FAIL",
+  "sourceCommit": "43ab14cb88b277ce23516eee9b5345d3e8037db0",
+  "workerBuildRevision": "0913d5a0527e2975ce3059b8672b2c139bf07997",
+  "exitCode": 1,
+  "reportedMessage": "FAILED: SEARCH_APPLY_FAILED",
+  "actualAppliedJournalObserved": "20261006123000",
+  "applyReportWritten": false,
+  "localMigrationDirectoryPresent": false,
+  "nextAppliedProbeSqlStarted": false,
+  "resolution": "Controlled exact own helper/journal rollback under lock5520 with whole catalog/raw ACL/all15 original rows/full audit anchors checked; create own ignored migration directory before retry. No reconstructed apply PASS."
+}

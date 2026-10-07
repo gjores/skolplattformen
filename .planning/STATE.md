@@ -32,6 +32,10 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 
 ## Current Position
 
+**SEARCH återhämtning och färsk apply 2026-10-07:** Exakt källgranskat recoveryd8a1d2d har faktiskPASS för enbart egen helper/journalundo med full15/katalog/råACL/full-audit- och identitetsbevarande före/efter/postcommit. Ignorerad migrationskatalog skapad. Oförändrad applicerare har därefter faktisk fullrapportPASS och validateSearchAppliedPASS för endast privat06123000+journal,28entries/alla15helrader/ankare bevarade. Full applied-SQL/API/sök-/tids-/cleanupkörning pågår. Första fel och recovery är separata bevarade bevis; inget rekonstrueratapplyPASS.82/100 består.
+
+**SEARCH apply-artifactfel 2026-10-07:** Färsk fullrollback PASS271/38/23, oförändrade93/18×2 samt API15/247 och fullcleanup. Första applyprocessen committade exakt privat06123000 men avbröts efter postcommitkontroll när runtime-målets lokala migrationskatalog saknades. Ingen apply-PASS-rapport skrevs. Root startade applied för tidigt; den avslutades före SQL/fixture med ENOENT. Båda första felbevisen bevaras. Kontrollerad återställning av enbart egen helper/journal till exakt prestandabaslinje granskas med all15/katalog/råACL/full-audit-/identitetskontroll; ingen rekonstruerad apply-PASS. Egen migrationskatalog rättas före ny oförändrad apply/slutkörning.82/100 består.
+
 **Första SEARCH-SQL-prov 2026-10-07:** Fullrollback FAIL271 med sex avvikelser: äldre egen legacyram saknade verklig offering_units-koppling när provets replica-insert kringgick ordinarie trigger. Båda oförändrade93/18, alla38 kärnjämförelser, rå15helrader/katalog/ACL/ursprungsankare är bevarade; API/HTTP startades inte. Exakt första FAIL bevarad, inget apply. En explicit egen skolkoppling i endast nya SQL-fixturen rättas; förväntade antal och hela acceptansgrinden består. Färskt fullbevis krävs,82/100 oförändrat.
 
 **SEARCH-genomförande 2026-10-07:** Källintegration23cabdd/d7171de; 71 rena prov, full typkontroll och lint PASS. Separat managed runtimearbetskopia byggs på exakt granskad huvudrevision för SQL/API3060; vanlig3012:s byggfiler bevaras. Faktisk rollback/apply/applied och UI39–43 återstår. 82/100 består.
