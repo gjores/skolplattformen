@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { confirmDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
-import { parseProgramplanOfferingList, parseProgramplanWorkspace, type ProgramplanOfferingList } from '@/lib/programplan-workspace-contract.ts';
+import { parseProgramplanWorkspace, type ProgramplanWorkspace } from '@/lib/programplan-workspace-contract.ts';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { statusLabel } from '@/lib/protected-timplan.ts';
 import { gymTimplanCanEdit, parseGymTimplan, parseGymTimplanCreateReply, parseGymTimplanUnderlag, type GymTimplan, type GymTimplanCreateRequest,
@@ -16,6 +16,9 @@ import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import ProtectedGymTimplanHours from './protected-gym-timplan-hours';
 import './protected-gym-timplan.css';
+import ProtectedPlanList from './protected-plan-list';
+import { usePlanningContext } from './planning-context';
+import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
 type CreateDraft = { request: GymTimplanCreateRequest; schoolName: string; previousVersion: number | null;
   preserved: number; cleared: number; error: string | null; uncertain: boolean; stale: boolean; mfa: boolean };
@@ -26,7 +29,11 @@ const aborted = (error: unknown) => error instanceof DOMException && error.name 
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
 
 export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTarget, year, onYear, onSessionLost, onOpened, onProgramplan }: Props) {
-  const [list, setList] = useState<ProgramplanOfferingList | null>(null), [page, setPage] = useState(1);
+  const { setup: planningSetup, selection: planningSelection } = usePlanningContext();
+  const planningUnit = planningSelection?.unitId ?? null;
+  const [missing, setMissing] = useState<{ workspace: ProgramplanWorkspace; unitId: string } | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<string | null>(initialTarget?.unitId ?? planningUnit ?? null);
+  const selectedUnitRef = useRef<string | null>(selectedUnit), initialOpened = useRef(false);
   const [underlag, setUnderlag] = useState<GymTimplanUnderlag | null>(null), [plan, setPlan] = useState<GymTimplan | null>(null);
   const [creating, setCreating] = useState<CreateDraft | null>(null);
   const [showSource, setShowSource] = useState(false);
@@ -52,66 +59,82 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   const current = useCallback((token: number) => active.current && generation.current === token, []);
   const securityFailure = useCallback((caught: unknown) => {
     if (!(caught instanceof ApiError) || !(caught.status === 401 || caught.status === 403 && caught.code !== 'mfa_required')) return false;
-    invalidate(); setList(null); setUnderlag(null); setPlan(null); updateCreating(null); setShowSource(false); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
+    invalidate(); setMissing(null); setUnderlag(null); setPlan(null); updateCreating(null); setShowSource(false); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
   }, [invalidate, onSessionLost, updateCreating]);
 
-  const loadList = useCallback(async (nextPage = 1) => {
+  const loadList = useCallback(() => {
     if (!allowNavigation()) return;
-    const r = begin(); setPage(nextPage); setList(null); setUnderlag(null); setPlan(null); setError(null); setNotice(null); setBusy(true);
-    try {
-      const result = parseProgramplanOfferingList(await api.post('/api/programplaner/lista', { page: nextPage }, r.signal), nextPage);
-      if (current(r.token)) { setList(result); opened.current(null); }
-    } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Utbildningarna kunde inte hämtas. Försök igen.')); }
-    finally { if (current(r.token)) setBusy(false); }
-  }, [allowNavigation, begin, current, securityFailure]);
-  const openPlan = useCallback(async (planId: string) => {
+    invalidate(); setUnderlag(null); setPlan(null); setMissing(null); setError(null); setNotice(null); setBusy(false); opened.current(null);
+  }, [allowNavigation, invalidate]);
+  const openPlan = useCallback(async (planId: string, expected?: GymTimplanLocation, source?: PlanningSourceReference) => {
     if (!allowNavigation()) return;
-    const r = begin(); setList(null); setUnderlag(null); setPlan(null); setError(null); setNotice(null); setBusy(true);
+    initialOpened.current = true;
+    const r = begin(); setMissing(null); setUnderlag(null); setPlan(null); setError(null); setNotice(null); setBusy(true);
     try {
       const result = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId }, r.signal), planId);
-      if (current(r.token)) { setPlan(result); opened.current({ kind: 'plan', id: planId }, result.source.planId); }
+      const unitId = expected?.unitId ?? selectedUnitRef.current ?? planningUnit;
+      if (!planningSetup || planningSetup.customerId !== context.customerId || !planningSetup.units.some(u => u.unitId === result.unitId && u.canRead.gymnasium)
+        || unitId != null && result.unitId !== unitId || expected?.offeringId && result.offeringId !== expected.offeringId
+        || expected?.version !== undefined && result.version !== expected.version
+        || source && (result.source.planId !== source.planId || result.source.offeringId !== source.offeringId || result.source.version !== source.version || result.source.revision !== source.revision))
+        throw new Error('Timplanens skola, version eller frysta programunderlag avviker från årslistan. Läs om listan.');
+      if (current(r.token)) { selectedUnitRef.current = result.unitId; setSelectedUnit(result.unitId); setPlan(result); opened.current({ kind: 'plan', id: planId, unitId: result.unitId, offeringId: result.offeringId, version: result.version }, result.source.planId); }
     } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Timplanen kunde inte hämtas. Försök igen.')); }
     finally { if (current(r.token)) setBusy(false); }
-  }, [allowNavigation, begin, current, securityFailure]);
-  const loadUnderlag = useCallback(async (sourcePlanId: string, continueExisting = false) => {
+  }, [allowNavigation, begin, context.customerId, current, planningUnit, planningSetup, securityFailure]);
+  const loadUnderlag = useCallback(async (sourcePlanId: string, expected?: GymTimplanLocation, source?: PlanningSourceReference) => {
     if (!allowNavigation()) return;
-    const r = begin(); setUnderlag(null); setPlan(null); setList(null); setError(null); setNotice(null); setBusy(true);
+    initialOpened.current = true;
+    const r = begin(); setUnderlag(null); setPlan(null); setMissing(null); setError(null); setNotice(null); setBusy(true);
     try {
       const result = parseGymTimplanUnderlag(await api.post('/api/timplaner/gym/underlag', { sourcePlanId }, r.signal), sourcePlanId);
-      if (current(r.token)) {
-        const unit = result.units.length === 1 ? result.units[0] : null;
-        const existing = unit?.plans.find(p => p.status === 'utkast') ?? unit?.plans.find(p => p.status === 'faststalld');
-        if (continueExisting && existing?.sourcePlanId === sourcePlanId && existing.sourceRevision === result.source.revision) await openPlan(existing.id);
-        else { setUnderlag(result); opened.current({ kind: 'source', id: sourcePlanId }); }
-      }
+      const unitId = expected?.unitId ?? selectedUnitRef.current ?? planningUnit ?? null;
+      if (!planningSetup || planningSetup.customerId !== context.customerId || expected?.offeringId && result.source.offeringId !== expected.offeringId
+        || expected?.version !== undefined && result.source.version !== expected.version
+        || source && (result.source.planId !== source.planId || result.source.offeringId !== source.offeringId || result.source.version !== source.version || result.source.revision !== source.revision)
+        || unitId !== null && (!result.units.some(u => u.unitId === unitId) || !planningSetup.units.some(u => u.unitId === unitId && u.canRead.gymnasium)))
+        throw new Error('Programunderlaget hör inte längre till årsradens skola och version. Läs om listan.');
+      if (current(r.token)) { selectedUnitRef.current = unitId; setSelectedUnit(unitId); setUnderlag(result);
+        opened.current({ kind: 'source', id: sourcePlanId, offeringId: result.source.offeringId, version: result.source.version, ...(unitId ? { unitId } : {}) }); }
+
     } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Programplanens underlag kunde inte hämtas. Försök igen.')); }
     finally { if (current(r.token)) setBusy(false); }
-  }, [allowNavigation, begin, current, openPlan, securityFailure]);
+  }, [allowNavigation, begin, context.customerId, current, planningUnit, planningSetup, securityFailure]);
+  useEffect(() => { active.current = true; return () => { active.current = false; invalidate(); }; }, [invalidate]);
   useEffect(() => {
-    active.current = true;
+    if (initialOpened.current) return;
+    initialOpened.current = true;
     queueMicrotask(() => {
       if (!active.current) return;
-      if (initialTarget?.kind === 'source') void loadUnderlag(initialTarget.id, true);
-      else if (initialTarget?.kind === 'plan') void openPlan(initialTarget.id);
-      else void loadList();
+      if (initialTarget?.kind === 'source') void loadUnderlag(initialTarget.id, initialTarget);
+      else if (initialTarget?.kind === 'plan') void openPlan(initialTarget.id, initialTarget);
+      else loadList();
     });
-    return () => { active.current = false; invalidate(); };
-  }, [initialTarget, invalidate, loadList, loadUnderlag, openPlan]);
+  }, [initialTarget, loadList, loadUnderlag, openPlan]);
 
-  async function chooseEducation(offeringId: string) {
+  async function loadMissingEducation(offeringId: string, unitId: string, versionPage = 1) {
     if (!allowNavigation()) return;
-    const r = begin(); setBusy(true); setError(null);
+    const r = begin(); setBusy(true); setError(null); setUnderlag(null); setPlan(null); setMissing(null);
     try {
-      const request = { offeringId, versionPage: 1, catalogId: null };
+      const request = { offeringId, versionPage, catalogId: null };
       const workspace = parseProgramplanWorkspace(await api.post('/api/programplaner/underlag', request, r.signal), request);
-      if (!current(r.token)) return;
-      const source = workspace.versions.find(v => v.status === 'utkast') ?? workspace.versions.find(v => v.status === 'faststalld') ?? workspace.versions[0];
-      if (!source) { setBusy(false); setError('Utbildningen saknar programplan. Skapa och spara programramen i Programplaner först.'); return; }
-      await loadUnderlag(source.id, true);
-    } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) { setBusy(false); setError(message(caught, 'Programplanen kunde inte hämtas.')); } }
+      if (!planningSetup || planningSetup.customerId !== context.customerId || !planningSetup.units.some(u => u.unitId === unitId && u.canRead.gymnasium) || !workspace.lifecycle.units.some(u => u.id === unitId && u.inMandate))
+        throw new Error('Utbildningen hör inte längre till vald skola.');
+      if (current(r.token)) { selectedUnitRef.current = unitId; setSelectedUnit(unitId); setMissing({ workspace, unitId }); }
+    } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Programplanens versioner kunde inte läsas. Läs om årslistan.')); }
+    finally { if (current(r.token)) setBusy(false); }
+  }
+  function chooseAnnualRow(row: PlanningRow) {
+    if (!allowNavigation() || busy || hoursDirty && !confirmDiscard()) return;
+    if (!planningSetup || row.customerId !== context.customerId || row.schoolform !== 'gymnasium'
+      || !planningSetup.units.some(u => u.unitId === row.unitId && u.canRead.gymnasium)
+      || planningUnit !== null && planningUnit !== row.unitId) { setError('Årsraden hör inte till det aktuella planeringsurvalet. Läs om listan.'); return; }
+    if (row.plan) void openPlan(row.plan.id, { kind: 'plan', id: row.plan.id, unitId: row.unitId, offeringId: row.offeringId, version: row.plan.version }, row.source ?? undefined);
+    else if (row.source) void loadUnderlag(row.source.planId, { kind: 'source', id: row.source.planId, unitId: row.unitId, offeringId: row.source.offeringId, version: row.source.version }, row.source);
+    else void loadMissingEducation(row.offeringId, row.unitId);
   }
   async function prepareCreate(unit: GymTimplanUnit) {
-    if (!underlag || busy || !unit.canPlan || !underlag.readiness.ready || !allowNavigation()) return;
+    if (!underlag || busy || selectedUnit !== null && unit.unitId !== selectedUnit || !unit.canPlan || !underlag.readiness.ready || !allowNavigation()) return;
     const previous = unit.plans.find(p => ['utkast', 'forslag', 'atersand'].includes(p.status)) ?? unit.plans.find(p => p.status === 'faststalld') ?? null;
     const request: GymTimplanCreateRequest = { commandId: crypto.randomUUID(), sourcePlanId: underlag.source.planId,
       expectedSourceRevision: underlag.source.revision, expectedEducationRevision: underlag.source.educationRevision,
@@ -139,7 +162,7 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
       if (!current(r.token)) return;
       const fresh = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: reply.id }, r.signal), reply.id);
       if (!current(r.token)) return;
-      setPlan(fresh); setUnderlag(null); updateCreating(null); opened.current({ kind: 'plan', id: fresh.id }, fresh.source.planId);
+      setPlan(fresh); setUnderlag(null); updateCreating(null); selectedUnitRef.current = fresh.unitId; setSelectedUnit(fresh.unitId); opened.current({ kind: 'plan', id: fresh.id, unitId: fresh.unitId, offeringId: fresh.offeringId, version: fresh.version }, fresh.source.planId);
       setNotice(own.previousVersion ? `Version ${fresh.version} sparades. ${reply.carriedRows} oförändrade rader behöll sin tid; ${reply.resetRows} rader behöver fördelas.` : 'Timplansutkastet sparades. Fyll i skolans undervisningstid.');
     } catch (caught) {
       if (!current(r.token) || aborted(caught) || securityFailure(caught)) return;
@@ -152,38 +175,44 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   const editable = plan ? gymTimplanCanEdit(plan) : false;
 
   return <section className="gym-timplan" data-testid="protected-gym-timplan-workspace" aria-busy={busy}>
-    {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => void loadList(page))}>Välj utbildning igen</Button></div>}
+    {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => loadList())}>Välj utbildning igen</Button></div>}
     {notice && <output className="gt-notice">{notice}</output>}
-    {!plan && !underlag && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Välj programram och fortsätt med skolans undervisningstid.</p></div></div>
-      {busy ? <output>Hämtar underlag…</output> : list && <section aria-label="Välj utbildning för timplan">
-        {!list.offerings.length && <p>Inga gymnasieutbildningar finns inom ditt aktuella uppdrag.</p>}
-        <div className="gt-education-list">{list.offerings.map(education => <button key={education.id} type="button" onClick={() => void chooseEducation(education.id)} disabled={busy} aria-label={`Timplan för ${education.name}, ${education.cohort}`}><strong>{education.name}</strong><span>{education.cohort} · {education.schoolName}</span></button>)}</div>
-        {list.count > 50 && <div className="gt-toolbar"><Button disabled={page === 1 || busy} variant="outline" onClick={() => void loadList(page - 1)}>Föregående</Button><span>Sida {page} av {Math.ceil(list.count / 50)}</span><Button disabled={page * 50 >= list.count || busy} variant="outline" onClick={() => void loadList(page + 1)}>Nästa</Button></div>}
-      </section>}</>}
+    {!plan && !underlag && !missing && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Öppna årets exakta skolversion eller visa den sparade programramens underlag.</p></div></div>
+      <ProtectedPlanList disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>
+    </>}
+    {missing && <section aria-label="Välj programplanens underlag">
+      <Button variant="ghost" disabled={busy} onClick={() => leave(loadList)}><ArrowLeft size={16}/>Alla gymnasietimplaner</Button>
+      <h2>{missing.workspace.education.name}</h2><p>Årsraden saknar programplan som underlag. Välj en uttrycklig sparad programversion innan du fortsätter med skolans timplan.</p>
+      {missing.workspace.versionCount === 0 && <p>Utbildningen saknar programplan. Gå till Programplaner och skapa och spara en programram för denna utbildning först.</p>}
+      <div className="gt-toolbar">{missing.workspace.versions.map(v => <Button key={v.id} variant="outline" disabled={busy} aria-label={`Välj programunderlag, version ${v.version}, ${missing.workspace.education.name}`}
+        onClick={() => void loadUnderlag(v.id, { kind: 'source', id: v.id, offeringId: missing.workspace.education.id, version: v.version, unitId: missing.unitId })}>Programplan version {v.version} · {statusLabel[v.status]}</Button>)}</div>
+      {missing.workspace.versionCount > 50 && <div className="gt-toolbar"><Button variant="outline" disabled={busy || missing.workspace.versionPage === 1} onClick={() => void loadMissingEducation(missing.workspace.education.id, missing.unitId, missing.workspace.versionPage - 1)}>Föregående versioner</Button>
+        <span>Sida {missing.workspace.versionPage} av {Math.ceil(missing.workspace.versionCount / 50)}</span><Button variant="outline" disabled={busy || missing.workspace.versionPage * 50 >= missing.workspace.versionCount} onClick={() => void loadMissingEducation(missing.workspace.education.id, missing.unitId, missing.workspace.versionPage + 1)}>Nästa versioner</Button></div>}
+    </section>}
     {underlag && <>
-      <Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadList())}><ArrowLeft size={16}/>Alla gymnasieutbildningar</Button>
+      <Button variant="ghost" disabled={busy} onClick={() => leave(() => loadList())}><ArrowLeft size={16}/>Alla gymnasietimplaner</Button>
       <header className="gt-head"><div><h1>{underlag.source.education.name}</h1><p>{underlag.source.education.cohort} · Programplan version {underlag.source.version}, revision {underlag.source.revision} ({statusLabel[underlag.source.status].toLocaleLowerCase('sv')})</p></div>
-        <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: underlag.source.offeringId, planId: underlag.source.planId }))}><FileText size={16}/>Öppna programplan</Button></header>
+        <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: underlag.source.offeringId, planId: underlag.source.planId, version: underlag.source.version, ...(selectedUnit ? { unitId: selectedUnit } : {}) }))}><FileText size={16}/>Öppna programplan</Button></header>
       <p className="gt-explanation">Programplanens poäng och terminer är underlag. Varje skola fördelar sin undervisningstid i ett eget timplansutkast. Ett programutkast blir inte fastställt av detta.</p>
       {!underlag.readiness.ready && <output className="gt-source-missing"><strong>Programramen behöver kompletteras före timplaneringen.</strong><ul>{underlag.readiness.missing.map((reason, i) => <li key={i}>{reason}</li>)}</ul></output>}
-      <section className="gt-schools" aria-label="Välj skola"><h2>Skolans timplan</h2><div className="gt-school-grid">{underlag.units.map(unit => {
+      <section className="gt-schools" aria-label="Välj skola"><h2>Skolans timplan</h2><div className="gt-school-grid">{underlag.units.filter(unit => selectedUnit === null || unit.unitId === selectedUnit).map(unit => {
         const open = unit.plans.find(p => ['utkast', 'forslag', 'atersand'].includes(p.status));
         const currentPlan = open ?? unit.plans.find(p => p.status === 'faststalld');
         const sourceMatches = !!currentPlan && currentPlan.sourcePlanId === underlag.source.planId && currentPlan.sourceRevision === underlag.source.revision;
         return <article className="gt-school" key={unit.unitId}><h3>{unit.schoolName}</h3>
           {currentPlan ? <p>{statusLabel[currentPlan.status]} · Version {currentPlan.version}{currentPlan.sourceVersion !== null ? ` · Programplan v${currentPlan.sourceVersion}` : ' · Äldre underlag'}</p> : <p>Ingen timplan skapad.</p>}
-          {currentPlan?.sourcePlanId && <Button variant="outline" disabled={busy} aria-label={`Öppna timplan, version ${currentPlan.version}, ${unit.schoolName}`} onClick={() => void openPlan(currentPlan.id)}>Öppna timplan</Button>}
+          {currentPlan?.sourcePlanId && <Button variant="outline" disabled={busy} aria-label={`Öppna timplan, version ${currentPlan.version}, ${unit.schoolName}`} onClick={() => void openPlan(currentPlan.id, { kind: 'plan', id: currentPlan.id, unitId: unit.unitId, offeringId: underlag.source.offeringId, version: currentPlan.version })}>Öppna timplan</Button>}
           {currentPlan && !currentPlan.sourcePlanId && <p className="gt-muted">Den äldre versionens timmar bevaras. Ett nytt utkast börjar utan kopierad tid.</p>}
           {unit.canPlan && underlag.readiness.ready && (!open || !sourceMatches) && <Button disabled={busy || !!open && open.status !== 'utkast'} aria-label={`${currentPlan ? 'Nytt' : 'Skapa'} timplansutkast för ${unit.schoolName}`} onClick={() => void prepareCreate(unit)}>{currentPlan ? 'Nytt timplansutkast' : 'Skapa timplansutkast'}</Button>}
           {!unit.canPlan && !currentPlan && <p className="gt-muted">Rektor eller skoladministratör förbereder skolans timplan.</p>}
-          {unit.plans.filter(p => p.sourcePlanId && p.id !== currentPlan?.id).length > 0 && <details><summary>Tidigare versioner</summary>{unit.plans.filter(p => p.sourcePlanId && p.id !== currentPlan?.id).map(p => <button type="button" key={p.id} disabled={busy} onClick={() => void openPlan(p.id)} aria-label={`Öppna timplan, version ${p.version}, ${unit.schoolName}`}>Version {p.version} · {statusLabel[p.status]}</button>)}</details>}
+          {unit.plans.filter(p => p.sourcePlanId && p.id !== currentPlan?.id).length > 0 && <details><summary>Tidigare versioner</summary>{unit.plans.filter(p => p.sourcePlanId && p.id !== currentPlan?.id).map(p => <button type="button" key={p.id} disabled={busy} onClick={() => void openPlan(p.id, { kind: 'plan', id: p.id, unitId: unit.unitId, offeringId: underlag.source.offeringId, version: p.version })} aria-label={`Öppna timplan, version ${p.version}, ${unit.schoolName}`}>Version {p.version} · {statusLabel[p.status]}</button>)}</details>}
         </article>;
       })}</div></section>
     </>}
     {plan && <>
-      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource?.planId ?? plan.source.planId))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button></div>
+      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.source.planId, { kind: 'source', id: plan.source.planId, offeringId: plan.offeringId, unitId: plan.unitId, version: plan.source.version }))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button></div>
       <header className="gt-head"><div><h1>{plan.source.education.name}</h1><p>{plan.schoolName} · {plan.source.education.cohort}</p><span className="gt-state">{statusLabel[plan.status]} · Timplan version {plan.version}</span></div>
-        <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: plan.offeringId, planId: plan.source.planId }))}><FileText size={16}/>Öppna programplan</Button></header>
+        <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: plan.offeringId, planId: plan.source.planId, version: plan.source.version, unitId: plan.unitId }))}><FileText size={16}/>Öppna programplan</Button></header>
       <div className="gt-source-line"><button type="button" onClick={() => setShowSource(true)}><FileText size={15}/>Underlag: Programplan v{plan.source.version}, revision {plan.source.revision} ({statusLabel[plan.source.status].toLocaleLowerCase('sv')})</button><span>{editable ? 'Fyll i timmar direkt i terminscellerna' : plan.archived ? 'Utbildningen är arkiverad' : 'Läsvy'}</span></div>
       {plan.sourceChanged && <p className="gt-changed">Programplanen har ändrats. Den sparade tidsfördelningen använder fortfarande underlaget ovan. {plan.currentSource && <Button variant="link" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource!.planId))}>Välj nytt underlag</Button>}</p>}
       <ProtectedGymTimplanHours key={plan.id} plan={plan} year={year} onYear={onYear} unsavedId={`${unsavedId}-hours`}

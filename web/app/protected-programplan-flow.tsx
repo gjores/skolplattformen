@@ -17,7 +17,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import { nextDay } from './protected-programplan-lifecycle';
 import { startsAfter, stockholmToday } from '@/lib/programplan-lifecycle.ts';
 
-type Props = { onOpen: (id: string, catalogId: string | null, planId?: string) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new' };
+type Props = { onOpen: (id: string, catalogId: string | null, planId?: string, unitId?: string) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new' };
 const empty: ProgramplanSelectionRequest = { unitId: null, catalogId: null, programRef: null };
 export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope, initialMode = 'existing' }: Props) {
   const [data,setData]=useState<ProgramplanSelection|null>(null), [offerings,setOfferings]=useState<ProgramplanOfferingRow[]>([]);
@@ -90,7 +90,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
     const created=parseProgramplanEducationCreated(value,commandValue);
     setUnresolved(true);
     if(terms.length){try{const reply=parseProgramplanTermReply(await api.post('/api/programplaner/terminer',{planId:created.plan.id,expectedRevision:created.plan.revision,distribution:terms}));if(reply.planId!==created.plan.id)throw new Error('Fel plan.');}catch(e){if(onSecurityFailure(e))return;}}
-    await onOpen(created.education.id,created.plan.catalogId,created.plan.id);
+    await onOpen(created.education.id,created.plan.catalogId,created.plan.id,commandValue.unitId);
     if(mounted.current)setUnresolved(false);
   }
   async function resolveCommand(own:ProgramplanEducationCreateRequest,token:number,signal:AbortSignal){
@@ -130,7 +130,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
       {!data.selection.catalogId&&sourcePanel}
       <div className="pp-flow-selection"><div className="pp-field"><label htmlFor="pp-flow-program">1. Program</label><select id="pp-flow-program" value={programValue} disabled={locked||!unitId||mode==='new'&&!data.selection.catalogId} onChange={e=>changeProgram(e.target.value)}><option value="">Välj program</option>{data.programs.map(p=><option key={`${p.programRef.code}:${p.programRef.version}`} value={`${p.programRef.code}:${p.programRef.version}`}>{p.name} · version {p.programRef.version}</option>)}{mode==='existing'&&legacyCodes.map(code=><option key={code} value={code}>{code} · befintlig utbildning</option>)}</select></div>
       {programCode&&<div className="pp-field"><label htmlFor="pp-flow-orientation">2. Inriktning</label>{selectedProgram&&orientationRows.length===0&&!(mode==='existing'&&olderOrientations.some(code=>code!==null))?<p>Programmet har ingen inriktning.</p>:<select id="pp-flow-orientation" value={orientationChosen?orientation??'__none__':''} disabled={locked} onChange={e=>changeOrientation(e.target.value==='__none__'?'':e.target.value)}><option value="">Välj inriktning</option>{selectedProgram&&orientationRows.length===0&&<option value="__none__">Ingen inriktning</option>}{orientationRows.map(o=><option key={o.code} value={o.code}>{o.name}</option>)}{mode==='existing'&&olderOrientations.filter(code=>code!==null||!selectedProgram||orientationRows.length>0).map(code=><option key={code??'__none__'} value={code??'__none__'}>{code??'Ingen inriktning angiven'} · äldre uppgift</option>)}</select>}</div>}</div>
-      {programCode&&orientationChosen&&mode==='existing'&&<section aria-label="Välj utbildning och elevkull"><h2>Välj utbildning och elevkull</h2>{matches.length===0?<p>Skolan har ingen utbildning med det här programmet och den här inriktningen.</p>:<div className="pp-choices">{matches.map(o=><button key={o.id} className="pp-choice" disabled={locked} aria-label={`Öppna utbildning ${o.name}, ${o.cohort}, ${o.schoolName}`} onClick={()=>void onOpen(o.id,null)}><strong>{o.name}</strong><span>{o.schoolName} · {o.cohort}</span><span>{o.latestVersion?`Senaste version ${o.latestVersion}`:'Ingen programplan ännu'}</span></button>)}</div>}</section>}
+      {programCode&&orientationChosen&&mode==='existing'&&<section aria-label="Välj utbildning och elevkull"><h2>Välj utbildning och elevkull</h2>{matches.length===0?<p>Skolan har ingen utbildning med det här programmet och den här inriktningen.</p>:<div className="pp-choices">{matches.map(o=><button key={o.id} className="pp-choice" disabled={locked} aria-label={`Öppna utbildning ${o.name}, ${o.cohort}, ${o.schoolName}`} onClick={()=>void onOpen(o.id,null,undefined,unitId??undefined)}><strong>{o.name}</strong><span>{o.schoolName} · {o.cohort}</span><span>{o.latestVersion?`Senaste version ${o.latestVersion}`:'Ingen programplan ännu'}</span></button>)}</div>}</section>}
       {mode==='new'&&program&&orientationChosen&&<section className="pp-new-education" aria-label="Ny utbildning och programfördjupning">
         <h2>Ny utbildning</h2><p>{program.name}{orientation&&` · ${program.orientations.find(o=>o.code===orientation)?.name}`} · {schoolName}</p>
         {mfa&&<MfaStepUpNotice message={error??'Verifiering med engångskod krävs.'} detail="Dina uppgifter finns kvar tills du lämnar sidan."/>}
