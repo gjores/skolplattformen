@@ -224,3 +224,123 @@ test('ambiguous overview markers cannot open a supplied plan and exact permitted
   const foreign=normalizePlanLocation({...target,gym:{...target.gym,unitId:'55004000-0000-4000-8000-000000000099'}},setup());
   assert.equal(foreign.location.gym,null);assert.equal(foreign.selection.unitId,id);assert.ok(foreign.normalizationNotice);
 });
+
+
+// 05-42: URL fields request an exact GR/IM target. They establish neither a mandate
+// nor historical column/index provenance; the actual workspace must re-read both.
+const foreignOtherUnit = '55004000-0000-4000-8000-000000000099';
+const otherTarget = (kind = 'grundskola', unitId = other) => ({ view: 'timplaner', gym: null,
+  other: { kind, id, unitId, offeringId: id, version: 3, ...(kind === 'grundskola' ? { columnId: 'ak8' } : {}) } });
+test('GR and IM school-bound requested targets round trip without inventing annual provenance', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = otherTarget(kind);
+    const query = planLocationQuery(target);
+    assert.equal(new URLSearchParams(query).get('timplansskola'), other);
+    assert.deepEqual(readPlanLocation(query), target);
+    const parsed = readPlanLocationResult(query + '&lasar=2020&skola=foreign&klass=private');
+    assert.equal(parsed.normalizationNotice, null); assert.deepEqual(parsed.location, target);
+    assert.equal(Object.hasOwn(parsed.location.other, 'binding'), false);
+    assert.equal(Object.hasOwn(parsed.location.other, 'columnMap'), false);
+  }
+  const old = { view: 'timplaner', gym: null, other: { kind: 'grundskola', id, columnId: null, version: 2 } };
+  assert.deepEqual(readPlanLocation(planLocationQuery(old)), old);
+  assert.equal(new URLSearchParams(planLocationQuery(old)).has('timplansskola'), false);
+});
+test('other target UUID school rejects invalid/duplicate values exactly like the GY reference', () => {
+  const prefix = `?vy=timplaner&ovrigtimplan=${id}&timplansform=grundskola&timplanskolumn=ak8&timplansversion=3`;
+  for (const value of ['bad', '', 'all', 'javascript:alert(1)', '55004000-0000-6000-8000-000000000002',
+    `${id}&timplansskola=${other}`, `${other}&timplansskola=${other}`]) {
+    const parsed = readPlanLocationResult(prefix + '&timplansskola=' + value);
+    assert.ok(parsed.normalizationNotice);
+    assert.deepEqual(parsed.location, { view: 'timplaner', gym: null, other: { kind: 'grundskola', id, columnId: 'ak8', version: 3 } });
+  }
+  const upper = '55004000-0000-4000-8000-000000000ABC';
+  assert.equal(readPlanLocation(prefix + '&timplansskola=' + upper).other.unitId, upper);
+  const orphan = readPlanLocationResult('?vy=timplaner&timplansskola=' + other);
+  assert.ok(orphan.normalizationNotice); assert.deepEqual(orphan.location, { view: 'timplaner', gym: null });
+});
+test('permitted exact GR/IM target school is chosen only from actual readable setup', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = otherTarget(kind), normalized = normalizePlanLocation(readPlanLocation(planLocationQuery(target)), setup());
+    assert.equal(normalized.selection.schoolform, kind); assert.equal(normalized.selection.unitId, other);
+    assert.deepEqual(normalized.location.other, target.other); assert.equal(normalized.normalizationNotice, null);
+    const future = { ...target, planning: { schoolYear: 2028, unitId: other, schoolform: kind } };
+    assert.deepEqual(normalizePlanLocation(future, setup()).location.other, target.other);
+  }
+});
+test('foreign and cross-unit GR/IM target references clear independently of readable collection scope', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = otherTarget(kind);
+    const foreign = normalizePlanLocation({ ...target, other: { ...target.other, unitId: foreignOtherUnit } }, setup());
+    assert.ok(foreign.normalizationNotice); assert.equal(foreign.location.other, undefined); assert.equal(foreign.selection.unitId, id);
+    const mismatch = normalizePlanLocation({ ...target, planning: { unitId: id, schoolform: kind, page: 2, selectionRevision: rev } }, setup());
+    assert.ok(mismatch.normalizationNotice); assert.equal(mismatch.location.other, undefined); assert.equal(mismatch.location.gym, null);
+    assert.equal(mismatch.selection.unitId, id); assert.equal(mismatch.selection.page, 1); assert.equal(mismatch.selection.selectionRevision, null);
+    const fresh = setup(); fresh.units = [fresh.units[0]];
+    const removed = normalizePlanLocation(target, fresh);
+    assert.ok(removed.normalizationNotice); assert.equal(removed.location.other, undefined); assert.equal(removed.selection.unitId, id);
+  }
+});
+test('GR/IM permission and form fallback close school-bound targets without replacing their version', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = otherTarget(kind), revoked = setup(); revoked.units[1].canRead[kind] = false;
+    const exact = normalizePlanLocation(target, revoked);
+    assert.equal(exact.selection.schoolform, kind); assert.equal(exact.selection.unitId, id); assert.equal(exact.location.other, undefined); assert.ok(exact.normalizationNotice);
+    const unavailable = setup(); unavailable.units.forEach(unit => { unit.canRead[kind] = false; });
+    const fallback = normalizePlanLocation({ ...target, planning: { unitId: other, schoolform: kind, grade: 8, page: 2, selectionRevision: rev } }, unavailable);
+    assert.equal(fallback.selection.schoolform, 'gymnasium'); assert.equal(fallback.location.other, undefined); assert.equal(fallback.location.gym, null);
+    assert.equal(fallback.selection.grade, null); assert.equal(fallback.selection.page, 1); assert.equal(fallback.selection.selectionRevision, null);
+    assert.ok(fallback.normalizationNotice);
+  }
+});
+test('explicit all-scope preserves a permitted other target but cannot authorize a foreign target school', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = { ...otherTarget(kind), planning: { schoolYear: 2027, unitId: null, schoolform: kind } };
+    const all = normalizePlanLocation(target, setup());
+    assert.equal(all.selection.unitId, null); assert.deepEqual(all.location.other, target.other);
+    const foreign = normalizePlanLocation({ ...target, other: { ...target.other, unitId: foreignOtherUnit } }, setup());
+    assert.equal(foreign.selection.unitId, null); assert.equal(foreign.location.other, undefined); assert.ok(foreign.normalizationNotice);
+    const schoolChange = planningLocationChange(all.location, { unitId: id }, setup());
+    assert.equal(schoolChange.selection.unitId, id); assert.equal(schoolChange.location.other, undefined);
+  }
+});
+test('other year change preserves requested plan/school identity and clears only obsolete annual hints', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = { ...otherTarget(kind), planning: { schoolYear: 2027, unitId: other, schoolform: kind, query: 'behåll', sort: 'hours', page: 2, selectionRevision: rev }, relativeYear: 2, allYears: true };
+    const next = planningLocationChange(target, { schoolYear: 2028 }, setup());
+    const reference = { ...target.other }; delete reference.columnId;
+    assert.deepEqual(next.location.other, reference); assert.equal(next.selection.schoolYear, 2028); assert.equal(next.selection.unitId, other);
+    assert.equal(next.selection.query, 'behåll'); assert.equal(next.selection.sort, 'hours'); assert.equal(next.selection.page, 1); assert.equal(next.selection.selectionRevision, null);
+    assert.equal(next.location.relativeYear, undefined); assert.equal(next.location.allYears, undefined);
+    assert.deepEqual(normalizePlanLocation(readPlanLocation(planLocationQuery(next.location)), setup()).location, next.location);
+    const same = planningLocationChange(target, { schoolYear: 2027 }, setup());
+    assert.deepEqual(same.location.other, target.other);
+  }
+});
+test('other school/form changes clear all prior target hints while keeping collection filters', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = { ...otherTarget(kind), planning: { schoolYear: 2027, unitId: other, schoolform: kind, query: 'behåll', page: 2, selectionRevision: rev } };
+    for (const patch of [{ unitId: id }, { unitId: null }, { schoolform: kind === 'grundskola' ? 'introduktionsprogram' : 'grundskola' }]) {
+      const next = planningLocationChange(target, patch, setup());
+      assert.equal(next.location.other, undefined); assert.equal(next.location.gym, null); assert.equal(next.selection.query, 'behåll');
+      assert.equal(next.selection.page, 1); assert.equal(next.selection.selectionRevision, null);
+      assert.equal(new URLSearchParams(planLocationQuery(next.location)).has('timplansskola'), false);
+    }
+  }
+});
+test('overview clears GR/IM unit and plan references in parser serializer and normalization', () => {
+  for (const kind of ['grundskola', 'introduktionsprogram']) {
+    const target = { ...otherTarget(kind), planning: { schoolYear: 2028, unitId: other, schoolform: kind, query: 'överblick' } };
+    const parsed = readPlanLocationResult(planLocationQuery(target) + '&planeringsoversikt=1');
+    assert.ok(parsed.normalizationNotice); assert.equal(parsed.location.overview, true); assert.equal(parsed.location.other, undefined);
+    const overview = { ...target, overview: true, relativeYear: 2, allYears: true };
+    const params = new URLSearchParams(planLocationQuery(overview));
+    for (const key of ['ovrigtimplan', 'timplansform', 'timplansskola', 'timplanskolumn', 'timplansutbildning', 'timplansversion', 'planeringsrelativar', 'planeringsallaar']) assert.equal(params.has(key), false);
+    const normalized = normalizePlanLocation(overview, setup()); assert.equal(normalized.location.overview, true); assert.equal(normalized.location.other, undefined);
+    assert.equal(normalized.selection.unitId, other); assert.equal(normalized.selection.schoolYear, 2028); assert.equal(normalized.selection.query, 'överblick');
+    for (const invalid of ['true', '1&planeringsoversikt=0']) {
+      const result = readPlanLocationResult(planLocationQuery(target) + '&planeringsoversikt=' + invalid);
+      assert.ok(result.normalizationNotice); assert.equal(result.location.other, undefined);
+    }
+  }
+});
