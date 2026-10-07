@@ -1,0 +1,934 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-planning-year.config.ts",
+      "e2e/phase5-planning-year-gym.spec.ts",
+      "--max-failures=1",
+      "--workers=1",
+      "--retries=0",
+      "--output=/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-actual-first-20261008"
+    ],
+    "configFile": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/playwright.phase5-planning-year.config.ts",
+    "rootDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-actual-first-20261008",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "planning-year-desktop",
+        "name": "planning-year-desktop",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-actual-first-20261008",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "planning-year-phone",
+        "name": "planning-year-phone",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-planning-year.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-planning-year-gym.spec.ts",
+      "file": "phase5-planning-year-gym.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "G01: tre verkliga kullar öppnar åk1/2/3 i både program och timplan",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 14892,
+                  "error": {
+                    "message": "Error: OWNED_NODE_COMPLETION_UNKNOWN",
+                    "stack": "Error: OWNED_NODE_COMPLETION_UNKNOWN\n    at ownedNode (/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts:45:65)\n    at /Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts:235:15",
+                    "location": {
+                      "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts",
+                      "column": 65,
+                      "line": 45
+                    },
+                    "snippet": "  43 |   nodePending++;\n  44 |   try { return await operation(); }\n> 45 |   catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }\n     |                                                                 ^\n  46 |   finally { nodePending--; }\n  47 | }\n  48 |"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts",
+                        "column": 65,
+                        "line": 45
+                      },
+                      "message": "Error: OWNED_NODE_COMPLETION_UNKNOWN\n\n  43 |   nodePending++;\n  44 |   try { return await operation(); }\n> 45 |   catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }\n     |                                                                 ^\n  46 |   finally { nodePending--; }\n  47 | }\n  48 |\n    at ownedNode (/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts:45:65)\n    at /Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts:235:15"
+                    },
+                    {
+                      "location": {
+                        "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts",
+                        "column": 11,
+                        "line": 266
+                      },
+                      "message": "Error: OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture\n\n  264 |      ownedCustomerId:fixture?.customerId??null,ownedOrganizerId:fixture?.organizerId??null,foreignCustomerId:fixture?.foreignCustomerId??null,\n  265 |      originalBusiness:fixture?.originalBusiness??null,fixtureExposed:!!fixture}),contentType:'application/json'});\n> 266 |     throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');\n      |           ^\n  267 |    }\n  268 |   };\n  269 |   await requireCompletion();\n    at requireCompletion (/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts:266:11)\n    at /Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts:269:3"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T22:21:08.411Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build-dependencies.json",
+                      "contentType": "application/json",
+                      "body": "eyJwcm9vZiI6eyJzb3VyY2VSZXZpc2lvbiI6ImZiODRkMjk1OTRkMGRkYjY1Mjg2ZDI2ZWMzOWU1Y2EzOGFjYjEzZjYiLCJidWlsZFJldmlzaW9uIjoiZmI4NGQyOTU5NGQwZGRiNjUyODZkMjZlYzM5ZTVjYTM4YWNiMTNmNiIsInNjb3BlIjoibG9jYWwtc3ludGhldGljLW9ubHkiLCJwcm90ZWN0ZWRTb3VyY2VzIjpbIndlYi9saWIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL2d5bS10aW1wbGFuLnRlc3QubWpzIiwid2ViL2xpYi9zZXJ2ZXIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL3NlcnZlci9neW0tdGltcGxhbi50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3RpbXBsYW5lci9neW0iLCJ3ZWIvYXBwL3Byb3RlY3RlZC1neW0tdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4taG91cnMudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4uY3NzIiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi5jc3MiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1ob21lLnRzeCIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLXdvcmtzcGFjZS50c3giLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi1ib2FyZC50c3giLCJ3ZWIvbGliL3Byb3RlY3RlZC1wbGFuLWxvY2F0aW9uLnRzIiwid2ViL2xpYi9wcm90ZWN0ZWQtcGxhbi1sb2NhdGlvbi50ZXN0Lm1qcyIsIndlYi9saWIvc2VydmVyL2h0dHAudHMiLCJ3ZWIvbGliL3NlcnZlci1jbGllbnQudHMiLCJ3ZWIvbGliL3Vuc2F2ZWQtY2hhbmdlcy50c3giLCJ3ZWIvY29tcG9uZW50cy91aS9kaWFsb2cudHN4Iiwid2ViL2xpYi9tYW5kYXRlLXBvbGljeS50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Nlc3Npb24tY2hhbm5lbC50cyIsInN1cGFiYXNlL21pZ3JhdGlvbnMvMjAyNjEwMDUxMTAwMDBfcGhhc2U1X2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvbWlncmF0aW9ucy8yMDI2MTAwNTExMTAwMF9waGFzZTVfd29ya2VyX2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvdGVzdHMvcGhhc2U1X3Byb2dyYW1fdGltcGxhbl90cmFuc2l0aW9uLnRlc3Quc3FsIiwid29yay9waWxvdC9waGFzZTUtZ3ltLXRpbXBsYW4tZml4dHVyZXMubWpzIiwid2ViL2UyZS9waGFzZTUtZ3ltLXRpbXBsYW4uc3BlYy50cyIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1neW0tdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvZTJlL3BoYXNlNS10aW1wbGFuLnNwZWMudHMiLCJ3ZWIvcGxheXdyaWdodC5waGFzZTUtdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItY29udHJhY3QudHMiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItbW9kZWwudHMiLCJ3ZWIvbGliL3NlcnZlci9wbGFubmluZy15ZWFyLnRzIiwid2ViL2xpYi9zZXJ2ZXIvcGxhbm5pbmcteWVhci50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3BsYW5lcmluZyIsIndlYi9saWIvc2VydmVyL2F1dGh6LnRzIiwid2ViL2xpYi9zZXJ2ZXIvaHR0cC50cyIsIndlYi9saWIvc2VydmVyL21hbmRhdGUtcm91dGUudHMiLCJ3ZWIvbGliL3NlcnZlci9kYi50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Byb2dyYW1wbGFuLWNhdGFsb2cudHMiLCJ3ZWIvbGliL3Byb2dyYW1wbGFuLWNhdGFsb2cuZ2VuZXJhdGVkLmpzb24iLCJzdXBhYmFzZS9taWdyYXRpb25zLzIwMjYxMDA2MTIwMDAwX3BoYXNlNV9wbGFubmluZ195ZWFyX3JlYWRzLnNxbCIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItZml4dHVyZXMubWpzIiwid29yay9waWxvdC92ZXJpZnktcGxhbm5pbmcteWVhci1hcGkubWpzIiwid29yay9waWxvdC92ZXJpZnktcGxhbm5pbmcteWVhci1hcGkudGVzdC5tanMiXSwiYWN0dWFsV29ya2VyIjp0cnVlLCJyZXZpc2lvbiI6ImZiODRkMjk1OTRkMGRkYjY1Mjg2ZDI2ZWMzOWU1Y2EzOGFjYjEzZjYiLCJwYXJzZXJTb3VyY2VIYXNoZXMiOnsid2ViL2xpYi9wbGFubmluZy15ZWFyLWNvbnRyYWN0LnRzIjoiZWNiNzBjM2FkZGQ0YjUzNTYxYjc2NTExZjE2ZDg5NTRhZDY1NzI1ZmEyMTg2ZDQ3M2I4ZThlODAwNDYxNmQ2ZSIsIndlYi9saWIvcGxhbm5pbmcteWVhci1jb250cmFjdC50ZXN0Lm1qcyI6IjRjNDRmZDBiZjgzZjVmYmZkNDQ4MTJiZGIzYTM0MGZhMmU4MmMzNWZhYjBkYWFjMTgzNmFjZmUxMWZmNGFhOTUifX0sImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJzb3VyY2VIYXNoZXMiOnsid2ViL2FwcC9wcm90ZWN0ZWQtaG9tZS50c3giOiI0ZTZkZTk5OGJkNDkxODA4YjhhNGQ0NDU0NzRhZjE2MmZiY2RjODJkOTc4Y2NhOGMwYWVmMGYyNjgzNTBhZmEyIiwid2ViL2FwcC9wbGFubmluZy1jb250ZXh0LnRzeCI6IjQ1MzE0NDRlMzYwYjMwZGI3Y2UxNjZiZThmNzIwMTg2OWRhYjc1ZmM5YWQxZjNiMzU0ZjQzNWY2ZmQ0M2MwOWUiLCJ3ZWIvYXBwL3BsYW5uaW5nLWNvbnRleHQuY3NzIjoiYzBiZmEwYTY1Y2VmNGQ1Y2NhN2RlY2FmNWU2Mjg5MTYyNjE1YjJmMzA5YWE4ZjQxNTk5ZDViYzdiNTExMzY1OSIsIndlYi9saWIvcHJvdGVjdGVkLXBsYW4tbG9jYXRpb24udHMiOiJiZjBjZjY4MGU0MDk4MzMxNmJkMjRhYTQzNWRiZTc4MTVlMGQ5YWQ1ZTBmZjQxYzc1MjhmMmE5ODk1NjA0MmNiIiwid2ViL2xpYi9wbGFubmluZy15ZWFyLW1vZGVsLnRzIjoiNDg4ODE4N2U5YjI5NjczNzY0NjUxNTI5NmRmZmQ4ZmVkOGU3OGFmZGNmMDM1NTcxNGE4YmJiZTdkZmMyNjNmOSIsIndlYi9hcHAvY29udGV4dC1zd2l0Y2gudHN4IjoiNDQ2ZGE4ZDMxNmJhOWY0N2RjNWU4MmMzOWJhYjM1YTc3NTc1MDM2MmQ5OGRkZjZmMjg1N2U4YmIxYjg5MDIxZiIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLWZsb3cudHN4IjoiZjkxOWFhYzU0OTZlZDY1ZTEzNmM5NTY4YjNkNzJmMGQ3MjA1ODIyNjY5MTRlNDI4YWNlOTg2Mjc0MjEwMzRjNiIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLWxpZmVjeWNsZS50c3giOiI3YTgxOGJjMGNiYzg4NDQ1MjMwMmZkMGU0ZGQ5MGUzYzY1ZGFhZTM1ZDU1Mzk2ZDZkYzUxMmYzMGQxNjY2N2ZjIiwid2ViL2FwcC9wcm90ZWN0ZWQtcGxhbi1saXN0LnRzeCI6IjIyOWE1ZDAzMzc1OThlODA4NDU4M2ZiNTViOWY5NDg5MGM4MzFjMmY3NmEyNTg2MDZlYjFmZTFkMGJlZDBmNjUiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wbGFuLWxpc3QuY3NzIjoiNTVmMTJkZTYyYWExNjU4YWNjZjRhZWY0MzBkNmYxYjU1NWNiNjM1ZTdiMGMwMzg0ZDUxOTVhYjAyM2EyYTYyYSIsIndlYi9hcHAvcHJvdGVjdGVkLXBsYW5uaW5nLW92ZXJ2aWV3LnRzeCI6IjA1NTFlMTQ0NmE5ZTJlMDk2ZmNiNjY1ZDhlYWI5NDA4NjFiM2M2MzE3ODJhYjBlZDU3YzcxNTIxMjdkOTk4ZjYiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi1saXN0LnRzeCI6ImFmOTI0MmYzNTRjYmUyNGFjN2ZlMWQ1Yjk2ZGFiY2M4M2M0OGNmMmNmZTllY2ViZDUwZmMyZDkzY2MxNTQ3MDIiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi13b3Jrc3BhY2UudHN4IjoiYTUyOWYxNTFmMTcxYTQ1ZmJiMmE0ODZkNzA4NjVjM2VkOTg5ZjIyOTc0NGFkYTg1NDQxNGMxNzgyM2RlZTQ1NyIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLWJvYXJkLnRzeCI6IjZiZGZlOGM2Yjk5ZTcxYTllNDZlMGY5OTVjNDNjYTZlMmZhN2E4ZDgzODBjMmZmNzQ0NzczNDUxMTgzOGEzZjUiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi5jc3MiOiIxMWZlY2FmMTAwNDhkNDFmNjUyMWNmZDc4OWM0MDY1YjlmNDg3YTI4YWQzN2VlMzdhMzIxMDg4OThmNjI4MDg1Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4td29ya3NwYWNlLnRzeCI6ImE4ZTAxODliY2JjNTMyODE2OGM5NzZkMTMzNDI0YzkxZDFmOGM3MGRjMDViMmU2MjU3NmE0M2M1MTU1OWM2MWYiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1neW0tdGltcGxhbi1ob3Vycy50c3giOiIyMDJjODljNTczMzg5NDVkODFiMzA5OGUyMzhmYmEwZDdmMzhhOTdmNGU0ZGU2YWZkNDFjNmNmY2NhNmI3ZWNjIiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4uY3NzIjoiOTI3ZDQzMDRmZTQ1ODViZjJkNjRiN2I3ODEyMWY2ZjgwOTQ3NWE5Mzk4ODEzMmU2YjgyMDYwMTViOTE4NTQwOCIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItZ3ltLWZpeHR1cmVzLm1qcyI6IjlmZjg5M2FkMmRjMGYwMzgzOWVhYmMwNmY3NTFjMzI2ZGI0NTY5NmMyM2MxYjg3ZmMyNzBlYWI4ZTU1NjcyOTciLCJ3ZWIvZTJlL3BoYXNlNS1wbGFubmluZy15ZWFyLWd5bS5zcGVjLnRzIjoiYTc1MzkzNmJkMjdlYzZlNDVhMWI1MzhlYzMxMWUzZjg4ODIzYjJhOGE1OWQ1NWQ4NzUyZTI2M2MzMTRlZDBhMyIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItbGlzdC1maXh0dXJlcy5tanMiOiJjZDQ4MjNmNTkzYzZlY2MyMzQ3ZDYzYTM1ZDlmODU4ZTNkOWY1N2Y0NTE0NzJjYjMyNjMxNmIyNDQxZWZkNzZmIiwid2ViL2UyZS9waGFzZTUtcGxhbm5pbmcteWVhci1saXN0cy5zcGVjLnRzIjoiNjIwZTQwYmUxNTNlZDQxYmM4M2Y5NTQ0YzAzM2M0YTY5NDZhMGZlN2U3OWI3M2QzMzM3NWYxYWVjZmUwYjViYyIsIndlYi9lMmUvcGhhc2U1LXBsYW5uaW5nLXllYXItY29udGV4dC5zcGVjLnRzIjoiNzNjMjQ4MGFkMjY2NDAxOTNkYzNkMWViMWU1OWU2OGE4OThjODRkNmM5MmVkY2EyM2M1NDkxYWZlMmQ5ODdlMSIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1wbGFubmluZy15ZWFyLmNvbmZpZy50cyI6IjNhZjdhZWIxM2FlMmUzZmIwMzcyYjZhYjBhZDQyMzY0MDIyYmE1YzkxZGNhMjZhYjM4ZTZlOTJlNmY3YjZkNTIifSwiZXh0ZXJuYWxBY3R1YWxQcmVyZXF1aXNpdGVzIjp7ImNvbnRleHRDYXNlcyI6IkMwMeKAk0MwOMOXMiIsImxpc3RDYXNlcyI6IkwwMeKAk0wxOMOXMiIsInZhbGlkYXRlZEJ5Ijoicm9vdCBhY3R1YWwgcmVsZWFzZSBwaXBlbGluZTsgbm8gaW50ZW5kZWQtY2FzZSBQQVNTIn0sImRlcGVuZGVuY3lSZXBvcnRzIjp7InBlcmZvcm1hbmNlIjoiZjBiNDk1NzM0NTc2M2VlMGQzN2QzZjk3MDU0MzRiYmM0Y2ExMGEyYTZiYzhiMDlhMTM0ZDRmZTEyNjFlOTM4YyIsInNlYXJjaCI6ImNjMTkxODNkNWQ5OTZiYjAxN2E1NTkwMDk5MDI1ZDA0YjBkNWNmZGM2YTExOTAxZmViNTdkNzQxMGNkNzA4YzgifX0="
+                    },
+                    {
+                      "name": "cleanup-deferred.json",
+                      "contentType": "application/json",
+                      "body": "eyJjbGVhbnVwRGVmZXJyZWQiOnRydWUsImRhdGFiYXNlUmVjb3ZlcnlSZXF1aXJlZCI6dHJ1ZSwic2V0dXBDb21wbGV0ZSI6ZmFsc2UsInNldHVwUGVuZGluZyI6ZmFsc2UsInBlbmRpbmdOb2RlUmVxdWVzdHMiOjAsInVua25vd25Ob2RlUmVxdWVzdCI6dHJ1ZSwibm9kZVVua25vd25TdGFnZSI6InNldHVwIiwidW5rbm93bkJyb3dzZXJDb21wbGV0aW9uIjpmYWxzZSwiYnJvd3NlckNvbXBsZXRpb25GYWlsdXJlIjpudWxsLCJwZW5kaW5nUmVxdWVzdHMiOjAsInBlbmRpbmdSb3V0ZXMiOltdLCJyb3V0ZXNTZXR0bGVkIjp0cnVlLCJwYWdlQ2xvc2VkIjp0cnVlLCJjb250ZXh0Um91dGVzU2V0dGxlZCI6dHJ1ZSwicm91dGVKb2JzU2V0dGxlZCI6dHJ1ZSwicm91dGVKb2JzQXREcmFpbiI6MCwicm91dGVKb2JzUmVtYWluaW5nIjowLCJwcmVtYXR1cmVDb250ZXh0Q2xvc2UiOmZhbHNlLCJjb250ZXh0Q2xvc2VkIjp0cnVlLCJvd25lZEN1c3RvbWVySWQiOiJkODJmNDliOS0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDEiLCJvd25lZE9yZ2FuaXplcklkIjoiZDgyZjQ5YjktMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAyIiwiZm9yZWlnbkN1c3RvbWVySWQiOiJkODJmNDliOS0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDA5MDAiLCJvcmlnaW5hbEJ1c2luZXNzIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNmE5M2M5MmU3NDFkMTkyNmI5OTVlMTQ0Y2UxYTJkZGVlNTc3NTNiZDE1YmJjOTliMjQ0ODFkMTQ5YTA4OTFlMyJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NTQsInNoYTI1NiI6ImU2MDNlMjk0ZTBhMzY2YjIwNWEyMTRjMmYzMDJmMzBlY2VhZWJkMWE3OGFlMmQzYzdmMDE3ZjE4OWQ2MjY1ZmMifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiZGZlYWZmM2EzMzc3OTEyMzU0Nzk5MDMzMGZhYTgyNGJkMzVlYTBhYWQ0OTczMjkzMWU4NjVlNTNjN2RlM2Y4YyJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkNjQ3ZjA1ZWNiNmE5MGEyZWE3NTQzZDVkZTQyOTUzNjQ4Yjg0MWFhZTgzZGQ1OWFkMzE5ZDNlZjkwZTI2MmFiIn0sInRpbXBsYW5zIjp7ImNvdW50Ijo3LCJzaGEyNTYiOiIyZTAxZGNkY2M0MmE5NjEwMGYxMTJjYzE1MzIyYzg3NDIyM2Y0ODk0NWUxNmQ0ZDM4NDVkZTlhMmI3Njg5MWI5In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjEyMSwic2hhMjU2IjoiNjYxYmJhYmE5OGJhNjk2NjJkNzgzZDFlNmRkZGFhZmQ3NzgzNTg0ZTM5YzNmMjhkM2I1NmUyNjQxMGRiNTM5MiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6NjcsInNoYTI1NiI6IjYyMTM1NjllMmUwZTExZmY0NzU2OWI4ZDBlN2Y0YjkzNDdhODJkMmFhNTlhZjhkZWY4NjU1N2Q0MzM0YTQ0ZDIifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6ImJkMDhhNzI1NDNjMWIyYmFjMWJiZjRhYjBkYmUwZmM5MzkzN2E5NjU1YWNmNTY2ZTI0NTQyOWZmNzc4ZDYyYzUifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6IjA0MTBjZTA5NjY5NGE2NzY5NDdiNTMzNjE4ODE5NWZhNDYwNjlmZDU2ZDM4YmFlN2FhOGY2ZWJhZDgxNDcwYzIifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJhNmE4ODRkYmIxOGFhMTQzMzNiYWVlMGM4OTgxMWU5MTE4YzRiMTg4OTk2Y2Y0NDA4ZjdmYjUwN2JlNTZlOWRkIn0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjMsInNoYTI1NiI6Ijg1ZTk5NDkxOTJmNDFiZjViMmNmNWEzNTY3MTNkNzhmZGUyNDlmNWQ0NmYyMmVkMDQ2ZmFjZWJjNmQzODE1YjYifSwic2Nob29sX3llYXJzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJmaXh0dXJlRXhwb3NlZCI6dHJ1ZX0="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-actual-first-20261008/phase5-planning-year-gym-G-cde36--i-både-program-och-timplan-planning-year-desktop/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-gym.spec.ts",
+                    "column": 65,
+                    "line": 45
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-fca56f7304ed52b9f0fc",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 277,
+          "column": 1
+        },
+        {
+          "title": "G02: program-åk2 sparar originalindex2 och hela sexvärdesdistributionen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-fc29e924a515b0b5f5d0",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 286,
+          "column": 1
+        },
+        {
+          "title": "G03: GY-åk3 sparar index4 med fem dolda timvärden och frysta poäng kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-61a3e678e97a15adcc22",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 299,
+          "column": 1
+        },
+        {
+          "title": "G04: manuellt år och hela matrisen ändrar varken globalåret eller data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-014ee73d16f5e24213b1",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 309,
+          "column": 1
+        },
+        {
+          "title": "G05: ändrad aktuell källstart kan inte ändra timplanens frysta årssnitt",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-19b5a6137497363ce35b",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 321,
+          "column": 1
+        },
+        {
+          "title": "G06: klassbunden äldre timversion öppnas med samma frysta år trots nytt utkast",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-9cda3d5e451517429836",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 333,
+          "column": 1
+        },
+        {
+          "title": "G07: januari och april följer läsårsmodellen med konkret före-start-kontroll",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-b82f683fb67fa9f8b17e",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 341,
+          "column": 1
+        },
+        {
+          "title": "G08: år utanför kullens tre år visar hela sexmatrisen utan gissad åk1",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-d0ce528bbd129caf6d81",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "G09: huvudman läser rätt GY-år men får inga timskrivkontroller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-1f9e9941014a0b08afe3",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 357,
+          "column": 1
+        },
+        {
+          "title": "G10: passerad programstart och arkiverad GY-plan behåller befintliga skrivlås",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-ebdf2d80a85fe448af92",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 363,
+          "column": 1
+        },
+        {
+          "title": "G11: held verklig timskrivning behåller år och köar ny inmatning med nästa CAS",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-795f2f0ee230f0407abe",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 368,
+          "column": 1
+        },
+        {
+          "title": "G12: verklig CAS409 ger jämförelse utan att ändra dolda timmar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-11d7bf3de228a57a7cdb",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 378,
+          "column": 1
+        },
+        {
+          "title": "G13: accepterat timsvar och readfail låser navigation tills faktisk återläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-b27078bc12e60b573d27",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 385,
+          "column": 1
+        },
+        {
+          "title": "G14: program-blur före årsklick spärras genom faktiskt fullmatrisspar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-a1737779b5c717aa5a77",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 395,
+          "column": 1
+        },
+        {
+          "title": "G15: aktiv nolltid och ofördelad cell förblir skilda över alla sex index",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-bf12662636d97f741ee0",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 403,
+          "column": 1
+        },
+        {
+          "title": "G16: programanalysens fokus är tillfälligt och återgång behåller planeringsåret",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-b1ed95af47baa4ed03f9",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 410,
+          "column": 1
+        },
+        {
+          "title": "G17: MFA-gränsen behåller programdraft och hela originalfördelningen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-7ea4a82187c5d3f9bb71",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 417,
+          "column": 1
+        },
+        {
+          "title": "G18: actual auditfel rullar tillbaka programskrivning med dolda index kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-dfdb83ba7aa16886289d",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 422,
+          "column": 1
+        },
+        {
+          "title": "G19: legacy-start är okänd och erbjuder explicit underlag utan gissad matris",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-aaa0cae9f3f2548f89c1",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 430,
+          "column": 1
+        },
+        {
+          "title": "G01: tre verkliga kullar öppnar åk1/2/3 i både program och timplan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-e2a3d8bcc4ce68b016ad",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 277,
+          "column": 1
+        },
+        {
+          "title": "G02: program-åk2 sparar originalindex2 och hela sexvärdesdistributionen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-2290faaeb5910371c899",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 286,
+          "column": 1
+        },
+        {
+          "title": "G03: GY-åk3 sparar index4 med fem dolda timvärden och frysta poäng kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-2a81185dfcce322fe3fe",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 299,
+          "column": 1
+        },
+        {
+          "title": "G04: manuellt år och hela matrisen ändrar varken globalåret eller data",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-8082616a5cda505e8aa0",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 309,
+          "column": 1
+        },
+        {
+          "title": "G05: ändrad aktuell källstart kan inte ändra timplanens frysta årssnitt",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-2a25eafa7d7aa99f4dd3",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 321,
+          "column": 1
+        },
+        {
+          "title": "G06: klassbunden äldre timversion öppnas med samma frysta år trots nytt utkast",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-5c655ab2da9345cc25b8",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 333,
+          "column": 1
+        },
+        {
+          "title": "G07: januari och april följer läsårsmodellen med konkret före-start-kontroll",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-68dc327dea6038e1fb25",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 341,
+          "column": 1
+        },
+        {
+          "title": "G08: år utanför kullens tre år visar hela sexmatrisen utan gissad åk1",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-e502762596ab007cae75",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "G09: huvudman läser rätt GY-år men får inga timskrivkontroller",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-b31f5c30347c2f5f20d2",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 357,
+          "column": 1
+        },
+        {
+          "title": "G10: passerad programstart och arkiverad GY-plan behåller befintliga skrivlås",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-00e69ed12df1858842ad",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 363,
+          "column": 1
+        },
+        {
+          "title": "G11: held verklig timskrivning behåller år och köar ny inmatning med nästa CAS",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-449776d8cfe2686b360f",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 368,
+          "column": 1
+        },
+        {
+          "title": "G12: verklig CAS409 ger jämförelse utan att ändra dolda timmar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-ccf1f7c2eb9195ac162b",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 378,
+          "column": 1
+        },
+        {
+          "title": "G13: accepterat timsvar och readfail låser navigation tills faktisk återläsning",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-716af351f628a4af30d5",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 385,
+          "column": 1
+        },
+        {
+          "title": "G14: program-blur före årsklick spärras genom faktiskt fullmatrisspar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-62a8914d7e098a13e2dc",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 395,
+          "column": 1
+        },
+        {
+          "title": "G15: aktiv nolltid och ofördelad cell förblir skilda över alla sex index",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-634764f1c41b8020a6c6",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 403,
+          "column": 1
+        },
+        {
+          "title": "G16: programanalysens fokus är tillfälligt och återgång behåller planeringsåret",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-5411a25c1da47823aff8",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 410,
+          "column": 1
+        },
+        {
+          "title": "G17: MFA-gränsen behåller programdraft och hela originalfördelningen",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-e367a2aa33b75e3e7a6f",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 417,
+          "column": 1
+        },
+        {
+          "title": "G18: actual auditfel rullar tillbaka programskrivning med dolda index kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-7782040c912f60d9d359",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 422,
+          "column": 1
+        },
+        {
+          "title": "G19: legacy-start är okänd och erbjuder explicit underlag utan gissad matris",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "fa0fa1ee07fa50acec17-a62d69655b5b9d217b6e",
+          "file": "phase5-planning-year-gym.spec.ts",
+          "line": 430,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-07T22:21:07.809Z",
+    "duration": 18474.055,
+    "expected": 0,
+    "skipped": 37,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
