@@ -470,16 +470,55 @@ test('L13: äldre faktisk programversion öppnas trots nyare utkast och filter b
 });
 
 test('L14: Ny programplan och Kopiera behåller faktisk behörighet utan påhittat startdatum', async ({ page }, info) => {
-  const before = await fixture.businessHashes(); const data = await enter(page, q()) as PlanningList;
-  const row = data.rows[0], open = page.waitForResponse(reply => pathname(reply) === '/api/programplaner/lasa' && reply.request().postDataJSON().planId === row.plan!.id);
-  await rowAt(page, data, row.offeringId).getByRole('button', { name: /^Kopiera / }).click(); expect((await open).status()).toBe(200);
-  const copy = page.getByRole('region', { name: 'Kopiera till ny utbildning', exact: true }); await expect(copy).toBeVisible();
-  await expect(copy.getByLabel('Utbildningens exakta startdatum', { exact: true })).toHaveValue('');
-  await copy.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  const before = await fixture.businessHashes(), choices = '/api/programplaner/val', workspace = page.getByTestId('protected-programplan-workspace');
+  const pendingPermission = hold(); let permissionReads = 0;
+  async function actualPermission(route: Route) {
+    const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200);
+    expect(parseProgramplanSelection(await actual.json(), route.request().postDataJSON()).canCreateEducation).toBe(true);
+    expect(actual.headers()['cache-control']).toBe('no-store');
+    expect(await ownedNode('readback', () => fixture.pairedGym(actual.headers()['x-correlation-id'], session, 'programplan_selection_read', null, 'education_collection'))).toBe(true);
+    return actual;
+  }
+  await page.route('**'+choices, async route => {
+    const actual = await actualPermission(route); permissionReads++; pendingPermission.ready.resolve(actual);
+    await pendingPermission.release.promise; await route.fulfill({ response: actual });
+  });
+  const data = await enter(page, q()) as PlanningList, row = data.rows[0]; await pendingPermission.ready.promise;
+  const open = page.waitForResponse(reply => pathname(reply) === '/api/programplaner/lasa' && reply.request().postDataJSON().planId === row.plan!.id);
+  await rowAt(page, data, row.offeringId).getByRole('button', { name: /^Öppna / }).click(); expect((await open).status()).toBe(200);
+  await expect(workspace.getByRole('heading', { name: row.educationName, exact: true })).toBeVisible();
+  await expect(workspace.getByRole('button', { name: 'Kopiera', exact: true })).toHaveCount(0);
+  pendingPermission.release.resolve(); await expect(workspace.getByRole('button', { name: 'Kopiera', exact: true })).toBeEnabled(); expect(permissionReads).toBe(1);
+  await page.unroute('**'+choices);
+  const copy = page.getByRole('region', { name: 'Kopiera till ny utbildning', exact: true });
+  await workspace.getByRole('button', { name: 'Kopiera', exact: true }).click(); await expect(copy).toBeVisible();
+  await expect(copy.getByLabel('Utbildningens exakta startdatum', { exact: true })).toHaveValue(''); await copy.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  const exactURL = page.url(), reloadedPermission = page.waitForResponse(reply => pathname(reply) === choices);
+  await page.reload(); expect((await reloadedPermission).status()).toBe(200); await expect(workspace.getByRole('button', { name: 'Kopiera', exact: true })).toBeEnabled();
+  expect(new URL(page.url()).searchParams.get('programplan')).toBe(row.plan!.id); expect(new URL(page.url()).searchParams.get('programplansversion')).toBe(String(row.plan!.version));
+  const directPermission = page.waitForResponse(reply => pathname(reply) === choices);
+  await page.evaluate(address => window.location.replace(address), exactURL); expect((await directPermission).status()).toBe(200);
+  await expect(workspace.getByRole('button', { name: 'Kopiera', exact: true })).toBeEnabled();
+  const actualFailure = async (route: Route) => {
+    await actualPermission(route); await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ code: 'transport_failed' }) });
+  };
+  await page.route('**'+choices, actualFailure); await page.reload();
+  const retry = workspace.getByRole('button', { name: 'Läs skapanderätt igen', exact: true }); await expect(retry).toBeEnabled();
+  await expect(workspace.getByRole('heading', { name: row.educationName, exact: true })).toBeVisible(); await expect(workspace.getByRole('button', { name: 'Kopiera', exact: true })).toHaveCount(0);
+  await page.unroute('**'+choices); const retried = page.waitForResponse(reply => pathname(reply) === choices); await retry.click(); expect((await retried).status()).toBe(200);
+  await expect(workspace.getByRole('button', { name: 'Kopiera', exact: true })).toBeEnabled(); expect(new URL(page.url()).searchParams.get('programplan')).toBe(row.plan!.id);
   const returned = nextList(page, value => value.query === metadata.pageQuery); await page.goBack(); await parsed(await returned);
-  await page.getByRole('button', { name: 'Ny programplan', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Ny programplan', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Ny programplan', exact: true }).click(); await expect(page.getByRole('heading', { name: 'Ny programplan', exact: true })).toBeVisible();
   expect(await fixture.businessHashes()).toEqual(before); await capture(page, info, 'create-copy-regression');
+  // Only the owned session expires; the next real permission read must clear the workspace.
+  await page.route('**'+choices, actualFailure); await page.reload(); await expect(retry).toBeEnabled(); await page.unroute('**'+choices);
+  await ownedNode('fixture-mutation', () => fixture.expire(session)); const denied = page.waitForResponse(reply => pathname(reply) === choices);
+  await retry.click(); const actualDenied = await denied; expect(actualDenied.status()).toBe(401); expect((await actualDenied.json()).code).toBe('session_expired');
+  expect((await ownedNode('readback', () => fixture.events(actualDenied.headers()['x-correlation-id']))).filter((event: { outcome: string }) => event.outcome === 'ok')).toEqual([]);
+  await expect(workspace).toHaveCount(0); await expect(bar(page)).toHaveCount(0);
+  expect(await fixture.businessHashes()).toEqual(before);
+  await info.attach('copy-permission-recovery.json', { body: JSON.stringify({ heldActualPermission: true, exactPlanId: row.plan!.id, version: row.plan!.version,
+    listUnmountSurvived: true, reloadAndDirectLink: true, actualRetry: true, expiredPermissionCleared: true }), contentType: 'application/json' });
 });
 
 test('L15: delad radB återgår till alla skolor och Ny programplan använder uttryckligt A-val', async ({ page }, info) => {
