@@ -1,0 +1,21 @@
+.planning-context { box-sizing: border-box; width: 100%; min-width: 0; padding: .85rem 1rem; border: 1px solid var(--border, #d8dee6); border-radius: .75rem; background: var(--card, #fff); }
+.planning-context-controls { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; min-width: 0; }
+.planning-context label { display: flex; flex-direction: column; gap: .2rem; font-size: .875rem; min-width: 0; }
+.planning-context label:first-of-type { flex: 1 1 12rem; max-width: 26rem; }
+.planning-context select, .planning-context button { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .65rem; border: 1px solid var(--border, #c8d0da); border-radius: .45rem; font: inherit; color: inherit; background: var(--background, #fff); }
+.planning-context select { width: 100%; }
+.planning-context button { cursor: pointer; }
+.planning-context button:disabled, .planning-context select:disabled { opacity: .55; cursor: default; }
+.planning-context select:focus-visible, .planning-context button:focus-visible { outline: 2px solid var(--ring, #235ca4); outline-offset: 2px; }
+.planning-context-years { display: flex; align-items: flex-end; gap: .35rem; min-width: 0; }
+.planning-context-years label { flex: 1 1 auto; }
+.planning-context-years button { font-size: 1.4rem; flex: 0 0 44px; }
+.planning-context-current { font-size: .875rem; }
+.planning-context p, .planning-context output { display: block; margin: .65rem 0 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .planning-context { padding: .75rem; }
+  .planning-context-controls { gap: .6rem; }
+  .planning-context-controls > strong { flex-basis: 100%; }
+  .planning-context-controls > label { flex: 1 1 100%; max-width: 100%; }
+  .planning-context-years { flex: 1 1 100%; }
+}
