@@ -11,7 +11,7 @@ import MfaStepUpNotice from './mfa-step-up';
 
 type Draft = { values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'unread'; error: string | null; mfa: boolean };
 type Props = { plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
-  onSaved: (plan: GymTimplan) => void; onSaving: (saving: boolean) => void; onSecurityFailure: (error: unknown) => boolean };
+  onSaved: (plan: GymTimplan) => void; onSaving: (saving: boolean) => void; onNavigationBlocked: (blocked: boolean) => void; onSecurityFailure: (error: unknown) => boolean };
 const strings = (hours: GymTimplanHours) => hours.map(value => value === null ? '' : String(value));
 const hours = (values: string[]): GymTimplanHours | null => {
   const parsed = values.map(parseGymTimplanHourInput);
@@ -21,16 +21,20 @@ const same = (a: GymTimplanHours, b: GymTimplanHours) => a.every((value, i) => v
 const matches = (values: string[], saved: GymTimplanHours) => { const parsed = hours(values); return !!parsed && same(parsed, saved); };
 
 /** Inlineceller delar den befintliga atomiska radskrivningen. Kön håller CAS-revisioner i ordning. */
-export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId, onSaved, onSaving, onSecurityFailure }: Props) {
+export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [onlyMissing, setOnlyMissing] = useState(false);
   const latest = useRef(drafts), saved = useRef(plan), queue = useRef(new Set<string>()), running = useRef(false);
   const active = useRef(true), controller = useRef<AbortController | null>(null);
   useEffect(() => { if (plan.revision >= saved.current.revision) saved.current = plan; }, [plan]);
   useEffect(() => { const pendingRows = queue.current; active.current = true; return () => { active.current = false; controller.current?.abort(); pendingRows.clear(); }; }, []);
+  const blocked = savingKey !== null || [...drafts.values()].some(d => d.mode === 'unread');
   useUnsavedChanges(unsavedId, drafts.size > 0 || savingKey !== null);
+  useUnsavedChanges(`navigation-block:${unsavedId}`, blocked);
+  useEffect(() => { onNavigationBlocked(blocked); }, [blocked, onNavigationBlocked]);
+  function reportBlocked() { onNavigationBlocked(running.current || [...latest.current.values()].some(d => d.mode === 'unread')); }
   const editable = gymTimplanCanEdit(plan);
-  function update(next: Map<string, Draft>) { latest.current = next; setDrafts(next); }
+  function update(next: Map<string, Draft>) { latest.current = next; setDrafts(next); reportBlocked(); }
   function replace(key: string, draft: Draft | null) {
     const next = new Map(latest.current); if (draft) next.set(key, draft); else next.delete(key); update(next);
   }
@@ -51,7 +55,7 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
   }
   async function drain() {
     if (running.current || !active.current) return;
-    running.current = true; onSaving(true);
+    running.current = true; reportBlocked(); onSaving(true);
     try {
       while (queue.current.size && active.current) {
         // Efter oläst sparstatus eller MFA måste underlaget först bekräftas.
@@ -93,7 +97,7 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
       }
     } finally {
       running.current = false;
-      if (active.current) { setSavingKey(null); onSaving(false); }
+      if (active.current) { setSavingKey(null); reportBlocked(); onSaving(false); }
     }
   }
   function commit(key: string) {
@@ -108,7 +112,7 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
   }
   async function reload(key: string) {
     if (running.current) return;
-    running.current = true; onSaving(true); setSavingKey(key);
+    running.current = true; reportBlocked(); onSaving(true); setSavingKey(key);
     const c = new AbortController(); controller.current = c;
     try {
       const fresh = await read(c.signal); if (!active.current) return;
@@ -121,13 +125,13 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
     } finally {
       running.current = false;
       if (active.current) {
-        setSavingKey(null); onSaving(false);
+        setSavingKey(null); reportBlocked(); onSaving(false);
         if (queue.current.size && ![...latest.current.values()].some(d => d.mode === 'unread' || d.mfa)) void drain();
       }
     }
   }
   function keepMine(key: string) {
-    const own = latest.current.get(key); if (!own || running.current) return;
+    const own = latest.current.get(key); if (!own || own.mode !== 'compare' || running.current) return;
     replace(key, { ...own, original: saved.current.hours[key], mode: 'edit', error: null, mfa: false }); commit(key);
   }
 
@@ -141,7 +145,7 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
   return <>
     <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{totals.terms[y * 2] + totals.terms[y * 2 + 1]} <small>timmar</small></strong><span>HT {totals.terms[y * 2]} · VT {totals.terms[y * 2 + 1]}</span></div>)}</div>
     <div className="gt-toolbar"><p><strong>{totals.total} timmar</strong> planerade · {totals.missingRows.length ? `${totals.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'} <output className={`gt-save-state${issues ? ' gt-save-warning' : ''}`}>{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p><Button variant="outline" onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
-    <label className="gt-year-picker">Visa årskurs<select value={year} onChange={event => onYear(event.target.value)}><option value="all">Alla årskurser</option>{[0, 1, 2].map(y => <option key={y} value={y}>Årskurs {y + 1}</option>)}</select></label>
+    <label className="gt-year-picker">Visa årskurs<select value={year} disabled={blocked} onChange={event => { if (running.current || [...latest.current.values()].some(d => d.mode === 'unread')) return; onYear(event.target.value); }}><option value="all">Alla årskurser</option>{[0, 1, 2].map(y => <option key={y} value={y}>Årskurs {y + 1}</option>)}</select></label>
     <section className="gt-table-scroll" aria-label="Skolans undervisningstid"
       // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla även läsvyn.
       tabIndex={0}>
@@ -153,7 +157,7 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
             <th scope="row"><strong>{row.name}</strong><span>{row.levelName}</span>{own?.error && <div className="gt-row-error" role="alert"><p>{own.error}</p>
               {own.mfa ? <MfaStepUpNotice message={own.error}/> : <>
                 {own.mode === 'compare' && <p>Sparat nu: {PROGRAMPLAN_TERMS.filter((_, i) => row.pointTerms[i] > 0).map(term => { const i = PROGRAMPLAN_TERMS.indexOf(term); return `${term}: ${plan.hours[row.key][i] ?? 'ofördelat'}`; }).join(' · ')}</p>}
-                <div className="gt-row-actions"><Button size="sm" variant="outline" disabled={!!savingKey} onClick={() => { queue.current.delete(row.key); replace(row.key, null); }}>Använd sparade värden</Button>
+                <div className="gt-row-actions"><Button size="sm" variant="outline" disabled={!!savingKey || own.mode === 'unread'} onClick={() => { if (running.current || latest.current.get(row.key)?.mode === 'unread') return; queue.current.delete(row.key); replace(row.key, null); }}>Använd sparade värden</Button>
                   {own.mode === 'unread' ? <Button size="sm" disabled={!!savingKey} onClick={() => void reload(row.key)}>Läs aktuell timplan</Button>
                     : <Button size="sm" disabled={!!savingKey || invalid || !editable} onClick={() => own.mode === 'compare' ? keepMine(row.key) : commit(row.key)}>{own.mode === 'compare' ? 'Spara min fördelning' : 'Försök spara igen'}</Button>}</div>
               </>}</div>}</th>
