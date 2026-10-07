@@ -292,11 +292,14 @@ test('C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/ut
   await gym(page).getByRole('button', { name: 'Öppna programplan', exact: true }).click();
   await expect(board(page)).toContainText('Allt sparat');
   await program(page).getByRole('button', { name: 'Timplan', exact: true }).click(); await expect(gymTable(page)).toBeVisible();
-  const relative = gym(page).getByLabel('Visa årskurs', { exact: true });
-  await relative.selectOption('1');
+  const relative = gym(page).getByRole('group', { name: 'Visa årskurs', exact: true });
+  const yearTwo = relative.getByRole('button', { name: 'Åk 2', exact: true });
+  const wholePlan = relative.getByRole('button', { name: 'Visa hela planen', exact: true });
+  await yearTwo.click(); await expect(yearTwo).toHaveAttribute('aria-pressed', 'true');
   await expect.poll(() => new URL(page.url()).searchParams.get('planeringsrelativar')).toBe('2');
-  await page.reload(); await expect(gymTable(page)).toBeVisible(); await expect(relative).toHaveValue('1');
-  await relative.selectOption('all');
+  await page.reload(); await expect(gymTable(page)).toBeVisible(); await expect(yearTwo).toHaveAttribute('aria-pressed', 'true');
+  await wholePlan.click(); await expect(wholePlan).toHaveAttribute('aria-pressed', 'true');
+  await expect(yearTwo).toHaveAttribute('aria-pressed', 'false');
   await expect.poll(() => new URL(page.url()).searchParams.get('planeringsallaar')).toBe('1');
   const before = await readGym(planId, session), sourceBefore = await fixture.snapshot(metadata.shared.planId);
   const otherBefore = await fixture.timplanSnapshot(metadata.shared.firstTimplanId);
