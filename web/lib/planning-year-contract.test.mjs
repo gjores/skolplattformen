@@ -196,3 +196,145 @@ test('overview bounds total class references even when each individual row is wi
   assert.equal(parsePlanningOverview(overview(allowed, selection(), totals({ annualHours: measure(4000), classCount: measure(1000) })), selection(), setup()).count, 50);
   assert.throws(() => parsePlanningOverview(overview(rows, selection(), totals({ annualHours: measure(4080), classCount: measure(1000) })), selection(), setup()));
 });
+
+
+// Separate new-contract coverage; the historical legacy-row tests above remain unchanged.
+const searchDetails = changes => ({ localCode: "SA-local %_ O'Neil", programCode: 'SA25', orientationCode: 'SABEP',
+  programName: 'Samhällsvetenskapsprogrammet', orientationName: 'Beteendevetenskap', ...changes });
+const nullSearchDetails = changes => searchDetails({ localCode: null, programCode: null, orientationCode: null,
+  programName: null, orientationName: null, ...changes });
+const imSearchRow = changes => row(2, { schoolform: 'introduktionsprogram', source: null,
+  start: { provenance: 'legacy', startedOn: null, academicYear: null, legacyYear: null }, relativeYear: null, relation: 'unknown',
+  cells: [{ rowKey: 'im-sv', points: null, pointTerms: null, hourValues: [4] }], ...changes });
+const programSearchRow = changes => row(2, { plan: { id: id(5), version: 1, revision: 3, status: 'utkast' },
+  start: { ...row().start, provenance: 'program-version' }, cells: [{ ...cell(), hourValues: null }], ...changes });
+const searchForms = () => [
+  { input: row(), selected: selection(), total: totals({ annualHours: measure(80) }) },
+  { input: programSearchRow(), selected: selection({ view: 'programplan' }), total: totals({ annualHours: measure(0) }) },
+  { input: grRow(), selected: selection({ schoolform: 'grundskola' }), total: totals({ points: null, annualHours: measure(110), classCount: measure(1) }) },
+  { input: imSearchRow(), selected: selection({ schoolform: 'introduktionsprogram' }), total: totals({ points: null, annualHours: measure(0), weeklyHours: measure(4) }) },
+];
+test('legacy19 stays byte-shape equivalent and does not gain searchDetails in list or overview', () => {
+  for (const { input, selected, total } of searchForms()) {
+    assert.equal(Object.keys(input).length, 19);
+    for (const parsed of [parseList([input], selected), parsePlanningOverview(overview([input], selected, total), selected, setup())]) {
+      assert.deepEqual(parsed.rows[0], input);
+      assert.equal(JSON.stringify(parsed.rows[0]), JSON.stringify(input));
+      assert.equal(Object.hasOwn(parsed.rows[0], 'searchDetails'), false);
+    }
+  }
+});
+test('extended20 retains exactly five parsed education details without changing plan/source/metrics', () => {
+  for (const { input, selected, total } of searchForms()) {
+    input.searchDetails = input.schoolform === 'gymnasium' ? searchDetails() : nullSearchDetails({ localCode: 'Lokal GR/IM %_ Å' });
+    for (const parsed of [parseList([input], selected), parsePlanningOverview(overview([input], selected, total), selected, setup())]) {
+      assert.deepEqual(parsed.rows[0], input); assert.equal(Object.keys(parsed.rows[0]).length, 20);
+      assert.equal(Object.keys(parsed.rows[0].searchDetails).length, 5);
+      assert.notEqual(parsed.rows[0].searchDetails, input.searchDetails);
+      const legacy = { ...input }; delete legacy.searchDetails;
+      assert.deepEqual(planningAnnualMetrics(parsed.rows[0], selected.schoolYear), planningAnnualMetrics(parseList([legacy], selected).rows[0], selected.schoolYear));
+    }
+  }
+});
+test('GY null metadata, absent orientation and own codes without a verified name remain explicit', () => {
+  for (const details of [nullSearchDetails(), searchDetails({ orientationCode: null, orientationName: null }),
+    searchDetails({ programCode: 'Äldre_25-X', orientationCode: 'EGEN', programName: null, orientationName: null }),
+    searchDetails({ orientationName: null })]) {
+    const parsed = parseList([row(2, { searchDetails: details })]).rows[0];
+    assert.deepEqual(parsed.searchDetails, details);
+    assert.deepEqual(parsed.source, row().source); assert.deepEqual(parsed.start, row().start);
+  }
+});
+test('local code and names preserve ordinary text with max1000; national codes use the existing max96 grammar', () => {
+  const valid = searchDetails({ localCode: " %_ O'Neil Å / code " });
+  assert.deepEqual(parseList([row(2, { searchDetails: valid })]).rows[0].searchDetails, valid);
+  for (const key of ['localCode', 'programName', 'orientationName']) {
+    const value = searchDetails({ [key]: 'Å'.repeat(1000) });
+    assert.equal(parseList([row(2, { searchDetails: value })]).rows[0].searchDetails[key].length, 1000);
+    for (const bad of ['x'.repeat(1001), 'bad\ntext', 'bad\u0000text', 'bad\u007ftext', 7, false, [], {}])
+      assert.throws(() => parseList([row(2, { searchDetails: searchDetails({ [key]: bad }) })]));
+  }
+  for (const key of ['programCode', 'orientationCode']) {
+    assert.equal(parseList([row(2, { searchDetails: searchDetails({ [key]: 'Å' + '1'.repeat(95) }) })]).rows[0].searchDetails[key].length, 96);
+    for (const bad of ['', '1SA', 'SA 25', 'SA/25', 'SA%25', 'SA.25', "SA'25", 'x'.repeat(97), 'constructor', 'prototype', '__proto__', 25, [], {}])
+      assert.throws(() => parseList([row(2, { searchDetails: searchDetails({ [key]: bad }) })]));
+  }
+});
+test('present undefined, partial metadata, extra keys and incomplete legacy rows never select a loose shape', () => {
+  for (const details of [undefined, null, [], 'raw', 1]) assert.throws(() => parseList([row(2, { searchDetails: details })]));
+  for (const key of Object.keys(searchDetails())) {
+    const missing = searchDetails(); delete missing[key];
+    assert.throws(() => parseList([row(2, { searchDetails: missing })]));
+    assert.throws(() => parseList([row(2, { searchDetails: searchDetails({ [key]: undefined }) })]));
+  }
+  for (const extra of ['catalog', 'programRef', 'sourcePlanId', 'role', 'local_code'])
+    assert.throws(() => parseList([row(2, { searchDetails: searchDetails({ [extra]: true }) })]));
+  for (const extended of [false, true]) {
+    const value = row(); if (extended) value.searchDetails = searchDetails();
+    const extra = { ...value, private: true }; assert.throws(() => parseList([extra]));
+    const hidden = { ...value }; Object.defineProperty(hidden, 'private', { value: true }); assert.throws(() => parseList([hidden]));
+    const missing = { ...value }; delete missing.cohort; assert.throws(() => parseList([missing]));
+  }
+});
+test('searchDetails and row descriptors reject getters/setters/symbols/custom prototypes without executing accessors', () => {
+  let invoked = 0;
+  for (const key of Object.keys(searchDetails())) {
+    for (const accessor of ['get', 'set']) {
+      const details = searchDetails(); Object.defineProperty(details, key, { enumerable: true, [accessor]() { invoked++; return 'unexpected'; } });
+      assert.throws(() => parseList([row(2, { searchDetails: details })]));
+    }
+  }
+  const raw = row(); Object.defineProperty(raw, 'searchDetails', { enumerable: true, get() { invoked++; return searchDetails(); } });
+  assert.throws(() => parseList([raw])); assert.equal(invoked, 0);
+  for (const decorate of [v => Object.assign(Object.create({}), v), v => { v[Symbol('private')] = 1; return v; },
+    v => { Object.defineProperty(v, 'private', { value: true }); return v; }]) {
+    assert.throws(() => parseList([row(2, { searchDetails: decorate(searchDetails()) })]));
+    assert.throws(() => parseList([decorate(row(2, { searchDetails: searchDetails() }))]));
+  }
+  const plain = Object.assign(Object.create(null), searchDetails());
+  assert.deepEqual(parseList([Object.assign(Object.create(null), row(2, { searchDetails: plain }))]).rows[0].searchDetails, searchDetails());
+});
+test('names require their own code and an orientation cannot invent a missing program', () => {
+  for (const details of [searchDetails({ programCode: null }), searchDetails({ orientationCode: null }),
+    nullSearchDetails({ programName: 'Invented' }), nullSearchDetails({ orientationCode: 'SABEP' }), nullSearchDetails({ orientationName: 'Invented' })])
+    assert.throws(() => parseList([row(2, { searchDetails: details })]));
+});
+test('GR and IM retain local text but reject every nonnull national code or catalogue name', () => {
+  for (const { input, selected } of searchForms().filter(f => f.input.schoolform !== 'gymnasium')) {
+    input.searchDetails = nullSearchDetails({ localCode: 'GR/IM %_ 8-9' });
+    assert.deepEqual(parseList([input], selected).rows[0].searchDetails, input.searchDetails);
+    for (const key of ['programCode', 'orientationCode', 'programName', 'orientationName'])
+      assert.throws(() => parseList([{ ...input, searchDetails: nullSearchDetails({ [key]: key.includes('Code') ? 'SA25' : 'Samhällsvetenskap' }) }], selected));
+  }
+});
+test('extended metadata cannot bypass year/source/class/canonical inventory or total checks', () => {
+  const a = row(2, { searchDetails: searchDetails() }), b = row(3, { searchDetails: searchDetails() });
+  const parsed = parsePlanningOverview(overview([a, b]), selection(), setup());
+  assert.equal(parsed.totals.points.value, 100); assert.equal(parsed.totals.annualHours.value, 160);
+  const mixed = parsePlanningOverview(overview([a, row(3)]), selection(), setup());
+  assert.equal(Object.hasOwn(mixed.rows[0], 'searchDetails'), true); assert.equal(Object.hasOwn(mixed.rows[1], 'searchDetails'), false);
+  for (const changes of [{ relativeYear: 1 }, { source: { ...a.source, offeringId: id(99) } },
+    { classes: [{ id: id(40), customerId: id(99), unitId: a.unitId, offeringId: a.offeringId }] }])
+    assert.throws(() => parseList([{ ...a, ...changes }]));
+  const inconsistent = structuredClone(b); inconsistent.cells[0].pointTerms = [0, 0, 50, 50, 50, 50];
+  assert.throws(() => parsePlanningOverview(overview([a, inconsistent]), selection(), setup()));
+  assert.throws(() => parsePlanningOverview(overview([a, b], selection(), totals({ points: measure(200) })), selection(), setup()));
+  const gr = grRow({ searchDetails: nullSearchDetails() }), selected = selection({ schoolform: 'grundskola' });
+  assert.throws(() => parseList([{ ...gr, application: { ...gr.application, schoolYear: 2028 } }], selected));
+  assert.throws(() => parseList([{ ...gr, columnMap: { ...gr.columnMap, version: 3 } }], selected));
+});
+test('missing plans retain actual education details without fabricating source/cells or verified names', () => {
+  const missing = row(2, { plan: null, source: null, cells: [], underlag: 'missing', diagnostics: ['missing-plan', 'missing-hours', 'missing-points'],
+    searchDetails: searchDetails({ programName: null, orientationName: null }) });
+  const parsed = parseList([missing]).rows[0];
+  assert.deepEqual(parsed, missing); assert.equal(parsed.plan, null); assert.equal(parsed.source, null);
+  assert.deepEqual(parsed.cells, []); assert.equal(parsed.searchDetails.programName, null);
+});
+test('extended list pagination still requires exact 50 plus2 and a verified revision', () => {
+  const rows = Array.from({ length: 52 }, (_, n) => row(2, { plan: { ...row().plan, id: id(200 + n) }, searchDetails: searchDetails() }));
+  assert.equal(parseList(rows.slice(0, 50), selection(), 52).rows.length, 50);
+  const second = selection({ page: 2, selectionRevision: revision });
+  assert.equal(parseList(rows.slice(50), second, 52).rows.length, 2);
+  assert.throws(() => parseList(rows.slice(50, 51), second, 52));
+  assert.throws(() => parsePlanningList({ ...list(rows.slice(50), second, 52), selectionRevision: 'sha256:' + 'b'.repeat(64) }, second, setup()));
+});

@@ -19,6 +19,11 @@ export type PlanningPlanReference = { id: string; version: number; revision: num
 export type PlanningSourceReference = { planId: string; offeringId: string; version: number; revision: number };
 export type PlanningClassReference = { id: string; customerId: string; unitId: string; offeringId: string };
 export type PlanningCell = { rowKey: string; points: number | null; pointTerms: number[] | null; hourValues: (number | null)[] | null };
+/** Search/presentation details from the row's own education and verified pinned catalogue. */
+export type PlanningSearchDetails = {
+  localCode: string | null; programCode: string | null; orientationCode: string | null;
+  programName: string | null; orientationName: string | null;
+};
 export type PlanningRow = {
   customerId: string; unitId: string; offeringId: string; schoolName: string; educationName: string; cohort: string;
   schoolform: TimplanKind; plan: PlanningPlanReference | null; source: PlanningSourceReference | null;
@@ -26,6 +31,7 @@ export type PlanningRow = {
   underlag: 'class-bound' | 'planning' | 'forecast' | 'missing'; archived: boolean; columnMap: GrColumnMap | null;
   application: { schoolYear: number; planId: string; version: number; columnId: string | null } | null;
   classes: PlanningClassReference[]; cells: PlanningCell[]; diagnostics: PlanningDiagnosis[];
+  searchDetails?: PlanningSearchDetails;
 };
 /** known is a partial sum; value is null unless the entire requested frame is known. */
 export type PlanningMeasure = { value: number | null; known: number; complete: boolean };
@@ -196,9 +202,30 @@ function canonicalCells(row: PlanningRow, schoolYear: number): { cells: Planning
   });
   return { cells, diagnostics };
 }
+function searchCode(value: unknown): string {
+  const result = text(value, 96);
+  if (!/^\p{L}[\p{L}\p{N}_-]*$/u.test(result) || ['constructor', 'prototype', '__proto__'].includes(result)) bad();
+  return result;
+}
+function parseSearchDetails(value: unknown, schoolform: TimplanKind): PlanningSearchDetails {
+  const r = shape(value, ['localCode', 'programCode', 'orientationCode', 'programName', 'orientationName']);
+  const parsed = { localCode: r.localCode === null ? null : text(r.localCode),
+    programCode: r.programCode === null ? null : searchCode(r.programCode),
+    orientationCode: r.orientationCode === null ? null : searchCode(r.orientationCode),
+    programName: r.programName === null ? null : text(r.programName),
+    orientationName: r.orientationName === null ? null : text(r.orientationName) };
+  if (schoolform !== 'gymnasium' && (parsed.programCode !== null || parsed.orientationCode !== null
+    || parsed.programName !== null || parsed.orientationName !== null)) bad();
+  if (parsed.programCode === null && (parsed.orientationCode !== null || parsed.programName !== null)
+    || parsed.orientationCode === null && parsed.orientationName !== null) bad();
+  return parsed;
+}
+const legacyRowKeys = ['customerId', 'unitId', 'offeringId', 'schoolName', 'educationName', 'cohort', 'schoolform', 'plan', 'source', 'start',
+  'relativeYear', 'relation', 'underlag', 'archived', 'columnMap', 'application', 'classes', 'cells', 'diagnostics'] as const;
 function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningSetup): PlanningRow {
-  const r = shape(value, ['customerId', 'unitId', 'offeringId', 'schoolName', 'educationName', 'cohort', 'schoolform', 'plan', 'source', 'start',
-    'relativeYear', 'relation', 'underlag', 'archived', 'columnMap', 'application', 'classes', 'cells', 'diagnostics']);
+  // Validate descriptors/prototype before testing or reading the optional form discriminator.
+  const raw = object(value), extended = Object.hasOwn(raw, 'searchDetails');
+  const r = shape(raw, extended ? [...legacyRowKeys, 'searchDetails'] : legacyRowKeys);
   const schoolform = choice(r.schoolform, schoolforms), plan = parsePlan(r.plan), source = parseSource(r.source), unitId = uuid(r.unitId), offeringId = uuid(r.offeringId);
   const unit = setup.units.find(u => u.unitId === unitId);
   if (uuid(r.customerId) !== setup.customerId || !unit || r.schoolName !== unit.schoolName || schoolform !== selection.schoolform
@@ -227,7 +254,8 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
   const diagnostics = unique(array(r.diagnostics, diagnoses.length).map(v => choice(v, diagnoses)), v => v);
   if (underlag === 'class-bound' && classes.length === 0 && !diagnostics.some(d => d === 'missing-class' || d === 'ambiguous-class')) bad();
   const row: PlanningRow = { customerId: setup.customerId, unitId, offeringId, schoolName: unit.schoolName, educationName: text(r.educationName), cohort: text(r.cohort),
-    schoolform, plan, source, start, relativeYear, relation, underlag, archived, columnMap, application, classes, cells, diagnostics };
+    schoolform, plan, source, start, relativeYear, relation, underlag, archived, columnMap, application, classes, cells, diagnostics,
+    ...(extended ? { searchDetails: parseSearchDetails(r.searchDetails, schoolform) } : {}) };
   const required: PlanningDiagnosis[] = [];
   if (plan === null) { if (source !== null || cells.length || classes.length) bad(); required.push('missing-plan'); }
   if (underlag === 'forecast') required.push('forecast');
