@@ -53,9 +53,10 @@ import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-
 import ProtectedTimplanWorkspace from './protected-timplan-workspace';
 import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
 import ProtectedProgramplanWorkspace from './protected-programplan-workspace';
-import { normalizePlanLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
+import ProtectedPlanningOverview from './protected-planning-overview';
+import { normalizePlanLocation, planningCollectionLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from './planning-context';
-import type { PlanningSelection } from '@/lib/planning-year-contract.ts';
+import type { PlanningSelection, PlanningSetup } from '@/lib/planning-year-contract.ts';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 
 type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
@@ -94,7 +95,7 @@ function shellView(search: string, value: SessionResponse): ProtectedView {
   if (PUPIL_FUNCTIONS.includes(role) && (requested === 'elever' || params.has('lasar') || params.has('skola'))) return 'elever';
   return startView(value);
 }
-function PlanningArea({ location, children }: { location: PlanLocation | null; children: (selection: PlanningSelection) => ReactNode }) {
+function PlanningArea({ location, children }: { location: PlanLocation | null; children: (selection: PlanningSelection, setup: PlanningSetup) => ReactNode }) {
   const { setup, selection } = usePlanningContext();
   const blocked = useHasUnsaved('navigation-block:');
   const normalized = setup && location ? normalizePlanLocation(location, setup) : null;
@@ -106,7 +107,7 @@ function PlanningArea({ location, children }: { location: PlanLocation | null; c
   const writerSelection = canonical ? selection : blocked ? lastCanonical : null;
   const readable = setup && writerSelection && setup.units.some(unit => (writerSelection.unitId === null || unit.unitId === writerSelection.unitId)
     && (writerSelection.view === 'programplan' ? unit.canRead.programplan : unit.canRead[writerSelection.schoolform]));
-  return <><PlanningContextBar/>{setup && writerSelection && readable ? children(writerSelection) : null}</>;
+  return <><PlanningContextBar/>{setup && writerSelection && readable ? children(writerSelection, setup) : null}</>;
 }
 
 function startView(session: SessionResponse): ProtectedView {
@@ -122,10 +123,14 @@ function ProtectedNavigation({
   session,
   view,
   setView,
+  overview,
+  onOverview,
 }: {
   session: SessionResponse;
   view: ProtectedView;
   setView: (view: ProtectedView) => void;
+  overview: boolean;
+  onOverview: () => void;
 }) {
   const { setOpenMobile } = useSidebar();
   const go = (next: ProtectedView) => {
@@ -182,9 +187,11 @@ function ProtectedNavigation({
         {session.context && PLANNING_FUNCTIONS.includes(session.context.function) && <>
           <div className="nav-caption">PLANERING</div>
           <SidebarMenu className="main-nav" aria-label="Planering">
-            <SidebarMenuItem><SidebarMenuButton isActive={view === 'programplaner'} aria-current={view === 'programplaner' ? 'page' : undefined}
+            <SidebarMenuItem><SidebarMenuButton data-testid="planning-overview-nav" isActive={overview} aria-current={overview ? 'page' : undefined}
+              onClick={() => { onOverview(); setOpenMobile(false); }} className="nav-button"><CalendarClock size={19}/><span>Läsårsöverblick</span></SidebarMenuButton></SidebarMenuItem>
+            <SidebarMenuItem><SidebarMenuButton data-testid="programplan-list-nav" isActive={!overview && view === 'programplaner'} aria-current={!overview && view === 'programplaner' ? 'page' : undefined}
               onClick={() => go('programplaner')} className="nav-button"><ListChecks size={19}/><span>Programplaner</span></SidebarMenuButton></SidebarMenuItem>
-            <SidebarMenuItem><SidebarMenuButton isActive={view === 'timplaner'} aria-current={view === 'timplaner' ? 'page' : undefined}
+            <SidebarMenuItem><SidebarMenuButton data-testid="timplan-list-nav" isActive={!overview && view === 'timplaner'} aria-current={!overview && view === 'timplaner' ? 'page' : undefined}
               onClick={() => go('timplaner')} className="nav-button"><CalendarClock size={19}/><span>Timplaner</span></SidebarMenuButton></SidebarMenuItem>
             <SidebarMenuItem><SidebarMenuButton isActive={false} onClick={() => go('programplaner')} className="nav-button"><Building2 size={19}/><span>Utbildningar</span></SidebarMenuButton></SidebarMenuItem>
           </SidebarMenu>
@@ -251,7 +258,7 @@ function ProtectedShell() {
   const planningLocationRef = useRef<PlanLocation | null>(null);
   const registerSelectionRef = useRef<{ key: string; selection: Selection } | null>(null);
   const [navigationNotice, setNavigationNotice] = useState<string | null>(null);
-  const lastGymPlan = useRef<{ sourcePlanId: string; id: string } | null>(null);
+  const lastGymPlan = useRef<{ sourcePlanId: string; target: GymTimplanLocation } | null>(null);
   const [registerSetup, setRegisterSetup] = useState<RegisterSetup | null>(null);
   const [schoolYear, setSchoolYear] = useState<number | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
@@ -408,6 +415,29 @@ function ProtectedShell() {
     locationRef.current = url; locationStateRef.current = window.history.state;
     planningLocationRef.current = location; setPlanningLocation(location);
   }
+  // These callbacks follow the workspace's actual scoped read. An explicit
+  // former school follows the verified target; an all-school selection stays all.
+  function planningAfterOpened(unitId: string | undefined) {
+    const prior = planningLocationRef.current?.planning;
+    const scopeChanged = !!unitId && typeof prior?.unitId === 'string' && prior.unitId !== unitId;
+    return { scopeChanged, planning: scopeChanged ? { ...prior, unitId, page: 1, selectionRevision: null } : prior };
+  }
+  function programplanOpened(target: ProgramplanLocation | null) {
+    if (sessionScope(sessionRef.current) !== contextKey) return;
+    const next = planningAfterOpened(target?.unitId);
+    // A changed school remounts the workspace. Pin the new verified target
+    // before its selection changes, so a previous row cannot be reopened.
+    if (next.scopeChanged) setProgramplanTarget(target);
+    writePlanLocation({ view: 'programplaner', programplan: target, planning: next.planning }, true);
+  }
+  function gymTimplanOpened(target: GymTimplanLocation | null, sourcePlanId?: string) {
+    if (sessionScope(sessionRef.current) !== contextKey) return;
+    const next = planningAfterOpened(target?.unitId);
+    if (next.scopeChanged) setTimplanTarget(target);
+    if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, target };
+    writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning, allYears: timplanYear === 'all',
+      ...(timplanYear !== 'all' ? { relativeYear: (Number(timplanYear) + 1) as 1 | 2 | 3 } : {}) }, true);
+  }
   function planningFor(next: 'programplaner' | 'timplaner'): PlanLocation {
     const prior = planningLocationRef.current;
     return next === 'programplaner' ? { view: next, programplan: null, planning: prior?.planning }
@@ -429,16 +459,32 @@ function ProtectedShell() {
   function goToProgramplan(target: ProgramplanLocation) {
     if (!canNavigate()) return;
     if (view === 'elever') rememberRegister();
-    const location: PlanLocation = { ...planningFor('programplaner'), view: 'programplaner', programplan: target };
+    const prior = planningFor('programplaner');
+    const location: PlanLocation = { ...prior, view: 'programplaner', programplan: target, planning: { ...prior.planning, ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
-  function goToTimplan(sourcePlanId: string) {
+  function goToTimplan(source: string | GymTimplanLocation) {
     if (!canNavigate()) return;
     if (view === 'elever') rememberRegister();
-    const target: GymTimplanLocation = lastGymPlan.current?.sourcePlanId === sourcePlanId
-      ? { kind: 'plan', id: lastGymPlan.current.id } : { kind: 'source', id: sourcePlanId };
-    const location: PlanLocation = { ...planningFor('timplaner'), view: 'timplaner', gym: target };
+    const prior = planningFor('timplaner'), cached = lastGymPlan.current;
+    const target: GymTimplanLocation = typeof source !== 'string' ? source
+      : cached?.sourcePlanId === source && (cached.target.unitId === undefined || cached.target.unitId === prior.planning?.unitId)
+        ? cached.target : { kind: 'source', id: source };
+    const location: PlanLocation = { ...prior, view: 'timplaner', gym: target, planning: { ...prior.planning, schoolform: 'gymnasium',
+      ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+  }
+  function navigateOverview() {
+    if (!canNavigate()) return;
+    if (view === 'elever') rememberRegister();
+    const prior = planningLocationRef.current, next = prior?.view ?? 'timplaner';
+    const location: PlanLocation = { ...planningFor(next), overview: true, planning: { ...prior?.planning, page: 1, selectionRevision: null } };
+    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+  }
+  function chooseOverviewCollection(next: PlanningSelection['view'], schoolform: PlanningSelection['schoolform'], setup: PlanningSetup) {
+    if (!canNavigate()) return;
+    const result = planningCollectionLocation(planningLocationRef.current ?? planningFor('timplaner'), next, schoolform, setup);
+    applyPlanningLocation(result.location); setNavigationNotice(result.normalizationNotice); setPlanNavigation(value => value + 1); writePlanLocation(result.location);
   }
   function navigate(next: ProtectedView) {
     if (next === view && !isPlanningView(next) || !canNavigate()) return;
@@ -548,7 +594,8 @@ function ProtectedShell() {
     <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => { clearSession(); return loadSession(); }} />
   );
   const validContext = session.context?.valid && !session.context.blocked;
-  const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
+  const overview = isPlanningView(view) && planningLocation?.overview === true;
+  const currentTitle = overview ? 'Läsårsöverblick' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
     <PlanningContextProvider key={contextKey} contextKey={contextKey} active={!!validContext && isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function)} location={planningLocation}
@@ -556,7 +603,7 @@ function ProtectedShell() {
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
       <a className="skip" href="#workspace">Till innehållet</a>
       <Sidebar className="app-sidebar">
-        <ProtectedNavigation session={session} view={view} setView={navigate}/>
+        <ProtectedNavigation session={session} view={view} setView={navigate} overview={overview} onOverview={navigateOverview}/>
       </Sidebar>
       <div className="application">
         <header className="topbar protected-topbar">
@@ -586,8 +633,12 @@ function ProtectedShell() {
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
             {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={year => { if (sessionScope(sessionRef.current) !== contextKey) return; setSchoolYear(year); rememberRegister(); locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state; }}
               onOpenPupil={(_id, selection) => { if (sessionScope(sessionRef.current) === contextKey) registerSelectionRef.current = { key: contextKey, selection }; }} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
-            {isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function) && <PlanningArea location={planningLocation}>{selection => <>
-              {view === 'timplaner' && <>
+            {isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function) && <PlanningArea location={planningLocation}>{(selection, setup) => <>
+              {overview && <ProtectedPlanningOverview onSecurityFailure={error => {
+                if (error instanceof ApiError && (error.status === 401 || error.status === 403 && error.code !== 'mfa_required')) { clearSession(); return true; }
+                return false;
+              }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => navigate(view)}/>}
+              {!overview && view === 'timplaner' && <>
                 <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => {
                   if (!canNavigate()) return;
                   const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'gymnasium', page: 1, selectionRevision: null } };
@@ -598,17 +649,15 @@ function ProtectedShell() {
                     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                   }}>Grundskola och introduktionsprogram</Button>}</nav>
-                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}-${timplanTarget?.kind}-${timplanTarget?.id}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
+                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
                   year={timplanYear} onYear={year => { if (navigationBlocked) { setNavigationNotice('Invänta sparandet eller läs sparstatus innan du byter årskurs.'); return; } setTimplanYear(year);
                     writePlanLocation({ view: 'timplaner', gym: planningLocationRef.current?.view === 'timplaner' ? planningLocationRef.current.gym : timplanTarget, planning: planningLocationRef.current?.planning,
                       allYears: year === 'all', ...(year !== 'all' ? { relativeYear: (Number(year) + 1) as 1 | 2 | 3 } : {}) }, true); }}
-                  onOpened={(target, sourcePlanId) => { if (sessionScope(sessionRef.current) !== contextKey) return; if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, id: target.id };
-                    writePlanLocation({ view: 'timplaner', gym: target, planning: planningLocationRef.current?.planning, allYears: timplanYear === 'all',
-                      ...(timplanYear !== 'all' ? { relativeYear: (Number(timplanYear) + 1) as 1 | 2 | 3 } : {}) }, true); }} onProgramplan={goToProgramplan}/>
+                  onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
                   : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
               </>}
-              {view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}-${programplanTarget?.planId}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
-                onOpened={target => writePlanLocation({ view: 'programplaner', programplan: target, planning: planningLocationRef.current?.planning }, true)}/>}
+              {!overview && view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
+                onOpened={programplanOpened}/>}
             </>}</PlanningArea>}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
