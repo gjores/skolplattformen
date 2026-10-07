@@ -24,7 +24,7 @@ import ProgramplanBoard, { LocalPlanBoard, localTermsValid } from './protected-p
 import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistribution } from '@/lib/programplan-terms.ts';
 import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
-import { parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
+import { parseProgramplanSelection, parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import './protected-programplan.css';
 import { usePlanningContext } from './planning-context';
 import type { PlanningRow } from '@/lib/planning-year-contract.ts';
@@ -65,7 +65,16 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const termsActive = boardBlocked;
   const [termValues, setTermValues] = useState<ProgramplanTermDistribution | null>(null);
   const [draftTerms, setDraftTerms] = useState<ProgramplanTermDistribution>([]);
-  const [showFlow, setShowFlow] = useState(false), [canCreate, setCanCreate] = useState(false);
+  const [showFlow, setShowFlow] = useState(false);
+  // Permission belongs to this stable workspace, including direct links and list-to-plan reads.
+  const creationKey = planningSetup && planningSelection?.view === 'programplan' && planningSetup.customerId === context.customerId
+    ? JSON.stringify([epoch, context.customerId, context.assignmentId, planningSelection.schoolYear, planningUnit, planningSetup.units]) : '';
+  const [creationPermission, setCreationPermission] = useState({ key: '', canCreate: false, loading: true, error: null as string | null });
+  const [creationRetry, setCreationRetry] = useState(0);
+  const creationController = useRef<AbortController | null>(null), latestCreationKey = useRef(creationKey);
+  useLayoutEffect(() => { latestCreationKey.current = creationKey; }, [creationKey]);
+  const permission = creationPermission.key === creationKey ? creationPermission : null;
+  const canCreate = permission?.canCreate === true;
   const [copy, setCopy] = useState<{ name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanEducationCreateRequest | null; error: string | null; uncertain: boolean } | null>(null);
   const [lifecycleDialog, setLifecycleDialog] = useState<LifecycleDialogKind | null>(null);
   const reviewRef = useRef<HTMLElement | null>(null);
@@ -99,8 +108,30 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const current = useCallback((token: number) => mounted.current && generation.current === token, []);
   const securityFailure = useCallback((e: unknown) => {
     if (!(e instanceof ApiError) || !(e.status === 401 || e.status === 403 && e.code !== 'mfa_required')) return false;
+    creationController.current?.abort(); setCreationPermission({ key: '', canCreate: false, loading: false, error: null });
     invalidate(); clearRecovery(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setCopy(null); setLifecycleDialog(null); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
   }, [clearRecovery, invalidate, onSessionLost]);
+  useEffect(() => {
+    if (!creationKey) return;
+    const c = new AbortController(); creationController.current = c; let cancelled = false;
+    const currentPermission = () => !cancelled && !c.signal.aborted && latestCreationKey.current === creationKey;
+    const input = { unitId: planningUnit, catalogId: null, programRef: null };
+    queueMicrotask(() => { if (currentPermission()) setCreationPermission({ key: creationKey, canCreate: false, loading: true, error: null }); });
+    void api.post('/api/programplaner/val', input, c.signal).then(raw => {
+      const actual = parseProgramplanSelection(raw, input);
+      if (currentPermission()) setCreationPermission({ key: creationKey, canCreate: actual.canCreateEducation, loading: false, error: null });
+    }).catch(caught => {
+      if (!currentPermission() || aborted(caught) || securityFailure(caught)) return;
+      setCreationPermission({ key: creationKey, canCreate: false, loading: false,
+        error: caught instanceof ApiError ? caught.message : 'Rätten att skapa och kopiera programplan kunde inte läsas.' });
+    });
+    return () => { cancelled = true; c.abort(); };
+  }, [creationKey, planningUnit, creationRetry, securityFailure]);
+  function retryCreationPermission() {
+    if (!creationKey) return;
+    setCreationPermission({ key: creationKey, canCreate: false, loading: true, error: null });
+    setCreationRetry(value => value + 1);
+  }
   // Detta är en lokal återgång, aldrig ett bevis för ett okänt skrivutfall.
   const resetList = useCallback(() => {
     selectedUnit.current = planningUnit; setSelectedUnitId(planningUnit);
@@ -497,7 +528,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
 
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(recoveryRef.current)void recoverPending().catch(()=>undefined);else if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}>{recovery ? 'Läs aktuell sparstatus' : 'Hämta utbildningarna igen'}</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
-    {!workspace&&!draft&&!showFlow&&<ProgramplanList key={flowRevision} disabled={busy} canEditPlans={context.function !== 'administrator'} onSecurityFailure={securityFailure} onLoaded={setCanCreate}
+    {permission?.error && <div className="pp-alert" role="alert"><p>{permission.error}</p><Button variant="outline" onClick={retryCreationPermission}>Läs skapanderätt igen</Button></div>}
+    {!workspace&&!draft&&!showFlow&&<ProgramplanList key={flowRevision} disabled={busy} canEditPlans={context.function !== 'administrator'} onSecurityFailure={securityFailure} canCreateEducation={canCreate} creationLoading={!permission || permission.loading}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
       <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId,unitId)=>openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined)}/></div>}

@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-40
 status: in_progress
-stopped_at: UI05-39 fullC16 dator/telefon och bevarande PASS; nästa selektiv05-40-integration och faktisk L36.
+stopped_at: UI05-40 källintegration och82Node/typ/lint/list36 PASS; nytt isolerat bygge före faktisk L36.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "UI05-39 fullC16/cleanup/geometri PASS; nästa sökbara årstabeller05-40. Vanlig3012 bevarad."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI40 källintegration2026-10-07:** Gemensam serverstyrd årstabell/överblick, exakt skol-/plan-/versionsöppning och listbevarande Back integrerade separat efter39fullPASS. Skapanderätt läses i stabil parent med full epoch/kund/uppdrag/år/skolnyckel; writer/unknown består under permissionretry. Frysta egna prov Lf271/fixturcd48 integrerade utan framtida41kopplingar. 82 riktade Node-prov, full typkontroll utan incremental/lint/syntax/list36 PASS. Nylistans native-select får samma explicit44px som faktiskt löste39:s WebKitfynd; eget40geometriprov återstår. Nytt isolerat skyddat bygge och L01–18×dator/telefon återstår;84/100 ochvanlig3012oförändrat.
 
 **UI39 färdigt2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-39-SUMMARY.md). Färsk fullC01–08×dator/telefon16/16 PASS, samma source/build07737ba,9 explicita/49 expanderade källhashar och16 fullcleanup/15 heltabeller/audit-/identitetsankare/geometrier PASS. Alla första fel och fyra separata egna recoverykedjor består. Mobilselects44px och delad layoutregistrering faktiskt verifierade; inga omförsök/skips/deferred. Bildbegränsning: capture efter årsbyte kan visa barnets laddning och kvarvarande tidigare spärrnotis. Nästa05-40→41→42→43 och konkret användarprov. 84/100 planer,3/8 verifierade faser; fulla PLANERING-/ADMIN-krav/gap består och vanlig3012 fortsatt5dd7baf.
 

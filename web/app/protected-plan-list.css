@@ -4,6 +4,7 @@
 .plan-list-filters label:first-child { flex: 2 1 20rem; }
 .plan-list input, .plan-list select, .plan-list button, .planning-overview button { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: .4rem; background: var(--background); color: inherit; font: inherit; }
 .plan-list input, .plan-list select { width: 100%; }
+.plan-list select { height: 44px; }
 .plan-list button, .planning-overview button { cursor: pointer; }
 .plan-list button:disabled { opacity: .55; cursor: default; }
 .plan-list :focus-visible, .planning-overview button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
