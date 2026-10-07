@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: UI05-39 C04 komplett PASS; fullmatris C01–07desktop PASS, C08body PASS men sen lista stage-seen gav deferred. Fjärde egen recovery före nytt C08/fullC16.
+stopped_at: UI05-39 fjärde ägda recovery PASS; färskt C08 dator/telefon följt av fullC16 krävs på granskad Cspec8cf och produktbyggec86.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 fjärde ägda återställning 2026-10-07 — avgränsat PASS:** Läsande förkontroll `dbaf8a55` och faktisk städning på samma frysta skript `98924ca8` PASS, inklusive postcommit. Endast syntetiska grafen `f75d91ad` och dess 14 egna sessioner städades. Ursprungliga 15 heltabeller, SEARCH-katalog/rå ACL, full aktuell audit, alla äldre identiteter, tre tidigare mandatgrafer och egna kvarvarande auditankare är bevarade. Tidigare felrapporter består; detta är inget full39-bevis. Källgranskad C08 `8cf4d94a` inväntar full faktisk listladdning innan avslut. Nästa seriella C08 på dator/telefon, därefter fullC16; 83/100 består och vanlig3012 är oförändrad.
 
 **UI39 sjunde matris 2026-10-07:** Nytt isolerat bygge `c86f184` och oförändrad Cspec `7e8d48a0`; avgränsat C04-datorprov full PASS med dialog=[] och full cleanup ([rapport](../work/pilot/results/phase5-39-context-bounded-guard-seventh-20261007.json), SHA `ba8fa27f`). Färsk fullmatris ger C01–07-dator PASS. C08:s samtliga säkerhets-/beteendeassertioner passerar (accepterad skrivning, faktisk401, rensat gammalt urval, ny rektorssession och setup200), men ny sessions programlista var fortfarande stage-seen vid testets slut. Strict teardown gav deferred och ingen cleanup för senaste graf `f75d91ad`. [Första fullrapport](../work/pilot/results/phase5-39-context-actual-seventh-20261007.json) SHA `94268766` bevaras; telefonens åtta fall startade inte. Worker3060 exakt stoppad/disposed parent5194/child5203/workerd5206. Egen C08 inväntar nu faktisk lista200/strikt parsad body/rätt renewed-auditpar och helt färdig listvy innan capture/teardown; inga gamla assertions eller tidsgränser ändras. Fjärde källgranskad egen recovery krävs före nytt fixtureprov; 83/100 består.
 
