@@ -23,6 +23,8 @@ type Props = {
   onSecurityFailure: (error: unknown) => boolean;
   /** Läs om utbildningen efter en ändring av programfördjupningen. */
   onReload: () => Promise<void>;
+  /** Parent behåller spärren om återläsning monterar av tabellen. */
+  onNavigationBlocked: (blocked: boolean) => void;
   /** Aktuell fördelning, för analysen i arbetsytan. */
   onTerms: (distribution: ProgramplanTermDistribution | null) => void;
 };
@@ -40,7 +42,7 @@ const fromMap = (rows: ProgramplanTermRow[], m: Map<string, ProgramplanTermPoint
 const sameRow = (a?: ProgramplanTermPoints, b?: ProgramplanTermPoints) => (a ?? blank()).every((n, i) => n === (b ?? blank())[i]);
 
 /** Programplanen som en tabell: ämnen, programfördjupning och sex terminer. Sparas automatiskt när en rad lämnas. */
-export default function ProgramplanBoard({ focusIssue, plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onTerms }: Props) {
+export default function ProgramplanBoard({ focusIssue, plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onNavigationBlocked, onTerms }: Props) {
   const basis = plan.basisReference!;
   const rows = useMemo(() => programplanTermRows(program, basis), [program, basis]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
@@ -51,7 +53,13 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
   const [state, setState] = useState<SaveState>('idle'), [message, setMessage] = useState<string | null>(null), [loadError, setLoadError] = useState<string | null>(null);
   const [working, setWorking] = useState(false);
   const valuesRef = useRef(values), savedRef = useRef(saved), saving = useRef(false), pending = useRef(false), mounted = useRef(true);
-  const controller = useRef<AbortController | null>(null);
+  const controller = useRef<AbortController | null>(null), stateRef = useRef<SaveState>('idle'), workingRef = useRef(false);
+  const reportBlocked = useCallback(() => { onNavigationBlocked(saving.current || workingRef.current || stateRef.current === 'saving' || stateRef.current === 'unknown'); }, [onNavigationBlocked]);
+  const changeState = useCallback((next: SaveState) => {
+    stateRef.current = next; setState(next);
+    onNavigationBlocked(saving.current || workingRef.current || next === 'saving' || next === 'unknown');
+  }, [onNavigationBlocked]);
+  function changeWorking(next: boolean) { workingRef.current = next; setWorking(next); reportBlocked(); }
   useEffect(() => { valuesRef.current = values; }, [values]);
   useEffect(() => { savedRef.current = saved; }, [saved]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; controller.current?.abort(); }; }, []);
@@ -59,7 +67,9 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
   const dirtyKeys = rows.filter(r => !sameRow(values.get(r.key), savedMap.get(r.key))).map(r => r.key);
   const invalid = (r: ProgramplanTermRow) => { const p = values.get(r.key) ?? blank(); return p.some(n => !Number.isSafeInteger(n) || n < 0) || sum(p) > r.points; };
   const anyInvalid = rows.some(invalid);
-  useUnsavedChanges(`programplan-board-${scope}`, dirtyKeys.length > 0 || state === 'saving');
+  const navigationBlocked = working || state === 'saving' || state === 'unknown';
+  useUnsavedChanges(`programplan-board-${scope}`, dirtyKeys.length > 0 || navigationBlocked);
+  useUnsavedChanges(`navigation-block:programplan-board-${scope}`, navigationBlocked);
   const distribution = useMemo(() => fromMap(rows, values), [rows, values]);
   useEffect(() => { onTerms(saved ? distribution : null); }, [saved, distribution, onTerms]);
   useEffect(() => () => onTerms(null), [onTerms]);
@@ -83,41 +93,47 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
     return () => c.abort();
   }, [readTerms, plan.revision, failed]);
 
-  const save = useCallback(async (): Promise<boolean> => {
-    if (!savedRef.current || plan.status !== 'utkast') return false;
+  const save = async (): Promise<boolean> => {
+    if (!savedRef.current || plan.status !== 'utkast' || stateRef.current === 'unknown') return false;
     if (saving.current) { pending.current = true; return false; }
     const own = fromMap(rows, valuesRef.current);
-    try { validateProgramplanTermDistribution(rows, own); } catch { setState('error'); setMessage('Rätta de markerade raderna. En rad kan inte ha fler poäng än nivån.'); return false; }
+    try { validateProgramplanTermDistribution(rows, own); } catch { changeState('error'); setMessage('Rätta de markerade raderna. En rad kan inte ha fler poäng än nivån.'); return false; }
     const before = savedRef.current;
     if (own.length === before.distribution.length && own.every(r => sameRow(r.points, toMap(before.distribution).get(r.rowKey)))) return true;
-    saving.current = true; setState('saving'); setMessage(null);
+    saving.current = true; changeState('saving'); setMessage(null);
     const c = new AbortController();
     try {
       const body = parseProgramplanTermReply(await api.post('/api/programplaner/terminer', { planId: plan.id, expectedRevision: before.revision, distribution: own }, c.signal));
       if (body.planId !== plan.id || body.revision !== before.revision + 1) throw new Error('Sparandet kunde inte bekräftas.');
       if (!mounted.current) return true;
-      savedRef.current = body; setSaved(body); setState('idle'); return true;
+      savedRef.current = body; setSaved(body); changeState('idle'); return true;
     } catch (e) {
       if (!mounted.current || failed(e)) return false;
-      if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { setState('mfa'); setMessage('Verifiera med engångskod för att spara. Dina värden finns kvar tills du lämnar sidan.'); }
-      else if (e instanceof ApiError && e.status === 409 && e.code === 'conflict') { setState('conflict'); setMessage('Någon annan har ändrat planen. Dina osparade värden finns kvar.'); }
-      else if (e instanceof ApiError && e.hasExplicitCode && (e.code === 'bad_request' || e.code === 'audit_unavailable')) { setState('error'); setMessage(`Kunde inte spara. ${e.message}`); }
+      if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { changeState('mfa'); setMessage('Verifiera med engångskod för att spara. Dina värden finns kvar tills du lämnar sidan.'); }
+      else if (e instanceof ApiError && e.status === 409 && e.code === 'conflict') { changeState('conflict'); setMessage('Någon annan har ändrat planen. Dina osparade värden finns kvar.'); }
+      else if (e instanceof ApiError && e.hasExplicitCode && (e.code === 'bad_request' || e.code === 'audit_unavailable')) { changeState('error'); setMessage(`Kunde inte spara. ${e.message}`); }
       else {
         try {
           const back = await readTerms(c.signal); if (!mounted.current) return false;
-          if (back.revision === before.revision + 1 && back.distribution.length === own.length && own.every(r => sameRow(r.points, toMap(back.distribution).get(r.rowKey)))) { savedRef.current = back; setSaved(back); setState('idle'); return true; }
-          setState('unknown'); setMessage('Sparandet kunde inte bekräftas. Dina värden finns kvar.');
-        } catch (inner) { if (mounted.current && !failed(inner)) { setState('unknown'); setMessage('Sparstatus kunde inte läsas. Dina värden finns kvar.'); } }
+          if (back.revision === before.revision + 1 && back.distribution.length === own.length && own.every(r => sameRow(r.points, toMap(back.distribution).get(r.rowKey)))) { savedRef.current = back; setSaved(back); changeState('idle'); return true; }
+          savedRef.current = back; setSaved(back); changeState('conflict'); setMessage('Aktuell fördelning har lästs. Jämför dina värden innan du sparar igen.');
+        } catch (inner) { if (mounted.current && !failed(inner)) { changeState('unknown'); setMessage('Sparstatus kunde inte läsas. Dina värden finns kvar.'); } }
       }
       return false;
     } finally {
-      saving.current = false;
-      if (pending.current && mounted.current) { pending.current = false; queueMicrotask(() => void save()); }
+      saving.current = false; reportBlocked();
+      if (pending.current && mounted.current && !['unknown', 'conflict', 'mfa'].includes(stateRef.current)) { pending.current = false; queueMicrotask(() => void save()); }
     }
-  }, [plan.id, plan.status, rows, readTerms, failed]);
+  };
 
-  const update = (key: string, points: ProgramplanTermPoints) => { setValues(v => { const next = new Map(v); next.set(key, points); return next; }); if (state === 'error') { setState('idle'); setMessage(null); } };
-  const commit = () => { if (editable && ['idle', 'saving', 'error'].includes(state)) queueMicrotask(() => void save()); };
+  const update = (key: string, points: ProgramplanTermPoints) => { const next = new Map(valuesRef.current); next.set(key, points); valuesRef.current = next; setValues(next); if (state === 'error') { changeState('idle'); setMessage(null); } };
+  const commit = () => {
+    if (editable && ['idle', 'saving', 'error'].includes(stateRef.current)) {
+      // Blur kan starta sparning före nästa navigationsklick; parent spärras direkt.
+      onNavigationBlocked(true);
+      queueMicrotask(() => { void save().finally(() => { if (mounted.current) reportBlocked(); }); });
+    }
+  };
   const setCell = (row: ProgramplanTermRow, i: number, raw: string) => { const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints; const n = raw.trim() === '' ? 0 : Number(raw); p[i] = Number.isFinite(n) ? n : NaN; update(row.key, p); };
   const fillCell = (row: ProgramplanTermRow, i: number) => {
     const p = [...(values.get(row.key) ?? blank())] as ProgramplanTermPoints, rest = row.points - sum(p);
@@ -125,16 +141,26 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
   };
   const splitYear = (row: ProgramplanTermRow) => { const y = firstYear(values.get(row.key)) ?? 0, p = blank(); p[y * 2] = Math.floor(row.points / 2); p[y * 2 + 1] = row.points - p[y * 2]; update(row.key, p); commit(); };
   const clearRow = (row: ProgramplanTermRow) => { update(row.key, blank()); commit(); };
-  const suggest = () => { const next = suggestProgramplanTerms(rows, fromMap(rows, values), ranks); setValues(toMap(next)); commit(); };
+  const suggest = () => { const next = suggestProgramplanTerms(rows, fromMap(rows, values), ranks); valuesRef.current = toMap(next); setValues(valuesRef.current); commit(); };
   async function keepMine() {
-    const c = new AbortController(); setState('saving');
-    try { const back = await readTerms(c.signal); if (!mounted.current) return; savedRef.current = back; setSaved(back); setState('idle'); setMessage(null); await save(); }
-    catch (e) { if (mounted.current && !failed(e)) { setState('unknown'); setMessage('Planen kunde inte läsas. Läs om planen.'); } }
+    if (saving.current || workingRef.current || stateRef.current === 'saving') return;
+    const c = new AbortController(); changeState('saving');
+    try {
+      const currentPlan = parseProgramplan(await api.post('/api/programplaner/lasa', { planId: plan.id }, c.signal));
+      if (!mounted.current) return;
+      if (currentPlan.id !== plan.id) throw new Error('Fel plan i sparstatus.');
+      if (currentPlan.status !== 'utkast' || JSON.stringify(currentPlan.basisReference) !== JSON.stringify(plan.basisReference)) {
+        await onReload(); return;
+      }
+      const back = await readTerms(c.signal); if (!mounted.current) return;
+      if (back.revision !== currentPlan.revision) throw new Error('Planen ändrades under sparstatusläsningen.');
+      savedRef.current = back; setSaved(back); changeState('idle'); setMessage(null); await save();
+    } catch (e) { if (mounted.current && !failed(e)) { changeState('unknown'); setMessage('Sparstatus kunde inte läsas. Dina värden finns kvar. Läs om planen.'); } }
   }
 
   async function changeSpecialization(refs: ProgramplanLevelRef[], cleared?: string) {
-    if (!editable || working) return;
-    setWorking(true); setMessage(null);
+    if (!editable || workingRef.current || saving.current || ['saving', 'unknown'].includes(stateRef.current)) return;
+    changeWorking(true); setMessage(null);
     try {
       if (cleared && values.get(cleared)?.some(n => n > 0)) { update(cleared, blank()); valuesRef.current = new Map(valuesRef.current).set(cleared, blank()); }
       if (dirtyKeys.length || cleared) { if (!await save()) return; }
@@ -144,23 +170,28 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
       await onReload();
     } catch (e) {
       if (!mounted.current || failed(e)) return;
-      if (e instanceof ApiError && e.status === 409) { setState('conflict'); setMessage('Någon annan har ändrat planen. Läs om planen innan du ändrar fördjupningen.'); }
-      else if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { setState('mfa'); setMessage('Verifiera med engångskod för att ändra fördjupningen.'); }
+      if (e instanceof ApiError && e.status === 409) { changeState('conflict'); setMessage('Någon annan har ändrat planen. Läs om planen innan du ändrar fördjupningen.'); }
+      else if (e instanceof ApiError && e.hasExplicitCode && e.code === 'mfa_required') { changeState('mfa'); setMessage('Verifiera med engångskod för att ändra fördjupningen.'); }
       else if (e instanceof ApiError && e.hasExplicitCode && ['bad_request', 'audit_unavailable', 'forbidden'].includes(e.code)) setMessage(`Kunde inte ändra fördjupningen. ${e.message}`);
       else {
         // Okänt svar: läs tillbaka i stället för att skriva igen.
         try {
           const back = parseProgramplan(await api.post('/api/programplaner/lasa', { planId: plan.id }, new AbortController().signal));
           if (back.id === plan.id && back.revision === (savedRef.current?.revision ?? -1) + 1 && sameProgramplanLevels(back.basisReference?.specializationRefs ?? [], refs)) { await onReload(); return; }
-          setMessage('Fördjupningen kunde inte ändras. Läs om planen och försök igen.');
-        } catch (inner) { if (mounted.current && !failed(inner)) setMessage('Sparstatus kunde inte läsas. Läs om planen innan du försöker igen.'); }
+          if (back.id !== plan.id) throw new Error('Fel plan i sparstatus.');
+          await onReload();
+        } catch (inner) { if (mounted.current && !failed(inner)) { changeState('unknown'); setMessage('Sparstatus kunde inte läsas. Läs om planen innan du försöker igen.'); } }
       }
-    } finally { if (mounted.current) setWorking(false); }
+    } finally { if (mounted.current) changeWorking(false); }
   }
 
+  async function reloadBoard() {
+    try { await onReload(); }
+    catch (e) { if (mounted.current && !failed(e)) { changeState('unknown'); setMessage('Aktuell sparstatus kunde inte läsas. Läs om planen innan du lämnar den.'); } }
+  }
   const locked = !editable || working || state === 'conflict' || state === 'unknown' || state === 'mfa';
 
-  if (loadError) return <div className="pp-alert" role="alert"><p>{loadError}</p><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button></div>;
+  if (loadError) return <div className="pp-alert" role="alert"><p>{loadError}</p><Button variant="outline" onClick={() => void reloadBoard()}>Läs om planen</Button></div>;
   if (!saved) return <output className="ppb-loading">Hämtar programplanen…</output>;
   return <PlanGrid focusIssue={focusIssue} program={program} orientationCode={basis.orientationCode} refs={basis.specializationRefs} options={options} rows={rows} values={values}
     choiceBlocks={basis.choiceBlocks} dirtyKeys={dirtyKeys} editable={editable} refsEditable={editable} locked={locked} busy={state === 'saving' || working}
@@ -169,8 +200,8 @@ export default function ProgramplanBoard({ focusIssue, plan, program, options, s
     onCell={setCell} onFill={fillCell} onSplit={splitYear} onClear={clearRow} onSuggest={suggest} onRowLeave={commit}
     onAdd={o => void changeSpecialization([...basis.specializationRefs, programplanReference(o)])} onRemove={(ref, key) => void changeSpecialization(basis.specializationRefs.filter(r => r !== ref), key)}>
     {message && state !== 'mfa' && <div className={state === 'idle' ? 'pp-notice' : 'pp-alert'} role="alert"><p>{message}</p>
-      {state === 'conflict' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button>{dirtyKeys.length > 0 && <Button onClick={() => void keepMine()}>Spara mina värden</Button>}</div>}
-      {state === 'unknown' && <div className="pp-actions"><Button variant="outline" onClick={() => void onReload()}>Läs om planen</Button><Button onClick={() => { setState('idle'); void save(); }}>Försök spara igen</Button></div>}</div>}
+      {state === 'conflict' && <div className="pp-actions"><Button variant="outline" onClick={() => void reloadBoard()}>Läs om planen</Button>{dirtyKeys.length > 0 && <Button onClick={() => void keepMine()}>Spara mina värden</Button>}</div>}
+      {state === 'unknown' && <div className="pp-actions"><Button variant="outline" onClick={() => void reloadBoard()}>Läs om planen</Button><Button onClick={() => void keepMine()}>Försök spara igen</Button></div>}</div>}
     {state === 'mfa' && <MfaStepUpNotice message={message ?? 'Verifiering med engångskod krävs.'} detail="Dina värden finns kvar här. Om du väljer verifiering lämnar du sidan; osparade värden följer inte med."/>}
   </PlanGrid>;
 }

@@ -38,7 +38,9 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
   const saving = useRef(false);
   const dirty = draft !== null && draft.mode !== 'applied'
     && (draft.value !== String(draft.original) || draft.uncertain || draft.mode !== 'draft');
+  const navigationBlocked = busy && draft !== null || draft?.mode === 'refreshing' || draft?.mode === 'refresh-failed';
   useUnsavedChanges(`timplan-${epoch}-${context.assignmentId}`, dirty || busy && draft !== null);
+  useUnsavedChanges(`navigation-block:timplan-${epoch}-${context.assignmentId}`, navigationBlocked);
 
   const invalidate = useCallback(() => {
     generation.current += 1;
@@ -77,7 +79,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
   }, [loadList, invalidate]);
 
   async function openPlan(planId: string) {
-    if (busy || dirty && !confirmDiscard()) return;
+    if (saving.current || navigationBlocked || busy || dirty && !confirmDiscard()) return;
     const request = begin();
     setPlan(null); setDraft(null); setNotice(null); setError(null); setBusy(true); setShownColumn('all');
     try {
@@ -90,11 +92,11 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
   }
 
   function closeDraft() {
-    if (busy || dirty && !confirmDiscard()) return;
+    if (saving.current || navigationBlocked || busy || dirty && !confirmDiscard()) return;
     setDraft(null);
   }
   function edit(rowId: string, columnIndex: number) {
-    if (!plan || busy || !canChangeTimplanCell(plan,context.function,rowId,columnIndex)) return;
+    if (!plan || saving.current || navigationBlocked || busy || !canChangeTimplanCell(plan,context.function,rowId,columnIndex)) return;
     const value = cellHours(plan,rowId,columnIndex)!;
     setNotice(null);
     setDraft({ weekly:plan.education.kind==='introduktionsprogram', planId:plan.id, rowId, rowLabel:timplanRows(plan).find(row=>row.id===rowId)!.label,
@@ -197,7 +199,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
         </>}
       </>}
       {plan && <>
-        <div className="pt-toolbar"><Button variant="ghost" disabled={busy} onClick={()=>{if(!dirty||confirmDiscard())void loadList(page);}}><ArrowLeft size={18}/>Alla timplaner</Button>
+        <div className="pt-toolbar"><Button variant="ghost" disabled={busy||navigationBlocked} onClick={()=>{if(!saving.current&&!navigationBlocked&&(!dirty||confirmDiscard()))void loadList(page);}}><ArrowLeft size={18}/>Alla timplaner</Button>
           <Button variant="outline" disabled={busy||Boolean(draft)} onClick={()=>void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button></div>
         <div className="pt-plan-header"><div><p>{plan.schoolName} · {plan.education.cohort}</p><h2>{plan.education.name}</h2><p>Version {plan.version} <span className={`pt-status pt-status-${plan.status}`}>{statusLabel[plan.status]}</span></p></div>
           <span className="pt-read-state">{context.function==='huvudman'?'Läsvy för huvudman':!['utkast','atersand'].includes(plan.status)?'Versionen är låst för ändring':'Välj en timcell för att ändra'}</span></div>
@@ -237,7 +239,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, onSessionLos
             {draft.mode==='draft' && <output>{busy?'Sparar ändringen…':dirty?'Osparad ändring':'Ingen ändring ännu'}</output>}
             {draft.mode==='refresh-failed'&&<p>Ditt värde: <strong>{draft.value}</strong>. Den tidigare matrisen är dold tills aktuell timplan kan hämtas.</p>}
             {draft.mode==='compare'&&!draftEditable&&<p className="pt-alert">Den aktuella cellen är inte längre öppen för ändring.</p>}
-            <div className="pt-dialog-actions"><Button variant="outline" disabled={busy} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>
+            <div className="pt-dialog-actions"><Button variant="outline" disabled={busy||navigationBlocked} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>
               {draft.mode==='refresh-failed'?<Button disabled={busy} onClick={()=>void reloadDraft()}>Läs om planen</Button>
                 :['draft','compare'].includes(draft.mode)&&<Button disabled={busy||!draftEditable} onClick={()=>void saveDraft()}>{busy?'Sparar…':draft.mode==='compare'?'Använd min ändring':'Spara ändring'}</Button>}
             </div>

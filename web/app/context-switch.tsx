@@ -48,15 +48,21 @@ function endedText(assignment: SessionAssignment): string {
 }
 
 export default function ContextSwitch({ context, assignments, onChanged }: Props) {
+  const navigationBlocked = useHasUnsaved('navigation-block:');
   const hasUnsaved = useHasUnsaved();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [shownValue, setShownValue] = useState(context?.assignmentId ?? '');
   const activeValue = context?.assignmentId ?? '';
-  const selectedValue = busy || error !== null ? shownValue : activeValue;
+  const selectedValue = busy ? shownValue : activeValue;
 
   async function change(assignmentId: string) {
-    if (!assignmentId || assignmentId === activeValue) return;
+    if (busy || !assignmentId || assignmentId === activeValue) return;
+    if (navigationBlocked) {
+      setShownValue(activeValue);
+      setError('Invänta sparandet eller läs sparstatus innan du byter uppdrag.');
+      return;
+    }
     if (hasUnsaved && !confirmDiscard()) {
       setShownValue(activeValue);
       return;
