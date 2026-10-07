@@ -52,6 +52,8 @@ must_haves:
 
 **Omfattning:** Åtta implementation-/provfiler, tre sekventiella uppgifter med högst fem filer vardera. Bara befintlig privat `public.phase5_planning_year_rows(jsonb)` ersätts i SQL. Ingen ny RPC, authzprincip, verksamhetsmutation, tabell, index, grant, elevrättighet eller beslutskommando. UI-tabell och handbok genomförs i 05-40/43 efter detta läsunderlag. Krävs en ytterligare SQL-signatur eller annan princip delas arbetet före implementation.
 
+**Förberedelsegräns 2026-10-07:** Under den pågående oförändrade prestandakörningen får strikt parser och nya korrektiv-/provkällor förberedas i samma isolerade managed worktree som UI05-39. Endast rena käll-/kontraktskontroller tillåts där. Detta är förberedelse, inte genomförd dependency, tillämpning eller verifierat beteende. Huvudkopians verifieringskällor och det verkliga målet förblir orörda. Integration, Worker-bygge, DB-/API-prov och planens genomförandestatus kräver fortfarande fullständigt tillämpat prestanda-PASS; korrektivet måste då jämföras på nytt med den faktiskt tillämpade definitionshashen. Historiska bevis och samtliga accepterade grindar består.
+
 <objective>
 Ge 05-40 verkligt sökbara och visningsbara utbildningsdetaljer utan att ändra skol-/års-/plan-/källavgränsningen.
 Purpose: Lokal benämning kan skilja sig från programnamn; en kod på senare sida måste hittas av servern och äldre planversioner måste förbli öppningsbara med sina verkliga referenser.
