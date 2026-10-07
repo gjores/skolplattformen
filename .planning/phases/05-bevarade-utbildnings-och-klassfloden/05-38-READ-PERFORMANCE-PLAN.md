@@ -50,6 +50,8 @@ must_haves:
 
 **Avgränsning:** Fem implementation-/provfiler för en befintlig privat funktion. Ingen API-, UI-, authz-, tabell-, index-, grant- eller skrivfunktion ändras. Originalmigrationerna 05-37/38 och de 93 ursprungliga SQL-proven är oföränderliga. Källinventering/SUMMARY/VERIFICATION uppdateras som GSD-resultat efter utförandet. Krävs fler DB-funktioner eller förändrat kontrakt delas arbetet före implementation.
 
+**Villkorad reservförberedelse 2026-10-07:** Om den oförändrade fullkörningen åter visar enbart gammal HTTP-timeout, får en ny explicit verifieringsprecisering granskas: ärligt censurerade gamla 30s-observationer med okänd svarstid/svarskropp, bevisat avslutad ägd DB-transaktion/auditpar och konservativ förbättringsundregräns. Oförändrade, rapporthash-/Git-källbundna SQL143/46- och 93/18-delbevis kan då återbrukas öppet, med färska bevarandebaslinjer och utan att gamla FAIL skrivs om. Kandidat-/SQL-/runtimebytes måste bestå; ett nytt motsägande SQL-resultat hindrar återbruk. Endast isolerad reservkod och rena grindprov får förberedas nu. Nuvarande fullkörning, nio lyckade gamla HTTP-svar och övriga accepterade kriterier gäller oförändrat tills resultatet är bedömt och en konkret eventuell planprecisering är dokumenterad. Ingen reservväg ger dagens plan-PASS i förväg.
+
 <objective>
 Minska programlistans upprepade katalogupplösning så att kommande sökbara tabeller kan användas, med exakt bevarat underlag och skydd.
 Purpose: Nuvarande programväg anropar katalog-/radräkning via source, gym_cells och validate_terms för varje plan och skola. Fixturens 52 programramar har endast tre distinkta fullständiga underlagsnycklar; verifierat återbruk inom anropet kan minska detta arbete utan att dela mandat eller planidentiteter.
