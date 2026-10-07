@@ -5,12 +5,12 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: UI05-39 C04body och fullcleanup PASS men generell confirm gav FAIL. Registry registreras i layoutcommit före nästa event; nytt produktbygge och C04/fullC16 återstår.
+stopped_at: UI05-39 C04 komplett PASS; fullmatris C01–07desktop PASS, C08body PASS men sen lista stage-seen gav deferred. Fjärde egen recovery före nytt C08/fullC16.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: f26fa5f
-verification_worker_build_revision: dd44848ad37b4510594a44ef316505ae1c978649
+state_head: c86f184
+verification_worker_build_revision: c86f184fc4fab22001253d6c58d9765ac64d4150
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 sjunde matris 2026-10-07:** Nytt isolerat bygge `c86f184` och oförändrad Cspec `7e8d48a0`; avgränsat C04-datorprov full PASS med dialog=[] och full cleanup ([rapport](../work/pilot/results/phase5-39-context-bounded-guard-seventh-20261007.json), SHA `ba8fa27f`). Färsk fullmatris ger C01–07-dator PASS. C08:s samtliga säkerhets-/beteendeassertioner passerar (accepterad skrivning, faktisk401, rensat gammalt urval, ny rektorssession och setup200), men ny sessions programlista var fortfarande stage-seen vid testets slut. Strict teardown gav deferred och ingen cleanup för senaste graf `f75d91ad`. [Första fullrapport](../work/pilot/results/phase5-39-context-actual-seventh-20261007.json) SHA `94268766` bevaras; telefonens åtta fall startade inte. Worker3060 exakt stoppad/disposed parent5194/child5203/workerd5206. Egen C08 inväntar nu faktisk lista200/strikt parsad body/rätt renewed-auditpar och helt färdig listvy innan capture/teardown; inga gamla assertions eller tidsgränser ändras. Fjärde källgranskad egen recovery krävs före nytt fixtureprov; 83/100 består.
 
 **UI39 sjätte avgränsade C04 2026-10-07:** Samtliga verksamhetsassertioner PASS: blockerad navigation/Back, samma originalvärde och Sparar…, en faktisk skrivning/auditpar, bekräftad återläsning samt oförändrad programkälla/annan skola. Alla 15 heltabeller/audit-/identitets-/foreigncleanup PASS, ingen recovery behövs. Hela provet förblir FAIL eftersom en generell confirm registrerades; [första rapport](../work/pilot/results/phase5-39-context-bounded-back-sixth-20261007.json) SHA `4c431771` bevaras. Delad unsaved-registry använde passiv effekt efter renderad skrivstatus. Minsta produkträttning registrerar samma dirty/spärr-ID i layoutcommit före nästa event; samma-blur-klick och efterkvittensnavigation måste fortsatt bevisas av oförändrad C-spec. Typ/lint/riktade prov och nytt isolerat skyddat bygge krävs före nytt actualC04/fullC16. 83/100 består; vanlig3012 oförändrad.
 
