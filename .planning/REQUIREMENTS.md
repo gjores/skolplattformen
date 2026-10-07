@@ -108,10 +108,10 @@ Användaren har beslutat om ett gemensamt läsår inom planeringsområdet, med s
 | Krav | Genomförandesteg | Verifieringsstatus |
 | --- | --- | --- |
 | PLANERING-01 | 05-36, 05-39; samlat prov 05-43 | Pending — 05-36 delar endast datumregeln och definierar separat läsurval; kontext/URL/retur/sessionsbyte återstår. |
-| PLANERING-02 | 05-36–38, 05-40, 05-42; samlat prov 05-43 | Pending — rena källprojektioner/GR-karta/IM och okända fall verifierade i 05-36; riktig scoped läsning och UI återstår. |
-| PLANERING-03 | 05-36–38, 05-40; samlat prov 05-43 | Pending — 05-36 kontrollerar filter, svars-eko och resultatfingeravtryck; verklig serversökning/sort/count/sidgränser återstår. |
-| PLANERING-04 | 05-36–38, 05-41–42; samlat prov 05-43 | Pending — 05-36 verifierar originalindex, källkonsistens, dedup och null/0; SQL/API/UI och spar-/klassbevarande återstår. |
-| PLANERING-05 | 05-37–38, 05-43; framtida S1/S3 för nya moduler | Pending — automatisk matris och mänsklig begriplighet separata; inget schema-/tjänste-/studieplans-PASS. |
+| PLANERING-02 | 05-36–38, 05-40, 05-42; samlat prov 05-43 | Pending — rena källprojektioner/GR-karta/IM och okända fall verifierade i 05-36; scoped stängd SQL-läsning verifierad i 05-37 (93 SQL/18 paritet/3 lås före/efter apply); API/UI återstår. |
+| PLANERING-03 | 05-36–38, 05-40; samlat prov 05-43 | Pending — 05-36 kontrollerar filter, svars-eko och resultatfingeravtryck; faktisk SQL-sökning/sort/count/50-radssidor verifierade i 05-37; Worker/UI återstår. |
+| PLANERING-04 | 05-36–38, 05-41–42; samlat prov 05-43 | Pending — 05-36 verifierar originalindex, källkonsistens, dedup och null/0; SQL-proveniens, dedup och 15 helradstabeller verifierade i 05-37; GR-originalkarta är okänd. API/UI och spar-/klassflödesprov återstår. |
+| PLANERING-05 | 05-37–38, 05-43; framtida S1/S3 för nya moduler | Pending — stängd lokal SQL-/mandat-/audit-/låsmatris 05-37 PASS; API/mänsklig begriplighet återstår; inget schema-/tjänste-/studieplans-PASS. |
 
 Se [beslut och gränser](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-CONTEXT.md), [färsk kodinventering](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-DISCOVERY.md) och [genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md). ADMIN-02/03/04, STUDY-01, GROUP-01 och SCHEMA-01/07 behåller sina egna återstående leveransgränser.
 
@@ -220,4 +220,4 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-10-06 — kompletterande PLANERING-01–05 spårade till 05-36–43; 05-36:s rena modell/läskontrakt PASS, övriga steg återstår. LLEG-/SCHEMA-/MODUL-mål behålls. V1:s 42 krav och åtta faser är oförändrade; inga nya verksamhetsverifieringar av läsårsplaneringen.*
+*Last updated: 2026-10-07 — PLANERING-01–05 spårade till 05-36–43; modell 05-36 och stängd lokal SQL 05-37 PASS. API/UI och samlade krav återstår. LLEG-/SCHEMA-/MODUL-mål behålls. V1:s 42 krav och åtta faser är oförändrade; inga nya verksamhetsverifieringar av läsårsplaneringen.*

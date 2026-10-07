@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-37
+current_plan: 05-38
 status: in_progress
-stopped_at: 05-36 modell/kontrakt PASS. Nästa 05-37 inte påbörjad. Besluts-/mobilgap, yrkesram, äldre omplanering och fas 4-checkpoint kvarstår.
-last_updated: "2026-10-06"
-last_activity: 2026-10-06
-last_activity_desc: "05-36 färdig: Node 70, oberoende prober 20, typ/lint PASS; nästa 05-37. Fulla krav/fas och gap kvarstår."
-state_head: 7cd309d
+stopped_at: 05-37 stängd SQL-foundation tillämpad/verifierad PASS. Nästa 05-38 inte påbörjad; övriga krav/gap kvarstår.
+last_updated: "2026-10-07"
+last_activity: 2026-10-07
+last_activity_desc: "05-37 färdig: 93 SQL/18 paritet/3 lås i rollback och applied, Node 6, 15 helradstabeller bevarade; nya RPC stängda. Nästa 05-38."
+state_head: 8c41326
 verification_worker_build_revision: e9ca1e7faa9c0a3ba51e3a430fc46c6e3b4a2a15
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -17,7 +17,7 @@ progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 98
-  completed_plans: 79
+  completed_plans: 80
 milestone_name: milestone
 ---
 
@@ -25,12 +25,14 @@ milestone_name: milestone
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-06)
+See: .planning/PROJECT.md (updated 2026-10-07)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Läsårsmodell och läskontrakt 05-36 är klara; skyddad SQL-läsning 05-37 är nästa steg, följd av 05-38–43. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
+**Current focus:** Modell 05-36 och stängd SQL-läsgrund 05-37 är klara. Nästa steg är 05-38, skyddade API:er och exakt läsgrant; därefter 05-39–43. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**SQL-läsgrund 2026-10-07 — avgränsat PASS:** [05-37](phases/05-bevarade-utbildnings-och-klassfloden/05-37-SUMMARY.md) är genomförd och exakt tillämpad i isolerad lokal protected-databas. Både rollback och applied: 93 SQL-prov, 18 faktisk kontraktsparitet och 3 verkliga kundlåsväntor PASS; Node 6 och riktade lås 9 PASS. Alla 15 hela originaltabeller/tidsstämplar, säkerhetsaudit, gamla ACL/funktionsdefinitioner och journal bevarade. Tre nya läs-RPC och elva hjälpare är fortsatt stängda; samma 25 befintliga Worker-entrypoints. GR-originalkartor saknar proveniens och ger okända årstimmar. [Exakt inventering](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-FUNCTION-INVENTORY.md). Nästa plan är **05-38, skyddad API-läsning och exakt läsgrant**; 80 av 98 skrivna planer är genomförda. PLANERING-01–05/hela fas 5 och övriga gap är fortsatt Pending. Ordinarie 3012 är oförändrad.
 
 **Läsårsmodell 2026-10-06 — avgränsat PASS:** [05-36](phases/05-bevarade-utbildnings-och-klassfloden/05-36-SUMMARY.md) är genomförd: källstyrt GY-/GR-/IM-årssnitt, strikta läskontrakt och skilda poäng-/tim-/klassmått. 70 riktade Node-prov, 20 oberoende verifierarprober och typ/lint PASS. Ingen ny SQL/API/UI eller serverändring följer av modellsteget. PLANERING-01–05 och hela fas 5 är fortsatt Pending. Nästa plan är **05-37, stängd SQL-läsgrund**; 79 av 98 skrivna planer har SUMMARY.
 
@@ -83,12 +85,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-37, stängd SQL-läsgrund — inte påbörjad. 05-36 modell/kontrakt PASS. 05-23 A–E PASS; äldre 05-25–35 kräver omplanering.
-**Total Plans in Phase:** 44 PLAN-filer: 42 numrerade planer, paketborttagning och programplan–timplan-övergång. 05-23 har avslutad SUMMARY; 05-25–35 och 05-37–43 saknar SUMMARY. 05-17 saknar PLAN. 05-36 har avgränsad SUMMARY och verifiering; 05-37–43 är endast planerade; mänskliga prov och full fasverifiering är separata.
+**Current Plan:** 05-38, skyddade API:er/exakt läsgrant — inte påbörjad. 05-37 tillämpad stängd SQL-foundation PASS; 05-36 modell/kontrakt PASS. 05-23 A–E PASS; äldre 05-25–35 kräver omplanering.
+**Total Plans in Phase:** 44 PLAN-filer: 42 numrerade planer, paketborttagning och programplan–timplan-övergång. 05-23 har avslutad SUMMARY; 05-25–35 och 05-38–43 saknar SUMMARY. 05-17 saknar PLAN. 05-36/37 har avgränsade SUMMARY och verifiering; 05-38–43 är endast planerade; mänskliga prov och full fasverifiering är separata.
 **Status:** 05-23/E tekniskt PASS lokalt. Grundflödet användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5 och båda nya gapen är Pending; 05-22 metadata PARTIAL består.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-10-06
-**Last Activity Description:** 05-36 modell/kontrakt färdig; 70 riktade Node-prov, 20 oberoende prober, typ/lint PASS. Nästa 05-37 är inte startad; SQL/API/UI återstår.
+**Last Activity:** 2026-10-07
+**Last Activity Description:** 05-37 tillämpad/verifierad stängd SQL-foundation PASS; 93 SQL/18 paritet/3 lås både före/efter apply, Node 6, 15 helradstabeller och ACL/journal bevarade. Nästa 05-38; API/UI återstår.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 

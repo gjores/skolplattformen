@@ -10,7 +10,7 @@ worker_build_revision_at_planning: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 
 # Genomförande: läsåret som sammanhang för planeringen
 
-**Aktuellt delresultat:** [05-36-SUMMARY](05-36-SUMMARY.md) och [oberoende verifiering](05-36-VERIFICATION.md) är klara: ren modell/läskontrakt med 70 Node-prov, 20 oberoende prober och typ/lint PASS. Nästa plan 05-37 är inte startad. SQL/API/UI i 05-37–43 och samtliga fulla PLANERING-krav kvarstår. Detta index beskriver både beställd planering och faktiskt avgränsad leverans. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
+**Aktuellt delresultat:** [05-36-SUMMARY](05-36-SUMMARY.md) och [oberoende verifiering](05-36-VERIFICATION.md) är klara: ren modell/läskontrakt med 70 Node-prov, 20 oberoende prober och typ/lint PASS. 05-37 är därefter tillämpad/verifierad som stängd SQL-foundation, se [SUMMARY](05-37-SUMMARY.md) och [inventering](05-PLANNING-YEAR-FUNCTION-INVENTORY.md): 93 SQL/18 paritet/3 lås både före/efter apply. Nästa plan 05-38 är inte startad. API/UI i 05-38–43 och samtliga fulla PLANERING-krav kvarstår. Detta index beskriver både beställd planering och faktiskt avgränsad leverans. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
 
 [Plangranskningen är klar](05-PLANNING-YEAR-PLAN-CHECK.md): åtta planer och 21 uppgifter har kontrollerade beroenden, avgränsningar och verifieringssteg. Inga granskningsfynd kvarstår. Detta bekräftar planens kvalitet; genomförande och verksamhetsprov återstår.
 
@@ -25,7 +25,7 @@ Byte av läsår är ett urval. Det ändrar inga statusar, beslut, fastställda v
 | Plan | Wave inom paketet | Uppgifter | Leverans och viktig gräns |
 | --- | --- | --- | --- |
 | [05-36](05-36-PLAN.md) | 1 | 2 | **Genomförd**, se SUMMARY/VERIFICATION. Ren läsårs-/snittmodell och strikt kontrakt. Januaristart, frysta datum, null/0 och GR/IM; inga DB-anrop. |
-| [05-37](05-37-PLAN.md) | 2 | 3 | Stängda SQL-läsprojektioner och faktisk foundation/paritet/ACL/bevaring. Inga Workergrants. |
+| [05-37](05-37-PLAN.md) | 2 | 3 | **Genomförd**, se SUMMARY/VERIFICATION. Stängda SQL-projektioner: 93 SQL/18 paritet/3 lås före/efter apply; 15 helradstabeller/ACL/journal bevarade. Inga nya Workergrants. |
 | [05-38](05-38-PLAN.md) | 3 | 3 | Tre läsrutter i Worker, riktig temporär preflight med exakt återställning, därefter tre exakta permanenta läsgrants och samma slutmatris. |
 | [05-39](05-39-PLAN.md) | 4 | 2 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
 | [05-40](05-40-PLAN.md) | 5 | 3 | Verklig årsöverblick, gemensam sök/filter/sort/pagination och program-/gymtimplanstabeller. |
