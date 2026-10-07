@@ -70,6 +70,26 @@ export async function createPlanningGymFixture(){
    await ownSource(tx,record);
    one(await tx`update public.offerings set start_year=${Number(startedOn.slice(0,4))},lifecycle_revision=lifecycle_revision+1
     where id=${record.offeringId} and organizer_id=${base.organizerId} returning id`,'gym_year_education_update');
+   if(index===0){
+    // The first clone alone exercises started-cohort read-only behavior. Its
+    // inherited secondary-school link would instead require a shared mandate.
+    // BaseL's original/shared/history offerings and all mandates stay unchanged.
+    await ownSource(tx,record);
+    const links=await tx`select ou.unit_id,ou.organizer_id,u.organizer_id school_organizer_id
+     from public.offering_units ou left join public.school_units u on u.id=ou.unit_id
+     where ou.offering_id=${record.offeringId} order by ou.unit_id for update of ou`;
+    if(links.length!==2||links.some(l=>l.organizer_id!==base.organizerId||l.school_organizer_id!==base.organizerId)
+     ||![base.unitId,base.secondUnitId].every(unitId=>links.some(l=>l.unit_id===unitId)))fail('gym_year_first_clone_exact_two_owned_schools');
+    const removed=one(await tx`delete from public.offering_units where offering_id=${record.offeringId}
+     and organizer_id=${base.organizerId} and unit_id=${base.secondUnitId} returning unit_id`,'gym_year_first_clone_secondary_link_removed');
+    if(removed.unit_id!==base.secondUnitId)fail('gym_year_first_clone_removed_wrong_school');
+    const remaining=await tx`select ou.unit_id,ou.organizer_id,u.organizer_id school_organizer_id
+     from public.offering_units ou left join public.school_units u on u.id=ou.unit_id
+     where ou.offering_id=${record.offeringId}`;
+    if(remaining.length!==1||remaining[0].unit_id!==base.unitId||remaining[0].organizer_id!==base.organizerId
+     ||remaining[0].school_organizer_id!==base.organizerId)fail('gym_year_first_clone_primary_school_preserved');
+    await ownSource(tx,record);
+   }
    Object.assign(record,{rowKey:row.key,rowName:row.name,levelName:row.levelName,pointTerms:[...POINTS]});
   });
   const sourceReply=await positive(base.principal,'/api/timplaner/gym/underlag',{sourcePlanId:record.sourcePlanId},'gym_timplan_basis_read',record.sourcePlanId,'programplan');

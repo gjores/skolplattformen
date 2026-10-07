@@ -148,7 +148,7 @@ function selection(r:Cohort,view:PlanningSelection['view'],schoolYear=metadata.p
  return parsePlanningSelection(planningSelection(schoolYear,{view,unitId:fixture.unitId,query:r.query,status:'all',cohortRelation:'all',archive:'all'}));
 }
 function address(q:PlanningSelection){return '/?'+new URLSearchParams({vy:q.view==='programplan'?'programplaner':'timplaner',
- planeringslasar:String(q.schoolYear),planeringsskola:q.unitId??'all',planeringsform:'GY',planeringssok:q.query,
+ planeringslasar:String(q.schoolYear),planeringsskola:q.unitId??'all',planeringsform:'gymnasium',planeringssok:q.query,
  planeringsstatus:'all',planeringskull:'all',planeringsarkiv:'all'});}
 async function enter(page:Page,r:Cohort,view:PlanningSelection['view'],schoolYear=metadata.planningYear,actor=fixture.principal){
  browserActor=actor;const input=selection(r,view,schoolYear),wait=page.waitForResponse(match(LIST));
@@ -281,6 +281,13 @@ test('G01: tre verkliga kullar öppnar åk1/2/3 i både program och timplan',asy
    await expect(w.locator('thead')).toContainText(`HT ${metadata.planningYear}`);await expect(w.locator('thead')).toContainText(`VT ${metadata.planningYear+1}`);
    await capture(page,info,`three-cohorts-${view}-${relative}`);
   }
+ }
+ const literal=metadata.cohorts[0];expect(literal.startedOn).toBe('2026-08-17');
+ for(const view of ['programplan','timplan'] as const){
+  const row=await enter(page,literal,view,2027);expect(row.relativeYear).toBe(2);await visualYear(page,view,2);
+  const w=view==='programplan'?board(page):gym(page);await expect(w.locator(view==='programplan'?'.ppb-year-context':'.gt-year-context')).toContainText('avser årskurs 2');
+  await expect(w.locator('thead')).toContainText('HT 2027');await expect(w.locator('thead')).toContainText('VT 2028');
+  await capture(page,info,`literal-2027-start-2026-${view}-2`);
  }
 });
 test('G02: program-åk2 sparar originalindex2 och hela sexvärdesdistributionen',async({page},info)=>{

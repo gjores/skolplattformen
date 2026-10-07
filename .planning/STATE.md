@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 G01×2 PASS; andra fullmatris G01–09 datorPASS/G10 fixturskolscopeFAIL.10normalcleanup; källa avgränsas före nyttprov/fullG38/C04×2.
+stopped_at: UI05-41 egen skolscope granskad och integrerad; nytt isolerat bygge/G01+G10×2 före fullG38/C04×2.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-41 andra fullmatris stannade på provets delade skolscope; samtliga10cleanup PASS. Vanlig3012 bevarad."
+last_activity_desc: "UI05-41 första egna klonens skolscope avgränsad efter exakta ägarkontroller; endast käll-PASS, nytt faktiskt prov återstår."
 state_head: 2689e90
 verification_worker_build_revision: 2689e90045724e135b0c52f3cf6f22cff3e8e64f
 worker_status: running_on_3012
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 skolscope2026-10-08 — käll-PASS:** Selektiv ed1de618/fixtur271215ad/Gspec4bcec561 är ROOT- och oberoende granskad med17 rena prov. Enbart första egna klonens B-länk tas bort inom samma transaktion efter full ägar-/källkontroll, exakt två egna A+B-länkar och lås; exakt A och källägande återkontrolleras. Ursprunglig delning/historik och alla mandat består. G01 lägger till faktiskt kalenderprov2027/start2026→åk2 i båda vyerna; kanonisk gymnasium-URL tar bort provets normaliseringsnotis. G02–19/assertions/tidsgrindar är oförändrade. Tidigare caaf8637/850eb835/875c48af består; inga nya actualprov ännu. Nytt isolerat bygge och G01+G10×2 före fullG38/C04×2,85/100 och vanlig3012 består.
 
 **UI41 andra fullmatris2026-10-08:** Source/build2689e90/Gdbb/fixtur618. Föregående G01×2 actual850eb835 PASS med2normalcleanup/24sources/241produktkällor/12bilder+geometrier på dator/telefon. Färsk fullmatriscaaf8637: G01–09 datorPASS, G10 FAIL före arkivkontroll eftersom egen första sidutbildning delas med skola utanför rektorsmandatet. Legitim mandatspärr prioriteras före den efterfrågade starttexten; ingen produktregel ändras för provet.28fall ej startade. Samtliga10normalcleanup/full15/audit-/identitetsankare/ownforeignlistGY-och-DDLzero PASS; ingen recovery behövs. Endast egen gymfixturs första klon avgränsas till skolaA så startspärren kan prövas isolerat. Bildernas tidigare ogiltiga GY-URLmarkör/fokushopplänk är redovisade begränsningar.3060 kör2689; ny källreview/bygge/riktadeprov/fullG38/C04×2 återstår.85/100 och vanlig3012 består.
 
