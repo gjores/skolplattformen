@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: UI05-39 fjärde ägda recovery PASS; färskt C08 dator/telefon följt av fullC16 krävs på granskad Cspec8cf och produktbyggec86.
+stopped_at: UI05-39 C08 desktop PASS/phone body+cleanup PASS men två selectfält23px. Avgränsad44px CSSrättning och nytt bygge före C08×2/fullC16.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 åttonde avgränsade C08 2026-10-07:** Desktop PASS; telefonens sessionsutgång, rensning och nya faktiska list/audit PASS, men geometri FAIL: båda planeringsselectfält var 23px i mobil-WebKit trots min-height44px. Första rapport `541f18a6` bevaras. Båda provens full15/audit-/identitets-/foreigncleanup PASS, ingen recovery behövs. Endast befintlig selectregel kompletteras med explicit height44px; oförändrad provgrind och färskt skyddat bygge krävs före C08×2/fullC16. 83/100 består, vanlig3012 oförändrad.
 
 **UI39 fjärde ägda återställning 2026-10-07 — avgränsat PASS:** Läsande förkontroll `dbaf8a55` och faktisk städning på samma frysta skript `98924ca8` PASS, inklusive postcommit. Endast syntetiska grafen `f75d91ad` och dess 14 egna sessioner städades. Ursprungliga 15 heltabeller, SEARCH-katalog/rå ACL, full aktuell audit, alla äldre identiteter, tre tidigare mandatgrafer och egna kvarvarande auditankare är bevarade. Tidigare felrapporter består; detta är inget full39-bevis. Källgranskad C08 `8cf4d94a` inväntar full faktisk listladdning innan avslut. Nästa seriella C08 på dator/telefon, därefter fullC16; 83/100 består och vanlig3012 är oförändrad.
 

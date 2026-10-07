@@ -3,7 +3,7 @@
 .planning-context label { display: flex; flex-direction: column; gap: .2rem; font-size: .875rem; min-width: 0; }
 .planning-context label:first-of-type { flex: 1 1 12rem; max-width: 26rem; }
 .planning-context select, .planning-context button { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .65rem; border: 1px solid var(--border, #c8d0da); border-radius: .45rem; font: inherit; color: inherit; background: var(--background, #fff); }
-.planning-context select { width: 100%; }
+.planning-context select { width: 100%; height: 44px; }
 .planning-context button { cursor: pointer; }
 .planning-context button:disabled, .planning-context select:disabled { opacity: .55; cursor: default; }
 .planning-context select:focus-visible, .planning-context button:focus-visible { outline: 2px solid var(--ring, #235ca4); outline-offset: 2px; }
