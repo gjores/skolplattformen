@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-40
 status: in_progress
-stopped_at: UI05-40 boundedL13–17 PASS;L18 oväntad confirm vid remount.6fullcleanup PASS; initialread inväntar rensat registry före nytt bygge/prov.
+stopped_at: UI05-40 fullfjärde18dator PASS;mobilL01 tangentbordsrullning FAIL.19fullcleanup PASS.Explicit sidledspilar för fokusbar rullyta före bounded/fullomprov.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "UI05-39 fullC16/cleanup/geometri PASS; nästa sökbara årstabeller05-40. Vanlig3012 bevarad."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI40 fjärde matris:** Source/build3c3d011 och oförändrad L620e40be. Avgränsat L18×2 PASS (raw7ed6be40), därefter fullmatris18/18 dator PASS. MobilL01:s faktiskt korrekta52 rader/50+2 pagination/serverordning PASS, men fokusbar tabell rullade inte med ArrowRight i WebKit. Raw1dc13a5e bevaras;17 mobilfall ej startade. Alla19 normalcleanup/15helrader/audit-/identitetsankare och egna/foreign/listzero PASS, ingen recovery. Bara rullytans egna omodifierade sidledspilar får explicit80px rullning; barnkontrollers tangenter, focus/aria, dataläsning och provgrindar består. Källreview/typ/lint, nytt bygge och boundedL01×2 före färskt fullL36 återstår.84/100 och vanlig3012 består.
 
 **UI40 tredje avgränsade prov:** Sourcef5bd4f8/produktbyggeaa826f1, L13–17 dator PASS. L18:s verkliga skapande, okänt kvitto/spärr, full parentåterläsning, exakt skol-/plan-URL och reload PASS, men generell confirm registrerades vid skolbyte/remount. Raw3a56f4f5 bevaras; alla sex fullcleanup/15helrader/audit-/identitetsankare/foreign/listzero PASS, ingen recovery. Källorsak: nya workspace läste gamla Flow-registry före dess layoutcleanup och initialeffekt fångade gammal hasUnsaved. Endast initialmålet inväntar nu att osparat/spärr-registry är rensat innan vanlig icke-force-läsning startas. Inga guards, positiva assertions eller tidsgränser sänks. Nytt skyddat bygge och faktiskt L18×2 före fullL36 krävs;84/100 och vanlig3012 består.
 

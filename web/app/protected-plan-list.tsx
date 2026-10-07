@@ -100,9 +100,15 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
     {visible?.error && <p role="alert">{visible.error} <button type="button" onClick={() => { if (selected.selectionRevision !== null) requestChange({ page: 1, selectionRevision: null }); setRetry(n => n + 1); }}>Läs om listan</button></p>}
     {busy && <output>Läser planeringsunderlaget…</output>}
     {data && <><p className="plan-list-count">{data.count} planeringsrader{data.count > 0 ? ` · visar ${(selected.page - 1) * 50 + 1}–${(selected.page - 1) * 50 + data.rows.length}` : ''}</p>
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Bara själva fokusbara rullytan hanterar sidledspilar; tabellens kontroller behåller sina tangenter. */}
       {data.count === 0 ? <p>Inget underlag matchar valen. Rensa filtren eller välj ett annat läsår.</p> : <section className="plan-list-scroll" aria-label="Planeringstabell, kan rullas i sidled"
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla hela lästabellen, samma mönster som timmatrisen.
-        tabIndex={0}>
+        tabIndex={0} onKeyDown={event => {
+          if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          event.currentTarget.scrollBy({ left: event.key === 'ArrowRight' ? 80 : -80 });
+        }}>
         <table><caption>{selected.view === 'programplan' ? 'Programramar' : 'Skolans timplaner'} för valt läsår. Varje rad avser en faktisk skola och planversion.</caption>
           <thead><tr>{sort('name', 'Utbildning')} {sort('school', 'Skola')}{selected.schoolform === 'gymnasium' && <th scope="col">Program och inriktning</th>}{sort('cohort', 'Elevkull')}{sort('grade', 'Årets årskurs')}{sort('version', 'Planversion')}{sort('status', 'Planstatus')}
             {selected.schoolform === 'gymnasium' && sort('points', 'Årets poäng')}{selected.view === 'timplan' ? sort('hours', selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar') : <th scope="col">Underlag</th>}
