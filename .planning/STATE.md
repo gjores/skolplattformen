@@ -32,6 +32,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 
 ## Current Position
 
+**Första UI39-fel2026-10-07:** Source/builddd44848 skyddatbygge PASS. C01 förstaactualFAIL efter faktiskt200+exaktregisterurval: kortregisterformat25/26 jämfördes felaktigt med långtplaneringsformat2025/26. Två avbrutna läsningar saknar browsercompletion ochcleanupärdeferred; full förstaJSON327d7858 ochbilagorbevarade, ingen nästa fixture.3060 ärfulltstoppad, ägdkontroll/recovery förbereds. EgenCspec format/strictactualpassthrough rättas utan produkt-/cleanupgrindsrelax.83/100 består.
+
 **UI05-39 pågår2026-10-07:** Granskade kontext/writer/shelländringar integrerade i tre avgränsade commits. Slutlig Cspecaa6 med sticky completion/maxFailures1 före fixture;75 riktade prov,full typkontroll utan incremental/lint och oberoende källreview PASS. Isolerad ny Worker och faktisk C16dator/telefon återstår.83/100 består,vanlig3012 oförändrad.
 
 **SEARCH färdigt2026-10-07:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md) och oberoende verifiering. Fullrollback/applied271/38/23, original93/18 mot båda definitionerna i båda modes; oförändradAPI15/247 före/efter, sökning19/204 och12HTTP-svar under4,884s PASS. Exakt privat06123000+journal, full15/katalog/råACL28/audit-/identitetsankare ochcleanup PASS utan deferred. Första fixtur-/artifactfel och exakt återhämtning bevarade; ingen rekonstrueradPASS. Source43ab14c/build0913 i separat runtimearbetskopia, vanlig3012 fortsatt5dd7baf.83/100,3/8; nästa seriella39→40→41→42→43 och konkret användarprov. Fulla krav/gap kvarstår. Äldre pågående SEARCHbesked nedan är historik.
