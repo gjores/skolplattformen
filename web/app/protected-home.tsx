@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Building2,
   CalendarClock,
@@ -32,7 +32,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { contextLabel } from '@/lib/access-rules.ts';
-import { selectionFromQuery, selectionToQuery } from '@/lib/pupil-register-model.ts';
+import { selectionFromQuery, selectionToQuery, type Selection } from '@/lib/pupil-register-model.ts';
 import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client.ts';
 import { announce, onSessionMessage, shouldLock, type LockReason } from '@/lib/session-channel.ts';
 import {
@@ -53,7 +53,9 @@ import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-
 import ProtectedTimplanWorkspace from './protected-timplan-workspace';
 import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
 import ProtectedProgramplanWorkspace from './protected-programplan-workspace';
-import { planLocationQuery, readPlanLocation, type GymTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
+import { normalizePlanLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
+import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from './planning-context';
+import type { PlanningSelection } from '@/lib/planning-year-contract.ts';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 
 type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
@@ -77,9 +79,35 @@ export type SessionResponse = {
   correlationId: string;
 };
 
-const closedItems = [
-  ['Klasser och läsår', GraduationCap],
-] as const;
+const PLANNING_FUNCTIONS = ['huvudman', 'rektor', 'administrator'];
+const isPlanningView = (value: ProtectedView): value is 'programplaner' | 'timplaner' => value === 'programplaner' || value === 'timplaner';
+function sessionScope(value: SessionResponse | null | 'loading'): string {
+  return value && value !== 'loading' && value.context?.valid && !value.context.blocked
+    ? `${value.epoch}:${value.context.customerId}:${value.context.assignmentId}` : '';
+}
+function shellView(search: string, value: SessionResponse): ProtectedView {
+  const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
+  if (requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
+    || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
+    || requested === 'anslutning' && role === 'it') return requested as ProtectedView;
+  const params = new URLSearchParams(search);
+  if (PUPIL_FUNCTIONS.includes(role) && (requested === 'elever' || params.has('lasar') || params.has('skola'))) return 'elever';
+  return startView(value);
+}
+function PlanningArea({ location, children }: { location: PlanLocation | null; children: (selection: PlanningSelection) => ReactNode }) {
+  const { setup, selection } = usePlanningContext();
+  const blocked = useHasUnsaved('navigation-block:');
+  const normalized = setup && location ? normalizePlanLocation(location, setup) : null;
+  const canonical = !!location && !!normalized && planLocationQuery(location) === planLocationQuery(normalized.location);
+  const [lastCanonical, setLastCanonical] = useState<PlanningSelection | null>(null);
+  if (canonical && selection && JSON.stringify(lastCanonical) !== JSON.stringify(selection)) setLastCanonical(selection);
+  // Raw URL targets and form may differ until the shell has accepted normalization.
+  // Keep an existing writer on its last verified selection while its outcome is unknown.
+  const writerSelection = canonical ? selection : blocked ? lastCanonical : null;
+  const readable = setup && writerSelection && setup.units.some(unit => (writerSelection.unitId === null || unit.unitId === writerSelection.unitId)
+    && (writerSelection.view === 'programplan' ? unit.canRead.programplan : unit.canRead[writerSelection.schoolform]));
+  return <><PlanningContextBar/>{setup && writerSelection && readable ? children(writerSelection) : null}</>;
+}
 
 function startView(session: SessionResponse): ProtectedView {
   if (session.context?.function === 'granskare') return 'logg';
@@ -150,27 +178,17 @@ function ProtectedNavigation({
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-          <SidebarMenuItem>
-            <SidebarMenuButton isActive={view === 'timplaner'} aria-current={view === 'timplaner' ? 'page' : undefined}
-              onClick={() => go(session.context && ['huvudman','rektor','administrator'].includes(session.context.function) ? 'timplaner' : 'stangt')} className="nav-button">
-              <CalendarClock size={19}/><span>Timplaner</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton isActive={view === 'programplaner'} aria-current={view === 'programplaner' ? 'page' : undefined}
-              onClick={() => go(session.context && ['huvudman','rektor','administrator'].includes(session.context.function) ? 'programplaner' : 'stangt')} className="nav-button">
-              <ListChecks size={19}/><span>Programplaner</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem><SidebarMenuButton isActive={false} onClick={() => go(session.context && ['huvudman','rektor','administrator'].includes(session.context.function) ? 'programplaner' : 'stangt')} className="nav-button"><Building2 size={19}/><span>Utbildningar</span></SidebarMenuButton></SidebarMenuItem>
-          {closedItems.map(([label, Icon]) => (
-            <SidebarMenuItem key={label}>
-              <SidebarMenuButton isActive={false} onClick={() => go('stangt')} className="nav-button">
-                <Icon size={19} /><span>{label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
         </SidebarMenu>
+        {session.context && PLANNING_FUNCTIONS.includes(session.context.function) && <>
+          <div className="nav-caption">PLANERING</div>
+          <SidebarMenu className="main-nav" aria-label="Planering">
+            <SidebarMenuItem><SidebarMenuButton isActive={view === 'programplaner'} aria-current={view === 'programplaner' ? 'page' : undefined}
+              onClick={() => go('programplaner')} className="nav-button"><ListChecks size={19}/><span>Programplaner</span></SidebarMenuButton></SidebarMenuItem>
+            <SidebarMenuItem><SidebarMenuButton isActive={view === 'timplaner'} aria-current={view === 'timplaner' ? 'page' : undefined}
+              onClick={() => go('timplaner')} className="nav-button"><CalendarClock size={19}/><span>Timplaner</span></SidebarMenuButton></SidebarMenuItem>
+            <SidebarMenuItem><SidebarMenuButton isActive={false} onClick={() => go('programplaner')} className="nav-button"><Building2 size={19}/><span>Utbildningar</span></SidebarMenuButton></SidebarMenuItem>
+          </SidebarMenu>
+        </>}
       </SidebarContent>
       <SidebarFooter className="profile">
         <span className="avatar">{(session.identity.displayName ?? 'P').slice(0, 2).toUpperCase()}</span>
@@ -227,6 +245,12 @@ function ProtectedShell() {
   const [timplanYear, setTimplanYear] = useState('all');
   const [planNavigation, setPlanNavigation] = useState(0);
   const locationRef = useRef('');
+  const locationStateRef = useRef<unknown>(null);
+  const viewRef = useRef<ProtectedView>('stangt');
+  const [planningLocation, setPlanningLocation] = useState<PlanLocation | null>(null);
+  const planningLocationRef = useRef<PlanLocation | null>(null);
+  const registerSelectionRef = useRef<{ key: string; selection: Selection } | null>(null);
+  const [navigationNotice, setNavigationNotice] = useState<string | null>(null);
   const lastGymPlan = useRef<{ sourcePlanId: string; id: string } | null>(null);
   const [registerSetup, setRegisterSetup] = useState<RegisterSetup | null>(null);
   const [schoolYear, setSchoolYear] = useState<number | null>(null);
@@ -237,12 +261,17 @@ function ProtectedShell() {
   // Återkomst från en step-up där kontot saknar registrerad engångskod.
   const [stepUpWithoutOtp, setStepUpWithoutOtp] = useState(false);
   const hasUnsaved = useHasUnsaved();
+  const navigationBlocked = useHasUnsaved('navigation-block:');
+  const contextKey = sessionScope(session);
   const epochRef = useRef<number | null>(null);
 
   const sessionLoad = useRef(0);
   const sessionRef = useRef<SessionResponse | null>(null);
   const clearSession = useCallback((preserveAuthentication = false) => {
-    sessionLoad.current += 1; sessionRef.current = null;
+    sessionLoad.current += 1; sessionRef.current = null; epochRef.current = null;
+    locationRef.current = ''; locationStateRef.current = null; viewRef.current = 'stangt';
+    planningLocationRef.current = null; registerSelectionRef.current = null;
+    setPlanningLocation(null); setNavigationNotice(null); setView('stangt');
     // Avbryt även redan hämtade men ännu inte levererade elev-/CSV-svar.
     setKnownEpoch(null);
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
@@ -280,16 +309,25 @@ function ProtectedShell() {
         epochRef.current = loaded.epoch;
         setKnownEpoch(loaded.epoch);
         const previous = sessionRef.current;
-        const changed = previous !== null && (previous.epoch !== loaded.epoch || previous.context?.assignmentId !== loaded.context?.assignmentId);
-        if (changed) { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setTimplanYear('all'); lastGymPlan.current = null; }
+        const changed = previous !== null && (previous.epoch !== loaded.epoch || previous.context?.assignmentId !== loaded.context?.assignmentId || previous.context?.customerId !== loaded.context?.customerId);
+        if (changed) {
+          clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false);
+          registerSelectionRef.current = null; planningLocationRef.current = null; setPlanningLocation(null);
+          locationRef.current = ''; locationStateRef.current = null; setNavigationNotice(null);
+          setTimplanYear('all'); lastGymPlan.current = null;
+        }
         sessionRef.current = loaded;
         setSession(loaded);
         if (!previous || changed) {
           const location = !changed && ['huvudman','rektor','administrator'].includes(loaded.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
-          setView(location?.view ?? startView(loaded));
+          const nextView = location?.view ?? shellView(window.location.search, loaded);
+          setView(nextView); viewRef.current = nextView;
+          planningLocationRef.current = location; setPlanningLocation(location);
           setProgramplanTarget(location?.view === 'programplaner' ? location.programplan : null);
-          setTimplanTarget(location?.view === 'timplaner' ? location.gym : null); setTimplanMode('gym');
-          locationRef.current = window.location.pathname + window.location.search;
+          setTimplanTarget(location?.view === 'timplaner' ? location.gym : null);
+          setTimplanMode(location?.view === 'timplaner' && (location.other || location.planning?.schoolform && location.planning.schoolform !== 'gymnasium') ? 'other' : 'gym');
+          setTimplanYear(location?.allYears || location?.relativeYear === undefined ? 'all' : String(location.relativeYear - 1));
+          locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
         }
         setMfaRequired(false);
         return;
@@ -344,45 +382,128 @@ function ProtectedShell() {
     };
   }, [loadSession, clearSession, lockChangedContext]);
 
+  function canNavigate() {
+    if (navigationBlocked) { setNavigationNotice('Invänta sparandet eller läs sparstatus innan du lämnar vyn.'); return false; }
+    if (hasUnsaved && !confirmDiscard()) return false;
+    setNavigationNotice(null); return true;
+  }
+  const currentRegisterSelection = useCallback((search = window.location.search): Selection | null => {
+    if (!registerSetup || schoolYear === null || !contextKey) return null;
+    const saved = registerSelectionRef.current?.key === contextKey ? registerSelectionRef.current.selection : null;
+    const defaults: Selection = saved ?? { schoolYear, unitId: registerSetup.scope.schools[0]?.id ?? '', classId: null, educationId: null, grade: null, status: null, page: 1 };
+    const requested = selectionFromQuery(search, defaults);
+    const valid = (value: Selection | null): value is Selection => !!value && registerSetup.schoolYears.includes(value.schoolYear)
+      && registerSetup.scope.schools.some(unit => unit.id === value.unitId);
+    return valid(requested) ? requested : valid(saved) ? saved : valid(defaults) ? defaults : null;
+  }, [contextKey, registerSetup, schoolYear]);
+  const rememberRegister = useCallback((search = window.location.search) => {
+    const selected = currentRegisterSelection(search);
+    if (selected) registerSelectionRef.current = { key: contextKey, selection: selected };
+  }, [contextKey, currentRegisterSelection]);
   function writePlanLocation(location: PlanLocation, replace = false) {
+    // Old child callbacks cannot restore an address after a forced context/session clear.
+    if (!contextKey || sessionScope(sessionRef.current) !== contextKey) return;
     const url = window.location.pathname + planLocationQuery(location);
     if (window.location.pathname + window.location.search !== url) window.history[replace ? 'replaceState' : 'pushState'](null, '', url);
-    locationRef.current = url;
+    locationRef.current = url; locationStateRef.current = window.history.state;
+    planningLocationRef.current = location; setPlanningLocation(location);
+  }
+  function planningFor(next: 'programplaner' | 'timplaner'): PlanLocation {
+    const prior = planningLocationRef.current;
+    return next === 'programplaner' ? { view: next, programplan: null, planning: prior?.planning }
+      : { view: next, gym: null, planning: prior?.planning };
+  }
+  function applyPlanningLocation(location: PlanLocation) {
+    setProgramplanTarget(location.view === 'programplaner' ? location.programplan : null);
+    setTimplanTarget(location.view === 'timplaner' ? location.gym : null);
+    setTimplanMode(location.view === 'timplaner' && (location.other || location.planning?.schoolform && location.planning.schoolform !== 'gymnasium') ? 'other' : 'gym');
+    setTimplanYear(location.allYears || location.relativeYear === undefined ? 'all' : String(location.relativeYear - 1));
+    planningLocationRef.current = location; setPlanningLocation(location); setView(location.view); viewRef.current = location.view;
+  }
+  function transitionPlanning(location: PlanLocation, mode: 'push' | 'replace') {
+    if (!contextKey || sessionScope(sessionRef.current) !== contextKey) return;
+    // User changes have already passed the provider's block/discard gate.
+    applyPlanningLocation(location); if (mode === 'push') setPlanNavigation(value => value + 1);
+    writePlanLocation(location, mode === 'replace');
   }
   function goToProgramplan(target: ProgramplanLocation) {
-    if (hasUnsaved && !confirmDiscard()) return;
-    setProgramplanTarget(target); setPlanNavigation(value => value + 1); setView('programplaner'); writePlanLocation({ view: 'programplaner', programplan: target });
+    if (!canNavigate()) return;
+    if (view === 'elever') rememberRegister();
+    const location: PlanLocation = { ...planningFor('programplaner'), view: 'programplaner', programplan: target };
+    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
   function goToTimplan(sourcePlanId: string) {
-    if (hasUnsaved && !confirmDiscard()) return;
+    if (!canNavigate()) return;
+    if (view === 'elever') rememberRegister();
     const target: GymTimplanLocation = lastGymPlan.current?.sourcePlanId === sourcePlanId
       ? { kind: 'plan', id: lastGymPlan.current.id } : { kind: 'source', id: sourcePlanId };
-    setTimplanTarget(target); setPlanNavigation(value => value + 1); setTimplanMode('gym'); setView('timplaner'); writePlanLocation({ view: 'timplaner', gym: target });
+    const location: PlanLocation = { ...planningFor('timplaner'), view: 'timplaner', gym: target };
+    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+  }
+  function navigate(next: ProtectedView) {
+    if (next === view && !isPlanningView(next) || !canNavigate()) return;
+    if (view === 'elever') rememberRegister();
+    setProgramplanTarget(null); setTimplanTarget(null); setPlanNavigation(value => value + 1);
+    if (isPlanningView(next)) {
+      const location = planningFor(next); applyPlanningLocation(location); writePlanLocation(location);
+    } else {
+      if (next === 'elever') {
+        const selected = currentRegisterSelection('');
+        if (selected) { registerSelectionRef.current = { key: contextKey, selection: selected }; setSchoolYear(selected.schoolYear); }
+        const query = selected ? selectionToQuery(selected) : '?vy=elever';
+        window.history.pushState(null, '', window.location.pathname + query);
+      } else window.history.pushState(null, '', window.location.pathname + `?vy=${next}`);
+      locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
+      setView(next); viewRef.current = next;
+    }
   }
   useEffect(() => {
-    const pop = () => {
-      if (!['huvudman','rektor','administrator'].includes(sessionRef.current?.context?.function ?? '')) return;
-      if (hasUnsaved && !confirmDiscard()) { window.history.pushState(null, '', locationRef.current); return; }
-      const location = readPlanLocation(window.location.search);
-      setProgramplanTarget(location?.view === 'programplaner' ? location.programplan : null);
-      setTimplanTarget(location?.view === 'timplaner' ? location.gym : null); setTimplanMode('gym');
-      setPlanNavigation(value => value + 1);
-      setView(location?.view ?? startView(sessionRef.current!));
-      locationRef.current = window.location.pathname + window.location.search;
+    const pop = (event: PopStateEvent) => {
+      const activeSession = sessionRef.current;
+      if (!sessionScope(activeSession) || !activeSession || !locationRef.current) return;
+      const location = PLANNING_FUNCTIONS.includes(activeSession.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
+      const nextView = location?.view ?? shellView(window.location.search, activeSession);
+      const priorView = viewRef.current;
+      // Register list/card pops belong to its own existing listener. Never normalize them as planning.
+      if (priorView === 'elever' && nextView === 'elever' && !location) {
+        locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
+        return;
+      }
+      event.stopImmediatePropagation();
+      if (navigationBlocked || hasUnsaved && !confirmDiscard()) {
+        if (navigationBlocked) setNavigationNotice('Invänta sparandet eller läs sparstatus innan du lämnar vyn.');
+        window.history.pushState(locationStateRef.current, '', locationRef.current); return;
+      }
+      if (priorView === 'elever') rememberRegister(new URL(locationRef.current, window.location.origin).search);
+      setNavigationNotice(null); setPlanNavigation(value => value + 1);
+      if (location) applyPlanningLocation(location);
+      else {
+        setProgramplanTarget(null); setTimplanTarget(null);
+        if (nextView === 'elever') {
+          const selected = currentRegisterSelection();
+          if (selected) { registerSelectionRef.current = { key: contextKey, selection: selected }; setSchoolYear(selected.schoolYear);
+            if (!selectionFromQuery(window.location.search, selected)) window.history.replaceState(null, '', window.location.pathname + selectionToQuery(selected)); }
+        }
+        setView(nextView); viewRef.current = nextView;
+      }
+      locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
     };
-    window.addEventListener('popstate', pop); return () => window.removeEventListener('popstate', pop);
-  }, [hasUnsaved]);
+    window.addEventListener('popstate', pop, true); return () => window.removeEventListener('popstate', pop, true);
+  }, [navigationBlocked, hasUnsaved, contextKey, currentRegisterSelection, rememberRegister]);
 
-  const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.assignmentId}` : null;
+  const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.customerId}-${session.context.assignmentId}` : null;
   useEffect(() => {
     const currentSession = sessionRef.current;
     if (!currentSession || !currentSession.context?.valid || !PUPIL_FUNCTIONS.includes(currentSession.context.function)) return;
+    const scope = sessionScope(currentSession);
     const abort = new AbortController();
     let timer: number | undefined;
     queueMicrotask(() => { if (!abort.signal.aborted) { setRegisterSetup(null); setRegisterError(null); } });
     void api.get<RegisterSetup>('/api/elever/urval', abort.signal).then(setup => {
-      if (abort.signal.aborted) return;
-      const requested = Number(new URLSearchParams(window.location.search).get('lasar'));
+      if (abort.signal.aborted || sessionScope(sessionRef.current) !== scope) return;
+      const saved = registerSelectionRef.current?.key === scope ? registerSelectionRef.current.selection : null;
+      const params = new URLSearchParams(window.location.search);
+      const requested = !readPlanLocation(window.location.search) && params.has('lasar') ? Number(params.get('lasar')) : saved?.schoolYear ?? setup.currentSchoolYear;
       setSchoolYear(setup.schoolYears.includes(requested) ? requested : setup.currentSchoolYear);
       setRegisterSetup(setup);
       if (setup.endsAt) {
@@ -392,7 +513,7 @@ function ProtectedShell() {
         }, Math.max(0, Math.min(remaining, 2_147_000_000)));
       }
     }).catch(caught => {
-      if (abort.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
+      if (abort.signal.aborted || sessionScope(sessionRef.current) !== scope || caught instanceof DOMException && caught.name === 'AbortError') return;
       if (caught instanceof ApiError && caught.status === 401) { clearSession(); return; }
       setRegisterError(caught instanceof ApiError && caught.code === 'audit_unavailable' ? 'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.' : 'Elevregistrets urval kunde inte hämtas. Försök igen.');
     });
@@ -400,7 +521,7 @@ function ProtectedShell() {
   }, [registerContextKey, registerRetry, clearSession]);
 
   async function logout() {
-    if (hasUnsaved && !confirmDiscard()) return;
+    if (!canNavigate()) return;
     clearSession();
     try {
       const result = await api.post<{ redirect: string }>('/api/auth/logout', undefined);
@@ -424,39 +545,30 @@ function ProtectedShell() {
   const contextControl = assignmentCount === 1 ? (
     <span className="context-label">{contextLabel(session.assignments[0])}</span>
   ) : (
-    <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => { clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); return loadSession(); }} />
+    <ContextSwitch context={session.context} assignments={session.assignmentGroups} onChanged={() => { clearSession(); return loadSession(); }} />
   );
   const validContext = session.context?.valid && !session.context.blocked;
   const currentTitle = view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
+    <PlanningContextProvider key={contextKey} contextKey={contextKey} active={!!validContext && isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function)} location={planningLocation}
+      onTransition={transitionPlanning} onSessionLost={clearSession}>
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
       <a className="skip" href="#workspace">Till innehållet</a>
       <Sidebar className="app-sidebar">
-        <ProtectedNavigation session={session} view={view} setView={next => {
-          if (hasUnsaved && !confirmDiscard()) return;
-          if (next === view && next !== 'programplaner' && next !== 'timplaner') return;
-          setProgramplanTarget(null); setTimplanTarget(null); setTimplanMode('gym');
-          setPlanNavigation(value => value + 1);
-          if (next === 'programplaner') writePlanLocation({ view: next, programplan: null });
-          else if (next === 'timplaner') writePlanLocation({ view: next, gym: null });
-          else if (readPlanLocation(window.location.search)) { window.history.pushState(null, '', window.location.pathname); locationRef.current = window.location.pathname; }
-          setView(next);
-        }} />
+        <ProtectedNavigation session={session} view={view} setView={navigate}/>
       </Sidebar>
       <div className="application">
         <header className="topbar protected-topbar">
           <div className="breadcrumbs"><SidebarTrigger aria-label="Visa eller dölj navigation" /><span>Arbetsyta</span><strong>{currentTitle}</strong></div>
           <div className="top-actions">
             <span className="demo-pill">Skyddad provmiljö</span>
-            {view !== 'timplaner' && view !== 'programplaner' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
+            {view === 'elever' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
+              if (!canNavigate()) return;
+              const selected = currentRegisterSelection();
+              if (selected) registerSelectionRef.current = { key: contextKey, selection: { ...selected, schoolYear: year, page: 1 } };
               setSchoolYear(year);
-              if (view !== 'elever' && registerSetup.scope.schools[0]) {
-                const defaults = { schoolYear: year, unitId: registerSetup.scope.schools[0].id, classId: null, educationId: null, grade: null, status: null, page: 1 };
-                const current = selectionFromQuery(window.location.search, defaults) ?? defaults;
-                window.history.pushState(null, '', selectionToQuery({ ...current, schoolYear: year, page: 1 }));
-              }
-            }} />}
+            }}/>}
             {contextControl}
             <Button variant="ghost" onClick={() => void logout()}>Logga ut</Button>
             <Button variant="ghost" size="icon" aria-label="Om den skyddade provmiljön" onClick={() => setHelp(true)}><LifeBuoy size={19} /></Button>
@@ -465,23 +577,39 @@ function ProtectedShell() {
         {!validContext ? (
           <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 ? <><p>Du har inga uppdrag som gäller idag.</p><Button variant="outline" onClick={() => void logout()}>Logga ut</Button></> : <p>Välj ett giltigt uppdrag i sidhuvudet för att öppna arbetsytan.</p>}</section></main>
         ) : (
-          <main id="workspace" className="workspace protected-workspace" key={session.epoch}>
+          <main id="workspace" className="workspace protected-workspace" key={contextKey}>
+            {navigationNotice && <output data-testid="planning-navigation-notice" className="validation-warning">{navigationNotice}</output>}
             {stepUpWithoutOtp && <output role="alert" className="validation-warning">Verifieringen gav inget bevis med engångskod eftersom ditt konto saknar registrerad engångskod hos inloggningstjänsten. Du kan fortsätta arbeta, men åtgärder som kräver engångskod går inte att göra. Kontakta den som administrerar din inloggning.</output>}
             {mfaRequired && !stepUpWithoutOtp && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
             {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={clearSession} />}
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
-            {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={setSchoolYear} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
-            {view === 'timplaner' && ['huvudman','rektor','administrator'].includes(session.context!.function) && <>
-              <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => { if (hasUnsaved && !confirmDiscard()) return; setTimplanTarget(null); setPlanNavigation(value => value + 1); setTimplanMode('gym'); writePlanLocation({ view: 'timplaner', gym: null }); }}>Gymnasium</Button>
-                {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'default' : 'outline'} aria-pressed={timplanMode === 'other'} onClick={() => { if (hasUnsaved && !confirmDiscard()) return; setTimplanTarget(null); setTimplanMode('other'); writePlanLocation({ view: 'timplaner', gym: null }); }}>Grundskola och introduktionsprogram</Button>}</nav>
-              {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}-${planNavigation}-${timplanTarget?.kind}-${timplanTarget?.id}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
-                year={timplanYear} onYear={setTimplanYear}
-                onOpened={(target, sourcePlanId) => { if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, id: target.id }; writePlanLocation({ view: 'timplaner', gym: target }, true); }} onProgramplan={goToProgramplan}/>
-                : <ProtectedTimplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
-            </>}
-            {view === 'programplaner' && ['huvudman','rektor','administrator'].includes(session.context!.function) && <ProtectedProgramplanWorkspace key={`${session.epoch}-${session.context!.assignmentId}-${planNavigation}-${programplanTarget?.planId}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
-              onOpened={target => writePlanLocation({ view: 'programplaner', programplan: target }, true)}/>}
+            {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={year => { if (sessionScope(sessionRef.current) !== contextKey) return; setSchoolYear(year); rememberRegister(); locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state; }}
+              onOpenPupil={(_id, selection) => { if (sessionScope(sessionRef.current) === contextKey) registerSelectionRef.current = { key: contextKey, selection }; }} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
+            {isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function) && <PlanningArea location={planningLocation}>{selection => <>
+              {view === 'timplaner' && <>
+                <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => {
+                  if (!canNavigate()) return;
+                  const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'gymnasium', page: 1, selectionRevision: null } };
+                  applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+                }}>Gymnasium</Button>
+                  {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'default' : 'outline'} aria-pressed={timplanMode === 'other'} onClick={() => {
+                    if (!canNavigate()) return;
+                    const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
+                    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+                  }}>Grundskola och introduktionsprogram</Button>}</nav>
+                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}-${timplanTarget?.kind}-${timplanTarget?.id}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
+                  year={timplanYear} onYear={year => { if (navigationBlocked) { setNavigationNotice('Invänta sparandet eller läs sparstatus innan du byter årskurs.'); return; } setTimplanYear(year);
+                    writePlanLocation({ view: 'timplaner', gym: planningLocationRef.current?.view === 'timplaner' ? planningLocationRef.current.gym : timplanTarget, planning: planningLocationRef.current?.planning,
+                      allYears: year === 'all', ...(year !== 'all' ? { relativeYear: (Number(year) + 1) as 1 | 2 | 3 } : {}) }, true); }}
+                  onOpened={(target, sourcePlanId) => { if (sessionScope(sessionRef.current) !== contextKey) return; if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, id: target.id };
+                    writePlanLocation({ view: 'timplaner', gym: target, planning: planningLocationRef.current?.planning, allYears: timplanYear === 'all',
+                      ...(timplanYear !== 'all' ? { relativeYear: (Number(timplanYear) + 1) as 1 | 2 | 3 } : {}) }, true); }} onProgramplan={goToProgramplan}/>
+                  : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
+              </>}
+              {view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}-${programplanTarget?.planId}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
+                onOpened={target => writePlanLocation({ view: 'programplaner', programplan: target, planning: planningLocationRef.current?.planning }, true)}/>}
+            </>}</PlanningArea>}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}
@@ -489,11 +617,12 @@ function ProtectedShell() {
       <Dialog open={help} onOpenChange={setHelp}>
         <DialogContent>
           <DialogTitle>Om den skyddade provmiljön</DialogTitle>
-          <DialogDescription>Läsåret i sidhuvudet styr vilka elever som visas i elevlistan. Det valda uppdraget styr vilken kund, huvudman, skolenhet och funktion du får arbeta med. Ett byte rensar innehållet i alla öppna flikar. Den lokala testleverantören är inte en godkänd anslutning till en kommuns identitetsleverantör.</DialogDescription>
+          <DialogDescription>Elevregistrets läsår styr elevlistan. Planering har ett eget skol- och läsårsval som följer med mellan programplaner och timplaner. Det valda uppdraget styr vilken kund, huvudman, skolenhet och funktion du får arbeta med. Ett byte rensar innehållet i alla öppna flikar. Den lokala testleverantören är inte en godkänd anslutning till en kommuns identitetsleverantör.</DialogDescription>
           <DialogClose render={<Button variant="outline" />}>Stäng hjälpen</DialogClose>
         </DialogContent>
       </Dialog>
     </SidebarProvider>
+    </PlanningContextProvider>
   );
 }
 
