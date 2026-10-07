@@ -8,7 +8,7 @@ import {SEARCH_MIGRATION,SEARCH_TEST,SEARCH_ENTRY,SEARCH_SOURCE_PATHS,SEARCH_PAR
  SEARCH_SQL_CORE_CASES,SEARCH_SQL_CORE_STATES,SEARCH_SQL_MATCH_CASES,SEARCH_SQL_TAP_TOTAL,SEARCH_API_CASES,SEARCH_PLANNING_ENTRIES,
  parseSearchArgs,assertSearchDiff,searchCatalogFingerprint,searchSqlProof,searchRollbackScript,searchHistoricalScript,
  validateHistoricalSources,validateSearchDependencies,validateSearchRollback,validateSearchMigration,searchCoreProjection,
- searchCasesComplete,searchAnchorsValid,validateSearchJournal,searchSqlNeedsDrain,searchTimingsComplete,safeSearchOutput,exactSearchTap,validateSearchApplied,processResult,historicalGitSource,searchSqlCompleted,searchRecoveryRequired} from './verify-planning-year-search-details.mjs';
+ searchCasesComplete,searchAnchorsValid,validateSearchJournal,searchSqlNeedsDrain,searchTimingsComplete,safeSearchOutput,exactSearchTap,validateSearchApplied,processResult,historicalGitSource,searchSqlCompleted,searchRecoveryRequired,withSearchSetupCompletion} from './verify-planning-year-search-details.mjs';
 import {parseSearchApplyArgs} from './apply-planning-year-search-details.mjs';
 import {pinnedSearchDetails,SEARCH_LAST_CODE,searchFixtureName} from './phase5-planning-year-search-fixtures.mjs';
 import {PERFORMANCE_MIGRATION,PERFORMANCE_ORIGINAL_PARITY_CASES} from './verify-planning-year-read-performance.mjs';
@@ -175,7 +175,7 @@ test('reviewed SQL retains exact cache key, caps, frozen validation and typed pi
 });
 test('full rollback gate rejects incomplete SQL93/18, altered sources, partial cleanup and parser/API drift',()=>{
  const e=rollbackGateFixture();assert.doesNotThrow(()=>validateSearchRollback(e,read));
- for(const change of [x=>x.complete=false,x=>x.mode='applied',x=>x.sql.tap.assertions.pop(),x=>x.sql.timedOut=true,x=>x.sql.outputOverflow=true,x=>x.originalSql.candidate.streamError=true,x=>x.finalAllAnchors.audit.count=0,x=>x.cleanup.searchAuditFixtures.functions=1,x=>x.sourceHashes['unexpected']=sha('unknown'),x=>x.sql.tap.assertions[0]+=' # SKIP',x=>x.originalSql.original.tap.assertions[0]+=' # TODO',x=>x.originalSql.candidate.parity.cases.pop(),
+ for(const change of [x=>x.complete=false,x=>x.mode='applied',x=>x.parserApi.setupUnknown=true,x=>x.parserApi.cleanupDeferred=true,x=>x.sql.tap.assertions.pop(),x=>x.sql.timedOut=true,x=>x.sql.outputOverflow=true,x=>x.originalSql.candidate.streamError=true,x=>x.finalAllAnchors.audit.count=0,x=>x.cleanup.searchAuditFixtures.functions=1,x=>x.sourceHashes['unexpected']=sha('unknown'),x=>x.sql.tap.assertions[0]+=' # SKIP',x=>x.originalSql.original.tap.assertions[0]+=' # TODO',x=>x.originalSql.candidate.parity.cases.pop(),
   x=>x.originalSql.original.timedOut=true,x=>x.originalHashes.offerings.sha256='9'.repeat(64),x=>x.cleanup.retainedAuditPreserved=false,
   x=>x.cleanup.afterRetainedAudit.count++,x=>x.beforeWorkerFunctions.pop(),x=>x.originalDefinitionHash='e'.repeat(64),
   x=>x.parserBuild.parserSourceHashes[SEARCH_PARSER_PATHS[0]]='e'.repeat(64),x=>x.fullApi.cases=14,x=>x.sourceHashes[SEARCH_TEST]='e'.repeat(64)]){
@@ -207,4 +207,31 @@ test('exact current journal, required named HTTP cases and entire audit anchors 
  validateSearchJournal(cat,read);const bad=clone(cat);bad.functions[0].signature='public.phase5_planning_year_invented()';assert.throws(()=>validateSearchJournal(bad,read));
  const cases=SEARCH_API_CASES.map(name=>({name,status:'PASS',checks:[{ok:true}]}));assert.equal(searchCasesComplete(cases),true);cases.pop();assert.equal(searchCasesComplete(cases),false);
  assert.equal(searchAnchorsValid(anchors(),anchors()),true);const broken=anchors();broken.audit.sha256='9'.repeat(64);assert.equal(searchAnchorsValid(anchors(),broken),false);
+});
+
+
+test('every failed owned setup retains unknown completion and blocks cleanup and final snapshot',async()=>{
+ const errors=[Object.assign(new Error('private timeout'),{name:'TimeoutError'}),Object.assign(new Error('private abort'),{name:'AbortError'}),
+  new TypeError('private socket',{cause:{code:'UND_ERR_SOCKET',message:'secret cookie'}}),new SyntaxError('private incomplete body'),
+  new Error('private unknown'),null,'private non-error'];
+ for(const error of errors){
+  let cleanupDeferred=false,setupUnknown=false,cleanupCount=0,snapshotCount=0;
+  try{
+   await withSearchSetupCompletion(async()=>{throw error;},()=>{setupUnknown=true;cleanupDeferred=true;});
+   assert.fail('failed setup must not return a positive result');
+  }catch(caught){assert.equal(caught,error);}
+  if(!cleanupDeferred&&!setupUnknown)cleanupCount++;
+  if(!searchRecoveryRequired(false,{cleanupDeferred,setupUnknown}))snapshotCount++;
+  assert.equal(setupUnknown,true);assert.equal(cleanupCount,0);assert.equal(snapshotCount,0);
+  assert.equal(searchRecoveryRequired(false,{setupUnknown:true,cleanupDeferred:false}),true);
+ }
+});
+test('only completed setup returns its metadata without entering owned recovery',async()=>{
+ const metadata={verifiedFixture:true};let unknownCalls=0;
+ assert.equal(await withSearchSetupCompletion(async()=>metadata,()=>{unknownCalls++;}),metadata);
+ assert.equal(unknownCalls,0);assert.equal(searchRecoveryRequired(false,{setupUnknown:false,cleanupDeferred:false}),false);
+ assert.equal(searchRecoveryRequired(true,{setupUnknown:false,cleanupDeferred:false}),true);
+ const source=read('work/pilot/verify-planning-year-search-details.mjs').toString();
+ assert.match(source,/metadata=await withSearchSetupCompletion\(\(\)=>fixture\.setup\(baseURL\),\(\)=>\{setupUnknown=true;cleanupDeferred=true;\}\)/u);
+ assert.match(source,/finally\{if\(fixture&&!cleanupDeferred&&!setupUnknown\)/u);
 });
