@@ -1,0 +1,340 @@
+{
+  "kind": "phase5-planning-year-read-performance-apply",
+  "status": "PASS",
+  "complete": true,
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "reset": false,
+  "migration": "20261006122000_phase5_planning_year_read_performance.sql",
+  "sourceHash": "83c12579fc275b4353f014ea749ca2af297e4825d04bd0c26a9311d219ffc997",
+  "sourceHashes": {
+    "work/pilot/verify-planning-year-api.mjs": "d38cdbcab647cf751da8f0ea8c74570c4abdad8cd61a9b1d522bb33775633e5b",
+    "work/pilot/verify-planning-year-api.test.mjs": "7503204f6371056235b527c4c2bac9bf95ccc4a6f6489e4b50e1ed7d25ce9dab",
+    "work/pilot/phase5-planning-year-fixtures.mjs": "c868e836a312d7a90068b639d9cd112215468546c3036ef0f4b8228cfb5608d7",
+    "work/pilot/phase5-gym-timplan-fixtures.mjs": "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "51b947176323157c748979ae9c8cf0e4d5ccad967dbe176c40cb70b6b30d8e79",
+    "work/pilot/apply-planning-year-grants.mjs": "713c944cb88a14946039f9060a0b7705913e7e5980f1a68e607998ce346dbe10",
+    "work/pilot/apply-planning-year-migration.mjs": "45cf6cc5db0c500ce254c0d3991eb53d7b47621bc914fc0eb905439ab0019015",
+    "work/pilot/apply-gym-timplan-migration.mjs": "87069500c6a45a236959a40d0816683b5accfc19ec2958ffdff1ff8ce664355e",
+    "work/pilot/verify-programplan-api.mjs": "626cf54e147a8f13dbb7888be0062de8d08323c6b583599e0a1d17364dac73fe",
+    "work/pilot/verify-target.mjs": "984729588773c910a3f016bf1e42a0f9503caa22a21c8b702621cec75a3b009f",
+    "web/lib/planning-year-contract.ts": "f366aba3567a243a21108b8613ea2c6cb3f2961ba9b7906f31d29033b8d859d1",
+    "web/lib/planning-year-model.ts": "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+    "web/lib/server/planning-year.ts": "9f0b2038aba352966f7f6194ea85ff7ee7d5c2cc4c3054e9f438d637e45f304e",
+    "web/lib/server/authz.ts": "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+    "web/lib/server/mandate-route.ts": "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+    "web/lib/server/db.ts": "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+    "web/lib/server/events.ts": "f7705febcfc3300192930d2ee088a129742c38d15c737cd533fa24fcded65268",
+    "web/lib/server/http.ts": "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2",
+    "web/lib/server/audit-details.ts": "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+    "web/lib/mandate-policy.ts": "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+    "web/lib/server/gym-timplan.ts": "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446",
+    "web/lib/gym-timplan.ts": "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6",
+    "web/lib/programplan-catalog.generated.json": "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124",
+    "web/app/api/planering/urval/route.ts": "eedc533d872d4584b1493d81d62c660b165e6ad06b506f868b05bcbfa262f051",
+    "web/app/api/planering/lista/route.ts": "3964695006d1c262fadd34e91229c6e30f40840569a2303fe2c6446124928950",
+    "web/app/api/planering/oversikt/route.ts": "a83f8f6c845e1efe259bfc6f256d768dffd97b01e48c58731d79044f379fc64d",
+    "supabase/migrations/20261006120000_phase5_planning_year_reads.sql": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+    "supabase/migrations/20261006121000_phase5_worker_planning_year_reads.sql": "ef34e6a5f606d940e6851aed591a2cb84ff8af279c94994cbca9655326e2db82",
+    "work/pilot/verify-planning-year-read-performance.mjs": "60751ac7b7ea548b2c63901bb937df3e1072ba3e80a393cc646bf0cdfe2eafd1",
+    "work/pilot/verify-planning-year-read-performance.test.mjs": "4b60d6e07c69539cdbc66af1ebd9d414509fe91f546f38bda0edc81ba064e185",
+    "work/pilot/apply-planning-year-read-performance.mjs": "1175dfc526d6a56083f3778044d1ddbf00e65958e63beb99843809171220f099",
+    "work/pilot/verify-planning-year-foundation.mjs": "0d18dc223fadbb2bb035febaf3d01f63d1adc63dd31e4fa7b87fa390e2ccf147",
+    "supabase/tests/phase5_planning_year_read_performance.test.sql": "51f7a27b234678f04d6805614c7d0bd597a3e3cfec297d1109afbbd851969b62",
+    "supabase/tests/phase5_planning_year.test.sql": "be8d975aa43a07fa6712c3b333709e8344ee50debf65f26200ce10649d80bd34",
+    "supabase/migrations/20261006122000_phase5_planning_year_read_performance.sql": "83c12579fc275b4353f014ea749ca2af297e4825d04bd0c26a9311d219ffc997"
+  },
+  "reusableExplicitNamedSqlComponents": null,
+  "acceptedTimingPolicy": "complete-http-baseline",
+  "targetProjectId": "skolplattform-pilot-protected",
+  "baselineFingerprint": "3392eac0c33f415a3b2cb04e414d20bf42001a231da1918134b1a97ef80a3ef3",
+  "afterFingerprint": "106b3f26f9872ad6fcdc938fed70b104c3608f8cace966ed38a8f25cc101dbe7",
+  "beforePlanningFingerprint": "6165950e0f036247e30c360c7fd0ba49988b28e6e98d6153326bf94c48e5334b",
+  "originalDefinitionHash": "11b720970b78486bb7a51f6d54c490ad1758da09c20b8d4aae9c3423d99a1b44",
+  "candidateDefinitionHash": "78eb6d6f3352af3a26c9596e2f3381059fed38cc87f2c927d18b305e09c03339",
+  "changedDefinitions": [
+    "public.phase5_planning_year_rows(jsonb)"
+  ],
+  "unexpectedDifferences": 0,
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+    },
+    "school_years": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+    },
+    "school_years": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "beforeWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+    "public.phase5_planning_year_selection()",
+    "public.phase5_planning_year_list(jsonb)",
+    "public.phase5_planning_year_overview(jsonb)"
+  ],
+  "afterWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)",
+    "public.phase5_planning_year_selection()",
+    "public.phase5_planning_year_list(jsonb)",
+    "public.phase5_planning_year_overview(jsonb)"
+  ],
+  "originalBusinessPreserved": true,
+  "originalTimestampsPreserved": true,
+  "aclUnchanged": true,
+  "originalAuditPreserved": true,
+  "identityAnchorsPreserved": true,
+  "beforeAudit": {
+    "audit": {
+      "count": 173299,
+      "sha256": "d02d016686093cda50e7695850a1baf227a3e4808969b52dc5bd756119812d2b"
+    },
+    "identities": {
+      "count": 4577,
+      "sha256": "4655b60764fa23e29b34e6920ddb4a3a01fb1c79d611d6dea2aebebf31771b03"
+    }
+  },
+  "afterAudit": {
+    "audit": {
+      "count": 173299,
+      "sha256": "d02d016686093cda50e7695850a1baf227a3e4808969b52dc5bd756119812d2b"
+    },
+    "identities": {
+      "count": 4577,
+      "sha256": "4655b60764fa23e29b34e6920ddb4a3a01fb1c79d611d6dea2aebebf31771b03"
+    }
+  },
+  "functions": [
+    {
+      "signature": "public.phase5_planning_year_academic_date(date)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "ff814446f517d1127c5ccd2259eed5634f7f13dd929aa168da4b4e81e6b8a41f"
+    },
+    {
+      "signature": "public.phase5_planning_year_actor()",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "d27a63ff882a1e804891978019b162403152923a3c672e1d72414cdc6cc71222"
+    },
+    {
+      "signature": "public.phase5_planning_year_audit(text)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "11e7355f5d15f03d2a090366238a8a9c1a00928c32ccc1c2b6c7863e08586cdb"
+    },
+    {
+      "signature": "public.phase5_planning_year_gym_cells(jsonb,uuid)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "c951b2643157ee185f9f991ee5667ed2dbc31fa25f99a2870fa023971470a4f4"
+    },
+    {
+      "signature": "public.phase5_planning_year_list(jsonb)",
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}",
+      "definitionHash": "cce58af94b9dfbfcd96b81244a1d390f9e003e97493a080641c99173296616ed"
+    },
+    {
+      "signature": "public.phase5_planning_year_measure(bigint,boolean)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "e8b94b29ac658c38bbc3d1e87f7af4353451e4faae3e65cfecf92f4876b5374a"
+    },
+    {
+      "signature": "public.phase5_planning_year_metrics(jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "3c45561376f01dbe713e85e4395d1bd7c7e7554891e038afba9aba6bd1365b23"
+    },
+    {
+      "signature": "public.phase5_planning_year_overview(jsonb)",
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}",
+      "definitionHash": "b442d029dcb2a1dca04a6447ff8dd99f21bc8134ddfeadf1b91af32b6a3d676b"
+    },
+    {
+      "signature": "public.phase5_planning_year_revision(jsonb,jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "e98fe73c4afe797ca61a0bde021c27fa99524f89fba355b3a00bc459af63ea80"
+    },
+    {
+      "signature": "public.phase5_planning_year_rows(jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "78eb6d6f3352af3a26c9596e2f3381059fed38cc87f2c927d18b305e09c03339"
+    },
+    {
+      "signature": "public.phase5_planning_year_selection()",
+      "acl": "{postgres=X/postgres,skolplattform_worker=X/postgres}",
+      "definitionHash": "10fec8854ee27c599c79a65c2e0696cce897a281233ca147dd6c9c7c2c7c30ab"
+    },
+    {
+      "signature": "public.phase5_planning_year_sorted(jsonb,jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "257289041b8a420ab12d8d3a29696d73e41e437e4d124e7d2ad9e077103e66ea"
+    },
+    {
+      "signature": "public.phase5_planning_year_totals(jsonb,jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "2970e1deb9eb37b9069989dd057d909d2111faa85c6a6bb545ad570ee887edcc"
+    },
+    {
+      "signature": "public.phase5_planning_year_validate(jsonb)",
+      "acl": "{postgres=X/postgres}",
+      "definitionHash": "156cec9a2314bbd77036cca630ebd1624b2f95a882ee96725ba1db6552f9a44a"
+    }
+  ]
+}
