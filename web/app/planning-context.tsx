@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { confirmDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { parsePlanningSetup, type PlanningSelection, type PlanningSetup } from '@/lib/planning-year-contract.ts';
@@ -10,8 +10,9 @@ import './planning-context.css';
 
 export type PlanningContextProps = { contextKey: string; active: boolean; location: PlanLocation | null;
   onTransition: (location: PlanLocation, mode: 'push' | 'replace') => void; onSessionLost: () => void; children: ReactNode };
+export type PlanningMatrixYear = 0 | 1 | 2 | 'all';
 export type PlanningContextValue = { setup: PlanningSetup | null; selection: PlanningSelection | null; loading: boolean;
-  error: string | null; normalizationNotice: string | null; requestChange: (patch: Partial<PlanningSelection>) => void; retry: () => void };
+  error: string | null; normalizationNotice: string | null; matrixYear: PlanningMatrixYear | null; requestMatrixYear: (year: PlanningMatrixYear) => void; requestChange: (patch: Partial<PlanningSelection>) => void; retry: () => void };
 const Context = createContext<PlanningContextValue | null>(null);
 const WAIT = 'Invänta sparandet eller läs sparstatus innan du byter planeringsval.';
 type State = { key: string; active: boolean; inputQuery: string | null; ready: boolean; setup: PlanningSetup | null;
@@ -99,10 +100,23 @@ export function PlanningContextProvider(props: PlanningContextProps) {
     setState(current => ({ ...current, location: next.location, notice: next.normalizationNotice }));
     latest.current.onTransition(next.location, 'push');
   };
+  const requestMatrixYear = useCallback((year: PlanningMatrixYear) => {
+    if (!props.active || !normalized || !scoped?.setup || scoped.loading || latest.current.contextKey !== props.contextKey || !latest.current.active) return;
+    if (navigationBlocked) { setState(current => ({ ...current, notice: WAIT })); return; }
+    if (year !== 'all' && ![0, 1, 2].includes(year)) return;
+    // The same mounted workspace keeps every value. This changes visible columns only.
+    const { relativeYear: _relative, allYears: _all, ...base } = normalized.location;
+    if (base.overview || !(base.view === 'programplaner' ? base.programplan : base.gym)) return;
+    const location: PlanLocation = { ...base, allYears: year === 'all', ...(year !== 'all' ? { relativeYear: (year + 1) as 1 | 2 | 3 } : {}) };
+    if (planLocationQuery(location) === planLocationQuery(normalized.location)) return;
+    setState(current => ({ ...current, location }));
+    latest.current.onTransition(location, 'replace');
+  }, [props.active, props.contextKey, normalized, scoped, navigationBlocked]);
   const value: PlanningContextValue = {
     setup: props.active && scoped?.ready ? scoped.setup : null, selection: props.active ? normalized?.selection ?? null : null,
     loading: props.active && (!scoped || scoped.loading || !scoped.ready && !scoped.error), error: scoped?.error ?? null,
-    normalizationNotice: normalized?.normalizationNotice ?? scoped?.notice ?? null, requestChange,
+    normalizationNotice: normalized?.normalizationNotice ?? scoped?.notice ?? null,
+    matrixYear: props.active && normalized ? normalized.location.allYears === true ? 'all' : normalized.location.relativeYear !== undefined ? (normalized.location.relativeYear - 1) as 0 | 1 | 2 : null : null, requestMatrixYear, requestChange,
     retry: () => { setState(current => ({ ...current, loading: true, error: null })); setRetryIndex(n => n + 1); },
   };
   return <Context.Provider value={value}>{props.children}</Context.Provider>;
