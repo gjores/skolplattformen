@@ -42,15 +42,15 @@ let setupPending=false,nodePending=0,nodeUnknownStage:NodeStage|null=null,browse
 let audits:Promise<void>[]=[],dialogs:string[]=[];const pending=new Set<Request>(),controlled=new WeakSet<Request>(),actualDone=new WeakSet<Request>(),releases:(()=>void)[]=[];
 // These operator pins name root-reviewed phase trees; no revision is trusted from a report alone.
 const releaseInventories={
- C:{runtime:["web/app/planning-context.tsx","web/app/planning-context.css","web/app/context-switch.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-lifecycle.tsx","web/app/school-year-picker.tsx","web/app/pupil-register-workspace.tsx"],tools:["web/e2e/phase5-planning-year-context.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-context.spec.ts',specSha:'16930887eac84f4df398feae1ece6e6ad007a08e57d8cc856be7820b87471865',approvedEnv:'PHASE5_CONTEXT_APPROVED_SOURCE_REVISION',attachment:'source-build.json'},
- L:{runtime:["web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts"],tools:["work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-lists.spec.ts',specSha:'5a466c016f39a91e1968f9c0d2c76bbcfc98311e26027d3e8786aea43af2bd6e',approvedEnv:'PHASE5_LIST_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'},
- G:{runtime:["web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts","web/lib/planning-year-model.ts","web/app/context-switch.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-lifecycle.tsx","web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css"],tools:["work/pilot/phase5-planning-year-gym-fixtures.mjs","web/e2e/phase5-planning-year-gym.spec.ts","work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/e2e/phase5-planning-year-context.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-gym.spec.ts',specSha:'b7a734c700a677c6b56e8958e637368f13e99edfa0fe092edecd83639c709d7d',approvedEnv:'PHASE5_GYM_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'}
+ C:{runtime:["web/app/planning-context.tsx","web/app/planning-context.css","web/app/context-switch.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-lifecycle.tsx","web/app/school-year-picker.tsx","web/app/pupil-register-workspace.tsx"],tools:["web/e2e/phase5-planning-year-context.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-context.spec.ts',specSha:'7e8d48a0622cc7bbca00ba9daa451abb33d123da5a01d09ad763c60bca56ade9',approvedEnv:'PHASE5_CONTEXT_APPROVED_SOURCE_REVISION',attachment:'source-build.json'},
+ L:{runtime:["web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts"],tools:["work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-lists.spec.ts',specSha:'f2714472250f53e3ba3a1bc349a410ab01f1c21d53a97fb5014aabdd8624f1d4',approvedEnv:'PHASE5_LIST_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'},
+ G:{runtime:["web/app/protected-home.tsx","web/app/planning-context.tsx","web/app/planning-context.css","web/lib/protected-plan-location.ts","web/lib/planning-year-model.ts","web/app/context-switch.tsx","web/app/protected-programplan-flow.tsx","web/app/protected-programplan-lifecycle.tsx","web/app/protected-plan-list.tsx","web/app/protected-plan-list.css","web/app/protected-planning-overview.tsx","web/app/protected-programplan-list.tsx","web/app/protected-programplan-workspace.tsx","web/app/protected-programplan-board.tsx","web/app/protected-programplan.css","web/app/protected-gym-timplan-workspace.tsx","web/app/protected-gym-timplan-hours.tsx","web/app/protected-gym-timplan.css"],tools:["work/pilot/phase5-planning-year-gym-fixtures.mjs","web/e2e/phase5-planning-year-gym.spec.ts","work/pilot/phase5-planning-year-list-fixtures.mjs","web/e2e/phase5-planning-year-lists.spec.ts","web/e2e/phase5-planning-year-context.spec.ts","web/playwright.phase5-planning-year.config.ts"],spec:'web/e2e/phase5-planning-year-gym.spec.ts',specSha:'a753936bd27ec6e45a1b538ec311e3f88823b2a8a59d55d8752e263c314ed0a3',approvedEnv:'PHASE5_GYM_APPROVED_SOURCE_REVISION',attachment:'source-build-dependencies.json'}
 } as const;
 // The complete old C16 report remains independently pinned. C04 must also run
 // on the 05-41 button runtime, under an explicitly root-approved phase tree.
 const contextWriteRelease={
  approvedEnv:'PHASE5_CONTEXT_WRITE_APPROVED_SOURCE_REVISION',
- specSha:'9582a76d3796492f5b01defd7c11bdf9b982534c1651f60b203c9d88e029fae8',
+ specSha:'2285760e63dcbc75e80f459c09f2d1c83cf2ba6ddc26353faafe3054e6d0ab1e',
  title:'C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/utloggning tills kvittens',
 } as const;
 const commonToolClosure=["work/pilot/phase5-planning-year-fixtures.mjs","work/pilot/phase5-gym-timplan-fixtures.mjs","work/pilot/phase5-programplan-browser-fixtures.mjs","work/pilot/verify-target.mjs","work/pilot/verify-programplan-locks.mjs","work/pilot/prepare-programplan-user-trial.mjs","work/pilot/apply-planning-year-migration.mjs","work/pilot/apply-gym-timplan-migration.mjs","work/pilot/verify-programplan-api.mjs","work/pilot/verify-planning-year-api.mjs","work/pilot/apply-planning-year-grants.mjs","supabase/tests/phase5_programplan_drafts.test.sql","supabase/migrations/20261006120000_phase5_planning_year_reads.sql","supabase/migrations/20261006121000_phase5_worker_planning_year_reads.sql","web/e2e/helpers/keycloak.ts","web/playwright.phase5-planning-year.config.ts","web/scripts/run-mode.mjs","web/scripts/preview-worker.mjs","web/scripts/preview-worker-modules.mjs","web/package.json","web/package-lock.json"] as const;
@@ -129,13 +129,17 @@ async function ownedNode<T>(stage:NodeStage,operation:()=>Promise<T>):Promise<T>
  try{return await operation();}catch{nodeUnknown=true;nodeUnknownStage??=stage;throw Error('OWNED_NODE_COMPLETION_UNKNOWN');}finally{nodePending--;}
 }
 async function nodeRequest(...args:Parameters<Fixture['request']>){return ownedNode('request',()=>fixture.request(...args));}
-async function audit(reply:Response|APIResponse,route:string,command?:{planId:string}){
- expect(reply.headers()['cache-control']).toBe('no-store');const corr=reply.headers()['x-correlation-id'];expect(corr).toBeTruthy();
- if(reply.status()!==200){expect((await ownedNode('readback',()=>fixture.events(corr))).filter((e:{outcome:string})=>e.outcome==='ok')).toEqual([]);return;}
- if([SETUP,LIST,OVERVIEW].includes(route)){expect(await ownedNode('readback',()=>fixture.pairedPlanning(corr,actor,route===SETUP?'planning_year_selection_read':route===LIST?'planning_year_list_read':'planning_year_overview_read'))).toBe(true);return;}
- if(route===LEGACYLIST){const input=(reply as Response).request().postDataJSON();parseTimplanList(await reply.json(),input.page);expect(await ownedNode('readback',()=>fixture.pairedGym(corr,actor,'timplan_list_read',null,'timplan_collection'))).toBe(true);return;}
- const input=command??(reply as Response).request().postDataJSON();expect(await ownedNode('readback',()=>fixture.pairedGym(corr,actor,route===CELL?'timplan_cell_changed':'timplan_read',input.planId))).toBe(true);
+function audit(reply: Response | APIResponse, route: string, command?: { planId?: string; page?: number }, captured: BrowserActor = 'request' in reply ? requestActor((reply as Response).request()) : { ...actor }): Promise<void> {
+  return cachedAudit(reply, async () => {
+    expect(reply.headers()['cache-control']).toBe('no-store'); const corr = reply.headers()['x-correlation-id']; expect(corr).toBeTruthy();
+    if (reply.status() !== 200) { expect((await ownedNode('readback', () => fixture.events(corr))).filter((e: { outcome: string }) => e.outcome === 'ok')).toEqual([]); return; }
+    if ([SETUP, LIST, OVERVIEW].includes(route)) { expect(await ownedNode('readback', () => fixture.pairedPlanning(corr, captured, route === SETUP ? 'planning_year_selection_read' : route === LIST ? 'planning_year_list_read' : 'planning_year_overview_read'))).toBe(true); return; }
+    const input = command ?? (reply as Response).request().postDataJSON();
+    if (route === LEGACYLIST) { parseTimplanList(await reply.json(), input.page); expect(await ownedNode('readback', () => fixture.pairedGym(corr, captured, 'timplan_list_read', null, 'timplan_collection'))).toBe(true); return; }
+    expect(await ownedNode('readback', () => fixture.pairedGym(corr, captured, route === CELL ? 'timplan_cell_changed' : 'timplan_read', input.planId))).toBe(true);
+  });
 }
+
 function selection(kind:Record['kind'],query:string,unitId:string|null,year=metadata.otherYear,patch:Partial<PlanningSelection>={}):PlanningSelection{
  return parsePlanningSelection(planningSelection(year,{view:'timplan',schoolform:kind,unitId,query,status:'all',cohortRelation:'all',archive:'all',...patch}));
 }
@@ -171,13 +175,85 @@ async function blocked(page:Page,url:string){
  await page.goBack();await expect(page.getByTestId('planning-navigation-notice')).toBeVisible();expect(page.url()).toBe(url);
 }
 function hold(){let resolve!:(r:APIResponse)=>void,release!:()=>void;const ready=new Promise<APIResponse>(r=>{resolve=r;}),released=new Promise<void>(r=>{release=r;});releases.push(release);return {ready,released,resolve,release};}
-async function completeActual(route:Route){
- const request=route.request();controlled.add(request);let actual:APIResponse,body:unknown;
- try{actual=await route.fetch();body=await actual.json();}catch{browserUnknown=true;throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN');}
- const input=request.postDataJSON();expect(actual.status()).toBe(200);
- if(pathname(request)===READ)parseProtectedTimplan(body,input.planId);
- else if(pathname(request)===CELL)parseTimplanCellReply(body,{...input,columnCount:input.planId===metadata.grRecords[0].currentPlanId?3:1});
- await audit(actual,pathname(request),input);actualDone.add(request);pending.delete(request);return actual;
+
+type BrowserActor = Fixture['principal'];
+type BrowserCompletionStage = 'scope' | 'fetch' | 'body' | 'audit' | 'fulfill';
+type BrowserRouteStage = 'seen' | 'fetch' | 'body' | 'audit' | 'complete';
+type SafeBrowserRoute = { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserRouteStage };
+const actualRouteJobs = new Set<Promise<APIResponse>>(), browserRouteStates = new Map<Request, SafeBrowserRoute>();
+let activeBrowserContext: ReturnType<Page['context']> | null = null, contextCloseAllowed = false, prematureContextClose = false;
+let requestActors = new WeakMap<Request, BrowserActor>(), auditReplies = new WeakMap<object, Promise<void>>(), auditRequests = new WeakMap<Request, Promise<void>>();
+let browserCompletionFailure: { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserCompletionStage } | null = null;
+function routeMetadata(request: Request): Pick<SafeBrowserRoute, 'pathname' | 'method'> {
+  const pathname = new URL(request.url()).pathname, method = request.method();
+  return { pathname: /^\/api\/[a-z]+(?:\/[a-z]+)*$/u.test(pathname) ? pathname : '/api/unknown',
+    method: method === 'GET' || method === 'POST' ? method : 'OTHER' };
+}
+function recordBrowserRoute(request: Request, stage: BrowserRouteStage) {
+  browserRouteStates.set(request, { ...routeMetadata(request), stage });
+}
+function recordBrowserCompletionFailure(request: Request, stage: BrowserCompletionStage) {
+  browserUnknown = true;
+  browserCompletionFailure ??= { ...routeMetadata(request), stage };
+}
+function requestActor(request: Request): BrowserActor {
+  const captured = requestActors.get(request);
+  if (!captured) throw Error('OWNED_ACTOR_SCOPE');
+  return captured;
+}
+function cachedAudit(reply: Response | APIResponse, verify: () => Promise<void>): Promise<void> {
+  const request = 'request' in reply ? (reply as Response).request() : null;
+  const existing = auditReplies.get(reply) ?? (request ? auditRequests.get(request) : undefined);
+  if (existing) return existing;
+  const proof = Promise.resolve().then(verify);
+  auditReplies.set(reply, proof); if (request) auditRequests.set(request, proof);
+  return proof;
+}
+async function actualRouteFetch(route: Route, validate?: (actual: APIResponse) => Promise<void>): Promise<APIResponse> {
+  const request = route.request();
+  // Capture before transport; a later assignment switch cannot change this audit's actor.
+  const captured = requestActors.get(request);
+  const job = Promise.resolve().then(async () => {
+    let stage: BrowserCompletionStage = 'scope';
+    try {
+      const url = new URL(request.url());
+      if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/') || !captured) throw Error('OWNED_ROUTE_SCOPE');
+      stage = 'fetch'; recordBrowserRoute(request, 'fetch');
+      const actual = await route.fetch();
+      stage = 'body'; recordBrowserRoute(request, 'body'); await actual.body();
+      if (validate) await validate(actual);
+      if ([SETUP, LIST, OVERVIEW, READ, CELL, LEGACYLIST].includes(url.pathname)) {
+        stage = 'audit'; recordBrowserRoute(request, 'audit');
+        const proof = audit(actual, url.pathname, request.method() === 'POST' ? request.postDataJSON() : undefined, captured);
+        auditRequests.set(request, proof); await proof;
+      }
+      recordBrowserRoute(request, 'complete'); actualDone.add(request); pending.delete(request);
+      return actual;
+    } catch { recordBrowserCompletionFailure(request, stage); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+  });
+  actualRouteJobs.add(job);
+  try { return await job; } finally { actualRouteJobs.delete(job); }
+}
+async function installActualPassthrough(page: Page) {
+  await page.context().route('**/api/**', async route => {
+    const request = route.request(), url = new URL(request.url());
+    if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) { await route.fallback(); return; }
+    const actual = await actualRouteFetch(route);
+    try { await route.fulfill({ response: actual }); }
+    catch {
+      if (!actualDone.has(request)) {
+        recordBrowserCompletionFailure(request, 'fulfill'); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN');
+      }
+    }
+  });
+}
+async function completeActual(route: Route) {
+  const request = route.request(); controlled.add(request);
+  return actualRouteFetch(route, async actual => {
+    const body = await actual.json(), input = request.postDataJSON(); expect(actual.status()).toBe(200);
+    if (pathname(request) === READ) parseProtectedTimplan(body, input.planId);
+    else if (pathname(request) === CELL) parseTimplanCellReply(body, { ...input, columnCount: input.planId === metadata.grRecords[0].currentPlanId ? 3 : 1 });
+  });
 }
 async function capture(page:Page,info:TestInfo,label:string){
  const geometry=await page.evaluate(()=>({document:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,viewport:innerWidth,
@@ -201,26 +277,54 @@ test.beforeAll(async({browserName},info)=>{
 });
 test.beforeEach(async({page})=>{
  if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');fixture=undefined!;setupComplete=false;setupPending=false;nodePending=0;nodeUnknown=false;nodeUnknownStage=null;browserUnknown=false;audits=[];dialogs=[];pending.clear();releases.length=0;
- page.on('request',r=>{if(pathname(r).startsWith('/api/'))pending.add(r);});
+
+  actor = undefined!;
+  browserCompletionFailure = null; actualRouteJobs.clear(); browserRouteStates.clear();
+  requestActors = new WeakMap<Request, BrowserActor>(); auditReplies = new WeakMap<object, Promise<void>>(); auditRequests = new WeakMap<Request, Promise<void>>();
+  activeBrowserContext = null; contextCloseAllowed = false; prematureContextClose = false;
+  const context = page.context();
+  if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL) || page.isClosed() || context.pages().length !== 1
+    || context.pages()[0] !== page || !context.browser()?.isConnected()) throw Error('OWNED_BROWSER_SCOPE');
+  activeBrowserContext = context;
+  context.once('close', () => { if (!contextCloseAllowed) { prematureContextClose = true; browserUnknown = true; } });
+ page.on('request', request => {
+    if (pathname(request).startsWith('/api/') && !actualDone.has(request)) {
+      pending.add(request); if (!browserRouteStates.has(request)) recordBrowserRoute(request, 'seen');
+      if (actor) requestActors.set(request, { ...actor });
+    }
+  });
  page.on('requestfailed',r=>{if(actualDone.has(r))pending.delete(r);});
- page.on('response',r=>{pending.delete(r.request());if(!controlled.has(r.request())&&[SETUP,LIST,OVERVIEW,READ,CELL,LEGACYLIST].includes(pathname(r))){const promise=audit(r,pathname(r));void promise.catch(()=>undefined);audits.push(promise);}});
+ page.on('response',r=>{pending.delete(r.request());if(!auditRequests.has(r.request())&&!controlled.has(r.request())&&[SETUP,LIST,OVERVIEW,READ,CELL,LEGACYLIST].includes(pathname(r))){const promise=audit(r,pathname(r));void promise.catch(()=>undefined);audits.push(promise);}});
  page.on('dialog',async d=>{dialogs.push(d.type());await d.dismiss();});
+  await installActualPassthrough(page);
  fixture=await ownedNode('creation',()=>createPlanningOtherFixture());if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');
  actor=fixture.principal;setupPending=true;try{metadata=await ownedNode('setup',()=>fixture.setup(baseURL));}finally{setupPending=false;}
  if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');
  const reply=await nodeRequest(baseURL,actor,SETUP);expect(reply.status).toBe(200);expect(await ownedNode('readback',()=>fixture.pairedPlanning(reply.correlationId,actor,'planning_year_selection_read'))).toBe(true);setup=parsePlanningSetup(reply.body);setupComplete=true;
 });
 test.afterEach(async({page},info)=>{
- releases.splice(0).forEach(r=>r());let routesSettled=false,contextClosed=false;
- try{await page.unrouteAll({behavior:'wait'});routesSettled=true;}catch{browserUnknown=true;}
- try{await page.context().close();contextClosed=true;}catch{browserUnknown=true;}
- if(!fixture&&!recoveryRequired&&nodePending===0&&!nodeUnknown&&!browserUnknown&&pending.size===0&&routesSettled&&contextClosed)return;
+ releases.splice(0).forEach(r=>r());
+  let routesSettled = false, pageClosed = false, contextRoutesSettled = false, routeJobsSettled = false, contextClosed = false;
+  const context = page.context();
+  if (context !== activeBrowserContext || context.pages().some(candidate => candidate !== page)) browserUnknown = true;
+  try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; } catch { browserUnknown = true; }
+  try { await page.close(); pageClosed = true; } catch { browserUnknown = true; }
+  try { await context.unrouteAll({ behavior: 'wait' }); contextRoutesSettled = true; } catch { browserUnknown = true; }
+  const routeJobsAtDrain = actualRouteJobs.size;
+  await Promise.allSettled(actualRouteJobs); routeJobsSettled = actualRouteJobs.size === 0;
+  if (prematureContextClose) browserUnknown = true;
+  contextCloseAllowed = true;
+  try { await context.close(); contextClosed = true; } catch { browserUnknown = true; }
+ if(!fixture&&!recoveryRequired&&nodePending===0&&!nodeUnknown&&!browserUnknown&&pending.size===0&&routesSettled&&pageClosed&&contextRoutesSettled&&routeJobsSettled&&contextClosed)return;
  const requireCompletion=async()=>{
-  if(recoveryRequired||!setupComplete||setupPending||nodePending>0||nodeUnknown||browserUnknown||pending.size>0||!routesSettled||!contextClosed){
+  if(recoveryRequired||!setupComplete||setupPending||nodePending>0||nodeUnknown||browserUnknown||pending.size>0||!routesSettled||!pageClosed||!contextRoutesSettled||!routeJobsSettled||!contextClosed){
    recoveryRequired=true;
    await info.attach('cleanup-deferred.json',{body:JSON.stringify({cleanupDeferred:true,databaseRecoveryRequired:true,
     setupComplete,setupPending,pendingNodeRequests:nodePending,unknownNodeRequest:nodeUnknown,nodeUnknownStage,
-    unknownBrowserCompletion:browserUnknown,pendingRequests:pending.size,routesSettled,contextClosed,
+    unknownBrowserCompletion:browserUnknown,browserCompletionFailure, pendingRequests: pending.size,
+      pendingRoutes: [...pending].map(request => browserRouteStates.get(request) ?? { ...routeMetadata(request), stage: 'seen' }),
+      routesSettled, pageClosed, contextRoutesSettled, routeJobsSettled, routeJobsAtDrain, routeJobsRemaining: actualRouteJobs.size,
+      prematureContextClose, contextClosed,
     ownedCustomerId:fixture?.customerId??null,ownedOrganizerId:fixture?.organizerId??null,foreignCustomerId:fixture?.foreignCustomerId??null,
     originalBusiness:fixture?.originalBusiness??null,fixtureExposed:!!fixture}),contentType:'application/json'});
    throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
