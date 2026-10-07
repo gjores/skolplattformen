@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: SEARCH fullrollback/apply/applied271/38/23, API15/247 och sökning19/204 PASS. Nästa UI05-39→43 före mänskligt prov.
+stopped_at: UI05-39 källintegrerad;75 riktade prov,typ/lint/källreview PASS. Isolerat bygge och C16 actual nästa, därefter40–43.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: 667c841
+state_head: 66c467b
 verification_worker_build_revision: 0913d5a0527e2975ce3059b8672b2c139bf07997
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI05-39 pågår2026-10-07:** Granskade kontext/writer/shelländringar integrerade i tre avgränsade commits. Slutlig Cspecaa6 med sticky completion/maxFailures1 före fixture;75 riktade prov,full typkontroll utan incremental/lint och oberoende källreview PASS. Isolerad ny Worker och faktisk C16dator/telefon återstår.83/100 består,vanlig3012 oförändrad.
 
 **SEARCH färdigt2026-10-07:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md) och oberoende verifiering. Fullrollback/applied271/38/23, original93/18 mot båda definitionerna i båda modes; oförändradAPI15/247 före/efter, sökning19/204 och12HTTP-svar under4,884s PASS. Exakt privat06123000+journal, full15/katalog/råACL28/audit-/identitetsankare ochcleanup PASS utan deferred. Första fixtur-/artifactfel och exakt återhämtning bevarade; ingen rekonstrueradPASS. Source43ab14c/build0913 i separat runtimearbetskopia, vanlig3012 fortsatt5dd7baf.83/100,3/8; nästa seriella39→40→41→42→43 och konkret användarprov. Fulla krav/gap kvarstår. Äldre pågående SEARCHbesked nedan är historik.
 
