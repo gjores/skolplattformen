@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, RefreshCw, Copy, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -26,7 +26,8 @@ import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
 import { parseProgramplanSelection, parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import './protected-programplan.css';
-import { usePlanningContext } from './planning-context';
+import { usePlanningContext, type PlanningMatrixYear } from './planning-context';
+import { planningYearLabel, projectGymYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow } from '@/lib/planning-year-contract.ts';
 import type { ProgramplanLocation, GymTimplanLocation } from '@/lib/protected-plan-location.ts';
 
@@ -39,7 +40,7 @@ function newCopy(name: string) { return { name: `${name} – kopia`.slice(0, 120
 
 export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost, initialPlan, onOpened, onTimplan }: Props) {
   const page = 1;
-  const { setup: planningSetup, selection: planningSelection } = usePlanningContext();
+  const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
   const initialOpened = useRef(false);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialPlan?.unitId ?? planningUnit);
@@ -63,7 +64,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [view, setView] = useState<'plan' | 'analysis'>('plan');
   const [focusIssue, setFocusIssue] = useState<PlanIssue | null>(null);
   const termsActive = boardBlocked;
-  const [termValues, setTermValues] = useState<ProgramplanTermDistribution | null>(null);
+  const [termSnapshot, setTermSnapshot] = useState<{ planId: string | null; distribution: ProgramplanTermDistribution | null }>({ planId: null, distribution: null });
+  const termValues = termSnapshot.planId === plan?.id ? termSnapshot.distribution : null;
+  const onReadTerms = useCallback((distribution: ProgramplanTermDistribution | null) => { setTermSnapshot({ planId: plan?.id ?? null, distribution }); }, [plan?.id]);
   const [draftTerms, setDraftTerms] = useState<ProgramplanTermDistribution>([]);
   const [showFlow, setShowFlow] = useState(false);
   // Permission belongs to this stable workspace, including direct links and list-to-plan reads.
@@ -84,9 +87,11 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   useEffect(()=>{if(!reviewing)return;const frame=requestAnimationFrame(()=>reviewRef.current?.focus());return()=>cancelAnimationFrame(frame);},[reviewing]);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const generation = useRef(0), mounted = useRef(true), controller = useRef<AbortController | null>(null), saving = useRef(false);
+  const verifiedPlan = useRef<{ token: number; planId: string } | null>(null);
   const opened = useRef(onOpened); useLayoutEffect(() => { opened.current = onOpened; }, [onOpened]);
   const publishReadSelection = useCallback((fresh: ProgramplanWorkspace, selected: Programplan | null) => {
     // Called only after the complete scoped read and its current-generation check.
+    verifiedPlan.current = selected ? { token: generation.current, planId: selected.id } : null;
     const unitId = selectedUnit.current;
     opened.current?.(selected ? { offeringId: fresh.education.id, planId: selected.id, version: selected.version, ...(unitId ? { unitId } : {}) } : null);
   }, []);
@@ -427,6 +432,28 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const boardActive = !draft && !preparation && !copy && !!plan?.basisReference && !!program && boundSourceMatches;
   const draftTermInput = draft && program && (draft.kind === 'create') ? (() => { try { return { rows: programplanTermRows(program, { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs }), distribution: draftTerms, ranks: programplanLevelRanks(program) }; } catch { return undefined; } })() : undefined;
   const termInput = draftTermInput ?? (boardActive && termValues ? (() => { try { return { rows: programplanTermRows(program!, plan!.basisReference!), distribution: termValues, ranks: programplanLevelRanks(program!) }; } catch { return undefined; } })() : undefined);
+  // Only the opened, actually verified version supplies its calendar provenance.
+  const yearProjection = useMemo(() => {
+    if (!planningSelection || !plan) return null;
+    // Invalid local inputs keep their existing validation; calendar labels must not crash the draft.
+    const validTerms = termValues?.every(row => row.points.length === 6 && row.points.every(value => Number.isFinite(value) && value >= 0));
+    return projectGymYear(planningSelection.schoolYear,
+      { provenance: plan.basisReference ? 'program-version' : 'legacy', startedOn: plan.basisReference?.startedOn ?? null, academicYear: null },
+      validTerms ? termValues!.reduce<number[]>((totals, row) => totals.map((value, index) => value + row.points[index]), [0, 0, 0, 0, 0, 0]) : undefined);
+  }, [planningSelection, plan, termValues]);
+  const shownYear: PlanningMatrixYear = yearProjection?.terms.length === 6
+    ? matrixYear ?? (yearProjection.relativeYear === null ? 'all' : (yearProjection.relativeYear - 1) as 0 | 1 | 2) : 'all';
+  const verifiedYearCurrent = () => !!plan && verifiedPlan.current?.planId === plan.id && current(verifiedPlan.current.token);
+  const changeMatrixYear = (year: PlanningMatrixYear) => {
+    if (!verifiedYearCurrent() || busy || !canNavigate()) return;
+    if (year !== 'all' && yearProjection?.terms.length !== 6) { setNotice('Årsdelen saknar verifierat startdatum. Hela planen visas.'); return; }
+    requestMatrixYear(year);
+  };
+  useEffect(() => {
+    if (!plan || !yearProjection || busy || ownNavigationBlock || hasNavigationBlock
+      || verifiedPlan.current?.planId !== plan.id || !current(verifiedPlan.current.token)) return;
+    if (matrixYear === null || yearProjection.terms.length !== 6 && matrixYear !== 'all') requestMatrixYear(shownYear);
+  }, [plan, yearProjection, busy, ownNavigationBlock, hasNavigationBlock, current, matrixYear, shownYear, requestMatrixYear]);
   const analysis = program && workspace ? analyseProgramplan({ program, orientationCode: workspace.education.orientationCode, refs: shownRefs, startedOn: shownStart,
     sourceFetched: workspace.catalog.source?.fetched ?? null, serverNotes, terms: termInput, basisReference: draft ? { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs } : plan?.basisReference }) : null;
   const problems = analysis ? analysis.counts.fel + analysis.counts.risk : 0;
@@ -518,9 +545,11 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     return () => cancelAnimationFrame(frame);
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
-    <ProgramplanBoard key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
-      focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onNavigationBlocked={onBoardBlocked} onTerms={setTermValues} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,true,true)}/>
+    <ProgramplanBoard yearView={yearProjection ? { projection: yearProjection, year: shownYear, onYear: changeMatrixYear,
+      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
+      focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onNavigationBlocked={onBoardBlocked} onTerms={onReadTerms} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,true,true)}/>
   </> : <>
+    {plan && !plan.basisReference && planningSelection && <output className="pp-notice">Årsdelen för {planningYearLabel(planningSelection.schoolYear)} saknar verifierat startdatum. Hela planen visas.</output>}
     {draft&&draft.kind==='clone'&&draft.sourceBound&&<p className="ppb-note">Den nya versionen får samma programfördjupning och terminsfördelning som källversionen. Ändra dem i utkastet efter att det skapats.</p>}
     {program&&workspace&&<LocalPlanBoard program={program} orientationCode={workspace.education.orientationCode} choiceBlocks={draft ? draft.pin.choiceBlocks : plan?.basisReference?.choiceBlocks} options={shownOptions} refs={shownRefs}
       focusIssue={view==='plan'?activeFocusIssue:null} terms={draft?.kind==='create'?draftTerms:[]} refsEditable={canEditInline} disabled={!draft||draft.kind!=='create'||formLocked}

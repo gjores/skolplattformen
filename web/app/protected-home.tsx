@@ -249,7 +249,6 @@ function ProtectedShell() {
   const [programplanTarget, setProgramplanTarget] = useState<ProgramplanLocation | null>(null);
   const [timplanTarget, setTimplanTarget] = useState<GymTimplanLocation | null>(null);
   const [timplanMode, setTimplanMode] = useState<'gym' | 'other'>('gym');
-  const [timplanYear, setTimplanYear] = useState('all');
   const [planNavigation, setPlanNavigation] = useState(0);
   const locationRef = useRef('');
   const locationStateRef = useRef<unknown>(null);
@@ -282,7 +281,7 @@ function ProtectedShell() {
     // Avbryt även redan hämtade men ännu inte levererade elev-/CSV-svar.
     setKnownEpoch(null);
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
-    setProgramplanTarget(null); setTimplanTarget(null); setTimplanMode('gym'); setTimplanYear('all'); lastGymPlan.current = null;
+    setProgramplanTarget(null); setTimplanTarget(null); setTimplanMode('gym'); lastGymPlan.current = null;
   }, []);
   const lockChangedContext = useCallback(() => {
     const wasSupport = sessionRef.current?.context?.function === 'support';
@@ -321,7 +320,7 @@ function ProtectedShell() {
           clearRegisterLocation(); setRegisterSetup(null); setSchoolYear(null); setHelp(false);
           registerSelectionRef.current = null; planningLocationRef.current = null; setPlanningLocation(null);
           locationRef.current = ''; locationStateRef.current = null; setNavigationNotice(null);
-          setTimplanYear('all'); lastGymPlan.current = null;
+          lastGymPlan.current = null;
         }
         sessionRef.current = loaded;
         setSession(loaded);
@@ -333,7 +332,6 @@ function ProtectedShell() {
           setProgramplanTarget(location?.view === 'programplaner' ? location.programplan : null);
           setTimplanTarget(location?.view === 'timplaner' ? location.gym : null);
           setTimplanMode(location?.view === 'timplaner' && (location.other || location.planning?.schoolform && location.planning.schoolform !== 'gymnasium') ? 'other' : 'gym');
-          setTimplanYear(location?.allYears || location?.relativeYear === undefined ? 'all' : String(location.relativeYear - 1));
           locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
         }
         setMfaRequired(false);
@@ -432,7 +430,8 @@ function ProtectedShell() {
     if (next.scopeChanged) setProgramplanTarget(target);
     // Preserve the annual list for Back without remounting this verified workspace.
     // Existing targets and explicit null (local return or absent candidate) replace.
-    writePlanLocation({ view: 'programplaner', programplan: target, planning: next.planning }, !firstOpenedTarget);
+    writePlanLocation({ view: 'programplaner', programplan: target, planning: next.planning,
+      ...(target && prior?.view === 'programplaner' ? { relativeYear: prior.relativeYear, allYears: prior.allYears } : {}) }, !firstOpenedTarget);
   }
   function gymTimplanOpened(target: GymTimplanLocation | null, sourcePlanId?: string) {
     if (sessionScope(sessionRef.current) !== contextKey) return;
@@ -441,8 +440,8 @@ function ProtectedShell() {
     const next = planningAfterOpened(target?.unitId);
     if (next.scopeChanged) setTimplanTarget(target);
     if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, target };
-    writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning, allYears: timplanYear === 'all',
-      ...(timplanYear !== 'all' ? { relativeYear: (Number(timplanYear) + 1) as 1 | 2 | 3 } : {}) }, !firstOpenedTarget);
+    writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning,
+      ...(target && prior?.view === 'timplaner' ? { relativeYear: prior.relativeYear, allYears: prior.allYears } : {}) }, !firstOpenedTarget);
   }
   function planningFor(next: 'programplaner' | 'timplaner'): PlanLocation {
     const prior = planningLocationRef.current;
@@ -453,12 +452,12 @@ function ProtectedShell() {
     setProgramplanTarget(location.view === 'programplaner' ? location.programplan : null);
     setTimplanTarget(location.view === 'timplaner' ? location.gym : null);
     setTimplanMode(location.view === 'timplaner' && (location.other || location.planning?.schoolform && location.planning.schoolform !== 'gymnasium') ? 'other' : 'gym');
-    setTimplanYear(location.allYears || location.relativeYear === undefined ? 'all' : String(location.relativeYear - 1));
     planningLocationRef.current = location; setPlanningLocation(location); setView(location.view); viewRef.current = location.view;
   }
   function transitionPlanning(location: PlanLocation, mode: 'push' | 'replace') {
     if (!contextKey || sessionScope(sessionRef.current) !== contextKey) return;
     // User changes have already passed the provider's block/discard gate.
+    setNavigationNotice(null);
     applyPlanningLocation(location); if (mode === 'push') setPlanNavigation(value => value + 1);
     writePlanLocation(location, mode === 'replace');
   }
@@ -656,9 +655,6 @@ function ProtectedShell() {
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                   }}>Grundskola och introduktionsprogram</Button>}</nav>
                 {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
-                  year={timplanYear} onYear={year => { if (navigationBlocked) { setNavigationNotice('Invänta sparandet eller läs sparstatus innan du byter årskurs.'); return; } setTimplanYear(year);
-                    writePlanLocation({ view: 'timplaner', gym: planningLocationRef.current?.view === 'timplaner' ? planningLocationRef.current.gym : timplanTarget, planning: planningLocationRef.current?.planning,
-                      allYears: year === 'all', ...(year !== 'all' ? { relativeYear: (Number(year) + 1) as 1 | 2 | 3 } : {}) }, true); }}
                   onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
                   : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} onSessionLost={clearSession}/>}
               </>}

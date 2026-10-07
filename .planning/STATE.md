@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-40 fullL36/cleanup/source/geometri PASS; nästa05-41 årsprojektion och årskursknappar.
+stopped_at: UI05-41 granskad årsmatris/knapp-/kontextkälla integrerad efter40PASS; rena kontroller/nytt bygge/G38+C04x2 återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
 last_activity_desc: "UI05-40 fullL36/cleanup/geometri PASS; nästa05-41. Vanlig3012 bevarad."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 källintegration2026-10-08:** Exakt11 selektiva källor från a270ddf8/C73/Ga753/fixtur9ff,40list229/initialregistryguard bevarade. Rätt relativår/full6/fryststart/URL och minst44px årskursknappar integrerade. Gamla shellnotisen rensas endast vid accepterad guardedtransition. Rena kontroller/nytt isolerat bygge och actualG38+C04×2 återstår;85/100 och vanlig3012 består.
 
 **UI40 färdigt2026-10-08 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SUMMARY.md). FullL36 source/build1f3e6b2/L620,36normalcleanup/full15/audit-/identitetsankare/sourceclosure/geometri PASS. Alla första FAIL och boundedprov bevarade; ingen recovery. Bildernas childladdning och fokushopplänk är tydliga begränsningar, inget mänskligt PASS.85/100; nästa41→42→43 och konkret användarprov, fulla krav/verksamhetsgap består. Vanlig3012 fortsatt5dd7baf.
 
