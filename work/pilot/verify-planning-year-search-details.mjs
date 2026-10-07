@@ -139,7 +139,12 @@ export function validateHistoricalSources(report,paths,gitRead){
 export function searchAnchorsValid(before,after){return ['audit','identities'].every(k=>Number.isSafeInteger(before?.[k]?.count)&&before[k].count>=0&&hashPattern.test(before[k].sha256??'')&&equal(before[k],after?.[k]));}
 export function searchWholeRowsValid(h){return h&&exactFunctions(Object.keys(h),PLANNING_TABLES)&&Object.values(h).every(v=>v&&Number.isSafeInteger(v.count)&&v.count>=0&&hashPattern.test(v.sha256??'')&&exactFunctions(Object.keys(v),['count','sha256']));}
 export const searchCleanupPreserved=c=>planningCleanupPreserved(c)&&c.searchAuditFixtures?.triggers===0&&c.searchAuditFixtures?.functions===0;
-export const searchRecoveryRequired=(current,http)=>current===true||http?.cleanupDeferred===true;
+export const searchRecoveryRequired=(current,http)=>current===true||http?.cleanupDeferred===true||http?.setupUnknown===true;
+// Setup may include owned writes. Every thrown transport, body or unknown error
+// keeps completion unknown; only a fully returned setup allows ordinary cleanup.
+export async function withSearchSetupCompletion(setup,onUnknown){
+ try{return await setup();}catch(error){onUnknown();throw error;}
+}
 export const searchSqlCompleted=r=>r?.exitCode===0&&r.timedOut===false&&r.outputOverflow===false&&r.streamError===false&&r.signal===null;
 export function exactSearchTap(t,total){return t?.status==='PASS'&&t.total===total&&Array.isArray(t.assertions)&&!t.assertions.some(line=>typeof line!=='string'||/#\s*(?:SKIP|TODO)\b|Bail\s*out!/iu.test(line))&&planningTapProof(t.assertions.join('\n')+`\n1..${total}`,total).status==='PASS';}
 function originalContractsComplete(p){return p?.ok===true&&Array.isArray(p.cases)&&exactFunctions(p.cases.map(c=>c.name),PERFORMANCE_ORIGINAL_PARITY_CASES)&&p.cases.every(c=>c.ok===true);}
@@ -244,7 +249,7 @@ export function validateSearchRollback(e,readSource=read){
   ||!exactSearchTap(e.sql?.tap,SEARCH_SQL_TAP_TOTAL)||!searchSqlCompleted(e.sql)||!e.sqlProof?.ok
   ||!searchSqlProof([...e.sqlProof.core.map(c=>'PLANNING_SEARCH_PARITY|'+JSON.stringify(c)),...e.sqlProof.matches.map(c=>'PLANNING_SEARCH_MATCH|'+JSON.stringify(c))].join('\n')).ok
   ||!['original','candidate'].every(k=>exactSearchTap(e.originalSql?.[k]?.tap,93)&&searchSqlCompleted(e.originalSql[k])&&originalContractsComplete(e.originalSql[k].parity))
-  ||!searchCasesComplete(e.parserApi?.cases,['legacy-parser-role-reads'])||e.fullApiStatus!=='PASS'
+  ||e.parserApi?.setupUnknown===true||e.parserApi?.cleanupDeferred===true||!searchCasesComplete(e.parserApi?.cases,['legacy-parser-role-reads'])||e.fullApiStatus!=='PASS'
   ||!Array.isArray(e.checks)||!e.checks.length||!e.checks.every(c=>c.ok===true)
   ||! /^[a-f0-9]{40}$/u.test(e.sourceCommit??'')||! /^[a-f0-9]{40}$/u.test(e.workerBuildRevision??'')
   ||!e.dependencyHashes||!['final38','performanceRollback','performanceFinal','performanceApi'].every(k=>hashPattern.test(e.dependencyHashes[k]??''))
@@ -351,14 +356,11 @@ export async function verifySearchWorker(baseURL,performanceFinal){
 }
 async function httpProof(baseURL,applied){
  const {createPlanningSearchFixture}=await import('./phase5-planning-year-search-fixtures.mjs');
- let fixture,metadata,setup,cleanup,failure,cleanupDeferred=false;const cases=[],samples=[];
+ let fixture,metadata,setup,cleanup,failure,cleanupDeferred=false,setupUnknown=false;const cases=[],samples=[];
  const run=async(name,fn)=>{const checks=[];try{await fn(checks);}catch(e){checked(checks,planningSafeFailure(e).code,false);if(cleanupDeferred){cases.push({name,status:'FAIL',checks});throw e;}}cases.push({name,status:checks.length&&checks.every(c=>c.ok)?'PASS':'FAIL',checks});};
  try{
   fixture=await createPlanningSearchFixture();
-  try{metadata=await fixture.setup(baseURL);}catch(e){
-   if(e?.name==='TimeoutError'||e?.name==='AbortError'||e?.code==='ECONNRESET')cleanupDeferred=true;
-   throw e;
-  }
+  metadata=await withSearchSetupCompletion(()=>fixture.setup(baseURL),()=>{setupUnknown=true;cleanupDeferred=true;});
   const q=patch=>planningSelection(metadata.planningYear,{view:'programplan',unitId:fixture.unitId,query:metadata.pageQuery,status:'utkast',...patch});
   const request=async(session,route,selection,options={})=>{
    const before=await fixture.businessHashes(),boundary=await fixture.auditBoundary(session),startedAt=new Date().toISOString(),start=performance.now();
@@ -481,9 +483,9 @@ async function httpProof(baseURL,applied){
    }
   }
  }catch(e){failure=planningSafeFailure(e);}
- finally{if(fixture&&!cleanupDeferred)try{await fixture.clearAuditFailure();cleanup=await fixture.cleanup();}catch(e){failure??=planningSafeFailure(e);}}
- return {ok:!failure&&!cleanupDeferred&&searchCasesComplete(cases,applied?SEARCH_API_CASES:['legacy-parser-role-reads'])&&searchCleanupPreserved(cleanup)&&(!applied||searchTimingsComplete(samples)),cases,samples,cleanup,cleanupDeferred,
-  recovery:cleanupDeferred?{ownedCustomerId:fixture?.customerId,ownedOrganizerId:fixture?.organizerId,reason:'OWNED_READ_UNDRAINED'}:null,failure};
+ finally{if(fixture&&!cleanupDeferred&&!setupUnknown)try{await fixture.clearAuditFailure();cleanup=await fixture.cleanup();}catch(e){failure??=planningSafeFailure(e);}}
+ return {ok:!failure&&!cleanupDeferred&&!setupUnknown&&searchCasesComplete(cases,applied?SEARCH_API_CASES:['legacy-parser-role-reads'])&&searchCleanupPreserved(cleanup)&&(!applied||searchTimingsComplete(samples)),cases,samples,cleanup,cleanupDeferred,setupUnknown,
+  recovery:cleanupDeferred||setupUnknown?{ownedCustomerId:fixture?.customerId,ownedOrganizerId:fixture?.organizerId,reason:'OWNED_READ_UNDRAINED'}:null,failure};
 }
 async function main(){
  const o=parseSearchArgs(process.argv.slice(2)),bundle=dependencyBundle(),dependencyHashes=validateSearchDependencies(bundle);
