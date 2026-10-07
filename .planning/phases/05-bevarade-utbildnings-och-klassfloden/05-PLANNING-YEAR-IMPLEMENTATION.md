@@ -3,7 +3,7 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 topic: planning-year
 created: 2026-10-06
 status: in_progress
-plans: ["05-36", "05-37", "05-38", "05-38-READ-PERFORMANCE", "05-39", "05-40", "05-41", "05-42", "05-43"]
+plans: ["05-36", "05-37", "05-38", "05-38-READ-PERFORMANCE", "05-40-SEARCH-DETAILS", "05-39", "05-40", "05-41", "05-42", "05-43"]
 requirements: [PLANERING-01, PLANERING-02, PLANERING-03, PLANERING-04, PLANERING-05]
 worker_build_revision_at_planning: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 ---
@@ -12,7 +12,7 @@ worker_build_revision_at_planning: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 
 **Aktuellt delresultat:** [05-36-SUMMARY](05-36-SUMMARY.md) och [oberoende verifiering](05-36-VERIFICATION.md) är klara: ren modell/läskontrakt med 70 Node-prov, 20 oberoende prober och typ/lint PASS. 05-37 är därefter tillämpad/verifierad som stängd SQL-foundation, se [SUMMARY](05-37-SUMMARY.md) och [inventering](05-PLANNING-YEAR-FUNCTION-INVENTORY.md): 93 SQL/18 paritet/3 lås både före/efter apply. 05-38 har därefter faktisk preflight/slutprov15/247 PASS och exakt tre läsgrants (28 entries). Nästa är avgränsad prestandarättning före UI05-39–43. UI i 05-39–43 och samtliga fulla PLANERING-krav kvarstår. Detta index beskriver både beställd planering och faktiskt avgränsad leverans. Läs [samtalsbesluten](05-PLANNING-YEAR-CONTEXT.md) och [färsk kodinventering](05-PLANNING-YEAR-DISCOVERY.md) före utförande. Planeringen bygger vidare på fungerande programplaner, skolvisa frysta gymtimplaner och direkt terminsinmatning; den ändrar inte det prövade bygget på 3012.
 
-[Ursprunglig plangranskning](05-PLANNING-YEAR-PLAN-CHECK.md): åtta planer och 21 uppgifter har kontrollerade beroenden, avgränsningar och verifieringssteg. Den granskningen avser ursprungspaketet. Därefter tillkom den avgränsade prestandaplanen och två navigationsskyddsuppgifter i 05-39 efter färsk kodkontroll. Detta bekräftar planens kvalitet; genomförande och verksamhetsprov återstår.
+[Ursprunglig plangranskning](05-PLANNING-YEAR-PLAN-CHECK.md): åtta planer och 21 uppgifter har kontrollerade beroenden, avgränsningar och verifieringssteg. Den granskningen avser ursprungspaketet. Därefter tillkom den avgränsade prestandaplanen, kod-/benämningssökningen i 05-40-SEARCH-DETAILS och två navigationsskyddsuppgifter i 05-39 efter färsk kodkontroll. Dessa tekniska kompletteringar genomför befintliga produktkrav; de är ännu inte leveransbevis. Se [kompletterande oberoende plangranskning](05-PLANNING-YEAR-SUPPLEMENT-PLAN-CHECK.md). Detta bekräftar planens kvalitet; genomförande och verksamhetsprov återstår.
 
 ## Avsett resultat
 
@@ -28,17 +28,18 @@ Byte av läsår är ett urval. Det ändrar inga statusar, beslut, fastställda v
 | [05-37](05-37-PLAN.md) | 2 | 3 | **Genomförd**, se SUMMARY/VERIFICATION. Stängda SQL-projektioner: 93 SQL/18 paritet/3 lås före/efter apply; 15 helradstabeller/ACL/journal bevarade. Inga nya Workergrants. |
 | [05-38](05-38-PLAN.md) | 3 | 3 | **Genomförd**15/247 preflight/slutprov; tre läsrutter i Worker, riktig temporär preflight med exakt återställning, därefter tre exakta permanenta läsgrants och samma slutmatris. |
 | [05-38-READ-PERFORMANCE](05-38-READ-PERFORMANCE-PLAN.md) | 4 | 3 | Privat definitionsrättning med exakt gammal/ny-paritet, samma API-matris och uppmätt svarstid. |
-| [05-39](05-39-PLAN.md) | 4 efter korrektivet | 4 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
-| [05-40](05-40-PLAN.md) | 5 | 3 | Verklig årsöverblick, gemensam sök/filter/sort/pagination och program-/gymtimplanstabeller. |
-| [05-41](05-41-PLAN.md) | 6 | 3 | Rätt relativår i program/gymmatris, hela originalindex och osparat-/korsårssparskydd. |
-| [05-42](05-42-PLAN.md) | 7 | 2 | Tabell för grundskola/introduktionsprogram och rätt års-/kolumn-/versionsöppning, utan automatiska nya klasskopplingar. |
-| [05-43](05-43-PLAN.md) | 8 | 3 | Samlad seriell verifiering, handbok och S1/S3-kontrakt; verkligt användarprov separat. |
+| [05-40-SEARCH-DETAILS](05-40-SEARCH-DETAILS-PLAN.md) | 5 | 3 | Verklig lokal kod/program/inriktning, strikt äldre/utökat kontrakt och faktisk servermatchning; samma privata hjälpare och 28 grants. |
+| [05-39](05-39-PLAN.md) | 6 | 4 | Separat session-/uppdragsbunden planeringskontext, egen URL och kontextrad; elevregistrets år består. |
+| [05-40](05-40-PLAN.md) | 7 | 3 | Verklig årsöverblick, gemensam sök/filter/sort/pagination och program-/gymtimplanstabeller. |
+| [05-41](05-41-PLAN.md) | 8 | 3 | Rätt relativår i program/gymmatris, hela originalindex och osparat-/korsårssparskydd. |
+| [05-42](05-42-PLAN.md) | 9 | 2 | Tabell för grundskola/introduktionsprogram och rätt års-/kolumn-/versionsöppning, utan automatiska nya klasskopplingar. |
+| [05-43](05-43-PLAN.md) | 10 | 3 | Samlad seriell verifiering, handbok och S1/S3-kontrakt; verkligt användarprov separat. |
 
-Beroendekedja: `05-36 → 05-37 → 05-38 → 05-38-READ-PERFORMANCE → 05-39 → 05-40 → 05-41 → 05-42 → 05-43`. Alla är automatiskt körbara när deras faktiska föregångare är genomförda; åtta waves beror på delade kontrakt, filer och samma isolerade DB-underlag. Detta är en selektiv komplettering inom fas 5, **inte en instruktion att köra alla fasens planer med samma wave-nummer**. Generisk execute-phase på hela fas 05 kan träffa äldre 05-25 eller andra replan_required-planer. Välj uttryckligt endast det här paketets plan-ID:n och följ dess beroenden. Saknad SUMMARY i en föregångare är inte leveransbevis; kontrollera faktisk kod, källbundna resultat och tillämpad SQL.
+Beroendekedja: `05-36 → 05-37 → 05-38 → 05-38-READ-PERFORMANCE → 05-40-SEARCH-DETAILS → 05-39 → 05-40 → 05-41 → 05-42 → 05-43`. Alla är automatiskt körbara när deras faktiska föregångare är genomförda; tio sekventiella waves beror på delade kontrakt, filer och samma isolerade DB-underlag. Detta är en selektiv komplettering inom fas 5, **inte en instruktion att köra alla fasens planer med samma wave-nummer**. Generisk execute-phase på hela fas 05 kan träffa äldre 05-25 eller andra replan_required-planer. Välj uttryckligt endast det här paketets plan-ID:n och följ dess beroenden. Saknad SUMMARY i en föregångare är inte leveransbevis; kontrollera faktisk kod, källbundna resultat och tillämpad SQL.
 
-## Varför åtta små planer
+## Varför avgränsade planer
 
-Avgränsningarna följer verkliga riskgränser: ren årsregel före data, stängd SQL före Worker, återställd preflight före grant, separat kontext före överblick och gym/GR-matriser separat. Därmed kan varje steg kontrolleras och pushas utan att färdigställa hela fas 5. Varje uppgift har högst fem implementationsfiler och varje plan har två eller tre uppgifter. 05-38/39/40/41/43 har fler än fem filer totalt genom tunna routes, delad UI-koppling och egna bevis; deras specifika omfattningsnoter håller varje uppgift avgränsad. Om en uppgift kräver ny datamodell, omfattande ombyggnad eller mer än dessa gränser, dela planen innan utförande och uppdatera beroenden/krav/index i stället för att gömma extra arbete i slutprov.
+Avgränsningarna följer verkliga riskgränser: ren årsregel före data, stängd SQL före Worker, återställd preflight före grant, separat kontext före överblick och gym/GR-matriser separat. Därmed kan varje steg kontrolleras och pushas utan att färdigställa hela fas 5. Varje uppgift har högst fem implementationsfiler och varje plan har två till fyra uppgifter. 05-38/39/40/41/43 har fler än fem filer totalt genom tunna routes, delad UI-koppling och egna bevis; deras specifika omfattningsnoter håller varje uppgift avgränsad. Om en uppgift kräver ny datamodell, omfattande ombyggnad eller mer än dessa gränser, dela planen innan utförande och uppdatera beroenden/krav/index i stället för att gömma extra arbete i slutprov.
 
 ## Några precisa kontrakt
 
@@ -67,9 +68,9 @@ Löpande commit/push av färdiga kontrollerade steg till aktuell origin-gren är
 | Krav | Planer | Verifieringsmål, ännu inte genomförda |
 | --- | --- | --- |
 | PLANERING-01 | 36,39,41,42,43 | Egen kontext/URL/minne, registerår oförändrat, återgång och session-/uppdragsrensning. |
-| PLANERING-02 | 36–40,38-READ-PERFORMANCE,42,43 | Nya+fortsättande kullar, januaristart, okänt/saknat, verkliga grundskoleår och introduktionsprogrammens veckotid under dagens mandat. |
-| PLANERING-03 | 36–38,38-READ-PERFORMANCE,40,42,43 | Hela behöriga underlaget söks/filter/sorteras med stabil pagination och korrekt skol-/versionsöppning. |
-| PLANERING-04 | 36–38,38-READ-PERFORMANCE,40–43 | Källbunden årsdel, deduplicerade mått, full matris/originalindex, osparat arbete, pågående skrivningar och okänt sparutfall hanterade. |
+| PLANERING-02 | 36–40,38-READ-PERFORMANCE,40-SEARCH-DETAILS,42,43 | Nya+fortsättande kullar, januaristart, okänt/saknat, verkliga grundskoleår och introduktionsprogrammens veckotid under dagens mandat. |
+| PLANERING-03 | 36–38,38-READ-PERFORMANCE,40-SEARCH-DETAILS,40,42,43 | Hela behöriga underlaget söks/filter/sorteras med stabil pagination och korrekt skol-/versionsöppning. |
+| PLANERING-04 | 36–38,38-READ-PERFORMANCE,40-SEARCH-DETAILS,40–43 | Källbunden årsdel, deduplicerade mått, full matris/originalindex, osparat arbete, pågående skrivningar och okänt sparutfall hanterade. |
 | PLANERING-05 | 37,38,38-READ-PERFORMANCE,41,43 | Verklig SQL/Worker/browser, exakta grants/audit/bevaring, handbok och begränsat S1/S3-kontrakt. |
 
 Användarens nya krav kompletterar den ursprungliga pilotens 42 krav; de omklassar inte det godkännandet. 05-23/E är tekniskt avslutad separat. Yrkesram 05-17, beslut/garantikontroll, ADMIN-02/03/04 och hela fas 5 är fortsatt öppna. Äldre 05-25–35 ska omplaneras innan utförande. Först när faktiskt tabell-/årsarbete är verifierat får de två samordnade pending-todos sin riktiga leveransstatus; deras äldre automatiska klasskopplings-/globala-statusförslag byggs inte.

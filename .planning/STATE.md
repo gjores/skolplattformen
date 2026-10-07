@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-38-READ-PERFORMANCE
 status: in_progress
-stopped_at: 05-38 faktisk preflight/slutmatris15/247 PASS; 28 entrypoints. Fortsätter med avgränsad prestandarättning före UI05-39–43 och mänskligt prov.
+stopped_at: 05-38 faktisk preflight/slutmatris15/247 PASS; 28 entrypoints. Fortsätter med avgränsad prestanda-/kodsökrättning före UI05-39–43 och mänskligt prov.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "05-38 färdig: preflight/slutmatris15/247 PASS, tre grants, 28 entries, 15 helradstabeller och audit bevarade. Nästa prestandarättning och UI."
@@ -16,7 +16,7 @@ worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 99
+  total_plans: 100
   completed_plans: 81
 milestone_name: milestone
 ---
@@ -32,7 +32,9 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 
 ## Current Position
 
-**API-läsning 2026-10-07 — avgränsat PASS:** [05-38](phases/05-bevarade-utbildnings-och-klassfloden/05-38-SUMMARY.md) har faktisk preflight och permanent slutmatris 15 fall/247 kontroller vardera PASS. Exakt tre läsgrants ger 28 Worker-entrypoints; 11 hjälpare är fortsatt stängda. Alla 15 hela originaltabeller/tidsstämplar, audit/identitetsankare och övriga definitioner/rättigheter bevarade. Nästa är [05-38-READ-PERFORMANCE](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-PLAN.md) för uppmätt långsam 52-raderslistning, därefter UI 05-39–43. 81 av 99 planer är genomförda; fulla PLANERING-/ADMIN-krav, fas 5 och båda gapen är fortsatt Pending. Ordinarie 3012 är oförändrad.
+**Färsk genomförandeprecisering 2026-10-07:** Kod-/benämningssökningen som 05-40 redan kräver saknas i dagens SQL/PlanningRow. [05-40-SEARCH-DETAILS](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-PLAN.md) är en avgränsad teknisk förutsättning efter prestandakorrektivet och före UI05-39–43; samma privata hjälpare/28 grants, ingen ny verksamhetsregel. Dessutom är sparstatus-/Back-gränser, exakt versionsöppning, 44px mobilknappar och GR:s okända kolumnkarta preciserade efter färsk kodgranskning. Planerna är ännu inte genomförda eller verifierade. Paketet har tio sekventiella waves; kör endast dess uttryckliga dependencykedja, inte hela fasens äldre planer.
+
+**API-läsning 2026-10-07 — avgränsat PASS:** [05-38](phases/05-bevarade-utbildnings-och-klassfloden/05-38-SUMMARY.md) har faktisk preflight och permanent slutmatris 15 fall/247 kontroller vardera PASS. Exakt tre läsgrants ger 28 Worker-entrypoints; 11 hjälpare är fortsatt stängda. Alla 15 hela originaltabeller/tidsstämplar, audit/identitetsankare och övriga definitioner/rättigheter bevarade. Nästa är [05-38-READ-PERFORMANCE](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-PLAN.md) för uppmätt långsam 52-raderslistning, därefter UI 05-39–43. 81 av 100 planer är genomförda; fulla PLANERING-/ADMIN-krav, fas 5 och båda gapen är fortsatt Pending. Ordinarie 3012 är oförändrad.
 
 **SQL-läsgrund 2026-10-07 — avgränsat PASS:** [05-37](phases/05-bevarade-utbildnings-och-klassfloden/05-37-SUMMARY.md) är genomförd och exakt tillämpad i isolerad lokal protected-databas. Både rollback och applied: 93 SQL-prov, 18 faktisk kontraktsparitet och 3 verkliga kundlåsväntor PASS; Node 6 och riktade lås 9 PASS. Alla 15 hela originaltabeller/tidsstämplar, säkerhetsaudit, gamla ACL/funktionsdefinitioner och journal bevarade. Tre nya läs-RPC och elva hjälpare är fortsatt stängda; samma 25 befintliga Worker-entrypoints. GR-originalkartor saknar proveniens och ger okända årstimmar. [Exakt inventering](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-FUNCTION-INVENTORY.md). Nästa plan är **05-38, skyddad API-läsning och exakt läsgrant**; 80 av 98 skrivna planer är genomförda. PLANERING-01–05/hela fas 5 och övriga gap är fortsatt Pending. Ordinarie 3012 är oförändrad.
 
