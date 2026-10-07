@@ -206,5 +206,66 @@
       "status": "PASS"
     },
     "completionBoundary": "Exact owned session revoked under verified FOR UPDATE lock after no active DB query; only owned synthetic business graph removed. Original15/catalog/all audit/audited identity anchors preserved. Original full FAIL remains unchanged."
+  },
+  "safeHttpDiagnostic": {
+    "report": "phase5-38-read-performance-safe-http-diagnostic.json",
+    "sha256": "46630abe7f1fad966b6be7775b933535f6ea4507131393cf82b77decc30e116e",
+    "status": "FAIL",
+    "notFullPlanProof": true,
+    "samples": 0,
+    "transportStage": "fetch",
+    "transportFailureName": "TimeoutError",
+    "timeoutMs": 30000,
+    "auditCompletionUnknown": true,
+    "originalFailurePreserved": true
+  },
+  "safeHttpOwnedRecovery": {
+    "diagnostic": {
+      "report": "phase5-38-read-performance-safe-http-pending-diagnostic.json",
+      "sha256": "c9353c3958a29563ff716db552036b8e63a01e22bf58dc85c09d3607b50caca8",
+      "notFullPlanProof": true,
+      "status": "OBSERVED"
+    },
+    "recovery": {
+      "report": "phase5-38-read-performance-safe-http-pending-recovery.json",
+      "sha256": "25a1cc08e4a213b156ee3363778423bf06f2a8d147dcfc95cd2c71247fe0ca67",
+      "notFullPlanProof": true,
+      "status": "PASS"
+    }
+  },
+  "sameArtifactRestart": {
+    "workerBuildRevision": "d59ec10f5b4469ce4e14e1e12a591aca2363a30b",
+    "buildMarkSha256": "0690bbdff405ce6b2d13cbc9c2e25a9dfb0d2af8b88d95ef79cce2c9a3be008a",
+    "workerConfigurationSha256": "c1daae351fda48ba121366c96c5e996ac92e2b675884ac484b46bb8d1338b121",
+    "privateVarsBytesUnchanged": true,
+    "afterOwnedRecovery": true,
+    "ordinary3012Changed": false,
+    "causality": "Restart is diagnostic only; no transport cause established."
+  },
+  "restartedHttpDiagnostic": {
+    "report": "phase5-38-read-performance-safe-http-restarted-diagnostic.json",
+    "sha256": "17fa60cbd239c1032382c47a6e39a575a879b6dee841deaff5a4918d87b242a9",
+    "status": "FAIL",
+    "notFullPlanProof": true,
+    "samples": 0,
+    "transportFailureName": "TimeoutError",
+    "timeoutMs": 30000,
+    "auditCompletionUnknown": true,
+    "sameArtifactAndConfiguration": true,
+    "restartDidNotResolveObservedFailure": true
+  },
+  "restartedHttpOwnedRecovery": {
+    "diagnostic": {
+      "report": "phase5-38-read-performance-safe-http-restarted-pending-diagnostic.json",
+      "sha256": "db9352aaf6644187d6328271e606f52f4135e474885f44f8f7b38896a1a2cb9f",
+      "notFullPlanProof": true,
+      "status": "OBSERVED"
+    },
+    "recovery": {
+      "report": "phase5-38-read-performance-safe-http-restarted-pending-recovery.json",
+      "sha256": "c02d39c8ef88e0de9be002289d01b2910560eec6e4e1127298e9ee497e86b8b3",
+      "notFullPlanProof": true,
+      "status": "PASS"
+    }
   }
 }

@@ -1,0 +1,58 @@
+{
+  "kind": "phase5-performance-safe-http-diagnostic",
+  "notFullPlanProof": true,
+  "status": "FAIL",
+  "sourceRevision": "bf270902dac9615ed3d517455d8933ca92a8e945",
+  "workerBuildRevision": "d59ec10f5b4469ce4e14e1e12a591aca2363a30b",
+  "timings": {
+    "policy": null,
+    "ok": false,
+    "samples": [],
+    "sqlPreparation": null,
+    "cleanupDeferred": true,
+    "failure": {
+      "code": "TEST_FAILED",
+      "reason": null
+    },
+    "pendingAttempt": {
+      "case": "list",
+      "iteration": 1,
+      "phase": "before",
+      "startedAt": "2026-10-07T10:34:10.649Z",
+      "auditBaseline": {
+        "count": 8,
+        "maxEventId": "181773",
+        "sha256": "d5af4fdad1fbd499665f44ef35c0f4fe1f3ae92d805427978327b03a2bb08f02"
+      },
+      "selectionHash": "6929175e128eaa16bab80d050b38a2d0951291903b94b2fee2ec2bf37afe93c8",
+      "stage": "audit-group",
+      "response": null,
+      "transportFailure": {
+        "stage": "fetch",
+        "name": "TimeoutError",
+        "code": null,
+        "causeCode": null
+      },
+      "timeoutSignal": {
+        "kind": "AbortSignal.timeout",
+        "timeoutMs": 30000,
+        "aborted": true,
+        "reasonName": "TimeoutError",
+        "errorIsReason": true
+      },
+      "completionFailure": {
+        "stage": "audit-group",
+        "reason": "AUDIT_GROUP_NOT_FINISHED",
+        "name": "Error",
+        "code": null,
+        "causeCode": null
+      },
+      "elapsedMs": 30059.105542000005
+    },
+    "pendingOwner": {
+      "customerId": "ba54a02d-0000-4000-8000-000000000001",
+      "organizerId": "ba54a02d-0000-4000-8000-000000000002",
+      "sessionId": "e2187e62-b495-4bd4-a07e-dc2b4ea20c3b"
+    }
+  }
+}

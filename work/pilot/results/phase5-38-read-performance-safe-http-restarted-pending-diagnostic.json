@@ -1,0 +1,88 @@
+{
+  "kind": "phase5-performance-pending-owned-diagnostic",
+  "notFullPlanProof": true,
+  "sessionProof": {
+    "customerId": "ba54a02d-0000-4000-8000-000000000001",
+    "sessionId": "e2187e62-b495-4bd4-a07e-dc2b4ea20c3b",
+    "identityId": "ba54a02d-0000-4000-8000-000000000010",
+    "membershipId": "ba54a02d-0000-4000-8000-000000000020",
+    "assignmentId": "ba54a02d-0000-4000-8000-000000000060"
+  },
+  "fullReportSha256": "17fa60cbd239c1032382c47a6e39a575a879b6dee841deaff5a4918d87b242a9",
+  "owner": {
+    "customerId": "ba54a02d-0000-4000-8000-000000000001",
+    "organizerId": "ba54a02d-0000-4000-8000-000000000002",
+    "sessionId": "e2187e62-b495-4bd4-a07e-dc2b4ea20c3b"
+  },
+  "events": [
+    {
+      "id": "181766",
+      "correlation_id": "6674aa01-9156-423b-bf2c-6a250461c4c4",
+      "source": "db",
+      "action": "programplan_draft_created",
+      "outcome": "ok"
+    },
+    {
+      "id": "181767",
+      "correlation_id": "6674aa01-9156-423b-bf2c-6a250461c4c4",
+      "source": "worker",
+      "action": "programplan_draft_created",
+      "outcome": "ok"
+    },
+    {
+      "id": "181768",
+      "correlation_id": "94946854-9d3e-4dcf-bf2e-c6c08571be60",
+      "source": "db",
+      "action": "programplan_terms_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181769",
+      "correlation_id": "94946854-9d3e-4dcf-bf2e-c6c08571be60",
+      "source": "worker",
+      "action": "programplan_terms_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181770",
+      "correlation_id": "0be22d4d-70e3-42b3-bce9-91ae82f22a46",
+      "source": "db",
+      "action": "programplan_education_units_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181771",
+      "correlation_id": "0be22d4d-70e3-42b3-bce9-91ae82f22a46",
+      "source": "worker",
+      "action": "programplan_education_units_changed",
+      "outcome": "ok"
+    },
+    {
+      "id": "181772",
+      "correlation_id": "c3330513-d5cf-4224-b7f8-90f8548e4272",
+      "source": "db",
+      "action": "gym_timplan_basis_read",
+      "outcome": "ok"
+    },
+    {
+      "id": "181773",
+      "correlation_id": "c3330513-d5cf-4224-b7f8-90f8548e4272",
+      "source": "worker",
+      "action": "gym_timplan_basis_read",
+      "outcome": "ok"
+    }
+  ],
+  "activity": {
+    "active_queries": 0,
+    "planning_queries": 0,
+    "waiting_locks": 0,
+    "idle_transactions": 0
+  },
+  "state": {
+    "valid_expiry": true,
+    "unrevoked": true,
+    "valid_absolute": true
+  },
+  "sessionLockReleased": true,
+  "rollback": true
+}
