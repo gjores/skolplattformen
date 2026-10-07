@@ -32,6 +32,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 
 ## Current Position
 
+**UI39 faktisk återhämtning2026-10-07:** Läsande förkontroll och därefter exakt granskad6aeeb289 återhämtning PASS:3060stoppad, inga andra aktiva/öppna DB-transaktioner,13egna sessionslås/revokering och endast egen syntetisk affärsgrafstädning. Godkända ursprungliga15fullhashar/katalog/råACL/all audit+auditeradeidentiteter och huvudkundens retainedmandatankargraf består före/efter/postcommit. Separata faktiska rapporter bevaras, förstaC01FAIL förblirFAIL. Cspec169308 format/actualbodypassthrough har fullTS/lint/syntax/list16 och oberoende källreviewPASS, färsktfullC16 nästa.83/100 består.
+
 **Första UI39-fel2026-10-07:** Source/builddd44848 skyddatbygge PASS. C01 förstaactualFAIL efter faktiskt200+exaktregisterurval: kortregisterformat25/26 jämfördes felaktigt med långtplaneringsformat2025/26. Två avbrutna läsningar saknar browsercompletion ochcleanupärdeferred; full förstaJSON327d7858 ochbilagorbevarade, ingen nästa fixture.3060 ärfulltstoppad, ägdkontroll/recovery förbereds. EgenCspec format/strictactualpassthrough rättas utan produkt-/cleanupgrindsrelax.83/100 består.
 
 **UI05-39 pågår2026-10-07:** Granskade kontext/writer/shelländringar integrerade i tre avgränsade commits. Slutlig Cspecaa6 med sticky completion/maxFailures1 före fixture;75 riktade prov,full typkontroll utan incremental/lint och oberoende källreview PASS. Isolerad ny Worker och faktisk C16dator/telefon återstår.83/100 består,vanlig3012 oförändrad.

@@ -7,8 +7,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createPlanningYearFixture, verifyPlanningYearBrowserTarget } from '../../work/pilot/phase5-planning-year-fixtures.mjs';
-import { planningYearLabel } from '../lib/planning-year-model.ts';
-import { selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
+import { schoolYearLabel, selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
 import type { GymTimplan } from '../lib/gym-timplan.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
 
@@ -20,6 +19,15 @@ let setupComplete = false, setupPending = false, nodePending = 0, nodeUnknown = 
 let nodeUnknownStage: 'creation' | 'setup' | 'readback' | 'session' | null = null, browserUnknown = false, recoveryRequired = false;
 const pendingRequests = new Set<Request>();
 let completedActualRoutes = new WeakSet<Request>();
+type BrowserCompletionStage = 'scope' | 'fetch' | 'body' | 'fulfill';
+let browserCompletionFailure: { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserCompletionStage } | null = null;
+function recordBrowserCompletionFailure(request: Request, stage: BrowserCompletionStage) {
+  browserUnknown = true;
+  const pathname = new URL(request.url()).pathname, method = request.method();
+  // Only static API route names leave the test. Never record queries, error text or payloads.
+  browserCompletionFailure ??= { pathname: /^\/api\/[a-z]+(?:\/[a-z]+)*$/u.test(pathname) ? pathname : '/api/unknown',
+    method: method === 'GET' || method === 'POST' ? method : 'OTHER', stage };
+}
 /** Internal setup calls are awaited serially by the original fixture. A rejection
  * cannot prove that its last owned transaction finished; keep that uncertainty sticky. */
 async function ownedNode<T>(stage: 'creation' | 'setup' | 'readback' | 'session', operation: () => Promise<T>): Promise<T> {
@@ -32,11 +40,34 @@ async function ownedNode<T>(stage: 'creation' | 'setup' | 'readback' | 'session'
 /** A real route.fetch response proves server completion even when the test later
  * withholds/aborts the browser response. Failed fetches never clear pending work. */
 async function actualRouteFetch(route: Route): Promise<APIResponse> {
+  const request = route.request(), url = new URL(request.url());
+  let stage: BrowserCompletionStage = 'scope';
   try {
+    if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) throw Error('OWNED_ROUTE_SCOPE');
+    stage = 'fetch';
     const actual = await route.fetch();
-    completedActualRoutes.add(route.request()); pendingRequests.delete(route.request());
+    stage = 'body'; await actual.body();
+    completedActualRoutes.add(request); pendingRequests.delete(request);
     return actual;
-  } catch { browserUnknown = true; throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+  } catch { recordBrowserCompletionFailure(request, stage); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+}
+async function installActualPassthrough(page: Page) {
+  await page.route('**/api/**', async route => {
+    const request = route.request(), url = new URL(request.url());
+    if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) { await route.fallback(); return; }
+    const actual = await actualRouteFetch(route);
+    try { await route.fulfill({ response: actual }); }
+    catch {
+      // A cancelled browser read is safe only after its complete real server response.
+      if (!completedActualRoutes.has(request)) {
+        recordBrowserCompletionFailure(request, 'fulfill'); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN');
+      }
+    }
+  });
+}
+async function clearControlledRoutes(page: Page) {
+  await page.unrouteAll({ behavior: 'wait' });
+  await installActualPassthrough(page);
 }
 const baseURL = process.env.PHASE5_BASE_URL ?? 'http://127.0.0.1:3061';
 const SETUP = '/api/planering/urval', ROW = '/api/timplaner/gym/rad', GYM_READ = '/api/timplaner/gym/lasa';
@@ -147,7 +178,7 @@ test.beforeEach(async ({ page }) => {
   if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
   fixture = undefined!; metadata = undefined!; releasePending.length = 0; unexpectedDialogs = [];
   setupComplete = false; setupPending = false; nodePending = 0; nodeUnknown = false; nodeUnknownStage = null; browserUnknown = false;
-  pendingRequests.clear(); completedActualRoutes = new WeakSet<Request>();
+  pendingRequests.clear(); completedActualRoutes = new WeakSet<Request>(); browserCompletionFailure = null;
   page.on('request', request => {
     if (new URL(request.url()).pathname.startsWith('/api/') && !completedActualRoutes.has(request)) pendingRequests.add(request);
   });
@@ -155,6 +186,7 @@ test.beforeEach(async ({ page }) => {
   // clear a pending API request unless an actual route.fetch already completed it.
   page.on('response', response => { pendingRequests.delete(response.request()); });
   page.on('dialog', async dialog => { unexpectedDialogs.push(dialog.type()); await dialog.dismiss(); });
+  await installActualPassthrough(page);
   fixture = await ownedNode('creation', () => createPlanningYearFixture());
   if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
   setupPending = true;
@@ -176,7 +208,7 @@ test.afterEach(async ({ page }, info) => {
     // while completion is unknown; audit and identity anchors remain untouched.
     await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, databaseRecoveryRequired: true,
       setupComplete, setupPending, pendingNodeRequests: nodePending, unknownNodeRequest: nodeUnknown, nodeUnknownStage,
-      unknownBrowserCompletion: browserUnknown, pendingRequests: pendingRequests.size, routesSettled, contextClosed,
+      unknownBrowserCompletion: browserUnknown, browserCompletionFailure, pendingRequests: pendingRequests.size, routesSettled, contextClosed,
       ownedCustomerId: fixture?.customerId ?? null, ownedOrganizerId: fixture?.organizerId ?? null, foreignCustomerId: fixture?.foreignCustomerId ?? null,
       originalBusiness: fixture?.originalBusiness ?? null, fixtureExposed: !!fixture }), contentType: 'application/json' });
     throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
@@ -216,7 +248,7 @@ test('C01: registeråret och två filter återkommer medan planeringsår/skola f
   await page.goto(`/${selectionToQuery(selected)}`);
   const listResponse = await actualList; expect(listResponse.status()).toBe(200);
   expect(listResponse.request().postDataJSON().selection).toEqual(selected);
-  await expect(page.getByRole('heading', { name: `Elever läsåret ${planningYearLabel(registerYear)}`, exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: `Elever läsåret ${schoolYearLabel(registerYear)}`, exact: true })).toBeVisible();
   await navigate(page, 'Programplaner');
   await year(page).selectOption(String(metadata.planningYear));
   await school(page).selectOption('all');
@@ -259,7 +291,7 @@ test('C02: huvudman utan elevscope använder skolår, Back/reload och normaliser
 test('C03: faktiskt gammalt setup-svar kan inte återföra skolor efter uppdragsbyte', async ({ page }, info) => {
   const hold = held(); let first = true, discarded = false;
   await page.route(`**${SETUP}`, async route => {
-    if (!first) { await route.continue(); return; } first = false;
+    if (!first) { await route.fallback(); return; } first = false;
     const actual = await actualRouteFetch(route); expect(actual.status()).toBe(200); hold.ready.resolve(actual);
     await hold.release.promise;
     try { await route.fulfill({ response: actual }); }
@@ -276,7 +308,7 @@ test('C03: faktiskt gammalt setup-svar kan inte återföra skolor efter uppdrags
   const latest = await newSetup; expect(latest.status()).toBe(200); const actualScope = await latest.json();
   expect(actualScope.units.map((u: { unitId: string }) => u.unitId)).toEqual([fixture.unitId]);
   await expect(school(page)).toHaveValue(fixture.unitId);
-  hold.release.resolve(); await page.unrouteAll({ behavior: 'wait' });
+  hold.release.resolve(); await clearControlledRoutes(page);
   await expect(school(page).locator('option')).toHaveCount(2);
   await expect(school(page).locator(`option[value="${fixture.secondUnitId}"]`)).toHaveCount(0);
   const activeSession = { ...fixture.hm, assignmentId: fixture.partialHm.assignmentId, epoch: context.epoch };
@@ -340,7 +372,7 @@ test('C05: accepterad timrad med transportfel och misslyckad återläsning kräv
   await expect(gymTable(page).getByRole('button', { name: 'Använd sparade värden', exact: true })).toBeDisabled();
   await blockAttempts(page, oldURL, metadata.planningYear, fixture.unitId);
   expect((await readGym(planId, session)).hours[rowKey]).toEqual(expected);
-  await page.unrouteAll({ behavior: 'wait' });
+  await clearControlledRoutes(page);
   await gymTable(page).getByRole('button', { name: 'Läs aktuell timplan', exact: true }).click();
   await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat'); expect(writes).toBe(1); expect(auditedReads).toBeGreaterThan(0);
   await year(page).selectOption(String(metadata.planningYear + 1)); await readyPlanning(page, metadata.planningYear + 1, fixture.unitId);
@@ -368,7 +400,7 @@ test('C06: okänd fördjupningsskrivning och parent-läsfel behåller spärr eft
   await expect(board(page)).toHaveCount(0); await expect(program(page).getByRole('button', { name: 'Läs aktuell sparstatus', exact: true })).toBeEnabled();
   await year(page).selectOption(String(metadata.planningYear + 1)); await expect(year(page)).toHaveValue(String(metadata.planningYear));
   await navigate(page, 'Timplaner', true); expect(page.url()).toBe(oldURL);
-  await page.unrouteAll({ behavior: 'wait' });
+  await clearControlledRoutes(page);
   await program(page).getByRole('button', { name: 'Läs aktuell sparstatus', exact: true }).click();
   await expect(board(page)).toContainText('Allt sparat'); await expect(board(page)).toContainText('ANIM1000X');
   expect(writes).toBe(1); expect(readFailures).toBeGreaterThanOrEqual(2);
@@ -432,7 +464,7 @@ test('C07: aktivt skapande och okänt kvitto spärrar navigation fram till fakti
   await expect(program(page).getByRole('button', { name: 'Läs aktuell sparstatus', exact: true })).toBeEnabled();
   await year(page).selectOption(String(metadata.planningYear + 1)); await expect(year(page)).toHaveValue(String(metadata.planningYear));
   await navigate(page, 'Timplaner', true); expect(page.url()).toBe(oldURL);
-  await page.unrouteAll({ behavior: 'wait' });
+  await clearControlledRoutes(page);
   await program(page).getByRole('button', { name: 'Läs aktuell sparstatus', exact: true }).click();
   await expect(board(page)).toContainText('Allt sparat'); await expect(program(page).getByRole('heading', { name, exact: true })).toBeVisible();
   expect(writes).toBe(1); expect(statusReads).toBe(1); expect(await fixture.plans(offeringId)).toHaveLength(1);
