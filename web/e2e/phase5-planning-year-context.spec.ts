@@ -343,6 +343,10 @@ test('C03: faktiskt gammalt setup-svar kan inte återföra skolor efter uppdrags
   const newSetup = page.waitForResponse(responseFor(SETUP));
   await page.locator('#uppdrag').selectOption(fixture.partialHm.assignmentId);
   const changedResponse = await changed; expect(changedResponse.status()).toBe(200); const context = await changedResponse.json();
+  // Ett uppdragsbyte rensar området och återgår till uppdragets startsida.
+  await expect(page.locator('#uppdrag')).toHaveValue(fixture.partialHm.assignmentId);
+  await expect(page.locator('#uppdrag')).toBeEnabled();
+  await navigate(page, 'Programplaner');
   const latest = await newSetup; expect(latest.status()).toBe(200); const actualScope = await latest.json();
   expect(actualScope.units.map((u: { unitId: string }) => u.unitId)).toEqual([fixture.unitId]);
   await expect(school(page)).toHaveValue(fixture.unitId);

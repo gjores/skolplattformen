@@ -1,0 +1,171 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-planning-year.config.ts",
+      "e2e/phase5-planning-year-context.spec.ts",
+      "--project=planning-year-desktop",
+      "-g",
+      "C01:",
+      "--max-failures=1",
+      "--workers=1",
+      "--retries=0",
+      "--output=/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-selected-20261007"
+    ],
+    "configFile": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/playwright.phase5-planning-year.config.ts",
+    "rootDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-selected-20261007",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "planning-year-desktop",
+        "name": "planning-year-desktop",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-selected-20261007",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "planning-year-phone",
+        "name": "planning-year-phone",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-planning-year.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-planning-year-context.spec.ts",
+      "file": "phase5-planning-year-context.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "C01: registeråret och två filter återkommer medan planeringsår/skola följer program och timplan",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 24994,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T18:47:04.255Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build.json",
+                      "contentType": "application/json",
+                      "body": "eyJzb3VyY2VSZXZpc2lvbiI6IjkwMzczOWUxODU2YTA3MDUxODRjZjVkN2M3NWFhMWNiZTA0ZGZhYTIiLCJidWlsZFJldmlzaW9uIjoiZGQ0NDg0OGFkMzdiNDUxMDU5NGE0NGVmMzE2NTA1YWUxYzk3ODY0OSIsInNjb3BlIjoibG9jYWwtc3ludGhldGljLW9ubHkiLCJwcm90ZWN0ZWRTb3VyY2VzIjpbIndlYi9saWIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL2d5bS10aW1wbGFuLnRlc3QubWpzIiwid2ViL2xpYi9zZXJ2ZXIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL3NlcnZlci9neW0tdGltcGxhbi50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3RpbXBsYW5lci9neW0iLCJ3ZWIvYXBwL3Byb3RlY3RlZC1neW0tdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4taG91cnMudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4uY3NzIiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi5jc3MiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1ob21lLnRzeCIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLXdvcmtzcGFjZS50c3giLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi1ib2FyZC50c3giLCJ3ZWIvbGliL3Byb3RlY3RlZC1wbGFuLWxvY2F0aW9uLnRzIiwid2ViL2xpYi9wcm90ZWN0ZWQtcGxhbi1sb2NhdGlvbi50ZXN0Lm1qcyIsIndlYi9saWIvc2VydmVyL2h0dHAudHMiLCJ3ZWIvbGliL3NlcnZlci1jbGllbnQudHMiLCJ3ZWIvbGliL3Vuc2F2ZWQtY2hhbmdlcy50c3giLCJ3ZWIvY29tcG9uZW50cy91aS9kaWFsb2cudHN4Iiwid2ViL2xpYi9tYW5kYXRlLXBvbGljeS50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Nlc3Npb24tY2hhbm5lbC50cyIsInN1cGFiYXNlL21pZ3JhdGlvbnMvMjAyNjEwMDUxMTAwMDBfcGhhc2U1X2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvbWlncmF0aW9ucy8yMDI2MTAwNTExMTAwMF9waGFzZTVfd29ya2VyX2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvdGVzdHMvcGhhc2U1X3Byb2dyYW1fdGltcGxhbl90cmFuc2l0aW9uLnRlc3Quc3FsIiwid29yay9waWxvdC9waGFzZTUtZ3ltLXRpbXBsYW4tZml4dHVyZXMubWpzIiwid2ViL2UyZS9waGFzZTUtZ3ltLXRpbXBsYW4uc3BlYy50cyIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1neW0tdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvZTJlL3BoYXNlNS10aW1wbGFuLnNwZWMudHMiLCJ3ZWIvcGxheXdyaWdodC5waGFzZTUtdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItY29udHJhY3QudHMiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItbW9kZWwudHMiLCJ3ZWIvbGliL3NlcnZlci9wbGFubmluZy15ZWFyLnRzIiwid2ViL2xpYi9zZXJ2ZXIvcGxhbm5pbmcteWVhci50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3BsYW5lcmluZyIsIndlYi9saWIvc2VydmVyL2F1dGh6LnRzIiwid2ViL2xpYi9zZXJ2ZXIvaHR0cC50cyIsIndlYi9saWIvc2VydmVyL21hbmRhdGUtcm91dGUudHMiLCJ3ZWIvbGliL3NlcnZlci9kYi50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Byb2dyYW1wbGFuLWNhdGFsb2cudHMiLCJ3ZWIvbGliL3Byb2dyYW1wbGFuLWNhdGFsb2cuZ2VuZXJhdGVkLmpzb24iLCJzdXBhYmFzZS9taWdyYXRpb25zLzIwMjYxMDA2MTIwMDAwX3BoYXNlNV9wbGFubmluZ195ZWFyX3JlYWRzLnNxbCIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItZml4dHVyZXMubWpzIiwid29yay9waWxvdC92ZXJpZnktcGxhbm5pbmcteWVhci1hcGkubWpzIiwid29yay9waWxvdC92ZXJpZnktcGxhbm5pbmcteWVhci1hcGkudGVzdC5tanMiXSwiYnJvd3Nlck5hbWUiOiJjaHJvbWl1bSIsInNvdXJjZUhhc2hlcyI6eyJ3ZWIvYXBwL3BsYW5uaW5nLWNvbnRleHQudHN4IjoiNzMwNWRlMTUwYzUxYTBjYmQxOGU3YTU4NzMxNTc1ZGI2ZjA4NDMyYTNmZTljNjFhMmU1NDhiN2FhZGRhNTAxOSIsIndlYi9hcHAvcGxhbm5pbmctY29udGV4dC5jc3MiOiJkMDhmYzlmMDU3ODRmNWZjMTU1YmY2Zjg4MzY3MzBlNDYxYmQ4N2QwNTA3MmQzYzA0NjgxNDhjNjY2YWVlMDRjIiwid2ViL2FwcC9jb250ZXh0LXN3aXRjaC50c3giOiI0NDZkYThkMzE2YmE5ZjQ3ZGM1ZTgyYzM5YmFiMzVhNzc1NzUwMzYyZDk4ZGRmNmYyODU3ZThiYjFiODkwMjFmIiwid2ViL2FwcC9wcm90ZWN0ZWQtcHJvZ3JhbXBsYW4tZmxvdy50c3giOiJiMDRhOTljMmJiZjg3MWQxZGVkNTBjYjJkNGZiNWUwZTBkNzEyZTc3MmQzN2Q1Mzc2Y2Q0OWNmNTMzYjUxOTVlIiwid2ViL2FwcC9wcm90ZWN0ZWQtcHJvZ3JhbXBsYW4tbGlmZWN5Y2xlLnRzeCI6IjdhODE4YmMwY2JjODg0NDUyMzAyZmQwZTRkZDkwZTNjNjVkYWFlMzVkNTUzOTZkNmRjNTEyZjMwZDE2NjY3ZmMiLCJ3ZWIvYXBwL3NjaG9vbC15ZWFyLXBpY2tlci50c3giOiIwYjY4YzkxNTI0M2U3NGQ3YjAzNjZlZjNlMTM0N2QyYTMxNjQwM2Y0N2EyZDdhZmJiNGQ3ZjhjOWQ5MDk0ZTQ4Iiwid2ViL2FwcC9wdXBpbC1yZWdpc3Rlci13b3Jrc3BhY2UudHN4IjoiMDlhYzljY2Y0YzkyZDA3MGYwNWFmMGQzZDVlMGE2MTZhNzVjMzU0ZGY2MjY5MzFmMTZlMDU2OGI3NTY5ZDU2MyIsIndlYi9lMmUvcGhhc2U1LXBsYW5uaW5nLXllYXItY29udGV4dC5zcGVjLnRzIjoiMTI5NDQyZWIzNzkxMDcxZWQ3YTU2YmI5Y2ZhMWIxNjJkZWJjZTViOWI2YzlhOTA2Mzg2OGFiNDljYWViOGQwOSIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1wbGFubmluZy15ZWFyLmNvbmZpZy50cyI6IjNhZjdhZWIxM2FlMmUzZmIwMzcyYjZhYjBhZDQyMzY0MDIyYmE1YzkxZGNhMjZhYjM4ZTZlOTJlNmY3YjZkNTIifX0="
+                    },
+                    {
+                      "name": "independent-register-planning-years-geometry.json",
+                      "contentType": "application/json",
+                      "body": "eyJ3aWR0aCI6MTQ0MCwiZG9jdW1lbnRXaWR0aCI6MTQ0MCwiY2xpZW50V2lkdGgiOjE0NDAsImNvbnRyb2xzIjpbeyJ3aWR0aCI6NDE2LCJoZWlnaHQiOjQ0fSx7IndpZHRoIjo0NCwiaGVpZ2h0Ijo1MS42MDkzNzV9LHsid2lkdGgiOjE1Ny43ODEyNSwiaGVpZ2h0Ijo0NH0seyJ3aWR0aCI6NDQsImhlaWdodCI6NTEuNjA5Mzc1fSx7IndpZHRoIjoxNDIuNzAzMTI1LCJoZWlnaHQiOjQ0fV19"
+                    },
+                    {
+                      "name": "independent-register-planning-years.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-selected-20261007/phase5-planning-year-conte-230ce--följer-program-och-timplan-planning-year-desktop/attachments/independent-register-planning-years-png-4ab03e86f05a4df39dccb735e4593ec8b0bc4c2d.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjo2OSwicHJlc2VydmVkQXVkaXRBbmNob3JzIjozLCJtaW50ZWRTZXNzaW9ucyI6MCwidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MCwiZ3ltUmVjZWlwdHMiOjAsInRpbXBsYW5zIjowLCJjbGFzc0xpbmtzIjowLCJvcmlnaW5hbEJ1c2luZXNzVW5jaGFuZ2VkIjp0cnVlLCJiZWZvcmUiOnsicG9pbnRfcGxhbnMiOnsiY291bnQiOjIwLCJzaGEyNTYiOiI2YTkzYzkyZTc0MWQxOTI2Yjk5NWUxNDRjZTFhMmRkZWU1Nzc1M2JkMTViYmM5OWIyNDQ4MWQxNDlhMDg5MWUzIn0sInBvaW50X3BsYW5fZXZlbnRzIjp7ImNvdW50Ijo1NCwic2hhMjU2IjoiZTYwM2UyOTRlMGEzNjZiMjA1YTIxNGMyZjMwMmYzMGVjZWFlYmQxYTc4YWUyZDNjN2YwMTdmMTg5ZDYyNjVmYyJ9LCJvZmZlcmluZ3MiOnsiY291bnQiOjM0LCJzaGEyNTYiOiJkZmVhZmYzYTMzNzc5MTIzNTQ3OTkwMzMwZmFhODI0YmQzNWVhMGFhZDQ5NzMyOTMxZTg2NWU1M2M3ZGUzZjhjIn0sIm9mZmVyaW5nX3VuaXRzIjp7ImNvdW50IjoyNjcsInNoYTI1NiI6ImQ2NDdmMDVlY2I2YTkwYTJlYTc1NDNkNWRlNDI5NTM2NDhiODQxYWFlODNkZDU5YWQzMTlkM2VmOTBlMjYyYWIifSwidGltcGxhbnMiOnsiY291bnQiOjcsInNoYTI1NiI6IjJlMDFkY2RjYzQyYTk2MTAwZjExMmNjMTUzMjJjODc0MjIzZjQ4OTQ1ZTE2ZDRkMzg0NWRlOWEyYjc2ODkxYjkifSwidGltcGxhbl9jZWxscyI6eyJjb3VudCI6MTIxLCJzaGEyNTYiOiI2NjFiYmFiYTk4YmE2OTY2MmQ3ODNkMWU2ZGRkYWFmZDc3ODM1ODRlMzljM2YyOGQzYjU2ZTI2NDEwZGI1MzkyIn0sInRpbXBsYW5fZXZlbnRzIjp7ImNvdW50Ijo2Nywic2hhMjU2IjoiNjIxMzU2OWUyZTBlMTFmZjQ3NTY5YjhkMGU3ZjRiOTM0N2E4MmQyYWE1OWFmOGRlZjg2NTU3ZDQzMzRhNDRkMiJ9LCJjbGFzc190aW1wbGFucyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJzY2hvb2xfY2xhc3NlcyI6eyJjb3VudCI6Niwic2hhMjU2IjoiYmQwOGE3MjU0M2MxYjJiYWMxYmJmNGFiMGRiZTBmYzkzOTM3YTk2NTVhY2Y1NjZlMjQ1NDI5ZmY3NzhkNjJjNSJ9LCJwdXBpbF9wbGFjZW1lbnRzIjp7ImNvdW50Ijo2OCwic2hhMjU2IjoiMDQxMGNlMDk2Njk0YTY3Njk0N2I1MzM2MTg4MTk1ZmE0NjA2OWZkNTZkMzhiYWU3YWE4ZjZlYmFkODE0NzBjMiJ9LCJwcm9ncmFtcGxhbl9zaGFwZV91cGdyYWRlcyI6eyJjb3VudCI6MTMsInNoYTI1NiI6ImE2YTg4NGRiYjE4YWExNDMzM2JhZWUwYzg5ODExZTkxMThjNGIxODg5OTZjZjQ0MDhmN2ZiNTA3YmU1NmU5ZGQifSwicHJvZ3JhbXBsYW5fdW5pdF9wYWNrYWdlcyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJwcm9ncmFtcGxhbl9wYWNrYWdlcyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9LCJneW1fdGltcGxhbl9yZWNlaXB0cyI6eyJjb3VudCI6Mywic2hhMjU2IjoiODVlOTk0OTE5MmY0MWJmNWIyY2Y1YTM1NjcxM2Q3OGZkZTI0OWY1ZDQ2ZjIyZWQwNDZmYWNlYmM2ZDM4MTViNiJ9LCJzY2hvb2xfeWVhcnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifX0sImFmdGVyIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNmE5M2M5MmU3NDFkMTkyNmI5OTVlMTQ0Y2UxYTJkZGVlNTc3NTNiZDE1YmJjOTliMjQ0ODFkMTQ5YTA4OTFlMyJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NTQsInNoYTI1NiI6ImU2MDNlMjk0ZTBhMzY2YjIwNWEyMTRjMmYzMDJmMzBlY2VhZWJkMWE3OGFlMmQzYzdmMDE3ZjE4OWQ2MjY1ZmMifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiZGZlYWZmM2EzMzc3OTEyMzU0Nzk5MDMzMGZhYTgyNGJkMzVlYTBhYWQ0OTczMjkzMWU4NjVlNTNjN2RlM2Y4YyJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkNjQ3ZjA1ZWNiNmE5MGEyZWE3NTQzZDVkZTQyOTUzNjQ4Yjg0MWFhZTgzZGQ1OWFkMzE5ZDNlZjkwZTI2MmFiIn0sInRpbXBsYW5zIjp7ImNvdW50Ijo3LCJzaGEyNTYiOiIyZTAxZGNkY2M0MmE5NjEwMGYxMTJjYzE1MzIyYzg3NDIyM2Y0ODk0NWUxNmQ0ZDM4NDVkZTlhMmI3Njg5MWI5In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjEyMSwic2hhMjU2IjoiNjYxYmJhYmE5OGJhNjk2NjJkNzgzZDFlNmRkZGFhZmQ3NzgzNTg0ZTM5YzNmMjhkM2I1NmUyNjQxMGRiNTM5MiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6NjcsInNoYTI1NiI6IjYyMTM1NjllMmUwZTExZmY0NzU2OWI4ZDBlN2Y0YjkzNDdhODJkMmFhNTlhZjhkZWY4NjU1N2Q0MzM0YTQ0ZDIifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6ImJkMDhhNzI1NDNjMWIyYmFjMWJiZjRhYjBkYmUwZmM5MzkzN2E5NjU1YWNmNTY2ZTI0NTQyOWZmNzc4ZDYyYzUifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6IjA0MTBjZTA5NjY5NGE2NzY5NDdiNTMzNjE4ODE5NWZhNDYwNjlmZDU2ZDM4YmFlN2FhOGY2ZWJhZDgxNDcwYzIifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJhNmE4ODRkYmIxOGFhMTQzMzNiYWVlMGM4OTgxMWU5MTE4YzRiMTg4OTk2Y2Y0NDA4ZjdmYjUwN2JlNTZlOWRkIn0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjMsInNoYTI1NiI6Ijg1ZTk5NDkxOTJmNDFiZjViMmNmNWEzNTY3MTNkNzhmZGUyNDlmNWQ0NmYyMmVkMDQ2ZmFjZWJjNmQzODE1YjYifSwic2Nob29sX3llYXJzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJvcmlnaW5hbEJ1c2luZXNzIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNmE5M2M5MmU3NDFkMTkyNmI5OTVlMTQ0Y2UxYTJkZGVlNTc3NTNiZDE1YmJjOTliMjQ0ODFkMTQ5YTA4OTFlMyJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NTQsInNoYTI1NiI6ImU2MDNlMjk0ZTBhMzY2YjIwNWEyMTRjMmYzMDJmMzBlY2VhZWJkMWE3OGFlMmQzYzdmMDE3ZjE4OWQ2MjY1ZmMifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiZGZlYWZmM2EzMzc3OTEyMzU0Nzk5MDMzMGZhYTgyNGJkMzVlYTBhYWQ0OTczMjkzMWU4NjVlNTNjN2RlM2Y4YyJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkNjQ3ZjA1ZWNiNmE5MGEyZWE3NTQzZDVkZTQyOTUzNjQ4Yjg0MWFhZTgzZGQ1OWFkMzE5ZDNlZjkwZTI2MmFiIn0sInRpbXBsYW5zIjp7ImNvdW50Ijo3LCJzaGEyNTYiOiIyZTAxZGNkY2M0MmE5NjEwMGYxMTJjYzE1MzIyYzg3NDIyM2Y0ODk0NWUxNmQ0ZDM4NDVkZTlhMmI3Njg5MWI5In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjEyMSwic2hhMjU2IjoiNjYxYmJhYmE5OGJhNjk2NjJkNzgzZDFlNmRkZGFhZmQ3NzgzNTg0ZTM5YzNmMjhkM2I1NmUyNjQxMGRiNTM5MiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6NjcsInNoYTI1NiI6IjYyMTM1NjllMmUwZTExZmY0NzU2OWI4ZDBlN2Y0YjkzNDdhODJkMmFhNTlhZjhkZWY4NjU1N2Q0MzM0YTQ0ZDIifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6ImJkMDhhNzI1NDNjMWIyYmFjMWJiZjRhYjBkYmUwZmM5MzkzN2E5NjU1YWNmNTY2ZTI0NTQyOWZmNzc4ZDYyYzUifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6IjA0MTBjZTA5NjY5NGE2NzY5NDdiNTMzNjE4ODE5NWZhNDYwNjlmZDU2ZDM4YmFlN2FhOGY2ZWJhZDgxNDcwYzIifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJhNmE4ODRkYmIxOGFhMTQzMzNiYWVlMGM4OTgxMWU5MTE4YzRiMTg4OTk2Y2Y0NDA4ZjdmYjUwN2JlNTZlOWRkIn0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjMsInNoYTI1NiI6Ijg1ZTk5NDkxOTJmNDFiZjViMmNmNWEzNTY3MTNkNzhmZGUyNDlmNWQ0NmYyMmVkMDQ2ZmFjZWJjNmQzODE1YjYifSwic2Nob29sX3llYXJzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJmaW5hbEJ1c2luZXNzIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNmE5M2M5MmU3NDFkMTkyNmI5OTVlMTQ0Y2UxYTJkZGVlNTc3NTNiZDE1YmJjOTliMjQ0ODFkMTQ5YTA4OTFlMyJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NTQsInNoYTI1NiI6ImU2MDNlMjk0ZTBhMzY2YjIwNWEyMTRjMmYzMDJmMzBlY2VhZWJkMWE3OGFlMmQzYzdmMDE3ZjE4OWQ2MjY1ZmMifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiZGZlYWZmM2EzMzc3OTEyMzU0Nzk5MDMzMGZhYTgyNGJkMzVlYTBhYWQ0OTczMjkzMWU4NjVlNTNjN2RlM2Y4YyJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkNjQ3ZjA1ZWNiNmE5MGEyZWE3NTQzZDVkZTQyOTUzNjQ4Yjg0MWFhZTgzZGQ1OWFkMzE5ZDNlZjkwZTI2MmFiIn0sInRpbXBsYW5zIjp7ImNvdW50Ijo3LCJzaGEyNTYiOiIyZTAxZGNkY2M0MmE5NjEwMGYxMTJjYzE1MzIyYzg3NDIyM2Y0ODk0NWUxNmQ0ZDM4NDVkZTlhMmI3Njg5MWI5In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjEyMSwic2hhMjU2IjoiNjYxYmJhYmE5OGJhNjk2NjJkNzgzZDFlNmRkZGFhZmQ3NzgzNTg0ZTM5YzNmMjhkM2I1NmUyNjQxMGRiNTM5MiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6NjcsInNoYTI1NiI6IjYyMTM1NjllMmUwZTExZmY0NzU2OWI4ZDBlN2Y0YjkzNDdhODJkMmFhNTlhZjhkZWY4NjU1N2Q0MzM0YTQ0ZDIifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6ImJkMDhhNzI1NDNjMWIyYmFjMWJiZjRhYjBkYmUwZmM5MzkzN2E5NjU1YWNmNTY2ZTI0NTQyOWZmNzc4ZDYyYzUifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6IjA0MTBjZTA5NjY5NGE2NzY5NDdiNTMzNjE4ODE5NWZhNDYwNjlmZDU2ZDM4YmFlN2FhOGY2ZWJhZDgxNDcwYzIifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJhNmE4ODRkYmIxOGFhMTQzMzNiYWVlMGM4OTgxMWU5MTE4YzRiMTg4OTk2Y2Y0NDA4ZjdmYjUwN2JlNTZlOWRkIn0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjMsInNoYTI1NiI6Ijg1ZTk5NDkxOTJmNDFiZjViMmNmNWEzNTY3MTNkNzhmZGUyNDlmNWQ0NmYyMmVkMDQ2ZmFjZWJjNmQzODE1YjYifSwic2Nob29sX3llYXJzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJvcmlnaW5hbEF1ZGl0SGFzaCI6ImM2ZGI1OGZkMTVlMDM5ZGUxNTliMzdkZTExYTlhMjc4Zjc3MDlhZGE4OTkxNjJjMmU0ZjZiYjJjZjJjYjc4OTgiLCJmaW5hbEF1ZGl0SGFzaCI6ImM2ZGI1OGZkMTVlMDM5ZGUxNTliMzdkZTExYTlhMjc4Zjc3MDlhZGE4OTkxNjJjMmU0ZjZiYjJjZjJjYjc4OTgiLCJvcmlnaW5hbElkZW50aXR5SGFzaCI6Ijc1YmViYWNmODBhNmU3ODRkNDA5Mzk4YjNlODUwY2QwOGU0OTdlMjZkMTg4NzEzNTYwOTVlNzcyZDFmODFjNGUiLCJmaW5hbElkZW50aXR5SGFzaCI6Ijc1YmViYWNmODBhNmU3ODRkNDA5Mzk4YjNlODUwY2QwOGU0OTdlMjZkMTg4NzEzNTYwOTVlNzcyZDFmODFjNGUiLCJvcmlnaW5hbEJ1c2luZXNzUHJlc2VydmVkIjp0cnVlLCJvcmlnaW5hbEF1ZGl0UHJlc2VydmVkIjp0cnVlLCJpZGVudGl0eUFuY2hvcnNQcmVzZXJ2ZWQiOnRydWUsInJldGFpbmVkQXVkaXRQcmVzZXJ2ZWQiOnRydWUsInJldGFpbmVkSWRlbnRpdHlBbmNob3JzUHJlc2VydmVkIjp0cnVlLCJiZWZvcmVSZXRhaW5lZEF1ZGl0Ijp7ImNvdW50IjoxNzQ0MjQsInNoYTI1NiI6ImFiNGI4MjcyZjc1YTRhYTAxYTEzYTExZTlmOWI3YjVhMTJmMzhhYmQwZjNmY2QxOTk3YmM2ODExOWExMWM0YzYifSwiYWZ0ZXJSZXRhaW5lZEF1ZGl0Ijp7ImNvdW50IjoxNzQ0MjQsInNoYTI1NiI6ImFiNGI4MjcyZjc1YTRhYTAxYTEzYTExZTlmOWI3YjVhMTJmMzhhYmQwZjNmY2QxOTk3YmM2ODExOWExMWM0YzYifSwiYmVmb3JlUmV0YWluZWRBbmNob3JzIjp7ImNvdW50Ijo0NTg4LCJzaGEyNTYiOiIwYTMxMGE4NGE3YzYwNThhYTFkM2M5YzZhNmFmNDg4YmZiOTFmNjJjMzI5NTU3ZmRjOWNiMDE4ZDUwZmM5ZWJjIn0sImFmdGVyUmV0YWluZWRBbmNob3JzIjp7ImNvdW50Ijo0NTg4LCJzaGEyNTYiOiIwYTMxMGE4NGE3YzYwNThhYTFkM2M5YzZhNmFmNDg4YmZiOTFmNjJjMzI5NTU3ZmRjOWNiMDE4ZDUwZmM5ZWJjIn0sImZvcmVpZ25SZW1haW5pbmciOnsib2ZmZXJpbmdzIjowLCJvZmZlcmluZ1VuaXRzIjowLCJzZXNzaW9ucyI6MH0sImZvcmVpZ25SZXRhaW5lZEF1ZGl0QW5jaG9ycyI6eyJldmVudHMiOjAsImFuY2hvcmVkRXZlbnRzIjowfX0="
+                    },
+                    {
+                      "name": "dialog-types.json",
+                      "contentType": "application/json",
+                      "body": "W10="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "764a8d9717d547425dd6-315eca471510c272b988",
+          "file": "phase5-planning-year-context.spec.ts",
+          "line": 273,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-07T18:47:03.877Z",
+    "duration": 28173.157,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

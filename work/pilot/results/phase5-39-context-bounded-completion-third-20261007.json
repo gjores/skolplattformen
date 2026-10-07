@@ -1,0 +1,101 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-planning-year.config.ts",
+      "e2e/phase5-planning-year-context.spec.ts",
+      "--project=planning-year-desktop",
+      "-g",
+      "^C01:",
+      "--max-failures=1",
+      "--workers=1",
+      "--retries=0",
+      "--output=/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-20261007"
+    ],
+    "configFile": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/playwright.phase5-planning-year.config.ts",
+    "rootDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-20261007",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "planning-year-desktop",
+        "name": "planning-year-desktop",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-39-context-bounded-completion-third-20261007",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "planning-year-phone",
+        "name": "planning-year-phone",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-planning-year.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
+      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-07T18:46:43.541Z",
+    "duration": 208.97700000000003,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
