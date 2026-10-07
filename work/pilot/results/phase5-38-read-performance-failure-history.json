@@ -1,0 +1,66 @@
+{
+  "kind": "phase5-planning-year-read-performance-failure-history",
+  "scope": "local-synthetic-only",
+  "status": "pending-full-rerun",
+  "reset": false,
+  "firstFailure": {
+    "report": "phase5-38-read-performance-rollback-fail-1791356837808.json",
+    "sha256": "3270c0082bd898081b20494a205676ce9812182a19f310ef33269d42946270d4",
+    "sqlExitCode": 3,
+    "timedOut": false,
+    "candidateMarkersPresent": false,
+    "parityCases": 0,
+    "functionsAndJournalPreserved": true,
+    "rawAclPreserved": true,
+    "whole15HashesEqual": true,
+    "completeCleanupProof": false
+  },
+  "causes": [
+    {
+      "kind": "coordinator-sql-assembly",
+      "cause": "String.replace replacement-text interpreted PL/pgSQL dollar quoting; literal double-dollar became single-dollar.",
+      "diagnosticSqlstate": "42601",
+      "correction": "Use replacement callback to preserve candidate SQL bytes. Actual controlled candidate DDL and catalog markers pass in rollback; regression test covers dollar quoting and replacement tokens."
+    },
+    {
+      "kind": "negative-fixture-identity",
+      "cause": "Synthetic 300/301 IDs are command IDs, not actual generated timplan IDs. Two negative mutations affected zero rows.",
+      "correction": "Read actual reply.id from planning_gym and require exactly one/two affected rows; separate PZ002 fixture denial cannot satisfy intended 40001/22023."
+    }
+  ],
+  "targetedDiagnostic": {
+    "report": "phase5-38-read-performance-diagnostic.json",
+    "sha256": "a224c095873f61690092bd8c1cc6932db41b78221db41eb560ba7d3ccf9736b6",
+    "status": "PASS",
+    "notFullPlanProof": true,
+    "assertions": 6,
+    "cases": [
+      {
+        "name": "shared-source-conflict",
+        "oldState": "40001",
+        "newState": "40001",
+        "same": true
+      },
+      {
+        "name": "truncated-frozen-inventory",
+        "oldState": "22023",
+        "newState": "22023",
+        "same": true
+      }
+    ],
+    "catalogPreserved": true,
+    "whole15Preserved": true,
+    "candidateDefinitionHash": "78eb6d6f3352af3a26c9596e2f3381059fed38cc87f2c927d18b305e09c03339"
+  },
+  "additionalPreservationGate": "Coordinator captures original audit/identity whole-row hashes before SQL and verifies them after all SQL/HTTP; apply also requires exact final all-anchor hash.",
+  "newUnitAssertions": 12,
+  "fullRequiredProof": {
+    "sqlAssertions": 143,
+    "cases": 46,
+    "immutableOriginalSqlAssertions": 93,
+    "originalContractCases": 18,
+    "httpBeforeSamples": 9,
+    "fullApiCases": 15
+  },
+  "finalOutcome": "Pending. Targeted diagnosis is not full rollback/API/performance PASS; no permanent performance apply yet."
+}

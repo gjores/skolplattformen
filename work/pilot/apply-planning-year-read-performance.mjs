@@ -41,6 +41,7 @@ async function main(){
   await db.begin(async tx=>{
    await tx`select pg_advisory_xact_lock(5520)`;
    const before=await readPerformanceCatalog(tx),beforeHashes=await planningBusinessHashes(tx),beforeAudit=await auditAnchors(tx),beforePlanningFingerprint=await planningFingerprint(tx);
+   if(!equal(beforeAudit,e.finalAllAnchors))throw Error('REFUSED: full audit or identity rows changed since rollback proof');
    if(beforePlanningFingerprint!==final38.finalFingerprint||!equal(beforeHashes,final38.finalHashes))throw Error('REFUSED: original38 applied baseline changed');
    const journal=before.journal.filter(r=>r.version>='20261006120000');
    if(journal.length!==2||journal[0].version!=='20261006120000'||!equal(journal[0].statements,[foundation])

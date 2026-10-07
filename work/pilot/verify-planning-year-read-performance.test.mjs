@@ -28,6 +28,7 @@ const entries=[...PLANNING_BASE_ENTRIES,...PLANNING_ENTRIES];
 const hashes=()=>Object.fromEntries(PLANNING_TABLES.map(t=>[t,{count:0,sha256:'a'.repeat(64)}]));
 const acls=()=>entries.map(f=>({f,granted:true,acl:'{postgres=X/postgres,skolplattform_worker=X/postgres}'}));
 const sourceHashes=paths=>Object.fromEntries(paths.map(p=>[p,sha(read(p))]));
+const anchors=()=>({audit:{count:10,sha256:'c'.repeat(64)},identities:{count:2,sha256:'d'.repeat(64)}});
 function baseApi(){return {kind:'phase5-planning-year-api',status:'PASS',target:'protected',scope:'local-synthetic-only',preflight:false,complete:true,reset:false,
  aclUnchanged:true,functionsAndJournalPreserved:true,originalBusinessPreserved:true,originalTimestampsPreserved:true,originalAuditPreserved:true,identityAnchorsPreserved:true,
  cleanupStatus:'PASS',cleanup:cleanup(),beforeWorkerFunctions:[...entries],verifiedWorkerFunctions:[...entries],restoredWorkerFunctions:[...entries],beforeAcl:acls(),afterAcl:acls(),
@@ -41,7 +42,7 @@ function parityCases(){return PERFORMANCE_SQL_CASES.map(name=>({name,oldState:ne
 function rollback(){return {kind:'phase5-planning-year-read-performance',mode:'rollback',status:'PASS',target:'protected',scope:'local-synthetic-only',complete:true,rollback:true,reset:false,
  originalDefinitionHash:PERFORMANCE_ORIGINAL_DEFINITION_HASH,candidateDefinitionHash:'b'.repeat(64),originalFoundationHash:PERFORMANCE_FOUNDATION_HASH,originalTestHash:PERFORMANCE_ORIGINAL_TEST_HASH,
  sourceHash:sha(read()),testHash:sha(read()),baselineFingerprint:performanceCatalogFingerprint(catalog()),finalFingerprint:performanceCatalogFingerprint(catalog()),beforeCatalog:catalog(),afterCatalog:catalog(),functionsAndJournalPreserved:true,aclUnchanged:true,
- originalBusinessPreserved:true,originalTimestampsPreserved:true,originalAuditPreserved:true,identityAnchorsPreserved:true,cleanupStatus:'PASS',cleanup:cleanup(),beforeAcl:acls(),afterAcl:acls(),
+ originalBusinessPreserved:true,originalTimestampsPreserved:true,originalAuditPreserved:true,identityAnchorsPreserved:true,originalAnchors:anchors(),finalOriginalAnchors:anchors(),finalAllAnchors:anchors(),cleanupStatus:'PASS',cleanup:cleanup(),beforeAcl:acls(),afterAcl:acls(),
  beforeWorkerFunctions:[...entries],afterWorkerFunctions:[...entries],originalHashes:hashes(),finalHashes:hashes(),
  definitionDiff:{changedDefinitions:[PERFORMANCE_ENTRY],unexpectedDifferences:0,originalDefinitionHash:PERFORMANCE_ORIGINAL_DEFINITION_HASH,candidateDefinitionHash:'b'.repeat(64)},
  parity:{ok:true,cases:parityCases()},sql:{exitCode:0,tap:tap(143)},originalSql:{exitCode:0,tap:tap(93),parity:{ok:true,cases:PERFORMANCE_ORIGINAL_PARITY_CASES.map(name=>({name,ok:true}))}},
@@ -102,6 +103,8 @@ test('rollback gate rejects incomplete setup, changed cache source/definition, j
   e=>e.parity.cases[0].newHash='d'.repeat(64),e=>e.originalSql.tap.total=92,e=>e.originalSql.tap.assertions[0]='not ok 1 failed',
   e=>e.sql.tap.assertions.pop(),e=>e.originalSql.parity.cases[0].ok=false,e=>e.checks[0].ok=false,e=>e.afterAcl[0].acl='changed',
   e=>e.finalFingerprint='b'.repeat(64),e=>e.afterCatalog.functions[0].definition='changed cache source',e=>e.afterCatalog.journal[0].name='changed journal',e=>e.finalHashes.timplans.count++,e=>e.cleanup.retainedIdentityAnchorsPreserved=false,
+  e=>delete e.originalAnchors,e=>e.finalOriginalAnchors.audit.sha256='a'.repeat(64),e=>e.finalOriginalAnchors.identities.count++,e=>e.originalAnchors.audit.sha256='invalid',
+  e=>delete e.finalAllAnchors,e=>e.finalAllAnchors.identities.count=1,e=>e.finalAllAnchors.audit.sha256='invalid',
   e=>e.timings.samples.pop(),e=>e.timings.samples[0].auditPaired=false,e=>e.timings.samples[0].durationMs=30001,e=>e.timings.samples[0].count=51,
   e=>e.timings.samples[1].selectionRevision='sha256:'+'b'.repeat(64),e=>delete e.sourceHashes[PERFORMANCE_SOURCE_PATHS[0]],e=>e.sourceHash='b'.repeat(64)]){
   const e=rollback();change(e);assert.throws(()=>validatePerformanceRollback(e,read));
@@ -140,4 +143,14 @@ test('SQL progress streaming accepts only named controlled case and SQLSTATE, ne
  assert.deepEqual(performanceProgress('NOTICE: PERFORMANCE_PROGRESS|invalid-start|22023'),{case:'invalid-start',state:'22023'});
  for(const raw of ['ERROR: arbitrary SQL secret','NOTICE: PERFORMANCE_PROGRESS|unknown-case|00000','NOTICE: PERFORMANCE_PROGRESS|invalid-start|payload',
   'NOTICE: PERFORMANCE_PROGRESS|invalid-start|22023 secret'])assert.equal(performanceProgress(raw),null);
+});
+
+test('candidate SQL keeps literal PLpgSQL dollar quotes and replacement tokens byte-for-byte',()=>{
+ const foundation=readFileSync(root+'supabase/migrations/'+PLANNING_FOUNDATION,'utf8'),candidate=readFileSync(root+'supabase/migrations/'+PERFORMANCE_MIGRATION,'utf8');
+ const template='begin;\n-- PERFORMANCE_CANDIDATE_APPLY\nrollback;\n';
+ const script=performanceRollbackScript(template,candidate,foundation);
+ assert.ok(script.includes(candidate+'\nselect \'PLANNING_PERFORMANCE_DEFINITION|\''));
+ assert.equal((script.match(/as \$\$/gu)??[]).length,2);
+ const literal="-- literal $$ $& $` $' tokens\n"+candidate;
+ assert.ok(performanceRollbackScript(template,literal,foundation).includes(literal));
 });

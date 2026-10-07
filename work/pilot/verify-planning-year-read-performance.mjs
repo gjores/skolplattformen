@@ -167,7 +167,7 @@ export function performanceRollbackScript(test,candidate,foundation){
   'definitionHash',encode(extensions.digest(pg_get_functiondef('${PERFORMANCE_ENTRY}'::regprocedure),'sha256'),'hex'))::text;`;
  return `\\set ON_ERROR_STOP on\nbegin;\nselect pg_advisory_xact_lock(5520);\n${extractOriginalPlanningRows(foundation)}\n`
   +`create temp table performance_original_catalog as select ${performanceCatalogSql()} value;\n`
-  +body.replace(CANDIDATE_MARKER,`${candidate}\n${definitionProof}\nselect 'PLANNING_PERFORMANCE_CATALOG|'||jsonb_build_object('before',(select value from performance_original_catalog),'after',${performanceCatalogSql()})::text;`)+'\nrollback;\n';
+  +body.replace(CANDIDATE_MARKER,()=>`${candidate}\n${definitionProof}\nselect 'PLANNING_PERFORMANCE_CATALOG|'||jsonb_build_object('before',(select value from performance_original_catalog),'after',${performanceCatalogSql()})::text;`)+'\nrollback;\n';
 }
 export function historicalPlanningRollbackScript(test){
  if(sha(test)!==PERFORMANCE_ORIGINAL_TEST_HASH)throw Error('REFUSED: immutable original 93 SQL tests changed');
@@ -179,6 +179,17 @@ function tapEvidenceValid(tap,total){
  return tap?.status==='PASS'&&tap.total===total&&Array.isArray(tap.assertions)
   &&planningTapProof(tap.assertions.join('\n')+`\n1..${total}`,total).status==='PASS';
 }
+function originalAnchorsValid(before,after){
+ return ['audit','identities'].every(key=>Number.isInteger(before?.[key]?.count)&&before[key].count>=0
+  &&hashPattern.test(before[key].sha256??'')&&equal(before[key],after?.[key]));
+}
+async function originalAnchorSnapshot(db,auditIds,identityIds){
+ const [audit]=await db`select count(*)::integer count,encode(extensions.digest(coalesce(jsonb_agg(to_jsonb(e) order by e.id),'[]'::jsonb)::text,'sha256'),'hex') sha256
+  from public.security_events e where ${auditIds}::bigint[] is null or id=any(${auditIds}::bigint[])`;
+ const [identities]=await db`select count(*)::integer count,encode(extensions.digest(coalesce(jsonb_agg(to_jsonb(i) order by i.id),'[]'::jsonb)::text,'sha256'),'hex') sha256
+  from public.identities i where ${identityIds}::uuid[] is null or id=any(${identityIds}::uuid[])`;
+ return {audit:{...audit},identities:{...identities}};
+}
 export function validatePerformanceRollback(e,readSource){
  if(e?.kind!=='phase5-planning-year-read-performance'||e.mode!=='rollback'||e.status!=='PASS'||e.target!=='protected'||e.scope!=='local-synthetic-only'
   ||e.complete!==true||e.rollback!==true||e.reset!==false||e.originalDefinitionHash!==PERFORMANCE_ORIGINAL_DEFINITION_HASH
@@ -187,7 +198,10 @@ export function validatePerformanceRollback(e,readSource){
   ||!hashPattern.test(e.baselineFingerprint??'')||e.baselineFingerprint!==e.finalFingerprint
   ||!e.beforeCatalog||!e.afterCatalog||performanceCatalogFingerprint(e.beforeCatalog)!==e.baselineFingerprint||performanceCatalogFingerprint(e.afterCatalog)!==e.finalFingerprint||!equal(e.beforeCatalog,e.afterCatalog)
   ||e.functionsAndJournalPreserved!==true||e.aclUnchanged!==true||e.originalBusinessPreserved!==true||e.originalTimestampsPreserved!==true
-  ||e.originalAuditPreserved!==true||e.identityAnchorsPreserved!==true||e.cleanupStatus!=='PASS'||!planningCleanupPreserved(e.cleanup)
+  ||e.originalAuditPreserved!==true||e.identityAnchorsPreserved!==true||!originalAnchorsValid(e.originalAnchors,e.finalOriginalAnchors)
+  ||!originalAnchorsValid(e.finalAllAnchors,e.finalAllAnchors)
+  ||['audit','identities'].some(key=>e.finalAllAnchors[key].count<e.originalAnchors[key].count)
+  ||e.cleanupStatus!=='PASS'||!planningCleanupPreserved(e.cleanup)
   ||!equal(e.beforeAcl,e.afterAcl)||!exactFunctions(e.beforeWorkerFunctions??[],WORKER_ENTRIES)||!exactFunctions(e.afterWorkerFunctions??[],WORKER_ENTRIES)
   ||!exactFunctions(Object.keys(e.originalHashes??{}),PLANNING_TABLES)||!equal(e.originalHashes,e.finalHashes)
   ||e.definitionDiff?.unexpectedDifferences!==0||!exactFunctions(e.definitionDiff?.changedDefinitions??[],[PERFORMANCE_ENTRY])
@@ -287,8 +301,11 @@ async function main(){
  const db=require('postgres')(target.dbUrl,{max:1,prepare:false,connect_timeout:10,onnotice:()=>{}});
  const beforeCatalog=await readPerformanceCatalog(db),beforeAcl=await gymAcl(db),originalHashes=await planningBusinessHashes(db),
   baselineFingerprint=performanceCatalogFingerprint(beforeCatalog),sourceHashes=Object.fromEntries(PERFORMANCE_SOURCE_PATHS.map(p=>[p,sha(read(p))]));
+ const originalAuditIds=(await db`select id::text from public.security_events order by id`).map(r=>r.id),
+  originalIdentityIds=(await db`select id::text from public.identities order by id`).map(r=>r.id),
+  originalAnchors=await originalAnchorSnapshot(db,originalAuditIds,originalIdentityIds);
  let afterCatalog,afterAcl,finalHashes,finalFingerprint,sql,originalSql,parity,definitionDiff,timings,cleanup,cleanupFailure=null,apiFinal,performanceProof,failure,
-  originalDefinitionHash=PERFORMANCE_ORIGINAL_DEFINITION_HASH,candidateDefinitionHash;
+  originalDefinitionHash=PERFORMANCE_ORIGINAL_DEFINITION_HASH,candidateDefinitionHash,finalOriginalAnchors,finalAllAnchors;
  const checks=[];
  try{
   const original=beforeCatalog.functions.find(f=>f.signature===PERFORMANCE_ENTRY);
@@ -342,12 +359,15 @@ async function main(){
   }
  }catch(error){failure=planningSafeFailure(error);}
  finally{
-  try{afterCatalog=await readPerformanceCatalog(db);afterAcl=await gymAcl(db);finalHashes=await planningBusinessHashes(db);finalFingerprint=performanceCatalogFingerprint(afterCatalog);}catch(error){failure??=planningSafeFailure(error);}
+  try{afterCatalog=await readPerformanceCatalog(db);afterAcl=await gymAcl(db);finalHashes=await planningBusinessHashes(db);finalFingerprint=performanceCatalogFingerprint(afterCatalog);
+   finalOriginalAnchors=await originalAnchorSnapshot(db,originalAuditIds,originalIdentityIds);
+   finalAllAnchors=await originalAnchorSnapshot(db,null,null);}catch(error){failure??=planningSafeFailure(error);}
   await db.end({timeout:5});
  }
  const businessPreserved=equal(originalHashes,finalHashes),catalogPreserved=equal(beforeCatalog,afterCatalog),aclPreserved=equal(beforeAcl,afterAcl),clean=planningCleanupPreserved(cleanup);
  checked(checks,'all15 original business whole rows and timestamps preserved after own cleanup',businessPreserved&&clean);
  checked(checks,'original and newly retained audit and identity anchors preserved',clean);
+ checked(checks,'original audit and identity whole rows preserved from coordinator start through every SQL and HTTP step',originalAnchorsValid(originalAnchors,finalOriginalAnchors));
  checked(checks,'full public definitions owners rawACL table/RLS and complete journal unchanged by verifier',catalogPreserved&&aclPreserved);
  const report={kind:'phase5-planning-year-read-performance',target:'protected',scope:'local-synthetic-only',mode:o.mode,reset:false,rollback:true,
   status:!failure&&checks.every(c=>c.ok)?'PASS':'FAIL',complete:!failure&&checks.every(c=>c.ok),checks,
@@ -355,7 +375,9 @@ async function main(){
   sourceHash:sha(source),testHash:sha(test),final38ProofStatus:final38.status,baselineFingerprint,finalFingerprint,beforeCatalog,afterCatalog,originalDefinitionHash,candidateDefinitionHash,definitionDiff,
   originalHashes,finalHashes,beforeAcl,afterAcl,beforeWorkerFunctions:functions(beforeAcl),afterWorkerFunctions:afterAcl?functions(afterAcl):[],
   functionsAndJournalPreserved:catalogPreserved,aclUnchanged:aclPreserved,originalBusinessPreserved:businessPreserved&&clean,originalTimestampsPreserved:businessPreserved&&clean,
-  originalAuditPreserved:cleanup?.originalAuditPreserved===true,identityAnchorsPreserved:cleanup?.identityAnchorsPreserved===true,cleanupStatus:clean?'PASS':'FAIL',cleanup,cleanupFailure,
+  originalAnchors,finalOriginalAnchors,finalAllAnchors,
+  originalAuditPreserved:originalAnchorsValid(originalAnchors,finalOriginalAnchors)&&cleanup?.originalAuditPreserved===true,
+  identityAnchorsPreserved:originalAnchorsValid(originalAnchors,finalOriginalAnchors)&&cleanup?.identityAnchorsPreserved===true,cleanupStatus:clean?'PASS':'FAIL',cleanup,cleanupFailure,
   sql,originalSql,parity,timings,performance:performanceProof,apiFinal:apiFinal?{status:apiFinal.status,cases:apiFinal.cases.length,sourceCommit:apiFinal.sourceCommit,
    workerBuildRevision:apiFinal.workerBuildRevision,report:'phase5-38-read-performance-api-final.json',sha256:sha(JSON.stringify(apiFinal))}:null,failure};
  reportFile(o.out,report);process.stdout.write(`${report.status} planning read performance ${o.mode}; original93=${originalSql?.tap?.total??0}; parity=${parity?.cases?.length??0}\n`);

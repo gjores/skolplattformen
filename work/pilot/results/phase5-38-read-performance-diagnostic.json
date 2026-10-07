@@ -1,0 +1,50 @@
+{
+  "kind": "phase5-planning-read-performance-diagnostic",
+  "scope": "owned-rollback-only-two-negative-cases",
+  "notFullPlanProof": true,
+  "exit": 0,
+  "error": null,
+  "sqlErrors": [],
+  "testHash": "b8ce2842fe462de1cf90e2445fbd3c59fcd0acb2bea7c65321cf274bd34f4192",
+  "coordinatorHash": "0e5ab4162eee515ea42b912f806dac1a111f43f3f8776cfe985f97a294c215a5",
+  "tap": {
+    "status": "PASS",
+    "total": 6,
+    "assertions": [
+      "ok 1 - exact old/new data or SQLSTATE: shared-source-conflict",
+      "ok 2 - exact old/new data or SQLSTATE: truncated-frozen-inventory",
+      "ok 3 - original intended SQLSTATE: shared-source-conflict",
+      "ok 4 - original intended SQLSTATE: truncated-frozen-inventory",
+      "ok 5 - candidate intended SQLSTATE: shared-source-conflict",
+      "ok 6 - candidate intended SQLSTATE: truncated-frozen-inventory"
+    ]
+  },
+  "parity": [
+    {
+      "name": "shared-source-conflict",
+      "same": true,
+      "newHash": "dbda1b65b43e5337836ee40b8aa69be27faea53b64461f1d370ad624ef89a10a",
+      "oldHash": "dbda1b65b43e5337836ee40b8aa69be27faea53b64461f1d370ad624ef89a10a",
+      "newState": "40001",
+      "oldState": "40001"
+    },
+    {
+      "name": "truncated-frozen-inventory",
+      "same": true,
+      "newHash": "496fb7486c32612481295a91bf5d6fc646fe35335f4a4788f8619f2d25d45660",
+      "oldHash": "496fb7486c32612481295a91bf5d6fc646fe35335f4a4788f8619f2d25d45660",
+      "newState": "22023",
+      "oldState": "22023"
+    }
+  ],
+  "definition": [
+    {
+      "signature": "public.phase5_planning_year_rows(jsonb)",
+      "definitionHash": "78eb6d6f3352af3a26c9596e2f3381059fed38cc87f2c927d18b305e09c03339"
+    }
+  ],
+  "catalogMarkers": 1,
+  "catalogPreserved": true,
+  "whole15Preserved": true,
+  "status": "PASS"
+}

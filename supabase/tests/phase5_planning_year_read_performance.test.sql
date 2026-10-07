@@ -152,7 +152,7 @@ update performance_cases set expected_state='54000' where name='cache-cell-limit
 -- No business mutation or audit from one variant can leak into another comparison.
 create function pg_temp.performance_probe(case_name text) returns jsonb language plpgsql as $$
 declare q jsonb:=pg_temp.planning_q('{"query":"Performance ram","status":"utkast"}'); outcome jsonb; reply jsonb; page_one jsonb;
- ref jsonb; dist jsonb; entry jsonb; payload jsonb; subject jsonb; items jsonb; levels jsonb; basis jsonb; n integer;
+ ref jsonb; dist jsonb; entry jsonb; payload jsonb; subject jsonb; items jsonb; levels jsonb; basis jsonb; n integer; affected integer;
  catalog text:='sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc';
 begin
  begin
@@ -266,10 +266,16 @@ begin
    when 'invalid-program-version' then
     update public.point_plans set basis_reference=jsonb_set(basis_reference,'{programRef,version}','99') where id=pg_temp.performance_id(652);
    when 'shared-source-conflict' then
-    update public.timplans set gym_basis=jsonb_set(gym_basis,'{revision}','99') where id=pg_temp.performance_id(301);
+    update public.timplans set gym_basis=jsonb_set(gym_basis,'{revision}','99')
+     where id=(select (value#>>'{reply,id}')::uuid from planning_gym where name='second');
+    get diagnostics affected=row_count;
+    if affected<>1 then raise exception 'Shared-source conflict fixture must update exactly one timplan' using errcode='PZ002';end if;
     q:=pg_temp.planning_q('{"query":"Syntetisk ram 0","view":"timplan","schoolYear":2027}');
    when 'truncated-frozen-inventory' then
-    update public.timplans set gym_basis=jsonb_set(gym_basis,'{rows}','[]') where id in(pg_temp.performance_id(300),pg_temp.performance_id(301));
+    update public.timplans set gym_basis=jsonb_set(gym_basis,'{rows}','[]')
+     where id in(select (value#>>'{reply,id}')::uuid from planning_gym);
+    get diagnostics affected=row_count;
+    if affected<>2 then raise exception 'Truncated frozen-inventory fixture must update exactly two timplans' using errcode='PZ002';end if;
     q:=pg_temp.planning_q('{"query":"Syntetisk ram 0","view":"timplan","schoolYear":2027}');
    when 'future-2099' then q:=q||'{"schoolYear":2099}';
    when 'selection-stale' then
