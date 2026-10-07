@@ -136,6 +136,12 @@ async function main(){
    ...(route==='urval'?{}:{body:JSON.stringify(input)}),signal:AbortSignal.timeout(30000)});
   return {status:response.status,body:await response.json(),correlationId:response.headers.get('x-correlation-id'),cache:response.headers.get('cache-control')};
  };
+ const legacyRequest=async(session,path,input)=>{
+  const response=await fetch(`${o.baseURL}${path}`,{method:'POST',headers:{'Content-Type':'application/json',
+   Cookie:`sp_session=${session.token}`,'X-Context-Epoch':String(session.epoch),'Sec-Fetch-Site':'same-origin',Origin:o.baseURL},
+   body:JSON.stringify(input),signal:AbortSignal.timeout(30000)});
+  return {status:response.status,body:await response.json(),correlationId:response.headers.get('x-correlation-id'),cache:response.headers.get('cache-control')};
+ };
  const success=async(checks,session,route,input)=>{
   const reply=await call(session,route,input);checked(checks,`${route} expected HTTP200; actual HTTP${reply.status}; no-store`,reply.status===200&&reply.cache==='no-store');
   checked(checks,`${route} exact actor DB/Worker audit pairs`,reply.status===200&&planningAuditPair(await fixture.events(reply.correlationId),session,fixture.customerId,route));
@@ -271,12 +277,16 @@ async function main(){
    for(const [path,body,session,action,type,id] of [
     ['/api/timplaner/gym/lasa',{planId:metadata.shared.firstTimplanId},fixture.principal,'gym_timplan_read','timplan',metadata.shared.firstTimplanId],
     ['/api/timplaner/lasa',{planId:metadata.gr.oldPlanId},fixture.hm,'timplan_read','timplan',metadata.gr.oldPlanId],
-    ['/api/timplaner/lasa',{planId:metadata.im.planId},fixture.hm,'timplan_read','timplan',metadata.im.planId],
+    ['/api/timplaner/lasa',{planId:metadata.im.validPlanId},fixture.hm,'timplan_read','timplan',metadata.im.validPlanId],
     ['/api/programplaner/lasa',{planId:metadata.shared.planId},fixture.hm,'programplan_read','programplan',metadata.shared.planId]]){
-    const reply=await fixture.request(o.baseURL,session,path,body);checked(checks,`${path} old protected read remains200`,reply.status===200);
+    const reply=await legacyRequest(session,path,body);checked(checks,`${path} nominal old read expected HTTP200; actual HTTP${reply.status}`,reply.status===200&&reply.cache==='no-store');
     const events=await fixture.events(reply.correlationId);checked(checks,`${path} old read still audits DB and Worker`,events.length===2&&['db','worker'].every(source=>events.some(e=>e.action===action&&e.source===source&&e.outcome==='ok'&&e.customer_id===fixture.customerId&&e.object_type===type&&e.object_id===id)));
    }
-   checked(checks,'legacy reads preserve all business rows',equal(before,await planningBusinessHashes(db)));
+   const legacyNull=await legacyRequest(fixture.hm,'/api/timplaner/lasa',{planId:metadata.im.planId});
+   checked(checks,`legacy null IM stays rejected HTTP400; actual HTTP${legacyNull.status}`,legacyNull.status===400&&legacyNull.cache==='no-store'
+    &&Object.keys(legacyNull.body).every(k=>['code','correlationId','details'].includes(k)));
+   checked(checks,'legacy null IM denial releases no success audit',!(await fixture.events(legacyNull.correlationId)).some(e=>e.outcome==='ok'));
+   checked(checks,'nominal old reads and legacy null denial preserve every business row',equal(before,await planningBusinessHashes(db)));
   });
   await run('revoked-mandate',async checks=>{
    await fixture.revokeParent();for(const session of [fixture.hm,fixture.principal,fixture.principalB,fixture.admin])for(const route of ['urval','lista','oversikt'])await denied(checks,session,route,q({}),403);

@@ -145,7 +145,7 @@ export async function createPlanningYearFixture(){
     const foreignToken=randomBytes(32).toString('base64url'),foreignTokenHash=createHash('sha256').update(foreignToken).digest();
     const gr={unitId:base.nonGymUnitId,offeringId:id(700),oldPlanId:id(710),newPlanId:id(711),classIds:[id(720),id(721)],
      year8:planningYear,year9:planningYear+1,column8:'ak8',column9:'ak9'};
-    const im={unitId:base.unitId,offeringId:id(701),planId:id(712)};
+    const im={unitId:base.unitId,offeringId:id(701),planId:id(712),validOfferingId:id(702),validPlanId:id(713)};
     const pageOfferingIds=Array.from({length:52},(_,n)=>id(100+n)),pagePlanIds=Array.from({length:52},(_,n)=>id(300+n));
     await db.begin(async tx=>{
      await owned(tx);await tx`set local session_replication_role=replica`;
@@ -167,18 +167,24 @@ export async function createPlanningYearFixture(){
       where c.timplan_id=t.id and t.id=${planId} and t.organizer_id=${base.organizerId} and d.value->>'rowKey'=c.row_id`;
      await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades) values
       (${gr.offeringId},${base.organizerId},${gr.unitId},'grundskola','Syntetisk årsplaneringsgrundskola','Ingen datumtolkning',array[7,8,9]::smallint[]),
-      (${im.offeringId},${base.organizerId},${base.unitId},'introduktionsprogram','Syntetisk årsplaneringsintroduktion','Ingen datumtolkning',null)`;
+      (${im.offeringId},${base.organizerId},${base.unitId},'introduktionsprogram','Syntetisk årsplaneringsintroduktion','Ingen datumtolkning',null),
+      (${im.validOfferingId},${base.organizerId},${base.unitId},'introduktionsprogram','Syntetisk komplett introduktionsram','Ingen datumtolkning',null)`;
      await tx`insert into public.offering_units(offering_id,unit_id,organizer_id) values
-      (${gr.offeringId},${gr.unitId},${base.organizerId}),(${im.offeringId},${base.unitId},${base.organizerId})`;
+      (${gr.offeringId},${gr.unitId},${base.organizerId}),(${im.offeringId},${base.unitId},${base.organizerId}),
+      (${im.validOfferingId},${base.unitId},${base.organizerId})`;
      await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,status,basis,decided_on) values
       (${gr.oldPlanId},${base.organizerId},${gr.offeringId},${gr.unitId},1,'faststalld','Syntetisk äldre bunden ram','2026-09-01'),
       (${gr.newPlanId},${base.organizerId},${gr.offeringId},${gr.unitId},2,'utkast','Syntetisk nyare obunden ram',null),
-      (${im.planId},${base.organizerId},${im.offeringId},${base.unitId},1,'utkast','Syntetisk veckoram',null)`;
+      (${im.planId},${base.organizerId},${im.offeringId},${base.unitId},1,'utkast','Syntetisk veckoram',null),
+      (${im.validPlanId},${base.organizerId},${im.validOfferingId},${base.unitId},1,'utkast','Syntetisk komplett veckoram',null)`;
      await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values
       (${gr.oldPlanId},'engelska',array[111,222,333]::smallint[]),(${gr.oldPlanId},'okand_legacy',array[0,0,5]::smallint[]),
       (${gr.newPlanId},'engelska',array[444,555,666]::smallint[])`;
-     for(const key of ['im-sv','im-ma','im-en','im-sh','im-idh','im-praktik','im-mentor'])await tx`
-      insert into public.timplan_cells(timplan_id,row_id,hours) values(${im.planId},${key},${[key==='im-mentor'?null:2]}::smallint[])`;
+     for(const key of ['im-sv','im-ma','im-en','im-sh','im-idh','im-praktik','im-mentor']){
+      await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${im.planId},${key},${[key==='im-mentor'?null:2]}::smallint[])`;
+      // Den äldre timplansläsningen kräver fullständiga numeriska celler. Dess positiva regressionsprov har en egen ram.
+      await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${im.validPlanId},${key},array[2]::smallint[])`;
+     }
      for(let n=0;n<2;n++)await tx`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year)
       values(${gr.classIds[n]},${base.customerId},${base.organizerId},${gr.unitId},${gr.offeringId},${`SYNG${n+1}`},${planningYear-2})`;
      await tx`insert into public.class_timplans(unit_id,class_name,start_year,timplan_id,column_id) values
