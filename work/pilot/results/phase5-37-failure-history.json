@@ -1,0 +1,272 @@
+{
+  "kind": "phase5-37-preserved-first-failures",
+  "scope": "local-synthetic-only",
+  "attempts": [
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347631364.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "9131877b16172b3222e42ceca87f3ff52238c16a323147c6cb90c6df88f5fd7b",
+      "testHash": "2a3354832a9c21abfc6f864d55811788464d817723bb8a6eaaf9017a8b52a2c4",
+      "sqlError": "Invalid programplan basis",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347668141.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "9131877b16172b3222e42ceca87f3ff52238c16a323147c6cb90c6df88f5fd7b",
+      "testHash": "ca71da44e12998c7e16a91fafb917c13f7b0432a22f2ee87e554956aa70aa0ce",
+      "sqlError": "Programplan started",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347686730.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "9131877b16172b3222e42ceca87f3ff52238c16a323147c6cb90c6df88f5fd7b",
+      "testHash": "052b8637c54db530dbe26d36e9182c8c46b0ff9a8ea552444a06ac0cbccd8d0a",
+      "sqlError": "Gym timplan denied",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347707864.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "9131877b16172b3222e42ceca87f3ff52238c16a323147c6cb90c6df88f5fd7b",
+      "testHash": "47bd7ff12ebce0387d3689c305953d1e6a795f070a8e24e89bad1cf389580a3c",
+      "sqlError": "Gym timplan source conflict",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347720706.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "9131877b16172b3222e42ceca87f3ff52238c16a323147c6cb90c6df88f5fd7b",
+      "testHash": "a51f3752b1a14dc087063151088beba174c4951a601b2a92f9152d20975f3280",
+      "sqlError": "new row for relation \"timplans\" violates check constraint \"timplans_check\"",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347731923.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "9131877b16172b3222e42ceca87f3ff52238c16a323147c6cb90c6df88f5fd7b",
+      "testHash": "ef8ddcedcf6e852c1f8900e2da5757542acb28c3659031521123e821183ad10f",
+      "sqlError": "column reference \"kind\" is ambiguous",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347748173.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "4f33b7983aa3a4830e05968056f6a158a113094d5bb95704b9b1fa06d476285b",
+      "testHash": "ef8ddcedcf6e852c1f8900e2da5757542acb28c3659031521123e821183ad10f",
+      "sqlError": "column reference \"r\" is ambiguous",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347770701.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "275d77549c210b76dcef5d723a035c27a84ac37b3d1bb59ad5c1aeb49c4f50bb",
+      "testHash": "ef8ddcedcf6e852c1f8900e2da5757542acb28c3659031521123e821183ad10f",
+      "sqlError": "insert or update on table \"school_classes\" violates foreign key constraint \"school_classes_offering_unit_linkage_fkey\"",
+      "tapTotal": 0,
+      "failedAssertions": [
+        "not ok 25 - IM never invents program points",
+        "not ok 31 - finished cohorts explicit"
+      ],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347799903.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "275d77549c210b76dcef5d723a035c27a84ac37b3d1bb59ad5c1aeb49c4f50bb",
+      "testHash": "d330f69119a740dcaca2449f7a9faaa4de712f6e6cde396c6eae375784bc13f4",
+      "sqlError": null,
+      "tapTotal": 43,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791347984879.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "c91b644976c7833f53ecebdff05b1baed7a909a76aec8346f76d353d7c4da88e",
+      "testHash": "373e8039f7787ea3121c2ec4e40a126edf1131d2f8d4b531105147193c9e29ad",
+      "sqlError": "Timmarna i en fastställd eller ersatt timplan ändras inte.",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791348046442.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "b26597442ea1f72f376cf7e3e3aaf1bad3c18b29ca4634176297d0ddcfafd0d0",
+      "testHash": "2b2d18af721b90f4673bce7b5049dbf7a25abadbb73272a4225afc6b636a963e",
+      "sqlError": null,
+      "tapTotal": 79,
+      "failedAssertions": [
+        "not ok 47 - identical truncated sources on both schools refused by actual overview"
+      ],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791348106490.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "10ec8073e5e11acc406709bdef71121bed08351b75ee180b2de95e6731d1cc88",
+      "testHash": "b78164d2deccf17970b8c0875e0613afb0b7439f22c895559c8bf15afe0606c4",
+      "sqlError": null,
+      "tapTotal": 85,
+      "failedAssertions": [
+        "not ok 47 - identical truncated sources on both schools refused by actual overview",
+        "not ok 51 - real GY annual binding retained",
+        "not ok 52 - bound GY column conflicting with frozen cohort denied"
+      ],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791348157391.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "22f75415dee8097cc0e1dfa16831cf5e02e43a669123d1cf0c3b1ea36b35ee9d",
+      "testHash": "b78164d2deccf17970b8c0875e0613afb0b7439f22c895559c8bf15afe0606c4",
+      "sqlError": null,
+      "tapTotal": 85,
+      "failedAssertions": [
+        "not ok 47 - identical truncated sources on both schools refused by actual overview",
+        "not ok 51 - real GY annual binding retained",
+        "not ok 52 - bound GY column conflicting with frozen cohort denied"
+      ],
+      "diagnostics": [
+        "# Failed test 47: \"identical truncated sources on both schools refused by actual overview\"",
+        "#       caught: 42501: permission denied to set parameter \"session_replication_role\"",
+        "#       wanted: 22023",
+        "# Failed test 51: \"real GY annual binding retained\"",
+        "#         have: missing",
+        "#         want: class-bound",
+        "# Failed test 52: \"bound GY column conflicting with frozen cohort denied\"",
+        "#       caught: 42501: permission denied to set parameter \"session_replication_role\"",
+        "#       wanted: 40001",
+        "# Looks like you failed 3 tests of 85"
+      ],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791348220701.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "22f75415dee8097cc0e1dfa16831cf5e02e43a669123d1cf0c3b1ea36b35ee9d",
+      "testHash": "128813ef2d48d0e75617be1b14835e88cad54e5a8c4611b8731e85645efa91c8",
+      "sqlError": null,
+      "tapTotal": 87,
+      "failedAssertions": [
+        "not ok 47 - identical truncated sources on both schools refused by actual overview",
+        "not ok 52 - bound GY column conflicting with frozen cohort denied",
+        "not ok 55 - 1001 class references in a single row denied before response"
+      ],
+      "diagnostics": [
+        "# Failed test 47: \"identical truncated sources on both schools refused by actual overview\"",
+        "#       caught: 42501: permission denied to set parameter \"session_replication_role\"",
+        "#       wanted: 22023",
+        "# Failed test 52: \"bound GY column conflicting with frozen cohort denied\"",
+        "#       caught: 42501: permission denied to set parameter \"session_replication_role\"",
+        "#       wanted: 40001",
+        "# Failed test 55: \"1001 class references in a single row denied before response\"",
+        "#       caught: 42501: permission denied to set parameter \"session_replication_role\"",
+        "#       wanted: 54000",
+        "# Looks like you failed 3 tests of 87"
+      ],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-foundation-full-rollback-fail-1791348608290.json",
+      "status": "FAIL",
+      "stage": "full",
+      "sourceHash": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+      "testHash": "13f3833f40cff7b8dcd064b3990567ef356be3ade5c0067666fee9fc3a0141a3",
+      "sqlError": null,
+      "tapTotal": 93,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": {
+        "ok": false,
+        "error": "ERR_ASSERTION"
+      },
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    },
+    {
+      "evidence": "phase5-planning-year-setup-rollback-fail-1791347349952.json",
+      "status": "FAIL",
+      "stage": "setup",
+      "sourceHash": "e8d46f2b4b2b0d91c1ea391213a769d4ae1a7551fdb737ddc1d8e516ebb7a9a2",
+      "testHash": "cc23df0040a912d81d0e6232c144fa223217e5daab91b27c6f8c818b6306d80e",
+      "sqlError": "column \"customer_id\" does not exist",
+      "tapTotal": 0,
+      "failedAssertions": [],
+      "diagnostics": [],
+      "lockFailure": null,
+      "originalBusinessPreserved": true,
+      "functionsAndJournalPreserved": true
+    }
+  ]
+}

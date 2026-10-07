@@ -1,0 +1,469 @@
+{
+  "kind": "phase5-planning-year-foundation",
+  "status": "PASS",
+  "target": "protected",
+  "scope": "local-synthetic-only",
+  "mode": "rollback",
+  "stage": "full",
+  "complete": true,
+  "rollback": true,
+  "reset": false,
+  "sourceHash": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+  "testHash": "be8d975aa43a07fa6712c3b333709e8344ee50debf65f26200ce10649d80bd34",
+  "baselineFingerprint": "dcc0ddd8540796929c63b669414b166fd35cf94ba103b6a97b40a0156626e580",
+  "originalBusinessPreserved": true,
+  "originalTimestampsPreserved": true,
+  "aclUnchanged": true,
+  "functionsAndJournalPreserved": true,
+  "beforeWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "afterWorkerFunctions": [
+    "public.phase5_read_timplan(uuid)",
+    "public.phase5_change_timplan_cell(uuid,integer,text,integer,integer)",
+    "public.phase5_list_timplans(integer)",
+    "public.phase5_read_programplan(uuid)",
+    "public.phase5_bind_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_replace_programplan_specialization(uuid,integer,jsonb)",
+    "public.phase5_create_programplan_draft(uuid,integer,jsonb)",
+    "public.phase5_clone_programplan_draft(uuid,integer,integer,jsonb)",
+    "public.phase5_list_programplan_offerings(integer)",
+    "public.phase5_programplan_workspace(uuid,integer,text)",
+    "public.phase5_programplan_selection(uuid,text,jsonb)",
+    "public.phase5_create_programplan_education(uuid,uuid,text,text,text,jsonb)",
+    "public.phase5_programplan_education_status(uuid)",
+    "public.phase5_read_programplan_terms(uuid)",
+    "public.phase5_write_programplan_terms(uuid,integer,jsonb)",
+    "public.phase5_change_programplan_education(uuid,integer,text,jsonb)",
+    "public.phase5_replace_programplan_blocks(uuid,integer,jsonb)",
+    "public.phase5_read_programplan_unit_packages(uuid)",
+    "public.phase5_write_programplan_unit_packages(uuid,uuid,integer,text,jsonb)",
+    "public.phase5_save_programplan_package(uuid,integer,jsonb)",
+    "public.phase5_list_programplan_packages(uuid)",
+    "public.phase5_gym_timplan_underlag(uuid)",
+    "public.phase5_read_gym_timplan(uuid)",
+    "public.phase5_create_gym_timplan(uuid,uuid,integer,integer,uuid,uuid,integer)",
+    "public.phase5_write_gym_timplan_row(uuid,integer,text,jsonb)"
+  ],
+  "originalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+    },
+    "school_years": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "finalHashes": {
+    "point_plans": {
+      "count": 20,
+      "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+    },
+    "point_plan_events": {
+      "count": 54,
+      "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+    },
+    "offerings": {
+      "count": 34,
+      "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+    },
+    "offering_units": {
+      "count": 267,
+      "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+    },
+    "timplans": {
+      "count": 7,
+      "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+    },
+    "timplan_cells": {
+      "count": 121,
+      "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+    },
+    "timplan_events": {
+      "count": 67,
+      "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+    },
+    "class_timplans": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "school_classes": {
+      "count": 6,
+      "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+    },
+    "pupil_placements": {
+      "count": 68,
+      "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+    },
+    "programplan_shape_upgrades": {
+      "count": 13,
+      "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+    },
+    "programplan_unit_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "programplan_packages": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gym_timplan_receipts": {
+      "count": 3,
+      "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+    },
+    "school_years": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "checks": [
+    {
+      "name": "actual pgTAP assertions",
+      "ok": true
+    },
+    {
+      "name": "migration preserves full business rows and timestamps",
+      "ok": true
+    },
+    {
+      "name": "original definitions and raw function ACL unchanged",
+      "ok": true
+    },
+    {
+      "name": "all new functions closed to ordinary roles and Worker",
+      "ok": true
+    },
+    {
+      "name": "complete original business rows after rollback",
+      "ok": true
+    },
+    {
+      "name": "exact old Worker grants and raw ACL after rollback",
+      "ok": true
+    },
+    {
+      "name": "full definitions, table ACL and journal after rollback",
+      "ok": true
+    },
+    {
+      "name": "actual SQL/TypeScript read contract parity",
+      "ok": true
+    },
+    {
+      "name": "actual mandate revocation during observed customer lock, owned cleanup and original audit preservation",
+      "ok": true
+    }
+  ],
+  "tap": {
+    "status": "PASS",
+    "total": 93,
+    "assertions": [
+      "ok 1 - setup returns two HM mandate units",
+      "ok 2 - setup carries actual customer",
+      "ok 3 - lower year bound",
+      "ok 4 - upper year bound",
+      "ok 5 - server date Stockholm",
+      "ok 6 - January belongs to previous academic year",
+      "ok 7 - June boundary",
+      "ok 8 - July boundary",
+      "ok 9 - nonfinite date remains unknown",
+      "ok 10 - no calendar rows created",
+      "ok 11 - principal restricted to own school",
+      "ok 12 - admin does not receive GR scope",
+      "ok 13 - admin does not receive IM scope",
+      "ok 14 - existing gym admin reading preserved",
+      "ok 15 - shared program produces two scoped school rows",
+      "ok 16 - shared points counted once",
+      "ok 17 - two school frames independently contribute 10 plus 20 hours per active canonical row",
+      "ok 18 - old bound plan overrides newer draft",
+      "ok 19 - actual eighth-grade binding",
+      "ok 20 - application year selects ninth grade",
+      "ok 21 - two actual classes retained separately",
+      "ok 22 - unknown original map prevents guessed hours",
+      "ok 23 - IM weekly frame includes activities and zero",
+      "ok 24 - IM never converted to annual hours",
+      "ok 25 - IM never invents program points",
+      "ok 26 - no invented education",
+      "ok 27 - new cohort",
+      "ok 28 - continuing cohort",
+      "ok 29 - future cohort",
+      "ok 30 - relevant excludes future",
+      "ok 31 - finished cohorts explicit",
+      "ok 32 - frozen date authoritative",
+      "ok 33 - changed live education and newer source revision do not rewrite frozen start",
+      "ok 34 - same-width reordered columns never authenticate map",
+      "ok 35 - missing weekly row makes sum incomplete",
+      "ok 36 - ambiguous real class lookup diagnosed",
+      "ok 37 - ambiguous class count not complete",
+      "ok 38 - count over complete result",
+      "ok 39 - fixed page size",
+      "ok 40 - second page five rows",
+      "ok 41 - stable UUID tie break",
+      "ok 42 - no duplicated boundary row",
+      "ok 43 - changed result refuses stale page",
+      "ok 44 - January start projects previous academic year",
+      "ok 45 - positive term before actual January start requires review",
+      "ok 46 - undistributed points remain unknown",
+      "ok 47 - identical truncated sources on both schools refused by actual overview",
+      "ok 48 - unknown legacy GR row carries named gap",
+      "ok 49 - two classes and schools still one point frame",
+      "ok 50 - GY classes counted independently",
+      "ok 51 - real GY annual binding retained",
+      "ok 52 - bound GY column conflicting with frozen cohort denied",
+      "ok 53 - forged customer context rejected by real session",
+      "ok 54 - future planning year works without calendar rows",
+      "ok 55 - 1001 class references in a single row denied before response",
+      "ok 56 - Unicode boundary space matches client trim rejection",
+      "ok 57 - invalid legacy GR width projected unknown",
+      "ok 58 - invalid legacy IM raw width remains preserved",
+      "ok 59 - nested legacy GR array never creates annual positions",
+      "ok 60 - source academic year outside model calendar range denied",
+      "ok 61 - two schools cannot aggregate contradictory shared source revisions",
+      "ok 62 - overlapping forged row inventory cannot double count alternatives or fixed levels",
+      "ok 63 - year below bound",
+      "ok 64 - year above bound",
+      "ok 65 - fractional year",
+      "ok 66 - null status denied",
+      "ok 67 - null schoolform denied",
+      "ok 68 - unknown view denied",
+      "ok 69 - untrimmed search denied",
+      "ok 70 - control search denied",
+      "ok 71 - free SQL sort denied",
+      "ok 72 - next page without revision denied",
+      "ok 73 - zero page denied",
+      "ok 74 - malformed revision denied",
+      "ok 75 - gym fourth year denied",
+      "ok 76 - IM grade inference denied",
+      "ok 77 - GR points inference denied",
+      "ok 78 - extra request field denied",
+      "ok 79 - overview page two denied",
+      "ok 80 - foreign school denied",
+      "ok 81 - identical truncated frozen inventory denied against catalog",
+      "ok 82 - contradicting catalog identity denied",
+      "ok 83 - setup audit failure blocks result",
+      "ok 84 - list audit failure blocks result",
+      "ok 85 - overview audit failure blocks result",
+      "ok 86 - no successful audit escapes failed commands",
+      "ok 87 - principal cannot search/count another school",
+      "ok 88 - mandate filtering precedes total count",
+      "ok 89 - GY admin cannot read GR",
+      "ok 90 - GY admin cannot aggregate IM",
+      "ok 91 - expired actual session denied",
+      "ok 92 - revoked parent issuing mandate denies future-year read",
+      "ok 93 - every new helper and RPC closed to all five roles"
+    ]
+  },
+  "parity": {
+    "ok": true,
+    "cases": [
+      {
+        "name": "setup-admin",
+        "ok": true
+      },
+      {
+        "name": "program",
+        "ok": true
+      },
+      {
+        "name": "gym",
+        "ok": true
+      },
+      {
+        "name": "gr8",
+        "ok": true
+      },
+      {
+        "name": "gr9",
+        "ok": true
+      },
+      {
+        "name": "im",
+        "ok": true
+      },
+      {
+        "name": "empty",
+        "ok": true
+      },
+      {
+        "name": "gr-reordered",
+        "ok": true
+      },
+      {
+        "name": "im-missing",
+        "ok": true
+      },
+      {
+        "name": "gr-ambiguous",
+        "ok": true
+      },
+      {
+        "name": "missing-plans",
+        "ok": true
+      },
+      {
+        "name": "january",
+        "ok": true
+      },
+      {
+        "name": "unallocated-points",
+        "ok": true
+      },
+      {
+        "name": "gr-unknown-row",
+        "ok": true
+      },
+      {
+        "name": "gym-bound",
+        "ok": true
+      },
+      {
+        "name": "gr-legacy-width",
+        "ok": true
+      },
+      {
+        "name": "im-legacy-width",
+        "ok": true
+      },
+      {
+        "name": "gr-legacy-nested",
+        "ok": true
+      }
+    ]
+  },
+  "locks": {
+    "ok": true,
+    "cases": [
+      {
+        "name": "selection-parent-revoked-after-lock",
+        "ok": true,
+        "observedLock": {
+          "blocker": 31157,
+          "waiter": 31149,
+          "waitEvent": "advisory"
+        },
+        "sqlstate": "42501",
+        "noData": true,
+        "noSuccessfulAudit": true
+      },
+      {
+        "name": "list-parent-revoked-after-lock",
+        "ok": true,
+        "observedLock": {
+          "blocker": 31157,
+          "waiter": 31149,
+          "waitEvent": "advisory"
+        },
+        "sqlstate": "42501",
+        "noData": true,
+        "noSuccessfulAudit": true
+      },
+      {
+        "name": "overview-parent-revoked-after-lock",
+        "ok": true,
+        "observedLock": {
+          "blocker": 31157,
+          "waiter": 31149,
+          "waitEvent": "advisory"
+        },
+        "sqlstate": "42501",
+        "noData": true,
+        "noSuccessfulAudit": true
+      }
+    ],
+    "cleanup": {
+      "libraryVersions": 0,
+      "unitPackages": 0,
+      "offeringUnits": 0,
+      "customers": 0,
+      "sessions": 0,
+      "plans": 0,
+      "receipts": 0,
+      "educationEvents": 0,
+      "offerings": 0,
+      "mandates": 0,
+      "preservedAuditEvents": 0,
+      "preservedAuditAnchors": 0,
+      "mintedSessions": 0,
+      "triggers": 0,
+      "functions": 0
+    },
+    "originalBusinessAndAuditPreserved": true
+  }
+}

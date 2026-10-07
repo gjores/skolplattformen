@@ -125,7 +125,8 @@ insert into planning_outputs select name,q,public.phase5_planning_year_list(q),p
 select 'PLANNING_PARITY|'||jsonb_build_object('name',name,'setup',public.phase5_planning_year_selection(),'request',q,'list',list,'overview',overview)::text from planning_outputs;
 select is((select list->>'count' from planning_outputs where name='program'),'4','shared program produces two scoped school rows');
 select is((select overview#>>'{totals,points,known}' from planning_outputs where name='gym'),'2500','shared points counted once');
-select ok((select (overview#>>'{totals,annualHours,known}')::integer>0 from planning_outputs where name='gym'),'both school hour frames included');
+select is((select (overview#>>'{totals,annualHours,known}')::integer from planning_outputs where name='gym'),
+ (select count(*)::integer*30 from jsonb_array_elements(public.phase5_gym_timplan_source('55370000-0000-4000-8000-000000000200')->'rows') row where (row->>'points')::integer>0),'two school frames independently contribute 10 plus 20 hours per active canonical row');
 select is((select list#>>'{rows,0,plan,id}' from planning_outputs where name='gr8'),'55370000-0000-4000-8000-000000000410','old bound plan overrides newer draft');
 select is((select list#>>'{rows,0,application,columnId}' from planning_outputs where name='gr8'),'ak8','actual eighth-grade binding');
 select is((select list#>>'{rows,0,application,columnId}' from planning_outputs where name='gr9'),'ak9','application year selects ninth grade');
@@ -142,7 +143,10 @@ select is((public.phase5_planning_year_list(pg_temp.planning_q('{"cohortRelation
 select is((public.phase5_planning_year_list(pg_temp.planning_q('{"schoolYear":2032,"cohortRelation":"finished"}'))->>'count')::integer,4,'finished cohorts explicit');
 select is(public.phase5_planning_year_list(pg_temp.planning_q('{"view":"timplan","schoolYear":2027}'))#>>'{rows,0,start,startedOn}','2026-08-17','frozen date authoritative');
 update public.offerings set start_year=2090,lifecycle_revision=lifecycle_revision+1 where id='55370000-0000-4000-8000-000000000100';
-select is(public.phase5_planning_year_list(pg_temp.planning_q('{"view":"timplan","schoolYear":2027}'))#>>'{rows,0,start,startedOn}','2026-08-17','changed live education does not rewrite frozen start');
+set local session_replication_role=replica;
+update public.point_plans set basis_reference=jsonb_set(basis_reference,'{startedOn}','"2028-08-17"'),revision=revision+1 where id='55370000-0000-4000-8000-000000000200';
+set local session_replication_role=origin;
+select is(public.phase5_planning_year_list(pg_temp.planning_q('{"view":"timplan","schoolYear":2027}'))#>>'{rows,0,start,startedOn}','2026-08-17','changed live education and newer source revision do not rewrite frozen start');
 update public.offerings set grades=array[8,7,9]::smallint[] where id='55370000-0000-4000-8000-000000000400';
 select is(public.phase5_planning_year_list(pg_temp.planning_q('{"view":"timplan","schoolform":"grundskola"}'))#>>'{rows,0,columnMap,kind}','unknown','same-width reordered columns never authenticate map');
 select pg_temp.planning_parity('gr-reordered','{"view":"timplan","schoolform":"grundskola"}');

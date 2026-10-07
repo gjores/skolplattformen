@@ -1,0 +1,13 @@
+{
+  "kind": "phase5-37-targeted-lock-repeats",
+  "status": "FAIL",
+  "scope": "local-synthetic-only",
+  "runs": [
+    {
+      "ok": false,
+      "step": "list:observe-real-advisory-wait",
+      "code": "ERR_ASSERTION",
+      "detail": "Expected values to be strictly equal:\n\nnull !== 'Lock'\n"
+    }
+  ]
+}

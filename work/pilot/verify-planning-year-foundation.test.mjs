@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parsePlanningApplyArgs,verifyPlanningFoundation,PLANNING_FOUNDATION} from './apply-planning-year-migration.mjs';
+import {parsePlanningApplyArgs,verifyPlanningFoundation,PLANNING_FOUNDATION,PLANNING_BASE_ENTRIES,PLANNING_TABLES,sha} from './apply-planning-year-migration.mjs';
 import {parsePlanningVerifyArgs,planningRollbackBody,planningTapProof,planningRollbackScript} from './verify-planning-year-foundation.mjs';
 test('foundation apply accepts only the exact closed migration with evidence',()=>{
  assert.deepEqual(parsePlanningApplyArgs(['--migration',PLANNING_FOUNDATION,'--evidence','/private/tmp/proof.json']),{migration:PLANNING_FOUNDATION,evidence:'/private/tmp/proof.json'});
@@ -21,4 +21,15 @@ test('TAP proof requires every sequential assertion and exact single plan, with 
 });
 test('setup-only, fabricated, stale and incomplete proofs cannot authorize permanent apply',()=>{
  for(const e of [{},{kind:'phase5-planning-year-foundation',status:'PASS',stage:'setup'}, {complete:true,checks:[{ok:true}]}])assert.throws(()=>verifyPlanningFoundation(e,'source','test'));
+});
+
+test('apply gate binds exact full proof to immutable SQL, tests, old grants, lock evidence and all original tables',()=>{
+ const hashes=Object.fromEntries(PLANNING_TABLES.map(t=>[t,{count:0,sha256:'a'.repeat(64)}]));
+ const proof={kind:'phase5-planning-year-foundation',status:'PASS',target:'protected',scope:'local-synthetic-only',mode:'rollback',stage:'full',complete:true,rollback:true,reset:false,
+ sourceHash:sha('source'),testHash:sha('test'),baselineFingerprint:'b'.repeat(64),originalBusinessPreserved:true,originalTimestampsPreserved:true,aclUnchanged:true,functionsAndJournalPreserved:true,
+ beforeWorkerFunctions:PLANNING_BASE_ENTRIES,afterWorkerFunctions:PLANNING_BASE_ENTRIES,parity:{ok:true},locks:{ok:true},tap:{status:'PASS',total:60},originalHashes:hashes,finalHashes:hashes,checks:[{ok:true}]};
+ assert.doesNotThrow(()=>verifyPlanningFoundation(proof,'source','test'));
+ for(const patch of [{complete:false},{mode:'applied'},{reset:true},{sourceHash:sha('other')},{testHash:sha('other')},{locks:{ok:false}},
+  {originalTimestampsPreserved:false},{beforeWorkerFunctions:PLANNING_BASE_ENTRIES.slice(1)},{finalHashes:{}},{checks:[{ok:false}]}])
+ assert.throws(()=>verifyPlanningFoundation({...proof,...patch},'source','test'));
 });

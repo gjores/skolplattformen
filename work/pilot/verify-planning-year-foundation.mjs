@@ -10,6 +10,9 @@ import {gymAcl} from './apply-gym-timplan-migration.mjs';
 import {exactFunctions} from './verify-programplan-api.mjs';
 import {PLANNING_FOUNDATION,PLANNING_TEST,PLANNING_BASE_ENTRIES,PLANNING_TABLES,sha,equal,planningFingerprint,planningBusinessHashes} from './apply-planning-year-migration.mjs';
 import {parsePlanningSetup,parsePlanningSelection,parsePlanningList,parsePlanningOverview} from '../../web/lib/planning-year-contract.ts';
+import {createProgramplanBrowserFixture} from './phase5-programplan-browser-fixtures.mjs';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export function parsePlanningVerifyArgs(argv){
  const result={target:null,mode:null,out:null,stage:'full'},seen=new Set();
@@ -61,11 +64,62 @@ function parityProof(output,stage){
  }
  return {ok:cases.length>=(stage==='setup'?1:6),cases};
 }
+// Only the reader sees the uncommitted foundation DDL. The blocker uses existing mandate commands/data.
+// Thus even the concurrency proof precedes permanent apply, with no temporary published functions.
+export async function planningLockProof(target,source,applied){
+ const db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(target.dbUrl,{max:4,prepare:false,onnotice:()=>{}});
+ const cases=[];let fixture,reader,blocker,cleanup,active='fixture';
+ const original=await planningBusinessHashes(db);
+ const auditIds=(await db`select id::text from public.security_events order by id`).map(r=>r.id);
+ const auditHash=async()=>{const [r]=await db`select encode(extensions.digest(coalesce(jsonb_agg(to_jsonb(e) order by e.id),'[]'::jsonb)::text,'sha256'),'hex') hash
+  from public.security_events e where id=any(${auditIds}::bigint[])`;return r.hash;};
+ const originalAudit=await auditHash();
+ try{
+  fixture=await createProgramplanBrowserFixture();reader=await db.reserve();blocker=await db.reserve();
+  const [rp]=await reader`select pg_backend_pid() pid`,[bp]=await blocker`select pg_backend_pid() pid`;
+  const q={schoolYear:2027,unitId:fixture.unitId,view:'programplan',schoolform:'gymnasium',query:'',status:'all',cohortRelation:'all',archive:'all',grade:null,sort:'name',direction:'asc',page:1,selectionRevision:null};
+  for(const operation of ['selection','list','overview']){
+   active=`${operation}:acquire-owned-customer-lock`;
+   await blocker`begin`;await blocker`set local statement_timeout='15s'`;
+   await blocker`select public.phase3_lock_customer(${fixture.customerId})`;
+   const changed=await blocker`update public.access_assignments set ended_at=clock_timestamp() where id=${fixture.hm.assignmentId} and customer_id=${fixture.customerId} returning id`;
+   assert.equal(changed.length,1);
+   await reader`begin`;await reader`set local statement_timeout='15s'`;
+   if(!applied)await reader.unsafe(source);
+   const s=fixture.principal,corr=randomUUID();
+   await reader`select set_config('app.customer_id',${fixture.customerId},true),set_config('app.identity_id',${s.identityId},true),
+    set_config('app.membership_id',${s.membershipId},true),set_config('app.assignment_id',${s.assignmentId},true),set_config('app.session_id',${s.id},true),set_config('app.correlation_id',${corr},true)`;
+   const pending=(operation==='selection'?reader`select public.phase5_planning_year_selection() result`:
+    operation==='list'?reader`select public.phase5_planning_year_list(${reader.json(q)}::jsonb) result`:
+    reader`select public.phase5_planning_year_overview(${reader.json(q)}::jsonb) result`).then(result=>({result}),error=>({code:error.code}));
+   let observed;active=`${operation}:observe-real-advisory-wait`;
+   for(const until=Date.now()+5000;Date.now()<until;){
+    const [r]=await db`select wait_event_type,wait_event from pg_stat_activity where pid=${rp.pid} and ${bp.pid}=any(pg_blocking_pids(pid))`;
+    // pg_blocking_pids and pg_stat_activity are sampled separately by PostgreSQL.
+    // A blocking PID can already be visible before wait_event is populated; require both in the same poll.
+    if(r?.wait_event_type==='Lock'&&r.wait_event==='advisory'){observed={blocker:bp.pid,waiter:rp.pid,waitEvent:r.wait_event};break;}
+    await new Promise(resolve=>setTimeout(resolve,25));
+   }
+   assert.ok(observed,'actual_customer_lock_required');await blocker`commit`;
+   active=`${operation}:deny-after-revocation`;const denied=await pending;assert.equal(denied.code,'42501');assert.equal(denied.result,undefined);await reader`rollback`;
+   const [events]=await db`select count(*)::integer n from public.security_events where correlation_id=${corr} and action like 'planning_year_%' and outcome='ok'`;
+   assert.equal(events.n,0);
+   cases.push({name:`${operation}-parent-revoked-after-lock`,ok:true,observedLock:observed,sqlstate:denied.code,noData:true,noSuccessfulAudit:true});
+   await db`update public.access_assignments set ended_at=null where id=${fixture.hm.assignmentId} and customer_id=${fixture.customerId}`;
+  }
+ }catch(e){e.proofStep=active;throw e;}finally{
+  for(const tx of [reader,blocker])if(tx){await tx`rollback`.catch(()=>{});tx.release();}
+  if(fixture)cleanup=await fixture.cleanup();
+  const final=await planningBusinessHashes(db),finalAudit=await auditHash();await db.end({timeout:5});
+  assert.deepEqual(final,original,'all_original_business_rows_preserved');assert.equal(finalAudit,originalAudit,'all_original_security_events_preserved');
+ }
+ return {ok:cases.length===3,cases,cleanup,originalBusinessAndAuditPreserved:true};
+}
 async function main(){
  const o=parsePlanningVerifyArgs(process.argv.slice(2)),manifest=await assertTarget('protected');
  const db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(manifest.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
  const source=readFileSync(join(root,'supabase/migrations',PLANNING_FOUNDATION),'utf8'),test=readFileSync(join(root,PLANNING_TEST),'utf8');
- let before,after,beforeAcl,afterAcl,baselineFingerprint,afterFingerprint,tap,stage,parity,error,exitCode;
+ let before,after,beforeAcl,afterAcl,baselineFingerprint,afterFingerprint,tap,stage,parity,error,exitCode,locks;
  try{
   const journal=await db`select version,statements from supabase_migrations.schema_migrations where version>='20261006120000' order by version`;
   if(o.mode==='rollback'&&journal.length)throw Error('REFUSED: foundation already applied or later journal exists');
@@ -81,8 +135,13 @@ async function main(){
   const marker=proc.stdout.split('\n').find(l=>l.startsWith('PLANNING_PRESERVATION|'));
   if(marker)stage=JSON.parse(marker.slice('PLANNING_PRESERVATION|'.length));
   tap=planningTapProof(proc.stdout,o.stage==='setup'?10:60);
+  if(tap.status!=='PASS')tap.diagnostics=proc.stdout.split('\n').filter(l=>l.startsWith('#')).slice(0,20);
   try{parity=parityProof(proc.stdout,o.stage);}catch(e){parity={ok:false,error:e instanceof Error?e.message:'parity_failed'};}
   if(proc.status!==0)error=(proc.stderr.match(/ERROR:\s*(.+)$/mu)?.[1]??'sql_failed').slice(0,180);
+  if(o.stage==='full'&&exitCode===0&&tap?.status==='PASS'&&parity?.ok){
+   try{locks=await planningLockProof(manifest,source,o.mode==='applied');}catch(e){locks={ok:false,error:/^[A-Z0-9_]{1,40}$/u.test(e.code??'')?e.code:'LOCK_PROOF_FAILED',step:e.proofStep,
+    detail:e.code==='ERR_ASSERTION'?e.message.slice(0,250):undefined};}
+  }
   after=await planningBusinessHashes(db);afterAcl=await gymAcl(db);afterFingerprint=await planningFingerprint(db);
  }finally{await db.end({timeout:5});}
  const checks=[{name:'actual pgTAP assertions',ok:exitCode===0&&tap?.status==='PASS'},
@@ -92,19 +151,22 @@ async function main(){
   {name:'complete original business rows after rollback',ok:equal(before,after)},
   {name:'exact old Worker grants and raw ACL after rollback',ok:equal(beforeAcl,afterAcl)},
   {name:'full definitions, table ACL and journal after rollback',ok:baselineFingerprint===afterFingerprint},
-  {name:'actual SQL/TypeScript read contract parity',ok:parity?.ok===true}];
+  {name:'actual SQL/TypeScript read contract parity',ok:parity?.ok===true},
+  ...(o.stage==='full'?[{name:'actual mandate revocation during observed customer lock, owned cleanup and original audit preservation',ok:locks?.ok===true}]:[])];
  const report={kind:'phase5-planning-year-foundation',status:checks.every(c=>c.ok)?'PASS':'FAIL',target:'protected',scope:'local-synthetic-only',
-  mode:o.mode,stage:o.stage,complete:false,rollback:true,reset:false,sourceHash:sha(source),testHash:sha(test),baselineFingerprint,
+  mode:o.mode,stage:o.stage,complete:o.stage==='full'&&checks.every(c=>c.ok),rollback:true,reset:false,sourceHash:sha(source),testHash:sha(test),baselineFingerprint,
   originalBusinessPreserved:stage?.business===true&&equal(before,after),originalTimestampsPreserved:stage?.business===true&&equal(before,after),
   aclUnchanged:stage?.functions===true&&equal(beforeAcl,afterAcl),functionsAndJournalPreserved:baselineFingerprint===afterFingerprint,
   beforeWorkerFunctions:beforeAcl.filter(r=>r.granted).map(r=>r.f),afterWorkerFunctions:afterAcl.filter(r=>r.granted).map(r=>r.f),
-  originalHashes:before,finalHashes:after,checks,tap,parity,error};
+  originalHashes:before,finalHashes:after,checks,tap,parity,locks,error};
  const content=JSON.stringify(report,null,2)+'\n';mkdirSync(dirname(resolve(o.out)),{recursive:true});writeFileSync(resolve(o.out),content);
  if(report.status!=='PASS')writeFileSync(resolve(o.out).replace(/\.json$/u,`-fail-${Date.now()}.json`),content);
  process.stdout.write(`${report.status} ${o.stage} ${o.mode}: ${tap?.total??0} actual SQL assertions; ${checks.filter(c=>c.ok).length}/${checks.length} checks\n`);
  if(error)process.stdout.write(`SQL failure: ${error}\n`);
  for(const line of tap?.assertions??[])if(line.startsWith('not ok'))process.stdout.write(line+'\n');
+ for(const line of tap?.diagnostics??[])process.stdout.write(line+'\n');
  if(parity?.ok===false)process.stdout.write(`Parity failure: ${parity.error??'missing cases'}\n`);
+ if(locks?.ok===false)process.stdout.write(`Lock failure: ${locks.error}, ${locks.step??'cleanup'}\n${locks.detail??''}\n`);
  if(report.status!=='PASS')process.exitCode=1;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await main().catch(e=>{process.stderr.write(e.message?.startsWith('REFUSED')?e.message+'\n':`FAILED: ${/^[A-Z0-9_]{1,40}$/u.test(e.code??'')?e.code:'PROOF_FAILED'}\n`);process.exitCode=1;});

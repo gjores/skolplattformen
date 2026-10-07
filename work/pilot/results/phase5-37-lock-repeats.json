@@ -1,0 +1,184 @@
+{
+  "kind": "phase5-37-targeted-lock-repeats",
+  "status": "PASS",
+  "scope": "local-synthetic-only",
+  "runs": [
+    {
+      "ok": true,
+      "cases": [
+        {
+          "name": "selection-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30892,
+            "waiter": 30890,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        },
+        {
+          "name": "list-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30892,
+            "waiter": 30890,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        },
+        {
+          "name": "overview-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30892,
+            "waiter": 30890,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        }
+      ],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 0,
+        "preservedAuditAnchors": 0,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      },
+      "originalBusinessAndAuditPreserved": true
+    },
+    {
+      "ok": true,
+      "cases": [
+        {
+          "name": "selection-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30909,
+            "waiter": 30906,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        },
+        {
+          "name": "list-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30909,
+            "waiter": 30906,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        },
+        {
+          "name": "overview-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30909,
+            "waiter": 30906,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        }
+      ],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 0,
+        "preservedAuditAnchors": 0,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      },
+      "originalBusinessAndAuditPreserved": true
+    },
+    {
+      "ok": true,
+      "cases": [
+        {
+          "name": "selection-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30926,
+            "waiter": 30917,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        },
+        {
+          "name": "list-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30926,
+            "waiter": 30917,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        },
+        {
+          "name": "overview-parent-revoked-after-lock",
+          "ok": true,
+          "observedLock": {
+            "blocker": 30926,
+            "waiter": 30917,
+            "waitEvent": "advisory"
+          },
+          "sqlstate": "42501",
+          "noData": true,
+          "noSuccessfulAudit": true
+        }
+      ],
+      "cleanup": {
+        "libraryVersions": 0,
+        "unitPackages": 0,
+        "offeringUnits": 0,
+        "customers": 0,
+        "sessions": 0,
+        "plans": 0,
+        "receipts": 0,
+        "educationEvents": 0,
+        "offerings": 0,
+        "mandates": 0,
+        "preservedAuditEvents": 0,
+        "preservedAuditAnchors": 0,
+        "mintedSessions": 0,
+        "triggers": 0,
+        "functions": 0
+      },
+      "originalBusinessAndAuditPreserved": true
+    }
+  ]
+}
