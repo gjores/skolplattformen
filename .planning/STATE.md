@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-40
 status: in_progress
-stopped_at: UI05-40 första L36 stoppade på L04 testlabel;4fullcleanup PASS. Minimal rollmatch före nytt faktiskt prov.
+stopped_at: UI05-40 andra L36 L01–12 PASS;L13 väntan på exakt versions-URL rättad.13fullcleanup PASS; avgränsat nästa prov.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "UI05-39 fullC16/cleanup/geometri PASS; nästa sökbara årstabeller05-40. Vanlig3012 bevarad."
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI40 andra faktiska matris:** Source/build aa826f1, L01–12 dator PASS inklusive L04:s oförändrade filtervärden. L13 läste rätt äldre fastställda plan trots nyare utkast men kontrollerade URL innan full workspaceverifiering/publicering var färdig. Första raw50f69b19 bevaras;23fall ej startade. Alla13normalcleanup/15helrader/audit-/identitetsankare/foreign/listzero PASS, ingen recovery. Endast samma exakta versions-ID inväntas nu med befintlig expect.poll-tidsgräns; ingen produktändring. Ny spec620e40be kräver avgränsat L13–18 och därefter fullL36.
 
 **UI40 första faktiska matris:** Source/build b762c9e, L01–03 dator PASS. L04:s faktiska filterrensning och radlista PASS men exakt getByLabel hittade inte den nästlade Planstatus-labeln; snapshot visar rätt namngiven combobox. Första rapport SHA77084c83 bevaras;32fall startade inte. Alla fyra fullcleanup/15helrader/audit-/identitetsankare och noll egna/foreignrader PASS, ingen recovery behövs. Endast två L04-selectassertioner använder nu exakt namngiven combobox; positiva värdeassertioner och tidsgränser består. Nytt faktiskt fullL36 krävs.
 

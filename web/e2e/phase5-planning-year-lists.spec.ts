@@ -564,7 +564,7 @@ test('L13: äldre faktisk programversion öppnas trots nyare utkast och filter b
   await rowAt(page, data, old.offeringId, fixture.unitId, old.id).getByRole('button', { name: /^Öppna / }).click();
   const reply = await waiting; expect(reply.status()).toBe(200); expect(parseProgramplan(await reply.json()).id).toBe(old.id);
   expect(await fixture.paired(reply.headers()['x-correlation-id'], session, 'programplan_read', old.id)).toBe(true);
-  expect(new URL(page.url()).searchParams.get('programplan')).toBe(old.id);
+  await expect.poll(() => new URL(page.url()).searchParams.get('programplan')).toBe(old.id);
   const returned = nextList(page, value => value.query === input.query && value.sort === input.sort); await page.goBack();
   const again = await parsed(await returned); expect(again.selection).toEqual(input); await rowsMatch(page, again); await capture(page, info, 'older-version-return');
 });
