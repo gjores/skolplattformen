@@ -1,5 +1,8 @@
 # Roadmap: Skolplattformen
 
+**Kod-/benämningssökning2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md). Fullrollback/exakt apply/applied271/38/23, oförändrade93/18×2 ochAPI15/247, faktisk sökning19/204 och12HTTP-svar under4,884s PASS. Endast privatrows/journal06123000 ändrade, samma28grants/full15/råACL/audit-/identitetsankare/cleanup. Första fel och exakt egen återhämtning bevarade.83/100 planer,3/8 verifierade faser; nästaUI05-39–43 och konkret användarprov. Fulla krav/verksamhetsgap/mobilgap består; vanlig3012 fortsatt5dd7baf. Äldre pågående SEARCHbesked nedan är historik.
+
+
 **Prestandakorrektiv 2026-10-07 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-SUMMARY.md) och oberoende3/3-verifiering avslutar05-38-READ-PERFORMANCE. Fullrollback/apply/applied143/46+93/18, faktisk förbättring7,68–15,21× och oförändradAPI15/247/full15/ACL28/auditbevarande PASS. 82/100 planer genomförda; verifierade faser fortsatt3/8. Nästa SEARCH, sedanUI05-39–43 och konkret användarprov. Fulla krav och båda verksamhets-/mobilgapen är fortfarande öppna. Äldre pågående korrektivbesked nedan är historik.
 
 **Färsk genomförandeprecisering 2026-10-07:** Kod-/benämningssökningen som 05-40 redan kräver saknas i dagens SQL/PlanningRow. [05-40-SEARCH-DETAILS](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-PLAN.md) är en avgränsad teknisk förutsättning efter prestandakorrektivet och före UI05-39–43; samma privata hjälpare/28 grants, ingen ny verksamhetsregel. Dessutom är sparstatus-/Back-gränser, exakt versionsöppning, 44px mobilknappar och GR:s okända kolumnkarta preciserade efter färsk kodgranskning. Planerna är ännu inte genomförda eller verifierade. Paketet har tio sekventiella waves; kör endast dess uttryckliga dependencykedja, inte hela fasens äldre planer.
@@ -176,7 +179,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 3. Huvudmannen kan kopiera utbildningsupplägg till en senare elevkull och få egna planutkast utan att elever, klasser eller tidigare beslut kopieras. (ADMIN-03)
 4. Behörig personal kan koppla en beständig klass till en fastställd timplansversion och se rätt läsårsunderlag; en ny version flyttar inte den befintliga kopplingen. (ADMIN-04)
 
-**Plans**: 05-01–05-16 och 05-18–05-24 är automatiskt genomförda med dokumenterade gränser; 05-23 A–E PASS enligt aktuell ram. Grundflödet är användarrapporterat godkänt. 05-17 saknar PLAN; äldre 05-25–35 kräver omplanering. 05-36–38 och prestandakorrektivet är genomförda. Nästa SEARCH, därefterUI05-39–43. Fulla krav/fas och övriga uttryckligen oprövade användarmoment kvarstår.
+**Plans**: 05-01–05-16 och 05-18–05-24 är automatiskt genomförda med dokumenterade gränser; 05-23 A–E PASS enligt aktuell ram. Grundflödet är användarrapporterat godkänt. 05-17 saknar PLAN; äldre 05-25–35 kräver omplanering. 05-36–38, prestandakorrektivet och SEARCH är genomförda. NästaUI05-39–43. Fulla krav/fas och övriga uttryckligen oprövade användarmoment kvarstår.
 
 - [x] 05-01-PLAN.md — Kodförankrat mandat-/bevarandekontrakt och verifieringsmatris; inga skyddade vyer öppnade
 - [x] 05-02-PLAN.md — Lokal sparordning/databas-ID rättade med ordinarie regression; 346/346 tester, typ/lint/bygge PASS; inga skyddade vyer öppnade
@@ -214,7 +217,7 @@ Granskningsrapport: `04-VERIFICATION-CHECKER.md`.
 - [x] [05-37-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-37-PLAN.md) — Stängd SQL-läsgrund genomförd 2026-10-07: 93 SQL/18 paritet/3 lås före och efter apply, 15 helradstabeller och ACL/journal bevarade. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-37-SUMMARY.md). Tre nya RPC fortsatt stängda; nästa 05-38.
 - [x] [05-38-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-PLAN.md) — Preflight/slutmatris15/247 PASS; tre exakta läsgrants och full bevaring.
 - [x] [05-38-READ-PERFORMANCE-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-PLAN.md) — Fullrollback/exakt apply/applied143/46+93/18, faktisk förbättring7,68–15,21×, oförändradAPI15/247 och full15/ACL28/auditbevarande PASS. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-38-READ-PERFORMANCE-SUMMARY.md). Nästa SEARCH, sedanUI39–43; fulla krav kvarstår.
-- [ ] [05-40-SEARCH-DETAILS-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-PLAN.md) — Lokal kod/program/inriktning och metadata före UI; samma 28 grants.
+- [x] [05-40-SEARCH-DETAILS-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-PLAN.md) — Full271/38/23+93/18×2/API15/247+sök19/204,12HTTP<4,884s/full15/ACL28/auditcleanupPASS. [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md).
 - [ ] [05-39-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-39-PLAN.md) — Separat planeringskontext/URL och oberoende elevregisterår.
 - [ ] [05-40-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-40-PLAN.md) — Sökbara tabeller och läsårsöverblick för skolor/kullar/versioner.
 - [ ] [05-41-PLAN.md](phases/05-bevarade-utbildnings-och-klassfloden/05-41-PLAN.md) — Rätt relativår i öppnade gymnasieplaner, med oförändrade terminsindex och sparskydd.

@@ -3,21 +3,21 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-40-SEARCH-DETAILS
+current_plan: 05-39
 status: in_progress
-stopped_at: Prestandakorrektiv fullrollback/apply/applied PASS, SQL143/46+93/18 och API15/247. Nästa SEARCH före UI05-39–43 och mänskligt prov.
+stopped_at: SEARCH fullrollback/apply/applied271/38/23, API15/247 och sökning19/204 PASS. Nästa UI05-39→43 före mänskligt prov.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
-last_activity_desc: "Prestandakorrektiv PASS: 7,68–15,21 gånger snabbare, fulla SQL/API/bevarandebevis; nästa kod-/benämningssökning."
-state_head: adf9b7e
-verification_worker_build_revision: d59ec10f5b4469ce4e14e1e12a591aca2363a30b
+last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
+state_head: 667c841
+verification_worker_build_revision: 0913d5a0527e2975ce3059b8672b2c139bf07997
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 82
+  completed_plans: 83
 milestone_name: milestone
 ---
 
@@ -28,9 +28,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-07)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Nu kod-/benämningssökning, därefter UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
+**Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**SEARCH färdigt2026-10-07:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-40-SEARCH-DETAILS-SUMMARY.md) och oberoende verifiering. Fullrollback/applied271/38/23, original93/18 mot båda definitionerna i båda modes; oförändradAPI15/247 före/efter, sökning19/204 och12HTTP-svar under4,884s PASS. Exakt privat06123000+journal, full15/katalog/råACL28/audit-/identitetsankare ochcleanup PASS utan deferred. Första fixtur-/artifactfel och exakt återhämtning bevarade; ingen rekonstrueradPASS. Source43ab14c/build0913 i separat runtimearbetskopia, vanlig3012 fortsatt5dd7baf.83/100,3/8; nästa seriella39→40→41→42→43 och konkret användarprov. Fulla krav/gap kvarstår. Äldre pågående SEARCHbesked nedan är historik.
 
 **SEARCH återhämtning och färsk apply 2026-10-07:** Exakt källgranskat recoveryd8a1d2d har faktiskPASS för enbart egen helper/journalundo med full15/katalog/råACL/full-audit- och identitetsbevarande före/efter/postcommit. Ignorerad migrationskatalog skapad. Oförändrad applicerare har därefter faktisk fullrapportPASS och validateSearchAppliedPASS för endast privat06123000+journal,28entries/alla15helrader/ankare bevarade. Full applied-SQL/API/sök-/tids-/cleanupkörning pågår. Första fel och recovery är separata bevarade bevis; inget rekonstrueratapplyPASS.82/100 består.
 
@@ -317,10 +319,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-07
-**Stopped At:** Prestandakorrektiv fullrollback/apply/applied och actualAPI15/247 PASS. Fortsätter autonomt med SEARCH/UI tills konkret användarprov enligt beställningen. Ordinarie3012 består; alla övriga krav/gap är öppna.
+**Stopped At:** Prestanda och SEARCH fullrollback/apply/applied, actualAPI15/247 och sökning19/204 PASS. Fortsätter autonomt med UI05-39–43 tills konkret användarprov enligt beställningen. Ordinarie3012 består; alla övriga krav/gap är öppna.
 **Resume File:** [Läsårsplaneringens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — 05-40-SEARCH-DETAILS före UI05-39–43. Äldre05-25–35 kräver omplanering; besluts-/mobilgap samt fulla krav kvarstår.
+**Planned Phase:** 5 — UI05-39–43 efter genomförd SEARCH. Äldre05-25–35 kräver omplanering; besluts-/mobilgap samt fulla krav kvarstår.
 
 ### Senaste användarfynd, 2026-10-02
 

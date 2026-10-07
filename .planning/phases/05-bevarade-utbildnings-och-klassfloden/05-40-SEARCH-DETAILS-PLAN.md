@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "40-SEARCH-DETAILS"
 type: execute
-status: in_progress
+status: complete
 wave: 5
 depends_on: ["05-38-READ-PERFORMANCE"]
 prerequisite_for: ["05-40"]
@@ -44,7 +44,7 @@ must_haves:
 
 # 05-40 — Avgränsad sökrättning före tabellsteget
 
-**Status:** Genomförande pågår 2026-10-07 efter fullständigt verifierat och tillämpat prestandakorrektiv. Åtta källor och tvåfils setup-completionrättning är integrerade i `23cabdd`/`d7171de`; 71 rena kontrakts-/server-/grindprov, full typkontroll utan incremental och app/lib-lint PASS. Faktiskt SEARCH SQL-/API-/bevarandebevis återstår; inget användarbeteende eller fullkrav är därmed godkänt.
+**Status:** Genomförd och faktiskt verifierad2026-10-07. Fullrollback/apply/applied271/38/23, oförändrade93/18×2, faktisk sökning19/204, bådaAPI15/247 och full15/råACL28/audit-/identitetsbevarande/cleanup PASS. Alla12 HTTP-prover under4,884s. [SUMMARY](05-40-SEARCH-DETAILS-SUMMARY.md) och [VERIFICATION](05-40-SEARCH-DETAILS-VERIFICATION.md) anger exakta gränser och bevarad felhistorik. UI39–43 och fulla krav återstår.
 
 **Isolerat bygge och provkörning:** Förberedelsegrenen och huvudkopian är separata från den managed runtimearbetskopian `planning-year-runtime`. Den senare checkas ut på exakt versionshanterad, granskad huvudkopierevision. Bygge, ägd Worker3060 och coordinatorer körs där med egna byggmarkörer och rapporter; ignorerade beroenden länkas och en egen ignorerad privat målkatalog får exakt Supabase-konfiguration samt befintligt protected-manifest med enbart workdir anpassad till runtimearbetskopian, utan att privata värden versionshanteras. Detta krävs eftersom både den äldre provservern och ordinarie3012 använde huvudkopians `dist-protected`: ett nytt bygge där skulle ta bort gemensamma byggfiler. Endast den egna äldre3060-processen avslutas före serverbytet. Ordinarie3012 och dess byggfiler lämnas orörda fram till plan43. Efter faktisk kontroll bevaras rapporternas exakta bytes i huvudkopian; deras källrevision förblir den körda revisionen. Samma isolering används seriellt i39–42 med nytt eget bygge vid ändrad produktkod. Första SEARCH-preflight vägrade det direktlänkade manifestets huvudkopie-workdir före DB-körning; den befintliga oförändrade målgrinden krävde denna egna lokala målkatalog. Samma projekt-ID, anslutningsvärden och körande instans/IdP kontrolleras igen. Ingen prepare/reset eller ny databas följer.
 
@@ -161,7 +161,7 @@ Discovery nivå 0: faktisk offeringmodell/store/äldre listkontrakt, PlanningRow
 </verification>
 
 <success_criteria>
-05-40 kan implementera den redan beställda sökningen för lokal kod/program/inriktning och visa faktiska detaljer utan att hämta alla sidor eller gissa metadata. Strikta äldre/utökade kontrakt, verklig servermatchning och oförändrade mandat/audit/28grants/hela originaldata är verifierade. Genomförande och faktisk verifiering återstår.
+05-40 kan implementera den redan beställda sökningen för lokal kod/program/inriktning och visa faktiska detaljer utan att hämta alla sidor eller gissa metadata. Strikta äldre/utökade kontrakt, verklig servermatchning och oförändrade mandat/audit/28grants/hela originaldata är verifierade. Genomförande och faktisk verifiering är avslutade inom detta avgränsade backendsteg; fulla krav och UI kvarstår.
 </success_criteria>
 
 <output>
