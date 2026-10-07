@@ -388,7 +388,9 @@ test('C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/ut
   await blockAttempts(page, oldURL, metadata.planningYear, fixture.secondUnitId);
   await page.locator('#uppdrag').selectOption(fixture.second.assignmentId);
   await expect(page.locator('#uppdrag')).toHaveValue(session.assignmentId);
-  await page.goBack(); expect(page.url()).toBe(oldURL); await expect(gymTable(page)).toBeVisible();
+  await page.goBack(); await expect(page).toHaveURL(oldURL); await expect(gymTable(page)).toBeVisible();
+  await expect(input).toHaveValue(String(expected[0]));
+  await expect(gym(page).locator('.gt-save-state')).toHaveText('Sparar…'); expect(writes).toBe(1);
   hold.release.resolve(); await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');
   expect(writes).toBe(1); expect((await readGym(planId, session)).hours[rowKey]).toEqual(expected);
   expect(await fixture.snapshot(metadata.shared.planId)).toEqual(sourceBefore);
