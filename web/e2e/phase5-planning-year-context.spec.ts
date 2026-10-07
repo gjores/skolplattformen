@@ -20,13 +20,23 @@ let nodeUnknownStage: 'creation' | 'setup' | 'readback' | 'session' | null = nul
 const pendingRequests = new Set<Request>();
 let completedActualRoutes = new WeakSet<Request>();
 type BrowserCompletionStage = 'scope' | 'fetch' | 'body' | 'fulfill';
+type BrowserRouteStage = 'seen' | 'fetch' | 'body' | 'complete';
+type SafeBrowserRoute = { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserRouteStage };
+const actualRouteJobs = new Set<Promise<APIResponse>>(), browserRouteStates = new Map<Request, SafeBrowserRoute>();
+let activeBrowserContext: ReturnType<Page['context']> | null = null, contextCloseAllowed = false, prematureContextClose = false;
+function routeMetadata(request: Request): Pick<SafeBrowserRoute, 'pathname' | 'method'> {
+  const pathname = new URL(request.url()).pathname, method = request.method();
+  return { pathname: /^\/api\/[a-z]+(?:\/[a-z]+)*$/u.test(pathname) ? pathname : '/api/unknown',
+    method: method === 'GET' || method === 'POST' ? method : 'OTHER' };
+}
+function recordBrowserRoute(request: Request, stage: BrowserRouteStage) {
+  browserRouteStates.set(request, { ...routeMetadata(request), stage });
+}
 let browserCompletionFailure: { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserCompletionStage } | null = null;
 function recordBrowserCompletionFailure(request: Request, stage: BrowserCompletionStage) {
   browserUnknown = true;
-  const pathname = new URL(request.url()).pathname, method = request.method();
   // Only static API route names leave the test. Never record queries, error text or payloads.
-  browserCompletionFailure ??= { pathname: /^\/api\/[a-z]+(?:\/[a-z]+)*$/u.test(pathname) ? pathname : '/api/unknown',
-    method: method === 'GET' || method === 'POST' ? method : 'OTHER', stage };
+  browserCompletionFailure ??= { ...routeMetadata(request), stage };
 }
 /** Internal setup calls are awaited serially by the original fixture. A rejection
  * cannot prove that its last owned transaction finished; keep that uncertainty sticky. */
@@ -40,19 +50,25 @@ async function ownedNode<T>(stage: 'creation' | 'setup' | 'readback' | 'session'
 /** A real route.fetch response proves server completion even when the test later
  * withholds/aborts the browser response. Failed fetches never clear pending work. */
 async function actualRouteFetch(route: Route): Promise<APIResponse> {
-  const request = route.request(), url = new URL(request.url());
-  let stage: BrowserCompletionStage = 'scope';
-  try {
-    if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) throw Error('OWNED_ROUTE_SCOPE');
-    stage = 'fetch';
-    const actual = await route.fetch();
-    stage = 'body'; await actual.body();
-    completedActualRoutes.add(request); pendingRequests.delete(request);
-    return actual;
-  } catch { recordBrowserCompletionFailure(request, stage); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+  const request = route.request();
+  // Register before the microtask starts transport, independently of Playwright's route wait.
+  const job = Promise.resolve().then(async () => {
+    let stage: BrowserCompletionStage = 'scope';
+    try {
+      const url = new URL(request.url());
+      if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) throw Error('OWNED_ROUTE_SCOPE');
+      stage = 'fetch'; recordBrowserRoute(request, 'fetch');
+      const actual = await route.fetch();
+      stage = 'body'; recordBrowserRoute(request, 'body'); await actual.body();
+      recordBrowserRoute(request, 'complete'); completedActualRoutes.add(request); pendingRequests.delete(request);
+      return actual;
+    } catch { recordBrowserCompletionFailure(request, stage); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+  });
+  actualRouteJobs.add(job);
+  try { return await job; } finally { actualRouteJobs.delete(job); }
 }
 async function installActualPassthrough(page: Page) {
-  await page.route('**/api/**', async route => {
+  await page.context().route('**/api/**', async route => {
     const request = route.request(), url = new URL(request.url());
     if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) { await route.fallback(); return; }
     const actual = await actualRouteFetch(route);
@@ -66,8 +82,8 @@ async function installActualPassthrough(page: Page) {
   });
 }
 async function clearControlledRoutes(page: Page) {
+  // Context passthrough stays installed while page-specific overrides are removed.
   await page.unrouteAll({ behavior: 'wait' });
-  await installActualPassthrough(page);
 }
 const baseURL = process.env.PHASE5_BASE_URL ?? 'http://127.0.0.1:3061';
 const SETUP = '/api/planering/urval', ROW = '/api/timplaner/gym/rad', GYM_READ = '/api/timplaner/gym/lasa';
@@ -179,8 +195,16 @@ test.beforeEach(async ({ page }) => {
   fixture = undefined!; metadata = undefined!; releasePending.length = 0; unexpectedDialogs = [];
   setupComplete = false; setupPending = false; nodePending = 0; nodeUnknown = false; nodeUnknownStage = null; browserUnknown = false;
   pendingRequests.clear(); completedActualRoutes = new WeakSet<Request>(); browserCompletionFailure = null;
+  actualRouteJobs.clear(); browserRouteStates.clear(); activeBrowserContext = null; contextCloseAllowed = false; prematureContextClose = false;
+  const context = page.context();
+  if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL) || page.isClosed() || context.pages().length !== 1
+    || context.pages()[0] !== page || !context.browser()?.isConnected()) throw Error('OWNED_BROWSER_SCOPE');
+  activeBrowserContext = context;
+  context.once('close', () => { if (!contextCloseAllowed) { prematureContextClose = true; browserUnknown = true; } });
   page.on('request', request => {
-    if (new URL(request.url()).pathname.startsWith('/api/') && !completedActualRoutes.has(request)) pendingRequests.add(request);
+    if (new URL(request.url()).pathname.startsWith('/api/') && !completedActualRoutes.has(request)) {
+      pendingRequests.add(request); if (!browserRouteStates.has(request)) recordBrowserRoute(request, 'seen');
+    }
   });
   // No response means no completion proof. In particular, requestfailed does not
   // clear a pending API request unless an actual route.fetch already completed it.
@@ -195,20 +219,34 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }, info) => {
   releasePending.splice(0).forEach(release => release());
-  let routesSettled = false, contextClosed = false;
+  let routesSettled = false, pageClosed = false, contextRoutesSettled = false, routeJobsSettled = false, contextClosed = false;
+  const context = page.context();
+  if (context !== activeBrowserContext || context.pages().some(candidate => candidate !== page)) browserUnknown = true;
   try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; }
   catch { browserUnknown = true; }
-  // Close the whole context before any ending audit/hash snapshot or cleanup.
-  try { await page.context().close(); contextClosed = true; }
+  // Stop UI producers first. Its context.request remains alive for started route.fetch/body jobs.
+  try { await page.close(); pageClosed = page.isClosed(); }
   catch { browserUnknown = true; }
-  if (!fixture && !recoveryRequired && nodePending === 0 && !nodeUnknown && !browserUnknown && pendingRequests.size === 0 && routesSettled && contextClosed) return;
-  if (recoveryRequired || !setupComplete || setupPending || nodePending > 0 || nodeUnknown || browserUnknown || pendingRequests.size > 0 || !routesSettled || !contextClosed) {
+  try { await context.unrouteAll({ behavior: 'wait' }); contextRoutesSettled = true; }
+  catch { browserUnknown = true; }
+  const routeJobsAtDrain = actualRouteJobs.size;
+  await Promise.allSettled(actualRouteJobs); routeJobsSettled = actualRouteJobs.size === 0;
+  if (prematureContextClose) browserUnknown = true;
+  // Only after the route/body jobs settle may the shared request context be disposed.
+  contextCloseAllowed = true;
+  try { await context.close(); contextClosed = true; }
+  catch { browserUnknown = true; }
+  if (!fixture && !recoveryRequired && nodePending === 0 && !nodeUnknown && !browserUnknown && pendingRequests.size === 0 && routesSettled && pageClosed && contextRoutesSettled && routeJobsSettled && contextClosed) return;
+  if (recoveryRequired || !setupComplete || setupPending || nodePending > 0 || nodeUnknown || browserUnknown || pendingRequests.size > 0 || !routesSettled || !pageClosed || !contextRoutesSettled || !routeJobsSettled || !contextClosed) {
     recoveryRequired = true;
     // Original hashes were captured before setup. No new DB snapshot is taken
     // while completion is unknown; audit and identity anchors remain untouched.
     await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, databaseRecoveryRequired: true,
       setupComplete, setupPending, pendingNodeRequests: nodePending, unknownNodeRequest: nodeUnknown, nodeUnknownStage,
-      unknownBrowserCompletion: browserUnknown, browserCompletionFailure, pendingRequests: pendingRequests.size, routesSettled, contextClosed,
+      unknownBrowserCompletion: browserUnknown, browserCompletionFailure, pendingRequests: pendingRequests.size,
+      pendingRoutes: [...pendingRequests].map(request => browserRouteStates.get(request) ?? { ...routeMetadata(request), stage: 'seen' }),
+      routesSettled, pageClosed, contextRoutesSettled, routeJobsSettled, routeJobsAtDrain, routeJobsRemaining: actualRouteJobs.size,
+      prematureContextClose, contextClosed,
       ownedCustomerId: fixture?.customerId ?? null, ownedOrganizerId: fixture?.organizerId ?? null, foreignCustomerId: fixture?.foreignCustomerId ?? null,
       originalBusiness: fixture?.originalBusiness ?? null, fixtureExposed: !!fixture }), contentType: 'application/json' });
     throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
@@ -305,6 +343,10 @@ test('C03: faktiskt gammalt setup-svar kan inte återföra skolor efter uppdrags
   const newSetup = page.waitForResponse(responseFor(SETUP));
   await page.locator('#uppdrag').selectOption(fixture.partialHm.assignmentId);
   const changedResponse = await changed; expect(changedResponse.status()).toBe(200); const context = await changedResponse.json();
+  // Ett uppdragsbyte rensar området och återgår till uppdragets startsida.
+  await expect(page.locator('#uppdrag')).toHaveValue(fixture.partialHm.assignmentId);
+  await expect(page.locator('#uppdrag')).toBeEnabled();
+  await navigate(page, 'Programplaner');
   const latest = await newSetup; expect(latest.status()).toBe(200); const actualScope = await latest.json();
   expect(actualScope.units.map((u: { unitId: string }) => u.unitId)).toEqual([fixture.unitId]);
   await expect(school(page)).toHaveValue(fixture.unitId);
@@ -349,7 +391,9 @@ test('C04: verklig pågående timskrivning spärrar år/skola/vy/Back/uppdrag/ut
   await blockAttempts(page, oldURL, metadata.planningYear, fixture.secondUnitId);
   await page.locator('#uppdrag').selectOption(fixture.second.assignmentId);
   await expect(page.locator('#uppdrag')).toHaveValue(session.assignmentId);
-  await page.goBack(); expect(page.url()).toBe(oldURL); await expect(gymTable(page)).toBeVisible();
+  await page.goBack(); await expect(page).toHaveURL(oldURL); await expect(gymTable(page)).toBeVisible();
+  await expect(input).toHaveValue(String(expected[0]));
+  await expect(gym(page).locator('.gt-save-state')).toHaveText('Sparar…'); expect(writes).toBe(1);
   hold.release.resolve(); await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');
   expect(writes).toBe(1); expect((await readGym(planId, session)).hours[rowKey]).toEqual(expected);
   expect(await fixture.snapshot(metadata.shared.planId)).toEqual(sourceBefore);
