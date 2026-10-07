@@ -48,12 +48,80 @@ async function ownedNode<T>(stage: NodeStage, operation: () => Promise<T>): Prom
   catch { nodeUnknown = true; nodeUnknownStage ??= stage; throw Error('OWNED_NODE_COMPLETION_UNKNOWN'); }
   finally { nodePending--; }
 }
-async function actualRouteFetch(route: Route): Promise<APIResponse> {
-  try {
-    const actual = await route.fetch();
-    completedActualRoutes.add(route.request()); pending.delete(route.request());
-    return actual;
-  } catch { browserUnknown = true; throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+
+type BrowserActor = Session;
+type BrowserCompletionStage = 'scope' | 'fetch' | 'body' | 'audit' | 'fulfill';
+type BrowserRouteStage = 'seen' | 'fetch' | 'body' | 'audit' | 'complete';
+type SafeBrowserRoute = { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserRouteStage };
+const actualRouteJobs = new Set<Promise<APIResponse>>(), browserRouteStates = new Map<Request, SafeBrowserRoute>();
+let activeBrowserContext: ReturnType<Page['context']> | null = null, contextCloseAllowed = false, prematureContextClose = false;
+let requestActors = new WeakMap<Request, BrowserActor>(), auditReplies = new WeakMap<object, Promise<void>>(), auditRequests = new WeakMap<Request, Promise<void>>();
+let browserCompletionFailure: { pathname: string; method: 'GET' | 'POST' | 'OTHER'; stage: BrowserCompletionStage } | null = null;
+function routeMetadata(request: Request): Pick<SafeBrowserRoute, 'pathname' | 'method'> {
+  const pathname = new URL(request.url()).pathname, method = request.method();
+  return { pathname: /^\/api\/[a-z]+(?:\/[a-z]+)*$/u.test(pathname) ? pathname : '/api/unknown',
+    method: method === 'GET' || method === 'POST' ? method : 'OTHER' };
+}
+function recordBrowserRoute(request: Request, stage: BrowserRouteStage) {
+  browserRouteStates.set(request, { ...routeMetadata(request), stage });
+}
+function recordBrowserCompletionFailure(request: Request, stage: BrowserCompletionStage) {
+  browserUnknown = true;
+  browserCompletionFailure ??= { ...routeMetadata(request), stage };
+}
+function requestActor(request: Request): BrowserActor {
+  const captured = requestActors.get(request);
+  if (!captured) throw Error('OWNED_ACTOR_SCOPE');
+  return captured;
+}
+function cachedAudit(reply: Response | APIResponse, verify: () => Promise<void>): Promise<void> {
+  const request = 'request' in reply ? (reply as Response).request() : null;
+  const existing = auditReplies.get(reply) ?? (request ? auditRequests.get(request) : undefined);
+  if (existing) return existing;
+  const proof = Promise.resolve().then(verify);
+  auditReplies.set(reply, proof); if (request) auditRequests.set(request, proof);
+  return proof;
+}
+async function actualRouteFetch(route: Route, validate?: (actual: APIResponse) => Promise<void>): Promise<APIResponse> {
+  const request = route.request();
+  // Capture before transport; a later assignment switch cannot change this audit's actor.
+  const captured = requestActors.get(request);
+  const job = Promise.resolve().then(async () => {
+    let stage: BrowserCompletionStage = 'scope';
+    try {
+      const url = new URL(request.url());
+      if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/') || !captured) throw Error('OWNED_ROUTE_SCOPE');
+      stage = 'fetch'; recordBrowserRoute(request, 'fetch');
+      const actual = await route.fetch();
+      stage = 'body'; recordBrowserRoute(request, 'body'); await actual.body();
+      if (validate) await validate(actual);
+      if ([SETUP, LIST, OVERVIEW].includes(url.pathname)) {
+        stage = 'audit'; recordBrowserRoute(request, 'audit');
+        const proof = actualAudit(actual, url.pathname, captured);
+        auditRequests.set(request, proof); await proof;
+      }
+      recordBrowserRoute(request, 'complete'); completedActualRoutes.add(request); pending.delete(request);
+      return actual;
+    } catch { recordBrowserCompletionFailure(request, stage); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN'); }
+  });
+  actualRouteJobs.add(job);
+  try { return await job; } finally { actualRouteJobs.delete(job); }
+}
+async function installActualPassthrough(page: Page) {
+  await page.context().route('**/api/**', async route => {
+    const request = route.request(), url = new URL(request.url());
+    if (url.origin !== new URL(baseURL).origin || !url.pathname.startsWith('/api/')) { await route.fallback(); return; }
+    const actual = await actualRouteFetch(route);
+    try { await route.fulfill({ response: actual }); }
+    catch {
+      if (!completedActualRoutes.has(request)) {
+        recordBrowserCompletionFailure(request, 'fulfill'); throw Error('OWNED_ROUTE_COMPLETION_UNKNOWN');
+      }
+    }
+  });
+}
+async function clearControlledRoutes(page: Page) {
+  await page.unrouteAll({ behavior: 'wait' });
 }
 
 const region = (page: Page, view: PlanningSelection['view'] = 'programplan') => page.getByRole('region', { name: view === 'programplan' ? 'Alla programplaner' : 'Alla timplaner', exact: true });
@@ -79,13 +147,16 @@ function url(selection: PlanningSelection, overview = false) {
   if (overview) params.set('planeringsoversikt', '1');
   return `/?${params}`;
 }
-async function actualAudit(reply: Response | APIResponse, route: string) {
-  const corr = reply.headers()['x-correlation-id']; expect(corr).toBeTruthy();
-  expect(reply.headers()['cache-control']).toBe('no-store');
-  if (reply.status() === 200) expect(await fixture.pairedPlanning(corr, session,
-    route === SETUP ? 'planning_year_selection_read' : route === LIST ? 'planning_year_list_read' : 'planning_year_overview_read')).toBe(true);
-  else expect((await fixture.events(corr)).filter((event: { outcome: string }) => event.outcome === 'ok')).toEqual([]);
+function actualAudit(reply: Response | APIResponse, route: string, captured: BrowserActor = 'request' in reply ? requestActor((reply as Response).request()) : { ...session }): Promise<void> {
+  return cachedAudit(reply, async () => {
+    const corr = reply.headers()['x-correlation-id']; expect(corr).toBeTruthy();
+    expect(reply.headers()['cache-control']).toBe('no-store');
+    if (reply.status() === 200) expect(await ownedNode('readback', () => fixture.pairedPlanning(corr, captured,
+      route === SETUP ? 'planning_year_selection_read' : route === LIST ? 'planning_year_list_read' : 'planning_year_overview_read'))).toBe(true);
+    else expect((await ownedNode('readback', () => fixture.events(corr))).filter((event: { outcome: string }) => event.outcome === 'ok')).toEqual([]);
+  });
 }
+
 async function parsed(reply: Response, selection?: PlanningSelection): Promise<PlanningList> {
   expect(reply.status()).toBe(200); await actualAudit(reply, LIST);
   const request = selection ?? reply.request().postDataJSON() as PlanningSelection;
@@ -224,11 +295,27 @@ test.beforeEach(async ({ page }) => {
   setupPending = false; nodePending = 0; nodeUnknownStage = null; browserUnknown = false; completedActualRoutes = new WeakSet<Request>();
   fixture = undefined!; metadata = undefined!; setupComplete = false; nodeUnknown = false; releases.length = 0; pending.clear(); auditChecks = []; dialogs = [];
   page.on('dialog', async dialog => { dialogs.push(dialog.type()); await dialog.dismiss(); });
-  page.on('request', request => { if (pathname(request).startsWith('/api/') && !completedActualRoutes.has(request)) pending.add(request); });
+
+  session = undefined!;
+  browserCompletionFailure = null; actualRouteJobs.clear(); browserRouteStates.clear();
+  requestActors = new WeakMap<Request, BrowserActor>(); auditReplies = new WeakMap<object, Promise<void>>(); auditRequests = new WeakMap<Request, Promise<void>>();
+  activeBrowserContext = null; contextCloseAllowed = false; prematureContextClose = false;
+  const context = page.context();
+  if (!/^http:\/\/127\.0\.0\.1:\d+$/u.test(baseURL) || page.isClosed() || context.pages().length !== 1
+    || context.pages()[0] !== page || !context.browser()?.isConnected()) throw Error('OWNED_BROWSER_SCOPE');
+  activeBrowserContext = context;
+  context.once('close', () => { if (!contextCloseAllowed) { prematureContextClose = true; browserUnknown = true; } });
+  page.on('request', request => {
+    if (pathname(request).startsWith('/api/') && !completedActualRoutes.has(request)) {
+      pending.add(request); if (!browserRouteStates.has(request)) recordBrowserRoute(request, 'seen');
+      if (session) requestActors.set(request, { ...session });
+    }
+  });
   page.on('response', reply => {
     pending.delete(reply.request());
-    if ([LIST, OVERVIEW, SETUP].includes(pathname(reply))) { const check = actualAudit(reply, pathname(reply)); void check.catch(() => undefined); auditChecks.push(check); }
+    if (!auditRequests.has(reply.request()) && [LIST, OVERVIEW, SETUP].includes(pathname(reply))) { const check = actualAudit(reply, pathname(reply)); void check.catch(() => undefined); auditChecks.push(check); }
   });
+  await installActualPassthrough(page);
   fixture = await ownedNode('creation', () => createPlanningListFixture());
   if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
   setupPending = true;
@@ -243,24 +330,37 @@ test.beforeEach(async ({ page }) => {
 });
 test.afterEach(async ({ page }, info) => {
   releases.splice(0).forEach(release => release());
-  let routesSettled = false, contextClosed = false;
-  try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; }
-  catch { browserUnknown = true; }
-  try { await page.context().close(); contextClosed = true; }
-  catch { browserUnknown = true; }
-  if (!fixture && !recoveryRequired && nodePending === 0 && !nodeUnknown && !browserUnknown && pending.size === 0 && routesSettled && contextClosed) return;
-  if (recoveryRequired || !setupComplete || setupPending || nodePending > 0 || nodeUnknown || browserUnknown || pending.size > 0 || !routesSettled || !contextClosed) {
-    recoveryRequired = true;
-    // Reuse the pre-setup original hashes; unknown completion forbids new DB snapshots.
-    await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, databaseRecoveryRequired: true,
-      setupComplete, setupPending, pendingNodeRequests: nodePending, unknownNodeRequest: nodeUnknown, nodeUnknownStage,
-      unknownBrowserCompletion: browserUnknown, pendingRequests: pending.size, routesSettled, contextClosed,
-      ownedCustomerId: fixture?.customerId ?? null, ownedOrganizerId: fixture?.organizerId ?? null, foreignCustomerId: fixture?.foreignCustomerId ?? null,
-      originalBusiness: fixture?.originalBusiness ?? null, fixtureExposed: !!fixture }), contentType: 'application/json' });
-    throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
-  }
+
+  let routesSettled = false, pageClosed = false, contextRoutesSettled = false, routeJobsSettled = false, contextClosed = false;
+  const context = page.context();
+  if (context !== activeBrowserContext || context.pages().some(candidate => candidate !== page)) browserUnknown = true;
+  try { await page.unrouteAll({ behavior: 'wait' }); routesSettled = true; } catch { browserUnknown = true; }
+  try { await page.close(); pageClosed = true; } catch { browserUnknown = true; }
+  try { await context.unrouteAll({ behavior: 'wait' }); contextRoutesSettled = true; } catch { browserUnknown = true; }
+  const routeJobsAtDrain = actualRouteJobs.size;
+  await Promise.allSettled(actualRouteJobs); routeJobsSettled = actualRouteJobs.size === 0;
+  if (prematureContextClose) browserUnknown = true;
+  contextCloseAllowed = true;
+  try { await context.close(); contextClosed = true; } catch { browserUnknown = true; }
+  if (!fixture && !recoveryRequired && nodePending === 0 && !nodeUnknown && !browserUnknown && pending.size === 0 && routesSettled && pageClosed && contextRoutesSettled && routeJobsSettled && contextClosed) return;
+  const requireCompletion = async () => {
+    if (recoveryRequired || !setupComplete || setupPending || nodePending > 0 || nodeUnknown || browserUnknown || pending.size > 0 || !routesSettled || !pageClosed || !contextRoutesSettled || !routeJobsSettled || !contextClosed) {
+      recoveryRequired = true;
+      // Reuse the pre-setup original hashes; unknown completion forbids new DB snapshots.
+      await info.attach('cleanup-deferred.json', { body: JSON.stringify({ cleanupDeferred: true, databaseRecoveryRequired: true,
+        setupComplete, setupPending, pendingNodeRequests: nodePending, unknownNodeRequest: nodeUnknown, nodeUnknownStage,
+        unknownBrowserCompletion: browserUnknown, browserCompletionFailure, pendingRequests: pending.size,
+        pendingRoutes: [...pending].map(request => browserRouteStates.get(request) ?? { ...routeMetadata(request), stage: 'seen' }),
+        routesSettled, pageClosed, contextRoutesSettled, routeJobsSettled, routeJobsAtDrain, routeJobsRemaining: actualRouteJobs.size,
+        prematureContextClose, contextClosed,
+        ownedCustomerId: fixture?.customerId ?? null, ownedOrganizerId: fixture?.organizerId ?? null, foreignCustomerId: fixture?.foreignCustomerId ?? null,
+        originalBusiness: fixture?.originalBusiness ?? null, fixtureExposed: !!fixture }), contentType: 'application/json' });
+      throw Error('OWNED_COMPLETION_UNKNOWN: root must verify owned completion before cleanup or another fixture');
+    }
+  };
+  await requireCompletion();
   // Context closure prevents another response from adding an audit read to this set.
-  const auditResults = await Promise.allSettled(auditChecks);
+  const auditResults = await Promise.allSettled(auditChecks); await requireCompletion();
   try {
     const cleanup = await fixture.cleanup(); await info.attach('cleanup.json', { body: JSON.stringify(cleanup), contentType: 'application/json' });
     expect(searchCleanupPreserved(cleanup)).toBe(true); expect(Object.keys(cleanup.originalBusiness)).toHaveLength(15);
@@ -396,12 +496,12 @@ test('L09: fördröjt faktiskt söksvar kan inte ersätta den senare sökningen'
   const held = hold(); let intercepted = false;
   await page.route(`**${LIST}`, async route => {
     const input = route.request().postDataJSON() as PlanningSelection;
-    if (intercepted || input.query !== metadata.pageQuery) { await route.continue(); return; } intercepted = true;
+    if (intercepted || input.query !== metadata.pageQuery) { await route.fallback(); return; } intercepted = true;
     const reply = await actualRouteFetch(route); expect(reply.status()).toBe(200); await actualAudit(reply, LIST); pending.delete(route.request()); held.ready.resolve(reply);
     await held.release.promise; try { await route.fulfill({ response: reply }); } catch { /* Old request was cancelled after actual DB completion. */ }
   });
   await fixture.cookies(page.context(), session, baseURL); const opening = page.goto(url(q())); await held.ready.promise; await opening; await waitForHydration(page);
-  const later = await find(page, metadata.lastCode); expect(later.count).toBe(1); held.release.resolve(); await page.unrouteAll({ behavior: 'wait' });
+  const later = await find(page, metadata.lastCode); expect(later.count).toBe(1); held.release.resolve(); await clearControlledRoutes(page);
   await rowsMatch(page, later); await expect(search(page)).toHaveValue(metadata.lastCode); await capture(page, info, 'late-search-discarded');
 });
 
@@ -409,7 +509,7 @@ test('L10: fördröjt faktiskt skolsvar och främmande URL kan inte ge gamla sko
   const held = hold(); let intercepted = false;
   await page.route(`**${LIST}`, async route => {
     const input = route.request().postDataJSON() as PlanningSelection;
-    if (intercepted || input.unitId !== fixture.unitId) { await route.continue(); return; } intercepted = true;
+    if (intercepted || input.unitId !== fixture.unitId) { await route.fallback(); return; } intercepted = true;
     const reply = await actualRouteFetch(route); expect(reply.status()).toBe(200); await actualAudit(reply, LIST); pending.delete(route.request()); held.ready.resolve(reply);
     await held.release.promise; try { await route.fulfill({ response: reply }); } catch { /* Aborted old scope stays absent. */ }
   });
@@ -417,7 +517,7 @@ test('L10: fördröjt faktiskt skolsvar och främmande URL kan inte ge gamla sko
   const waiting = nextList(page, input => input.unitId === fixture.secondUnitId);
   await bar(page).getByLabel('Planeringsskola', { exact: true }).selectOption(fixture.secondUnitId); const data = await parsed(await waiting);
   expect(data.rows).toHaveLength(1); expect(data.rows[0].unitId).toBe(fixture.secondUnitId);
-  held.release.resolve(); await page.unrouteAll({ behavior: 'wait' }); await rowsMatch(page, data);
+  held.release.resolve(); await clearControlledRoutes(page); await rowsMatch(page, data);
   const denied = await ownedRequest(baseURL, session, LIST, q({ unitId: metadata.foreignUnitId })); expect(denied.status).toBe(403);
   expect((await fixture.events(denied.correlationId)).filter((event: { outcome: string }) => event.outcome === 'ok')).toEqual([]);
   const fresh = nextList(page, input => input.unitId !== metadata.foreignUnitId);
@@ -631,7 +731,7 @@ test('L18: skapadB får URL först efter faktisk parent-återläsning; okänt kv
   await held.ready.promise; expect(page.url()).toBe(oldURL);
   await bar(page).getByLabel('Planeringsläsår', { exact: true }).selectOption(String(metadata.planningYear + 1));
   await expect(bar(page).getByLabel('Planeringsläsår', { exact: true })).toHaveValue(String(metadata.planningYear)); expect(page.url()).toBe(oldURL);
-  held.release.resolve(); await expect(flow).toContainText('Sparandet kan inte avgöras ännu.'); await page.unrouteAll({ behavior: 'wait' });
+  held.release.resolve(); await expect(flow).toContainText('Sparandet kan inte avgöras ännu.'); await clearControlledRoutes(page);
   const recovery = page.getByTestId('protected-programplan-workspace').getByRole('button', { name: 'Läs aktuell sparstatus', exact: true });
   await expect(recovery).toBeEnabled(); expect(page.url()).toBe(oldURL);
   await bar(page).getByLabel('Planeringsskola', { exact: true }).selectOption(fixture.secondUnitId);
