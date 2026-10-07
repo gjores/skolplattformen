@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-39
 status: in_progress
-stopped_at: UI05-39 källintegrerad;75 riktade prov,typ/lint/källreview PASS. Isolerat bygge och C16 actual nästa, därefter40–43.
+stopped_at: UI05-39 två bevarade avslutsfel; båda egna återställningar PASS. Oberoende granskad avslutsordning provas först i C01, därefter full C16 och40–43.
 last_updated: "2026-10-07"
 last_activity: 2026-10-07
 last_activity_desc: "SEARCH PASS med verkliga koder/benämningar, fullSQL/API/cleanup och12snabbaHTTP-svar; nästa separat planeringskontext05-39."
-state_head: c66d88f
+state_head: 0b2fc75
 verification_worker_build_revision: 0913d5a0527e2975ce3059b8672b2c139bf07997
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI39 andra återställning och avslutsrättning 2026-10-07:** Läsande förkontroll och separat faktisk återställning med fryst skript `ad6c40ef` PASS. Endast egen syntetisk graf `de56cb1e` och 13 egna sessioner städades; ursprungliga 15 heltabeller, katalog/rå ACL, all audit och auditerade identiteter, tidigare provets kvarvarande mandatankare samt övriga identiteter består före/efter/postcommit. [Förkontroll](../work/pilot/results/phase5-39-second-context-recovery-preflight-20261007.json) SHA `496b4163` och [återställning](../work/pilot/results/phase5-39-second-context-recovery-20261007.json) SHA `904359d7` bevaras separat. Båda första felrapporterna förblir FAIL. C-spec `129442eb` har persistent context-route, faktisk full svarskropp och separat väntan på påbörjade fetch-jobb före context-stängning. Typ/lint/syntax/listning av 16 fall, sju isolerade hjälparprov och oberoende källreview PASS; beteendeassertionerna består. Nästa är avgränsat faktiskt C01-datorprov, därefter full C16. Ingen faktisk C16-/mobil-PASS ännu; 83/100 består.
 
 **UI39 andra avslutsfel2026-10-07:** Färskt C01 på sourcec66d88f/oförändrat produktbyggedd44848 klarar separata register-/planeringsår, två registerfilter, navigation/retur/reload och faktisk datorgeometri/bild. Endast teardown FAIL: en pendingrequest kvar efter livepage-unroute; unknownsfalse och inget fetch/bodyfel. Första fullJSON55612b19/bilagor bevarade.3060stoppad med full dispose; ny egen recovery förde56cb1e förbereds före nästa fixture. Lokal Playwrightkälla stöder persistent contextroute + stoppaUI/page→awaitcontext/fetchjobs→contextclose, med exakt samma pending/unknownspärr. Ingen actualfullC16 eller mobilPASS.83/100 består.
 
