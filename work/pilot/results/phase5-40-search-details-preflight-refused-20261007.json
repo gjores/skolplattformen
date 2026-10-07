@@ -1,0 +1,12 @@
+{
+  "kind": "phase5-planning-year-search-details-preflight-history",
+  "status": "REFUSED",
+  "scope": "local-synthetic-only",
+  "sourceCommit": "0913d5a0527e2975ce3059b8672b2c139bf07997",
+  "workerBuildRevision": "0913d5a0527e2975ce3059b8672b2c139bf07997",
+  "sqlStarted": false,
+  "httpFixtureStarted": false,
+  "exitCode": 1,
+  "reportedMessage": "REFUSED: workdir /Users/petter.gjores/dev/skolplattform/work/pilot/targets/protected ligger inte under /Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/targets",
+  "resolution": "Own ignored private target directory, exact config; only manifest workdir changed. Existing source guard retained; same running project and connection values verified. No prepare/reset."
+}
