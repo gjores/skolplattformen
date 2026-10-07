@@ -8,9 +8,10 @@ import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { gymTimplanCanEdit, gymTimplanTotals, parseGymTimplan, parseGymTimplanHourInput, parseGymTimplanRowReply,
   type GymTimplan, type GymTimplanHours, type GymTimplanRow } from '@/lib/gym-timplan.ts';
 import MfaStepUpNotice from './mfa-step-up';
+import { planningYearLabel, type GymYearProjection } from '@/lib/planning-year-model.ts';
 
 type Draft = { values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'unread'; error: string | null; mfa: boolean };
-type Props = { plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
+type Props = { yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
   onSaved: (plan: GymTimplan) => void; onSaving: (saving: boolean) => void; onNavigationBlocked: (blocked: boolean) => void; onSecurityFailure: (error: unknown) => boolean };
 const strings = (hours: GymTimplanHours) => hours.map(value => value === null ? '' : String(value));
 const hours = (values: string[]): GymTimplanHours | null => {
@@ -21,7 +22,7 @@ const same = (a: GymTimplanHours, b: GymTimplanHours) => a.every((value, i) => v
 const matches = (values: string[], saved: GymTimplanHours) => { const parsed = hours(values); return !!parsed && same(parsed, saved); };
 
 /** Inlineceller delar den befintliga atomiska radskrivningen. Kön håller CAS-revisioner i ordning. */
-export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
+export default function ProtectedGymTimplanHours({ yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [onlyMissing, setOnlyMissing] = useState(false);
   const latest = useRef(drafts), saved = useRef(plan), queue = useRef(new Set<string>()), running = useRef(false);
@@ -138,14 +139,29 @@ export default function ProtectedGymTimplanHours({ plan, year, onYear, unsavedId
   const displayHours = { ...plan.hours };
   for (const [key, draft] of drafts) displayHours[key] = draft.values.map((value, i) => parseGymTimplanHourInput(value) ?? (value.trim() === '' ? null : plan.hours[key][i])) as GymTimplanHours;
   const totals = gymTimplanTotals({ rows: plan.rows, hours: displayHours });
-  const columns = PROGRAMPLAN_TERMS.map((label, i) => ({ label, i })).filter(({ i }) => year === 'all' || Math.floor(i / 2) === Number(year));
+  const visibleYear = ['0', '1', '2'].includes(year) ? year : 'all';
+  const columns = PROGRAMPLAN_TERMS.map((label, i) => ({ label: yearProjection?.terms.find(term => term.index === i)?.label ?? label, i }))
+    .filter(({ i }) => visibleYear === 'all' || Math.floor(i / 2) === Number(visibleYear));
+  function chooseYear(next: string) {
+    if (running.current || [...latest.current.values()].some(d => d.mode === 'unread')) return;
+    onYear(next);
+  }
   // En nyss ifylld rad ligger kvar tills dess sparning bekräftats.
   const rows = plan.rows.filter(row => !onlyMissing || totals.missingRows.includes(row.key) || drafts.has(row.key));
   const issues = [...drafts.values()].some(d => d.error || d.mode !== 'edit' || d.mfa);
   return <>
     <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{totals.terms[y * 2] + totals.terms[y * 2 + 1]} <small>timmar</small></strong><span>HT {totals.terms[y * 2]} · VT {totals.terms[y * 2 + 1]}</span></div>)}</div>
     <div className="gt-toolbar"><p><strong>{totals.total} timmar</strong> planerade · {totals.missingRows.length ? `${totals.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'} <output className={`gt-save-state${issues ? ' gt-save-warning' : ''}`}>{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p><Button variant="outline" onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
-    <label className="gt-year-picker">Visa årskurs<select value={year} disabled={blocked} onChange={event => { if (running.current || [...latest.current.values()].some(d => d.mode === 'unread')) return; onYear(event.target.value); }}><option value="all">Alla årskurser</option>{[0, 1, 2].map(y => <option key={y} value={y}>Årskurs {y + 1}</option>)}</select></label>
+    {yearProjection && <p className="gt-year-context">{yearProjection.relativeYear === null
+      ? `Årsdelen för ${planningYearLabel(yearProjection.schoolYear)} är okänd eller ligger utanför kullens tre år.`
+      : `Planeringsläsåret ${planningYearLabel(yearProjection.schoolYear)} avser årskurs ${yearProjection.relativeYear}.`}
+      {yearProjection.startedOn && ` Timplanens sparade källstart: ${yearProjection.startedOn}.`}
+      {visibleYear === 'all' ? ' Visar hela planen.' : yearProjection.relativeYear !== Number(visibleYear) + 1 ? ` Visar årskurs ${Number(visibleYear) + 1}, en annan del av planen.` : ''}</p>}
+    {yearProjection?.diagnostics.includes('allocation-before-start') && <p className="gt-explanation">Underlaget har fördelning före det sparade startdatumet. Kontrollera fördelningen; inga värden flyttas automatiskt.</p>}
+    <fieldset className="gt-year-buttons" aria-label="Visa årskurs"><legend>Visa årskurs</legend>{[0, 1, 2].map(y => <button key={y} type="button" disabled={blocked}
+      aria-pressed={visibleYear === String(y)} onClick={() => chooseYear(String(y))}>Åk {y + 1}</button>)}
+      <button type="button" disabled={blocked} aria-pressed={visibleYear === 'all'} onClick={() => chooseYear('all')}>Visa hela planen</button>
+      {yearProjection?.relativeYear && <button type="button" disabled={blocked} onClick={() => chooseYear(String(yearProjection.relativeYear! - 1))}>Visa planeringsårets del</button>}</fieldset>
     <section className="gt-table-scroll" aria-label="Skolans undervisningstid"
       // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla även läsvyn.
       tabIndex={0}>

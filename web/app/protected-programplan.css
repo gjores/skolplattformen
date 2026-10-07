@@ -155,7 +155,7 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb-add-row td{padding:10px 18px 16px!important}.ppb-add-row .pps-search{max-width:420px;margin-bottom:10px}
 .ppb-table tfoot th,.ppb-table tfoot td{padding:10px 4px;background:#f7f8fa;font-weight:600;font-variant-numeric:tabular-nums;text-align:center;border-top:1px solid #e3e7ee}.ppb-table tfoot th{text-align:left;padding-left:18px}
 .ppb-note,.ppb-hint{margin:0;font-size:.8125rem;color:#657185}
-.ppb-mobile-years{display:none;border:0;margin:0;padding:3px;background:#f0f2f6;border-radius:10px;gap:0;width:fit-content}.ppb-mobile-years button{border:0;background:transparent;padding:0 16px;height:40px;border-radius:8px;font:inherit;font-size:.875rem;color:#46586d}.ppb-mobile-years button[aria-pressed=true]{background:#fff;color:#202b3b;font-weight:600;box-shadow:0 1px 3px rgba(21,34,55,.15)}
+.ppb-mobile-years{display:none;border:0;margin:0;padding:3px;background:#f0f2f6;border-radius:10px;gap:0;width:fit-content}.ppb-mobile-years button{border:0;background:transparent;padding:0 16px;min-height:44px;border-radius:8px;font:inherit;font-size:.875rem;color:#46586d}.ppb-mobile-years button[aria-pressed=true]{background:#fff;color:#202b3b;font-weight:600;box-shadow:0 1px 3px rgba(21,34,55,.15)}
 .pps-ready{background:#edf7ef!important;color:#22552b!important}
 @media(max-width:800px){
 .ppb-years{gap:8px}.ppb-year{padding:10px 12px;cursor:pointer}.ppb-year[aria-pressed=true]{border-color:#365ce6;box-shadow:0 0 0 1px #365ce6}.ppb-year strong{font-size:1.15rem}.ppb-bar{display:none}
@@ -197,3 +197,11 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppk-mismatch{background:#fff4e4}.ppk-mismatch input{border-color:#b97818}.ppk-frame-note{color:#86510c;font-size:14px}
 
 .ppk-dialog{max-height:calc(100dvh - 40px);overflow:auto}.ppk-dialog label{display:flex;flex-direction:column;gap:4px;min-width:0}.ppk-dialog input,.ppk-dialog select{padding:8px;border:1px solid #cbd5e1;border-radius:6px;max-width:100%;min-width:0}.ppk-level-choices{max-height:200px;overflow:auto;margin:0;padding:0;list-style:none}.ppk-dialog li{padding:4px 0;overflow-wrap:anywhere}.ppk-dialog li button{padding:6px;text-align:left;border:1px solid #dbe2eb;border-radius:5px;max-width:100%}.ppk-entry strong,.ppk-entry span{overflow-wrap:anywhere;min-width:0}.ppk-add select{max-width:min(440px,100%)}
+
+/* Årsurvalet döljer endast ursprungliga terminskolumner; hela fördelningen består. */
+.ppb-year{min-height:44px;cursor:pointer}.ppb-year:focus-visible,.ppb-mobile-years button:focus-visible,.ppb-whole-plan:focus-visible{outline:2px solid #365ce6;outline-offset:3px}
+.ppb-year[aria-pressed=true]{border-color:#365ce6}.ppb-year:disabled{cursor:wait;opacity:.65}
+.ppb-year-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0}.ppb-whole-plan{min-height:44px;border:1px solid #bac5d4;border-radius:8px;padding:8px 12px;background:white;color:#243044;font:inherit}
+.ppb-whole-plan[aria-pressed=true]{border-color:#365ce6;font-weight:600}.ppb-year-context{font-size:.9rem;color:#46586d;line-height:1.5}
+.ppb[data-year="0"] .ppb-y1,.ppb[data-year="0"] .ppb-y2,.ppb[data-year="1"] .ppb-y0,.ppb[data-year="1"] .ppb-y2,.ppb[data-year="2"] .ppb-y0,.ppb[data-year="2"] .ppb-y1{display:none}
+@media(max-width:767px){.ppb[data-year="all"] .ppb-table{min-width:760px}.ppb-mobile-years{max-width:100%;flex-wrap:wrap}.ppb-table-wrap{max-width:100%;overflow-x:auto}}
