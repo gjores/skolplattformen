@@ -1,0 +1,916 @@
+{
+  "config": {
+    "argv": [
+      "/opt/homebrew/Cellar/node/25.9.0_2/bin/node",
+      "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "playwright.phase5-planning-year.config.ts",
+      "phase5-planning-year-other.spec.ts",
+      "--workers=1",
+      "--retries=0",
+      "--max-failures=1",
+      "--output=test-results/phase5-42-other-actual-second-20261008"
+    ],
+    "configFile": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/playwright.phase5-planning-year.config.ts",
+    "rootDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 1,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-second-20261008",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "planning-year-desktop",
+        "name": "planning-year-desktop",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      },
+      {
+        "outputDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-second-20261008",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "planning-year-phone",
+        "name": "planning-year-phone",
+        "testDir": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/phase5-planning-year-(?:context|lists|gym|other)\\.spec\\.ts/"
+        ],
+        "timeout": 180000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/phase5-planning-year.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "phase5-planning-year-other.spec.ts",
+      "file": "phase5-planning-year-other.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots nyare v2",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 44829,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T00:53:22.421Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "source-build-dependencies.json",
+                      "contentType": "application/json",
+                      "body": "eyJwcm9vZiI6eyJzb3VyY2VSZXZpc2lvbiI6ImQ2YTQ4MTI0YzZiMjYwYjBkNjI3Mjk5MGEzN2EwZDQ5NWQ3NThhMmIiLCJidWlsZFJldmlzaW9uIjoiMTc5MjRmZjQxNzg5OWRkNTg2M2MzOTRiYjQ0OTZhNWJmMjI4NjViZCIsInNjb3BlIjoibG9jYWwtc3ludGhldGljLW9ubHkiLCJwcm90ZWN0ZWRTb3VyY2VzIjpbIndlYi9saWIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL2d5bS10aW1wbGFuLnRlc3QubWpzIiwid2ViL2xpYi9zZXJ2ZXIvZ3ltLXRpbXBsYW4udHMiLCJ3ZWIvbGliL3NlcnZlci9neW0tdGltcGxhbi50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3RpbXBsYW5lci9neW0iLCJ3ZWIvYXBwL3Byb3RlY3RlZC1neW0tdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4taG91cnMudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtZ3ltLXRpbXBsYW4uY3NzIiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi13b3Jrc3BhY2UudHN4Iiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi5jc3MiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1ob21lLnRzeCIsIndlYi9hcHAvcHJvdGVjdGVkLXByb2dyYW1wbGFuLXdvcmtzcGFjZS50c3giLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wcm9ncmFtcGxhbi1ib2FyZC50c3giLCJ3ZWIvbGliL3Byb3RlY3RlZC1wbGFuLWxvY2F0aW9uLnRzIiwid2ViL2xpYi9wcm90ZWN0ZWQtcGxhbi1sb2NhdGlvbi50ZXN0Lm1qcyIsIndlYi9saWIvc2VydmVyL2h0dHAudHMiLCJ3ZWIvbGliL3NlcnZlci1jbGllbnQudHMiLCJ3ZWIvbGliL3Vuc2F2ZWQtY2hhbmdlcy50c3giLCJ3ZWIvY29tcG9uZW50cy91aS9kaWFsb2cudHN4Iiwid2ViL2xpYi9tYW5kYXRlLXBvbGljeS50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Nlc3Npb24tY2hhbm5lbC50cyIsInN1cGFiYXNlL21pZ3JhdGlvbnMvMjAyNjEwMDUxMTAwMDBfcGhhc2U1X2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvbWlncmF0aW9ucy8yMDI2MTAwNTExMTAwMF9waGFzZTVfd29ya2VyX2d5bV90aW1wbGFuX3RyYW5zaXRpb24uc3FsIiwic3VwYWJhc2UvdGVzdHMvcGhhc2U1X3Byb2dyYW1fdGltcGxhbl90cmFuc2l0aW9uLnRlc3Quc3FsIiwid29yay9waWxvdC9waGFzZTUtZ3ltLXRpbXBsYW4tZml4dHVyZXMubWpzIiwid2ViL2UyZS9waGFzZTUtZ3ltLXRpbXBsYW4uc3BlYy50cyIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1neW0tdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvZTJlL3BoYXNlNS10aW1wbGFuLnNwZWMudHMiLCJ3ZWIvcGxheXdyaWdodC5waGFzZTUtdGltcGxhbi5jb25maWcudHMiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItY29udHJhY3QudHMiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItbW9kZWwudHMiLCJ3ZWIvbGliL3NlcnZlci9wbGFubmluZy15ZWFyLnRzIiwid2ViL2xpYi9zZXJ2ZXIvcGxhbm5pbmcteWVhci50ZXN0Lm1qcyIsIndlYi9hcHAvYXBpL3BsYW5lcmluZyIsIndlYi9saWIvc2VydmVyL2F1dGh6LnRzIiwid2ViL2xpYi9zZXJ2ZXIvaHR0cC50cyIsIndlYi9saWIvc2VydmVyL21hbmRhdGUtcm91dGUudHMiLCJ3ZWIvbGliL3NlcnZlci9kYi50cyIsIndlYi9saWIvc2VydmVyL2F1ZGl0LWRldGFpbHMudHMiLCJ3ZWIvbGliL3Byb2dyYW1wbGFuLWNhdGFsb2cudHMiLCJ3ZWIvbGliL3Byb2dyYW1wbGFuLWNhdGFsb2cuZ2VuZXJhdGVkLmpzb24iLCJzdXBhYmFzZS9taWdyYXRpb25zLzIwMjYxMDA2MTIwMDAwX3BoYXNlNV9wbGFubmluZ195ZWFyX3JlYWRzLnNxbCIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItZml4dHVyZXMubWpzIiwid29yay9waWxvdC92ZXJpZnktcGxhbm5pbmcteWVhci1hcGkubWpzIiwid29yay9waWxvdC92ZXJpZnktcGxhbm5pbmcteWVhci1hcGkudGVzdC5tanMiXSwiYWN0dWFsV29ya2VyIjp0cnVlLCJyZXZpc2lvbiI6IjE3OTI0ZmY0MTc4OTlkZDU4NjNjMzk0YmI0NDk2YTViZjIyODY1YmQiLCJwYXJzZXJTb3VyY2VIYXNoZXMiOnsid2ViL2xpYi9wbGFubmluZy15ZWFyLWNvbnRyYWN0LnRzIjoiZWNiNzBjM2FkZGQ0YjUzNTYxYjc2NTExZjE2ZDg5NTRhZDY1NzI1ZmEyMTg2ZDQ3M2I4ZThlODAwNDYxNmQ2ZSIsIndlYi9saWIvcGxhbm5pbmcteWVhci1jb250cmFjdC50ZXN0Lm1qcyI6IjRjNDRmZDBiZjgzZjVmYmZkNDQ4MTJiZGIzYTM0MGZhMmU4MmMzNWZhYjBkYWFjMTgzNmFjZmUxMWZmNGFhOTUifX0sImJyb3dzZXJOYW1lIjoiY2hyb21pdW0iLCJhY3R1YWxQcmVyZXF1aXNpdGVzIjp7ImNvbnRleHQiOnsicmVwb3J0U2hhMjU2IjoiMThjNTEyOTFiNzBhM2MwMzA4ZWFkOGUzOGU2MTgzZjBhZmUzZTI3ZWY1YzA5MzA5ZWIyZTJjYzdhZTdkODM0NSIsImNhc2VzIjoxNiwiYXBwcm92ZWRTb3VyY2VSZXZpc2lvbiI6IjA3NzM3YmFlZTkxYTMyMzA3ZTA3YTcwM2JlOWI2YmVmYWU5MWMyMGEiLCJ3b3JrZXJCdWlsZFJldmlzaW9uIjoiMDc3MzdiYWVlOTFhMzIzMDdlMDdhNzAzYmU5YjZiZWZhZTkxYzIwYSIsInJ1bnRpbWVDbG9zdXJlU2hhMjU2IjoiNDM0MTRlZDA4MzI3MmM5Y2I4OGIxZGE2ZDhjNzE4NDM5MWQ5YmZmNGVjNDc5MjdmZmU3OTAzNmRlOTZlMDc1NCIsInRvb2xDbG9zdXJlU2hhMjU2IjoiZThhNTM0Y2NhYjU1ZjE4NDg0MmViNjkxYmMwZGIzYTc2ZWUyZjJlMDQ1OGRjZjE0YWNlMjBjNThkYjA1NzAzMSJ9LCJjb250ZXh0V3JpdGUiOnsicmVwb3J0U2hhMjU2IjoiMjI5YjFmM2NiYTc0ZjFhZTEzZjI0MzU4ZjRhYzY3NTQ0YmE1OTFhNTRlZmU3NTEyZjFhZGJiYTQ1MmRlNjI5MiIsImNhc2VzIjoyLCJhcHByb3ZlZFNvdXJjZVJldmlzaW9uIjoiNmU1MTYyOWUwMGZjNDFhMjllMjczMjRlNjk2YWVhNTI5ZDk2MWI2MiIsIndvcmtlckJ1aWxkUmV2aXNpb24iOiI2ZTUxNjI5ZTAwZmM0MWEyOWUyNzMyNGU2OTZhZWE1MjlkOTYxYjYyIiwicnVudGltZUNsb3N1cmVTaGEyNTYiOiJjOWViZjgzNDc3OWU4NWNkYjMxY2NiODc1OGEzZWM1ZjNhOTZmNDBmNjE0ZDY5NzI4ODJlOWVhODUwMTdiZWQxIiwidG9vbENsb3N1cmVTaGEyNTYiOiIyYTFmMjJmNjJlYmQ3ODgxNDNjYzE3NGM2YjRhMTc0YTMzMmU2MDI5NDk1MjRmZGYxZDc4NjlkZDNhZGJjYWNhIn0sImxpc3RzIjp7InJlcG9ydFNoYTI1NiI6ImY0NDg5MmRmOTJhMDQ4YTY4YTI2NTkyZTQzMDcwOTc4NmZjZjRjYWI3ZWJjZGIyYzY0ODM0NTUwNWNmYjA4M2EiLCJjYXNlcyI6MzYsImFwcHJvdmVkU291cmNlUmV2aXNpb24iOiIxZjNlNmIyZWJhYTM5YmE4NGE4NTk2YjM1NGUxZDFhOTc3ODYwYjQxIiwid29ya2VyQnVpbGRSZXZpc2lvbiI6IjFmM2U2YjJlYmFhMzliYTg0YTg1OTZiMzU0ZTFkMWE5Nzc4NjBiNDEiLCJydW50aW1lQ2xvc3VyZVNoYTI1NiI6IjQwMjg0Mjc3YTAwOTNkNzg0YzUyYmEwMDI4YTU0YTdlYmVmOTEzYmExYjczNjhkZGY5Y2EyMzA2MTNmNDg2MTYiLCJ0b29sQ2xvc3VyZVNoYTI1NiI6Ijg3NjFkZGUwNTBlMTRkODc3OTMyMThjNTI0NWEyNzk5NTU5YjAxNzhiYWE0MzE4N2E3NDQ3ZDdlOWZmNzRmYjMifSwiZ3ltIjp7InJlcG9ydFNoYTI1NiI6IjlhMjhhYjI1NTNmNDQ4MDVkMDViMmZjODc2ZWM2ZTZhMjUzMDM4N2E5ZTgzMjk1YTRkMWFlYWYyZTFkNGQ1MmIiLCJjYXNlcyI6MzgsImFwcHJvdmVkU291cmNlUmV2aXNpb24iOiJmMzU1NzE3ODM0YTlhYzFjMjczMDFmNzAzNjEzZDQ5NzIxYTdiOTQ0Iiwid29ya2VyQnVpbGRSZXZpc2lvbiI6ImYzNTU3MTc4MzRhOWFjMWMyNzMwMWY3MDM2MTNkNDk3MjFhN2I5NDQiLCJydW50aW1lQ2xvc3VyZVNoYTI1NiI6ImM3ZmIyNWRlNTFmZTNlZjZlNTFlNWU5NjEwOTQ2MDAyMWI0MWJmN2YyODFlOWIzNTFkMGJlOGNmZjhmMzEyMmEiLCJ0b29sQ2xvc3VyZVNoYTI1NiI6IjIzOTZkNWY1OGEyMGJkYTU5ZWY4YzM0YWNhNmU2YWMxMDFiOWY1Y2YxNDU1MDJlYjk2Y2RlYzJkNDhhZDdiNGUifX0sInNvdXJjZUhhc2hlcyI6eyJ3ZWIvYXBwL3Byb3RlY3RlZC1ob21lLnRzeCI6IjllM2UwNGY4MmJiM2U3ZGJhMjI0NzdiYWM4MGYzNjc2ZjA5MWJlMzQwZWI2NTQ0ZmFmOGIzYjBmNzNlZmU3YTYiLCJ3ZWIvYXBwL3Byb3RlY3RlZC10aW1wbGFuLXdvcmtzcGFjZS50c3giOiI1YzdiNzA4OWM5YzBiZWZkOWFkMDZhMjMwODU1ZGE1YmZmODQ3MmE1YzQxOTI5MDI1MmMyMTVlOGE5NjdkN2M3Iiwid2ViL2FwcC9wcm90ZWN0ZWQtdGltcGxhbi5jc3MiOiJhNzE2MmQwMmU3OTFkMGVkNWJiYmE0OGUwNWNkZDA3YjFiNGE1MWQ1ZWRhNDdiY2IyYTM5NTUxYTEzN2E2NGRiIiwid2ViL2FwcC9wbGFubmluZy1jb250ZXh0LnRzeCI6ImEwMTA2Y2YyNzI5NWMzNWVjNGFkMTdhZjBmOTM0ZTkyZTBlMDIxODE4NDViMDMzNTFiNzk2ZjljZjJmZWMxZjUiLCJ3ZWIvYXBwL3BsYW5uaW5nLWNvbnRleHQuY3NzIjoiYzBiZmEwYTY1Y2VmNGQ1Y2NhN2RlY2FmNWU2Mjg5MTYyNjE1YjJmMzA5YWE4ZjQxNTk5ZDViYzdiNTExMzY1OSIsIndlYi9saWIvcHJvdGVjdGVkLXBsYW4tbG9jYXRpb24udHMiOiI3NjViODg0NjJlMzZhM2MzMjBlNTZjZDA3OWQ4YWMxMzc3MmJkYjJjZDJlYWU1MDgwMTBkNjJkZDhiMTMxZThlIiwid2ViL2xpYi9wcm90ZWN0ZWQtdGltcGxhbi50cyI6Ijg5NWZmNDZkZWFiYTdkY2M2NmZjYzQxZmIzZDE2Y2Y2NTdhY2E3Yjc3M2E1YzVlODE2YWQ0MTQ4YTFhNWQ4Y2YiLCJ3ZWIvbGliL3BsYW5uaW5nLXllYXItY29udHJhY3QudHMiOiJlY2I3MGMzYWRkZDRiNTM1NjFiNzY1MTFmMTZkODk1NGFkNjU3MjVmYTIxODZkNDczYjhlOGU4MDA0NjE2ZDZlIiwid2ViL2xpYi9wbGFubmluZy15ZWFyLW1vZGVsLnRzIjoiNDg4ODE4N2U5YjI5NjczNzY0NjUxNTI5NmRmZmQ4ZmVkOGU3OGFmZGNmMDM1NTcxNGE4YmJiZTdkZmMyNjNmOSIsIndlYi9hcHAvcHJvdGVjdGVkLXBsYW4tbGlzdC50c3giOiIyMjlhNWQwMzM3NTk4ZTgwODQ1ODNmYjU1YjlmOTQ4OTBjODMxYzJmNzZhMjU4NjA2ZWIxZmUxZDBiZWQwZjY1Iiwid2ViL2FwcC9wcm90ZWN0ZWQtcGxhbi1saXN0LmNzcyI6IjU1ZjEyZGU2MmFhMTY1OGFjY2Y0YWVmNDMwZDZmMWI1NTVjYjYzNWU3YjBjMDM4NGQ1MTk1YWIwMjNhMmE2MmEiLCJ3ZWIvYXBwL3Byb3RlY3RlZC1wbGFubmluZy1vdmVydmlldy50c3giOiIwNTUxZTE0NDZhOWUyZTA5NmZjYjY2NWQ4ZWFiOTQwODYxYjNjNjMxNzgyYWIwZWQ1N2M3MTUyMTI3ZDk5OGY2Iiwid29yay9waWxvdC9waGFzZTUtcGxhbm5pbmcteWVhci1vdGhlci1maXh0dXJlcy5tanMiOiI3MGRmMzQ0YzQzNmM4NDFlMGVjODM4NWY3MjM1YzM1YWUwYzc3Yjg4OWU4ZmNjZDdkNmRhMDhlYTNmMzg3NGU0Iiwid2ViL2UyZS9waGFzZTUtcGxhbm5pbmcteWVhci1vdGhlci5zcGVjLnRzIjoiM2VhNWIwNDY0MDhhNmRlNjNjNjhjZGY2NjlhYzM4MDBiMGYwOGQyNGY1MDRiNjdhMDdhYjVhYjkzNDA3MjcyYyIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItZ3ltLWZpeHR1cmVzLm1qcyI6IjI3MTIxNWFkMGQxYzRiOTQwMTMyYmViOTliOTlkOTg1MmMxY2E5YWVhZTNmYTkzOTA3NTU0YWYwMTY5Zjk3MDYiLCJ3ZWIvZTJlL3BoYXNlNS1wbGFubmluZy15ZWFyLWd5bS5zcGVjLnRzIjoiNGJjZWM1NjE0MmY0YTk4MGRmYTQwNzU5ZDM2MTI5MGMyNDRmNzU3Mzc4MzQ4MzUxODBhYmY2NzJhM2E0YjQwMiIsIndvcmsvcGlsb3QvcGhhc2U1LXBsYW5uaW5nLXllYXItbGlzdC1maXh0dXJlcy5tanMiOiJjZDQ4MjNmNTkzYzZlY2MyMzQ3ZDYzYTM1ZDlmODU4ZTNkOWY1N2Y0NTE0NzJjYjMyNjMxNmIyNDQxZWZkNzZmIiwid2ViL2UyZS9waGFzZTUtcGxhbm5pbmcteWVhci1saXN0cy5zcGVjLnRzIjoiNjIwZTQwYmUxNTNlZDQxYmM4M2Y5NTQ0YzAzM2M0YTY5NDZhMGZlN2U3OWI3M2QzMzM3NWYxYWVjZmUwYjViYyIsIndlYi9lMmUvcGhhc2U1LXBsYW5uaW5nLXllYXItY29udGV4dC5zcGVjLnRzIjoiNzNjMjQ4MGFkMjY2NDAxOTNkYzNkMWViMWU1OWU2OGE4OThjODRkNmM5MmVkY2EyM2M1NDkxYWZlMmQ5ODdlMSIsIndlYi9wbGF5d3JpZ2h0LnBoYXNlNS1wbGFubmluZy15ZWFyLmNvbmZpZy50cyI6IjNhZjdhZWIxM2FlMmUzZmIwMzcyYjZhYjBhZDQyMzY0MDIyYmE1YzkxZGNhMjZhYjM4ZTZlOTJlNmY3YjZkNTIifX0="
+                    },
+                    {
+                      "name": "gr-bound-v1-unknown-geometry.json",
+                      "contentType": "application/json",
+                      "body": "eyJkb2N1bWVudCI6MTQ0MCwiY2xpZW50IjoxNDQwLCJ2aWV3cG9ydCI6MTQ0MCwidGFibGVzIjpbeyJsZWZ0IjoyOTYsInJpZ2h0IjoxMzkyLCJzY3JvbGwiOjEwOTQsIndpZHRoIjoxMDk0fV19"
+                    },
+                    {
+                      "name": "gr-bound-v1-unknown.png",
+                      "contentType": "image/png",
+                      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-second-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/attachments/gr-bound-v1-unknown-png-4a4ac51a49e01e2078273f6ae3e1fcc1df4bec90.png"
+                    },
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoxMDMsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6MywibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjAsImd5bVJlY2VpcHRzIjowLCJ0aW1wbGFucyI6MCwiY2xhc3NMaW5rcyI6MCwib3JpZ2luYWxCdXNpbmVzc1VuY2hhbmdlZCI6dHJ1ZSwiYmVmb3JlIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNmE5M2M5MmU3NDFkMTkyNmI5OTVlMTQ0Y2UxYTJkZGVlNTc3NTNiZDE1YmJjOTliMjQ0ODFkMTQ5YTA4OTFlMyJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NTQsInNoYTI1NiI6ImU2MDNlMjk0ZTBhMzY2YjIwNWEyMTRjMmYzMDJmMzBlY2VhZWJkMWE3OGFlMmQzYzdmMDE3ZjE4OWQ2MjY1ZmMifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiZGZlYWZmM2EzMzc3OTEyMzU0Nzk5MDMzMGZhYTgyNGJkMzVlYTBhYWQ0OTczMjkzMWU4NjVlNTNjN2RlM2Y4YyJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkNjQ3ZjA1ZWNiNmE5MGEyZWE3NTQzZDVkZTQyOTUzNjQ4Yjg0MWFhZTgzZGQ1OWFkMzE5ZDNlZjkwZTI2MmFiIn0sInRpbXBsYW5zIjp7ImNvdW50Ijo3LCJzaGEyNTYiOiIyZTAxZGNkY2M0MmE5NjEwMGYxMTJjYzE1MzIyYzg3NDIyM2Y0ODk0NWUxNmQ0ZDM4NDVkZTlhMmI3Njg5MWI5In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjEyMSwic2hhMjU2IjoiNjYxYmJhYmE5OGJhNjk2NjJkNzgzZDFlNmRkZGFhZmQ3NzgzNTg0ZTM5YzNmMjhkM2I1NmUyNjQxMGRiNTM5MiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6NjcsInNoYTI1NiI6IjYyMTM1NjllMmUwZTExZmY0NzU2OWI4ZDBlN2Y0YjkzNDdhODJkMmFhNTlhZjhkZWY4NjU1N2Q0MzM0YTQ0ZDIifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6ImJkMDhhNzI1NDNjMWIyYmFjMWJiZjRhYjBkYmUwZmM5MzkzN2E5NjU1YWNmNTY2ZTI0NTQyOWZmNzc4ZDYyYzUifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6IjA0MTBjZTA5NjY5NGE2NzY5NDdiNTMzNjE4ODE5NWZhNDYwNjlmZDU2ZDM4YmFlN2FhOGY2ZWJhZDgxNDcwYzIifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJhNmE4ODRkYmIxOGFhMTQzMzNiYWVlMGM4OTgxMWU5MTE4YzRiMTg4OTk2Y2Y0NDA4ZjdmYjUwN2JlNTZlOWRkIn0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjMsInNoYTI1NiI6Ijg1ZTk5NDkxOTJmNDFiZjViMmNmNWEzNTY3MTNkNzhmZGUyNDlmNWQ0NmYyMmVkMDQ2ZmFjZWJjNmQzODE1YjYifSwic2Nob29sX3llYXJzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJhZnRlciI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjZhOTNjOTJlNzQxZDE5MjZiOTk1ZTE0NGNlMWEyZGRlZTU3NzUzYmQxNWJiYzk5YjI0NDgxZDE0OWEwODkxZTMifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjU0LCJzaGEyNTYiOiJlNjAzZTI5NGUwYTM2NmIyMDVhMjE0YzJmMzAyZjMwZWNlYWViZDFhNzhhZTJkM2M3ZjAxN2YxODlkNjI2NWZjIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6ImRmZWFmZjNhMzM3NzkxMjM1NDc5OTAzMzBmYWE4MjRiZDM1ZWEwYWFkNDk3MzI5MzFlODY1ZTUzYzdkZTNmOGMifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZDY0N2YwNWVjYjZhOTBhMmVhNzU0M2Q1ZGU0Mjk1MzY0OGI4NDFhYWU4M2RkNTlhZDMxOWQzZWY5MGUyNjJhYiJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6Nywic2hhMjU2IjoiMmUwMWRjZGNjNDJhOTYxMDBmMTEyY2MxNTMyMmM4NzQyMjNmNDg5NDVlMTZkNGQzODQ1ZGU5YTJiNzY4OTFiOSJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50IjoxMjEsInNoYTI1NiI6IjY2MWJiYWJhOThiYTY5NjYyZDc4M2QxZTZkZGRhYWZkNzc4MzU4NGUzOWMzZjI4ZDNiNTZlMjY0MTBkYjUzOTIifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjY3LCJzaGEyNTYiOiI2MjEzNTY5ZTJlMGUxMWZmNDc1NjliOGQwZTdmNGI5MzQ3YTgyZDJhYTU5YWY4ZGVmODY1NTdkNDMzNGE0NGQyIn0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiJiZDA4YTcyNTQzYzFiMmJhYzFiYmY0YWIwZGJlMGZjOTM5MzdhOTY1NWFjZjU2NmUyNDU0MjlmZjc3OGQ2MmM1In0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiIwNDEwY2UwOTY2OTRhNjc2OTQ3YjUzMzYxODgxOTVmYTQ2MDY5ZmQ1NmQzOGJhZTdhYThmNmViYWQ4MTQ3MGMyIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYTZhODg0ZGJiMThhYTE0MzMzYmFlZTBjODk4MTFlOTExOGM0YjE4ODk5NmNmNDQwOGY3ZmI1MDdiZTU2ZTlkZCJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjozLCJzaGEyNTYiOiI4NWU5OTQ5MTkyZjQxYmY1YjJjZjVhMzU2NzEzZDc4ZmRlMjQ5ZjVkNDZmMjJlZDA0NmZhY2ViYzZkMzgxNWI2In0sInNjaG9vbF95ZWFycyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fSwib3JpZ2luYWxCdXNpbmVzcyI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjZhOTNjOTJlNzQxZDE5MjZiOTk1ZTE0NGNlMWEyZGRlZTU3NzUzYmQxNWJiYzk5YjI0NDgxZDE0OWEwODkxZTMifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjU0LCJzaGEyNTYiOiJlNjAzZTI5NGUwYTM2NmIyMDVhMjE0YzJmMzAyZjMwZWNlYWViZDFhNzhhZTJkM2M3ZjAxN2YxODlkNjI2NWZjIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6ImRmZWFmZjNhMzM3NzkxMjM1NDc5OTAzMzBmYWE4MjRiZDM1ZWEwYWFkNDk3MzI5MzFlODY1ZTUzYzdkZTNmOGMifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZDY0N2YwNWVjYjZhOTBhMmVhNzU0M2Q1ZGU0Mjk1MzY0OGI4NDFhYWU4M2RkNTlhZDMxOWQzZWY5MGUyNjJhYiJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6Nywic2hhMjU2IjoiMmUwMWRjZGNjNDJhOTYxMDBmMTEyY2MxNTMyMmM4NzQyMjNmNDg5NDVlMTZkNGQzODQ1ZGU5YTJiNzY4OTFiOSJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50IjoxMjEsInNoYTI1NiI6IjY2MWJiYWJhOThiYTY5NjYyZDc4M2QxZTZkZGRhYWZkNzc4MzU4NGUzOWMzZjI4ZDNiNTZlMjY0MTBkYjUzOTIifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjY3LCJzaGEyNTYiOiI2MjEzNTY5ZTJlMGUxMWZmNDc1NjliOGQwZTdmNGI5MzQ3YTgyZDJhYTU5YWY4ZGVmODY1NTdkNDMzNGE0NGQyIn0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiJiZDA4YTcyNTQzYzFiMmJhYzFiYmY0YWIwZGJlMGZjOTM5MzdhOTY1NWFjZjU2NmUyNDU0MjlmZjc3OGQ2MmM1In0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiIwNDEwY2UwOTY2OTRhNjc2OTQ3YjUzMzYxODgxOTVmYTQ2MDY5ZmQ1NmQzOGJhZTdhYThmNmViYWQ4MTQ3MGMyIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYTZhODg0ZGJiMThhYTE0MzMzYmFlZTBjODk4MTFlOTExOGM0YjE4ODk5NmNmNDQwOGY3ZmI1MDdiZTU2ZTlkZCJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjozLCJzaGEyNTYiOiI4NWU5OTQ5MTkyZjQxYmY1YjJjZjVhMzU2NzEzZDc4ZmRlMjQ5ZjVkNDZmMjJlZDA0NmZhY2ViYzZkMzgxNWI2In0sInNjaG9vbF95ZWFycyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fSwiZmluYWxCdXNpbmVzcyI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjZhOTNjOTJlNzQxZDE5MjZiOTk1ZTE0NGNlMWEyZGRlZTU3NzUzYmQxNWJiYzk5YjI0NDgxZDE0OWEwODkxZTMifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjU0LCJzaGEyNTYiOiJlNjAzZTI5NGUwYTM2NmIyMDVhMjE0YzJmMzAyZjMwZWNlYWViZDFhNzhhZTJkM2M3ZjAxN2YxODlkNjI2NWZjIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6ImRmZWFmZjNhMzM3NzkxMjM1NDc5OTAzMzBmYWE4MjRiZDM1ZWEwYWFkNDk3MzI5MzFlODY1ZTUzYzdkZTNmOGMifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZDY0N2YwNWVjYjZhOTBhMmVhNzU0M2Q1ZGU0Mjk1MzY0OGI4NDFhYWU4M2RkNTlhZDMxOWQzZWY5MGUyNjJhYiJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6Nywic2hhMjU2IjoiMmUwMWRjZGNjNDJhOTYxMDBmMTEyY2MxNTMyMmM4NzQyMjNmNDg5NDVlMTZkNGQzODQ1ZGU5YTJiNzY4OTFiOSJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50IjoxMjEsInNoYTI1NiI6IjY2MWJiYWJhOThiYTY5NjYyZDc4M2QxZTZkZGRhYWZkNzc4MzU4NGUzOWMzZjI4ZDNiNTZlMjY0MTBkYjUzOTIifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjY3LCJzaGEyNTYiOiI2MjEzNTY5ZTJlMGUxMWZmNDc1NjliOGQwZTdmNGI5MzQ3YTgyZDJhYTU5YWY4ZGVmODY1NTdkNDMzNGE0NGQyIn0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiJiZDA4YTcyNTQzYzFiMmJhYzFiYmY0YWIwZGJlMGZjOTM5MzdhOTY1NWFjZjU2NmUyNDU0MjlmZjc3OGQ2MmM1In0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiIwNDEwY2UwOTY2OTRhNjc2OTQ3YjUzMzYxODgxOTVmYTQ2MDY5ZmQ1NmQzOGJhZTdhYThmNmViYWQ4MTQ3MGMyIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYTZhODg0ZGJiMThhYTE0MzMzYmFlZTBjODk4MTFlOTExOGM0YjE4ODk5NmNmNDQwOGY3ZmI1MDdiZTU2ZTlkZCJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjozLCJzaGEyNTYiOiI4NWU5OTQ5MTkyZjQxYmY1YjJjZjVhMzU2NzEzZDc4ZmRlMjQ5ZjVkNDZmMjJlZDA0NmZhY2ViYzZkMzgxNWI2In0sInNjaG9vbF95ZWFycyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fSwib3JpZ2luYWxBdWRpdEhhc2giOiI4OTlkNTg3NjZmZTE3ZTIyNDlhZDcyOTA1NzVkN2U4ZWZiNjE4OTY1NGM3YWZhMDNkMzY1N2RkZTZlYjYxMzEzIiwiZmluYWxBdWRpdEhhc2giOiI4OTlkNTg3NjZmZTE3ZTIyNDlhZDcyOTA1NzVkN2U4ZWZiNjE4OTY1NGM3YWZhMDNkMzY1N2RkZTZlYjYxMzEzIiwib3JpZ2luYWxJZGVudGl0eUhhc2giOiI3MjliYTViYjEyYTVmMmM5NTliN2FmNTliMjZjMDIwMWY1NzQ0YmQ1MTA2ODY2Nzg4Njk1MmU3MjRhZmYzZTZmIiwiZmluYWxJZGVudGl0eUhhc2giOiI3MjliYTViYjEyYTVmMmM5NTliN2FmNTliMjZjMDIwMWY1NzQ0YmQ1MTA2ODY2Nzg4Njk1MmU3MjRhZmYzZTZmIiwib3JpZ2luYWxCdXNpbmVzc1ByZXNlcnZlZCI6dHJ1ZSwib3JpZ2luYWxBdWRpdFByZXNlcnZlZCI6dHJ1ZSwiaWRlbnRpdHlBbmNob3JzUHJlc2VydmVkIjp0cnVlLCJyZXRhaW5lZEF1ZGl0UHJlc2VydmVkIjp0cnVlLCJyZXRhaW5lZElkZW50aXR5QW5jaG9yc1ByZXNlcnZlZCI6dHJ1ZSwiYmVmb3JlUmV0YWluZWRBdWRpdCI6eyJjb3VudCI6MTg4NTQwLCJzaGEyNTYiOiJiZjZkMzA1ZmQyNmYwOTJhN2EyYTQ5ZWM4ZTQ2Yzg2NDEzM2NkYjg1NDVjYjY1YjgxMmNiZTFiM2NhNmE2MjJlIn0sImFmdGVyUmV0YWluZWRBdWRpdCI6eyJjb3VudCI6MTg4NTQwLCJzaGEyNTYiOiJiZjZkMzA1ZmQyNmYwOTJhN2EyYTQ5ZWM4ZTQ2Yzg2NDEzM2NkYjg1NDVjYjY1YjgxMmNiZTFiM2NhNmE2MjJlIn0sImJlZm9yZVJldGFpbmVkQW5jaG9ycyI6eyJjb3VudCI6NTE0Mywic2hhMjU2IjoiYmEzNmFjYWFiYjhhMDU2MDQ1YjM4YzFlZjRhZmE5ZDRmYzUyZjA4ZDdlZTllNWE1MTc4ZjNkYTY3YTQ3ZjAzZSJ9LCJhZnRlclJldGFpbmVkQW5jaG9ycyI6eyJjb3VudCI6NTE0Mywic2hhMjU2IjoiYmEzNmFjYWFiYjhhMDU2MDQ1YjM4YzFlZjRhZmE5ZDRmYzUyZjA4ZDdlZTllNWE1MTc4ZjNkYTY3YTQ3ZjAzZSJ9LCJmb3JlaWduUmVtYWluaW5nIjp7Im9mZmVyaW5ncyI6MCwib2ZmZXJpbmdVbml0cyI6MCwic2Vzc2lvbnMiOjB9LCJmb3JlaWduUmV0YWluZWRBdWRpdEFuY2hvcnMiOnsiZXZlbnRzIjowLCJhbmNob3JlZEV2ZW50cyI6MH0sInNlYXJjaEF1ZGl0Rml4dHVyZXMiOnsidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0sImxpc3RSZW1haW5pbmciOnsiY2xhc3NlcyI6MCwiYmluZGluZ3MiOjAsInZlcnNpb25zIjowfSwiZ3ltWWVhclJlbWFpbmluZyI6eyJwbGFucyI6MH0sIm90aGVyWWVhclJlbWFpbmluZyI6eyJwbGFucyI6MCwib2ZmZXJpbmdzIjowLCJjbGFzc2VzIjowfX0="
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-bf9d45152a16f2f4fa8f",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 343,
+          "column": 1
+        },
+        {
+          "title": "O02: nytt år ger verklig åk9-bindning med samma v1 och aldrig klassens startår",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 70179,
+                  "error": {
+                    "message": "TimeoutError: locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Alla timplaner', exact: true }).getByRole('button', { name: /^Öppna /u })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" aria-label=\"Öppna Syntetisk GR årsram 01, Syntetisk grundskola, version 1\">Öppna</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n",
+                    "stack": "TimeoutError: locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Alla timplaner', exact: true }).getByRole('button', { name: /^Öppna /u })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" aria-label=\"Öppna Syntetisk GR årsram 01, Syntetisk grundskola, version 1\">Öppna</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n\n    at /Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-other.spec.ts:353:57",
+                    "location": {
+                      "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-other.spec.ts",
+                      "column": 57,
+                      "line": 353
+                    },
+                    "snippet": "  351 |  const r=metadata.grRecords[0];await openBound(page,r);const wait=page.waitForResponse(matches(LIST));await bar(page).getByLabel('Planeringsläsår',{exact:true}).selectOption(String(metadata.otherYear+1));\n  352 |  const reply=await wait,data=parsePlanningList(await reply.json(),reply.request().postDataJSON(),setup);expect(data.rows).toHaveLength(1);expect(data.rows[0].application?.columnId).toBe('ak9');expect(data.rows[0].plan?.id).toBe(r.planId);\n> 353 |  await list(page).getByRole('button',{name:/^Öppna /u}).click();await expect(workspace(page).getByTestId('other-year-binding')).toContainText('9');await expect(workspace(page).getByTestId('other-column-map-unknown')).toBeVisible();\n      |                                                         ^\n  354 | });\n  355 | test('O03: year+1 utan bindning visar konkret lucka utan automatisk progression',async({page})=>{\n  356 |  const r=metadata.grRecords[1],state=await ownedNode('readback',()=>fixture.ownedState(r.planId)),data=await enter(page,selection('grundskola',r.query,r.unitId,metadata.otherYear+1));"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-other.spec.ts",
+                        "column": 57,
+                        "line": 353
+                      },
+                      "message": "TimeoutError: locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Alla timplaner', exact: true }).getByRole('button', { name: /^Öppna /u })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" aria-label=\"Öppna Syntetisk GR årsram 01, Syntetisk grundskola, version 1\">Öppna</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m  - element was detached from the DOM, retrying\u001b[22m\n\n\n  351 |  const r=metadata.grRecords[0];await openBound(page,r);const wait=page.waitForResponse(matches(LIST));await bar(page).getByLabel('Planeringsläsår',{exact:true}).selectOption(String(metadata.otherYear+1));\n  352 |  const reply=await wait,data=parsePlanningList(await reply.json(),reply.request().postDataJSON(),setup);expect(data.rows).toHaveLength(1);expect(data.rows[0].application?.columnId).toBe('ak9');expect(data.rows[0].plan?.id).toBe(r.planId);\n> 353 |  await list(page).getByRole('button',{name:/^Öppna /u}).click();await expect(workspace(page).getByTestId('other-year-binding')).toContainText('9');await expect(workspace(page).getByTestId('other-column-map-unknown')).toBeVisible();\n      |                                                         ^\n  354 | });\n  355 | test('O03: year+1 utan bindning visar konkret lucka utan automatisk progression',async({page})=>{\n  356 |  const r=metadata.grRecords[1],state=await ownedNode('readback',()=>fixture.ownedState(r.planId)),data=await enter(page,selection('grundskola',r.query,r.unitId,metadata.otherYear+1));\n    at /Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-other.spec.ts:353:57"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T00:54:42.776Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "cleanup.json",
+                      "contentType": "application/json",
+                      "body": "eyJsaWJyYXJ5VmVyc2lvbnMiOjAsInVuaXRQYWNrYWdlcyI6MCwib2ZmZXJpbmdVbml0cyI6MCwiY3VzdG9tZXJzIjowLCJzZXNzaW9ucyI6MCwicGxhbnMiOjAsInJlY2VpcHRzIjowLCJlZHVjYXRpb25FdmVudHMiOjAsIm9mZmVyaW5ncyI6MCwibWFuZGF0ZXMiOjAsInByZXNlcnZlZEF1ZGl0RXZlbnRzIjoxMTMsInByZXNlcnZlZEF1ZGl0QW5jaG9ycyI6MywibWludGVkU2Vzc2lvbnMiOjAsInRyaWdnZXJzIjowLCJmdW5jdGlvbnMiOjAsImd5bVJlY2VpcHRzIjowLCJ0aW1wbGFucyI6MCwiY2xhc3NMaW5rcyI6MCwib3JpZ2luYWxCdXNpbmVzc1VuY2hhbmdlZCI6dHJ1ZSwiYmVmb3JlIjp7InBvaW50X3BsYW5zIjp7ImNvdW50IjoyMCwic2hhMjU2IjoiNmE5M2M5MmU3NDFkMTkyNmI5OTVlMTQ0Y2UxYTJkZGVlNTc3NTNiZDE1YmJjOTliMjQ0ODFkMTQ5YTA4OTFlMyJ9LCJwb2ludF9wbGFuX2V2ZW50cyI6eyJjb3VudCI6NTQsInNoYTI1NiI6ImU2MDNlMjk0ZTBhMzY2YjIwNWEyMTRjMmYzMDJmMzBlY2VhZWJkMWE3OGFlMmQzYzdmMDE3ZjE4OWQ2MjY1ZmMifSwib2ZmZXJpbmdzIjp7ImNvdW50IjozNCwic2hhMjU2IjoiZGZlYWZmM2EzMzc3OTEyMzU0Nzk5MDMzMGZhYTgyNGJkMzVlYTBhYWQ0OTczMjkzMWU4NjVlNTNjN2RlM2Y4YyJ9LCJvZmZlcmluZ191bml0cyI6eyJjb3VudCI6MjY3LCJzaGEyNTYiOiJkNjQ3ZjA1ZWNiNmE5MGEyZWE3NTQzZDVkZTQyOTUzNjQ4Yjg0MWFhZTgzZGQ1OWFkMzE5ZDNlZjkwZTI2MmFiIn0sInRpbXBsYW5zIjp7ImNvdW50Ijo3LCJzaGEyNTYiOiIyZTAxZGNkY2M0MmE5NjEwMGYxMTJjYzE1MzIyYzg3NDIyM2Y0ODk0NWUxNmQ0ZDM4NDVkZTlhMmI3Njg5MWI5In0sInRpbXBsYW5fY2VsbHMiOnsiY291bnQiOjEyMSwic2hhMjU2IjoiNjYxYmJhYmE5OGJhNjk2NjJkNzgzZDFlNmRkZGFhZmQ3NzgzNTg0ZTM5YzNmMjhkM2I1NmUyNjQxMGRiNTM5MiJ9LCJ0aW1wbGFuX2V2ZW50cyI6eyJjb3VudCI6NjcsInNoYTI1NiI6IjYyMTM1NjllMmUwZTExZmY0NzU2OWI4ZDBlN2Y0YjkzNDdhODJkMmFhNTlhZjhkZWY4NjU1N2Q0MzM0YTQ0ZDIifSwiY2xhc3NfdGltcGxhbnMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwic2Nob29sX2NsYXNzZXMiOnsiY291bnQiOjYsInNoYTI1NiI6ImJkMDhhNzI1NDNjMWIyYmFjMWJiZjRhYjBkYmUwZmM5MzkzN2E5NjU1YWNmNTY2ZTI0NTQyOWZmNzc4ZDYyYzUifSwicHVwaWxfcGxhY2VtZW50cyI6eyJjb3VudCI6NjgsInNoYTI1NiI6IjA0MTBjZTA5NjY5NGE2NzY5NDdiNTMzNjE4ODE5NWZhNDYwNjlmZDU2ZDM4YmFlN2FhOGY2ZWJhZDgxNDcwYzIifSwicHJvZ3JhbXBsYW5fc2hhcGVfdXBncmFkZXMiOnsiY291bnQiOjEzLCJzaGEyNTYiOiJhNmE4ODRkYmIxOGFhMTQzMzNiYWVlMGM4OTgxMWU5MTE4YzRiMTg4OTk2Y2Y0NDA4ZjdmYjUwN2JlNTZlOWRkIn0sInByb2dyYW1wbGFuX3VuaXRfcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwicHJvZ3JhbXBsYW5fcGFja2FnZXMiOnsiY291bnQiOjAsInNoYTI1NiI6IjRmNTNjZGExOGMyYmFhMGMwMzU0YmI1ZjlhM2VjYmU1ZWQxMmFiNGQ4ZTExYmE4NzNjMmYxMTE2MTIwMmI5NDUifSwiZ3ltX3RpbXBsYW5fcmVjZWlwdHMiOnsiY291bnQiOjMsInNoYTI1NiI6Ijg1ZTk5NDkxOTJmNDFiZjViMmNmNWEzNTY3MTNkNzhmZGUyNDlmNWQ0NmYyMmVkMDQ2ZmFjZWJjNmQzODE1YjYifSwic2Nob29sX3llYXJzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In19LCJhZnRlciI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjZhOTNjOTJlNzQxZDE5MjZiOTk1ZTE0NGNlMWEyZGRlZTU3NzUzYmQxNWJiYzk5YjI0NDgxZDE0OWEwODkxZTMifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjU0LCJzaGEyNTYiOiJlNjAzZTI5NGUwYTM2NmIyMDVhMjE0YzJmMzAyZjMwZWNlYWViZDFhNzhhZTJkM2M3ZjAxN2YxODlkNjI2NWZjIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6ImRmZWFmZjNhMzM3NzkxMjM1NDc5OTAzMzBmYWE4MjRiZDM1ZWEwYWFkNDk3MzI5MzFlODY1ZTUzYzdkZTNmOGMifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZDY0N2YwNWVjYjZhOTBhMmVhNzU0M2Q1ZGU0Mjk1MzY0OGI4NDFhYWU4M2RkNTlhZDMxOWQzZWY5MGUyNjJhYiJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6Nywic2hhMjU2IjoiMmUwMWRjZGNjNDJhOTYxMDBmMTEyY2MxNTMyMmM4NzQyMjNmNDg5NDVlMTZkNGQzODQ1ZGU5YTJiNzY4OTFiOSJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50IjoxMjEsInNoYTI1NiI6IjY2MWJiYWJhOThiYTY5NjYyZDc4M2QxZTZkZGRhYWZkNzc4MzU4NGUzOWMzZjI4ZDNiNTZlMjY0MTBkYjUzOTIifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjY3LCJzaGEyNTYiOiI2MjEzNTY5ZTJlMGUxMWZmNDc1NjliOGQwZTdmNGI5MzQ3YTgyZDJhYTU5YWY4ZGVmODY1NTdkNDMzNGE0NGQyIn0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiJiZDA4YTcyNTQzYzFiMmJhYzFiYmY0YWIwZGJlMGZjOTM5MzdhOTY1NWFjZjU2NmUyNDU0MjlmZjc3OGQ2MmM1In0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiIwNDEwY2UwOTY2OTRhNjc2OTQ3YjUzMzYxODgxOTVmYTQ2MDY5ZmQ1NmQzOGJhZTdhYThmNmViYWQ4MTQ3MGMyIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYTZhODg0ZGJiMThhYTE0MzMzYmFlZTBjODk4MTFlOTExOGM0YjE4ODk5NmNmNDQwOGY3ZmI1MDdiZTU2ZTlkZCJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjozLCJzaGEyNTYiOiI4NWU5OTQ5MTkyZjQxYmY1YjJjZjVhMzU2NzEzZDc4ZmRlMjQ5ZjVkNDZmMjJlZDA0NmZhY2ViYzZkMzgxNWI2In0sInNjaG9vbF95ZWFycyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fSwib3JpZ2luYWxCdXNpbmVzcyI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjZhOTNjOTJlNzQxZDE5MjZiOTk1ZTE0NGNlMWEyZGRlZTU3NzUzYmQxNWJiYzk5YjI0NDgxZDE0OWEwODkxZTMifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjU0LCJzaGEyNTYiOiJlNjAzZTI5NGUwYTM2NmIyMDVhMjE0YzJmMzAyZjMwZWNlYWViZDFhNzhhZTJkM2M3ZjAxN2YxODlkNjI2NWZjIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6ImRmZWFmZjNhMzM3NzkxMjM1NDc5OTAzMzBmYWE4MjRiZDM1ZWEwYWFkNDk3MzI5MzFlODY1ZTUzYzdkZTNmOGMifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZDY0N2YwNWVjYjZhOTBhMmVhNzU0M2Q1ZGU0Mjk1MzY0OGI4NDFhYWU4M2RkNTlhZDMxOWQzZWY5MGUyNjJhYiJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6Nywic2hhMjU2IjoiMmUwMWRjZGNjNDJhOTYxMDBmMTEyY2MxNTMyMmM4NzQyMjNmNDg5NDVlMTZkNGQzODQ1ZGU5YTJiNzY4OTFiOSJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50IjoxMjEsInNoYTI1NiI6IjY2MWJiYWJhOThiYTY5NjYyZDc4M2QxZTZkZGRhYWZkNzc4MzU4NGUzOWMzZjI4ZDNiNTZlMjY0MTBkYjUzOTIifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjY3LCJzaGEyNTYiOiI2MjEzNTY5ZTJlMGUxMWZmNDc1NjliOGQwZTdmNGI5MzQ3YTgyZDJhYTU5YWY4ZGVmODY1NTdkNDMzNGE0NGQyIn0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiJiZDA4YTcyNTQzYzFiMmJhYzFiYmY0YWIwZGJlMGZjOTM5MzdhOTY1NWFjZjU2NmUyNDU0MjlmZjc3OGQ2MmM1In0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiIwNDEwY2UwOTY2OTRhNjc2OTQ3YjUzMzYxODgxOTVmYTQ2MDY5ZmQ1NmQzOGJhZTdhYThmNmViYWQ4MTQ3MGMyIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYTZhODg0ZGJiMThhYTE0MzMzYmFlZTBjODk4MTFlOTExOGM0YjE4ODk5NmNmNDQwOGY3ZmI1MDdiZTU2ZTlkZCJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjozLCJzaGEyNTYiOiI4NWU5OTQ5MTkyZjQxYmY1YjJjZjVhMzU2NzEzZDc4ZmRlMjQ5ZjVkNDZmMjJlZDA0NmZhY2ViYzZkMzgxNWI2In0sInNjaG9vbF95ZWFycyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fSwiZmluYWxCdXNpbmVzcyI6eyJwb2ludF9wbGFucyI6eyJjb3VudCI6MjAsInNoYTI1NiI6IjZhOTNjOTJlNzQxZDE5MjZiOTk1ZTE0NGNlMWEyZGRlZTU3NzUzYmQxNWJiYzk5YjI0NDgxZDE0OWEwODkxZTMifSwicG9pbnRfcGxhbl9ldmVudHMiOnsiY291bnQiOjU0LCJzaGEyNTYiOiJlNjAzZTI5NGUwYTM2NmIyMDVhMjE0YzJmMzAyZjMwZWNlYWViZDFhNzhhZTJkM2M3ZjAxN2YxODlkNjI2NWZjIn0sIm9mZmVyaW5ncyI6eyJjb3VudCI6MzQsInNoYTI1NiI6ImRmZWFmZjNhMzM3NzkxMjM1NDc5OTAzMzBmYWE4MjRiZDM1ZWEwYWFkNDk3MzI5MzFlODY1ZTUzYzdkZTNmOGMifSwib2ZmZXJpbmdfdW5pdHMiOnsiY291bnQiOjI2Nywic2hhMjU2IjoiZDY0N2YwNWVjYjZhOTBhMmVhNzU0M2Q1ZGU0Mjk1MzY0OGI4NDFhYWU4M2RkNTlhZDMxOWQzZWY5MGUyNjJhYiJ9LCJ0aW1wbGFucyI6eyJjb3VudCI6Nywic2hhMjU2IjoiMmUwMWRjZGNjNDJhOTYxMDBmMTEyY2MxNTMyMmM4NzQyMjNmNDg5NDVlMTZkNGQzODQ1ZGU5YTJiNzY4OTFiOSJ9LCJ0aW1wbGFuX2NlbGxzIjp7ImNvdW50IjoxMjEsInNoYTI1NiI6IjY2MWJiYWJhOThiYTY5NjYyZDc4M2QxZTZkZGRhYWZkNzc4MzU4NGUzOWMzZjI4ZDNiNTZlMjY0MTBkYjUzOTIifSwidGltcGxhbl9ldmVudHMiOnsiY291bnQiOjY3LCJzaGEyNTYiOiI2MjEzNTY5ZTJlMGUxMWZmNDc1NjliOGQwZTdmNGI5MzQ3YTgyZDJhYTU5YWY4ZGVmODY1NTdkNDMzNGE0NGQyIn0sImNsYXNzX3RpbXBsYW5zIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInNjaG9vbF9jbGFzc2VzIjp7ImNvdW50Ijo2LCJzaGEyNTYiOiJiZDA4YTcyNTQzYzFiMmJhYzFiYmY0YWIwZGJlMGZjOTM5MzdhOTY1NWFjZjU2NmUyNDU0MjlmZjc3OGQ2MmM1In0sInB1cGlsX3BsYWNlbWVudHMiOnsiY291bnQiOjY4LCJzaGEyNTYiOiIwNDEwY2UwOTY2OTRhNjc2OTQ3YjUzMzYxODgxOTVmYTQ2MDY5ZmQ1NmQzOGJhZTdhYThmNmViYWQ4MTQ3MGMyIn0sInByb2dyYW1wbGFuX3NoYXBlX3VwZ3JhZGVzIjp7ImNvdW50IjoxMywic2hhMjU2IjoiYTZhODg0ZGJiMThhYTE0MzMzYmFlZTBjODk4MTFlOTExOGM0YjE4ODk5NmNmNDQwOGY3ZmI1MDdiZTU2ZTlkZCJ9LCJwcm9ncmFtcGxhbl91bml0X3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sInByb2dyYW1wbGFuX3BhY2thZ2VzIjp7ImNvdW50IjowLCJzaGEyNTYiOiI0ZjUzY2RhMThjMmJhYTBjMDM1NGJiNWY5YTNlY2JlNWVkMTJhYjRkOGUxMWJhODczYzJmMTExNjEyMDJiOTQ1In0sImd5bV90aW1wbGFuX3JlY2VpcHRzIjp7ImNvdW50IjozLCJzaGEyNTYiOiI4NWU5OTQ5MTkyZjQxYmY1YjJjZjVhMzU2NzEzZDc4ZmRlMjQ5ZjVkNDZmMjJlZDA0NmZhY2ViYzZkMzgxNWI2In0sInNjaG9vbF95ZWFycyI6eyJjb3VudCI6MCwic2hhMjU2IjoiNGY1M2NkYTE4YzJiYWEwYzAzNTRiYjVmOWEzZWNiZTVlZDEyYWI0ZDhlMTFiYTg3M2MyZjExMTYxMjAyYjk0NSJ9fSwib3JpZ2luYWxBdWRpdEhhc2giOiJiZjZkMzA1ZmQyNmYwOTJhN2EyYTQ5ZWM4ZTQ2Yzg2NDEzM2NkYjg1NDVjYjY1YjgxMmNiZTFiM2NhNmE2MjJlIiwiZmluYWxBdWRpdEhhc2giOiJiZjZkMzA1ZmQyNmYwOTJhN2EyYTQ5ZWM4ZTQ2Yzg2NDEzM2NkYjg1NDVjYjY1YjgxMmNiZTFiM2NhNmE2MjJlIiwib3JpZ2luYWxJZGVudGl0eUhhc2giOiIwYmEwOGQ3ZWJkNWQ4NTBkM2VhNzRmNTlmM2EwYTY0ZTFjNjFlMmY5Mzk1ZDI5ZmJjODkxNjJlZWUxODFkNmQ3IiwiZmluYWxJZGVudGl0eUhhc2giOiIwYmEwOGQ3ZWJkNWQ4NTBkM2VhNzRmNTlmM2EwYTY0ZTFjNjFlMmY5Mzk1ZDI5ZmJjODkxNjJlZWUxODFkNmQ3Iiwib3JpZ2luYWxCdXNpbmVzc1ByZXNlcnZlZCI6dHJ1ZSwib3JpZ2luYWxBdWRpdFByZXNlcnZlZCI6dHJ1ZSwiaWRlbnRpdHlBbmNob3JzUHJlc2VydmVkIjp0cnVlLCJyZXRhaW5lZEF1ZGl0UHJlc2VydmVkIjp0cnVlLCJyZXRhaW5lZElkZW50aXR5QW5jaG9yc1ByZXNlcnZlZCI6dHJ1ZSwiYmVmb3JlUmV0YWluZWRBdWRpdCI6eyJjb3VudCI6MTg4NjUzLCJzaGEyNTYiOiJiZjIwOGNmMmE5ODM4M2IyZTAzNTU0MDBiM2EwMzcwNzM4ZTI0OThmOWUyMTJmYWNmZmQ3Mzc2MDBjZjRmOGVlIn0sImFmdGVyUmV0YWluZWRBdWRpdCI6eyJjb3VudCI6MTg4NjUzLCJzaGEyNTYiOiJiZjIwOGNmMmE5ODM4M2IyZTAzNTU0MDBiM2EwMzcwNzM4ZTI0OThmOWUyMTJmYWNmZmQ3Mzc2MDBjZjRmOGVlIn0sImJlZm9yZVJldGFpbmVkQW5jaG9ycyI6eyJjb3VudCI6NTE0Niwic2hhMjU2IjoiZWM5NDVlODEyOTg1MzQxNDA5Mjk2OTcxMGY5ZTFjM2Q4NmU3MjRjODk2NmE1MDg2M2U1N2NhYTJjOGFiZTlkZCJ9LCJhZnRlclJldGFpbmVkQW5jaG9ycyI6eyJjb3VudCI6NTE0Niwic2hhMjU2IjoiZWM5NDVlODEyOTg1MzQxNDA5Mjk2OTcxMGY5ZTFjM2Q4NmU3MjRjODk2NmE1MDg2M2U1N2NhYTJjOGFiZTlkZCJ9LCJmb3JlaWduUmVtYWluaW5nIjp7Im9mZmVyaW5ncyI6MCwib2ZmZXJpbmdVbml0cyI6MCwic2Vzc2lvbnMiOjB9LCJmb3JlaWduUmV0YWluZWRBdWRpdEFuY2hvcnMiOnsiZXZlbnRzIjowLCJhbmNob3JlZEV2ZW50cyI6MH0sInNlYXJjaEF1ZGl0Rml4dHVyZXMiOnsidHJpZ2dlcnMiOjAsImZ1bmN0aW9ucyI6MH0sImxpc3RSZW1haW5pbmciOnsiY2xhc3NlcyI6MCwiYmluZGluZ3MiOjAsInZlcnNpb25zIjowfSwiZ3ltWWVhclJlbWFpbmluZyI6eyJwbGFucyI6MH0sIm90aGVyWWVhclJlbWFpbmluZyI6eyJwbGFucyI6MCwib2ZmZXJpbmdzIjowLCJjbGFzc2VzIjowfX0="
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-second-20261008/phase5-planning-year-other-f6a28-och-aldrig-klassens-startår-planning-year-desktop/error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/e2e/phase5-planning-year-other.spec.ts",
+                    "column": 57,
+                    "line": 353
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-c35021be6e7da9f0d836",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "O03: year+1 utan bindning visar konkret lucka utan automatisk progression",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-2e4f28e5cb762a3104a2",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 355,
+          "column": 1
+        },
+        {
+          "title": "O04: historisk grade-reorder behåller råa positioner och okänd karta",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-38e052fcbc0b80afac30",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 360,
+          "column": 1
+        },
+        {
+          "title": "O05: aktuell explicit utkastmatris sparar index1 med övriga kolumner och fryst v1 kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-f8cc5110fb87c7dad376",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 365,
+          "column": 1
+        },
+        {
+          "title": "O06: URL Back reload återvaliderar historisk version och kan inte uppfinna current-mode",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-a89ca338f6336d235ac2",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 374,
+          "column": 1
+        },
+        {
+          "title": "O07: explicit aktuell matris blir inte falsk historisk årsdel efter reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-5fc3fdfe1c5471cc32bc",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 379,
+          "column": 1
+        },
+        {
+          "title": "O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på servern",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-412d4398d260f6bdfaf0",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 382,
+          "column": 1
+        },
+        {
+          "title": "O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-60251f6d2207fc5799c0",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 390,
+          "column": 1
+        },
+        {
+          "title": "O10: IM sju verkliga tvåtimmarsrader är 14 per vecka utan årsprogressering",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-ed341c372fc425d4c14d",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 396,
+          "column": 1
+        },
+        {
+          "title": "O11: mentorNULL visas saknat och äldre fullread400 kan inte bli noll",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-62cbac130cd29f703fd6",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 401,
+          "column": 1
+        },
+        {
+          "title": "O12: huvudman läser årsbindning och veckoplan men saknar cellmandat",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-de4342e043cf1c204fc7",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 406,
+          "column": 1
+        },
+        {
+          "title": "O13: administratörens direkta GRläsning nekas faktiskt utan payload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-bd4a9fe85d93ce40ecbf",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 411,
+          "column": 1
+        },
+        {
+          "title": "O14: skolbyte och manipulerat target kan inte läsa annan rektors version",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-76dadc76488388ff6e50",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 414,
+          "column": 1
+        },
+        {
+          "title": "O15: held actual cellwrite spärrar år skola och Back till komplett readback",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-9ae9ffe2435a43b424d9",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 419,
+          "column": 1
+        },
+        {
+          "title": "O16: actual accepterad cell och återläsningsfel behåller unknown tills riktig retry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-d11e3eeb0a6c2639c19b",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 424,
+          "column": 1
+        },
+        {
+          "title": "O17: sen faktisk matrisläsning återfyller inte nytt planeringsår",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-6cad07d246c0aeaf7293",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 431,
+          "column": 1
+        },
+        {
+          "title": "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-desktop",
+              "projectName": "planning-year-desktop",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-6614b5bab6c1ac14c63f",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 436,
+          "column": 1
+        },
+        {
+          "title": "O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots nyare v2",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-61c850b7e641a1e46681",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 343,
+          "column": 1
+        },
+        {
+          "title": "O02: nytt år ger verklig åk9-bindning med samma v1 och aldrig klassens startår",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-160c20e2ff567ace4e66",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 350,
+          "column": 1
+        },
+        {
+          "title": "O03: year+1 utan bindning visar konkret lucka utan automatisk progression",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-1ad5a7d2372db94313fb",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 355,
+          "column": 1
+        },
+        {
+          "title": "O04: historisk grade-reorder behåller råa positioner och okänd karta",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-aefd9bc25219af8bf407",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 360,
+          "column": 1
+        },
+        {
+          "title": "O05: aktuell explicit utkastmatris sparar index1 med övriga kolumner och fryst v1 kvar",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-26a1082ce38c76505a19",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 365,
+          "column": 1
+        },
+        {
+          "title": "O06: URL Back reload återvaliderar historisk version och kan inte uppfinna current-mode",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-9cef640cc8457dd697cb",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 374,
+          "column": 1
+        },
+        {
+          "title": "O07: explicit aktuell matris blir inte falsk historisk årsdel efter reload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-4cd5d1fd3dd1886e518b",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 379,
+          "column": 1
+        },
+        {
+          "title": "O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på servern",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-cc3307562dd8d5a1420a",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 382,
+          "column": 1
+        },
+        {
+          "title": "O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-ff0887dcac9f28ae1a2b",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 390,
+          "column": 1
+        },
+        {
+          "title": "O10: IM sju verkliga tvåtimmarsrader är 14 per vecka utan årsprogressering",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-db71cd4d0016fa0080ce",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 396,
+          "column": 1
+        },
+        {
+          "title": "O11: mentorNULL visas saknat och äldre fullread400 kan inte bli noll",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-170653225e48481f5aa4",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 401,
+          "column": 1
+        },
+        {
+          "title": "O12: huvudman läser årsbindning och veckoplan men saknar cellmandat",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-1344b1bc00d8b4eab824",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 406,
+          "column": 1
+        },
+        {
+          "title": "O13: administratörens direkta GRläsning nekas faktiskt utan payload",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-6afb90d064fdf8bf9c3f",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 411,
+          "column": 1
+        },
+        {
+          "title": "O14: skolbyte och manipulerat target kan inte läsa annan rektors version",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-99f96fe3b6d259249376",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 414,
+          "column": 1
+        },
+        {
+          "title": "O15: held actual cellwrite spärrar år skola och Back till komplett readback",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-bbaa934c0b600c2d34a3",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 419,
+          "column": 1
+        },
+        {
+          "title": "O16: actual accepterad cell och återläsningsfel behåller unknown tills riktig retry",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-fd9def56198351d0a120",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 424,
+          "column": 1
+        },
+        {
+          "title": "O17: sen faktisk matrisläsning återfyller inte nytt planeringsår",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-327244dbbee59a230fbc",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 431,
+          "column": 1
+        },
+        {
+          "title": "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "planning-year-phone",
+              "projectName": "planning-year-phone",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "3940443b70db6a660ccf-3320e8a7b816f21a78df",
+          "file": "phase5-planning-year-other.spec.ts",
+          "line": 436,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "\u001b[31mTesting stopped early after 1 maximum allowed failures.\u001b[39m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-08T00:53:21.868Z",
+    "duration": 151147.92799999999,
+    "expected": 1,
+    "skipped": 34,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

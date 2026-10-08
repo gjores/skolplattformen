@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 ägd återställning känd PASS och fixtur70df integrerad. Ny launch/preO/duringO och fullO36 på bevarad produktartefakt179 återstår.
+stopped_at: UI05-42 andra fullO stoppad i O02 efter korrekt årsrad; två normalcleanup PASS. Provet ska kontrollera automatiskt återöppnad bindning före nytt fullO36.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 ägd återställning och fixturkoppling klara; fullO36 återstår.86/100 och vanlig3012 består."
-state_head: 7b20312
+last_activity_desc: "UI05-42 andra O:1PASS/1FAIL/34ejstartade, städning bevarad. Automatiskt årsöppningsprov rättas;86/100 och vanlig3012 består."
+state_head: d6a4812
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_before_new_O_launch
+verification_worker_status: running_after_second_O_normal_cleanup
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 andra faktiska prov2026-10-08:** Source d6a4812/build17924ff, O3ea5/fixtur70df. ROOT5626 exit1; O01 datorPASS, O02 timeout efter korrekt faktisk ny årsrad med ak9/samma fastställda v1;34ejstartade. Rårapport60447dad bevaras. Appen återvaliderar och öppnar den nya årsbindningen automatiskt, medan O02 försöker klicka i dess tillfälligt inaktiverade lista som sedan försvinner. Minimal provrättning granskas; produkt och tidsgrindar ändras inte. Båda normalcleanup/full15 exaktSEARCH/sex bevarandeflaggor/16own+foreignDDLzero PASS, ROOT och oberoende91kontroller. Slutaudit188653/bf208cf2 och auditerade identiteter5146/ec945e81 bevarade. Ingen recovery behövs. Sex nya genuina pre/duringO-records arkiverade; duringc357 binder faktiskt pågående5626 till samma3060-kedja/180artefakt3b5af3de. Första e72FAIL och firstduring=false består. Ny fullO36 kräver nya egna metadata;86/100 och vanlig3012 består.
 
 **UI42 första faktiska prov2026-10-08:** Source/build17924ff, O3ea5/fixtur05ee. Första O01 dator avbruten i setup efter verklig timplanläsning403;0PASS/1FAIL/35ej startade. Rårapport e72d4722 och fem genuina ROOTpreO-records bevaras. Ingen duringO-observation hann registreras och ingen sådan skapas i efterhand. ROOT observerade provets exit1 och preview83420 exit143; exakt egen57183→57192→57195-kedja/3060-listener borta. Deferredsetup gäller egen2f865de9-graf, browser/context/routes avslutade. Källgranskning visar extra mandatunit utan motsvarande bound staff assignment unit, vilket legitimt ogiltigförklarar rektorsmandatet. Inga serverregler/provgrindar ändras. Granskad ägd läsförkontroll/återställning före ny fixtur; sedan minimal testkopplingsrättning och nytt fullO36 med separata genuina metadata.86/100 och ordinarie3012 består.
 
