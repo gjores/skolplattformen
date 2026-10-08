@@ -427,7 +427,32 @@ test('O13: administratörens direkta GRläsning nekas faktiskt utan payload',asy
 });
 test('O14: skolbyte och manipulerat target kan inte läsa annan rektors version',async({page})=>{
  const r=metadata.grRecords[0];await openBound(page,r);const before=await ownedNode('readback',()=>fixture.ownedState(metadata.otherSchool.planId)),reply=await nodeRequest(baseURL,fixture.principal,READ,{planId:metadata.otherSchool.planId});expect(reply.status).toBe(403);expect(reply.body).not.toHaveProperty('cells');
- actor=fixture.principalB;await fixture.cookies(page.context(),actor,baseURL);await page.goto(address(selection('grundskola',r.query,metadata.otherSchool.unitId))+'&ovrigtimplan='+r.planId+'&timplansform=grundskola'+'&timplansskola='+r.unitId);
+ const nextActor={...fixture.principalB},q=selection('grundskola',r.query,metadata.otherSchool.unitId),registerRoute='/api/elever/urval';
+ // Register all actual waits before navigation; an absent old binding is not a ready new context.
+ const planningWait=page.waitForResponse(response=>new URL(response.url()).origin===new URL(baseURL).origin&&pathname(response)===SETUP&&response.request().method()==='GET');
+ const registerWait=page.waitForResponse(response=>new URL(response.url()).origin===new URL(baseURL).origin&&pathname(response)===registerRoute&&response.request().method()==='GET');
+ const listWait=page.waitForResponse(response=>new URL(response.url()).origin===new URL(baseURL).origin&&matches(LIST)(response)
+  &&response.request().postDataJSON().unitId===q.unitId&&response.request().postDataJSON().schoolYear===q.schoolYear&&response.request().postDataJSON().query===q.query);
+ actor=nextActor;await fixture.cookies(page.context(),actor,baseURL);await page.goto(address(q)+'&ovrigtimplan='+r.planId+'&timplansform=grundskola'+'&timplansskola='+r.unitId);await waitForHydration(page);
+ const [planningReply,registerReply,listReply]=await Promise.all([planningWait,registerWait,listWait]);
+ for(const actual of [planningReply,registerReply,listReply]){
+  expect(actual.status()).toBe(200);expect(actual.headers()['cache-control']).toBe('no-store');expect(actual.headers()['x-correlation-id']).toMatch(/^[0-9a-f-]{36}$/u);expect(actual.headers()['x-context-epoch']).toBe(String(nextActor.epoch));
+  const captured=requestActor(actual.request());expect([captured.id,captured.identityId,captured.membershipId,captured.assignmentId,captured.epoch]).toEqual([nextActor.id,nextActor.identityId,nextActor.membershipId,nextActor.assignmentId,nextActor.epoch]);
+ }
+ const [planningBody,registerBody,listBody]=await Promise.all([planningReply.json(),registerReply.json(),listReply.json()]);
+ const nextSetup=parsePlanningSetup(planningBody);expect(nextSetup.customerId).toBe(fixture.customerId);expect(nextSetup.units.map(unit=>unit.unitId)).toEqual([q.unitId]);expect(nextSetup.units[0].canRead.grundskola).toBe(true);
+ await audit(planningReply,SETUP,undefined,nextActor);
+ // Register selection has one required Worker event, not a fabricated DB/Worker pair.
+ expect(Object.keys(registerBody).sort()).toEqual(['approverName','currentSchoolYear','endsAt','purposeCode','schoolYears','scope','serverNow']);
+ expect(Array.isArray(registerBody.schoolYears)).toBe(true);expect(registerBody.schoolYears.length).toBeGreaterThan(0);expect(registerBody.schoolYears.every((year:unknown)=>Number.isInteger(year))).toBe(true);expect(new Set(registerBody.schoolYears).size).toBe(registerBody.schoolYears.length);expect(registerBody.schoolYears).toContain(registerBody.currentSchoolYear);expect(registerBody.currentSchoolYear).toBe(nextSetup.currentYear);
+ expect(Object.keys(registerBody.scope).sort()).toEqual(['cases','groups','schools']);expect(registerBody.scope.groups).toEqual([]);expect(registerBody.scope.cases).toEqual([]);expect(registerBody.scope.schools).toHaveLength(1);
+ const registerSchool=registerBody.scope.schools[0];expect(Object.keys(registerSchool).sort()).toEqual(['id','name']);expect(registerSchool.id).toBe(q.unitId);expect(typeof registerSchool.name).toBe('string');expect(registerSchool.name.length).toBeGreaterThan(0);
+ await cachedAudit(registerReply,async()=>{
+  const events=await ownedNode('readback',()=>fixture.events(registerReply.headers()['x-correlation-id']));expect(events).toHaveLength(1);
+  const event=events[0];expect([event.source,event.action,event.outcome,event.actor_identity_id,event.membership_id,event.assignment_id,event.session_id,event.customer_id,event.object_type,event.object_id]).toEqual(['worker','pupil_selection_read','ok',nextActor.identityId,nextActor.membershipId,nextActor.assignmentId,nextActor.id,fixture.customerId,'pupil_register',null]);expect(event.details).toEqual({accessFunction:'rektor'});
+ });
+ expect(listReply.request().postDataJSON()).toEqual(q);const data=parsePlanningList(listBody,listReply.request().postDataJSON(),nextSetup);expect(data.selection).toEqual(q);expect(data.count).toBe(0);expect(data.rows).toEqual([]);await audit(listReply,LIST,q,nextActor);
+ await expect(page.locator('#uppdrag')).toHaveValue(nextActor.assignmentId);await expect(page.locator('#uppdrag')).toBeEnabled();await expect(bar(page)).toHaveAttribute('aria-busy','false');await expect(bar(page).getByLabel('Planeringsskola',{exact:true})).toHaveValue(q.unitId!);await expect(bar(page).getByLabel('Planeringsläsår',{exact:true})).toHaveValue(String(q.schoolYear));await expect(list(page)).toBeVisible();await expect(list(page)).toHaveAttribute('aria-busy','false');
  await expect(workspace(page).getByTestId('other-year-binding')).toHaveCount(0);expect(await ownedNode('readback',()=>fixture.ownedState(metadata.otherSchool.planId))).toEqual(before);
 });
 test('O15: held actual cellwrite spärrar år skola och Back till komplett readback',async({page})=>{

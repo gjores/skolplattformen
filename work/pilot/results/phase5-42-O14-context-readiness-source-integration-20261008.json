@@ -1,0 +1,121 @@
+{
+  "kind": "phase5-42-O14-context-readiness-source-integration-v1",
+  "sourceOnlyBehavior": true,
+  "sourceBaseRevision": "81e2164786a05ddb45d66ec1baf00420f882c70f",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "specSha256": "07c44817ab7a274e0a8d809309531cd50893c4c95c5212b7c001df828e13a4fd",
+  "baseSpecSha256": "16462f413614add947d2fec2cf63b38365a80aab6e4c6fc4b244e2edb8f1b5f6",
+  "patchSha256": "cfa15a0eb30e42e54981979f9c18340ea50f083f2eedc30b9a2f4a96ee77faae",
+  "proposalManifestSha256": "820fdf119027a66746577289f1155ddf2af498408ecbe718415665ada782efb6",
+  "unchangedDependencies": {
+    "web/app/protected-home.tsx": "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6",
+    "web/app/protected-timplan-workspace.tsx": "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7",
+    "web/app/protected-timplan.css": "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db",
+    "web/app/planning-context.tsx": "a0106cf27295c35ec4ad17af0f934e92e0e02181845b03351b796f9cf2fec1f5",
+    "web/app/planning-context.css": "c0bfa0a65cef4d5cca7decaf5e6289162615b2f309aa8f41599d5bc7b5113659",
+    "web/lib/protected-plan-location.ts": "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e",
+    "web/lib/protected-timplan.ts": "895ff46deaba7dcc66fcc41fb3d16cf657aca7b773a5c5e816ad4148a1a5d8cf",
+    "web/lib/planning-year-contract.ts": "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+    "web/lib/planning-year-model.ts": "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+    "web/app/protected-plan-list.tsx": "229a5d0337598e8084583fb55b9f94890c831c2f76a258606eb1fe1d0bed0f65",
+    "web/app/protected-plan-list.css": "55f12de62aa1658accf4aef430d6f1b555cb635e7b0c0384d5195ab023a2a62a",
+    "web/app/protected-planning-overview.tsx": "0551e1446a9e2e096fcb665d8eab940861b3c631782ab0ed57c7152127d998f6",
+    "work/pilot/phase5-planning-year-other-fixtures.mjs": "70df344c436c841e0ec8385f7235c35ae0c77b889e8fccd7d6da08ea3f3874e4",
+    "work/pilot/phase5-planning-year-gym-fixtures.mjs": "271215ad0d1c4b940132beb99b99d9852c1ca9aeae3fa93907554af0169f9706",
+    "web/e2e/phase5-planning-year-gym.spec.ts": "4bcec56142f4a980dfa40759d361290c244f75737834835180abf672a3a4b402",
+    "work/pilot/phase5-planning-year-list-fixtures.mjs": "cd4823f593c6ecc2347d63a35d9f858e3d9f57f451472cb326316b2441efd76f",
+    "web/e2e/phase5-planning-year-lists.spec.ts": "620e40be153ed41bc83f9544c033c4a6946a0fe7e79b73d33375f1aecfe0b5bc",
+    "web/e2e/phase5-planning-year-context.spec.ts": "73c2480ad26640193dc3d1eb1e59e68a898c84d6c92edca23c5491afe2d987e1",
+    "web/playwright.phase5-planning-year.config.ts": "3af7aeb13ae2e3fb0372b6ab0ad42364022ba5c91dca26ab38e6e92e6f7b6d52",
+    "web/app/school-year-picker.tsx": "0b68c915243e74d7b0366ef3e1347d2a316403f47a2d7afbb4d7f8c9d9094e48",
+    "web/lib/server/pupil-register.ts": "5d64bd9cfc8af0cdaf866b81324a5183ac4f59368de65c0eb26705c733b54cfa",
+    "web/lib/server/events.ts": "f7705febcfc3300192930d2ee088a129742c38d15c737cd533fa24fcded65268",
+    "web/lib/server/authz.ts": "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+    "web/lib/server/http.ts": "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2",
+    "web/app/api/elever/urval/route.ts": "e0838c64a7abc48f60843c4dae6d43afca5310a7efbc465ffcc6afb06a4d076b",
+    "web/lib/server/audit-details.ts": "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+    "supabase/migrations/20260929161000_phase4_register_selection.sql": "dda526d252cebcb0ae01c8b70a6ebe74a8bfab65cc819e8f1e8b20f68f47161d",
+    "supabase/migrations/20260929140000_phase4_register_reads.sql": "e3875c8bb12feca2066fc9f1e9204aff303e45a5178cbc570ab4de3b34a30c2e",
+    "web/e2e/phase4-list.spec.ts": "b331ed84716fd6fed9af0b8ac65e52fd1a830b6444519a8ea66d94b06ff703dd",
+    "work/pilot/phase5-programplan-browser-fixtures.mjs": "51b947176323157c748979ae9c8cf0e4d5ccad967dbe176c40cb70b6b30d8e79"
+  },
+  "preservedFailures": [
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-first-20261008.json",
+      "sha256": "e72d47220e46a5453696f94aed4affc84344921364a2f466bdcaa509992ce610"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-second-20261008.json",
+      "sha256": "60447daddf96e7da14957cd04c88f4ecb659b876013f97d2b81810faf4a36d98"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-third-20261008.json",
+      "sha256": "769bda9c72c949cda76814c12814241b64cdf8dbec3d6b48733f149157817082"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-fourth-20261008.json",
+      "sha256": "1fc391506cbf4c15802fc85f0a8cb2a63921672ce1c4f138a383e95f4138cbbe"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-fifth-20261008.json",
+      "sha256": "7e72e0167aa0d6e167744668ed7fce026391a3c46c31740aeea5e628538a56c5"
+    }
+  ],
+  "rootChecks": {
+    "pureO14": 18,
+    "pureRecovery": 15,
+    "typeSession": 88272,
+    "lintSession": 52796,
+    "listSession": 67882,
+    "listCount": 36,
+    "allExitCode": 0,
+    "actualBehaviorExecuted": false
+  },
+  "recovery": {
+    "sourceSha256": "a6d50ceb08c79ab1c00fb2acac222d946fd88f62ca94d95c8c0fa748d01d7a53",
+    "preflightSession": 68908,
+    "applySession": 79449,
+    "bothExitCode": 0,
+    "rawPins": {
+      "phase5-42-fifth-other-recovery-v1-preflight-completion-20261008.json": "6dcc543165a8a9948e61a9e89fc71274e5ed8b74bc80f8f95681e543e8bb5af8",
+      "phase5-42-fifth-other-recovery-v1-preflight-reserved-20261008.json": "077d491d7c450494a2a58faa7614443939efa84909517832957c78cf0513f414",
+      "phase5-42-fifth-other-recovery-v1-completion-20261008.json": "2bc3297dd78633aa479c44ff04fdcd37eb0b8eadf3cbaf4505602ba1720a4adc",
+      "phase5-42-fifth-other-recovery-v1-reserved-20261008.json": "f46db92d98482c8b39846fc886d496da1156ae42f4a35a263f7508e9ed1e9bbf"
+    },
+    "independentReviewSha256": "590819c2cd34ffba19d2ca0c91a603e0920fa52931b6796138eeaf213c38c589",
+    "independentChecksPassed": 187,
+    "allAuditAndAuditedIdentities": {
+      "audit": {
+        "count": 191069,
+        "sha256": "7d3e61d135d1b2e66c4c1050867e4cae90cd77ffd235a2c91618c81ea1a6dc97"
+      },
+      "identities": {
+        "count": 5213,
+        "sha256": "3d56c5303b54e14d5c8fd70916e130c34741048360fc49541a1cf971b07474b8"
+      }
+    },
+    "allIdentitiesOutsideNewOwn": {
+      "count": 5241,
+      "sha256": "b0d834be166d09172a936f10e58540c607568b042a597776f478271acc96f13f"
+    },
+    "ownedSessionsAfter": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "retainedAuditAnchorCounts": {
+      "main": 106,
+      "foreign": 0
+    },
+    "databaseClosed": true,
+    "reservedClosed": true,
+    "postcommitPreservation": true
+  },
+  "next": [
+    "boundedO14DesktopPhone",
+    "freshFullO36WithGenuinePreDuringMetadata"
+  ],
+  "ordinary3012Touched": false,
+  "completedPlans": 86,
+  "completedPhases": 3,
+  "formalReadyApprovalGap": "pending"
+}

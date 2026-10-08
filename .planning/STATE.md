@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 femte O:13PASS/O14 deferred; egen3060 stoppad med känd exit143, ägd återställning och skolbytets faktiska väntan granskas före nytt prov.
+stopped_at: UI05-42 O5 ägd återställning och O14-source PASS; nästa O14×2 och färsk fullO36 på bevarad179.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 femte O:13PASS/1FAIL/22ejstartade;13 normalcleanup, sista egna grafen återstår.86/100 och vanlig3012 består."
+last_activity_desc: "UI05-42 ägd återställning kändexit0 och O14-source07c PASS; nya actualprov återstår.86/100 och3012 består."
 state_head: 81e2164
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_after_fifth_O_deferred
+verification_worker_status: stopped_after_known_fifth_owned_recovery
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 O14 och ägd återställning2026-10-08:** ROOT68908 förkontroll exit0 (completion6dcc5431/reserved077d491d) och separat ROOT79449 apply exit0 (completion2bc3297d/reservedf46db92d) på granskad källa a6d50ceb.13 egna sessioner till0 och endast a88601b6:s verksamhetsgraf städad;106 audithändelser/fyra egna ankare, original15 exaktSEARCH/katalog/råACL28/ALLaudit1910697d3e61d1/SQLauditedidentity52133d56c530/ALLolder5241b0d834be/alla staffbindningar/sex äldre grafer är bevarade före/efter/postcommit med känt DB-/filavslut. Oberoende187 filkontroller PASS. Femte7e72FAIL består. Endast O14:s väntan på faktisk B-SETUP/register/LIST/fullbody/uppdrag/skola/år/färdiglista ändras, spec07c44817/patchcfa15a0e/manifest820fdf11: ROOT/oberoende18 rena prober och exakt helundo PASS; ursprunglig403/ownstate och alla17övriga fall/audit-/tids-/avslutsgrindar består. ROOT tsc88272/lint52796/list67882=36 exit0.241produktbytes och bevarad179/180artefakt3b5 oförändrade, inget extra appbygge. Nästa seriellt O14×dator/telefon (grep ger endast två resultat), sedan helt ny fullO36 med genuina pre/duringmetadata. Ingen fullO36/release/användar-PASS;86/100,3/8 och vanlig3012 består.
 
 **UI42 fjärde/femte faktiska försök2026-10-08:** Fjärde ROOT97764 exit1/rå1fc39150 valde äldre standardconfig och gav0 suites/1 configerror före O-fall; dess sex process-/artefaktfiler är historik, inte O- eller releasebevis. Separat configreview041dbd89 anger gränsen. Femte korrekta config/PHASE5_BASE_URL3060 körde på source81e2164/spec16462/fixtur70df/bevarat179: ROOT61261 exit1/rå7e72e016,13 datorPASS/O14 teardownFAIL/22ejstartade/errors1. De13 normalcleanup/full15 exaktSEARCH/sex flaggor/16own+foreignDDLzero,20 explicita/49 skyddade/241 produkt-/2 parserkällor samt full audit-/identitetslinje ROOT-/oberoende178kontroller PASS. Senaste normala audit190963/7ad44140 och auditeradeident5210/cf242d06. Sex datorgeometrier/sex PNG med fem unika bilder granskade; bildinventorydd1edf0c anger befintlig O05 fokushopplänk/sticky-sidebar-begränsning och ingen telefon/fullO36-PASS. O14 avslutar negativa targetkontrollen innan ny B-kontext hunnit laddas: två GET planering/urval och elever/urval kvar stage=seen, trots känd browser-/route-/contextstängning. Egen a88601b6-graf har därför deferredcleanup och behöver granskad återställning. ROOT verifierade exakt25382→25391→25394, stoppade egen launcher med SIGTERM, preview49343 exit143 och PIDs/3060 frånvarande två gånger; stoppbevis6a849657.180 tillåtna byggfiler fortfarande3b5af3de. Ingen ny fixtur eller målåtkomst efter stopp. Minimal faktisk skolbytesväntan granskas separat; produkt/mandat/globala städ-/tidsgrindar består. Genuina femte sex pre/duringmetadata oberoende1359kontroller PASS; under-observatione47e5757 binder faktisk61261.86/100,3/8 och vanlig3012 oförändrade.
 
