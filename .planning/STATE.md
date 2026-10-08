@@ -5,12 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 sju granskade källor integrerade;52 modeller/fulltyp/lint/list36 PASS. FöreactualO behövs SOURCErelease-V5 i Git, nytt isolerat bygge och ROOTpreO-metadata.
+stopped_at: UI05-42 första O01 avbruten i setup; eget rektorsmandat saknar matchande uppdragsenhet.3060 exakt stoppad; granskad ägd återställning och fixturrättning före nytt O36.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 GR/IM källintegrerat; actualO36 återstår.86/100 och vanlig3012 består."
-state_head: 6e51629
-verification_worker_build_revision: 6e51629e00fc41a29e27324e696aea529d961b62
+last_activity_desc: "UI05-42 första actualFAIL bevarad; egen återställning och O36 återstår.86/100 och vanlig3012 består."
+state_head: 17924ff
+verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
+verification_worker_status: stopped_for_owned_recovery
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -22,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 första faktiska prov2026-10-08:** Source/build17924ff, O3ea5/fixtur05ee. Första O01 dator avbruten i setup efter verklig timplanläsning403;0PASS/1FAIL/35ej startade. Rårapport e72d4722 och fem genuina ROOTpreO-records bevaras. Ingen duringO-observation hann registreras och ingen sådan skapas i efterhand. ROOT observerade provets exit1 och preview83420 exit143; exakt egen57183→57192→57195-kedja/3060-listener borta. Deferredsetup gäller egen2f865de9-graf, browser/context/routes avslutade. Källgranskning visar extra mandatunit utan motsvarande bound staff assignment unit, vilket legitimt ogiltigförklarar rektorsmandatet. Inga serverregler/provgrindar ändras. Granskad ägd läsförkontroll/återställning före ny fixtur; sedan minimal testkopplingsrättning och nytt fullO36 med separata genuina metadata.86/100 och ordinarie3012 består.
 
 ## Project Reference
 

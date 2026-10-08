@@ -1,0 +1,10 @@
+{
+  "kind": "phase5-planning-year-isolated-tested-launch-v1",
+  "target": "protected",
+  "baseURL": "http://127.0.0.1:3060",
+  "sourceRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+  "recordedBeforeOtherCases": true,
+  "completionKnown": true
+}

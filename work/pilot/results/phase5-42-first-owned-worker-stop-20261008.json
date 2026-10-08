@@ -1,0 +1,24 @@
+{
+  "kind": "phase5-root-owned-worker-stop-v1",
+  "observedAt": "2026-10-08T00:31:51.355652+00:00",
+  "baseURL": "http://127.0.0.1:3060",
+  "sourceRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "stoppedOwnedPids": [
+    57183,
+    57192,
+    57195
+  ],
+  "rootObservedPreviewToolSession": 83420,
+  "rootObservedPreviewExitCode": 143,
+  "rootObservedBrowserToolSession": 99433,
+  "rootObservedBrowserExitCode": 1,
+  "pidsAbsent": true,
+  "listenerAbsent": true,
+  "firstBrowserReport": {
+    "report": "work/pilot/results/phase5-42-other-actual-first-20261008.json",
+    "sha256": "e72d47220e46a5453696f94aed4affc84344921364a2f466bdcaa509992ce610"
+  },
+  "duringOObservationRecorded": false,
+  "recoveryStillRequired": true
+}
