@@ -1,0 +1,22 @@
+{
+  "kind": "phase5-file-artifact-transfer-completion-v1",
+  "status": "PASS",
+  "complete": true,
+  "stage": "prepare",
+  "reservedEvidence": {
+    "path": "/private/tmp/phase5-43-root-artifact-transfer-backup-resume-20261008/prepare-reserved.json",
+    "sha256": "5d807d1f55ce47c861076fd3f897db56e0c5de0889d3a780711f822434dcad68"
+  },
+  "lockReleased": true,
+  "lockClosed": true,
+  "failure": null,
+  "beforeManifest": {
+    "path": "/private/tmp/phase5-43-root-artifact-transfer-backup-resume-20261008/before.json",
+    "sha256": "57ad6ee06489d1e3333852d7f61bd8f1b80f11c169fbb33f39652ed9b1ebcf55"
+  },
+  "legacyFiles": 316,
+  "privatePresent": 0,
+  "requiresSuccessfulCommandExit": true,
+  "processesObserved": false,
+  "targetVerified": false
+}

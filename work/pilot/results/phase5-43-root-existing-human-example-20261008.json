@@ -1,0 +1,86 @@
+{
+  "kind": "phase5-root-existing-human-example-read-only-v1",
+  "status": "PASS",
+  "readOnly": true,
+  "complete": true,
+  "readCompleted": true,
+  "dbClosed": true,
+  "failure": null,
+  "observedAt": "2026-10-08T22:03:30.293Z",
+  "rows": [
+    {
+      "offering_id": "55100110-0000-4000-8000-000000000040",
+      "offering_name": "Användarprov – programplan, skapa",
+      "unit_id": "33000000-0000-4000-8000-000000000111",
+      "unit_name": "Syntetisk skola 11",
+      "plan_id": "8e472118-9d99-49f5-b687-a516fb51d6cf",
+      "version": 1,
+      "revision": 3,
+      "status": "utkast",
+      "started_on": "2027-08-01",
+      "has_gym_timplan": true
+    },
+    {
+      "offering_id": "55100110-0000-4000-8000-000000000041",
+      "offering_name": "Användarprov – programplan, äldre utkast",
+      "unit_id": "33000000-0000-4000-8000-000000000111",
+      "unit_name": "Syntetisk skola 11",
+      "plan_id": "55100110-0000-4000-8000-000000000050",
+      "version": 1,
+      "revision": 3,
+      "status": "utkast",
+      "started_on": "2026-08-01",
+      "has_gym_timplan": false
+    },
+    {
+      "offering_id": "55100110-0000-4000-8000-000000000042",
+      "offering_name": "Användarprov – programplan, bundet utkast",
+      "unit_id": "33000000-0000-4000-8000-000000000111",
+      "unit_name": "Syntetisk skola 11",
+      "plan_id": "55100110-0000-4000-8000-000000000051",
+      "version": 1,
+      "revision": 29,
+      "status": "utkast",
+      "started_on": "2026-08-17",
+      "has_gym_timplan": false
+    },
+    {
+      "offering_id": "55100110-0000-4000-8000-000000000043",
+      "offering_name": "Användarprov – programplan, ny version",
+      "unit_id": "33000000-0000-4000-8000-000000000111",
+      "unit_name": "Syntetisk skola 11",
+      "plan_id": "55100110-0000-4000-8000-000000000052",
+      "version": 1,
+      "revision": 0,
+      "status": "faststalld",
+      "started_on": null,
+      "has_gym_timplan": false
+    },
+    {
+      "offering_id": "55100110-0000-4000-8000-000000000044",
+      "offering_name": "Ekonomiprogrammet – Ekonomi",
+      "unit_id": "33000000-0000-4000-8000-000000000111",
+      "unit_name": "Syntetisk skola 11",
+      "plan_id": "394560ed-4f11-4ef6-acb0-593439c5aca0",
+      "version": 1,
+      "revision": 1,
+      "status": "utkast",
+      "started_on": "2027-08-01",
+      "has_gym_timplan": false
+    }
+  ],
+  "example": {
+    "offering_id": "55100110-0000-4000-8000-000000000042",
+    "offering_name": "Användarprov – programplan, bundet utkast",
+    "unit_id": "33000000-0000-4000-8000-000000000111",
+    "unit_name": "Syntetisk skola 11",
+    "plan_id": "55100110-0000-4000-8000-000000000051",
+    "version": 1,
+    "revision": 29,
+    "status": "utkast",
+    "started_on": "2026-08-17",
+    "has_gym_timplan": false
+  },
+  "planningYear": 2027,
+  "expectedGrade": 2
+}

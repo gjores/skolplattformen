@@ -1,0 +1,33 @@
+{
+  "kind": "phase5-root-own-3012-stop-v1",
+  "knownStopped": true,
+  "ordinaryPortAbsent": true,
+  "port": 3012,
+  "ownPids": [
+    65846,
+    65847,
+    65856
+  ],
+  "verifiedBeforeStop": [
+    {
+      "pid": 65846,
+      "parent": 1,
+      "command": "/opt/homebrew/opt/node@25/bin/node scripts/run-mode.mjs preview --mode protected --port 3012",
+      "cwd": "/Users/petter.gjores/dev/skolplattform/web"
+    },
+    {
+      "pid": 65847,
+      "parent": 65846,
+      "command": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node scripts/preview-worker.mjs dist-protected/server/wrangler.json 3012",
+      "cwd": "/Users/petter.gjores/dev/skolplattform/web"
+    },
+    {
+      "pid": 65856,
+      "parent": 65847,
+      "command": "/Users/petter.gjores/dev/skolplattform/web/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd serve --binary --experimental --socket-addr=entry=127.0.0.1:3012 --external-addr=loopback=127.0.0.1:59540 --control-fd=3 -",
+      "cwd": "/Users/petter.gjores/dev/skolplattform/web"
+    }
+  ],
+  "signal": "SIGTERM_PARENT_ONLY",
+  "allOwnPidsAbsent": true
+}

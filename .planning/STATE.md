@@ -4,25 +4,27 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-43
-status: in_progress
-stopped_at: Återupptagen på användarens begäran. Releasefilförkontroll rättas mot SEARCH-applys verkliga rollbackbundna källrevision; faktisk release och3012 återstår.
+status: awaiting_user
+stopped_at: 05-43 automatisk slutkedja accepterad och vanlig3012 uppdaterad; konkret femstegsprov väntar på användaren.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "Återupptagen05-43; FinalC16/auditbrygga bevarade. Git128 diagnostiserad: apply saknar sourceCommit. Avgränsad harnessrättning, release/3012 och mänskligt prov återstår;87/100,3/8."
-state_head: 099c90f8d7bfc6f11d92f39d97986cc034644f70
+last_activity_desc: "05-43 färdig automatiskt: FinalC16/release/exakt3012/18före-efter PASS;88/100,3/8. Användarprov awaiting_user; fulla krav/formella beslut öppna."
+state_head: e36161a1245020c9a7bf03fae314e64cd10e24fa
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: isolated_final_c16_accepted_known_exit0
-worker_status: prior_3012_not_updated_by_43
-worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
+verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
+worker_status: running_on_3012_tested_artifact_process_proven
+worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 87
+  completed_plans: 88
 milestone_name: milestone
 ---
 
 # Project State
+
+**UI43 levererad för användarprov:** SlutC16, läsande release och exakt3012-överföring med18 före/efter är accepterade. Samma prövade build179,180 filer och15 hela verksamhetstabeller bevarade; handbok byggd en gång.88/100 planer,3/8 verifierade faser. Mänskligt prov är awaiting_user; fulla krav och formella beslut kvarstår. Se [slutredovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-43-SUMMARY.md) och [femstegsprov](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-USER-TRIAL.md).
 
 **Paus 2026-10-08 på användarens begäran:** [Återupptagningsläge för 05-43](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PAUSE-20261008.md). SlutC16 på dator/telefon har känd exit0 och accepterad full fil-/pixelgranskning med dokumenterade bildbegränsningar. Auditbryggans tredje försök har känd exit0 och bevarandekontroller; första två fel bevaras. Release V5 har tre kända exit1 före målåtkomst/egen resultatfil, senaste diagnos är native Git exit128 och orsaken återstår. Vanlig3012 har inte överförts och mänskligt prov är pending_delivery. 87/100 planer och3/8 faser;43 är inte färdig. worker_build_revision för vanlig3012 är historiskt observerat minne, inte ett nytt verifierat byggbevis.
 
@@ -65,6 +67,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+Aktuellt:05-43 automatiskt genomförd,88/100 planer. Vanlig3012 kör verifierad179-artefakt; nästa är användarens femstegsprov. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 

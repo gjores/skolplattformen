@@ -1,0 +1,58 @@
+{
+  "kind": "phase5-root-new3012-process-artifact-health-v1",
+  "status": "PASS",
+  "port": 3012,
+  "rootSession": 1969,
+  "readyObservedChunk": "16ebd3",
+  "sourceRevision": "e36161a1245020c9a7bf03fae314e64cd10e24fa",
+  "workerBuildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "buildProcessProven": true,
+  "processes": [
+    {
+      "pid": 93741,
+      "parent": 93738,
+      "command": "/Users/petter.gjores/dev/skolplattform/web/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd serve --binary --experimental --socket-addr=entry=127.0.0.1:3012 --external-addr=loopback=127.0.0.1:57148 --control-fd=3 -",
+      "cwd": "/Users/petter.gjores/dev/skolplattform/web"
+    },
+    {
+      "pid": 93738,
+      "parent": 93729,
+      "command": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node scripts/preview-worker.mjs dist-protected/server/wrangler.json 3012",
+      "cwd": "/Users/petter.gjores/dev/skolplattform/web"
+    },
+    {
+      "pid": 93729,
+      "parent": 9402,
+      "command": "node scripts/run-mode.mjs preview --mode protected --port 3012",
+      "cwd": "/Users/petter.gjores/dev/skolplattform/web"
+    }
+  ],
+  "health": {
+    "ok": true,
+    "role": "skolplattform_worker",
+    "customers": "0",
+    "runtime": "workerd"
+  },
+  "healthReturnsBuildRevision": false,
+  "artifactSubset": {
+    "files": 180,
+    "sha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+    "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd"
+  },
+  "applyCompletionSha256": "3e858680970f334dbfbd5847d6cdfe36420caf6a76e2ddde745b917fe0d3fe67",
+  "wholeLegacyAndTransferredFilesVerified": 348,
+  "legacyPreserved": 168,
+  "privateBeforeTransferAbsent": true,
+  "ownedNewPreviewPrivateFiles": [
+    {
+      "path": "web/dist-protected/server/.dev.vars",
+      "mode": "0600",
+      "sha256": "ad58ae502a2ec1f38ceb8412784bfc3d5e5754be0988515c6d2eaefff6595fae"
+    },
+    {
+      "path": "web/dist-protected/server/.dev.vars.lock",
+      "mode": "0600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

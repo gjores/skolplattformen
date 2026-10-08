@@ -44,3 +44,7 @@ Status är fortsatt pending: planen är skriven, tabell-/sök-/filter-/sortering
 Relaterat: [samlad UI-genomgång](2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md), [genomförd programplan–timplan-övergång](../../phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-SUMMARY.md) och [timplanernas omplaneringsunderlag](../../phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-IMPLEMENTATION.md).
 
 Status: registrerad användarbeställning, **inte implementerad**. Genomförande och användarprov återstår enligt den samordnade planen; fulla huvudkrav och fasstatus är fortsatt öppna.
+
+## Tekniskt verifierat och levererat i05-43
+
+40:s fullL36 och42:s fullO36 verifierar verkliga mandatbundna tabeller, kod-/namnsökning/filter/sort/50+2 och exakta versioner på dator/telefon.43:s slutC/release/3012 med18 före/efter är levererade. Tekniskt verifierad implementation; mänskligt tabellprov awaiting_user. Äldre status ovan är historik. Fulla ADMIN-/PLANERING-krav kvarstår. Se [slutredovisning](../../phases/05-bevarade-utbildnings-och-klassfloden/05-43-SUMMARY.md).

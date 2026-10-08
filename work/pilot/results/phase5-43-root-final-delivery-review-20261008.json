@@ -1,0 +1,197 @@
+{
+  "kind": "phase5-root-final-delivery-acceptance-v1",
+  "status": "AUTOMATIC_SCOPED_PASS",
+  "scope": "local-synthetic-only",
+  "rootAcceptedFinalContext": true,
+  "rootAcceptedReadOnlyRelease": true,
+  "rootAcceptedExactArtifactTransfer": true,
+  "rootAcceptedBeforeAfter18": true,
+  "rootAcceptedIndependentGoalReview": true,
+  "automaticGoals": {
+    "verified": 3,
+    "total": 3
+  },
+  "knownRootCommandExits": {
+    "release": {
+      "session": 84426,
+      "exitCode": 0,
+      "chunk": "0a3423"
+    },
+    "before18": {
+      "session": 69665,
+      "exitCode": 0,
+      "chunk": "80cbb9"
+    },
+    "after18": {
+      "session": 20443,
+      "exitCode": 0,
+      "chunk": "a38cce"
+    },
+    "new3012Proof": {
+      "exitCode": 0,
+      "chunk": "6d6eb0"
+    },
+    "oldStop": {
+      "exitCode": 0,
+      "chunk": "313971"
+    },
+    "humanExample": {
+      "exitCode": 0,
+      "chunk": "89beca"
+    },
+    "FinalC": {
+      "session": 30630,
+      "exitCode": 0,
+      "chunk": "88c250"
+    },
+    "artifactPrepare": {
+      "session": 32289,
+      "exitCode": 0,
+      "chunk": "8e5d61"
+    },
+    "artifactApply": {
+      "exitCode": 0,
+      "chunk": "f29c28"
+    },
+    "offlineRegression69": {
+      "exitCode": 0,
+      "chunk": "03153c"
+    },
+    "sourceInventory": {
+      "exitCode": 0,
+      "chunk": "015619"
+    },
+    "metadata": {
+      "exitCode": 0,
+      "chunk": "e17448"
+    }
+  },
+  "immutableCanonicalEvidence": [
+    {
+      "path": "work/pilot/results/phase5-43-root-git-inventory-resume-first-20261008.json",
+      "sha256": "69869faf832bbe262db33a6e28a21d0abdae743345c431f8fde462eb39f69e91"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-post-o-review-resume-first-20261008.json",
+      "sha256": "a08d861bc8a2bfb7fd7e57f1fa1288a2a9406d227c05dd1217075767d4581b83"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-tested-artifact-seal-resume-first-20261008.json",
+      "sha256": "35560bafd7b7e26a407853327b3c494551a36cd56c4d6591243241815a07fae2"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-release-review-resume-first-20261008.json",
+      "sha256": "8bec95ccb0d79a5e6897d70f83ae96a53d063c0460ed217dc3ce5625d63ee088"
+    },
+    {
+      "path": "work/pilot/results/phase5-planning-year-release-resume-first-20261008.json",
+      "sha256": "ae11649c616c363eae75dbe7b8dd25e1bd8f414d4ca6dbee8d449e81a080570e"
+    },
+    {
+      "path": "work/pilot/results/phase5-planning-year-release-resume-first-20261008-completion.json",
+      "sha256": "fe285022f7a82378f1877fff54cce2e3fb917aa22d116f21e0881a4372ac96e4"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-artifact-transfer-prepare-reserved-resume-20261008.json",
+      "sha256": "5d807d1f55ce47c861076fd3f897db56e0c5de0889d3a780711f822434dcad68"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-artifact-transfer-prepare-completion-resume-20261008.json",
+      "sha256": "0d963748e9b3502752ed985380110dc8078b5ed8bd5c9ae425d23910a3848cfa"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-artifact-transfer-apply-reserved-resume-20261008.json",
+      "sha256": "c215d86b1b8b8e3c496aff41317e252ecc98111863138e2b4ab4997e6d682001"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-artifact-transfer-apply-completion-resume-20261008.json",
+      "sha256": "3e858680970f334dbfbd5847d6cdfe36420caf6a76e2ddde745b917fe0d3fe67"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-artifact-transfer-before-resume-20261008.json",
+      "sha256": "57ad6ee06489d1e3333852d7f61bd8f1b80f11c169fbb33f39652ed9b1ebcf55"
+    },
+    {
+      "path": "work/pilot/results/phase5-3012-transfer-before-resume-first-20261008.json",
+      "sha256": "faa5b05532954da7b56774a96bbb2ec7586acd98e6d266ec45ff5a937c8e12f1"
+    },
+    {
+      "path": "work/pilot/results/phase5-3012-transfer-before-resume-first-20261008-completion.json",
+      "sha256": "4087f9cf6542dfe6e6793391a6bf0b9bbdd7a95133baa7e66adbad28bcff0bf6"
+    },
+    {
+      "path": "work/pilot/results/phase5-3012-transfer-after-resume-first-20261008.json",
+      "sha256": "38d8591cfb19450d79e1d40d08089326ce0121f5d0cbc37c0c8761456aeb082f"
+    },
+    {
+      "path": "work/pilot/results/phase5-3012-transfer-after-resume-first-20261008-completion.json",
+      "sha256": "579b05473e3058a96570c30a8079a2086996ea87532cade7d77bbeae51574069"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-old3012-stop-resume-first-20261008.json",
+      "sha256": "09819c7abb426ae8f2f63843f557fa99a9eb8cfe715d918e08ba4958509ef4f8"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-new3012-process-health-resume-first-20261008.json",
+      "sha256": "d388ecac5ce35d493738cb0cebf6dadee9ee5cd1d135b97e72fe8f7a48456d81"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-existing-human-example-20261008.json",
+      "sha256": "c33dc8691de696586946fbfa2d8ece3664666eb65fe7fe99dcc20b6b0e6e71df"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-independent-goal-backward-review-20261008.json",
+      "sha256": "ade93ae379ad4528f67a80c25487c939e779cb46cc1008ee2aeba82a5e347f0c"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-independent-goal-backward-review-20261008.md",
+      "sha256": "2f804d3925ce2544b9493058c3799400bc4fcad913d79c22774acc7849003537"
+    }
+  ],
+  "sourceRevision": "e36161a1245020c9a7bf03fae314e64cd10e24fa",
+  "finalContextSourceRevision": "099c90f8d7bfc6f11d92f39d97986cc034644f70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "humanStatus": "awaiting_user",
+  "humanResult": null,
+  "progress": {
+    "plansCompleted": 88,
+    "plansTotal": 100,
+    "phasesCompleted": 3,
+    "phasesTotal": 8
+  },
+  "ordinaryPreview": {
+    "session": 1969,
+    "status": "running",
+    "readyChunk": "16ebd3",
+    "processBuildProvenBySeparateRaw": true,
+    "port": 3012
+  },
+  "isolatedPreview": {
+    "session": 55261,
+    "knownExitCode": 143,
+    "chunk": "0e05aa",
+    "ownChainStopped": true,
+    "portAbsent": true,
+    "reason": "explicit owned SIGTERM after all verification jobs completed"
+  },
+  "unownedTodosPreserved": 34,
+  "openScope": [
+    "mänsklig begriplighet",
+    "rektors färdigmarkering och huvudmannens godkännande",
+    "05-17",
+    "ADMIN-02/03/04",
+    "full PLANERING-01–05",
+    "full fas5",
+    "verklig kommun-/pilotanslutning"
+  ],
+  "captureLimitations": [
+    "C01–C07 läser listan vid capture; PNG styrker inte färdigladdad tabell.",
+    "C04 visar separat uppdragsvarning efter kvittens/navigation.",
+    "Telefon C05–C07 visar Till innehållet; C06–C07 täcker del av läsårsväljaren.",
+    "C08 båda projekt visar21 färdigladdade rader; tabellens sidrullning är lokal.",
+    "Native selectOption bakom dialog styrker inte verklig pekarinteraktion.",
+    "Användarprov och formella godkännanden återstår."
+  ],
+  "firstFailureHistoryPreserved": true,
+  "noNewAppBuild": true
+}

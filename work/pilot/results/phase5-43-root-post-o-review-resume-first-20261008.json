@@ -1,0 +1,70 @@
+{
+  "kind": "phase5-root-post-o-review-v1",
+  "finalSourceRevision": "e36161a1245020c9a7bf03fae314e64cd10e24fa",
+  "finalBuildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "rootAcceptedFullReports": true,
+  "recordedDuringActualO": true,
+  "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+  "launchProof": {
+    "report": "work/pilot/results/phase5-43-root-launch-pre-o-seventh-20261008.json",
+    "sha256": "8403b92e6fa5e3c3a0c6efad0733420ba1debd5bdf206237c8fdf7d1ea6120e7"
+  },
+  "artifactProof": {
+    "report": "work/pilot/results/phase5-43-root-artifact-pre-o-seventh-20261008.json",
+    "sha256": "22a828b5795e4c2a84c412eef2dc177e5f58e300a014d0c92f8c63126649617a"
+  },
+  "reports": {
+    "C": {
+      "report": "work/pilot/results/phase5-39-context-actual-ninth-20261007.json",
+      "sha256": "18c51291b70a3c0308ead8e38e6183f0afe3e27ef5c09309eb2e2cc7ae7d8345",
+      "approvedSourceRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "specSha256": "8cf4d94a979758da4734f47fd4d0059e23efdd54509f38523b617438e61fe807",
+      "approvedCommandExitCode": 0
+    },
+    "C04": {
+      "report": "work/pilot/results/phase5-41-context-write-buttons-second-20261008.json",
+      "sha256": "229b1f3cba74f1ae13f24358f4ac67544ba591a54efe7512f1adbba452de6292",
+      "approvedSourceRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "specSha256": "73c2480ad26640193dc3d1eb1e59e68a898c84d6c92edca23c5491afe2d987e1",
+      "approvedCommandExitCode": 0
+    },
+    "L": {
+      "report": "work/pilot/results/phase5-40-lists-actual-fifth-20261007.json",
+      "sha256": "f44892df92a048a68a26592e430709786fcf4cab7ebcdb2c648345505cfb083a",
+      "approvedSourceRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "specSha256": "620e40be153ed41bc83f9544c033c4a6946a0fe7e79b73d33375f1aecfe0b5bc",
+      "approvedCommandExitCode": 0
+    },
+    "G": {
+      "report": "work/pilot/results/phase5-41-gym-actual-third-20261008.json",
+      "sha256": "9a28ab2553f44805d05b2fc876ec6e6a2530387a9e83295a4d1aeaf2e1d4d52b",
+      "approvedSourceRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "specSha256": "4bcec56142f4a980dfa40759d361290c244f75737834835180abf672a3a4b402",
+      "approvedCommandExitCode": 0
+    },
+    "O": {
+      "report": "work/pilot/results/phase5-42-other-actual-seventh-20261008.json",
+      "sha256": "c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901",
+      "approvedSourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+      "specSha256": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+      "approvedCommandExitCode": 0
+    },
+    "FinalC": {
+      "report": "work/pilot/results/phase5-43-context-final-first-20261008.json",
+      "sha256": "815031288ce3944921f0631ed4faf089e2e8c7b8baffb6a1d2d5042788dec027",
+      "approvedSourceRevision": "099c90f8d7bfc6f11d92f39d97986cc034644f70",
+      "specSha256": "b9c06bd8ff7c4ae6c546b68b50b53dc796a0abdf523a01c0eb0f2d177066d826",
+      "approvedCommandExitCode": 0
+    }
+  },
+  "operatorPins": {
+    "PHASE5_CONTEXT_ACTUAL_REPORT": "work/pilot/results/phase5-39-context-actual-ninth-20261007.json",
+    "PHASE5_CONTEXT_APPROVED_SOURCE_REVISION": "07737baee91a32307e07a703be9b6befae91c20a",
+    "PHASE5_CONTEXT_WRITE_ACTUAL_REPORT": "work/pilot/results/phase5-41-context-write-buttons-second-20261008.json",
+    "PHASE5_CONTEXT_WRITE_APPROVED_SOURCE_REVISION": "6e51629e00fc41a29e27324e696aea529d961b62",
+    "PHASE5_LIST_ACTUAL_REPORT": "work/pilot/results/phase5-40-lists-actual-fifth-20261007.json",
+    "PHASE5_LIST_APPROVED_SOURCE_REVISION": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+    "PHASE5_GYM_ACTUAL_REPORT": "work/pilot/results/phase5-41-gym-actual-third-20261008.json",
+    "PHASE5_GYM_APPROVED_SOURCE_REVISION": "f355717834a9ac1c27301f703613d49721a7b944"
+  }
+}

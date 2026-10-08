@@ -30,3 +30,7 @@ Färsk kodkontroll: `protected-programplan-board.tsx` har tydliga knappar för �
 På telefon: byt mellan Åk 1, 2 och 3, kontrollera rätt HT/VT, tydlig aktiv knapp, läsbara tryckytor och bestående timmar efter återöppning. Pröva årskursbyte efter inmatning och under pågående sparning. På dator: åtkomst till alla sex terminer och befintligt timplansarbete ska bestå. Granska berörda bilder och uppdatera handboken om instruktionerna ändras.
 
 **Status: pending.** Användarfynd registrerat; målvy behöver bekräftas vid rättning. Ingen UI-implementation, ny browserkörning eller planverifiering följer av denna registrering. Tidigare användargodkännande av grundflödet består, med detta nya förbättringsbehov tillagt.
+
+## Tekniskt verifierat och levererat i05-43
+
+Gymtimplanen använder Åk1–3-knappar, HT/VT/hela planen och bevarade originalindex.41:s fullG38/riktadeG13-G14/C04 och43:s slutkedja verifierar beteende/44px/sparskydd. Levererat på3012; nytt mänskligt begriplighetsprov awaiting_user. GR:s separata dropdown kvarstår. Äldre pending-besked ovan är historik. Formell färdigmarkering/HM-godkännande är separat öppet gap. Se [slutredovisning](../../phases/05-bevarade-utbildnings-och-klassfloden/05-43-SUMMARY.md).

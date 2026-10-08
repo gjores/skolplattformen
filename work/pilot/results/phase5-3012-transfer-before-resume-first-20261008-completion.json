@@ -1,0 +1,265 @@
+{
+  "kind": "phase5-3012-transfer-verification",
+  "stage": "before",
+  "status": "PASS",
+  "complete": true,
+  "sourceOnly": false,
+  "target": "protected",
+  "baseURL": "http://127.0.0.1:3012",
+  "sourceRevision": "e36161a1245020c9a7bf03fae314e64cd10e24fa",
+  "declaredBuildRevision": "5dd7baf0fc0bd92d7b61f07e01020cef791e0908",
+  "buildProcessProven": false,
+  "wrapperSha256": "a10d0999c87eef4794ecb320f7f67b8fea38ed2e0559615600d9de1d859eb3b1",
+  "sourceHashes": {
+    "web/lib/programplan-catalog.ts": "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+    "web/lib/programplan-choice-blocks.ts": "6c4223e2143b60bf45196a26e3ebeaf173f6ce1215980a5ab2e3c1cdaddf8e92",
+    "web/lib/programplan-contract.ts": "de699634c9e2221444e5ce36640f934cfc5d89ae0c0a59bd0649efd1179f9e2d",
+    "web/lib/programplan-education-contract.ts": "b401fc76e560031093d72391c435800dc0a75711337393b53a1da995378b3564",
+    "web/lib/programplan-lifecycle.ts": "8aa23155b2254cd230f5397d942f707e1fdf76f08ff20d87139c19db94d92338",
+    "web/lib/programplan-table.ts": "9c1ecdbebdb0bfdbf293dbb9c4abdf3626adc04407424e2dd1d64892de201d17",
+    "web/lib/programplan-terms.ts": "bed02c4e2d13c09fc6666fd2ada579224101d2ec78884b44ded2a95928e7e000",
+    "web/lib/programplan-workspace-contract.ts": "f35e2eec36470ab6a5f014d207ab27e7744488edb6a70c94e45291647d14438e",
+    "web/package-lock.json": "049041fed97cb867113772a3dc909d51adb85dec8ff4acf53020ea11ba938190",
+    "web/package.json": "3211f1f9d8c153a59526c07bf1dfb57bb81ec600bb3bb825e96a4973fb6e2909",
+    "work/pilot/apply-gym-timplan-migration.mjs": "87069500c6a45a236959a40d0816683b5accfc19ec2958ffdff1ff8ce664355e",
+    "work/pilot/apply-planning-year-migration.mjs": "45cf6cc5db0c500ce254c0d3991eb53d7b47621bc914fc0eb905439ab0019015",
+    "work/pilot/prepare-programplan-user-trial.mjs": "3d65d776ee3f4a3d95d1d407e649a9eee8d7ce32a8f93886db77443f6843521f",
+    "work/pilot/verify-planning-year-read-performance.mjs": "60751ac7b7ea548b2c63901bb937df3e1072ba3e80a393cc646bf0cdfe2eafd1",
+    "work/pilot/verify-planning-year-search-details.mjs": "c2838818a0e440b2d93b8bd98596df8ad92c56d28cdd6f27eb4b1900a824f578",
+    "work/pilot/verify-programplan-api.mjs": "626cf54e147a8f13dbb7888be0062de8d08323c6b583599e0a1d17364dac73fe",
+    "work/pilot/verify-programplan-user-trial.mjs": "ee7daafa931bed8ca697e0b8380ef902fc3a84c6667201405c6b0f6210d5de4f",
+    "work/pilot/verify-target.mjs": "984729588773c910a3f016bf1e42a0f9503caa22a21c8b702621cec75a3b009f"
+  },
+  "transferExecuted": false,
+  "processMutations": false,
+  "prepareSeed": false,
+  "reset": false,
+  "apply": false,
+  "grants": false,
+  "humanResult": "NOT_IMPLIED",
+  "requiresSuccessfulCommandExit": true,
+  "failure": null,
+  "before": {
+    "catalog": {
+      "functions": 198,
+      "tables": 56,
+      "journal": 78,
+      "sha256": "6e4e60db0dcd6e091dc5049ad1f77d5a57681dff942be59387e3f9ec7835c756"
+    },
+    "acl": {
+      "count": 114,
+      "granted": 28,
+      "sha256": "c353e4fe24f87e2b6e8a80c00552e1bba6151d60bb7caefb35ef81375f67cce5"
+    },
+    "business": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+      },
+      "school_years": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "trial": {
+      "count": 15,
+      "sha256": "d98ebd722fd79b2b0040d0d27003d05031f0389b22482d56a69c94ecadfe4c5a"
+    },
+    "anchors": {
+      "audit": {
+        "count": 198168,
+        "sha256": "fe3cd7b7369f9cc87622f4b6157dfc6b6ca5d107f116380c43aafee8680524fa"
+      },
+      "identities": {
+        "count": 5468,
+        "sha256": "20ba36dfbb20349271469995550f1b175e9776bbf31b3b7fbe9b76e5a0fb602b"
+      }
+    },
+    "originalProjection": {
+      "audit": {
+        "count": 198168,
+        "sha256": "fe3cd7b7369f9cc87622f4b6157dfc6b6ca5d107f116380c43aafee8680524fa"
+      },
+      "identities": {
+        "count": 5468,
+        "sha256": "20ba36dfbb20349271469995550f1b175e9776bbf31b3b7fbe9b76e5a0fb602b"
+      }
+    },
+    "approvedProjection": null
+  },
+  "after": {
+    "catalog": {
+      "functions": 198,
+      "tables": 56,
+      "journal": 78,
+      "sha256": "6e4e60db0dcd6e091dc5049ad1f77d5a57681dff942be59387e3f9ec7835c756"
+    },
+    "acl": {
+      "count": 114,
+      "granted": 28,
+      "sha256": "c353e4fe24f87e2b6e8a80c00552e1bba6151d60bb7caefb35ef81375f67cce5"
+    },
+    "business": {
+      "point_plans": {
+        "count": 20,
+        "sha256": "6a93c92e741d1926b995e144ce1a2ddee57753bd15bbc99b24481d149a0891e3"
+      },
+      "point_plan_events": {
+        "count": 54,
+        "sha256": "e603e294e0a366b205a214c2f302f30eceaebd1a78ae2d3c7f017f189d6265fc"
+      },
+      "offerings": {
+        "count": 34,
+        "sha256": "dfeaff3a33779123547990330faa824bd35ea0aad49732931e865e53c7de3f8c"
+      },
+      "offering_units": {
+        "count": 267,
+        "sha256": "d647f05ecb6a90a2ea7543d5de42953648b841aae83dd59ad319d3ef90e262ab"
+      },
+      "timplans": {
+        "count": 7,
+        "sha256": "2e01dcdcc42a96100f112cc15322c874223f48945e16d4d3845de9a2b76891b9"
+      },
+      "timplan_cells": {
+        "count": 121,
+        "sha256": "661bbaba98ba69662d783d1e6dddaafd7783584e39c3f28d3b56e26410db5392"
+      },
+      "timplan_events": {
+        "count": 67,
+        "sha256": "6213569e2e0e11ff47569b8d0e7f4b9347a82d2aa59af8def86557d4334a44d2"
+      },
+      "class_timplans": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "school_classes": {
+        "count": 6,
+        "sha256": "bd08a72543c1b2bac1bbf4ab0dbe0fc93937a9655acf566e245429ff778d62c5"
+      },
+      "pupil_placements": {
+        "count": 68,
+        "sha256": "0410ce096694a676947b5336188195fa46069fd56d38bae7aa8f6ebad81470c2"
+      },
+      "programplan_shape_upgrades": {
+        "count": 13,
+        "sha256": "a6a884dbb18aa14333baee0c89811e9118c4b188996cf4408f7fb507be56e9dd"
+      },
+      "programplan_unit_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "programplan_packages": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "gym_timplan_receipts": {
+        "count": 3,
+        "sha256": "85e9949192f41bf5b2cf5a356713d78fde249f5d46f22ed046facebc6d3815b6"
+      },
+      "school_years": {
+        "count": 0,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "trial": {
+      "count": 15,
+      "sha256": "d98ebd722fd79b2b0040d0d27003d05031f0389b22482d56a69c94ecadfe4c5a"
+    },
+    "anchors": {
+      "audit": {
+        "count": 198256,
+        "sha256": "b4d14ba2143083cdafe8ddf6dd67e2d4032e07b5d2bbaedd0fcce20a63e44d6d"
+      },
+      "identities": {
+        "count": 5468,
+        "sha256": "20ba36dfbb20349271469995550f1b175e9776bbf31b3b7fbe9b76e5a0fb602b"
+      }
+    },
+    "originalProjection": {
+      "audit": {
+        "count": 198168,
+        "sha256": "fe3cd7b7369f9cc87622f4b6157dfc6b6ca5d107f116380c43aafee8680524fa"
+      },
+      "identities": {
+        "count": 5468,
+        "sha256": "20ba36dfbb20349271469995550f1b175e9776bbf31b3b7fbe9b76e5a0fb602b"
+      }
+    },
+    "approvedProjection": null
+  },
+  "summary": {
+    "scenarioCount": 18,
+    "scenariosSha256": "b4ba4e944ef1179a44ff00f572aeb24f6a1827be93d679c5d09aaf14e0d55a62",
+    "auditedReads": 44,
+    "roles": 2,
+    "educationsPerRole": 9,
+    "programs": 6
+  },
+  "utilityReturned": true,
+  "utilitySessionCleanupKnown": true,
+  "utilityDbCloseKnown": true,
+  "completionUnknown": false,
+  "closure": {
+    "dbClosed": true,
+    "reservedClosed": true,
+    "lockClosed": true,
+    "lockReleased": true
+  },
+  "reservedEvidence": {
+    "path": "work/pilot/results/phase5-3012-transfer-before-resume-first-20261008.json",
+    "sha256": "faa5b05532954da7b56774a96bbb2ec7586acd98e6d266ec45ff5a937c8e12f1"
+  },
+  "approvedBefore": null
+}
