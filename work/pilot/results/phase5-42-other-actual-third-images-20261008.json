@@ -1,0 +1,43 @@
+{
+  "kind": "phase5-planning-year-other-partial-image-review-v1",
+  "status": "PARTIAL_O_FAIL",
+  "report": "work/pilot/results/phase5-42-other-actual-third-20261008.json",
+  "reportSha256": "769bda9c72c949cda76814c12814241b64cdf8dbec3d6b48733f149157817082",
+  "sourceRevision": "b7c5c3574136ca5d21e23c8abe4754c9684a773a",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "rootCommandSessionId": 17542,
+  "rootCommandExitCode": 1,
+  "rootAndIndependentPixelsReviewed": true,
+  "desktopCaptures": 4,
+  "uniquePixels": 3,
+  "phoneCaptures": 0,
+  "actualDesktopControls44AndContainment": true,
+  "fullO36Passed": false,
+  "limitation": "Focused skip link and scrolled sticky sidebar can remain in full-page captures; no claim of flawless UI.",
+  "images": [
+    {
+      "case": "O01",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-third-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/attachments/gr-bound-v1-unknown-png-875125e3c48c1c153a00430b985a32eaf6243500.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-third-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-desktop/attachments/historical-position-reorder-png-9a2cab0fdd323a31e2cd187eeedf3d532bc71d56.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-third-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-desktop/attachments/current-explicit-index1-png-d8187c523bc1dc9bb70e2ea808d6805b52ee559d.png",
+      "sha256": "332db3ab69f646b4d537d9930609578d25cbcd28c74e24113ff1eed9c73c3357"
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-third-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-desktop/attachments/gr-page2-server-search-png-ca271b4d7dfa49cbe86da4c7d93b7b42d2d07f8c.png",
+      "sha256": "ab3d7ee15cb63d0faf13d139b56548d7074ef086c70e51ee4875406aec362425"
+    }
+  ]
+}

@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 O02-prov06922b3c rättat och oberoende SOURCE-granskat; nya pre/during metadata och fullO36 på samma179-artefakt återstår.
+stopped_at: UI05-42 tredje O stoppad i O08 med korrekt rektorsscope52 mot provets53. Åtta normalcleanup PASS; minimal mandatförväntan rättas före ny fullO36.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
 last_activity_desc: "UI05-42 andra O:1PASS/1FAIL/34ejstartade, städning bevarad. Automatiskt årsöppningsprov rättas;86/100 och vanlig3012 består."
-state_head: d1c1e64
+state_head: b7c5c35
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: running_after_second_O_normal_cleanup
+verification_worker_status: running_after_third_O_normal_cleanup
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 tredje faktiska prov2026-10-08:** ROOT17542 exit1, rå769bda9c/sourceb7c5c35/spec06922/fixtur70df/build179. O01–07 datorPASS; O08 passerar50+2 och verklig serverkod52-sökning men väntar sedan53rader i rektorns all-schoolurval, där endast52 är behöriga. Extra GR-rad ligger på B-rektorns skola, avsiktligt utanför A-rektors mandat även i O14. Minimal provförväntan ska kräva52 och utesluten B-rad; inga mandat eller produktregler utvidgas.28ejstartade. Åtta normalcleanup/full15 exaktSEARCH/sex flaggor/16ownforeignDDLzero och hela audit-/identitetskedja ROOT-/oberoende120kontroller PASS; ingen recovery. Slutaudit189543/34b1652b och auditeradeident5170/e73720c0 bevarade. Fyra datorgeometrier har faktiska44px-kontroller/contained; fyra PNG med tre unika bilder ROOT-/oberoende granskade. Fokushopplänk/scrollad sticky-sidebar kan synas; ingen perfektUI/telefon/fullO36-påståelse. Sex tredje pre/duringmetadata RAW/341source/180artefakt3b5af3de oberoende1354kontroller PASS; during78f3 registrerades faktiskt under17542. Första/andraFAIL består.86/100 och vanlig3012 oförändrade.
 
 **UI42 årsbytesprov rättat2026-10-08:** Enbart O02, faktisk kontrollgeometri och befintlig läsårsetikettimport ändrade. Spec06922b3c/patch32f80de0/manifest089fe589 ROOT- och oberoende SOURCE-PASS med11 rena prober och syntax; ROOTlist30308 exit0/36fall. O02 behåller riktig LISTkontroll och kräver dessutom ny faktisk matris/neutral årsöverblick, exakt v1/skola/utbildning/revision/ak9 och färdig nyårsarbetsyta. Ingen klickning i den lista som automatiskt ersätts av verifierad matris. Capture kräver verkliga synliga44px-kontroller; faktisk mätning återstår. Alla övriga17fall, fixtur70df, produkt, tids- och städgrindar består. Full241produktbytes identiska med bevarad179/180artefakt3b5af3de, inget extra appbygge. Ny genuin tredje pre/during före fullO36;86/100 och3012 består.
 
