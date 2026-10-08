@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 O08:s rektorsscope rättat/granskat i spec16462f41; nya genuina pre/during och fullO36 på bevarad179-artefakt återstår.
+stopped_at: UI05-42 femte O:13PASS/O14 deferred; egen3060 stoppad med känd exit143, ägd återställning och skolbytets faktiska väntan granskas före nytt prov.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 andra O:1PASS/1FAIL/34ejstartade, städning bevarad. Automatiskt årsöppningsprov rättas;86/100 och vanlig3012 består."
-state_head: ff8d59a
+last_activity_desc: "UI05-42 femte O:13PASS/1FAIL/22ejstartade;13 normalcleanup, sista egna grafen återstår.86/100 och vanlig3012 består."
+state_head: 81e2164
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: running_after_third_O_normal_cleanup
+verification_worker_status: stopped_after_fifth_O_deferred
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 fjärde/femte faktiska försök2026-10-08:** Fjärde ROOT97764 exit1/rå1fc39150 valde äldre standardconfig och gav0 suites/1 configerror före O-fall; dess sex process-/artefaktfiler är historik, inte O- eller releasebevis. Separat configreview041dbd89 anger gränsen. Femte korrekta config/PHASE5_BASE_URL3060 körde på source81e2164/spec16462/fixtur70df/bevarat179: ROOT61261 exit1/rå7e72e016,13 datorPASS/O14 teardownFAIL/22ejstartade/errors1. De13 normalcleanup/full15 exaktSEARCH/sex flaggor/16own+foreignDDLzero,20 explicita/49 skyddade/241 produkt-/2 parserkällor samt full audit-/identitetslinje ROOT-/oberoende178kontroller PASS. Senaste normala audit190963/7ad44140 och auditeradeident5210/cf242d06. Sex datorgeometrier/sex PNG med fem unika bilder granskade; bildinventorydd1edf0c anger befintlig O05 fokushopplänk/sticky-sidebar-begränsning och ingen telefon/fullO36-PASS. O14 avslutar negativa targetkontrollen innan ny B-kontext hunnit laddas: två GET planering/urval och elever/urval kvar stage=seen, trots känd browser-/route-/contextstängning. Egen a88601b6-graf har därför deferredcleanup och behöver granskad återställning. ROOT verifierade exakt25382→25391→25394, stoppade egen launcher med SIGTERM, preview49343 exit143 och PIDs/3060 frånvarande två gånger; stoppbevis6a849657.180 tillåtna byggfiler fortfarande3b5af3de. Ingen ny fixtur eller målåtkomst efter stopp. Minimal faktisk skolbytesväntan granskas separat; produkt/mandat/globala städ-/tidsgrindar består. Genuina femte sex pre/duringmetadata oberoende1359kontroller PASS; under-observatione47e5757 binder faktisk61261.86/100,3/8 och vanlig3012 oförändrade.
 
 **UI42 mandatförväntan rättad2026-10-08 — SOURCE-PASS:** Ospec16462f41/patch186f8005/manifest7a826318 ändrar bara sista O08-raden: rektorns all-schoolurval ska innehålla52 behöriga GR-rader,50 på första sidan, samtliga på GR33 och ingen från B32. ROOT/oberoende full source+7 rena prober/syntax samt ROOTlist36 exit0 PASS. O14:s faktiska403 och alla andra17fall/audit-/avsluts-/tidsgrindar/44pxcapture består. Ingen HM-aktör, nytt mandat, produkt- eller fixtur70df-ändring. Bevarad241produktclosure/179artefakt180/3b5af3de, inget appbygge. Ny fjärde metadata/fullO36 krävs; alla treFAIL består,86/100 och3012 oförändrade.
 

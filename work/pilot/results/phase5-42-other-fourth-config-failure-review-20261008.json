@@ -1,0 +1,30 @@
+{
+  "kind": "phase5-planning-year-wrong-config-attempt-review-v1",
+  "status": "CONFIG_START_FAILURE_NOT_O_PROOF",
+  "sourceRevision": "81e2164786a05ddb45d66ec1baf00420f882c70f",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "rootToolSession": 97764,
+  "rootObservedExitCode": 1,
+  "report": "work/pilot/results/phase5-42-other-actual-fourth-20261008.json",
+  "reportSha256": "1fc391506cbf4c15802fc85f0a8cb2a63921672ce1c4f138a383e95f4138cbbe",
+  "casesStarted": 0,
+  "suiteCount": 0,
+  "configErrorCount": 1,
+  "duringProcessObservationIsOnlyProcessEvidence": true,
+  "acceptedFullOtherReport": false,
+  "releaseEligible": false,
+  "reason": "Default phase1 config selected because explicit planning-year config was omitted. Its webServer exited2 because example build is unavailable; browser tool exited1 before planned cases. The process observation cannot establish execution of O cases.",
+  "correctedNextAttempt": {
+    "report": "work/pilot/results/phase5-42-other-actual-fifth-20261008.json",
+    "config": "playwright.phase5-planning-year.config.ts",
+    "environmentKey": "PHASE5_BASE_URL",
+    "baseURL": "http://127.0.0.1:3060",
+    "rootRunningToolSession": 61261
+  },
+  "artifactAfterFailure": {
+    "allowedFiles": 180,
+    "sha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+    "observedBeforeFifthAttempt": true
+  },
+  "databasePreservationReview": "pending subsequent genuine O cleanup; not inferred from process-only observation"
+}

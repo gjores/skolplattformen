@@ -1,0 +1,59 @@
+{
+  "kind": "phase5-planning-year-other-partial-image-review-v1",
+  "status": "PARTIAL_O_FAIL_RECOVERY_PENDING",
+  "report": "work/pilot/results/phase5-42-other-actual-fifth-20261008.json",
+  "reportSha256": "7e72e0167aa0d6e167744668ed7fce026391a3c46c31740aeea5e628538a56c5",
+  "sourceRevision": "81e2164786a05ddb45d66ec1baf00420f882c70f",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "rootCommandSessionId": 61261,
+  "rootCommandExitCode": 1,
+  "rootPixelsActuallyViewedAllUnique": true,
+  "independentPixelsReviewedNewAndIdenticalHistoricalBytes": true,
+  "independentReviewSha256": "1fd00c56cdad6121bf6e783f11b3d463d350511460d179a36258b31045888a4b",
+  "desktopCaptures": 6,
+  "uniquePixels": 5,
+  "phoneCaptures": 0,
+  "actualDesktopControls44AndContainment": true,
+  "fullO36Passed": false,
+  "normalCleanupCount": 13,
+  "deferredCleanupCount": 1,
+  "limitation": "O05 focused skip link and scrolled sticky sidebar remain in full-page capture; no flawless UI or phone claim. O14 deferred requires owned recovery.",
+  "images": [
+    {
+      "case": "O01",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-fifth-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/attachments/gr-bound-v1-unknown-png-526a6d42a0ddb3ac9381561b91ab90571f5e7bf4.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-fifth-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-desktop/attachments/historical-position-reorder-png-febaa940338d29b200200fdd4eddd37d7a642094.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-fifth-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-desktop/attachments/current-explicit-index1-png-c958ac8aae35b10e3bdefe77406183e2b80c13fa.png",
+      "sha256": "332db3ab69f646b4d537d9930609578d25cbcd28c74e24113ff1eed9c73c3357"
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-fifth-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-desktop/attachments/gr-page2-server-search-png-bdedf9efb704c2c99a62cc6d134b591cb1399fcf.png",
+      "sha256": "ab3d7ee15cb63d0faf13d139b56548d7074ef086c70e51ee4875406aec362425"
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-fifth-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-desktop/attachments/im-weekly-empty-png-caf4d69c4e64417fe298390597f54330f78e866f.png",
+      "sha256": "2df78a21d88aa242e532a30b70f5d5c94f61067d1ca6944b0ffceb84b495fa0d"
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-fifth-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-desktop/attachments/im-fourteen-weekly-png-14bfad4d4f9fd8e9c2fba7a98734a317ee643669.png",
+      "sha256": "628e6a04e717e975da69ce70f34ea4c4a12e74dc2ac772fd984c9762d7348448"
+    }
+  ]
+}

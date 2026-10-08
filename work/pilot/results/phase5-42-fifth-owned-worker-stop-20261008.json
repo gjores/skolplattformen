@@ -1,0 +1,27 @@
+{
+  "kind": "phase5-root-owned-worker-stop-v1",
+  "attempt": "phase5-42-other-actual-fifth-20261008",
+  "sourceRevision": "81e2164786a05ddb45d66ec1baf00420f882c70f",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "otherReportSha256": "7e72e0167aa0d6e167744668ed7fce026391a3c46c31740aeea5e628538a56c5",
+  "rootOtherToolSession": 61261,
+  "rootOtherKnownExitCode": 1,
+  "rootPreviewToolSession": 49343,
+  "rootPreviewKnownExitCode": 143,
+  "ownedExactChainVerifiedBeforeSignal": [
+    25382,
+    25391,
+    25394
+  ],
+  "signal": "SIGTERM",
+  "chainAbsentFirst": true,
+  "chainAbsentSecond": true,
+  "listener3060AbsentFirst": true,
+  "listener3060AbsentSecond": true,
+  "observedAt": "2026-10-08T05:47:36.414395+00:00",
+  "deferredCustomerId": "a88601b6-0000-4000-8000-000000000001",
+  "deferredOrganizerId": "a88601b6-0000-4000-8000-000000000002",
+  "databaseRecoveryRequired": true,
+  "databaseRecoveryExecuted": false,
+  "ordinary3012Touched": false
+}
