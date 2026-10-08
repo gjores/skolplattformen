@@ -1,0 +1,26 @@
+[
+  {
+    "project": "planning-year-desktop",
+    "case": 13,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-return-notice-bounded-20261008/phase5-planning-year-gym-G-a608e-n-tills-faktisk-återläsning-planning-year-desktop/attachments/unknown-write-actual-recovery-png-9147cabba578a900472a7abc4252d1ed8930277c.png",
+    "sha256": "18f9dc98bf083408c7faf1a158d8537f6ad01c74189c784e6771a294473d351e"
+  },
+  {
+    "project": "planning-year-desktop",
+    "case": 14,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-return-notice-bounded-20261008/phase5-planning-year-gym-G-a4cca-nom-faktiskt-fullmatrisspar-planning-year-desktop/attachments/program-blur-year-lock-png-79b88212f8baf4b81657ed16adbcc6a8e256d85e.png",
+    "sha256": "d3c6bb19778f4387305aa2ac3df75386cdd8a3f6506bff7d17b67797a6d7a245"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 13,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-return-notice-bounded-20261008/phase5-planning-year-gym-G-a608e-n-tills-faktisk-återläsning-planning-year-phone/attachments/unknown-write-actual-recovery-png-d38784d320f3fecc1ce3058cb484b1ed1687c6bd.png",
+    "sha256": "22563c86c33616b01d550f4f8630464b6e8c32c4815fe5bbf26688e17bda8260"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 14,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-gym-return-notice-bounded-20261008/phase5-planning-year-gym-G-a4cca-nom-faktiskt-fullmatrisspar-planning-year-phone/attachments/program-blur-year-lock-png-e25570b207e47c5b96011ee8e62316f1b819eadf.png",
+    "sha256": "4005438010ce6c310b529f94253300be933e472a107c795e99e06ce4d2f50c47"
+  }
+]

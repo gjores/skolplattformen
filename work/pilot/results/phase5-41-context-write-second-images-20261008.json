@@ -1,0 +1,14 @@
+[
+  {
+    "project": "planning-year-desktop",
+    "case": 4,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-context-write-buttons-second-20261008/phase5-planning-year-conte-85b1e-g-utloggning-tills-kvittens-planning-year-desktop/attachments/write-confirmed-navigation-restored-png-a69130349edfcd47efe93f971550a4ab2c1d34d3.png",
+    "sha256": "8afce67713eed5908ec6c85afdb7ae16aaae257f3cb18e4ec8c7ec9f83a19591"
+  },
+  {
+    "project": "planning-year-phone",
+    "case": 4,
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-41-context-write-buttons-second-20261008/phase5-planning-year-conte-85b1e-g-utloggning-tills-kvittens-planning-year-phone/attachments/write-confirmed-navigation-restored-png-a3db8fc74ed223ab61b0d2b936c50e1e77222411.png",
+    "sha256": "6e25acdb185edc5e7a3f23c9747bf7654f44ca67fe215db6a32592fed96bf25f"
+  }
+]
