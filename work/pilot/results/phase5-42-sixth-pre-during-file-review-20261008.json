@@ -1,0 +1,4613 @@
+{
+  "kind": "phase5-sixth-pre-during-independent-file-review-v1",
+  "status": "FILE_REVIEW_PASS",
+  "sourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "metadataFiles": [
+    {
+      "report": "work/pilot/results/phase5-43-root-git-inventory-pre-o-sixth-20261008.json",
+      "sha256": "a71f5f1c36877315463a38750f554b1600cb55031a17d65aabe77b9ae2f907d2"
+    },
+    {
+      "report": "work/pilot/results/phase5-43-root-pre-o-process-sixth-20261008.json",
+      "sha256": "6fafe33261309d8c62a5f95b347eae332b7ff7aa6f2af4a0f1fe4d6f6b7a2ca7"
+    },
+    {
+      "report": "work/pilot/results/phase5-43-root-pre-o-observation-sixth-20261008.json",
+      "sha256": "78e1e822ad3e7a7f7df178ba315612c18950a5cd8172e40eebb75362c57231db"
+    },
+    {
+      "report": "work/pilot/results/phase5-43-isolated-pre-o-launch-sixth-20261008.json",
+      "sha256": "eb4921f485947eba1a5a3ef52edb0d8b207b3d704582d0266673734195d5dcbf"
+    },
+    {
+      "report": "work/pilot/results/phase5-43-pre-o-artifact-sixth-20261008.json",
+      "sha256": "191517f506af24c587f467297a2d8bca36856fc37bc82bf535b5a72977068d2e"
+    },
+    {
+      "report": "work/pilot/results/phase5-43-root-during-o-observation-sixth-20261008.json",
+      "sha256": "6218c140e079489710b9da7d0b9d6d528d1b09cb27faeadfc90dfd1fc651ff14"
+    }
+  ],
+  "checkCount": 1138,
+  "checks": [
+    {
+      "name": "main:root-git-inventory-pre-o-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "main:root-git-inventory-pre-o-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-git-inventory-pre-o-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-git-inventory-pre-o-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "root-git-inventory-pre-o-sixth:copies-byte-identical",
+      "pass": true
+    },
+    {
+      "name": "main:root-pre-o-process-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "main:root-pre-o-process-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-pre-o-process-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-pre-o-process-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "root-pre-o-process-sixth:copies-byte-identical",
+      "pass": true
+    },
+    {
+      "name": "main:root-pre-o-observation-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "main:root-pre-o-observation-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-pre-o-observation-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-pre-o-observation-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "root-pre-o-observation-sixth:copies-byte-identical",
+      "pass": true
+    },
+    {
+      "name": "main:isolated-pre-o-launch-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "main:isolated-pre-o-launch-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "runtime:isolated-pre-o-launch-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "runtime:isolated-pre-o-launch-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "isolated-pre-o-launch-sixth:copies-byte-identical",
+      "pass": true
+    },
+    {
+      "name": "main:pre-o-artifact-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "main:pre-o-artifact-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "runtime:pre-o-artifact-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "runtime:pre-o-artifact-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "pre-o-artifact-sixth:copies-byte-identical",
+      "pass": true
+    },
+    {
+      "name": "main:root-during-o-observation-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "main:root-during-o-observation-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-during-o-observation-sixth:canonical-single-link-0600",
+      "pass": true
+    },
+    {
+      "name": "runtime:root-during-o-observation-sixth:approved-raw-sha256",
+      "pass": true
+    },
+    {
+      "name": "root-during-o-observation-sixth:copies-byte-identical",
+      "pass": true
+    },
+    {
+      "name": "closed-v4-constants-raw-seal",
+      "pass": true
+    },
+    {
+      "name": "inventory-closed-schema",
+      "pass": true
+    },
+    {
+      "name": "inventory:explicit-source-build",
+      "pass": true
+    },
+    {
+      "name": "process-before:explicit-source-build",
+      "pass": true
+    },
+    {
+      "name": "process-before:same-artifact",
+      "pass": true
+    },
+    {
+      "name": "process-before:isolated-base",
+      "pass": true
+    },
+    {
+      "name": "observation-before:explicit-source-build",
+      "pass": true
+    },
+    {
+      "name": "observation-before:same-artifact",
+      "pass": true
+    },
+    {
+      "name": "observation-before:isolated-base",
+      "pass": true
+    },
+    {
+      "name": "launch-before:explicit-source-build",
+      "pass": true
+    },
+    {
+      "name": "launch-before:same-artifact",
+      "pass": true
+    },
+    {
+      "name": "launch-before:isolated-base",
+      "pass": true
+    },
+    {
+      "name": "artifact-before:explicit-source-build",
+      "pass": true
+    },
+    {
+      "name": "artifact-before:same-artifact",
+      "pass": true
+    },
+    {
+      "name": "process-during:explicit-source-build",
+      "pass": true
+    },
+    {
+      "name": "process-during:same-artifact",
+      "pass": true
+    },
+    {
+      "name": "process-during:isolated-base",
+      "pass": true
+    },
+    {
+      "name": "sourceFiles:sorted-unique-path-hash",
+      "pass": true
+    },
+    {
+      "name": "sourceBuildTree:sorted-unique-path-hash",
+      "pass": true
+    },
+    {
+      "name": "buildTree:sorted-unique-path-hash",
+      "pass": true
+    },
+    {
+      "name": "source-counts-341-300-300",
+      "pass": true
+    },
+    {
+      "name": "sourceBuildTree:only-build-roots",
+      "pass": true
+    },
+    {
+      "name": "buildTree:only-build-roots",
+      "pass": true
+    },
+    {
+      "name": "exact-runtime-241-source-build-parity",
+      "pass": true
+    },
+    {
+      "name": "exact-v4-full-source-union-with-tests",
+      "pass": true
+    },
+    {
+      "name": "all-300-build-paths-full-inventory",
+      "pass": true
+    },
+    {
+      "name": "immutable-bootstrap-36",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/migrations/20261006120000_phase5_planning_year_reads.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/migrations/20261006121000_phase5_worker_planning_year_reads.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/migrations/20261006122000_phase5_planning_year_read_performance.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/migrations/20261006123000_phase5_planning_year_search_details.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/tests/phase5_planning_year.test.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/tests/phase5_planning_year_read_performance.test.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/tests/phase5_planning_year_search_details.test.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:supabase/tests/phase5_programplan_drafts.test.sql",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/admin-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/auth/callback/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/auth/login/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/auth/logout/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/context/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/andra/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/elev/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/export/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/historik/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/personnummer/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/elever/urval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/health/db/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/inbjudan/losen/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/anslutning/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/huvudman/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/inbjudan/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/mandat/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/mandat/urval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/medlemmar/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/medlemskap/sparr/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/oversikt/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/rektor/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/skolenhet/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/skyddsbehorighet/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/kund/uppdrag/avsluta/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/logg/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/organisation/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/planering/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/planering/oversikt/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/planering/urval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/binda/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/block/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/fordjupning/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/klona/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/paketval/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/paketval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/skapa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/terminer/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/terminer/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/underlag/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/utbildning/livscykel/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/utbildning/skapa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/utbildning/status/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/val/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/valpaket/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/programplaner/valpaket/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/session/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/skolenhet/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/cell/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/gym/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/gym/rad/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/gym/skapa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/gym/underlag/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/api/timplaner/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/context-switch.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/globals.css",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/inbjudan/page.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/kund-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/lasar-view.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/layout.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/logg-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/mandate-grant-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/mandate-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/mfa-step-up.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/organisation-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/page.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/planning-context.css",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/planning-context.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/principal-picker.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-gym-timplan-hours.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-gym-timplan-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-gym-timplan.css",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-home.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-permission-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-plan-list.css",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-plan-list.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-planning-overview.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-board.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-flow.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-lifecycle.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-list.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-package-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-packages.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-sheet.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-programplan.css",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-timplan-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/protected-timplan.css",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/pupil-card.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/pupil-dialogs.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/pupil-register-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/school-year-picker.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/timplan-classes.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/timplan-guidance.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/timplan-view.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/app/workspace-views.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/accordion.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/alert-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/alert.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/aspect-ratio.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/attachment.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/avatar.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/badge.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/breadcrumb.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/bubble.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/button-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/button.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/calendar.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/card.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/carousel.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/chart.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/checkbox.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/collapsible.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/combobox.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/command.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/context-menu.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/direction.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/drawer.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/dropdown-menu.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/empty.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/field.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/hover-card.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/input-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/input-otp.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/input.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/item.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/kbd.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/label.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/marker.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/menubar.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/message-scroller.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/message.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/native-select.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/navigation-menu.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/pagination.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/popover.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/progress.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/radio-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/resizable.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/scroll-area.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/select.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/separator.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/sheet.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/sidebar.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/skeleton.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/slider.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/spinner.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/switch.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/table.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/tabs.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/textarea.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/toast.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/toggle-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/toggle.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/components/ui/tooltip.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/e2e/helpers/keycloak.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/e2e/phase5-planning-year-context.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/e2e/phase5-planning-year-gym.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/e2e/phase5-planning-year-lists.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/e2e/phase5-planning-year-other.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/hooks/use-mobile.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/access-rules.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/access-rules.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/admin-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/admin-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/audit-export.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/audit-export.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/auth-assurance.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/auth-assurance.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/cohort-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/cohort-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/cohort-store.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/common.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/database.types.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/gym-timplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/gym-timplan.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/identity-provider.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/invitation-rules.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/invitation-rules.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/lasar-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/lasar-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/mandate-policy.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/mandate-policy.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/organisation-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/organisation-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/organisation-store.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/pilot-fixtures.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/pilot-fixtures.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-save-order.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-store.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-write-queue.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-write-queue.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-year-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-year-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-year-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/planning-year-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-analysis.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-analysis.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-catalog.generated.json",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-catalog.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-catalog.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-choice-blocks.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-choice-blocks.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-education-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-education-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-languages.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-languages.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-lifecycle.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-lifecycle.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-migration.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-packages.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-packages.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-table.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-table.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-terms-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-terms-suggest.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-terms.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-terms.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-workspace-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/programplan-workspace-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-plan-location.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-plan-location.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-programplan-education.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-programplan-education.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-programplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-programplan.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-timplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/protected-timplan.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/pupil-register-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/pupil-register-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/registry-address.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/registry-address.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/runtime-mode.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/runtime-mode.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/save-order.repro.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/school-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/school-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server-client.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server-client.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/audit-details.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/authz.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/db.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/deny-path.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/env.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/events.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/events.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/gym-timplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/gym-timplan.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/http.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/identity-provider.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/mandate-route.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/mandates.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/mandates.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/oidc.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/planning-year.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/planning-year.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-basis.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-basis.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-education.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-education.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-lifecycle.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-packages.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-packages.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-planning.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-planning.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-terms.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-terms.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-workspace.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/programplan-workspace.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/protected-permission.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/protected-permission.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/pupil-register-audit.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/pupil-register-audit.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/pupil-register.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/pupil-register.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/session.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/skolverket.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/timplan-planning.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/server/timplan-planning.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/session-channel.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/session-channel.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/skolverket.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/store-isolation.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/supabase.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/syllabus-snapshot.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/syllabus.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/syllabus.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/timplan-analysis.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/timplan-analysis.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/timplan-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/timplan-model.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/unsaved-changes.tsx",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/lib/utils.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/package-lock.json",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/package.json",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/playwright.phase5-planning-year.config.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/public/favicon.svg",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/scripts/preview-worker-modules.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/scripts/preview-worker.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/scripts/run-mode.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/tsconfig.json",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:web/vite.config.ts",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/apply-gym-timplan-migration.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/apply-planning-year-grants.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/apply-planning-year-migration.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/apply-planning-year-read-performance.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/apply-planning-year-search-details.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-gym-timplan-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-planning-year-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-planning-year-gym-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-planning-year-list-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-planning-year-other-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-planning-year-search-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/phase5-programplan-browser-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/prepare-programplan-user-trial.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-api.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-api.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-foundation.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-read-performance.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-read-performance.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-release.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-search-details.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-planning-year-search-details.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-programplan-api.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-programplan-locks.mjs",
+      "pass": true
+    },
+    {
+      "name": "main:source-byte:work/pilot/verify-target.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/migrations/20261006120000_phase5_planning_year_reads.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/migrations/20261006121000_phase5_worker_planning_year_reads.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/migrations/20261006122000_phase5_planning_year_read_performance.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/migrations/20261006123000_phase5_planning_year_search_details.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/tests/phase5_planning_year.test.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/tests/phase5_planning_year_read_performance.test.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/tests/phase5_planning_year_search_details.test.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:supabase/tests/phase5_programplan_drafts.test.sql",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/admin-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/auth/callback/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/auth/login/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/auth/logout/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/context/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/andra/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/elev/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/export/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/historik/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/personnummer/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/elever/urval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/health/db/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/inbjudan/losen/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/anslutning/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/huvudman/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/inbjudan/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/mandat/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/mandat/urval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/medlemmar/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/medlemskap/sparr/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/oversikt/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/rektor/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/skolenhet/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/skyddsbehorighet/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/kund/uppdrag/avsluta/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/logg/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/organisation/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/planering/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/planering/oversikt/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/planering/urval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/binda/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/block/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/fordjupning/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/klona/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/paketval/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/paketval/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/skapa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/terminer/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/terminer/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/underlag/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/utbildning/livscykel/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/utbildning/skapa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/utbildning/status/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/val/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/valpaket/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/programplaner/valpaket/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/session/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/skolenhet/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/cell/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/gym/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/gym/rad/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/gym/skapa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/gym/underlag/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/lasa/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/api/timplaner/lista/route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/context-switch.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/globals.css",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/inbjudan/page.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/kund-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/lasar-view.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/layout.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/logg-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/mandate-grant-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/mandate-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/mfa-step-up.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/organisation-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/page.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/planning-context.css",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/planning-context.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/principal-picker.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-gym-timplan-hours.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-gym-timplan-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-gym-timplan.css",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-home.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-permission-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-plan-list.css",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-plan-list.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-planning-overview.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-board.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-flow.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-lifecycle.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-list.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-package-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-packages.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-sheet.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-programplan.css",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-timplan-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/protected-timplan.css",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/pupil-card.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/pupil-dialogs.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/pupil-register-workspace.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/school-year-picker.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/timplan-classes.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/timplan-guidance.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/timplan-view.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/app/workspace-views.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/accordion.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/alert-dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/alert.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/aspect-ratio.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/attachment.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/avatar.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/badge.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/breadcrumb.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/bubble.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/button-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/button.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/calendar.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/card.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/carousel.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/chart.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/checkbox.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/collapsible.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/combobox.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/command.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/context-menu.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/dialog.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/direction.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/drawer.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/dropdown-menu.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/empty.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/field.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/hover-card.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/input-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/input-otp.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/input.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/item.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/kbd.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/label.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/marker.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/menubar.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/message-scroller.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/message.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/native-select.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/navigation-menu.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/pagination.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/popover.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/progress.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/radio-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/resizable.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/scroll-area.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/select.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/separator.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/sheet.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/sidebar.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/skeleton.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/slider.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/spinner.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/switch.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/table.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/tabs.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/textarea.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/toast.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/toggle-group.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/toggle.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/components/ui/tooltip.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/e2e/helpers/keycloak.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/e2e/phase5-planning-year-context.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/e2e/phase5-planning-year-gym.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/e2e/phase5-planning-year-lists.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/e2e/phase5-planning-year-other.spec.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/hooks/use-mobile.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/access-rules.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/access-rules.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/admin-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/admin-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/audit-export.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/audit-export.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/auth-assurance.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/auth-assurance.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/cohort-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/cohort-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/cohort-store.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/common.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/database.types.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/gym-timplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/gym-timplan.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/identity-provider.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/invitation-rules.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/invitation-rules.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/lasar-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/lasar-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/mandate-policy.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/mandate-policy.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/organisation-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/organisation-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/organisation-store.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/pilot-fixtures.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/pilot-fixtures.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-save-order.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-store.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-write-queue.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-write-queue.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-year-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-year-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-year-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/planning-year-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-analysis.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-analysis.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-catalog.generated.json",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-catalog.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-catalog.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-choice-blocks.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-choice-blocks.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-education-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-education-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-languages.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-languages.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-lifecycle.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-lifecycle.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-migration.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-packages.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-packages.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-table.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-table.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-terms-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-terms-suggest.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-terms.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-terms.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-workspace-contract.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/programplan-workspace-contract.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-plan-location.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-plan-location.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-programplan-education.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-programplan-education.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-programplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-programplan.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-timplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/protected-timplan.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/pupil-register-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/pupil-register-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/registry-address.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/registry-address.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/runtime-mode.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/runtime-mode.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/save-order.repro.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/school-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/school-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server-client.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server-client.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/audit-details.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/authz.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/db.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/deny-path.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/env.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/events.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/events.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/gym-timplan.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/gym-timplan.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/http.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/identity-provider.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/mandate-route.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/mandates.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/mandates.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/oidc.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/planning-year.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/planning-year.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-basis.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-basis.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-education.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-education.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-lifecycle.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-packages.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-packages.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-planning.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-planning.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-terms.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-terms.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-workspace.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/programplan-workspace.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/protected-permission.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/protected-permission.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/pupil-register-audit.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/pupil-register-audit.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/pupil-register.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/pupil-register.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/session.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/skolverket.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/timplan-planning.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/server/timplan-planning.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/session-channel.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/session-channel.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/skolverket.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/store-isolation.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/supabase.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/syllabus-snapshot.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/syllabus.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/syllabus.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/timplan-analysis.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/timplan-analysis.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/timplan-model.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/timplan-model.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/unsaved-changes.tsx",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/lib/utils.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/package-lock.json",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/package.json",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/playwright.phase5-planning-year.config.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/public/favicon.svg",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/scripts/preview-worker-modules.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/scripts/preview-worker.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/scripts/run-mode.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/tsconfig.json",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:web/vite.config.ts",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/apply-gym-timplan-migration.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/apply-planning-year-grants.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/apply-planning-year-migration.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/apply-planning-year-read-performance.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/apply-planning-year-search-details.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-gym-timplan-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-planning-year-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-planning-year-gym-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-planning-year-list-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-planning-year-other-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-planning-year-search-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/phase5-programplan-browser-fixtures.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/prepare-programplan-user-trial.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-api.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-api.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-foundation.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-read-performance.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-read-performance.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-release.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-search-details.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-planning-year-search-details.test.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-programplan-api.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-programplan-locks.mjs",
+      "pass": true
+    },
+    {
+      "name": "runtime:source-byte:work/pilot/verify-target.mjs",
+      "pass": true
+    },
+    {
+      "name": "release-harness-present-full-inventory",
+      "pass": true
+    },
+    {
+      "name": "exact-protected-artifact-root",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:.openai",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:.openai/hosting.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:.openai/hosting.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:build-mode.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:build-mode.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/.assetsignore",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/.assetsignore",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/.vite",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/.vite/manifest.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/.vite/manifest.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_headers",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_headers",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/42dbb50d-9047-401a-90d0-5c3d2edc209e",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/42dbb50d-9047-401a-90d0-5c3d2edc209e/_buildManifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/42dbb50d-9047-401a-90d0-5c3d2edc209e/_buildManifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/42dbb50d-9047-401a-90d0-5c3d2edc209e/_ssgManifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/42dbb50d-9047-401a-90d0-5c3d2edc209e/_ssgManifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-8ac0455e797f",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-001175b1.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-001175b1.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-52306abf.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-52306abf.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-875ccdd4.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-875ccdd4.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-98bbbccb.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-98bbbccb.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-ff2310f5.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-8ac0455e797f/geist-ff2310f5.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-013b2f2f.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-013b2f2f.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-0638449e.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-0638449e.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-44745446.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-44745446.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-44e03052.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-44e03052.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-971fb274.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-971fb274.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-f6b33328.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/_vinext_fonts/geist-mono-00e989178794/geist-mono-f6b33328.woff2",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/button-Dajf9ETh.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/button-Dajf9ETh.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/framework-DTZGTDtF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/framework-DTZGTDtF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/hybrid-client-route-owner-SCtVRq4N.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/hybrid-client-route-owner-SCtVRq4N.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/index-BuTzhmyf.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/index-BuTzhmyf.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/layout-segment-context-DCuoyyEe.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/layout-segment-context-DCuoyyEe.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/page-C1Zxy8O_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/page-C1Zxy8O_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/page-CFIqWi1q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/page-CFIqWi1q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/query-DugiHe4Q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/query-DugiHe4Q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/rolldown-runtime-hePW80VL.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/rolldown-runtime-hePW80VL.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/chunks/vinext-DoQIhxkZ.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/chunks/vinext-DoQIhxkZ.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/css/index.B3vc-uLU.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/css/index.B3vc-uLU.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/_next/static/css/page.KY4YB_Su.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/_next/static/css/page.KY4YB_Su.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/favicon.svg",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/favicon.svg",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:client/vinext-client-entry-manifest.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:client/vinext-client-entry-manifest.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/.vite",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/.vite/manifest.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/.vite/manifest.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/BUILD_ID",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/BUILD_ID",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/RSC_BUILD_ID",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/RSC_BUILD_ID",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/__vinext_action_owner_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/__vinext_action_owner_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/__vinext_cacheability_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/__vinext_cacheability_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/__vite_rsc_assets_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/__vite_rsc_assets_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-page-cache-Cp6NcriA.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-page-cache-Cp6NcriA.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-page-cache-finalizer-50efOvhH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-page-cache-finalizer-50efOvhH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-page-cache-render-OzYb6wtn.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-page-cache-render-OzYb6wtn.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-page-stream-BhCndizf.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-page-stream-BhCndizf.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-prerender-endpoints-D8Diaiyy.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-prerender-endpoints-D8Diaiyy.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-prerender-static-params-DXe4IkO-.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-prerender-static-params-DXe4IkO-.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-response-header-provenance-Dpvs0NL_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-response-header-provenance-Dpvs0NL_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-route-handler-dispatch-DaZDTki_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-route-handler-dispatch-DaZDTki_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-segment-config-CH5W9chb.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-segment-config-CH5W9chb.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/app-static-generation-BX8cz43B.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/app-static-generation-BX8cz43B.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/audit-export-C_iCPfX_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/audit-export-C_iCPfX_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/auth-assurance-f3jTgNvw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/auth-assurance-f3jTgNvw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/authz-Cr8Xkau3.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/authz-Cr8Xkau3.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/cache-control-BgNmX8Pa.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/cache-control-BgNmX8Pa.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/cache-request-state-DCNaKEXG.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/cache-request-state-DCNaKEXG.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/cacheability-classification-DcL9FyDA.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/cacheability-classification-DcL9FyDA.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/cacheability-limits-BTpP4ZoO.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/cacheability-limits-BTpP4ZoO.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/cacheability-request-By6KK3xF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/cacheability-request-By6KK3xF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/css/index.B3vc-uLU.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/css/index.B3vc-uLU.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/events-CSLHAilI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/events-CSLHAilI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/framework~index-BlFgPmTj.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/framework~index-BlFgPmTj.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/framework~index~layout~app-page-cache-render~app-page-cache~app-route-handler-dispatch-DXVXBRc-.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/framework~index~layout~app-page-cache-render~app-page-cache~app-route-handler-dispatch-DXVXBRc-.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/framework~index~page~layout~page~app-page-cache-render~app-page-cache~app-route-handler-dispatch-BO2z_WaE.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/framework~index~page~layout~page~app-page-cache-render~app-page-cache~app-route-handler-dispatch-BO2z_WaE.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/framework~index~page~page~app-route-handler-dispatch-Dtprz4SK.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/framework~index~page~page~app-route-handler-dispatch-Dtprz4SK.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/gym-timplan-907AInja.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/gym-timplan-907AInja.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/gym-timplan-DCdTZoUF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/gym-timplan-DCdTZoUF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/headers-hgYk8SCG.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/headers-hgYk8SCG.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/http-GMmi4-PN.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/http-GMmi4-PN.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/implicit-tags-D6nZMgyz.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/implicit-tags-D6nZMgyz.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/isr-cache-CBhgCkE1.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/isr-cache-CBhgCkE1.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/isr-decision-7DWfI__U.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/isr-decision-7DWfI__U.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/mandate-route-BGnBpPrF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/mandate-route-BGnBpPrF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/oidc-B1irKysT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/oidc-B1irKysT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/page-B3z5Ribt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/page-B3z5Ribt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/page-BkoG6CtP.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/page-BkoG6CtP.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/planning-year-Dg7x7yLr.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/planning-year-Dg7x7yLr.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-catalog-DLY942lj.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-catalog-DLY942lj.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-education-B_mU6duI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-education-B_mU6duI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-packages-DF17KkPt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-packages-DF17KkPt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-packages-raJjO2nT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-packages-raJjO2nT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-planning-BQ7aE3L1.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-planning-BQ7aE3L1.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-terms-Cg8DWJ-4.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-terms-Cg8DWJ-4.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-terms-contract-_khzJthS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-terms-contract-_khzJthS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-workspace-CjR9okVJ.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-workspace-CjR9okVJ.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/programplan-workspace-contract-BGDS27Ib.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/programplan-workspace-contract-BGDS27Ib.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/pupil-register-BSJiST9r.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/pupil-register-BSJiST9r.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/pupil-register-model-ClnL3-ML.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/pupil-register-model-ClnL3-ML.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/rolldown-runtime-hePW80VL.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/rolldown-runtime-hePW80VL.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/root-params-Y0YHya5L.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/root-params-Y0YHya5L.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-56x3o2hI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-56x3o2hI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-7IwVEcTh.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-7IwVEcTh.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-9ldDB7aI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-9ldDB7aI.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B-SxF7Rw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B-SxF7Rw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B-gORV6Q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B-gORV6Q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B0swQuYy.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B0swQuYy.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B0xHhCJL.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B0xHhCJL.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B1XpDMXS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B1XpDMXS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B2o3D1l6.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B2o3D1l6.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B3hQPOgN.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B3hQPOgN.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-B8e_mOYT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-B8e_mOYT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BAXDjCGk.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BAXDjCGk.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BArZ0l7n.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BArZ0l7n.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BJTs6zMm.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BJTs6zMm.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BKZpa6bb.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BKZpa6bb.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BR4PnqhH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BR4PnqhH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BUjHibRA.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BUjHibRA.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BeT6fexi.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BeT6fexi.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Bh-AcKhF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Bh-AcKhF.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-BiNtwAK4.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-BiNtwAK4.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Bk5f5edd.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Bk5f5edd.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Bq1O4LMO.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Bq1O4LMO.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-C0LiVO9b.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-C0LiVO9b.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-C1pwzkZS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-C1pwzkZS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-C3JF33z9.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-C3JF33z9.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CAkPAnDw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CAkPAnDw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CMXSDTFT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CMXSDTFT.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CSAZwyCa.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CSAZwyCa.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CXFt9Xch.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CXFt9Xch.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CZo7slYe.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CZo7slYe.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Cai0V773.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Cai0V773.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CmKMmKZw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CmKMmKZw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CppVH-UW.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CppVH-UW.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CwmOin7_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CwmOin7_.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-CwvlGEEo.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-CwvlGEEo.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Cy8NxEU2.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Cy8NxEU2.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-D6WbfQ4u.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-D6WbfQ4u.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DBByJ5V0.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DBByJ5V0.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DVtHxLN6.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DVtHxLN6.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DWo-N977.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DWo-N977.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DYq5qDfk.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DYq5qDfk.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DcoKB5iH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DcoKB5iH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DeO8sWwu.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DeO8sWwu.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Dh3d48gt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Dh3d48gt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DhxXyx2d.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DhxXyx2d.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DjuNDtUG.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DjuNDtUG.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DpvbUKtw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DpvbUKtw.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DquV2xJh.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DquV2xJh.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-DvOngw7N.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-DvOngw7N.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-EDLqehFg.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-EDLqehFg.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-Gzl1nnJz.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-Gzl1nnJz.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-K6jHzWpl.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-K6jHzWpl.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-bEWetruH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-bEWetruH.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-gRlmoW3v.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-gRlmoW3v.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-jRg2_Ih-.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-jRg2_Ih-.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-jkl4qVMl.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-jkl4qVMl.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/route-zHx4YcSv.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/route-zHx4YcSv.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/server-DbVL1c6w.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/server-DbVL1c6w.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/session-CP8pUby3.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/session-CP8pUby3.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/skolverket-XMlx0tXS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/skolverket-XMlx0tXS.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/text-stream-vcJrHP-Z.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/text-stream-vcJrHP-Z.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/timplan-planning-BUt6Ck7e.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/timplan-planning-BUt6Ck7e.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/_next/static/worker-prerender-discovery-mfL5VcrP.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/_next/static/worker-prerender-discovery-mfL5VcrP.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/index.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/index.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/__vite_rsc_assets_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/__vite_rsc_assets_manifest.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/app-elements-B9PWkcii.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/app-elements-B9PWkcii.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/app-nav-failure-handler-BW2-CIfV.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/app-nav-failure-handler-BW2-CIfV.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/app-prefetch-fetch-queue-D8u0eNQr.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/app-prefetch-fetch-queue-D8u0eNQr.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/app-router-scroll-DVO1I7Yo.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/app-router-scroll-DVO1I7Yo.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/app-router-scroll-state-Ddg0JoEg.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/app-router-scroll-state-Ddg0JoEg.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/button-BkTdStQt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/button-BkTdStQt.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/css/page.KY4YB_Su.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/css/page.KY4YB_Su.css",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/error-boundary-ADpGG7On.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/error-boundary-ADpGG7On.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/hybrid-client-route-owner-nFclDrvc.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/hybrid-client-route-owner-nFclDrvc.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/jsx-runtime-CX4IdwEO.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/jsx-runtime-CX4IdwEO.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/layout-segment-context-Cyc99MOr.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/layout-segment-context-Cyc99MOr.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/navigation-context-state-Dhkp3VZn.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/navigation-context-state-Dhkp3VZn.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/navigation-errors-D5mcf3ZW.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/navigation-errors-D5mcf3ZW.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/navigation-k549AU9V.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/navigation-k549AU9V.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/navigation-server-D7xcf8rg.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/navigation-server-D7xcf8rg.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/page-CnuKVb3q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/page-CnuKVb3q.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/page-gZm1L0OB.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/page-gZm1L0OB.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/react-DNQhlH1z.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/react-DNQhlH1z.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/react-dom-B4788UKY.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/react-dom-B4788UKY.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/record-BGze3w87.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/record-BGze3w87.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/static.edge-C4-f9T7Y.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/static.edge-C4-f9T7Y.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/_next/static/streamed-icons-MO9KmFwE.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/_next/static/streamed-icons-MO9KmFwE.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/index.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/index.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/ssr/vinext-client-assets.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/ssr/vinext-client-assets.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/vinext-client-assets.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/vinext-client-assets.js",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/vinext-externals.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/vinext-externals.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/vinext-server.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/vinext-server.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-no-symlink:server/wrangler.json",
+      "pass": true
+    },
+    {
+      "name": "artifact-regular-single-link:server/wrangler.json",
+      "pass": true
+    },
+    {
+      "name": "exact-v4-artifactwalk-180-order-hashes",
+      "pass": true
+    },
+    {
+      "name": "private-files-excluded",
+      "pass": true
+    },
+    {
+      "name": "same-protected-build-marker",
+      "pass": true
+    },
+    {
+      "name": "pre-during-genuine-sixth-git-inventory-pointer",
+      "pass": true
+    },
+    {
+      "name": "genuine-sixth-preprocess-pointers",
+      "pass": true
+    },
+    {
+      "name": "artifact-genuine-sixth-observation-inventory-seals",
+      "pass": true
+    },
+    {
+      "name": "root-preobservation-known-and-before",
+      "pass": true
+    },
+    {
+      "name": "exact-v4-closed-prelaunch-no-future-report",
+      "pass": true
+    },
+    {
+      "name": "metadata-recorder-does-not-claim-live-observation",
+      "pass": true
+    },
+    {
+      "name": "before:root-recorded-ready-listener-identity",
+      "pass": true
+    },
+    {
+      "name": "before:same-owned-chain-cwd",
+      "pass": true
+    },
+    {
+      "name": "during:root-recorded-ready-listener-identity",
+      "pass": true
+    },
+    {
+      "name": "during:same-owned-chain-cwd",
+      "pass": true
+    },
+    {
+      "name": "same-root-recorded-pre-during-process-tuple",
+      "pass": true
+    },
+    {
+      "name": "root-recorded-during-actual-session-browser",
+      "pass": true
+    },
+    {
+      "name": "sixth-report-planned-not-read",
+      "pass": true
+    },
+    {
+      "name": "pre-timestamp-before-during",
+      "pass": true
+    }
+  ],
+  "inventoryCounts": {
+    "fullSource": 341,
+    "sourceBuildTree": 300,
+    "buildTree": 300,
+    "runtimeClosure": 241,
+    "artifact": 180
+  },
+  "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+  "constantsSha256": "73b4dea17270b847b21544563d8d77d9ed8f63bab1afcf56e3c7fc0c90b29749",
+  "observedProcessTupleSuppliedByRoot": [
+    78723,
+    78732,
+    78733
+  ],
+  "readySessionSuppliedByRoot": 89728,
+  "actualSessionSuppliedByRoot": 43952,
+  "browserPidSuppliedByRoot": 12249,
+  "limitations": {
+    "actualOtherReportRead": false,
+    "actualOtherOutcome": "NOT_ASSESSED",
+    "liveProcessIndependentlyObserved": false,
+    "gitCommandsRun": false,
+    "targetAccessed": false,
+    "historicalReportsReplaced": false
+  },
+  "scope": "Canonical file bytes, closed inventory/working source/artifact hashes and genuine sixth pre/during pointer closure only. ROOT-recorded process observations are bound as evidence; no current live claim or O36 PASS."
+}

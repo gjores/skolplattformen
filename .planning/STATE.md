@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 O5 ägd återställning och O14-source PASS; nästa O14×2 och färsk fullO36 på bevarad179.
+stopped_at: UI05-42 O14×2 PASS; sjätte fullO FAIL efter14 datorPASS/O15 deferred. Egen Worker stoppad; ägd återställning och nytt fullO36 återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 ägd återställning kändexit0 och O14-source07c PASS; nya actualprov återstår.86/100 och3012 består."
-state_head: 81e2164
+last_activity_desc: "UI05-42 sjätte fullprov FAIL/O15 deferred; O14×2 faktiskt PASS. Återställning endast SOURCE, fullO42 Pending;86/100 och3012 består."
+state_head: a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_after_known_fifth_owned_recovery
+verification_worker_status: stopped_after_sixth_owned_completion_deferred
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,12 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 sjätte förkontrollen 2026-10-08 — ingen återställning utförd:** ROOT78418 exit1 på återställningskälla5b723b00; immutable reserved70993e6f och completion7669c703 är bevarade i båda arbetskopiorna. Kontroll av accepterad cell/logg stoppade före någon verksamhetsmutation, med ownedMutationStarted=false, transactionCommitted=false samt känt DB-/filavslut. Den generiska commitOutcomeUnknown-flaggan står true för det avbrutna transaktionsförsöket och ges ingen PASS-tolkning. Källorsak: browserfixturens rektor får en ny mintad MFA-session, medan diagnosen felaktigt krävde grundfixturens fasta81. Nästa separata granskade källa ska kräva exakt den egna mintade MFA-sessionen och samma fulla DB-/Worker-loggpar, med nya utdata och bevarad första FAIL. Ingen ny fixtur eller browserkörning före känd ägd återställning. O15/O16:s locatorjustering93c6 är integrerad i MAIN med granskad helundo och 28 rena källprober; lint90690 och list46005=36 exit0, typkontroll pågår. Runtime hålls kvar på a9a/07c för återställningen.86/100,3/8 och3012 består.
+
+**UI42 O14-omprov och sjätte fullprov 2026-10-08 — fullO42 fortsatt Pending:** Första avgränsade O14-kommandot ROOT61570 exit1/rå802588d5 gav0 suites/0 fall/1 NoTestsFound före fixturstart; historiken består. Korrigerat O14×dator/telefon ROOT33181 exit0/råfe3e39fb gav2/2 PASS utan skips/omprov, med två normalcleanup/full15/käll- och audit-/identitetsbevarande; oberoende filreview5a4fba74. Detta ersätter inte fullO36. Sjätte fullkörningen ROOT43952 exit1/rå05643d1d på sourcea9a3f0d/spec07c44817/fixtur70df344c/bevarat bygge17924ff gav14 datorPASS/O15 FAIL/21 ejstartade. De14 normalcleanup bevarar original15 exaktSEARCH, sex flaggor, egna16 och foreignverksamhet/DDL0 samt full audit-/identitetslinje;20 explicita/49 skyddade/241 produkt-/2 parserkällor stämmer, oberoende partialreview6e6f0de3. Senaste normala audit192820/9f3f0ce2 och auditeradeident5262/54492d23. Sex datorgeometrier med7/7/10/13/11/12 synliga kontroller klarar44px/containment; sex PNG med fem unika originalbilder är ROOT-granskade. O05:s fokushopplänk/sticky-sidebar och O10:s ännu inläsande matris vid capture är bildbegränsningar. Ingen telefon/fullO36-/felfriUI-påståelse. Sex genuina pre/duringmetadata har separat oberoende filreviewd17d98ed,1138 kontroller;180 tillåtna artefaktfiler behåller3b5af3de.
+
+**UI42 O15-avslut och nästa säkerhetsgräns 2026-10-08:** O15:s årskontroll väntade25s under hållet faktiskt cellskrivsvar. Källanalys pekar på att den öppna modalen döljer bakgrunden för rollbaserad sökning, inte ett belagt produktfel i årsbarens montering. Efter avslut kvarstår en POST `/api/timplaner/lasa` i stage=seen för egen4991e99e-graf; nodeUnknown/browserUnknown=false och känd page-/route-/jobb-/contextstängning bevisar inte den läsningens completion. Ingen normalcleanup eller ny bevarandebaslinje antas för O15. ROOT stoppade exakt egen78723→78732→78733 med SIGTERM; preview89728 exit143, kedja och3060-listener frånvarande två gånger enligt stoppbevis0eb1233a. Återställningskälla5b723b00 är endast SOURCE-förberedd, ännu ingen faktisk förkontroll/apply. O15/O16:s minimala locatorförslag93c6b4e0 är också endast SOURCE-förslag; produkt, fixtur och globala audit-/tids-/avslutsgrindar består. Nästa målåtkomst först efter granskad ägd förkontroll och separat återställning med känt DB-/filavslut, därefter godkänt provförslag och färsk fullO36 med egna raw/pre/duringbevis. Alla sex fullförsök inklusive fjärde configFAIL och det första avgränsade NoTestsFound bevaras.05-42:s mål/fulla PLANERING-/ADMIN-krav, rektors färdigmarkering/HM-godkännande, slutprov43 och mänskligt prov är fortfarande öppna;86/100 planer,3/8 verifierade faser och ordinarie3012/5dd7baf oförändrade.
 
 **UI42 O14 och ägd återställning2026-10-08:** ROOT68908 förkontroll exit0 (completion6dcc5431/reserved077d491d) och separat ROOT79449 apply exit0 (completion2bc3297d/reservedf46db92d) på granskad källa a6d50ceb.13 egna sessioner till0 och endast a88601b6:s verksamhetsgraf städad;106 audithändelser/fyra egna ankare, original15 exaktSEARCH/katalog/råACL28/ALLaudit1910697d3e61d1/SQLauditedidentity52133d56c530/ALLolder5241b0d834be/alla staffbindningar/sex äldre grafer är bevarade före/efter/postcommit med känt DB-/filavslut. Oberoende187 filkontroller PASS. Femte7e72FAIL består. Endast O14:s väntan på faktisk B-SETUP/register/LIST/fullbody/uppdrag/skola/år/färdiglista ändras, spec07c44817/patchcfa15a0e/manifest820fdf11: ROOT/oberoende18 rena prober och exakt helundo PASS; ursprunglig403/ownstate och alla17övriga fall/audit-/tids-/avslutsgrindar består. ROOT tsc88272/lint52796/list67882=36 exit0.241produktbytes och bevarad179/180artefakt3b5 oförändrade, inget extra appbygge. Nästa seriellt O14×dator/telefon (grep ger endast två resultat), sedan helt ny fullO36 med genuina pre/duringmetadata. Ingen fullO36/release/användar-PASS;86/100,3/8 och vanlig3012 består.
 

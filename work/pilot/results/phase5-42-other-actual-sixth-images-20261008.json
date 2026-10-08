@@ -1,0 +1,68 @@
+{
+  "kind": "phase5-42-failed-sixth-image-review-v1",
+  "sourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "actualReport": "work/pilot/results/phase5-42-other-actual-sixth-20261008.json",
+  "actualReportSha256": "05643d1d675e5525db10dbf8a621e34364a81144d3efcc5ab6ad687fd445caea",
+  "rootKnownExitCode": 1,
+  "fullOtherOutcome": "FAIL",
+  "desktopPassed": 14,
+  "phonePassed": 0,
+  "rootViewedAllUniquePixels": true,
+  "uniquePngCount": 5,
+  "pngCount": 6,
+  "geometryControlCounts": [
+    7,
+    7,
+    10,
+    13,
+    11,
+    12
+  ],
+  "geometryAll44Contained": true,
+  "images": [
+    {
+      "case": 1,
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-sixth-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/attachments/gr-bound-v1-unknown-png-05fda0163231b5e3d7f010cf8a59ee6c5b9a5cc2.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": 4,
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-sixth-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-desktop/attachments/historical-position-reorder-png-6032608c501d33b56ccd01f22d2b3a7cb1e9c060.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": 5,
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-sixth-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-desktop/attachments/current-explicit-index1-png-48db8676287352e89af5a9d6b1bc1758d6459ecf.png",
+      "sha256": "332db3ab69f646b4d537d9930609578d25cbcd28c74e24113ff1eed9c73c3357"
+    },
+    {
+      "case": 8,
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-sixth-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-desktop/attachments/gr-page2-server-search-png-b167d36f71fd8d53d9f52841e44f0575c4f00647.png",
+      "sha256": "ab3d7ee15cb63d0faf13d139b56548d7074ef086c70e51ee4875406aec362425"
+    },
+    {
+      "case": 9,
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-sixth-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-desktop/attachments/im-weekly-empty-png-7b3b3c107bddae1148fa2119aa86085863fec575.png",
+      "sha256": "2df78a21d88aa242e532a30b70f5d5c94f61067d1ca6944b0ffceb84b495fa0d"
+    },
+    {
+      "case": 10,
+      "project": "planning-year-desktop",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-sixth-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-desktop/attachments/im-fourteen-weekly-png-e735726991363f122981ba05e23f00a1d2273857.png",
+      "sha256": "a149dae61a3c877f65a2c0c3f0f4bd2c79fed6167700c493f487c21e29bfd8e9"
+    }
+  ],
+  "limits": [
+    "O01/O04 identical pixels",
+    "O05 focus skiplink and scrolled sticky sidebar visible",
+    "O10 selected matrix still loading at capture",
+    "O15 deferred cleanup requires owned recovery",
+    "No full O36, phone, phase42 goal, release or human approval PASS"
+  ]
+}

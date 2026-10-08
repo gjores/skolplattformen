@@ -1,0 +1,14 @@
+{
+  "kind": "phase5-root-pre-o-observation-v1",
+  "baseURL": "http://127.0.0.1:3060",
+  "sourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+  "recordedBeforeOtherCases": true,
+  "completionKnown": true,
+  "rootVerifiedProcess": true,
+  "processProof": {
+    "report": "work/pilot/results/phase5-43-root-pre-o-process-sixth-20261008.json",
+    "sha256": "6fafe33261309d8c62a5f95b347eae332b7ff7aa6f2af4a0f1fe4d6f6b7a2ca7"
+  }
+}

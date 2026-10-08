@@ -1,0 +1,109 @@
+{
+  "kind": "independent-file-only-bounded-O14-review-v1",
+  "acceptance": "BOUNDED_O14_TWO_ACTUAL_CASES_AND_FULL_CLEANUP_SOURCE_CLOSURE_PASS",
+  "notFullO36Proof": true,
+  "phase42FullStatus": "PENDING",
+  "progressUnchanged": 86,
+  "noTargetCalls": true,
+  "noGitCalls": true,
+  "reviewSource": "sealed reports and exported ROOT Git tuples plus current file bytes only",
+  "rootRun": {
+    "session": 33181,
+    "exitCode": 0,
+    "authority": "ROOT supplied known exit; reviewer performed no process observation"
+  },
+  "rawReportPath": "/Users/petter.gjores/dev/skolplattform/work/pilot/results/phase5-42-other-O14-bounded-second-20261008.json",
+  "rawReportSha256": "fe3e39fb1690bfef26cdba333018c9191383461a042cc606448084cf09bb5f87",
+  "mainRuntimeBytesEqual": true,
+  "sourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "workerBuildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "specSha256": "07c44817ab7a274e0a8d809309531cd50893c4c95c5212b7c001df828e13a4fd",
+  "actual": {
+    "passed": 2,
+    "projects": [
+      "planning-year-desktop",
+      "planning-year-phone"
+    ],
+    "cases": [
+      14
+    ],
+    "runnerErrors": 0,
+    "unexpected": 0,
+    "retry": 0,
+    "flaky": 0,
+    "skippedResults": 0,
+    "otherFullMatrixCasesNotExecuted": 34,
+    "normalCleanupCount": 2
+  },
+  "checks": {
+    "exactRawHashAndMainRuntimeBytes": true,
+    "caseTitleAndSingleResultEach": true,
+    "serialWorkers1MaxFailures1Retries0": true,
+    "whole15ExactApprovedSearch": true,
+    "sixPreservationFlags": true,
+    "own16AndForeignBusinessAndDdlZero": true,
+    "originalFullAuditAndIdentityPairsEqual": true,
+    "retainedFullAuditAndIdentityPairsEqual": true,
+    "serialNextOriginalAuditMatchesPriorRetainedAudit": true,
+    "source20ExactFrozenPins": true,
+    "actualPrerequisitesExact16_2_36_38": true,
+    "parser2ExactBuiltSources": true,
+    "all241ProductSourceBuildMainRuntimeBytes": true,
+    "all49ExpandedProtectedSourceBuildMainRuntimeBytes": true
+  },
+  "gitTupleEvidence": {
+    "rootFullCollectorPath": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-git-inventory-pre-o-sixth-20261008.json",
+    "rawSha256": "a71f5f1c36877315463a38750f554b1600cb55031a17d65aabe77b9ae2f907d2",
+    "sourceFiles": 341,
+    "sourceBuildTree": 300,
+    "buildTree": 300,
+    "full49SupplementPath": "/private/tmp/phase5-42-O14-root-full49-supplement-20261008.json",
+    "full49SupplementRawSha256": "acd2c65d29e8bbed84ec738507ce6a7d148ea9c1d6116e3c1432e21460f06b64",
+    "authority": "ROOT exported historical Git bytes after its known exit0; reviewer read sealed tuples and independently compared all working bytes"
+  },
+  "cleanupAuditLines": [
+    {
+      "project": "planning-year-desktop",
+      "originalAuditHash": "7d3e61d135d1b2e66c4c1050867e4cae90cd77ffd235a2c91618c81ea1a6dc97",
+      "finalAuditHash": "7d3e61d135d1b2e66c4c1050867e4cae90cd77ffd235a2c91618c81ea1a6dc97",
+      "originalIdentityHash": "aa9b6f8ffe6c79af0d6a950b19481ad016fce06c9008b6e45cf10e10dda76584",
+      "finalIdentityHash": "aa9b6f8ffe6c79af0d6a950b19481ad016fce06c9008b6e45cf10e10dda76584",
+      "retainedAudit": {
+        "count": 191180,
+        "sha256": "d429f418bb8f4a1be7c98732ec3ef3fd3fd0c6d4b3f70f819273f3c8374463e8"
+      },
+      "retainedIdentities": {
+        "count": 5216,
+        "sha256": "e763fddee253ef854573aca5b2ae16b5e81a12b2a0d647f67c9dd6830a848fb2"
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "originalAuditHash": "d429f418bb8f4a1be7c98732ec3ef3fd3fd0c6d4b3f70f819273f3c8374463e8",
+      "finalAuditHash": "d429f418bb8f4a1be7c98732ec3ef3fd3fd0c6d4b3f70f819273f3c8374463e8",
+      "originalIdentityHash": "149e9561c3862ba02a311e915d78166b85f25452bbc69364adff4c2a4f1d5431",
+      "finalIdentityHash": "149e9561c3862ba02a311e915d78166b85f25452bbc69364adff4c2a4f1d5431",
+      "retainedAudit": {
+        "count": 191291,
+        "sha256": "cbfb24f041390696734e6a9da225855aea4c2d12cce13a148a3f690635a16ae0"
+      },
+      "retainedIdentities": {
+        "count": 5219,
+        "sha256": "812d8dd7e7ae6aa9868a395a1900cc8657b9631cb2ab80a59831fed52293c462"
+      }
+    }
+  ],
+  "pngCount": 0,
+  "geometryCount": 0,
+  "geometryVerification": "NOT_APPLICABLE_NO_CAPTURE_IN_O14",
+  "firstBoundedConfigFailurePreserved": {
+    "rawSha256": "802588d5a1b2195b2fd2558485b636e5100389ba0579256a9d6a1728536eec8a",
+    "outcome": "NoTestsFound;0 suites;0 cases;no phase proof"
+  },
+  "limits": [
+    "bounded O14 does not replace full O36 or goal score",
+    "no PNG/geometry/human comprehension proof",
+    "all five earlier full FAIL reports and exact-owned recoveries remain historical",
+    "fresh full O36 plus genuine pre/during records still required"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "kind": "phase5-root-during-o-process-observation-v1",
+  "observedAt": "2026-10-08T07:04:59.278Z",
+  "baseURL": "http://127.0.0.1:3060",
+  "sourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "launcherReadyObservedByRoot": true,
+  "launcherReadyToolSessionId": 89728,
+  "processes": [
+    {
+      "pid": 78723,
+      "ppid": 9402,
+      "command": "node scripts/run-mode.mjs preview --mode protected --port 3060",
+      "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web"
+    },
+    {
+      "pid": 78732,
+      "ppid": 78723,
+      "command": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node scripts/preview-worker.mjs dist-protected/server/wrangler.json 3060",
+      "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web"
+    },
+    {
+      "pid": 78733,
+      "ppid": 78732,
+      "command": "/Users/petter.gjores/dev/skolplattform/web/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd serve --binary --experimental --socket-addr=entry=127.0.0.1:3060 --external-addr=loopback=127.0.0.1:51255 --control-fd=3 -",
+      "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web"
+    }
+  ],
+  "soleListenerPid": 78733,
+  "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+  "artifactFileCount": 180,
+  "buildMarker": {
+    "mode": "protected",
+    "revision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+    "builtAt": "2026-10-08T00:20:38.706Z",
+    "node": "v25.9.0"
+  },
+  "rootGitInventory": {
+    "report": "work/pilot/results/phase5-43-root-git-inventory-pre-o-sixth-20261008.json",
+    "sha256": "a71f5f1c36877315463a38750f554b1600cb55031a17d65aabe77b9ae2f907d2"
+  },
+  "recordedDuringActualO": true,
+  "rootObservedRunningBrowserToolSessionId": 43952,
+  "browserProcess": {
+    "pid": 12249,
+    "ppid": 12222,
+    "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web",
+    "spec": "phase5-planning-year-other.spec.ts",
+    "output": "test-results/phase5-42-other-actual-sixth-20261008"
+  },
+  "plannedOtherReport": "work/pilot/results/phase5-42-other-actual-sixth-20261008.json",
+  "browserOutput": "test-results/phase5-42-other-actual-sixth-20261008"
+}
