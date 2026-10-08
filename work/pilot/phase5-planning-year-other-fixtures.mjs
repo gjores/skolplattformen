@@ -84,11 +84,27 @@ export async function createPlanningOtherFixture(){
    const otherSchool=await db.begin(async tx=>{
     await owned(tx);await tx`set local session_replication_role=replica`;
     // This additional synthetic mandate is confined to the existing owned actor.
-    one(await tx`select a.id from public.access_assignments a join public.memberships m on m.id=a.membership_id
+    const principal=one(await tx`select a.staff_assignment_id from public.access_assignments a
+     join public.memberships m on m.id=a.membership_id
+     join public.staff_assignment_bindings b on b.staff_assignment_id=a.staff_assignment_id and b.membership_id=m.id
+      and b.customer_id=a.customer_id and b.organizer_id=a.organizer_id
+     join public.assignments s on s.id=b.staff_assignment_id and s.organizer_id=b.organizer_id and s.role::text='rektor'
+     join public.access_assignments p on p.id=a.parent_assignment_id and p.id=a.issued_by_assignment_id
+      and p.customer_id=a.customer_id and p.organizer_id=a.organizer_id and p.function='huvudman'
+     join public.mandate_units pu on pu.assignment_id=p.id and pu.customer_id=p.customer_id
+      and pu.organizer_id=p.organizer_id and pu.unit_id=${base.nonGymUnitId}
+     join public.school_units u on u.id=pu.unit_id and u.organizer_id=a.organizer_id
      where a.id=${base.principal.assignmentId} and m.id=${base.principal.membershipId} and m.identity_id=${base.principal.identityId}
-     and a.customer_id=${base.customerId} and a.organizer_id=${base.organizerId}`,'other_principal_ownership');
+     and a.customer_id=${base.customerId} and a.organizer_id=${base.organizerId} and a.function='rektor'
+     and p.id=${base.hm.assignmentId} and public.phase3_mandate_is_valid(a.id)
+     for update of a,m,b,s,p,pu,u`,'other_principal_ownership');
+    await tx`insert into public.assignment_units(assignment_id,unit_id)
+     values(${principal.staff_assignment_id},${base.nonGymUnitId}) on conflict do nothing`;
     await tx`insert into public.mandate_units(assignment_id,customer_id,organizer_id,unit_id)
      values(${base.principal.assignmentId},${base.customerId},${base.organizerId},${base.nonGymUnitId}) on conflict do nothing`;
+    one(await tx`select a.id from public.access_assignments a where a.id=${base.principal.assignmentId}
+     and a.customer_id=${base.customerId} and a.organizer_id=${base.organizerId}
+     and public.phase3_staff_binding_is_valid(a.id) and public.phase3_mandate_is_valid(a.id)`,'other_principal_extended_valid');
     one(await tx`select id from public.school_units where id=${base.secondUnitId} and organizer_id=${base.organizerId}`,'other_second_school_ownership');
     await tx`insert into public.school_unit_types(unit_id,school_type) values(${base.secondUnitId},'GR') on conflict do nothing`;
     for(let n=0;n<52;n++){

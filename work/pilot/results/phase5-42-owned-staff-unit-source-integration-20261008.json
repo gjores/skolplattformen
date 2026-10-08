@@ -1,0 +1,53 @@
+{
+  "kind": "phase5-42-owned-staff-unit-source-integration-v1",
+  "status": "SOURCE_INTEGRATED_ACTUAL_PENDING",
+  "actualO36Passed": false,
+  "preservedFirstOReport": {
+    "report": "work/pilot/results/phase5-42-other-actual-first-20261008.json",
+    "sha256": "e72d47220e46a5453696f94aed4affc84344921364a2f466bdcaa509992ce610"
+  },
+  "sourceProposalManifestSha256": "0995fa230aa2c2935373b6439ea9f396e6448a202a380e205eadf2ef588f2f85",
+  "patchSha256": "55ee21ac20bb5467db4948749c06f4c9d555986190b9db03720d99e08b686781",
+  "files": {
+    "work/pilot/phase5-planning-year-other-fixtures.mjs": "70df344c436c841e0ec8385f7235c35ae0c77b889e8fccd7d6da08ea3f3874e4"
+  },
+  "sourceReviews": {
+    "root": "PASS",
+    "independent": "PASS",
+    "pureProbes": 13,
+    "syntax": "PASS"
+  },
+  "rootOwnedRecovery": {
+    "scriptSha256": "aa49604f8c6199bef0fe6883ca70fa83496133871e75f48b7c50b7e9b318fe00",
+    "preflight": {
+      "completion": "work/pilot/results/phase5-42-first-other-recovery-v1-preflight-completion-20261008.json",
+      "completionSha256": "0f7cd9178bee5da5dc6caa3663ccb9c1002867646c3fbbe7a20439cb90f8aa4e",
+      "reservedSha256": "b85e2ec95ec25e54108700929a62c663fbeecc0b4f57ea588686ae6c9dc8c0a5",
+      "rootObservedToolSession": 16763,
+      "rootObservedExitCode": 0
+    },
+    "apply": {
+      "completion": "work/pilot/results/phase5-42-first-other-recovery-v1-completion-20261008.json",
+      "completionSha256": "e1e556b5ba9d524bbb2c80ba1ea1e7934b956b4cfe32778a03ca5bd34cee44d7",
+      "reservedSha256": "e9b50e3b3d57ba52a335c69fef10cc122ef660a4437efb1f37335b7cb8589bc1",
+      "rootObservedToolSession": 44551,
+      "rootObservedExitCode": 0
+    },
+    "independentSavedArtifactReview": "PASS",
+    "ownedSessionsRemoved": 13,
+    "retainedOwnAudits": 83,
+    "fullOriginal15CatalogAclAuditIdentitiesStaffAndFivePastGraphsPreserved": true
+  },
+  "reusedArtifact": {
+    "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+    "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+    "entireProductClosureFiles": 241,
+    "productBytesChanged": false,
+    "additionalAppBuildRequired": false
+  },
+  "remaining": [
+    "fresh ROOT preO and duringO observations for new attempt",
+    "full actual O01-18 on desktop and phone",
+    "full normal cleanup and image/source review"
+  ]
+}

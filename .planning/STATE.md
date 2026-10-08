@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 första O01 avbruten i setup; eget rektorsmandat saknar matchande uppdragsenhet.3060 exakt stoppad; granskad ägd återställning och fixturrättning före nytt O36.
+stopped_at: UI05-42 ägd återställning känd PASS och fixtur70df integrerad. Ny launch/preO/duringO och fullO36 på bevarad produktartefakt179 återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 första actualFAIL bevarad; egen återställning och O36 återstår.86/100 och vanlig3012 består."
-state_head: 17924ff
+last_activity_desc: "UI05-42 ägd återställning och fixturkoppling klara; fullO36 återstår.86/100 och vanlig3012 består."
+state_head: 7b20312
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_for_owned_recovery
+verification_worker_status: stopped_before_new_O_launch
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -25,6 +25,8 @@ milestone_name: milestone
 # Project State
 
 **UI42 första faktiska prov2026-10-08:** Source/build17924ff, O3ea5/fixtur05ee. Första O01 dator avbruten i setup efter verklig timplanläsning403;0PASS/1FAIL/35ej startade. Rårapport e72d4722 och fem genuina ROOTpreO-records bevaras. Ingen duringO-observation hann registreras och ingen sådan skapas i efterhand. ROOT observerade provets exit1 och preview83420 exit143; exakt egen57183→57192→57195-kedja/3060-listener borta. Deferredsetup gäller egen2f865de9-graf, browser/context/routes avslutade. Källgranskning visar extra mandatunit utan motsvarande bound staff assignment unit, vilket legitimt ogiltigförklarar rektorsmandatet. Inga serverregler/provgrindar ändras. Granskad ägd läsförkontroll/återställning före ny fixtur; sedan minimal testkopplingsrättning och nytt fullO36 med separata genuina metadata.86/100 och ordinarie3012 består.
+
+**UI42 ägd återställning och fixturrättning2026-10-08:** Fryst aa49604f med ROOT/oberoende full SOURCE-review och27 rena prov. Faktisk läsförkontroll16763 exit0 completion0f7cd917/reservedb85e2ec9 samt separat apply44551 exit0 completione1e556b5/reservede9b50e3b har känd commit/postcommit/DB-/filstängning.13egna sessioner och bara2f865de9:s verksamhetsgraf städade;83egna audithändelser och fyra identitets-/mandatankare består. Original15 exaktSEARCH, katalog/råACL28, ALLcurrentaudit/äldreidentiteter/alla staffbindings och fem tidigare mandatgrafer är bevarade; oberoende86artifactjämförelser PASS. Exakt en granskad O-fixturrättning70df344c/patch55ee21ac lägger samma GR-skola även i det ägar-/parent-/staffbundna rektorsuppdraget, inom befintlig setupTx med giltighetskontroll före/efter. Server/product/spec/audit-/timeout-/städgrindar oförändrade;13rena kopplingsprov och syntax PASS. Full241produktclosure motsvarar fortfarande artefakt17924ff, inget extra appbygge behövs. Ny launch och genuina nya preO/duringO-records före fullO36; första e72FAIL och tidigare duringO=false består.86/100 och vanlig3012 består.
 
 ## Project Reference
 
