@@ -1,0 +1,62 @@
+{
+  "kind": "phase5-root-owned-recovery-actual-file-review-v1",
+  "status": "RECOVERY_FILE_PASS",
+  "notFullPlanProof": true,
+  "scope": "local-synthetic-only",
+  "rootPreflight": {
+    "toolSession": 12636,
+    "knownExitCode": 0,
+    "completionSha256": "17da24316dd4333f27c726d479807a297d70175426eb0f6b7d2bdac4373109fb",
+    "reservedSha256": "b5e71f1c8ca655573a43178e7861944a5811cb4373c189e834a76e63ec61761b"
+  },
+  "rootApply": {
+    "toolSession": 96917,
+    "knownExitCode": 0,
+    "completionSha256": "198ca4e5df8044102e188c7b109466b5e755941d187cb5a2bb9a136990ea14a7",
+    "reservedSha256": "4d0709445c04970c9af1c55b3c80ba98a85b3da7369422d75f3ebed54900c986"
+  },
+  "recoveryScriptSha256": "fb16e88bbcfe60d79206e0cfccaff98f0711224916f491464b1f4af238a19fef",
+  "failedV1AndV2RemainImmutable": true,
+  "sourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "rootFileReviewChecks": [
+    "c9ad67",
+    "797b5a",
+    "4ea7bd"
+  ],
+  "full15ExactSearch": true,
+  "fullCatalogAndRawAclExactSearch": true,
+  "allCurrentAuditAndAuditedIdentitiesPreserved": {
+    "audit": {
+      "count": 192931,
+      "sha256": "3ca2b8e0232c914ea3bd6f218b125b4d350680f79717d3035e6e3ba376c6d8e8"
+    },
+    "identities": {
+      "count": 5265,
+      "sha256": "35657305d7c24c87d160dd527796ca70c4483c9bb3e0d87365494ab920dc6ada"
+    }
+  },
+  "allOlderIdentitiesPreserved": {
+    "count": 5294,
+    "sha256": "9f5b0c3e4babb88e93578c48746a298a5add8604b5e82687f90e46ad8d8e982e"
+  },
+  "allStaffBindingsPreserved": {
+    "count": 31,
+    "sha256": "391d766c758f4dd6d8a826c7c57065a0ce202ceb3ea541b38626476fc6dae83f"
+  },
+  "allSevenHistoricalRetainedGraphsPreserved": true,
+  "ownedSessionsBefore": 13,
+  "ownedSessionsAfter": 0,
+  "ownAuditEventsRetained": 111,
+  "ownAnchorsRetained": 4,
+  "knownCommitPostcommitAndDatabaseFileClosure": true,
+  "fourCanonicalCopiesExact600": true,
+  "independentReview": {
+    "report": "work/pilot/results/phase5-42-sixth-recovery-v3-independent-file-review-20261008.json",
+    "sha256": "501eecd44c5d6db5cbcc13004df71962fb86b67980220af7ddeb622a2f464dcf"
+  },
+  "ordinary3012Touched": false,
+  "actualO15OrFullO36Approved": false,
+  "historicalUniqueRawSeals": 49,
+  "separatelyBoundStopProofSha256": "0eb1233a0a2240f486dadde65be5ba9f2a7fc6d3b2754d3fa21c9be4783a2889"
+}

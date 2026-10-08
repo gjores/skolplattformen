@@ -1,0 +1,131 @@
+{
+  "kind": "phase5-42-sixth-recovery-v3-independent-file-review",
+  "status": "RECOVERY_FILE_PASS",
+  "notFullPlanProof": true,
+  "fileOnly": true,
+  "scriptSha256": "fb16e88bbcfe60d79206e0cfccaff98f0711224916f491464b1f4af238a19fef",
+  "actualFiles": {
+    "phase5-42-sixth-other-recovery-v3-preflight-completion-20261008.json": "17da24316dd4333f27c726d479807a297d70175426eb0f6b7d2bdac4373109fb",
+    "phase5-42-sixth-other-recovery-v3-preflight-reserved-20261008.json": "b5e71f1c8ca655573a43178e7861944a5811cb4373c189e834a76e63ec61761b",
+    "phase5-42-sixth-other-recovery-v3-completion-20261008.json": "198ca4e5df8044102e188c7b109466b5e755941d187cb5a2bb9a136990ea14a7",
+    "phase5-42-sixth-other-recovery-v3-reserved-20261008.json": "4d0709445c04970c9af1c55b3c80ba98a85b3da7369422d75f3ebed54900c986"
+  },
+  "knownRootExits": {
+    "preflight": {
+      "toolSession": 12636,
+      "exitCode": 0
+    },
+    "apply": {
+      "toolSession": 96917,
+      "exitCode": 0
+    }
+  },
+  "exitEvidence": "explicit ROOT actual outcome message; not inferred from JSON",
+  "bothCanonicalCopies": "exact raw bytes; regular0600/singlelink",
+  "historicalSealsBothRoots": 49,
+  "helperSourcesBound": 8,
+  "preflightApplyBeforeFieldsEqual": [
+    "ownedSessionsBefore",
+    "allStaffBindingsBefore",
+    "originalProjectionBefore",
+    "originalAnchorsBefore",
+    "previousFullAuditAndAuditedIdentitiesBefore",
+    "previousAllOlderIdentitiesBefore",
+    "firstGymFullAuditAndAuditedIdentitiesBefore",
+    "firstGymAllOlderIdentitiesBefore",
+    "firstGymRetainedOwnIdentitiesBefore",
+    "firstOtherFullAuditAndAuditedIdentitiesBefore",
+    "firstOtherAllOlderIdentitiesBefore",
+    "firstOtherRetainedOwnIdentitiesBefore",
+    "fifthOtherFullAuditAndAuditedIdentitiesBefore",
+    "fifthOtherAllOlderIdentitiesBefore",
+    "fifthOtherRetainedOwnIdentitiesBefore",
+    "latestPassedCleanupBefore",
+    "allIdentitiesOutsideNewOwnBefore",
+    "historicalRetainedGraphsBefore",
+    "previousRetainedOwnIdentitiesBefore",
+    "allAuditAndAuditedIdentitiesBefore",
+    "currentBusinessBefore",
+    "retainedOwnIdentitiesBefore",
+    "retainedScopeBefore",
+    "beforeCatalog",
+    "beforeAcl",
+    "ownedSessionDistribution",
+    "ownedOtherGraphDiagnostic",
+    "ownedStaffBindingDiagnostic",
+    "ownedAcceptedCellDiagnostic",
+    "ownAuditAnchorCounts",
+    "retainedCustomerIds"
+  ],
+  "beforeAfterPairsEqual": [
+    "allStaffBindings",
+    "originalAnchors",
+    "allIdentitiesOutsideNewOwn",
+    "historicalRetainedGraphs",
+    "firstGymRetainedOwnIdentities",
+    "firstOtherRetainedOwnIdentities",
+    "previousRetainedOwnIdentities",
+    "allAuditAndAuditedIdentities",
+    "retainedScope",
+    "retainedOwnIdentities"
+  ],
+  "original15": "exact SEARCH final/originalProjection/finalHashes",
+  "catalogRawAcl": "exact SEARCH before/after",
+  "auditAfter": {
+    "audit": {
+      "count": 192931,
+      "sha256": "3ca2b8e0232c914ea3bd6f218b125b4d350680f79717d3035e6e3ba376c6d8e8"
+    },
+    "identities": {
+      "count": 5265,
+      "sha256": "35657305d7c24c87d160dd527796ca70c4483c9bb3e0d87365494ab920dc6ada"
+    }
+  },
+  "olderIdentitiesAfter": {
+    "count": 5294,
+    "sha256": "9f5b0c3e4babb88e93578c48746a298a5add8604b5e82687f90e46ad8d8e982e"
+  },
+  "staffBindingsAfter": {
+    "count": 31,
+    "sha256": "391d766c758f4dd6d8a826c7c57065a0ce202ceb3ea541b38626476fc6dae83f"
+  },
+  "historicalGraphs": 7,
+  "ownAuditAnchors": 111,
+  "ownRetainedIdentities": 4,
+  "foreignAuditAnchors": 0,
+  "sessionTransition": [
+    13,
+    0
+  ],
+  "remainingOwnedExtraBusiness": {
+    "sessions": 0,
+    "receipts": 0,
+    "education_events": 0,
+    "pupil_class_memberships": 0
+  },
+  "cell": {
+    "revision": 1,
+    "hours": [
+      444,
+      777,
+      666
+    ],
+    "observedMintId": "73fec4b6-d70d-4448-96e9-4a095ed064db",
+    "dbWorkerPair": true
+  },
+  "closure": {
+    "databaseClosed": true,
+    "reservedClosed": true,
+    "postcommitPreservation": true,
+    "reservedRemainFail": true,
+    "knownExits0": true
+  },
+  "findings": [],
+  "targetAccessed": false,
+  "recoveryImported": false,
+  "gitCommands": false,
+  "limits": [
+    "Only recovery accepted; O15/fullO36 remains FAIL/PENDING.",
+    "Postcommit hashes are evidenced by complete PASS through exact immutable source gates; not separately stored postcommit snapshots."
+  ]
+}

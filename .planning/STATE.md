@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 återställningsförkontroll V2 FAIL före verksamhetsmutation; egen Worker stoppad. Granskad V3 och ägd återställning krävs före nya prov.
+stopped_at: UI05-42 sjätte ägda återställning V3 faktiskt PASS; egen Worker stoppad. Avgränsat O15/O16 och nytt fullO36 återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 V2-förkontroll ROOT26995 FAIL42703 utan verksamhetsmutation; V3 förbereds. FullO42 Pending;86/100 och3012 består."
+last_activity_desc: "UI05-42 V3 förkontroll/apply känt PASS och postcommit/DB-/filavslut och oberoende slutfilgranskning PASS. FullO42 Pending;86/100 och3012 består."
 state_head: a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_after_sixth_recovery_v2_preflight_failed
+verification_worker_status: stopped_after_sixth_owned_recovery_known_complete
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 sjätte ägda återställningen V3 2026-10-08 — faktiskt PASS:** ROOT12636 förkontroll exit0 (completion17da2431/reservedb5e71f1c) och separat ROOT96917 apply exit0 (completion198ca4e5/reserved4d070944) på fryst källa fb16e88b. Den unika egna MFA-sessionen och samma fulla DB-/Worker-cellpar verifierades vid händelsetiden med rätt occurred_at; revision1/[444,777,666] består.13 egna sessioner till0 och endast4991e99e:s egen verksamhetsgraf städad;111 egna audithändelser/fyra ankare kvar, foreignaudit0. Original15 exaktSEARCH/katalog/råACL28, ALLaudit192931/3ca2b8e0 och SQLauditedident5265/35657305, ALLolder5294/9f5b0c3e, staff31/391d766c och sju äldre mandatgrafer bevaras före/efter/postcommit med känd commit/DB-/filstängning. ROOTs filkontroller797b5a och4ea7bd samt oberoende slutfilgranskning501eecd4 PASS. V1/V2-förkontrollFAIL och sjätte fullOFAIL bevaras oförändrade. O15/O16-helper93c6 är källgranskad/typ/lint/list36 kontrollerad, produkt241/bygge179/180artefakt3b5 består utan nytt appbygge. Runtime är ännu stoppad påa9a/07c; därefter exakt övergång till granskad93c-källa, avgränsat O15/O16×dator/telefon och helt ny fullO36 med genuina pre/duringbevis.86/100,3/8, fulla krav/formella beslut och ordinarie3012 består.
 
 **UI42 återställningsförkontroll V2 2026-10-08 — FAIL före verksamhetsmutation:** ROOT 26995 exit1 på källa 92ab4a30 stoppade med PostgreSQL 42703: diagnosen använder `security_events.created_at`, medan det befintliga schemat har `occurred_at`. Immutable completion cbdb4d5a/reserved a0853f63 är bevarade separat i MAIN och runtime. `ownedMutationStarted=false`, `transactionCommitted=false`, `databaseClosed=true` och `reservedClosed=true`; `commitOutcomeUnknown=true` är fortsatt en generisk okänd utgång för det avbrutna transaktionsförsöket, inte en godkänd återställning. Tidigare V1-fel, sjätte fullO 05643/O15-deferred och alla äldre rårapporter består. V3 förbereds separat och saknar ännu faktiskt förkontroll-/applybevis. Runtime är fortsatt a9a/07c och den egna Worker-kedjan är stoppad. MAIN:s granskade O15/O16-helper 93c6 ger bara källberedskap, inget nytt beteende-PASS. Nästa målåtkomst först genom separat granskad V3-förkontroll och ägd återställning med känd commit/postcommit/DB-/filstängning; därefter nya browserprov och färsk full O36 med genuina metadata. Full 05-42/43, formella beslut och mänskligt prov förblir Pending; 86/100, 3/8 och vanlig 3012/5dd7baf oförändrade.
 
