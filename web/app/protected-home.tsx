@@ -82,6 +82,17 @@ export type SessionResponse = {
 
 const PLANNING_FUNCTIONS = ['huvudman', 'rektor', 'administrator'];
 const isPlanningView = (value: ProtectedView): value is 'programplaner' | 'timplaner' => value === 'programplaner' || value === 'timplaner';
+export function selectGymTimplanTarget(source: string | GymTimplanLocation,
+  cached: { sourcePlanId: string; target: GymTimplanLocation } | null, currentUnitId: string | null | undefined): GymTimplanLocation {
+  const requested: GymTimplanLocation = typeof source === 'string' ? { kind: 'source', id: source } : source;
+  if (requested.kind === 'plan') return requested;
+  const target = cached?.target;
+  const unitId = requested.unitId ?? currentUnitId;
+  return target?.kind === 'plan' && cached?.sourcePlanId === requested.id && typeof unitId === 'string'
+    && target.unitId === unitId && (typeof currentUnitId !== 'string' || target.unitId === currentUnitId)
+    && target.offeringId !== undefined && (requested.offeringId === undefined || target.offeringId === requested.offeringId)
+    ? target : requested;
+}
 function sessionScope(value: SessionResponse | null | 'loading'): string {
   return value && value !== 'loading' && value.context?.valid && !value.context.blocked
     ? `${value.epoch}:${value.context.customerId}:${value.context.assignmentId}` : '';
@@ -472,9 +483,7 @@ function ProtectedShell() {
     if (!canNavigate()) return;
     if (view === 'elever') rememberRegister();
     const prior = planningFor('timplaner'), cached = lastGymPlan.current;
-    const target: GymTimplanLocation = typeof source !== 'string' ? source
-      : cached?.sourcePlanId === source && (cached.target.unitId === undefined || cached.target.unitId === prior.planning?.unitId)
-        ? cached.target : { kind: 'source', id: source };
+    const target = selectGymTimplanTarget(source, cached, prior.planning?.unitId);
     const location: PlanLocation = { ...prior, view: 'timplaner', gym: target, planning: { ...prior.planning, schoolform: 'gymnasium',
       ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);

@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-41
 status: in_progress
-stopped_at: UI05-41 fullG38 PASS; separat C04 stoppade före skrivning vid retur via sourceobjekt. Normalcleanup; minimal källrättning före nytt C04.
+stopped_at: UI05-41 fullG38 bevarat; strikt returcache och accepted provider-notice källgranskade. Nytt isolerat bygge och G13/G14 samt C04 på båda enheterna återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-41 fullG38/38cleanup PASS; C04 returfel bevarat och cacheorsak identifierad. Vanlig3012 består."
+last_activity_desc: "UI05-41 avgränsad retur-/notisrättning källintegrerad; actual omprov återstår. Vanlig3012 består."
 state_head: f355717
 verification_worker_build_revision: f355717834a9ac1c27301f703613d49721a7b944
 worker_status: running_on_3012
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI41 avgränsad retur-/notisrättning2026-10-08 — käll-PASS:** Selektiv c4b9ffc8/homee4fbbce9/providera0106cf2 ROOT- och oberoende granskade;24 rena prober PASS. Cache återanvänds endast för samma programkälla/exakt skola/känd utbildning; uttrycklig plan och canonical fallback består. Ingen jämförelse mellan program- och timversion. ProviderWAIT ersätts med riktig normalizationNotice endast i befintlig accepterad lokal årsövergång. Alla guards/återläsningsmandat och C73/G4b/fixture271 är oförändrade. FullG38f355/9a28 och förstaC04FAIL9354 bevaras. Nytt isolerat bygge, relevant G13+G14×2 och C04×2 krävs före slut41;85/100 och vanlig3012 består. Framtida42carry aafe5524 källgranskad men actual42 fortsatt stängd.
 
 **UI41 fullG38 och separat C04 2026-10-08:** FullG38 raw9a28ab25/source/buildf355717/G4bcec passerar38 fall utan retry/skips/fel.38normalcleanup/hela15 exaktSEARCH/6bevarandeflaggor/16ownflat ochforeignlistGYDDLzero;24explicita/49skyddade/241produkt-/2parserkällor,60geometrier minst44px/contained och60PNG ROOT-/oberoende kontrollerade. Full aktuell audit187791/befceecc och auditerade identiteter5116/42752a6 består efter sista cleanup. Bildbegränsning: providerWAIT kan ligga kvar efter accepterat lokalt årsbyte; shellnotisens tidigare rättning är separat.
 

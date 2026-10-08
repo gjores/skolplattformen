@@ -109,7 +109,7 @@ export function PlanningContextProvider(props: PlanningContextProps) {
     if (base.overview || !(base.view === 'programplaner' ? base.programplan : base.gym)) return;
     const location: PlanLocation = { ...base, allYears: year === 'all', ...(year !== 'all' ? { relativeYear: (year + 1) as 1 | 2 | 3 } : {}) };
     if (planLocationQuery(location) === planLocationQuery(normalized.location)) return;
-    setState(current => ({ ...current, location }));
+    setState(current => ({ ...current, location, notice: normalized.normalizationNotice }));
     latest.current.onTransition(location, 'replace');
   }, [props.active, props.contextKey, normalized, scoped, navigationBlocked]);
   const value: PlanningContextValue = {
