@@ -4,15 +4,15 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-43
-status: in_progress
-stopped_at: UI05-43 källor och handbok integrerade; docsbuild/typkontroll PASS. Separat FinalC16 på bevarad Oartefakt följer.
+status: paused
+stopped_at: Användaren begärde paus av tokenbudgetskäl. FinalC16 och auditbrygga accepterade; release V5 stoppad i filförkontroll med Git exit128. Ingen överföring till vanlig3012.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 fullO36 på ac41,36normalcleanup/full15/auditidentitet/geometri och oberoende3/3 PASS;87/100,3/8. 43 slutC/release/3012 och mänskligt prov återstår."
-state_head: 3830a11e30832b599a062ffc6779a7613f5ed940
+last_activity_desc: "Pausad på användarens begäran; FinalC16/fil- och pixelgranskning/auditbrygga klara. V5 Git128, 3012 före/efter18 och mänskligt prov återstår;87/100,3/8."
+state_head: 099c90f8d7bfc6f11d92f39d97986cc034644f70
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: isolated_seventh_full_o36_completed_known_exit0
-worker_status: running_on_3012
+verification_worker_status: isolated_final_c16_accepted_known_exit0
+worker_status: prior_3012_not_updated_by_43
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Paus 2026-10-08 på användarens begäran:** [Återupptagningsläge för 05-43](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PAUSE-20261008.md). SlutC16 på dator/telefon har känd exit0 och accepterad full fil-/pixelgranskning med dokumenterade bildbegränsningar. Auditbryggans tredje försök har känd exit0 och bevarandekontroller; första två fel bevaras. Release V5 har tre kända exit1 före målåtkomst/egen resultatfil, senaste diagnos är native Git exit128 och orsaken återstår. Vanlig3012 har inte överförts och mänskligt prov är pending_delivery. 87/100 planer och3/8 faser;43 är inte färdig. worker_build_revision för vanlig3012 är historiskt observerat minne, inte ett nytt verifierat byggbevis.
 
 **UI43 delsteg 2026-10-08:** Sju granskade källfiler för handbok/sidebar/internt modulkontrakt, separat C08-adapter b9c06 och releaseaktivering true→false är integrerade efter accepterad fullO36. Handboksbygge ROOT64057 exit0/993043 och typkontroll70058 exit0/d6465e; release-syntax exit0/acdb2f. Inget nytt appbygge eller produktbyte. FinalC16, två läsande release-snapshots och exakt överföring/före-efter18 på vanlig3012 återstår. Plan42 är pushad/verifierad3830a11;87/100,3/8, formella beslut och mänskligt prov består som öppna.
 

@@ -1,0 +1,107 @@
+{
+  "kind": "ROOT_RELEASE_PREFLIGHT_PAUSED",
+  "date": "2026-10-08",
+  "status": "PAUSED_NOT_RELEASE_PASS",
+  "sourceRevision": "099c90f8d7bfc6f11d92f39d97986cc034644f70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "userRequestedPause": true,
+  "attempts": [
+    {
+      "attempt": "first",
+      "session": 44472,
+      "exitCode": 1,
+      "chunk": "db7cd9",
+      "reservedAndCompletionAbsent": true,
+      "outputs": [
+        "work/pilot/results/phase5-planning-year-release-final-first-20261008.json",
+        "work/pilot/results/phase5-planning-year-release-final-first-20261008-completion.json"
+      ]
+    },
+    {
+      "attempt": "second",
+      "session": 76090,
+      "exitCode": 1,
+      "chunk": "5da4a4",
+      "reservedAndCompletionAbsent": true,
+      "outputs": [
+        "work/pilot/results/phase5-planning-year-release-final-second-20261008.json",
+        "work/pilot/results/phase5-planning-year-release-final-second-20261008-completion.json"
+      ]
+    },
+    {
+      "attempt": "third",
+      "session": 95639,
+      "exitCode": 1,
+      "chunk": "61234f",
+      "reservedAndCompletionAbsent": true,
+      "outputs": [
+        "work/pilot/results/phase5-planning-year-release-final-third-20261008.json",
+        "work/pilot/results/phase5-planning-year-release-final-third-20261008-completion.json"
+      ]
+    }
+  ],
+  "lastDiagnostic": {
+    "name": "Error",
+    "status": 128,
+    "invariant": null,
+    "meaning": "Native Git subprocess exited 128; exact command and cause not yet diagnosed"
+  },
+  "targetAccessStarted": false,
+  "releaseCompleted": false,
+  "ordinary3012Transferred": false,
+  "humanTrialStatus": "pending_delivery",
+  "verifiedRawFiles": [
+    {
+      "path": "work/pilot/results/phase5-43-context-final-first-20261008.json",
+      "sha256": "815031288ce3944921f0631ed4faf089e2e8c7b8baffb6a1d2d5042788dec027"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-git-inventory-final-first-20261008.json",
+      "sha256": "6512240b0ae3ed9b936fd0c3e85237ff3bc6c9b3bd93f48398ca5a673d602b1a"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-root-pixel-file-review-20261008.json",
+      "sha256": "9497bc5e979ba3628fa9bf4f74525102ee9788d5cea63d3c11a9843318024552"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-independent-full-file-review-20261008.json",
+      "sha256": "1fcc618a5f673b0ea991173b8040428d589770b39701ca835cf7419dd4622fc2"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-post-o-review-final-first-20261008.json",
+      "sha256": "86d296e4f67419856e24e064e21307671eceac35b00d04128a9074120f0479eb"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-tested-artifact-seal-final-first-20261008.json",
+      "sha256": "74298445f033fe9d9a8f44ca4090fecdbaa16406ed1107983ad2f3fb7b998fcc"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-root-release-review-final-first-20261008.json",
+      "sha256": "e6a5aac25061836022d3818baa4726aa243466b0597d2a3e9296c2e83e735185"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-audit-bridge-first-20261008.json",
+      "sha256": "98f003d591d6e2d6da05b30974f2fb13a64cbd3200ccde6a5c8a87da715fd270"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-audit-bridge-first-20261008-completion.json",
+      "sha256": "2f455b691e2d7e5b44b980c87305ec75d742748e9a689d312e9f5f69f8c04805"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-audit-bridge-second-20261008.json",
+      "sha256": "34f89571724405344fa6ef6c1afd27f6bc6a779593512a751f979493b08a2d9d"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-audit-bridge-second-20261008-completion.json",
+      "sha256": "5bc0e297faf03fcab64cc029cc603537e0d07d75e944e087ddd0d0ee64828a71"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-audit-bridge-third-20261008.json",
+      "sha256": "98a3f1b5f78a3a79f548f35c532c727078b345f3914b8d1f8c7cf074440bbffc"
+    },
+    {
+      "path": "work/pilot/results/phase5-43-final-context-audit-bridge-third-20261008-completion.json",
+      "sha256": "d931af6aa4616d00ce8e69a301613d05243e63973e8b3ffd1dae451b065b732d"
+    }
+  ]
+}

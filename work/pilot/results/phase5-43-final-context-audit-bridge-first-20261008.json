@@ -1,0 +1,12 @@
+{
+  "kind": "phase5-final-context-audit-bridge-reserved-v1",
+  "status": "FAIL",
+  "complete": false,
+  "reserved": true,
+  "readOnly": true,
+  "sourceRevision": "099c90f8d7bfc6f11d92f39d97986cc034644f70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "reportSha256": "815031288ce3944921f0631ed4faf089e2e8c7b8baffb6a1d2d5042788dec027",
+  "scriptSha256": "150a3a0e0555374a18f5429e2ee8cb7764af65779d74b5ce57aa8d3130917be0",
+  "requiresSuccessfulCommandExit": true
+}

@@ -1,0 +1,154 @@
+{
+  "kind": "phase5-root-final-context-pixel-file-review-v1",
+  "status": "PASS_WITH_CAPTURE_LIMITATIONS",
+  "report": "work/pilot/results/phase5-43-context-final-first-20261008.json",
+  "reportSha256": "815031288ce3944921f0631ed4faf089e2e8c7b8baffb6a1d2d5042788dec027",
+  "sourceRevision": "099c90f8d7bfc6f11d92f39d97986cc034644f70",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "specSha256": "b9c06bd8ff7c4ae6c546b68b50b53dc796a0abdf523a01c0eb0f2d177066d826",
+  "knownCommandExitCode": 0,
+  "rootFullReader": {
+    "session": 2025,
+    "exitCode": 0,
+    "chunk": "224ddc"
+  },
+  "limitations": [
+    "C01–C07 läser listan vid capture; PNG styrker inte färdigladdad tabell.",
+    "C04 visar separat uppdragsvarning efter kvittens/navigation.",
+    "Telefon C05–C07 visar Till innehållet; C06–C07 täcker del av läsårsväljaren.",
+    "C08 båda projekt visar21 färdigladdade rader; tabellens sidrullning är lokal.",
+    "Native selectOption bakom dialog styrker inte verklig pekarinteraktion.",
+    "Användarprov och formella godkännanden återstår."
+  ],
+  "images": [
+    {
+      "project": "planning-year-desktop",
+      "case": 1,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-230ce--följer-program-och-timplan-planning-year-desktop/attachments/independent-register-planning-years-png-28fd4d1b9ecda322f37f17ae3765ac35ecdba253.png",
+      "sha256": "60adb2460a1926d17a6b8fc179fd5d5a4496b22f1a5c542617d65b1b4602d02a",
+      "viewed": true,
+      "notes": "Dator C01 visar separat planeringsår2027/28 och alla behöriga skolor inom sidbredd. Listan är ännu i läsläge vid capture; bilden bevisar inte färdigladdad tabell."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 2,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-b6285--normaliserad-främmande-URL-planning-year-desktop/attachments/hm-planning-without-register-png-c86ccf9ccd231b5807e9c8b8f6344bca5f6f90de.png",
+      "sha256": "1739cb57cacd0b42633e6a4dbd9cacecbfe7b55110adf13f379dd2e6ffc192cc",
+      "viewed": true,
+      "notes": "Dator C02 visar huvudmannens timplanskontext skolaB/2027/28 utan elevregistermeny och med kontroller inom sidbredd. Listan läser vid capture."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 3,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-6f005-a-skolor-efter-uppdragsbyte-planning-year-desktop/attachments/new-assignment-excludes-old-schools-png-cdff1f2fbbf99e878e93db37976e64078d768fca.png",
+      "sha256": "86ee5495707fef01b2e2c35ce9380d0a93bdbf67d3a67ffcf14a94984994011e",
+      "viewed": true,
+      "notes": "Dator C03 visar nytt huvudmannauppdrag/rätt skola/aktuellt2026/27 och ingen föregående skolkontext. Listan är ännu i läsläge vid capture."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 4,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-85b1e-g-utloggning-tills-kvittens-planning-year-desktop/attachments/write-confirmed-navigation-restored-png-92063e9fa6466be4f2f942c06f773037ceab2ad9.png",
+      "sha256": "8afce67713eed5908ec6c85afdb7ae16aaae257f3cb18e4ec8c7ec9f83a19591",
+      "viewed": true,
+      "notes": "Dator C04 visar nytt år2028/29/skolaB efter faktisk kvittens och navigation. Separat uppdragsnotis om att invänta sparning är fortfarande synlig, och listan läser vid capture; bilden styrker inte felfri slutvy."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 5,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-28c19-g-kräver-faktisk-sparstatus-planning-year-desktop/attachments/unknown-write-recovered-png-33563bae3f08e822a4f0c6e32f982b9639111209.png",
+      "sha256": "99f2e7e0a04ddc99f848d6bbea87079e440124351083062db5b92b1d19c5780b",
+      "viewed": true,
+      "notes": "Dator C05 åter navigation till2028/29 efter faktisk återläsning. Listan läser vid capture, kontroller inom sidbredd."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 6,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-bbc98-r-spärr-efter-child-unmount-planning-year-desktop/attachments/parent-recovery-confirmed-png-78904505d57feec2552159ad751c89c9d7862df5.png",
+      "sha256": "c0c87252bc6c9f60f5c65cf319fac355cb7c9f1383c58da3faa3d6d29534bf97",
+      "viewed": true,
+      "notes": "Dator C06 åter2028/29 efter parentåterläsning, skolkontext och programplanslista inom bredd; listan läser vid capture."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 7,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-df965--faktisk-parent-återläsning-planning-year-desktop/attachments/created-plan-recovery-png-641aaf0ef0d7c7b78c36734d3da77a6bda4c5eb0.png",
+      "sha256": "b329c0f61583c86d798af4b1b9d33e3a0054a0bcf171a3bf1e35e1374c0250c5",
+      "viewed": true,
+      "notes": "Dator C07 huvudmannens skolkontext2028/29 efter verklig parentåterläsning. Listan ännu i läsläge vid capture; ingen färdigladdad plansammanfattning antas."
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 8,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-aa567-och-gammalt-planeringsurval-planning-year-desktop/attachments/fresh-session-current-year-png-597eff69cb0c24f0e5c73f989d780d92dfd7d311.png",
+      "sha256": "61b7f555cc15fcfce70aa1b514e882282eba533c38a81e94985fc2cd78c7201d",
+      "viewed": true,
+      "notes": "Dator C08 färdigladdad21rader efter färsk session, aktuellt2026/27/rättskola och tidigareurval rensat. Tabellens högra kolumner visas via lokal sidrullning; ingen global overflow."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 1,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-230ce--följer-program-och-timplan-planning-year-phone/attachments/independent-register-planning-years-png-334cf0b6332f66a85eb67bdecc986b10ef9c2449.png",
+      "sha256": "42fc1adc64bcc7d6b0f1d6107e1e20d909aaec23af56dc1f2404fca0000e2222",
+      "viewed": true,
+      "notes": "Telefon C01 planeringsår2027/28/alla behöriga skolor, filter inom sidbredd. Listan läser vid capture. Lång syntetisk uppdragstext gör sidhuvudet högt."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 2,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-b6285--normaliserad-främmande-URL-planning-year-phone/attachments/hm-planning-without-register-png-9c4685e2f668fe3c80df3d69e5781d6bfadeb308.png",
+      "sha256": "15c4e4cec8f63bc2efd66408b450c83fde385651667992e7ec1b5623696cce53",
+      "viewed": true,
+      "notes": "Telefon C02 rätt skolaB/2027/28 och kontroller inom bredd. Listan läser vid capture; lång syntetisk uppdragstext ger högt sidhuvud."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 3,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-6f005-a-skolor-efter-uppdragsbyte-planning-year-phone/attachments/new-assignment-excludes-old-schools-png-cc088f8b4db75050a94c79ace1865aae5592b9d8.png",
+      "sha256": "f8e294f3144588c7d2c123b2e4f14decb2df289f2780e6d6bc7edf4ba84f0729",
+      "viewed": true,
+      "notes": "Telefon C03 nytt uppdrag/rätt skola/aktuellt2026/27, inget tidigare skolurval. Listan läser vid capture; kontroller inom bredd."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 4,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-85b1e-g-utloggning-tills-kvittens-planning-year-phone/attachments/write-confirmed-navigation-restored-png-1d6265c69f7046b39c35645de0b9d9e136bdd6e0.png",
+      "sha256": "6e25acdb185edc5e7a3f23c9747bf7654f44ca67fe215db6a32592fed96bf25f",
+      "viewed": true,
+      "notes": "Telefon C04 nytt år2028/29/skolaB efter kvittens/navigation. Separat uppdragsvarning om att invänta sparning kvarstår; listan läser vid capture. Kontroller inom bredd."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 5,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-28c19-g-kräver-faktisk-sparstatus-planning-year-phone/attachments/unknown-write-recovered-png-2c65279bcc26fed1cff077ed4d6734afd2fb67db.png",
+      "sha256": "848613ed2646d8a0aaa14f14b4ef55310d8d9709b7f56faa9fed3b9018759ce0",
+      "viewed": true,
+      "notes": "Telefon C05 åter2028/29 efter faktisk återläsning. Till innehållet synlig framför sidinnehåll, listan läser vid capture; kontroller inom bredd."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 6,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-bbc98-r-spärr-efter-child-unmount-planning-year-phone/attachments/parent-recovery-confirmed-png-77a312d6e9a0634a3df0aceb472260fd89d8215a.png",
+      "sha256": "80ef9a37a37ed40886c43f4731c23e6a770ae44b344ac6172eb048bf9b14fbc9",
+      "viewed": true,
+      "notes": "Telefon C06 åter2028/29/programplaner efter parentåterläsning. Till innehållet täcker del av läsårsväljaren i capture; listan läser. Ingen global overflow."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 7,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-df965--faktisk-parent-återläsning-planning-year-phone/attachments/created-plan-recovery-png-6ff7bd06733f59a061b91de2a7574e7c6d3fd549.png",
+      "sha256": "bb26bc39585d526e42e935f0cef58951069597613b562ef9b0138fa23173659d",
+      "viewed": true,
+      "notes": "Telefon C07 åter2028/29/huvudman efter verklig parentåterläsning. Till innehållet täcker del av läsårsväljaren i capture; listan läser. Ingen global overflow."
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 8,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-43-context-final-first-20261008/phase5-planning-year-conte-aa567-och-gammalt-planeringsurval-planning-year-phone/attachments/fresh-session-current-year-png-ef36e9fb86981077a7be6f8c530d04f0eb673238.png",
+      "sha256": "b2c36d6b1feaaeca34cd1f17e1be316e0c3c9b10cc8809b72fe3aae8e1f3d9a5",
+      "viewed": true,
+      "notes": "Telefon C08 färdigladdade21rader/aktuellt2026/27/rätt skola efter färsk session. Tabellen har lokal sidrullning och högra kolumner utanför synligt utsnitt; ingen global overflow."
+    }
+  ],
+  "uniqueViewedImages": 16
+}
