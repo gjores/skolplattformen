@@ -1,0 +1,56 @@
+{
+  "kind": "phase5-42-auto-year-binding-touch-source-integration-v1",
+  "status": "SOURCE_INTEGRATED_ACTUAL_PENDING",
+  "sourceOnly": true,
+  "actualO36Passed": false,
+  "integrationBaseRevision": "d1c1e6419fea3badcc312433024d68ed3496bf0e",
+  "proposalManifestSha256": "089fe5897e91582da81238d4fc0354c8e548ce51324a13cd977727a001fe3a5f",
+  "patchSha256": "32f80de0e0f929306e77150496df4c2fc96ded442ef3938222c4564a69035d26",
+  "otherSpecSha256": "06922b3c13d810762f059972af7ba3ce5e222c76e7d569ec9e9cfb9bc3ef4e17",
+  "rootFullSourceReview": "PASS",
+  "independentFullSourceReview": "PASS",
+  "pureProbes": {
+    "rootPassed": 11,
+    "independentPassed": 11,
+    "syntaxTranspilePassed": true
+  },
+  "rootListCommand": {
+    "sessionId": 30308,
+    "exitCode": 0,
+    "cases": 36
+  },
+  "unchanged": [
+    "all17othercases",
+    "casecount18x2",
+    "timeouts",
+    "product",
+    "fixture70df",
+    "auditBodyAssertionsOutsideO02",
+    "unknownAndCompletionCleanupGuards"
+  ],
+  "preservedActualFailures": [
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-first-20261008.json",
+      "sha256": "e72d47220e46a5453696f94aed4affc84344921364a2f466bdcaa509992ce610"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-second-20261008.json",
+      "sha256": "60447daddf96e7da14957cd04c88f4ecb659b876013f97d2b81810faf4a36d98"
+    }
+  ],
+  "reusedProtectedArtifact": {
+    "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+    "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+    "productSourceFileCount": 241,
+    "wholeProductBytesUnchanged": true,
+    "additionalAppBuildRequired": false
+  },
+  "remaining": [
+    "newApprovedGitInventory",
+    "newGenuinePreOObservation",
+    "newGenuineDuringOObservation",
+    "fullActualO36",
+    "rootCleanupSourceImageReview",
+    "independentGoalBackwardVerification"
+  ]
+}

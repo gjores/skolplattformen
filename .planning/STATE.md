@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 andra fullO stoppad i O02 efter korrekt årsrad; två normalcleanup PASS. Provet ska kontrollera automatiskt återöppnad bindning före nytt fullO36.
+stopped_at: UI05-42 O02-prov06922b3c rättat och oberoende SOURCE-granskat; nya pre/during metadata och fullO36 på samma179-artefakt återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
 last_activity_desc: "UI05-42 andra O:1PASS/1FAIL/34ejstartade, städning bevarad. Automatiskt årsöppningsprov rättas;86/100 och vanlig3012 består."
-state_head: d6a4812
+state_head: d1c1e64
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: running_after_second_O_normal_cleanup
 worker_status: running_on_3012
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 årsbytesprov rättat2026-10-08:** Enbart O02, faktisk kontrollgeometri och befintlig läsårsetikettimport ändrade. Spec06922b3c/patch32f80de0/manifest089fe589 ROOT- och oberoende SOURCE-PASS med11 rena prober och syntax; ROOTlist30308 exit0/36fall. O02 behåller riktig LISTkontroll och kräver dessutom ny faktisk matris/neutral årsöverblick, exakt v1/skola/utbildning/revision/ak9 och färdig nyårsarbetsyta. Ingen klickning i den lista som automatiskt ersätts av verifierad matris. Capture kräver verkliga synliga44px-kontroller; faktisk mätning återstår. Alla övriga17fall, fixtur70df, produkt, tids- och städgrindar består. Full241produktbytes identiska med bevarad179/180artefakt3b5af3de, inget extra appbygge. Ny genuin tredje pre/during före fullO36;86/100 och3012 består.
 
 **UI42 andra faktiska prov2026-10-08:** Source d6a4812/build17924ff, O3ea5/fixtur70df. ROOT5626 exit1; O01 datorPASS, O02 timeout efter korrekt faktisk ny årsrad med ak9/samma fastställda v1;34ejstartade. Rårapport60447dad bevaras. Appen återvaliderar och öppnar den nya årsbindningen automatiskt, medan O02 försöker klicka i dess tillfälligt inaktiverade lista som sedan försvinner. Minimal provrättning granskas; produkt och tidsgrindar ändras inte. Båda normalcleanup/full15 exaktSEARCH/sex bevarandeflaggor/16own+foreignDDLzero PASS, ROOT och oberoende91kontroller. Slutaudit188653/bf208cf2 och auditerade identiteter5146/ec945e81 bevarade. Ingen recovery behövs. Sex nya genuina pre/duringO-records arkiverade; duringc357 binder faktiskt pågående5626 till samma3060-kedja/180artefakt3b5af3de. Första e72FAIL och firstduring=false består. Ny fullO36 kräver nya egna metadata;86/100 och vanlig3012 består.
 

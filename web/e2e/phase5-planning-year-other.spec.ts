@@ -14,6 +14,7 @@ import {planningSelection,planningCleanupPreserved} from '../../work/pilot/verif
 import {PLANNING_TABLES} from '../../work/pilot/apply-planning-year-migration.mjs';
 import {parsePlanningSetup,parsePlanningSelection,parsePlanningList,parsePlanningOverview,planningAnnualMetrics,type PlanningSelection,type PlanningSetup} from '../lib/planning-year-contract.ts';
 import {parseProtectedTimplan,parseTimplanCellReply,parseTimplanList} from '../lib/protected-timplan.ts';
+import {planningYearLabel} from '../lib/planning-year-model.ts';
 import {waitForHydration} from './helpers/keycloak.ts';
 type Fixture=Awaited<ReturnType<typeof createPlanningOtherFixture>>;
 type Metadata=Awaited<ReturnType<Fixture['setup']>>;
@@ -257,8 +258,11 @@ async function completeActual(route: Route) {
 }
 async function capture(page:Page,info:TestInfo,label:string){
  const geometry=await page.evaluate(()=>({document:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,viewport:innerWidth,
+ controls:[...document.querySelectorAll('.planning-context button,.planning-context select,.pt-toolbar button,.pt-column-picker select,.pt-cell,.plan-list-filters select,.plan-list-filters button,.plan-list-actions button,.plan-list-pages button,.pt-dialog-actions button,.planning-overview button')]
+  .filter(e=>getComputedStyle(e).visibility!=='hidden').map(e=>{const r=e.getBoundingClientRect();return {w:r.width,h:r.height};}).filter(r=>r.w>0&&r.h>0),
  tables:[...document.querySelectorAll('.pt-matrix-scroll,.plan-list-scroll')].map(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,scroll:e.scrollWidth,width:e.clientWidth};})}));
- expect(geometry.document).toBeLessThanOrEqual(geometry.client+1);geometry.tables.forEach(t=>{expect(t.left).toBeGreaterThanOrEqual(-1);expect(t.right).toBeLessThanOrEqual(geometry.viewport+1);});
+ expect(geometry.document).toBeLessThanOrEqual(geometry.client+1);expect(geometry.controls.length).toBeGreaterThan(0);expect(geometry.controls.filter(v=>v.w<44||v.h<44)).toEqual([]);
+ geometry.tables.forEach(t=>{expect(t.left).toBeGreaterThanOrEqual(-1);expect(t.right).toBeLessThanOrEqual(geometry.viewport+1);});
  await info.attach(label+'-geometry.json',{body:JSON.stringify(geometry),contentType:'application/json'});const file=info.outputPath(label+'.png');await page.screenshot({path:file,fullPage:true});await info.attach(label+'.png',{path:file,contentType:'image/png'});
 }
 
@@ -348,9 +352,19 @@ test('O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots 
  await expect(workspace(page).getByRole('button',{name:/^Ändra /u})).toHaveCount(0);await capture(page,info,'gr-bound-v1-unknown');
 });
 test('O02: nytt år ger verklig åk9-bindning med samma v1 och aldrig klassens startår',async({page})=>{
- const r=metadata.grRecords[0];await openBound(page,r);const wait=page.waitForResponse(matches(LIST));await bar(page).getByLabel('Planeringsläsår',{exact:true}).selectOption(String(metadata.otherYear+1));
+ const r=metadata.grRecords[0];await openBound(page,r);const wait=page.waitForResponse(matches(LIST));
+ const freshRead=page.waitForResponse(reply=>matches(READ)(reply)&&reply.request().postDataJSON().planId===r.planId);
+ const freshOverview=page.waitForResponse(reply=>matches(OVERVIEW)(reply)&&reply.request().postDataJSON().schoolYear===metadata.otherYear+1
+  &&reply.request().postDataJSON().unitId===r.unitId&&reply.request().postDataJSON().query==='');
+ await bar(page).getByLabel('Planeringsläsår',{exact:true}).selectOption(String(metadata.otherYear+1));
  const reply=await wait,data=parsePlanningList(await reply.json(),reply.request().postDataJSON(),setup);expect(data.rows).toHaveLength(1);expect(data.rows[0].application?.columnId).toBe('ak9');expect(data.rows[0].plan?.id).toBe(r.planId);
- await list(page).getByRole('button',{name:/^Öppna /u}).click();await expect(workspace(page).getByTestId('other-year-binding')).toContainText('9');await expect(workspace(page).getByTestId('other-column-map-unknown')).toBeVisible();
+ const matrixReply=await freshRead;expect(matrixReply.status()).toBe(200);const matrix=parseProtectedTimplan(await matrixReply.json(),r.planId);
+ expect(matrix.version).toBe(1);expect(matrix.unitId).toBe(r.unitId);expect(matrix.offeringId).toBe(r.offeringId);
+ const overviewReply=await freshOverview;expect(overviewReply.status()).toBe(200);const overview=parsePlanningOverview(await overviewReply.json(),overviewReply.request().postDataJSON(),setup);
+ const bound=overview.rows.filter(row=>row.unitId===r.unitId&&row.offeringId===r.offeringId&&row.plan?.id===r.planId);expect(bound).toHaveLength(1);
+ expect(bound[0].application).toEqual({schoolYear:metadata.otherYear+1,planId:r.planId,version:1,columnId:'ak9'});expect(bound[0].plan?.revision).toBe(matrix.revision);
+ await expect(workspace(page)).toHaveAttribute('aria-busy','false');await expect(workspace(page)).toHaveAttribute('data-plan-id',r.planId);await expect(workspace(page)).toHaveAttribute('data-plan-version','1');
+ await expect(workspace(page).getByTestId('other-year-binding')).toContainText(planningYearLabel(metadata.otherYear+1));await expect(workspace(page).getByTestId('other-year-binding')).toContainText('Åk 9');await expect(workspace(page).getByTestId('other-column-map-unknown')).toBeVisible();
 });
 test('O03: year+1 utan bindning visar konkret lucka utan automatisk progression',async({page})=>{
  const r=metadata.grRecords[1],state=await ownedNode('readback',()=>fixture.ownedState(r.planId)),data=await enter(page,selection('grundskola',r.query,r.unitId,metadata.otherYear+1));
