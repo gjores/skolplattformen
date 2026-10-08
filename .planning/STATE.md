@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 tredje O stoppad i O08 med korrekt rektorsscope52 mot provets53. Åtta normalcleanup PASS; minimal mandatförväntan rättas före ny fullO36.
+stopped_at: UI05-42 O08:s rektorsscope rättat/granskat i spec16462f41; nya genuina pre/during och fullO36 på bevarad179-artefakt återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
 last_activity_desc: "UI05-42 andra O:1PASS/1FAIL/34ejstartade, städning bevarad. Automatiskt årsöppningsprov rättas;86/100 och vanlig3012 består."
-state_head: b7c5c35
+state_head: ff8d59a
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: running_after_third_O_normal_cleanup
 worker_status: running_on_3012
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 mandatförväntan rättad2026-10-08 — SOURCE-PASS:** Ospec16462f41/patch186f8005/manifest7a826318 ändrar bara sista O08-raden: rektorns all-schoolurval ska innehålla52 behöriga GR-rader,50 på första sidan, samtliga på GR33 och ingen från B32. ROOT/oberoende full source+7 rena prober/syntax samt ROOTlist36 exit0 PASS. O14:s faktiska403 och alla andra17fall/audit-/avsluts-/tidsgrindar/44pxcapture består. Ingen HM-aktör, nytt mandat, produkt- eller fixtur70df-ändring. Bevarad241produktclosure/179artefakt180/3b5af3de, inget appbygge. Ny fjärde metadata/fullO36 krävs; alla treFAIL består,86/100 och3012 oförändrade.
 
 **UI42 tredje faktiska prov2026-10-08:** ROOT17542 exit1, rå769bda9c/sourceb7c5c35/spec06922/fixtur70df/build179. O01–07 datorPASS; O08 passerar50+2 och verklig serverkod52-sökning men väntar sedan53rader i rektorns all-schoolurval, där endast52 är behöriga. Extra GR-rad ligger på B-rektorns skola, avsiktligt utanför A-rektors mandat även i O14. Minimal provförväntan ska kräva52 och utesluten B-rad; inga mandat eller produktregler utvidgas.28ejstartade. Åtta normalcleanup/full15 exaktSEARCH/sex flaggor/16ownforeignDDLzero och hela audit-/identitetskedja ROOT-/oberoende120kontroller PASS; ingen recovery. Slutaudit189543/34b1652b och auditeradeident5170/e73720c0 bevarade. Fyra datorgeometrier har faktiska44px-kontroller/contained; fyra PNG med tre unika bilder ROOT-/oberoende granskade. Fokushopplänk/scrollad sticky-sidebar kan synas; ingen perfektUI/telefon/fullO36-påståelse. Sex tredje pre/duringmetadata RAW/341source/180artefakt3b5af3de oberoende1354kontroller PASS; during78f3 registrerades faktiskt under17542. Första/andraFAIL består.86/100 och vanlig3012 oförändrade.
 

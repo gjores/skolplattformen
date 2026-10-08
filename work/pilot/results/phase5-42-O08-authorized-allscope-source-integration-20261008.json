@@ -1,0 +1,59 @@
+{
+  "kind": "phase5-42-O08-authorized-allscope-source-integration-v1",
+  "status": "SOURCE_INTEGRATED_ACTUAL_PENDING",
+  "actualO36Passed": false,
+  "integrationBaseRevision": "ff8d59afba0801675aa82a4309ae7f94e305cbc7",
+  "proposalManifestSha256": "7a82631805cf6255c98d7f13ed553e21f66041ea082b495eec18383b621fc8b8",
+  "patchSha256": "186f80050397dfaccc9afb58580e9f6e15ccaaaaf4cdf8a57c6dd26d8baff064",
+  "otherSpecSha256": "16462f413614add947d2fec2cf63b38365a80aab6e4c6fc4b244e2edb8f1b5f6",
+  "rootFullSourceReview": "PASS",
+  "independentFullSourceReview": "PASS",
+  "pureProbes": {
+    "rootPassed": 7,
+    "independentPassed": 7,
+    "syntaxTranspilePassed": true
+  },
+  "rootListCommand": {
+    "chunkId": "cc35ac",
+    "exitCode": 0,
+    "cases": 36
+  },
+  "unchanged": [
+    "fixture70df",
+    "other17cases",
+    "18x2inventory",
+    "timeouts",
+    "productAndMandates",
+    "allCompletionAuditAndCleanupGuards",
+    "touchGeometry44px"
+  ],
+  "preservedActualFailures": [
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-first-20261008.json",
+      "sha256": "e72d47220e46a5453696f94aed4affc84344921364a2f466bdcaa509992ce610"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-second-20261008.json",
+      "sha256": "60447daddf96e7da14957cd04c88f4ecb659b876013f97d2b81810faf4a36d98"
+    },
+    {
+      "report": "work/pilot/results/phase5-42-other-actual-third-20261008.json",
+      "sha256": "769bda9c72c949cda76814c12814241b64cdf8dbec3d6b48733f149157817082"
+    }
+  ],
+  "reusedProtectedArtifact": {
+    "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+    "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+    "productSourceFileCount": 241,
+    "wholeProductBytesUnchanged": true,
+    "additionalAppBuildRequired": false
+  },
+  "remaining": [
+    "newApprovedGitInventory",
+    "newGenuinePreOObservation",
+    "newGenuineDuringOObservation",
+    "fullActualO36",
+    "rootCleanupSourceImageReview",
+    "independentGoalBackwardVerification"
+  ]
+}

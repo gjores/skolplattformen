@@ -399,7 +399,7 @@ test('O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på serve
  expect(next.count).toBe(52);expect(next.rows).toHaveLength(2);expect(next.rows.some(r=>r.offeringId===metadata.grRecords[51].offeringId)).toBe(true);
  const search=page.waitForResponse(r=>matches(LIST)(r)&&r.request().postDataJSON().query===metadata.grLastCode);await list(page).getByLabel('Sök utbildning',{exact:true}).fill(metadata.grLastCode);
  const found=await search,parsed=parsePlanningList(await found.json(),found.request().postDataJSON(),setup);expect(parsed.count).toBe(1);expect(parsed.rows[0].offeringId).toBe(metadata.grRecords[51].offeringId);await capture(page,info,'gr-page2-server-search');
- const all=await enter(page,selection('grundskola',metadata.grQuery,null,metadata.otherYear,{sort:'school',direction:'desc'}));expect(all.count).toBe(53);expect(all.rows.some(r=>r.unitId===metadata.otherSchool.unitId)).toBe(true);
+ const all=await enter(page,selection('grundskola',metadata.grQuery,null,metadata.otherYear,{sort:'school',direction:'desc'}));expect(all.count).toBe(52);expect(all.rows).toHaveLength(50);expect(all.rows.every(r=>r.unitId===fixture.nonGymUnitId)).toBe(true);expect(all.rows.some(r=>r.unitId===metadata.otherSchool.unitId)).toBe(false);
 });
 test('O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid',async({page},info)=>{
  const q=selection('introduktionsprogram',metadata.imQuery,fixture.unitId),first=await enter(page,q);expect(first.count).toBe(52);expect(first.rows).toHaveLength(50);expect(first.rows.every(r=>planningAnnualMetrics(r,metadata.otherYear).measure==='hours-per-week'&&planningAnnualMetrics(r,metadata.otherYear).hours.value===14)).toBe(true);
