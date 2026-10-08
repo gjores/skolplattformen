@@ -5,13 +5,13 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
 status: in_progress
-stopped_at: UI05-42 O14×2 PASS; sjätte fullO FAIL efter14 datorPASS/O15 deferred. Egen Worker stoppad; ägd återställning och nytt fullO36 återstår.
+stopped_at: UI05-42 återställningsförkontroll V2 FAIL före verksamhetsmutation; egen Worker stoppad. Granskad V3 och ägd återställning krävs före nya prov.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 sjätte fullprov FAIL/O15 deferred; O14×2 faktiskt PASS. Återställning endast SOURCE, fullO42 Pending;86/100 och3012 består."
+last_activity_desc: "UI05-42 V2-förkontroll ROOT26995 FAIL42703 utan verksamhetsmutation; V3 förbereds. FullO42 Pending;86/100 och3012 består."
 state_head: a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_after_sixth_owned_completion_deferred
+verification_worker_status: stopped_after_sixth_recovery_v2_preflight_failed
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 återställningsförkontroll V2 2026-10-08 — FAIL före verksamhetsmutation:** ROOT 26995 exit1 på källa 92ab4a30 stoppade med PostgreSQL 42703: diagnosen använder `security_events.created_at`, medan det befintliga schemat har `occurred_at`. Immutable completion cbdb4d5a/reserved a0853f63 är bevarade separat i MAIN och runtime. `ownedMutationStarted=false`, `transactionCommitted=false`, `databaseClosed=true` och `reservedClosed=true`; `commitOutcomeUnknown=true` är fortsatt en generisk okänd utgång för det avbrutna transaktionsförsöket, inte en godkänd återställning. Tidigare V1-fel, sjätte fullO 05643/O15-deferred och alla äldre rårapporter består. V3 förbereds separat och saknar ännu faktiskt förkontroll-/applybevis. Runtime är fortsatt a9a/07c och den egna Worker-kedjan är stoppad. MAIN:s granskade O15/O16-helper 93c6 ger bara källberedskap, inget nytt beteende-PASS. Nästa målåtkomst först genom separat granskad V3-förkontroll och ägd återställning med känd commit/postcommit/DB-/filstängning; därefter nya browserprov och färsk full O36 med genuina metadata. Full 05-42/43, formella beslut och mänskligt prov förblir Pending; 86/100, 3/8 och vanlig 3012/5dd7baf oförändrade.
 
 **UI42 sjätte förkontrollen 2026-10-08 — ingen återställning utförd:** ROOT78418 exit1 på återställningskälla5b723b00; immutable reserved70993e6f och completion7669c703 är bevarade i båda arbetskopiorna. Kontroll av accepterad cell/logg stoppade före någon verksamhetsmutation, med ownedMutationStarted=false, transactionCommitted=false samt känt DB-/filavslut. Den generiska commitOutcomeUnknown-flaggan står true för det avbrutna transaktionsförsöket och ges ingen PASS-tolkning. Källorsak: browserfixturens rektor får en ny mintad MFA-session, medan diagnosen felaktigt krävde grundfixturens fasta81. Nästa separata granskade källa ska kräva exakt den egna mintade MFA-sessionen och samma fulla DB-/Worker-loggpar, med nya utdata och bevarad första FAIL. Ingen ny fixtur eller browserkörning före känd ägd återställning. O15/O16:s locatorjustering93c6 är integrerad i MAIN med granskad helundo och 28 rena källprober; lint90690 och list46005=36 exit0, typkontroll81415 exit0. Runtime hålls kvar på a9a/07c för återställningen.86/100,3/8 och3012 består.
 
