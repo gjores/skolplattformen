@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-43
-status: paused
-stopped_at: Användaren begärde paus av tokenbudgetskäl. FinalC16 och auditbrygga accepterade; release V5 stoppad i filförkontroll med Git exit128. Ingen överföring till vanlig3012.
+status: in_progress
+stopped_at: Återupptagen på användarens begäran. Releasefilförkontroll rättas mot SEARCH-applys verkliga rollbackbundna källrevision; faktisk release och3012 återstår.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "Pausad på användarens begäran; FinalC16/fil- och pixelgranskning/auditbrygga klara. V5 Git128, 3012 före/efter18 och mänskligt prov återstår;87/100,3/8."
+last_activity_desc: "Återupptagen05-43; FinalC16/auditbrygga bevarade. Git128 diagnostiserad: apply saknar sourceCommit. Avgränsad harnessrättning, release/3012 och mänskligt prov återstår;87/100,3/8."
 state_head: 099c90f8d7bfc6f11d92f39d97986cc034644f70
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: isolated_final_c16_accepted_known_exit0

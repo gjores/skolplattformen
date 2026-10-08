@@ -436,6 +436,13 @@ export function publishCompletion(ops,full,value){
  }
 }
 
+export function validateHistoricalSearchApplied(applied,rollback,search,gitRead){
+ invariant(/^[a-f0-9]{40}$/u.test(rollback?.sourceCommit??''),'SEARCH_APPLY_APPROVED_ROLLBACK_REVISION');
+ // Apply evidence has no sourceCommit. Its exact sourceHashes are bound to
+ // rollback by validateSearchApplied; read those bytes at rollback's revision.
+ return search.validateSearchApplied(applied,rollback,file=>gitRead(rollback.sourceCommit,file));
+}
+
 // Lazily imported only in the proposed activated path. Importing this draft or
 // invoking help/dry-run cannot load a target validator, fixture or subprocess.
 async function verifyActivatedEvidence(o){
@@ -495,7 +502,7 @@ async function verifyActivatedEvidence(o){
  const bundle=Object.fromEntries(Object.entries(dependencyFiles).map(([k,n])=>[k,report(`work/pilot/results/${n}.json`).value]));
  search.validateSearchDependencies(bundle,gitRead,repoRead);
  const rb=report('work/pilot/results/phase5-40-search-details-rollback.json'),ap=report('work/pilot/results/phase5-40-search-details-apply.json'),sf=report('work/pilot/results/phase5-40-search-details-final.json');
- search.validateSearchRollback(rb.value,p=>gitRead(rb.value.sourceCommit,p));search.validateSearchApplied(ap.value,rb.value,p=>gitRead(ap.value.sourceCommit,p));
+ search.validateSearchRollback(rb.value,p=>gitRead(rb.value.sourceCommit,p));validateHistoricalSearchApplied(ap.value,rb.value,search,gitRead);
  search.validateHistoricalSources(sf.value,search.SEARCH_SOURCE_PATHS,gitRead);
  invariant(sf.value.status==='PASS'&&sf.value.complete===true&&sf.value.mode==='applied'&&sf.value.databaseRecoveryRequired===false&&sf.value.fullApiStatus==='PASS'&&sf.value.cleanupStatus==='PASS','SEARCH_FINAL_COMPLETE');
  invariant(search.searchCasesComplete(sf.value.searchApi?.cases,search.SEARCH_API_CASES)&&search.searchTimingsComplete(sf.value.searchApi?.samples)&&search.searchCleanupPreserved(sf.value.cleanup),'ACTUAL_SEARCH_API_TIMING_CLEANUP');

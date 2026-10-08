@@ -1,10 +1,26 @@
-// SOURCE-ONLY pure validator probes; not executed during source preparation.
-// Dummy hashes below test closed metadata, never actual API/browser/DB evidence.
+// Offline validator probes. Historical SEARCH cases read Git and saved reports;
+// dummy metadata probes never stand in for actual API/browser/DB evidence.
 import test from 'node:test';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import * as search from './verify-planning-year-search-details.mjs';
+import {validateHistoricalSearchApplied} from './verify-planning-year-release.mjs';
 import {hasUnsafeCleanupAttachment,parseReleaseArgs,validateReleaseReview,validateBootstrapInventory,BOOTSTRAP_IMPORTS,BOOTSTRAP_DATA,parseSealedJson,validateOwnedFileIdentity,closeOwnedReleaseFiles,completedReleaseStatus,publishCompletion,validateFinalArtifactSeal} from './verify-planning-year-release.mjs';
 const hex='a'.repeat(64),revision='b'.repeat(40),report='work/pilot/results/source-only-placeholder.json';
+const historicalReport=name=>JSON.parse(readFileSync(new URL('./results/'+name+'.json',import.meta.url),'utf8'));
+const historicalRead=(commit,file)=>execFileSync('git',['show',`${commit}:${file}`],{cwd:new URL('../../',import.meta.url),stdio:['ignore','pipe','ignore']});
+test('historical SEARCH apply without sourceCommit validates against approved rollback Git bytes',()=>{
+ const applied=historicalReport('phase5-40-search-details-apply'),rollback=historicalReport('phase5-40-search-details-rollback');
+ assert.equal(Object.hasOwn(applied,'sourceCommit'),false);
+ assert.doesNotThrow(()=>validateHistoricalSearchApplied(applied,rollback,search,historicalRead));
+});
+test('historical SEARCH apply still rejects changed migration hash',()=>{
+ const applied=historicalReport('phase5-40-search-details-apply'),rollback=historicalReport('phase5-40-search-details-rollback');
+ applied.sourceHash='0'.repeat(64);
+ assert.throws(()=>validateHistoricalSearchApplied(applied,rollback,search,historicalRead),/complete exact controlled SEARCH apply proof/u);
+});
 const pinNames=['PHASE5_CONTEXT_ACTUAL_REPORT','PHASE5_CONTEXT_APPROVED_SOURCE_REVISION','PHASE5_CONTEXT_WRITE_ACTUAL_REPORT','PHASE5_CONTEXT_WRITE_APPROVED_SOURCE_REVISION','PHASE5_LIST_ACTUAL_REPORT','PHASE5_LIST_APPROVED_SOURCE_REVISION','PHASE5_GYM_ACTUAL_REPORT','PHASE5_GYM_APPROVED_SOURCE_REVISION'];
 const options={otherReport:report,otherSource:revision,finalSource:revision,finalBuild:revision,finalContextReport:report,finalContextSource:revision};
 const env=Object.fromEntries(pinNames.map((k,i)=>[k,i%2?revision:report]));
