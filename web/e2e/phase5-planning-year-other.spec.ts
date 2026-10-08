@@ -171,8 +171,11 @@ async function edit(page:Page,oldValue=555,newValue=777){
  const dialog=page.getByRole('dialog',{name:'Ändra undervisningstid',exact:true});await dialog.getByLabel('Timmar',{exact:true}).fill(String(newValue));return dialog;
 }
 async function blocked(page:Page,url:string){
- await bar(page).getByLabel('Planeringsläsår',{exact:true}).selectOption(String(metadata.otherYear+1));await expect(bar(page).getByLabel('Planeringsläsår',{exact:true})).toHaveValue(String(metadata.otherYear));
- await bar(page).getByLabel('Planeringsskola',{exact:true}).selectOption('all');await expect(bar(page).getByLabel('Planeringsskola',{exact:true})).toHaveValue(fixture.nonGymUnitId);
+ // The actual edit modal hides background roles; exercise the mounted parent guard without changing modal behavior.
+ const controls=page.getByRole('region',{name:'Planeringsval',exact:true,includeHidden:true});
+ await expect(controls).toHaveCount(1);await expect(controls).toHaveAttribute('aria-busy','false');
+ await controls.getByLabel('Planeringsläsår',{exact:true}).selectOption(String(metadata.otherYear+1));await expect(controls.getByLabel('Planeringsläsår',{exact:true})).toHaveValue(String(metadata.otherYear));
+ await controls.getByLabel('Planeringsskola',{exact:true}).selectOption('all');await expect(controls.getByLabel('Planeringsskola',{exact:true})).toHaveValue(fixture.nonGymUnitId);
  await page.goBack();await expect(page.getByTestId('planning-navigation-notice')).toBeVisible();expect(page.url()).toBe(url);
 }
 function hold(){let resolve!:(r:APIResponse)=>void,release!:()=>void;const ready=new Promise<APIResponse>(r=>{resolve=r;}),released=new Promise<void>(r=>{release=r;});releases.push(release);return {ready,released,resolve,release};}

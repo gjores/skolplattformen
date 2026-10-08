@@ -1,0 +1,35 @@
+{
+  "kind": "phase5-42-O15-modal-parentguard-source-integration-v1",
+  "status": "SOURCE_PASS_ACTUAL_PENDING",
+  "failedSourceRevision": "a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70",
+  "beforeSpecSha256": "07c44817ab7a274e0a8d809309531cd50893c4c95c5212b7c001df828e13a4fd",
+  "afterSpecSha256": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+  "proposalManifestSha256": "b41026e5ef1d5b48a801f58d53768e7e309be5d5726976d8521374f2d3c99a3b",
+  "patchSha256": "67ea65a5d8054855ff01a7763db12819af3b26c80846cf70d2fd2cbe709ea547",
+  "independentReviewSha256": "f522f51fd6ad8395e20e84630782692ce32a889ba61512debb7e6cff5722e861",
+  "rootPureCommandSession": 45200,
+  "rootPureKnownExitCode": 0,
+  "rootCombinedPureCount": 28,
+  "wholeUndoExact": true,
+  "all18BodiesUnchanged": true,
+  "productFixtureTimeoutGlobalCompletionUnchanged": true,
+  "limits": [
+    "programmatic native selectOption checks parent callback defense behind modal",
+    "source inference from local library without original DOM snapshot",
+    "O15/O16 browser/fullO36 actual still pending",
+    "No delivery or human approval PASS"
+  ],
+  "rootLint": {
+    "session": 90690,
+    "knownExitCode": 0
+  },
+  "rootList": {
+    "session": 46005,
+    "knownExitCode": 0,
+    "cases": 36
+  },
+  "rootTypes": {
+    "session": 81415,
+    "knownExitCode": 0
+  }
+}
