@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-42
-status: ready_to_execute
-stopped_at: UI05-41 avgränsat3/3 verifierat; fullG38 plus separat G13/G14 och C04 PASS. Nästa05-42 granskad GR/IM-källa, isolerat bygge och faktiskO36.
+status: in_progress
+stopped_at: UI05-42 sju granskade källor integrerade;52 modeller/fulltyp/lint/list36 PASS. FöreactualO behövs SOURCErelease-V5 i Git, nytt isolerat bygge och ROOTpreO-metadata.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-41 gymår/sexindex/retur/sparspärr automatiskt verifierade.86/100; nästa42. Vanlig3012 består."
+last_activity_desc: "UI05-42 GR/IM källintegrerat; actualO36 återstår.86/100 och vanlig3012 består."
 state_head: 6e51629
 verification_worker_build_revision: 6e51629e00fc41a29e27324e696aea529d961b62
 worker_status: running_on_3012
@@ -31,6 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 **Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
 
 ## Current Position
+
+**UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 
 **UI41 färdigt2026-10-08 — avgränsat PASS:** [SUMMARY](phases/05-bevarade-utbildnings-och-klassfloden/05-41-SUMMARY.md) och oberoende3/3-verifiering. FullG38 på ursprungligf355/G4b rå9a28 består. Efter exakt tvåfilsrättning på6e51629 passerar separat G13/G14×2 rå411346b2 och oförändrat C73-C04×2 rå229b1f3c; samtliga6normalcleanup/full15 exaktSEARCH/6flaggor/own16+foreignDDLzero/241produktbytes/44px-geometri PASS. Ingen historik märks om, första C04FAIL9354 består. Literal2027/start2026→åk2/fullsexindex/frystkälla/returcache och held/unknownspärr verifierade på dator/telefon. ProviderWAIT borta efter accepterat lokalt årsval; separat uppdragsnotis/fokushopplänk och C04:s inläsande slutbild är begränsningar.86/100,3/8; nästa42 GR/IM→43 handbok/slutprov/konkret användarprov. Fulla krav/formella beslut består; vanlig3012 fortfarande5dd7baf.
 

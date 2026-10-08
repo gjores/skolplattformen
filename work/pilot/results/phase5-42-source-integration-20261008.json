@@ -1,0 +1,49 @@
+{
+  "kind": "phase5-42-root-source-integration-v1",
+  "status": "SOURCE_INTEGRATED_ACTUAL_PENDING",
+  "actual42Executed": false,
+  "approved41ActualRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+  "integrationBaseCommit": "4f10256d73b926aa5209747d6aefce72ec194863",
+  "sourceManifestSha256": "a2c032b02850c15fd14ff2f5f04e873a723e0ccafe8e149ebdfb7f48d0e7108d",
+  "selectivePatchSha256": "aafe55248fe34289fc99e7a6e64f250cf61d2e1fdba2052561bb8e84e2b9e120",
+  "targetHashes": {
+    "web/app/protected-home.tsx": "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6",
+    "web/app/protected-timplan-workspace.tsx": "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7",
+    "web/app/protected-timplan.css": "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db",
+    "web/e2e/phase5-planning-year-other.spec.ts": "3ea5b046408a6de63c68cdf669ac3800b0f08d24f504b67a07ab5ab93407272c",
+    "web/lib/protected-plan-location.test.mjs": "79378c3573c2e8f8c4f3c70f13d3c1c8fcd2cc9fbbad24c2025324e0e1b82c83",
+    "web/lib/protected-plan-location.ts": "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e",
+    "work/pilot/phase5-planning-year-other-fixtures.mjs": "05ee4b824f06be6e0fb485db81918d2eb6c57699a351e84f19a73128931a4946"
+  },
+  "preservedHashes": {
+    "web/app/planning-context.tsx": "a0106cf27295c35ec4ad17af0f934e92e0e02181845b03351b796f9cf2fec1f5",
+    "web/app/protected-gym-timplan-hours.tsx": "202c89c57338945d81b3098e238fba0d7f38a97f4e4de6afd41c6cfcca6b7ecc",
+    "web/app/protected-gym-timplan-workspace.tsx": "a8e0189bcbc5328168c976d133424c91d1f8c70dc05b2e62576a43c51559c61f",
+    "web/app/protected-gym-timplan.css": "927d4304fe4585bf2d64b7b78121f6f809475a93988132e6b8206015b9185408",
+    "web/app/protected-programplan-board.tsx": "6bdfe8c6b99e71a9e46e0f995c43ca6e2fa7a8d8380c2ff7447734511838a3f5",
+    "web/app/protected-programplan-workspace.tsx": "a529f151f171a45fbb2a486d70865c3ed989f229744ada854414c17823dee457",
+    "web/app/protected-programplan.css": "11fecaf10048d41f6521cfd789c4065b9f487a28ad37ee37a32108898f628085",
+    "web/e2e/phase5-planning-year-context.spec.ts": "73c2480ad26640193dc3d1eb1e59e68a898c84d6c92edca23c5491afe2d987e1",
+    "web/e2e/phase5-planning-year-gym.spec.ts": "4bcec56142f4a980dfa40759d361290c244f75737834835180abf672a3a4b402",
+    "work/pilot/phase5-planning-year-gym-fixtures.mjs": "271215ad0d1c4b940132beb99b99d9852c1ca9aeae3fa93907554af0169f9706",
+    "web/lib/unsaved-changes.tsx": "584189e8bb01612a6a00aaf819e5a4c2983ef7deb08d71e555a97b63a577be6e",
+    "web/app/planning-context.css": "c0bfa0a65cef4d5cca7decaf5e6289162615b2f309aa8f41599d5bc7b5113659",
+    "web/app/protected-plan-list.css": "55f12de62aa1658accf4aef430d6f1b555cb635e7b0c0384d5195ab023a2a62a",
+    "web/app/protected-programplan-list.tsx": "af9242f354cbe24ac7fe1d5b96dabcc83c48cf2cfe9ecebd50fc2d93cc154702",
+    "web/e2e/phase5-planning-year-lists.spec.ts": "620e40be153ed41bc83f9544c033c4a6946a0fe7e79b73d33375f1aecfe0b5bc",
+    "work/pilot/phase5-planning-year-list-fixtures.mjs": "cd4823f593c6ecc2347d63a35d9f858e3d9f57f451472cb326316b2441efd76f",
+    "web/app/protected-plan-list.tsx": "229a5d0337598e8084583fb55b9f94890c831c2f76a258606eb1fe1d0bed0f65"
+  },
+  "checks": {
+    "nodeModels": 52,
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "fixtureSyntax": "PASS",
+    "listedBrowserCases": 36
+  },
+  "actualProofRemaining": [
+    "newIsolatedBuild",
+    "ROOTPreOProcessArtifactMetadata",
+    "O01–18×desktopAndPhone"
+  ]
+}

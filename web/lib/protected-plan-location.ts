@@ -2,7 +2,7 @@ import { parsePlanningSelection, parsePlanningSetup, type PlanningSelection, typ
 
 export type ProgramplanLocation = { offeringId: string; planId: string; version?: number; unitId?: string };
 export type GymTimplanLocation = { kind: 'source' | 'plan'; id: string; unitId?: string; offeringId?: string; version?: number };
-export type OtherTimplanLocation = { kind: 'grundskola' | 'introduktionsprogram'; id: string; columnId?: `ak${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}` | null; offeringId?: string; version?: number };
+export type OtherTimplanLocation = { kind: 'grundskola' | 'introduktionsprogram'; id: string; columnId?: `ak${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}` | null; offeringId?: string; version?: number; unitId?: string };
 export type PlanningLocationSelection = Partial<Omit<PlanningSelection, 'view'>>;
 type PlanningLocationFields = { planning?: PlanningLocationSelection; relativeYear?: 1 | 2 | 3; allYears?: boolean; overview?: boolean };
 export type PlanLocation = ({ view: 'programplaner'; programplan: ProgramplanLocation | null }
@@ -47,7 +47,7 @@ export function readPlanLocationResult(search: string): { location: PlanLocation
       if (column !== null) { if (/^ak[1-9]$/u.test(column)) location.other.columnId = column as OtherTimplanLocation['columnId']; else if (column === 'unknown') location.other.columnId = null; else normalized = true; }
       if (offeringId !== null) location.other.offeringId = offeringId;
       if (version !== null) { if (bounded(version, 1, 2147483647)) location.other.version = Number(version); else normalized = true; }
-      if (unitId !== null) normalized = true;
+      if (unitId) location.other.unitId = unitId;
     } else if (location.gym) {
       if (unitId) location.gym.unitId = unitId;
       if (offeringId) location.gym.offeringId = offeringId;
@@ -103,6 +103,7 @@ export function planLocationQuery(location: PlanLocation): string {
       if (location.other.columnId !== undefined) params.set('timplanskolumn', location.other.columnId ?? 'unknown');
       if (location.other.offeringId !== undefined) params.set('timplansutbildning', location.other.offeringId);
       if (location.other.version !== undefined) params.set('timplansversion', String(location.other.version));
+      if (location.other.unitId !== undefined) params.set('timplansskola', location.other.unitId);
     }
   }
   for (const [key, param] of Object.entries(fields)) {
@@ -144,7 +145,7 @@ export function normalizePlanLocation(location: PlanLocation, value: PlanningSet
     if (available && available !== schoolform) { schoolform = available; changed = true; clearTarget = true; }
   }
   const readable = setup.units.filter(u => view === 'programplan' ? u.canRead.programplan : u.canRead[schoolform]);
-  const targetUnit = location.view === 'programplaner' ? location.programplan?.unitId : location.gym?.unitId;
+  const targetUnit = location.view === 'programplaner' ? location.programplan?.unitId : location.gym?.unitId ?? location.other?.unitId;
   let unitId = requested.unitId === undefined ? targetUnit && readable.some(u => u.unitId === targetUnit) ? targetUnit : readable[0]?.unitId ?? null : requested.unitId;
   if (unitId !== null && !readable.some(u => u.unitId === unitId)) { unitId = readable[0]?.unitId ?? null; changed = true; clearTarget = true; }
   if (targetUnit !== undefined && (!readable.some(u => u.unitId === targetUnit) || unitId !== null && targetUnit !== unitId)) { changed = true; clearTarget = true; }
