@@ -1,0 +1,387 @@
+{
+  "kind": "phase5-42-O15-O16-bounded-independent-file-review",
+  "status": "BOUNDED_FILE_PASS",
+  "notFullPlanProof": true,
+  "actualReportSha256": "d469e07cde9c746fc1aade7e1b92429e50b62e910d38247ca631d051a80f9966",
+  "rootKnownOutcome": {
+    "session": 30610,
+    "exitCode": 0,
+    "provenance": "explicit ROOT actual result"
+  },
+  "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "specSha256": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+  "expectedFrozenSha256": "d28f8efcbfb3090421c95e682ca1fca0dc76d2582b12405bc52f12df973591e7",
+  "pairs": [
+    [
+      "O15: held actual cellwrite spärrar år skola och Back till komplett readback",
+      "planning-year-desktop"
+    ],
+    [
+      "O16: actual accepterad cell och återläsningsfel behåller unknown tills riktig retry",
+      "planning-year-desktop"
+    ],
+    [
+      "O15: held actual cellwrite spärrar år skola och Back till komplett readback",
+      "planning-year-phone"
+    ],
+    [
+      "O16: actual accepterad cell och återläsningsfel behåller unknown tills riktig retry",
+      "planning-year-phone"
+    ]
+  ],
+  "counts": {
+    "passed": 4,
+    "errors": 0,
+    "retry": 0,
+    "skips": 0,
+    "cleanup": 4,
+    "sourceExplicitPerProject": 20,
+    "protectedFullGitSourceAndBuild": 49,
+    "productSame": 241,
+    "parsers": 2,
+    "images": 0,
+    "geometry": 0
+  },
+  "cleanup": [
+    {
+      "case": "O15",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193050,
+        "sha256": "c3a29cf42e4f558289455ddbd8b5b324bf260a68c2ead2300936dc30d8e73c02"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5268,
+        "sha256": "64d9b25720dcc5c1f73f9c305502d8087294e607cf4cf0f99904084311b32c35"
+      }
+    },
+    {
+      "case": "O16",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193171,
+        "sha256": "7b6fdf47ce363bfd477303143f58ac702579c87ffdc307cd92b909d0dd6fb5fb"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5271,
+        "sha256": "7db245708e48529651d4115bfba4f55350c4047c0d69bd081c42fb275d0c32ad"
+      }
+    },
+    {
+      "case": "O15",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 193290,
+        "sha256": "6d49fdc941a2a3b6e78fa675c64a20059dd3ddea1edeaedbdca7b36945cd9cfe"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5274,
+        "sha256": "b6611f2bac8594076fe700d9b4b774a11c3b2bdf63e013ed360b16180530c606"
+      }
+    },
+    {
+      "case": "O16",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 193411,
+        "sha256": "1bf3dfc8869b9bfeff74409ef14996ed76547ba6e43237e4908e5db245f60d37"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5277,
+        "sha256": "7e99932b5bae3a09a3d2689f7cdc6975576929d31cb11ab12631e38ed168276e"
+      }
+    }
+  ],
+  "historicalPrerequisites": {
+    "context": {
+      "reportSha256": "18c51291b70a3c0308ead8e38e6183f0afe3e27ef5c09309eb2e2cc7ae7d8345",
+      "cases": 16,
+      "approvedSourceRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "workerBuildRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "runtimeClosureSha256": "43414ed083272c9cb88b1da6d8c7184391d9bff4ec47927ffe79036de96e0754",
+      "toolClosureSha256": "e8a534ccab55f184842eb691bc0db3a76ee2f2e0458dcf14ace20c58db057031"
+    },
+    "contextWrite": {
+      "reportSha256": "229b1f3cba74f1ae13f24358f4ac67544ba591a54efe7512f1adbba452de6292",
+      "cases": 2,
+      "approvedSourceRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "workerBuildRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "runtimeClosureSha256": "c9ebf834779e85cdb31ccb8758a3ec5f3a96f40f614d6972882e9ea85017bed1",
+      "toolClosureSha256": "2a1f22f62ebd788143cc174c6b4a174a332e602949524fdf1d7869dd3adbcaca"
+    },
+    "lists": {
+      "reportSha256": "f44892df92a048a68a26592e430709786fcf4cab7ebcdb2c648345505cfb083a",
+      "cases": 36,
+      "approvedSourceRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "workerBuildRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "runtimeClosureSha256": "40284277a0093d784c52ba0028a54a7ebef913ba1b7368ddf9ca230613f48616",
+      "toolClosureSha256": "8761dde050e14d87793218c5245a2799559b0178baa43187a7447d7e9ff74fb3"
+    },
+    "gym": {
+      "reportSha256": "9a28ab2553f44805d05b2fc876ec6e6a2530387a9e83295a4d1aeaf2e1d4d52b",
+      "cases": 38,
+      "approvedSourceRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "workerBuildRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "runtimeClosureSha256": "c7fb25de51fe3ef6e51e5e96109460021b41bf7f281e9b351d0be8cff8f3122a",
+      "toolClosureSha256": "2396d5f58a20bda59ef8c34aca6e6ac101b9f5cf145502eb96cdec2d48ad7b4e"
+    }
+  },
+  "fullProductC4Sha256": "16a561e8b1271365b8aba6192cfb44d08debbc5fa94bbd6ef361c62438a0f325",
+  "protectedTuples": [
+    [
+      "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+      "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e",
+      "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e"
+    ],
+    [
+      "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+      "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a",
+      "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a"
+    ],
+    [
+      "supabase/migrations/20261006120000_phase5_planning_year_reads.sql",
+      "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+      "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71"
+    ],
+    [
+      "supabase/tests/phase5_program_timplan_transition.test.sql",
+      "dd7d750c99103631ca3de4ba62d937de66b040b58cc73c5ba846cbd03b9ffe82",
+      "dd7d750c99103631ca3de4ba62d937de66b040b58cc73c5ba846cbd03b9ffe82"
+    ],
+    [
+      "web/app/api/planering/lista/route.ts",
+      "3964695006d1c262fadd34e91229c6e30f40840569a2303fe2c6446124928950",
+      "3964695006d1c262fadd34e91229c6e30f40840569a2303fe2c6446124928950"
+    ],
+    [
+      "web/app/api/planering/oversikt/route.ts",
+      "a83f8f6c845e1efe259bfc6f256d768dffd97b01e48c58731d79044f379fc64d",
+      "a83f8f6c845e1efe259bfc6f256d768dffd97b01e48c58731d79044f379fc64d"
+    ],
+    [
+      "web/app/api/planering/urval/route.ts",
+      "eedc533d872d4584b1493d81d62c660b165e6ad06b506f868b05bcbfa262f051",
+      "eedc533d872d4584b1493d81d62c660b165e6ad06b506f868b05bcbfa262f051"
+    ],
+    [
+      "web/app/api/timplaner/gym/lasa/route.ts",
+      "9507269a21e5560d32890707bc33f1690302c63fb5f0ff2bc50925aebd4b9dad",
+      "9507269a21e5560d32890707bc33f1690302c63fb5f0ff2bc50925aebd4b9dad"
+    ],
+    [
+      "web/app/api/timplaner/gym/rad/route.ts",
+      "3f58766e98acf88ab649513542c6e2781ceff154a1a6d457fa889d02382d9721",
+      "3f58766e98acf88ab649513542c6e2781ceff154a1a6d457fa889d02382d9721"
+    ],
+    [
+      "web/app/api/timplaner/gym/skapa/route.ts",
+      "01768ff2a37556dbe4622a1d73cad561eb7748b3e4187715fb91d6f4618836f0",
+      "01768ff2a37556dbe4622a1d73cad561eb7748b3e4187715fb91d6f4618836f0"
+    ],
+    [
+      "web/app/api/timplaner/gym/underlag/route.ts",
+      "fdf608623ec7a8f921f402ec66e3f71cb46e94d67023b4d9b4de42d9e825ba52",
+      "fdf608623ec7a8f921f402ec66e3f71cb46e94d67023b4d9b4de42d9e825ba52"
+    ],
+    [
+      "web/app/protected-gym-timplan-hours.tsx",
+      "202c89c57338945d81b3098e238fba0d7f38a97f4e4de6afd41c6cfcca6b7ecc",
+      "202c89c57338945d81b3098e238fba0d7f38a97f4e4de6afd41c6cfcca6b7ecc"
+    ],
+    [
+      "web/app/protected-gym-timplan-workspace.tsx",
+      "a8e0189bcbc5328168c976d133424c91d1f8c70dc05b2e62576a43c51559c61f",
+      "a8e0189bcbc5328168c976d133424c91d1f8c70dc05b2e62576a43c51559c61f"
+    ],
+    [
+      "web/app/protected-gym-timplan.css",
+      "927d4304fe4585bf2d64b7b78121f6f809475a93988132e6b8206015b9185408",
+      "927d4304fe4585bf2d64b7b78121f6f809475a93988132e6b8206015b9185408"
+    ],
+    [
+      "web/app/protected-home.tsx",
+      "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6",
+      "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6"
+    ],
+    [
+      "web/app/protected-programplan-board.tsx",
+      "6bdfe8c6b99e71a9e46e0f995c43ca6e2fa7a8d8380c2ff7447734511838a3f5",
+      "6bdfe8c6b99e71a9e46e0f995c43ca6e2fa7a8d8380c2ff7447734511838a3f5"
+    ],
+    [
+      "web/app/protected-programplan-workspace.tsx",
+      "a529f151f171a45fbb2a486d70865c3ed989f229744ada854414c17823dee457",
+      "a529f151f171a45fbb2a486d70865c3ed989f229744ada854414c17823dee457"
+    ],
+    [
+      "web/app/protected-timplan-workspace.tsx",
+      "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7",
+      "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7"
+    ],
+    [
+      "web/app/protected-timplan.css",
+      "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db",
+      "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db"
+    ],
+    [
+      "web/components/ui/dialog.tsx",
+      "8bc85def62538b4e62e8530c6b0ba167a192c38519c05f104bf6e10de73b811f",
+      "8bc85def62538b4e62e8530c6b0ba167a192c38519c05f104bf6e10de73b811f"
+    ],
+    [
+      "web/e2e/phase5-gym-timplan.spec.ts",
+      "6042600b6b3803e0a60d9c4b3b893cebd60d514459d25807a2d91a7a2855d25f",
+      "6042600b6b3803e0a60d9c4b3b893cebd60d514459d25807a2d91a7a2855d25f"
+    ],
+    [
+      "web/e2e/phase5-timplan.spec.ts",
+      "64effd985d0acea2a2ff458814dcbc645ead3a803a26897b18ffc427444ba4ae",
+      "64effd985d0acea2a2ff458814dcbc645ead3a803a26897b18ffc427444ba4ae"
+    ],
+    [
+      "web/lib/gym-timplan.test.mjs",
+      "8216f4c9224795cf212ffbcef08511801ef3a83e30366af1e1b12355b63b7e89",
+      "8216f4c9224795cf212ffbcef08511801ef3a83e30366af1e1b12355b63b7e89"
+    ],
+    [
+      "web/lib/gym-timplan.ts",
+      "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6",
+      "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6"
+    ],
+    [
+      "web/lib/mandate-policy.ts",
+      "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+      "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43"
+    ],
+    [
+      "web/lib/planning-year-contract.ts",
+      "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+      "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e"
+    ],
+    [
+      "web/lib/planning-year-model.ts",
+      "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+      "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9"
+    ],
+    [
+      "web/lib/programplan-catalog.generated.json",
+      "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124",
+      "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124"
+    ],
+    [
+      "web/lib/programplan-catalog.ts",
+      "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+      "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c"
+    ],
+    [
+      "web/lib/protected-plan-location.test.mjs",
+      "79378c3573c2e8f8c4f3c70f13d3c1c8fcd2cc9fbbad24c2025324e0e1b82c83",
+      "79378c3573c2e8f8c4f3c70f13d3c1c8fcd2cc9fbbad24c2025324e0e1b82c83"
+    ],
+    [
+      "web/lib/protected-plan-location.ts",
+      "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e",
+      "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e"
+    ],
+    [
+      "web/lib/server-client.ts",
+      "11a2047a04ebe88f73852a9188f46363a5f39badb5338426a71ab39d574ca69b",
+      "11a2047a04ebe88f73852a9188f46363a5f39badb5338426a71ab39d574ca69b"
+    ],
+    [
+      "web/lib/server/audit-details.ts",
+      "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+      "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08"
+    ],
+    [
+      "web/lib/server/authz.ts",
+      "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+      "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5"
+    ],
+    [
+      "web/lib/server/db.ts",
+      "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+      "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f"
+    ],
+    [
+      "web/lib/server/gym-timplan.test.mjs",
+      "55f04e30ae6a477145db9f8901fc83a8a986479df2b17b53ff0cbf578076589e",
+      "55f04e30ae6a477145db9f8901fc83a8a986479df2b17b53ff0cbf578076589e"
+    ],
+    [
+      "web/lib/server/gym-timplan.ts",
+      "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446",
+      "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446"
+    ],
+    [
+      "web/lib/server/http.ts",
+      "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2",
+      "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2"
+    ],
+    [
+      "web/lib/server/mandate-route.ts",
+      "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+      "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe"
+    ],
+    [
+      "web/lib/server/planning-year.test.mjs",
+      "85f356dbdf07e21641b0afa6a86fdbb74d32e5e2d2834fb75b0271a0db0beb70",
+      "85f356dbdf07e21641b0afa6a86fdbb74d32e5e2d2834fb75b0271a0db0beb70"
+    ],
+    [
+      "web/lib/server/planning-year.ts",
+      "9f0b2038aba352966f7f6194ea85ff7ee7d5c2cc4c3054e9f438d637e45f304e",
+      "9f0b2038aba352966f7f6194ea85ff7ee7d5c2cc4c3054e9f438d637e45f304e"
+    ],
+    [
+      "web/lib/session-channel.ts",
+      "2cdbb631d7fa2cc565fa1e0fcbd8c18a49c11cb8d390bd4ea083ae064a34f085",
+      "2cdbb631d7fa2cc565fa1e0fcbd8c18a49c11cb8d390bd4ea083ae064a34f085"
+    ],
+    [
+      "web/lib/unsaved-changes.tsx",
+      "584189e8bb01612a6a00aaf819e5a4c2983ef7deb08d71e555a97b63a577be6e",
+      "584189e8bb01612a6a00aaf819e5a4c2983ef7deb08d71e555a97b63a577be6e"
+    ],
+    [
+      "web/playwright.phase5-gym-timplan.config.ts",
+      "db119232fb9e404b4da3c73a518be8a8b826d77954fe91c0b4dd6a00ae867815",
+      "db119232fb9e404b4da3c73a518be8a8b826d77954fe91c0b4dd6a00ae867815"
+    ],
+    [
+      "web/playwright.phase5-timplan.config.ts",
+      "1661aaae852b589c2b79bb453d48f34be3e8f55344957bdd531419d18dd55fea",
+      "1661aaae852b589c2b79bb453d48f34be3e8f55344957bdd531419d18dd55fea"
+    ],
+    [
+      "work/pilot/phase5-gym-timplan-fixtures.mjs",
+      "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c",
+      "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c"
+    ],
+    [
+      "work/pilot/phase5-planning-year-fixtures.mjs",
+      "c868e836a312d7a90068b639d9cd112215468546c3036ef0f4b8228cfb5608d7",
+      "c868e836a312d7a90068b639d9cd112215468546c3036ef0f4b8228cfb5608d7"
+    ],
+    [
+      "work/pilot/verify-planning-year-api.mjs",
+      "d38cdbcab647cf751da8f0ea8c74570c4abdad8cd61a9b1d522bb33775633e5b",
+      "d38cdbcab647cf751da8f0ea8c74570c4abdad8cd61a9b1d522bb33775633e5b"
+    ],
+    [
+      "work/pilot/verify-planning-year-api.test.mjs",
+      "7503204f6371056235b527c4c2bac9bf95ccc4a6f6489e4b50e1ed7d25ce9dab",
+      "7503204f6371056235b527c4c2bac9bf95ccc4a6f6489e4b50e1ed7d25ce9dab"
+    ]
+  ],
+  "findings": [],
+  "noTargetCalls": true,
+  "gitReads": "ROOT authorised git cat-file --batch readonly object reads; no Git mutation",
+  "repoImports": false,
+  "limits": [
+    "Four bounded cases only; fullO36 remains PENDING.",
+    "No capture or geometry assertions exist, so no visual/geometry PASS claimed.",
+    "Grep-excluded other cases absent; not represented as32 skipped results."
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "kind": "phase5-root-isolated-process-observation-v1",
+  "observedAt": "2026-10-08T09:04:54.117Z",
+  "baseURL": "http://127.0.0.1:3060",
+  "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "launcherReadyObservedByRoot": true,
+  "launcherReadyToolSessionId": 55261,
+  "processes": [
+    {
+      "pid": 4364,
+      "ppid": 9402,
+      "command": "node scripts/run-mode.mjs preview --mode protected --port 3060",
+      "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web"
+    },
+    {
+      "pid": 4373,
+      "ppid": 4364,
+      "command": "/opt/homebrew/Cellar/node/25.9.0_2/bin/node scripts/preview-worker.mjs dist-protected/server/wrangler.json 3060",
+      "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web"
+    },
+    {
+      "pid": 4379,
+      "ppid": 4373,
+      "command": "/Users/petter.gjores/dev/skolplattform/web/node_modules/@cloudflare/workerd-darwin-arm64/bin/workerd serve --binary --experimental --socket-addr=entry=127.0.0.1:3060 --external-addr=loopback=127.0.0.1:58889 --control-fd=3 -",
+      "cwd": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web"
+    }
+  ],
+  "soleListenerPid": 4379,
+  "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+  "artifactFileCount": 180,
+  "buildMarker": {
+    "mode": "protected",
+    "revision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+    "builtAt": "2026-10-08T00:20:38.706Z",
+    "node": "v25.9.0"
+  },
+  "rootGitInventory": {
+    "report": "work/pilot/results/phase5-43-root-git-inventory-pre-o-seventh-20261008.json",
+    "sha256": "16a561e8b1271365b8aba6192cfb44d08debbc5fa94bbd6ef361c62438a0f325"
+  },
+  "recordedBeforeOtherCases": true
+}

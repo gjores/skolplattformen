@@ -3,26 +3,29 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-42
+current_plan: 05-43
 status: in_progress
-stopped_at: UI05-42 sjätte ägda återställning V3 faktiskt PASS; egen Worker stoppad. Avgränsat O15/O16 och nytt fullO36 återstår.
+stopped_at: UI05-42 full O36 och oberoende3/3 verifiering PASS; nästa05-43 separat FinalC16/release/3012 och konkret användarprov.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
-last_activity_desc: "UI05-42 V3 förkontroll/apply känt PASS och postcommit/DB-/filavslut och oberoende slutfilgranskning PASS. FullO42 Pending;86/100 och3012 består."
-state_head: a9a3f0d2e77fdc553ae54f45fa979a6aa7949a70
+last_activity_desc: "UI05-42 fullO36 på ac41,36normalcleanup/full15/auditidentitet/geometri och oberoende3/3 PASS;87/100,3/8. 43 slutC/release/3012 och mänskligt prov återstår."
+state_head: ac41d6c3ed9cdd9977bee6a9207fa30a146ad165
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: stopped_after_sixth_owned_recovery_known_complete
+verification_worker_status: isolated_seventh_full_o36_completed_known_exit0
 worker_status: running_on_3012
 worker_build_revision: 5dd7baf0fc0bd92d7b61f07e01020cef791e0908
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 86
+  completed_plans: 87
 milestone_name: milestone
 ---
 
 # Project State
+
+**UI42 färdigt 2026-10-08 — avgränsat PASS:** Full O01–18 på dator och telefon, ROOT42476 känd exit0/rå `c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901`, source `ac41d6c3ed9cdd9977bee6a9207fa30a146ad165`, spec `93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639` och bevarat bygge `17924ff417899dd5863c394bb4496a5bf22865bd`. 36/36 PASS utan skips/omprov/flaky; 36 normalcleanup/full15 exakt SEARCH/sex avslutsflaggor/egna16 samt foreignverksamhet/DDL0. 20 explicita/49 skyddade/241 produktfiler/båda parsers och fyra historiska C16/extraC04/L36/G38-kedjor matchar; inget nytt appbygge. Terminal audit197363/114cc50c och auditerade identiteter5387/3ebcec87. 16 geometrier minst44×44/contained och16 PNG/14 unika ROOT-granskade; telefonens fokushopplänk över text och O05:s svaga dialogtext redovisas, ingen felfriUI- eller orsaksförklaring. Oberoende full fil-/3/3-målgranskning PASS: `work/pilot/results/phase5-42-seventh-independent-full-file-review-20261008.json` · SHA `281713e9082cb51ecae6d61559df54c1660b5f62cae9cfcf5e81bb8df75867cc`. 87/100 planer,3/8 verifierade faser; nästa [05-43](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PLAN.md) med separat slutC16/release/3012 och konkret användarprov. Alla första fel och recoveries består; fulla PLANERING-/ADMIN-krav/fas5/05-17/formell rektors färdigmarkering och HM-godkännande kvarstår. Ordinarie3012/5dd7baf är inte överförd av detta steg.
+
 
 **UI42 sjätte ägda återställningen V3 2026-10-08 — faktiskt PASS:** ROOT12636 förkontroll exit0 (completion17da2431/reservedb5e71f1c) och separat ROOT96917 apply exit0 (completion198ca4e5/reserved4d070944) på fryst källa fb16e88b. Den unika egna MFA-sessionen och samma fulla DB-/Worker-cellpar verifierades vid händelsetiden med rätt occurred_at; revision1/[444,777,666] består.13 egna sessioner till0 och endast4991e99e:s egen verksamhetsgraf städad;111 egna audithändelser/fyra ankare kvar, foreignaudit0. Original15 exaktSEARCH/katalog/råACL28, ALLaudit192931/3ca2b8e0 och SQLauditedident5265/35657305, ALLolder5294/9f5b0c3e, staff31/391d766c och sju äldre mandatgrafer bevaras före/efter/postcommit med känd commit/DB-/filstängning. ROOTs filkontroller797b5a och4ea7bd samt oberoende slutfilgranskning501eecd4 PASS. V1/V2-förkontrollFAIL och sjätte fullOFAIL bevaras oförändrade. O15/O16-helper93c6 är källgranskad/typ/lint/list36 kontrollerad, produkt241/bygge179/180artefakt3b5 består utan nytt appbygge. Runtime är ännu stoppad påa9a/07c; därefter exakt övergång till granskad93c-källa, avgränsat O15/O16×dator/telefon och helt ny fullO36 med genuina pre/duringbevis.86/100,3/8, fulla krav/formella beslut och ordinarie3012 består.
 

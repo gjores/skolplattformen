@@ -1,0 +1,1221 @@
+{
+  "kind": "phase5-root-other-pixel-review-v1",
+  "status": "PASS_WITH_CAPTURE_LIMITATIONS",
+  "report": "work/pilot/results/phase5-42-other-actual-seventh-20261008.json",
+  "reportSha256": "c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901",
+  "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+  "specSha256": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "knownCommandExitCode": 0,
+  "rootCompletionChunk": "3a8ed0",
+  "rootClosureReader": {
+    "knownExitCode": 0,
+    "chunk": "83c5f8"
+  },
+  "capturedPngCount": 16,
+  "uniquePngCount": 14,
+  "rootViewedUniquePngCount": 14,
+  "rootViews": [
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/gr-bound-v1-unknown.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c",
+      "notes": "Desktop GRbound/read-only v1. Alla årstimmar markerade Okänt, originalpositioner synliga. Ingen extern scroll/överlapp i bilden. O04 pixelidentisk."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-desktop/current-explicit-index1.png",
+      "sha256": "332db3ab69f646b4d537d9930609578d25cbcd28c74e24113ff1eed9c73c3357",
+      "notes": "Dator Åk8/index1 sparade777, rättkolumn444/777/666 ochändringens kvitto synliga. Fokushopplänk ligger över breadcrumb och sticky-sidebar scrolled horisontelltintefel; tidigarebildbegränsning kvar."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-desktop/gr-page2-server-search.png",
+      "sha256": "ab3d7ee15cb63d0faf13d139b56548d7074ef086c70e51ee4875406aec362425",
+      "notes": "Dator serverlokalkod52 ger1relevantrad/v1/Åk8/källreferens. Sökfält, filter och tabell inom sidbredd, ingen extern overflow."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-desktop/im-weekly-empty.png",
+      "sha256": "2df78a21d88aa242e532a30b70f5d5c94f61067d1ca6944b0ffceb84b495fa0d",
+      "notes": "Dator IMtomt sökresultat0 visar tydligtInga planeringsrader och rättregisterkontext; filter synliga."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-desktop/im-fourteen-weekly.png",
+      "sha256": "628e6a04e717e975da69ce70f34ea4c4a12e74dc2ac772fd984c9762d7348448",
+      "notes": "Dator IMårsunderlagsbesked och full tabell med sju synliga tvåtimmarsrader Per vecka. Bilden denna gång färdigladdad; äldre sjätteprovets inläsande capturebegränsning gäller inte denna PNG."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-desktop/gr-overview-unknown.png",
+      "sha256": "3fdfed20e584d03618be326ef4cecfe18b34aeb6b1562b941bd87d72655e8543",
+      "notes": "Dator GRöverblick:1planrad,tvåfördeladeklassreferenser,okänd årligram förklarad ochintefalskt dubblerad; controls inom sidbredd."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-desktop/im-overview-weekly.png",
+      "sha256": "d3e2cecd6cc59bbcc9bf3355e63bb5a1bfe8fbdff31d578693a734ca5ef59f16",
+      "notes": "Dator IMöverblick:14Planerade timmar per vecka,0relateradeklasser, gemensamramräknasengång, käntveckomåttklart. Sidanskontroller inom bredd."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-phone/gr-bound-v1-unknown.png",
+      "sha256": "537aa48a43f1d79cd8eee590c7891dc1be35b29450f119446806b2673f005476",
+      "notes": "Telefon GRv1/lästÅk8:kontext/filter/version/bindnings-/okändkartanotiser och råa timpositioner synliga. Tabellen har lokal sidrullning, inte hela sidan. Fokushopplänken synlig över årsunderlagets läsvytext: capture/fokusbegränsning dokumenteras; ingen felfriUIclaim."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-phone/current-explicit-index1.png",
+      "sha256": "366a309ed1fc9cc7d481d4ea87154fef17408c18bc4820f6b04eff312a9ac384",
+      "notes": "Telefon aktuellv2/Åk8index1 bekräftat777 och444/777/666; lokal tabellscroll. Fokushopplänk ligger över regeltexten och svag dialogtext syns i bilden efter sparningen; bildbegränsning, inget påstående om felfri/stabil slutframe eller dess orsak."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-phone/gr-page2-server-search.png",
+      "sha256": "e7f6eb65e4b54a721de796931e2cd47004a9b4ab2bbd45e45e21580636fed236",
+      "notes": "Telefon GRkod52:en planrad/OTHER-GR-052, alla filter+sidknappar inom sida och tabellens lokala sidrullning. Fokushopplänk synlig över rubrik/beskrivning i capture; begränsning dokumenteras."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-phone/im-weekly-empty.png",
+      "sha256": "97510480581aa2c5ed5974c6b0d518a4169117c5bca77dc2f61d4479c9a3d711",
+      "notes": "Telefon IMtomtresultat0/tydligtRensa filter eller väljannatår, alla val inom sidan, ingen obefogadtabell."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-phone/im-fourteen-weekly.png",
+      "sha256": "ee982bf0bbeb89330515ff33754dd128a43fd5ebbe14265471cfe0bf365d0848",
+      "notes": "Telefon IMv1/läsvyveckoram:7synliga2h-rader Per vecka, ingenårssumma eller årskursknapp; fokushopplänk över planrubriken i capture är dokumenterad bildbegränsning."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-phone/gr-overview-unknown.png",
+      "sha256": "b39c9cb6fb3732914b00947660baab3f9b3f68b3fa607109b884e145de9b8b00",
+      "notes": "Telefon GRöverblick: en planrad, två klassreferenser och okända årstimmar tydligt visade. Kontroller inom sidbredd."
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-phone/im-overview-weekly.png",
+      "sha256": "64806f66dc688314be262fed13aacc313a4ccf73f11d33f893d19fa6a745f0ec",
+      "notes": "Telefon IMöverblick: 14 timmar per vecka och inga relaterade klasser tydligt visade. Kontroller inom sidbredd."
+    }
+  ],
+  "limitations": [
+    "Telefon O01/O05/O08/O10 visar fokushopplänk över sidtext. O05 visar också svag dialogtext efter sparningen. Orsaken är inte fastställd; bilderna bevisar inte en felfri eller stabil slutbild.",
+    "Modalens överordnade kontextprov använder native selectOption och bevisar inte pekaråtkomst bakom en öppen dialog.",
+    "Grundskolans Visa årskurs är fortfarande en dropdown. Gymnasiets årskursknappar verifierades i föregående plan.",
+    "Proven använder en isolerad lokal miljö och syntetiska uppgifter. Formell färdigmarkering och huvudmannens godkännande är fortfarande en öppen lucka."
+  ],
+  "actualPrerequisites": {
+    "context": {
+      "reportSha256": "18c51291b70a3c0308ead8e38e6183f0afe3e27ef5c09309eb2e2cc7ae7d8345",
+      "cases": 16,
+      "approvedSourceRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "workerBuildRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "runtimeClosureSha256": "43414ed083272c9cb88b1da6d8c7184391d9bff4ec47927ffe79036de96e0754",
+      "toolClosureSha256": "e8a534ccab55f184842eb691bc0db3a76ee2f2e0458dcf14ace20c58db057031"
+    },
+    "contextWrite": {
+      "reportSha256": "229b1f3cba74f1ae13f24358f4ac67544ba591a54efe7512f1adbba452de6292",
+      "cases": 2,
+      "approvedSourceRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "workerBuildRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "runtimeClosureSha256": "c9ebf834779e85cdb31ccb8758a3ec5f3a96f40f614d6972882e9ea85017bed1",
+      "toolClosureSha256": "2a1f22f62ebd788143cc174c6b4a174a332e602949524fdf1d7869dd3adbcaca"
+    },
+    "lists": {
+      "reportSha256": "f44892df92a048a68a26592e430709786fcf4cab7ebcdb2c648345505cfb083a",
+      "cases": 36,
+      "approvedSourceRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "workerBuildRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "runtimeClosureSha256": "40284277a0093d784c52ba0028a54a7ebef913ba1b7368ddf9ca230613f48616",
+      "toolClosureSha256": "8761dde050e14d87793218c5245a2799559b0178baa43187a7447d7e9ff74fb3"
+    },
+    "gym": {
+      "reportSha256": "9a28ab2553f44805d05b2fc876ec6e6a2530387a9e83295a4d1aeaf2e1d4d52b",
+      "cases": 38,
+      "approvedSourceRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "workerBuildRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "runtimeClosureSha256": "c7fb25de51fe3ef6e51e5e96109460021b41bf7f281e9b351d0be8cff8f3122a",
+      "toolClosureSha256": "2396d5f58a20bda59ef8c34aca6e6ac101b9f5cf145502eb96cdec2d48ad7b4e"
+    }
+  },
+  "actualPrerequisitesComparedProjects": 2,
+  "geometryInventory": [
+    {
+      "project": "planning-year-desktop",
+      "case": "O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots nyare v2",
+      "attachment": "gr-bound-v1-unknown-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          },
+          {
+            "w": 965.03125,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O04: historisk grade-reorder behåller råa positioner och okänd karta",
+      "attachment": "historical-position-reorder-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          },
+          {
+            "w": 965.03125,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O05: aktuell explicit utkastmatris sparar index1 med övriga kolumner och fryst v1 kvar",
+      "attachment": "current-explicit-index1-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          },
+          {
+            "w": 1006.015625,
+            "h": 44
+          },
+          {
+            "w": 162.046875,
+            "h": 44
+          },
+          {
+            "w": 162.046875,
+            "h": 44
+          },
+          {
+            "w": 162.0625,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på servern",
+      "attachment": "gr-page2-server-search-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 976.140625,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 66.8125,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid",
+      "attachment": "im-weekly-empty-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O10: IM sju verkliga tvåtimmarsrader är 14 per vecka utan årsprogressering",
+      "attachment": "im-fourteen-weekly-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+      "attachment": "gr-overview-unknown-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 976.140625,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.625,
+            "h": 44
+          },
+          {
+            "w": 212.078125,
+            "h": 44
+          },
+          {
+            "w": 176.421875,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+      "attachment": "im-overview-weekly-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.625,
+            "h": 44
+          },
+          {
+            "w": 212.078125,
+            "h": 44
+          },
+          {
+            "w": 176.421875,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots nyare v2",
+      "attachment": "gr-bound-v1-unknown-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 501,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O04: historisk grade-reorder behåller råa positioner och okänd karta",
+      "attachment": "historical-position-reorder-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 501,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O05: aktuell explicit utkastmatris sparar index1 med övriga kolumner och fryst v1 kvar",
+      "attachment": "current-explicit-index1-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 70,
+            "h": 44
+          },
+          {
+            "w": 70,
+            "h": 44
+          },
+          {
+            "w": 70,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 402,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på servern",
+      "attachment": "gr-page2-server-search-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 66.8125,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 1066,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid",
+      "attachment": "im-weekly-empty-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O10: IM sju verkliga tvåtimmarsrader är 14 per vecka utan årsprogressering",
+      "attachment": "im-fourteen-weekly-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 352,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+      "attachment": "gr-overview-unknown-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.609375,
+            "h": 44
+          },
+          {
+            "w": 212.0625,
+            "h": 44
+          },
+          {
+            "w": 176.40625,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "case": "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+      "attachment": "im-overview-weekly-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.609375,
+            "h": 44
+          },
+          {
+            "w": 212.0625,
+            "h": 44
+          },
+          {
+            "w": 176.40625,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    }
+  ],
+  "pngInventory": [
+    {
+      "project": "planning-year-desktop",
+      "case": 1,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/attachments/gr-bound-v1-unknown-png-196fa7c97ea6e63d3e1acab1cef9cbc36f1d101d.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 4,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-desktop/attachments/historical-position-reorder-png-11368059f01f19798bd49e33eeb45203c05a5d63.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 5,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-desktop/attachments/current-explicit-index1-png-0896042aa23b62d7c23b1321f20a98c1dcae90cc.png",
+      "sha256": "332db3ab69f646b4d537d9930609578d25cbcd28c74e24113ff1eed9c73c3357"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 8,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-desktop/attachments/gr-page2-server-search-png-6179ed6c8c4d6cd1b1861c385c92253e1ab74f55.png",
+      "sha256": "ab3d7ee15cb63d0faf13d139b56548d7074ef086c70e51ee4875406aec362425"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 9,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-desktop/attachments/im-weekly-empty-png-7defec1f99bd4442f210276890a3267b30884a60.png",
+      "sha256": "2df78a21d88aa242e532a30b70f5d5c94f61067d1ca6944b0ffceb84b495fa0d"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 10,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-desktop/attachments/im-fourteen-weekly-png-df0a08c513fcd0ffcbbb7dbd95c70c681e27e3be.png",
+      "sha256": "628e6a04e717e975da69ce70f34ea4c4a12e74dc2ac772fd984c9762d7348448"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 18,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-desktop/attachments/gr-overview-unknown-png-53ec76accf2015c097185954eec89bc2fb9b13d0.png",
+      "sha256": "3fdfed20e584d03618be326ef4cecfe18b34aeb6b1562b941bd87d72655e8543"
+    },
+    {
+      "project": "planning-year-desktop",
+      "case": 18,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-desktop/attachments/im-overview-weekly-png-63e19b5ffa54676e938656fdbf39375deadb19ff.png",
+      "sha256": "d3e2cecd6cc59bbcc9bf3355e63bb5a1bfe8fbdff31d578693a734ca5ef59f16"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 1,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-phone/attachments/gr-bound-v1-unknown-png-0eecf0c0b22cc79ca20fdc59494f09d0f165126b.png",
+      "sha256": "537aa48a43f1d79cd8eee590c7891dc1be35b29450f119446806b2673f005476"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 4,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-phone/attachments/historical-position-reorder-png-1b699a55cdf2929572b0a6ce6e5ef621318fb578.png",
+      "sha256": "537aa48a43f1d79cd8eee590c7891dc1be35b29450f119446806b2673f005476"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 5,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-phone/attachments/current-explicit-index1-png-54a6941a2ced7d5658eb5a2755e31fd23a338e17.png",
+      "sha256": "366a309ed1fc9cc7d481d4ea87154fef17408c18bc4820f6b04eff312a9ac384"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 8,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-phone/attachments/gr-page2-server-search-png-174a072c850b57e0ca1440ae133c49591d2314c9.png",
+      "sha256": "e7f6eb65e4b54a721de796931e2cd47004a9b4ab2bbd45e45e21580636fed236"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 9,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-phone/attachments/im-weekly-empty-png-819344daa0d9641bb2bd3f225884c21b4e6920e8.png",
+      "sha256": "97510480581aa2c5ed5974c6b0d518a4169117c5bca77dc2f61d4479c9a3d711"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 10,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-phone/attachments/im-fourteen-weekly-png-3756734740261ec29dfc6c13f5d2f9b271756fd8.png",
+      "sha256": "ee982bf0bbeb89330515ff33754dd128a43fd5ebbe14265471cfe0bf365d0848"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 18,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-phone/attachments/gr-overview-unknown-png-e0542b13d06cf10eae1361640ebd0a80882ff26d.png",
+      "sha256": "b39c9cb6fb3732914b00947660baab3f9b3f68b3fa607109b884e145de9b8b00"
+    },
+    {
+      "project": "planning-year-phone",
+      "case": 18,
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-phone/attachments/im-overview-weekly-png-71d2e237ec4e1afa9e0dfaa53281a56b1141b457.png",
+      "sha256": "64806f66dc688314be262fed13aacc313a4ccf73f11d33f893d19fa6a745f0ec"
+    }
+  ]
+}

@@ -1,0 +1,2406 @@
+{
+  "kind": "phase5-independent-full-seventh-browser-file-review-v1",
+  "status": "FILE-ACCEPT",
+  "rootKnownOutcome": {
+    "session": 42476,
+    "exitCode": 0,
+    "chunk": "3a8ed0",
+    "provenance": "explicit ROOT actual result"
+  },
+  "actualReport": {
+    "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-42-other-actual-seventh-20261008.json",
+    "sha256": "c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901"
+  },
+  "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "specSha256": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+  "counts": {
+    "passed": 36,
+    "cleanup": 36,
+    "errors": 0,
+    "retries": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "explicitSources": 20,
+    "protectedExpandedCurrentFiles": 49,
+    "sameProductPairs": 241,
+    "parserSources": 2,
+    "pngAttachments": 16,
+    "uniquePngBytes": 14,
+    "geometries": 16
+  },
+  "matrix": [
+    [
+      "O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots nyare v2",
+      "planning-year-desktop"
+    ],
+    [
+      "O02: nytt år ger verklig åk9-bindning med samma v1 och aldrig klassens startår",
+      "planning-year-desktop"
+    ],
+    [
+      "O03: year+1 utan bindning visar konkret lucka utan automatisk progression",
+      "planning-year-desktop"
+    ],
+    [
+      "O04: historisk grade-reorder behåller råa positioner och okänd karta",
+      "planning-year-desktop"
+    ],
+    [
+      "O05: aktuell explicit utkastmatris sparar index1 med övriga kolumner och fryst v1 kvar",
+      "planning-year-desktop"
+    ],
+    [
+      "O06: URL Back reload återvaliderar historisk version och kan inte uppfinna current-mode",
+      "planning-year-desktop"
+    ],
+    [
+      "O07: explicit aktuell matris blir inte falsk historisk årsdel efter reload",
+      "planning-year-desktop"
+    ],
+    [
+      "O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på servern",
+      "planning-year-desktop"
+    ],
+    [
+      "O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid",
+      "planning-year-desktop"
+    ],
+    [
+      "O10: IM sju verkliga tvåtimmarsrader är 14 per vecka utan årsprogressering",
+      "planning-year-desktop"
+    ],
+    [
+      "O11: mentorNULL visas saknat och äldre fullread400 kan inte bli noll",
+      "planning-year-desktop"
+    ],
+    [
+      "O12: huvudman läser årsbindning och veckoplan men saknar cellmandat",
+      "planning-year-desktop"
+    ],
+    [
+      "O13: administratörens direkta GRläsning nekas faktiskt utan payload",
+      "planning-year-desktop"
+    ],
+    [
+      "O14: skolbyte och manipulerat target kan inte läsa annan rektors version",
+      "planning-year-desktop"
+    ],
+    [
+      "O15: held actual cellwrite spärrar år skola och Back till komplett readback",
+      "planning-year-desktop"
+    ],
+    [
+      "O16: actual accepterad cell och återläsningsfel behåller unknown tills riktig retry",
+      "planning-year-desktop"
+    ],
+    [
+      "O17: sen faktisk matrisläsning återfyller inte nytt planeringsår",
+      "planning-year-desktop"
+    ],
+    [
+      "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+      "planning-year-desktop"
+    ],
+    [
+      "O01: GR åk8 binder två verkliga klasser till exakt fastställd v1 trots nyare v2",
+      "planning-year-phone"
+    ],
+    [
+      "O02: nytt år ger verklig åk9-bindning med samma v1 och aldrig klassens startår",
+      "planning-year-phone"
+    ],
+    [
+      "O03: year+1 utan bindning visar konkret lucka utan automatisk progression",
+      "planning-year-phone"
+    ],
+    [
+      "O04: historisk grade-reorder behåller råa positioner och okänd karta",
+      "planning-year-phone"
+    ],
+    [
+      "O05: aktuell explicit utkastmatris sparar index1 med övriga kolumner och fryst v1 kvar",
+      "planning-year-phone"
+    ],
+    [
+      "O06: URL Back reload återvaliderar historisk version och kan inte uppfinna current-mode",
+      "planning-year-phone"
+    ],
+    [
+      "O07: explicit aktuell matris blir inte falsk historisk årsdel efter reload",
+      "planning-year-phone"
+    ],
+    [
+      "O08: GR52 pagineras 50+2 och lokal kod efter första sidan söks på servern",
+      "planning-year-phone"
+    ],
+    [
+      "O09: IM52 sidor sök sort och tomresultat har fortsatt veckotid",
+      "planning-year-phone"
+    ],
+    [
+      "O10: IM sju verkliga tvåtimmarsrader är 14 per vecka utan årsprogressering",
+      "planning-year-phone"
+    ],
+    [
+      "O11: mentorNULL visas saknat och äldre fullread400 kan inte bli noll",
+      "planning-year-phone"
+    ],
+    [
+      "O12: huvudman läser årsbindning och veckoplan men saknar cellmandat",
+      "planning-year-phone"
+    ],
+    [
+      "O13: administratörens direkta GRläsning nekas faktiskt utan payload",
+      "planning-year-phone"
+    ],
+    [
+      "O14: skolbyte och manipulerat target kan inte läsa annan rektors version",
+      "planning-year-phone"
+    ],
+    [
+      "O15: held actual cellwrite spärrar år skola och Back till komplett readback",
+      "planning-year-phone"
+    ],
+    [
+      "O16: actual accepterad cell och återläsningsfel behåller unknown tills riktig retry",
+      "planning-year-phone"
+    ],
+    [
+      "O17: sen faktisk matrisläsning återfyller inte nytt planeringsår",
+      "planning-year-phone"
+    ],
+    [
+      "O18: hela årsöverblicken deduplicerar två klasser och håller GRokänd/IMweekly isär",
+      "planning-year-phone"
+    ]
+  ],
+  "cleanup": [
+    {
+      "case": "O01",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193514,
+        "sha256": "911cfcd2983fbfb9d4e405a0bb1c84245756a8de34abd5b73a0287a9659d0821"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5280,
+        "sha256": "fde282efba5f3191cece5e296e8651a65ebc86d236a1c524f2afe273ae1948eb"
+      },
+      "originalIdentitySha256": "f31d3c0f352c2a15cbf82931d7c03059e023ec17d1012ec1608d1c9bdad65d6c",
+      "preservedOwnAuditEvents": 103
+    },
+    {
+      "case": "O02",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193627,
+        "sha256": "15eb85b679f2622818031aa8db8beee5187d69e457392ccccdfc869be87d199a"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5283,
+        "sha256": "38c9563e44cd178fe022c3d2a001ad76f3b3652a45706712199b4dc74043414a"
+      },
+      "originalIdentitySha256": "70d0697db857ef9842f05d44c08ef34ac95eb569396179231889dad45958dd81",
+      "preservedOwnAuditEvents": 113
+    },
+    {
+      "case": "O03",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193728,
+        "sha256": "63ac79fab443a0948a8d76fede98590d35cf95b4dbaf4adf14ad02dd095c2624"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5286,
+        "sha256": "5b92fa25e110d3b26f0cdc6849e783af45726c88994693172d71cdef1eadb4e3"
+      },
+      "originalIdentitySha256": "b7f37849402865fc1d5359bb759a49e94851dd141d244db9b1358d87cb87214e",
+      "preservedOwnAuditEvents": 101
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193835,
+        "sha256": "1dbbdf861f8ec4a3d9293d3530d77f79ef1c6b8e0f2619f726a1a3800aee2f08"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5289,
+        "sha256": "e4a5bf00215ebb3559c0af1cd413b09ec51473b67cac1772f8fd3153b121af25"
+      },
+      "originalIdentitySha256": "147799ef3342cb43c63d1fc520da2e4dfaa73c98148850cfc0f926fefbd9a7d5",
+      "preservedOwnAuditEvents": 107
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 193956,
+        "sha256": "e2f8cbbb17150b8271b8cc64a43906e5d0cb72db0eaef5888a2aceeaa957d342"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5292,
+        "sha256": "d65eab8ad9c5d9c999212578ff401ad8bb9e57db76528408416bb8e5eef4e81f"
+      },
+      "originalIdentitySha256": "2acbae0fcef03753ef2059fbbfbe1cd0094895c19a1ff017dd789a1fe79efc12",
+      "preservedOwnAuditEvents": 121
+    },
+    {
+      "case": "O06",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194082,
+        "sha256": "002089a48ca6825fd8e2b2389ab3db2fe590b54680401874da33ca40987f4020"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5295,
+        "sha256": "8584b09520b04ab783072fd0be5626d8ccc228423cce834a6584d619f608baaf"
+      },
+      "originalIdentitySha256": "ced85486c09215b5394f7bb76402be585a9690afeab989cea9e6ab833e30090c",
+      "preservedOwnAuditEvents": 126
+    },
+    {
+      "case": "O07",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194191,
+        "sha256": "bacdb016e071ed62856df92bab37a72e76408361e0f800a94e243ca733f4655f"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5298,
+        "sha256": "f31758e959c071fff394a9af37991bbc76383ea82369abad7f569809bcdcc248"
+      },
+      "originalIdentitySha256": "5920cfdba7590400ed17357ba650ad3b0d5e90a0112c3411a67fea19543ee718",
+      "preservedOwnAuditEvents": 109
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194303,
+        "sha256": "ab86c8e814d2a491fd8f021be3ab251b57661ec998bc887b9d18f322d3ac90a8"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5301,
+        "sha256": "bd78e7e8de43c33c922ddd36840ca9932fa89445d611a6969ddf6b97cc1c168d"
+      },
+      "originalIdentitySha256": "0e75d971923d788096d246aefb1ef49b430fbb3be388bfb6c0bc3ca04996a2f0",
+      "preservedOwnAuditEvents": 112
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194418,
+        "sha256": "3c562530823dc85999541692066443fd10183e6d3f6b6303303231040e6cd402"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5304,
+        "sha256": "a096fb917eeda50a43dfe65e838a958285a4705ee6607ff9618faddcba0f2a8d"
+      },
+      "originalIdentitySha256": "fca9c251a08b7e3a4cbc30113d02fc8c0915f21e14a21704c1f8ee6303cbc5fc",
+      "preservedOwnAuditEvents": 115
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194523,
+        "sha256": "7a6ab9cfb3c72168fb64360172f8faeb59b97c529f91c38393d02067aee0c6d4"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5307,
+        "sha256": "666422c0219bc3ad6228cc11de0c2236093e8c42f4dbc069e52c545445f29094"
+      },
+      "originalIdentitySha256": "dce04124e5de116e3a3513e20214950d2ce13d4d8f51db05ed574873aa2e4e59",
+      "preservedOwnAuditEvents": 105
+    },
+    {
+      "case": "O11",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194621,
+        "sha256": "1ad80f36cc69cdffb47b5cadfa285e518f2078f88e60b9e8706834839cb4f60f"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5310,
+        "sha256": "3d2434af088ffc0fde4eb429630e5c677d89b4ccb0bb5a59c4d6ecaac482ae9f"
+      },
+      "originalIdentitySha256": "1d62e92c6652144830781eed3fd997566c60b4eefdbebd217d9aad6a03c1abff",
+      "preservedOwnAuditEvents": 98
+    },
+    {
+      "case": "O12",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194738,
+        "sha256": "356637146c0e388a3cdce7a51ceff8502f5befdeea6240671ad5f669d81da9c8"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5313,
+        "sha256": "1f683f71dc13c6ef6523ee729f5a4c99b8c033d2565f240d52e06fa1e15c375c"
+      },
+      "originalIdentitySha256": "87e49bedd4aa7a080061316fdabb180f988ca3b0843eb85ab18b01e066d3fce5",
+      "preservedOwnAuditEvents": 117
+    },
+    {
+      "case": "O13",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194829,
+        "sha256": "1b3bf9a7015b6a38a44e17aed65e4cb0331e9861871e37373ae8358139de81ab"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5317,
+        "sha256": "fd54b0d989a8c61b697b61a92e0593f66e994dc3dff3ce10e158c6cc397e60d4"
+      },
+      "originalIdentitySha256": "008f95ffb08ac256f22d358e848732343f82edf608a56a7378a5e19911229ee8",
+      "preservedOwnAuditEvents": 91
+    },
+    {
+      "case": "O14",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 194940,
+        "sha256": "5b2320c26f837d7b787c03dd66e5f0d7b266e558fbb80af9626d4427c799efa3"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5320,
+        "sha256": "ca6f98c9f822ae9b2924bf998443029549d643b6036b9f47d3f7260699506a99"
+      },
+      "originalIdentitySha256": "07021c2d41ad88a28572a3ecdf7085505cd2a78a0f775cddd9d18e9edd9b0294",
+      "preservedOwnAuditEvents": 111
+    },
+    {
+      "case": "O15",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 195059,
+        "sha256": "ee83808e9ae97ac821ad088f500014d68395041c20325a9e079dbc346c36d6b5"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5323,
+        "sha256": "e6ae879c8b92af3f221372fcf670c72e114d623afa21309b39aa2128dde5d035"
+      },
+      "originalIdentitySha256": "f66d7032a01867928fc6cec8e0b4218aba64dc13b1188e63880f6c7cd28afba5",
+      "preservedOwnAuditEvents": 119
+    },
+    {
+      "case": "O16",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 195180,
+        "sha256": "44b1832099643678f948d94ac18b34d571bdac0507a7c26af08fc3bf5e9bd5f0"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5326,
+        "sha256": "2f15555a299842e1239b09f7c827d123f47c8b7477396c7bb4bd99143b87e377"
+      },
+      "originalIdentitySha256": "c973aadcdd6b74a2554040139aa3bc8ac8871c641c04b2577f26584b6939a4e7",
+      "preservedOwnAuditEvents": 121
+    },
+    {
+      "case": "O17",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 195283,
+        "sha256": "a77038e0cb213b674e5887902c7916906db1fb61b4852613c14291dcb6f8cd42"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5329,
+        "sha256": "5ecd88628348e52999e979dbbb1baf3782366ebd98c58efa4c24edc2d69e6119"
+      },
+      "originalIdentitySha256": "79ce561e258ce6cd9d69f2d03b8926bee188bb7a88729dd52689933ef3fd7b79",
+      "preservedOwnAuditEvents": 103
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-desktop",
+      "auditAfter": {
+        "count": 195387,
+        "sha256": "dbbf9d96427f9bfbff57162732b2e96b78922cc50e31f0f6cd14e274254f1712"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5332,
+        "sha256": "12ae77859c070aa12d3c936cae96581bf098684b4bd9707f18d9269e2b81336e"
+      },
+      "originalIdentitySha256": "69bcf44bb70e9a8ed76483d55a1b5e7661234217ce50989b91237c98e22f90a9",
+      "preservedOwnAuditEvents": 104
+    },
+    {
+      "case": "O01",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 195490,
+        "sha256": "7f6745c212c8d31cde53c98fb8334aa1e04aed2e5f43b87f77cb17c0dcd4e31c"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5335,
+        "sha256": "91b696cef137287e41e789e27f5102793340b4a02b5447b8b7d89dff1ef8c5f3"
+      },
+      "originalIdentitySha256": "0dc92c03cc8217a876d75bdf3228b4c95d5eadc37bb38c252d61b1b988fe1b25",
+      "preservedOwnAuditEvents": 103
+    },
+    {
+      "case": "O02",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 195603,
+        "sha256": "63d3e995d8e2a792581b4a63f04a1d84130bc14a1b7b60290caa5f05c4400eac"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5338,
+        "sha256": "cd0055622a3a459b1ecdc744906b7e448e6af052708aab10f2f13d3d8033de15"
+      },
+      "originalIdentitySha256": "65cc0d6ebf0308dc2262ad680b519a8629b7862f66257ea2595c90eae0461e63",
+      "preservedOwnAuditEvents": 113
+    },
+    {
+      "case": "O03",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 195704,
+        "sha256": "33b792a790e01845e913dca0d4e19beb594471367156ade32f2fd2ca9a27a34d"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5341,
+        "sha256": "3085c3fbb72e3325eec8b4d84b34861991b7cdc5eef4778519173e121fb6798e"
+      },
+      "originalIdentitySha256": "75215332e09f9a2d75c9195c75dab7fe2dda88bcfb8286f4cfc3fd657c118326",
+      "preservedOwnAuditEvents": 101
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 195811,
+        "sha256": "f355a4a010bd6a5e2f091e3e56204db18df1b828acdf07c9da8559b850d3a6ff"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5344,
+        "sha256": "552fa2ed36557cfafd08f934af8a92baf02ce277062cd03e84029df422382a05"
+      },
+      "originalIdentitySha256": "ec5f4fafe28673b37763484a66979a099e59f7763abbb53915b786d7dce7ef74",
+      "preservedOwnAuditEvents": 107
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 195932,
+        "sha256": "a39fd4b30a3b57019a95c35be6e107e11d9e081a6563ad1179e0870f4ef5cd20"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5347,
+        "sha256": "277ff773d3fb7f9fb1d7cf4c24dd41fc7981ee3901466ff168f750fbee7059de"
+      },
+      "originalIdentitySha256": "c185314417fa57efc8215234cec0934b60ceba61a95f1c0a2f32a2c283ff28fc",
+      "preservedOwnAuditEvents": 121
+    },
+    {
+      "case": "O06",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196058,
+        "sha256": "0d4008d53e56caabafdb93b9d5e61210758c42d8475ea5fd1bc4054ddbf5c6eb"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5350,
+        "sha256": "588c5b1914a10210c62472aae042e3fda50734285862bd3dde6f50907e1be7a9"
+      },
+      "originalIdentitySha256": "8f9cd09d0b95884f8a09d687dcafc6dc67402f399c4d1ee4dd5f4f311fc93222",
+      "preservedOwnAuditEvents": 126
+    },
+    {
+      "case": "O07",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196167,
+        "sha256": "dce39044fe1e023d2cbbea87843b61f87fd056d4fcb06b4071ef0d9cbb1b300d"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5353,
+        "sha256": "65057f4077141ef1622fc5b49bd636e44d54269168c1277e740b9c73ae3778fb"
+      },
+      "originalIdentitySha256": "79fc90d8eba75c5497d91a47a419036af20ee6f4fb7945a2dc06eaaa02f41d12",
+      "preservedOwnAuditEvents": 109
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196279,
+        "sha256": "f11bc1bf38d9502b5788dac0ef02b8558d0fedf0ac0086c9fe9d20e672be47d0"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5356,
+        "sha256": "a6d7933c8f7ebea26843039c83a852a8067e4c7cac0adb764b8f3b5033162234"
+      },
+      "originalIdentitySha256": "67d51b738ff33bde742f545e39daa07caf35cfdb36809fd38d9a2cfaecfe7dc2",
+      "preservedOwnAuditEvents": 112
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196394,
+        "sha256": "2ec21a8f09f606d9871d439d6fb344f1f74a8810892ebc8002e44b3e85482010"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5359,
+        "sha256": "f7cb71baeea4d7d55c7cb05d94c841df4bd9aa8fd51495ffb3508e89fcb4cf92"
+      },
+      "originalIdentitySha256": "d059a7566be5a8c5bfec2edc64156f2bbcad3d36cd74de195239dde837f41697",
+      "preservedOwnAuditEvents": 115
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196499,
+        "sha256": "c58ea3c45019f515781a96ac503a353118d6c9d31c5a54dcb545c04f20df619f"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5362,
+        "sha256": "76f394688522c9b53762a469936086d2d72d9683784774e763e4f2e3e1be2525"
+      },
+      "originalIdentitySha256": "7d9176a8b1ae1a9e4d9a54bd6f4cb038c73f352d66c650c81c6bc26c9b186df8",
+      "preservedOwnAuditEvents": 105
+    },
+    {
+      "case": "O11",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196597,
+        "sha256": "5a37ad8be3a56117aac32bc8ce3eaf857f27d6ab15a41e1a012d529b964c87bd"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5365,
+        "sha256": "45ea31f98f5df4800ff40cef6850c24811707dcf190cde154d4ae442e7f14054"
+      },
+      "originalIdentitySha256": "fafffcd0def52dbb3c2401c4acab560cf0a529d43936f6033f31b0c3bce8c7d3",
+      "preservedOwnAuditEvents": 98
+    },
+    {
+      "case": "O12",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196714,
+        "sha256": "0321cda1a26c8147600738c9721ca13cdb0716d043c60450238f0104afcfc8cb"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5368,
+        "sha256": "23a1faa0e6d1643b1aed175a7782b27c3ef9aa927160ca3ff438f2a634d2b7aa"
+      },
+      "originalIdentitySha256": "e36483ef1a4ec0287f8c86bc510f75be9f9c856e13b833e0feca21dcf00b6234",
+      "preservedOwnAuditEvents": 117
+    },
+    {
+      "case": "O13",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196805,
+        "sha256": "971da1405d3acd9846c0b1ce4c906af28470e8e7d275befe9058bb1fe2048911"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5372,
+        "sha256": "e19ea47cf406bbdac40fe5e2fdcb4ac1855794a50acf09de939b4864045da118"
+      },
+      "originalIdentitySha256": "a214cb35d436cb58fa5b0b62d2d83b175a6074e16a1c6109596711c1b3223370",
+      "preservedOwnAuditEvents": 91
+    },
+    {
+      "case": "O14",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 196916,
+        "sha256": "02b4d34770b9f22c878f9608825105f788f857c7368b2e3841d502baf120c8a3"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5375,
+        "sha256": "a80c2a5ed581e7813cdf232398e19f4c546e9a0b3b575cf3dfb1a22ee596d91a"
+      },
+      "originalIdentitySha256": "0f89d36665c752ec3ac438b042c0470fbc35c4729353af17939a671eb75f8b39",
+      "preservedOwnAuditEvents": 111
+    },
+    {
+      "case": "O15",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 197035,
+        "sha256": "68a3ce22de8688acff6b925d4a4f09b8367a8141a21143739a920e0c03c694d0"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5378,
+        "sha256": "35f92c9feaa4f7d789b66cd18d8fd6b1e48f6818ca7eda05856718e28d519922"
+      },
+      "originalIdentitySha256": "5aa759b7e7c8cb18d8eba7711de9595d1ac96b7ad1f69fca867f13c7e954dfb1",
+      "preservedOwnAuditEvents": 119
+    },
+    {
+      "case": "O16",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 197156,
+        "sha256": "2a01d5defa1023823d674d765e02c836aecd953bb50298941b2660ab8aca59c4"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5381,
+        "sha256": "af180f0aa855c774bc1eb88175232c8bd11cceb18718e1cc6222ca3957eedeab"
+      },
+      "originalIdentitySha256": "0257d7a2fcc6aedb32a2c749a2b42f1ee0a60472cdf43e3155a27a80ecf4fd57",
+      "preservedOwnAuditEvents": 121
+    },
+    {
+      "case": "O17",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 197259,
+        "sha256": "0ee2be7eb0ebfce68b54e61c51909c56f2173df4ddf5870a79a57f10dd3be66f"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5384,
+        "sha256": "6e1c9586aa1d221b636a3c5822452d09af041b2a3bd2b03f36cbe1ce8c8d4d02"
+      },
+      "originalIdentitySha256": "336f74fafa697944243fd07bdaa8da003a26855d45113ee6ac6c371f4126e6c9",
+      "preservedOwnAuditEvents": 103
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-phone",
+      "auditAfter": {
+        "count": 197363,
+        "sha256": "114cc50cea808c5094a0d018a16a558e4a2ea692b1b6b6d1b5bef3b48ff6a066"
+      },
+      "auditedIdentityJsAfter": {
+        "count": 5387,
+        "sha256": "3ebcec8704b6c90bfda0af01120bcba4b9d5f355542bf0097f674b96de9528a2"
+      },
+      "originalIdentitySha256": "2613e471b80bde5f74af3599c00d150135de8b981b394723f43d2c22e7bf4ffd",
+      "preservedOwnAuditEvents": 104
+    }
+  ],
+  "terminalAudit": {
+    "count": 197363,
+    "sha256": "114cc50cea808c5094a0d018a16a558e4a2ea692b1b6b6d1b5bef3b48ff6a066"
+  },
+  "terminalAuditedIdentityJs": {
+    "count": 5387,
+    "sha256": "3ebcec8704b6c90bfda0af01120bcba4b9d5f355542bf0097f674b96de9528a2"
+  },
+  "historicalPrerequisites": {
+    "context": {
+      "reportSha256": "18c51291b70a3c0308ead8e38e6183f0afe3e27ef5c09309eb2e2cc7ae7d8345",
+      "cases": 16,
+      "approvedSourceRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "workerBuildRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+      "runtimeClosureSha256": "43414ed083272c9cb88b1da6d8c7184391d9bff4ec47927ffe79036de96e0754",
+      "toolClosureSha256": "e8a534ccab55f184842eb691bc0db3a76ee2f2e0458dcf14ace20c58db057031"
+    },
+    "contextWrite": {
+      "reportSha256": "229b1f3cba74f1ae13f24358f4ac67544ba591a54efe7512f1adbba452de6292",
+      "cases": 2,
+      "approvedSourceRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "workerBuildRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+      "runtimeClosureSha256": "c9ebf834779e85cdb31ccb8758a3ec5f3a96f40f614d6972882e9ea85017bed1",
+      "toolClosureSha256": "2a1f22f62ebd788143cc174c6b4a174a332e602949524fdf1d7869dd3adbcaca"
+    },
+    "lists": {
+      "reportSha256": "f44892df92a048a68a26592e430709786fcf4cab7ebcdb2c648345505cfb083a",
+      "cases": 36,
+      "approvedSourceRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "workerBuildRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+      "runtimeClosureSha256": "40284277a0093d784c52ba0028a54a7ebef913ba1b7368ddf9ca230613f48616",
+      "toolClosureSha256": "8761dde050e14d87793218c5245a2799559b0178baa43187a7447d7e9ff74fb3"
+    },
+    "gym": {
+      "reportSha256": "9a28ab2553f44805d05b2fc876ec6e6a2530387a9e83295a4d1aeaf2e1d4d52b",
+      "cases": 38,
+      "approvedSourceRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "workerBuildRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+      "runtimeClosureSha256": "c7fb25de51fe3ef6e51e5e96109460021b41bf7f281e9b351d0be8cff8f3122a",
+      "toolClosureSha256": "2396d5f58a20bda59ef8c34aca6e6ac101b9f5cf145502eb96cdec2d48ad7b4e"
+    }
+  },
+  "sourceProofs": [
+    {
+      "project": "planning-year-desktop",
+      "attachment": {
+        "proof": {
+          "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+          "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+          "scope": "local-synthetic-only",
+          "protectedSources": [
+            "web/lib/gym-timplan.ts",
+            "web/lib/gym-timplan.test.mjs",
+            "web/lib/server/gym-timplan.ts",
+            "web/lib/server/gym-timplan.test.mjs",
+            "web/app/api/timplaner/gym",
+            "web/app/protected-gym-timplan-workspace.tsx",
+            "web/app/protected-gym-timplan-hours.tsx",
+            "web/app/protected-gym-timplan.css",
+            "web/app/protected-timplan-workspace.tsx",
+            "web/app/protected-timplan.css",
+            "web/app/protected-home.tsx",
+            "web/app/protected-programplan-workspace.tsx",
+            "web/app/protected-programplan-board.tsx",
+            "web/lib/protected-plan-location.ts",
+            "web/lib/protected-plan-location.test.mjs",
+            "web/lib/server/http.ts",
+            "web/lib/server-client.ts",
+            "web/lib/unsaved-changes.tsx",
+            "web/components/ui/dialog.tsx",
+            "web/lib/mandate-policy.ts",
+            "web/lib/server/audit-details.ts",
+            "web/lib/session-channel.ts",
+            "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+            "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+            "supabase/tests/phase5_program_timplan_transition.test.sql",
+            "work/pilot/phase5-gym-timplan-fixtures.mjs",
+            "web/e2e/phase5-gym-timplan.spec.ts",
+            "web/playwright.phase5-gym-timplan.config.ts",
+            "web/e2e/phase5-timplan.spec.ts",
+            "web/playwright.phase5-timplan.config.ts",
+            "web/lib/planning-year-contract.ts",
+            "web/lib/planning-year-model.ts",
+            "web/lib/server/planning-year.ts",
+            "web/lib/server/planning-year.test.mjs",
+            "web/app/api/planering",
+            "web/lib/server/authz.ts",
+            "web/lib/server/http.ts",
+            "web/lib/server/mandate-route.ts",
+            "web/lib/server/db.ts",
+            "web/lib/server/audit-details.ts",
+            "web/lib/programplan-catalog.ts",
+            "web/lib/programplan-catalog.generated.json",
+            "supabase/migrations/20261006120000_phase5_planning_year_reads.sql",
+            "work/pilot/phase5-planning-year-fixtures.mjs",
+            "work/pilot/verify-planning-year-api.mjs",
+            "work/pilot/verify-planning-year-api.test.mjs"
+          ],
+          "actualWorker": true,
+          "revision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+          "parserSourceHashes": {
+            "web/lib/planning-year-contract.ts": "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+            "web/lib/planning-year-contract.test.mjs": "4c44fd0bf83f5fbfd44812bdb3a340fa2e82c35fab0daac1836acfe11ff4aa95"
+          }
+        },
+        "browserName": "chromium",
+        "actualPrerequisites": {
+          "context": {
+            "reportSha256": "18c51291b70a3c0308ead8e38e6183f0afe3e27ef5c09309eb2e2cc7ae7d8345",
+            "cases": 16,
+            "approvedSourceRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+            "workerBuildRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+            "runtimeClosureSha256": "43414ed083272c9cb88b1da6d8c7184391d9bff4ec47927ffe79036de96e0754",
+            "toolClosureSha256": "e8a534ccab55f184842eb691bc0db3a76ee2f2e0458dcf14ace20c58db057031"
+          },
+          "contextWrite": {
+            "reportSha256": "229b1f3cba74f1ae13f24358f4ac67544ba591a54efe7512f1adbba452de6292",
+            "cases": 2,
+            "approvedSourceRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+            "workerBuildRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+            "runtimeClosureSha256": "c9ebf834779e85cdb31ccb8758a3ec5f3a96f40f614d6972882e9ea85017bed1",
+            "toolClosureSha256": "2a1f22f62ebd788143cc174c6b4a174a332e602949524fdf1d7869dd3adbcaca"
+          },
+          "lists": {
+            "reportSha256": "f44892df92a048a68a26592e430709786fcf4cab7ebcdb2c648345505cfb083a",
+            "cases": 36,
+            "approvedSourceRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+            "workerBuildRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+            "runtimeClosureSha256": "40284277a0093d784c52ba0028a54a7ebef913ba1b7368ddf9ca230613f48616",
+            "toolClosureSha256": "8761dde050e14d87793218c5245a2799559b0178baa43187a7447d7e9ff74fb3"
+          },
+          "gym": {
+            "reportSha256": "9a28ab2553f44805d05b2fc876ec6e6a2530387a9e83295a4d1aeaf2e1d4d52b",
+            "cases": 38,
+            "approvedSourceRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+            "workerBuildRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+            "runtimeClosureSha256": "c7fb25de51fe3ef6e51e5e96109460021b41bf7f281e9b351d0be8cff8f3122a",
+            "toolClosureSha256": "2396d5f58a20bda59ef8c34aca6e6ac101b9f5cf145502eb96cdec2d48ad7b4e"
+          }
+        },
+        "sourceHashes": {
+          "web/app/protected-home.tsx": "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6",
+          "web/app/protected-timplan-workspace.tsx": "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7",
+          "web/app/protected-timplan.css": "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db",
+          "web/app/planning-context.tsx": "a0106cf27295c35ec4ad17af0f934e92e0e02181845b03351b796f9cf2fec1f5",
+          "web/app/planning-context.css": "c0bfa0a65cef4d5cca7decaf5e6289162615b2f309aa8f41599d5bc7b5113659",
+          "web/lib/protected-plan-location.ts": "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e",
+          "web/lib/protected-timplan.ts": "895ff46deaba7dcc66fcc41fb3d16cf657aca7b773a5c5e816ad4148a1a5d8cf",
+          "web/lib/planning-year-contract.ts": "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+          "web/lib/planning-year-model.ts": "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+          "web/app/protected-plan-list.tsx": "229a5d0337598e8084583fb55b9f94890c831c2f76a258606eb1fe1d0bed0f65",
+          "web/app/protected-plan-list.css": "55f12de62aa1658accf4aef430d6f1b555cb635e7b0c0384d5195ab023a2a62a",
+          "web/app/protected-planning-overview.tsx": "0551e1446a9e2e096fcb665d8eab940861b3c631782ab0ed57c7152127d998f6",
+          "work/pilot/phase5-planning-year-other-fixtures.mjs": "70df344c436c841e0ec8385f7235c35ae0c77b889e8fccd7d6da08ea3f3874e4",
+          "web/e2e/phase5-planning-year-other.spec.ts": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+          "work/pilot/phase5-planning-year-gym-fixtures.mjs": "271215ad0d1c4b940132beb99b99d9852c1ca9aeae3fa93907554af0169f9706",
+          "web/e2e/phase5-planning-year-gym.spec.ts": "4bcec56142f4a980dfa40759d361290c244f75737834835180abf672a3a4b402",
+          "work/pilot/phase5-planning-year-list-fixtures.mjs": "cd4823f593c6ecc2347d63a35d9f858e3d9f57f451472cb326316b2441efd76f",
+          "web/e2e/phase5-planning-year-lists.spec.ts": "620e40be153ed41bc83f9544c033c4a6946a0fe7e79b73d33375f1aecfe0b5bc",
+          "web/e2e/phase5-planning-year-context.spec.ts": "73c2480ad26640193dc3d1eb1e59e68a898c84d6c92edca23c5491afe2d987e1",
+          "web/playwright.phase5-planning-year.config.ts": "3af7aeb13ae2e3fb0372b6ab0ad42364022ba5c91dca26ab38e6e92e6f7b6d52"
+        }
+      }
+    },
+    {
+      "project": "planning-year-phone",
+      "attachment": {
+        "proof": {
+          "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+          "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+          "scope": "local-synthetic-only",
+          "protectedSources": [
+            "web/lib/gym-timplan.ts",
+            "web/lib/gym-timplan.test.mjs",
+            "web/lib/server/gym-timplan.ts",
+            "web/lib/server/gym-timplan.test.mjs",
+            "web/app/api/timplaner/gym",
+            "web/app/protected-gym-timplan-workspace.tsx",
+            "web/app/protected-gym-timplan-hours.tsx",
+            "web/app/protected-gym-timplan.css",
+            "web/app/protected-timplan-workspace.tsx",
+            "web/app/protected-timplan.css",
+            "web/app/protected-home.tsx",
+            "web/app/protected-programplan-workspace.tsx",
+            "web/app/protected-programplan-board.tsx",
+            "web/lib/protected-plan-location.ts",
+            "web/lib/protected-plan-location.test.mjs",
+            "web/lib/server/http.ts",
+            "web/lib/server-client.ts",
+            "web/lib/unsaved-changes.tsx",
+            "web/components/ui/dialog.tsx",
+            "web/lib/mandate-policy.ts",
+            "web/lib/server/audit-details.ts",
+            "web/lib/session-channel.ts",
+            "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+            "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+            "supabase/tests/phase5_program_timplan_transition.test.sql",
+            "work/pilot/phase5-gym-timplan-fixtures.mjs",
+            "web/e2e/phase5-gym-timplan.spec.ts",
+            "web/playwright.phase5-gym-timplan.config.ts",
+            "web/e2e/phase5-timplan.spec.ts",
+            "web/playwright.phase5-timplan.config.ts",
+            "web/lib/planning-year-contract.ts",
+            "web/lib/planning-year-model.ts",
+            "web/lib/server/planning-year.ts",
+            "web/lib/server/planning-year.test.mjs",
+            "web/app/api/planering",
+            "web/lib/server/authz.ts",
+            "web/lib/server/http.ts",
+            "web/lib/server/mandate-route.ts",
+            "web/lib/server/db.ts",
+            "web/lib/server/audit-details.ts",
+            "web/lib/programplan-catalog.ts",
+            "web/lib/programplan-catalog.generated.json",
+            "supabase/migrations/20261006120000_phase5_planning_year_reads.sql",
+            "work/pilot/phase5-planning-year-fixtures.mjs",
+            "work/pilot/verify-planning-year-api.mjs",
+            "work/pilot/verify-planning-year-api.test.mjs"
+          ],
+          "actualWorker": true,
+          "revision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+          "parserSourceHashes": {
+            "web/lib/planning-year-contract.ts": "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+            "web/lib/planning-year-contract.test.mjs": "4c44fd0bf83f5fbfd44812bdb3a340fa2e82c35fab0daac1836acfe11ff4aa95"
+          }
+        },
+        "browserName": "webkit",
+        "actualPrerequisites": {
+          "context": {
+            "reportSha256": "18c51291b70a3c0308ead8e38e6183f0afe3e27ef5c09309eb2e2cc7ae7d8345",
+            "cases": 16,
+            "approvedSourceRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+            "workerBuildRevision": "07737baee91a32307e07a703be9b6befae91c20a",
+            "runtimeClosureSha256": "43414ed083272c9cb88b1da6d8c7184391d9bff4ec47927ffe79036de96e0754",
+            "toolClosureSha256": "e8a534ccab55f184842eb691bc0db3a76ee2f2e0458dcf14ace20c58db057031"
+          },
+          "contextWrite": {
+            "reportSha256": "229b1f3cba74f1ae13f24358f4ac67544ba591a54efe7512f1adbba452de6292",
+            "cases": 2,
+            "approvedSourceRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+            "workerBuildRevision": "6e51629e00fc41a29e27324e696aea529d961b62",
+            "runtimeClosureSha256": "c9ebf834779e85cdb31ccb8758a3ec5f3a96f40f614d6972882e9ea85017bed1",
+            "toolClosureSha256": "2a1f22f62ebd788143cc174c6b4a174a332e602949524fdf1d7869dd3adbcaca"
+          },
+          "lists": {
+            "reportSha256": "f44892df92a048a68a26592e430709786fcf4cab7ebcdb2c648345505cfb083a",
+            "cases": 36,
+            "approvedSourceRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+            "workerBuildRevision": "1f3e6b2ebaa39ba84a8596b354e1d1a977860b41",
+            "runtimeClosureSha256": "40284277a0093d784c52ba0028a54a7ebef913ba1b7368ddf9ca230613f48616",
+            "toolClosureSha256": "8761dde050e14d87793218c5245a2799559b0178baa43187a7447d7e9ff74fb3"
+          },
+          "gym": {
+            "reportSha256": "9a28ab2553f44805d05b2fc876ec6e6a2530387a9e83295a4d1aeaf2e1d4d52b",
+            "cases": 38,
+            "approvedSourceRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+            "workerBuildRevision": "f355717834a9ac1c27301f703613d49721a7b944",
+            "runtimeClosureSha256": "c7fb25de51fe3ef6e51e5e96109460021b41bf7f281e9b351d0be8cff8f3122a",
+            "toolClosureSha256": "2396d5f58a20bda59ef8c34aca6e6ac101b9f5cf145502eb96cdec2d48ad7b4e"
+          }
+        },
+        "sourceHashes": {
+          "web/app/protected-home.tsx": "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6",
+          "web/app/protected-timplan-workspace.tsx": "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7",
+          "web/app/protected-timplan.css": "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db",
+          "web/app/planning-context.tsx": "a0106cf27295c35ec4ad17af0f934e92e0e02181845b03351b796f9cf2fec1f5",
+          "web/app/planning-context.css": "c0bfa0a65cef4d5cca7decaf5e6289162615b2f309aa8f41599d5bc7b5113659",
+          "web/lib/protected-plan-location.ts": "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e",
+          "web/lib/protected-timplan.ts": "895ff46deaba7dcc66fcc41fb3d16cf657aca7b773a5c5e816ad4148a1a5d8cf",
+          "web/lib/planning-year-contract.ts": "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+          "web/lib/planning-year-model.ts": "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+          "web/app/protected-plan-list.tsx": "229a5d0337598e8084583fb55b9f94890c831c2f76a258606eb1fe1d0bed0f65",
+          "web/app/protected-plan-list.css": "55f12de62aa1658accf4aef430d6f1b555cb635e7b0c0384d5195ab023a2a62a",
+          "web/app/protected-planning-overview.tsx": "0551e1446a9e2e096fcb665d8eab940861b3c631782ab0ed57c7152127d998f6",
+          "work/pilot/phase5-planning-year-other-fixtures.mjs": "70df344c436c841e0ec8385f7235c35ae0c77b889e8fccd7d6da08ea3f3874e4",
+          "web/e2e/phase5-planning-year-other.spec.ts": "93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639",
+          "work/pilot/phase5-planning-year-gym-fixtures.mjs": "271215ad0d1c4b940132beb99b99d9852c1ca9aeae3fa93907554af0169f9706",
+          "web/e2e/phase5-planning-year-gym.spec.ts": "4bcec56142f4a980dfa40759d361290c244f75737834835180abf672a3a4b402",
+          "work/pilot/phase5-planning-year-list-fixtures.mjs": "cd4823f593c6ecc2347d63a35d9f858e3d9f57f451472cb326316b2441efd76f",
+          "web/e2e/phase5-planning-year-lists.spec.ts": "620e40be153ed41bc83f9544c033c4a6946a0fe7e79b73d33375f1aecfe0b5bc",
+          "web/e2e/phase5-planning-year-context.spec.ts": "73c2480ad26640193dc3d1eb1e59e68a898c84d6c92edca23c5491afe2d987e1",
+          "web/playwright.phase5-planning-year.config.ts": "3af7aeb13ae2e3fb0372b6ab0ad42364022ba5c91dca26ab38e6e92e6f7b6d52"
+        }
+      }
+    }
+  ],
+  "protectedTuples": [
+    [
+      "supabase/migrations/20261005110000_phase5_gym_timplan_transition.sql",
+      "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e",
+      "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e"
+    ],
+    [
+      "supabase/migrations/20261005111000_phase5_worker_gym_timplan_transition.sql",
+      "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a",
+      "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a"
+    ],
+    [
+      "supabase/migrations/20261006120000_phase5_planning_year_reads.sql",
+      "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71",
+      "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71"
+    ],
+    [
+      "supabase/tests/phase5_program_timplan_transition.test.sql",
+      "dd7d750c99103631ca3de4ba62d937de66b040b58cc73c5ba846cbd03b9ffe82",
+      "dd7d750c99103631ca3de4ba62d937de66b040b58cc73c5ba846cbd03b9ffe82"
+    ],
+    [
+      "web/app/api/planering/lista/route.ts",
+      "3964695006d1c262fadd34e91229c6e30f40840569a2303fe2c6446124928950",
+      "3964695006d1c262fadd34e91229c6e30f40840569a2303fe2c6446124928950"
+    ],
+    [
+      "web/app/api/planering/oversikt/route.ts",
+      "a83f8f6c845e1efe259bfc6f256d768dffd97b01e48c58731d79044f379fc64d",
+      "a83f8f6c845e1efe259bfc6f256d768dffd97b01e48c58731d79044f379fc64d"
+    ],
+    [
+      "web/app/api/planering/urval/route.ts",
+      "eedc533d872d4584b1493d81d62c660b165e6ad06b506f868b05bcbfa262f051",
+      "eedc533d872d4584b1493d81d62c660b165e6ad06b506f868b05bcbfa262f051"
+    ],
+    [
+      "web/app/api/timplaner/gym/lasa/route.ts",
+      "9507269a21e5560d32890707bc33f1690302c63fb5f0ff2bc50925aebd4b9dad",
+      "9507269a21e5560d32890707bc33f1690302c63fb5f0ff2bc50925aebd4b9dad"
+    ],
+    [
+      "web/app/api/timplaner/gym/rad/route.ts",
+      "3f58766e98acf88ab649513542c6e2781ceff154a1a6d457fa889d02382d9721",
+      "3f58766e98acf88ab649513542c6e2781ceff154a1a6d457fa889d02382d9721"
+    ],
+    [
+      "web/app/api/timplaner/gym/skapa/route.ts",
+      "01768ff2a37556dbe4622a1d73cad561eb7748b3e4187715fb91d6f4618836f0",
+      "01768ff2a37556dbe4622a1d73cad561eb7748b3e4187715fb91d6f4618836f0"
+    ],
+    [
+      "web/app/api/timplaner/gym/underlag/route.ts",
+      "fdf608623ec7a8f921f402ec66e3f71cb46e94d67023b4d9b4de42d9e825ba52",
+      "fdf608623ec7a8f921f402ec66e3f71cb46e94d67023b4d9b4de42d9e825ba52"
+    ],
+    [
+      "web/app/protected-gym-timplan-hours.tsx",
+      "202c89c57338945d81b3098e238fba0d7f38a97f4e4de6afd41c6cfcca6b7ecc",
+      "202c89c57338945d81b3098e238fba0d7f38a97f4e4de6afd41c6cfcca6b7ecc"
+    ],
+    [
+      "web/app/protected-gym-timplan-workspace.tsx",
+      "a8e0189bcbc5328168c976d133424c91d1f8c70dc05b2e62576a43c51559c61f",
+      "a8e0189bcbc5328168c976d133424c91d1f8c70dc05b2e62576a43c51559c61f"
+    ],
+    [
+      "web/app/protected-gym-timplan.css",
+      "927d4304fe4585bf2d64b7b78121f6f809475a93988132e6b8206015b9185408",
+      "927d4304fe4585bf2d64b7b78121f6f809475a93988132e6b8206015b9185408"
+    ],
+    [
+      "web/app/protected-home.tsx",
+      "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6",
+      "9e3e04f82bb3e7dba22477bac80f3676f091be340eb6544faf8b3b0f73efe7a6"
+    ],
+    [
+      "web/app/protected-programplan-board.tsx",
+      "6bdfe8c6b99e71a9e46e0f995c43ca6e2fa7a8d8380c2ff7447734511838a3f5",
+      "6bdfe8c6b99e71a9e46e0f995c43ca6e2fa7a8d8380c2ff7447734511838a3f5"
+    ],
+    [
+      "web/app/protected-programplan-workspace.tsx",
+      "a529f151f171a45fbb2a486d70865c3ed989f229744ada854414c17823dee457",
+      "a529f151f171a45fbb2a486d70865c3ed989f229744ada854414c17823dee457"
+    ],
+    [
+      "web/app/protected-timplan-workspace.tsx",
+      "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7",
+      "5c7b7089c9c0befd9ad06a230855da5bff8472a5c419290252c215e8a967d7c7"
+    ],
+    [
+      "web/app/protected-timplan.css",
+      "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db",
+      "a7162d02e791d0ed5bbba48e05cdd07b1b4a51d5eda47bcb2a39551a137a64db"
+    ],
+    [
+      "web/components/ui/dialog.tsx",
+      "8bc85def62538b4e62e8530c6b0ba167a192c38519c05f104bf6e10de73b811f",
+      "8bc85def62538b4e62e8530c6b0ba167a192c38519c05f104bf6e10de73b811f"
+    ],
+    [
+      "web/e2e/phase5-gym-timplan.spec.ts",
+      "6042600b6b3803e0a60d9c4b3b893cebd60d514459d25807a2d91a7a2855d25f",
+      "6042600b6b3803e0a60d9c4b3b893cebd60d514459d25807a2d91a7a2855d25f"
+    ],
+    [
+      "web/e2e/phase5-timplan.spec.ts",
+      "64effd985d0acea2a2ff458814dcbc645ead3a803a26897b18ffc427444ba4ae",
+      "64effd985d0acea2a2ff458814dcbc645ead3a803a26897b18ffc427444ba4ae"
+    ],
+    [
+      "web/lib/gym-timplan.test.mjs",
+      "8216f4c9224795cf212ffbcef08511801ef3a83e30366af1e1b12355b63b7e89",
+      "8216f4c9224795cf212ffbcef08511801ef3a83e30366af1e1b12355b63b7e89"
+    ],
+    [
+      "web/lib/gym-timplan.ts",
+      "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6",
+      "5724d7c225e654476a7955d52e144d88909b126dcc66587df3c0b977edff70b6"
+    ],
+    [
+      "web/lib/mandate-policy.ts",
+      "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43",
+      "ff2d5d526de0bfe6e18671235a7044daf95bdeed22eabebbb4ea56b527ba8b43"
+    ],
+    [
+      "web/lib/planning-year-contract.ts",
+      "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e",
+      "ecb70c3addd4b53561b76511f16d8954ad65725fa2186d473b8e8e8004616d6e"
+    ],
+    [
+      "web/lib/planning-year-model.ts",
+      "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9",
+      "4888187e9b296737646515296dffd8fed8e78afdcf0355714a8bbbe7dfc263f9"
+    ],
+    [
+      "web/lib/programplan-catalog.generated.json",
+      "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124",
+      "7ff67117381fe3fd03cc62c66e4d4f32d9671ea8415d29eae38cc61a0a4a6124"
+    ],
+    [
+      "web/lib/programplan-catalog.ts",
+      "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c",
+      "91bbc8024f539a25cb61f498047c052d66a81d37419572f857608a1612cb945c"
+    ],
+    [
+      "web/lib/protected-plan-location.test.mjs",
+      "79378c3573c2e8f8c4f3c70f13d3c1c8fcd2cc9fbbad24c2025324e0e1b82c83",
+      "79378c3573c2e8f8c4f3c70f13d3c1c8fcd2cc9fbbad24c2025324e0e1b82c83"
+    ],
+    [
+      "web/lib/protected-plan-location.ts",
+      "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e",
+      "765b88462e36a3c320e56cd079d8ac13772bdb2cd2eae508010d62dd8b131e8e"
+    ],
+    [
+      "web/lib/server-client.ts",
+      "11a2047a04ebe88f73852a9188f46363a5f39badb5338426a71ab39d574ca69b",
+      "11a2047a04ebe88f73852a9188f46363a5f39badb5338426a71ab39d574ca69b"
+    ],
+    [
+      "web/lib/server/audit-details.ts",
+      "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08",
+      "3e5ad587eb3ca9e799b81fcea7447aab2a4c460f6c3910eca46d8f301868dc08"
+    ],
+    [
+      "web/lib/server/authz.ts",
+      "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5",
+      "25ac2d3643713a694f4dce8fb5207f8a04388cd01a1fbd3d1864558a2ec244d5"
+    ],
+    [
+      "web/lib/server/db.ts",
+      "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f",
+      "c88cb45976622d1edf1f21008896f2c084d0d54f864085e19b4393dcb0f0278f"
+    ],
+    [
+      "web/lib/server/gym-timplan.test.mjs",
+      "55f04e30ae6a477145db9f8901fc83a8a986479df2b17b53ff0cbf578076589e",
+      "55f04e30ae6a477145db9f8901fc83a8a986479df2b17b53ff0cbf578076589e"
+    ],
+    [
+      "web/lib/server/gym-timplan.ts",
+      "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446",
+      "ab545d15550c8c179110383eaa50cb9a99579a83574c8be77f53068e3f8ef446"
+    ],
+    [
+      "web/lib/server/http.ts",
+      "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2",
+      "ba5feccc284dc78f52de1b5b25aab6ffe3b79507cd02b84b50c5bf29228ef7a2"
+    ],
+    [
+      "web/lib/server/mandate-route.ts",
+      "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe",
+      "21f62af88cac5f8041331b5b06e3dc906310a7c44abdadf9abc7b1dba73a5dfe"
+    ],
+    [
+      "web/lib/server/planning-year.test.mjs",
+      "85f356dbdf07e21641b0afa6a86fdbb74d32e5e2d2834fb75b0271a0db0beb70",
+      "85f356dbdf07e21641b0afa6a86fdbb74d32e5e2d2834fb75b0271a0db0beb70"
+    ],
+    [
+      "web/lib/server/planning-year.ts",
+      "9f0b2038aba352966f7f6194ea85ff7ee7d5c2cc4c3054e9f438d637e45f304e",
+      "9f0b2038aba352966f7f6194ea85ff7ee7d5c2cc4c3054e9f438d637e45f304e"
+    ],
+    [
+      "web/lib/session-channel.ts",
+      "2cdbb631d7fa2cc565fa1e0fcbd8c18a49c11cb8d390bd4ea083ae064a34f085",
+      "2cdbb631d7fa2cc565fa1e0fcbd8c18a49c11cb8d390bd4ea083ae064a34f085"
+    ],
+    [
+      "web/lib/unsaved-changes.tsx",
+      "584189e8bb01612a6a00aaf819e5a4c2983ef7deb08d71e555a97b63a577be6e",
+      "584189e8bb01612a6a00aaf819e5a4c2983ef7deb08d71e555a97b63a577be6e"
+    ],
+    [
+      "web/playwright.phase5-gym-timplan.config.ts",
+      "db119232fb9e404b4da3c73a518be8a8b826d77954fe91c0b4dd6a00ae867815",
+      "db119232fb9e404b4da3c73a518be8a8b826d77954fe91c0b4dd6a00ae867815"
+    ],
+    [
+      "web/playwright.phase5-timplan.config.ts",
+      "1661aaae852b589c2b79bb453d48f34be3e8f55344957bdd531419d18dd55fea",
+      "1661aaae852b589c2b79bb453d48f34be3e8f55344957bdd531419d18dd55fea"
+    ],
+    [
+      "work/pilot/phase5-gym-timplan-fixtures.mjs",
+      "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c",
+      "163a42fb1427e007e00a25a7ca567e83416f448848d9491bf14cf14bcb27ef5c"
+    ],
+    [
+      "work/pilot/phase5-planning-year-fixtures.mjs",
+      "c868e836a312d7a90068b639d9cd112215468546c3036ef0f4b8228cfb5608d7",
+      "c868e836a312d7a90068b639d9cd112215468546c3036ef0f4b8228cfb5608d7"
+    ],
+    [
+      "work/pilot/verify-planning-year-api.mjs",
+      "d38cdbcab647cf751da8f0ea8c74570c4abdad8cd61a9b1d522bb33775633e5b",
+      "d38cdbcab647cf751da8f0ea8c74570c4abdad8cd61a9b1d522bb33775633e5b"
+    ],
+    [
+      "work/pilot/verify-planning-year-api.test.mjs",
+      "7503204f6371056235b527c4c2bac9bf95ccc4a6f6489e4b50e1ed7d25ce9dab",
+      "7503204f6371056235b527c4c2bac9bf95ccc4a6f6489e4b50e1ed7d25ce9dab"
+    ]
+  ],
+  "protectedHistoricalGitClosureProvenance": {
+    "reviewSha256": "8db4759a7c84afb8d3dd4d853a54e23735b21f887e84f390514d0998166677a2",
+    "sameSourceAndBuild": true,
+    "current49FsRechecked": true,
+    "newGitCalls": false
+  },
+  "preDuringMetadataReviewSha256": "63ab4859bb9100e360ad66fc825e870f0c5f56c2227093417add2a0f0ca2e377",
+  "expectedPendingSha256": "112b4762db0a0c94a0024b8bc83c234a660368e40c0cbea6f1e4afb1f84f8c92",
+  "searchBaselineRawSha256": "cc19183d5d996bb017a5590099025d04b0d5cfdc6a11901feb57d7410cd708c8",
+  "images": [
+    {
+      "case": "O01",
+      "project": "planning-year-desktop",
+      "name": "gr-bound-v1-unknown.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-desktop/attachments/gr-bound-v1-unknown-png-196fa7c97ea6e63d3e1acab1cef9cbc36f1d101d.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-desktop",
+      "name": "historical-position-reorder.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-desktop/attachments/historical-position-reorder-png-11368059f01f19798bd49e33eeb45203c05a5d63.png",
+      "sha256": "a834fb277e2e3691fc9f78d2ba215f215ea57954e58242800adec0a561c33b2c"
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-desktop",
+      "name": "current-explicit-index1.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-desktop/attachments/current-explicit-index1-png-0896042aa23b62d7c23b1321f20a98c1dcae90cc.png",
+      "sha256": "332db3ab69f646b4d537d9930609578d25cbcd28c74e24113ff1eed9c73c3357"
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-desktop",
+      "name": "gr-page2-server-search.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-desktop/attachments/gr-page2-server-search-png-6179ed6c8c4d6cd1b1861c385c92253e1ab74f55.png",
+      "sha256": "ab3d7ee15cb63d0faf13d139b56548d7074ef086c70e51ee4875406aec362425"
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-desktop",
+      "name": "im-weekly-empty.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-desktop/attachments/im-weekly-empty-png-7defec1f99bd4442f210276890a3267b30884a60.png",
+      "sha256": "2df78a21d88aa242e532a30b70f5d5c94f61067d1ca6944b0ffceb84b495fa0d"
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-desktop",
+      "name": "im-fourteen-weekly.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-desktop/attachments/im-fourteen-weekly-png-df0a08c513fcd0ffcbbb7dbd95c70c681e27e3be.png",
+      "sha256": "628e6a04e717e975da69ce70f34ea4c4a12e74dc2ac772fd984c9762d7348448"
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-desktop",
+      "name": "gr-overview-unknown.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-desktop/attachments/gr-overview-unknown-png-53ec76accf2015c097185954eec89bc2fb9b13d0.png",
+      "sha256": "3fdfed20e584d03618be326ef4cecfe18b34aeb6b1562b941bd87d72655e8543"
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-desktop",
+      "name": "im-overview-weekly.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-desktop/attachments/im-overview-weekly-png-63e19b5ffa54676e938656fdbf39375deadb19ff.png",
+      "sha256": "d3e2cecd6cc59bbcc9bf3355e63bb5a1bfe8fbdff31d578693a734ca5ef59f16"
+    },
+    {
+      "case": "O01",
+      "project": "planning-year-phone",
+      "name": "gr-bound-v1-unknown.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-09d37-astställd-v1-trots-nyare-v2-planning-year-phone/attachments/gr-bound-v1-unknown-png-0eecf0c0b22cc79ca20fdc59494f09d0f165126b.png",
+      "sha256": "537aa48a43f1d79cd8eee590c7891dc1be35b29450f119446806b2673f005476"
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-phone",
+      "name": "historical-position-reorder.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-2fe25--positioner-och-okänd-karta-planning-year-phone/attachments/historical-position-reorder-png-1b699a55cdf2929572b0a6ce6e5ef621318fb578.png",
+      "sha256": "537aa48a43f1d79cd8eee590c7891dc1be35b29450f119446806b2673f005476"
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-phone",
+      "name": "current-explicit-index1.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-6f0b7--kolumner-och-fryst-v1-kvar-planning-year-phone/attachments/current-explicit-index1-png-54a6941a2ced7d5658eb5a2755e31fd23a338e17.png",
+      "sha256": "366a309ed1fc9cc7d481d4ea87154fef17408c18bc4820f6b04eff312a9ac384"
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-phone",
+      "name": "gr-page2-server-search.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-4e99b-örsta-sidan-söks-på-servern-planning-year-phone/attachments/gr-page2-server-search-png-174a072c850b57e0ca1440ae133c49591d2314c9.png",
+      "sha256": "e7f6eb65e4b54a721de796931e2cd47004a9b4ab2bbd45e45e21580636fed236"
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-phone",
+      "name": "im-weekly-empty.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-b0638-ultat-har-fortsatt-veckotid-planning-year-phone/attachments/im-weekly-empty-png-819344daa0d9641bb2bd3f225884c21b4e6920e8.png",
+      "sha256": "97510480581aa2c5ed5974c6b0d518a4169117c5bca77dc2f61d4479c9a3d711"
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-phone",
+      "name": "im-fourteen-weekly.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-8378e-vecka-utan-årsprogressering-planning-year-phone/attachments/im-fourteen-weekly-png-3756734740261ec29dfc6c13f5d2f9b271756fd8.png",
+      "sha256": "ee982bf0bbeb89330515ff33754dd128a43fd5ebbe14265471cfe0bf365d0848"
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-phone",
+      "name": "gr-overview-unknown.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-phone/attachments/gr-overview-unknown-png-e0542b13d06cf10eae1361640ebd0a80882ff26d.png",
+      "sha256": "b39c9cb6fb3732914b00947660baab3f9b3f68b3fa607109b884e145de9b8b00"
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-phone",
+      "name": "im-overview-weekly.png",
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/web/test-results/phase5-42-other-actual-seventh-20261008/phase5-planning-year-other-ddc10-åller-GRokänd-IMweekly-isär-planning-year-phone/attachments/im-overview-weekly-png-71d2e237ec4e1afa9e0dfaa53281a56b1141b457.png",
+      "sha256": "64806f66dc688314be262fed13aacc313a4ccf73f11d33f893d19fa6a745f0ec"
+    }
+  ],
+  "geometry": [
+    {
+      "case": "O01",
+      "project": "planning-year-desktop",
+      "name": "gr-bound-v1-unknown-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          },
+          {
+            "w": 965.03125,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-desktop",
+      "name": "historical-position-reorder-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          },
+          {
+            "w": 965.03125,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-desktop",
+      "name": "current-explicit-index1-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          },
+          {
+            "w": 1006.015625,
+            "h": 44
+          },
+          {
+            "w": 162.046875,
+            "h": 44
+          },
+          {
+            "w": 162.046875,
+            "h": 44
+          },
+          {
+            "w": 162.0625,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-desktop",
+      "name": "gr-page2-server-search-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 976.140625,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 66.8125,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-desktop",
+      "name": "im-weekly-empty-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-desktop",
+      "name": "im-fourteen-weekly-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 135.546875,
+            "h": 44
+          },
+          {
+            "w": 91.375,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 296,
+            "right": 1392,
+            "scroll": 1094,
+            "width": 1094
+          }
+        ]
+      }
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-desktop",
+      "name": "gr-overview-unknown-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 976.140625,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.625,
+            "h": 44
+          },
+          {
+            "w": 212.078125,
+            "h": 44
+          },
+          {
+            "w": 176.421875,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-desktop",
+      "name": "im-overview-weekly-geometry.json",
+      "geometry": {
+        "document": 1440,
+        "client": 1440,
+        "viewport": 1440,
+        "controls": [
+          {
+            "w": 416,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 157.78125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.609375
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 174.65625,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 174.671875,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.625,
+            "h": 44
+          },
+          {
+            "w": 212.078125,
+            "h": 44
+          },
+          {
+            "w": 176.421875,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "case": "O01",
+      "project": "planning-year-phone",
+      "name": "gr-bound-v1-unknown-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 501,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "case": "O04",
+      "project": "planning-year-phone",
+      "name": "historical-position-reorder-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 501,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "case": "O05",
+      "project": "planning-year-phone",
+      "name": "current-explicit-index1-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 70,
+            "h": 44
+          },
+          {
+            "w": 70,
+            "h": 44
+          },
+          {
+            "w": 70,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 402,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "case": "O08",
+      "project": "planning-year-phone",
+      "name": "gr-page2-server-search-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 66.8125,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 1066,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "case": "O09",
+      "project": "planning-year-phone",
+      "name": "im-weekly-empty-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 145.15625,
+            "h": 44
+          },
+          {
+            "w": 101.671875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "case": "O10",
+      "project": "planning-year-phone",
+      "name": "im-fourteen-weekly-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          },
+          {
+            "w": 172.203125,
+            "h": 44
+          }
+        ],
+        "tables": [
+          {
+            "left": 18,
+            "right": 372,
+            "scroll": 352,
+            "width": 352
+          }
+        ]
+      }
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-phone",
+      "name": "gr-overview-unknown-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.609375,
+            "h": 44
+          },
+          {
+            "w": 212.0625,
+            "h": 44
+          },
+          {
+            "w": 176.40625,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    },
+    {
+      "case": "O18",
+      "project": "planning-year-phone",
+      "name": "im-overview-weekly-geometry.json",
+      "geometry": {
+        "document": 390,
+        "client": 390,
+        "viewport": 390,
+        "controls": [
+          {
+            "w": 328,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 228.8125,
+            "h": 44
+          },
+          {
+            "w": 44,
+            "h": 51.578125
+          },
+          {
+            "w": 129.3125,
+            "h": 44
+          },
+          {
+            "w": 184.203125,
+            "h": 44
+          },
+          {
+            "w": 199.5,
+            "h": 44
+          },
+          {
+            "w": 308.9375,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 354,
+            "h": 44
+          },
+          {
+            "w": 107.859375,
+            "h": 44
+          },
+          {
+            "w": 139.609375,
+            "h": 44
+          },
+          {
+            "w": 212.0625,
+            "h": 44
+          },
+          {
+            "w": 176.40625,
+            "h": 44
+          },
+          {
+            "w": 203.96875,
+            "h": 44
+          }
+        ],
+        "tables": []
+      }
+    }
+  ],
+  "goalScore": {
+    "verified": 3,
+    "total": 3,
+    "scope": "actual local synthetic desktop+phone; not full PLANERING/release/human acceptance"
+  },
+  "truths": [
+    {
+      "truth": "GR årsrad öppnar verklig fryst planversion/kolumn och klassbindning utan latest",
+      "cases": [
+        "O01",
+        "O02",
+        "O04",
+        "O06",
+        "O18"
+      ],
+      "actualStatus": "PASS"
+    },
+    {
+      "truth": "Luckor och IM veckotid förblir explicita utan falsk årsprogression",
+      "cases": [
+        "O03",
+        "O07",
+        "O10",
+        "O11",
+        "O18"
+      ],
+      "actualStatus": "PASS"
+    },
+    {
+      "truth": "Gemensam planeringskontext bevarar sök/scope/behörighet och okända skrivutfall",
+      "cases": [
+        "O05",
+        "O08",
+        "O09",
+        "O12",
+        "O13",
+        "O14",
+        "O15",
+        "O16",
+        "O17"
+      ],
+      "actualStatus": "PASS"
+    }
+  ],
+  "visualLimits": [
+    "Telefon O01/O05/O08/O10 har synligt fokushopplänksöverlägg; inget felfri-UI-påstående.",
+    "O05 har svag dialogtext i capture; bildbegränsning utan belagd orsak.",
+    "O10:s fullmatris är nu sju tvåtimmarsrader i de faktiska slutbilderna enligt ROOTs pixelreview; granskaren skiljer ROOT-pixelobservation från egna fil-/geometrikontroller."
+  ],
+  "history": "Första och senare O-FAIL samt V1/V2-preflightFAIL och exakt ägda recoverybevis bevaras; inget ommärks till PASS.",
+  "noActualOperationsByReviewer": true,
+  "independentPixelViews": [],
+  "blockers": [],
+  "rootPixelReview": {
+    "path": "/Users/petter.gjores/dev/skolplattform/work/pilot/results/phase5-42-seventh-root-pixel-file-review-20261008.json",
+    "sha256": "6078ddc27d830c4da1aab69f398b76fac78bfcef814a67fb6d3f57843dc66527",
+    "status": "PASS_WITH_CAPTURE_LIMITATIONS",
+    "pixelJudgmentBy": "ROOT",
+    "uniquePixelsViewedByRoot": 14,
+    "allRawImageAndGeometryTuplesIndependentlyMatched": true,
+    "limitations": [
+      "Telefon O01/O05/O08/O10 visar fokushopplänk över sidtext. O05 visar också svag dialogtext efter sparningen. Orsaken är inte fastställd; bilderna bevisar inte en felfri eller stabil slutbild.",
+      "Modalens överordnade kontextprov använder native selectOption och bevisar inte pekaråtkomst bakom en öppen dialog.",
+      "Grundskolans Visa årskurs är fortfarande en dropdown. Gymnasiets årskursknappar verifierades i föregående plan.",
+      "Proven använder en isolerad lokal miljö och syntetiska uppgifter. Formell färdigmarkering och huvudmannens godkännande är fortfarande en öppen lucka."
+    ]
+  },
+  "sourceMeaningRead": [
+    "readVerified: fullmatrix identity/unit/version +neutral complete annual overview; GR application year/column/revision exact",
+    "explicit current draft path does not manufacture annual binding; reload revalidates annual path",
+    "navigation-block/generation/securityFailure and acceptedwrite+freshfullread before clearance",
+    "O01-O18 and actualRouteFetch/completeActual: genuine transport/fullparser/audit before delay or negative browser substitution"
+  ],
+  "mainSourceObservationBoundary": "MAIN source20/49/241 were read before ROOT integrated43 tool/docs/C-spec changes; immutable runtime/ac41 and historical Git closure bind this O proof. New MAIN43 bytes are not historical O source."
+}

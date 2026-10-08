@@ -1,0 +1,75 @@
+{
+  "kind": "phase5-independent-seventh-pre-during-file-review-v1",
+  "status": "FILE-PASS",
+  "blockers": [],
+  "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+  "buildRevision": "17924ff417899dd5863c394bb4496a5bf22865bd",
+  "rawEvidence": [
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-git-inventory-pre-o-seventh-20261008.json",
+      "sha256": "16a561e8b1271365b8aba6192cfb44d08debbc5fa94bbd6ef361c62438a0f325"
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-pre-o-process-seventh-20261008.json",
+      "sha256": "73b69adc8cb87d82f504777d0b0b590f99818795fc0fe56c36f7b6650fbb2a89"
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-pre-o-observation-seventh-20261008.json",
+      "sha256": "6f72c1ba50aeb62a24b9bb5fc7a9666f1bdf3df778bf501e074e4a05a842d2a9"
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-launch-pre-o-seventh-20261008.json",
+      "sha256": "8403b92e6fa5e3c3a0c6efad0733420ba1debd5bdf206237c8fdf7d1ea6120e7"
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-artifact-pre-o-seventh-20261008.json",
+      "sha256": "22a828b5795e4c2a84c412eef2dc177e5f58e300a014d0c92f8c63126649617a"
+    },
+    {
+      "path": "/Users/petter.gjores/.codex/worktrees/planning-year-runtime/skolplattform/work/pilot/results/phase5-43-root-during-o-observation-seventh-20261008.json",
+      "sha256": "1298dacaa9bd497a045731f43559469a230a602d4815cc6f199cc8783a8aad35"
+    }
+  ],
+  "checks": {
+    "exactSixRawHashes": true,
+    "workingSourceFiles": 341,
+    "sourceBuildProductPairs": 241,
+    "artifactFiles": 180,
+    "artifactInventorySha256": "3b5af3de96f74432d21f8e2b7e42836ed54db54b536212a909127dd404898433",
+    "sameBeforeDuringProcessChain": [
+      4364,
+      4373,
+      4379
+    ],
+    "soleRecordedListener": 4379,
+    "recordedReadyRootSession": 55261,
+    "recordedRunningRootBrowserSession": 42476,
+    "recordedBrowserPid": 40452,
+    "sameCwdAndCommands": true,
+    "sameProtectedBuildMarker": true,
+    "rawPointerChainMatches": true,
+    "recordedBeforeAndDuringChronology": true,
+    "exclusive0600SingleLinkRawFiles": true
+  },
+  "observationLimits": {
+    "reviewerDidNotProbeLiveProcesses": true,
+    "metadataRecorderObservedLive": false,
+    "rootProcessObservationSuppliedSeparately": true,
+    "rootKnownExits": {
+      "processObserver": 0,
+      "metadataRecorder": 0,
+      "duringObserver": 0
+    },
+    "fullO36Exit": null,
+    "fullO36RawSha256": null,
+    "phase42GoalScore": null
+  },
+  "carriedBoundedReview": {
+    "path": "/private/tmp/phase5-42-O15-O16-bounded-independent-fv5lq004/review.json",
+    "sha256": "8db4759a7c84afb8d3dd4d853a54e23735b21f887e84f390514d0998166677a2",
+    "cases": 4,
+    "pngs": 0,
+    "geometryAttachments": 0
+  },
+  "operations": "Builtins-only file reads and TMP writes; no repository imports, DB/API/browser/process probes or Git operations in this review."
+}
