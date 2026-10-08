@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-43
 status: in_progress
-stopped_at: UI05-42 full O36 och oberoende3/3 verifiering PASS; nästa05-43 separat FinalC16/release/3012 och konkret användarprov.
+stopped_at: UI05-43 källor och handbok integrerade; docsbuild/typkontroll PASS. Separat FinalC16 på bevarad Oartefakt följer.
 last_updated: "2026-10-08"
 last_activity: 2026-10-08
 last_activity_desc: "UI05-42 fullO36 på ac41,36normalcleanup/full15/auditidentitet/geometri och oberoende3/3 PASS;87/100,3/8. 43 slutC/release/3012 och mänskligt prov återstår."
-state_head: ac41d6c3ed9cdd9977bee6a9207fa30a146ad165
+state_head: 3830a11e30832b599a062ffc6779a7613f5ed940
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: isolated_seventh_full_o36_completed_known_exit0
 worker_status: running_on_3012
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**UI43 delsteg 2026-10-08:** Sju granskade källfiler för handbok/sidebar/internt modulkontrakt, separat C08-adapter b9c06 och releaseaktivering true→false är integrerade efter accepterad fullO36. Handboksbygge ROOT64057 exit0/993043 och typkontroll70058 exit0/d6465e; release-syntax exit0/acdb2f. Inget nytt appbygge eller produktbyte. FinalC16, två läsande release-snapshots och exakt överföring/före-efter18 på vanlig3012 återstår. Plan42 är pushad/verifierad3830a11;87/100,3/8, formella beslut och mänskligt prov består som öppna.
 
 **UI42 färdigt 2026-10-08 — avgränsat PASS:** Full O01–18 på dator och telefon, ROOT42476 känd exit0/rå `c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901`, source `ac41d6c3ed9cdd9977bee6a9207fa30a146ad165`, spec `93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639` och bevarat bygge `17924ff417899dd5863c394bb4496a5bf22865bd`. 36/36 PASS utan skips/omprov/flaky; 36 normalcleanup/full15 exakt SEARCH/sex avslutsflaggor/egna16 samt foreignverksamhet/DDL0. 20 explicita/49 skyddade/241 produktfiler/båda parsers och fyra historiska C16/extraC04/L36/G38-kedjor matchar; inget nytt appbygge. Terminal audit197363/114cc50c och auditerade identiteter5387/3ebcec87. 16 geometrier minst44×44/contained och16 PNG/14 unika ROOT-granskade; telefonens fokushopplänk över text och O05:s svaga dialogtext redovisas, ingen felfriUI- eller orsaksförklaring. Oberoende full fil-/3/3-målgranskning PASS: `work/pilot/results/phase5-42-seventh-independent-full-file-review-20261008.json` · SHA `281713e9082cb51ecae6d61559df54c1660b5f62cae9cfcf5e81bb8df75867cc`. 87/100 planer,3/8 verifierade faser; nästa [05-43](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PLAN.md) med separat slutC16/release/3012 och konkret användarprov. Alla första fel och recoveries består; fulla PLANERING-/ADMIN-krav/fas5/05-17/formell rektors färdigmarkering och HM-godkännande kvarstår. Ordinarie3012/5dd7baf är inte överförd av detta steg.
 

@@ -2,17 +2,22 @@
 title: Programplaner
 ---
 
+
 Programplanen gäller en utbildning och elevkull. Hela planen är en tabell: fasta ämnen och nivåer, valbara block med poängram och fördelningen över sex terminer ligger på samma ställe.
 
 Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Skoladministratören kan läsa planen inom sitt skoluppdrag. Ett sparat utkast är inte en fastställd plan.
 
 ## Startsidan
 
-**Programplaner** visar alla utbildningar med programplanens version och planens status (se nedan). Sök på utbildning, program eller elevkull och filtrera per skola när du har flera. Arkiverade planer är dolda; välj **Visa arkiverade** (med antalet inom parentes) för att se dem.
+**Programplaner** visar underlagen för vald skola och valt planeringsår. Sök på utbildning, lokal kod, program eller inriktning. Använd år-, skol-, status-, elevkulls- och arkivfiltren och sidknapparna för att hitta rätt rad. Sökningen gäller även senare sidor. Överblicken sammanfattar hela urvalet.
 
-- **Öppna** visar planen.
-- **Kopiera** skapar en ny utbildning, till exempel för nästa elevkull, med samma program, inriktning, underlag, programfördjupning, terminsfördelning och skolval. Tidigare sparat skolutbud i källan följer inte med till den nya elevkullen. Ange namn, elevkull och verkligt startdatum, som måste ligga efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Kopiera visas för den som får lägga till utbildningar. Om skolvalet inte kunde kopieras visas ett besked; välj skolorna igen under **Skolor** i kopian.
-- **Ny programplan** öppnar valet av program och inriktning. Där skapar huvudmannen en ny utbildning, eller lägger en plan på en befintlig utbildning som saknar plan.
+- **Öppna** visar radens exakta programplansversion. Ett nyare utkast väljs inte automatiskt i stället för en äldre årsrad.
+- **Kopiera** skapar en ny utbildning med den valda planens underlag, programfördjupning, terminsfördelning och skolval. Tidigare sparat skolutbud följer inte med. Ange namn, elevkull och ett verkligt startdatum efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Knappen visas först när aktuellt mandat för att lägga till utbildningar har kunnat läsas. Om mandatet inte kan läsas visas möjlighet att försöka igen.
+- **Ny programplan** öppnar det befintliga valet av program och inriktning. Huvudmannen kan skapa en ny utbildning; en behörig användare kan förbereda plan för en befintlig utbildning enligt det aktuella mandatet.
+
+Om radens plan saknas visar vyn den luckan och ett uttryckligt val av underlag eller version. Inget skapas när du öppnar årslistan. Om en gemensam ram används på flera skolor anges den faktiskt valda skolan i arbetsytan. Kontrollera skolan innan du går vidare till dess timplan.
+
+Se [Planering](./planering.md) om separat registerår, årsfilter och saknat underlag.
 
 ## Planens status
 
@@ -53,7 +58,7 @@ Skolor kan läggas till i framtida, pågående och avslutade planer, och när st
 
 Den som ändrar programplanen behöver aktuellt mandat för samtliga kopplade skolor. Rektor med mandat för bara en del av skolorna kan läsa planen och ser beskedet **Planen delas med skolor utanför ditt uppdrag och kan bara läsas**. Huvudmannen ändrar skolvalet.
 
-Listan visar skolans namn och antalet ytterligare skolor, till exempel **Skola A + 1**. Skolfiltret hittar planen på alla kopplade skolor inom ditt uppdrag.
+Listan visar en egen rad för varje behörig skola som använder programramen. Skolvalet begränsar vilka skolrader som visas.
 
 Tillagda skolor kan använda utbildningen för sina egna elevplaceringar och klasser. På elevkortet visas utbildningen som ett val för den kopplade skolan. Varje skola har sina egna timplaner; en klass kan bara kopplas till en fastställd timplansversion på samma skola. En ny timplansversion flyttar inte klassens befintliga koppling.
 
@@ -73,9 +78,11 @@ Programunderlaget från Skolverket visas längst ned i finstilt. Om flera underl
 
 ## Planen som tabell
 
-Överst visas utbildningens namn, status och knapparna **Analys**, **Kopiera** och **Läs om**. Under dem finns tre årskurskort med poäng per läsår, uppdelat på höst och vår.
+Överst visas utbildningens namn, status och knapparna **Analys**, **Kopiera** och **Läs om**. Årskurskorten visar poäng per läsår, uppdelat på höst och vår. Planeringsåret och den faktiskt öppnade versionens startdatum avgör vilken del som visas från början.
 
-Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och gymnasiearbete. Kolumnerna visar radens poäng och de sex terminerna.
+Välj en annan årskurs utan att byta det globala planeringsåret. **Visa hela planen** visar alla sex terminer och **Visa planeringsårets del** återgår till årets del. Ett okänt startunderlag ger ett konkret besked och ingen gissad första årskurs.
+
+Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och gymnasiearbete. Att visa två terminer ändrar inte de andra terminernas sparade fördelning.
 
 **Fördela poäng**
 
@@ -110,7 +117,7 @@ Blockets terminsram anger när poängen planeras i utbildningen. Den bestämmer 
 
 Bundna äldre utkast får svenskrader och standardblock med bibehållna fördjupningsval och terminsfördelningar. De nya raderna behöver fördelas. Äldre fastställda och ersatta versioner behåller sin faktiska form och visas som **Ofullständig**. Skapa en ny version för att komplettera dem; originalversionen ändras inte.
 
-På telefon väljer du årskurs ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet.
+På telefon väljer du **Åk 1**, **Åk 2** eller **Åk 3** med knappar ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet. **Visa hela planen** visar alla terminer.
 
 ## Analys och klar för beslut
 
@@ -150,3 +157,7 @@ När underlag behöver väljas börjar du med **Välj underlag** och **Fortsätt
 - **Samtidiga ändringar.** Om någon annan har ändrat planen sparas inget över deras ändring. Du kan välja **Läs om planen** eller, för terminsvärden, **Spara mina värden** mot den senaste versionen.
 - **Tappade svar.** Ett tappat svar betyder inte att sparningen misslyckats. Planen läses tillbaka innan något skrivs igen, och om ändringen redan finns sparas den inte en gång till.
 - **Utloggning och uppdrag.** Läsning och ändring kräver fungerande säkerhetslogg och aktuellt skoluppdrag. Vid utloggning eller ändrat uppdrag rensas planen och osparade värden från arbetsytan.
+
+## Planeringsår och sparstatus
+
+År-, skol-, vy- och uppdragsbyte samt Tillbaka spärras när en skrivning pågår eller dess resultat är okänt. Följ beskedet för faktisk återläsning innan du lämnar eller sparar igen. En återläst ny version uppdaterar även adressens exakta versionsval. Rektors färdigmarkering och huvudmannens godkännande återstår; **Klar för beslut** är fortfarande en beräknad kontroll och inget beslut.

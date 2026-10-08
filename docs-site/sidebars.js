@@ -3,6 +3,7 @@ module.exports = { handbok: [
   { type: 'category', label: 'Arbeta i plattformen', collapsed: false, items: [
     'exempelmiljo',
     'anvandning',
+    'planering',
     'timplaner',
     'programplaner',
     'inloggningsmetoder',

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SOURCE-ONLY PROPOSAL 05-43. Never activate or call the target during preparation.
 // Activation requires independent review and actual C16+C04x2+L36+G38+O36 evidence.
-const SOURCE_ONLY = true;
+const SOURCE_ONLY = false;
 const BASE_URL = 'http://127.0.0.1:3060';
 const OPERATOR_PINS = [
  'PHASE5_CONTEXT_ACTUAL_REPORT','PHASE5_CONTEXT_APPROVED_SOURCE_REVISION',

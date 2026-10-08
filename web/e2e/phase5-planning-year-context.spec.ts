@@ -9,7 +9,8 @@ import path from 'node:path';
 import { createPlanningYearFixture, verifyPlanningYearBrowserTarget } from '../../work/pilot/phase5-planning-year-fixtures.mjs';
 import { schoolYearLabel, selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
 import type { GymTimplan } from '../lib/gym-timplan.ts';
-import { parseProgramplanOfferingList } from '../lib/programplan-workspace-contract.ts';
+import { parsePlanningList, parsePlanningSelection, parsePlanningSetup } from '../lib/planning-year-contract.ts';
+import { parseProgramplanSelection } from '../lib/programplan-education-contract.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
 
 type Fixture = Awaited<ReturnType<typeof createPlanningYearFixture>>;
@@ -541,17 +542,30 @@ test('C08: faktisk sessionsutgång rensar även en blockerad skrivning och gamma
   await expect(page.getByRole('button', { name: 'Logga ut', exact: true })).toHaveCount(0);
   expect(new URL(page.url()).searchParams.has('planeringslasar')).toBe(false);
   const renewed = await ownedNode('session', () => fixture.newPrincipal()); await fixture.cookies(page.context(), renewed, baseURL);
-  const renewedList = page.waitForResponse(responseFor('/api/programplaner/lista'));
+  const renewedList = page.waitForResponse(response => responseFor('/api/planering/lista')(response)
+    && response.request().method() === 'POST' && response.request().postDataJSON()?.view === 'programplan'
+    && response.request().postDataJSON()?.unitId === fixture.unitId && response.request().postDataJSON()?.page === 1);
+  // The stable parent reads actual creation permission alongside the annual list.
+  const permissionInput = { unitId: fixture.unitId, catalogId: null, programRef: null };
+  const renewedPermission = page.waitForResponse(response => responseFor('/api/programplaner/val')(response)
+    && response.request().method() === 'POST' && JSON.stringify(response.request().postDataJSON()) === JSON.stringify(permissionInput));
   const setup = page.waitForResponse(responseFor(SETUP)); await page.goto('/?vy=programplaner');
-  const current = await setup; expect(current.status()).toBe(200); const available = await current.json();
+  const current = await setup; expect(current.status()).toBe(200); const available = parsePlanningSetup(await current.json());
   expect(await fixture.pairedPlanning(current.headers()['x-correlation-id'], renewed, 'planning_year_selection_read')).toBe(true);
   await readyPlanning(page, available.currentYear, fixture.unitId);
   const actualList = await renewedList; expect(actualList.status()).toBe(200);
   expect(actualList.headers()['cache-control']).toBe('no-store');
-  const listed = parseProgramplanOfferingList(await actualList.json(), 1);
-  expect(listed.offerings.length).toBeGreaterThan(0);
-  expect(await fixture.paired(actualList.headers()['x-correlation-id'], renewed, 'programplan_offerings_listed', null, 'education_collection')).toBe(true);
-  // Hela listladdningen läser även senare sidor och verkliga programval.
+  const annualInput = parsePlanningSelection(actualList.request().postDataJSON(), available);
+  expect(annualInput).toEqual({ schoolYear: available.currentYear, unitId: fixture.unitId, view: 'programplan', schoolform: 'gymnasium',
+    query: '', status: 'all', cohortRelation: 'relevant', archive: 'active', grade: null, sort: 'name', direction: 'asc', page: 1, selectionRevision: null });
+  const listed = parsePlanningList(await actualList.json(), annualInput, available);
+  expect(listed.rows.length).toBeGreaterThan(0);
+  expect(await fixture.pairedPlanning(actualList.headers()['x-correlation-id'], renewed, 'planning_year_list_read')).toBe(true);
+  const permissionResponse = await renewedPermission; expect(permissionResponse.status()).toBe(200);
+  expect(permissionResponse.headers()['cache-control']).toBe('no-store');
+  parseProgramplanSelection(await permissionResponse.json(), permissionInput);
+  expect(await ownedNode('readback', () => fixture.paired(permissionResponse.headers()['x-correlation-id'], renewed, 'programplan_selection_read', null, 'education_collection'))).toBe(true);
+  // Årslistans första sida och den separata verkliga mandatläsningen är färdiga.
   const renewedCollection = program(page).getByRole('region', { name: 'Alla programplaner', exact: true });
   await expect(renewedCollection.getByRole('searchbox', { name: 'Sök utbildning', exact: true })).toBeVisible();
   await expect(renewedCollection).toHaveAttribute('aria-busy', 'false');

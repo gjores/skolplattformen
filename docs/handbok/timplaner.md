@@ -2,11 +2,12 @@
 title: Timplaner
 ---
 
+
 Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är underlag och omvandlas inte automatiskt till timmar. Uppgifterna i den skyddade provmiljön är syntetiska.
 
 ## Från programplan till gymnasiets timplan
 
-Öppna en sparad programplan och välj **Timplan**, eller välj **Timplaner → Gymnasium** och därefter utbildning. Välj skola om utbildningen används av flera skolor. Finns redan en timplan med samma underlag för den enda aktuella skolan öppnas den direkt. Varje skola har egna timplansversioner och timmar.
+Öppna en sparad programplan och välj **Timplan**, eller öppna **Timplaner**, välj gymnasium och hitta årsradens utbildning och skola. Årsraden öppnar sin exakta timplansversion. Om timplan saknas visas **Saknas** och det befintliga steget för att välja underlag; inget utkast skapas genom att klicka på raden eller byta år. Välj en bestämd skola när samma programram används av flera. Varje skola har egna timplansversioner och timmar.
 
 Rektor och skoladministratör kan välja **Skapa timplansutkast** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Den här övergången stöder högskoleförberedande program med känd poängram; yrkesprogrammets ram behöver ännu verifieras.
 
@@ -18,9 +19,9 @@ Ett programutkast får användas för att förbereda undervisningstiden. Det än
 2. Ange hela timmar mellan 0 och 2 000 för terminer som har poäng i underlaget. Ett tomt fält är ofördelat; `0` betyder angivna noll timmar. Terminer som inte ingår kan inte fyllas i.
 3. Lämna raden eller tryck Enter för att spara och invänta **Allt sparat**. Du kan gå med Tab mellan celler på samma rad innan den sparas. Hela raden sparas tillsammans; ny inmatning under pågående sparning följer med nästa sparning.
 
-Årskurssummorna visar planerade timmar. **Visa bara ofördelade** hittar rader som ännu har tomma aktiva terminer. På telefon kan du välja en årskurs och rulla själva tabellen. När sidan laddas om öppnas samma sparade timplan igen. Osparade ändringar skyddas när du lämnar vyn.
+Årskurssummorna visar planerade timmar. Planeringsåret och det frysta underlagets startdatum avgör vilken årsdel som visas från början. Välj **Åk 1**, **Åk 2** eller **Åk 3**, **Visa hela planen** eller **Visa planeringsårets del** utan att ändra det globala planeringsåret. På telefon finns samma årskursknappar och tabellen kan rullas i sidled. **Visa bara ofördelade** hittar tomma aktiva terminer. En sparad ändring bevarar hela radens sex terminer, även dem som inte visas. När sidan laddas om öppnas samma sparade version igen.
 
-**Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Timplan** i programplanen för att återgå till samma skolas timplan och årskursval under samma uppdrag.
+**Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
 
 ### När programramen ändras
 
@@ -32,15 +33,19 @@ Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad u
 
 ## Grundskola och introduktionsprogram
 
-Huvudman och rektor kan öppna befintliga timplaner inom sina aktuella skoluppdrag. Välj fliken **Grundskola och introduktionsprogram** under **Timplaner**. Skoladministratörens nya gymnasieåtkomst ger ingen åtkomst till dessa timplansceller.
+Huvudman och rektor kan öppna befintliga timplaner inom sina aktuella skoluppdrag. Välj grundskola eller introduktionsprogram i timplanernas årslista. Skoladministratörens gymnasieåtkomst ger ingen åtkomst till dessa timplansceller.
 
 ## Öppna en plan
 
-Listan visar skola, utbildning, elevkull, version och status. Använd sidknapparna om listan har flera sidor och öppna den plan du vill läsa. En tom lista betyder att ditt uppdrag inte omfattar någon befintlig timplan i dessa skolformer.
+Listan visar skola, utbildning, elevkull, version och status för valt planeringsår. Sök, filtrera, sortera och använd sidknapparna. **Öppna** väljer årsradens exakta version på den valda skolan. En nyare version flyttar inte klassens befintliga årsbindning. En tom lista kan betyda att urvalet saknar underlag; den skapar inget underlag åt dig.
 
-Timplanen hör till en bestämd skola. När flera skolor använder samma utbildning har varje skola sina egna timplansversioner. Listan visar timplanens skola, och rektor kan läsa och ändra planer inom sitt aktuella skoluppdrag. En klasskoppling gäller en fastställd version på samma skola; en ny version flyttar inte den befintliga kopplingen.
+För grundskolan kontrolleras den faktiska årsbindningen till version och kolumn. Äldre lagrade kolumner utan verifierad karta visas som **Lagrad kolumn 1**, **Lagrad kolumn 2** och så vidare. Då är årets timmar okända och cellerna kan inte ändras som årsdata. Årskursen i årsbindningen är inte ett bevis för hur äldre arraypositioner ska tolkas.
 
-Grundskolans kolumner följer utbildningens sparade årskurser och ordning. För introduktionsprogram visas timmar per vecka. **Saknas** betyder att en rad eller cell saknar användbart underlag; det är inte ett sparat nollvärde. På telefon kan du välja en årskurs åt gången eller rulla själva tabellen i sidled.
+**Välj aktuell utkastmatris** läser befintliga utkast och låter dig välja en bestämd skola och version. Den matrisen visar nuvarande årskurskolumner och ingen historisk årsbindning. Värden ändras i de faktiska sparade kolumnerna. Ett årbyte eller en omladdning återgår till kontroll av årsbindningen; en obunden matris blir inte automatiskt samma årsplan.
+
+För introduktionsprogram visas **Timmar per vecka**. Årsvalet gör ingen årskursprogressering eller omräkning till årstimmar. **Saknas** betyder att en rad eller cell saknar användbart underlag; det är inte ett sparat nollvärde. En äldre plan med oläsbart fullständigt underlag visas som en lucka med möjlighet att läsa om.
+
+För grundskolan kan du på telefon välja årskurs i den aktuella matrisen eller visa och rulla hela timplanen. Se [Planering](./planering.md) om planeringsår, registerår, versioner och överblick.
 
 ## Ändra undervisningstid
 
@@ -60,7 +65,7 @@ Källa för tidsenhet och beslutsansvar: [Skolverkets regler om undervisningstid
 
 ### Spara ett cellvärde
 
-Rektor kan ändra befintliga celler i **Utkast** och **Återsänd**. Huvudmannen kan läsa planen. Förslag, fastställda och ersatta versioner är låsta.
+Rektor kan ändra befintliga celler i en uttryckligt vald aktuell matris med status **Utkast** eller **Återsänd**. Välj **Välj aktuell utkastmatris** från listan eller **Visa aktuell utkastmatris** från den öppnade årsraden. Detta gäller både grundskola och introduktionsprogram. Huvudmannen kan läsa planen. Förslag, fastställda och ersatta versioner är låsta.
 
 1. Välj cellen för det ämne och den kolumn du vill ändra.
 2. Ange ett heltal mellan 0 och 2000 timmar.
@@ -81,3 +86,7 @@ Om anslutningen bryts under sparning kan beskedet vara osäkert. Läs då in pla
 För grundskola och introduktionsprogram kan vyn läsa och ändra befintliga timplansceller. Skapande, förslag, beslut, nya versioner och klasskopplingar är ännu inte tillgängliga för dessa skolformer. Gymnasiets nya skolvisa utkast beskrivs ovan. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
 
 Alla läsningar och ändringar kräver att säkerhetsloggen fungerar. Om den inte kan skrivas lämnas inget innehåll ut och ändringen genomförs inte. Vid utloggning eller ändrat uppdrag rensas plan och osparat innehåll från arbetsytan.
+
+## Årsbyte när en ändring är oklar
+
+År-, skol-, vy- och uppdragsbyte samt Tillbaka spärras medan en ändring sparas eller dess resultat inte kan bekräftas. **Läs om planen** hämtar faktisk sparstatus innan du försöker igen. Om uppdraget återkallas eller sessionen går ut rensas planen. Färdigmarkering av rektors arbete och huvudmannens godkännande finns ännu inte i detta flöde.

@@ -1,0 +1,48 @@
+{
+  "kind": "phase5-root-43-source-integration-v1",
+  "scope": "local-synthetic-only",
+  "acceptedOther": {
+    "report": "work/pilot/results/phase5-42-other-actual-seventh-20261008.json",
+    "sha256": "c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901",
+    "sourceRevision": "ac41d6c3ed9cdd9977bee6a9207fa30a146ad165",
+    "knownExitCode": 0,
+    "cases": 36
+  },
+  "proposal": {
+    "path": "/private/tmp/phase5-43-integration-source-proposal-vq6bu9gi",
+    "manifestSha256": "a33f2c66e6c3ac28b5940d1bc11ec687a9ec91cc029323a416163eb864d6674a",
+    "combinedPatchSha256": "17a8ab34ed25b0a35d53c1ce5a2619d10c638380db2b33ed0530ba7101e49a8d"
+  },
+  "sourceIntegrated": true,
+  "integrationChunk": "6dbaea",
+  "docsBuild": {
+    "session": 64057,
+    "exitCode": 0,
+    "completionChunk": "993043",
+    "sourceIntegrationChunk": "6dbaea",
+    "candidateManifestSha": "a33f2c66e6c3ac28b5940d1bc11ec687a9ec91cc029323a416163eb864d6674a",
+    "builtHandbookFiles": [
+      "docs/handbok/planering.md",
+      "docs/handbok/programplaner.md",
+      "docs/handbok/timplaner.md",
+      "docs-site/sidebars.js"
+    ]
+  },
+  "appBuildPerformed": false,
+  "finalContextActual": null,
+  "releaseActual": null,
+  "ordinary3012TransferActual": null,
+  "humanTrial": "not_yet_delivered",
+  "formalPrincipalReadyAndOwnerApproval": "open_gap",
+  "sourceChecks": {
+    "typescript": {
+      "session": 70058,
+      "exitCode": 0,
+      "completionChunk": "d6465e"
+    },
+    "releaseSyntax": {
+      "exitCode": 0,
+      "chunk": "acdb2f"
+    }
+  }
+}
