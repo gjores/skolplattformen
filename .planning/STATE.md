@@ -4,12 +4,12 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-43
-status: awaiting_user
-stopped_at: 05-43 automatisk slutkedja accepterad och vanlig3012 uppdaterad; konkret femstegsprov väntar på användaren.
-last_updated: "2026-10-08"
-last_activity: 2026-10-08
-last_activity_desc: "05-43 färdig automatiskt: FinalC16/release/exakt3012/18före-efter PASS;88/100,3/8. Användarprov awaiting_user; fulla krav/formella beslut öppna."
-state_head: e36161a1245020c9a7bf03fae314e64cd10e24fa
+status: in_progress
+stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
+last_updated: "2026-10-09"
+last_activity: 2026-10-09
+last_activity_desc: "Årsplaneringsprov användarrapporterat godkänt: allt fnukar.88/100 planer,3/8 faser; fulla krav/formella beslut och nästa planering kvarstår."
+state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
 worker_status: running_on_3012_tested_artifact_process_proven
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Användarprov05-43 godkänt2026-10-09:** Användaren svarade ”allt fnukar” efter årsplaneringens femstegsprov. Registrerat som användarrapporterat godkänt; enhet, uppdrag och enskilda steg särredovisades inte.88/100 planer och3/8 verifierade faser består. Fulla krav,05-17, fas5 och rektors färdigmarkering/huvudmannens godkännande förblir öppna. Nästa arbete behöver planeras inom kvarstående gap; detta svar startar ingen ny implementation. Se [användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-USER-TRIAL.md).
 
 **UI43 levererad för användarprov:** SlutC16, läsande release och exakt3012-överföring med18 före/efter är accepterade. Samma prövade build179,180 filer och15 hela verksamhetstabeller bevarade; handbok byggd en gång.88/100 planer,3/8 verifierade faser. Mänskligt prov är awaiting_user; fulla krav och formella beslut kvarstår. Se [slutredovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-43-SUMMARY.md) och [femstegsprov](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-USER-TRIAL.md).
 
@@ -68,7 +70,7 @@ See: .planning/PROJECT.md (updated 2026-10-07)
 
 ## Current Position
 
-Aktuellt:05-43 automatiskt genomförd,88/100 planer. Vanlig3012 kör verifierad179-artefakt; nästa är användarens femstegsprov. Nedanstående daterade delsteg är bevarad historik.
+Aktuellt:05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 

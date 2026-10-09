@@ -48,3 +48,7 @@ Status: registrerad användarbeställning, **inte implementerad**. Genomförande
 ## Tekniskt verifierat och levererat i05-43
 
 40:s fullL36 och42:s fullO36 verifierar verkliga mandatbundna tabeller, kod-/namnsökning/filter/sort/50+2 och exakta versioner på dator/telefon.43:s slutC/release/3012 med18 före/efter är levererade. Tekniskt verifierad implementation; mänskligt tabellprov awaiting_user. Äldre status ovan är historik. Fulla ADMIN-/PLANERING-krav kvarstår. Se [slutredovisning](../../phases/05-bevarade-utbildnings-och-klassfloden/05-43-SUMMARY.md).
+
+## Användarsvar2026-10-09
+
+Användaren godkände det presenterade samlade årsplaneringsprovet med ”allt fnukar”. Enskilda sök-/filter-/sorteringssteg och enhet särredovisades inte; godkännandet är inget separat fullständigt tabellprov. Tekniska bevis och kvarstående fullkravsgränser består.

@@ -1,6 +1,6 @@
 # Årsplaneringens anslutningspunkt för S1/S3
 
-Status: Dokumenterat och automatiskt verifierat delresultat05-43 inom lokal syntetisk scope. SlutC16/81503128, läsande releasefe285022 och3012 före4087f9cf/efter579b0547 samt process/artefaktd388ecac är accepterade med kända avslut. Mänskligt prov awaiting_user. Se [samlad verifiering](../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-VERIFICATION.md). Kontraktet inför ingen ny API, roll, grant, modulåtkomst, beräkningstjänst eller publicering.
+Status: Dokumenterat och automatiskt verifierat delresultat05-43 inom lokal syntetisk scope. SlutC16/81503128, läsande releasefe285022 och3012 före4087f9cf/efter579b0547 samt process/artefaktd388ecac är accepterade med kända avslut. Årsplaneringsprovet användarrapporterat godkänt2026-10-09, utan särredovisad enhet/uppdrag/enskilda steg. Se [samlad verifiering](../phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-VERIFICATION.md). Kontraktet inför ingen ny API, roll, grant, modulåtkomst, beräkningstjänst eller publicering.
 
 Underlag: `web/lib/planning-year-contract.ts`, `planning-year-model.ts`, befintliga program-/timplanskontrakt och skyddade serverdatavägar. Anslutning till [schemaprojektets S1/S3](SCHEMAMODUL-PROJEKT.md) är en kommande kontraktsuppgift. Ett TypeScriptfält är inte ett provat adapterkontrakt.
 
