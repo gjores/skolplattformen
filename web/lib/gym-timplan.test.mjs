@@ -73,7 +73,8 @@ test('create replay and row acknowledgements cannot accept wrong identities, rev
 });
 test('school planning capability and current plan status control editing', () => {
   assert.equal(gymTimplanCanEdit(plan()),true);
-  for (const change of [{canPlan:false},{archived:true},{status:'faststalld'},{status:'ersatt'},{status:'forslag'},{status:'atersand'}]) assert.equal(gymTimplanCanEdit({...plan(),...change}),false);
+  assert.equal(gymTimplanCanEdit({...plan(),status:'atersand'}),true);
+  for (const change of [{canPlan:false},{archived:true},{status:'faststalld'},{status:'ersatt'},{status:'forslag'}]) assert.equal(gymTimplanCanEdit({...plan(),...change}),false);
 });
 test('hour totals count each frame row once and explicit zero completes an active cell', () => {
   const value=plan(); assert.deepEqual(gymTimplanTotals(value),{terms:[0,0,0,0,0,0],total:0,missingRows:[key]});

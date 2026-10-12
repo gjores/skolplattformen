@@ -14,6 +14,8 @@ export async function mandateOperation<T>(
   try {
     return await operation();
   } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === '42501'
+      && 'hint' in error && error.hint === 'programplan_submitted') throw new Deny('programplan_submitted', 409);
     const mapped = mandateSqlFailure(error);
     // SQL-undantag är enbart minimerade kod/status. Fältkonflikter hör till
     // ett projicerat och auditerat resultat i registertransaktionen (04-05/04-10).

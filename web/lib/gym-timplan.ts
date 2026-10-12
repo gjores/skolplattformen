@@ -195,7 +195,7 @@ export function parseGymTimplanRowReply(value: unknown, expected: GymTimplanRowR
     || hours.some((hours, index) => hours !== expected.hours[index])) bad();
   return { id: expected.planId, revision: expected.expectedRevision + 1, rowKey: expected.rowKey, hours };
 }
-export function gymTimplanCanEdit(plan: GymTimplan): boolean { return plan.canPlan && !plan.archived && plan.status === 'utkast'; }
+export function gymTimplanCanEdit(plan: GymTimplan): boolean { return plan.canPlan && !plan.archived && (plan.status === 'utkast' || plan.status === 'atersand'); }
 export function gymTimplanTotals(plan: Pick<GymTimplan, 'rows' | 'hours'>) {
   const terms = [0, 0, 0, 0, 0, 0], missingRows: string[] = [];
   for (const row of plan.rows) {

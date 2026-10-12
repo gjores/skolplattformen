@@ -54,7 +54,7 @@ Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte k
 
 Huvudmannen väljer **Skolor** i den öppnade planen, markerar sina gymnasieskolor och väljer **Spara skolor**. Samma programplan med samma versioner och innehåll visas på alla valda skolor. Skolan där utbildningen skapades är märkt **Skapad här** och kan aldrig avmarkeras.
 
-Skolor kan läggas till i framtida, pågående och avslutade planer, och när starten är okänd. En skola kan bara tas bort från en framtida plan. Arkiverade planer kan inte få skolvalet ändrat.
+Skolor kan läggas till i framtida, pågående och avslutade planer, och när starten är okänd. En skola kan bara tas bort från en framtida plan. Arkiverade planer kan inte få skolvalet ändrat. När en programplan är inskickad för beslut är även utbildningsuppgifter och skolval låsta; ta tillbaka förslaget eller återsänd det före ändring.
 
 Den som ändrar programplanen behöver aktuellt mandat för samtliga kopplade skolor. Rektor med mandat för bara en del av skolorna kan läsa planen och ser beskedet **Planen delas med skolor utanför ditt uppdrag och kan bara läsas**. Huvudmannen ändrar skolvalet.
 
@@ -119,7 +119,7 @@ Bundna äldre utkast får svenskrader och standardblock med bibehållna fördjup
 
 På telefon väljer du **Åk 1**, **Åk 2** eller **Åk 3** med knappar ovanför tabellen. Höst och vår för den årskursen visas bredvid ämnet. **Visa hela planen** visar alla terminer.
 
-## Analys och klar för beslut
+## Analys och beslutsunderlag
 
 **Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
@@ -127,7 +127,7 @@ På telefon väljer du **Åk 1**, **Åk 2** eller **Åk 3** med knappar ovanför
 
 Om planen är skrivskyddad visar Åtgärd orsaken. En fastställd eller ersatt version behöver ett utkast eller en ny version innan planens fasta nivåer och ram kan ändras. Äldre underlag behöver först kopplas och sparas. Inriktningen väljs när utbildningen skapas och kan inte ändras i analysen.
 
-Planen räknas som **Klar för beslut** först när allt detta stämmer:
+Beslutsunderlaget kontrollerar bland annat att:
 
 - alla fasta nivåer och valbara block är fördelade på terminer,
 - programfördjupningen fyller ramen, så att eleverna når programmets poäng,
@@ -136,9 +136,22 @@ Planen räknas som **Klar för beslut** först när allt detta stämmer:
 - analysen inte har några andra fel,
 - utbildningens startdatum finns.
 
-Statusen visas vid utbildningens namn. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. Klar för beslut räknas fram ur planen och kan inte väljas manuellt. Huvudmannen fastställer planen; fastställande finns ännu inte i appen.
+Beslutsstatus och nästa ansvariga roll visas i beslutspanelen. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. En färdig analys är inte ett beslut. Beslutspanelen kontrollerar det sparade underlaget och visar vad som återstår före inskickning eller fastställande.
 
-Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. För yrkesprogram anger underlaget ännu inte om programmet omfattar 2 700 eller 2 800 poäng, så där kontrolleras ramen inte. Lagrumshänvisningarna i analysen ska verifieras innan planen används som beslutsunderlag. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
+Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. För yrkesprogram anger underlaget ännu inte om programmet omfattar 2 700 eller 2 800 poäng, så där kontrolleras ramen inte. Fastställande är därför spärrat för yrkesprogram tills deras beslutsregler stöds. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
+
+## Från utkast till fastställd programplan
+
+**Att göra** syns i appens navigation och öppnar **Dina uppgifter och beslut** på Start. Antalet gäller det aktiva uppdragets skolor och alla läsår. Rektor ser planer att förbereda eller rätta. Huvudmannen ser planer att granska och besluta om. Planer som väntar på en annan roll visas separat. Byt uppdrag för att se den rollens uppgifter.
+
+1. Rektor färdigställer och sparar programplanens innehåll. Beslutspanelen visar hinder och kontroller som behöver granskas.
+2. Rektor granskar struktur och alternativa studiegångar, markerar kontrollerna och skickar planen för godkännande. Innehållet låses medan huvudmannen granskar. Rektor kan återta förslaget till utkast.
+3. Huvudmannen öppnar planen från sina uppgifter, granskar underlaget och väljer att fastställa eller återsända. Återsändning kräver en motivering. Rektor kan sedan rätta och skicka in igen.
+4. Vid fastställande bekräftar huvudmannen den valda versionen. Historiken visar handling, tidpunkt, aktör och eventuell motivering. En tidigare fastställd version blir ersatt; originalet bevaras.
+
+Huvudmannen kan även granska och fastställa ett komplett programutkast direkt. Bara det exakta sparade underlaget kan beslutas. Om någon har ändrat det krävs en ny läsning och granskning. Beslut kräver aktuellt inloggningsbevis med engångskod. Vid osäkert svar används **Försök igen** för samma beslut, så att det inte dubbleras.
+
+Flödet stödjer högskoleförberedande Gy25-program med verifierad källa, 2 500 poäng och fullständig terminsfördelning. Beslutspanelen spärrar andra programprofiler och ofullständiga underlag med en förklaring. Manuell granskning av struktur och elevens möjliga val behövs även när automatiska kontroller är godkända. Fastställ programplanen innan elevkullen börjar.
 
 ## Äldre underlag och nya planversioner
 
@@ -160,4 +173,4 @@ När underlag behöver väljas börjar du med **Välj underlag** och **Fortsätt
 
 ## Planeringsår och sparstatus
 
-År-, skol-, vy- och uppdragsbyte samt Tillbaka spärras när en skrivning pågår eller dess resultat är okänt. Följ beskedet för faktisk återläsning innan du lämnar eller sparar igen. En återläst ny version uppdaterar även adressens exakta versionsval. Rektors färdigmarkering och huvudmannens godkännande återstår; **Klar för beslut** är fortfarande en beräknad kontroll och inget beslut.
+År-, skol-, vy- och uppdragsbyte samt Tillbaka spärras när en skrivning pågår eller dess resultat är okänt. Följ beskedet för faktisk återläsning innan du lämnar eller sparar igen. En återläst ny version uppdaterar även adressens exakta versionsval. Beslutspanelen skiljer granskning av utkast från ett registrerat fastställande. Efter ett beslut eller återförsök hämtas aktuell beslutsstatus på nytt.

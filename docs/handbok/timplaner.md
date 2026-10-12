@@ -29,9 +29,21 @@ Timplanen skrivs inte om automatiskt. Välj **Välj nytt underlag** och därefte
 
 Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kvar i cellerna för jämförelse. Radens besked visar sparade timmar; **Spara min fördelning** prövar din rad mot den nya revisionen och **Använd sparade värden** lämnar din lokala ändring. Kan sparstatus inte läsas väljer du **Läs aktuell timplan** innan du sparar igen. Ett oklart skapandesvar kan hämtas med samma begäran genom **Hämta sparad timplan**, så att ytterligare en timplan inte skapas.
 
-Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Fastställande och kontroll av garanterad undervisningstid återstår; ifyllda timmar är fortfarande förberedande planering.
+Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Ett utkast är förberedande planering tills huvudmannen har fastställt det enligt flödet nedan.
 
 Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. Utbildningar utan timplan finns under **Programplaner**. Skapa och spara programplanen, välj **Timplan**, välj skola och sedan **Skapa timplansutkast**. Först när utkastet är sparat visas det i timplanslistan.
+
+## Skicka, återsänd och fastställ gymnasiets timplan
+
+Rektor och skoladministratör fördelar timmar och skickar planen för godkännande. Huvudmannen granskar och fastställer eller återsänder med motivering. Beslutspanelen visar status, nästa ansvariga roll, hinder och historik. **Att göra** i navigationen visar uppgifter inom ditt aktiva uppdrag; Start samlar dem över alla läsår.
+
+För att skicka och fastställa behöver varje aktivt terminsfält vara ifyllt och varje rad ha undervisningstid. Ett uttryckligt nollvärde kan användas i ett enskilt fält, men en hel rad utan tid behöver åtgärdas. Den stödda högskoleförberedande Gy25-planen behöver minst **2 180 undervisningstimmar**. En timme är 60 minuter. Granska också att tiden är undervisning och att alla möjliga ämnesval får tillräcklig tid. En totalsumma bevisar inte elevens faktiska genomförda undervisningstid.
+
+Programplanen måste vara fastställd innan timplanen skickas. Du får skapa och arbeta med timutkastet tidigare. Om programplanens innehåll är oförändrat kan timplanen användas även när programplanens status och revision ändras vid fastställandet. Om innehållet har ändrats behöver du skapa en ny timplansversion från det aktuella underlaget. Det frysta originalunderlaget skrivs inte om.
+
+En inskickad plan är låst. Den som planerar kan återta den till utkast. Huvudmannen kan återsända med motivering; då kan rektor eller skoladministratör rätta och skicka igen. Fastställande kräver en uttrycklig bekräftelse. Tidigare fastställda versioner bevaras som ersatta när en ny version fastställs. Befintliga klasskopplingar flyttas aldrig automatiskt.
+
+Yrkesprogram, grundskola och introduktionsprogram har andra regelprofiler. Detta gymnasieflöde innebär inte att fastställande för dessa profiler är tillgängligt.
 
 ## Grundskola och introduktionsprogram
 
@@ -91,4 +103,4 @@ Alla läsningar och ändringar kräver att säkerhetsloggen fungerar. Om den int
 
 ## Årsbyte när en ändring är oklar
 
-År-, skol-, vy- och uppdragsbyte samt Tillbaka spärras medan en ändring sparas eller dess resultat inte kan bekräftas. **Läs om planen** hämtar faktisk sparstatus innan du försöker igen. Om uppdraget återkallas eller sessionen går ut rensas planen. Färdigmarkering av rektors arbete och huvudmannens godkännande finns ännu inte i detta flöde.
+År-, skol-, vy- och uppdragsbyte samt Tillbaka spärras medan en ändring sparas eller dess resultat inte kan bekräftas. **Läs om planen** hämtar faktisk sparstatus innan du försöker igen. Om uppdraget återkallas eller sessionen går ut rensas planen. För grundskola och introduktionsprogram finns ännu inte inskickning och fastställande. För gymnasiets stödda programprofil gäller beslutsgången ovan.

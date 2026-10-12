@@ -5,8 +5,9 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import { parsePlanningList, parsePlanningSelection, planningAnnualMetrics, type PlanningList, type PlanningMeasure, type PlanningRow, type PlanningSelection } from '@/lib/planning-year-contract.ts';
 import { usePlanningContext } from './planning-context';
 import './protected-plan-list.css';
+import { usePlanDecisions, decisionNextActorLabel, decisionStageLabel } from './plan-decision-context';
 
-export const planningStatusLabel = { utkast: 'Utkast', forslag: 'Förslag', atersand: 'Återsänd', faststalld: 'Fastställd', ersatt: 'Ersatt' };
+export const planningStatusLabel = { utkast: 'Utkast', forslag: 'Inväntar beslut', atersand: 'Återsänd för ändring', faststalld: 'Fastställd', ersatt: 'Ersatt' };
 export const planningRelationLabel = { new: 'Ny kull', continuing: 'Fortsättande kull', future: 'Kommande kull', finished: 'Avslutad kull', unknown: 'Start saknas' };
 export function planningMeasureText(value: PlanningMeasure | null): string {
   if (!value) return 'Ej tillämpligt';
@@ -29,7 +30,7 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
   }, [draft.text, selection, disabled, context]);
   if (!selection) return null;
   const patch = (value: Partial<PlanningSelection>) => requestChange(value);
-  const activeFilters = [selection.grade !== null && `Åk ${selection.grade}`, selection.status !== 'all' && planningStatusLabel[selection.status],
+  const activeFilters = [selection.grade !== null && `Åk ${selection.grade}`, selection.status !== 'all' && (selection.view === 'programplan' && selection.status === 'utkast' ? 'Ej fastställda' : planningStatusLabel[selection.status]),
     selection.cohortRelation !== 'relevant' && (selection.cohortRelation === 'all' ? 'Alla kullar' : planningRelationLabel[selection.cohortRelation]),
     selection.archive !== 'active' && (selection.archive === 'archived' ? 'Arkiverade utbildningar' : 'Även arkiverade utbildningar')].filter(Boolean);
   const resetFilters = () => { setDraft({ context, accepted: '', text: '' }); patch({ query: '', status: 'all', cohortRelation: 'relevant', archive: 'active', grade: null }); };
@@ -45,7 +46,7 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
     </button>
     <button type="button" disabled={disabled || !activeFilters.length && !draft.text} onClick={resetFilters}>Rensa filter</button>
     <p className="plan-filter-summary" aria-live="polite"><span>Visar: </span>{selection.archive === 'active' ? 'aktiva utbildningar' : selection.archive === 'archived' ? 'arkiverade utbildningar' : 'aktiva och arkiverade utbildningar'} · {selection.cohortRelation === 'relevant' ? 'nya och fortsättande kullar samt okänd start' : selection.cohortRelation === 'all' ? 'alla kullar' : planningRelationLabel[selection.cohortRelation].toLocaleLowerCase('sv')}
-      {selection.grade !== null && ` · åk ${selection.grade}`}{selection.status !== 'all' && ` · ${planningStatusLabel[selection.status].toLocaleLowerCase('sv')}`}</p>
+      {selection.grade !== null && ` · åk ${selection.grade}`}{selection.status !== 'all' && ` · ${(selection.view === 'programplan' && selection.status === 'utkast' ? 'Ej fastställda' : planningStatusLabel[selection.status]).toLocaleLowerCase('sv')}`}</p>
     <div id={`${id}-extra`} className="plan-list-extra-filters" hidden={!filtersOpen}>
     {selection.schoolform !== 'introduktionsprogram' && <label htmlFor={`${id}-grade`}>Årskurs<select id={`${id}-grade`} value={selection.grade ?? ''} disabled={disabled}
       onChange={e => patch({ grade: e.target.value ? Number(e.target.value) : null })}>
@@ -55,7 +56,7 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
     <label htmlFor={`${id}-status`}>Planstatus<select id={`${id}-status`} value={selection.status} disabled={disabled}
       onChange={e => patch({ status: e.target.value as PlanningSelection['status'] })}>
       <option value="all">Alla planstatusar</option>{Object.entries(planningStatusLabel).filter(([key]) => selection.view !== 'programplan' || !['forslag', 'atersand'].includes(key))
-        .map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+        .map(([key, label]) => <option key={key} value={key}>{selection.view === 'programplan' && key === 'utkast' ? 'Ej fastställda' : label}</option>)}
     </select></label>
     <label htmlFor={`${id}-relation`}>Elevkullar<select id={`${id}-relation`} value={selection.cohortRelation} disabled={disabled}
       onChange={e => patch({ cohortRelation: e.target.value as PlanningSelection['cohortRelation'] })}>
@@ -76,6 +77,13 @@ type Props = { disabled?: boolean; onSecurityFailure: (error: unknown) => boolea
 type Result = { key: string; data: PlanningList | null; error: string | null; notice: string | null; loading: boolean };
 export default function ProtectedPlanList({ disabled = false, onSecurityFailure, onOpen, actions, showFilters = true, programRows }: Props) {
   const { setup, selection, requestChange } = usePlanningContext();
+  const { inbox } = usePlanDecisions();
+  const decisionFor = (kind: 'programplan' | 'timplan', id: string) => inbox?.items.find(item => item.kind === kind && item.planId === id);
+  const decisionText = (kind: 'programplan' | 'timplan', plan: NonNullable<PlanningRow['plan']>) => {
+    const decision = decisionFor(kind, plan.id);
+    if (decision) return `${decisionStageLabel[decision.stage]}${decision.nextActor ? ` · Nästa steg hos ${decisionNextActorLabel(kind, decision.nextActor)}` : ''}`;
+    return kind === 'programplan' && plan.status === 'utkast' ? 'Ej fastställd · Öppna för beslutsstatus' : planningStatusLabel[plan.status];
+  };
   const selectionKey = selection ? JSON.stringify(selection) : '', scopeKey = setup ? JSON.stringify(setup) : '';
   const selected = useMemo(() => selectionKey ? parsePlanningSelection(JSON.parse(selectionKey)) : null, [selectionKey]);
   const key = `${scopeKey}|${selectionKey}`, latest = useRef({ key, onSecurityFailure, requestChange });
@@ -154,7 +162,7 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
                   </details>
                 </th>
                 <td data-label="Skola och elevkull"><strong>{row.schoolName}</strong><small>{row.cohort}</small></td>
-                <td data-label="Programplan">{row.plan ? <><span className="program-row-status">{planningStatusLabel[row.plan.status]}</span><small>Version {row.plan.version}</small></> : <span className="program-row-status">Inte skapad</span>}</td>
+                <td data-label="Programplan">{row.plan ? <><span className="program-row-status">{decisionText('programplan', row.plan)}</span><small>Version {row.plan.version}</small></> : <span className="program-row-status">Inte skapad</span>}</td>
                 <td data-label="Skolans timplan">{timplan ? <><span className="program-row-status program-row-status-created">Timplan skapad</span>
                   <small>{planningStatusLabel[timplan.status]} · Version {timplan.version}</small>
                   <small>Bygger på programplan v{timplan.sourceVersion}{row.plan && timplan.sourcePlanId !== row.plan.id ? ' (annan version)' : ''}</small></>
@@ -167,8 +175,8 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
                     aria-label={`${timplan ? 'Öppna timplan' : 'Skapa timplan'} för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version ?? 'saknas'}`}
                     onClick={() => programRows.onTimplan(row)}>{timplan ? 'Öppna timplan' : 'Skapa timplan'}</button>}
                   <button type="button" disabled={locked} onClick={() => onOpen(row)}
-                    aria-label={`Öppna ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
-                    {row.plan ? 'Öppna programplan' : 'Öppna utbildning'}</button>
+                    aria-label={`${row.plan && decisionFor('programplan', row.plan.id)?.task === 'review' ? 'Granska och besluta om' : 'Öppna'} ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
+                    {row.plan ? decisionFor('programplan', row.plan.id)?.task === 'review' ? 'Granska och besluta' : 'Öppna programplan' : 'Öppna utbildning'}</button>
                 </td>
               </tr>;
             }
@@ -177,7 +185,7 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
               <td data-label="Elevkull">{row.cohort}<small>{planningRelationLabel[row.relation]}{row.start.startedOn ? ` · Start ${row.start.startedOn}` : ''}</small></td>
               <td data-label="Årskurs">{grade === null ? row.schoolform === 'introduktionsprogram' ? 'Veckoram' : 'Okänd årskurs' : `Åk ${grade}`}</td>
               <td data-label="Planversion" className="plan-list-secondary">{row.plan ? `Version ${row.plan.version}` : 'Saknas'}{selected.view === 'timplan' && row.schoolform === 'gymnasium' && <small>{row.source ? `Bygger på programplan · version ${row.source.version}` : 'Programplan som underlag saknas'}</small>}</td>
-              <td data-label="Status">{row.plan ? planningStatusLabel[row.plan.status] : 'Plan saknas'}</td>
+              <td data-label="Status">{row.plan ? decisionText(selected.view === 'programplan' ? 'programplan' : 'timplan', row.plan) : 'Plan saknas'}</td>
               {selected.schoolform === 'gymnasium' && <td data-label="Årets poäng" className="plan-list-secondary">{planningMeasureText(metrics.points)}</td>}
               <td data-label={selected.view === 'timplan' ? selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar' : 'Underlag'} className="plan-list-secondary">{selected.view === 'timplan' ? planningMeasureText(metrics.hours) : row.underlag === 'missing' ? 'Programplan saknas' : row.underlag === 'forecast' ? 'Prognos' : 'Programram'}</td>
               <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={`Öppna ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>

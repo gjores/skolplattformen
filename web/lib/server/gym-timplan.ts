@@ -34,7 +34,7 @@ function rawSource(value: unknown): RawSource {
     status: gymSourceStatus(r.status), catalogId: basis?.catalogId ?? null, startedOn: basis?.startedOn ?? null,
     educationRevision: gymInteger(r.educationRevision), education }, basis, distribution, rows, archived: gymBoolean(r.archived) };
 }
-async function projectSource(sourceValue: unknown, catalogValue: unknown) {
+export async function projectSource(sourceValue: unknown, catalogValue: unknown) {
   const source = rawSource(sourceValue), missing: string[] = [];
   if (source.archived) missing.push('Utbildningen är arkiverad.');
   if (source.projected.status === 'ersatt') missing.push('Programplansversionen är ersatt. Välj den aktuella versionen.');

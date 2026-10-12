@@ -6,7 +6,9 @@ import ProtectedPlanList from '../../app/protected-plan-list';
 import ProgramplanList from '../../app/protected-programplan-list';
 import { PlanningContextBar, PlanningContextProvider } from '../../app/planning-context';
 import { readPlanLocation, type PlanLocation } from '../../lib/protected-plan-location';
-import { UnsavedChangesProvider } from '../../lib/unsaved-changes';
+import PlanDecisionPanel from '../../app/plan-decision-panel';
+import { PlanDecisionProvider, DecisionIndicator, DecisionInbox } from '../../app/plan-decision-context';
+import { useHasUnsaved, UnsavedChangesProvider } from '../../lib/unsaved-changes';
 
 function ListHarness() {
   const [location, setLocation] = useState<PlanLocation | null>(() => readPlanLocation(window.location.search));
@@ -20,5 +22,15 @@ function ListHarness() {
   </PlanningContextProvider></UnsavedChangesProvider>;
 }
 
+function DecisionHarness() {
+  const blocked = useHasUnsaved('navigation-block:');
+  const [changed, setChanged] = useState(0);
+  return <PlanDecisionProvider active scopeKey="synthetic-decisions" onSessionLost={() => { throw Error('Unexpected session loss'); }}>
+    <main className="workspace"><DecisionIndicator onOpen={() => {}}/><button disabled={blocked}>Lämna planen</button>
+      <PlanDecisionPanel kind="programplan" planId="77101200-0000-4000-8000-000000000020" revision={0} disabled={false} onSecurityFailure={() => false} onChanged={() => setChanged(n => n + 1)}/>
+      <DecisionInbox roleLabel="Huvudman" onOpen={() => {}}/><output data-testid="decision-changed">{changed}</output>
+    </main>
+  </PlanDecisionProvider>;
+}
 // The browser suite intercepts every API call; this page has no backend connection.
-createRoot(document.getElementById('root')!).render(new URLSearchParams(window.location.search).has('listHarness') ? <ListHarness/> : <ProtectedHome/>);
+createRoot(document.getElementById('root')!).render(new URLSearchParams(window.location.search).has('decisionHarness') ? <UnsavedChangesProvider><DecisionHarness/></UnsavedChangesProvider> : new URLSearchParams(window.location.search).has('listHarness') ? <ListHarness/> : <ProtectedHome/>);

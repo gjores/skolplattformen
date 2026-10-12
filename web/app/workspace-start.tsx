@@ -4,12 +4,15 @@ import { ArrowRight, CalendarClock, GraduationCap, ShieldCheck, Users } from 'lu
 import type { ActiveContext } from './context-switch';
 import type { ProtectedView } from './protected-home';
 import './workspace-start.css';
+import { DecisionInbox } from './plan-decision-context';
+import type { PlanDecisionItem } from '@/lib/plan-decision.ts';
 
-export default function WorkspaceStart({ context, onNavigate, onOverview }: {
-  context: ActiveContext; onNavigate: (view: ProtectedView) => void; onOverview: () => void;
+export default function WorkspaceStart({ context, onNavigate, onOverview, onDecision }: {
+  context: ActiveContext; onNavigate: (view: ProtectedView) => void; onOverview: () => void; onDecision: (item: PlanDecisionItem) => void;
 }) {
   return <section className="workspace-start" aria-label="Start">
     <header><h1>Vad vill du arbeta med?</h1><p>Välj en uppgift för att komma igång.</p></header>
+    <DecisionInbox roleLabel={context.label} onOpen={onDecision}/>
     <div className="workspace-task-grid">
       {['rektor', 'administrator'].includes(context.function) && <button className="workspace-task" onClick={() => onNavigate('elever')}>
         <Users aria-hidden="true"/><span><strong>Hitta en elev</strong><span>Sök elever, öppna elevkort och arbeta med elevregistret.</span></span><ArrowRight aria-hidden="true"/>

@@ -27,7 +27,10 @@ export type ErrorCode =
   | 'programplan_block_packages_in_use'
   | 'programplan_start_passed'
   | 'gym_timplan_source_not_ready'
-  | 'gym_timplan_archived';
+  | 'gym_timplan_archived'
+  | 'programplan_submitted'
+  | 'plan_decision_conflict'
+  | 'plan_decision_blocked';
 
 export function correlationId(): string {
   return crypto.randomUUID();

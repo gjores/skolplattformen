@@ -11,7 +11,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import { planningYearLabel, type GymYearProjection } from '@/lib/planning-year-model.ts';
 
 type Draft = { values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'unread'; error: string | null; mfa: boolean };
-type Props = { yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
+type Props = { disabled?: boolean; yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
   onSaved: (plan: GymTimplan) => void; onSaving: (saving: boolean) => void; onNavigationBlocked: (blocked: boolean) => void; onSecurityFailure: (error: unknown) => boolean };
 const strings = (hours: GymTimplanHours) => hours.map(value => value === null ? '' : String(value));
 const hours = (values: string[]): GymTimplanHours | null => {
@@ -22,7 +22,7 @@ const same = (a: GymTimplanHours, b: GymTimplanHours) => a.every((value, i) => v
 const matches = (values: string[], saved: GymTimplanHours) => { const parsed = hours(values); return !!parsed && same(parsed, saved); };
 
 /** Inlineceller delar den befintliga atomiska radskrivningen. Kön håller CAS-revisioner i ordning. */
-export default function ProtectedGymTimplanHours({ yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
+export default function ProtectedGymTimplanHours({ disabled = false, yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [onlyMissing, setOnlyMissing] = useState(false);
   const latest = useRef(drafts), saved = useRef(plan), queue = useRef(new Set<string>()), running = useRef(false);
@@ -34,7 +34,7 @@ export default function ProtectedGymTimplanHours({ yearProjection, plan, year, o
   useUnsavedChanges(`navigation-block:${unsavedId}`, blocked);
   useEffect(() => { onNavigationBlocked(blocked); }, [blocked, onNavigationBlocked]);
   function reportBlocked() { onNavigationBlocked(running.current || [...latest.current.values()].some(d => d.mode === 'unread')); }
-  const editable = gymTimplanCanEdit(plan);
+  const editable = !disabled && gymTimplanCanEdit(plan);
   function update(next: Map<string, Draft>) { latest.current = next; setDrafts(next); reportBlocked(); }
   function replace(key: string, draft: Draft | null) {
     const next = new Map(latest.current); if (draft) next.set(key, draft); else next.delete(key); update(next);

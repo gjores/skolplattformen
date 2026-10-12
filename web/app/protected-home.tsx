@@ -59,6 +59,8 @@ import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from 
 import type { PlanningSelection, PlanningSetup } from '@/lib/planning-year-contract.ts';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 import WorkspaceStart from './workspace-start';
+import { PlanDecisionProvider, DecisionIndicator } from './plan-decision-context';
+import type { PlanDecisionItem } from '@/lib/plan-decision.ts';
 
 export type ProtectedView = 'start' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
 
@@ -492,6 +494,16 @@ function ProtectedShell() {
     applyPlanningLocation(location); if (mode === 'push') setPlanNavigation(value => value + 1);
     writePlanLocation(location, mode === 'replace');
   }
+  function openDecision(item: PlanDecisionItem) {
+    if (!canNavigate()) return;
+    if (view === 'elever') rememberRegister();
+    const planning = { schoolform: 'gymnasium' as const, unitId: item.unitId, query: '', status: 'all' as const,
+      cohortRelation: 'all' as const, archive: 'all' as const, grade: null, page: 1, selectionRevision: null };
+    const location: PlanLocation = item.kind === 'programplan'
+      ? { view: 'programplaner', programplan: { offeringId: item.offeringId, planId: item.planId, version: item.version }, planning, allYears: true }
+      : { view: 'timplaner', gym: { kind: 'plan', id: item.planId, offeringId: item.offeringId, unitId: item.unitId!, version: item.version }, planning, allYears: true };
+    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+  }
   function goToProgramplan(target: ProgramplanLocation) {
     if (!canNavigate()) return;
     if (view === 'elever') rememberRegister();
@@ -632,6 +644,7 @@ function ProtectedShell() {
   const currentTitle = overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
+    <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
     <PlanningContextProvider key={contextKey} contextKey={contextKey} active={!!validContext && isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function)} location={planningLocation}
       onTransition={transitionPlanning} onSessionLost={clearSession}>
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
@@ -643,6 +656,7 @@ function ProtectedShell() {
         <header className="topbar protected-topbar">
           <div className="breadcrumbs"><SidebarTrigger aria-label="Visa eller dölj navigation" /><span>Arbetsyta</span><strong>{currentTitle}</strong></div>
           <div className="top-actions">
+            {validContext && PLANNING_FUNCTIONS.includes(session.context!.function) && <DecisionIndicator onOpen={() => navigate('start')}/>}
             <span className="demo-pill">Skyddad provmiljö</span>
             {view === 'elever' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
               if (!canNavigate()) return;
@@ -659,7 +673,7 @@ function ProtectedShell() {
           <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 ? <><p>Du har inga uppdrag som gäller idag.</p><Button variant="outline" onClick={() => void logout()}>Logga ut</Button></> : <p>Välj ett giltigt uppdrag i sidhuvudet för att öppna arbetsytan.</p>}</section></main>
         ) : (
           <main id="workspace" className="workspace protected-workspace" key={contextKey}>
-            {view === 'start' && PLANNING_FUNCTIONS.includes(session.context!.function) && <WorkspaceStart context={session.context!} onNavigate={navigate} onOverview={navigateOverview}/>}
+            {view === 'start' && PLANNING_FUNCTIONS.includes(session.context!.function) && <WorkspaceStart context={session.context!} onNavigate={navigate} onOverview={navigateOverview} onDecision={openDecision}/>}
             {navigationNotice && <output data-testid="planning-navigation-notice" className="validation-warning">{navigationNotice}</output>}
             {stepUpWithoutOtp && <output role="alert" className="validation-warning">Verifieringen gav inget bevis med engångskod eftersom ditt konto saknar registrerad engångskod hos inloggningstjänsten. Du kan fortsätta arbeta, men åtgärder som kräver engångskod går inte att göra. Kontakta den som administrerar din inloggning.</output>}
             {mfaRequired && !stepUpWithoutOtp && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
@@ -704,6 +718,7 @@ function ProtectedShell() {
       </Dialog>
     </SidebarProvider>
     </PlanningContextProvider>
+    </PlanDecisionProvider>
   );
 }
 

@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, RefreshCw, Copy, Pencil } from 'lucide-react';
+import PlanDecisionPanel from './plan-decision-panel';
+import { decisionStageLabel } from './plan-decision-context';
+import type { PlanDecisionStage } from '@/lib/plan-decision.ts';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { confirmDiscard, useUnsavedChanges, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
@@ -46,6 +49,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialPlan?.unitId ?? planningUnit);
   const selectedUnit = useRef<string | null>(selectedUnitId);
   const hasUnsaved = useHasUnsaved();
+  const boardDirty = useHasUnsaved('programplan-board-');
+  const decisionPending = useHasUnsaved('navigation-block:plan-decision:');
+  const [decision, setDecision] = useState<{ planId: string; stage: PlanDecisionStage | null } | null>(null);
   const hasNavigationBlock = useHasUnsaved('navigation-block:');
   const [boardBlocked, setBoardBlocked] = useState(false), boardBlockedRef = useRef(false);
   const [recovery, setRecovery] = useState<ReadRecovery | null>(null), recoveryRef = useRef<ReadRecovery | null>(null);
@@ -474,7 +480,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const canEditInline = !!draft && editableRefs && draft.mode === 'edit';
   const ready = !!plan && plan.status === 'utkast' && boardActive && !!analysis?.ready;
   const incomplete = !!plan?.basisReference && plan.basisReference.choiceBlocks === undefined;
-  const statusText = plan ? `${incomplete ? 'Ofullständig' : ready ? 'Klar för beslut' : programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
+  const decisionStage = decision?.planId === plan?.id ? decision?.stage : null;
+  const statusText = plan ? `${decisionStage ? decisionStageLabel[decisionStage] : incomplete ? 'Ofullständig' : programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
   const selectedSchool = workspace?.lifecycle.units.find(unit => unit.id === selectedUnitId && unit.inMandate
     && planningSetup?.units.some(readable => readable.unitId === unit.id && readable.canRead.programplan));
   const lifecycleActions = workspace && context.function !== 'administrator' ? programplanLifecycleActions(workspace.lifecycle, context.function === 'huvudman' ? 'huvudman' : 'rektor') : null;
@@ -482,7 +489,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     versions: workspace.versionCount, lifecycle: workspace.lifecycle,
     startEditable: workspace.versionCount === 1 && workspace.versions[0]?.status === 'utkast' && !!workspace.versions[0]?.basisReference } : null;
   // D-01: planen ändras bara när servern säger att den är framtida och inte arkiverad.
-  const changePlan = context.function !== 'administrator' && (lifecycleActions?.changePlan ?? true), lockReason = context.function === 'administrator' ? 'Du kan läsa planen men inte ändra den.' : workspace ? programplanLockReason(workspace.lifecycle) : null;
+  const changePlan = (!plan || decisionStage !== null && decisionStage !== 'submitted') && !decisionPending && context.function !== 'administrator' && (lifecycleActions?.changePlan ?? true), lockReason = context.function === 'administrator' ? 'Du kan läsa planen men inte ändra den.' : workspace ? programplanLockReason(workspace.lifecycle) : null;
   async function recoverTarget(target: ReadRecovery) {
     rememberRecovery(target);
     if (!target.deleted) {
@@ -556,7 +563,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
     <ProgramplanBoard yearView={yearProjection ? { projection: yearProjection, year: shownYear, onYear: changeMatrixYear,
-      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}-${changePlan}`} plan={plan} locked={!changePlan} lockReason={lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
+      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}`} plan={plan} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onNavigationBlocked={onBoardBlocked} onTerms={onReadTerms} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,true,true)}/>
   </> : <>
     {plan && !plan.basisReference && planningSelection && <output className="pp-notice">Årsdelen för {planningYearLabel(planningSelection.schoolYear)} saknar verifierat startdatum. Hela planen visas.</output>}
@@ -603,6 +610,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       {lifecycleDialog&&lifecycleTarget&&<LifecycleDialog key={lifecycleDialog} kind={lifecycleDialog} target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
         onChanged={(message,reply)=>lifecycleChanged(message,reply.command==='delete')} onStale={lifecycleStale}/>}
       {workspace&&!draft&&!preparation&&lockReason&&view==='plan'&&<output className="pp-notice ppl-lock">{lockReason}</output>}
+      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={`${plan.revision}:${JSON.stringify(termValues)}`} disabled={busy||boardDirty||ownNavigationBlock} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={fixIssue} actionUnavailable={actionUnavailable}/>}
       {view==='plan'&&<>
         {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">
@@ -651,7 +659,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       </>}
       {!draft&&<div hidden={view==='analysis'}>{planBody}</div>}
       {workspace&&<details className="pp-underlying pps-details"><summary>Underlag och tidigare versioner</summary>
-        <section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Underlag</h3><p>Fastställande är stängt här. Gymnasiepoäng omvandlas inte till undervisningstimmar.</p>
+        <section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Underlag</h3><p>Beslutsstatus och nästa steg visas ovan. Gymnasiepoäng omvandlas inte till undervisningstimmar.</p>
           {plan&&<p>Version {plan.version} · Revision {plan.revision}{plan.decidedOn&&` · Beslut ${plan.decidedOn}`}</p>}
           {plan?.basisReference&&<p>Utbildningsstart: {plan.basisReference.startedOn}. Katalog, programgrund och start hör till denna version.</p>}
           {workspace.catalog.status==='unselected'&&<p>Inget underlag är valt.</p>}

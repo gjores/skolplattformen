@@ -36,6 +36,9 @@ const ERROR_TEXT: Record<string, string> = {
   programplan_start_passed: 'Utbildningen har redan startat. En ny plan kan bara skapas för en kull som inte har börjat.',
   gym_timplan_source_not_ready: 'Programramen behöver kompletteras. Läs aktuellt underlag innan du skapar timplansutkastet.',
   gym_timplan_archived: 'Utbildningen är arkiverad. Timplanen kan läsas men inte ändras.',
+  programplan_submitted: 'Programplanen är inskickad för beslut. Läs om planen och ta tillbaka förslaget innan du ändrar underlaget.',
+  plan_decision_conflict: 'Planen eller beslutsunderlaget har ändrats. Läs om och granska den aktuella versionen.',
+  plan_decision_blocked: 'Planen behöver kompletteras före beslut. Läs om beslutsunderlaget för att se vad som återstår.',
 };
 
 function isSessionMessage(value: unknown): value is SessionMessage {
