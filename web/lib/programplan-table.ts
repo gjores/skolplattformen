@@ -5,13 +5,14 @@
 // och minus gymnasiegemensamma, programgemensamma och inriktningens ämnen är avräknade är utrymmet
 // för programfördjupning. Skolverkets API anger inte detta utrymme, så det räknas här och visas öppet.
 // Totalsumman är 2 500 poäng för högskoleförberedande program (skollagen bilaga 2, enligt Skolverkets
-// rapport om garanterad undervisningstid). Yrkesprogram omfattar 2 700 eller 2 800 poäng, men
-// underlaget anger inte vilket för varje program; där kan ramen inte kontrolleras och säger det.
+// rapport om garanterad undervisningstid). Verifierade nationella yrkesprogram omfattar 2 700
+// (BF, HT, VO) eller 2 800 poäng, inklusive nivåerna för grundläggande behörighet.
 // Ämnespoängen är kontrollerade mot programstrukturen för humanistiska programmet (bilaga 4, HU25).
 
 import type { CatalogBlockSubject, CatalogProgram } from './programplan-catalog.ts';
 import type { ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
 import type { ProgramplanLevelRef } from './programplan-catalog.ts';
+import { programplanProfile } from './programplan-profile.ts';
 
 export const HIGHER_EDUCATION_TOTAL_POINTS = 2500;
 export const INDIVIDUAL_CHOICE_POINTS = 200;
@@ -31,7 +32,7 @@ export type ProgramFrame = {
 };
 
 export function programTotal(program: CatalogProgram): number | null {
-  return program.category === 'PRELIMINARY_PROGRAM_FOR_HIGHER_EDUCATION' ? HIGHER_EDUCATION_TOTAL_POINTS : null;
+  return programplanProfile(program)?.points ?? null;
 }
 
 const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);

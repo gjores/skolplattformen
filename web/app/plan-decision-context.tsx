@@ -9,7 +9,7 @@ import './plan-decision.css';
 type DecisionContext = { inbox: PlanDecisionInbox | null; loading: boolean; error: string | null; refresh: () => void };
 const Context = createContext<DecisionContext>({ inbox: null, loading: false, error: null, refresh: () => {} });
 export const usePlanDecisions = () => useContext(Context);
-export const decisionStageLabel = { draft: 'Utkast', submitted: 'Inväntar beslut', returned: 'Återsänd för ändring', approved: 'Fastställd', replaced: 'Ersatt' };
+export const decisionStageLabel = { draft: 'Utkast', submitted: 'Inväntar beslut', returned: 'Tillbaka för rättning', approved: 'Fastställd', replaced: 'Ersatt' };
 export const decisionActorLabel = { huvudman: 'huvudmannen', rektor: 'rektor' };
 export const decisionNextActorLabel = (kind: 'programplan' | 'timplan', actor: 'huvudman' | 'rektor') => kind === 'timplan' && actor === 'rektor' ? 'rektor eller skoladministratör' : decisionActorLabel[actor];
 export function PlanDecisionProvider({ active, scopeKey, onSessionLost, children }: {
@@ -52,7 +52,7 @@ export function DecisionIndicator({ onOpen }: { onOpen: () => void }) {
     <ClipboardCheck size={18} aria-hidden="true"/><span>Att göra</span><strong>{error ? '!' : inbox ? inbox.actionCount : loading ? '…' : '–'}</strong>
   </button>;
 }
-const taskLabel = { prepare: 'Förbered beslut', review: 'Granska och besluta', revise: 'Ändra återsänd plan', waiting: 'Inväntar beslut', blocked: 'Visa varför' };
+const taskLabel = { prepare: 'Förbered beslut', review: 'Granska och besluta', revise: 'Läs återkoppling och rätta', waiting: 'Inväntar beslut', blocked: 'Visa varför' };
 export function DecisionInbox({ roleLabel, onOpen }: { roleLabel: string; onOpen: (item: PlanDecisionItem) => void }) {
   const { inbox, loading, error, refresh } = usePlanDecisions();
   const mine = inbox?.items.filter(item => !['waiting', 'blocked'].includes(item.task)) ?? [];

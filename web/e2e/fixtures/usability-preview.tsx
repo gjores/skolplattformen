@@ -27,7 +27,7 @@ function DecisionHarness() {
   const [changed, setChanged] = useState(0);
   return <PlanDecisionProvider active scopeKey="synthetic-decisions" onSessionLost={() => { throw Error('Unexpected session loss'); }}>
     <main className="workspace"><DecisionIndicator onOpen={() => {}}/><button disabled={blocked}>Lämna planen</button>
-      <PlanDecisionPanel kind="programplan" planId="77101200-0000-4000-8000-000000000020" revision={0} disabled={false} onSecurityFailure={() => false} onChanged={() => setChanged(n => n + 1)}/>
+      <PlanDecisionPanel kind={new URLSearchParams(window.location.search).get('decisionKind') === 'timplan' ? 'timplan' : 'programplan'} planId="77101200-0000-4000-8000-000000000020" revision={0} disabled={false} onSecurityFailure={() => false} onChanged={() => setChanged(n => n + 1)}/>
       <DecisionInbox roleLabel="Huvudman" onOpen={() => {}}/><output data-testid="decision-changed">{changed}</output>
     </main>
   </PlanDecisionProvider>;

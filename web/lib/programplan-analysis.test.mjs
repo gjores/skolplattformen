@@ -32,10 +32,12 @@ test('saknat startdatum, alternativ och saknade nivåer flaggas', () => {
   assert.ok(a.issues.some(i => i.id.startsWith('levels-programmeSpecific')));
 });
 
-test('yrkesprogram får ingen gissad gräns utan en kontrollpunkt', () => {
+test('yrkesprogram jämförs med verifierad ram och visar manuell APL-kontroll', () => {
   const a = analyseProgramplan({ program: program('VO25'), orientationCode: null, refs: [ref('A1')], startedOn: '2026-08-17', sourceFetched: null });
-  assert.ok(ids(a).includes('total-unverified'));
-  assert.equal(a.counts.fel, 0);
+  assert.ok(!ids(a).includes('total-unverified'));
+  assert.ok(ids(a).includes('specialization-under'));
+  assert.ok(ids(a).includes('vocational-apl'));
+  assert.equal(a.counts.fel, 1);
 });
 
 test('saknad inriktning är fel', () => {

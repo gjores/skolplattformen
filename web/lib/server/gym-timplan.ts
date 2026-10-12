@@ -55,7 +55,7 @@ export async function projectSource(sourceValue: unknown, catalogValue: unknown)
   const byKey = new Map(source.distribution.map(row => [row.rowKey, row.points]));
   const rows: GymTimplanRow[] = derived.map(row => ({ ...row, pointTerms: byKey.get(row.key) ?? [0, 0, 0, 0, 0, 0],
     rowKind: row.key.startsWith('block:') ? 'block' : row.key.startsWith('alternative:') ? 'alternative' : row.key === 'meta:diplomaWork' ? 'diplomaWork' : 'fixed' }));
-  if (programTotal(program) === null) missing.push('Yrkesprogrammets poängram är ännu inte verifierad för den här övergången.');
+  if (programTotal(program) === null) missing.push('Programtypen saknar verifierad poängram för den här övergången.');
   if (source.basis.choiceBlocks === undefined) missing.push('Programplanen saknar den aktuella ramen för alternativa ämnen och valbara block.');
   const analysis = analyseProgramplan({ program, orientationCode: source.basis.orientationCode, refs: source.basis.specializationRefs,
     basisReference: source.basis, startedOn: source.basis.startedOn, sourceFetched: catalog.source.fetched,

@@ -10,8 +10,8 @@ import { decisionNextActorLabel, decisionStageLabel, usePlanDecisions } from './
 import MfaStepUpNotice from './mfa-step-up';
 
 type Command = { commandId: string; kind: PlanDecisionKind; planId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
-const actionLabel = { submit: 'Skicka för beslut', return: 'Återsänd för ändring', approve: 'Fastställ planen', withdraw: 'Ta tillbaka för ändring' };
-const historyLabel = { submit: 'Skickad för beslut', return: 'Återsänd för ändring', approve: 'Fastställd', withdraw: 'Tillbakatagen för ändring' };
+const actionLabel = { submit: 'Skicka för beslut', return: 'Skicka tillbaka för rättning', approve: 'Fastställ planen', withdraw: 'Ta tillbaka för ändring' };
+const historyLabel = { submit: 'Skickad för beslut', return: 'Skickad tillbaka för rättning', approve: 'Fastställd', withdraw: 'Tillbakatagen för ändring' };
 export default function PlanDecisionPanel({ kind, planId, revision, disabled, onChanged, onSecurityFailure, onStage }: {
   kind: PlanDecisionKind; planId: string; revision: number | string; disabled: boolean; onStage?: (stage: PlanDecisionStage | null) => void;
   onChanged: () => void | Promise<void>; onSecurityFailure: (error: unknown) => boolean;
@@ -67,6 +67,7 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
       basisHash: detail.basisHash, comment: comment.trim(), confirmedChecks: checks });
   }
   const ready = !!detail && detail.blockers.length === 0 && detail.checks.every(check => checks.includes(check.id));
+  const feedback = detail?.stage === 'returned' ? detail.history.find(event => event.action === 'return') : null;
   return <section className="plan-decision-panel" aria-label="Beslut och nästa steg" aria-busy={loading || sending}>
     <div className="plan-decision-heading"><div><h2>Beslut och nästa steg</h2>{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
       <Button variant="outline" disabled={loading || pending !== null || disabled} onClick={() => setRetry(n => n + 1)}>Läs beslutsstatus</Button></div>
@@ -76,14 +77,21 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
     {pending && <Button disabled={sending} onClick={() => void execute(pending)}>{sending ? 'Sparar beslut…' : 'Kontrollera och försök igen'}</Button>}
     {detail && <>
       <ol className="plan-decision-steps" aria-label="Planens beslutsgång">{(['draft','submitted','approved'] as const).map((stage, index) => <li key={stage} aria-current={detail.stage === stage || stage === 'draft' && detail.stage === 'returned' ? 'step' : undefined}>{index + 1}. {stage === 'draft' ? 'Bearbeta utkast' : stage === 'submitted' ? 'Granska och besluta' : 'Fastställd plan'}</li>)}</ol>
-      {detail.stage === 'returned' && <p>Planen behöver ändras. Läs återkopplingen i beslutshistoriken och skicka sedan planen för ett nytt beslut.</p>}
-      {detail.stage === 'submitted' && <p>Underlaget är inskickat för beslut. Ta tillbaka det innan du gör ändringar.</p>}
+      {detail.stage === 'returned' && <section className="decision-feedback" aria-label="Återkoppling från huvudmannen">
+        <h3>Det här behöver rättas</h3>
+        {feedback ? <><p className="decision-feedback-comment">{feedback.comment}</p><p className="decision-secondary">{feedback.actorName} · {new Date(feedback.at).toLocaleString('sv-SE')}</p></> : <p>Öppna beslutshistoriken för tidigare återkoppling.</p>}
+        <p>{kind === 'programplan' ? 'Rektor' : 'Rektor eller skoladministratör'} rättar och sparar planen och skickar den sedan för ett nytt beslut.</p>
+      </section>}
+      {detail.stage === 'submitted' && <p>{detail.actions.includes('return')
+        ? 'Granska underlaget. Om något är fel, beskriv vad som behöver rättas i kommentaren och skicka tillbaka planen. Fastställ först när granskningen är klar.'
+        : detail.actions.includes('withdraw') ? 'Planen väntar på huvudmannens beslut. Ta tillbaka den om du behöver göra ändringar.' : 'Planen väntar på huvudmannens beslut och kan inte ändras under granskningen.'}</p>}
       {detail.stage === 'approved' && <p>Den här versionen är fastställd och låst. Fortsatta ändringar görs i en ny version.</p>}
       {detail.sourceInfo && <p className="decision-secondary">{detail.sourceInfo}</p>}
       {detail.blockers.length > 0 && <div><strong>Behöver åtgärdas före beslut</strong><ul className="decision-blockers">{detail.blockers.map((blocker, index) => <li key={index}>{blocker}</li>)}</ul></div>}
       {detail.actions.some(action => action === 'approve' || action === 'submit') && detail.checks.map(check => <label className="decision-check" key={check.id}><input type="checkbox" checked={checks.includes(check.id)} disabled={disabled || !!pending} onChange={event => setChecks(current => event.target.checked ? [...current, check.id] : current.filter(id => id !== check.id))}/><span>{check.label}</span></label>)}
       {detail.actions.length > 0 && <>
-        <label className="decision-comment">Kommentar{detail.actions.includes('return') ? ' (obligatorisk vid återsändning)' : ' (frivillig)'}<textarea value={comment} maxLength={2000} disabled={disabled || !!pending} onChange={event => setComment(event.target.value)}/></label>
+        <label className="decision-comment">Kommentar{detail.actions.includes('return') ? ' – vad behöver rättas?' : ' (frivillig)'}<textarea value={comment} maxLength={2000} disabled={disabled || !!pending} onChange={event => setComment(event.target.value)}/></label>
+        {detail.actions.includes('return') && <p className="decision-secondary">En kommentar krävs för att skicka tillbaka planen. Den visas för den som ska rätta och sparas i beslutshistoriken.</p>}
         {disabled && <p>Spara eller avsluta pågående ändringar innan du går vidare med beslutet.</p>}
         <div className="decision-actions">{detail.actions.map(action => <Button key={action} variant={action === 'approve' || action === 'submit' ? 'default' : 'outline'}
           disabled={disabled || !!pending || loading || (action === 'approve' || action === 'submit') && !ready || action === 'return' && !comment.trim()}

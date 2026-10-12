@@ -4,6 +4,7 @@
 // övrigt redovisas som "Att kontrollera" i stället för att gissas.
 
 import type { CatalogProgram, ProgramplanLevelRef, ProgramplanBasisReference, ProgramplanCatalog } from './programplan-catalog.ts';
+import { programplanProfile, vocationalEligibilityComplete } from './programplan-profile.ts';
 import {programplanChoiceBlocks} from './programplan-choice-blocks.ts';
 import {programplanPackageKey,programplanPackageLevelKey,programplanPackageLevelRank,programplanPackageLevels,validateProgramplanPackageEntries,type ProgramplanUnitPackages,type ProgramplanValpaket} from './programplan-packages.ts';
 import {programplanLanguageName} from './programplan-languages.ts';
@@ -61,13 +62,17 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
   if (frame.unresolved === 'orientation') {
     add({ id: 'orientation-missing', category: 'fel', title: 'Inriktning saknas', detail: 'Programmet har inriktningar men ingen är vald. Poängramen för programfördjupning kan inte räknas ut.', part: 'orientation', rule: RULE_STRUCTURE, action: 'Välj inriktning', target: { kind: 'orientation' } });
   } else if (frame.unresolved === 'total') {
-    add({ id: 'total-unverified', category: 'info', title: 'Poängramen kan inte kontrolleras', detail: `Yrkesprogram omfattar 2 700 eller 2 800 poäng och underlaget anger inte vilket. Programfördjupningen (${fmt(status.chosen)} poäng) jämförs därför inte mot en gräns.`, part: 'specialization', rule: RULE_TOTAL, action: null });
+    add({ id: 'total-unverified', category: 'fel', title: 'Poängramen kan inte kontrolleras', detail: `Programtypen saknar verifierad regelprofil. Programfördjupningen (${fmt(status.chosen)} poäng) jämförs därför inte mot en gräns.`, part: 'specialization', rule: RULE_TOTAL, action: null });
   } else if (status.over) {
     add({ id: 'specialization-over', category: 'fel', title: 'Programfördjupningen ryms inte i ramen', detail: `${fmt(status.chosen)} poäng valda, högst ${fmt(status.room!)} får väljas. Ta bort ${fmt(status.chosen - status.room!)} poäng.`, part: 'specialization', rule: RULE_TOTAL, action: 'Ta bort nivåer', target: { kind: 'specialization', mode: 'remove' } });
   } else if (status.remaining! > 0) {
     add({ id: 'specialization-under', category: 'fel', title: 'Outnyttjat utrymme', detail: `${fmt(status.remaining!)} poäng programfördjupning är inte fördelade. Eleverna når inte programmets ${fmt(frame.total!)} poäng.`, part: 'specialization', rule: RULE_TOTAL, action: 'Lägg till nivå', target: { kind: 'specialization', mode: 'add' } });
   }
 
+  if (programplanProfile(program)?.vocational) {
+    if (!vocationalEligibilityComplete(program)) add({ id:'vocational-eligibility',category:'fel',title:'Underlaget saknar nivåer för grundläggande behörighet',detail:'Den gemensamma planen behöver engelska nivå 1–2 och svenska eller svenska som andraspråk nivå 1–3. Använd ett fullständigt versionsbundet underlag.',part:'foundation',rule:RULE_STRUCTURE,action:null });
+    add({id:'vocational-apl',category:'info',title:'Kontrollera arbetsplatsförlagt lärande',detail:'Minst 15 veckors APL ingår i yrkesprogrammet. Vid lärlingsutbildning gäller mer än halva utbildningen. APL kontrolleras manuellt inför beslut.',part:'meta',rule:'Gymnasieförordningen 4 kap. 12 §',action:null});
+  }
   if (input.basisReference && input.basisReference.choiceBlocks === undefined) add({ id: 'legacy-incomplete', category: 'fel', title: 'Ofullständig plan', detail: 'Den äldre versionen saknar svenskrader och valbara block. Skapa en ny version för att komplettera planen.', part: 'meta', rule: RULE_STRUCTURE, action: null });
   const current = input.basisReference?.choiceBlocks !== undefined;
   if (current && input.basisReference!.choiceBlocks!.filter(b => b.kind === 'individualChoice').reduce((n,b) => n+b.points,0) !== 200) add({id:'individual-choice-points',category:'fel',title:'Individuellt val ska omfatta 200 poäng',detail:'Ändra blocken så att deras sammanlagda poäng blir 200.',part:'other',rule:RULE_TOTAL,action:null});

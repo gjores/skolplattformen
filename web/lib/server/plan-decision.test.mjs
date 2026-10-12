@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { registerHooks } from 'node:module';
 import { defaultProgramplanChoiceBlocks } from '../programplan-choice-blocks.ts';
 import { programFrame } from '../programplan-table.ts';
+import { programplanProfile, VOCATIONAL_GY25_CODES } from '../programplan-profile.ts';
 import { programplanLevelRanks, programplanTermRows, suggestProgramplanTerms } from '../programplan-terms.ts';
 
 const id='55402000-0000-4000-8000-000000000001',unit='55402000-0000-4000-8000-000000000002',offering='55402000-0000-4000-8000-000000000003',planId='55402000-0000-4000-8000-000000000004';
@@ -87,4 +88,38 @@ test('timplan submit requires complete positive rows and 2180 hours after indepe
  let input=make();assert.equal((await change(request('andra',input))).status,200);
  for(const missing of [null,0]){input=make();state.reply.hours[0].hours=state.reply.hours[0].hours.map(v=>v===null?null:missing);assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);}
  input=make();state.reply.hours.forEach(row=>{row.hours=row.hours.map(v=>v===null?null:1);});assert.equal((await change(request('andra',input))).status,409);
+});
+
+function vocationalReply(code,kind='programplan',startedOn='2027-08-01'){
+ reset();const p=artifact.programs.find(p=>p.code===code),orientation=p.orientations[0]?.code??null;
+ const frame=programFrame(p,orientation),choiceBlocks=defaultProgramplanChoiceBlocks(p,orientation);
+ if(frame.specializationRoom)choiceBlocks.push({id:'fordj',name:'Programfördjupning',kind:'specialization',points:frame.specializationRoom});
+ const basisReference={catalogId:artifact.catalogId,programRef:{code,version:p.version},orientationCode:orientation,startedOn,specializationRefs:[],choiceBlocks};
+ const rows=programplanTermRows(p,basisReference),distribution=suggestProgramplanTerms(rows,[],programplanLevelRanks(p));
+ Object.assign(state.reply.source,{basisReference,distribution,rows:rows.map(r=>({key:r.key,points:r.points})),education:{name:'Syntetiskt yrkesprogram',cohort:'27/28',programCode:code,orientationCode:orientation}});
+ state.reply.checks=[...(kind==='programplan'?['structure','choices']:['teacher-led','choice-paths']),'eligibility','apl'].map(id=>({id,label:id}));
+ if(kind==='timplan'){
+  Object.assign(state.reply,{kind,planId,unitId:unit,schoolName:'Syntetisk skola',revision:4});
+  const count=distribution.reduce((n,row)=>n+row.points.filter(p=>p>0).length,0),total=programplanProfile(p).hours;
+  let remainder=total%count;
+  state.reply.hours=distribution.map(row=>({rowKey:row.rowKey,hours:row.points.map(p=>p>0?Math.floor(total/count)+(remainder-->0?1:0):null)}));
+ }
+ return {...command(),kind,planId:kind==='timplan'?planId:id,confirmedChecks:state.reply.checks.map(c=>c.id)};
+}
+test('all twelve complete vocational programmes pass independent programme and exact minimum-hour decision checks',async()=>{
+ for(const code of VOCATIONAL_GY25_CODES)for(const kind of ['programplan','timplan']){
+  const input=vocationalReply(code,kind);assert.equal((await change(request('andra',input))).status,200,`${code}/${kind}`);
+ }
+});
+test('vocational decision rejects missing checks, one point/hour too little and incompatible dates',async()=>{
+ for(const code of ['BF25','FR25']){
+  let input=vocationalReply(code);input.confirmedChecks.pop();assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+  input=vocationalReply(code,'timplan');const hours=state.reply.hours[0].hours;hours[hours.findIndex(v=>v!==null)]--;assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+  input=vocationalReply(code);const source=state.reply.source,p=artifact.programs.find(p=>p.code===code);source.basisReference.choiceBlocks.find(b=>b.kind==='specialization').points--;
+  const rows=programplanTermRows(p,source.basisReference);source.rows=rows.map(r=>({key:r.key,points:r.points}));source.distribution=suggestProgramplanTerms(rows,[],programplanLevelRanks(p));
+  assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+  input=vocationalReply(code,'programplan','2028-07-01');assert.equal((await change(request('andra',input))).status,200);
+  input=vocationalReply(code,'programplan','2028-07-02');assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+  input=vocationalReply(code,'programplan','2025-06-30');assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+ }
 });

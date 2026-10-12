@@ -4,8 +4,10 @@ import { projectSource } from './gym-timplan.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type Tx } from './db.ts';
 import { mandateOperation } from './mandate-route.ts';
+import { programplanProfile } from '../programplan-profile.ts';
 
 const DETAIL_KEYS = ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','revision','decisionRevision','basisHash','actions','blockers','checks','history','sourceInfo'];
+const formatCount = (value: number) => value.toLocaleString('sv-SE').replaceAll('\u00a0', ' ');
 async function operation<T>(fn: () => Promise<T>): Promise<T> {
   try { return await mandateOperation(async () => {
     try { return await fn(); } catch (error) {
@@ -30,13 +32,15 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
   const blockers = [...body.blockers,...readiness.missing];
   const catalog = catalogValue as {programs?: {code:string;category:string;startDate:string|null;endDate:string|null;canceledDate:string|null}[]} | null;
   const program = catalog?.programs?.find(p => p.code === source.basis?.programRef.code);
+  const profile = program ? programplanProfile(program) : null;
   const started = source.basis?.startedOn;
-  if (!program || program.category !== 'PRELIMINARY_PROGRAM_FOR_HIGHER_EDUCATION' || !program.code.endsWith('25')
+  if (!program || !profile
     || !started || started < '2025-07-01' || !program.startDate || started < program.startDate
     || program.endDate && started > program.endDate || program.canceledDate && started >= program.canceledDate) {
     blockers.push('Beslutsreglerna är inte verifierade för den här programtypen och elevkullen.');
   }
-  if (rows.reduce((sum,row) => sum+row.points,0) !== 2500) blockers.push('Programplanen behöver omfatta exakt 2 500 poäng.');
+  if (profile && rows.reduce((sum,row) => sum+row.points,0) !== profile.points) blockers.push(`Programplanen behöver omfatta exakt ${formatCount(profile.points)} poäng.`);
+  if (profile?.vocational && started && started >= '2028-07-02') blockers.push('Beslutsregler för yrkesprov från höstterminen 2028 saknas. Den här elevkullen kan inte fastställas med gymnasiearbete som enda modell.');
   const hours = gymArray(hoursValue,2000).map(value => {
     const r = gymShape(value,['rowKey','hours']); return {rowKey:gymRowKey(r.rowKey),hours:parseGymTimplanHours(r.hours)};
   });
@@ -53,9 +57,10 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
       total += values.reduce<number>((sum,hours)=>sum+(hours??0),0);
     }
     if (incomplete) blockers.push('Fördela undervisningstid på varje rad och i alla aktiva terminsfält.');
-    if (total < 2180) blockers.push('Timplanen innehåller färre än 2 180 planerade undervisningstimmar.');
+    if (profile && total < profile.hours) blockers.push(`Timplanen innehåller färre än ${formatCount(profile.hours)} planerade undervisningstimmar.`);
   }
   const expectedChecks = expected.kind === 'programplan' ? ['structure','choices'] : ['teacher-led','choice-paths'];
+  if (profile?.vocational) expectedChecks.push('eligibility','apl');
   if (body.checks.length !== expectedChecks.length || expectedChecks.some(id=>!body.checks.some(check=>check.id===id))) throw new TypeError('Invalid decision checks');
   return {...body,blockers:[...new Set(blockers)]};
 }

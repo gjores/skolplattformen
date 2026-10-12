@@ -26,12 +26,13 @@ test('inriktning som saknas ger okänd ram i stället för en gissning', () => {
   assert.equal(canAddLevel(programFrame(program('ES25'), null), [], 100), false);
 });
 
-test('yrkesprogram har ingen verifierad totalsumma och blir därför inte kontrollerade mot en gräns', () => {
+test('vård- och omsorgsprogrammets fullständiga ram är 2700 poäng', () => {
   const p = program('VO25'), frame = programFrame(p, null);
   assert.equal(p.orientations.length, 0);
   assert.equal(frame.sections.length, 2);
-  assert.equal(frame.unresolved, 'total');
-  assert.equal(frame.specializationRoom, null);
+  assert.equal(frame.unresolved, null);
+  assert.equal(frame.total, 2700);
+  assert.equal(frame.specializationRoom, 200);
   assert.equal(canAddLevel(frame, [], 100), true);
 });
 

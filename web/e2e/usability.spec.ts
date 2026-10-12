@@ -76,10 +76,10 @@ for (const role of ['huvudman', 'rektor', 'administrator']) test(`start visar re
   await page.goto(base);
   await expect(page.getByRole('heading', { name: 'Vad vill du arbeta med?' })).toBeVisible();
   await expect(page.getByRole('button', { name: `Att göra: 1 uppgift, ${role === 'huvudman' ? 1 : 0} beslut` })).toBeVisible();
-  await expect(page.getByRole('button', { name: role === 'huvudman' ? 'Granska och besluta' : role === 'administrator' ? 'Ändra återsänd plan' : 'Förbered beslut', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: role === 'huvudman' ? 'Granska och besluta' : role === 'administrator' ? 'Läs återkoppling och rätta' : 'Förbered beslut', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Visa varför', exact: true })).toBeVisible();
   await expect(page.getByText('1 uppgift att arbeta vidare med', { exact: true })).toBeVisible();
-  if (role === 'administrator') await expect(page.getByText('Återsänd för ändring · Nästa steg hos rektor eller skoladministratör', { exact: true })).toBeVisible();
+  if (role === 'administrator') await expect(page.getByText('Tillbaka för rättning · Nästa steg hos rektor eller skoladministratör', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /Hitta en elev/ })).toHaveCount(role === 'huvudman' ? 0 : 1);
   await expect(page.getByRole('button', { name: /Hantera uppdrag/ })).toHaveCount(role === 'administrator' ? 0 : 1);
   await fits(page);
@@ -203,12 +203,12 @@ test('huvudmannen ser befintlig timplan men får ingen skapaknapp', async ({ pag
 });
 
 
-test('beslutsflödet visar nästa roll, kräver granskning och bekräftar låst version', async ({ page }, info) => {
+for (const kind of ['programplan', 'timplan'] as const) test(`${kind}: huvudmannen kommenterar och skickar tillbaka före fastställande`, async ({ page }, info) => {
   let stage = 'draft', revision = 0;
   const commands: Record<string, unknown>[] = [];
   const history: Record<string, unknown>[] = [];
-  const detail = () => ({ kind: 'programplan', planId: id(20), offeringId: id(10), unitId: null, educationName: 'Samhällsvetenskap', schoolName: null,
-    version: 1, revision, decisionRevision: revision, basisHash: `sha256:${'b'.repeat(64)}`, stage, nextActor: stage === 'approved' ? null : 'huvudman',
+  const detail = () => ({ kind, planId: id(20), offeringId: id(10), unitId: kind === 'timplan' ? id(2) : null, educationName: 'Bygg- och anläggningsprogrammet', schoolName: kind === 'timplan' ? 'Exempelskolan Nord' : null,
+    version: 1, revision, decisionRevision: revision, basisHash: `sha256:${'b'.repeat(64)}`, stage, nextActor: stage === 'approved' ? null : stage === 'submitted' ? 'huvudman' : 'rektor',
     actions: stage === 'approved' ? [] : stage === 'submitted' ? ['approve','return','withdraw'] : ['submit'], blockers: [], checks: [{ id: 'review', label: 'Jag har granskat ämnen och poäng.' }], history, sourceInfo: null });
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;
@@ -216,35 +216,55 @@ test('beslutsflödet visar nästa roll, kräver granskning och bekräftar låst 
     if (path === '/api/planbeslut/andra') {
       const command = route.request().postDataJSON(); commands.push(command);
       stage = command.action === 'submit' ? 'submitted' : command.action === 'return' ? 'returned' : command.action === 'approve' ? 'approved' : 'draft'; revision++;
-      history.push({ action: command.action, at: '2026-10-12T12:00:00Z', actorName: 'Exempelhandläggare', comment: command.comment });
+      history.unshift({ action: command.action, at: '2026-10-12T12:00:00Z', actorName: 'Exempelhandläggare', comment: command.comment });
     }
     await route.fulfill({ json: detail() });
   });
-  await page.goto(`${base}?decisionHarness=1`);
+  await page.goto(`${base}?decisionHarness=1&decisionKind=${kind}`);
   await expect(page.getByRole('button', { name: 'Skicka för beslut', exact: true })).toBeDisabled();
   await page.getByLabel('Jag har granskat ämnen och poäng.').check();
   await page.getByRole('button', { name: 'Skicka för beslut', exact: true }).click();
   await expect(page.getByTestId('decision-changed')).toHaveText('1');
-  await expect(page.getByRole('button', { name: 'Återsänd för ändring', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Skicka tillbaka för rättning', exact: true })).toBeDisabled();
   await fits(page);
   await page.screenshot({ path: info.outputPath('decision-submitted.png'), fullPage: true });
-  await page.getByRole('textbox', { name: /Kommentar/ }).fill('Kontrollera poängfördelningen.');
-  await page.getByRole('button', { name: 'Återsänd för ändring', exact: true }).click();
+  await page.getByRole('textbox', { name: /Kommentar/ }).fill('   ');
+  await expect(page.getByRole('button', { name: 'Skicka tillbaka för rättning', exact: true })).toBeDisabled();
+  await page.getByRole('textbox', { name: /Kommentar/ }).fill('Kontrollera poängfördelningen.\nFörtydliga APL-upplägget.');
+  await page.getByRole('button', { name: 'Skicka tillbaka för rättning', exact: true }).click();
   await expect(page.getByTestId('decision-changed')).toHaveText('2');
-  await expect(page.getByText('Planen behöver ändras.', { exact: false })).toBeVisible();
+  const feedback = page.getByRole('region', { name: 'Återkoppling från huvudmannen' });
+  await expect(feedback.getByRole('heading', { name: 'Det här behöver rättas' })).toBeVisible();
+  await expect(page.locator('.plan-decision-heading')).toContainText(kind === 'programplan' ? 'Nästa steg hos rektor' : 'Nästa steg hos rektor eller skoladministratör');
+  await expect(feedback).toContainText('Kontrollera poängfördelningen.');
+  await expect(feedback).toContainText('Förtydliga APL-upplägget.');
+  await expect(feedback).toContainText(kind === 'programplan' ? 'Rektor rättar' : 'Rektor eller skoladministratör rättar');
+  await expect(page.getByText('Beslutshistorik (2)', { exact: true }).locator('..')).not.toHaveAttribute('open', '');
+  expect(commands[1]).toMatchObject({ kind, action: 'return', comment: 'Kontrollera poängfördelningen.\nFörtydliga APL-upplägget.' });
+  await fits(page);
+  await page.screenshot({ path: info.outputPath('decision-returned-comment.png'), fullPage: true });
   await page.getByLabel('Jag har granskat ämnen och poäng.').check();
   await page.getByRole('button', { name: 'Skicka för beslut', exact: true }).click();
   await expect(page.getByTestId('decision-changed')).toHaveText('3');
+  await page.getByRole('textbox', { name: /Kommentar/ }).fill('Senaste återkopplingen: kontrollera sista terminen.');
+  await page.getByRole('button', { name: 'Skicka tillbaka för rättning', exact: true }).click();
+  await expect(page.getByTestId('decision-changed')).toHaveText('4');
+  await expect(feedback).toContainText('Senaste återkopplingen: kontrollera sista terminen.');
+  await expect(feedback).not.toContainText('Förtydliga APL-upplägget.');
+  await page.getByLabel('Jag har granskat ämnen och poäng.').check();
+  await page.getByRole('button', { name: 'Skicka för beslut', exact: true }).click();
+  await expect(page.getByTestId('decision-changed')).toHaveText('5');
   await page.getByLabel('Jag har granskat ämnen och poäng.').check();
   await page.getByRole('button', { name: 'Fastställ planen', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  expect(commands).toHaveLength(3);
+  expect(commands).toHaveLength(5);
   await page.getByRole('button', { name: 'Ja, fastställ planen', exact: true }).click();
-  await expect(page.getByTestId('decision-changed')).toHaveText('4');
+  await expect(page.getByTestId('decision-changed')).toHaveText('6');
   await expect(page.getByText('Den här versionen är fastställd och låst.', { exact: false })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Fastställ planen', exact: true })).toHaveCount(0);
-  await page.getByText('Beslutshistorik (4)', { exact: true }).click();
-  await expect(page.getByText('Kontrollera poängfördelningen.', { exact: true })).toBeVisible();
+  await page.getByText('Beslutshistorik (6)', { exact: true }).click();
+  await expect(page.locator('.decision-history')).toContainText('Förtydliga APL-upplägget.');
+  await expect(page.getByRole('button', { name: 'Skicka tillbaka för rättning', exact: true })).toHaveCount(0);
   await fits(page);
   await page.screenshot({ path: info.outputPath('decision-approved.png'), fullPage: true });
 });

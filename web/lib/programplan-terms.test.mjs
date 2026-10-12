@@ -81,14 +81,14 @@ test('SA25 all orientations reach 2500 with exact selected specialization; alter
  }
 });
 
-test('v2 uses whole verified program as allocation target while legacy and vocational targets remain their row totals',async()=>{
+test('v2 uses whole verified HE and vocational programme targets while legacy retains its row total',async()=>{
  const {defaultProgramplanChoiceBlocks}=await import('./programplan-choice-blocks.ts');
  const {programplanTermTarget}=await import('./programplan-terms.ts');
  const legacyRows=programplanTermRows(program,basis),v2Rows=programplanTermRows(program,{...basis,choiceBlocks:defaultProgramplanChoiceBlocks(program,basis.orientationCode)});
  assert.equal(v2Rows.reduce((s,r)=>s+r.points,0),2300);assert.equal(programplanTermTarget(program,v2Rows),2500);
  assert.equal(programplanTermTarget(program,legacyRows),legacyRows.reduce((s,r)=>s+r.points,0));
  const ba=catalog.programs.find(p=>p.code==='BA25'),ref={...basis,programRef:{code:ba.code,version:ba.version},orientationCode:ba.orientations[0].code,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(ba,ba.orientations[0].code)},rows=programplanTermRows(ba,ref);
- assert.equal(programplanTermTarget(ba,rows),rows.reduce((s,r)=>s+r.points,0));
+ assert.equal(rows.reduce((s,r)=>s+r.points,0),2200);assert.equal(programplanTermTarget(ba,rows),2800);
 });
 
 test('command preview preserves legacy clone/replace rows and only displays v2 when command pin contains blocks',async()=>{
