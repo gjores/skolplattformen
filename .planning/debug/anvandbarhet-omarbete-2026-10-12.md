@@ -37,3 +37,15 @@ Genomfört i den skyddade appens källkod:
 Källändringen versionshanteras separat från andra pågående arbetskopiefiler och pushas på aktuell gren. Den ordinarie körande provmiljön på 3012 har **inte** byggts om eller ersatts av detta arbete. Ingen publicering/driftsättning ingår.
 
 De äldre DB-/IdP-beroende fasproven är anpassade i källan men inte omkörda här. Inget nytt fullständigt fasgodkännande, verklig integration, fysisk telefon eller mänskligt användbarhetsprov påstås. Kvar som nästa separata förbättring: det sammanhängande utbildningsflödet och enhetliga sparbesked.
+
+
+### Lokal leverans efter skärmbild 2026-10-12
+
+Användaren visade fortfarande den gamla menyn. Ordinarie 3012 körde verifierat det äldre bygget 17924ff. Den lokala provservern uppdaterades därefter till UI-källrevision **8ee00c87bdf90efdde7ce95632a03dfeb4c1578e**:
+
+- 179 byggfiler från det separat kontrollerade bygget jämfördes med SHA-256 före och efter installation. Produktkällorna i byggkopian matchade aktuella app/components/lib/hooks/public/.openai.
+- Exakt befintlig startprocess stoppades med SIGTERM; porten frigjordes och ägda privata miljöfiler städades av startskriptet. Gamla bygget behölls under `/private/tmp/skolplattform-preview-update-v_j94k9s/previous`; äldre hashade klientfiler behölls också i den nya katalogen. Ordinarie startskript startade om servern på samma lokala adress.
+- HTTP 200 samt faktiskt lokalt OIDC-prov med befintlig syntetisk rektor: ny Start och meny, överblick → planeringslista, utfällbara filter och telefonlayout passerade med exit 0 och noll pageerrors. Läsande användarflöde; ingen fixturåterställning, migration eller verksamhetsändring utfördes. Inloggning och läsningar registreras som vanligt av servern.
+- Lokalt provresultat och bilder: `web/outputs/usability-live-verification.json`, `usability-live-start.png`, `usability-live-plans-phone.png`. Körlogg: `usability-preview-server.log`.
+
+**Aktuell leveransstatus:** Nya versionen kör lokalt på `http://127.0.0.1:3012/?vy=start`. Testfilen under e2e är ingen fristående app och ska inte öppnas via file://. Tidigare formulering ovan om ännu inte uppdaterad 3012 beskriver läget före denna uppföljning. Detta avgränsade driftprov ersätter inte fulla fasproven eller ett mänskligt användbarhetsprov; ingen extern publicering har gjorts.

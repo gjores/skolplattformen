@@ -8,12 +8,12 @@ status: in_progress
 stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Omarbetad start, utfällbara filter och planeringskort på telefon. 12 syntetiska UI-prov, 100 modellprov, typ/lint och byggen PASS. Källleverans; ordinarie 3012 inte ersatt. Fas-/kravstatus oförändrad."
+last_activity_desc: "Användbarhetsbygget 8ee00c8 levererat till lokal 3012 efter användarens skärmbild. 179 byggfiler verifierade; riktig lokal OIDC och läsande Start/lista/telefonprov PASS. Fas-/kravstatus oförändrad."
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_tested_artifact_process_proven
-worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
+worker_status: running_on_3012_usability_build_local_oidc_smoke_pass
+worker_build_revision: 8ee00c87bdf90efdde7ce95632a03dfeb4c1578e
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Lokal UI-leverans 2026-10-12:** Efter användarens skärmbild av gamla menyn är ordinarie 3012 uppdaterad till 8ee00c8. 179 byggfiler matchar det testade bygget; tidigare bygge bevarat. Faktisk lokal OIDC med syntetisk rektor samt läsande Start/planeringslista/telefonprov PASS, exit0 och inga pageerrors. [Leveransbevis och avgränsning](debug/anvandbarhet-omarbete-2026-10-12.md). Detta uppdaterar lokal runtime, inte historiska fullfasbevis eller kravstatus.
 
 **Användbarhetsomarbete 2026-10-12:** På användarens uppföljning är en uppgiftsbaserad start, utfällbara planerings-/elevfilter, mobilkort med detaljer/sortering och fast åtgärdskolumn på dator genomförda. 12/12 isolerade browserprov på dator/telefon och 100/100 relevanta modellprov passerar, liksom typ/lint, separat appbygge och handbok. [Redovisning och begränsningar](debug/anvandbarhet-omarbete-2026-10-12.md). Ordinarie 3012 är inte uppdaterad. 88/100 planer, 3/8 faser och alla öppna krav/formella beslut består.
 
