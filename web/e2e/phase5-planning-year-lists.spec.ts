@@ -415,13 +415,16 @@ test('L04: kombinerade årsfilter, omvänd sort, tomresultat och Rensa filter', 
   const initial = q({ grade: 1, cohortRelation: 'new', archive: 'active' }); const data = await enter(page, initial) as PlanningList;
   expect(data.count).toBeGreaterThan(0); expect(data.rows.every(row => row.relativeYear === 1 && row.relation === 'new' && !row.archived && row.plan?.status === 'utkast')).toBe(true);
   const sorted = nextList(page, input => input.sort === 'name' && input.direction === 'desc');
-  await region(page).getByRole('columnheader', { name: /^Utbildning/ }).getByRole('button').click(); const reverse = await parsed(await sorted);
+  if (info.project.use.isMobile) await region(page).getByRole('button', { name: 'Byt till fallande sortering' }).click();
+  else await region(page).getByRole('columnheader', { name: /^Utbildning/ }).getByRole('button').click();
+  const reverse = await parsed(await sorted);
   expect(reverse.rows.map(row => row.offeringId)).toEqual([...data.rows].reverse().map(row => row.offeringId)); await rowsMatch(page, reverse);
-  await expect(region(page).getByRole('columnheader', { name: /^Utbildning/ })).toHaveAttribute('aria-sort', 'descending');
+  await expect(region(page).locator('thead th').first()).toHaveAttribute('aria-sort', 'descending');
   const empty = await find(page, 'SYN-NO-RESULT-5540'); expect(empty.count).toBe(0);
   await expect(region(page)).toContainText('Inget underlag matchar valen.');
   const cleared = nextList(page, input => input.query === '' && input.status === 'all' && input.cohortRelation === 'relevant' && input.archive === 'active' && input.grade === null);
   await region(page).getByRole('button', { name: 'Rensa filter', exact: true }).click(); const fresh = await parsed(await cleared); await rowsMatch(page, fresh);
+  await region(page).getByRole('button', { name: 'Fler filter', exact: true }).click();
   await expect(search(page)).toHaveValue(''); await expect(page.getByRole('combobox', { name: 'Planstatus', exact: true })).toHaveValue('all');
   await expect(page.getByRole('combobox', { name: 'Årskurs', exact: true })).toHaveValue('');
   await capture(page, info, 'combined-empty-clear');

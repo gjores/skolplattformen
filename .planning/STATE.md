@@ -8,7 +8,7 @@ status: in_progress
 stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Avgränsad användbarhetsrättning: meny, läsårsöverblick och telefonhuvud. UI med syntetiska svar, 74 modellprov, typ/lint och byggen PASS; prioriterade förslag dokumenterade. Fas- och kravstatus oförändrad."
+last_activity_desc: "Omarbetad start, utfällbara filter och planeringskort på telefon. 12 syntetiska UI-prov, 100 modellprov, typ/lint och byggen PASS. Källleverans; ordinarie 3012 inte ersatt. Fas-/kravstatus oförändrad."
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Användbarhetsomarbete 2026-10-12:** På användarens uppföljning är en uppgiftsbaserad start, utfällbara planerings-/elevfilter, mobilkort med detaljer/sortering och fast åtgärdskolumn på dator genomförda. 12/12 isolerade browserprov på dator/telefon och 100/100 relevanta modellprov passerar, liksom typ/lint, separat appbygge och handbok. [Redovisning och begränsningar](debug/anvandbarhet-omarbete-2026-10-12.md). Ordinarie 3012 är inte uppdaterad. 88/100 planer, 3/8 faser och alla öppna krav/formella beslut består.
 
 **Användbarhetsgenomgång 2026-10-12:** På användarens beställning är en dubbel menyingång borttagen, läsårsöverblickens rubrik/nästa steg/val förtydligade och telefonens sidhuvud kompaktare. Avgränsade UI-prov med syntetiska svar på dator/telefon, 74 modellprov, typ/lint samt app- och handboksbygge PASS. [Genomgång, verifieringsgräns och prioriterade förslag](debug/anvandbarhet-2026-10-12.md). Större förändringar är förslag; 88/100 planer, 3/8 faser och alla öppna krav/formella beslut består. Ordinarie provmiljös bygge är inte ersatt av rättningen.
 

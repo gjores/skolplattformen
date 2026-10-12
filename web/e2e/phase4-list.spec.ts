@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page, type Response } from '@playwright/test';
 import { loginViaKeycloak, readPilotManifest, waitForHydration } from './helpers/keycloak.ts';
+import { openPupilsFromStart } from './helpers/workspace-navigation.ts';
 import { psql } from './helpers/pilot-db.ts';
 import type { PupilList } from '../lib/pupil-register-model.ts';
 
@@ -21,6 +22,7 @@ async function login(page: Page): Promise<PupilList> {
   const bootstrap = page.waitForResponse((item) => new URL(item.url()).pathname === '/api/elever/urval');
   await loginViaKeycloak(page, 'p3.admin', { password: passwords['p3.admin'] });
   await waitForHydration(page);
+  await openPupilsFromStart(page);
   const selection = await bootstrap;
   expect(selection.status()).toBe(200);
   expect(selection.headers()['cache-control']).toBe('no-store');
@@ -60,6 +62,7 @@ test('serverns options och projektion visas responsivt med minst 44 px tryckytor
   const result = await login(page);
   expect(result.pupils.length).toBeGreaterThan(0);
   expect(result.pageSize).toBe(50);
+  await page.getByRole('button', { name: 'Fler filter', exact: true }).click();
   for (const [label, values] of [
     ['Klass', result.options.classes.map((item) => item.id)],
     ['Utbildning', result.options.educations.map((item) => item.id)],
@@ -92,6 +95,7 @@ test('POST-sökning ligger bara i minnet; filter, bakåt och omladdning bevarar 
   await expect(page.getByRole('button', { name: 'Rensa sökningen', exact: true })).toBeVisible();
   // Options kommer från serverns urval även när ingen elev träffar sökningen.
   expect(await page.getByRole('combobox', { name: 'Klass', exact: true }).locator('option').count()).toBeGreaterThan(1);
+  await page.getByRole('button', { name: 'Fler filter', exact: true }).click();
   const response = page.waitForResponse(listResponse);
   await page.getByRole('combobox', { name: 'Status', exact: true }).selectOption('avslutad');
   await response;
@@ -106,6 +110,7 @@ test('POST-sökning ligger bara i minnet; filter, bakåt och omladdning bevarar 
   await page.reload();
   expect((await reload).request().postDataJSON().search).toBe('');
   await expect(page.getByLabel('Sökord', { exact: true })).toHaveValue('');
+  await page.getByRole('button', { name: 'Fler filter (1)', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Status', exact: true })).toHaveValue('aktuell');
   await assertNoSearchPersistence(page, needle);
 });

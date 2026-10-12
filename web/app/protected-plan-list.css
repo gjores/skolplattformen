@@ -2,6 +2,9 @@
 .plan-list-filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin: 1rem 0; }
 .plan-list-filters label { display: flex; flex-direction: column; gap: .25rem; min-width: 0; flex: 1 1 10rem; }
 .plan-list-filters label:first-child { flex: 2 1 20rem; }
+.plan-list-extra-filters:not([hidden]) { display: flex; flex-wrap: wrap; gap: .75rem; flex: 1 1 100%; padding: 1rem; background: var(--card); border: 1px solid var(--border); border-radius: .65rem; }
+.plan-list-extra-filters label:first-child { flex: 1 1 10rem; }
+.plan-filter-summary { flex: 1 1 100%; font-size: .8125rem; color: var(--muted-foreground); line-height: 1.5; }
 .plan-list input, .plan-list select, .plan-list button, .planning-overview button { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: .4rem; background: var(--background); color: inherit; font: inherit; }
 .plan-list input, .plan-list select { width: 100%; }
 .plan-list select { height: 44px; }
@@ -17,6 +20,7 @@
 .plan-list small { display: block; margin-top: .25rem; color: var(--muted-foreground); font-weight: normal; overflow-wrap: anywhere; }
 .plan-list-actions { white-space: nowrap; }
 .plan-list-actions button + button { margin-left: .4rem; }
+.plan-list-mobile-sort, .plan-list-details-toggle { display: none; }
 .plan-list-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin: 1rem 0; }
 .planning-overview { display: grid; gap: 1rem; min-width: 0; margin-top: 1.5rem; }
 .planning-overview-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
@@ -33,3 +37,27 @@
 .planning-overview-kulls { display: flex; gap: .5rem; flex-wrap: wrap; }
 .planning-overview-kulls button[aria-pressed="true"] { border-color: var(--primary); background: var(--primary); color: var(--primary-foreground); font-weight: 600; }
 @media (max-width: 600px) { .plan-list-filters { gap: .6rem; } .plan-list-filters label { flex: 1 1 100%; } .plan-list th, .plan-list td { padding: .5rem; } }
+@media (max-width: 700px) {
+  .plan-list-mobile-sort { display: flex; align-items: end; gap: .5rem; margin-bottom: .75rem; }
+  .plan-list-mobile-sort label { flex: 1; min-width: 0; font-size: .875rem; }
+  .plan-list-mobile-sort select { margin-top: .25rem; }
+  .plan-list-scroll { border: 0; overflow: visible; }
+  .plan-list-scroll table, .plan-list-scroll tbody { display: block; }
+  .plan-list-scroll caption, .plan-list-scroll thead { display: none; }
+  .plan-list-scroll tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: .75rem 0; padding: .8rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--card); gap: .7rem; }
+  .plan-list-scroll th, .plan-list-scroll td { min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; }
+  .plan-list-scroll th[scope="row"] { grid-column: 1 / -1; font-size: 1.05rem; font-weight: 600; }
+  .plan-list-scroll td::before { content: attr(data-label); display: block; color: var(--muted-foreground); font-size: .75rem; margin-bottom: .15rem; }
+  .plan-list-scroll .plan-list-school { grid-column: 1 / -1; }
+  .plan-list-scroll tr:not([data-expanded="true"]) .plan-list-secondary { display: none; }
+  .plan-list-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .25rem; white-space: normal; }
+  .plan-list-actions::before { display: none !important; }
+  .plan-list-actions > button:first-child { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+  .plan-list-actions button + button { margin-left: 0; }
+  .plan-list-details-toggle { display: inline-flex; align-items: center; }
+}
+
+@media (min-width: 701px) {
+  .plan-list-actions, .plan-list thead th:last-child { position: sticky; right: 0; z-index: 1; background: var(--card); box-shadow: -1px 0 var(--border); }
+  .plan-list thead th:last-child { background: var(--muted); }
+}

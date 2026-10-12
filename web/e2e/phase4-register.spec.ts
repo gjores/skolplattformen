@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page, type Response } from '@playwright/test';
 import { loginViaKeycloak, readPilotManifest, waitForHydration } from './helpers/keycloak.ts';
+import { openPupilsFromStart } from './helpers/workspace-navigation.ts';
 import { psql } from './helpers/pilot-db.ts';
 import { PHASE4_IDS, PHASE4_USERS } from '../../work/pilot/phase4-browser-fixtures.mjs';
 
@@ -75,6 +76,7 @@ async function login(page: Page, user: string = PHASE4_USERS.protectedAdmin) {
   const list = page.waitForResponse(response => apiResponse(response, '/api/elever/lista'));
   const steps = await loginViaKeycloak(page, user, { password: passwords[user] });
   await waitForHydration(page);
+  await openPupilsFromStart(page);
   expect((await list).status()).toBe(200);
   await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy', 'false');
   return steps;

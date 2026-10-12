@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { loginViaKeycloak, readPilotManifest, waitForHydration, type PilotManifest } from './helpers/keycloak.ts';
+import { openPupilsFromStart } from './helpers/workspace-navigation.ts';
 import { psql } from './helpers/pilot-db.ts';
 
 const OWN_PUPIL = 'Syntetisk elev 11';
@@ -35,7 +36,7 @@ async function login(page: Page, username: string, requireMfa = false) {
       await waitForHydration(page);
     }
   }
-  if (username === 'p3.rektor') {
+  if (['p3.rektor', 'p3.huvudman'].includes(username)) {
     const nav = await openNavigation(page);
     await nav.getByRole('button', { name: 'Mandat' }).click();
   }
@@ -54,6 +55,7 @@ async function noForeign(page: Page, responses: string[]) {
 }
 function pupil(page: Page, name = OWN_PUPIL) { return page.getByRole('button', { name: `${name}, öppna elevkortet` }).filter({ visible: true }); }
 async function loaded(page: Page) {
+  await openPupilsFromStart(page);
   await expect(page.getByRole('heading', { name: 'Elever', exact: true })).toBeVisible();
   await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy', 'false');
 }

@@ -21,7 +21,9 @@ Appen har fungerande delar men visar ofta organisationen av data före användar
 
 Planeringens handbok är uppdaterad. Två befintliga browserförväntningar är uppdaterade för den nya resultattexten; inga databaskontrakt, mandatregler eller sparflöden ändras.
 
-## Prioriterade förslag — ännu inte beslutade eller genomförda
+## Prioriterade förslag vid den första genomgången
+
+**Uppföljning samma dag:** Användaren beställde därefter en omarbetning. Startvy, filter och mobilkort är genomförda i källan enligt [separat redovisning](anvandbarhet-omarbete-2026-10-12.md). Tabellen nedan bevarar ursprungsförslagen; övriga punkter och användarprov återstår.
 
 | Prioritet | Problem och belägg | Föreslagen förändring | Hur förbättringen prövas |
 | --- | --- | --- | --- |

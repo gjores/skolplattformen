@@ -2067,14 +2067,21 @@ textarea:disabled {
   .pupil-register-cards .pupil-mark { float: left; margin-right: 8px; }
 }
 @media (max-width: 600px) {
-  .protected-topbar .pupil-school-year { flex-basis: 100%; }
+  .protected-topbar .pupil-school-year { flex-basis: 100%; order: 4; }
   .pupil-school-year select { flex: 1; min-width: 0; }
 }
 .pupil-register .pupil-search-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pupil-extra-filters:not([hidden]) { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1rem; grid-column: 1 / -1; padding: 1rem; background: var(--card); border: 1px solid var(--border); border-radius: .65rem; }
+.pupil-filter-summary { grid-column: 1 / -1; color: var(--muted-foreground); font-size: .875rem; }
+.pupil-access-details summary { cursor: pointer; padding: .6rem 0; min-height: 44px; font-size: .875rem; font-weight: 500; }
+.pupil-access-details > p { margin: .5rem 0; font-size: .875rem; color: var(--muted-foreground); }
+.pupil-register .admin-heading { margin-bottom: 0; }
+.pupil-register .protected-filter { margin-top: 0; padding-top: 0; border-top: 0; }
 .pupil-school-year { margin: 0; padding: 0; border: 0; }
 
 /* Elevkort, ändrings-, konflikt- och exportdialoger (04-13). Endast inom registret och dess dialoger. */
-.pupil-register .mandate-actions { gap: 16px; }
+.pupil-register .mandate-actions { gap: 12px; }
+@media (max-width: 700px) { .pupil-register > .mandate-actions > *, .pupil-register .protected-filter .mandate-actions > * { width: auto; flex: 1 1 auto; } }
 .pupil-register .admin-notice { display: flex; align-items: flex-start; gap: 8px; padding: 16px; margin-bottom: 0; overflow-wrap: anywhere; }
 .pupil-register .validation-warning, .pupil-register-dialog .validation-warning { color: var(--foreground); padding: 16px; overflow-wrap: anywhere; }
 .pupil-warning { display: flex; gap: 8px; align-items: flex-start; }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   CalendarClock,
   GraduationCap,
+  House,
   LifeBuoy,
   ListChecks,
   ScrollText,
@@ -57,8 +58,9 @@ import { normalizePlanLocation, planningCollectionLocation, planLocationQuery, r
 import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from './planning-context';
 import type { PlanningSelection, PlanningSetup } from '@/lib/planning-year-contract.ts';
 import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
+import WorkspaceStart from './workspace-start';
 
-type ProtectedView = 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
+export type ProtectedView = 'start' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -98,6 +100,7 @@ function sessionScope(value: SessionResponse | null | 'loading'): string {
 }
 function shellView(search: string, value: SessionResponse): ProtectedView {
   const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
+  if (requested === 'start' && PLANNING_FUNCTIONS.includes(role)) return 'start';
   if (requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
     || requested === 'anslutning' && role === 'it') return requested as ProtectedView;
@@ -121,6 +124,7 @@ function PlanningArea({ location, children }: { location: PlanLocation | null; c
 }
 
 function startView(session: SessionResponse): ProtectedView {
+  if (PLANNING_FUNCTIONS.includes(session.context?.function ?? '')) return 'start';
   if (session.context?.function === 'granskare') return 'logg';
   if (session.context?.function === 'kundadmin') return 'kund';
   if (session.context?.function === 'it') return 'anslutning';
@@ -165,6 +169,11 @@ function ProtectedNavigation({
       <SidebarContent>
         <div className="nav-caption">ARBETSYTA</div>
         <SidebarMenu className="main-nav">
+          {session.context && PLANNING_FUNCTIONS.includes(session.context.function) && <SidebarMenuItem>
+            <SidebarMenuButton isActive={view === 'start'} aria-current={view === 'start' ? 'page' : undefined} onClick={() => go('start')} className="nav-button">
+              <House size={19}/><span>Start</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>}
           {session.context?.function === 'kundadmin' && (
             <SidebarMenuItem>
               <SidebarMenuButton isActive={view === 'kund'} aria-current={view === 'kund' ? 'page' : undefined} onClick={() => go('kund')} className="nav-button">
@@ -620,7 +629,7 @@ function ProtectedShell() {
   );
   const validContext = session.context?.valid && !session.context.blocked;
   const overview = isPlanningView(view) && planningLocation?.overview === true;
-  const currentTitle = overview ? 'Läsårsöverblick' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
+  const currentTitle = overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
     <PlanningContextProvider key={contextKey} contextKey={contextKey} active={!!validContext && isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function)} location={planningLocation}
@@ -650,6 +659,7 @@ function ProtectedShell() {
           <main id="workspace" className="workspace"><section className="admin-empty"><h1>Välj uppdrag</h1>{session.assignmentGroups.valid.length === 0 ? <><p>Du har inga uppdrag som gäller idag.</p><Button variant="outline" onClick={() => void logout()}>Logga ut</Button></> : <p>Välj ett giltigt uppdrag i sidhuvudet för att öppna arbetsytan.</p>}</section></main>
         ) : (
           <main id="workspace" className="workspace protected-workspace" key={contextKey}>
+            {view === 'start' && PLANNING_FUNCTIONS.includes(session.context!.function) && <WorkspaceStart context={session.context!} onNavigate={navigate} onOverview={navigateOverview}/>}
             {navigationNotice && <output data-testid="planning-navigation-notice" className="validation-warning">{navigationNotice}</output>}
             {stepUpWithoutOtp && <output role="alert" className="validation-warning">Verifieringen gav inget bevis med engångskod eftersom ditt konto saknar registrerad engångskod hos inloggningstjänsten. Du kan fortsätta arbeta, men åtgärder som kräver engångskod går inte att göra. Kontakta den som administrerar din inloggning.</output>}
             {mfaRequired && !stepUpWithoutOtp && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}

@@ -16,7 +16,7 @@ export function planningRowKey(row: PlanningRow): string {
   return JSON.stringify([row.unitId, row.offeringId, row.plan?.id ?? null, row.application?.columnId ?? null]);
 }
 export function PlanningFilterControls({ disabled = false }: { disabled?: boolean }) {
-  const { selection, requestChange } = usePlanningContext(), id = useId();
+  const { selection, requestChange, filtersOpen, setFiltersOpen } = usePlanningContext(), id = useId();
   const context = selection ? JSON.stringify([selection.schoolYear, selection.unitId, selection.view, selection.schoolform]) : '';
   const [draft, setDraft] = useState({ context, accepted: selection?.query ?? '', text: selection?.query ?? '' });
   const change = useRef(requestChange);
@@ -29,6 +29,10 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
   }, [draft.text, selection, disabled, context]);
   if (!selection) return null;
   const patch = (value: Partial<PlanningSelection>) => requestChange(value);
+  const activeFilters = [selection.grade !== null && `Åk ${selection.grade}`, selection.status !== 'all' && planningStatusLabel[selection.status],
+    selection.cohortRelation !== 'relevant' && (selection.cohortRelation === 'all' ? 'Alla kullar' : planningRelationLabel[selection.cohortRelation]),
+    selection.archive !== 'active' && (selection.archive === 'archived' ? 'Arkiverade utbildningar' : 'Även arkiverade utbildningar')].filter(Boolean);
+  const resetFilters = () => { setDraft({ context, accepted: '', text: '' }); patch({ query: '', status: 'all', cohortRelation: 'relevant', archive: 'active', grade: null }); };
   return <div className="plan-list-filters" aria-label="Filtrera planeringsunderlaget">
     <label htmlFor={`${id}-query`}>Sök utbildning<input id={`${id}-query`} type="search" maxLength={200} value={draft.text} disabled={disabled}
       placeholder="Namn, kod, program, inriktning eller kull" onChange={e => setDraft({ context, accepted: selection.query, text: e.target.value })}/></label>
@@ -36,6 +40,13 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
       onChange={e => patch({ schoolform: e.target.value as PlanningSelection['schoolform'] })}>
       <option value="gymnasium">Gymnasium</option><option value="grundskola">Grundskola</option><option value="introduktionsprogram">Introduktionsprogram</option>
     </select></label>}
+    <button type="button" aria-expanded={filtersOpen} aria-controls={`${id}-extra`} onClick={() => setFiltersOpen(!filtersOpen)}>
+      {filtersOpen ? 'Dölj filter' : 'Fler filter'}{activeFilters.length > 0 ? ` (${activeFilters.length})` : ''}
+    </button>
+    <button type="button" disabled={disabled || !activeFilters.length && !draft.text} onClick={resetFilters}>Rensa filter</button>
+    <p className="plan-filter-summary" aria-live="polite"><span>Visar: </span>{selection.archive === 'active' ? 'aktiva utbildningar' : selection.archive === 'archived' ? 'arkiverade utbildningar' : 'aktiva och arkiverade utbildningar'} · {selection.cohortRelation === 'relevant' ? 'nya och fortsättande kullar samt okänd start' : selection.cohortRelation === 'all' ? 'alla kullar' : planningRelationLabel[selection.cohortRelation].toLocaleLowerCase('sv')}
+      {selection.grade !== null && ` · åk ${selection.grade}`}{selection.status !== 'all' && ` · ${planningStatusLabel[selection.status].toLocaleLowerCase('sv')}`}</p>
+    <div id={`${id}-extra`} className="plan-list-extra-filters" hidden={!filtersOpen}>
     {selection.schoolform !== 'introduktionsprogram' && <label htmlFor={`${id}-grade`}>Årskurs<select id={`${id}-grade`} value={selection.grade ?? ''} disabled={disabled}
       onChange={e => patch({ grade: e.target.value ? Number(e.target.value) : null })}>
       <option value="">Alla årskurser</option>{Array.from({ length: selection.schoolform === 'gymnasium' ? 3 : 9 }, (_, i) => i + 1)
@@ -55,7 +66,7 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
       onChange={e => patch({ archive: e.target.value as PlanningSelection['archive'] })}>
       <option value="active">Aktiva utbildningar</option><option value="archived">Arkiverade utbildningar</option><option value="all">Aktiva och arkiverade</option>
     </select></label>
-    <button type="button" disabled={disabled} onClick={() => { setDraft({ context, accepted: '', text: '' }); patch({ query: '', status: 'all', cohortRelation: 'relevant', archive: 'active', grade: null }); }}>Rensa filter</button>
+    </div>
   </div>;
 }
 
@@ -68,6 +79,7 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
   const selected = useMemo(() => selectionKey ? parsePlanningSelection(JSON.parse(selectionKey)) : null, [selectionKey]);
   const key = `${scopeKey}|${selectionKey}`, latest = useRef({ key, onSecurityFailure, requestChange });
   useLayoutEffect(() => { latest.current = { key, onSecurityFailure, requestChange }; }, [key, onSecurityFailure, requestChange]);
+  const [expanded, setExpanded] = useState<{ key: string; rows: string[] }>({ key: '', rows: [] });
   const [result, setResult] = useState<Result>({ key: '', data: null, error: null, notice: null, loading: true }), [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!setup || !selected) return;
@@ -99,7 +111,14 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
     {visible?.notice && <output>{visible.notice}</output>}
     {visible?.error && <p role="alert">{visible.error} <button type="button" onClick={() => { if (selected.selectionRevision !== null) requestChange({ page: 1, selectionRevision: null }); setRetry(n => n + 1); }}>Läs om listan</button></p>}
     {busy && <output>Läser planeringsunderlaget…</output>}
-    {data && <><p className="plan-list-count">{data.count} {data.count === 1 ? 'träff' : 'träffar'}{data.count > 0 ? ` · visar ${(selected.page - 1) * 50 + 1}–${(selected.page - 1) * 50 + data.rows.length}` : ''}</p>
+    {data && <><div className="plan-list-mobile-sort">
+      <label>Sortera efter<select value={selected.sort} disabled={disabled} onChange={event => requestChange({ sort: event.target.value as PlanningSelection['sort'] })}>
+        <option value="name">Utbildning</option><option value="school">Skola</option><option value="cohort">Elevkull</option><option value="grade">Årskurs</option><option value="version">Planversion</option><option value="status">Planstatus</option>
+        {selected.schoolform === 'gymnasium' && <option value="points">Årets poäng</option>}
+        {selected.view === 'timplan' && <option value="hours">{selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar'}</option>}
+      </select></label>
+      <button type="button" disabled={disabled} onClick={() => requestChange({ direction: selected.direction === 'asc' ? 'desc' : 'asc' })} aria-label={selected.direction === 'asc' ? 'Byt till fallande sortering' : 'Byt till stigande sortering'}>{selected.direction === 'asc' ? 'Stigande ↑' : 'Fallande ↓'}</button>
+    </div><p className="plan-list-count">{data.count} {data.count === 1 ? 'träff' : 'träffar'}{data.count > 0 ? ` · visar ${(selected.page - 1) * 50 + 1}–${(selected.page - 1) * 50 + data.rows.length}` : ''}</p>
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Bara själva fokusbara rullytan hanterar sidledspilar; tabellens kontroller behåller sina tangenter. */}
       {data.count === 0 ? <p>Inget underlag matchar valen. Rensa filtren eller välj ett annat läsår.</p> : <section className="plan-list-scroll" aria-label="Planeringstabell, kan rullas i sidled"
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla hela lästabellen, samma mönster som timmatrisen.
@@ -110,22 +129,27 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
           event.currentTarget.scrollBy({ left: event.key === 'ArrowRight' ? 80 : -80 });
         }}>
         <table><caption>{selected.view === 'programplan' ? 'Programramar' : 'Skolans timplaner'} för valt läsår. Varje rad avser en faktisk skola och planversion.</caption>
-          <thead><tr>{sort('name', 'Utbildning')} {sort('school', 'Skola')}{selected.schoolform === 'gymnasium' && <th scope="col">Program och inriktning</th>}{sort('cohort', 'Elevkull')}{sort('grade', 'Årets årskurs')}{sort('version', 'Planversion')}{sort('status', 'Planstatus')}
+          <thead><tr>{sort('name', 'Utbildning')}{sort('school', 'Skola')}{selected.schoolform === 'gymnasium' && <th scope="col">Program och inriktning</th>}{sort('cohort', 'Elevkull')}{sort('grade', 'Årets årskurs')}{sort('version', 'Planversion')}{sort('status', 'Planstatus')}
             {selected.schoolform === 'gymnasium' && sort('points', 'Årets poäng')}{selected.view === 'timplan' ? sort('hours', selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar') : <th scope="col">Underlag</th>}
             <th scope="col">Åtgärder</th></tr></thead>
           <tbody>{data.rows.map(row => {
             const metrics = planningAnnualMetrics(row, selected.schoolYear), details = row.searchDetails;
             const grade = row.relativeYear ?? (row.application?.columnId?.match(/^ak([1-9])$/)?.[1] ?? null);
-            return <tr key={planningRowKey(row)}><th scope="row">{row.educationName}<small>{details?.localCode ?? 'Lokal kod saknas'}{row.archived ? ' · Arkiverad' : ''}</small></th>
-              <td>{row.schoolName}</td>{row.schoolform === 'gymnasium' && <td>{details?.programName ?? details?.programCode ?? 'Programuppgift saknas'}<small>{details?.orientationName ?? details?.orientationCode ?? 'Inriktning saknas'}</small></td>}
-              <td>{row.cohort}<small>{planningRelationLabel[row.relation]}{row.start.startedOn ? ` · Start ${row.start.startedOn}` : ''}</small></td>
-              <td>{grade === null ? row.schoolform === 'introduktionsprogram' ? 'Veckoram' : 'Okänd årskurs' : `Åk ${grade}`}</td>
-              <td>{row.plan ? `Version ${row.plan.version}` : 'Saknas'}{selected.view === 'timplan' && row.schoolform === 'gymnasium' && <small>{row.source ? `Bygger på programplan · version ${row.source.version}` : 'Programplan som underlag saknas'}</small>}</td>
-              <td>{row.plan ? planningStatusLabel[row.plan.status] : 'Plan saknas'}</td>
-              {selected.schoolform === 'gymnasium' && <td>{planningMeasureText(metrics.points)}</td>}
-              <td>{selected.view === 'timplan' ? planningMeasureText(metrics.hours) : row.underlag === 'missing' ? 'Programplan saknas' : row.underlag === 'forecast' ? 'Prognos' : 'Programram'}</td>
+            const rowKey = planningRowKey(row), isExpanded = expanded.key === key && expanded.rows.includes(rowKey);
+            return <tr key={rowKey} data-expanded={isExpanded}><th scope="row">{row.educationName}<small>{details?.localCode ?? 'Lokal kod saknas'}{row.archived ? ' · Arkiverad' : ''}</small></th>
+              <td data-label="Skola" className="plan-list-school">{row.schoolName}</td>{row.schoolform === 'gymnasium' && <td data-label="Program och inriktning" className="plan-list-secondary">{details?.programName ?? details?.programCode ?? 'Programuppgift saknas'}<small>{details?.orientationName ?? details?.orientationCode ?? 'Inriktning saknas'}</small></td>}
+              <td data-label="Elevkull">{row.cohort}<small>{planningRelationLabel[row.relation]}{row.start.startedOn ? ` · Start ${row.start.startedOn}` : ''}</small></td>
+              <td data-label="Årskurs">{grade === null ? row.schoolform === 'introduktionsprogram' ? 'Veckoram' : 'Okänd årskurs' : `Åk ${grade}`}</td>
+              <td data-label="Planversion" className="plan-list-secondary">{row.plan ? `Version ${row.plan.version}` : 'Saknas'}{selected.view === 'timplan' && row.schoolform === 'gymnasium' && <small>{row.source ? `Bygger på programplan · version ${row.source.version}` : 'Programplan som underlag saknas'}</small>}</td>
+              <td data-label="Status">{row.plan ? planningStatusLabel[row.plan.status] : 'Plan saknas'}</td>
+              {selected.schoolform === 'gymnasium' && <td data-label="Årets poäng" className="plan-list-secondary">{planningMeasureText(metrics.points)}</td>}
+              <td data-label={selected.view === 'timplan' ? selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar' : 'Underlag'} className="plan-list-secondary">{selected.view === 'timplan' ? planningMeasureText(metrics.hours) : row.underlag === 'missing' ? 'Programplan saknas' : row.underlag === 'forecast' ? 'Prognos' : 'Programram'}</td>
               <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={`Öppna ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
-                {row.plan ? 'Öppna' : 'Visa underlag'}</button>{actions?.(row)}</td></tr>;
+                {row.plan ? 'Öppna' : 'Visa underlag'}</button>{actions?.(row)}
+                <button type="button" className="plan-list-details-toggle" aria-expanded={isExpanded}
+                  aria-label={`${isExpanded ? 'Dölj' : 'Visa'} detaljer för ${row.educationName}, ${row.schoolName}`}
+                  onClick={() => setExpanded(previous => { const rows = previous.key === key ? previous.rows : []; return { key, rows: rows.includes(rowKey) ? rows.filter(value => value !== rowKey) : [...rows, rowKey] }; })}>
+                  {isExpanded ? 'Dölj detaljer' : 'Detaljer'}</button></td></tr>;
           })}</tbody></table></section>}
       <nav className="plan-list-pages" aria-label="Planeringstabellens sidor"><button type="button" disabled={locked || selected.page <= 1}
         onClick={() => requestChange({ page: selected.page - 1, selectionRevision: data.selectionRevision })}>Föregående sida</button>

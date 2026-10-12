@@ -1,0 +1,22 @@
+.workspace-start { display: grid; gap: 2rem; max-width: 70rem; margin: 0 auto; }
+.workspace-start header h1 { font-size: clamp(1.65rem, 3vw, 2.2rem); line-height: 1.2; letter-spacing: -.04em; font-weight: 650; margin: .6rem 0; }
+.workspace-start header p { color: var(--muted-foreground); }
+.workspace-task-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+.workspace-task, .workspace-plan-shortcuts button { display: flex; align-items: flex-start; gap: .9rem; padding: 1.4rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--card); text-align: left; color: var(--foreground); cursor: pointer; min-width: 0; }
+.workspace-task:hover, .workspace-plan-shortcuts button:hover { border-color: var(--primary); background: var(--accent); }
+.workspace-task > svg { color: var(--primary); flex-shrink: 0; width: 22px; height: 22px; }
+.workspace-task > svg:last-child, .workspace-plan-shortcuts button > svg { width: 18px; height: 18px; margin-left: auto; flex-shrink: 0; }
+.workspace-task strong, .workspace-plan-shortcuts strong { display: block; font-size: 1.05rem; font-weight: 600; margin-bottom: .4rem; }
+.workspace-task span > span, .workspace-plan-shortcuts span > span { display: block; color: var(--muted-foreground); font-size: .9rem; line-height: 1.6; }
+.workspace-start-planning { border-top: 1px solid var(--border); padding-top: 1.6rem; display: grid; gap: 1rem; }
+.workspace-start-planning > div:first-child { display: flex; gap: .6rem; align-items: center; }
+.workspace-start-planning h2 { font-size: 1.2rem; font-weight: 600; }
+.workspace-start-planning > p { color: var(--muted-foreground); line-height: 1.6; }
+.workspace-plan-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.workspace-start-note { font-size: .875rem; }
+.workspace-start button:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+@media(max-width: 600px) {
+  .workspace-start { gap: 1.3rem; }
+  .workspace-task, .workspace-plan-shortcuts button { padding: 1rem; }
+  .workspace-plan-shortcuts { grid-template-columns: 1fr; }
+}

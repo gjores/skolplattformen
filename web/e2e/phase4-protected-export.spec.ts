@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page, type Response } from '@playwright/test';
 import { loginViaKeycloak, readPilotManifest, waitForHydration, type PilotManifest } from './helpers/keycloak.ts';
+import { openPupilsFromStart } from './helpers/workspace-navigation.ts';
 import { psql } from './helpers/pilot-db.ts';
 import type { PupilList } from '../lib/pupil-register-model.ts';
 
@@ -37,6 +38,7 @@ async function login(page: Page, user: string) {
   if (!passwords[user]) throw new Error('Syntetiskt provkonto saknas.');
   await loginViaKeycloak(page, user, { password: passwords[user] });
   await waitForHydration(page);
+  await openPupilsFromStart(page);
 }
 async function ready(page: Page) { await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy', 'false'); }
 async function noOverflow(page: Page) { expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true); }

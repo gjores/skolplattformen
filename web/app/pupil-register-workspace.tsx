@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Download, ShieldAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,8 @@ type Props = { context: ActiveContext; epoch: number; setup: RegisterSetup; scho
 export default function PupilRegisterWorkspace(props: Props) {
   const [selection, setSelection] = useState<Selection>(() => readSelection(props.setup, props.schoolYear) ?? defaultSelection(props.setup, props.schoolYear));
   const [list, setList] = useState<PupilList | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filterId = useId();
   const [draft, setDraft] = useState('');
   const [search, setSearch] = useState('');
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -187,6 +189,10 @@ export default function PupilRegisterWorkspace(props: Props) {
   const name = (pupil: PupilListItem, layout: 'table' | 'card') => <><span className="pupil-name"><button type="button" ref={layout === 'table' ? buttonRef(pupil.id) : buttonRef(`${pupil.id}-card`)} aria-label={`${pupil.displayName}, öppna elevkortet`} onClick={() => openCard(pupil)}>{pupil.displayName}</button></span><small>{distinguish(pupil)}</small>{protectedBadge(pupil)}</>;
   const mark = (pupil: PupilListItem) => pupil.capabilities.canExport && <label className="pupil-mark"><input type="checkbox" aria-label={`Markera ${pupil.displayName}`} checked={marked.includes(pupil.id)} onChange={event => setMarked(ids => event.target.checked ? [...ids, pupil.id] : ids.filter(id => id !== pupil.id))} /><span className="sr-only">Markera {pupil.displayName}</span></label>;
   const options = list?.options;
+  const extraFilters = [selection.educationId !== null, selection.grade !== null, selection.status !== null].filter(Boolean).length;
+  const filterLabels = [selection.classId && (options?.classes.find(item => item.id === selection.classId)?.name ?? 'Vald klass'),
+    selection.educationId && (options?.educations.find(item => item.id === selection.educationId)?.name ?? 'Vald utbildning'),
+    selection.grade !== null && `Åk ${selection.grade}`, selection.status && statusLabels[selection.status]].filter(Boolean);
   const returnTo = `/${selectionToQuery(selection)}`;
   const loadUnitOptions = async (unitId: string): Promise<RegisterOptions> => {
     // Referensurvalet (skolans utbildningar och klasser) följer med serverns listsvar.
@@ -206,24 +212,28 @@ export default function PupilRegisterWorkspace(props: Props) {
   }
 
   return <div className="admin-workspace protected-admin pupil-register" aria-busy={busy}>
-    <div className="admin-heading"><div><p className="admin-kicker">SKYDDAD PROVMILJÖ · SYNTETISKA UPPGIFTER</p><h1>Elever</h1><p>{props.context.customerName} · {props.context.label}</p></div></div>
+    <div className="admin-heading"><div><h1>Elever</h1><p>Hitta en elev och öppna elevkortet.</p></div></div>
+    <details className="pupil-access-details" open={!['rektor', 'administrator', 'larare'].includes(props.context.function)}><summary>Om din åtkomst till elevregistret</summary>
     <p>Elever som ditt aktuella uppdrag får se och som är placerade under valt läsår. Varje läsning, ändring och export registreras i säkerhetsloggen.</p>
     <dl className="mandate-facts"><div><dt>Uppdrag</dt><dd>{FUNCTION_LABEL[props.context.function]}</dd></div><div><dt>Omfattning</dt><dd>{props.setup.scope.schools.map(school => school.name).join(', ')}</dd></div>
       {props.setup.scope.groups.length > 0 && <div><dt>Tilldelade grupper</dt><dd>{props.setup.scope.groups.map(group => group.name).join(', ')}</dd></div>}
       {props.setup.approverName && <div><dt>Godkänt av</dt><dd>{props.setup.approverName}</dd></div>}
       {props.setup.purposeCode && <div><dt>Syfte</dt><dd>{props.setup.purposeCode === 'synthetic-troubleshooting' ? 'Syntetisk felsökning' : props.setup.purposeCode}</dd></div>}
       {props.setup.endsAt && <div><dt>Upphör</dt><dd><time dateTime={props.setup.endsAt}>{new Date(props.setup.endsAt).toLocaleString('sv-SE')}</time></dd></div>}
-    </dl>
+    </dl></details>
     {notice && <output className="admin-notice">{notice}</output>}
     {error && <output role="alert" className="validation-warning">{error}</output>}
     {props.setup.scope.cases.length > 0 ? <form className="protected-filter" onSubmit={event => { event.preventDefault(); const selectedCase = props.setup.scope.cases.find(item => item.id === draftCaseId); if (!selectedCase) return; setCaseId(selectedCase.id); caseRef.current = selectedCase.id; move({ ...selection, unitId: selectedCase.unitId, page: 1 }); setRevision(n => n + 1); }}><label>Tilldelat ärende<select value={draftCaseId} onChange={event => setDraftCaseId(event.target.value)}><option value="">Välj ärende</option>{props.setup.scope.cases.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><Button type="submit" disabled={busy || !draftCaseId}>Visa ärendets elev</Button></form> : <form className="protected-filter" onSubmit={event => { event.preventDefault(); submitSearch(draft); }}>
       {props.setup.scope.schools.length > 1 && <label>Skola<select value={selection.unitId} disabled={busy} onChange={event => filter({ unitId: event.target.value, classId: null, educationId: null, grade: null, status: null })}>{props.setup.scope.schools.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
       <div className="pupil-search-field"><label htmlFor="pupil-search">Sökord</label><input id="pupil-search" type="text" autoComplete="off" spellCheck={false} maxLength={200} value={draft} onChange={event => setDraft(event.target.value)} aria-describedby="pupil-search-help" /><small id="pupil-search-help">{props.context.function === 'administrator' ? 'Namn, födelsedatum (ÅÅÅÅMMDD) eller personnummer.' : 'Namn.'}</small></div>
       <label>Klass<select value={selection.classId ?? ''} disabled={busy} onChange={event => filter({ classId: event.target.value || null })}><option value="">Alla klasser</option>{options?.classes.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+      <div className="mandate-actions"><Button type="submit" disabled={busy}>Sök elever</Button><Button type="button" variant="outline" aria-expanded={filtersOpen} aria-controls={filterId} onClick={() => setFiltersOpen(open => !open)}>{filtersOpen ? 'Dölj filter' : 'Fler filter'}{extraFilters > 0 ? ` (${extraFilters})` : ''}</Button>{search && <Button type="button" variant="outline" onClick={() => submitSearch('')}>Rensa sökningen</Button>}{hasFilters && <Button type="button" variant="outline" onClick={() => filter({ classId: null, educationId: null, grade: null, status: null })}>Rensa filter</Button>}</div>
+      {filterLabels.length > 0 && <p className="pupil-filter-summary" aria-live="polite">Aktiva filter: {filterLabels.join(' · ')}</p>}
+      <div id={filterId} className="pupil-extra-filters" hidden={!filtersOpen}>
       <label>Utbildning<select value={selection.educationId ?? ''} disabled={busy} onChange={event => filter({ educationId: event.target.value || null })}><option value="">Alla utbildningar</option>{options?.educations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       <label>Årskurs<select value={selection.grade ?? ''} disabled={busy} onChange={event => filter({ grade: event.target.value === '' ? null : Number(event.target.value) })}><option value="">Alla årskurser</option>{options?.grades.map(grade => <option key={grade} value={grade}>{grade}</option>)}</select></label>
       <label>Status<select value={selection.status ?? ''} disabled={busy} onChange={event => filter({ status: event.target.value as Selection['status'] || null })}><option value="">Alla statusar</option>{options?.statuses.map(status => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></label>
-      <div className="mandate-actions"><Button type="submit" disabled={busy}>Sök elever</Button>{search && <Button variant="outline" onClick={() => submitSearch('')}>Rensa sökningen</Button>}{hasFilters && <Button variant="outline" onClick={() => filter({ classId: null, educationId: null, grade: null, status: null })}>Rensa filter</Button>}</div>
+      </div>
     </form>}
     <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => setRevision(n => n + 1)}>{error ? 'Försök igen' : 'Hämta aktuellt läge'}</Button>{list?.capabilities.canExport && list.count > 0 && <Button variant="outline" disabled={busy} onClick={() => { setNotice(null); setExporting(true); }}><Download size={16} aria-hidden="true" />Exportera urval…</Button>}{marked.length > 0 && <><output>{marked.length} elever markerade</output><Button variant="outline" onClick={() => setMarked([])}>Avmarkera alla</Button></>}</div>
     <section aria-label="Elevlista"><h2 ref={resultHeading} tabIndex={-1}>Elever läsåret {schoolYearLabel(selection.schoolYear)}</h2>

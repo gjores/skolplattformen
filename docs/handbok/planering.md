@@ -7,7 +7,7 @@ Planeringsåret hjälper dig att se vilket underlag som gäller under ett läså
 
 ## Välj skola och läsår
 
-Öppna **Programplaner** eller **Timplaner**. I raden **Planering** väljer du skola och planeringsläsår. Du kan gå till föregående eller nästa år, välja ett år direkt och återgå till det aktuella året. Ett år kan väljas även när det saknas planer eller kalenderuppgifter för året.
+Öppna **Programplaner** eller **Timplaner**. Överst väljer du skola och planeringsläsår. Du kan gå till föregående eller nästa år, välja ett år direkt och återgå till det aktuella året. Ett år kan väljas även när det saknas planer eller kalenderuppgifter för året.
 
 År och skola följer med mellan planeringsvyerna inom samma uppdrag. När du återvänder till **Elever** används elevregistrets eget år och filter. Webbläsarens Tillbaka och en omladdning återläser det urval som står i adressen. När uppdraget ändras eller du loggar ut rensas planeringsurval och öppet innehåll.
 
@@ -15,7 +15,9 @@ Planeringsåret hjälper dig att se vilket underlag som gäller under ett läså
 
 I menyn finns **Läsårsöverblick**, **Programplaner** och **Timplaner**. Utbildningarnas programplaner öppnas under **Programplaner**; där finns också **Ny programplan** för den som får skapa en utbildning.
 
-Listan visar skolans utbildningar och underlaget för det valda året. Sök på namn, lokal kod, program eller inriktning och kombinera filtren för skolform, status, elevkull och arkiv. Du kan ändra sortering och gå mellan sidor. Sökningen gäller hela urvalet, även rader efter första sidan.
+Listan visar skolans utbildningar och underlaget för det valda året. Sök på namn, lokal kod, program eller inriktning. I timplaner visas även skolform direkt. Välj **Fler filter** för årskurs, planstatus, elevkull och arkiv. Raden **Visar** beskriver urvalet även när filterpanelen är stängd; antalet på knappen visar hur många extra filter som avviker från grundurvalet. **Rensa filter** återställer sökning och extra filter men behåller skola och läsår. Du kan ändra sortering och gå mellan sidor. Sökningen gäller hela urvalet, även rader efter första sidan.
+
+På dator visas planerna i en tabell, med åtgärderna kvar i högerkanten när du rullar i sidled. På telefon visas varje rad som ett kort med utbildning, skola, elevkull, årskurs och status. **Öppna** finns direkt på kortet; **Visa detaljer** visar bland annat planversion och årets poäng eller timmar. Ändra ordningen med **Sortera efter** och knappen **Stigande/Fallande**.
 
 En gemensam programram kan visas för flera skolor. Programramens poäng är gemensamma; varje skolas undervisningstid är separat. Kontrollera den valda skolans namn i den öppnade planen.
 

@@ -15,7 +15,7 @@
 @media (max-width: 600px) {
   .planning-context { padding: .75rem; }
   .planning-context-controls { gap: .6rem; }
-  .planning-context-controls > strong { flex-basis: 100%; }
+  .planning-context-controls > strong, .planning-context-current { display: none; }
   .planning-context-controls > label { flex: 1 1 100%; max-width: 100%; }
   .planning-context-years { flex: 1 1 100%; }
 }

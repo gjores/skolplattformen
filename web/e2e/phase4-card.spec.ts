@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page, type Response } from '@playwright/test';
 import { loginViaKeycloak, waitForHydration } from './helpers/keycloak.ts';
+import { openPupilsFromStart } from './helpers/workspace-navigation.ts';
 import type { PupilList } from '../lib/pupil-register-model.ts';
 import { createSharedOfferingRegisterFixture } from '../../work/pilot/phase4-browser-fixtures.mjs';
 import { verifyBrowserTarget } from '../../work/pilot/phase5-browser-fixtures.mjs';
@@ -28,6 +29,7 @@ test('05-22: elev på tillagd skola placeras i delad utbildning och okopplat val
     expect(body.options.educations.some(education=>education.id===register.unlinkedOfferingId)).toBe(false);
     expect(body.pupils.map(pupil=>pupil.id)).toEqual([register.pupilId]);
     await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy','false');
+    await page.getByRole('button',{name:'Fler filter',exact:true}).click();
     const educationFilter=page.locator('.pupil-register').getByRole('combobox',{name:'Utbildning',exact:true});
     await expect(educationFilter).toBeVisible();
     await expect(educationFilter.locator(`option[value="${register.offeringId}"]`)).toHaveText('Syntetisk grundskola');
@@ -86,6 +88,7 @@ async function login(page: Page): Promise<PupilList> {
   const list = page.waitForResponse(response => isPath(response, '/api/elever/lista', 'POST'));
   await loginViaKeycloak(page, 'p3.admin', { password: passwords['p3.admin'] });
   await waitForHydration(page);
+  await openPupilsFromStart(page);
   const result = await list; expect(result.status()).toBe(200);
   await expect(page.locator('.pupil-register')).toHaveAttribute('aria-busy', 'false');
   return result.json();

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { loginViaKeycloak, waitForHydration } from './helpers/keycloak.ts';
+import { openPupilsFromStart } from './helpers/workspace-navigation.ts';
 
 let password: string;
 test.beforeAll(() => {
@@ -22,6 +23,7 @@ test('ny inloggning återfinner urval och laddar CSV via webbläsaren', async ({
       const list = page.waitForResponse(response => new URL(response.url()).pathname === '/api/elever/lista' && response.request().method() === 'POST');
       const steps = await loginViaKeycloak(page, 'p4.admin.skyddad', { password });
       await waitForHydration(page);
+      await openPupilsFromStart(page);
       expect(steps.some(step => step === 'otp' || step === 'enroll')).toBe(true);
       expect((await list).status()).toBe(200);
       const searched = page.waitForResponse(response => new URL(response.url()).pathname === '/api/elever/lista' && response.request().method() === 'POST');

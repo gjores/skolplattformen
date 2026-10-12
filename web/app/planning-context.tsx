@@ -12,6 +12,7 @@ export type PlanningContextProps = { contextKey: string; active: boolean; locati
   onTransition: (location: PlanLocation, mode: 'push' | 'replace') => void; onSessionLost: () => void; children: ReactNode };
 export type PlanningMatrixYear = 0 | 1 | 2 | 'all';
 export type PlanningContextValue = { setup: PlanningSetup | null; selection: PlanningSelection | null; loading: boolean;
+  filtersOpen: boolean; setFiltersOpen: (open: boolean) => void;
   error: string | null; normalizationNotice: string | null; matrixYear: PlanningMatrixYear | null; requestMatrixYear: (year: PlanningMatrixYear) => void; requestChange: (patch: Partial<PlanningSelection>) => void; retry: () => void };
 const Context = createContext<PlanningContextValue | null>(null);
 const WAIT = 'Invänta sparandet eller läs sparstatus innan du byter planeringsval.';
@@ -24,6 +25,7 @@ export function PlanningContextProvider(props: PlanningContextProps) {
   const [state, setState] = useState<State>({ key: props.contextKey, active: props.active, inputQuery, ready: false, setup: null,
     location: props.location, loading: props.active, error: null, notice: null });
   const [retryIndex, setRetryIndex] = useState(0);
+  const [filterPanel, setFilterPanel] = useState({ key: props.contextKey, open: false });
   const latest = useRef(props);
   useLayoutEffect(() => { latest.current = props; }, [props]);
   const generation = useRef(0), verified = useRef<(VerifiedPlanningScope & { key: string }) | null>(null);
@@ -113,6 +115,8 @@ export function PlanningContextProvider(props: PlanningContextProps) {
     latest.current.onTransition(location, 'replace');
   }, [props.active, props.contextKey, normalized, scoped, navigationBlocked]);
   const value: PlanningContextValue = {
+    filtersOpen: filterPanel.key === props.contextKey && filterPanel.open,
+    setFiltersOpen: open => setFilterPanel({ key: props.contextKey, open }),
     setup: props.active && scoped?.ready ? scoped.setup : null, selection: props.active ? normalized?.selection ?? null : null,
     loading: props.active && (!scoped || scoped.loading || !scoped.ready && !scoped.error), error: scoped?.error ?? null,
     normalizationNotice: normalized?.normalizationNotice ?? scoped?.notice ?? null,

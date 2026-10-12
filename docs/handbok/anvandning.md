@@ -24,13 +24,15 @@ Har du inga uppdrag som gäller idag öppnas ingen arbetsyta. Du kan bara logga 
 
 ## Arbetsytan för ditt uppdrag
 
-Efter inloggningen öppnas den arbetsyta som hör till ditt uppdrag. Menyn visar bara det uppdraget får använda, men det är servern som prövar varje åtgärd.
+Huvudman, rektor och administratör kommer efter inloggningen till **Start**. Välj **Hitta en elev**, **Planera läsåret** eller **Hantera uppdrag** utifrån vilka uppgifter ditt uppdrag ger tillgång till. Programplaner och timplaner har också egna genvägar. En direktlänk öppnar den valda arbetsytan. Övriga uppdrag öppnar sin arbetsyta direkt. Menyn visar bara det uppdraget får använda, men det är servern som prövar varje åtgärd.
 
 | Uppdrag | Arbetsyta |
 |---|---|
 | Kundadministration | Kundadministration |
 | Granskning | Säkerhetslogg |
-| Huvudman, rektor, elevhälsoansvarig | Mandat: tilldela och avsluta uppdrag |
+| Huvudman, rektor | Start med genvägar till planering och uppdrag |
+| Administratör | Start med genvägar till elever och planering |
+| Elevhälsoansvarig | Mandat: tilldela och avsluta uppdrag |
 | Rektor, lärare, administratör, elevhälsa, tidsbegränsad support | Elever inom uppdragets räckvidd |
 | IT-administration | Lokal anslutning |
 
@@ -42,7 +44,7 @@ Arbetsytorna fungerar på telefon i en spalt, utan sidledes rullning. Knappar oc
 
 I **Elever** väljer du skola och läsår. Läsårsväljaren sitter före uppdragsväljaren i sidhuvudet. Läsåret gäller från 1 juli till 30 juni. Listan omfattar elever med en skolplacering som överlappar det valda läsåret och som ditt uppdrag ger dig rätt att läsa.
 
-Sök på namn och välj **Sök elever**, eller tryck Enter. Administratörer kan också söka på födelsedatum eller personnummer. Filtrera på klass, utbildning, årskurs och status. Listan visar högst 50 elever per sida; välj **Föregående sida** eller **Nästa sida** för att bläddra. På dator visas en tabell och på telefon en kortlista. Namnlika elever skiljs åt med de uppgifter ditt uppdrag får se, till exempel födelsedatum, klass och skola.
+Sök på namn och välj **Sök elever**, eller tryck Enter. Administratörer kan också söka på födelsedatum eller personnummer. Klassfiltret visas direkt. Välj **Fler filter** för utbildning, årskurs och status. Valda filter syns i en sammanfattning även när du döljer filterpanelen. **Rensa filter** tar bort filtervalen. Under **Om din åtkomst till elevregistret** finns uppdragets räckvidd och eventuella tidsgränser. Listan visar högst 50 elever per sida; välj **Föregående sida** eller **Nästa sida** för att bläddra. På dator visas en tabell och på telefon en kortlista. Namnlika elever skiljs åt med de uppgifter ditt uppdrag får se, till exempel födelsedatum, klass och skola.
 
 Skola, läsår, filter och sida kan återställas med webbläsarens bakåtknapp och ligger kvar vid omladdning. Söktext och elevmarkeringar sparas inte vid omladdning; söktexten finns bara i den öppna arbetsytan. När du går tillbaka från ett elevkort kommer du till samma lista. Markeringar rensas när urvalet ändras. Ett ogiltigt eller otillåtet filter återgår till ett tillåtet starturval med ett generellt besked.
 

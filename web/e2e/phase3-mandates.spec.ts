@@ -132,13 +132,13 @@ async function sessionMfa(page: Page): Promise<SessionMfa['mfa']> {
 async function login(page: Page, username: string, requireMfa = false): Promise<KeycloakStep[]> {
   const steps = await loginViaKeycloak(page, username, { password: passwords[username] });
   await waitForHydration(page);
-  if (username === 'p3.rektor') await openMandates(page);
+  if (['p3.rektor', 'p3.huvudman'].includes(username)) await openMandates(page);
   if (!requireMfa) return steps;
   const session = await (await page.request.get('/api/session')).json() as { mfa: { amr: string[] } };
   if (session.mfa.amr.includes('otp')) return steps;
   await loginViaKeycloak(page, username, { password: passwords[username], stepUp: true });
   await waitForHydration(page);
-  if (username === 'p3.rektor') await openMandates(page);
+  if (['p3.rektor', 'p3.huvudman'].includes(username)) await openMandates(page);
   const after = await (await page.request.get('/api/session')).json() as { mfa: { amr: string[] } };
   expect(after.mfa.amr).toContain('otp');
   return steps;
