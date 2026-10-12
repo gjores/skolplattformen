@@ -236,3 +236,18 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 ## Yrkesprogram och återsändning — avgränsat delbevis 2026-10-12
 
 [Yrkesverifieringen](phases/05-bevarade-utbildnings-och-klassfloden/05-VOCATIONAL-VERIFICATION.md) utökar ADMIN-02:s lokala beslutsflöde till de tolv nationella Gy25-yrkesprogrammen. ADMIN-04 får bevarandebevis för befintliga klasslänkar, ingen ny klasskopplingsfunktion. Programplan och skolans timplan kan gå via granskning, återsändning med direkt synlig kommentar, rättning och nytt beslut. Rollinkorgen visar rättningsansvar respektive huvudmannens vänteläge. Modell/server 141, SQL/TS 101 och slutbyggd Worker BF25 25 + BA25 25 + HE 19 kontroller PASS. Historiska formuleringar om helt saknad yrkesprofil är därmed ersatta för just denna avgränsning. Fulla ADMIN-02/04 förblir Pending: skyddad klasskoppling, bredare profiler, GR/IM-beslut och mänsklig acceptans har egna öppna gränser. Yrkesstart från 2028-07-02 spärras för beslut tills yrkesprovsmodellen finns.
+
+## Operativ kedja och klasskoppling — 2026-10-12
+
+[OPERATIONAL-01–06](phases/05-bevarade-utbildnings-och-klassfloden/05-OPERATIONAL-06-SUMMARY.md) och [oberoende verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-OPERATIONAL-VERIFICATION.md) ersätter äldre formuleringar om helt saknade skyddade klasskommandon i den verifierade gymnasieavgränsningen.
+
+| Krav | Avgränsning | Färskt lokalt resultat |
+|---|---|---|
+| ADMIN-02 | OPERATIONAL-03/04 | Egna rolluppgifter först, sökning/status/sidor och sann källinnehållsjämförelse; 45 SQL, 21 faktiska HTTP, 4 källjämförelser PASS. |
+| ADMIN-03 | OPERATIONAL-01/04/05 | Befintliga elev-/klass-/versionslänkar bevarade; inga automatiska kullflyttar eller raderingar. |
+| ADMIN-04 | OPERATIONAL-01/02/04 | Beständig klass, uttryckligt exakt versions-/läsårsbyte, idempotens/konflikt/audit samt rätt årsunderlag. 56 SQL, 6 vårstartsprov, BF/BA36 faktiska API/UI PASS; klassvyer på dator/telefon. |
+| PLANERING-01/04 | OPERATIONAL-01/02/04 | Läsår och frysta versioner består vid nyversion; klassens läsår skiljs från utbildningens kalenderstartår. |
+| PLANERING-03 | OPERATIONAL-03 | Prioritering före begränsning, 50-raderssidor, sökning och beslutsstatus. SQL med520 uppgifter; faktisk HTTP med14 befintliga planer och oförändrade roller/räknare. |
+| PLANERING-05 | OPERATIONAL-06 | Node129, UI56, verklig Worker, syntetisk lokal OIDC, byteverifierat bygge, bevarad DB och byggd handbok. |
+
+ADMIN-02/04 och fulla PLANERING-krav behåller Pending för sina bredare gränser och mänskliga acceptans. GR/IM får inga nya klass-/beslutsregler genom detta steg; 05-22:s historiska metadataavvikelse raderas inte. HTTP för huvudman/administratör är snabbare men har kvar cirka3–4s median. Sex äldre testutbildningar har arkiverats med uttryckligt användargodkännande, utan att deras fyra programplaner eller historik raderas. Ingen verklig kommunanslutning påstås.

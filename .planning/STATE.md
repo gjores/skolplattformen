@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-PROGRAMPLAN-EDIT-FIX
+current_plan: 05-OPERATIONAL-06
 status: in_progress
-stopped_at: Programplansredigering utan omladdning per tangenttryck lokalt levererad; fulla krav och mänsklig acceptans kvarstår.
+stopped_at: Klasskoppling, ny timplansversion, rollinkorg och godkänd testarkivering lokalt levererade; fulla krav och mänsklig fasacceptans kvarstår.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Redigering behåller fokus/tabell; browser34, modell27, typ/lint/app/handbok samt lokal OIDC2 PASS. 3012 kör8737229."
-state_head: 8737229c87c66c045fe3fb2b83577c746c2303d9
+last_activity_desc: "OPERATIONAL01–06: klass/år/version, rollinkorg, källjämförelse och sex arkiverade testutbildningar. Node129, UI56, BF/BA API36 och HTTP21 PASS; 3012 kör0ab2064."
+state_head: 5ff563d
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_programplan_edit_fix_local_oidc_pass
-worker_build_revision: 8737229c87c66c045fe3fb2b83577c746c2303d9
+worker_status: running_on_3012_operational_local_api_pass
+worker_build_revision: 0ab206494909936cd6e40135cd72fc2502e8115b
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Operativ planeringskedja 2026-10-12:** Rektor/skoladministratör kan skapa beständig tom klass och uttryckligen koppla läsår/årskurs till en fastställd gymnasietimplansversion. Ny version lämnar befintliga länkar kvar. Rollinkorgen visar egna uppgifter först, sökning, 50-raderssidor och statusfilter. Enbart fastställande av oförändrat källinnehåll ger inte längre falsk ändringsvarning. Sex uttryckligen godkända testutbildningar arkiverade; fyra programplaner och historik bevarade. Node129, UI56, klassSQL56, vårstartSQL6, inkorgSQL45, källjämförelse4 och slutbyggd BF/BA API/UI36 samt faktisk OIDC/HTTP21 och läsande OIDC/browser6 PASS. Typ/lint/app/handbok PASS. Lokal3012 kör0ab2064 med188 byteverifierade filer och framåtriktad SQL240000 för kalender-/läsår. HTTP-median rektor4,94→0,97s, huvudman4,51→3,60s, admin10,69→3,25s; fortsatt läslatens för HM/admin är dokumenterad. [Samlad verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-OPERATIONAL-VERIFICATION.md). Sex avgränsade planer redovisas separat från historiska88/100 och3/8. Full ADMIN-02/04, övriga skolformer, 05-22:s historiska metadataavvikelse och mänsklig fasacceptans kvarstår. Äldre status nedan är historik.
 
 **Programplansredigering 2026-10-12:** Beslutsunderlag hämtas efter bekräftad sparrevision i stället för varje tangenttryck. Fokus behålls under bakgrundsläsning och samma tabell/söktext ligger kvar vid fördjupningsändring. Exakt återläsning och fel-/konfliktspärrar består; dubblerad terminsläsning borttagen. Browser34 (inklusive sex nya fokus-/felprov), modell/server27, typ/lint/app/handbok PASS. Läsande faktisk lokal OIDC för rektor på dator/telefon2 PASS. 3012 kör8737229 med183 byteverifierade byggfiler; push verifierad. [Avgränsning och resultat](debug/programplan-redigering-2026-10-12.md). Inga databaskommandon eller fulla krav-/fasgodkännanden ändras.
 

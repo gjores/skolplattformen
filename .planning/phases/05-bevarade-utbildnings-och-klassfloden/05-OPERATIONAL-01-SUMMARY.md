@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: OPERATIONAL-01
-status: implemented_sql_verified_api_pending
+status: complete
 requirements: [ADMIN-04, PLANERING-04]
 completed: 2026-10-12
 ---
@@ -26,12 +26,14 @@ API: `POST /api/klasser/underlag`, `/skapa`, `/koppla`. Underlaget visar alla l�
 
 Första tre SQL-försöken är bevarade: flow1 fann en SQL-variabelkvalificering; flow2 avslöjade att den återanvända testrektorn hade samma skola; flow3 stoppade ett avsiktligt identitetsbundet kvitto som testet försökte spela om med fel aktör. Alla tre hade full rollback och ersätts inte i historiken av flow4 PASS.
 
-## Återstår före lokal produktleverans
+## Faktisk lokal Worker och återstående fullkravsgräns
 
-`work/pilot/verify-class-timplan-api.mjs` är skrivet men ännu inte kört. Det ska pröva faktiskt slutbyggd Worker inklusive riktiga klasskommandon, beslutad ny timplansversion, explicit byte och Worker-auditfel. Riktiga API-resultat, rootens UI-prov på dator/telefon, samlat typ-/app-/handboksbygge och lokal runtimeleverans redovisas i plan06. Detta dokument ger ännu inget sådant PASS och inget fullständigt ADMIN-04-/fasgodkännande. GR/IM, klassbyte för elever, externa kommunanslutningar och automatisk adoption ingår inte.
+`work/pilot/verify-class-timplan-api.mjs` har prövat faktiskt slutbyggd Worker (0ab2064) med BF25: 18/18 PASS, exit0. Verkliga HTTP-kommandon skapar beständig klass, kopplar, spelar om kvitto, nekar fel roll/skola/MFA/CSRF/epoch/revision, bevarar gammal länk vid ny fastställd version och byter uttryckligen till den nya. Faktisk årslista visar exakt gammal respektive ny version, korrekt år 1 och sparat timtal. Worker-auditfel rullar tillbaka klass och kvitto. Två nya browserkontexter med verklig syntetisk rektorssession (1440 och 390 px) läser klasspanelen och visar rätt klass/läsår/årskurs/version; inga pageerrors eller sidöverströmning. Båda bilder visuellt granskade. Ingen processomstart efter klasskommandot påstås. Originalens 20 verksamhetstabeller, DDL/ACL/journal och källor bevarade, egen fixture städad. Bevis `/private/tmp/class-timplan-api-bf2.json` och motsvarande -1440/-390.png. Även BA25 passerar 18/18 actual API/UI-kontroller, exit0, med full ägd städning och bevarade original/DDL/ACL/källor: `/private/tmp/class-timplan-api-ba.json`. Två BA-bilder (-1440/-390.png) visuellt granskade; sammanlagt fyra verkliga läsande UI-prov/bilder och 36 API/UI-kontroller. Rootens samlade UI-, typ-/app-/handboksbygge och lokal runtimeleverans redovisas i plan06; detta är inget fullständigt ADMIN-04-/fasgodkännande. GR/IM, klassbyte för elever, externa kommunanslutningar och automatisk adoption ingår inte.
 
 Inga commits skapades av klassagenten; root samlar avgränsade leveranser och pushar aktuell gren.
 
 ## Oberoende granskningsfynd: vårstart
 
 En oberoende källgranskning efter installationen fann att `offerings.start_year` lagrar startdatumets kalenderår, medan klassens kull och årsprojektion använder akademiskt år. Jämförelsen i 210000 blockerade därför legitima starter januari–juni. Framåtriktad migration `20261012240000_class_start_calendar.sql` rättar endast metadatajämförelsen; klassens akademiska startår och 1 juli-gräns består. Historisk 210000 ändras inte. Den smala verifieraren `verify-class-start-calendar.mjs` prövar hela vårkedjan för SA25 och BF25 samt felaktigt kalenderår. Sex verkliga vårstartsprov PASS (SA25 och BF25: full beslutskedja, klass/läsår 1 och felaktigt kalenderår), följt av separat apply PASS efter 230000. Båda körningar har känd exit0. Privata bevis `/private/tmp/class-start-calendar-verify.json` och `/private/tmp/class-start-calendar-apply.json` binder exakt källa, 20 verksamhetstabellers bevarande och full DDL/ACL/journal. Migration 240000 är installerad/journalförd lokalt; ingen historisk migration skrevs om.
+
+Första faktiska BF-API-försöket (`/private/tmp/class-timplan-api-bf.json`) passerade 12 kontroller och stoppade på en felaktig testförväntan: GY:s års-API använder `application.columnId=null` och `relativeYear`, medan sparad ar1 valideras av SQL och klassunderlaget. Rättad testförväntan; ingen produktändring. Även första försöket städade egna data och bevarade original/DDL/ACL.

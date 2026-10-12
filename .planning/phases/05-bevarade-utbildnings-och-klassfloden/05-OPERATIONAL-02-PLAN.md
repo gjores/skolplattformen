@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "OPERATIONAL-02"
 type: execute
-status: planned
+status: completed
 wave: 2
 depends_on: ["OPERATIONAL-01"]
 requirements: [ADMIN-04, PLANERING-01, PLANERING-04]
