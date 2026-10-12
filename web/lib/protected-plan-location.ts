@@ -154,7 +154,6 @@ export function normalizePlanLocation(location: PlanLocation, value: PlanningSet
   const selection: PlanningSelection = { schoolYear, unitId, view, schoolform, query: requested.query ?? '', status: requested.status ?? 'all',
     cohortRelation: requested.cohortRelation ?? 'relevant', archive: requested.archive ?? 'active', grade: requested.grade ?? null,
     sort: requested.sort ?? 'name', direction: requested.direction ?? 'asc', page: requested.page ?? 1, selectionRevision: requested.selectionRevision ?? null };
-  if (view === 'programplan' && (selection.status === 'forslag' || selection.status === 'atersand')) { selection.status = 'all'; changed = true; }
   if (schoolform === 'introduktionsprogram' && selection.grade !== null || schoolform === 'gymnasium' && selection.grade !== null && selection.grade > 3) { selection.grade = null; changed = true; }
   if (schoolform !== 'gymnasium' && selection.sort === 'points' || view === 'programplan' && selection.sort === 'hours') { selection.sort = 'name'; changed = true; }
   if (location.overview && (selection.page !== 1 || selection.selectionRevision !== null)) { selection.page = 1; selection.selectionRevision = null; changed = true; }

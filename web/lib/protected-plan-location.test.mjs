@@ -62,7 +62,7 @@ test('current mandate normalizes a foreign school and incompatible filters, rese
   const result = normalizePlanLocation({ view: 'programplaner', programplan: null, planning: { schoolYear: 2200, unitId: '55004000-0000-4000-8000-000000000099',
     schoolform: 'grundskola', status: 'forslag', sort: 'hours', grade: 9, page: 2, selectionRevision: rev } }, setup());
   assert.ok(result.normalizationNotice); assert.equal(result.selection.schoolYear, 2026); assert.equal(result.selection.unitId, id);
-  assert.equal(result.selection.schoolform, 'gymnasium'); assert.equal(result.selection.status, 'all'); assert.equal(result.selection.sort, 'name');
+  assert.equal(result.selection.schoolform, 'gymnasium'); assert.equal(result.selection.status, 'forslag'); assert.equal(result.selection.sort, 'name');
   assert.equal(result.selection.grade, null); assert.equal(result.selection.page, 1); assert.equal(result.selection.selectionRevision, null);
 });
 test('GR-only and HM-without-register scopes need no pupil register setup', () => {

@@ -28,6 +28,7 @@ const fixture=globalThis.__planDecisionTest={
     if(sql.includes('insert into public.security_events')){if(state.auditFails)throw new Error('private audit failure');state.events.push({action:values[8],objectType:values[9],objectId:values[10],outcome:values[11],details:values[12]});return[];}
     state.calls.push({sql,values});if(state.sqlError)throw state.sqlError;
     if(sql.includes('phase5_plan_decision_basis'))return[{result:state.basis}];
+    if(sql.includes('phase5_plan_decision_page'))return[{result:state.page}];
     if(sql.includes('phase5_plan_decision_inbox'))return[{result:state.inbox}];
     if(sql.includes('phase5_plan_decision_command')){state.mutations.push(values);return[{result:state.reply}];}
     throw new Error('Unexpected synthetic query');
@@ -122,4 +123,18 @@ test('vocational decision rejects missing checks, one point/hour too little and 
   input=vocationalReply(code,'programplan','2028-07-02');assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
   input=vocationalReply(code,'programplan','2025-06-30');assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
  }
+});
+
+test('decision search is audited, strictly bounded and rejects foreign origins/roles',async()=>{
+ const {POST:search}=await import('../../app/api/planbeslut/lista/route.ts');
+ const selection={query:'',kind:'all',stage:'all',tasks:'all',page:1};
+ for(const fn of ['huvudman','rektor','administrator']){
+  reset();state.fn=fn;state.mfa=false;state.page={selection,items:[],actionCount:0,decisionCount:0,total:0,count:0,pageSize:50};
+  assert.equal((await search(request('lista',selection))).status,200);assert.equal(state.events.at(-1).action,'plan_decision_inbox_read');
+ }
+ for(const patch of [{page:0},{stage:'approved'},{tasks:'foreign'},{unitId:unit}]){reset();assert.equal((await search(request('lista',{...selection,...patch}))).status,400);assert.equal(state.calls.length,0);}
+ reset();assert.equal((await search(request('lista',selection,'https://outside.invalid'))).status,403);assert.equal(state.calls.length,0);
+ reset();state.fn='larare';assert.equal((await search(request('lista',selection))).status,403);assert.equal(state.calls.length,0);
+ reset();state.page={selection,items:[],actionCount:0,decisionCount:0,total:1,count:1,pageSize:50};assert.equal((await search(request('lista',selection))).status,500);
+ reset();state.auditFails=true;state.page={selection,items:[],actionCount:0,decisionCount:0,total:0,count:0,pageSize:50};assert.equal((await search(request('lista',selection))).status,500);
 });

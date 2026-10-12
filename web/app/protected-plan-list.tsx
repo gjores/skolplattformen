@@ -7,7 +7,7 @@ import { usePlanningContext } from './planning-context';
 import './protected-plan-list.css';
 import { usePlanDecisions, decisionNextActorLabel, decisionStageLabel } from './plan-decision-context';
 
-export const planningStatusLabel = { utkast: 'Utkast', forslag: 'Inväntar beslut', atersand: 'Återsänd för ändring', faststalld: 'Fastställd', ersatt: 'Ersatt' };
+export const planningStatusLabel = { utkast: 'Utkast', forslag: 'Inväntar beslut', atersand: 'Tillbaka för rättning', faststalld: 'Fastställd', ersatt: 'Ersatt' };
 export const planningRelationLabel = { new: 'Ny kull', continuing: 'Fortsättande kull', future: 'Kommande kull', finished: 'Avslutad kull', unknown: 'Start saknas' };
 export function planningMeasureText(value: PlanningMeasure | null): string {
   if (!value) return 'Ej tillämpligt';
@@ -55,7 +55,7 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
     </select></label>}
     <label htmlFor={`${id}-status`}>Planstatus<select id={`${id}-status`} value={selection.status} disabled={disabled}
       onChange={e => patch({ status: e.target.value as PlanningSelection['status'] })}>
-      <option value="all">Alla planstatusar</option>{Object.entries(planningStatusLabel).filter(([key]) => selection.view !== 'programplan' || !['forslag', 'atersand'].includes(key))
+      <option value="all">Alla planstatusar</option>{Object.entries(planningStatusLabel)
         .map(([key, label]) => <option key={key} value={key}>{selection.view === 'programplan' && key === 'utkast' ? 'Ej fastställda' : label}</option>)}
     </select></label>
     <label htmlFor={`${id}-relation`}>Elevkullar<select id={`${id}-relation`} value={selection.cohortRelation} disabled={disabled}
@@ -80,6 +80,10 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
   const { inbox } = usePlanDecisions();
   const decisionFor = (kind: 'programplan' | 'timplan', id: string) => inbox?.items.find(item => item.kind === kind && item.planId === id);
   const decisionText = (kind: 'programplan' | 'timplan', plan: NonNullable<PlanningRow['plan']>) => {
+    if (plan.decisionStage) {
+      const actor = plan.decisionStage === 'submitted' ? 'huvudman' : plan.decisionStage === 'returned' ? 'rektor' : null;
+      return `${decisionStageLabel[plan.decisionStage]}${actor ? ` · Nästa steg hos ${decisionNextActorLabel(kind, actor)}` : ''}`;
+    }
     const decision = decisionFor(kind, plan.id);
     if (decision) return `${decisionStageLabel[decision.stage]}${decision.nextActor ? ` · Nästa steg hos ${decisionNextActorLabel(kind, decision.nextActor)}` : ''}`;
     return kind === 'programplan' && plan.status === 'utkast' ? 'Ej fastställd · Öppna för beslutsstatus' : planningStatusLabel[plan.status];

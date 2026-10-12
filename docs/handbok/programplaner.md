@@ -144,6 +144,10 @@ Poängramen för programfördjupning räknas ut så här: programmets poäng min
 
 **Att göra** syns i appens navigation och öppnar **Dina uppgifter och beslut** på Start. Antalet gäller det aktiva uppdragets skolor och alla läsår. Rektor ser planer att förbereda eller rätta. Huvudmannen ser planer att granska och besluta om. Planer som väntar på en annan roll visas separat. Byt uppdrag för att se den rollens uppgifter.
 
+I **Dina uppgifter och beslut** kan du söka efter utbildning eller skola och filtrera på plantyp, beslutsskede och egna eller väntande uppgifter. **Mina uppgifter** visas före väntande uppgifter. Sidknapparna når även uppgifter som inte ryms på första sidan. Antalet i navigationen gäller fortfarande hela ditt uppdrag, oavsett sökfilter.
+
+I **Programplaner**, under **Fler filter**, kan du välja **Inväntar beslut** eller **Tillbaka för rättning**. Raden visar beslutsskede och vem som ska agera härnäst. Ett inskickat eller återsänt programutkast blir inte fastställt förrän huvudmannen beslutar.
+
 1. Rektor färdigställer och sparar programplanens innehåll. Beslutspanelen visar hinder och kontroller som behöver granskas.
 2. Rektor granskar struktur och alternativa studiegångar, markerar kontrollerna och skickar planen för godkännande. Innehållet låses medan huvudmannen granskar. Rektor kan återta förslaget till utkast.
 3. Huvudmannen öppnar planen från sina uppgifter, granskar underlaget och väljer att fastställa eller **Skicka tillbaka för rättning**. För att skicka tillbaka måste huvudmannen beskriva felet i **Kommentar – vad behöver rättas?**. Rektor får uppgiften **Läs återkoppling och rätta**. Kommentaren visas direkt under **Det här behöver rättas** i planen och bevaras i historiken. Rektor rättar, sparar och skickar in igen. Under tiden ser huvudmannen **Inväntar rättning**, och planen räknas inte som ett nytt beslut.

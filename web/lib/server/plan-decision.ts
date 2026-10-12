@@ -1,5 +1,5 @@
 import { gymArray, gymShape, gymRowKey, parseGymTimplanHours } from '../gym-timplan.ts';
-import { parsePlanDecisionDetail, parsePlanDecisionInbox, type PlanDecisionCommand, type PlanDecisionRead } from '../plan-decision.ts';
+import { parsePlanDecisionDetail, parsePlanDecisionInbox, parsePlanDecisionPage, type PlanDecisionQuery, type PlanDecisionCommand, type PlanDecisionRead } from '../plan-decision.ts';
 import { projectSource } from './gym-timplan.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type Tx } from './db.ts';
@@ -88,3 +88,9 @@ export async function commandPlanDecision(tx: Tx, input: PlanDecisionCommand) {
   return {body,event:{action:'plan_decision_command',objectType:input.kind,objectId:input.planId}};
 }
 export function decisionRequest<T>(parse:(value:unknown)=>T,value:unknown):T { try {return parse(value);} catch {throw new Deny('bad_request',400);} }
+
+export async function readPlanDecisionPage(tx: Tx, input: PlanDecisionQuery) {
+  const raw = one(await operation(() => tx<{result:unknown}[]>`select public.phase5_plan_decision_page(${tx.json(input)}::jsonb) as result`));
+  try { return {body:parsePlanDecisionPage(raw,input),event:{action:'plan_decision_inbox_read',objectType:'plan_decision_collection',objectId:null}}; }
+  catch { throw new AuditUnavailable(); }
+}

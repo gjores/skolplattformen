@@ -15,7 +15,7 @@ export type PlanningSelection = {
   grade: number | null; sort: 'name' | 'school' | 'cohort' | 'version' | 'status' | 'grade' | 'points' | 'hours';
   direction: 'asc' | 'desc'; page: number; selectionRevision: string | null;
 };
-export type PlanningPlanReference = { id: string; version: number; revision: number; status: TimplanStatus };
+export type PlanningPlanReference = { id: string; version: number; revision: number; status: TimplanStatus; decisionStage?: 'draft' | 'submitted' | 'returned' | 'approved' | 'replaced' };
 export type PlanningSourceReference = { planId: string; offeringId: string; version: number; revision: number };
 export type PlanningClassReference = { id: string; customerId: string; unitId: string; offeringId: string };
 export type PlanningCell = { rowKey: string; points: number | null; pointTerms: number[] | null; hourValues: (number | null)[] | null };
@@ -106,7 +106,7 @@ export function parsePlanningSelection(value: unknown, setup?: PlanningSetup): P
   const r = shape(value, selectionKeys), view = choice(r.view, ['programplan', 'timplan']), schoolform = choice(r.schoolform, schoolforms);
   const status = choice(r.status, ['all', ...statuses]), grade = r.grade === null ? null : integer(r.grade, 1, 9), query = text(r.query, 200);
   const sort = choice(r.sort, ['name', 'school', 'cohort', 'version', 'status', 'grade', 'points', 'hours']);
-  if (query !== query.trim() || (view === 'programplan' && (schoolform !== 'gymnasium' || ['forslag', 'atersand'].includes(status) || sort === 'hours'))
+  if (query !== query.trim() || (view === 'programplan' && (schoolform !== 'gymnasium' || sort === 'hours'))
     || (schoolform === 'gymnasium' && grade !== null && grade > 3) || (schoolform === 'introduktionsprogram' && grade !== null)
     || (schoolform !== 'gymnasium' && sort === 'points')) bad();
   const selectionRevision = r.selectionRevision === null ? null : fingerprint(r.selectionRevision), page = integer(r.page, 1, 100000);
@@ -123,8 +123,14 @@ export function parsePlanningSelection(value: unknown, setup?: PlanningSetup): P
 }
 function parsePlan(value: unknown): PlanningPlanReference | null {
   if (value === null) return null;
-  const r = shape(value, ['id', 'version', 'revision', 'status']);
-  return { id: uuid(r.id), version: integer(r.version, 1), revision: integer(r.revision), status: choice(r.status, statuses) };
+  const raw = object(value), hasStage = Object.hasOwn(raw, 'decisionStage');
+  const r = shape(raw, ['id', 'version', 'revision', 'status', ...(hasStage ? ['decisionStage'] : [])]);
+  const status = choice(r.status, statuses);
+  const decisionStage = hasStage ? choice(r.decisionStage, ['draft','submitted','returned','approved','replaced'] as const) : undefined;
+  if (decisionStage && (status === 'faststalld' && decisionStage !== 'approved' || status === 'ersatt' && decisionStage !== 'replaced'
+    || status === 'forslag' && decisionStage !== 'submitted' || status === 'atersand' && decisionStage !== 'returned'
+    || status === 'utkast' && ['approved','replaced'].includes(decisionStage))) bad();
+  return { id: uuid(r.id), version: integer(r.version, 1), revision: integer(r.revision), status, ...(decisionStage ? {decisionStage} : {}) };
 }
 function parseSource(value: unknown): PlanningSourceReference | null {
   if (value === null) return null;
@@ -231,6 +237,8 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
   const r = shape(raw, [...legacyRowKeys, ...(extended ? ['searchDetails'] : []), ...(hasTimplan ? ['schoolTimplan'] : [])]);
   if (hasTimplan && selection.view !== 'programplan') bad();
   const schoolform = choice(r.schoolform, schoolforms), plan = parsePlan(r.plan), source = parseSource(r.source), unitId = uuid(r.unitId), offeringId = uuid(r.offeringId);
+  if (selection.view === 'programplan' && ['forslag','atersand'].includes(selection.status)
+    && plan?.decisionStage !== (selection.status === 'forslag' ? 'submitted' : 'returned')) bad();
   const unit = setup.units.find(u => u.unitId === unitId);
   if (uuid(r.customerId) !== setup.customerId || !unit || r.schoolName !== unit.schoolName || schoolform !== selection.schoolform
     || (selection.unitId !== null && unitId !== selection.unitId) || !(selection.view === 'programplan' ? unit.canRead.programplan : unit.canRead[schoolform])
@@ -295,7 +303,7 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
   if (selection.view === 'timplan' && !metrics.hours.complete) required.push('missing-hours');
   if (required.some(d => !diagnostics.includes(d))) bad();
   const actualGrade = schoolform === 'gymnasium' ? relativeYear : schoolform === 'grundskola' ? grProjection(row, selection.schoolYear).grade : null;
-  if ((selection.grade !== null && actualGrade !== selection.grade) || (selection.status !== 'all' && plan?.status !== selection.status)
+  if ((selection.grade !== null && actualGrade !== selection.grade) || (selection.status !== 'all' && !(selection.view === 'programplan' && ['forslag','atersand'].includes(selection.status)) && plan?.status !== selection.status)
     || (selection.cohortRelation === 'relevant' && ['future', 'finished'].includes(relation))
     || (!['all', 'relevant'].includes(selection.cohortRelation) && relation !== selection.cohortRelation)
     || (selection.archive !== 'all' && archived !== (selection.archive === 'archived'))) bad();

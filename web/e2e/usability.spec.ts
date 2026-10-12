@@ -324,7 +324,7 @@ for (const previousStatus of ['atersand', 'forslag'] as const) test(`korrigerad 
     await expect(next).toBeDisabled(); expect(commands).toHaveLength(0); verify(); return;
   }
   await expect(next).toBeEnabled(); await next.click();
-  await expect(page.getByRole('dialog')).toContainText('Version 1 bevaras. 1 rader');
+  await expect(page.getByRole('dialog')).toContainText('Version 1 och dess klasskopplingar bevaras.');
   await page.getByRole('dialog').getByRole('button', { name: 'Skapa timplansutkast', exact: true }).click();
   await expect(page.getByText('Utkast · Timplan version 2', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Skicka för beslut', exact: true })).toBeEnabled();
@@ -424,4 +424,43 @@ for (const outcome of ['saved', 'conflict', 'decision-read-failed'] as const) te
   await expect(board.getByRole('button',{name:'Ta bort ANIM1000X',exact:true})).toBeVisible();
   expect(termReads).toBe(initialTerms+1);
   await fits(page);await page.screenshot({path:info.outputPath('programplan-edit-retained.png'),fullPage:true});verify();
+});
+
+for (const role of ['huvudman','rektor','administrator']) test(`beslutsinkorg söker och bläddrar genom fler än 500 uppgifter: ${role}`, async ({page}, info) => {
+  const verify=await mockApp(page,role);
+  const items=Array.from({length:520},(_,i)=>({kind:role==='administrator'?'timplan':'programplan',planId:id(2000+i),offeringId:id(3000+i),unitId:role==='administrator'?id(2):null,
+    schoolName:role==='administrator'?schools[0].name:null,educationName:`Syntetisk uppgift ${String(i).padStart(4,'0')}`,version:1,
+    stage:i<260?(role==='huvudman'?'submitted':'returned'):(role==='huvudman'?'returned':'submitted'),nextActor:i<260?(role==='huvudman'?'huvudman':'rektor'):(role==='huvudman'?'rektor':'huvudman'),
+    task:i<260?(role==='huvudman'?'review':'revise'):'waiting'}));
+  await page.route('**/api/planbeslut/inkorg',route=>route.fulfill({json:{items:items.slice(0,500),total:520,actionCount:260,decisionCount:role==='huvudman'?260:0,truncated:true}}));
+  await page.route('**/api/planbeslut/lista',async route=>{
+    const selection=route.request().postDataJSON();
+    const found=items.filter(item=>(selection.kind==='all'||item.kind===selection.kind)&&(selection.stage==='all'||item.stage===selection.stage)
+      &&(selection.tasks==='all'||(selection.tasks==='mine')===(item.task!=='waiting'))&&item.educationName.toLowerCase().includes(selection.query.toLowerCase()));
+    await route.fulfill({json:{selection,items:found.slice((selection.page-1)*50,selection.page*50),actionCount:260,decisionCount:role==='huvudman'?260:0,total:520,count:found.length,pageSize:50}});
+  });
+  await page.goto(base);
+  const inbox=page.getByRole('region',{name:'Dina uppgifter och beslut'});
+  await expect(inbox).toContainText('Sida 1 av 11');await expect(inbox).toContainText('Syntetisk uppgift 0049');
+  await inbox.getByRole('button',{name:'Nästa sida',exact:true}).click();await expect(inbox).toContainText('Sida 2 av 11');await expect(inbox).toContainText('Syntetisk uppgift 0050');
+  await inbox.getByRole('searchbox',{name:'Sök uppgift'}).fill('0519');await inbox.getByRole('button',{name:'Sök',exact:true}).click();
+  await expect(inbox).toContainText('Syntetisk uppgift 0519');await expect(inbox).toContainText('1 träff');await expect(page.getByRole('button',{name:new RegExp('Att göra: 260')})).toBeVisible();
+  await inbox.getByRole('combobox',{name:'Uppgifter',exact:true}).selectOption('mine');await expect(inbox).toContainText('0 träffar');
+  await inbox.getByRole('button',{name:'Rensa filter',exact:true}).click();await expect(inbox).toContainText('Sida 1 av 11');
+  await inbox.getByRole('combobox',{name:'Beslutsskede'}).selectOption('returned');await expect(inbox).toContainText('260 träffar');
+  await page.screenshot({path:info.outputPath(`decision-search-${role}.png`),fullPage:true});verify();
+});
+
+test('programlistan filtrerar inskickat och återsänt utan att ändra utkastets planstatus',async({page})=>{
+ const verify=await mockApp(page);
+ await page.route('**/api/planering/lista',async route=>{
+  const selected=route.request().postDataJSON(), stage=selected.status==='forslag'?'submitted':selected.status==='atersand'?'returned':'draft';
+  const rows=rowsFor({...selected,status:'all'}).map(row=>({...row,plan:row.plan?{...row.plan,decisionStage:stage}:null}));
+  await route.fulfill({json:{selection:selected,selectionRevision:revision,count:rows.length,pageSize:50,rows}});
+ });
+ await page.goto(`${base}?vy=programplaner`);await page.getByRole('button',{name:'Fler filter',exact:true}).click();
+ await page.getByRole('combobox',{name:'Planstatus',exact:true}).selectOption('forslag');
+ await expect(page).toHaveURL(/planeringsstatus=forslag/);await expect(page.getByRole('region',{name:'Alla programplaner'})).toContainText('Inväntar beslut');
+ await page.getByRole('combobox',{name:'Planstatus',exact:true}).selectOption('atersand');
+ await expect(page).toHaveURL(/planeringsstatus=atersand/);await expect(page.getByRole('region',{name:'Alla programplaner'})).toContainText('Tillbaka för rättning');verify();
 });

@@ -19,3 +19,16 @@ test('inbox counts cannot hide actionable items or fabricate decisions',()=>{
  assert.deepEqual(parsePlanDecisionInbox(inbox),inbox);
  for(const patch of [{actionCount:0},{decisionCount:1},{total:2},{truncated:true},{items:[...inbox.items,...inbox.items],total:2,actionCount:2}])assert.throws(()=>parsePlanDecisionInbox({...inbox,...patch}));
 });
+
+test('paginated search retains global counters and reaches rows after 500', async () => {
+ const {parsePlanDecisionQuery,parsePlanDecisionPage,defaultPlanDecisionQuery}=await import('./plan-decision.ts');
+ const selected={...defaultPlanDecisionQuery(),page:11};
+ const page={selection:selected,items:[{...item(),task:'prepare'}],actionCount:500,decisionCount:0,total:501,count:501,pageSize:50};
+ assert.equal(parsePlanDecisionPage(page,selected).items.length,1);
+ for(const patch of [{page:0},{page:100001},{query:' padded '},{query:'x'.repeat(201)},{kind:'all;select'},{stage:'approved'},{tasks:'foreign'},{customerId:id}]) assert.throws(()=>parsePlanDecisionQuery({...selected,...patch}));
+ for(const patch of [{count:502},{pageSize:500},{total:499},{decisionCount:501},{selection:{...selected,page:10}}]) assert.throws(()=>parsePlanDecisionPage({...page,...patch},selected));
+ const filtered={...selected,page:1,stage:'returned',tasks:'mine',kind:'programplan'};
+ const found={...page,selection:filtered,count:1,items:[{...item(),stage:'returned',task:'revise'}]};
+ assert.equal(parsePlanDecisionPage(found,filtered).actionCount,500);
+ assert.throws(()=>parsePlanDecisionPage({...found,items:[{...item(),task:'waiting'}]},filtered));
+});

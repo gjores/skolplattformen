@@ -362,3 +362,15 @@ test('time-plan status cannot cross schools or educations, forge versions, or en
   const getter = {}; Object.defineProperty(getter, 'id', { enumerable: true, get() { throw Error('Do not execute'); } });
   assert.throws(() => parseList([programSearchRow({ schoolTimplan: getter })], selected), TypeError);
 });
+
+test('program decisions filter review stages independently of stored draft status', () => {
+ for (const [status,decisionStage] of [['forslag','submitted'],['atersand','returned']]) {
+  const selected=selection({view:'programplan',status});
+  assert.equal(parsePlanningSelection(selected,setup()).status,status);
+  const r=row(2,{plan:{id:id(5),version:1,revision:3,status:'utkast',decisionStage},source:{planId:id(5),offeringId:id(4),version:1,revision:3},
+   start:{provenance:'program-version',startedOn:'2026-08-15',academicYear:2026,legacyYear:2026},cells:[{...cell(),hourValues:null}]});
+  const parsed=parsePlanningList(list([r],selected),selected,setup());
+  assert.equal(parsed.rows[0].plan.status,'utkast');assert.equal(parsed.rows[0].plan.decisionStage,decisionStage);
+  assert.throws(()=>parsePlanningList(list([{...r,plan:{...r.plan,decisionStage:'draft'}}],selected),selected,setup()));
+ }
+});
