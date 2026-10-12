@@ -332,3 +332,21 @@ for (const previousStatus of ['atersand', 'forslag'] as const) test(`korrigerad 
   expect(commands[0]).toMatchObject({ sourcePlanId: id(30), expectedSourceRevision: 1, unitId: id(2), predecessorPlanId: id(90), expectedPredecessorRevision: 3 });
   await fits(page); verify();
 });
+
+test('huvudmannen inväntar rättning efter retur av båda plantyperna', async ({ page }) => {
+  const verify = await mockApp(page, 'huvudman');
+  await page.route('**/api/planbeslut/inkorg', route => route.fulfill({ json: {
+    items: ['programplan', 'timplan'].map((kind, n) => ({ kind, planId: id(70+n), offeringId: id(10),
+      unitId: kind === 'timplan' ? id(2) : null, schoolName: kind === 'timplan' ? schools[0].name : null,
+      educationName: 'Barn- och fritidsprogrammet', version: 1, stage: 'returned', nextActor: 'rektor', task: 'waiting' })),
+    total: 2, actionCount: 0, decisionCount: 0, truncated: false,
+  } }));
+  await page.goto(base);
+  await expect(page.getByRole('button', { name: 'Att göra: 0 uppgifter, 0 beslut' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Inväntar rättning', exact: true })).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Inväntar beslut', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Granska och besluta', exact: true })).toHaveCount(0);
+  await expect(page.getByText('Tillbaka för rättning · Nästa steg hos rektor', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tillbaka för rättning · Nästa steg hos rektor eller skoladministratör', { exact: true })).toBeVisible();
+  await fits(page); verify();
+});

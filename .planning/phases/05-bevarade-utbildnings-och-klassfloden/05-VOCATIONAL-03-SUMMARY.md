@@ -14,3 +14,7 @@ Aktuell återsänd plan visar **Tillbaka för rättning**, nästa ansvariga roll
 Verifierat med isolerade syntetiska API-svar: full befintlig usability-svit 26/26 PASS på dator/telefon, inga skips eller flakes. Två återsändningar i följd för båda plantyperna verifierar att senaste kommentaren visas och den äldre inte ersätter aktuell återkoppling. Blank kommentar, rätt nästa roll, historik, slutligt innehållslås och saknad returknapp efter fastställande prövas. Tidigare 12 roll-/returprov och fyra riktade dubbla returprov passerade också; resultaten är omkörningar, inte extra unika beteenden.
 
 Mobilens aktuella återkopplingsruta är visuellt granskad för båda plantyperna. Ingen horisontell överströmning. Typkontroll och lint PASS. Rapport: ignorerade `web/outputs/vocational-ui-final-result.json`; bilder i `web/test-results/`. Verklig databas/API och lokal leverans följer i VOCATIONAL-02/04. Ingen mänsklig begriplighetsacceptans påstås.
+
+## Komplettering efter granskning
+
+Huvudmannen ska efter retur vänta på en ny inskickning. SQL-rättningen i VOCATIONAL-02 tar därför bort direkt fastställande av återsänd programplan. UI visar **Inväntar rättning** för waiting/returned och **Inväntar förberedelse** för waiting/draft. Ytterligare två riktade dator-/telefonprov PASS: båda plantyperna finns kvar i väntande grupp, men inga egna uppgifter eller beslut räknas för huvudmannen. Sista typ/lint PASS. Äldre återsända versioner utan historik får en ärlig förklaring om saknad återkoppling.

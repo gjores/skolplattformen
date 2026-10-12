@@ -79,7 +79,7 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
       <ol className="plan-decision-steps" aria-label="Planens beslutsgång">{(['draft','submitted','approved'] as const).map((stage, index) => <li key={stage} aria-current={detail.stage === stage || stage === 'draft' && detail.stage === 'returned' ? 'step' : undefined}>{index + 1}. {stage === 'draft' ? 'Bearbeta utkast' : stage === 'submitted' ? 'Granska och besluta' : 'Fastställd plan'}</li>)}</ol>
       {detail.stage === 'returned' && <section className="decision-feedback" aria-label="Återkoppling från huvudmannen">
         <h3>Det här behöver rättas</h3>
-        {feedback ? <><p className="decision-feedback-comment">{feedback.comment}</p><p className="decision-secondary">{feedback.actorName} · {new Date(feedback.at).toLocaleString('sv-SE')}</p></> : <p>Öppna beslutshistoriken för tidigare återkoppling.</p>}
+        {feedback ? <><p className="decision-feedback-comment">{feedback.comment}</p><p className="decision-secondary">{feedback.actorName} · {new Date(feedback.at).toLocaleString('sv-SE')}</p></> : <p>Ingen återkoppling finns sparad för den här versionen. Kontakta huvudmannen om vad som ska rättas.</p>}
         <p>{kind === 'programplan' ? 'Rektor' : 'Rektor eller skoladministratör'} rättar och sparar planen och skickar den sedan för ett nytt beslut.</p>
       </section>}
       {detail.stage === 'submitted' && <p>{detail.actions.includes('return')

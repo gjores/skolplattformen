@@ -60,7 +60,7 @@ export function DecisionInbox({ roleLabel, onOpen }: { roleLabel: string; onOpen
   const row = (item: PlanDecisionItem) => <li key={`${item.kind}:${item.planId}:${item.unitId}`}>
     <div><strong>{item.educationName}</strong><span>{item.kind === 'programplan' ? 'Programplan' : 'Timplan'} · Version {item.version}{item.schoolName && ` · ${item.schoolName}`}</span>
       <span>{decisionStageLabel[item.stage]}{item.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(item.kind, item.nextActor)}`}</span></div>
-    <button type="button" onClick={() => onOpen(item)}>{taskLabel[item.task]}<ArrowRight size={16} aria-hidden="true"/></button>
+    <button type="button" onClick={() => onOpen(item)}>{item.task === 'waiting' && item.stage === 'returned' ? 'Inväntar rättning' : item.task === 'waiting' && item.stage === 'draft' ? 'Inväntar förberedelse' : taskLabel[item.task]}<ArrowRight size={16} aria-hidden="true"/></button>
   </li>;
   return <section className="decision-inbox" aria-labelledby="decision-inbox-title" aria-busy={loading}>
     <header><div><h2 id="decision-inbox-title">Dina uppgifter och beslut</h2><p>För ditt aktuella uppdrag: {roleLabel}. Visar alla läsår inom uppdraget.</p></div><button type="button" disabled={loading} onClick={refresh} aria-label="Uppdatera uppgifter"><RefreshCw size={18}/></button></header>
