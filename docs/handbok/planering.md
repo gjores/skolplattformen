@@ -13,6 +13,8 @@ Planeringsåret hjälper dig att se vilket underlag som gäller under ett läså
 
 ## Hitta rätt underlag
 
+I menyn finns **Läsårsöverblick**, **Programplaner** och **Timplaner**. Utbildningarnas programplaner öppnas under **Programplaner**; där finns också **Ny programplan** för den som får skapa en utbildning.
+
 Listan visar skolans utbildningar och underlaget för det valda året. Sök på namn, lokal kod, program eller inriktning och kombinera filtren för skolform, status, elevkull och arkiv. Du kan ändra sortering och gå mellan sidor. Sökningen gäller hela urvalet, även rader efter första sidan.
 
 En gemensam programram kan visas för flera skolor. Programramens poäng är gemensamma; varje skolas undervisningstid är separat. Kontrollera den valda skolans namn i den öppnade planen.
@@ -34,6 +36,10 @@ Introduktionsprogrammets timmar visas per vecka. De räknas inte om till årstim
 ## Överblick, saknat och noll
 
 Överblicken sammanfattar hela urvalet. Poäng i en gemensam programram räknas en gång. Skolvisa timmar hålls isär. Klassbundet underlag, förberedande planering och prognos skiljs åt.
+
+Välj mellan **Programplaner**, gymnasiets eller grundskolans timplaner och introduktionsprogrammets veckoramar. Det valda underlaget markeras. Med **Visa och öppna planerna** överst går du till listan för samma underlag, skola och läsår.
+
+Knapparna **Ny kull**, **Fortsättande kull** och **Start saknas** filtrerar urvalet och markerar det valda filtret. Tryck på den valda knappen igen för att åter visa nya och fortsättande kullar samt kullar med okänd start. Antalen gäller det aktuella, filtrerade urvalet. Under **Så räknas överblicken** finns en utfällbar förklaring till summeringen.
 
 **Saknas** eller **Okänt** betyder att underlaget inte räcker för en säker uppgift. Ett tomt timfält är ofördelat; `0` är ett sparat nollvärde. En delvis känd summa bevisar inte att hela ramen är känd. En saknad start, kalender eller årsbindning får inte fyllas med en gissning.
 

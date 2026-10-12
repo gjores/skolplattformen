@@ -16,7 +16,7 @@ export default function ProgramplanList(props: Props) {
   const locked = props.disabled || props.creationLoading;
   return <section className="ppl" aria-label="Programplansöversikt">
     <div className="pps-head"><div className="pps-head-text"><h1 className="ppl-title">Programplaner</h1>
-      <p>Välj läsår och skola. Öppna den version som årets planeringsrad använder.</p></div>
+      <p>Planera utbildningarnas ämnen och poäng. Listan visar versionen för vald skola och valt läsår.</p></div>
       {canCreate && props.canEditPlans && <div className="pps-actions"><Button disabled={locked} onClick={props.onNew}><Plus size={16} aria-hidden="true"/>Ny programplan</Button></div>}
     </div>
     <ProtectedPlanList disabled={props.disabled} onSecurityFailure={props.onSecurityFailure} onOpen={props.onOpen}

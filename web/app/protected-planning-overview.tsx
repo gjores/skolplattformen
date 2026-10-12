@@ -39,7 +39,7 @@ export default function ProtectedPlanningOverview({ onSecurityFailure, onChooseC
   const visible = state.key === key ? state : null, data = visible?.data, busy = !visible || visible.loading;
   if (!selection || !setup) return <output>Läser planeringsval…</output>;
   const collections: { label: string; view: PlanningSelection['view']; schoolform: PlanningSelection['schoolform'] }[] = [
-    { label: 'Programramar', view: 'programplan', schoolform: 'gymnasium' },
+    { label: 'Programplaner', view: 'programplan', schoolform: 'gymnasium' },
     { label: 'Gymnasiets timplaner', view: 'timplan', schoolform: 'gymnasium' },
     { label: 'Grundskolans timplaner', view: 'timplan', schoolform: 'grundskola' },
     { label: 'Introduktionsprogrammets veckoramar', view: 'timplan', schoolform: 'introduktionsprogram' },
@@ -47,28 +47,36 @@ export default function ProtectedPlanningOverview({ onSecurityFailure, onChooseC
   const missingPlans = data?.rows.filter(row => !row.plan).length ?? 0;
   const unknownHours = data?.rows.filter(row => row.diagnostics.includes('missing-hours')).length ?? 0;
   return <section className="planning-overview plan-list" aria-label="Läsårsöverblick" aria-busy={busy}>
-    <h1>Läsårsöverblick {planningYearLabel(selection.schoolYear)}</h1>
-    <p>Se nya och fortsättande kullar tillsammans. Programramens poäng och skolans planerade timmar visas som olika mått.</p>
+    <header className="planning-overview-heading">
+      <div><h1>Läsårsöverblick {planningYearLabel(selection.schoolYear)}</h1>
+        <p>Se nya och fortsättande kullar tillsammans. Välj underlag nedan eller öppna planerna för att arbeta vidare.</p></div>
+      <button type="button" onClick={onShowPlans}>Visa och öppna planerna</button>
+    </header>
     <div className="planning-overview-kulls" aria-label="Välj planeringsunderlag">{collections.filter(c => setup.units.some(unit => c.view === 'programplan' ? unit.canRead.programplan : unit.canRead[c.schoolform]))
       .map(c => <button key={`${c.view}-${c.schoolform}`} type="button" aria-pressed={selection.view === c.view && selection.schoolform === c.schoolform}
         onClick={() => onChooseCollection(c.view, c.schoolform)}>{c.label}</button>)}</div>
     <PlanningFilterControls/>
     {busy && <output>Läser hela årsunderlaget…</output>}
     {visible?.error && <p role="alert">{visible.error} <button type="button" onClick={() => setRetry(n => n + 1)}>Läs om överblicken</button></p>}
-    {data && <><p>{data.count} planeringsrader i hela urvalet. Varje rad avser en skola och en faktisk planversion.</p>
+    {data && <><p>{data.count} {data.count === 1 ? 'träff' : 'träffar'}. Varje träff avser en utbildning på en skola, med årets planversion om den finns.</p>
       <dl className="planning-overview-metrics">
         {data.totals.points && <div><dt>Programramens poäng för året</dt><dd>{planningMeasureText(data.totals.points)}</dd></div>}
         {selection.view === 'timplan' && selection.schoolform !== 'introduktionsprogram' && <div><dt>Planerade ramtimmar för året</dt><dd>{planningMeasureText(data.totals.annualHours)}</dd></div>}
         {selection.schoolform === 'introduktionsprogram' && <div><dt>Planerade timmar per vecka</dt><dd>{planningMeasureText(data.totals.weeklyHours)}</dd></div>}
         {selection.view === 'timplan' && <div><dt>Relaterade klasser</dt><dd>{planningMeasureText(data.totals.classCount)}</dd></div>}
       </dl>
-      <p>En gemensam programram räknas en gång. Varje skolas egna timplan räknas separat. Klassantalet multiplicerar inte timmarna och måtten anger ingen bemanning.</p>
+      <p>Poäng och planerade timmar är olika mått. Summorna visar inte bemanning.</p>
+      <details className="planning-overview-explanation"><summary>Så räknas överblicken</summary>
+        <p>En gemensam programram räknas en gång. Varje skolas egna timplan räknas separat. Klassantalet multiplicerar inte timmarna. Saknade värden visas som okända och räknas inte som noll.</p>
+      </details>
       {data.totals.hasForecast && <p>Urvalet innehåller prognosunderlag utan verifierad klasskoppling för det valda året.</p>}
-      <div className="planning-overview-kulls" aria-label="Kullar i årsunderlaget">{(['new', 'continuing', 'unknown'] as const).map(relation =>
-        <button key={relation} type="button" onClick={() => requestChange({ cohortRelation: relation })}>{planningRelationLabel[relation]} · {data.rows.filter(row => row.relation === relation).length} rader</button>)}</div>
+      <div className="planning-overview-kulls" aria-label="Kullar i årsunderlaget">{(['new', 'continuing', 'unknown'] as const).map(relation => {
+        const count = data.rows.filter(row => row.relation === relation).length;
+        return <button key={relation} type="button" aria-pressed={selection.cohortRelation === relation}
+          onClick={() => requestChange({ cohortRelation: selection.cohortRelation === relation ? 'relevant' : relation })}>{planningRelationLabel[relation]} · {count} {count === 1 ? 'träff' : 'träffar'}</button>;
+      })}</div>
       {(missingPlans > 0 || unknownHours > 0) && <p>{missingPlans > 0 && `${missingPlans} rader saknar plan. `}{unknownHours > 0 && `${unknownHours} rader har ofördelade eller okända timmar.`} Saknade värden visas som okända och räknas inte som noll.</p>}
       {data.count === 0 && <p>Inget underlag matchar valen. Rensa filtren eller välj ett annat läsår.</p>}
-      <p><button type="button" onClick={onShowPlans}>Visa och öppna planerna</button></p>
     </>}
   </section>;
 }

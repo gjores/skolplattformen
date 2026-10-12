@@ -6,9 +6,9 @@ current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-43
 status: in_progress
 stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
-last_updated: "2026-10-09"
-last_activity: 2026-10-09
-last_activity_desc: "Årsplaneringsprov användarrapporterat godkänt: allt fnukar.88/100 planer,3/8 faser; fulla krav/formella beslut och nästa planering kvarstår."
+last_updated: "2026-10-12"
+last_activity: 2026-10-12
+last_activity_desc: "Avgränsad användbarhetsrättning: meny, läsårsöverblick och telefonhuvud. UI med syntetiska svar, 74 modellprov, typ/lint och byggen PASS; prioriterade förslag dokumenterade. Fas- och kravstatus oförändrad."
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Användbarhetsgenomgång 2026-10-12:** På användarens beställning är en dubbel menyingång borttagen, läsårsöverblickens rubrik/nästa steg/val förtydligade och telefonens sidhuvud kompaktare. Avgränsade UI-prov med syntetiska svar på dator/telefon, 74 modellprov, typ/lint samt app- och handboksbygge PASS. [Genomgång, verifieringsgräns och prioriterade förslag](debug/anvandbarhet-2026-10-12.md). Större förändringar är förslag; 88/100 planer, 3/8 faser och alla öppna krav/formella beslut består. Ordinarie provmiljös bygge är inte ersatt av rättningen.
 
 **Användarprov05-43 godkänt2026-10-09:** Användaren svarade ”allt fnukar” efter årsplaneringens femstegsprov. Registrerat som användarrapporterat godkänt; enhet, uppdrag och enskilda steg särredovisades inte.88/100 planer och3/8 verifierade faser består. Fulla krav,05-17, fas5 och rektors färdigmarkering/huvudmannens godkännande förblir öppna. Nästa arbete behöver planeras inom kvarstående gap; detta svar startar ingen ny implementation. Se [användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-USER-TRIAL.md).
 

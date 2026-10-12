@@ -1957,11 +1957,12 @@ textarea:disabled {
 .protected-topbar{height:auto;min-height:72px;padding-top:10px;padding-bottom:10px}
 .protected-topbar .top-actions{min-width:0;flex-wrap:wrap;justify-content:flex-end}
 .protected-topbar [data-slot=sidebar-trigger]{min-width:44px;min-height:44px}
+.protected-topbar .top-actions > button{min-width:44px;min-height:44px}
 .protected-school small{display:block;overflow-wrap:anywhere}
 .protected-workspace .admin-empty{max-width:720px}
 .blocked-start output{display:block;margin-top:16px;color:var(--destructive);line-height:1.5}
 .blocked-start button{min-height:44px;margin-top:16px}
-@media(max-width:600px){.protected-topbar{align-items:flex-start;flex-direction:column;padding:10px 14px}.protected-topbar .top-actions{width:100%;justify-content:flex-start}.protected-topbar .top-actions .context-switch{order:3;width:100%}.protected-topbar .top-actions .og-unit-switch{width:100%;max-width:none;white-space:normal}.protected-topbar .context-label{width:100%;max-width:none}.protected-topbar .demo-pill{white-space:nowrap}}
+@media(max-width:600px){.protected-topbar{align-items:flex-start;flex-direction:column;padding:10px 14px}.protected-topbar .top-actions{width:100%;justify-content:flex-start}.protected-topbar .top-actions .context-switch{order:3;width:100%}.protected-topbar .top-actions .og-unit-switch{width:100%;max-width:none;white-space:normal}.protected-topbar .context-label{order:3;width:100%;max-width:none}.protected-topbar .demo-pill{white-space:nowrap}}
 .protected-admin{display:flex;flex-direction:column;gap:20px}
 .protected-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:22px 24px;min-width:0}
 .protected-card>h2{font-size:1.25rem;font-weight:500;color:var(--foreground);margin:0 0 18px}

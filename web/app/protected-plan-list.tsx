@@ -99,7 +99,7 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
     {visible?.notice && <output>{visible.notice}</output>}
     {visible?.error && <p role="alert">{visible.error} <button type="button" onClick={() => { if (selected.selectionRevision !== null) requestChange({ page: 1, selectionRevision: null }); setRetry(n => n + 1); }}>Läs om listan</button></p>}
     {busy && <output>Läser planeringsunderlaget…</output>}
-    {data && <><p className="plan-list-count">{data.count} planeringsrader{data.count > 0 ? ` · visar ${(selected.page - 1) * 50 + 1}–${(selected.page - 1) * 50 + data.rows.length}` : ''}</p>
+    {data && <><p className="plan-list-count">{data.count} {data.count === 1 ? 'träff' : 'träffar'}{data.count > 0 ? ` · visar ${(selected.page - 1) * 50 + 1}–${(selected.page - 1) * 50 + data.rows.length}` : ''}</p>
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Bara själva fokusbara rullytan hanterar sidledspilar; tabellens kontroller behåller sina tangenter. */}
       {data.count === 0 ? <p>Inget underlag matchar valen. Rensa filtren eller välj ett annat läsår.</p> : <section className="plan-list-scroll" aria-label="Planeringstabell, kan rullas i sidled"
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla hela lästabellen, samma mönster som timmatrisen.

@@ -189,7 +189,7 @@ async function enter(page: Page, selection: PlanningSelection, overview = false)
 async function rowsMatch(page: Page, data: PlanningList, view: PlanningSelection['view'] = 'programplan') {
   const table = region(page, view); await expect(table).toHaveAttribute('aria-busy', 'false');
   await expect(table.locator('tbody tr')).toHaveCount(data.rows.length);
-  await expect(table.locator('.plan-list-count')).toContainText(`${data.count} planeringsrader`);
+  await expect(table.locator('.plan-list-count')).toContainText(`${data.count} ${data.count === 1 ? 'träff' : 'träffar'}`);
   for (let n = 0; n < data.rows.length; n++) {
     const row = table.locator('tbody tr').nth(n), value = data.rows[n];
     await expect(row.getByRole('rowheader')).toContainText(value.educationName);
@@ -528,7 +528,7 @@ test('L10: fördröjt faktiskt skolsvar och främmande URL kan inte ge gamla sko
 
 test('L11: verklig årsöverblick räknar52 samt gemensamma poäng separat från skolans timmar', async ({ page }, info) => {
   const full = await enter(page, q(), true) as PlanningOverview; expect(full.count).toBe(52);
-  const overview = page.getByRole('region', { name: 'Läsårsöverblick', exact: true }); await expect(overview).toContainText('52 planeringsrader i hela urvalet');
+  const overview = page.getByRole('region', { name: 'Läsårsöverblick', exact: true }); await expect(overview).toContainText('52 träffar.');
   await expect(overview).toContainText('Programramens poäng för året'); await expect(overview).not.toContainText('Planerade ramtimmar för året');
   const waiting = nextList(page, input => input.query === metadata.pageQuery);
   await overview.getByRole('button', { name: 'Visa och öppna planerna', exact: true }).click(); const list = await parsed(await waiting); expect(list.rows).toEqual(full.rows.slice(0, 50));

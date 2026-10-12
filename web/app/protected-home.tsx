@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  Building2,
   CalendarClock,
   GraduationCap,
   LifeBuoy,
@@ -204,7 +203,6 @@ function ProtectedNavigation({
               onClick={() => go('programplaner')} className="nav-button"><ListChecks size={19}/><span>Programplaner</span></SidebarMenuButton></SidebarMenuItem>
             <SidebarMenuItem><SidebarMenuButton data-testid="timplan-list-nav" isActive={!overview && view === 'timplaner'} aria-current={!overview && view === 'timplaner' ? 'page' : undefined}
               onClick={() => go('timplaner')} className="nav-button"><CalendarClock size={19}/><span>Timplaner</span></SidebarMenuButton></SidebarMenuItem>
-            <SidebarMenuItem><SidebarMenuButton isActive={false} onClick={() => go('programplaner')} className="nav-button"><Building2 size={19}/><span>Utbildningar</span></SidebarMenuButton></SidebarMenuItem>
           </SidebarMenu>
         </>}
       </SidebarContent>
