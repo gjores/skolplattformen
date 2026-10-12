@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-43
+current_plan: 05-DECISION
 status: in_progress
-stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
+stopped_at: Beslutskedja och global rollinkorg lokalt levererade och verifierade för högskoleförberedande Gy25. Kvarstående omfattning dokumenterad.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Programplaner visar skolvis timplansstatus samt Skapa/Öppna timplan. 62 modell/serverprov, 16 UI-prov, åtta DB-urval och faktisk lokal OIDC på dator/telefon PASS. 3012 kör 85244b1."
-state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
+last_activity_desc: "SQL/API/UI och faktisk lokal OIDC för tre roller på dator/telefon PASS. 3012 kör beslutskedja 50fe013. Slutbyggd API-kedja 19/19 PASS."
+state_head: 50fe0133ffb238009580f0743e7a15e772353e8c
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_programplan_timplan_status_local_oidc_pass
-worker_build_revision: 85244b1d1192c3851607a8faf6d1aa806c4a9158
+worker_status: running_on_3012_plan_decisions_three_roles_local_oidc_pass
+worker_build_revision: 50fe0133ffb238009580f0743e7a15e772353e8c
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Beslutskedja och rolluppgifter 2026-10-12:** Programplan och gymnasietimplan har utkast–granskning–återsändning–fastställande, med global **Att göra**, rollanpassad Start och exakt versionsöppning. 53 modell/serverprov, 34 SQL/TS, 19 verkliga utvecklings-Worker-kontroller, 11 DB-kontrakt, sex roll-UI och åtta slutliga riktade UI-prov PASS. Typ/lint/app/handbok PASS. Migration 180000 med framåtriktad runtimefix 180100 samt exakt aktivering 181000 installerade lokalt; 15 befintliga och fyra nya tabeller bevarade. 3012 kör 50fe013 med 183 byteverifierade byggfiler. Faktisk lokal OIDC för huvudman, rektor och administratör på dator/telefon PASS; API-kedjan genom samma slutbygge passerar 19/19 kontroller. [Verifiering och gränser](phases/05-bevarade-utbildnings-och-klassfloden/05-DECISION-FLOW-VERIFICATION.md). Högskoleförberedande Gy25 stöds; yrkesprofil, GR/IM-beslut, skyddad klasskoppling och fulla ADMIN-02/04/fasacceptans återstår. Tidigare 88/100 och 3/8 är historiska totalsiffror; de fem nya beslutsplanerna redovisas separat. Ingen verklig kommunanslutning eller nytt mänskligt begriplighetsgodkännande påstås.
 
 **Programplansrader med timplansstatus 2026-10-12:** Skolvis timplan tydlig i fem kolumner/kort, med Skapa timplan för sparad programplan utan timplan och Öppna timplan för befintlig. Knappar tar med exakt skola/programplansversion; underlag kontrolleras före sparande. Årsdetaljer och kopiering utfällbara. Migration 20261012160000 lokalt installerad med data-/rättighetsbevarande; 62 modell/serverprov, 16 UI-prov, åtta DB-urval och typ/lint/byggen PASS. Faktisk lokal OIDC på dator/telefon PASS för skapad/saknad timplan, exakta referenser och ofärdigt underlag; läsande prov utan nya planer. Lokala 3012 kör 85244b1 med 179 verifierade byggfiler. [Verifiering](debug/programplan-timplan-status-2026-10-12.md). 88/100 planer, 3/8 faser och öppna krav/formella beslut består.
 

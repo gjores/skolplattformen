@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: DECISION-FLOW
 type: execution-index
-status: planned
+status: completed-local-supported-profile
 autonomous: true
 requirements: [ADMIN-02, ADMIN-04]
 ---
@@ -34,3 +34,7 @@ Varje delplan har två kontrollerbara uppgifter. Utför sekventiellt; de delar s
 ## Granskningspunkter innan implementation
 
 Aktuella blockers är kodarbete, inte saknat användargodkännande: program/timguards spärrar nu övergångarna, yrkesram saknar verifierad profil i modellen, sourceChanged använder revisionslikhet och gammalt demo-fastställande är inte skyddat. Kontrollera också aktörskolumnernas FK innan intern serveridentitet lagras; `auth.users` är inte pilotidentitet. Färsk nationell primärkällskontroll återstår i 01. Migreringsnamn 20261012170000/171000 är föreslagna och ska konfliktkontrolleras mot faktisk journal före användning.
+
+## Genomfört lokalt 2026-10-12
+
+Samtliga fem avgränsade delplaner har sammanfattning och resultat i [slutverifieringen](05-DECISION-FLOW-VERIFICATION.md). Beslutskedjan är verifierad för den stödda högskoleförberedande Gy25-profilen; bredare skolforms-/yrkesstöd och fulla krav är fortfarande öppna. Slutbyggd Worker 19/19 och lokal OIDC för tre roller på dator/telefon PASS.

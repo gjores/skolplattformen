@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "DECISION-03"
 type: execute
-status: planned
+status: completed
 wave: 3
 depends_on: ["DECISION-02"]
 requirements: [ADMIN-02, ADMIN-04]

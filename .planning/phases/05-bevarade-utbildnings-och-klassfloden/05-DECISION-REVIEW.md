@@ -32,3 +32,7 @@ Granskat mot DECISION-FLOW-CONTEXT och aktuell kod: `web/lib/plan-decision.ts`, 
 - Fulla programregler och timkontroll är uttryckligen avgränsade till verifierad Gy25-profil för högskoleförberedande program. Yrkesprogram/okänd profil nekas fastställande. Det är en verklig funktionsbegränsning som måste synas i slutredovisningen, inte ommärkas till färdig kedja för alla gymnasieprogram.
 - Inbox räknar alla behöriga öppna planer före gränsen 500. Mät körningstid på relevant mängd; det interna detail-anropet bygger katalog/analys för varje rad. Bra funktion vid liten syntetisk mängd är inget skalbarhetsbevis.
 - Mänsklig begriplighetsbedömning, faktisk extern kommunanslutning och full fas-/pilotacceptans är andra bevis än dessa källkontroller.
+
+## Efterföljande verifiering
+
+Källgranskningen ovan behåller sin ursprungliga tidsgräns. SQL/TypeScript34, faktisk utvecklings-Worker19 och efteraktiveringskontrakt11 har därefter PASS. UI-regressionerna för replay, innehållslås och återsänt underlag samt typ/lint/app-/handboksbygge passerar. Slutbyggt API- och OIDC-bevis redovisas i [slutverifieringen](05-DECISION-FLOW-VERIFICATION.md), utan att denna egenkällgranskning ommärks som oberoende granskning.

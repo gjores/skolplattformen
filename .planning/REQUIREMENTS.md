@@ -228,3 +228,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 
 ---
 *Last updated: 2026-10-07 — PLANERING-01–05 spårade till 05-36–43; modell 05-36 och stängd lokal SQL 05-37 PASS. Worker05-38 avgränsat PASS; prestandarättning/UI och samlade krav återstår. LLEG-/SCHEMA-/MODUL-mål behålls. V1:s 42 krav och åtta faser är oförändrade; inga nya verksamhetsverifieringar av läsårsplaneringen.*
+
+## Aktuellt delbevis för ADMIN-02 och ADMIN-04 — 2026-10-12
+
+[DECISION-verifieringen](phases/05-bevarade-utbildnings-och-klassfloden/05-DECISION-FLOW-VERIFICATION.md) styrker nu utkast → granskning → återsändning/rättning → fastställande av högskoleförberedande Gy25-programplan och skolans timplan, med global rollinkorg. SQL/TS 34, slutbyggd Worker 19 och efteraktiveringskontrakt 11 PASS; lokal OIDC för tre roller på dator/telefon PASS. Tidigare formuleringar om att alla formella beslut återstår är historiska för denna profil. Fulla krav förblir öppna: yrkesprofil, skyddad klasskoppling, bredare omfattning och mänsklig acceptans har egna kvarstående gränser.
