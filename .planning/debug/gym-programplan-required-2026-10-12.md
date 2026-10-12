@@ -17,7 +17,7 @@ Avgränsad rättning inom fas 5:s planeringsflöde, inte ett nytt fullständigt 
 
 Migration `20261012130000_gym_timplan_requires_programplan.sql` vägrar installation vid ogranskade fristående gymnasietimplaner. Den spärrar därefter INSERT/UPDATE utan programplanskälla och byte till gymnasieform med befintliga okopplade timplaner. Befintlig FK och fryst källvalidering gäller fortsatt. Ingen klient kan ge undantag. Programplaner utan timplan tillåts.
 
-Timplanevyn förklarar ordningen programplan → skolans timplan. En årsrad med **Plan saknas** är ett saknat underlag, inte en sparad fristående timplan. Årsvyn behåller dessa luckor så att de går att arbeta vidare med.
+Timplanevyn förklarar ordningen programplan → skolans timplan. En årsrad med **Ingen timplan skapad** är ett saknat underlag, inte en sparad fristående timplan. Årsvyn behåller dessa luckor så att de går att arbeta vidare med. **Välj programplan** öppnar valet av sparad programversion; frånvaron av en timplan säger inte längre felaktigt att programplan saknas.
 
 ## Verifiering och leverans
 
@@ -29,3 +29,10 @@ Timplanevyn förklarar ordningen programplan → skolans timplan. En årsrad med
 - Historiska fullfasprover är inte omkörda. Äldre testfixturer som avsiktligt skapar fristående gymnasietimplaner behöver anpassas till detta nya användarbeslut före framtida omkörning. Det tidigare fasprovet bevisar inte den nya databasregeln.
 
 Lokal provdata och kvitton ligger i ignorerade `web/outputs/`; ingen verklig kommun-/elevkälla ingår. Uppdatering av den lokala appens vägledning och läsande browserprov redovisas i följande leveransnotering.
+
+
+### Slutleverans
+
+Den lokala appen på 3012 kör produktbygge `d7c3988c7243d611457dfb0f25eafcbcb4a4f086`. 179 byggfiler verifierades före installation; den tidigare appen och äldre hashade klientfiler behölls. Nycklar hanterades enbart av befintligt startskript. Faktisk lokal OIDC med syntetisk rektor → gymnasiets timplanslista på dator och telefon passerade med exit 0, rätt ny vägledning, fylld lista, ingen sidövergripande horisontell rullning och noll sidfel. Datorbild granskad. Lokal rapport: `web/outputs/gym-link-live-verification.json`.
+
+Separat läsande slutkontroll efter installation: **0** gymnasietimplaner utan koppling, **3** kopplade gymnasietimplaner, **20** programplaner med utbildnings-/skolkoppling, **2** grundskoletimplaner och **1** IM-timplan. Ingen ny timplan skapades av browserprovet. Migrationsregel och rensning är tillämpade endast i lokala protected-provmålet; ingen extern driftsättning.

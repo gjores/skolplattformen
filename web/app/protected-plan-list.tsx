@@ -135,17 +135,18 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
           <tbody>{data.rows.map(row => {
             const metrics = planningAnnualMetrics(row, selected.schoolYear), details = row.searchDetails;
             const grade = row.relativeYear ?? (row.application?.columnId?.match(/^ak([1-9])$/)?.[1] ?? null);
+            const missingGymPlan = selected.view === 'timplan' && row.schoolform === 'gymnasium' && row.plan === null;
             const rowKey = planningRowKey(row), isExpanded = expanded.key === key && expanded.rows.includes(rowKey);
             return <tr key={rowKey} data-expanded={isExpanded}><th scope="row">{row.educationName}<small>{details?.localCode ?? 'Lokal kod saknas'}{row.archived ? ' · Arkiverad' : ''}</small></th>
               <td data-label="Skola" className="plan-list-school">{row.schoolName}</td>{row.schoolform === 'gymnasium' && <td data-label="Program och inriktning" className="plan-list-secondary">{details?.programName ?? details?.programCode ?? 'Programuppgift saknas'}<small>{details?.orientationName ?? details?.orientationCode ?? 'Inriktning saknas'}</small></td>}
               <td data-label="Elevkull">{row.cohort}<small>{planningRelationLabel[row.relation]}{row.start.startedOn ? ` · Start ${row.start.startedOn}` : ''}</small></td>
               <td data-label="Årskurs">{grade === null ? row.schoolform === 'introduktionsprogram' ? 'Veckoram' : 'Okänd årskurs' : `Åk ${grade}`}</td>
-              <td data-label="Planversion" className="plan-list-secondary">{row.plan ? `Version ${row.plan.version}` : 'Saknas'}{selected.view === 'timplan' && row.schoolform === 'gymnasium' && <small>{row.source ? `Bygger på programplan · version ${row.source.version}` : 'Programplan som underlag saknas'}</small>}</td>
-              <td data-label="Status">{row.plan ? planningStatusLabel[row.plan.status] : 'Plan saknas'}</td>
+              <td data-label="Planversion" className="plan-list-secondary">{row.plan ? `Version ${row.plan.version}` : missingGymPlan ? 'Inte skapad' : 'Saknas'}{selected.view === 'timplan' && row.schoolform === 'gymnasium' && <small>{row.source ? `Bygger på programplan · version ${row.source.version}` : missingGymPlan ? 'Skapas från en programplan' : 'Programplan som underlag saknas'}</small>}</td>
+              <td data-label="Status">{row.plan ? planningStatusLabel[row.plan.status] : missingGymPlan ? 'Ingen timplan skapad' : 'Plan saknas'}</td>
               {selected.schoolform === 'gymnasium' && <td data-label="Årets poäng" className="plan-list-secondary">{planningMeasureText(metrics.points)}</td>}
               <td data-label={selected.view === 'timplan' ? selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar' : 'Underlag'} className="plan-list-secondary">{selected.view === 'timplan' ? planningMeasureText(metrics.hours) : row.underlag === 'missing' ? 'Programplan saknas' : row.underlag === 'forecast' ? 'Prognos' : 'Programram'}</td>
-              <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={`Öppna ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
-                {row.plan ? 'Öppna' : 'Visa underlag'}</button>{actions?.(row)}
+              <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={missingGymPlan ? `Välj programplan för ${row.educationName}, ${row.schoolName}` : `Öppna ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
+                {row.plan ? 'Öppna' : missingGymPlan ? 'Välj programplan' : 'Visa underlag'}</button>{actions?.(row)}
                 <button type="button" className="plan-list-details-toggle" aria-expanded={isExpanded}
                   aria-label={`${isExpanded ? 'Dölj' : 'Visa'} detaljer för ${row.educationName}, ${row.schoolName}`}
                   onClick={() => setExpanded(previous => { const rows = previous.key === key ? previous.rows : []; return { key, rows: rows.includes(rowKey) ? rows.filter(value => value !== rowKey) : [...rows, rowKey] }; })}>

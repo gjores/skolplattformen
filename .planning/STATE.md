@@ -12,8 +12,8 @@ last_activity_desc: "Användarbeslut: gymnasiets timplan kräver programplan. En
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_usability_build_local_oidc_smoke_pass
-worker_build_revision: 8ee00c87bdf90efdde7ce95632a03dfeb4c1578e
+worker_status: running_on_3012_gym_link_rule_local_oidc_smoke_pass
+worker_build_revision: d7c3988c7243d611457dfb0f25eafcbcb4a4f086
 progress:
   total_phases: 8
   completed_phases: 3
@@ -24,7 +24,7 @@ milestone_name: milestone
 
 # Project State
 
-**Programplan före gymnasietimplan 2026-10-12:** Användaren avgränsar regeln till gymnasiet och behåller programplaner under arbete. En inventerad fristående syntetisk timplan och dess timcell borttagna med privat backup; 20 programplaner och alla andra planer bevarade. Migration 20261012130000 spärrar gymnasietimplan utan programplan. Sex DB-prober och tio tabellers bevarandekontroll före/efter transaktion PASS; 24 modell/serverprov, typ/lint/byggen PASS. [Redovisning](debug/gym-programplan-required-2026-10-12.md). Historiska fasbevis utökas inte och gamla fristående GY-fixturer behöver anpassas till beslutet.
+**Programplan före gymnasietimplan 2026-10-12:** Användaren avgränsar regeln till gymnasiet och behåller programplaner under arbete. En inventerad fristående syntetisk timplan och dess timcell borttagna med privat backup; 20 programplaner och alla andra planer bevarade. Migration 20261012130000 spärrar gymnasietimplan utan programplan. Sex DB-prober och tio tabellers bevarandekontroll före/efter transaktion PASS; 24 modell/serverprov, typ/lint/byggen PASS. [Redovisning](debug/gym-programplan-required-2026-10-12.md). Lokala 3012 kör d7c3988 och faktisk OIDC/lista/dator/telefon passerar; slutkontrollen visar 0 fristående GY-timplaner. Historiska fasbevis utökas inte och gamla fristående GY-fixturer behöver anpassas till beslutet.
 
 **Lokal UI-leverans 2026-10-12:** Efter användarens skärmbild av gamla menyn är ordinarie 3012 uppdaterad till 8ee00c8. 179 byggfiler matchar det testade bygget; tidigare bygge bevarat. Faktisk lokal OIDC med syntetisk rektor samt läsande Start/planeringslista/telefonprov PASS, exit0 och inga pageerrors. [Leveransbevis och avgränsning](debug/anvandbarhet-omarbete-2026-10-12.md). Detta uppdaterar lokal runtime, inte historiska fullfasbevis eller kravstatus.
 
