@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-VOCATIONAL
+current_plan: 05-PROGRAMPLAN-EDIT-FIX
 status: in_progress
-stopped_at: Yrkesprogrammens beslutskedja och tydlig återsändning lokalt levererade och verifierade; fulla krav och mänsklig acceptans kvarstår.
+stopped_at: Programplansredigering utan omladdning per tangenttryck lokalt levererad; fulla krav och mänsklig acceptans kvarstår.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Tolv yrkesprogram, rolluppgifter och returkommentar levererade på 3012/03698a2; modell141, SQL101, byggd API25+25+19 och lokal OIDC6 PASS."
-state_head: 03698a219162c7aa77d4ad984d442f36e5b4bab1
+last_activity_desc: "Redigering behåller fokus/tabell; browser34, modell27, typ/lint/app/handbok samt lokal OIDC2 PASS. 3012 kör8737229."
+state_head: 8737229c87c66c045fe3fb2b83577c746c2303d9
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_vocational_decisions_three_roles_local_oidc_pass
-worker_build_revision: 03698a219162c7aa77d4ad984d442f36e5b4bab1
+worker_status: running_on_3012_programplan_edit_fix_local_oidc_pass
+worker_build_revision: 8737229c87c66c045fe3fb2b83577c746c2303d9
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Programplansredigering 2026-10-12:** Beslutsunderlag hämtas efter bekräftad sparrevision i stället för varje tangenttryck. Fokus behålls under bakgrundsläsning och samma tabell/söktext ligger kvar vid fördjupningsändring. Exakt återläsning och fel-/konfliktspärrar består; dubblerad terminsläsning borttagen. Browser34 (inklusive sex nya fokus-/felprov), modell/server27, typ/lint/app/handbok PASS. Läsande faktisk lokal OIDC för rektor på dator/telefon2 PASS. 3012 kör8737229 med183 byteverifierade byggfiler; push verifierad. [Avgränsning och resultat](debug/programplan-redigering-2026-10-12.md). Inga databaskommandon eller fulla krav-/fasgodkännanden ändras.
 
 **Yrkesflöde levererat 2026-10-12:** Tolv nationella Gy25-yrkesprogram har programplan–timplan–beslutskedja. Huvudmannen kan skicka tillbaka inskickade planer med obligatorisk kommentar; senaste återkopplingen visas direkt, rätt roll får rättningsuppgiften och huvudmannen väntar på nytt inskickande. Fastställda planer återöppnas inte. Modell/server 141, SQL/TS 101, slutbyggd Worker BF25 25 + BA25 25 + HE 19 samt UI 26 + 2 PASS. Typ/lint/app/handbok PASS. Faktisk lokal OIDC för tre roller på dator/telefon 6/6 PASS, inga pageerrors/överströmning; sex bilder granskade. Migration 200000 installerad lokalt med bevarande av 19 verksamhets-/beslutstabeller. 3012 kör 03698a2, 183 byteverifierade byggfiler; produktrevision pushad och fjärrverifierad. [Slutverifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-VOCATIONAL-VERIFICATION.md). Yrkesstarter från 2028-07-02 har beslutsspärr tills yrkesprov stöds; individuell studieplan/APL-organisation/GR/IM-beslut/skyddad klasskoppling/full ADMIN-02/04 och mänsklig acceptans kvarstår. Fyra nya avgränsade planer redovisas separat från historiska 88/100 och 3/8. Ingen verklig kommunanslutning påstås.
 
