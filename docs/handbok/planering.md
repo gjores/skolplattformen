@@ -54,3 +54,11 @@ Invänta sparbeskedet innan du byter år, skola, vy eller uppdrag. Om sparstatus
 Vid en samtidig ändring jämför du aktuellt sparat underlag med dina värden. Om uppdraget återkallas eller sessionen går ut rensas innehållet även när en sparning är oklar. Du får ingen ny behörighet genom att ändra år eller adress.
 
 Se [Programplaner](./programplaner.md) och [Timplaner](./timplaner.md) för planernas arbetsmoment och aktuella begränsningar. Färdigmarkering av rektors arbete och huvudmannens godkännande är ännu inte tillgängliga i detta flöde.
+
+### Skolans timplan i Programplaner
+
+Varje rad visar utbildning, skola och elevkull, programplanens status och version samt **Skolans timplan**. **Timplan skapad** visar timplanens status, version och vilken programplansversion den bygger på. Statusen gäller just den skolan, även om andra skolor använder samma utbildning. Den gäller sparade planer oavsett valt planeringsläsår.
+
+Välj **Öppna timplan** för en befintlig plan. Om timplan saknas kan rektor eller skoladministratör välja **Skapa timplan**. Då öppnas underlaget med radens programplansversion och skola valda. Inget sparas direkt: komplettera underlaget vid behov och välj sedan **Skapa timplansutkast**. Om ingen programplan är sparad behöver den skapas först. Arkiverade utbildningar får ingen skapaknapp. Huvudmannen kan öppna befintliga timplaner; skolans rektor eller administratör skapar dem.
+
+**Öppna programplan** leder till ämnen och poäng. Under **Visa detaljer** finns årsuppgifter och kopiering till nästa elevkull. Om timplanen bygger på en annan programplansversion står det uttryckligen på raden.

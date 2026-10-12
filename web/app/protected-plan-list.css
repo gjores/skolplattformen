@@ -61,3 +61,34 @@
   .plan-list-actions, .plan-list thead th:last-child { position: sticky; right: 0; z-index: 1; background: var(--card); box-shadow: -1px 0 var(--border); }
   .plan-list thead th:last-child { background: var(--muted); }
 }
+
+/* Programplaner: visible school-specific progress and two explicit next steps. */
+.plan-list-program table { table-layout: fixed; }
+.plan-list-program th, .plan-list-program td { min-width: 0; overflow-wrap: anywhere; padding: 1rem; }
+.plan-list-program thead th:nth-child(1) { width: 25%; }
+.plan-list-program thead th:nth-child(2) { width: 20%; }
+.plan-list-program thead th:nth-child(3) { width: 13%; }
+.plan-list-program thead th:nth-child(4) { width: 20%; }
+.plan-list-program thead th:nth-child(5) { width: 22%; }
+.plan-list-program thead button { white-space: normal; text-align: left; padding: 0; }
+.plan-list-program tbody tr { background: var(--card); }
+.plan-list-program tbody tr:hover { background: var(--muted); }
+.plan-list-program .plan-list-actions { position: static; box-shadow: none; white-space: normal; }
+.program-row-actions button { display: block; width: 100%; white-space: normal; }
+.program-row-actions button + button { margin: .5rem 0 0; }
+.plan-list .program-row-primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); font-weight: 600; }
+.program-row-status { display: inline-block; padding: .25rem .5rem; border-radius: .35rem; background: var(--muted); font-size: .8125rem; font-weight: 600; }
+.program-row-status-created { color: #166534; background: #dcfce7; }
+.program-row-details { font-weight: normal; font-size: .8125rem; margin-top: .5rem; }
+.program-row-details summary { cursor: pointer; min-height: 44px; display: list-item; align-content: center; color: var(--muted-foreground); }
+.program-row-details p { margin: .3rem 0; }
+@media (max-width: 1000px) and (min-width: 701px) {
+  .plan-list-program th, .plan-list-program td { padding: .75rem .5rem; }
+}
+@media (max-width: 700px) {
+  .plan-list-program th, .plan-list-program td { padding: 0; }
+  .plan-list-program td[data-label="Skola och elevkull"] { grid-column: 1 / -1; }
+  .plan-list-program .program-row-actions { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+  .program-row-actions button + button { margin: 0; }
+  .plan-list-program .program-row-actions > button:not(.program-row-primary) { background: var(--background); color: var(--foreground); border-color: var(--border); }
+}

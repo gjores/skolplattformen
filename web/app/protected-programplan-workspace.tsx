@@ -240,6 +240,16 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     void openEducation(row.offeringId, 1, null, row.plan?.id ?? null, null, false, false,
       { unitId: row.unitId, version: row.plan?.version, missing: row.plan === null, copy: copying });
   }
+  function openRowTimplan(row: PlanningRow) {
+    if (!onTimplan || !canNavigate() || busy || hasUnsaved && !confirmDiscard()) return;
+    if (!planningSetup || row.customerId !== context.customerId || row.schoolform !== 'gymnasium'
+      || !planningSetup.units.some(u => u.unitId === row.unitId && u.canRead.programplan)
+      || planningSelection?.unitId !== null && planningSelection?.unitId !== row.unitId) return;
+    const time = row.schoolTimplan;
+    if (time) onTimplan({ kind: 'plan', id: time.id, offeringId: row.offeringId, unitId: row.unitId, version: time.version });
+    else if (time === null && row.plan && !row.archived && ['rektor', 'administrator'].includes(context.function))
+      onTimplan({ kind: 'source', id: row.plan.id, offeringId: row.offeringId, unitId: row.unitId, version: row.plan.version });
+  }
   async function openCreatedCopy(command: ProgramplanEducationCreateRequest, value: unknown, terms: ProgramplanTermDistribution | null, sourceUnits: string[], signal: AbortSignal) {
     const created = parseProgramplanEducationCreated(value, command);
     let termsNote = '';
@@ -561,6 +571,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     {notice && <output className="pp-notice">{notice}</output>}
     {permission?.error && <div className="pp-alert" role="alert"><p>{permission.error}</p><Button variant="outline" onClick={retryCreationPermission}>Läs skapanderätt igen</Button></div>}
     {!workspace&&!draft&&!showFlow&&<ProgramplanList key={flowRevision} disabled={busy} canEditPlans={context.function !== 'administrator'} onSecurityFailure={securityFailure} canCreateEducation={canCreate} creationLoading={!permission || permission.loading}
+      canCreateTimplan={!!onTimplan && ['rektor', 'administrator'].includes(context.function)} onTimplan={openRowTimplan}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
       <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId,unitId)=>openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined)}/></div>}

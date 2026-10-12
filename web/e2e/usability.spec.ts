@@ -22,6 +22,7 @@ function rowsFor(selection: PlanningSelection): PlanningRow[] {
     start: { provenance: selection.view === 'programplan' ? 'program-version' : 'timplan-source', startedOn: '2026-08-15', academicYear: 2026, legacyYear: null },
     relativeYear, relation: relativeYear === 1 ? 'new' : 'continuing', underlag: 'planning', archived: false, columnMap: null, application: null, classes: [], diagnostics: [],
     cells: [{ rowKey: 'alternative:foundation:REL:1:REL1000X+FIL:1:FIL1000X', points: 200, pointTerms: [100, 0, 100, 0, 0, 0], hourValues: selection.view === 'programplan' ? null : [80, null, 80, null, null, null] }],
+    ...(selection.view === 'programplan' ? { schoolTimplan: n === 0 ? { id: id(90), version: 3, revision: 1, status: 'utkast' as const, unitId: school.id, offeringId: id(10 + n), sourcePlanId: id(20 + n), sourceVersion: n + 1 } : null } : {}),
     searchDetails: { localCode: `SA${n}`, programCode: 'SA', orientationCode: 'SABEP', programName: 'Samhällsvetenskapsprogrammet', orientationName: 'Beteendevetenskap' },
   }));
   return rows.filter(row => (!selection.unitId || row.unitId === selection.unitId) && selection.archive !== 'archived'
@@ -160,5 +161,33 @@ test('elevfilter visas på begäran och sökord hamnar inte i adressen', async (
   expect(page.url()).not.toContain('Alfa');
   await fits(page);
   await page.screenshot({ path: info.outputPath('pupils.png'), fullPage: true });
+  verify();
+});
+
+test('programrader visar skolans timplan och tydliga nästa steg', async ({ page }, info) => {
+  const verify = await mockApp(page);
+  await page.goto(`${base}?listHarness=1&programHarness=1&vy=programplaner&planeringsskola=all`);
+  const north = page.locator('tbody tr').filter({ hasText: 'Exempelskolan Nord' });
+  const south = page.locator('tbody tr').filter({ hasText: 'Exempelskolan Syd' });
+  await expect(north.getByText('Timplan skapad', { exact: true })).toBeVisible();
+  await expect(north.getByRole('button', { name: /^Skapa timplan/ })).toHaveCount(0);
+  await expect(south.getByText('Ingen timplan', { exact: true })).toBeVisible();
+  await south.getByRole('button', { name: /^Skapa timplan/ }).click();
+  await expect(page.getByTestId('opened-row')).toHaveText(JSON.stringify({ action: 'create-time', unitId: id(3), offeringId: id(11), plan: { id: id(21), version: 2, revision: 0, status: 'utkast' }, timplan: null }));
+  await north.getByRole('button', { name: /^Öppna timplan/ }).click();
+  await expect(page.getByTestId('opened-row')).toContainText('"action":"open-time"');
+  await expect(page.getByTestId('opened-row')).toContainText(id(90));
+  await fits(page);
+  await page.screenshot({ path: info.outputPath('program-status.png'), fullPage: true });
+  verify();
+});
+
+test('huvudmannen ser befintlig timplan men får ingen skapaknapp', async ({ page }) => {
+  const verify = await mockApp(page, 'huvudman');
+  await page.goto(`${base}?vy=programplaner&planeringsskola=all`);
+  await expect(page.getByText('Timplan skapad', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Skapa timplan/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Öppna timplan/ })).toBeVisible();
+  await expect(page.getByText('Rektor eller skoladministratör skapar timplanen.', { exact: true })).toBeVisible();
   verify();
 });

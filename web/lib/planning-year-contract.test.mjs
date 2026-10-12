@@ -341,3 +341,24 @@ test('extended list pagination still requires exact 50 plus2 and a verified revi
   assert.throws(() => parseList(rows.slice(50, 51), second, 52));
   assert.throws(() => parsePlanningList({ ...list(rows.slice(50), second, 52), selectionRevision: 'sha256:' + 'b'.repeat(64) }, second, setup()));
 });
+
+const schoolTimplan = changes => ({ id: id(90), version: 3, revision: 2, status: 'utkast', unitId: id(2), offeringId: id(4), sourcePlanId: id(5), sourceVersion: 1, ...changes });
+test('programplan rows distinguish missing, existing and unknown school time-plan status', () => {
+  const selected = selection({ view: 'programplan' });
+  for (const value of [null, schoolTimplan(), schoolTimplan({ sourcePlanId: id(99), sourceVersion: 2 })]) {
+    const input = programSearchRow({ schoolTimplan: value });
+    assert.deepEqual(parseList([input], selected).rows[0].schoolTimplan, value);
+    assert.deepEqual(parsePlanningOverview(overview([input], selected, totals({ annualHours: measure(0) })), selected, setup()).rows[0].schoolTimplan, value);
+  }
+  assert.equal(Object.hasOwn(parseList([programSearchRow()], selected).rows[0], 'schoolTimplan'), false);
+});
+test('time-plan status cannot cross schools or educations, forge versions, or enter time-plan rows', () => {
+  const selected = selection({ view: 'programplan' });
+  for (const value of [undefined, {}, schoolTimplan({ unitId: id(3) }), schoolTimplan({ offeringId: id(99) }),
+    schoolTimplan({ sourceVersion: 9 }), schoolTimplan({ sourcePlanId: null }), schoolTimplan({ version: 0 }),
+    schoolTimplan({ status: 'klar' }), schoolTimplan({ secret: 'extra' })])
+    assert.throws(() => parseList([programSearchRow({ schoolTimplan: value })], selected));
+  assert.throws(() => parseList([row(2, { schoolTimplan: null })]));
+  const getter = {}; Object.defineProperty(getter, 'id', { enumerable: true, get() { throw Error('Do not execute'); } });
+  assert.throws(() => parseList([programSearchRow({ schoolTimplan: getter })], selected), TypeError);
+});
