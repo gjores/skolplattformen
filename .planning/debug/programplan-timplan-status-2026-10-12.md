@@ -18,4 +18,10 @@ Migration 20261012160000 lägger skolvis timplansreferens på redan mandatavgrä
 - Separat appbygge och handboksbygge PASS.
 - Åtta lokala DB-urval i återställd transaktion PASS: 20 programrader bevarade, 3 med timplan och 17 utan. Fulla referenser jämförda mot lagrade skol-/utbildningsplaner, oförändrade andra rader, sidindelning/översikt/revision kontrollerade. Tio verksamhetstabeller och ägare/ACL bevarade före/efter rollback.
 
-Installation och läsande OIDC-prov redovisas efter körning. Isolerat syntetiskt mål; ingen produktionspublicering eller ändrad krav-/fasstatus.
+## Lokal leverans
+
+Migrationen installerad och journalförd efter samma åtta prover, med tio verksamhetstabeller oförändrade även efter commit. Lokala 3012 kör 85244b1; 179 byggfiler matchar det separata testade bygget och föregående bygge är bevarat.
+
+Faktisk lokal OIDC med befintlig syntetisk rektor PASS, exit0. Både dator och telefon visar skolvis status. Öppna timplan verifierar exakt sparat ID, version och skola; Skapa timplan verifierar exakt käll-ID/programplansversion, enbart vald skola och tillgänglig Skapa timplansutkast-knapp för komplett underlag. Ofärdigt underlag visar kompletteringskrav och ingen sparandeknapp. Inga domänskrivningar eller pageerrors; faktisk skrivning av en ny timplan ingick inte i provet. Skärmbilden från den byggda appen är granskad.
+
+Isolerat syntetiskt mål; ingen produktionspublicering eller ändrad krav-/fasstatus. Historiska fullfasbevis ersätts inte.

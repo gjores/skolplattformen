@@ -8,12 +8,12 @@ status: in_progress
 stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Timplanslistan visar bara skapade planer. Utbildningar utan timplan kvar under Programplaner. 60 modell/serverprov, 12 isolerade browserprov, åtta DB-urval och lokal OIDC på dator/telefon PASS; alla verksamhetsuppgifter bevarade."
+last_activity_desc: "Programplaner visar skolvis timplansstatus samt Skapa/Öppna timplan. 62 modell/serverprov, 16 UI-prov, åtta DB-urval och faktisk lokal OIDC på dator/telefon PASS. 3012 kör 85244b1."
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_created_timplans_only_local_oidc_smoke_pass
-worker_build_revision: ebd970c82f47c75ea704adb51e8a0e52ee97ddfd
+worker_status: running_on_3012_programplan_timplan_status_local_oidc_pass
+worker_build_revision: 85244b1d1192c3851607a8faf6d1aa806c4a9158
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Programplansrader med timplansstatus 2026-10-12:** Skolvis timplan tydlig i fem kolumner/kort, med Skapa timplan för sparad programplan utan timplan och Öppna timplan för befintlig. Knappar tar med exakt skola/programplansversion; underlag kontrolleras före sparande. Årsdetaljer och kopiering utfällbara. Migration 20261012160000 lokalt installerad med data-/rättighetsbevarande; 62 modell/serverprov, 16 UI-prov, åtta DB-urval och typ/lint/byggen PASS. Faktisk lokal OIDC på dator/telefon PASS för skapad/saknad timplan, exakta referenser och ofärdigt underlag; läsande prov utan nya planer. Lokala 3012 kör 85244b1 med 179 verifierade byggfiler. [Verifiering](debug/programplan-timplan-status-2026-10-12.md). 88/100 planer, 3/8 faser och öppna krav/formella beslut består.
 
 **Endast skapade timplaner 2026-10-12:** Timplanslistan och motsvarande årsöversikt utesluter nu utbildningar utan timplan. Utbildningarna finns kvar under Programplaner, där sparat underlag leder till skolans timplansutkast. Detta ersätter föregående mellanläge med ”Ingen timplan skapad”/”Välj programplan” i timplanslistan. Migration 20261012150000 verifierad och installerad lokalt; åtta urval, sida/revision/översikt och tio verksamhetstabellers bevarande PASS. 60 modell/serverprov, 12 isolerade UI-prov, typ/lint/app-/handboksbygge PASS. Lokala 3012 kör ebd970c med 179 verifierade byggfiler; verklig lokal OIDC och programplan→timplansunderlag på dator/telefon PASS. [Resultat och avgränsning](debug/timplanslista-skapade-2026-10-12.md). 88/100 planer, 3/8 faser och öppna krav/formella beslut består.
 
