@@ -8,12 +8,12 @@ status: in_progress
 stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Användarbeslut: gymnasiets timplan kräver programplan. En inventerad fristående syntetisk timplan borttagen med backup; 20 programplaner bevarade. Ny DB-regel och sex transaktionsprober PASS, 24 modell/serverprov och typ/lint/byggen PASS."
+last_activity_desc: "Timplanslistan visar bara skapade planer. Utbildningar utan timplan kvar under Programplaner. 60 modell/serverprov, 12 isolerade browserprov, åtta DB-urval och lokal OIDC på dator/telefon PASS; alla verksamhetsuppgifter bevarade."
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_gym_link_rule_local_oidc_smoke_pass
-worker_build_revision: a5a5d05e880cbcdb6a8effac5b8423751bd2dceb
+worker_status: running_on_3012_created_timplans_only_local_oidc_smoke_pass
+worker_build_revision: ebd970c82f47c75ea704adb51e8a0e52ee97ddfd
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Endast skapade timplaner 2026-10-12:** Timplanslistan och motsvarande årsöversikt utesluter nu utbildningar utan timplan. Utbildningarna finns kvar under Programplaner, där sparat underlag leder till skolans timplansutkast. Detta ersätter föregående mellanläge med ”Ingen timplan skapad”/”Välj programplan” i timplanslistan. Migration 20261012150000 verifierad och installerad lokalt; åtta urval, sida/revision/översikt och tio verksamhetstabellers bevarande PASS. 60 modell/serverprov, 12 isolerade UI-prov, typ/lint/app-/handboksbygge PASS. Lokala 3012 kör ebd970c med 179 verifierade byggfiler; verklig lokal OIDC och programplan→timplansunderlag på dator/telefon PASS. [Resultat och avgränsning](debug/timplanslista-skapade-2026-10-12.md). 88/100 planer, 3/8 faser och öppna krav/formella beslut består.
 
 **Programplan före gymnasietimplan 2026-10-12:** Användaren avgränsar regeln till gymnasiet och behåller programplaner under arbete. En inventerad fristående syntetisk timplan och dess timcell borttagna med privat backup; 20 programplaner och alla andra planer bevarade. Migration 20261012130000 spärrar gymnasietimplan utan programplan. Sex DB-prober och tio tabellers bevarandekontroll före/efter transaktion PASS; 24 modell/serverprov, typ/lint/byggen PASS. [Redovisning](debug/gym-programplan-required-2026-10-12.md). Lokala 3012 kör a5a5d05 med tydliga ”Ingen timplan skapad”/”Välj programplan”; faktisk OIDC/lista/dator/telefon passerar; slutkontrollen visar 0 fristående GY-timplaner. Historiska fasbevis utökas inte och gamla fristående GY-fixturer behöver anpassas till beslutet.
 

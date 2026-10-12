@@ -10,4 +10,10 @@ Verifierat före leverans:
 - Separat appbygge och handboksbygge PASS.
 - Lokal DB-transaktion med yttre rollback PASS: åtta urval, lista/översikt/sida 2 och revisionsstämpel. GY 20→3, Programplaner 20→20, GR 3→1, IM 1→1. Olika år, status, tom sökning och relevanta kullar kontrollerade. Tio verksamhetstabellers fulla innehåll och funktionsägare/ACL oförändrade, även efter rollback.
 
-Lokalt installations- och användarprov redovisas efter slutförd körning. Syntetiskt mål; ingen produktionspublicering eller ändrad fas-/kravstatus.
+Lokalt levererat:
+- Samma åtta transaktionsprover passerade före installation. Migrationen journalförd; tio verksamhetstabeller oförändrade även efter commit.
+- 3012 kör ebd970c; 179 byggfiler jämförda med separat testat bygge. Tidigare byggkatalog bevarad i privat temporär katalog.
+- Faktisk lokal OIDC med befintlig syntetisk rektor: tre sparade timplaner i ofiltrerat urval, inga platshållare, utbildning utan timplan nås via Programplaner och komplett underlag visar Skapa timplansutkast på både dator och telefon. Ofärdigt underlag stoppas fortfarande. En befintlig timplan öppnades med samma ID och version som i listan. Slutprovet passerade med exit0. Inga domänskrivningar eller pageerrors.
+- Första browserförsöket valde ett ofärdigt underlag och förväntade felaktigt en skapaknapp; produktens kompletteringsmeddelande var korrekt. Provet korrigerades till att välja befintligt komplett underlag. Det är ett läsande navigationsprov, inte ett nytt skapandeprov.
+
+Syntetiskt lokalt mål; ingen produktionspublicering eller ändrad fas-/kravstatus. Befintliga filter för läsår, kull och arkiv gäller fortfarande; en skapad timplan kan därför vara utanför aktuellt urval.
