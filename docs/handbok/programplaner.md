@@ -99,9 +99,9 @@ Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegeme
   Justera sedan efter skolans upplägg.
 - **Visa bara ofördelade** döljer de nivåer som redan är klara.
 
-**Sparning.** Ändringar sparas automatiskt när du lämnar en rad. Osparade rader är gula och statusen visar **Osparade ändringar**, **Sparar…** eller **Allt sparat**. En rad med fler poäng än nivån har, eller med decimaler, markeras rött och sparas inte förrän den är rättad.
+**Sparning.** Ändringar sparas automatiskt när du lämnar en rad. Osparade rader är gula och statusen visar **Osparade ändringar**, **Sparar…** eller **Allt sparat**. Du kan fortsätta i nästa rad medan beslutsunderlaget uppdateras efter sparandet. Beslut kan göras först när ändringarna är sparade och underlaget är kontrollerat. En rad med fler poäng än nivån har, eller med decimaler, markeras rött och sparas inte förrän den är rättad.
 
-**Programfördjupning** ändras direkt i sin grupp. Sök under **Lägg till ämne eller nivå** eller välj ett förslag; bara nivåer som Skolverket tillåter som programfördjupning för programmet visas. Gruppens rubrik visar valda poäng av ramen. Ta bort en nivå med krysset på raden. Har nivån fördelade poäng töms de först. Varje ändring sparas direkt.
+**Programfördjupning** ändras direkt i sin grupp. Sök under **Lägg till ämne eller nivå** eller välj ett förslag; bara nivåer som Skolverket tillåter som programfördjupning för programmet visas. Gruppens rubrik visar valda poäng av ramen. Ta bort en nivå med krysset på raden. Har nivån fördelade poäng töms de först. Varje ändring sparas direkt. Tabellen och din sökning ligger kvar medan den sparade planen kontrolleras.
 
 I nya planer och uppgraderade utkast har **Svenska/svenska som andraspråk** tre rader, en per nivå med 100 poäng. Fördela dem på terminer som andra nivåer. Elevens val mellan ämnena görs senare i studieplanen.
 

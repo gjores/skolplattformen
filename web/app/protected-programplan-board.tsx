@@ -23,6 +23,7 @@ export type PlanningGymYearView = { projection: GymYearProjection; year: 0 | 1 |
 type Props = {
   yearView?: PlanningGymYearView;
   focusIssue?: PlanIssue | null;
+  initialTerms?: ProgramplanTermReply | null;
   plan: Programplan; program: CatalogProgram; options: ProgramplanOption[]; scope: string; disabled: boolean;
   /** 05-20: planen har startat eller är arkiverad; tabellen blir skrivskyddad. */ locked?: boolean; lockReason?: string | null;
   onSecurityFailure: (error: unknown) => boolean;
@@ -31,7 +32,7 @@ type Props = {
   /** Parent behåller spärren om återläsning monterar av tabellen. */
   onNavigationBlocked: (blocked: boolean) => void;
   /** Aktuell fördelning, för analysen i arbetsytan. */
-  onTerms: (distribution: ProgramplanTermDistribution | null) => void;
+  onTerms: (distribution: ProgramplanTermDistribution | null, revision: number | null) => void;
 };
 type SaveState = 'idle' | 'saving' | 'conflict' | 'unknown' | 'error' | 'mfa';
 const fmt = (n: number) => n.toLocaleString('sv-SE');
@@ -47,12 +48,12 @@ const fromMap = (rows: ProgramplanTermRow[], m: Map<string, ProgramplanTermPoint
 const sameRow = (a?: ProgramplanTermPoints, b?: ProgramplanTermPoints) => (a ?? blank()).every((n, i) => n === (b ?? blank())[i]);
 
 /** Programplanen som en tabell: ämnen, programfördjupning och sex terminer. Sparas automatiskt när en rad lämnas. */
-export default function ProgramplanBoard({ yearView, focusIssue, plan, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onNavigationBlocked, onTerms }: Props) {
+export default function ProgramplanBoard({ yearView, focusIssue, plan, initialTerms, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onNavigationBlocked, onTerms }: Props) {
   const basis = plan.basisReference!;
   const rows = useMemo(() => programplanTermRows(program, basis), [program, basis]);
   const ranks = useMemo(() => programplanLevelRanks(program), [program]);
   // 05-20: arbetsytan skickar locked när planen har startat eller är arkiverad (serverns lifecycle).
-  const editable = plan.status === 'utkast' && !disabled && !lifecycleLocked;
+  const editable = plan.status === 'utkast' && !lifecycleLocked;
   const [saved, setSaved] = useState<ProgramplanTermReply | null>(null);
   const [values, setValues] = useState<Map<string, ProgramplanTermPoints>>(new Map());
   const [state, setState] = useState<SaveState>('idle'), [message, setMessage] = useState<string | null>(null), [loadError, setLoadError] = useState<string | null>(null);
@@ -77,8 +78,8 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, program, 
   useUnsavedChanges(`programplan-board-${scope}`, dirtyKeys.length > 0 || navigationBlocked);
   useUnsavedChanges(`navigation-block:programplan-board-${scope}`, navigationBlocked);
   const distribution = useMemo(() => fromMap(rows, values), [rows, values]);
-  useEffect(() => { onTerms(saved ? distribution : null); }, [saved, distribution, onTerms]);
-  useEffect(() => () => onTerms(null), [onTerms]);
+  useEffect(() => { onTerms(saved ? distribution : null, saved?.revision ?? null); }, [saved, distribution, onTerms]);
+  useEffect(() => () => onTerms(null, null), [onTerms]);
 
   const failed = useCallback((e: unknown) => e instanceof DOMException && e.name === 'AbortError' || onSecurityFailure(e), [onSecurityFailure]);
   const readTerms = useCallback(async (signal: AbortSignal) => {
@@ -91,13 +92,17 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, program, 
     const c = new AbortController(); controller.current = c;
     void (async () => {
       try {
-        const body = await readTerms(c.signal); if (!mounted.current) return;
+        const body = initialTerms?.planId === plan.id && initialTerms.revision === plan.revision
+          ? initialTerms : await readTerms(c.signal);
+        if (!mounted.current || c.signal.aborted) return;
+        validateProgramplanTermDistribution(rows, body.distribution);
         if (body.revision !== plan.revision) { setLoadError('Planen har ändrats sedan den lästes. Läs om planen.'); return; }
-        savedRef.current = body; setSaved(body); setValues(toMap(body.distribution));
+        savedRef.current = body; setSaved(body); valuesRef.current = toMap(body.distribution); setValues(valuesRef.current);
+        setLoadError(null); setMessage(null); changeState('idle');
       } catch (e) { if (mounted.current && !failed(e)) setLoadError('Terminsfördelningen kunde inte hämtas. Läs om planen.'); }
     })();
     return () => c.abort();
-  }, [readTerms, plan.revision, failed]);
+  }, [readTerms, plan.id, plan.revision, initialTerms, rows, failed, changeState]);
 
   const save = async (): Promise<boolean> => {
     if (!savedRef.current || plan.status !== 'utkast' || stateRef.current === 'unknown') return false;
@@ -134,7 +139,7 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, program, 
 
   const update = (key: string, points: ProgramplanTermPoints) => { const next = new Map(valuesRef.current); next.set(key, points); valuesRef.current = next; setValues(next); if (state === 'error') { changeState('idle'); setMessage(null); } };
   const commit = () => {
-    if (editable && ['idle', 'saving', 'error'].includes(stateRef.current)) {
+    if (editable && !disabled && ['idle', 'saving', 'error'].includes(stateRef.current)) {
       // Blur kan starta sparning före nästa navigationsklick; parent spärras direkt.
       pendingBlur.current = true; onNavigationBlocked(true);
       queueMicrotask(() => { void save().finally(() => { pendingBlur.current = false; if (mounted.current) reportBlocked(); }); });
@@ -165,7 +170,7 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, program, 
   }
 
   async function changeSpecialization(refs: ProgramplanLevelRef[], cleared?: string) {
-    if (!editable || workingRef.current || saving.current || ['saving', 'unknown'].includes(stateRef.current)) return;
+    if (!editable || disabled || workingRef.current || saving.current || ['saving', 'unknown'].includes(stateRef.current)) return;
     changeWorking(true); setMessage(null);
     try {
       if (cleared && values.get(cleared)?.some(n => n > 0)) { update(cleared, blank()); valuesRef.current = new Map(valuesRef.current).set(cleared, blank()); }
@@ -195,7 +200,7 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, program, 
     try { await onReload(); }
     catch (e) { if (mounted.current && !failed(e)) { changeState('unknown'); setMessage('Aktuell sparstatus kunde inte läsas. Läs om planen innan du lämnar den.'); } }
   }
-  const locked = !editable || working || state === 'conflict' || state === 'unknown' || state === 'mfa';
+  const locked = !editable || disabled || working || state === 'conflict' || state === 'unknown' || state === 'mfa';
 
   if (loadError) return <div className="pp-alert" role="alert"><p>{loadError}</p><Button variant="outline" onClick={() => void reloadBoard()}>Läs om planen</Button></div>;
   if (!saved) return <output className="ppb-loading">Hämtar programplanen…</output>;

@@ -60,7 +60,7 @@ async function mockApp(page: Page, role = 'rektor') {
     else { unexpected.push(path); return route.fulfill({ status: 500, json: { code: 'unexpected_request' } }); }
     await route.fulfill({ json, headers: { 'X-Context-Epoch': '1' } });
   });
-  return () => { expect(unexpected).toEqual([]); expect(errors).toEqual([]); };
+  return (expectedErrors: string[] = []) => { expect(unexpected).toEqual([]); expect(errors).toEqual(expectedErrors); };
 }
 
 async function menu(page: Page, name: string, isMobile: boolean) {
@@ -349,4 +349,79 @@ test('huvudmannen inväntar rättning efter retur av båda plantyperna', async (
   await expect(page.getByText('Tillbaka för rättning · Nästa steg hos rektor', { exact: true })).toBeVisible();
   await expect(page.getByText('Tillbaka för rättning · Nästa steg hos rektor eller skoladministratör', { exact: true })).toBeVisible();
   await fits(page); verify();
+});
+
+// Real workspace components with isolated transport; retain input focus and grid state.
+for (const outcome of ['saved', 'conflict', 'decision-read-failed'] as const) test(`programplan redigeras utan omladdning: ${outcome}`, async ({ page }, info) => {
+  const verify = await mockApp(page);
+  const artifact = (await import('../lib/programplan-catalog.generated.json', { with: { type: 'json' } })).default;
+  const { defaultProgramplanChoiceBlocks } = await import('../lib/programplan-choice-blocks');
+  const program = artifact.programs.find(p => p.code === 'ES25')!;
+  const orientationCode = program.orientations[0].code;
+  let planRevision = 0, terms: { rowKey: string; points: number[] }[] = [];
+  let refs: {subjectCode:string;subjectVersion:number;itemCode:string;points:number}[] = [];
+  let decisions = 0, reads = 0, termReads = 0, writes = 0;
+  const basis = () => ({catalogId:artifact.catalogId,programRef:{code:program.code,version:program.version},orientationCode,startedOn:'2027-08-15',specializationRefs:refs,choiceBlocks:defaultProgramplanChoiceBlocks(program,orientationCode)});
+  const education = {name:'Redigerbar programplan',cohort:'2027–2030',programCode:program.code,orientationCode};
+  const plan = () => ({id:id(20),offeringId:id(10),unitId:id(2),schoolName:schools[0].name,education,version:1,revision:planRevision,status:'utkast',decidedOn:null,catalogId:artifact.catalogId,basisReference:basis(),resolution:{status:'resolved',diagnostics:[],unresolvedChoices:[],decisionReady:false}});
+  await page.route('**/api/programplaner/underlag', async route => {
+    reads++;const p=plan();
+    const selected=route.request().postDataJSON().catalogId!==null;
+    const codes=new Set([...program.foundation,...program.programmeSpecific,...program.orientations.flatMap(o=>o.subjects),...program.specialization].filter(s=>s.subjectVersion!==null).map(s=>s.code));
+    await route.fulfill({json:{education:{id:id(10),unitId:id(2),schoolName:schools[0].name,kind:'gymnasium',...education,localCode:null,startYear:2027,status:'planerad',latestVersion:1,draftId:id(20)},
+      lifecycle:{phase:'framtida',startsOn:'2027-08-15',archived:false,revision:0,units:[{...schools[0],primary:true,inMandate:true}]},
+      versions:[{id:p.id,version:1,revision:p.revision,status:p.status,decidedOn:null,catalogId:p.catalogId,basisReference:p.basisReference,legacySpecialization:null}],versionCount:1,versionPage:1,pageSize:50,
+      catalogs:[{catalogId:artifact.catalogId,source:artifact.source}],catalog:selected?{status:'selected',catalogId:artifact.catalogId,diagnostic:null,source:artifact.source,program,subjects:artifact.subjects.filter(s=>codes.has(s.code))}:{status:'unselected',catalogId:null,diagnostic:null,source:null,program:null,subjects:[]},decisionReady:false}});
+  });
+  await page.route('**/api/programplaner/lasa',route=>route.fulfill({json:plan()}));
+  await page.route('**/api/programplaner/terminer/lasa',route=>{termReads++;return route.fulfill({json:{planId:id(20),revision:planRevision,status:'utkast',distribution:terms}});});
+  await page.route('**/api/programplaner/terminer',async route=>{
+    writes++;const body=route.request().postDataJSON();expect(body.expectedRevision).toBe(planRevision);
+    if(outcome==='conflict')return route.fulfill({status:409,json:{code:'conflict',message:'Planen har ändrats.'}});
+    terms=body.distribution;planRevision++;
+    await route.fulfill({json:{planId:id(20),revision:planRevision,status:'utkast',distribution:terms}});
+  });
+  await page.route('**/api/programplaner/fordjupning',route=>{const body=route.request().postDataJSON();expect(body.expectedRevision).toBe(planRevision);refs=body.specializationRefs;planRevision++;return route.fulfill({json:plan()});});
+  let releaseRead: (()=>void)|undefined;
+  await page.route('**/api/planbeslut/underlag',async route=>{
+    decisions++;
+    if(decisions>1)await new Promise<void>(resolve=>{releaseRead=resolve;});
+    if(outcome==='decision-read-failed'&&decisions>1)return route.fulfill({status:503,json:{code:'unavailable'}});
+    await route.fulfill({json:{kind:'programplan',planId:id(20),offeringId:id(10),unitId:null,educationName:education.name,schoolName:null,version:1,revision:planRevision,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:'draft',nextActor:'rektor',actions:['submit'],blockers:[],checks:[],history:[],sourceInfo:null}});
+  });
+  await page.goto(`${base}?vy=programplaner&utbildning=${id(10)}&programplan=${id(20)}&programplansversion=1&planeringsskola=${id(2)}&planeringslasar=2027&planeringsallaar=1`);
+  const workspace=page.getByTestId('protected-programplan-workspace');
+  const board=workspace.getByRole('region',{name:'Programplanen',exact:true});
+  const cell=board.locator('input[data-term="0"]').first();
+  await expect(cell).toBeEnabled();
+  const initialReads=reads,initialTerms=termReads;
+  await cell.focus();await cell.pressSequentially('25',{delay:100});
+  await expect(cell).toBeFocused();await expect(cell).toHaveValue('25');
+  expect(decisions).toBe(1);expect(writes).toBe(0);expect(reads).toBe(initialReads);
+  const next=board.locator('input[data-term="0"]').nth(1);
+  await next.focus();
+  if(outcome==='conflict'){
+    await expect(board).toContainText('Någon annan har ändrat planen');await expect(cell).toHaveValue('25');expect(decisions).toBe(1);verify(['Failed to load resource: the server responded with a status of 409 (Conflict)']);return;
+  }
+  await expect.poll(()=>decisions).toBe(2);
+  await expect(next).toBeFocused();await expect(next).toBeEnabled();
+  await expect(workspace.getByRole('button',{name:'Skicka för beslut',exact:true})).toBeDisabled();
+  expect(reads).toBe(initialReads);expect(termReads).toBe(initialTerms);
+  releaseRead!();
+  if(outcome==='decision-read-failed'){
+    await expect(workspace).toContainText('Beslutsunderlaget kunde inte hämtas');
+    await expect(board.locator('input[data-term="0"]')).toHaveCount(0);verify(['Failed to load resource: the server responded with a status of 503 (Service Unavailable)']);return;
+  }
+  await expect(workspace.getByRole('button',{name:'Skicka för beslut',exact:true})).toBeEnabled();
+  await board.evaluate(el=>{el.setAttribute('data-retained','yes');});
+  const search=board.getByRole('searchbox',{name:'Lägg till ämne eller nivå'});
+  await search.fill('ANIM');
+  await board.locator('button[data-level-code="ANIM1000X"]').click();
+  await expect.poll(()=>decisions).toBeGreaterThan(2);
+  releaseRead!();
+  await expect(search).toBeEnabled();await expect(search).toHaveValue('ANIM');
+  await expect(board).toHaveAttribute('data-retained','yes');
+  await expect(board.getByRole('button',{name:'Ta bort ANIM1000X',exact:true})).toBeVisible();
+  expect(termReads).toBe(initialTerms+1);
+  await fits(page);await page.screenshot({path:info.outputPath('programplan-edit-retained.png'),fullPage:true});verify();
 });

@@ -25,7 +25,7 @@ import { parseProgramplanLifecycleReply, programplanLifecycleActions, programpla
 import { Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 import ProgramplanBoard, { LocalPlanBoard, localTermsValid } from './protected-programplan-board';
 import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistribution } from '@/lib/programplan-terms.ts';
-import { parseProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
+import { parseProgramplanTermReply, type ProgramplanTermReply } from '@/lib/programplan-terms-contract.ts';
 import { newEducationCommand, educationStatusForCommand } from '@/lib/protected-programplan-education.ts';
 import { parseProgramplanSelection, parseProgramplanEducationCreated, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import './protected-programplan.css';
@@ -70,9 +70,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const [view, setView] = useState<'plan' | 'analysis'>('plan');
   const [focusIssue, setFocusIssue] = useState<PlanIssue | null>(null);
   const termsActive = boardBlocked;
-  const [termSnapshot, setTermSnapshot] = useState<{ planId: string | null; distribution: ProgramplanTermDistribution | null }>({ planId: null, distribution: null });
+  const [termSnapshot, setTermSnapshot] = useState<{ planId: string | null; distribution: ProgramplanTermDistribution | null; revision: number | null }>({ planId: null, distribution: null, revision: null });
+  const [reloadedTerms, setReloadedTerms] = useState<ProgramplanTermReply | null>(null);
   const termValues = termSnapshot.planId === plan?.id ? termSnapshot.distribution : null;
-  const onReadTerms = useCallback((distribution: ProgramplanTermDistribution | null) => { setTermSnapshot({ planId: plan?.id ?? null, distribution }); }, [plan?.id]);
+  const onReadTerms = useCallback((distribution: ProgramplanTermDistribution | null, revision: number | null) => { setTermSnapshot({ planId: plan?.id ?? null, distribution, revision }); }, [plan?.id]);
   const [draftTerms, setDraftTerms] = useState<ProgramplanTermDistribution>([]);
   const [showFlow, setShowFlow] = useState(false);
   // Permission belongs to this stable workspace, including direct links and list-to-plan reads.
@@ -215,16 +216,17 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     initialOpened.current = true;
     if (expected?.unitId) { selectedUnit.current = expected.unitId; setSelectedUnitId(expected.unitId); }
     const r = begin();
-    if (!keepPreparation) { setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); setFocusIssue(null); }
+    if (!keepPreparation && !force) { setWorkspace(null); setPlan(null); setPlanSummary(null); setDraft(null); setFocusIssue(null); }
     setNotice(null); setError(null);
     setPreparation(keepPreparation ? {kind: keepPreparation, catalogId} : null); setBusy(true);
     try {
       const {fresh, selected, summary} = await readSelection(offeringId, versionPage, catalogId, planId, r.signal, !expected?.missing, undefined, expected);
+      let terms: ProgramplanTermReply | null = null;
       if (force && selected?.basisReference) {
-        const terms = parseProgramplanTermReply(await api.post('/api/programplaner/terminer/lasa', { planId: selected.id }, r.signal));
+        terms = parseProgramplanTermReply(await api.post('/api/programplaner/terminer/lasa', { planId: selected.id }, r.signal));
         if (terms.planId !== selected.id || terms.revision !== selected.revision) throw new Error('Planens sparstatus ändrades under återläsningen. Läs om igen.');
       }
-      if (current(r.token)) { setWorkspace(fresh); setPlan(selected); setPlanSummary(summary); if (force) clearRecovery();
+      if (current(r.token)) { setReloadedTerms(terms); setWorkspace(fresh); setPlan(selected); setPlanSummary(summary); if (force) clearRecovery();
         publishReadSelection(fresh, selected);
         if (expected?.copy) { if (selected?.id === planId && selected.basisReference) setCopy(newCopy(fresh.education.name)); else setNotice('Utbildningen har ingen kopplad programplan att kopiera. Öppna planen och koppla den till ett underlag först.'); } }
     } catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Aktuellt programplansunderlag kunde inte läsas. Välj utbildningen igen.'); if (propagateError) throw e; }
@@ -563,7 +565,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
     <ProgramplanBoard yearView={yearProjection ? { projection: yearProjection, year: shownYear, onYear: changeMatrixYear,
-      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}`} plan={plan} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy}
+      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} initialTerms={reloadedTerms} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null}
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onNavigationBlocked={onBoardBlocked} onTerms={onReadTerms} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,true,true)}/>
   </> : <>
     {plan && !plan.basisReference && planningSelection && <output className="pp-notice">Årsdelen för {planningYearLabel(planningSelection.schoolYear)} saknar verifierat startdatum. Hela planen visas.</output>}
@@ -581,7 +583,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       canCreateTimplan={!!onTimplan && ['rektor', 'administrator'].includes(context.function)} onTimplan={openRowTimplan}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
-      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId,unitId)=>openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined)}/></div>}
+      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId,unitId)=>openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined)}/></div>}
     {(workspace||draft)&&<div className="pps-page">
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">
@@ -610,7 +612,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       {lifecycleDialog&&lifecycleTarget&&<LifecycleDialog key={lifecycleDialog} kind={lifecycleDialog} target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
         onChanged={(message,reply)=>lifecycleChanged(message,reply.command==='delete')} onStale={lifecycleStale}/>}
       {workspace&&!draft&&!preparation&&lockReason&&view==='plan'&&<output className="pp-notice ppl-lock">{lockReason}</output>}
-      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={`${plan.revision}:${JSON.stringify(termValues)}`} disabled={busy||boardDirty||ownNavigationBlock} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
+      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={fixIssue} actionUnavailable={actionUnavailable}/>}
       {view==='plan'&&<>
         {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">

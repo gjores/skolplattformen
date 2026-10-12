@@ -31,12 +31,15 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
     const abort = new AbortController(); let current = true; const ownRead = ++readGeneration.current;
     void Promise.resolve().then(() => {
       if (!current || ownRead !== readGeneration.current) throw new DOMException('', 'AbortError');
-      setLoading(true); setDetail(null); setChecks([]); setConfirm(false); setError(null); latest.current.onStage?.(null);
+      // Retain the current stage and layout while a saved revision is checked.
+      // Commands stay disabled during the read; only a failed read revokes the stage.
+      setLoading(true); setChecks([]); setConfirm(false); setError(null);
       return api.post('/api/planbeslut/underlag', { kind, planId }, abort.signal);
     }).then(raw => parsePlanDecisionDetail(raw, { kind, planId })).then(value => {
       if (current && ownRead === readGeneration.current) { setDetail(value); latest.current.onStage?.(value.stage); }
     }).catch(caught => {
       if (!current || ownRead !== readGeneration.current || caught instanceof DOMException && caught.name === 'AbortError' || latest.current.onSecurityFailure(caught)) return;
+      setDetail(null); latest.current.onStage?.(null);
       setError('Beslutsunderlaget kunde inte hämtas. Läs om innan du går vidare.');
     }).finally(() => { if (current && ownRead === readGeneration.current) setLoading(false); });
     return () => { current = false; abort.abort(); };
@@ -71,7 +74,7 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
   return <section className="plan-decision-panel" aria-label="Beslut och nästa steg" aria-busy={loading || sending}>
     <div className="plan-decision-heading"><div><h2>Beslut och nästa steg</h2>{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
       <Button variant="outline" disabled={loading || pending !== null || disabled} onClick={() => setRetry(n => n + 1)}>Läs beslutsstatus</Button></div>
-    {loading && <output>Hämtar aktuellt beslutsunderlag…</output>}
+    {loading && !detail && <output>Hämtar aktuellt beslutsunderlag…</output>}
     {error && <p role="alert">{error}</p>}
     {mfa && <MfaStepUpNotice message="Beslutet kräver verifiering med engångskod."/>}
     {pending && <Button disabled={sending} onClick={() => void execute(pending)}>{sending ? 'Sparar beslut…' : 'Kontrollera och försök igen'}</Button>}
