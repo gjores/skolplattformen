@@ -14,12 +14,14 @@ import {databaseFingerprint,decisionBusinessHashes,protectedTables} from './veri
 import {vocationalFixture} from './vocational-plan-fixture.mjs';
 import {sourcePaths as classSourcePaths} from './verify-class-timplans.mjs';
 import {parseClassPlanUnderlag} from '../../web/lib/class-timplan.ts';
+import {parsePlanningSetup,parsePlanningList,planningAnnualMetrics} from '../../web/lib/planning-year-contract.ts';
+import {planningSelection} from './verify-planning-year-api.mjs';
 import {parsePlanDecisionDetail} from '../../web/lib/plan-decision.ts';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const entries=['public.phase5_plan_decision_basis(text,uuid)','public.phase5_plan_decision_command(jsonb)','public.phase5_plan_decision_inbox()'];
 const decisions=['plan_decision_reviews','plan_decision_history','plan_decision_receipts','plan_decision_write_permits'];
-const sourcePaths=[...classSourcePaths,'work/pilot/verify-class-timplan-api.mjs','work/pilot/verify-plan-decision-api.mjs','web/lib/plan-decision.ts','web/lib/server/plan-decision.ts','web/lib/server/gym-timplan.ts',
+const sourcePaths=[...classSourcePaths,'web/app/protected-class-timplans.tsx','web/lib/planning-year-contract.ts','supabase/migrations/20261012220000_plan_decision_search.sql','supabase/migrations/20261012240000_class_start_calendar.sql','work/pilot/verify-class-start-calendar.mjs','work/pilot/verify-class-timplan-api.mjs','work/pilot/verify-plan-decision-api.mjs','web/lib/plan-decision.ts','web/lib/server/plan-decision.ts','web/lib/server/gym-timplan.ts',
  'web/lib/server/audit-details.ts','web/lib/mandate-policy.ts','web/app/api/planbeslut/underlag/route.ts','web/app/api/planbeslut/andra/route.ts','web/app/api/planbeslut/inkorg/route.ts',
  'supabase/migrations/20261012180000_plan_decision_flow.sql','supabase/migrations/20261012180100_plan_decision_command_fix.sql'];
 const sha=s=>createHash('sha256').update(s).digest('hex');
@@ -93,12 +95,28 @@ async function main(){
   await check('draft target cannot take over class',async()=>{await exact(f.principal,'/api/klasser/koppla',{...binding,commandId:randomUUID(),planId:g2.id,expectedPlanRevision:g2.revision,previousPlanId:gymId,expectedLinkRevision:0},409);});
   t=await read(f.principal,'timplan',g2.id);await send(f.principal,command(t,'submit'));t=await read(f.hm,'timplan',g2.id);await send(f.hm,command(t,'approve'));
   await check('new approved version never moves old class',async()=>{const older=await classRead();assert.equal(older.plan.status,'ersatt');assert.equal(older.linkedClasses[0].classId,c.id);assert.equal((await classRead(f.principal,g2.id)).linkedClasses.length,0);});
+  const setup=parsePlanningSetup((await exact(f.principal,'/api/planering/urval')).body);
+  const selection=planningSelection(year,{view:'timplan',unitId:f.unitId,query:'Syntetiskt yrkesbeslut '+programCode,status:'all'});
+  const annual=async(expectedId)=>{const list=parsePlanningList((await exact(f.principal,'/api/planering/lista',selection)).body,selection,setup);const row=list.rows.find(r=>r.classes.some(x=>x.id===c.id));assert.ok(row,'Bound class must remain in annual list');assert.equal(row.plan.id,expectedId);assert.equal(row.application.planId,expectedId);assert.equal(row.application.columnId,'ar1');assert.equal(row.underlag,'class-bound');assert.equal(planningAnnualMetrics(row,year).hours.known,plan.rows.reduce((total,r)=>total+r.pointTerms[0]+r.pointTerms[1],0));};
+  await check('annual list uses old explicit class version and year hours after new approval',()=>annual(gymId));
   basis=await classRead(f.principal,g2.id);
   await check('explicit switch persists exact new version',async()=>{await exact(f.principal,'/api/klasser/koppla',{...binding,commandId:randomUUID(),planId:g2.id,expectedPlanRevision:basis.plan.revision,previousPlanId:gymId,expectedLinkRevision:0});assert.equal((await classRead(f.principal,g2.id)).linkedClasses[0].revision,1);assert.equal((await classRead()).linkedClasses.length,0);});
+  await check('annual list follows explicit chosen switch without changing hours',()=>annual(g2.id));
   const beforeAudit=await decisionBusinessHashes(db,['school_classes','class_timplans','class_plan_commands']);
   await db.unsafe(`create function public.${fn}() returns trigger language plpgsql as $$begin if new.customer_id='${f.customerId}'::uuid and new.action='class_created' and new.source='worker' and new.outcome='ok' then raise exception 'Synthetic final Worker audit failure';end if;return new;end$$;create trigger ${trigger} before insert on public.security_events for each row execute function public.${fn}();`);triggerCreated=true;
   await check('final Worker audit failure rolls back class and receipt',async()=>{await exact(f.principal,'/api/klasser/skapa',{...creation,commandId:randomUUID(),planId:g2.id,expectedPlanRevision:basis.plan.revision,name:'AUDITFAIL'},500);assert.deepEqual(await decisionBusinessHashes(db,['school_classes','class_timplans','class_plan_commands']),beforeAudit);});
   await db.unsafe(`drop trigger ${trigger} on public.security_events;drop function public.${fn}();`);triggerCreated=false;
+  const {chromium,expect}=createRequire(new URL('../../web/package.json',import.meta.url))('@playwright/test');
+  const browser=await chromium.launch();
+  try{for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
+   const context=await browser.newContext({viewport});try{await f.cookies(context,f.principal,url);const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(`${url}/?vy=timplaner&timplan=${g2.id}&planeringslasar=${year}`);const panel=page.getByRole('region',{name:'Klasser och läsår',exact:true});
+    await expect(panel).toBeVisible({timeout:45000});const button=panel.getByRole('button',{name:'Koppla klass',exact:true});await expect(button).toBeEnabled({timeout:45000});await button.click();
+    await expect(panel.locator('.class-plan-links')).toContainText('SYNKLASS',{timeout:45000});await expect(panel.locator('.class-plan-links')).toContainText('Version 2');
+    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false);assert.deepEqual(errors,[]);
+    const screenshot=out.replace(/\.json$/u,`-${viewport.width}.png`);await panel.screenshot({path:screenshot});checks.push({name:`actual protected class UI read at ${viewport.width}px`,ok:true,screenshot});
+   }finally{await context.close();}
+  }}finally{await browser.close();}
  }catch(error){failure=error;}finally{
   try {
    if(triggerCreated){await db.unsafe(`drop trigger ${trigger} on public.security_events;drop function public.${fn}();`);triggerCreated=false;}
