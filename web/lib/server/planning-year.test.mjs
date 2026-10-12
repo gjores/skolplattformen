@@ -160,13 +160,14 @@ test('gymadmin får aldrig använda en förfalskad GR/IM-projektion; verklig SQL
     assert.deepEqual(state.calls[1].values, [input]);
   }
 });
-test('saknad plan och saknad fryst källa är explicita läsbara luckor utan fabricerade celler', async () => {
+test('timplanslistan avvisar platshållare men behåller sparad plan med underlagslucka', async () => {
   for (const missingPlan of [true, false]) {
     reset('lista');
     const missing = state.result.rows[0];
     missing.source = null; missing.cells = [];
     missing.diagnostics = [missingPlan ? 'missing-plan' : 'missing-source', 'missing-hours', 'missing-points'];
     if (missingPlan) { missing.plan = null; missing.underlag = 'missing'; }
+    if (missingPlan) { await denied('lista', 503, undefined, 'audit_unavailable'); continue; }
     const response = await lista(request('lista')), body = await response.json();
     assert.equal(response.status, 200); assert.deepEqual(body.rows[0], missing); assert.equal(state.events.length, 2);
     assert.deepEqual(body.rows[0].cells, []); assert.equal(body.rows[0].source, null);

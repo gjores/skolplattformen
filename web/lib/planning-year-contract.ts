@@ -313,7 +313,9 @@ export function planningAnnualMetrics(row: PlanningRow, schoolYear: number): Pla
 function rows(value: unknown, maximum: number, selected: PlanningSelection, setup: PlanningSetup): PlanningRow[] {
   let cellCount = 0, classReferenceCount = 0;
   const result = unique(array(value, maximum).map(v => {
-    const row = parseRow(v, selected, setup); cellCount += row.cells.length; classReferenceCount += row.classes.length;
+    const row = parseRow(v, selected, setup);
+    if (selected.view === 'timplan' && row.plan === null) bad();
+    cellCount += row.cells.length; classReferenceCount += row.classes.length;
     if (cellCount > 50000 || classReferenceCount > 50000) bad(); return row;
   }), r => JSON.stringify([r.unitId, r.offeringId, r.plan?.id ?? null, r.application?.columnId ?? null]));
   // An ID cannot silently refer to different versions, educations or class scopes in one result.

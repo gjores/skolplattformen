@@ -7,7 +7,7 @@ Planeringsåret hjälper dig att se vilket underlag som gäller under ett läså
 
 ## Välj skola och läsår
 
-Öppna **Programplaner** eller **Timplaner**. Överst väljer du skola och planeringsläsår. Du kan gå till föregående eller nästa år, välja ett år direkt och återgå till det aktuella året. Ett år kan väljas även när det saknas planer eller kalenderuppgifter för året.
+Öppna **Programplaner** eller **Timplaner**. Timplanslistan och timplansurvalet i läsårsöverblicken visar bara skapade timplaner. Gymnasieutbildningar utan timplan finns under **Programplaner**; öppna en sparad programplan och välj **Timplan** för att gå vidare. Överst väljer du skola och planeringsläsår. Du kan gå till föregående eller nästa år, välja ett år direkt och återgå till det aktuella året. Ett år kan väljas även när det saknas planer eller kalenderuppgifter för året.
 
 År och skola följer med mellan planeringsvyerna inom samma uppdrag. När du återvänder till **Elever** används elevregistrets eget år och filter. Webbläsarens Tillbaka och en omladdning återläser det urval som står i adressen. När uppdraget ändras eller du loggar ut rensas planeringsurval och öppet innehåll.
 

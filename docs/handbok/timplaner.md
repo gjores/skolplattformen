@@ -7,7 +7,7 @@ Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är unde
 
 ## Från programplan till gymnasiets timplan
 
-Öppna en sparad programplan och välj **Timplan**, eller öppna **Timplaner**, välj gymnasium och hitta årsradens utbildning och skola. Årsraden öppnar sin exakta timplansversion. Om timplan saknas visas **Saknas** och det befintliga steget för att välja underlag; inget utkast skapas genom att klicka på raden eller byta år. Välj en bestämd skola när samma programram används av flera. Varje skola har egna timplansversioner och timmar.
+Öppna en sparad programplan och välj **Timplan**, eller öppna **Timplaner**, välj gymnasium och hitta årsradens utbildning och skola. Årsraden öppnar sin exakta timplansversion. Listan visar bara skapade timplaner. Utbildningar utan timplan finns under **Programplaner**, där du öppnar den sparade programplanen och väljer **Timplan**. Inget utkast skapas genom att öppna underlaget eller byta år. Välj en bestämd skola när samma programram används av flera. Varje skola har egna timplansversioner och timmar.
 
 Rektor och skoladministratör kan välja **Skapa timplansutkast** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Den här övergången stöder högskoleförberedande program med känd poängram; yrkesprogrammets ram behöver ännu verifieras.
 
@@ -31,7 +31,7 @@ Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kva
 
 Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Fastställande och kontroll av garanterad undervisningstid återstår; ifyllda timmar är fortfarande förberedande planering.
 
-Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. En utbildning utan timplan kan fortfarande synas i planeringslistan med **Ingen timplan skapad**; det är ingen sparad timplan. Välj **Välj programplan** för att välja det sparade underlaget. Börja med att skapa och spara programplanen om den saknas.
+Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. Utbildningar utan timplan finns under **Programplaner**. Skapa och spara programplanen, välj **Timplan**, välj skola och sedan **Skapa timplansutkast**. Först när utkastet är sparat visas det i timplanslistan.
 
 ## Grundskola och introduktionsprogram
 

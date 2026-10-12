@@ -195,7 +195,7 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   return <section className="gym-timplan" data-testid="protected-gym-timplan-workspace" aria-busy={busy}>
     {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => loadList())}>Välj utbildning igen</Button></div>}
     {notice && <output className="gt-notice">{notice}</output>}
-    {!plan && !underlag && !missing && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Börja med en programplan. Skapa sedan skolans timplan från den sparade programplanen och fördela undervisningstiden.</p></div></div>
+    {!plan && !underlag && !missing && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Här visas skapade timplaner. För att skapa en ny timplan, öppna utbildningen under Programplaner och välj Timplan.</p></div></div>
       <ProtectedPlanList disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>
     </>}
     {missing && <section aria-label="Välj programplanens underlag">

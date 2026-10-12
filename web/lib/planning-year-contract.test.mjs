@@ -131,7 +131,10 @@ test('IM weekly hours remain separate and forecasts require an explicit diagnosi
 });
 test('missing plans carry no fabricated version, source, cells or class application', () => {
   const missing = row(2, { plan: null, source: null, cells: [], underlag: 'missing', diagnostics: ['missing-plan', 'missing-hours', 'missing-points'] });
-  assert.equal(parseList([missing]).rows[0].plan, null);
+  const selected = selection({ view: 'programplan' });
+  assert.equal(parseList([missing], selected).rows[0].plan, null);
+  assert.throws(() => parseList([missing]));
+  assert.throws(() => parsePlanningOverview(overview([missing]), selection(), setup()));
   assert.throws(() => parseList([{ ...missing, source: row().source }]));
 });
 test('conflicting duplicate source versions and oversized cell payloads fail closed', () => {
@@ -326,7 +329,7 @@ test('extended metadata cannot bypass year/source/class/canonical inventory or t
 test('missing plans retain actual education details without fabricating source/cells or verified names', () => {
   const missing = row(2, { plan: null, source: null, cells: [], underlag: 'missing', diagnostics: ['missing-plan', 'missing-hours', 'missing-points'],
     searchDetails: searchDetails({ programName: null, orientationName: null }) });
-  const parsed = parseList([missing]).rows[0];
+  const parsed = parseList([missing], selection({ view: 'programplan' })).rows[0];
   assert.deepEqual(parsed, missing); assert.equal(parsed.plan, null); assert.equal(parsed.source, null);
   assert.deepEqual(parsed.cells, []); assert.equal(parsed.searchDetails.programName, null);
 });
