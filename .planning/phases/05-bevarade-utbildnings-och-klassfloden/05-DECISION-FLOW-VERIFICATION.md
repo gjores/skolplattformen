@@ -44,3 +44,7 @@ Dator/telefon betyder automatiserad browser med respektive viewport, inte fysisk
 Körningsloggar och bilder är ignorerade lokala artefakter: `web/outputs/decision-live.json`, `decision-live-*.png`, `decision-ui-verification-2026-10-12.json`, `decision-contract-api-final.log`, `decision-tsc-release.log`, `decision-lint-release.log`, `decision-build-release.log`, `decision-docs-release.log`. Privata DB-/API-bevis finns under `/private/tmp/plan-decision-*.json`. Inga sessionstoken eller inloggningshemligheter förs in i versionshanteringen.
 
 Två första lokala OIDC-prov avbröts vid planeringslistans femsekunders standardväntan. Samma produktkod passerade alla sex roll/viewport-kombinationer med 45 sekunders testväntan. Det är inget löfte om normal svarstid; inkorgens och listornas kostnad bör följas upp enligt gaprapporten.
+
+## Senare användarresultat — 2026-10-12
+
+Efter leverans av senare bygge `0ab206494909936cd6e40135cd72fc2502e8115b` svarade användaren ”Allt funkar” på beslutskedjans användarprov. Resultatet är användarrapporterat godkänt; enskilda steg, planobjekt och enheter särredovisades inte. Se [användarprovet och dess avgränsning](05-DECISION-FLOW-USER-TRIAL.md). Yrkesstödet och klassflödet har senare tekniska delbevis i VOCATIONAL-/OPERATIONAL-verifieringarna; tidigare begränsningar ovan beskriver denna verifieringsomgång. Fulla ADMIN-02/04 och fasacceptans är fortsatt öppna. Inga äldre tekniska resultat ändras.

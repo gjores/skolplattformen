@@ -5,11 +5,11 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: 05-OPERATIONAL-06
 status: in_progress
-stopped_at: Klasskoppling, ny timplansversion, rollinkorg och godkänd testarkivering lokalt levererade; fulla krav och mänsklig fasacceptans kvarstår.
+stopped_at: Beslutskedjans användarprov användarrapporterat godkänt; nästa steg är sammanställning av fas 5:s återstående krav och verifieringsbevis.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "OPERATIONAL01–06: klass/år/version, rollinkorg, källjämförelse och sex arkiverade testutbildningar. Node129, UI56, BF/BA API36 och HTTP21 PASS; 3012 kör0ab2064."
-state_head: 5ff563d
+last_activity_desc: "Beslutskedjans användarprov: Allt funkar. Registrerat användarrapporterat godkänt; fulla krav och fasacceptans kvarstår. Inga nya automatiska prov."
+state_head: 4ddba9e
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
 worker_status: running_on_3012_operational_local_api_pass
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Beslutskedjans användarprov godkänt 2026-10-12:** Användaren svarade ”Allt funkar” efter provet med rektorns inskickande, huvudmannens återsändning, rättning och fastställande. Registrerat som användarrapporterat godkänt för den lokala stödda gymnasiekedjan; planobjekt, roller, enheter och enskilda steg särredovisades inte. Det tidigare överlämnings-/godkännandegapet är därmed levererat och godkänt inom denna avgränsning. Klasskoppling, kullkopiering och fulla krav/fasacceptans får inga nya godkännanden. Nästa steg är en sammanställning av fas 5:s återstående krav mot verifieringsbevisen, före eventuell ny plan eller användarprov. Historiska 88/100 planer och 3/8 verifierade faser består. Se [användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-DECISION-FLOW-USER-TRIAL.md). Äldre lägesnoteringar nedan är historik.
 
 **Operativ planeringskedja 2026-10-12:** Rektor/skoladministratör kan skapa beständig tom klass och uttryckligen koppla läsår/årskurs till en fastställd gymnasietimplansversion. Ny version lämnar befintliga länkar kvar. Rollinkorgen visar egna uppgifter först, sökning, 50-raderssidor och statusfilter. Enbart fastställande av oförändrat källinnehåll ger inte längre falsk ändringsvarning. Sex uttryckligen godkända testutbildningar arkiverade; fyra programplaner och historik bevarade. Node129, UI56, klassSQL56, vårstartSQL6, inkorgSQL45, källjämförelse4 och slutbyggd BF/BA API/UI36 samt faktisk OIDC/HTTP21 och läsande OIDC/browser6 PASS. Typ/lint/app/handbok PASS. Lokal3012 kör0ab2064 med188 byteverifierade filer och framåtriktad SQL240000 för kalender-/läsår. HTTP-median rektor4,94→0,97s, huvudman4,51→3,60s, admin10,69→3,25s; fortsatt läslatens för HM/admin är dokumenterad. [Samlad verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-OPERATIONAL-VERIFICATION.md). Sex avgränsade planer redovisas separat från historiska88/100 och3/8. Full ADMIN-02/04, övriga skolformer, 05-22:s historiska metadataavvikelse och mänsklig fasacceptans kvarstår. Äldre status nedan är historik.
 
