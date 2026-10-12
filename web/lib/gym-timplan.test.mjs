@@ -47,12 +47,13 @@ test('saved hours require all frozen rows and exact active terms', () => {
     const value = plan(); mutate(value); assert.throws(() => parseGymTimplan(value,other));
   }
 });
-test('source change detection binds ID, version and revision without rewriting the snapshot', () => {
-  for (const change of [{planId:unit},{version:2},{revision:4}]) {
+test('source changes bind identity while metadata-only revisions can retain content', () => {
+  for (const change of [{planId:unit},{version:2}]) {
     const value = plan(); Object.assign(value.currentSource,change); value.sourceChanged=true;
     const parsed = parseGymTimplan(value,other); assert.equal(parsed.sourceChanged,true); assert.deepEqual(parsed.source,source());
     value.sourceChanged=false; assert.throws(() => parseGymTimplan(value,other));
   }
+  const approved = plan(); Object.assign(approved.currentSource,{revision:4,status:'faststalld'}); assert.equal(parseGymTimplan(approved,other).sourceChanged,false);
   const value = plan(); value.currentSource=null; value.sourceChanged=true; assert.equal(parseGymTimplan(value,other).sourceChanged,true);
 });
 test('underlag can explain incomplete point terms while existing frozen plans cannot', () => {

@@ -158,8 +158,9 @@ export function parseGymTimplan(value: unknown, planId: string): GymTimplan {
     if (values.some((value, index) => row.pointTerms[index] === 0 && value !== null)) bad();
     return [row.key, values];
   }));
-  const sourceChanged = currentSource === null || currentSource.planId !== source.planId || currentSource.revision !== source.revision || currentSource.version !== source.version;
-  if (r.sourceChanged !== sourceChanged) bad();
+  // The server compares complete source content; a revision alone may only record approval.
+  const sourceChanged = gymBoolean(r.sourceChanged);
+  if (!sourceChanged && (currentSource === null || currentSource.planId !== source.planId || currentSource.version !== source.version)) bad();
   return { id, offeringId: source.offeringId, unitId: gymUuid(r.unitId), schoolName: gymText(r.schoolName), version: gymInteger(r.version, 2147483647, 1),
     revision: gymInteger(r.revision), status: gymStatus(r.status), source, currentSource, rows, hours,
     canPlan: gymBoolean(r.canPlan), archived: gymBoolean(r.archived), sourceChanged };

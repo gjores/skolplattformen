@@ -23,6 +23,24 @@ Ett programutkast får användas för att förbereda undervisningstiden. Det än
 
 **Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
 
+### Ny version efter fastställande
+
+Välj **Skapa ny version** i en fastställd eller ersatt gymnasietimplan. Finns redan ett pågående utkast eller förslag öppnas det. Annars hämtas aktuellt programunderlag och du får granska vilka rader som behåller sina timmar innan du skapar utkastet. Tidigare versioner och klasskopplingar ligger kvar.
+
+Enbart fastställande av programplanen ger ingen varning om ändrat innehåll. En varning visas när det sparade programinnehållet faktiskt skiljer sig från det aktuella underlaget.
+
+### Koppla en klass till ett läsår
+
+Rektor och skoladministratör kan välja **Koppla klass** i en fastställd gymnasietimplan inom sitt skoluppdrag. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
+
+1. Välj läsår. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda.
+2. Välj en befintlig klass för samma utbildning och kull, eller skriv klassnamn och välj **Skapa klass**. En ny klass skapas utan elever och behöver sedan kopplas.
+3. Välj **Koppla vald klass**. Granska skola, läsår, årskurs och exakt timplansversion och välj **Bekräfta koppling**.
+
+Har klassen redan en timplan visas den tidigare versionen före bytet. Ändringen gäller endast det valda läsåret. När en ny timplansversion fastställs ligger klassens tidigare koppling kvar tills du uttryckligen byter den. Äldre namnkopplingar märks ut och måste bekräftas för en bestämd klass; systemet gissar inte klassens identitet.
+
+Listan **Kopplade till version …** visar samtliga läsår för den öppnade versionen, även när versionen är ersatt. Om uppgiften har ändrats under tiden väljer du **Läs om klasskopplingar** och granskar på nytt. Vid tappat svar används **Hämta sparstatus** för samma begäran, så att klassen eller kopplingen inte skapas dubbelt.
+
 ### När programramen ändras
 
 Timplanen skrivs inte om automatiskt. Välj **Välj nytt underlag** och därefter **Nytt timplansutkast** för skolan. Granskningen visar hur många rader som behåller tid och hur många som börjar ofördelade. Bara samma rad med oförändrade totalpoäng och poäng i samtliga sex terminer får behålla timmarna. Ett äldre öppet utkast bevaras som **Ersatt**; en fastställd föregångare ligger kvar oförändrad. Klasskopplingar flyttas inte.

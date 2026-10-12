@@ -50,7 +50,7 @@ const rawSource=()=>({planId:id,offeringId:offering,version:1,revision:3,status:
   rows:termRows.map(row=>({key:row.key,points:row.points})),educationRevision:2,education:{name:'Syntetisk SA',cohort:'27/28',programCode:program.code,orientationCode},archived:false});
 const catalog=()=>{const{catalogId:_catalogId,...payload}=structuredClone(artifact);return payload;};
 const rawPlan=()=>({id:planId,offeringId:offering,unitId:unit,schoolName:'Syntetisk skola',version:1,revision:0,status:'utkast',source:rawSource(),catalog:catalog(),
-  currentSource:{planId:id,version:1,revision:3,status:'utkast'},hours:Object.fromEntries(termRows.map(row=>[row.key,[null,null,null,null,null,null]])),canPlan:true,archived:false});
+  currentSourceBasis:rawSource(),currentSource:{planId:id,version:1,revision:3,status:'utkast'},hours:Object.fromEntries(termRows.map(row=>[row.key,[null,null,null,null,null,null]])),canPlan:true,archived:false});
 const command=()=>({commandId:planId,sourcePlanId:id,expectedSourceRevision:3,expectedEducationRevision:2,unitId:unit,predecessorPlanId:null,expectedPredecessorRevision:null});
 const rowCommand=()=>({planId,expectedRevision:0,rowKey:key,hours:[0,45,null,null,null,null]});
 function reset(){const p=rawPlan();state={fn:'rektor',mfa:true,plan:p,underlag:{source:rawSource(),catalog:catalog(),units:[{unitId:unit,schoolName:'Syntetisk skola',canPlan:true,plans:[]}]},created:{reply:{id:planId,offeringId:offering,unitId:unit,version:1,revision:0,sourcePlanId:id,sourceRevision:3,replayed:false,carriedRows:0,resetRows:termRows.length},plan:structuredClone(p)},events:[],calls:[],mutations:[]};}
@@ -89,7 +89,7 @@ test('creation uses exact seven bound values and checks its frozen source before
   }
 });
 test('identical replay verifies frozen revision after current source changes and preserves edited hours',async()=>{
-  reset();state.created.reply.replayed=true;state.created.reply.revision=2;state.created.plan.revision=2;state.created.plan.currentSource={planId:unit,version:2,revision:5,status:'utkast'};state.created.plan.hours[key]=[0,50,null,null,null,null];
+  reset();state.created.reply.replayed=true;state.created.reply.revision=2;state.created.plan.revision=2;state.created.plan.currentSource={planId:unit,version:2,revision:5,status:'utkast'};Object.assign(state.created.plan.currentSourceBasis,state.created.plan.currentSource);state.created.plan.hours[key]=[0,50,null,null,null,null];
   const response=await create(request('skapa',command()));assert.equal(response.status,200);const body=await response.json();assert.equal(body.replayed,true);assert.equal(body.revision,2);assert.equal(body.sourceRevision,3);assert.equal(state.calls.length,1);
 });
 test('invalid frozen catalog or mismatched creation receipt rolls back all business changes',async()=>{
@@ -148,4 +148,12 @@ test('row acknowledgement cannot accept changed values, wrong identity or wrong 
     {id:planId,revision:1,rowKey:key,hours:[null,45,null,null,null,null]},{id:planId,revision:1,rowKey:key,hours:rowCommand().hours,private:'private'}]){
     reset();state.saved=saved;assert.equal((await write(request('rad',rowCommand()))).status,500);assert.equal(state.mutations.length,0);assert.equal(state.events.some(e=>e.outcome==='ok'),false);
   }
+});
+
+test('only real source content changes warn; approval metadata stays quiet and mismatched raw metadata fails closed',async()=>{
+  reset();Object.assign(state.plan.currentSource,{revision:4,status:'faststalld'});Object.assign(state.plan.currentSourceBasis,{revision:4,status:'faststalld',educationRevision:3});
+  let response=await read(request('lasa',{planId}));assert.equal(response.status,200);const result=await response.json();assert.equal(result.sourceChanged,false);assert.equal(result.source.revision,3);assert.equal(result.currentSource.revision,4);
+  state.plan.currentSourceBasis.distribution[0].points=[0,100,0,0,0,0];response=await read(request('lasa',{planId}));assert.equal(response.status,200);assert.equal((await response.json()).sourceChanged,true);
+  state.plan.currentSourceBasis.revision=5;assert.equal((await read(request('lasa',{planId}))).status,500);
+  reset();state.plan.currentSource=null;state.plan.currentSourceBasis=null;response=await read(request('lasa',{planId}));assert.equal(response.status,200);assert.equal((await response.json()).sourceChanged,true);
 });

@@ -1,5 +1,5 @@
 import { analyseProgramplan } from '../programplan-analysis.ts';
-import { parseProgramplanBasisReference, ProgramplanContractError, resolveProgramplanBasis, verifyProgramplanCatalog,
+import { canonicalCatalogJson, parseProgramplanBasisReference, ProgramplanContractError, resolveProgramplanBasis, verifyProgramplanCatalog,
   type ProgramplanBasisReference } from '../programplan-catalog.ts';
 import { programTotal } from '../programplan-table.ts';
 import { parseProgramplanTermDistribution } from '../programplan-terms-contract.ts';
@@ -81,12 +81,19 @@ async function operation<T>(fn: () => Promise<T>): Promise<T> {
 }
 function one(rows: {result: unknown}[]): unknown { if (rows.length !== 1) throw new AuditUnavailable(); return rows[0].result; }
 async function projectPlan(value: unknown, expectedId: string) {
-  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog', 'currentSource', 'hours', 'canPlan', 'archived']);
+  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog', 'currentSource', 'currentSourceBasis', 'hours', 'canPlan', 'archived']);
   const { source, rows, readiness } = await projectSource(r.source, r.catalog);
   const currentSource = parseGymTimplanCurrentSource(r.currentSource);
-  const sourceChanged = currentSource === null || currentSource.planId !== source.projected.planId
-    || currentSource.version !== source.projected.version || currentSource.revision !== source.projected.revision;
-  const { catalog: _catalog, source: _source, ...rest } = r;
+  const live = r.currentSourceBasis === null ? null : rawSource(r.currentSourceBasis).projected;
+  if ((live === null) !== (currentSource === null) || live && currentSource && (live.offeringId !== source.projected.offeringId
+    || live.planId !== currentSource.planId || live.version !== currentSource.version || live.revision !== currentSource.revision || live.status !== currentSource.status)) bad();
+  // Same content comparison as decision validation: approval and education revision metadata do not alter the frozen frame.
+  const content = (value: unknown) => {
+    const { revision: _revision, status: _status, educationRevision: _educationRevision, archived: _archived, ...basis } = value as Record<string, unknown>;
+    return canonicalCatalogJson(basis);
+  };
+  const sourceChanged = live === null || content(r.source) !== content(r.currentSourceBasis);
+  const { catalog: _catalog, source: _source, currentSourceBasis: _currentSourceBasis, ...rest } = r;
   const body = parseGymTimplan({ ...rest, source: source.projected, currentSource, rows, sourceChanged }, expectedId);
   return { body, readiness, frozenSource: source };
 }

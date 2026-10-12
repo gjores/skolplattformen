@@ -1,0 +1,52 @@
+// Synthetic component evidence; protected DB/API evidence is reported separately.
+import {test,expect,type Page} from '@playwright/test';
+import {oid,operationPlan} from './fixtures/operational-data';
+const base='/e2e/fixtures/operational-preview.html';
+async function classMock(page:Page,{role='rektor',lost=false,conflict=false,existing=false,old=false}={}){
+ const commands:any[]=[],errors:string[]=[];let failed=false;
+ const classes:any[]=existing?[{id:oid(10),name:'SA26A',startYear:2026,link:{planId:oid(19),version:1,status:'ersatt',columnId:'ar1',revision:2,legacy:false}}]:[],links:any[]=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ await page.route('**/api/klasser/**',async route=>{
+  const path=new URL(route.request().url()).pathname,body=route.request().postDataJSON();let json;
+  if(path.endsWith('underlag'))json={plan:{id:oid(1),offeringId:oid(2),unitId:oid(3),schoolName:'Exempelskolan',educationName:'Samhällsvetenskapsprogrammet',cohort:'2026–2029',startYear:2026,version:1,status:old?'ersatt':'faststalld',revision:4},schoolYear:body.schoolYear,canManage:role==='rektor'&&!old,blockers:[],classes:classes.map(c=>({...c,link:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id)?{planId:oid(1),version:1,status:'faststalld',columnId:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id).columnId,revision:0,legacy:false}:c.link})),linkedClasses:links};
+  else if(path.endsWith('skapa')){commands.push(body);let c=classes.find(c=>c.name===body.name);if(!c){c={id:oid(10),name:body.name,startYear:body.startYear,link:null};classes.push(c);}json={id:c.id,name:c.name,startYear:c.startYear,replayed:failed};if(lost&&!failed){failed=true;return route.abort();}}
+  else if(path.endsWith('koppla')){commands.push(body);if(conflict)return route.fulfill({status:409,json:{code:'conflict',message:'Kopplingen har ändrats. Läs om.'}});const c=classes.find(c=>c.id===body.classId);links.push({classId:c.id,className:c.name,classStartYear:c.startYear,schoolYear:body.schoolYear,columnId:body.columnId,revision:(body.expectedLinkRevision??-1)+1,legacy:false});json={classId:c.id,schoolYear:body.schoolYear,planId:body.planId,columnId:body.columnId,revision:(body.expectedLinkRevision??-1)+1,replayed:false};}
+  else throw Error(path);await route.fulfill({json,headers:{'X-Context-Epoch':'1'}});
+ });return{commands,classes,links,errors};
+}
+test('skapa klass och koppla exakt läsår, behåll övriga år efter omläsning',async({page},info)=>{
+ const state=await classMock(page);await page.goto(base);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();
+ await page.getByLabel('Klassnamn',{exact:true}).fill('sa26a');await page.getByRole('button',{name:'Skapa klass',exact:true}).click();
+ await expect(page.getByText('Klassen SA26A är skapad.',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:'Koppla vald klass'}).click();await expect(page.getByRole('dialog')).toContainText('2026/2027');await page.getByRole('button',{name:'Bekräfta koppling'}).click();
+ await expect(page.locator('.class-plan-links')).toContainText('SA26A');expect(state.commands.at(-1).columnId).toBe('ar1');
+ await page.getByLabel('Läsår för klasskoppling').selectOption('2027');await page.getByRole('button',{name:'Koppla vald klass'}).click();await page.getByRole('button',{name:'Bekräfta koppling'}).click();
+ await expect(page.locator('.class-plan-links li')).toHaveCount(2);expect(state.commands.at(-1).columnId).toBe('ar2');
+ await page.reload();await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await expect(page.locator('.class-plan-links li')).toHaveCount(2);expect(state.errors).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('class-links.png'),fullPage:true});
+});
+test('förlorat kvitto spärrar navigering och återhämtas med samma kommando utan ny klass',async({page})=>{
+ const state=await classMock(page,{lost:true});await page.goto(base);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await page.getByLabel('Klassnamn',{exact:true}).fill('sa26a');await page.getByRole('button',{name:'Skapa klass',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Hämta sparstatus'})).toBeVisible();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeDisabled();await page.getByRole('button',{name:'Hämta sparstatus'}).click();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();expect(state.commands[0]).toEqual(state.commands[1]);expect(state.classes).toHaveLength(1);expect(state.errors).toEqual([]);
+});
+test('explicit byte visar tidigare version, konflikt kräver omläsning',async({page})=>{
+ const state=await classMock(page,{existing:true,conflict:true});await page.goto(base);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await page.getByRole('combobox',{name:'Klass',exact:true}).selectOption(oid(10));await page.getByRole('button',{name:'Koppla vald klass'}).click();await expect(page.getByRole('dialog')).toContainText('Nuvarande koppling');await page.getByRole('button',{name:'Bekräfta koppling'}).click();await expect(page.getByRole('alert')).toContainText('Läs om');expect(state.commands[0].expectedLinkRevision).toBe(2);expect(state.commands[0].previousPlanId).toBe(oid(19));expect(state.links).toEqual([]);expect(state.errors).toEqual([]);
+});
+for(const params of ['?hm=1','?old=1'])test(`huvudman och ersatt version visar läsvy ${params}`,async({page})=>{
+ const state=await classMock(page,{role:params.includes('hm')?'huvudman':'rektor',old:params.includes('old')});await page.goto(base+params);await page.getByRole('button',{name:'Visa klasskopplingar'}).click();await expect(page.getByText('Inga klasser är kopplade',{exact:false})).toBeVisible();await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);expect(state.commands).toEqual([]);
+});
+async function gymMock(page:Page,draft=false){const errors:string[]=[];let creates=0;page.on('pageerror',e=>errors.push(e.message));await page.route('**/api/**',async route=>{
+ const path=new URL(route.request().url()).pathname,body=route.request().method()==='POST'?route.request().postDataJSON():null;let json:any;
+ if(path==='/api/planering/urval')json={customerId:oid(7),serverDate:'2026-10-12',currentYear:2026,minimumYear:2000,maximumYear:2100,units:[{unitId:oid(3),schoolName:'Exempelskolan',canRead:{programplan:true,gymnasium:true,grundskola:true,introduktionsprogram:true}}]};
+ else if(path==='/api/planbeslut/inkorg')json={items:[],total:0,actionCount:0,decisionCount:0,truncated:false};
+ else if(path==='/api/timplaner/gym/lasa')json=body.planId===oid(11)?{...operationPlan,id:oid(11),status:'utkast',version:2,revision:0,canPlan:true}:operationPlan;
+ else if(path==='/api/timplaner/gym/underlag')json={source:{...operationPlan.source,...operationPlan.currentSource},rows:operationPlan.rows,readiness:{ready:true,missing:[]},units:[{unitId:oid(3),schoolName:'Exempelskolan',canPlan:true,plans:[...(draft?[{id:oid(11),version:2,revision:0,status:'utkast',sourcePlanId:oid(4),sourceVersion:1,sourceRevision:3}]:[]),{id:oid(1),version:1,revision:4,status:'faststalld',sourcePlanId:oid(4),sourceVersion:1,sourceRevision:2}]}]};
+ else if(path==='/api/timplaner/gym/skapa'){creates++;json={id:oid(11),offeringId:oid(2),unitId:oid(3),version:2,revision:0,sourcePlanId:oid(4),sourceRevision:3,replayed:false,carriedRows:1,resetRows:0};}
+ else if(path==='/api/planbeslut/underlag'){return route.fulfill({status:409,json:{code:'conflict',message:'Syntetiskt separat beslutsprov'}});}
+ else return route.fulfill({status:500,json:{code:'unexpected',message:path}});
+ await route.fulfill({json,headers:{'X-Context-Epoch':'1'}});
+ });return{errors,count:()=>creates};}
+for(const draft of [false,true])test(`ny version använder aktuell källa och återanvänder befintligt utkast ${draft}`,async({page})=>{
+ const state=await gymMock(page,draft);await page.goto(base+'?gym=1');await expect(page.getByRole('button',{name:'Skapa ny version',exact:true})).toBeVisible();await page.getByRole('button',{name:'Skapa ny version',exact:true}).click();
+ if(!draft){await expect(page.getByRole('dialog')).toContainText('klasskopplingar bevaras');await page.getByRole('button',{name:'Skapa timplansutkast',exact:true}).click();}
+ await expect(page.locator('.gt-state')).toContainText('Timplan version 2');expect(state.count()).toBe(draft?0:1);expect(state.errors).toEqual([]);
+});
