@@ -30,7 +30,7 @@ Filägarskap: modellagenten äger profil/ram/server i VOCATIONAL-01, SQL-agenten
 
 Fyra begränsade planer: verifierad profil och server, SQL-paritet, rollernas UI, sedan faktisk integration och leverans. Profil/server och UI kan utföras med separat filägarskap; UI:s slutverifiering väntar på profil/SQL. Databas- och tyngre verifieringar körs i turordning för att undvika den nyligen observerade minnesbelastningen.
 
-Status: planerad beställning, inte verifierad leverans. Historiska 88/100 planer, 3/8 verifierade faser och fulla ADMIN-02/04/fasacceptans ändras inte av planeringen.
+Status 2026-10-12: de fyra planerna är lokalt genomförda och verifierade; 3012 kör produktrevision 03698a2. [Slutverifiering](05-VOCATIONAL-VERIFICATION.md). Inventeringen ovan beskriver utgångsläget före ändringen. Historiska 88/100 planer, 3/8 verifierade faser och fulla ADMIN-02/04/fasacceptans skrivs inte om.
 
 ## Profilprecisering från pågående primärkällsgranskning
 

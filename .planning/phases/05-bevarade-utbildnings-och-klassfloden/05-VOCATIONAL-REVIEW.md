@@ -71,3 +71,7 @@ Den senaste SQL-rättningen är källgranskad. Direkt approve för huvudmannen g
 SQL-harness har nu explicit 42501-prov för huvudmannens approve i returned och waiting/nextActor=rektor i inkorgen. Verklig API-harness har motsvarande 403-prov och prövar alla tre rollernas task/stage/nextActor samt räknare vid submitted och returned för båda plantyperna. Den tidigare efterfrågade HE-replayprojektionen genom TS och blockerade datumprojektionen finns nu i källan. Slutliga körresultat binds av root/SQLagent; äldre 96/96-resultat föregår denna returjustering och ska inte användas som bevis för den.
 
 UI-följden är rättad och källgranskad: returned+waiting visar Inväntar rättning och draft+waiting visar Inväntar förberedelse. Ny rollinkorgsregression finns. En äldre återsänd version utan sparad kommentar visar nu uttryckligen att återkoppling saknas och hänvisar till huvudmannen, i stället för att hänvisa till en tom historik.
+
+## Slutliga körbevis från root
+
+De efterfrågade körbevisen ovan är nu täckta: SQL/oberoende TS 101/101, slutbyggd Worker BF25 25/25 + BA25 25/25 + HE 19/19, UI 26/26 + 2/2 och lokal OIDC 6/6 PASS. Samtliga nio produktfilshashar i källgranskningen matchar slutleveransen. [Samlad verifiering](05-VOCATIONAL-VERIFICATION.md) binder resultaten och begränsningarna till produktrevision 03698a2. De historiska formuleringarna om inväntade prov ovan beskriver granskningsögonblicket.

@@ -2,13 +2,13 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "VOCATIONAL-04"
 type: execute
-status: planned
+status: completed
 wave: 3
 depends_on: ["VOCATIONAL-01", "VOCATIONAL-02", "VOCATIONAL-03"]
 requirements: [ADMIN-02, ADMIN-04]
 autonomous: true
 files_modified:
-  - work/pilot/verify-plan-decision-api.mjs
+  - work/pilot/verify-vocational-plan-decision-api.mjs
   - docs/handbok/programplaner.md
   - docs/handbok/timplaner.md
   - docs/handbok/regler.md
@@ -21,7 +21,7 @@ must_haves:
     - "Lokala appen och handboken beskriver samma verifierade beteende."
     - "Kvarstående gränser är synliga utan att äldre krav märks färdiga i förtid."
   artifacts:
-    - path: work/pilot/verify-plan-decision-api.mjs
+    - path: work/pilot/verify-vocational-plan-decision-api.mjs
       provides: "Faktisk Worker, handbok och lokal leverans"
     - path: docs/handbok/programplaner.md
       provides: "Faktisk Worker, handbok och lokal leverans"
@@ -45,7 +45,7 @@ Faktisk Worker, handbok och lokal leverans.
 <tasks>
 <task type="auto">
 <name>Kör verklig HTTP-kedja och negativa säkerhetsfall</name>
-<files>work/pilot/verify-plan-decision-api.mjs</files>
+<files>work/pilot/verify-vocational-plan-decision-api.mjs</files>
 <action>Utöka befintligt faktiskt Worker-prov med en komplett yrkesplan av varje verifierad poängram och yrkesspecifika kontroller. Gör program submit→return med kommentar→rätta→submit→approve, skapa/fyll timplan→submit→return→rätta→submit→approve. Läs rollernas inkorg efter varje övergång; kontrollera låsta slutversioner, tom kommentar, fel roll/skola, MFA/CSRF, revisionkonflikt, replay av gamla kvitton efter ändrade kontroll-ID:n och auditrollback. Bevara original15 + beslut4, egen cleanup och auditankare. Fingerprint ska inkludera ny profil/migration och slutliga källfiler.</action>
 <verify>Faktisk lokal workerd/skolplattform_worker och databas krävs; rent mockprov räknas inte. Slutlig byggd Worker kör samma gränser efter installation.</verify>
 <done>Båda yrkesramarna har verkliga genomgående bevis; originaldata/ACL bevarade.</done>
