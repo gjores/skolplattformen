@@ -31,6 +31,8 @@ Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kva
 
 Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Fastställande och kontroll av garanterad undervisningstid återstår; ifyllda timmar är fortfarande förberedande planering.
 
+Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. En utbildning utan timplan kan fortfarande synas i planeringslistan som saknat underlag; det är ingen sparad timplan. Börja då med att välja eller färdigställa programplanen.
+
 ## Grundskola och introduktionsprogram
 
 Huvudman och rektor kan öppna befintliga timplaner inom sina aktuella skoluppdrag. Välj grundskola eller introduktionsprogram i timplanernas årslista. Skoladministratörens gymnasieåtkomst ger ingen åtkomst till dessa timplansceller.

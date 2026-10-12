@@ -8,7 +8,7 @@ status: in_progress
 stopped_at: 05-43 inklusive användarprov avslutad. Användaren godkände årsplaneringsprovet; kvarstående gap behöver nästa planering.
 last_updated: "2026-10-12"
 last_activity: 2026-10-12
-last_activity_desc: "Användbarhetsbygget 8ee00c8 levererat till lokal 3012 efter användarens skärmbild. 179 byggfiler verifierade; riktig lokal OIDC och läsande Start/lista/telefonprov PASS. Fas-/kravstatus oförändrad."
+last_activity_desc: "Användarbeslut: gymnasiets timplan kräver programplan. En inventerad fristående syntetisk timplan borttagen med backup; 20 programplaner bevarade. Ny DB-regel och sex transaktionsprober PASS, 24 modell/serverprov och typ/lint/byggen PASS."
 state_head: bd9a3b55dd5d58bc2a56c89bdf6de03bf61cf5c5
 verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
 verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Programplan före gymnasietimplan 2026-10-12:** Användaren avgränsar regeln till gymnasiet och behåller programplaner under arbete. En inventerad fristående syntetisk timplan och dess timcell borttagna med privat backup; 20 programplaner och alla andra planer bevarade. Migration 20261012130000 spärrar gymnasietimplan utan programplan. Sex DB-prober och tio tabellers bevarandekontroll före/efter transaktion PASS; 24 modell/serverprov, typ/lint/byggen PASS. [Redovisning](debug/gym-programplan-required-2026-10-12.md). Historiska fasbevis utökas inte och gamla fristående GY-fixturer behöver anpassas till beslutet.
 
 **Lokal UI-leverans 2026-10-12:** Efter användarens skärmbild av gamla menyn är ordinarie 3012 uppdaterad till 8ee00c8. 179 byggfiler matchar det testade bygget; tidigare bygge bevarat. Faktisk lokal OIDC med syntetisk rektor samt läsande Start/planeringslista/telefonprov PASS, exit0 och inga pageerrors. [Leveransbevis och avgränsning](debug/anvandbarhet-omarbete-2026-10-12.md). Detta uppdaterar lokal runtime, inte historiska fullfasbevis eller kravstatus.
 

@@ -195,12 +195,12 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   return <section className="gym-timplan" data-testid="protected-gym-timplan-workspace" aria-busy={busy}>
     {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => loadList())}>Välj utbildning igen</Button></div>}
     {notice && <output className="gt-notice">{notice}</output>}
-    {!plan && !underlag && !missing && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Öppna årets exakta skolversion eller visa den sparade programramens underlag.</p></div></div>
+    {!plan && !underlag && !missing && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Börja med en programplan. Skapa sedan skolans timplan från den sparade programplanen och fördela undervisningstiden.</p></div></div>
       <ProtectedPlanList disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>
     </>}
     {missing && <section aria-label="Välj programplanens underlag">
       <Button variant="ghost" disabled={busy} onClick={() => leave(loadList)}><ArrowLeft size={16}/>Alla gymnasietimplaner</Button>
-      <h2>{missing.workspace.education.name}</h2><p>Årsraden saknar programplan som underlag. Välj en uttrycklig sparad programversion innan du fortsätter med skolans timplan.</p>
+      <h2>{missing.workspace.education.name}</h2><p>Här finns ingen timplan ännu. Välj den sparade programplan som skolans timplan ska bygga på.</p>
       {missing.workspace.versionCount === 0 && <p>Utbildningen saknar programplan. Gå till Programplaner och skapa och spara en programram för denna utbildning först.</p>}
       <div className="gt-toolbar">{missing.workspace.versions.map(v => <Button key={v.id} variant="outline" disabled={busy} aria-label={`Välj programunderlag, version ${v.version}, ${missing.workspace.education.name}`}
         onClick={() => void loadUnderlag(v.id, { kind: 'source', id: v.id, offeringId: missing.workspace.education.id, version: v.version, unitId: missing.unitId })}>Programplan version {v.version} · {statusLabel[v.status]}</Button>)}</div>
