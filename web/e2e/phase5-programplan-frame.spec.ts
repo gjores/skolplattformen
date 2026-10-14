@@ -61,7 +61,7 @@ async function allocateFrame(page:Page,planId:string,session=fixture.principal) 
   await board(page).getByRole('button',{name:'Föreslå fördelning',exact:true}).click();const response=await pending;expect(response.status()).toBe(200);
   expect(await fixture.paired(response.headers()['x-correlation-id'],session,'programplan_terms_changed',planId)).toBe(true);
   await expect(board(page)).toContainText('2 500 av 2 500 poäng fördelade');await expect(board(page)).toContainText('Allt sparat');
-  await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await expect(workspace(page).locator('.pp-status')).toHaveClass(/pps-ready/u);await expect(workspace(page).locator('.pp-status')).toContainText('Utkast · Version 1');
   const read=await fixture.request(baseURL,session,'/api/programplaner/terminer/lasa',{planId});expect(read.status).toBe(200);
   expect(read.body.distribution.reduce((sum:number,row:{points:number[]})=>sum+row.points.reduce((a,b)=>a+b,0),0)).toBe(2500);
   for(const id of ['mosp','iv1'])expect(read.body.distribution.find((row:{rowKey:string})=>row.rowKey===`block:${id}`).points.reduce((a:number,b:number)=>a+b,0)).toBe(200);
@@ -103,7 +103,7 @@ test('F01: tomt skolutbud påverkar inte programplanens blockramar eller besluts
   const planId=await createPlan(),attempts=await observeNoPackageRequests(page);
   const schoolBefore=await fixture.packageSnapshot(planId);expect(schoolBefore.versions).toHaveLength(0);expect(schoolBefore.selections).toHaveLength(0);
   await enter(page);await noPackageControls(page);const frame=await allocateFrame(page,planId);await checkAnalysis(page);
-  await page.reload();await navigate(page);await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await page.reload();await navigate(page);await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toHaveClass(/pps-ready/u);await expect(workspace(page).locator('.pp-status')).toContainText('Utkast · Version 1');
   const reread=await fixture.request(baseURL,fixture.principal,'/api/programplaner/terminer/lasa',{planId});expect(reread.body).toEqual(frame);
   expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -113,7 +113,7 @@ test('F01: tomt skolutbud påverkar inte programplanens blockramar eller besluts
 test('F02: tidigare sparat ofördelat IV-paket bevaras utan att påverka programplanens analys',async({page},info)=>{
   const planId=await createPlan(),schoolBefore=await saveSchoolOffering(planId);
   const attempts=await observeNoPackageRequests(page);await enter(page);await noPackageControls(page);const frame=await allocateFrame(page,planId),planBefore=await fixture.snapshot(planId);await checkAnalysis(page);
-  await page.reload();await navigate(page);await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');await checkAnalysis(page);
+  await page.reload();await navigate(page);await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toHaveClass(/pps-ready/u);await expect(workspace(page).locator('.pp-status')).toContainText('Utkast · Version 1');await checkAnalysis(page);
   const reread=await fixture.request(baseURL,fixture.principal,'/api/programplaner/terminer/lasa',{planId});expect(reread.body).toEqual(frame);
   expect(await fixture.snapshot(planId)).toEqual(planBefore);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -144,14 +144,14 @@ test('F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolan
   // established by the current exact-plan reads and database assertions below.
   expect(copy.plan.revision).toBe(0);expect(copy.plan.version).toBe(1);expect(copy.plan.status).toBe('utkast');
   await expect(workspace(page).getByRole('heading',{name:'Syntetisk ramkopia utan skolutbud',exact:true})).toBeVisible();await expect(workspace(page)).toContainText('Kopian sparades');
-  await noPackageControls(page);await expect(board(page)).toContainText('2 500 av 2 500 poäng fördelade');await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await noPackageControls(page);await expect(board(page)).toContainText('2 500 av 2 500 poäng fördelade');await expect(workspace(page).locator('.pp-status')).toHaveClass(/pps-ready/u);await expect(workspace(page).locator('.pp-status')).toContainText('Utkast · Version 1');
   const copied=await fixture.snapshot(copy.plan.id);expect(copied.offering_id).toBe(copy.education.id);expect(copied.status).toBe('utkast');expect(copied.version).toBe(1);
   expect(copied.revision).toBeGreaterThan(copy.plan.revision);
   expect(copied.specialization).toEqual(original.specialization);expect(copied.basis_reference).toEqual({...original.basis_reference,startedOn:startsOn});expect(copied.term_distribution).toEqual(frame.distribution);
   expect((await fixture.units(copy.education.id)).map((unit:{unit_id:string})=>unit.unit_id)).toEqual(sourceUnits);
   const newSchool=await fixture.packageSnapshot(copy.plan.id);expect(newSchool.selections).toEqual([]);expect(newSchool.versions).toEqual(schoolBefore.versions);
   expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.offering(fixture.emptyOfferingId)).toEqual(originalOffering);expect(await fixture.history(planId)).toEqual(originalHistory);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);
-  await page.reload();await navigate(page,/^Öppna Syntetisk ramkopia utan skolutbud,/u,Number(startsOn.slice(0,4)));await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await page.reload();await navigate(page,/^Öppna Syntetisk ramkopia utan skolutbud,/u,Number(startsOn.slice(0,4)));await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toHaveClass(/pps-ready/u);await expect(workspace(page).locator('.pp-status')).toContainText('Utkast · Version 1');
   const reread=await fixture.request(baseURL,fixture.hm,'/api/programplaner/terminer/lasa',{planId:copy.plan.id});expect(reread.status).toBe(200);expect(reread.body.distribution).toEqual(frame.distribution);
   expect(await fixture.packageSnapshot(copy.plan.id)).toEqual(newSchool);expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
   expect(copyCommands).toEqual(['/api/programplaner/utbildning/kopiera']);expect(forbiddenCopyCommands).toEqual([]);
