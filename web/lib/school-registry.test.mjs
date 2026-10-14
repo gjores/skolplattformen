@@ -20,7 +20,7 @@ test('immutable receipt is bound to command, code and operation; status survives
  for(const v of [{...saved,commandId:'55101400-0000-4000-8000-000000000002'},{...saved,code:'99999902'},{...saved,operation:'update'}, {...saved,extra:'hidden'}, {...saved,revision:3}])assert.throws(()=>parseSchoolRegistryStatus(v,command));
 });
 test('bounded source normalizes stable fingerprint, excludes fetch time and registry principal',async()=>{
- const first=await fetchSchoolRegistryUnit(command.code,async(url,opts)=>{assert.equal(url,'https://api.skolverket.se/skolenhetsregistret/v2/school-units/99999901');assert.equal(opts.redirect,'error');assert.ok(opts.signal instanceof AbortSignal);return Response.json(payload);},new Date('2026-10-14T01:00:00Z'));
+ const first=await fetchSchoolRegistryUnit(command.code,async(url,opts)=>{assert.equal(url,'https://api.skolverket.se/skolenhetsregistret/v2/school-units/99999901');assert.equal(opts.redirect,'manual');assert.ok(opts.signal instanceof AbortSignal);return Response.json(payload);},new Date('2026-10-14T01:00:00Z'));
  const nextPayload=structuredClone(payload);nextPayload.data.attributes.schoolTypes.reverse();nextPayload.data.attributes.schoolTypeProperties.GY.programmes.reverse();
  const second=await fetchSchoolRegistryUnit(command.code,async()=>Response.json(nextPayload),new Date('2026-10-15T01:00:00Z'));
  assert.equal(first.unit.registryFingerprint,second.unit.registryFingerprint);assert.notEqual(first.unit.fetchedAt,second.unit.fetchedAt);
@@ -32,9 +32,10 @@ test('bounded source normalizes stable fingerprint, excludes fetch time and regi
 });
 test('upstream validates shape/number/date, 404 separately; bounds body including chunked stream',async()=>{
  assert.equal(await fetchSchoolRegistryUnit(command.code,async()=>new Response(null,{status:404})),null);
+ let redirectCalls=0;await assert.rejects(fetchSchoolRegistryUnit(command.code,async(_url,opts)=>{redirectCalls++;assert.equal(opts.redirect,'manual');return new Response(null,{status:302,headers:{Location:'https://foreign.invalid/'}});}),{message:'registry_unavailable'});assert.equal(redirectCalls,1);
  const invalid=[];
  for(const mutate of [p=>p.data.schoolUnitCode='99999902',p=>delete p.included[0].organizationNumber,p=>p.included[0].organizationNumber='wrong',p=>p.data.attributes.schoolTypes=[{}],p=>p.data.attributes.schoolTypeProperties.GY.programmes=[{}],p=>p.meta.modified='not-date',p=>p.data.attributes.displayName='']){const p=structuredClone(payload);mutate(p);invalid.push(async()=>Response.json(p));}
- invalid.push(async()=>{throw new Error('timeout private');},async()=>new Response('x',{status:503}),async()=>Response.json({}),async()=>new Response('x',{headers:{'Content-Length':'1048577'}}),async()=>new Response('x'.repeat(1048577)));
+ invalid.push(async()=>{throw new Error('timeout private');},async()=>new Response('x',{status:503}),async()=>new Response(null,{status:302,headers:{Location:'https://foreign.invalid/'}}),async()=>Response.json({}),async()=>new Response('x',{headers:{'Content-Length':'1048577'}}),async()=>new Response('x'.repeat(1048577)));
  for(const transport of invalid)await assert.rejects(fetchSchoolRegistryUnit(command.code,transport),{message:'registry_unavailable'});
 });
 test('missing municipality name requires matching organizer response',async()=>{
@@ -44,7 +45,7 @@ test('missing municipality name requires matching organizer response',async()=>{
 });
 test('organization list rejects partial, duplicated, malformed and oversized lists',async()=>{
  const list={data:{attributes:[{schoolUnitCode:command.code,name:'Syntetisk',status:'AKTIV'}]}};
- const r=await fetchSchoolRegistryOrganization('9999999999',async(url,opts)=>{assert.ok(url.endsWith('organization_number=9999999999'));assert.equal(opts.redirect,'error');return Response.json(list);});assert.equal(r.units.length,1);
+ const r=await fetchSchoolRegistryOrganization('9999999999',async(url,opts)=>{assert.ok(url.endsWith('organization_number=9999999999'));assert.equal(opts.redirect,'manual');return Response.json(list);});assert.equal(r.units.length,1);
  for(const p of [{data:{attributes:{}}},{...list,links:{next:'https://external.invalid'}},{data:{attributes:[list.data.attributes[0],list.data.attributes[0]]}},{data:{attributes:Array.from({length:5001},()=>list.data.attributes[0])}},{data:{attributes:[{schoolUnitCode:command.code,name:'Syntetisk'}]}}])await assert.rejects(fetchSchoolRegistryOrganization('9999999999',async()=>Response.json(p)),{message:'registry_unavailable'});
 });
 test('list validates local scope flags, source forms and duplicate schools',()=>{

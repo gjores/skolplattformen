@@ -4,7 +4,7 @@ import { parseRegistrySchool, parseSchoolRegistryLookupResult, type RegistryScho
 const LIMIT = 1024 * 1024;
 /** Fixed official endpoint only: no client URLs, redirect following or production fixture switch. */
 async function upstream(path: string, transport: typeof fetch): Promise<Raw | null> {
-  const response = await transport(`${BASE}${path}`, { headers, redirect:'error', signal:AbortSignal.timeout(10_000) });
+  const response = await transport(`${BASE}${path}`, { headers, redirect:'manual', signal:AbortSignal.timeout(10_000) });
   if (response.status === 404) { await response.body?.cancel(); return null; }
   if (!response.ok || !response.body) { await response.body?.cancel(); throw new Error('registry_unavailable'); }
   const length = response.headers.get('Content-Length');
