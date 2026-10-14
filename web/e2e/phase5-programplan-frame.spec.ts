@@ -127,17 +127,21 @@ test('F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolan
   await workspace(page).getByRole('button',{name:'Kopiera',exact:true}).click();const form=workspace(page).getByRole('region',{name:'Kopiera till ny utbildning',exact:true});
   await noPackageControls(page);await form.getByLabel('Utbildningens namn',{exact:true}).fill('Syntetisk ramkopia utan skolutbud');
   await form.getByLabel('Elevkull',{exact:true}).fill('Syntetisk nästa elevkull');await form.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill(startsOn);
-  const created=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/programplaner/utbildning/skapa'&&response.request().method()==='POST');
-  const terms=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/programplaner/terminer'&&response.request().method()==='POST');
-  const copiedSchools=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/programplaner/utbildning/livscykel'&&response.request().method()==='POST');
+  const copyCommands:string[]=[],forbiddenCopyCommands:string[]=[];
+  page.on('request',request=>{if(request.method()!=='POST')return;const path=new URL(request.url()).pathname;
+    if(path==='/api/programplaner/utbildning/kopiera')copyCommands.push(path);
+    if(['/api/programplaner/utbildning/skapa','/api/programplaner/terminer','/api/programplaner/utbildning/livscykel'].includes(path))forbiddenCopyCommands.push(path);});
+  const created=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/programplaner/utbildning/kopiera'&&response.request().method()==='POST');
   await form.getByRole('button',{name:'Spara kopia',exact:true}).click();const createdResponse=await created;expect(createdResponse.status()).toBe(200);const copy=await createdResponse.json();
-  expect(createdResponse.request().postDataJSON()).toMatchObject({unitId:fixture.unitId,basisReference:{...original.basis_reference,startedOn:startsOn}});
-  expect(Object.keys(createdResponse.request().postDataJSON()).sort()).toEqual(['basisReference','cohort','commandId','localCode','name','unitId']);
-  const termResponse=await terms;expect(termResponse.status()).toBe(200);expect(termResponse.request().postDataJSON()).toMatchObject({planId:copy.plan.id,distribution:frame.distribution});
-  const schoolResponse=await copiedSchools;expect(schoolResponse.status()).toBe(200);expect(schoolResponse.request().postDataJSON()).toMatchObject({offeringId:copy.education.id,command:'units',details:{unitIds:sourceUnits}});
+  expect(createdResponse.request().postDataJSON()).toMatchObject({unitId:fixture.unitId,sourcePlanId:planId,expectedSourceRevision:original.revision,expectedEducationRevision:originalOffering.lifecycle_revision,basisReference:{...original.basis_reference,startedOn:startsOn}});
+  expect(Object.keys(createdResponse.request().postDataJSON()).sort()).toEqual(['basisReference','cohort','commandId','expectedEducationRevision','expectedSourceRevision','localCode','name','sourcePlanId','unitId']);
+  // Immutable creation receipt is revision 0; complete copied terms/schools are
+  // established by the current exact-plan reads and database assertions below.
+  expect(copy.plan.revision).toBe(0);expect(copy.plan.version).toBe(1);expect(copy.plan.status).toBe('utkast');
   await expect(workspace(page).getByRole('heading',{name:'Syntetisk ramkopia utan skolutbud',exact:true})).toBeVisible();await expect(workspace(page)).toContainText('Kopian sparades');
   await noPackageControls(page);await expect(board(page)).toContainText('2 500 av 2 500 poäng fördelade');await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
   const copied=await fixture.snapshot(copy.plan.id);expect(copied.offering_id).toBe(copy.education.id);expect(copied.status).toBe('utkast');expect(copied.version).toBe(1);
+  expect(copied.revision).toBeGreaterThan(copy.plan.revision);
   expect(copied.specialization).toEqual(original.specialization);expect(copied.basis_reference).toEqual({...original.basis_reference,startedOn:startsOn});expect(copied.term_distribution).toEqual(frame.distribution);
   expect((await fixture.units(copy.education.id)).map((unit:{unit_id:string})=>unit.unit_id)).toEqual(sourceUnits);
   const newSchool=await fixture.packageSnapshot(copy.plan.id);expect(newSchool.selections).toEqual([]);expect(newSchool.versions).toEqual(schoolBefore.versions);
@@ -145,9 +149,10 @@ test('F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolan
   await page.reload();await navigate(page,/^Öppna utbildning Syntetisk ramkopia utan skolutbud,/u);await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
   const reread=await fixture.request(baseURL,fixture.hm,'/api/programplaner/terminer/lasa',{planId:copy.plan.id});expect(reread.status).toBe(200);expect(reread.body.distribution).toEqual(frame.distribution);
   expect(await fixture.packageSnapshot(copy.plan.id)).toEqual(newSchool);expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
+  expect(copyCommands).toEqual(['/api/programplaner/utbildning/kopiera']);expect(forbiddenCopyCommands).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   const path=info.outputPath('copied-frame-without-school-offering.png');await page.screenshot({path,fullPage:true});await info.attach('copied-frame-without-school-offering.png',{path,contentType:'image/png'});
-  await info.attach('copy-separation.json',{body:JSON.stringify({sourcePlanAndOfferingWholeRowsUnchanged:true,sourceHistoryUnchanged:true,sourcePackageWholeRowsUnchanged:true,copiedChoiceBlocks:copied.basis_reference.choiceBlocks,copiedTermPoints:2500,copiedSchoolCount:sourceUnits.length,newSchoolSelections:newSchool.selections.length,packageApiAttempts:attempts}),contentType:'application/json'});
+  await info.attach('copy-separation.json',{body:JSON.stringify({sourcePlanAndOfferingWholeRowsUnchanged:true,sourceHistoryUnchanged:true,sourcePackageWholeRowsUnchanged:true,copiedChoiceBlocks:copied.basis_reference.choiceBlocks,copiedTermPoints:2500,copiedSchoolCount:sourceUnits.length,newSchoolSelections:newSchool.selections.length,packageApiAttempts:attempts,copyCommands,forbiddenCopyCommands,receiptRevision:copy.plan.revision,currentRevision:copied.revision}),contentType:'application/json'});
 });
 
 test('F04: administratör och rektor på delad skola läser full ram utan termins- eller paketkommandon',async({page},info)=>{

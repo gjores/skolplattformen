@@ -45,3 +45,33 @@ test('whole catalogue tamper, extra metadata, mismatched pin or command cannot r
  reset();state.selection.selection.programRef={code:'SA25',version:3};assert.equal((await selection(request('val'))).status,500);
  reset('utbildning/status');state.result={commandId:id,status:'not_found'};assert.deepEqual(await(await status(request('utbildning/status'))).json(),{commandId:id,status:'not_found'});
 });
+
+const {POST:copyEducation}=await import('../../app/api/programplaner/utbildning/kopiera/route.ts');
+const {POST:copyEducationStatus}=await import('../../app/api/programplaner/utbildning/kopiera/status/route.ts');
+const copyInput=()=>({...createInput(),sourcePlanId:unit,expectedSourceRevision:4,expectedEducationRevision:2});
+for(const [route,handler,statusOnly] of [['utbildning/kopiera',copyEducation,false],['utbildning/kopiera/status',copyEducationStatus,true]]){
+ test(`${String(route)}: one atomic SQL call, full source pins and required audit`,async()=>{
+  reset(statusOnly?'utbildning/status':'utbildning/skapa');state.mfa=true;
+  const r=await handler(request(route,copyInput()));assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');
+  const calls=state.calls.filter(c=>c.sql.includes('phase5_copy_programplan_education'));assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].values,[id,unit,4,2,unit,'Syntetisk',null,'Kull',basis(),statusOnly]);assert.equal(state.calls.length,statusOnly?1:2);
+  assert.equal(state.events.filter(e=>e.outcome==='ok')[0].action,statusOnly?'programplan_copy_status_read':'programplan_education_copied');
+ });
+ test(`${String(route)}: role/MFA/origin/context and malformed source stop before copying`,async()=>{
+  for(const fn of ['rektor','administrator','kundadmin','larare','support']){reset();state.fn=fn;state.mfa=true;assert.equal((await handler(request(route,copyInput()))).status,403);assert.equal(state.calls.length,0);}
+  reset();assert.equal((await handler(request(route,copyInput()))).status,403);assert.equal(state.calls.length,0);
+  reset();state.mfa=true;assert.equal((await handler(request(route,copyInput(),'https://foreign.test'))).status,403);assert.equal(state.calls.length,0);
+  reset();state.mfa=true;const stale=request(route,copyInput());stale.headers.set('X-Context-Epoch','2');assert.equal((await handler(stale)).status,409);assert.equal(state.calls.length,0);
+  reset();state.mfa=true;assert.equal((await handler(request(route,{...copyInput(),expectedSourceRevision:-1}))).status,400);assert.equal(state.calls.length,0);
+ });
+ test(`${String(route)}: source conflict and Worker audit failure cannot return success`,async()=>{
+  reset();state.mfa=true;state.sqlError={code:'40001',message:'private source'};assert.equal((await handler(request(route,copyInput()))).status,409);
+  reset(statusOnly?'utbildning/status':'utbildning/skapa');state.mfa=true;state.auditFails=true;
+  const r=await handler(request(route,copyInput()));assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
+ });
+}
+test('copy not_found status never invokes create or catalogue verification',async()=>{
+ reset('utbildning/status');state.mfa=true;state.result={commandId:id,status:'not_found'};
+ assert.deepEqual(await (await copyEducationStatus(request('utbildning/kopiera/status',copyInput()))).json(),state.result);
+ assert.equal(state.calls.length,1);assert.equal(state.calls[0].values.at(-1),true);
+});

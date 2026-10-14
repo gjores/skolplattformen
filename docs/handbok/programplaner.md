@@ -12,7 +12,7 @@ Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast
 **Programplaner** visar underlagen för vald skola och valt planeringsår. Sök på utbildning, lokal kod, program eller inriktning. Använd år-, skol-, status-, elevkulls- och arkivfiltren och sidknapparna för att hitta rätt rad. Sökningen gäller även senare sidor. Överblicken sammanfattar hela urvalet.
 
 - **Öppna** visar radens exakta programplansversion. Ett nyare utkast väljs inte automatiskt i stället för en äldre årsrad.
-- **Kopiera** skapar en ny utbildning med den valda planens underlag, programfördjupning, terminsfördelning och skolval. Tidigare sparat skolutbud följer inte med. Ange namn, elevkull och ett verkligt startdatum efter i dag. Kopian blir ett nytt utkast; originalet ändras inte. Knappen visas först när aktuellt mandat för att lägga till utbildningar har kunnat läsas. Om mandatet inte kan läsas visas möjlighet att försöka igen.
+- **Kopiera** skapar en ny utbildning med den valda planens underlag, programfördjupning, terminsfördelning och skolval. Tidigare sparat skolutbud följer inte med. Ange namn, elevkull och ett verkligt startdatum efter både i dag och originalets start. Hela kopian sparas tillsammans och blir ett nytt utkast; originalet ändras inte. Knappen visas först när aktuellt mandat för att lägga till utbildningar har kunnat läsas. Om mandatet inte kan läsas visas möjlighet att försöka igen.
 - **Ny programplan** öppnar det befintliga valet av program och inriktning. Huvudmannen kan skapa en ny utbildning; en behörig användare kan förbereda plan för en befintlig utbildning enligt det aktuella mandatet.
 
 Om radens plan saknas visar vyn den luckan och ett uttryckligt val av underlag eller version. Inget skapas när du öppnar årslistan. Om en gemensam ram används på flera skolor anges den faktiskt valda skolan i arbetsytan. Kontrollera skolan innan du går vidare till dess timplan.
@@ -50,6 +50,16 @@ Knapparna finns i planens huvud:
 
 Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte kan bekräftas läses listan om innan du kan försöka igen. Om planen hann starta under tiden visas det i beskedet.
 
+## Kopiera till nästa elevkull
+
+Som huvudman öppnar du den programplansversion du vill utgå från och väljer **Kopiera**. Ange namn, elevkull, eventuell lokal kod och ett startdatum efter originalets start och efter i dag. Välj **Spara kopia**.
+
+Den nya utbildningen får ett första programutkast med samma ram, programfördjupning, terminsfördelning och skolval. Elever, klasser, skolornas timplaner, paketval och tidigare beslut följer inte med. Originalets innehåll, historik och kopplingar finns kvar.
+
+Om sparandet misslyckas skapas ingen delvis färdig kopia. Om originalets plan eller skolval har ändrats stänger du kopieringen, läser om originalet och granskar det innan du kopierar igen.
+
+Om svaret från sparandet inte kan bekräftas behålls uppgifterna. **Försök igen** kontrollerar samma kopiering och skapar ingen dubblett. Om kopian är sparad men den aktuella planen inte kan läsas väljer du **Läs aktuell sparstatus**. Du behöver inte skapa en ny kopia för att få fram den sparade planen.
+
 ## Skolor som använder planen
 
 Huvudmannen väljer **Skolor** i den öppnade planen, markerar sina gymnasieskolor och väljer **Spara skolor**. Samma programplan med samma versioner och innehåll visas på alla valda skolor. Skolan där utbildningen skapades är märkt **Skapad här** och kan aldrig avmarkeras.
@@ -66,7 +76,7 @@ En skola kan inte tas bort från planen så länge skolans klasser, elevplacerin
 
 **Timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad programram för ett stött Gy25-program, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
 
-Att skapa klasser och koppla en klass till en timplan är ännu inte tillgängligt i den skyddade appen. Befintliga kopplingar bevaras. Skapande av timplansutkast är inget fastställande av programplan eller timplan.
+Rektor och skoladministratör kan skapa en tom klass och koppla den till en fastställd gymnasietimplan för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-klass-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
 
 ## Ny programplan
 
