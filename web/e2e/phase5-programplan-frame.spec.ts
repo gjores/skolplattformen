@@ -1,6 +1,9 @@
 // Programplanen beskriver ramar; sparat skolutbud hör till ett separat senare flöde.
 import { expect,test,type Page } from '@playwright/test';
-import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget,FUTURE_START } from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
+import { createProgramplanBrowserFixture,FUTURE_START } from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
+import { builtWorkerProof } from '../../work/pilot/verify-programplan-copy-api.mjs';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { waitForHydration } from './helpers/keycloak.ts';
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
 let fixture:Fixture;
@@ -9,7 +12,7 @@ const workspace=(page:Page)=>page.getByTestId('protected-programplan-workspace')
 const board=(page:Page)=>workspace(page).getByRole('region',{name:'Programplanen',exact:true});
 const packagePath=/^\/api\/programplaner\/(?:paketval|valpaket)(?:\/|$)/u;
 
-async function navigate(page:Page,name=/^Öppna utbildning Syntetisk SA utan plan,/u) {
+async function navigate(page:Page,name=/^Öppna Syntetisk SA utan plan,/u,year=Number(FUTURE_START.slice(0,4))) {
   await waitForHydration(page);
   const mobile=await page.evaluate(()=>matchMedia('(max-width: 767px)').matches),sidebar=page.locator('[data-slot="sidebar"][data-state]');
   if(mobile){
@@ -20,6 +23,8 @@ async function navigate(page:Page,name=/^Öppna utbildning Syntetisk SA utan pla
     if(await sidebar.getAttribute('data-state')==='collapsed')await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
     await page.getByRole('button',{name:'Programplaner',exact:true}).click();
   }
+  await page.getByRole('combobox',{name:'Planeringsskola',exact:true}).selectOption(fixture.unitId);
+  await page.getByRole('combobox',{name:'Planeringsläsår',exact:true}).selectOption(String(year));
   const list=workspace(page).getByRole('region',{name:'Alla programplaner',exact:true});
   await expect(list).toHaveAttribute('aria-busy','false');
   await list.getByRole('button',{name}).click();
@@ -90,7 +95,7 @@ async function checkAnalysis(page:Page,status='Klar för beslut') {
   await expect(workspace(page)).not.toContainText('Individuellt val: nästa nivå i idrott saknas');
   await expect(workspace(page)).not.toContainText('Individuellt val: kontrollera estetiskt ämne');
 }
-test.beforeAll(async({browserName},info)=>{await info.attach('source-build.json',{body:JSON.stringify({...await verifyProgramplanBrowserTarget(baseURL),browserName,scope:'local-synthetic-only'}),contentType:'application/json'});});
+test.beforeAll(async({browserName},info)=>{await info.attach('source-build.json',{body:JSON.stringify({...await builtWorkerProof(baseURL),browserName,scope:'local-synthetic-only',testSourceHash:createHash('sha256').update(readFileSync(new URL(import.meta.url))).digest('hex')}),contentType:'application/json'});});
 test.beforeEach(async()=>{fixture=await createProgramplanBrowserFixture();});
 test.afterEach(async({},info)=>{if(fixture)await info.attach('cleanup.json',{body:JSON.stringify(await fixture.cleanup()),contentType:'application/json'});});
 
@@ -146,7 +151,7 @@ test('F03: HM kopierar ram, terminer och skolor till nästa elevkull utan skolan
   expect((await fixture.units(copy.education.id)).map((unit:{unit_id:string})=>unit.unit_id)).toEqual(sourceUnits);
   const newSchool=await fixture.packageSnapshot(copy.plan.id);expect(newSchool.selections).toEqual([]);expect(newSchool.versions).toEqual(schoolBefore.versions);
   expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.offering(fixture.emptyOfferingId)).toEqual(originalOffering);expect(await fixture.history(planId)).toEqual(originalHistory);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);
-  await page.reload();await navigate(page,/^Öppna utbildning Syntetisk ramkopia utan skolutbud,/u);await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
+  await page.reload();await navigate(page,/^Öppna Syntetisk ramkopia utan skolutbud,/u,Number(startsOn.slice(0,4)));await noPackageControls(page);await expect(workspace(page).locator('.pp-status')).toContainText('Klar för beslut');
   const reread=await fixture.request(baseURL,fixture.hm,'/api/programplaner/terminer/lasa',{planId:copy.plan.id});expect(reread.status).toBe(200);expect(reread.body.distribution).toEqual(frame.distribution);
   expect(await fixture.packageSnapshot(copy.plan.id)).toEqual(newSchool);expect(await fixture.snapshot(planId)).toEqual(original);expect(await fixture.packageSnapshot(planId)).toEqual(schoolBefore);expect(attempts).toEqual([]);
   expect(copyCommands).toEqual(['/api/programplaner/utbildning/kopiera']);expect(forbiddenCopyCommands).toEqual([]);

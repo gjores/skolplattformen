@@ -61,7 +61,7 @@ export function artifactManifest(buildRoot){
  walk(buildRoot);return{files:entries,sha256:sha(entries),fileCount:entries.length};
 }
 
-async function builtWorkerProof(url){
+export async function builtWorkerProof(url){
  const buildRoot=realpathSync(resolve(process.env.PHASE5_BUILD_ROOT??join(root,'web/dist-protected')));
  const runtimeRoot=join(root,'work/pilot/targets/protected/runtime/');
  const privateRuntime=/^\/private\/tmp\/skolplattform-copy-runtime-\d{8}-[A-Za-z0-9_-]+\/web(?:\/dist-protected)?$/u.test(buildRoot);
@@ -83,16 +83,19 @@ async function originalAnchors(connection){
  // messages, person data, tokens or SQL binding values reach tool output.
  await connection`create temporary table copy_api_old_audit on commit preserve rows as select id,encode(sha256(convert_to(to_jsonb(e)::text,'UTF8')),'hex') hash from public.security_events e`;
  await connection`create temporary table copy_api_old_identity on commit preserve rows as select id,encode(sha256(convert_to(to_jsonb(i)::text,'UTF8')),'hex') hash from public.identities i`;
- const [counts]=await connection`select (select count(*)::integer from copy_api_old_audit) audit,(select count(*)::integer from copy_api_old_identity) identities`;
+ const [counts]=await connection`select (select count(*)::integer from copy_api_old_audit) audit,(select count(*)::integer from copy_api_old_identity) identities,
+  (select count(*)::integer from public.security_events e left join public.identities i on i.id=e.actor_identity_id where e.actor_identity_id is not null and i.id is null) missing_identity_anchors,
+  (select count(*)::integer from public.security_events e left join public.identities i on i.id=e.actor_identity_id where e.actor_identity_id is not null and i.id is null and not exists(select 1 from copy_api_old_audit b where b.id=e.id)) new_missing_identity_anchors`;
  return counts;
 }
-async function verifyOriginalAnchors(connection){
+async function verifyOriginalAnchors(connection,baseline){
  const [proof]=await connection`select
   (select count(*)::integer from copy_api_old_audit b left join public.security_events e using(id) where e.id is null or b.hash<>encode(sha256(convert_to(to_jsonb(e)::text,'UTF8')),'hex')) changed_audit,
   (select count(*)::integer from copy_api_old_identity b left join public.identities i using(id) where i.id is null or b.hash<>encode(sha256(convert_to(to_jsonb(i)::text,'UTF8')),'hex')) changed_identities,
   (select count(*)::integer from public.security_events e left join copy_api_old_audit b using(id) where b.id is null) added_audit,
-  (select count(*)::integer from public.security_events e left join public.identities i on i.id=e.actor_identity_id where e.actor_identity_id is not null and i.id is null) missing_identity_anchors`;
- assert.equal(proof.changed_audit,0,'Original audit changed');assert.equal(proof.changed_identities,0,'Original identities changed');assert.equal(proof.missing_identity_anchors,0,'Retained audit anchor missing');
+  (select count(*)::integer from public.security_events e left join public.identities i on i.id=e.actor_identity_id where e.actor_identity_id is not null and i.id is null) missing_identity_anchors,
+  (select count(*)::integer from public.security_events e left join public.identities i on i.id=e.actor_identity_id where e.actor_identity_id is not null and i.id is null and not exists(select 1 from copy_api_old_audit b where b.id=e.id)) new_missing_identity_anchors`;
+ assert.equal(proof.changed_audit,0,'Original audit changed');assert.equal(proof.changed_identities,0,'Original identities changed');assert.equal(proof.missing_identity_anchors,baseline.missing_identity_anchors,'Historical audit anchor set changed');assert.equal(proof.new_missing_identity_anchors,0,'New audit anchor missing');
  return proof;
 }
 
@@ -267,9 +270,10 @@ async function main(){
    finalAcl=await gymAcl(db);assert.deepEqual(finalAcl,acl,'Raw phase5 ACL not restored');
    finalFingerprint=await databaseFingerprint(db);assert.equal(finalFingerprint,baselineFingerprint,'Definitions ACL or migration journal changed');
    const tables=Object.keys(before??{});after=await decisionBusinessHashes(db,tables);assert.deepEqual(after,before,'Original public business changed');
-   if(anchorConnection)anchorProof=await verifyOriginalAnchors(anchorConnection);
+   if(anchorConnection)anchorProof=await verifyOriginalAnchors(anchorConnection,anchorBaseline);
    finalSources=sourceHashes();assert.deepEqual(finalSources,sources,'Controlled source changed during verification');
    finalArtifact=artifactManifest(build.buildRoot);assert.deepEqual(finalArtifact,build.artifact,'Built artifact changed during verification');
+   if (!failure) checks.push({name:'all original business audit identity rows DDL ACL journal and built bytes preserved; new audit anchors complete',ok:true});
   }catch(error){failure??=error;}
   try{if(anchorConnection)await anchorConnection.release();await db.end({timeout:5});databaseClosed=true;}catch(error){failure??=error;}
  }
