@@ -1,14 +1,18 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 scope: kullkopiering-och-klassens-lasars-version
-status: awaiting_user
-human_result: awaiting_user
+status: partially_user_verified
+human_result: version_switch_user_reported_pass
 prepared: 2026-10-14
 worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04]
 ---
 
 # Prova kopiering och klasskoppling
+
+## Rapporterat resultat
+
+Användaren svarade ”ok funkar bra!” efter förtydligandet av steg 4: skapa och fastställa version 2, behålla tidigare klasskopplingar och sedan uttryckligen byta endast 2027/28 till version 2 medan 2028/29 ligger kvar på version 1. Detta registreras som användarrapporterat godkänt för det beskrivna versionsbytet. Exakta planobjekt, roller, enheter och enskilda delkontroller särredovisades inte. Svaret ger inget separat godkännande av kullkopieringens steg 1 eller mobilprovet; de delarna är fortsatt utan uttryckligt resultat. Den rapporterade långsamma inläsningen ligger kvar i backloggen.
 
 Öppna [appen](http://127.0.0.1:3012/?vy=programplaner) och ladda om sidan för den nya versionen. Använd dina befintliga syntetiska huvudmanna- och rektorsuppdrag. Välj **Syntetisk skola 11** och **2027/28**. Exemplet **SAM_TEST** finns kvar; originalet har inte ändrats vid leverans. Dess programplan har 2 500 fördelade poäng och skolans timutkast har 2 230 timmar, 25 rader och inga tomma aktiva terminsfält. Båda är utkast, vilket gör huvudmannens granskning till ett synligt förberedelsesteg för klassprovet.
 
@@ -40,4 +44,4 @@ Prova gärna urval och kopieringsform även i mobilstorlek. Bedöm framför allt
 
 ## Intern avgränsning
 
-Detta är ett ännu obesvarat mänskligt prov. Leverans och tekniska delbevis finns i [COPY-ATOMIC-verifieringen](05-COPY-ATOMIC-VERIFICATION.md) och [OPERATIONAL-verifieringen](05-OPERATIONAL-VERIFICATION.md). Läsande inventering av befintliga exempel förbereddes utan nya affärsdata. Inget nytt fullfas-, logghistorik- eller kommunanslutningsgodkännande följer av att instruktionerna finns.
+Mänskligt resultat för versionsbytet är registrerat ovan; övriga delar saknar separat bekräftelse. Leverans och tekniska delbevis finns i [COPY-ATOMIC-verifieringen](05-COPY-ATOMIC-VERIFICATION.md) och [OPERATIONAL-verifieringen](05-OPERATIONAL-VERIFICATION.md). Läsande inventering av befintliga exempel förbereddes utan nya affärsdata. Inget nytt fullfas-, logghistorik- eller kommunanslutningsgodkännande följer av detta avgränsade användarresultat.

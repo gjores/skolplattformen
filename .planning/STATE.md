@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: COPY-CLASS-USER-TRIAL
 status: awaiting_user
-stopped_at: Kullkopiering tekniskt slutverifierad och levererad; mänskligt kopie-/klass-/års-/versionsprov väntar. ADMIN-01 och historiska avvikelser kvarstår.
+stopped_at: Klassens uttryckliga versionsbyte användarrapporterat godkänt. Kullkopiering och mobilprov saknar separat användarresultat. ADMIN-01 och historiska avvikelser kvarstår.
 last_updated: "2026-10-14"
 last_activity: 2026-10-14
-last_activity_desc: "Fas 5 genomgång: SQL44/HTTP16/UI18/browser2 för atomär kullkopiering PASS. Nytt konkret användarprov på 3012 väntar."
+last_activity_desc: "Användaren rapporterar att klassens uttryckliga versionsbyte fungerar efter förtydligande av steg 4. Långsam inläsning kvarstår i backloggen."
 state_head: 5463354
 verification_worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
 verification_worker_status: atomic_copy_sql44_http16_ui18_browser2_pass_local_synthetic
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Senaste användarresultat:** ”ok funkar bra!” efter förtydligandet av steg 4 registreras som användarrapporterat godkänt för klassens uttryckliga versionsbyte för ett läsår med det andra årets koppling kvar. [Provets resultat och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-CLASS-USER-TRIAL.md). Kullkopiering och mobilprov saknar separat bekräftelse; inga fulla krav eller hela fasen stängs. Nästa genomförandeområde i fasgenomgången är fortsatt ADMIN-01, huvudmannens skyddade skolimport/registeruppdatering. Prestandapunkten ligger kvar i backloggen. Äldre noteringar nedan beskriver tidigare lägen.
 
 **Backlogg 2026-10-14:** Användaren rapporterar mycket lång inläsning av programplaner och timplaner; skärmbilden visar ”Läser planeringsunderlaget...”. [Prestandauppföljning registrerad](todos/pending/2026-10-14-snabbare-inlasning-av-programplaner-och-timplaner.md). Aktuell väntetid och orsak är inte uppmätta. Kopie-/klassprovet väntar fortsatt på användarens resultat.
 
