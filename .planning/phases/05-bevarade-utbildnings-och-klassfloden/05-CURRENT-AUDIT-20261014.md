@@ -8,6 +8,8 @@ requirements: [ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, PLANERING-01, PLANERING-0
 
 # Fas 5: aktuella leveranser och verkliga luckor
 
+**Uppdatering efter genomförande:** Denna rapport beskriver luckorna före rättningarna. COPY-ATOMIC och SCHOOL-REGISTRY är nu levererade, skolprovet godkänt och äldre registeradaptern rättad. [Senaste samlade bedömning](05-CURRENT-ACCEPTANCE-REVIEW.md) styr fortsatt arbete.
+
 Genomgången utgår från användarens godkända krav och uppdrag 2026-10-14 att fortsätta till nästa konkreta användarprov. Aktuell källrevision före rättningen är `64c0d6c`. Root och en oberoende GSD-verifierare har jämfört faktisk skyddad kod med fasens mål och senare beslut. Den oberoende genomgången var läsande: inga nya tester eller databasändringar följer av den i sig.
 
 ## Kravspårning

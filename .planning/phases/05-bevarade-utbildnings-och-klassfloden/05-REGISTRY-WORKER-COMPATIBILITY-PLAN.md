@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: REGISTRY-WORKER-COMPATIBILITY
 requirements: [ADMIN-01]
-status: in_progress
+status: complete_bounded
 created: 2026-10-14
 ---
 
@@ -22,3 +22,5 @@ Användaren har godkänt skolflödets användarprov och beställt fortsatt fasar
 ## Färdigt när
 
 Ordinarie kundadminadapter når det publika registret i faktisk Worker utan otillåtet redirectläge, transporttesterna visar att redirects inte följs, levererat bygge är känt och fasens nästa mänskliga prov är konkret. Provet av adaptern är inte ett nytt slutprov av hela kundadministrationens skrivkedja och påstår ingen verklig kommunanslutning.
+
+Resultat: [SUMMARY](05-REGISTRY-WORKER-COMPATIBILITY-SUMMARY.md).
