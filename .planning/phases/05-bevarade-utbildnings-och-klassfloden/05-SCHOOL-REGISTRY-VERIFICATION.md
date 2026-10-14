@@ -3,12 +3,14 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 plan: SCHOOL-REGISTRY
 requirements: [ADMIN-01]
 status: passed_bounded_local
-human_result: awaiting_user
+human_result: user_reported_pass
 verified: 2026-10-14
 worker_build_revision: 970782fbf82c74e7e804eb61c7cba2a17f1becf4
 ---
 
 # Verifiering av skolimport och registeruppdatering
+
+**Senare användarresultat:** ”allt funkar” för det avskilda skolprovet. [Registrerat resultat](05-SCHOOL-REGISTRY-USER-TRIAL.md). Användbarheten är användarrapporterat godkänd; tekniska API-/DB-bevis behåller sin tidigare avgränsning. Nedanstående awaiting_user-noteringar beskriver läget vid leveransen. Fortsatt samlad fasbedömning är beställd.
 
 ADMIN-01:s skyddade huvudmannaflöde är implementerat och automatiskt prövat i lokal skyddad miljö. Mänsklig användbarhetsbedömning återstår. [Bevisindex](../../../work/pilot/results/school-registry-delivery-20261014.json) innehåller rårapporternas SHA256, produktkällornas hashvärden och det levererade byggmanifestet. Rårapporter och bilder finns privat under `/private/tmp/`; de ska inte tolkas som beständig extern arkivering.
 

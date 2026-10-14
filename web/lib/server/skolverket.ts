@@ -68,7 +68,7 @@ export async function fetchRegistryUnit(
   if (!/^\d{8}$/u.test(code)) throw new Error('registry_unavailable');
   try {
     const upstream = await transport(`${BASE}/school-units/${code}`, {
-      headers, signal: AbortSignal.timeout(10_000), redirect: 'error',
+      headers, signal: AbortSignal.timeout(10_000), redirect: 'manual',
     });
     if (upstream.status === 404) return null;
     if (!upstream.ok) throw new Error('registry_unavailable');
@@ -81,7 +81,7 @@ export async function fetchRegistryUnit(
     if (unit.organizer.organizationNumber && !unit.municipalityName) {
       if (!/^\d{10}$/u.test(unit.organizer.organizationNumber)) throw new Error('registry_unavailable');
       const organizer = await transport(`${BASE}/organizers/${unit.organizer.organizationNumber}`, {
-        headers, signal: AbortSignal.timeout(10_000), redirect: 'error',
+        headers, signal: AbortSignal.timeout(10_000), redirect: 'manual',
       });
       if (organizer.ok) {
         const attributes = obj(obj(obj(await organizer.json()).data).attributes);

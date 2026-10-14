@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: SCHOOL-REGISTRY-USER-TRIAL
-status: awaiting_user
-stopped_at: Skolimport/registeruppdatering levererad på 3012; avskilt användarprov på 5198 väntar på användarens bedömning.
+current_plan: CURRENT-ACCEPTANCE-REVIEW
+status: in_progress
+stopped_at: Skolflödets användarprov godkänt; fortsätter fasgenomgången och rättar äldre registeradapterns Workerkompatibilitet.
 last_updated: "2026-10-14"
 last_activity: 2026-10-14
-last_activity_desc: "SCHOOL-REGISTRY lokalt verifierad och levererad: SQL62, Worker25+25, UI24, OIDC5. Mänskligt prov awaiting_user; prestandabacklogg består."
+last_activity_desc: "Användaren godkänner skolprovet och beställer fortsatt arbete. Samlad fasbedömning och avgränsad API-rättning pågår."
 state_head: 970782f
 verification_worker_build_revision: 970782fbf82c74e7e804eb61c7cba2a17f1becf4
 verification_worker_status: school_registry_sql62_http25_ui24_oidc5_pass_local_synthetic_public_register
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Senaste användarresultat:** Skolflödets avskilda användarprov är användarrapporterat godkänt: ”allt funkar”. [Resultat och API-avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-SCHOOL-REGISTRY-USER-TRIAL.md). Användaren beställer fortsatt arbete till nästa prov. Samlad aktuell fasbedömning pågår; äldre leveransstatus nedan är historik.
 
 **Skolimport och registeruppdatering 2026-10-14:** ADMIN-01:s skyddade huvudmannaflöde är implementerat och lokalt verifierat: SQL62, Node23, UI24, faktisk Workerpreflight25/slut25 samt läsande lokal OIDC5 PASS. Samma 197 byggfiler från `970782f` kör på 3012. Rektor, lokala årskurser, elevregisterkälla och mandat bevaras; import tilldelar inga uppdrag. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-SCHOOL-REGISTRY-VERIFICATION.md). Nästa steg är [det avskilda användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-SCHOOL-REGISTRY-USER-TRIAL.md), **awaiting_user**, med simulerade skolor på 5198. Fullt krav-/fasgodkännande, historiska avvikelser och prestandabacklogg består. Tidigare versionsbytesprov är användarrapporterat godkänt; kullkopiering/mobil saknar separat resultat. Äldre noteringar nedan är historik.
 

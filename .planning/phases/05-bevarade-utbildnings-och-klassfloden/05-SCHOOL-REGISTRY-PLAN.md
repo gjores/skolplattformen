@@ -3,7 +3,7 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 plan: SCHOOL-REGISTRY
 requirements: [ADMIN-01]
 type: execute
-status: awaiting_user
+status: complete_bounded
 wave: 1
 depends_on: [COPY-ATOMIC]
 autonomous: true

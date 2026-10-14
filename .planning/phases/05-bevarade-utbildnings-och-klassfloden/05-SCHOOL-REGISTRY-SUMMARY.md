@@ -2,12 +2,14 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: SCHOOL-REGISTRY
 requirements: [ADMIN-01]
-status: awaiting_user
+status: complete_bounded
 completed_implementation: 2026-10-14
-human_result: pending
+human_result: user_reported_pass
 ---
 
 # Huvudmannens skolimport och registeruppdatering
+
+**Senare användarresultat:** ”allt funkar” för det avskilda skolprovet. [Registrerat resultat](05-SCHOOL-REGISTRY-USER-TRIAL.md). Användbarheten är användarrapporterat godkänd; tekniska API-/DB-bevis behåller sin tidigare avgränsning. Nedanstående awaiting_user-noteringar beskriver läget vid leveransen. Fortsatt samlad fasbedömning är beställd.
 
 Huvudmannen har nu **Skolor** i den skyddade appen. Där går det att söka med skolenhetskod eller den aktuella huvudmannens organisationsnummer, granska en träff och lägga till skolan. Uppdatering kräver aktuellt skolmandat och bevarar lokal rektor, årskurser, elevregisterkälla, uppdrag och planeringskopplingar. Import ger inga nya mandat. Registrets skolformer visas separat från lokala former som behållits.
 

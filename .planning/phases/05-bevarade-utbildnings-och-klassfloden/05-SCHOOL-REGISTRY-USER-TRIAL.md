@@ -2,13 +2,17 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: SCHOOL-REGISTRY
 requirements: [ADMIN-01]
-status: awaiting_user
+status: user_verified
 created: 2026-10-14
 verification_scope: isolated_component_usability_simulated_register
-human_result: pending
+human_result: user_reported_pass
 ---
 
 # Användarprov: lägga till och uppdatera skolor
+
+## Rapporterat resultat
+
+Användaren svarade ”allt funkar, kör vidare tills jag behöver testa igen” efter detta prov. Det registreras som användarrapporterat godkänt för skolflödets användbarhet med de simulerade skolorna. Enhet och enskilda delsteg särredovisades inte. Användaren frågade också om live-API: ordinarie skyddad app och de separata Workerproven använder Skolverkets publika tjänst, medan just denna provsida använder simulerat underlag. Det tekniska API-beviset och det mänskliga användbarhetsresultatet hålls isär.
 
 Det här provet gäller om huvudmannens nya **Skolor** är begriplig och enkel att använda. Öppna [det avskilda användarprovet](http://127.0.0.1:5198/e2e/fixtures/school-registry-manual.html).
 
@@ -47,4 +51,4 @@ Svara med om det fungerade, eller ange steget som blev oklart. Bedöm särskilt 
 
 Detta är ett **mänskligt användbarhetsprov med simulerat register och lagring i fliken**. Det gör inga anrop till Skolverket eller den vanliga appens databas. Samma skolenhetskomponent används i produktappen, men inloggning, servermandat, verkligt registeruppslag och beständig lagring har prövats separat och redovisas i [verifieringen](05-SCHOOL-REGISTRY-VERIFICATION.md). Ett godkänt svar här får inte räknas som en verklig kommunanslutning eller ensamt slutgodkänna ADMIN-01 eller hela fas 5.
 
-Automatiska dator-/telefonprov av denna fristående provsida ingår i den avgränsade UI-verifieringen. De ersätter inte din bedömning. Status är **awaiting_user**; inget mänskligt resultat finns ännu.
+Automatiska dator-/telefonprov av denna fristående provsida ingår i den avgränsade UI-verifieringen. De ersätter inte din bedömning. Status är **user_reported_pass** enligt svaret ovan.
