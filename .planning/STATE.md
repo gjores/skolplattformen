@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: COPY-CLASS-USER-TRIAL
+current_plan: SCHOOL-REGISTRY-USER-TRIAL
 status: awaiting_user
-stopped_at: Klassens uttryckliga versionsbyte användarrapporterat godkänt. Kullkopiering och mobilprov saknar separat användarresultat. ADMIN-01 och historiska avvikelser kvarstår.
+stopped_at: Skolimport/registeruppdatering levererad på 3012; avskilt användarprov på 5198 väntar på användarens bedömning.
 last_updated: "2026-10-14"
 last_activity: 2026-10-14
-last_activity_desc: "Användaren rapporterar att klassens uttryckliga versionsbyte fungerar efter förtydligande av steg 4. Långsam inläsning kvarstår i backloggen."
-state_head: 5463354
-verification_worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
-verification_worker_status: atomic_copy_sql44_http16_ui18_browser2_pass_local_synthetic
-worker_status: running_on_3012_atomic_copy_verified
-worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
+last_activity_desc: "SCHOOL-REGISTRY lokalt verifierad och levererad: SQL62, Worker25+25, UI24, OIDC5. Mänskligt prov awaiting_user; prestandabacklogg består."
+state_head: 970782f
+verification_worker_build_revision: 970782fbf82c74e7e804eb61c7cba2a17f1becf4
+verification_worker_status: school_registry_sql62_http25_ui24_oidc5_pass_local_synthetic_public_register
+worker_status: running_on_3012_school_registry_verified
+worker_build_revision: 970782fbf82c74e7e804eb61c7cba2a17f1becf4
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Skolimport och registeruppdatering 2026-10-14:** ADMIN-01:s skyddade huvudmannaflöde är implementerat och lokalt verifierat: SQL62, Node23, UI24, faktisk Workerpreflight25/slut25 samt läsande lokal OIDC5 PASS. Samma 197 byggfiler från `970782f` kör på 3012. Rektor, lokala årskurser, elevregisterkälla och mandat bevaras; import tilldelar inga uppdrag. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-SCHOOL-REGISTRY-VERIFICATION.md). Nästa steg är [det avskilda användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-SCHOOL-REGISTRY-USER-TRIAL.md), **awaiting_user**, med simulerade skolor på 5198. Fullt krav-/fasgodkännande, historiska avvikelser och prestandabacklogg består. Tidigare versionsbytesprov är användarrapporterat godkänt; kullkopiering/mobil saknar separat resultat. Äldre noteringar nedan är historik.
 
 **Senaste användarresultat:** ”ok funkar bra!” efter förtydligandet av steg 4 registreras som användarrapporterat godkänt för klassens uttryckliga versionsbyte för ett läsår med det andra årets koppling kvar. [Provets resultat och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-CLASS-USER-TRIAL.md). Kullkopiering och mobilprov saknar separat bekräftelse; inga fulla krav eller hela fasen stängs. Nästa genomförandeområde i fasgenomgången är fortsatt ADMIN-01, huvudmannens skyddade skolimport/registeruppdatering. Prestandapunkten ligger kvar i backloggen. Äldre noteringar nedan beskriver tidigare lägen.
 
