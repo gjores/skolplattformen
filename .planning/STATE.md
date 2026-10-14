@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: 05-OPERATIONAL-06
-status: in_progress
-stopped_at: Beslutskedjans användarprov användarrapporterat godkänt; nästa steg är sammanställning av fas 5:s återstående krav och verifieringsbevis.
-last_updated: "2026-10-12"
-last_activity: 2026-10-12
-last_activity_desc: "Beslutskedjans användarprov: Allt funkar. Registrerat användarrapporterat godkänt; fulla krav och fasacceptans kvarstår. Inga nya automatiska prov."
-state_head: 4ddba9e
-verification_worker_build_revision: 17924ff417899dd5863c394bb4496a5bf22865bd
-verification_worker_status: final_context_and_read_only_release_accepted_known_exit0
-worker_status: running_on_3012_operational_local_api_pass
-worker_build_revision: 0ab206494909936cd6e40135cd72fc2502e8115b
+current_plan: COPY-CLASS-USER-TRIAL
+status: awaiting_user
+stopped_at: Kullkopiering tekniskt slutverifierad och levererad; mänskligt kopie-/klass-/års-/versionsprov väntar. ADMIN-01 och historiska avvikelser kvarstår.
+last_updated: "2026-10-14"
+last_activity: 2026-10-14
+last_activity_desc: "Fas 5 genomgång: SQL44/HTTP16/UI18/browser2 för atomär kullkopiering PASS. Nytt konkret användarprov på 3012 väntar."
+state_head: 5463354
+verification_worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
+verification_worker_status: atomic_copy_sql44_http16_ui18_browser2_pass_local_synthetic
+worker_status: running_on_3012_atomic_copy_verified
+worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Fasgenomgång och kullkopiering 2026-10-14:** Två verkliga luckor identifierades: huvudmannens skyddade skolimport/registeruppdatering (ADMIN-01) och delkopiering vid avbrott (ADMIN-03). Kopieringen är rättad: ram, terminer och skolor sparas atomärt med requestbundet statuskvitto. SQL44, Workerpreflight16/slut16, UI18, faktisk browser2, Node41, typ/lint/bygge/handbok PASS. 3012 kör prövat `2836908`, 192 bytekontrollerade filer. [Nytt användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-CLASS-USER-TRIAL.md) för kopiering och klass/läsår/version väntar; befintliga SAM_TEST-utkast behöver först granskas/fastställas för klassprovet. [Kravgenomgång](phases/05-bevarade-utbildnings-och-klassfloden/05-CURRENT-AUDIT-20261014.md) redovisar ADMIN-01, historisk 05-22-avvikelse och 1 827 äldre saknade loggankare som öppna. Inga nya saknade ankare i kopieringsproven. Fulla krav/fasacceptans och historiska 88/100 samt 3/8 består. Äldre noteringar nedan är historik.
 
 **Beslutskedjans användarprov godkänt 2026-10-12:** Användaren svarade ”Allt funkar” efter provet med rektorns inskickande, huvudmannens återsändning, rättning och fastställande. Registrerat som användarrapporterat godkänt för den lokala stödda gymnasiekedjan; planobjekt, roller, enheter och enskilda steg särredovisades inte. Det tidigare överlämnings-/godkännandegapet är därmed levererat och godkänt inom denna avgränsning. Klasskoppling, kullkopiering och fulla krav/fasacceptans får inga nya godkännanden. Nästa steg är en sammanställning av fas 5:s återstående krav mot verifieringsbevisen, före eventuell ny plan eller användarprov. Historiska 88/100 planer och 3/8 verifierade faser består. Se [användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-DECISION-FLOW-USER-TRIAL.md). Äldre lägesnoteringar nedan är historik.
 

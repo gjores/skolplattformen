@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: COPY-ATOMIC
 type: execute
-status: planned
+status: complete-local-bounded
 wave: 1
 depends_on: ["OPERATIONAL-06"]
 requirements: [ADMIN-03]
