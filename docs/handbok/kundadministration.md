@@ -41,6 +41,26 @@ Du kan också **avsluta ett enskilt uppdrag** utan att spärra hela medlemskapet
 
 **Utse rektor** knyter en rektor till en skolenhet. Huvudmannen utser rektor; rektorn tilldelar i sin tur läraruppdrag inom sina egna skolenheter.
 
+## Huvudmannens skolor
+
+Huvudmannen använder **Skolor** i menyn för att hämta skoluppgifter från Skolverkets skolenhetsregister. Det aktuella uppdraget styr vilken huvudman och vilka befintliga skolor som är tillgängliga.
+
+1. Sök med **Skolenhetskod** eller huvudmannens **Organisationsnummer**. Vid organisationssökning väljer du en skola i träfflistan.
+2. Granska namn, adress, kommun, status och skolformer.
+3. Välj **Lägg till skolenhet** för en ny skola, eller **Uppdatera registeruppgifter** för en befintlig skola som du har mandat för.
+
+Skolan måste höra till den aktuella huvudmannens organisationsnummer i registret. Saknas organisationsnummer behöver kundadministratören komplettera huvudmannens uppgifter. En registerträff ger aldrig i sig rätt att företräda huvudmannen.
+
+Vid uppdatering bevaras **lokalt tillsatt rektor**, lokala årskurser, befintliga uppdrag, utbildningar, planer, klasskopplingar och elevregisteranslutning. Skolformer som finns lokalt men saknas i det nya registerunderlaget tas inte bort automatiskt; skillnaden visas vid granskningen. Rektor utses separat via [Mandat](mandat.md).
+
+En importerad skola ger inga nya verksamhetsmandat. Den kan visas i din lista som importerad, men ett skolmandat behövs för fortsatt arbete med skolan.
+
+### Om sparandet avbryts
+
+Om svaret på sparandet saknas väljer du **Läs sparstatus**. Vänta med att lämna vyn eller göra en ny import tills resultatet är känt. Om inget sparande hittas kan du välja **Försök spara igen** för samma granskade uppgifter.
+
+Om underlaget har ändrats hämtar du ett nytt underlag och granskar det på nytt. Om sparandet är bekräftat men listan inte kunde läsas väljer du **Läs om listan**; skapa inte skolan igen.
+
 ## Vad som loggas
 
 Varje inbjudan, inlösen, spärr, hävd spärr, avslutat uppdrag och organisationsändring skrivs till [säkerhetsloggen](sakerhetslogg.md) med serververifierad aktör, uppdrag, tid och resultat. Även nekade försök loggas.

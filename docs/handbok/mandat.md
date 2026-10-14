@@ -120,3 +120,7 @@ Nekanden är avsiktligt lika oavsett orsak, så att svaret inte avslöjar om ett
 ## Elevhälsans medicinska journaler
 
 Medicinska journaler inom elevhälsan ingår inte i plattformen och omfattas inte av mandaten ovan. De har eget huvudmannaskap, egen sekretess och egna krav, och rektorsuppdraget öppnar dem inte.
+
+## Skolimport och uppdrag
+
+Att lägga till eller uppdatera en skola i **Skolor** ändrar inte personers uppdrag. En ny skola får inte automatiskt en rektor eller tillgång till planering. Huvudmannen behöver ha ett giltigt mandat för skolan innan rektorsuppdrag kan tilldelas. Registeruppdatering lämnar redan tillsatt rektor och befintliga uppdrag kvar.

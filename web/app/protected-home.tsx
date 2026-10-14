@@ -46,6 +46,7 @@ import ContextSwitch, {
   type SessionAssignment,
 } from './context-switch';
 import KundWorkspace from './kund-workspace';
+import ProtectedSchoolWorkspace from './protected-school-workspace';
 import LoggWorkspace from './logg-workspace';
 import MandateWorkspace from './mandate-workspace';
 import MfaStepUpNotice from './mfa-step-up';
@@ -62,7 +63,7 @@ import WorkspaceStart from './workspace-start';
 import { PlanDecisionProvider, DecisionIndicator } from './plan-decision-context';
 import type { PlanDecisionItem } from '@/lib/plan-decision.ts';
 
-export type ProtectedView = 'start' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
+export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -103,7 +104,7 @@ function sessionScope(value: SessionResponse | null | 'loading'): string {
 function shellView(search: string, value: SessionResponse): ProtectedView {
   const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
   if (requested === 'start' && PLANNING_FUNCTIONS.includes(role)) return 'start';
-  if (requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
+  if (requested === 'skolor' && role === 'huvudman' || requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
     || requested === 'anslutning' && role === 'it') return requested as ProtectedView;
   const params = new URLSearchParams(search);
@@ -176,6 +177,7 @@ function ProtectedNavigation({
               <House size={19}/><span>Start</span>
             </SidebarMenuButton>
           </SidebarMenuItem>}
+          {session.context?.function === 'huvudman' && <SidebarMenuItem><SidebarMenuButton isActive={view === 'skolor'} aria-current={view === 'skolor' ? 'page' : undefined} onClick={() => go('skolor')} className="nav-button"><House size={19}/><span>Skolor</span></SidebarMenuButton></SidebarMenuItem>}
           {session.context?.function === 'kundadmin' && (
             <SidebarMenuItem>
               <SidebarMenuButton isActive={view === 'kund'} aria-current={view === 'kund' ? 'page' : undefined} onClick={() => go('kund')} className="nav-button">
@@ -641,7 +643,7 @@ function ProtectedShell() {
   );
   const validContext = session.context?.valid && !session.context.blocked;
   const overview = isPlanningView(view) && planningLocation?.overview === true;
-  const currentTitle = overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
+  const currentTitle = overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
     <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
@@ -677,6 +679,7 @@ function ProtectedShell() {
             {navigationNotice && <output data-testid="planning-navigation-notice" className="validation-warning">{navigationNotice}</output>}
             {stepUpWithoutOtp && <output role="alert" className="validation-warning">Verifieringen gav inget bevis med engångskod eftersom ditt konto saknar registrerad engångskod hos inloggningstjänsten. Du kan fortsätta arbeta, men åtgärder som kräver engångskod går inte att göra. Kontakta den som administrerar din inloggning.</output>}
             {mfaRequired && !stepUpWithoutOtp && <MfaStepUpNotice message="Åtgärden kräver verifiering med engångskod." />}
+            {view === 'skolor' && session.context?.function === 'huvudman' && <ProtectedSchoolWorkspace key={`${session.epoch}-${session.context.assignmentId}`} context={session.context} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession}/>}
             {view === 'kund' && <KundWorkspace context={session.context!} identity={session.identity} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
             {view === 'logg' && <LoggWorkspace epoch={session.epoch} onSessionLost={clearSession} />}
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}

@@ -1,0 +1,27 @@
+.school-registry { max-width: 1100px; margin-inline: auto; display: grid; gap: 1.4rem; min-width: 0; }
+.school-registry h1 { font-size: 1.8rem; font-weight: 650; }
+.school-registry h2 { font-size: 1.25rem; font-weight: 650; margin-bottom: .7rem; }
+.school-registry h3 { font-size: 1.05rem; font-weight: 650; }
+.school-registry p { margin-block: .5rem; line-height: 1.55; }
+.school-registry-panel { background: var(--card, white); border: 1px solid var(--border, #d8dfeb); border-radius: .8rem; padding: 1.25rem; min-width: 0; }
+.school-registry fieldset { border: 0; min-width: 0; padding: 0; }
+.school-registry legend { font-weight: 600; margin-bottom: .5rem; }
+.school-registry-choices { display: flex; flex-wrap: wrap; gap: .7rem 1.8rem; }
+.school-registry-choices label { display: flex; gap: .5rem; align-items: center; min-height: 44px; }
+.school-registry-choices input { accent-color: #234a7c; appearance: auto; -webkit-appearance: radio; width: 22px; height: 22px; min-width: 22px; flex: 0 0 22px; }
+.school-registry-query { display: grid; gap: .45rem; margin-block: .7rem 1rem; max-width: 28rem; font-weight: 500; }
+.school-registry-query input { border: 1px solid #aebbd0; padding: .65rem .8rem; border-radius: .4rem; background: white; color: #1b2c44; width: 100%; min-width: 0; min-height: 44px; }
+.school-registry button { min-height: 44px; white-space: normal; height: auto; padding-block: .65rem; overflow-wrap: anywhere; }
+.school-registry-error { color: #852424; background: #fff0ef; border: 1px solid #efb6b0; border-radius: .5rem; padding: 1rem; }
+.school-registry-notice { color: #204364; background: #edf4fb; border-radius: .5rem; padding: 1rem; }
+.school-registry-results { margin-top: 1rem; }
+.school-registry-results article { display: flex; gap: 1rem; justify-content: space-between; align-items: center; border-top: 1px solid var(--border, #d8dfeb); padding-block: 1rem; }
+.school-registry-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-block: 1rem; }
+.school-registry-facts div { min-width: 0; }
+.school-registry-facts dt { font-size: .9rem; color: #526176; }
+.school-registry-facts dd { margin-top: .25rem; font-weight: 500; overflow-wrap: anywhere; }
+.school-registry small { display: block; font-size: .85rem; font-weight: 400; color: #526176; margin-top: .35rem; }
+.school-registry-source { color: #526176; font-size: .85rem; }
+.school-registry-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+.school-registry-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 640px) { .school-registry-panel { padding: 1rem; } .school-registry-facts, .school-registry-cards { grid-template-columns: 1fr; } .school-registry-results article { align-items: stretch; flex-direction: column; } .school-registry-actions { flex-direction: column; } }
