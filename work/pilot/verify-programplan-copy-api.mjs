@@ -154,12 +154,15 @@ async function main(){
    for(const table of ['plan_decision_reviews','plan_decision_history','plan_decision_receipts','plan_decision_write_permits']){
     const [count]=await db.unsafe(`select count(*)::integer n from public.${table} where plan_id=$1`,[created.plan.id]);assert.equal(count.n,0);
    }
-   assert.deepEqual(await f.packageSnapshot(created.plan.id),{versions:original.packages.versions,selections:[]});
+   const packages = await f.packageSnapshot(created.plan.id);
+   assert.deepEqual(packages.versions,original.packages.versions);
+   assert.deepEqual(Array.from(packages.selections),[]);
    assert.deepEqual(await sourceSnapshot(),original);
   });
   const graph=await decisionBusinessHashes(db,graphTables);
   await check('full request status confirms immutable receipt without graph writes',async()=>{
-   const status=copyStatusForCommand((await request(f.hm,STATUS_PATH,command)).body,command);assert.equal(status.status,'created');assert.equal(status.plan.id,created.plan.id);assert.equal(status.plan.revision,0);
+   const statusBody=(await request(f.hm,STATUS_PATH,command)).body;
+   const status=copyStatusForCommand(statusBody,command);assert.equal(status.status,'created');assert.equal(status.plan.id,created.plan.id);assert.equal(status.plan.revision,0);
    assert.deepEqual(await decisionBusinessHashes(db,graphTables),graph);
   });
   await check('unknown full-request status is not_found and never creates',async()=>{

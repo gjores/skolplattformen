@@ -53,6 +53,7 @@ for(const [route,handler,statusOnly] of [['utbildning/kopiera',copyEducation,fal
  test(`${String(route)}: one atomic SQL call, full source pins and required audit`,async()=>{
   reset(statusOnly?'utbildning/status':'utbildning/skapa');state.mfa=true;
   const r=await handler(request(route,copyInput()));assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');
+  const body=await r.json();if(statusOnly){assert.deepEqual(Object.keys(body).sort(),['commandId','education','plan','status']);const {copyStatusForCommand}=await import('../programplan-copy.ts');assert.equal(copyStatusForCommand(body,copyInput()).status,'created');}
   const calls=state.calls.filter(c=>c.sql.includes('phase5_copy_programplan_education'));assert.equal(calls.length,1);
   assert.deepEqual(calls[0].values,[id,unit,4,2,unit,'Syntetisk',null,'Kull',basis(),statusOnly]);assert.equal(state.calls.length,statusOnly?1:2);
   assert.equal(state.events.filter(e=>e.outcome==='ok')[0].action,statusOnly?'programplan_copy_status_read':'programplan_education_copied');

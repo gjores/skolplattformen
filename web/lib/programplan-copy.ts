@@ -49,5 +49,11 @@ export function parseProgramplanCopyCreated(value: unknown, command: Programplan
   return parseProgramplanEducationCreated(value, creationInput(command));
 }
 export function copyStatusForCommand(value: unknown, command: ProgramplanCopyRequest) {
-  return educationStatusForCommand(value, creationInput(command));
+  const status = educationStatusForCommand(value, creationInput(command));
+  if (status.status === 'not_found') return status;
+  // The shared helper validates through a creation receipt, adding replayed.
+  // Keep the public status response in its own strict four-field schema so it
+  // can be parsed again by the browser after crossing the HTTP boundary.
+  const { replayed: _replayed, ...reply } = status;
+  return reply;
 }

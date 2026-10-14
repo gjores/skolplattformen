@@ -21,6 +21,9 @@ test('copy status binds new education facts and never treats not_found as succes
  const request=command();assert.deepEqual(copyStatusForCommand({commandId:id(2),status:'not_found'},request),{commandId:id(2),status:'not_found'});
  assert.throws(()=>copyStatusForCommand({commandId:id(5),status:'not_found'},request));
  const result=created();assert.equal(copyStatusForCommand(result,request).plan.id,id(4));
+ const status=copyStatusForCommand(result,request);
+ assert.deepEqual(Object.keys(status).sort(),['commandId','education','plan','status']);
+ assert.deepEqual(copyStatusForCommand(status,request),status);
  for(const changed of [{...input,name:'Other'}, {...input,unitId:id(9)}, {...input,cohort:'Other cohort'}, {...input,basisReference:{...input.basisReference,startedOn:'2026-08-18'}}]) assert.throws(()=>copyStatusForCommand(result,newCopyCommand({...changed,...source},id(2))));
 });
 test('copy receipt describes the initial draft, exact new identity and distinct decisions',()=>{
