@@ -56,3 +56,9 @@ SS12000:2024/OpenAPI2.1.0 är dokumenterad modellavstämning. Provet omfattar in
 Användaren svarade2026-10-15: ”ok allt funkar men vi kommer behöva se över detta så UI och allt funkar smidigt. Mycket knappar med tekniska grejre nu”. Klassflödet registreras som användarrapporterat funktionellt godkänt med kvarstående UI-anmärkning. Enhet och enskilda delsteg särredovisades inte; inget separat fysiskt telefonprov eller fullständigt begriplighetsgodkännande antas. Frågan före godkännandet, ”hur sparar jag när jag har gjort ny klass?”, är ett konkret fynd om att sparvägen behöver bli tydligare.
 
 UI-återkopplingen är förd till [befintlig samlad UI-genomgång](../../todos/pending/2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Klassprovet ska inte efterfrågas igen utan ett nytt relevant fel. Fulla krav och fas5 förblir öppna.
+
+## Uppföljning: två klasser och begriplighet 2026-10-15
+
+Användaren rapporterade svårighet att koppla två klasser till samma timplan. Skärmbilden visade programplanens lista för att läsa en klass uppgifter, inte timplanens kopplingsval. Efter instruktion till det separata kopplingsflödet svarade användaren ”så nu fuunkar det”. Två-klasser-till-en-timplan-flödet registreras därför som användarrapporterat fungerande efter vägledning. Enhet, exakta sparade relationer och återläsning är inte separat verifierade i denna uppföljning.
+
+Användaren begärde därefter uttryckligen ett gap eftersom flödet inte är tydligt. [CLASS-COHORT-UX-01](05-CLASS-COHORT-UX-GAP.md) är öppet med designprompt och kriterier för ett senare avgränsat begriplighetsprov. Funktionellt godkännande efter handledning är inte godkänd självständig användbarhet. Ingen produktändring eller ny automatisk verifiering har gjorts här.

@@ -8,7 +8,7 @@ status: ready_to_plan
 stopped_at: CLASS-COHORT-10 funktionellt användargodkänd med UI-anmärkning;11/11 paketplaner klara.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "Klassflödet fungerar enligt användaren. UI-förenkling följs i befintlig todo; fulla krav/fas5 kvarstår."
+last_activity_desc: "Två klasser till samma timplan fungerar efter vägledning. CLASS-COHORT-UX-01 öppet; Claude Design-underlag klart, design och genomförande återstår."
 state_head: b939383
 verification_worker_build_revision: 88145bcec46317929dcd9383d3fe8c80195e6415
 verification_worker_status: class_cohort_actual_sql_api_browser_local_delivery_pass
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Användbarhetsgap 2026-10-15:** Användaren bekräftar att två klasser kunde kopplas till samma timplan efter vägledning, men beställer ett uttryckligt gap eftersom flödet är otydligt. [CLASS-COHORT-UX-01](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-UX-GAP.md) är öppet med [prompt till Claude Design](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-CLAUDE-DESIGN-PROMPT.md). Nästa steg är granskning av designförslaget och avgränsad genomförandeplan. Ingen UI-ändring, ny runtimeverifiering eller full fasacceptans följer av dokumentationen; genomförda paketplansantal behålls.
 
 **Klassorganisationens användarprov2026-10-15:** Användaren bekräftar ”ok allt funkar” och efterfrågar smidigare UI med färre tekniska knappar. CLASS-COHORT-10 avslutas;11/11 paketplaner klara. Funktionsgodkännandet särredovisar inte enhet/delsteg. UI-anmärkningen finns i [samlad UI-genomgång](todos/pending/2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Fulla krav/fas5 och historiska88/100 samt3/8 består. Äldre lägesnoteringar nedan är historik.
 

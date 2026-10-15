@@ -36,3 +36,7 @@ Användaren bekräftar ”ok allt funkar” i CLASS-COHORT-provet men tillägger
 - Planera berörda handbokssidor och dator-/telefonprov. SS12000-mappning och stabila identiteter/perioder ska bevaras; en presentationsändring innebär inget nytt standardstöd.
 
 Se [registrerat användarutfall](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-USER-TRIAL.md). Detta är fångat förbättringsbehov inför avgränsad planering, inte en genomförd ombyggnad eller krav på att göra om redan godkänt funktionsprov.
+
+## Konkret gap efter klasskopplingsprovet 2026-10-15
+
+Användaren misstog programplanens lista över befintliga klasser för timplanens klassval och kunde inte hitta hur två klasser kopplas. Efter vägledning fungerade kopplingen, men användaren beställde ett uttryckligt gap och designunderlag. [CLASS-COHORT-UX-01](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-UX-GAP.md) samlar fynd, avgränsning och stängningskriterier. [Prompt till Claude Design](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-CLAUDE-DESIGN-PROMPT.md) används med skärmdumpar för sammanhängande flöde, tydligt sparande, synliga klasskopplingar och föreslaget flerval. Design och implementation återstår; gapet ersätter inte denna bredare UI-genomgång.
