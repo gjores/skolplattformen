@@ -74,7 +74,8 @@ test('objects and arrays reject accessors, hidden fields, custom prototypes and 
   const symbolic = { ...request(), [Symbol('authority')]: true };
   for (const value of [hidden, symbolic, Object.assign(Object.create({}), request())]) bad(() => parseClassCohortCreateRequest(value));
   const accessorArray = ['A']; Object.defineProperty(accessorArray, '0', { get() { throw Error('getter executed'); } });
-  for (const names of [new Array(1), Object.assign(['A'], { extra: true }), accessorArray]) bad(() => parseClassCohortCreateRequest({ ...request(), names }));
+  const sparse = []; sparse.length = 1; // A hole, not an explicit undefined element.
+  for (const names of [sparse, Object.assign(['A'], { extra: true }), accessorArray]) bad(() => parseClassCohortCreateRequest({ ...request(), names }));
   const q = Object.assign(Object.create(null), request());
   assert.deepEqual(parseClassCohortCreateRequest(q), request());
 });

@@ -29,3 +29,7 @@ Ingen databas, runtime eller UI ändrades av plan05. Ingen appbyggnad eller ny h
 ## SS 12000 och kvarstående bevis
 
 Avsedd mappning följer SS 12000:2024/OpenAPI 2.1.0: stabilt klass-ID, separat giltighet, okända historiska datum och GY-klassens interna utbildningsrelation bevaras. Inga medlemskap eller externa ID:n skapas. Modellen är ett internt kontrakt, inte verifierad SS 12000-export eller kommunanslutning. SQL-/TypeScript-paritet mot faktiska SQL04-svar ska redovisas där; full kravacceptans och användarprov följer senare planer.
+
+## Uppföljning under plan06
+
+Full lint omfattade även testfilen och identifierade `new Array(1)` i provet för glesa arrayer. Provets konstruktion ändrades till en tom array med längd1, med samma avsiktliga hål. Node13 och lint för både kontrakt och test passerade därefter; plan06:s samlade Node36, typkontroll och full lint passerade också med denna version. Ingen produktlogik ändrades. Tidigare SQL04-bevis är bundet till dess dåvarande källhashar; nya körningar i08 binds till aktuella källor.
