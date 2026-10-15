@@ -154,6 +154,7 @@ export function PlanningContextBar() {
       {selection.schoolYear === setup.currentYear ? <span className="planning-context-current">Aktuellt läsår</span> :
         <button type="button" disabled={loading} onClick={() => requestChange({ schoolYear: setup.currentYear })}>Till aktuellt läsår</button>}
     </div>
+    <p className="planning-context-scope">Gäller årsöverblick, programplaner och timplaner.</p>
     {!units.length && <output>Du har ingen läsbehörig skola för den här skolformen.</output>}
     {normalizationNotice && <output>{normalizationNotice}</output>}
     {error && <p role="alert">{error} <button type="button" onClick={retry}>Försök igen</button></p>}

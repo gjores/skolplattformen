@@ -344,3 +344,13 @@ test('overview clears GR/IM unit and plan references in parser serializer and no
     }
   }
 });
+
+test('annual named variants keep exact plan ID and year across reload, regardless of equal versions and names',async()=>{
+ const {planningRowLocation}=await import('./protected-plan-location.ts');
+ const selection=normalizePlanLocation({view:'timplaner',gym:null,planning:{schoolYear:2027}},setup()).selection;
+ const base={unitId:id,offeringId:other,schoolform:'gymnasium',relativeYear:2,plan:{id,version:1},series:{id:other,name:'Mer matematik',revision:0}};
+ const a=planningRowLocation(base,selection),b=planningRowLocation({...base,plan:{id:other,version:1},series:{id,name:'Mer matematik',revision:2}},selection);
+ assert.notEqual(a.gym.id,b.gym.id);for(const target of [a,b]){assert.equal(target.planning.schoolYear,2027);assert.equal(target.relativeYear,2);assert.deepEqual(normalizePlanLocation(readPlanLocation(planLocationQuery(target)),setup()).location,target);assert.equal(planLocationQuery(target).includes('matematik'),false);}
+ assert.equal(planningRowLocation({...base,plan:null},selection),null);
+ for(const schoolform of ['grundskola','introduktionsprogram']){const target=planningRowLocation({...base,schoolform,relativeYear:null,application:schoolform==='grundskola'?{columnId:'ak8'}:null}, {...selection,schoolform});assert.equal(target.other.id,id);assert.equal(target.other.kind,schoolform);assert.deepEqual(normalizePlanLocation(readPlanLocation(planLocationQuery(target)),setup()).location,target);}
+});

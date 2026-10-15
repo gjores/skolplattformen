@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { parsePlanningList, parsePlanningSelection, planningAnnualMetrics, type PlanningList, type PlanningMeasure, type PlanningRow, type PlanningSelection } from '@/lib/planning-year-contract.ts';
+import { parsePlanningList, parsePlanningSelection, planningAnnualMetrics, type PlanningList, type PlanningMeasure, type PlanningRow, type PlanningSelection, type PlanningSchoolTimplan } from '@/lib/planning-year-contract.ts';
 import { usePlanningContext } from './planning-context';
 import './protected-plan-list.css';
 import { usePlanDecisions, decisionNextActorLabel, decisionStageLabel } from './plan-decision-context';
@@ -73,7 +73,7 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
 
 type Props = { disabled?: boolean; onSecurityFailure: (error: unknown) => boolean; onOpen: (row: PlanningRow) => void;
   actions?: (row: PlanningRow) => ReactNode; showFilters?: boolean;
-  programRows?: { canCreateTimplan: boolean; onTimplan: (row: PlanningRow) => void } };
+  programRows?: { canCreateTimplan: boolean; onTimplan: (row: PlanningRow, target?: PlanningSchoolTimplan) => void } };
 type Result = { key: string; data: PlanningList | null; error: string | null; notice: string | null; loading: boolean };
 export default function ProtectedPlanList({ disabled = false, onSecurityFailure, onOpen, actions, showFilters = true, programRows }: Props) {
   const { setup, selection, requestChange } = usePlanningContext();
@@ -150,8 +150,9 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
             const grade = row.relativeYear ?? (row.application?.columnId?.match(/^ak([1-9])$/)?.[1] ?? null);
             const rowKey = planningRowKey(row), isExpanded = expanded.key === key && expanded.rows.includes(rowKey);
             if (programRows) {
-              const timplan = row.schoolTimplan;
-              const canStart = timplan === null && row.plan !== null && !row.archived && programRows.canCreateTimplan;
+              const timplans = row.schoolTimplans ?? (row.schoolTimplan ? [row.schoolTimplan] : []);
+              const known = row.schoolTimplans !== undefined || row.schoolTimplan !== undefined;
+              const canStart = known && timplans.length === 0 && row.plan !== null && !row.archived && programRows.canCreateTimplan;
               return <tr key={rowKey}>
                 <th scope="row"><strong>{row.educationName}</strong>
                   {details?.programName && <small>{details.programName}</small>}
@@ -167,32 +168,29 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
                 </th>
                 <td data-label="Skola och elevkull"><strong>{row.schoolName}</strong><small>{row.cohort}</small></td>
                 <td data-label="Programplan">{row.plan ? <><span className="program-row-status">{decisionText('programplan', row.plan)}</span><small>Version {row.plan.version}</small></> : <span className="program-row-status">Inte skapad</span>}</td>
-                <td data-label="Skolans timplan">{timplan ? <><span className="program-row-status program-row-status-created">Timplan skapad</span>
-                  <small>{planningStatusLabel[timplan.status]} · Version {timplan.version}</small>
-                  <small>Bygger på programplan v{timplan.sourceVersion}{row.plan && timplan.sourcePlanId !== row.plan.id ? ' (annan version)' : ''}</small></>
-                  : <><span className="program-row-status">{timplan === null ? 'Ingen timplan' : 'Status ej tillgänglig'}</span>
-                    {timplan === null && !row.plan && <small>Skapa programplanen först.</small>}
-                    {timplan === null && row.plan && !programRows.canCreateTimplan && <small>Rektor eller skoladministratör skapar timplanen.</small>}</>}
-                </td>
+                <td data-label="Skolans timplan">{timplans.length ? <ul className="program-row-timplans">{timplans.map(timplan=><li key={timplan.id}>
+                  <strong>{timplan.series?.name??'Timplan'}</strong><small>{planningStatusLabel[timplan.status]} · Version {timplan.version}</small>
+                  <small>Bygger på programplan v{timplan.sourceVersion}{row.plan && timplan.sourcePlanId!==row.plan.id?' (annan version)':''}</small>
+                  <button type="button" disabled={locked} aria-label={timplan.series?`Öppna ${timplan.series.name}, version ${timplan.version}, ${row.educationName}, ${row.schoolName}`:`Öppna timplan för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version??'saknas'}`} onClick={()=>programRows.onTimplan(row,timplan)}>Öppna timplan</button>
+                </li>)}</ul>:<><span className="program-row-status">{known?'Ingen timplan':'Status ej tillgänglig'}</span>
+                  {known&&!row.plan&&<small>Skapa programplanen först.</small>}{known&&row.plan&&!programRows.canCreateTimplan&&<small>Rektor eller skoladministratör skapar timplanen.</small>}</>}</td>
                 <td className="plan-list-actions program-row-actions">
-                  {(timplan || canStart) && <button type="button" className="program-row-primary" disabled={locked}
-                    aria-label={`${timplan ? 'Öppna timplan' : 'Skapa timplan'} för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version ?? 'saknas'}`}
-                    onClick={() => programRows.onTimplan(row)}>{timplan ? 'Öppna timplan' : 'Skapa timplan'}</button>}
+                  {canStart&&<button type="button" className="program-row-primary" disabled={locked} aria-label={`Skapa timplan för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version??'saknas'}`} onClick={()=>programRows.onTimplan(row)}>Skapa timplan</button>}
                   <button type="button" disabled={locked} onClick={() => onOpen(row)}
                     aria-label={`${row.plan && decisionFor('programplan', row.plan.id)?.task === 'review' ? 'Granska och besluta om' : 'Öppna'} ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
                     {row.plan ? decisionFor('programplan', row.plan.id)?.task === 'review' ? 'Granska och besluta' : 'Öppna programplan' : 'Öppna utbildning'}</button>
                 </td>
               </tr>;
             }
-            return <tr key={rowKey} data-expanded={isExpanded}><th scope="row">{row.educationName}<small>{details?.localCode ?? 'Lokal kod saknas'}{row.archived ? ' · Arkiverad' : ''}</small></th>
+            return <tr key={rowKey} data-expanded={isExpanded}><th scope="row">{row.series?<><strong>{row.series.name}</strong><small>{row.educationName}</small></>:row.educationName}<small>{details?.localCode ?? 'Lokal kod saknas'}{row.archived ? ' · Arkiverad' : ''}</small></th>
               <td data-label="Skola" className="plan-list-school">{row.schoolName}</td>{row.schoolform === 'gymnasium' && <td data-label="Program och inriktning" className="plan-list-secondary">{details?.programName ?? details?.programCode ?? 'Programuppgift saknas'}<small>{details?.orientationName ?? details?.orientationCode ?? 'Inriktning saknas'}</small></td>}
               <td data-label="Elevkull">{row.cohort}<small>{planningRelationLabel[row.relation]}{row.start.startedOn ? ` · Start ${row.start.startedOn}` : ''}</small></td>
               <td data-label="Årskurs">{grade === null ? row.schoolform === 'introduktionsprogram' ? 'Veckoram' : 'Okänd årskurs' : `Åk ${grade}`}</td>
               <td data-label="Planversion" className="plan-list-secondary">{row.plan ? `Version ${row.plan.version}` : 'Saknas'}{selected.view === 'timplan' && row.schoolform === 'gymnasium' && <small>{row.source ? `Bygger på programplan · version ${row.source.version}` : 'Programplan som underlag saknas'}</small>}</td>
-              <td data-label="Status">{row.plan ? decisionText(selected.view === 'programplan' ? 'programplan' : 'timplan', row.plan) : 'Plan saknas'}</td>
+              <td data-label="Status">{row.plan ? decisionText(selected.view === 'programplan' ? 'programplan' : 'timplan', row.plan) : 'Plan saknas'}{selected.view==='timplan'&&<small>{metrics.classCount.complete?`${metrics.classCount.value} kopplade klasser`:'Klasskopplingar okända'}{row.underlag==='forecast'?' · Prognos':''}</small>}</td>
               {selected.schoolform === 'gymnasium' && <td data-label="Årets poäng" className="plan-list-secondary">{planningMeasureText(metrics.points)}</td>}
               <td data-label={selected.view === 'timplan' ? selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar' : 'Underlag'} className="plan-list-secondary">{selected.view === 'timplan' ? planningMeasureText(metrics.hours) : row.underlag === 'missing' ? 'Programplan saknas' : row.underlag === 'forecast' ? 'Prognos' : 'Programram'}</td>
-              <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={`Öppna ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
+              <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={`Öppna ${row.series?`${row.series.name}, `:''}${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
                 {row.plan ? 'Öppna' : 'Visa underlag'}</button>{actions?.(row)}
                 <button type="button" className="plan-list-details-toggle" aria-expanded={isExpanded}
                   aria-label={`${isExpanded ? 'Dölj' : 'Visa'} detaljer för ${row.educationName}, ${row.schoolName}`}

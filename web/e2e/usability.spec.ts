@@ -176,7 +176,7 @@ test('programrader visar skolans timplan och tydliga nästa steg', async ({ page
   await page.goto(`${base}?listHarness=1&programHarness=1&vy=programplaner&planeringsskola=all`);
   const north = page.locator('tbody tr').filter({ hasText: 'Exempelskolan Nord' });
   const south = page.locator('tbody tr').filter({ hasText: 'Exempelskolan Syd' });
-  await expect(north.getByText('Timplan skapad', { exact: true })).toBeVisible();
+  await expect(north.locator('.program-row-timplans')).toBeVisible();
   await expect(north.getByText('Ej fastställd · Öppna för beslutsstatus', { exact: true })).toBeVisible();
   await expect(north.getByRole('button', { name: /^Skapa timplan/ })).toHaveCount(0);
   await expect(south.getByText('Ingen timplan', { exact: true })).toBeVisible();
@@ -193,7 +193,7 @@ test('programrader visar skolans timplan och tydliga nästa steg', async ({ page
 test('huvudmannen ser befintlig timplan men får ingen skapaknapp', async ({ page }) => {
   const verify = await mockApp(page, 'huvudman');
   await page.goto(`${base}?vy=programplaner&planeringsskola=all`);
-  await expect(page.getByText('Timplan skapad', { exact: true })).toBeVisible();
+  await expect(page.locator('.program-row-timplans')).toBeVisible();
   await expect(page.getByText('Inväntar beslut · Nästa steg hos huvudmannen', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Granska och besluta om/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Skapa timplan/ })).toHaveCount(0);
@@ -296,19 +296,20 @@ test('okänt beslut låser navigation, återanvänder kommandot och läser nyare
 
 for (const previousStatus of ['atersand', 'forslag'] as const) test(`korrigerad programkälla: ${previousStatus} timplan får rätt väg vidare`, async ({ page }) => {
   const verify = await mockApp(page);
+  const series={id:id(92),name:'Grundfördelning',revision:0};
   const rowKey = 'foundation:ENGE:1:ENGE1000X';
   const source = { planId: id(30), offeringId: id(10), version: 2, revision: 1, status: 'utkast', catalogId: `sha256:${'c'.repeat(64)}`, startedOn: '2026-08-15', educationRevision: 2,
     education: { name: 'Korrigerad utbildning', cohort: '2026–2029', programCode: 'SA', orientationCode: 'SABEP' } };
   const rows = [{ key: rowKey, name: 'Engelska', levelName: 'Nivå 1', points: 100, part: 'foundation', pointTerms: [50, 50, 0, 0, 0, 0], rowKind: 'fixed' }];
   const currentSource = { planId: source.planId, version: source.version, revision: source.revision, status: source.status };
-  const oldPlan = { id: id(90), offeringId: id(10), unitId: id(2), schoolName: schools[0].name, version: 1, revision: 3, status: previousStatus,
+  const oldPlan = { series,nameAtCreation:series.name,id: id(90), offeringId: id(10), unitId: id(2), schoolName: schools[0].name, version: 1, revision: 3, status: previousStatus,
     source: { ...source, planId: id(20), version: 1 }, currentSource, rows, hours: { [rowKey]: [40, 40, null, null, null, null] }, canPlan: true, archived: false, sourceChanged: true };
   const newPlan = { ...oldPlan, id: id(91), version: 2, revision: 0, status: 'utkast', source, sourceChanged: false };
   const commands: Record<string, unknown>[] = [];
   await page.route('**/api/timplaner/gym/**', async route => {
     const path = new URL(route.request().url()).pathname, body = route.request().postDataJSON();
     if (path.endsWith('/underlag')) return route.fulfill({ json: { source, rows, readiness: { ready: true, missing: [] },
-      units: [{ unitId: id(2), schoolName: schools[0].name, canPlan: true, plans: [{ id: id(90), version: 1, revision: 3, status: previousStatus, sourcePlanId: id(20), sourceRevision: 1, sourceVersion: 1 }] }] } });
+      units: [{ unitId: id(2), schoolName: schools[0].name, canPlan: true, plans: [{ series,id: id(90), version: 1, revision: 3, status: previousStatus, sourcePlanId: id(20), sourceRevision: 1, sourceVersion: 1 }] }] } });
     if (path.endsWith('/lasa')) return route.fulfill({ json: body.planId === id(90) ? oldPlan : newPlan });
     if (path.endsWith('/skapa')) {
       commands.push(body);
@@ -316,16 +317,17 @@ for (const previousStatus of ['atersand', 'forslag'] as const) test(`korrigerad 
     }
     return route.fulfill({ status: 500, json: { code: 'unexpected_request' } });
   });
-  await page.route('**/api/planbeslut/underlag', route => route.fulfill({ json: { kind: 'timplan', planId: id(91), offeringId: id(10), unitId: id(2), educationName: source.education.name, schoolName: schools[0].name,
-    version: 2, revision: 0, decisionRevision: 0, basisHash: `sha256:${'d'.repeat(64)}`, stage: 'draft', nextActor: 'rektor', actions: ['submit'], blockers: [], checks: [], history: [], sourceInfo: null } }));
-  await page.goto(`${base}?vy=timplaner&programunderlag=${id(30)}&timplansskola=${id(2)}&timplansutbildning=${id(10)}&timplansversion=2&planeringsskola=${id(2)}&planeringsform=gymnasium`);
-  const next = page.getByRole('button', { name: `Nytt timplansutkast för ${schools[0].name}`, exact: true });
+  await page.route('**/api/planbeslut/underlag', route => route.fulfill({ json: { kind: 'timplan', series,planId: route.request().postDataJSON().planId, offeringId: id(10), unitId: id(2), educationName: source.education.name, schoolName: schools[0].name,
+    version: route.request().postDataJSON().planId===id(90)?1:2, revision: route.request().postDataJSON().planId===id(90)?3:0, decisionRevision: 0, basisHash: `sha256:${'d'.repeat(64)}`, stage: 'draft', nextActor: 'rektor', actions: ['submit'], blockers: [], checks: [], history: [], sourceInfo: null } }));
+  await page.goto(`${base}?vy=timplaner&timplan=${id(90)}&timplansskola=${id(2)}&timplansutbildning=${id(10)}&timplansversion=1&planeringsskola=${id(2)}&planeringsform=gymnasium`);
+  const next = page.getByRole('button', { name: 'Skapa ny version', exact: true });
   if (previousStatus === 'forslag') {
-    await expect(next).toBeDisabled(); expect(commands).toHaveLength(0); verify(); return;
+    await expect(next).toHaveCount(0); expect(commands).toHaveLength(0); verify(); return;
   }
   await expect(next).toBeEnabled(); await next.click();
-  await expect(page.getByRole('dialog')).toContainText('Version 1 och dess klasskopplingar bevaras.');
-  await page.getByRole('dialog').getByRole('button', { name: 'Skapa timplansutkast', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('Tidigare versioner och klasskopplingar bevaras.');
+  await page.getByRole('dialog').getByRole('button', { name: 'Granska', exact: true }).click();
+  await page.getByRole('button',{name:'Bekräfta och spara',exact:true}).click();
   await expect(page.getByText('Utkast · Timplan version 2', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Skicka för beslut', exact: true })).toBeEnabled();
   expect(commands).toHaveLength(1);

@@ -55,6 +55,7 @@ import ProtectedTimplanWorkspace from './protected-timplan-workspace';
 import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
 import ProtectedProgramplanWorkspace, { type ClassStepTarget } from './protected-programplan-workspace';
 import ProtectedPlanningOverview from './protected-planning-overview';
+import { planningRowLocation } from '@/lib/protected-plan-location.ts';
 import { normalizePlanLocation, planningCollectionLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type OtherTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from './planning-context';
 import type { PlanningSelection, PlanningSetup } from '@/lib/planning-year-contract.ts';
@@ -705,7 +706,7 @@ function ProtectedShell() {
               {overview && <ProtectedPlanningOverview onSecurityFailure={error => {
                 if (error instanceof ApiError && (error.status === 401 || error.status === 403 && error.code !== 'mfa_required')) { clearSession(); return true; }
                 return false;
-              }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => navigate(view)}/>}
+              }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => navigate(view)} onOpen={row=>{if(!canNavigate())return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>}
               {!overview && view === 'timplaner' && <>
                 <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => {
                   if (!canNavigate()) return;

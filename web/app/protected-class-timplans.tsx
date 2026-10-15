@@ -12,7 +12,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import './protected-class-timplans.css';
 
 type Pending = {kind:'create';request:ClassPlanCreateRequest} | {kind:'link';request:ClassPlanLinkRequest};
-type Props = {scopeKey:string;returnTo:string;plan:GymTimplan;schoolYear:number;canPrepare:boolean;disabled:boolean;onSecurityFailure:(error:unknown)=>boolean};
+type Props = {openRequest?:number;scopeKey:string;returnTo:string;plan:GymTimplan;schoolYear:number;canPrepare:boolean;disabled:boolean;onSecurityFailure:(error:unknown)=>boolean};
 const yearLabel = (year:number) => `${year}/${String(year+1).slice(-2)}`;
 function frozenStartYear(value:string|null):number|null {
   if(!value||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
@@ -21,7 +21,7 @@ function frozenStartYear(value:string|null):number|null {
   return date.getUTCFullYear()-(date.getUTCMonth()<6?1:0);
 }
 export default function ProtectedClassTimplans(props:Props) { return <ClassLinks key={`${props.scopeKey}:${props.plan.id}`} {...props}/>; }
-function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSecurityFailure}:Props) {
+function ClassLinks({openRequest=0,scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSecurityFailure}:Props) {
   const journalKey=`sp:class-links:v1:${scopeKey}:${plan.id}`;
   const [restored]=useState(()=>{try{const raw=sessionStorage.getItem(journalKey);return {queue:raw?parseClassLinkQueue(JSON.parse(raw),scopeKey,plan.id,plan.unitId,plan.offeringId):null,broken:false};}catch{return {queue:null,broken:true};}});
   const [queue,setQueue]=useState<ClassLinkQueue|null>(restored.queue),[broken,setBroken]=useState(restored.broken);
@@ -65,6 +65,14 @@ function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSec
     catch(caught){if(active.current&&token===generation.current&&!onSecurityFailure(caught))setError(caught instanceof ApiError?caught.message:'Klasskopplingarna kunde inte läsas. Försök igen.');}
     finally{if(active.current&&token===generation.current)setBusy(false);}
   }
+  const loadRef=useRef(load);
+  useLayoutEffect(()=>{loadRef.current=load;});
+  useEffect(()=>{
+    if(openRequest===0)return;
+    let cancelled=false;
+    queueMicrotask(()=>{if(active.current&&!cancelled){setOpen(true);void loadRef.current();}});
+    return()=>{cancelled=true;};
+  },[openRequest]);
   async function execute(command:Pending) {
     if(running.current||disabled||(!uncertain&&!canManage))return;
     running.current=true;setPending(command);setBusy(true);setError(null);setMfa(false);let accepted=false;

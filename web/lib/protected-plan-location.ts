@@ -1,4 +1,4 @@
-import { parsePlanningSelection, parsePlanningSetup, type PlanningSelection, type PlanningSetup } from './planning-year-contract.ts';
+import { parsePlanningSelection, parsePlanningSetup, type PlanningSelection, type PlanningSetup, type PlanningRow } from './planning-year-contract.ts';
 
 export type ProgramplanLocation = { offeringId: string; planId: string; version?: number; unitId?: string };
 export type GymTimplanLocation = { kind: 'source' | 'plan'; id: string; unitId?: string; offeringId?: string; version?: number };
@@ -196,4 +196,14 @@ export function planningReadScopeLost(previous: VerifiedPlanningScope | null, fr
   const readable = (unit: PlanningSetup['units'][number]) => selected.view === 'programplan' ? unit.canRead.programplan : unit.canRead[selected.schoolform];
   const formerlyReadable = before.units.filter(unit => readable(unit) && (selected.unitId === null || selected.unitId === unit.unitId));
   return formerlyReadable.some(unit => !next.units.some(current => current.unitId === unit.unitId && readable(current)));
+}
+
+/** Open one already parsed annual row; a display name is never an object identity. */
+export function planningRowLocation(row: PlanningRow, selection: PlanningSelection): PlanLocation | null {
+  if (!row.plan) return null;
+  const {view: _view, ...current}=selection;
+  const planning={...current,unitId:row.unitId,schoolform:row.schoolform,page:1,selectionRevision:null};
+  if(selection.view==='programplan')return {view:'programplaner',programplan:{offeringId:row.offeringId,planId:row.plan.id,version:row.plan.version,unitId:row.unitId},planning,...(row.relativeYear?{relativeYear:row.relativeYear,allYears:false}:{})};
+  if(row.schoolform==='gymnasium')return {view:'timplaner',gym:{kind:'plan',id:row.plan.id,offeringId:row.offeringId,unitId:row.unitId,version:row.plan.version},planning,...(row.relativeYear?{relativeYear:row.relativeYear,allYears:false}:{})};
+  return {view:'timplaner',gym:null,other:{kind:row.schoolform,id:row.plan.id,offeringId:row.offeringId,unitId:row.unitId,version:row.plan.version,...(row.application?.columnId?{columnId:row.application.columnId as OtherTimplanLocation['columnId']}:{})},planning};
 }
