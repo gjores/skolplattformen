@@ -26,6 +26,20 @@ Kodkontroll: `web/app/protected-class-cohorts.tsx` visar en klass i taget utan a
 
 ## Nästa steg och stängningskriterier
 
+### Utökat användarbehov: namngivna parallella timplaner
+
+Användaren preciserar 2026-10-15 att timplanerna måste kunna benämnas tydligt och att A-klassen kan behöva betydligt mer matematik än B-klassen, trots samma programplan. Behovet omfattar därför självständiga timfördelningar för samma utbildning och skola, med begripliga namn och synlig klasskoppling. Detta är ett beställt funktionsbehov, ännu inte implementerat. Modellutökningen ska planeras separat från rena presentationsändringar inom gapet.
+
+- Exempel på benämningar att pröva: **SAM 2028 – grundfördelning** och **SAM 2028 – utökad matematik**. Namn är användarvalda; klass, läsår, version och beslutsstatus visas som separata uppgifter. En plan kan delas av flera klasser och ska inte vara låst till ett klassnamn.
+- Skilj **ny separat timplan** från **ny version av samma timplan**. Varje separat timplan behöver egen stabil identitet, versionshistorik och beslutskedja. Att fastställa en av dem ska inte ersätta den andra. Dagens modell har en aktuell fastställd version per utbildning/skola och behöver därför ändras; äldre ersatta versioner ska inte användas som lösning för parallella planer.
+- Användaren ska kunna utgå från en befintlig fördelning, namnge en separat plan och ändra matematiktiden för den. Extra timmar ändrar inte automatiskt programplanens poäng eller andra ämnens timmar. Tillämpliga timkrav och kontroller behöver hanteras i genomförandeplanen.
+- Visa vilka klasser som använder varje plan för valt läsår samt skillnader i ämnestimmar och total tid. Omdöpning får inte ändra kopplingar eller identiteter; hantering av lika namn och historisk namnpresentation ska bestämmas före implementation.
+- Verifiera två samtidigt fastställda namngivna planer från samma programunderlag på samma skola: A använder planen med fler matematiktimmar, B använder grundfördelningen. Ny version eller ändrat namn för A:s plan får inte ändra B:s plan, klasskoppling eller andra läsår. Bevara även stöd för flera klasser på samma plan och explicit granskning vid byte.
+
+SS 12000-avstämningen ska omfatta den nya interna timplansidentiteten och bevarade klass-/organisationsrelationer enligt befintlig mappning. Ingen direkt standardmappning för namngivna timplansvarianter antas. Käll-/skrivansvar, migrering av befintlig versionskedja och beslut, servermandat och verifieringsfall kräver en genomförbar modell-/API-plan innan kod ändras.
+
+### Genomförande och verifiering
+
 1. Använd [Claude Design-prompten](05-CLASS-COHORT-CLAUDE-DESIGN-PROMPT.md) tillsammans med skärmdumpar. Designförslag är underlag, inte beslutad implementation.
 2. Granska förslaget och skriv en avgränsad GSD-plan med berörda komponenter, API-behov, handbokssidor och SS 12000-avstämning. Återöppna inte redan godkända orelaterade flöden.
 3. Implementera och verifiera på dator och telefon. Prova två olika klasser till samma timplan och samma läsår, återläsning, befintlig koppling, versionsbyte för enbart vald klass/valt år samt avbrott med osäker sparstatus. Säkerställ oförändrade mandat och skydd.
