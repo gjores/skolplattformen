@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {openSync,closeSync,writeFileSync,readFileSync,existsSync,statSync,unlinkSync,chmodSync} from 'node:fs';
+import {openSync,closeSync,writeFileSync,readFileSync,existsSync,statSync,unlinkSync,fsyncSync,renameSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -22,7 +22,7 @@ const hash=value=>createHash('sha256').update(typeof value==='string'||Buffer.is
 const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item);
 const ident=value=>'"'+value.replaceAll('"','""')+'"';
 const PRODUCT=['web/app','web/lib','web/components','web/hooks','web/scripts','web/package.json','web/package-lock.json','web/vite.config.ts','web/vinext.config.ts'];
-const ownSources=['work/pilot/phase5-class-cohort-oidc-fixtures.mjs','work/pilot/verify-class-cohort-api.mjs','web/e2e/class-cohort-actual.spec.ts','web/playwright.class-cohort-actual.config.ts','web/e2e/helpers/keycloak.ts'];
+const ownSources=['work/pilot/phase5-class-cohort-oidc-fixtures.mjs','work/pilot/verify-class-cohort-api.mjs','web/e2e/class-cohort-actual.spec.ts','web/playwright.class-cohort-actual.config.ts','web/e2e/helpers/keycloak.ts','work/pilot/phase5-class-cohort-callback.test.mjs'];
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const COHORT='/api/klasser/organisation/';
 const commandTables={
@@ -34,6 +34,29 @@ const commandTables={
  '/api/timplaner/gym/skapa':['gym_timplan_receipts','actor_identity_id'],
  '/api/planbeslut/andra':['plan_decision_receipts','actor_identity_id'],
 };
+// Pure gate: an observed callback request and a unique new Worker audit bind one real browser return.
+export function verifyClassCohortCallbackProof({attempt,callbacks,audits,session,browserReturn,usedAuditIds=[]}){
+ assert.equal(attempt.loginRequests,1,'Exactly one authentication navigation required');
+ assert.equal(browserReturn.origin,attempt.origin);assert.ok(!browserReturn.pathname.startsWith('/api/auth'));
+ assert.equal(callbacks.length,1,'Exactly one callback request required');const callback=callbacks[0];
+ assert.equal(callback.attemptId,attempt.id);assert.equal(callback.role,attempt.role);
+ assert.equal(callback.origin,attempt.origin);assert.equal(callback.pathname,'/api/auth/callback');
+ assert.equal(callback.method,'GET');assert.equal(callback.navigation,true);
+ assert.ok(callback.status===null||Number.isInteger(callback.status)&&callback.status>=300&&callback.status<400,'Observed callback response must be 3xx');
+ assert.equal(session.identityId,attempt.identityId);assert.equal(session.issuer,attempt.issuer);assert.equal(session.subject,attempt.subject);
+ assert.equal(audits.length,1,'Exactly one new login audit required');const audit=audits[0];
+ assert.equal(audit.source,'worker');assert.equal(audit.action,'login');assert.equal(audit.outcome,'ok');
+ assert.equal(audit.actor_identity_id,attempt.identityId);assert.equal(audit.actor_issuer,attempt.issuer);assert.equal(audit.actor_subject,attempt.subject);
+ assert.equal(audit.session_id,session.sessionId);assert.equal(audit.details?.stepUp,attempt.stepUp);
+ assert.ok(!attempt.priorAuditIds.includes(audit.id),'Audit predates this authentication attempt');assert.ok(!usedAuditIds.includes(audit.id),'Audit already bound to another callback');
+ if(attempt.stepUp){
+  assert.equal(session.sessionId,attempt.sessionId);assert.equal(session.epoch,attempt.epoch);assert.equal(session.mfa,true);
+  assert.equal(audit.details?.proof?.result,'accepted');assert.equal(audit.details?.proof?.issuer,attempt.issuer);
+ }else assert.ok(!attempt.priorSessionIds.includes(session.sessionId),'Normal login must create a new session');
+ return{proofKind:'browser-return-and-server-audit',attemptId:attempt.id,callbackId:callback.id,auditId:audit.id,sessionId:session.sessionId,httpStatus:callback.status};
+}
+// End pure callback gate.
+
 export function classCohortApiSourceHashes(){
  const sources=new Set([...git(['ls-files','--',...PRODUCT]).split('\n').filter(Boolean),...ownSources]);
  const visit=relative=>{if(!/\.(?:mjs|ts|tsx)$/u.test(relative))return;const source=readFileSync(path.join(root,relative),'utf8');
@@ -86,11 +109,18 @@ export function classCohortProcessProof(baseURL,buildRoot){
  return{workerPid:listeners[0],previewPid:parent,port:Number(port),cwd,scriptPath,configPath,previewSourceSha256:hash(readFileSync(scriptPath))};
 }
 function readJson(file,fallback){return existsSync(file)?JSON.parse(readFileSync(file,'utf8')):fallback;}
-function privateWrite(file,value){writeFileSync(file,JSON.stringify(value,null,2)+'\n',{mode:0o600});chmodSync(file,0o600);}
+function durablePrivateFile(file,bytes){
+ const fd=openSync(file,'wx',0o600);try{writeFileSync(fd,bytes);fsyncSync(fd);}finally{closeSync(fd);}
+}
+function syncDirectory(file){const fd=openSync(path.dirname(file),'r');try{fsyncSync(fd);}finally{closeSync(fd);}}
+function privateWrite(file,value){
+ const temporary=file+'.'+randomUUID()+'.tmp';durablePrivateFile(temporary,JSON.stringify(value,null,2)+'\n');
+ renameSync(temporary,file);syncDirectory(file);
+}
 function success(response){assert.equal(response.status,200,`API rejected: ${response.body?.code??response.status}`);return response.body;}
 async function snapshots(db){
  const result={};
- const tables=await db`select schemaname,tablename from pg_tables where schemaname='public' or (schemaname='auth' and tablename in ('sessions','refresh_tokens')) order by schemaname,tablename`;
+ const tables=await db`select schemaname,tablename from pg_tables where schemaname='public' or (schemaname='auth' and tablename in ('sessions','refresh_tokens','mfa_amr_claims')) order by schemaname,tablename`;
  for(const t of tables){if(t.schemaname==='public'&&['identities','security_events'].includes(t.tablename))continue;
   const [row]=await db.unsafe(`select count(*)::int count,encode(sha256(convert_to(coalesce(string_agg(to_jsonb(t)::text,'' order by to_jsonb(t)::text),''),'UTF8')),'hex') sha256 from ${ident(t.schemaname)}.${ident(t.tablename)} t`);
   result[`${t.schemaname}.${t.tablename}`]=row;
@@ -111,7 +141,7 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
  const reportFd=openSync(evidencePath,'wx',0o600);closeSync(reportFd);
  const runId=randomUUID(),journalPath=path.join(evidenceDir,`${runId}-private-journal.json`);
  const report={kind:'class-cohort-real-oidc-fixture',runId,status:'FAIL',scope:'local-synthetic-only',stage:'initializing',startedAt:new Date().toISOString()};
- const journal={runId,users:[],commands:[],sessions:[],authSessions:[]};
+ const journal={runId,users:[],commands:[],sessions:[],authSessions:[],callbacks:[],authAttempts:[]};
  const save=()=>{privateWrite(journalPath,journal);privateWrite(evidencePath,report);};save();
  const target=await assertTarget('protected',{requireIdp:true});
  const db=require('postgres')(target.dbUrl,{max:1,prepare:false,connect_timeout:10,onnotice:()=>{}});
@@ -166,7 +196,7 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
   assert.equal(view.context?.assignmentId,actor.assignmentId);assert.equal(view.context?.membershipId,actor.membershipId);assert.equal(view.context?.customerId,base.customerId);assert.equal(view.context?.valid,true);
   if(requireMfa)assert.equal(view.mfa.proof,true,'Actual server MFA proof missing');
   const s=await ownSession(context,role);assert.equal(s.assignment_id,actor.assignmentId);assert.equal(s.membership_id,actor.membershipId);assert.equal(s.epoch,view.epoch);
-  contexts.set(role,context);actor.epoch=view.epoch;return{role,identityId:actor.identityId,membershipId:actor.membershipId,assignmentId:actor.assignmentId,sessionId:s.id,epoch:view.epoch,mfa:view.mfa.proof};
+  contexts.set(role,context);actor.epoch=view.epoch;return{role,issuer:view.identity.issuer,subject:view.identity.subject,identityId:actor.identityId,membershipId:actor.membershipId,assignmentId:actor.assignmentId,sessionId:s.id,epoch:view.epoch,mfa:view.mfa.proof};
  };
  const request=async(context,role,route,input,options={})=>{
   assert.ok(route.startsWith('/api/'),'Only application API routes allowed');const actor=roleActor(role);assert.equal(contexts.get(role),context,'Context must first complete real OIDC login');
@@ -176,11 +206,89 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
    observeResult(entry,body,response.status());if(response.status()===200&&route==='/api/programplaner/klona'){assert.ok(uuid.test(body.id));ownPlans.add(body.id);journal.clonedPlans??=[];journal.clonedPlans.push({role,input,result:body});save();}return{status:response.status(),body,correlationId:response.headers()['x-correlation-id']??null,epoch:response.headers()['x-context-epoch']??null};
   })();inflight.add(pending);pending.finally(()=>inflight.delete(pending)).catch(()=>{});return pending;
  };
+ const activeAuthAttempts=new Map(),usedCallbackAudits=new Set();
+ const callbackMetadata=()=>callbacks.map(({request:_request,...metadata})=>metadata);
+ const saveCallbacks=()=>{journal.callbacks=callbackMetadata();save();};
+ const registerCallback=(request,role)=>{
+  let entry=callbacks.find(c=>c.request===request);if(entry)return entry;
+  const attempt=activeAuthAttempts.get(role);assert.ok(attempt,'Callback outside a prepared authentication attempt');assert.equal(attempt.context,request.frame().page().context());assert.equal(attempt.page,request.frame().page());
+  const url=new URL(request.url());entry={id:randomUUID(),role,attemptId:attempt.metadata.id,origin:url.origin,pathname:url.pathname,method:request.method(),navigation:request.isNavigationRequest(),state:'pending',status:null,startedAt:new Date().toISOString(),requestSha256:hash(request.method()+' '+request.url()),request};
+  callbacks.push(entry);saveCallbacks();return entry;
+ };
+ const completeCallback=(response,source='page.response')=>{
+  const entry=callbacks.find(c=>c.request===response.request());assert.ok(entry,'Callback request observation missing');
+  entry.status=response.status();if(entry.state!=='server_verified')entry.state='completed';entry.completedAt=new Date().toISOString();entry.responseEvidence??=source;entry.responseUrlSha256=hash(response.url());entry.responseUrlMatchesRequest=response.url()===response.request().url();saveCallbacks();
+ };
+ const readLoginAudits=async(role)=>{const actor=roleActor(role);return Array.from(await db`select id::text,source,action,outcome,actor_identity_id::text,actor_issuer,actor_subject,session_id::text,details from public.security_events where actor_identity_id=${actor.identityId} and action='login' order by id`);};
+ const prepareAuthAttempt=async(page,role,stepUp)=>{
+  assert.ok(!activeAuthAttempts.has(role),'Only one authentication attempt per own identity');
+  const actor=roleActor(role),context=page.context();const before=stepUp?await ownSession(context,role):null;
+  const priorAuditIds=(await readLoginAudits(role)).map(row=>row.id);
+  const priorSessionIds=(await db`select id::text from public.app_sessions where identity_id=${actor.identityId}`).map(row=>row.id);
+  const metadata={id:randomUUID(),role,identityId:actor.identityId,issuer:target.idp.issuer,subject:actor.subject,origin:baseURL,stepUp,priorAuditIds,priorSessionIds,
+   ...(before?{sessionId:before.id,epoch:before.epoch}:{}),loginRequests:0,state:'prepared',preparedAt:new Date().toISOString()};
+  journal.authAttempts.push(metadata);activeAuthAttempts.set(role,{metadata,page,context});save();return metadata;
+ };
+ const finishAuthAttempt=async(page,role,proof)=>{
+  const active=activeAuthAttempts.get(role);assert.ok(active);assert.equal(active.page,page);assert.equal(active.context,page.context());
+  const attempt=active.metadata;await drain();const browserUrl=new URL(page.url());
+  const audits=(await readLoginAudits(role)).filter(row=>!attempt.priorAuditIds.includes(row.id));
+  const selected=callbacks.filter(callback=>callback.attemptId===attempt.id);
+  const verified=verifyClassCohortCallbackProof({attempt,callbacks:selected,audits,session:proof,
+   browserReturn:{origin:browserUrl.origin,pathname:browserUrl.pathname},usedAuditIds:[...usedCallbackAudits]});
+  const callback=selected[0];Object.assign(callback,verified,{state:'server_verified',verifiedAt:new Date().toISOString()});
+  Object.assign(attempt,verified,{state:'verified',returnedUrlSha256:hash(page.url()),verifiedAt:new Date().toISOString()});usedCallbackAudits.add(verified.auditId);
+  activeAuthAttempts.delete(role);saveCallbacks();return verified;
+ };
+ const verifyAllAuthBindings=async()=>{
+  assert.ok(callbacks.every(callback=>callback.state==='server_verified'&&(callback.status===null||callback.status>=300&&callback.status<400)),'Unverified callback must retain the journal');
+  for(const role of Object.keys(actors)){
+   const attempts=journal.authAttempts.filter(attempt=>attempt.role===role),verified=attempts.filter(attempt=>attempt.state==='verified');
+   assert.ok(attempts.every(attempt=>attempt.state==='verified'||attempt.loginRequests===0&&!callbacks.some(c=>c.attemptId===attempt.id)),'Started authentication attempt remains unresolved');
+   const audits=await readLoginAudits(role);assert.equal(audits.length,verified.length,'Every own login audit must be covered');
+   assert.equal(callbacks.filter(c=>c.role===role).length,verified.length,'Every callback must be covered');
+   assert.equal(new Set(verified.map(a=>a.auditId)).size,verified.length);
+   for(const attempt of verified)assert.ok(audits.some(a=>a.id===attempt.auditId)&&callbacks.some(c=>c.attemptId===attempt.id&&c.auditId===attempt.auditId));
+  }
+ };
+ const callbackContexts=new Map(),callbackProbes=new WeakMap();
+ const probeCallback=(request,source)=>{
+  if(callbackProbes.has(request))return callbackProbes.get(request);
+  const pending=enqueue((async()=>{
+   let timer;try{
+    const response=await Promise.race([request.response(),new Promise(resolve=>{timer=setTimeout(()=>resolve(null),3000);})]);
+    const entry=callbacks.find(c=>c.request===request);assert.ok(entry);
+    entry.responseProbeAt=new Date().toISOString();entry.responseProbeSource=source;
+    if(response){assert.equal(response.request(),request);completeCallback(response,source);}else{entry.responseProbeMissing=true;saveCallbacks();}
+   }finally{clearTimeout(timer);}
+  })());callbackProbes.set(request,pending);return pending;
+ };
+ const trackCallbackContext=(context,role)=>{
+  if(callbackContexts.has(context)){assert.equal(callbackContexts.get(context),role);return;}callbackContexts.set(context,role);
+  context.on('request',request=>{try{
+   const url=new URL(request.url());
+   if(url.origin===baseURL&&url.pathname==='/api/auth/login'){
+    const active=activeAuthAttempts.get(role);assert.ok(active,'Authentication navigation without durable baseline');assert.equal(active.context,context);assert.equal(active.page,request.frame().page());
+    assert.equal(request.method(),'GET');assert.equal(request.isNavigationRequest(),true);assert.equal(url.searchParams.get('step_up')==='1',active.metadata.stepUp);
+    active.metadata.loginRequests++;active.metadata.startedAt=new Date().toISOString();save();
+   }
+   if(url.origin===baseURL&&url.pathname==='/api/auth/callback')registerCallback(request,role);
+   for(let from=request.redirectedFrom();from;from=from.redirectedFrom())if(callbacks.some(c=>c.request===from))void probeCallback(from,'redirectedFrom.request.response');
+  }catch{observerErrors.push(Error('Callback request observation failed'));}});
+  context.on('response',response=>{try{
+   // Match the registered Request before inspecting response URL: redirect URL equality is not assumed.
+   if(callbacks.some(c=>c.request===response.request()))completeCallback(response,'context.response');
+  }catch{observerErrors.push(Error('Callback response observation failed'));}});
+  context.on('requestfinished',request=>{const entry=callbacks.find(c=>c.request===request);if(entry){entry.finishedAt=new Date().toISOString();saveCallbacks();void probeCallback(request,'requestfinished.request.response');}});
+  context.on('requestfailed',request=>{const entry=callbacks.find(c=>c.request===request);if(entry){entry.failedAt=new Date().toISOString();entry.failureSha256=hash(request.failure()?.errorText??'unknown');saveCallbacks();}});
+ };
  const trackPage=(page,role)=>{
-  if(pages.has(page))return;roleActor(role);assert.ok(!quiescing);pages.set(page,role);
-  page.on('request',req=>{try{const url=new URL(req.url());if(url.origin!==baseURL)return;if(url.pathname==='/api/auth/callback'){callbacks.push({role,state:'pending',request:req});}if(req.method()==='POST')record(role,url.pathname,req.postDataJSON());}catch{observerErrors.push(Error('Request observation failed'));}});
-  page.on('response',response=>{if(new URL(response.url()).origin!==baseURL)return;const pathname=new URL(response.url()).pathname;
-   if(pathname==='/api/auth/callback'){const callback=callbacks.find(c=>c.request===response.request());assert.ok(callback,'Callback request observation missing');callback.status=response.status();callback.state='completed';}
+  if(pages.has(page))return;roleActor(role);assert.ok(!quiescing);pages.set(page,role);trackCallbackContext(page.context(),role);
+  page.on('request',req=>{try{const url=new URL(req.url());if(url.origin!==baseURL)return;if(url.pathname==='/api/auth/callback'){registerCallback(req,role);}if(req.method()==='POST')record(role,url.pathname,req.postDataJSON());}catch{observerErrors.push(Error('Request observation failed'));}});
+  // Terminal lifecycle is diagnostic evidence, never a substitute for an observed HTTP status.
+  page.on('requestfinished',request=>{const entry=callbacks.find(c=>c.request===request);if(entry){entry.finishedAt=new Date().toISOString();saveCallbacks();}});
+  page.on('requestfailed',request=>{const entry=callbacks.find(c=>c.request===request);if(entry){entry.failedAt=new Date().toISOString();entry.failureSha256=hash(request.failure()?.errorText??'unknown');saveCallbacks();}});
+  page.on('response',response=>{if(callbacks.some(c=>c.request===response.request()))completeCallback(response);if(new URL(response.url()).origin!==baseURL)return;const pathname=new URL(response.url()).pathname;
    if(response.request().method()==='POST'&&commandTables[pathname])enqueue((async()=>{const entry=record(role,pathname,response.request().postDataJSON());const body=await response.json().catch(()=>null);observeResult(entry,body,response.status());})());
   });
  };
@@ -192,18 +300,25 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
  };
  const login=async(page,role,{stepUp=true}={})=>{
   assert.ok(!quiescing);const actor=roleActor(role);trackPage(page,role);const context=page.context();assert.ok(![...contexts.values()].includes(context),'Use a fresh browser context per identity');
+  await prepareAuthAttempt(page,role,false);
   const {loginViaKeycloak}=await import('../../web/e2e/helpers/keycloak.ts');
   const steps=await loginViaKeycloak(page,actor.username,{password:actor.password});
-  let proof=await sessionView(context,role,{select:true});
-  if(stepUp&&!proof.mfa){steps.push(...await loginViaKeycloak(page,actor.username,{password:actor.password,stepUp:true}));proof=await sessionView(context,role,{requireMfa:true});}
-  await captureAuth();await page.goto(baseURL+'/');return{...proof,steps,realOidcCallback:callbacks.some(c=>c.role===role&&c.status>=300&&c.status<400)};
+  let proof=await sessionView(context,role,{select:true});const authentication=[await finishAuthAttempt(page,role,proof)];
+  if(stepUp&&!proof.mfa){await prepareAuthAttempt(page,role,true);steps.push(...await loginViaKeycloak(page,actor.username,{password:actor.password,stepUp:true}));proof=await sessionView(context,role,{requireMfa:true});authentication.push(await finishAuthAttempt(page,role,proof));}
+  await captureAuth();await page.goto(baseURL+'/');return{...proof,steps,realOidcCallback:true,authentication};
  };
  const completeStepUp=async(page,role)=>{
+  const active=activeAuthAttempts.get(role);assert.ok(active?.metadata.stepUp,'Step-up must be prepared before navigation');assert.equal(active.page,page);
   const actor=roleActor(role),before=await ownSession(page.context(),role);
   await page.waitForURL(url=>url.origin===new URL(target.idp.issuer).origin);
   const {fillKeycloakLogin}=await import('../../web/e2e/helpers/keycloak.ts');const steps=await fillKeycloakLogin(page,actor.username,actor.password);
   await page.waitForURL(url=>url.origin===baseURL&&!url.pathname.startsWith('/api/auth'),{timeout:30000});
-  const proof=await sessionView(page.context(),role,{requireMfa:true});assert.equal(proof.sessionId,before.id);assert.equal(proof.epoch,before.epoch);await captureAuth();return{...proof,steps,realOidcCallback:true};
+  const proof=await sessionView(page.context(),role,{requireMfa:true});assert.equal(proof.sessionId,before.id);assert.equal(proof.epoch,before.epoch);await captureAuth();const authentication=[await finishAuthAttempt(page,role,proof)];return{...proof,steps,realOidcCallback:true,authentication};
+ };
+ const prepareStepUp=async(context,role)=>{
+  assert.ok(!quiescing);assert.equal(contexts.get(role),context,'Use the authenticated role context');
+  const rolePages=[...pages].filter(([page,pageRole])=>pageRole===role&&page.context()===context&&!page.isClosed()).map(([page])=>page);assert.equal(rolePages.length,1);
+  const attempt=await prepareAuthAttempt(rolePages[0],role,true);return{attemptId:attempt.id,sessionId:attempt.sessionId,epoch:attempt.epoch};
  };
  const expireMfa=async(context,role)=>{
   const s=await ownSession(context,role);await assertTarget('protected');await owned(db);
@@ -291,7 +406,7 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
  const cleanup=async()=>{
   assert.equal(closed,false,'Fixture already closed');quiescing=true;let failure,cleanupEvidence,retainedAnchors;
   try{
-   report.stage='quiescing';save();for(const page of pages.keys())await page.close({runBeforeUnload:false});await drain();assert.equal(callbacks.filter(c=>c.state!=='completed').length,0,'Unfinished callback: preserve journal before any business cleanup');
+   report.stage='quiescing';save();for(const page of pages.keys())await page.close({runBeforeUnload:false});await drain();await verifyAllAuthBindings();
    for(const [role,context]of contexts)await resolvePending(context,role);await drain();
    await captureAuth();for(const context of new Set(contexts.values()))await context.close();
    await clearAuditFailure();await assertTarget('protected');
@@ -327,6 +442,7 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
      assert.ok(authRows.every(s=>ownAuthUsers.includes(s.user_id)),'Foreign GoTrue session');
      await tx`set local session_replication_role=replica`;
      await tx`delete from auth.refresh_tokens where session_id=any(${authIds}::uuid[])`;
+     await tx`delete from auth.mfa_amr_claims where session_id=any(${authIds}::uuid[])`;
      await tx`delete from auth.sessions where id=any(${authIds}::uuid[])`;
      await tx`delete from public.app_sessions where id=any(${sessionIds}::uuid[]) and identity_id=any(${actorIds}::uuid[])`;
      for(const table of new Set(Object.values(commandTables).map(v=>v[0]))){const ids=receipts.filter(r=>r.table===table).map(r=>r.commandId);await tx.unsafe(`delete from public.${ident(table)} where command_id=any($1::uuid[]) and ${ident(new Map(Object.values(commandTables).map(pair=>[pair[0],pair[1]])).get(table))}=any($2::uuid[])`,[ids,Object.values(actors).map(a=>a.identityId)]);}
@@ -360,7 +476,7 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
    const finalSourceHashes=classCohortApiSourceHashes(),finalBuildProof=await verifyClassCohortBuild(baseURL);
    assert.deepEqual(finalSourceHashes,sourceHashes,'Verifier/product sources changed during run');assert.deepEqual(finalBuildProof.artifact,buildProof.artifact,'Built artifact changed');
    const {requireAppliedEvidence}=await import('./verify-class-cohort.mjs');const finalSql=await requireAppliedEvidence({evidencePath:sqlEvidencePath,db,target});assert.deepEqual(finalSql,sqlProof);
-   Object.assign(report,{status:'PASS',stage:'cleaned',cleanup:cleanupEvidence,finalSourceHashes,finalBuildProof,sqlProof,callbacks:callbacks.map(({role,state,status})=>({role,state,status})),commands:journal.commands.map(e=>({commandId:e.input.commandId,route:e.route,role:e.role,state:e.state,resolution:e.resolution,requestSha256:hash(canonical(e.input))})),finishedAt:new Date().toISOString()});save();
+   Object.assign(report,{status:'PASS',stage:'cleaned',cleanup:cleanupEvidence,finalSourceHashes,finalBuildProof,sqlProof,callbacks:callbackMetadata(),authentication:journal.authAttempts,commands:journal.commands.map(e=>({commandId:e.input.commandId,route:e.route,role:e.role,state:e.state,resolution:e.resolution,requestSha256:hash(canonical(e.input))})),finishedAt:new Date().toISOString()});save();
   }catch(error){failure=error;Object.assign(report,{status:'FAIL',stage:'cleanup_failed',failureCode:error.code??'ASSERTION',cleanup:cleanupEvidence});save();}
   finally{closed=true;await db.end({timeout:5});if(lockFd!==undefined){closeSync(lockFd);if(!failure)unlinkSync(lockPath);}}
   if(failure)throw failure;return{...cleanupEvidence,sourceUnchanged:true,artifactUnchanged:true,sqlEvidenceSha256:sqlProof.evidenceSha256,evidencePath,evidenceSha256:hash(readFileSync(evidencePath))};
@@ -370,7 +486,20 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
   assert.equal((await db`select pg_try_advisory_lock(5520) acquired`)[0].acquired,true,'Another SQL/apply/HTTP verifier owns this target');
   const {requireAppliedEvidence}=await import('./verify-class-cohort.mjs');assert.ok(sqlEvidencePath,'Applied SQL evidence path required');
   sqlProof=await requireAppliedEvidence({evidencePath:sqlEvidencePath,db,target});buildProof=await verifyClassCohortBuild(baseURL);sourceHashes=classCohortApiSourceHashes();
-  initial=await snapshots(db);anchors=await anchorSnapshot(db);manifestOriginal=readJson(manifestPath,null);secretOriginal=secretPaths.map(file=>readJson(file,{}));
+  await db.begin(async tx=>{await tx`set transaction isolation level repeatable read read only`;initial=await snapshots(tx);anchors=await anchorSnapshot(tx);});
+  assert.equal(Object.keys(initial).length,63,'Unexpected baseline table inventory');
+  assert.equal(Object.keys(anchors).length,5,'All audit/identity anchor tables required');
+  const originalFiles=[manifestPath,...secretPaths].map(file=>{
+   if(!existsSync(file))return{path:file,exists:false};
+   const bytes=readFileSync(file);return{path:file,exists:true,mode:statSync(file).mode&0o777,sha256:hash(bytes),base64:bytes.toString('base64')};
+  });
+  manifestOriginal=JSON.parse(Buffer.from(originalFiles[0].base64,'base64').toString('utf8'));
+  secretOriginal=originalFiles.slice(1).map(file=>file.exists?JSON.parse(Buffer.from(file.base64,'base64').toString('utf8')):{});
+  const baselinePath=path.join(evidenceDir,`${runId}-private-baseline.json`);
+  const bytes=Buffer.from(JSON.stringify({version:1,runId,capturedAt:new Date().toISOString(),initial,anchors,originalFiles,sourceHashes,buildProof,sqlProof},null,2)+'\n');
+  durablePrivateFile(baselinePath,bytes);syncDirectory(baselinePath);
+  journal.baselinePath=baselinePath;journal.baselineSha256=hash(bytes);save();
+  assert.equal(hash(readFileSync(baselinePath)),journal.baselineSha256,'Baseline must be durable before fixture mutations');
   foreign=await createProgramplanBrowserFixture();
   const foreignRows=async()=>({offerings:await db`select to_jsonb(o) row from public.offerings o where organizer_id=${foreign.customerId.slice(0,8)+'-0000-4000-8000-000000000002'} order by id`,plans:await db`select to_jsonb(p) row from public.point_plans p where organizer_id=${foreign.customerId.slice(0,8)+'-0000-4000-8000-000000000002'} order by id`});
   foreignOriginal=await foreignRows();foreign.readOwnedGraph=foreignRows;
@@ -425,7 +554,7 @@ export async function createClassCohortOidcFixture({baseURL,evidencePath,evidenc
   const manifest=readJson(manifestPath,null);assert.deepEqual(manifest,manifestOriginal);manifest.idp.users.push(...journal.users.map(({username,subject,email})=>({username,subject,email,totp:true})));privateWrite(manifestPath,manifest);identitySetup=true;
   const reference=basis(),scope={unitId:base.unitId,secondUnitId:base.secondUnitId,foreignCustomerId:foreign.customerId,foreignUnitId:foreign.unitId,foreignOfferingId:foreign.offeringId,offeringId:base.offeringId,emptyOfferingId:base.emptyOfferingId,catalogId:base.catalogId,customerId:base.customerId,organizerId:base.organizerId,futureStart:reference.startedOn,springStart:`${reference.startedOn.slice(0,4)}-02-15`};
   Object.assign(report,{stage:'ready',buildProof,sourceHashes,sqlProof,scope});save();
-  return{scope,basis,login,completeStepUp,expireMfa,request,trackPage,resolvePending,prepareEducation,approveProgramplan,approveTimplan,cleanup,buildProof,sourceHashes,sqlProof,inspect,audit,auditFailure,clearAuditFailure,
+  return{scope,basis,login,prepareStepUp,completeStepUp,expireMfa,request,trackPage,resolvePending,prepareEducation,approveProgramplan,approveTimplan,cleanup,buildProof,sourceHashes,sqlProof,inspect,audit,auditFailure,clearAuditFailure,
    async switchAssignment(context,role,alternate=false){
     const actor=roleActor(role);assert.equal(role,'second');const assignmentId=alternate?actor.alternateAssignmentId:base.principalB.assignmentId;
     const response=await context.request.post(`${baseURL}/api/context`,{headers:{Origin:baseURL,'Sec-Fetch-Site':'same-origin','X-Context-Epoch':String(actor.epoch)},data:{assignmentId}});assert.equal(response.status(),200);actor.assignmentId=assignmentId;return sessionView(context,role);

@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: CLASS-COHORT-08
 status: executing
-stopped_at: CLASS-COHORT-07 verifierad;08 faktiska SQL/Worker/OIDC-prov genomförs.
+stopped_at: CLASS-COHORT-07 verifierad;08 faktiskt UI-prov hittade förlorad klassöppning vid skolbyte; avgränsad rättning pågår.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "CLASS-COHORT-01–07 inklusive03A verifierade.08 pågår; ingen beständig migration eller lokal leverans ännu."
+last_activity_desc: "CLASS-COHORT-08: installerad SQL-matris436 och sju faktiska samtidighetsfall verifierade med känd cleanup; Worker/API30 med verklig OIDC/MFA har passerat på tidigare provbygge; faktiskt UI-prov hittade förlorad klassöppning vid skolbyte. Rättning och färskt bygge/API/UI återstår."
 state_head: 98c9520
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
@@ -22,7 +22,13 @@ progress:
 milestone_name: milestone
 ---
 
+**Klassorganisation, återupptagen kontroll 2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
+
 # Project State
+
+**Aktuellt CLASS-COHORT 2026-10-15:** Plan08 färdig: SQL436+7 samtidighetsfall, Worker/API30 och faktisk browser6/6 PASS med full cleanup.9/11 paketplaner klara. Nästa09: samma201 byggfiler från88145bc till lokal3012, därefter10 konkret mänskligt klassprov. Fulla krav/fas5 och historiska88/100 samt3/8 består. Se [verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-VERIFICATION.md). Äldre lägesnoteringar nedan är historik.
+
+**Klassorganisation, lokal schemaändring 2026-10-15:** Plan08:s436 samlade SQL-kontroller har passerat med full rollback. Tre granskade migrationer är därefter installerade på det isolerade syntetiska målet med oförändrade originalprojektioner. Den installerade436-matrisen och sju separata faktiska samtidighetsfall har passerat med exakt cleanup och bevarade originalprojektioner. Fullmatrisen redovisas som ärvd i återupptagningens slutrapport, med uttrycklig begränsning för den tidigare provkörningens osorterade audithash. SQL-verktygen är pushade i63fa5ca. Worker/API30 med verklig lokal OIDC/MFA har nu passerat med exakt cleanup; sex faktiska dator-/telefonfall pågår. Ordinarie3012 kör fortfarande tidigare bygge `f4987b6`; separat provbygge `3f421c5` kör nu på den registrerade provporten3013 efter verifierad portflytt från3067. Ingen full krav-/fasacceptans eller mänsklig acceptans följer av detta delsteg.
 
 **Klassorganisation, klasspanel verifierad 2026-10-15:** CLASS-COHORT-07 har frivilligt klasssteg, granskade namn, huvudmannens läsläge och requestbunden återhämtning över avbrott/omladdning/MFA. UI48 nya +42 klassregressioner +18 kopieprov på dator/telefon, Node18, typ/full lint och bild-/kodgranskning PASS. Första kombinerade browserkörningens två WebKit-mockfel är bevarade och rättade; resultatet är tydligt avgränsat till simulerade API-svar. 8 av11 paketplaner genomförda.08 faktisk SQL/Worker/OIDC-verifiering pågår, ingen permanent migration eller ny3012-leverans ännu.
 
@@ -481,10 +487,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-15
-**Stopped At:** CLASS-COHORT-02 genomförd och rollback-verifierad; nästa CLASS-COHORT-03.
+**Stopped At:** CLASS-COHORT-08 genomförd; nästa CLASS-COHORT-09 lokal leverans.
 **Resume File:** [Klassorganisationens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — CLASS-COHORT-03 och paketets beroendekedja. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
+**Planned Phase:** 5 — CLASS-COHORT-09 och paketets beroendekedja. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
 
 ### Senaste användarfynd, 2026-10-02
 

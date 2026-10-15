@@ -17,6 +17,7 @@ files_modified:
   - work/pilot/phase5-class-cohort-oidc-fixtures.mjs
   - supabase/tests/phase5_class_cohort_dates.test.sql
   - work/pilot/verify-class-cohort-link-identity.mjs
+  - work/pilot/resume-class-cohort-concurrency.mjs
 must_haves:
   truths:
     - "Hela tidiga klassflödet fungerar med syntetiska data genom verklig Worker och databas."
@@ -104,3 +105,31 @@ Implementera och dokumentera kedjan: initial rollback → explicit `--prepare-ap
 Inventera gamla kolumner och jämför varje gammal rad projicerad på dessa kolumner före/efter DDL. Kontrollera separat null/legacy_unknown för gamla klassers tillagda fält och tom ny kvittotabell vid apply. Schema/ACL/policy/journal binds före, förväntat efter och installerat med exakt tre journalposter. Cleanup tar enbart manifestets egna graf efter främmande referenskontroll och bevarar audit/identitetsankare. Både egen fixtur och gamla rader följs med exakta originalprojektioner.
 
 Samtidighetsproven använder olika `pg_backend_pid`, egna sessionskontexter och bevisat överlapp genom `pg_blocking_pids`/aktivitetskontroll eller exakt NOWAIT-konflikt medan den första transaktionen fortfarande är öppen. Prova klass först/källstart först, offeringkalenderändring, identisk batch som replay samt gammal sourceToken efter källrevision. Varje fall har en egen offering när start ska kunna ändras. RR-/Serializable-nekanden särredovisas och ersätter inte samtidighetsprov.
+
+## Avgränsad återupptagning efter installerad matris
+
+Den första installerade körningens fulla436 matris-/isolations-/regressionskontroller passerade. Ett ociterat SQL-alias i samtidighetsverktyget gav därefter `batchaudits` i stället för förväntade `batchAudits`; värdet var1 i båda fallen. Körningen redovisas fortsatt som FAIL. Exakt cleanup passerade, egna verksamhetsrader/sessioner är borta och originalrader bevarades. Den historiska pre02-fixturen får inte återskapas genom avstängda skydd.
+
+En avgränsad tionde provfil, `resume-class-cohort-concurrency.mjs`, får därför återanvända en modern egen `approvedClassFixture` under installerade skydd och köra om alla sju samtidighetsfall. Den ska binda föregående fullmatris och dess faktiskt passerade städning till originalrapportens SHA och den frysta verifierarkällan. Produkt, migrationer och SQL-tester måste vara oförändrade; den tidigare matrisens körkod kontrolleras mot frysta källan. Slutrapporten särredovisar tidigare fullmatris och ny samtidighet, med nytt mål-/schema-/källbevis och exakt städning. Validatorn för efterföljande API-prov ska även kontrollera denna proveniens. Inga gamla FAIL-filer skrivs över och inga nya fullmatrisresultat fabriceras.
+
+Den första cleanupens hash av de egna 92 auditraderna byggdes över en osorterad parallell SQL-läsning. PK-mängd, antal och PK-hash kan återverifieras exakt, men den sparade ordningsberoende värdehashen kan inte användas för en ny säker radvärdesjämförelse. Detta redovisas som en bevisbegränsning, inte som verifierad värdelikhet. De ursprungliga äldre verksamhetsprojektionerna och båda egna identitetsankarnas sparade värdehash ska fortfarande matcha. Återupptagningen sparar en kanoniskt sorterad aktuell baseline för de 92 auditraderna och kräver exakt bevarande av den genom den nya körningen. Ursprunglig FAIL, cleanupresultat och hashvärden ändras inte.
+
+
+## Avgränsad rättning från faktiskt prov 2026-10-15
+
+A01 i den första körningen som nådde UI hittade att klasssteget inte öppnas efter skapande när verifierad skola ändrar arbetsytans React-nyckel. Den lokala öppningsavsikten förloras vid ommontering. Tidigare komponentharness publicerade inget skolbyte och kunde därför inte fånga felet. Rapporten förblir FAIL; inget produkt-PASS eller lokal leverans följer.
+
+Rättningen ska föra en engångsavsikt mellan den verifierade målöppningen och den nya arbetsytan, bunden till aktuell kontext samt exakt utbildning/plan/skola. Avsikten konsumeras när rätt klasspanel monterats och rensas vid annan navigation eller sessionsbyte. Inga nya URL-parametrar, beständig lagring, mandat eller automatiska skrivningar tillkommer. Gör senare får inte ångras av en senare ommontering.
+
+Berörda produktfiler: `web/app/protected-home.tsx`, `web/app/protected-programplan-workspace.tsx` och `web/app/protected-class-cohorts.tsx`; komplettera berörd browserharness/regression så verklig skolbytesommontering ingår. Verifiera riktat på dator/telefon, typkontroll och lint, följt av nytt separat skyddat bygge samt färska fulla Worker/API- och actual-prov mot samma nya bygge. Befintligt SQL-bevis återanvänds bara om dess verifierade källor/schema/journal fortfarande matchar. Handbokstexten behåller det avsedda automatiska klasssteget, men får inte anges lokalt levererad före plan09.
+
+SS 12000-bedömning: rättningen gäller tillfälligt visningstillstånd, utanför standardens informationsobjekt. Stabil utbildnings-/klassidentitet, skolmandat och datummappning ändras inte; den exakta målbindningen ska förhindra att öppningsavsikten följer till en annan skola eller utbildning.
+
+
+## Provverktygets callback- och återhämtningsbevis
+
+Telefonens första faktiska fall stoppade i cleanup på saknad callbackobservation. Separat exakt återhämtning ska binda den avbrutna fixturen, kända kvitton och serverauditerade inloggningar till en atomär städtransaktion, först verifierad med rollback. Föregående desktopbaslinje täcker62 verksamhets-/sessionstabeller; återhämtningens egen före/efter-baslinje för identitets-/auditankare redovisas som en separat tidsgräns. Originalets FAIL får inte skrivas om.
+
+Efter återhämtningen ska OIDC-adaptern spara privat hållbar baseline och callbackmetadata före respektive mutation. Varje autentiseringsomgång behöver faktiskt observerat svar; ingen302 får härledas från endast cookie eller MFA. Den exakta städningen ska även omfatta auth.mfa_amr_claims för egna GoTrue-sessioner, med separat bevarande av alla äldre claims. Nya fixturprov får63-tabellsbaseline; äldre62-tabellsrapporter ändras inte. Dessa ändringar gäller provverktyg, inte behörigheter eller SS12000-objekt.
+
+Den minimala verkliga diagnosen reproducerade att WebKit inte exponerar callbackens Response trots fungerande serverinloggning. Bevismodellen kompletteras därför uttryckligen: privat fsyncad audit-ID-baslinje före varje auth-trigger, exakt en observerad callbacknavigation, faktisk browserretur, cookie/API-verifierad egen identitet/session och exakt en ny unik worker-login-audit. Step-up kräver oförändrad session/epok och accepterad MFA. Saknad HTTPstatus är null; observerat felstatus nekas alltid. Detta är sammansatt OIDC-bevis, inte uppmätt302. Negativa rena tester täcker saknade/dubbla/felaktiga/återanvända bevis före ny faktisk API/browserkörning.
