@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: NAMED-TIMPLANS-UX
-status: planned_execution_started
+status: actual_verified_awaiting_local_migration_approval
 date: 2026-10-15
 gap: CLASS-COHORT-UX-01
 requirements: [ADMIN-02, ADMIN-03, ADMIN-04, PLANERING-01, PLANERING-04, PLANERING-05]
