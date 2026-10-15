@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-06
+current_plan: CLASS-COHORT-07
 status: executing
-stopped_at: CLASS-COHORT våg4 verifierad;06 skyddade API-rutter genomförs.
+stopped_at: CLASS-COHORT-06 verifierad;07 klasspanel och återhämtning genomförs.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "CLASS-COHORT-01–05 inklusive03A verifierade.06 pågår; ingen beständig migration eller lokal leverans ännu."
-state_head: e609846
+last_activity_desc: "CLASS-COHORT-01–06 inklusive03A verifierade.07 pågår; ingen beständig migration eller lokal leverans ännu."
+state_head: 4f3f7e8
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
 worker_status: running_on_3012_registry_compatibility_verified
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Klassorganisation, API-rutter verifierade 2026-10-15:** CLASS-COHORT-06 har tre skyddade rutter med aktuellt mandat, obligatorisk audit, strikt svarskontroll och MFA för skapande. Node36, typkontroll och full lint PASS;49 källhashar och loggar oberoende kontrollerade. DB/session är simulerade i dessa routeprov; faktiskt SQL/Worker/OIDC provas i08. 7 av11 paketplaner genomförda,07 klasspanel pågår. Ingen permanent migration eller ny3012-leverans.
 
 **Klassorganisation, våg4 verifierad 2026-10-15:** CLASS-COHORT-04 SQL274 PASS,61 hela tabeller återställda och62 källhashar verifierade. Tidiga tomma klasser, batch/kvitto/status, mandat, ändrade källor och5 534 Unicodeprober passerar; riktig DB-roll skolplattform_worker ingår, HTTP/OIDC och faktisk samtidighet återstår. Tillsammans med03A och05 är6 av11 paketplaner genomförda.06 API-rutter påbörjad. Ingen permanent migration eller ny3012-leverans.
 

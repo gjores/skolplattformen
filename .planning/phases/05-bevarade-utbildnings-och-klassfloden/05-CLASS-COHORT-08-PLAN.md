@@ -15,6 +15,8 @@ files_modified:
   - web/playwright.class-cohort-actual.config.ts
   - work/pilot/verify-class-timplans.mjs
   - work/pilot/phase5-class-cohort-oidc-fixtures.mjs
+  - supabase/tests/phase5_class_cohort_dates.test.sql
+  - work/pilot/verify-class-cohort-link-identity.mjs
 must_haves:
   truths:
     - "Hela tidiga klassflödet fungerar med syntetiska data genom verklig Worker och databas."
@@ -92,3 +94,13 @@ En sjätte provfil, `phase5-class-cohort-oidc-fixtures.mjs`, behövs för verkli
 Basens cleanup känner inte `class_cohort_commands` och kör replica vid radering av uppdrag. Adaptern måste före delete bevisa exakta egna actor/assignment/request/command-ID:n, radera enbart dessa receipts och riktiga egna callback-sessioner, därefter kontrollera noll kvarvarande främmande referenser. Alla gamla kvitton, gamla audit-/identitetsankare samt nya auditerade identitetsankare bevaras med hash/count före/efter. Nya GoTrue-authankare och sessioner omfattas uttryckligen; inga råa lösenord/tokens/personfält hamnar i Git eller rapportsammanfattning. Okänt HTTP-utfall måste lösas före cleanup. Detta motiverade filundantag verifierar den redan beslutade faktiska inloggningen utan att bygga om generiska fixturer.
 
 Befintliga actual-konfigurationer har fasta testMatch. En sjunde liten fil, `web/playwright.class-cohort-actual.config.ts`, väljer den nya actual-specen med `PHASE5_BASE_URL`, dator/telefon, workers1, retries0 och ingen Vite-webServer. Trace är av för att inte spara inloggningshemligheter. Konfigurationen binds i verifieringsbeviset.
+
+## Historisk fixtur och färska applybevis
+
+Den fulla 02→03→04-matrisen behöver egna historiska rader skapade före migration02: legacydatum, gammalt länkkvitto och tvetydiga gamla namnnycklar. De får inte fabriceras efter apply genom avstängda skydd. Två ytterligare avgränsade provfiler ingår därför: `phase5_class_cohort_dates.test.sql` använder en exakt tillåten Worker-signaturlista för de tre04-ingångarna när de finns (alla andra funktions-/rollnekanden består), och `verify-class-cohort-link-identity.mjs` exporterar befintlig pre02-setup samt `secondCohort` för återanvändning. Inga assertions hoppas över.
+
+Implementera och dokumentera kedjan: initial rollback → explicit `--prepare-applied-fixture` med privat ID/request/rowmanifest → färsk rollback på samma beständiga fixtur → `apply --verify` → `apply --apply` med färska bevis → `--applied` full02→03→04-matris i rollback → riktiga tvåsessionsprov → exakt egen cleanup. Varje steg kontrollerar målfingerprint, källhashar och manifest; ett bevis från före den beständiga fixturen får inte användas för apply. Privat manifest och rapport skapas exklusivt med0600 och innehåller aldrig riktiga elevdata.
+
+Inventera gamla kolumner och jämför varje gammal rad projicerad på dessa kolumner före/efter DDL. Kontrollera separat null/legacy_unknown för gamla klassers tillagda fält och tom ny kvittotabell vid apply. Schema/ACL/policy/journal binds före, förväntat efter och installerat med exakt tre journalposter. Cleanup tar enbart manifestets egna graf efter främmande referenskontroll och bevarar audit/identitetsankare. Både egen fixtur och gamla rader följs med exakta originalprojektioner.
+
+Samtidighetsproven använder olika `pg_backend_pid`, egna sessionskontexter och bevisat överlapp genom `pg_blocking_pids`/aktivitetskontroll eller exakt NOWAIT-konflikt medan den första transaktionen fortfarande är öppen. Prova klass först/källstart först, offeringkalenderändring, identisk batch som replay samt gammal sourceToken efter källrevision. Varje fall har en egen offering när start ska kunna ändras. RR-/Serializable-nekanden särredovisas och ersätter inte samtidighetsprov.
