@@ -46,10 +46,19 @@ const {GET:inbox}=await import('../../app/api/planbeslut/inkorg/route.ts');
 const rawSource=()=>({planId:id,offeringId:offering,version:1,revision:3,status:'utkast',catalogId:artifact.catalogId,basisReference:structuredClone(basis),distribution:structuredClone(distribution),
  rows:termRows.map(row=>({key:row.key,points:row.points})),educationRevision:2,education:{name:'Syntetisk SA',cohort:'27/28',programCode:program.code,orientationCode},archived:false});
 const catalog=()=>{const{catalogId:_catalogId,...payload}=structuredClone(artifact);return payload;};
-const detail=()=>({kind:'programplan',planId:id,offeringId:offering,unitId:null,educationName:'Syntetisk SA',schoolName:null,version:1,stage:'draft',nextActor:'rektor',revision:3,decisionRevision:0,basisHash:`sha256:${'a'.repeat(64)}`,actions:['submit'],blockers:[],checks:[{id:'structure',label:'Granska struktur'},{id:'choices',label:'Granska val'}],history:[],sourceInfo:null,source:rawSource(),catalog:catalog(),hours:[]});
+const detail=()=>({series:null,kind:'programplan',planId:id,offeringId:offering,unitId:null,educationName:'Syntetisk SA',schoolName:null,version:1,stage:'draft',nextActor:'rektor',revision:3,decisionRevision:0,basisHash:`sha256:${'a'.repeat(64)}`,actions:['submit'],blockers:[],checks:[{id:'structure',label:'Granska struktur'},{id:'choices',label:'Granska val'}],history:[],sourceInfo:null,source:rawSource(),catalog:catalog(),hours:[]});
 const command=()=>({kind:'programplan',planId:id,commandId:planId,action:'submit',expectedRevision:3,expectedDecisionRevision:0,basisHash:`sha256:${'a'.repeat(64)}`,comment:'',confirmedChecks:['structure','choices']});
 function reset(){const b=detail();state={fn:'rektor',mfa:true,basis:b,reply:{...structuredClone(b),stage:'submitted',nextActor:'huvudman',decisionRevision:1,actions:['withdraw']},inbox:{items:[],actionCount:0,decisionCount:0,total:0,truncated:false},events:[],calls:[],mutations:[]};}
 function request(path,body,origin='http://localhost'){return new Request(`http://localhost/api/planbeslut/${path}`,{method:body===undefined?'GET':'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Context-Epoch':'1'},...(body===undefined?{}:{body:JSON.stringify(body)})});}
+test('activated decision projection rejects omitted series metadata',async()=>{
+ reset();delete state.basis.series;assert.equal((await read(request('underlag',{kind:'programplan',planId:id}))).status,500);
+ assert.equal(state.events.some(e=>e.outcome==='ok'),false);
+});
+test('legacy immutable decision receipt may keep old history while SQL adds series metadata',async()=>{
+ reset();state.reply.history=[{action:'submit',at:'2026-10-15T12:00:00Z',actorName:'Syntetisk rektor',comment:''}];
+ const response=await change(request('andra',command()));assert.equal(response.status,200);
+ const body=await response.json();assert.equal(body.series,null);assert.deepEqual(body.history,state.reply.history);
+});
 test('all planning roles read strictly projected and audited decision data without MFA',async()=>{
  for(const fn of ['huvudman','rektor','administrator']){
   reset();state.fn=fn;state.mfa=false;let response=await read(request('underlag',{kind:'programplan',planId:id}));assert.equal(response.status,200);const body=await response.json();assert.deepEqual(body.blockers,[]);assert.equal(body.source,undefined);assert.equal(body.catalog,undefined);assert.equal(state.events[0].action,'plan_decision_basis_read');
@@ -85,7 +94,7 @@ test('CAS, blocker and permission SQL failures are minimized and exposed correct
  }
 });
 test('timplan submit requires complete positive rows and 2180 hours after independent projection',async()=>{
- const make=()=>{reset();const r=state.reply;r.kind='timplan';r.planId=planId;r.unitId=unit;r.schoolName='Syntetisk skola';r.revision=4;r.checks=[{id:'teacher-led',label:'Undervisning'},{id:'choice-paths',label:'Val'}];r.hours=termRows.map(row=>{const d=distribution.find(d=>d.rowKey===row.key);return{rowKey:row.key,hours:d.points.map(p=>p>0?p:null)};});return{...command(),kind:'timplan',planId,confirmedChecks:['teacher-led','choice-paths']};};
+ const make=()=>{reset();const r=state.reply;r.series={id:unit,name:'Grundfördelning',revision:0};r.kind='timplan';r.planId=planId;r.unitId=unit;r.schoolName='Syntetisk skola';r.revision=4;r.checks=[{id:'teacher-led',label:'Undervisning'},{id:'choice-paths',label:'Val'}];r.hours=termRows.map(row=>{const d=distribution.find(d=>d.rowKey===row.key);return{rowKey:row.key,hours:d.points.map(p=>p>0?p:null)};});return{...command(),kind:'timplan',planId,confirmedChecks:['teacher-led','choice-paths']};};
  let input=make();assert.equal((await change(request('andra',input))).status,200);
  for(const missing of [null,0]){input=make();state.reply.hours[0].hours=state.reply.hours[0].hours.map(v=>v===null?null:missing);assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);}
  input=make();state.reply.hours.forEach(row=>{row.hours=row.hours.map(v=>v===null?null:1);});assert.equal((await change(request('andra',input))).status,409);
@@ -100,7 +109,7 @@ function vocationalReply(code,kind='programplan',startedOn='2027-08-01'){
  Object.assign(state.reply.source,{basisReference,distribution,rows:rows.map(r=>({key:r.key,points:r.points})),education:{name:'Syntetiskt yrkesprogram',cohort:'27/28',programCode:code,orientationCode:orientation}});
  state.reply.checks=[...(kind==='programplan'?['structure','choices']:['teacher-led','choice-paths']),'eligibility','apl'].map(id=>({id,label:id}));
  if(kind==='timplan'){
-  Object.assign(state.reply,{kind,planId,unitId:unit,schoolName:'Syntetisk skola',revision:4});
+  Object.assign(state.reply,{series:{id:unit,name:'Grundfördelning',revision:0},kind,planId,unitId:unit,schoolName:'Syntetisk skola',revision:4});
   const count=distribution.reduce((n,row)=>n+row.points.filter(p=>p>0).length,0),total=programplanProfile(p).hours;
   let remainder=total%count;
   state.reply.hours=distribution.map(row=>({rowKey:row.rowKey,hours:row.points.map(p=>p>0?Math.floor(total/count)+(remainder-->0?1:0):null)}));

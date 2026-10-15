@@ -96,6 +96,7 @@ export async function readPlanningList(tx: Tx, ctx: Context, input: PlanningSele
     // The foundation authenticates frozen catalog inventory before projecting.
     // Recheck source identity, canonical rows, year slice and scope at the API boundary.
     const body = parsePlanningList(raw, input, setup);
+    if (body.rows.some(row => !Object.hasOwn(row, 'series'))) throw new TypeError();
     return { body, event: event('planning_year_list_read') };
   } catch { throw new AuditUnavailable(); }
 }
@@ -105,6 +106,7 @@ export async function readPlanningOverview(tx: Tx, ctx: Context, input: Planning
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.phase5_planning_year_overview(${tx.json(input)}) as result`));
   try {
     const body = parsePlanningOverview(raw, input, setup);
+    if (body.rows.some(row => !Object.hasOwn(row, 'series'))) throw new TypeError();
     return { body, event: event('planning_year_overview_read') };
   } catch { throw new AuditUnavailable(); }
 }

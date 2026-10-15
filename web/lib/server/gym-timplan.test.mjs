@@ -49,7 +49,7 @@ const {POST:write}=await import('../../app/api/timplaner/gym/rad/route.ts');
 const rawSource=()=>({planId:id,offeringId:offering,version:1,revision:3,status:'utkast',catalogId:artifact.catalogId,basisReference:structuredClone(basis),distribution:structuredClone(distribution),
   rows:termRows.map(row=>({key:row.key,points:row.points})),educationRevision:2,education:{name:'Syntetisk SA',cohort:'27/28',programCode:program.code,orientationCode},archived:false});
 const catalog=()=>{const{catalogId:_catalogId,...payload}=structuredClone(artifact);return payload;};
-const rawPlan=()=>({id:planId,offeringId:offering,unitId:unit,schoolName:'Syntetisk skola',version:1,revision:0,status:'utkast',source:rawSource(),catalog:catalog(),
+const rawPlan=()=>({series:{id:unit,name:'Grundfördelning',revision:0},nameAtCreation:null,id:planId,offeringId:offering,unitId:unit,schoolName:'Syntetisk skola',version:1,revision:0,status:'utkast',source:rawSource(),catalog:catalog(),
   currentSourceBasis:rawSource(),currentSource:{planId:id,version:1,revision:3,status:'utkast'},hours:Object.fromEntries(termRows.map(row=>[row.key,[null,null,null,null,null,null]])),canPlan:true,archived:false});
 const command=()=>({commandId:planId,sourcePlanId:id,expectedSourceRevision:3,expectedEducationRevision:2,unitId:unit,predecessorPlanId:null,expectedPredecessorRevision:null});
 const rowCommand=()=>({planId,expectedRevision:0,rowKey:key,hours:[0,45,null,null,null,null]});
@@ -63,6 +63,13 @@ test('basis and plan reads allow HM, principal and school administrator without 
     assert.equal('catalog'in projected,false);assert.equal('basisReference'in projected.source,false);assert.equal(projected.source.catalogId,artifact.catalogId);
     if(path==='underlag'){assert.equal(projected.readiness.ready,true);assert.equal(projected.rows.reduce((n,r)=>n+r.points,0),2500);}else assert.equal(projected.sourceChanged,false);
   }
+});
+test('activated gym projection requires series and creation-name metadata',async()=>{
+  for(const field of ['series','nameAtCreation']){reset();delete state.plan[field];assert.equal((await read(request('lasa',{planId}))).status,500);}
+  reset();state.underlag.units[0].plans=[{id:planId,version:1,revision:0,status:'utkast',sourcePlanId:id,sourceRevision:3,sourceVersion:1,series:{id:unit,name:'Grundfördelning',revision:0}}];
+  assert.equal((await underlag(request('underlag',{sourcePlanId:id}))).status,200);
+  delete state.underlag.units[0].plans[0].series;
+  assert.equal((await underlag(request('underlag',{sourcePlanId:id}))).status,500);
 });
 test('frozen source projection verifies the whole hash and exact ordered source row schema',async()=>{
   for(const mutate of [p=>p.catalog.programs[0].name='Tampered whole artifact',p=>p.catalog.private='private',p=>p.source.rows[0].points=999,

@@ -35,6 +35,7 @@ const ERROR_TEXT: Record<string, string> = {
   programplan_block_packages_in_use: 'Blocket används av tidigare sparat utbud. Uppgifterna bevaras och blockets poäng kan därför inte ändras eller blocket tas bort här.',
   programplan_start_passed: 'Utbildningen har redan startat. En ny plan kan bara skapas för en kull som inte har börjat.',
   gym_timplan_source_not_ready: 'Programramen behöver kompletteras. Läs aktuellt underlag innan du skapar timplansutkastet.',
+  timplan_name_conflict: 'Det finns redan en timplan med det namnet för utbildningen på skolan. Välj ett annat namn.',
   gym_timplan_archived: 'Utbildningen är arkiverad. Timplanen kan läsas men inte ändras.',
   programplan_submitted: 'Programplanen är inskickad för beslut. Läs om planen och ta tillbaka förslaget innan du ändrar underlaget.',
   class_name_year_conflict: 'Klassnamnet är redan upptaget på skolan för den berörda kullen eller läsåret. Välj ett annat namn eller kontrollera klasskopplingen.',

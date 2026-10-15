@@ -66,11 +66,12 @@ export async function projectSource(sourceValue: unknown, catalogValue: unknown)
   const uniqueMissing = [...new Set(missing)];
   return { source, rows, readiness: { ready: uniqueMissing.length === 0 && analysis.ready, missing: uniqueMissing } };
 }
-async function operation<T>(fn: () => Promise<T>): Promise<T> {
+export async function gymTimplanOperation<T>(fn: () => Promise<T>): Promise<T> {
   try { return await mandateOperation(async () => {
     try { return await fn(); }
     catch (error) {
       if (error && typeof error === 'object' && 'code' in error && 'hint' in error) {
+        if (error.code === '40001' && error.hint === 'timplan_name_conflict') throw new Deny('timplan_name_conflict', 409);
         if (error.code === '40001' && error.hint === 'gym_timplan_source_not_ready') throw new Deny('gym_timplan_source_not_ready', 409);
         if (error.code === '42501' && error.hint === 'gym_timplan_archived') throw new Deny('gym_timplan_archived', 409);
       }
@@ -80,8 +81,8 @@ async function operation<T>(fn: () => Promise<T>): Promise<T> {
   catch (error) { if (error && typeof error === 'object' && 'code' in error && error.code === '55000') throw new AuditUnavailable(); throw error; }
 }
 function one(rows: {result: unknown}[]): unknown { if (rows.length !== 1) throw new AuditUnavailable(); return rows[0].result; }
-async function projectPlan(value: unknown, expectedId: string) {
-  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog', 'currentSource', 'currentSourceBasis', 'hours', 'canPlan', 'archived']);
+export async function projectGymTimplan(value: unknown, expectedId: string) {
+  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog', 'currentSource', 'currentSourceBasis', 'hours', 'canPlan', 'archived', 'series', 'nameAtCreation']);
   const { source, rows, readiness } = await projectSource(r.source, r.catalog);
   const currentSource = parseGymTimplanCurrentSource(r.currentSource);
   const live = r.currentSourceBasis === null ? null : rawSource(r.currentSourceBasis).projected;
@@ -98,26 +99,27 @@ async function projectPlan(value: unknown, expectedId: string) {
   return { body, readiness, frozenSource: source };
 }
 export async function readGymTimplanUnderlag(tx: Tx, input: GymTimplanUnderlagRequest) {
-  const raw = one(await operation(() => tx<{result: unknown}[]>`select public.phase5_gym_timplan_underlag(${input.sourcePlanId}) as result`));
+  const raw = one(await gymTimplanOperation(() => tx<{result: unknown}[]>`select public.phase5_gym_timplan_underlag(${input.sourcePlanId}) as result`));
   try {
     const r = gymShape(raw, ['source', 'catalog', 'units']), projected = await projectSource(r.source, r.catalog);
     const body = parseGymTimplanUnderlag({ source: projected.source.projected, rows: projected.rows, readiness: projected.readiness, units: r.units }, input.sourcePlanId);
+    if (body.units.some(unit => unit.plans.some(plan => !plan.series))) bad();
     return { body, event: { action: 'gym_timplan_basis_read', objectType: 'programplan', objectId: input.sourcePlanId } };
   } catch { throw new AuditUnavailable(); }
 }
 export async function readGymTimplan(tx: Tx, input: GymTimplanReadRequest) {
-  const raw = one(await operation(() => tx<{result: unknown}[]>`select public.phase5_read_gym_timplan(${input.planId}) as result`));
+  const raw = one(await gymTimplanOperation(() => tx<{result: unknown}[]>`select public.phase5_read_gym_timplan(${input.planId}) as result`));
   try {
-    const { body } = await projectPlan(raw, input.planId);
+    const { body } = await projectGymTimplan(raw, input.planId);
     return { body, event: { action: 'gym_timplan_read', objectType: 'timplan', objectId: input.planId } };
   } catch { throw new AuditUnavailable(); }
 }
 export async function createGymTimplan(tx: Tx, input: GymTimplanCreateRequest) {
-  const raw = one(await operation(() => tx<{result: unknown}[]>`select public.phase5_create_gym_timplan(
+  const raw = one(await gymTimplanOperation(() => tx<{result: unknown}[]>`select public.phase5_create_gym_timplan(
     ${input.commandId},${input.sourcePlanId},${input.expectedSourceRevision},${input.expectedEducationRevision},${input.unitId},${input.predecessorPlanId},${input.expectedPredecessorRevision}) as result`));
   let reply, projected;
   try {
-    const r = gymShape(raw, ['reply', 'plan']); reply = parseGymTimplanCreateReply(r.reply, input); projected = await projectPlan(r.plan, reply.id);
+    const r = gymShape(raw, ['reply', 'plan']); reply = parseGymTimplanCreateReply(r.reply, input); projected = await projectGymTimplan(r.plan, reply.id);
     const plan = projected.body;
     if (plan.offeringId !== reply.offeringId || plan.unitId !== reply.unitId || plan.version !== reply.version || plan.revision !== reply.revision
       || plan.source.planId !== input.sourcePlanId || plan.source.revision !== input.expectedSourceRevision
@@ -129,7 +131,7 @@ export async function createGymTimplan(tx: Tx, input: GymTimplanCreateRequest) {
   return { body: reply, event: { action: 'gym_timplan_created', objectType: 'timplan', objectId: reply.id } };
 }
 export async function writeGymTimplanRow(tx: Tx, input: GymTimplanRowRequest) {
-  const raw = one(await operation(() => tx<{result: unknown}[]>`select public.phase5_write_gym_timplan_row(
+  const raw = one(await gymTimplanOperation(() => tx<{result: unknown}[]>`select public.phase5_write_gym_timplan_row(
     ${input.planId},${input.expectedRevision},${input.rowKey},${tx.json(input.hours)}::jsonb) as result`));
   try {
     const body = parseGymTimplanRowReply(raw, input);

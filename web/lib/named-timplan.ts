@@ -1,5 +1,5 @@
 import { ProgramplanContractError } from './programplan-catalog.ts';
-import { gymInteger, gymShape, gymUuid } from './gym-timplan.ts';
+import { gymBoolean, gymInteger, gymShape, gymUuid, parseGymTimplanCreateReply, type GymTimplanCreateReply } from './gym-timplan.ts';
 
 /** A plan's stable identity and current name, independent of a particular version. */
 export type TimplanSeries = { id: string; name: string; revision: number };
@@ -20,6 +20,8 @@ export type NamedTimplanRenameRequest = {
   expectedSeriesRevision: number;
   name: string;
 };
+export type NamedTimplanCreateReply = GymTimplanCreateReply & { series: TimplanSeries };
+export type NamedTimplanRenameReply = { planId: string; series: TimplanSeries; replayed: boolean };
 
 function bad(): never { throw new ProgramplanContractError('invalid_named_timplan'); }
 
@@ -59,5 +61,23 @@ export function parseNamedTimplanCreateRequest(value: unknown): NamedTimplanCrea
 export function parseNamedTimplanRenameRequest(value: unknown): NamedTimplanRenameRequest {
   const r = gymShape(value, ['commandId', 'planId', 'seriesId', 'expectedSeriesRevision', 'name']);
   return { commandId: gymUuid(r.commandId), planId: gymUuid(r.planId), seriesId: gymUuid(r.seriesId),
-    expectedSeriesRevision: gymInteger(r.expectedSeriesRevision), name: parseTimplanName(r.name) };
+    expectedSeriesRevision: gymInteger(r.expectedSeriesRevision, 2147483646), name: parseTimplanName(r.name) };
+}
+
+/** New-series receipts are immutable, including their original name and revision. */
+export function parseNamedTimplanCreateReply(value: unknown, input: NamedTimplanCreateRequest): NamedTimplanCreateReply {
+  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'version', 'revision', 'sourcePlanId', 'sourceRevision', 'replayed', 'carriedRows', 'resetRows', 'series']);
+  const { series: rawSeries, ...rest } = r;
+  const reply = parseGymTimplanCreateReply(rest, { ...input, predecessorPlanId: null, expectedPredecessorRevision: null });
+  const series = parseTimplanSeries(rawSeries);
+  if (reply.version !== 1 || reply.revision !== 0 || series.revision !== 0 || series.name !== input.name
+    || input.copyFromPlanId === null && reply.carriedRows !== 0) bad();
+  return { ...reply, series };
+}
+
+export function parseNamedTimplanRenameReply(value: unknown, input: NamedTimplanRenameRequest): NamedTimplanRenameReply {
+  const r = gymShape(value, ['planId', 'series', 'replayed']), series = parseTimplanSeries(r.series);
+  if (gymUuid(r.planId) !== input.planId || series.id !== input.seriesId || series.name !== input.name
+    || series.revision !== input.expectedSeriesRevision + 1) bad();
+  return { planId: input.planId, series, replayed: gymBoolean(r.replayed) };
 }

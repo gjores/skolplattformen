@@ -6,7 +6,7 @@ import { Deny, type Tx } from './db.ts';
 import { mandateOperation } from './mandate-route.ts';
 import { programplanProfile } from '../programplan-profile.ts';
 
-const DETAIL_KEYS = ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','revision','decisionRevision','basisHash','actions','blockers','checks','history','sourceInfo'];
+const DETAIL_KEYS = ['series','kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','revision','decisionRevision','basisHash','actions','blockers','checks','history','sourceInfo'];
 const formatCount = (value: number) => value.toLocaleString('sv-SE').replaceAll('\u00a0', ' ');
 async function operation<T>(fn: () => Promise<T>): Promise<T> {
   try { return await mandateOperation(async () => {
@@ -71,7 +71,7 @@ export async function readPlanDecision(tx: Tx, input: PlanDecisionRead) {
 }
 export async function readPlanDecisionInbox(tx: Tx) {
   const raw = one(await operation(()=>tx<{result:unknown}[]>`select public.phase5_plan_decision_inbox() as result`));
-  try { return {body:parsePlanDecisionInbox(raw),event:{action:'plan_decision_inbox_read',objectType:'plan_decision_collection',objectId:null}}; }
+  try { const body=parsePlanDecisionInbox(raw); if(body.items.some(item=>!Object.hasOwn(item,'series'))) throw new TypeError(); return {body,event:{action:'plan_decision_inbox_read',objectType:'plan_decision_collection',objectId:null}}; }
   catch { throw new AuditUnavailable(); }
 }
 export async function commandPlanDecision(tx: Tx, input: PlanDecisionCommand) {
@@ -91,6 +91,6 @@ export function decisionRequest<T>(parse:(value:unknown)=>T,value:unknown):T { t
 
 export async function readPlanDecisionPage(tx: Tx, input: PlanDecisionQuery) {
   const raw = one(await operation(() => tx<{result:unknown}[]>`select public.phase5_plan_decision_page(${tx.json(input)}::jsonb) as result`));
-  try { return {body:parsePlanDecisionPage(raw,input),event:{action:'plan_decision_inbox_read',objectType:'plan_decision_collection',objectId:null}}; }
+  try { const body=parsePlanDecisionPage(raw,input); if(body.items.some(item=>!Object.hasOwn(item,'series'))) throw new TypeError(); return {body,event:{action:'plan_decision_inbox_read',objectType:'plan_decision_collection',objectId:null}}; }
   catch { throw new AuditUnavailable(); }
 }

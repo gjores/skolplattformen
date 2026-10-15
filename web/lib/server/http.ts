@@ -28,6 +28,7 @@ export type ErrorCode =
   | 'programplan_start_passed'
   | 'gym_timplan_source_not_ready'
   | 'gym_timplan_archived'
+  | 'timplan_name_conflict'
   | 'programplan_submitted'
   | 'class_name_year_conflict'
   | 'class_cohort_start_locked'

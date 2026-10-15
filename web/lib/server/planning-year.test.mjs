@@ -11,7 +11,7 @@ const selection = changes => ({ schoolYear: 2027, unitId: null, view: 'timplan',
   cohortRelation: 'all', archive: 'active', grade: null, sort: 'name', direction: 'asc', page: 1, selectionRevision: null, ...changes });
 const setup = () => ({ customerId: id(1), serverDate: '2026-10-07', currentYear: 2026, minimumYear: 2000, maximumYear: 2100,
   units: [{ unitId: id(2), schoolName: 'Syntetisk skola', canRead: { programplan: true, gymnasium: true, grundskola: true, introduktionsprogram: true } }] });
-const row = () => ({ customerId: id(1), unitId: id(2), offeringId: id(4), schoolName: 'Syntetisk skola', educationName: 'Syntetisk utbildning', cohort: 'Fritext 2099',
+const row = () => ({ series: {id:id(30),name:'Grundfördelning',revision:0}, customerId: id(1), unitId: id(2), offeringId: id(4), schoolName: 'Syntetisk skola', educationName: 'Syntetisk utbildning', cohort: 'Fritext 2099',
   schoolform: 'gymnasium', plan: { id: id(5), version: 2, revision: 7, status: 'utkast' }, source: { planId: id(6), offeringId: id(4), version: 1, revision: 3 },
   start: { provenance: 'timplan-source', startedOn: '2026-08-15', academicYear: 2026, legacyYear: 2026 }, relativeYear: 2, relation: 'continuing',
   underlag: 'planning', archived: false, columnMap: null, application: null, classes: [],
@@ -68,6 +68,9 @@ function reset(name = 'lista', input = selection()) {
   if (name === 'lista') state.result.pageSize = 50;
   if (name === 'oversikt') state.result.totals = { points: measure(100), annualHours: measure(80), weeklyHours: measure(0), classCount: measure(0), hasForecast: false };
 }
+test('activated planning rows require series metadata even though pure parsers know legacy shapes',async()=>{
+  for(const name of ['lista','oversikt']){reset(name);delete state.result.rows[0].series;await denied(name,503,request(name),'audit_unavailable');}
+});
 function request(name, input = selection(), changes = {}) {
   return new Request(`http://localhost/api/planering/${name}`, name === 'urval'
     ? { headers: { 'X-Context-Epoch': '1' }, ...changes }
