@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-07
+current_plan: CLASS-COHORT-08
 status: executing
-stopped_at: CLASS-COHORT-06 verifierad;07 klasspanel och återhämtning genomförs.
+stopped_at: CLASS-COHORT-07 verifierad;08 faktiska SQL/Worker/OIDC-prov genomförs.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "CLASS-COHORT-01–06 inklusive03A verifierade.07 pågår; ingen beständig migration eller lokal leverans ännu."
-state_head: 4f3f7e8
+last_activity_desc: "CLASS-COHORT-01–07 inklusive03A verifierade.08 pågår; ingen beständig migration eller lokal leverans ännu."
+state_head: 98c9520
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
 worker_status: running_on_3012_registry_compatibility_verified
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Klassorganisation, klasspanel verifierad 2026-10-15:** CLASS-COHORT-07 har frivilligt klasssteg, granskade namn, huvudmannens läsläge och requestbunden återhämtning över avbrott/omladdning/MFA. UI48 nya +42 klassregressioner +18 kopieprov på dator/telefon, Node18, typ/full lint och bild-/kodgranskning PASS. Första kombinerade browserkörningens två WebKit-mockfel är bevarade och rättade; resultatet är tydligt avgränsat till simulerade API-svar. 8 av11 paketplaner genomförda.08 faktisk SQL/Worker/OIDC-verifiering pågår, ingen permanent migration eller ny3012-leverans ännu.
 
 **Klassorganisation, API-rutter verifierade 2026-10-15:** CLASS-COHORT-06 har tre skyddade rutter med aktuellt mandat, obligatorisk audit, strikt svarskontroll och MFA för skapande. Node36, typkontroll och full lint PASS;49 källhashar och loggar oberoende kontrollerade. DB/session är simulerade i dessa routeprov; faktiskt SQL/Worker/OIDC provas i08. 7 av11 paketplaner genomförda,07 klasspanel pågår. Ingen permanent migration eller ny3012-leverans.
 

@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "CLASS-COHORT-07"
 type: execute
-status: planned
+status: complete
 wave: 6
 depends_on: ["CLASS-COHORT-06"]
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04, PLANERING-05]
