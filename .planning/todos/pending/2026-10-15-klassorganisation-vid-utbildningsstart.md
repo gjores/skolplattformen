@@ -13,4 +13,4 @@ Exakt visad timplan startar 2027-08-01 och saknar sparade klasskopplingar, så 2
 
 Nästa avgränsade plan ska skilja mellan tydligare start-/läsårsvisning och nytt tidigt klassflöde. Förslag: välj befintliga klasser inom samma utbildning/kull, skapa namngivna tomma klasser efter bekräftelse eller gör senare. Tom lista får inte skapa klasser automatiskt. Behåll separat uttrycklig tillämpning av fastställd timplansversion och läsår; ny planversion skapar inte ny klass. Källägarskap, klasser från annan utbildning och eventuell ändring av huvudmannens mandat behöver preciseras före den större förändringen.
 
-Ingen produktändring eller ny användaracceptans följer av denna todo. Tidigare kopieprov är fortfarande obesvarat. Äldre formulering om att endast kopieringsprovet återstår kompletteras av detta nya research-/planeringsbehov.
+Ingen produktändring eller ny användaracceptans följer av denna todo. Användaren bekräftade senare 2026-10-15 att kopieringsprovet i övrigt fungerade enligt plan; förbättringspunkten kvarstår separat. Äldre formulering om att endast kopieringsprovet återstår kompletteras av detta nya research-/planeringsbehov.

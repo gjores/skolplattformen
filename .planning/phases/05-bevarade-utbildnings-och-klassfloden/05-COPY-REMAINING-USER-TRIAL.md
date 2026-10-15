@@ -1,12 +1,16 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 requirements: [ADMIN-03]
-status: awaiting_user
-human_result: pending
+status: user_verified
+human_result: user_reported_pass
 worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 ---
 
-# Återstående användarprov: kopiera till nästa elevkull
+# Användarprov: kopiera till nästa elevkull
+
+## Rapporterat resultat 2026-10-15
+
+Användaren bekräftar ”annars fnukade testet enlgit plan” efter observationen och researchen om klassorganisation. Detta registreras som användarrapporterat godkänt för det beskrivna kopieringsprovet. Enhet och enskilda delsteg särredovisades inte. Klass-/kullobservationen kvarstår som separat förbättringsbehov; den är inte ett rapporterat fel i själva kopieringen. Inget separat mobilresultat eller full pilotacceptans härleds. Provstegen nedan bevaras som underlag och behöver inte upprepas.
 
 Skolflöde, beslutskedja, årsplanering och uttryckligt versionsbyte har redan godkända användarresultat. Detta prov gäller endast kopieringen. Om du redan provade den tidigare räcker det att bekräfta resultatet; skapa inte en extra kopia enbart för vår dokumentation.
 
@@ -18,4 +22,4 @@ Skolflöde, beslutskedja, årsplanering och uttryckligt versionsbyte har redan g
 
 Du behöver inte fastställa kopian eller göra om klass-/versionsprovet. Prova gärna kopieringsformuläret i smal mobilvy. Svara med om kopieringen fungerade eller vilket moment som blev oklart.
 
-Detta använder ordinarie skyddad app och beständig lokal provdatabas. Kopieringen använder den sparade programplanens frysta underlag; den behöver inte hämta om skoluppgifter från Skolverket. [Tekniska atomaritets-/återhämtningsbevis](05-COPY-ATOMIC-VERIFICATION.md) finns sedan tidigare. Inget nytt mänskligt resultat har registrerats för detta steg.
+Detta använder ordinarie skyddad app och beständig lokal provdatabas. Kopieringen använder den sparade programplanens frysta underlag; den behöver inte hämta om skoluppgifter från Skolverket. [Tekniska atomaritets-/återhämtningsbevis](05-COPY-ATOMIC-VERIFICATION.md) finns sedan tidigare. Mänskligt resultat är registrerat ovan.

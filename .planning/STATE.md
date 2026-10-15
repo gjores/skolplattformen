@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: CLASS-COHORT-RESEARCH
-status: research_complete
-stopped_at: Klass-/kullresearch klar; nästa steg är avgränsad plan för tydligare årsurval och tidig klassorganisation. Kopieresultat fortfarande öppet.
+status: ready_for_planning
+stopped_at: Kopieringsprov användarrapporterat godkänt; klass-/kullresearch klar inför avgränsad genomförandeplan.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "Källresearch, oberoende kodgranskning och läsning av visad plan klara. Klass-/kullförslag dokumenterat; ingen produktändring."
+last_activity_desc: "Användaren bekräftar att testet i övrigt fungerade enligt plan. Kopieprov godkänt; klassorganisation följs som separat förbättring."
 state_head: f4987b6
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Användarresultat 2026-10-15:** ”annars fnukade testet enlgit plan” registreras som godkänt för [kopieringsprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-REMAINING-USER-TRIAL.md). Ingen omtest behövs av detta prov. Klass-/kullresearchen kvarstår som underlag för nästa avgränsade plan; tidigare provgränser, historiska integritetsavvikelser och prestandabacklogg består. Äldre noteringar nedan beskriver tidigare lägen.
 
 **Klassorganisation 2026-10-15:** Användaren beställer research om tidigare läsårsval och klassval/skapande vid ny programplan. [Research](research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md) och [planeringspunkt](todos/pending/2026-10-15-klassorganisation-vid-utbildningsstart.md) är klara. Den visade timplanens frysta start är 2027-08-01, så 2027/28 är giltigt i just exemplet; ingen sparad förtidig koppling är belagd. Förslag: tidigt frivilligt klasssteg per utbildning/kull, separerat från timplansversion och med oförändrade mandat i första etappen. Ingen implementation eller kopieacceptans följer av researchen.
 

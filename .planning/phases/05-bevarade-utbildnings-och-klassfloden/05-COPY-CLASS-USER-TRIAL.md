@@ -1,8 +1,8 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 scope: kullkopiering-och-klassens-lasars-version
-status: partially_user_verified
-human_result: version_switch_user_reported_pass
+status: user_verified_bounded
+human_result: version_switch_and_copy_user_reported_pass
 prepared: 2026-10-14
 worker_build_revision: 2836908f810dd89c6135126b6cb766b32ac30783
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04]
@@ -11,6 +11,8 @@ requirements: [ADMIN-03, ADMIN-04, PLANERING-04]
 # Prova kopiering och klasskoppling
 
 ## Rapporterat resultat
+
+**Komplettering 2026-10-15:** Kopieringen är nu också användarrapporterat godkänd enligt [det avgränsade kopieprovet](05-COPY-REMAINING-USER-TRIAL.md). Klassorganisationens förbättringsförslag följs separat. Äldre formuleringar nedan om saknat kopieresultat beskriver läget före detta svar.
 
 Användaren svarade ”ok funkar bra!” efter förtydligandet av steg 4: skapa och fastställa version 2, behålla tidigare klasskopplingar och sedan uttryckligen byta endast 2027/28 till version 2 medan 2028/29 ligger kvar på version 1. Detta registreras som användarrapporterat godkänt för det beskrivna versionsbytet. Exakta planobjekt, roller, enheter och enskilda delkontroller särredovisades inte. Svaret ger inget separat godkännande av kullkopieringens steg 1 eller mobilprovet; de delarna är fortsatt utan uttryckligt resultat. Den rapporterade långsamma inläsningen ligger kvar i backloggen.
 
