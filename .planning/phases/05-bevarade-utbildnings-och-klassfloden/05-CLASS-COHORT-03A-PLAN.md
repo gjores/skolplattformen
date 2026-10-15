@@ -13,6 +13,8 @@ files_modified:
   - web/lib/server/audit-details.ts
   - web/lib/server/mandate-route.ts
   - web/lib/server/class-timplan.test.mjs
+  - web/app/protected-class-timplans.tsx
+  - web/e2e/operational-class-timplan.spec.ts
 must_haves:
   truths:
     - "Användaren får ett begripligt och säkert besked när klassnamn eller utbildningsstart står i konflikt."
@@ -56,3 +58,9 @@ must_haves:
 <verification>Riktade prov enligt ovan. Läs SS12000-bilagan: felkedjan ändrar inga objektmappningar eller externa rättigheter.</verification>
 <success_criteria>Säkert felbesked visas genom befintliga API-felkanalen med audit och typkontroll bevarade.</success_criteria>
 <output>Skriv 05-CLASS-COHORT-03A-SUMMARY.md; avgränsad commit/push och verifierad fjärrcommit enligt AGENTS.md.</output>
+
+## Verifierat följdfynd inför genomförandet
+
+Den befintliga klasspanelen ersätter idag alla 409-fel med generell revisionskonflikttext. De nya typade beskeden skulle därför döljas trots korrekt API och `ApiError.message`. Planen omfattar även en avgränsad justering i `protected-class-timplans.tsx` som bevarar kända säkra klassfel men fortsätter att spärra/återläsa underlaget, samt riktade dator-/telefonfall i befintlig `operational-class-timplan.spec.ts`. Detta är ett motiverat undantag från paketets ursprungliga femfilsgräns: två små följdändringar behövs för det redan beslutade observerbara felbeteendet. Ingen ny verksamhetsrätt eller datamodell införs.
+
+Plan02:s interna `class_cohort_source_invalid` mappas för 40001 till befintlig `class_plan_not_ready` med begripligt säkert besked, utan ytterligare publik felkod. Okända hints förblir generiska; 42501 får aldrig uppgraderas till detaljerat konfliktbesked.

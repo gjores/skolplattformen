@@ -1,18 +1,14 @@
 ---
-
-**Klassorganisation, våg 2 verifierad 2026-10-15:** CLASS-COHORT-02 har additiva klassdatum, startlås, skyddade medlemsperioder och reproducerbar rollback-runner. SQL89 PASS; 61 hela tabeller, schema/ACL/journal och 51 källhashar verifierade. Ingen permanent migration installerad och ingen faktisk tvåsessionskonkurrens ännu. Nästa är CLASS-COHORT-03. Paketet har 2 av 11 genomförda planer; fulla krav/fasacceptans och ordinarie3012 består.
-
-**Klassorganisation, våg 1 genomförd 2026-10-15:** [CLASS-COHORT-01](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-01-SUMMARY.md) skiljer planeringsår, fryst utbildningsstart och tillämpningsläsår. SQL60/61 hela tabellers bevarande, UI36 dator/telefon, Node5, typ/lint och separat skyddat bygge PASS. Endast simulerade API-svar i UI-provet; faktisk Worker/OIDC återstår i plan08. Nästa är plan02 enligt paketets beroendekedja. 1 av 11 paketplaner genomförd, ingen ny full krav-/fasacceptans. Ordinarie3012 och tidigare användargodkännanden består.
 gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-01
-status: ready_for_execution
-stopped_at: CLASS-COHORT plancheck PASS; nästa är genomförande av CLASS-COHORT-01 och paketets beroendekedja.
+current_plan: CLASS-COHORT-03A/04/05
+status: executing
+stopped_at: CLASS-COHORT-01–03 verifierade; våg4 genomförs med fryst gemensamt kontrakt.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "Elva klass-/kullplaner granskade; oförändrade mandat bekräftade, SS 12000 mappad. Genomförande återstår."
+last_activity_desc: "CLASS-COHORT-01–03 verifierade. Våg4 pågår; ingen beständig migration eller lokal leverans ännu."
 state_head: bc26c07
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
@@ -28,7 +24,13 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt 2026-10-15 — klassorganisation:** Användaren har valt första etappen med oförändrade mandat. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-CONTEXT.md) och [SS 12000-mappning](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-SS12000.md) är skrivna. [Genomförandepaket](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md) har elva granskade planer i nio vågor; [plancheck PASS](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-PLAN-CHECK.md). Nästa är genomförande av CLASS-COHORT-01. Kopieringsprovet är redan godkänt och ska inte upprepas som mänsklig checkpoint. Inget nytt produkt-/databas-/körbevis följer av planeringen; tidigare bygguppgifter nedan är senast sparad historik.
+**Klassorganisation, våg3 verifierad 2026-10-15:** [CLASS-COHORT-03](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-03-SUMMARY.md) använder klass-ID först och bevarar gamla namnnycklar. SQL156 PASS, inklusive rättat versionsbyte för omdöpt klass, full rollback av61 tabeller och57 källhashar vid commit910ff0c. 3 av11 paketplaner genomförda. Våg4 (03A/04/05) pågår med gemensamt kontrakt. Ingen permanent apply, faktisk konkurrens, ny3012-leverans eller full fasacceptans ännu.
+
+**Klassorganisation, våg 2 verifierad 2026-10-15:** CLASS-COHORT-02 har additiva klassdatum, startlås, skyddade medlemsperioder och reproducerbar rollback-runner. SQL89 PASS; 61 hela tabeller, schema/ACL/journal och 51 källhashar verifierade. Ingen permanent migration installerad och ingen faktisk tvåsessionskonkurrens ännu. Nästa är CLASS-COHORT-03. Paketet har 2 av 11 genomförda planer; fulla krav/fasacceptans och ordinarie3012 består.
+
+**Klassorganisation, våg 1 genomförd 2026-10-15:** [CLASS-COHORT-01](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-01-SUMMARY.md) skiljer planeringsår, fryst utbildningsstart och tillämpningsläsår. SQL60/61 hela tabellers bevarande, UI36 dator/telefon, Node5, typ/lint och separat skyddat bygge PASS. Endast simulerade API-svar i UI-provet; faktisk Worker/OIDC återstår i plan08. Nästa är plan02 enligt paketets beroendekedja. 1 av 11 paketplaner genomförd, ingen ny full krav-/fasacceptans. Ordinarie3012 och tidigare användargodkännanden består.
+
+**Aktuellt 2026-10-15 — klassorganisation:** Användaren har valt första etappen med oförändrade mandat. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-CONTEXT.md) och [SS 12000-mappning](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-SS12000.md) är skrivna. [Genomförandepaket](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md) har elva granskade planer i nio vågor; [plancheck PASS](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-PLAN-CHECK.md). Genomförandet pågår enligt det aktuella läget ovan. Kopieringsprovet är redan godkänt och ska inte upprepas som mänsklig checkpoint. Inget nytt produkt-/databas-/körbevis följer av planeringen; tidigare bygguppgifter nedan är senast sparad historik.
 
 **Användarresultat 2026-10-15:** ”annars fnukade testet enlgit plan” registreras som godkänt för [kopieringsprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-REMAINING-USER-TRIAL.md). Ingen omtest behövs av detta prov. Klass-/kullresearchen kvarstår som underlag för nästa avgränsade plan; tidigare provgränser, historiska integritetsavvikelser och prestandabacklogg består. Äldre noteringar nedan beskriver tidigare lägen.
 

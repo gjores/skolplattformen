@@ -10,6 +10,7 @@ autonomous: true
 files_modified:
   - supabase/migrations/20261015102000_class_cohort_commands.sql
   - supabase/tests/phase5_class_cohort_commands.test.sql
+  - work/pilot/verify-class-cohort-commands.mjs
 must_haves:
   truths:
     - "Rektor eller administratör med skolmandat kan skapa tomma klasser före fastställd timplan."
@@ -76,3 +77,7 @@ Dubbelklick och förlorat svar kan återhämtas utan dubbla klasser eller osäke
 <output>
 Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-04-SUMMARY.md med faktiskt resultat, kommandon/exitkoder, bevisreferenser, kvarstående gränser och SS12000-bedömning. Uppdatera paketets status proportionerligt. Versionshantera endast denna plans avgränsade ändringar; pusha aktuell gren och verifiera avsedd fjärrcommit enligt AGENTS.md.
 </output>
+
+## Genomförandeprecisering 2026-10-15
+
+En tredje avgränsad provfil, `work/pilot/verify-class-cohort-commands.mjs`, sparar reproducerbar syntetisk setup och rollback med unik privat rapport och käll-/data-/schema-/ACL-hashar. Plan02–03:s helpers återanvänds efter granskning. Den ersätter engångskörvägen utan att installera beständiga migrationer. Det frysta kontraktet i IMPLEMENTATION gäller för SQL och TypeScript parallellt.
