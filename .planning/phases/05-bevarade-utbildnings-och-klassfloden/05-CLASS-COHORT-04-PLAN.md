@@ -81,3 +81,5 @@ Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-0
 ## Genomförandeprecisering 2026-10-15
 
 En tredje avgränsad provfil, `work/pilot/verify-class-cohort-commands.mjs`, sparar reproducerbar syntetisk setup och rollback med unik privat rapport och käll-/data-/schema-/ACL-hashar. Plan02–03:s helpers återanvänds efter granskning. Den ersätter engångskörvägen utan att installera beständiga migrationer. Det frysta kontraktet i IMPLEMENTATION gäller för SQL och TypeScript parallellt.
+
+MFA följer befintlig verifierad arkitektur: skyddad Worker-route använder `requireMfa`/`assessAdminProof` före mutation; SQL:s `phase5_programplan_session_check` verifierar aktuell session och mandat men implementerar ingen parallell MFA-policy. SQL-provet här redovisar session-/mandatbortfall. MFA-bortfall provas i06:s routeharness och08:s verkliga Worker/OIDC-flöde och får inte rapporteras som ett SQL-resultat.
