@@ -57,8 +57,11 @@ begin
   p:=public.phase5_class_scope(new.timplan_id,true);
   select * into c from public.school_classes where id=new.class_id;
   y:=public.phase5_class_start_year(p);
+  -- Existing identified rows keep their historical name key. Name matching is
+  -- required only when inserting or explicitly adopting a name-only relation.
   if c.id is null or c.unit_id<>new.unit_id or c.unit_id<>p.unit_id or c.offering_id<>p.offering_id or c.organizer_id<>p.organizer_id
-    or c.name<>new.class_name or c.start_year<>y or new.start_year not between y and y+2
+    or ((tg_op='INSERT' or old.class_id is null) and c.name<>new.class_name)
+    or c.start_year<>y or new.start_year not between y and y+2
     or not public.phase5_class_cohort_year_fits(c,new.start_year)
     or new.column_id<>'ar'||(new.start_year-y+1)::text then raise exception 'Invalid class year' using errcode='22023';end if;
   if tg_op='UPDATE' and (new.unit_id<>old.unit_id or new.class_name<>old.class_name or new.start_year<>old.start_year

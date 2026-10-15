@@ -141,6 +141,16 @@ begin
  perform pg_temp.link_assert(exists(select 1 from public.class_timplans where class_id=c and start_year=y+1 and timplan_id=new_plan and revision=1)
   and exists(select 1 from public.class_timplans where class_id=c and start_year=y+2 and timplan_id=p.id and revision=0),'ID first replacement changes only requested application year');
  perform pg_temp.link_assert((before_rows-'links'-'receipts')=(pg_temp.link_snapshot()-'links'-'receipts'),'version switch preserves class IDs validity pupils placements memberships');
+ q:=pg_temp.link_request(new_plan,(x->>'legacyClassId')::uuid,y,0,p.id);
+ perform public.phase5_class_command(q);
+ perform pg_temp.link_assert(exists(select 1 from public.class_timplans l join public.school_classes c on c.id=l.class_id
+  where c.id=(x->>'legacyClassId')::uuid and c.name='LEGACY-RENAMED' and l.class_name='LEGACY'
+   and l.start_year=y and l.timplan_id=new_plan and l.revision=1),
+  'identified version switch preserves historical name key after class rename');
+ perform pg_temp.link_assert((before_rows-'links'-'receipts')=(pg_temp.link_snapshot()-'links'-'receipts'),
+  'renamed class version switch preserves validity pupils placements memberships');
+ perform pg_temp.link_assert(public.phase5_class_command(x->'priorRequest')=(x->'priorReply')||'{"replayed":true}'::jsonb,
+  'pre-migration receipt still replays after renamed class version switch');
  perform pg_temp.link_denied(format('select public.phase5_class_command(%L::jsonb)',pg_temp.link_request(new_plan,c,y+1,0,p.id)::text),'40001',null,'stale identified link revision cannot overwrite winner');
  update cohort_context set value=value||jsonb_build_object('replacementPlanId',new_plan);
 end $$;
