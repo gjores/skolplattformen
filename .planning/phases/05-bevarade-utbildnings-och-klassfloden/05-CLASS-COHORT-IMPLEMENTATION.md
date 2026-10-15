@@ -57,15 +57,15 @@ Nya klassdatum måste användas av serverns befintliga medlemskapsskydd. Registe
 | Krav/gräns | Plan och obligatoriska fall | Resultat nu |
 | --- | --- | --- |
 | ADMIN-04 / PLANERING-04 | 01,03,08: fryst start, vårstart, före-start-nekande via SQL och verkligt API, ID/läsår/version, namnkollision och historisk länk | 01: SQL60/UI36 PASS; 03/08 inklusive verkligt API återstår |
-| ADMIN-04 | 02,04,06,08: tom klass före timplan, skolmandat, HM read-only, revision, batch/receipt/audit, gammal create-väg och medlemskapsdatum | Inte genomfört |
-| ADMIN-03 | 02,07,08: ny kull får inga gamla klasser, elever, medlemskap eller versionslänkar; tidigare godkänd kopia kräver ingen ny mänsklig acceptans | Inte genomfört; äldre avgränsad användaracceptans består |
+| ADMIN-04 | 02,04,06,08: tom klass före timplan, skolmandat, HM read-only, revision, batch/receipt/audit, gammal create-väg och medlemskapsdatum | 02: datum/startlås/medlemskap SQL89 PASS i rollback; 04/06/08 återstår |
+| ADMIN-03 | 02,07,08: ny kull får inga gamla klasser, elever, medlemskap eller versionslänkar; tidigare godkänd kopia kräver ingen ny mänsklig acceptans | 02: faktisk kopie-RPC i rollback PASS; 07/08 återstår, tidigare användaracceptans består |
 | PLANERING-04 | 07,08,10: gemensam ny/befintlig plan, befintlig klass, skapa, Gör senare/återöppna; dator/telefon | Inte genomfört |
 | PLANERING-05 | 08–10: faktiska SQL/Worker/browser, handboksbygge, exakt lokal runtime och mänskligt avgränsat resultat | Inte genomfört |
 | SS 12000-avstämning | 02–08: stabila klass-ID:n, separat giltighet/medlemsperiod, groupType Klass och GY som avsedd mappning; ingen export/kommunanslutning | Käll-/modellavstämning, inga integrationsprov |
 
 Plan08 skriver verkliga kommandon, exitkoder, source/buildhashar, före/efter-data och begränsningar i `05-CLASS-COHORT-VERIFICATION.md`. Osäkert utfall ska lösas innan cleanup eller ny mutation. Privata råbevis ligger utanför Git; resultatsammanfattningen innehåller inga konton, tokens eller personuppgifter. Historiska fasresultat är bakgrund, inte dagens testkörning.
 
-Genomförande startat 2026-10-15 på användarens `gsd:execute-phase 5`. Plan01 är genomförd: SQL60, UI36, Node5, typ/lint och separat skyddat bygge PASS; se [sammanfattning](05-CLASS-COHORT-01-SUMMARY.md). Nästa är plan02. Övriga paketsteg är ännu inte genomförda. Hela fas 5, historiska integritetsavvikelser, prestandabacklogg och verklig anslutning är inte avslutade genom detta paket.
+Genomförande startat 2026-10-15 på användarens `gsd:execute-phase 5`. Plan01 är genomförd: SQL60, UI36, Node5, typ/lint och separat skyddat bygge PASS; se [sammanfattning](05-CLASS-COHORT-01-SUMMARY.md). Plan02 är därefter rollback-verifierad med SQL89, 61 bevarade tabeller och 51 bundna källor; se [sammanfattning](05-CLASS-COHORT-02-SUMMARY.md). Nästa är plan03. Ingen permanent apply eller faktisk konkurrens verifierad ännu. Hela fas 5, historiska integritetsavvikelser, prestandabacklogg och verklig anslutning är inte avslutade genom detta paket.
 
 ## Körväg för SQL-prov före plan08
 

@@ -12,6 +12,7 @@ files_modified:
   - work/pilot/verify-class-cohort-api.mjs
   - work/pilot/apply-class-cohort.mjs
   - web/e2e/class-cohort-actual.spec.ts
+  - work/pilot/verify-class-timplans.mjs
 must_haves:
   truths:
     - "Hela tidiga klassflödet fungerar med syntetiska data genom verklig Worker och databas."
@@ -77,3 +78,7 @@ Gamla klasser, elever, medlemskap och versionslänkar är oförändrade efter mi
 <output>
 Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-08-SUMMARY.md med faktiskt resultat, kommandon/exitkoder, bevisreferenser, kvarstående gränser och SS12000-bedömning. Uppdatera paketets status proportionerligt. Versionshantera endast denna plans avgränsade ändringar; pusha aktuell gren och verifiera avsedd fjärrcommit enligt AGENTS.md.
 </output>
+
+## Genomförandeprecisering efter plan01/02
+
+Plan01:s äldre `--applied` verifierar åtta klassfunktioner mot klassmigrationen och kalenderfixen. När plan03 ersätter identifierade länkfunktioner ska regressionsverktyget verifiera de senaste tillämpliga migrationskällorna, inte godta ett äldre funktionsfingeravtryck. Samma verktygs nya klassfixturer behöver explicit kalenderstart innan klassbildning enligt plan02; inga historiska rader eller kvitton ska fyllas i. Därför ingår `verify-class-timplans.mjs` som femte avgränsad provfil i plan08. Återanvänd plan02:s versionshanterade datumsetup och redovisa dess tidigare rollback-bevis separat från samtidighetsproven.

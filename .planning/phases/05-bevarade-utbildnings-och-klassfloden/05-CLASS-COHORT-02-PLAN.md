@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: "CLASS-COHORT-02"
 type: execute
-status: planned
+status: completed
 wave: 2
 depends_on: ["CLASS-COHORT-01"]
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04, PLANERING-05]
@@ -10,6 +10,7 @@ autonomous: true
 files_modified:
   - supabase/migrations/20261015100000_class_cohort_dates.sql
   - supabase/tests/phase5_class_cohort_dates.test.sql
+  - work/pilot/verify-class-cohort-dates.mjs
 must_haves:
   truths:
     - "Nya klasser får verifierad giltighetsstart utan att gamla datum eller medlemskap gissas."
@@ -76,3 +77,9 @@ När klasser finns kan utbildningsstart inte ändras bakom klassorganisationen.
 <output>
 Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-02-SUMMARY.md med faktiskt resultat, kommandon/exitkoder, bevisreferenser, kvarstående gränser och SS12000-bedömning. Uppdatera paketets status proportionerligt. Versionshantera endast denna plans avgränsade ändringar; pusha aktuell gren och verifiera avsedd fjärrcommit enligt AGENTS.md.
 </output>
+
+## Genomförandeprecisering 2026-10-15
+
+Den faktiska SQL-matrisen behöver syntetiskt underlag före migrationen för att prova äldre klassdatum och kvitton. Setup och rollback-körväg sparas därför i `work/pilot/verify-class-cohort-dates.mjs` som tredje avgränsad provfil, med målskydd, obligatorisk privat `--out`, importskydd och käll-/databevarande. Privata rapporter är inte källkod. Detta ersätter den enkla inbäddade harnessens setup för detta steg och möjliggör återanvändning i senare verifiering.
+
+Medlemskapsregeln gäller den resulterande medlemsperioden: ett utbildningsbyte före klassstart kan tillåtas om ett framtida medlemskap behåller sitt giltiga datum. Kända slutgränser provas med samma privata periodhjälpare som databastriggern använder; faktisk registermutation provas mot lagrad start och öppet klass-slut. Annan transaktionsisolering än READ COMMITTED nekas på datumkritiska vägar för att inte godta en äldre snapshot; faktisk tvåanslutningskonkurrens återstår till plan08.
