@@ -53,6 +53,17 @@ test('syntetisk profil kräver båda lokala protected-portarna', () => {
   ])
     assert.equal(isLocalMandateTarget(db, api), false);
 });
+test('separat lokal auth kräver exakt tillfälligt databasnamn och loopback', () => {
+  const db = 'postgres://x@127.0.0.1:56322/named_timplan_' + 'a'.repeat(32);
+  assert.equal(isLocalMandateTarget(db, 'http://127.0.0.1:56331'), true);
+  for (const [target, api] of [
+    [db.replace('a'.repeat(32), 'a'.repeat(31)), 'http://127.0.0.1:56331'],
+    [db.replace(/named_timplan_.+$/u, 'postgres'), 'http://127.0.0.1:56331'],
+    [db, 'http://localhost:56331'],
+    [db.replace('127.0.0.1', 'remote'), 'http://127.0.0.1:56331'],
+    [db, 'http://127.0.0.1:56332'],
+  ]) assert.equal(isLocalMandateTarget(target, api), false);
+});
 test('serveradapter nekar när transaktionens mandatkontext saknas', async () => {
   assert.equal(
     (

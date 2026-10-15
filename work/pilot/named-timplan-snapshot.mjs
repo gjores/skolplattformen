@@ -43,8 +43,11 @@ export async function createNamedTimplanSnapshot(){
  const dump=dir+'/snapshot.dump',log=dir+'/tools.log',journal=dir+'/journal.json';
  const info={kind:'named-timplan-schema-only-snapshot',schemaVersion:1,database:name,dataCopied:false,schemas:['public','auth','supabase_migrations','extensions'],sourceProject:target.projectId,sourceHost:endpoint.hostname,sourcePort:endpoint.port,startedAt:new Date().toISOString(),stage:'reserved',cleanup:'pending'};
  const save=()=>writeFileSync(journal,JSON.stringify(info,null,2)+'\n',{mode:0o600});save();
- const db=postgres(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});let clone,created=false;
+ const db=postgres(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});let clone,created=false,closing=false;const extraConnections=new Set();
  const clean=async()=>{
+  closing=true;
+  const closed=await Promise.allSettled([...extraConnections].map(async connection=>{await connection.end();extraConnections.delete(connection);}));
+  const failure=closed.find(r=>r.status==='rejected');if(failure)throw failure.reason;
   if(clone){await clone.end();clone=null;}
   if(created){assert.match(name,/^named_timplan_[0-9a-f]{32}$/u);await db.unsafe('drop database '+ident(name));created=false;}
   info.cleanup='complete';info.cleanedAt=new Date().toISOString();save();
@@ -83,6 +86,28 @@ export async function createNamedTimplanSnapshot(){
   await clone.unsafe(readFileSync(new URL('../../supabase/migrations/20260930161000_phase5_programplan_catalog_seed.sql',import.meta.url),'utf8'));
   info.fixtureDataSource='repository public pinned catalog plus rollback-only synthetic fixtures';info.authOwnerLimitation='Schema-only auth definitions restored under local fixture database owner; future-object defaults for other DB owners omitted; no auth/OIDC or full-cluster equivalence claimed';
   info.stage='verified';info.verifiedAt=new Date().toISOString();save();
-  return{db:clone,provenance:{...info,journal},cleanup:clean};
+  const verified=async()=>{
+   assert.ok(created&&!closing&&clone,'Owned snapshot is no longer available');
+   const [identity]=await clone`select current_database() database,(pg_control_system()).system_identifier::text system_identifier`;
+   assert.equal(identity.database,name);assert.equal(identity.system_identifier,info.source.system_identifier);
+  };
+  const connect=async()=>{
+   await verified();const url=new URL(endpoint);url.pathname='/'+name;
+   const connection=postgres(url.toString(),{max:1,prepare:false,onnotice:()=>{}});extraConnections.add(connection);
+   try{const [identity]=await connection`select current_database() database,(pg_control_system()).system_identifier::text system_identifier`;
+    assert.equal(identity.database,name);assert.equal(identity.system_identifier,info.source.system_identifier);return connection;
+   }catch(error){await connection.end();extraConnections.delete(connection);throw error;}
+  };
+  const withPrivateTarget=async callback=>{
+   assert.equal(typeof callback,'function');await verified();
+   const adminUrl=new URL(endpoint),workerUrl=new URL(target.worker.dbUrl);
+   assert.equal(workerUrl.hostname,endpoint.hostname);assert.equal(workerUrl.port,endpoint.port);assert.equal(workerUrl.pathname,endpoint.pathname);
+   assert.equal(decodeURIComponent(workerUrl.username),'skolplattform_worker');
+   adminUrl.pathname='/'+name;workerUrl.pathname='/'+name;
+   // Credentials are callback-local only. Never include these URLs in evidence,
+   // console output, journal, Git, or a configuration for the active application.
+   return callback({dbUrl:adminUrl.toString(),workerDbUrl:workerUrl.toString(),database:name,sourceProject:target.projectId,provenance:{...info,journal}});
+  };
+  return{db:clone,provenance:{...info,journal},connect,withPrivateTarget,cleanup:clean};
  }catch(error){info.stage='failed';info.failureCode=error.code??'snapshot_failed';save();try{await clean();}catch(e){info.cleanup='failed';info.cleanupFailure=e.code??'cleanup_failed';save();}throw new Error('Isolated snapshot failed; private journal '+journal,{cause:error});}
 }

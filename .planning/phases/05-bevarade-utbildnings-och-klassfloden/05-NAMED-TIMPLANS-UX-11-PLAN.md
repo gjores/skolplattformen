@@ -64,3 +64,5 @@ Skriv 05-NAMED-TIMPLANS-UX-11-SUMMARY.md i samma katalog med ändrade filer, kom
 </output>
 
 Bevisgräns: Automatisk approval review avvisade full-data-snapshot. Denna plan exporterar därför inga liverader. Syntetisk migrationsframgång får aldrig beskrivas som att användarens originaldata migrerats eller bevarats; sådan kontroll görs separat i12.
+
+Genomförandeprecisering: Verklig callback använder även GoTrue för identitetsregistrering.11 startar därför en egen lokal GoTrue-container med samma installerade bild, bunden endast till helperns privata schemakopiedatabas. Authmigrationsversioner härleds ur bildens offentliga SQL-filnamn, inte liverader. En smal lokal proxy på56331 vidarebefordrar endast verkligt id_token-anrop till denna tjänst; ingen authmock. Serverns lokala målskydd får denna enda extra kombination:127.0.0.1:56322/named_timplan_<32hex> tillsammans med127.0.0.1:56331. Vanliga postgresdatabasen kan inte använda extra authporten. Negativa gränsprov tillkommer. Egna tillfälliga Keycloak-användare och exakt egen redirect journalförs och tas bort efter provet; befintliga användare/hemlighetsfiler används inte för testinloggning. Ingen DB/IdP-omstart.

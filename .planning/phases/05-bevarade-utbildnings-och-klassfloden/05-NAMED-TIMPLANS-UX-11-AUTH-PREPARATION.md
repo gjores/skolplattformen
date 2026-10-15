@@ -1,0 +1,11 @@
+# Isolerad inloggningskedja – förberedelse till11
+
+Den nya harnessen kör en egen GoTrue-container från den installerade bildens digest, smal HTTP-vidarebefordran på127.0.0.1:56331 och egen Worker på3014. Båda skriver endast i helperns egen schema-only-databas. Ingen authmock används. Authmigrationsversioner härleds från bildens offentliga SQL-filnamn; inga liverader kopieras. Keycloak får enbart egna slumpmässiga syntetiska användare samt en journalförd tillfällig callbackadress. Gamla appar3012/3013 kör vidare.
+
+`node work/pilot/verify-named-timplans-api.mjs --auth-smoke --build web/dist-protected --out /private/tmp/named-auth-smoke-second.json`: **PASS**, verklig normal callback samt separat bunden MFA-callback verifierade mot nya Worker-auditposter och samma sessions-/kontextidentitet. Samtliga egna IdP-användare, tillfällig callback, Worker, auth-container, databas och dump städade. Rapport SHA256 `408d094deac0806246fc48c3f4f6e5e11c1cbd232c4e2df753c0ec7969c7713d`.
+
+Detta körde den tidigare appbyggnaden endast för att verifiera authkedjans isolering. Det är **inte** ett godkänt prov av namngivna timplaner eller det nya gränssnittet. Den gamla byggnadens lokala mandatgrind nekar de nya authportbundna verksamhetsvägarna som väntat. Det nya portparet tillåts endast för exakt `named_timplan_<32hex>` på127.0.0.1, aldrig ordinarie postgresdatabasen, annan värd eller annan port. Sju mål-/mandatkontraktsprov passerar.
+
+Första runneranropet stoppade före start på felaktig dubbel snedstrecksjämförelse av rotsökvägen. Första faktiskt startade authprovet stoppade korrekt på otillräcklig personalbindning i en kopierad testroll. Harnessen använder nu den verkliga mandatkonstruktorn för nya rektors-/administratörsuppdrag och verifierar giltigheten före browserinloggning. Första rapporten bevaras privat; båda körningarnas egen cleanup är komplett. Ingen produktbehörighet lättades för att kringgå mandatfelet.
+
+93 samlade Node-prov för namn, gym, klasser, beslut, läsår, målgrind, klasskö och namnkommandots journal passerar. Logg `/private/tmp/named-combined-node.log`. Riktad oxlint för målgrinden passerar. Fullt nytt appbygge, faktiska API-fall och dator-/telefonflöde återstår i11.

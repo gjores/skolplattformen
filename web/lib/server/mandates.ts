@@ -135,7 +135,11 @@ export function isLocalMandateTarget(
       db.port === '56322' &&
       api.protocol === 'http:' &&
       local(api.hostname) &&
-      api.port === '56321'
+      (api.port === '56321' ||
+        // Separate local auth for an ephemeral schema-only verification database.
+        // The ordinary database can never use this isolated auth endpoint.
+        (api.port === '56331' && db.hostname === '127.0.0.1' && api.hostname === '127.0.0.1' &&
+          /^\/named_timplan_[0-9a-f]{32}$/u.test(db.pathname)))
     );
   } catch {
     return false;
