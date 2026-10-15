@@ -1,10 +1,11 @@
-import { gymShape, gymUuid, gymInteger, gymArray } from './gym-timplan.ts';
+import { parseTimplanName, parseTimplanSeries, type TimplanSeries } from './named-timplan.ts';
+import { gymShape, gymUuid, gymInteger, gymArray, gymObject } from './gym-timplan.ts';
 export type PlanDecisionKind = 'programplan' | 'timplan';
 export type PlanDecisionAction = 'submit' | 'return' | 'approve' | 'withdraw';
 export type PlanDecisionStage = 'draft' | 'submitted' | 'returned' | 'approved' | 'replaced';
-export type PlanDecisionItem = { kind: PlanDecisionKind; planId: string; offeringId: string; unitId: string | null; educationName: string; schoolName: string | null; version: number; stage: PlanDecisionStage; nextActor: 'huvudman' | 'rektor' | null; task: 'prepare' | 'review' | 'revise' | 'waiting' | 'blocked' };
+export type PlanDecisionItem = { kind: PlanDecisionKind; series?: TimplanSeries | null; planId: string; offeringId: string; unitId: string | null; educationName: string; schoolName: string | null; version: number; stage: PlanDecisionStage; nextActor: 'huvudman' | 'rektor' | null; task: 'prepare' | 'review' | 'revise' | 'waiting' | 'blocked' };
 export type PlanDecisionInbox = { items: PlanDecisionItem[]; actionCount: number; decisionCount: number; total: number; truncated: boolean };
-export type PlanDecisionDetail = Omit<PlanDecisionItem, 'task'> & { revision: number; decisionRevision: number; basisHash: string; actions: PlanDecisionAction[]; blockers: string[]; checks: { id: string; label: string }[]; history: { action: PlanDecisionAction; at: string; actorName: string; comment: string }[]; sourceInfo: string | null };
+export type PlanDecisionDetail = Omit<PlanDecisionItem, 'task'> & { revision: number; decisionRevision: number; basisHash: string; actions: PlanDecisionAction[]; blockers: string[]; checks: { id: string; label: string }[]; history: { action: PlanDecisionAction; at: string; actorName: string; comment: string; nameAtDecision?: string | null }[]; sourceInfo: string | null };
 export type PlanDecisionRead = { kind: PlanDecisionKind; planId: string };
 export type PlanDecisionCommand = PlanDecisionRead & { commandId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
 const kinds = ['programplan', 'timplan'] as const, actions = ['submit', 'return', 'approve', 'withdraw'] as const, stages = ['draft', 'submitted', 'returned', 'approved', 'replaced'] as const;
@@ -20,7 +21,19 @@ function unique<T>(values: T[], key: (v: T) => string = String): T[] { if (new S
 function base(r: Record<string, unknown>): Omit<PlanDecisionItem, 'task'> {
  const kind = choice(r.kind, kinds), unitId = r.unitId === null ? null : gymUuid(r.unitId), schoolName = r.schoolName === null ? null : text(r.schoolName);
  if ((kind === 'timplan' && (unitId === null || schoolName === null)) || kind === 'programplan' && unitId !== null) bad();
- return { kind, planId: gymUuid(r.planId), offeringId: gymUuid(r.offeringId), unitId, educationName: text(r.educationName), schoolName, version: gymInteger(r.version, 2147483647, 1), stage: choice(r.stage, stages), nextActor: r.nextActor === null ? null : choice(r.nextActor, ['huvudman','rektor'] as const) };
+ const series = Object.hasOwn(r, 'series') ? (kind === 'programplan' ? (r.series === null ? null : bad()) : parseTimplanSeries(r.series)) : undefined;
+ return { kind, ...(series !== undefined ? { series } : {}), planId: gymUuid(r.planId), offeringId: gymUuid(r.offeringId), unitId, educationName: text(r.educationName), schoolName, version: gymInteger(r.version, 2147483647, 1), stage: choice(r.stage, stages), nextActor: r.nextActor === null ? null : choice(r.nextActor, ['huvudman','rektor'] as const) };
+}
+// Shape detection always validates descriptors before accessing metadata.
+function seriesKeys(value: unknown): string[] { return Object.hasOwn(gymObject(value), 'series') ? ['series'] : []; }
+function validateSeries(items: PlanDecisionItem[]): void {
+ if (items.some(i => Object.hasOwn(i, 'series')) && items.some(i => !Object.hasOwn(i, 'series'))) bad();
+ const definitions = new Map<string, string>(), versions = new Map<string, string>();
+ for (const item of items) if (item.series) {
+  const definition = JSON.stringify([item.offeringId, item.unitId, item.series]), key = `${item.series.id}:${item.version}`;
+  if (definitions.has(item.series.id) && definitions.get(item.series.id) !== definition || versions.has(key) && versions.get(key) !== item.planId) bad();
+  definitions.set(item.series.id, definition); versions.set(key, item.planId);
+ }
 }
 export function parsePlanDecisionRead(value: unknown): PlanDecisionRead { const r = gymShape(value, ['kind','planId']); return { kind: choice(r.kind, kinds), planId: gymUuid(r.planId) }; }
 export function parsePlanDecisionCommand(value: unknown): PlanDecisionCommand {
@@ -31,17 +44,18 @@ export function parsePlanDecisionCommand(value: unknown): PlanDecisionCommand {
  return { kind: choice(r.kind, kinds), planId: gymUuid(r.planId), commandId: gymUuid(r.commandId), action, expectedRevision: gymInteger(r.expectedRevision), expectedDecisionRevision: gymInteger(r.expectedDecisionRevision), basisHash: hash(r.basisHash), comment, confirmedChecks };
 }
 export function parsePlanDecisionDetail(value: unknown, expected: PlanDecisionRead): PlanDecisionDetail {
- const r = gymShape(value, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','revision','decisionRevision','basisHash','actions','blockers','checks','history','sourceInfo']);
+ const r = gymShape(value, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','revision','decisionRevision','basisHash','actions','blockers','checks','history','sourceInfo',...seriesKeys(value)]);
  const item = base(r); if (item.kind !== expected.kind || item.planId !== expected.planId) bad();
  const available = unique(gymArray(r.actions, 4).map(v => choice(v, actions)));
  if (['approved','replaced'].includes(item.stage) && available.length) bad();
- const history = gymArray(r.history, 1000).map(v => { const e = gymShape(v, ['action','at','actorName','comment']); const at = text(e.at, 50); if (!Number.isFinite(Date.parse(at))) bad(); return { action: choice(e.action, actions), at, actorName: text(e.actorName), comment: text(e.comment, 2000) }; });
+ const history = gymArray(r.history, 1000).map(v => { const hasName = Object.hasOwn(gymObject(v), 'nameAtDecision'); if (hasName && !Object.hasOwn(r, 'series')) bad(); const e = gymShape(v, ['action','at','actorName','comment', ...(hasName ? ['nameAtDecision'] : [])]); const at = text(e.at, 50); if (!Number.isFinite(Date.parse(at))) bad(); return { action: choice(e.action, actions), at, actorName: text(e.actorName), comment: text(e.comment, 2000), ...(hasName ? { nameAtDecision: e.nameAtDecision === null ? null : item.kind === 'timplan' ? parseTimplanName(e.nameAtDecision) : bad() } : {}) }; });
  return { ...item, revision: gymInteger(r.revision), decisionRevision: gymInteger(r.decisionRevision), basisHash: hash(r.basisHash), actions: available,
   blockers: unique(gymArray(r.blockers, 100).map(v => text(v, 2000))), checks: unique(gymArray(r.checks, 20).map(v => { const c = gymShape(v, ['id','label']); return { id: text(c.id, 80), label: text(c.label, 2000) }; }), c => c.id), history, sourceInfo: r.sourceInfo === null ? null : text(r.sourceInfo, 2000) };
 }
 export function parsePlanDecisionInbox(value: unknown): PlanDecisionInbox {
  const r = gymShape(value, ['items','actionCount','decisionCount','total','truncated']);
- const items = unique(gymArray(r.items, 500).map(v => { const row = gymShape(v, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','task']); return { ...base(row), task: choice(row.task, ['prepare','review','revise','waiting','blocked']) }; }), row => `${row.kind}:${row.planId}`);
+ const items = unique(gymArray(r.items, 500).map(v => { const row = gymShape(v, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','task',...seriesKeys(v)]); return { ...base(row), task: choice(row.task, ['prepare','review','revise','waiting','blocked']) }; }), row => `${row.kind}:${row.planId}`);
+ validateSeries(items);
  const total = gymInteger(r.total), actionCount = gymInteger(r.actionCount, total), decisionCount = gymInteger(r.decisionCount, actionCount);
  if (typeof r.truncated !== 'boolean' || items.length !== Math.min(total,500) || r.truncated !== (total > 500)) bad();
  if (!r.truncated && (actionCount !== items.filter(i => ['prepare','review','revise'].includes(i.task)).length || decisionCount !== items.filter(i => i.task === 'review').length)) bad();
@@ -61,9 +75,10 @@ export function parsePlanDecisionPage(value: unknown, expected: PlanDecisionQuer
  const selection = parsePlanDecisionQuery(r.selection);
  if (JSON.stringify(selection) !== JSON.stringify(parsePlanDecisionQuery(expected)) || r.pageSize !== 50) bad();
  const items = unique(gymArray(r.items, 50).map(v => {
-  const row = gymShape(v, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','task']);
+  const row = gymShape(v, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','task',...seriesKeys(v)]);
   return { ...base(row), task: choice(row.task, ['prepare','review','revise','waiting','blocked']) };
  }), row => `${row.kind}:${row.planId}`);
+ validateSeries(items);
  const total = gymInteger(r.total), actionCount = gymInteger(r.actionCount, total), decisionCount = gymInteger(r.decisionCount, actionCount), count = gymInteger(r.count, total);
  if (items.length !== Math.min(50, Math.max(0, count - (selection.page - 1) * 50))) bad();
  for (const item of items) {

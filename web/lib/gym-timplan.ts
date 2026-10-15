@@ -2,6 +2,7 @@ import { ProgramplanContractError, catalogDate } from './programplan-catalog.ts'
 import { parseProgramplanTermDistribution } from './programplan-terms-contract.ts';
 import type { ProgramplanTermPoints, ProgramplanTermRow } from './programplan-terms.ts';
 import type { TimplanStatus } from './protected-timplan.ts';
+import { parseTimplanName, parseTimplanSeries, type TimplanSeries } from './named-timplan.ts';
 
 export type GymTimplanHours = [number | null, number | null, number | null, number | null, number | null, number | null];
 export type GymTimplanEducation = { name: string; cohort: string; programCode: string; orientationCode: string | null };
@@ -14,6 +15,7 @@ export type GymTimplanRow = ProgramplanTermRow & {
 };
 export type GymTimplanSummary = {
   id: string; version: number; revision: number; status: TimplanStatus;
+  series?: TimplanSeries;
   sourcePlanId: string | null; sourceRevision: number | null; sourceVersion: number | null;
 };
 export type GymTimplanUnit = { unitId: string; schoolName: string; canPlan: boolean; plans: GymTimplanSummary[] };
@@ -23,6 +25,7 @@ export type GymTimplanUnderlag = {
 export type GymTimplanCurrentSource = Pick<GymTimplanSource, 'planId' | 'version' | 'revision' | 'status'>;
 export type GymTimplan = {
   id: string; offeringId: string; unitId: string; schoolName: string; version: number; revision: number; status: TimplanStatus;
+  series?: TimplanSeries; nameAtCreation?: string | null;
   source: GymTimplanSource; currentSource: GymTimplanCurrentSource | null; rows: GymTimplanRow[];
   hours: Record<string, GymTimplanHours>; canPlan: boolean; archived: boolean; sourceChanged: boolean;
 };
@@ -127,16 +130,26 @@ export function parseGymTimplanUnits(value: unknown): GymTimplanUnit[] {
   const units = gymArray(value, 1000).map(value => {
     const u = gymShape(value, ['unitId', 'schoolName', 'canPlan', 'plans']);
     const plans = gymArray(u.plans, 10000).map(value => {
-      const p = gymShape(value, ['id', 'version', 'revision', 'status', 'sourcePlanId', 'sourceRevision', 'sourceVersion']);
+      const hasSeries = Object.hasOwn(gymObject(value), 'series');
+      const p = gymShape(value, ['id', 'version', 'revision', 'status', 'sourcePlanId', 'sourceRevision', 'sourceVersion', ...(hasSeries ? ['series'] : [])]);
       const sourcePlanId = p.sourcePlanId === null ? null : gymUuid(p.sourcePlanId), sourceRevision = p.sourceRevision === null ? null : gymInteger(p.sourceRevision),
         sourceVersion = p.sourceVersion === null ? null : gymInteger(p.sourceVersion, 2147483647, 1);
       if ((sourcePlanId === null) !== (sourceRevision === null) || (sourcePlanId === null) !== (sourceVersion === null)) bad();
-      return { id: gymUuid(p.id), version: gymInteger(p.version, 2147483647, 1), revision: gymInteger(p.revision), status: gymStatus(p.status), sourcePlanId, sourceRevision, sourceVersion };
+      return { id: gymUuid(p.id), version: gymInteger(p.version, 2147483647, 1), revision: gymInteger(p.revision), status: gymStatus(p.status), sourcePlanId, sourceRevision, sourceVersion,
+        ...(hasSeries ? { series: parseTimplanSeries(p.series) } : {}) };
     });
-    if (new Set(plans.map(p => p.id)).size !== plans.length || new Set(plans.map(p => p.version)).size !== plans.length) bad();
+    if (new Set(plans.map(p => p.id)).size !== plans.length || new Set(plans.map(p => `${p.series?.id ?? 'legacy'}:${p.version}`)).size !== plans.length) bad();
     return { unitId: gymUuid(u.unitId), schoolName: gymText(u.schoolName), canPlan: gymBoolean(u.canPlan), plans };
   });
   if (new Set(units.map(u => u.unitId)).size !== units.length) bad();
+  const plans = units.flatMap(u => u.plans);
+  if (new Set(plans.map(p => p.id)).size !== plans.length || plans.some(p => p.series) && plans.some(p => !p.series)) bad();
+  const series = new Map<string, string>();
+  for (const unit of units) for (const plan of unit.plans) if (plan.series) {
+    const definition = JSON.stringify([unit.unitId, plan.series]);
+    if (series.has(plan.series.id) && series.get(plan.series.id) !== definition) bad();
+    series.set(plan.series.id, definition);
+  }
   return units;
 }
 export function parseGymTimplanUnderlag(value: unknown, sourcePlanId: string): GymTimplanUnderlag {
@@ -147,7 +160,9 @@ export function parseGymTimplanUnderlag(value: unknown, sourcePlanId: string): G
   return { source, units: parseGymTimplanUnits(r.units), rows: parseGymTimplanRows(r.rows), readiness: { ready, missing } };
 }
 export function parseGymTimplan(value: unknown, planId: string): GymTimplan {
-  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'currentSource', 'rows', 'hours', 'canPlan', 'archived', 'sourceChanged']);
+  const hasSeries = Object.hasOwn(gymObject(value), 'series');
+  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'currentSource', 'rows', 'hours', 'canPlan', 'archived', 'sourceChanged',
+    ...(hasSeries ? ['series', 'nameAtCreation'] : [])]);
   const id = gymUuid(r.id), source = parseGymTimplanSource(r.source), rows = parseGymTimplanRows(r.rows), currentSource = parseGymTimplanCurrentSource(r.currentSource);
   if (id !== gymUuid(planId) || gymUuid(r.offeringId) !== source.offeringId || source.catalogId === null || !rows.length
     || rows.some(row => row.pointTerms.reduce((n, p) => n + p, 0) !== row.points)) bad();
@@ -163,7 +178,8 @@ export function parseGymTimplan(value: unknown, planId: string): GymTimplan {
   if (!sourceChanged && (currentSource === null || currentSource.planId !== source.planId || currentSource.version !== source.version)) bad();
   return { id, offeringId: source.offeringId, unitId: gymUuid(r.unitId), schoolName: gymText(r.schoolName), version: gymInteger(r.version, 2147483647, 1),
     revision: gymInteger(r.revision), status: gymStatus(r.status), source, currentSource, rows, hours,
-    canPlan: gymBoolean(r.canPlan), archived: gymBoolean(r.archived), sourceChanged };
+    canPlan: gymBoolean(r.canPlan), archived: gymBoolean(r.archived), sourceChanged,
+    ...(hasSeries ? { series: parseTimplanSeries(r.series), nameAtCreation: r.nameAtCreation === null ? null : parseTimplanName(r.nameAtCreation) } : {}) };
 }
 export function parseGymTimplanUnderlagRequest(value: unknown): GymTimplanUnderlagRequest {
   return { sourcePlanId: gymUuid(gymShape(value, ['sourcePlanId']).sourcePlanId) };

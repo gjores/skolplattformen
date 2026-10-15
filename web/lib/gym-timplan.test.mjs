@@ -15,6 +15,36 @@ const plan = () => ({id:other,offeringId:other,unitId:unit,schoolName:'Syntetisk
   currentSource:{planId:id,version:1,revision:3,status:'utkast'},rows:[row()],hours:{[key]:[null,null,null,null,null,null]},canPlan:true,archived:false,sourceChanged:false});
 const command = () => ({commandId:other,sourcePlanId:id,expectedSourceRevision:3,expectedEducationRevision:2,unitId:unit,predecessorPlanId:null,expectedPredecessorRevision:null});
 const write = () => ({planId:other,expectedRevision:0,rowKey:key,hours:[0,45,null,null,null,null]});
+test('separate named plans can share version numbers without sharing identity or scope', () => {
+  const sid = '55401000-0000-4000-8000-000000000004';
+  const first = { id, version: 1, revision: 0, status: 'faststalld', sourcePlanId: id,
+    sourceRevision: 3, sourceVersion: 1, series: { id: other, name: 'Grundfördelning', revision: 0 } };
+  const second = { ...first, id: other, series: { id: sid, name: 'Utökad matematik', revision: 1 } };
+  const data = { source: source(), units: [{ unitId: unit, schoolName: 'Syntetisk skola', canPlan: true, plans: [first, second] }],
+    rows: [row()], readiness: { ready: true, missing: [] } };
+  assert.deepEqual(parseGymTimplanUnderlag(data, id).units[0].plans, [first, second]);
+  for (const mutate of [
+    d => { d.units[0].plans[1].series = { ...first.series }; },
+    d => { d.units[0].plans[1].id = first.id; },
+    d => { delete d.units[0].plans[1].series; },
+    d => { d.units[0].plans[1].series = null; },
+    d => { d.units.push({ ...d.units[0], unitId: sid, plans: [{ ...first, id: sid }] }); },
+    d => { d.units[0].plans.push({ ...first, id: sid, version: 2, series: { ...first.series, name: 'Annat namn' } }); },
+  ]) { const changed = structuredClone(data); mutate(changed); assert.throws(() => parseGymTimplanUnderlag(changed, id)); }
+});
+
+test('current series name and historical version name are distinct, with explicit legacy shape', () => {
+  const value = { ...plan(), series: { id, name: 'Grundfördelning', revision: 2 }, nameAtCreation: 'Ursprungligt namn' };
+  assert.deepEqual(parseGymTimplan(value, other), value);
+  assert.equal(parseGymTimplan({ ...value, nameAtCreation: null }, other).nameAtCreation, null);
+  assert.equal(Object.hasOwn(parseGymTimplan(plan(), other), 'series'), false);
+  for (const mutate of [p => { delete p.nameAtCreation; }, p => { delete p.series; },
+    p => { p.series = null; }, p => { p.nameAtCreation = ' Ogranskat namn '; },
+    p => { p.series.secret = 'unexpected'; }]) {
+    const changed = structuredClone(value); mutate(changed); assert.throws(() => parseGymTimplan(changed, other));
+  }
+});
+
 test('blank hours, explicit zero and inactive terms keep distinct meanings', () => {
   assert.equal(parseGymTimplanHourInput(''),null); assert.equal(parseGymTimplanHourInput('0'),0); assert.equal(parseGymTimplanHourInput('2000'),2000);
   for (const input of [' ','-1','1.5','2001','1e2','abc']) assert.equal(parseGymTimplanHourInput(input),undefined);

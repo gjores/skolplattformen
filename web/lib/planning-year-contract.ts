@@ -1,3 +1,4 @@
+import { parseTimplanSeries, type TimplanSeries } from './named-timplan.ts';
 import { currentSchoolYear, isValidDate } from './pupil-register-model.ts';
 import { gymRowKey } from './gym-timplan.ts';
 import { nationalTimplan } from './timplan-model.ts';
@@ -24,7 +25,7 @@ export type PlanningSearchDetails = {
   localCode: string | null; programCode: string | null; orientationCode: string | null;
   programName: string | null; orientationName: string | null;
 };
-export type PlanningSchoolTimplan = PlanningPlanReference & { unitId: string; offeringId: string; sourcePlanId: string; sourceVersion: number };
+export type PlanningSchoolTimplan = PlanningPlanReference & { unitId: string; offeringId: string; sourcePlanId: string; sourceVersion: number; series?: TimplanSeries };
 export type PlanningRow = {
   customerId: string; unitId: string; offeringId: string; schoolName: string; educationName: string; cohort: string;
   schoolform: TimplanKind; plan: PlanningPlanReference | null; source: PlanningSourceReference | null;
@@ -34,6 +35,8 @@ export type PlanningRow = {
   classes: PlanningClassReference[]; cells: PlanningCell[]; diagnostics: PlanningDiagnosis[];
   searchDetails?: PlanningSearchDetails;
   schoolTimplan?: PlanningSchoolTimplan | null;
+  series?: TimplanSeries | null;
+  schoolTimplans?: PlanningSchoolTimplan[];
 };
 /** known is a partial sum; value is null unless the entire requested frame is known. */
 export type PlanningMeasure = { value: number | null; known: number; complete: boolean };
@@ -233,8 +236,9 @@ const legacyRowKeys = ['customerId', 'unitId', 'offeringId', 'schoolName', 'educ
 function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningSetup): PlanningRow {
   // Validate descriptors/prototype before testing or reading the optional form discriminator.
   const raw = object(value), extended = Object.hasOwn(raw, 'searchDetails');
-  const hasTimplan = Object.hasOwn(raw, 'schoolTimplan');
-  const r = shape(raw, [...legacyRowKeys, ...(extended ? ['searchDetails'] : []), ...(hasTimplan ? ['schoolTimplan'] : [])]);
+  const hasTimplan = Object.hasOwn(raw, 'schoolTimplan'), named = Object.hasOwn(raw, 'series') || Object.hasOwn(raw, 'schoolTimplans');
+  if (named && hasTimplan) bad();
+  const r = shape(raw, [...legacyRowKeys, ...(extended ? ['searchDetails'] : []), ...(hasTimplan ? ['schoolTimplan'] : []), ...(named ? ['series', ...(selection.view === 'programplan' ? ['schoolTimplans'] : [])] : [])]);
   if (hasTimplan && selection.view !== 'programplan') bad();
   const schoolform = choice(r.schoolform, schoolforms), plan = parsePlan(r.plan), source = parseSource(r.source), unitId = uuid(r.unitId), offeringId = uuid(r.offeringId);
   if (selection.view === 'programplan' && ['forslag','atersand'].includes(selection.status)
@@ -243,14 +247,18 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
   if (uuid(r.customerId) !== setup.customerId || !unit || r.schoolName !== unit.schoolName || schoolform !== selection.schoolform
     || (selection.unitId !== null && unitId !== selection.unitId) || !(selection.view === 'programplan' ? unit.canRead.programplan : unit.canRead[schoolform])
     || (source && (source.offeringId !== offeringId || schoolform !== 'gymnasium'))) bad();
-  let schoolTimplan: PlanningSchoolTimplan | null = null;
-  if (hasTimplan && r.schoolTimplan !== null) {
-    const t = shape(r.schoolTimplan, ['id', 'version', 'revision', 'status', 'unitId', 'offeringId', 'sourcePlanId', 'sourceVersion']);
-    schoolTimplan = { id: uuid(t.id), version: integer(t.version, 1), revision: integer(t.revision), status: choice(t.status, statuses),
-      unitId: uuid(t.unitId), offeringId: uuid(t.offeringId), sourcePlanId: uuid(t.sourcePlanId), sourceVersion: integer(t.sourceVersion, 1) };
-    if (schoolform !== 'gymnasium' || schoolTimplan.unitId !== unitId || schoolTimplan.offeringId !== offeringId
-      || schoolTimplan.sourcePlanId === plan?.id && schoolTimplan.sourceVersion !== plan.version) bad();
+  const series = named ? (selection.view === 'timplan' && schoolform === 'gymnasium' && plan !== null ? parseTimplanSeries(r.series) : r.series === null ? null : bad()) : undefined;
+  function schoolPlan(value: unknown, namedReference: boolean): PlanningSchoolTimplan {
+    const t = shape(value, ['id', 'version', 'revision', 'status', 'unitId', 'offeringId', 'sourcePlanId', 'sourceVersion', ...(namedReference ? ['series'] : [])]);
+    const result = { id: uuid(t.id), version: integer(t.version, 1), revision: integer(t.revision), status: choice(t.status, statuses),
+      unitId: uuid(t.unitId), offeringId: uuid(t.offeringId), sourcePlanId: uuid(t.sourcePlanId), sourceVersion: integer(t.sourceVersion, 1),
+      ...(namedReference ? { series: parseTimplanSeries(t.series) } : {}) };
+    if (schoolform !== 'gymnasium' || result.unitId !== unitId || result.offeringId !== offeringId
+      || result.sourcePlanId === plan?.id && result.sourceVersion !== plan.version) bad();
+    return result;
   }
+  const schoolTimplan = hasTimplan && r.schoolTimplan !== null ? schoolPlan(r.schoolTimplan, false) : null;
+  const schoolTimplans = named && selection.view === 'programplan' ? unique(array(r.schoolTimplans, 2000).map(v => schoolPlan(v, true)), p => p.id) : undefined;
   const start = parseStart(r.start), relativeYear = r.relativeYear === null ? null : integer(r.relativeYear, 1, 3) as 1 | 2 | 3;
   const relation = choice(r.relation, relations), underlag = choice(r.underlag, ['class-bound', 'planning', 'forecast', 'missing']), archived = boolean(r.archived);
   const columnMap = schoolform === 'grundskola' ? parseColumnMap(r.columnMap, plan) : null;
@@ -275,7 +283,7 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
   if (underlag === 'class-bound' && classes.length === 0 && !diagnostics.some(d => d === 'missing-class' || d === 'ambiguous-class')) bad();
   const row: PlanningRow = { customerId: setup.customerId, unitId, offeringId, schoolName: unit.schoolName, educationName: text(r.educationName), cohort: text(r.cohort),
     schoolform, plan, source, start, relativeYear, relation, underlag, archived, columnMap, application, classes, cells, diagnostics,
-    ...(extended ? { searchDetails: parseSearchDetails(r.searchDetails, schoolform) } : {}), ...(hasTimplan ? { schoolTimplan } : {}) };
+    ...(extended ? { searchDetails: parseSearchDetails(r.searchDetails, schoolform) } : {}), ...(hasTimplan ? { schoolTimplan } : {}), ...(named ? { series } : {}), ...(schoolTimplans !== undefined ? { schoolTimplans } : {}) };
   const required: PlanningDiagnosis[] = [];
   if (plan === null) { if (source !== null || cells.length || classes.length) bad(); required.push('missing-plan'); }
   if (underlag === 'forecast') required.push('forecast');
@@ -338,10 +346,18 @@ function rows(value: unknown, maximum: number, selected: PlanningSelection, setu
     cellCount += row.cells.length; classReferenceCount += row.classes.length;
     if (cellCount > 50000 || classReferenceCount > 50000) bad(); return row;
   }), r => JSON.stringify([r.unitId, r.offeringId, r.plan?.id ?? null, r.application?.columnId ?? null]));
+  if (result.some(r => Object.hasOwn(r, 'series')) && result.some(r => !Object.hasOwn(r, 'series'))) bad();
   // An ID cannot silently refer to different versions, educations or class scopes in one result.
   const references = new Map<string, string>();
   const remember = (key: string, value: unknown) => { const encoded = JSON.stringify(value); if (references.has(key) && references.get(key) !== encoded) bad(); references.set(key, encoded); };
+  const rememberSeries = (series: TimplanSeries, unitId: string, offeringId: string, plan: PlanningPlanReference) => {
+    remember(`series:${series.id}`, [unitId, offeringId, series]);
+    remember(`series-version:${series.id}:${plan.version}`, plan.id);
+    remember(`named-plan:${plan.id}`, [unitId, offeringId, series, plan.version, plan.revision, plan.status]);
+  };
   for (const row of result) {
+    if (row.series && row.plan) rememberSeries(row.series, row.unitId, row.offeringId, row.plan);
+    for (const plan of row.schoolTimplans ?? []) { remember(`school-timplan:${plan.id}`, plan); rememberSeries(plan.series!, plan.unitId, plan.offeringId, plan); }
     if (row.schoolTimplan) remember(`school-timplan:${row.schoolTimplan.id}`, row.schoolTimplan);
     const canonicalCells = [...row.cells].sort((a, b) => a.rowKey < b.rowKey ? -1 : a.rowKey > b.rowKey ? 1 : 0);
     if (row.plan) remember(`plan:${row.plan.id}`, [row.plan, row.offeringId, selected.view === 'timplan' ? row.unitId : null,

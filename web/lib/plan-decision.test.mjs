@@ -32,3 +32,39 @@ test('paginated search retains global counters and reaches rows after 500', asyn
  assert.equal(parsePlanDecisionPage(found,filtered).actionCount,500);
  assert.throws(()=>parsePlanDecisionPage({...found,items:[{...item(),task:'waiting'}]},filtered));
 });
+
+const uid=n=>`55402000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+const series=(n=20)=>({id:uid(n),name:n===20?'Grundfördelning':'Utökad matematik',revision:2});
+const namedItem=(n=2)=>({...item(),kind:'timplan',planId:uid(n),unitId:uid(10),schoolName:'Skola',series:series(18+n),task:'prepare'});
+const inbox=items=>({items,actionCount:items.length,decisionCount:0,total:items.length,truncated:false});
+test('named decision inbox preserves independent version ones and rejects series identity/scope conflicts',()=>{
+ const a=namedItem(),b=namedItem(3);assert.deepEqual(parsePlanDecisionInbox(inbox([a,b])).items,[a,b]);
+ for(const patch of [{series:a.series},{series:null},{series:{...a.series,name:'Fel namn'},version:2},{series:a.series,unitId:uid(11),version:2},{series:a.series,offeringId:uid(12),version:2}])assert.throws(()=>parsePlanDecisionInbox(inbox([a,{...b,...patch}])));
+ const legacy={...b};delete legacy.series;assert.throws(()=>parsePlanDecisionInbox(inbox([a,legacy])));
+ assert.throws(()=>parsePlanDecisionInbox(inbox([{...item(),series:series(),task:'prepare'}])));
+ assert.equal(parsePlanDecisionInbox(inbox([{...item(),series:null,task:'prepare'}])).items[0].series,null);
+});
+test('named decision detail keeps historical names distinct from current name with explicit legacy history',()=>{
+ const d={...detail(),kind:'timplan',unitId:uid(10),schoolName:'Skola',series:series(),history:[{action:'approve',at:'2026-10-15T12:00:00Z',actorName:'Rektor',comment:'',nameAtDecision:'Tidigare namn'}]};
+ const expected={kind:'timplan',planId:id};assert.equal(parsePlanDecisionDetail(d,expected).history[0].nameAtDecision,'Tidigare namn');
+ assert.equal(parsePlanDecisionDetail({...d,history:[{...d.history[0],nameAtDecision:null}]},expected).history[0].nameAtDecision,null);
+ const old={...d.history[0]};delete old.nameAtDecision;assert.deepEqual(parsePlanDecisionDetail({...d,history:[old]},expected).history[0],old);
+ for(const patch of [{series:null},{history:[{...d.history[0],nameAtDecision:' padded '}]},{history:[{...d.history[0],nameAtDecision:'x\u200b'}]},{series:{...series(),extra:true}}])assert.throws(()=>parsePlanDecisionDetail({...d,...patch},expected));
+ assert.throws(()=>parsePlanDecisionDetail({...detail(),series:null,history:d.history},{kind:'programplan',planId:id}));
+});
+
+test('named paginated decisions enforce metadata consistently with inbox',async()=>{
+ const {parsePlanDecisionPage,defaultPlanDecisionQuery}=await import('./plan-decision.ts');
+ const selected=defaultPlanDecisionQuery(),a=namedItem(),b={...namedItem(3),version:2,series:a.series};
+ const page={selection:selected,items:[a,b],total:2,count:2,actionCount:2,decisionCount:0,pageSize:50};
+ assert.deepEqual(parsePlanDecisionPage(page,selected).items,[a,b]);
+ assert.throws(()=>parsePlanDecisionPage({...page,items:[a,{...b,version:1}]},selected));
+ const renamed={...a,series:{...a.series,name:'Nytt namn',revision:3}};
+ assert.equal(parsePlanDecisionPage({...page,items:[renamed],total:1,count:1,actionCount:1},selected).items[0].planId,a.planId);
+});
+test('named decision metadata and historical names reject hostile descriptors without running them',()=>{
+ let called=false;const value=namedItem();Object.defineProperty(value,'series',{enumerable:true,get(){called=true;return series();}});assert.throws(()=>parsePlanDecisionInbox(inbox([value])));assert.equal(called,false);
+ const d={...detail(),series:null,history:[{action:'submit',at:'2026-10-15T12:00:00Z',actorName:'Rektor',comment:'',nameAtDecision:null}]};
+ Object.defineProperty(d.history[0],'nameAtDecision',{enumerable:true,get(){called=true;return null;}});assert.throws(()=>parsePlanDecisionDetail(d,{kind:'programplan',planId:id}));assert.equal(called,false);
+ const legacy={...detail(),history:[{action:'submit',at:'2026-10-15T12:00:00Z',actorName:'Rektor',comment:'',nameAtDecision:null}]};assert.throws(()=>parsePlanDecisionDetail(legacy,{kind:'programplan',planId:id}));
+});

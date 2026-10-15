@@ -374,3 +374,37 @@ test('program decisions filter review stages independently of stored draft statu
   assert.throws(()=>parsePlanningList(list([{...r,plan:{...r.plan,decisionStage:'draft'}}],selected),selected,setup()));
  }
 });
+
+const namedSeries=(n=80)=>({id:id(n),name:n===80?'Grundfördelning':'Matematik',revision:0});
+const namedRow=(unit=2,changes={})=>row(unit,{series:namedSeries(),...changes});
+test('named timplans retain separate version ones and deduplicate shared program points',()=>{
+ const a=namedRow(2,{plan:{...row().plan,version:1}}),b=namedRow(2,{plan:{...row().plan,id:id(90),version:1},series:namedSeries(81)});
+ const result=parsePlanningOverview(overview([a,b],selection(),totals()),selection(),setup());
+ assert.equal(result.rows.length,2);assert.equal(result.totals.points.value,100);assert.equal(result.totals.annualHours.value,160);
+ for(const patch of [{series:a.series},{series:{...a.series,name:'Annat'},plan:{...b.plan,version:2}},{series:null}])assert.throws(()=>parseList([a,{...b,...patch}]));
+ assert.throws(()=>parseList([a,namedRow(3,{plan:{...row(3).plan,version:2}})]));
+ assert.throws(()=>parseList([a,row(3)]));
+});
+test('program row retains all named school timplans with strict parent and version references',()=>{
+ const source=row().source,selected=selection({view:'programplan'});
+ const ref=(n=80)=>({id:id(n+10),version:1,revision:0,status:'faststalld',unitId:id(2),offeringId:id(4),sourcePlanId:source.planId,sourceVersion:source.version,series:namedSeries(n)});
+ const program=row(2,{plan:{id:source.planId,version:source.version,revision:source.revision,status:'faststalld'},start:{...row().start,provenance:'program-version'},cells:[{...cell(),hourValues:null}],series:null,schoolTimplans:[ref(),ref(81)]});
+ const parsed=parseList([program],selected).rows[0];assert.deepEqual(parsed.schoolTimplans,program.schoolTimplans);assert.equal(parsed.schoolTimplan,undefined);
+ for(const patch of [{schoolTimplan:null},{series:namedSeries()},{schoolTimplans:[ref(),ref()]},{schoolTimplans:[{...ref(),unitId:id(3)}]},{schoolTimplans:[{...ref(),offeringId:id(99)}]},{schoolTimplans:[{...ref(),sourceVersion:2}]},{schoolTimplans:[{...ref(),series:null}]}])assert.throws(()=>parseList([{...program,...patch}],selected));
+ const missing={...program};delete missing.series;assert.throws(()=>parseList([missing],selected));
+ const omitted={...program};delete omitted.schoolTimplans;assert.throws(()=>parseList([omitted],selected));
+ assert.equal(parseList([grRow({series:null})],selection({schoolform:'grundskola'})).rows[0].series,null);
+ assert.throws(()=>parseList([grRow({series:namedSeries()})],selection({schoolform:'grundskola'})));
+});
+
+test('named references retain older bound version beside current version but never contradictory metadata',()=>{
+ const source=row().source,selected=selection({view:'programplan'}),a={id:id(90),version:1,revision:0,status:'ersatt',unitId:id(2),offeringId:id(4),sourcePlanId:source.planId,sourceVersion:source.version,series:namedSeries()};
+ const b={...a,id:id(91),version:2,status:'faststalld'};
+ const program=row(2,{plan:{id:source.planId,version:source.version,revision:source.revision,status:'faststalld'},start:{...row().start,provenance:'program-version'},cells:[{...cell(),hourValues:null}],series:null,schoolTimplans:[a,b]});
+ assert.deepEqual(parseList([program],selected).rows[0].schoolTimplans,[a,b]);
+ for(const patch of [{version:1},{series:{...a.series,revision:1}},{series:{...a.series,name:'Annat'}}])assert.throws(()=>parseList([{...program,schoolTimplans:[a,{...b,...patch}]}],selected));
+ let called=false;const getter={...program};Object.defineProperty(getter,'series',{enumerable:true,get(){called=true;return null;}});assert.throws(()=>parseList([getter],selected));assert.equal(called,false);
+ const hidden=structuredClone(program);Object.defineProperty(hidden.schoolTimplans[0].series,'extra',{value:1});assert.throws(()=>parseList([hidden],selected));
+ const sparse=structuredClone(program);delete sparse.schoolTimplans[0];assert.throws(()=>parseList([sparse],selected));
+ const nested=structuredClone(program);nested.schoolTimplans[0].series[Symbol('extra')]=1;assert.throws(()=>parseList([nested],selected));
+});
