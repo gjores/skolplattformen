@@ -8,7 +8,7 @@ async function classMock(page:Page,{role='rektor',lost=false,conflict=false,conf
  page.on('pageerror',error=>errors.push(error.message));
  await page.route('**/api/klasser/**',async route=>{
   const path=new URL(route.request().url()).pathname,body=route.request().postDataJSON();let json;
-  if(path.endsWith('underlag'))json={plan:{id:oid(1),offeringId:oid(2),unitId:oid(3),schoolName:'Exempelskolan',educationName:'Samhällsvetenskapsprogrammet',cohort:'2026–2029',startYear:firstYear,version:1,status:old?'ersatt':'faststalld',revision:4},schoolYear:body.schoolYear,canManage:role==='rektor'&&!old&&firstYear!==null&&body.schoolYear>=firstYear&&body.schoolYear<=firstYear+2,blockers:firstYear===null?['Timplanen saknar ett giltigt fryst startdatum.']:body.schoolYear<firstYear||body.schoolYear>firstYear+2?['Välj ett läsår inom timplanens tre gymnasieår.']:[],classes:classes.map(c=>({...c,link:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id)?{planId:oid(1),version:1,status:'faststalld',columnId:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id).columnId,revision:0,legacy:false}:c.link})),linkedClasses:links};
+  if(path.endsWith('underlag'))json={plan:{id:oid(1),offeringId:oid(2),unitId:oid(3),schoolName:'Exempelskolan',educationName:'Samhällsvetenskapsprogrammet',cohort:'2026–2029',startYear:firstYear,version:1,status:old?'ersatt':'faststalld',revision:4},schoolYear:body.schoolYear,canManage:role==='rektor'&&!old&&firstYear!==null&&body.schoolYear>=firstYear&&body.schoolYear<=firstYear+2,blockers:firstYear===null?['Timplanen saknar ett giltigt fryst startdatum.']:body.schoolYear<firstYear||body.schoolYear>firstYear+2?['Välj ett läsår inom timplanens tre gymnasieår.']:[],classes:classes.map(c=>({...c,link:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id)?{planId:oid(1),version:1,status:'faststalld',columnId:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id).columnId,revision:links.find(l=>l.schoolYear===body.schoolYear&&l.classId===c.id).revision,legacy:false}:c.link})),linkedClasses:links};
   else if(path.endsWith('skapa')){commands.push(body);let c=classes.find(c=>c.name===body.name);if(!c){c={id:oid(10),name:body.name,startYear:body.startYear,link:null};classes.push(c);}json={id:c.id,name:c.name,startYear:c.startYear,replayed:failed};if(lost&&!failed){failed=true;return route.abort();}}
   else if(path.endsWith('koppla')){commands.push(body);if(conflict)return route.fulfill({status:409,json:{code:conflictCode,message:'Kopplingen har ändrats. Läs om.'}});const c=classes.find(c=>c.id===body.classId);links.push({classId:c.id,className:c.name,classStartYear:c.startYear,schoolYear:body.schoolYear,columnId:body.columnId,revision:(body.expectedLinkRevision??-1)+1,legacy:false});json={classId:c.id,schoolYear:body.schoolYear,planId:body.planId,columnId:body.columnId,revision:(body.expectedLinkRevision??-1)+1,replayed:false};}
   else throw Error(path);await route.fulfill({json,headers:{'X-Context-Epoch':'1'}});
@@ -18,9 +18,9 @@ test('skapa klass och koppla exakt läsår, behåll övriga år efter omläsning
  const state=await classMock(page);await page.goto(base);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();
  await page.getByLabel('Klassnamn',{exact:true}).fill('sa26a');await page.getByRole('button',{name:'Skapa klass',exact:true}).click();
  await expect(page.getByText('Klassen SA26A är skapad.',{exact:false})).toBeVisible();
- await page.getByRole('button',{name:'Koppla vald klass'}).click();await expect(page.getByRole('dialog')).toContainText('2026/27');await page.getByRole('button',{name:'Bekräfta koppling'}).click();
+ await page.getByRole('button',{name:/Koppla valda klasser/}).click();await expect(page.getByRole('dialog')).toContainText('2026/27');await page.getByRole('button',{name:'Bekräfta koppling'}).click();
  await expect(page.locator('.class-plan-links')).toContainText('SA26A');expect(state.commands.at(-1).columnId).toBe('ar1');
- await page.getByLabel('Läsår för klasskoppling').selectOption('2027');await page.getByRole('button',{name:'Koppla vald klass'}).click();await page.getByRole('button',{name:'Bekräfta koppling'}).click();
+ await page.getByLabel('Läsår för klasskoppling').selectOption('2027');await page.getByRole('checkbox',{name:'Välj SA26A'}).check();await page.getByRole('button',{name:/Koppla valda klasser/}).click();await page.getByRole('button',{name:'Bekräfta koppling'}).click();
  await expect(page.locator('.class-plan-links li')).toHaveCount(2);expect(state.commands.at(-1).columnId).toBe('ar2');
  await page.reload();await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await expect(page.locator('.class-plan-links li')).toHaveCount(2);expect(state.errors).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('class-links.png'),fullPage:true});
 });
@@ -29,7 +29,7 @@ test('förlorat kvitto spärrar navigering och återhämtas med samma kommando u
  await expect(page.getByRole('button',{name:'Hämta sparstatus'})).toBeVisible();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeDisabled();await page.getByRole('button',{name:'Hämta sparstatus'}).click();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();expect(state.commands[0]).toEqual(state.commands[1]);expect(state.classes).toHaveLength(1);expect(state.errors).toEqual([]);
 });
 test('explicit byte visar tidigare version, konflikt kräver omläsning',async({page})=>{
- const state=await classMock(page,{existing:true,conflict:true});await page.goto(base);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await page.getByRole('combobox',{name:'Klass',exact:true}).selectOption(oid(10));await page.getByRole('button',{name:'Koppla vald klass'}).click();await expect(page.getByRole('dialog')).toContainText('Nuvarande koppling');await page.getByRole('button',{name:'Bekräfta koppling'}).click();await expect(page.getByRole('alert')).toContainText('Läs om');expect(state.commands[0].expectedLinkRevision).toBe(2);expect(state.commands[0].previousPlanId).toBe(oid(19));expect(state.links).toEqual([]);expect(state.errors).toEqual([]);
+ const state=await classMock(page,{existing:true,conflict:true});await page.goto(base);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await page.getByRole('checkbox',{name:'Välj SA26A'}).check();await page.getByRole('button',{name:/Koppla valda klasser/}).click();await expect(page.getByRole('dialog')).toContainText('Nuvarande koppling');await page.getByRole('button',{name:'Bekräfta koppling'}).click();await expect(page.getByRole('alert')).toContainText('Läs om');expect(state.commands[0].expectedLinkRevision).toBe(2);expect(state.commands[0].previousPlanId).toBe(oid(19));expect(state.links).toEqual([]);expect(state.errors).toEqual([]);
 });
 for(const params of ['?hm=1','?old=1'])test(`huvudman och ersatt version visar läsvy ${params}`,async({page})=>{
  const state=await classMock(page,{role:params.includes('hm')?'huvudman':'rektor',old:params.includes('old')});await page.goto(base+params);await page.getByRole('button',{name:'Visa klasskopplingar'}).click();await expect(page.getByText('Inga klasser är kopplade',{exact:false})).toBeVisible();await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);expect(state.commands).toEqual([]);
@@ -61,9 +61,9 @@ for(const [start,firstYear] of [['2027-08-01',2027],['2027-01-15',2026],['2027-0
   const select=page.getByLabel('Läsår för klasskoppling');
   await expect(select.locator('option')).toHaveText([0,1,2].map(i=>`Årskurs ${i+1} · ${firstYear+i}/${String(firstYear+i+1).slice(-2)}`));
   await select.focus();await expect(select).toBeFocused();await select.selectOption(String(firstYear));await expect(select).toBeEnabled();await expect(select).toBeFocused();await select.press('Tab');await expect(page.getByRole('button',{name:'Läs om klasskopplingar'})).toBeFocused();
-  await page.getByRole('combobox',{name:'Klass',exact:true}).selectOption(oid(10));await page.getByRole('button',{name:'Koppla vald klass'}).click();
+  await page.getByRole('checkbox',{name:'Välj SA26A'}).check();await page.getByRole('button',{name:/Koppla valda klasser/}).click();
   await expect(page.getByRole('dialog')).toContainText('årskurs 1');await page.getByRole('button',{name:'Avbryt',exact:true}).click();
-  await expect(page.getByRole('button',{name:'Koppla vald klass'})).toBeFocused();
+  await expect(page.getByRole('button',{name:/Koppla valda klasser/})).toBeFocused();
   expect(state.commands).toEqual([]);expect(state.errors).toEqual([]);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:info.outputPath('frozen-year.png'),fullPage:true});
@@ -76,9 +76,9 @@ for(const planningYear of [2026,2030])test(`URL-år ${planningYear} utanför kul
  const select=page.getByLabel('Läsår för klasskoppling');await expect(select).toHaveValue('');
  await expect(select.locator('option:not([disabled])')).toHaveCount(3);await expect(select.locator(`option[value="${planningYear}"]`)).toHaveCount(0);
  await expect(page.locator('.class-plan-year-notice')).toContainText('Ditt planeringsår ändras inte');
- await expect(page.locator('.class-plan-links')).toContainText('2028/29');await expect(page.getByRole('button',{name:'Koppla vald klass'})).toHaveCount(0);
+ await expect(page.locator('.class-plan-links')).toContainText('2028/29');await expect(page.getByRole('button',{name:/Koppla valda klasser/})).toHaveCount(0);
  expect(state.commands).toEqual([]);await select.selectOption('2027');await expect(select).toBeEnabled();
- await page.getByRole('combobox',{name:'Klass',exact:true}).selectOption(oid(10));await page.getByRole('button',{name:'Koppla vald klass'}).click();
+ await page.getByRole('checkbox',{name:'Välj SA26A'}).check();await page.getByRole('button',{name:/Koppla valda klasser/}).click();
  await page.getByRole('button',{name:'Bekräfta koppling'}).click();await expect(page.locator('.class-plan-links li')).toHaveCount(2);
  expect(state.commands[0].schoolYear).toBe(2027);expect(state.commands[0].columnId).toBe('ar1');
  await expect(page.locator('.class-plan-dates')).toContainText(`Valt planeringsår${planningYear}/${String(planningYear+1).slice(-2)}`);
@@ -87,7 +87,7 @@ for(const planningYear of [2026,2030])test(`URL-år ${planningYear} utanför kul
 for(const [start,firstYear] of [['null',null],['2027-08-01',null],['null',2027],['2027-01-15',2027]] as const)test(`saknat eller motsägande underlag ${start}/${firstYear} spärrar skrivning`,async({page})=>{
  const state=await classMock(page,{firstYear});await page.goto(`${base}?start=${start}&year=2027`);await page.getByRole('button',{name:'Koppla klass',exact:true}).click();
  await expect(page.getByRole('alert')).toContainText('saknas eller stämmer inte överens');await expect(page.getByLabel('Läsår för klasskoppling')).toBeDisabled();
- await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Koppla vald klass'})).toHaveCount(0);expect(state.commands).toEqual([]);expect(state.errors).toEqual([]);
+ await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:/Koppla valda klasser/})).toHaveCount(0);expect(state.commands).toEqual([]);expect(state.errors).toEqual([]);
 });
 
 test('misslyckad omläsning spärrar tidigare underlag tills ny läsning lyckas',async({page})=>{
@@ -95,7 +95,7 @@ test('misslyckad omläsning spärrar tidigare underlag tills ny läsning lyckas'
  await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toBeVisible();
  await page.route('**/api/klasser/underlag',route=>route.fulfill({status:503,json:{code:'unavailable'}}),{times:1});
  await page.getByRole('button',{name:'Läs om klasskopplingar'}).click();await expect(page.getByRole('alert')).toContainText('unavailable');
- await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Koppla vald klass'})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:/Koppla valda klasser/})).toHaveCount(0);
  await page.getByRole('button',{name:'Läs om klasskopplingar'}).click();await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toBeVisible();
  expect(state.commands).toEqual([]);expect(state.errors).toEqual([]);
 });
@@ -106,10 +106,10 @@ for(const [code,message] of [
  ['class_plan_not_ready','Utbildningens start eller timplanens underlag behöver kontrolleras'],
 ])test(`säkert klassbesked ${code} behålls och kräver omläsning`,async({page})=>{
  const state=await classMock(page,{existing:true,conflict:true,conflictCode:code});await page.goto(base);
- await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await page.getByRole('combobox',{name:'Klass',exact:true}).selectOption(oid(10));
- await page.getByRole('button',{name:'Koppla vald klass'}).click();await page.getByRole('button',{name:'Bekräfta koppling'}).click();
+ await page.getByRole('button',{name:'Koppla klass',exact:true}).click();await page.getByRole('checkbox',{name:'Välj SA26A'}).check();
+ await page.getByRole('button',{name:/Koppla valda klasser/}).click();await page.getByRole('button',{name:'Bekräfta koppling'}).click();
  await expect(page.getByRole('alert')).toContainText(message);await expect(page.getByRole('dialog')).toHaveCount(0);
- await expect(page.getByRole('button',{name:'Koppla vald klass'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Hämta sparstatus'})).toHaveCount(0);
- await page.getByRole('button',{name:'Läs om klasskopplingar'}).click();await expect(page.getByRole('button',{name:'Koppla vald klass'})).toBeVisible();
+ await expect(page.getByRole('button',{name:/Koppla valda klasser/})).toHaveCount(0);await expect(page.getByRole('button',{name:'Hämta sparstatus'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Avsluta och granska på nytt'}).click();await page.getByRole('button',{name:'Läs om klasskopplingar'}).click();await expect(page.getByRole('button',{name:/Koppla valda klasser/})).toBeVisible();
  expect(state.commands).toHaveLength(1);expect(state.links).toEqual([]);expect(state.errors).toEqual([]);
 });

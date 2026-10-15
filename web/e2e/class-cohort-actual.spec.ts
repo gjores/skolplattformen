@@ -137,13 +137,13 @@ test('A01: ny utbildning, frivilligt klasssteg, återläsning och uttrycklig tim
   const links=principal.page.getByRole('region',{name:'Klasser och läsår',exact:true});
   await links.getByRole('button',{name:'Koppla klass',exact:true}).click();
   await links.getByLabel('Läsår för klasskoppling',{exact:true}).selectOption(String(firstYear(education.startedOn)));
-  await links.getByRole('combobox',{name:'Klass',exact:true}).selectOption(saved.receipt.classes[0].id);
-  await links.getByRole('button',{name:'Koppla vald klass',exact:true}).click();
+  await links.getByRole('checkbox',{name:`Välj ${saved.receipt.classes[0].name}`,exact:true}).check();
+  await links.getByRole('button',{name:'Koppla valda klasser (1)',exact:true}).click();
   const dialog=principal.page.getByRole('dialog',{name:'Koppla klass till timplan',exact:true});
   await expect(dialog).toContainText('SA A');const linking=principal.page.waitForResponse(matches('/api/klasser/koppla'));
   await dialog.getByRole('button',{name:'Bekräfta koppling',exact:true}).click();
   const linked=await linking;expect(linked.status()).toBe(200);expect(linked.request().postDataJSON()).toMatchObject({classId:saved.receipt.classes[0].id,schoolYear:firstYear(education.startedOn),planId:timplan.id,columnId:'ar1'});
-  await expect(links).toContainText(`Klassens koppling till timplan version ${timplan.version}`);
+  await expect(links).toContainText('Alla 1 klasskopplingar är sparade och återlästa');
   expect((await classes(principal,'principal',education)).classes).toEqual(before.classes);
   await capture(principal.page,info,'explicit-class-year-version');
 });
