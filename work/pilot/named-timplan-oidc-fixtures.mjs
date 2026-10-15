@@ -27,10 +27,10 @@ export async function createNamedTimplanOidcFixture({snapshot,runtime,evidenceDi
   assert.ok(res.ok,'Local IdP operation rejected: '+res.status);const text=await res.text();return text?JSON.parse(text):null;
  };
  const cleanup=async()=>{
-  if(closed)return journal;closed=true;
+  if(closed)return {runId,cleanup:journal.cleanup,deletedUsers:journal.users.length};
   for(const user of journal.users){const matches=await keycloak('/users?username='+encodeURIComponent(user.username)+'&exact=true');assert.ok(matches.length<=1);if(matches.length){assert.equal(matches[0].username,user.username);if(user.subject)assert.equal(matches[0].id,user.subject);await keycloak('/users/'+matches[0].id,'DELETE');}assert.equal((await keycloak('/users?username='+encodeURIComponent(user.username)+'&exact=true')).length,0);}
   if(journal.redirectAdded){const current=await keycloak('/clients/'+client.id);assert.equal(current.clientId,target.idp.clientId);current.redirectUris=current.redirectUris.filter(x=>x!==baseURL+'/api/auth/callback');await keycloak('/clients/'+client.id,'PUT',current);}
-  assert.equal(readFileSync(lock,'utf8'),runId);closeSync(lockFd);unlinkSync(lock);journal.cleanup='complete';save();return journal;
+  assert.equal(readFileSync(lock,'utf8'),runId);closeSync(lockFd);unlinkSync(lock);journal.cleanup='complete';closed=true;save();return {runId,cleanup:journal.cleanup,deletedUsers:journal.users.length,redirectRestored:true,verifiedCallbacks:journal.auth.filter(a=>a.status==='verified').length};
  };
  try{
   const clients=await keycloak('/clients?clientId='+encodeURIComponent(target.idp.clientId));assert.equal(clients.length,1);client=clients[0];journal.clientId=client.id;

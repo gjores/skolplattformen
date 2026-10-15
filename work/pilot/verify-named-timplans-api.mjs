@@ -9,6 +9,7 @@ import path from 'node:path';
 import {createNamedTimplanSnapshot} from './named-timplan-snapshot.mjs';
 import {createNamedTimplanRuntime} from './named-timplan-runtime.mjs';
 import {createNamedTimplanOidcFixture} from './named-timplan-oidc-fixtures.mjs';
+import {artifactManifest} from './verify-programplan-copy-api.mjs';
 import {namedTimplanApiScenarios} from './named-timplan-api-scenarios.mjs';
 const root=path.resolve(fileURLToPath(new URL('../../',import.meta.url))),args=process.argv.slice(2),smoke=args.includes('--auth-smoke');
 if(smoke)args.splice(args.indexOf('--auth-smoke'),1);
@@ -20,15 +21,30 @@ const hash=s=>createHash('sha256').update(s).digest('hex'),git=args=>execFileSyn
 const product=['web/app','web/lib','web/components','web/hooks','web/scripts','web/package.json','web/package-lock.json','web/vite.config.ts','web/vinext.config.ts'];
 const sourceFiles=git(['ls-files','--',...product]).split('\n').filter(Boolean);
 const sources=()=>Object.fromEntries(sourceFiles.map(p=>[p,hash(readFileSync(path.join(root,p)))]));
-const initialSources=sources(),mark=JSON.parse(readFileSync(path.join(originalBuild,'build-mode.json'),'utf8'));
+const migrationNames=['20261015200000_named_timplan_series.sql','20261015201000_named_timplan_commands.sql','20261015202000_named_timplan_decisions.sql','20261015203000_named_timplan_reads.sql','20261015204000_worker_named_timplans.sql'];
+const migrationSources=()=>Object.fromEntries(migrationNames.map(n=>['supabase/migrations/'+n,hash(readFileSync(path.join(root,'supabase/migrations',n)))]));
+const verificationFiles=['work/pilot/named-timplan-snapshot.mjs','work/pilot/named-timplan-runtime.mjs','work/pilot/named-timplan-oidc-fixtures.mjs','work/pilot/named-timplan-api-scenarios.mjs','work/pilot/named-timplan-browser-scenarios.mjs','work/pilot/verify-named-timplans-api.mjs'];
+const verificationClosure=new Set();
+function includeVerificationFile(file){
+ assert.ok(!path.isAbsolute(file)&&!file.split('/').includes('..'));if(verificationClosure.has(file))return;
+ const absolute=path.join(root,file);assert.ok(existsSync(absolute),'Missing verification dependency: '+file);verificationClosure.add(file);
+ const source=readFileSync(absolute,'utf8');
+ for(const match of source.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)){
+  const dependency=path.relative(root,path.resolve(path.dirname(absolute),match[2]));
+  if(/\.(?:mjs|js|ts)$/u.test(dependency))includeVerificationFile(dependency);
+ }
+}
+for(const file of verificationFiles)includeVerificationFile(file);
+const verificationSources=()=>Object.fromEntries([...verificationClosure].sort().map(p=>[p,hash(readFileSync(path.join(root,p)))]));
+const initialSources=sources(),initialMigrations=migrationSources(),initialVerification=verificationSources(),mark=JSON.parse(readFileSync(path.join(originalBuild,'build-mode.json'),'utf8'));
 if(!smoke){assert.equal(git(['status','--porcelain','--',...product]),'','Product sources must be committed');assert.equal(git(['diff','--name-only',mark.revision,'HEAD','--',...product]),'','Build must match current product');}
 const buildRoot=path.join(root,'work/pilot/targets/protected/runtime/named-'+randomUUID());cpSync(originalBuild,buildRoot,{recursive:true,filter:p=>!p.endsWith('/.dev.vars')});
-const report={kind:smoke?'named-timplan-auth-smoke':'named-timplan-actual-api-browser',status:'FAIL',startedAt:new Date().toISOString(),build:mark,sourceRevision:git(['rev-parse','HEAD']),sources:initialSources,checks:[],limits:['Local synthetic fixture only; no live user rows copied','No claim of external SS12000 exchange']};
+const report={kind:smoke?'named-timplan-auth-smoke':'named-timplan-actual-api-browser',status:'FAIL',startedAt:new Date().toISOString(),build:mark,sourceRevision:git(['rev-parse','HEAD']),sources:initialSources,migrationSources:initialMigrations,verificationSources:initialVerification,browserEvidence:{},checks:[],limits:['Local synthetic fixture only; no live user rows copied','No claim of external SS12000 exchange']};
 const save=()=>writeFileSync(out,JSON.stringify(report,null,2)+'\n',{mode:0o600});save();
 let snapshot,runtime,fixture,browser,failure;
 try{
  snapshot=await createNamedTimplanSnapshot();report.snapshot=snapshot.provenance;save();
- await snapshot.db.begin(async tx=>{await tx`set constraints all immediate`;for(const name of ['20261015200000_named_timplan_series.sql','20261015201000_named_timplan_commands.sql','20261015202000_named_timplan_decisions.sql','20261015203000_named_timplan_reads.sql','20261015204000_worker_named_timplans.sql'])await tx.unsafe(readFileSync(path.join(root,'supabase/migrations',name),'utf8'));});
+ await snapshot.db.begin(async tx=>{await tx`set constraints all immediate`;for(const name of migrationNames)await tx.unsafe(readFileSync(path.join(root,'supabase/migrations',name),'utf8'));});
  runtime=await createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir});report.runtime=runtime.proof;save();
  fixture=await createNamedTimplanOidcFixture({snapshot,runtime,evidenceDir});report.scope=fixture.scope;save();
  const playwright=createRequire(path.join(root,'web/package.json'))('@playwright/test');browser=await playwright.chromium.launch({headless:true});
@@ -36,9 +52,10 @@ try{
  else{
   report.api=await namedTimplanApiScenarios({fixture,browser,snapshot,checks:report.checks});save();
   const {runNamedBrowserScenarios}=await import('./named-timplan-browser-scenarios.mjs');
-  await runNamedBrowserScenarios({fixture,browser,device:'desktop',snapshot,checks:report.checks,evidenceDir});await browser.close();browser=null;
-  browser=await playwright.webkit.launch({headless:true});await runNamedBrowserScenarios({fixture,browser,device:'phone',snapshot,checks:report.checks,evidenceDir});
-  assert.deepEqual(sources(),initialSources,'Product source changed during actual verification');
+  const desktop=await runNamedBrowserScenarios({fixture,browser,device:'desktop',snapshot,checks:report.checks,evidenceDir});report.browserEvidence.desktop={path:path.join(evidenceDir,'browser-desktop.json'),sha256:hash(readFileSync(path.join(evidenceDir,'browser-desktop.json'))),result:desktop,visualReview:'pending'};save();await browser.close();browser=null;
+  browser=await playwright.webkit.launch({headless:true});const phone=await runNamedBrowserScenarios({fixture,browser,device:'phone',snapshot,checks:report.checks,evidenceDir});report.browserEvidence.phone={path:path.join(evidenceDir,'browser-phone.json'),sha256:hash(readFileSync(path.join(evidenceDir,'browser-phone.json'))),result:phone,visualReview:'pending'};
+  report.finalSources=sources();report.finalMigrationSources=migrationSources();report.finalVerificationSources=verificationSources();report.finalArtifact=artifactManifest(buildRoot);
+  assert.deepEqual(report.finalSources,initialSources,'Product source changed during actual verification');assert.deepEqual(report.finalMigrationSources,initialMigrations);assert.deepEqual(report.finalVerificationSources,initialVerification);assert.deepEqual(report.finalArtifact,runtime.proof.artifact);
  }
  report.status='PASS';
 }catch(error){failure=error;report.failureCode=error.code??'ASSERTION';report.failure=error.message;writeFileSync(path.join(evidenceDir,'failure.txt'),String(error.stack),{mode:0o600});}

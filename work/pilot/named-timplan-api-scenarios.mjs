@@ -44,7 +44,7 @@ export async function namedTimplanApiScenarios({fixture,browser,snapshot,checks}
   await snapshot.db.unsafe(`create function pg_temp.fail_named_http() returns trigger language plpgsql as $$begin if new.customer_id='${fixture.scope.customerId}' and new.source='worker' and new.action='named_timplan_created' and new.outcome='ok' then raise exception 'synthetic audit failure';end if;return new;end$$;create trigger named_http_audit_fail before insert on public.security_events for each row execute function pg_temp.fail_named_http();`);
   try{await call('principal','/api/timplaner/gym/planer/skapa',{...create,commandId:randomUUID(),name:'Audit must rollback',copyFromPlanId:null,expectedCopyFromRevision:null},503);}finally{await snapshot.db`drop trigger named_http_audit_fail on public.security_events`;}
   assert.equal((await snapshot.db`select count(*)::int n from public.named_timplan_commands`)[0].n,beforeAudit);ok('Actual Worker audit failure rolls back command and receipt');
-  await fixture.revoke('admin');await call('admin','/api/timplaner/gym/lasa',{planId:b.id},401);ok('Revoked membership loses access on next actual request');
+  await fixture.revoke('admin');await call('admin','/api/timplaner/gym/lasa',{planId:b.id},403);ok('Revoked membership loses access on next actual request');
   return{approvedPlanId:b.id,newVersionId:next.id,classes:created.classes};
  }finally{for(const p of Object.values(pages))await p.context().close();}
 }

@@ -24,17 +24,17 @@ export async function createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir}
  const runId=randomUUID(),name='named-timplan-auth-'+runId,baseURL='http://127.0.0.1:3014',apiURL='http://127.0.0.1:56331';
  const envPath=path.join(evidenceDir,'auth.env'),varsPath=path.join(buildRoot,'server/.dev.vars'),journalPath=path.join(evidenceDir,'runtime.json');
  assert.equal(existsSync(varsPath),false,'Candidate must not inherit live private vars');
- const journal={runId,name,baseURL,apiURL,database:snapshot.provenance.database,status:'initializing',cleanup:'pending',artifact:artifactManifest(buildRoot)};
+ const journal={runId,name,baseURL,apiURL,buildRoot,database:snapshot.provenance.database,status:'initializing',cleanup:'pending',artifact:artifactManifest(buildRoot)};
  const save=()=>writeFileSync(journalPath,JSON.stringify(journal,null,2)+'\n',{mode:0o600});save();
  let container=false,proxy,worker,logfd,closed=false;
  const cleanup=async()=>{
-  if(closed)return journal;closed=true;
+  if(closed)return journal;
   if(worker&&worker.exitCode===null){worker.kill('SIGTERM');await Promise.race([new Promise(resolve=>worker.once('exit',resolve)),new Promise((_,reject)=>setTimeout(()=>reject(Error('Owned Worker did not stop')),10000))]);}
   if(proxy){proxy.closeAllConnections();await new Promise(resolve=>proxy.close(resolve));}
   if(container){const inspected=JSON.parse(docker(['inspect',name]))[0];assert.equal(inspected.Config.Labels['skolplattform.named-run'],runId);docker(['rm','-f',name]);}
   if(logfd!==undefined)closeSync(logfd);
   for(const p of [envPath,varsPath])if(existsSync(p))unlinkSync(p);
-  journal.cleanup='complete';journal.stoppedAt=new Date().toISOString();save();return journal;
+  closed=true;journal.cleanup='complete';journal.stoppedAt=new Date().toISOString();save();return journal;
  };
  try{
   await available(3014);await available(56331);await available(56332);
