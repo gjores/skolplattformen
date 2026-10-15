@@ -2,7 +2,7 @@
 created: 2026-10-15
 title: Planera klassorganisation tidigt och tydliggör kullstart
 area: planning
-status: planned_pending_execution
+status: completed_with_ui_followup
 phase: 05
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04]
 ---
@@ -16,3 +16,5 @@ Nästa avgränsade plan ska skilja mellan tydligare start-/läsårsvisning och n
 Ingen produktändring eller ny användaracceptans följer av denna todo. Användaren bekräftade senare 2026-10-15 att kopieringsprovet i övrigt fungerade enligt plan; förbättringspunkten kvarstår separat. Äldre formulering om att endast kopieringsprovet återstår kompletteras av detta nya research-/planeringsbehov.
 
 **Avgränsning bekräftad 2026-10-15:** Användaren väljer ”Följ förslaget med oförändrade mandat”. [CLASS-COHORT-paketet](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md) har elva granskade planer med endast samma utbildning/kull, separat timplanskoppling och bevarad befintlig klassmodell. SS 12000-mappning ingår. Genomförande och nytt användarprov återstår.
+
+**Avslutad funktionell etapp2026-10-15:** CLASS-COHORT:s11 planer är genomförda med automatisk verifiering och användarens ”ok allt funkar”. Enhet/delsteg är inte särredovisade. Smidighet och tekniska knappar följs i [samlad UI-genomgång](2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Äldre planeringsbesked ovan är historik. Fulla krav/fasacceptans och bredare modell-/integrationsfrågor kvarstår.

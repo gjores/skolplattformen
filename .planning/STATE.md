@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-08
-status: executing
-stopped_at: CLASS-COHORT-07 verifierad;08 faktiskt UI-prov hittade förlorad klassöppning vid skolbyte; avgränsad rättning pågår.
+current_plan: CLASS-COHORT-10
+status: ready_to_plan
+stopped_at: CLASS-COHORT-10 funktionellt användargodkänd med UI-anmärkning;11/11 paketplaner klara.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "CLASS-COHORT-08: installerad SQL-matris436 och sju faktiska samtidighetsfall verifierade med känd cleanup; Worker/API30 med verklig OIDC/MFA har passerat på tidigare provbygge; faktiskt UI-prov hittade förlorad klassöppning vid skolbyte. Rättning och färskt bygge/API/UI återstår."
-state_head: 98c9520
-verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
-verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
-worker_status: running_on_3012_registry_compatibility_verified
-worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
+last_activity_desc: "Klassflödet fungerar enligt användaren. UI-förenkling följs i befintlig todo; fulla krav/fas5 kvarstår."
+state_head: b939383
+verification_worker_build_revision: 88145bcec46317929dcd9383d3fe8c80195e6415
+verification_worker_status: class_cohort_actual_sql_api_browser_local_delivery_pass
+worker_status: class_cohort_local_delivery_verified
+worker_build_revision: 88145bcec46317929dcd9383d3fe8c80195e6415
 progress:
   total_phases: 8
   completed_phases: 3
@@ -22,11 +22,11 @@ progress:
 milestone_name: milestone
 ---
 
-**Klassorganisation, återupptagen kontroll 2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
+**Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
 
-**Aktuellt CLASS-COHORT 2026-10-15:** Plan08 färdig: SQL436+7 samtidighetsfall, Worker/API30 och faktisk browser6/6 PASS med full cleanup.10/11 paketplaner klara.09 levererat: samma201 byggfiler från88145bc kör på lokal3012 med verklig läsande OIDC och bevarande PASS. Plan10:s vårkull är förberedd med83 tabellers originalrader bevarade; kort nytt klassprov inväntar faktiskt användarsvar. Fulla krav/fas5 och historiska88/100 samt3/8 består. Se [verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-VERIFICATION.md). Äldre lägesnoteringar nedan är historik.
+**Klassorganisationens användarprov2026-10-15:** Användaren bekräftar ”ok allt funkar” och efterfrågar smidigare UI med färre tekniska knappar. CLASS-COHORT-10 avslutas;11/11 paketplaner klara. Funktionsgodkännandet särredovisar inte enhet/delsteg. UI-anmärkningen finns i [samlad UI-genomgång](todos/pending/2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Fulla krav/fas5 och historiska88/100 samt3/8 består. Äldre lägesnoteringar nedan är historik.
 
 **Klassorganisation, lokal schemaändring 2026-10-15:** Plan08:s436 samlade SQL-kontroller har passerat med full rollback. Tre granskade migrationer är därefter installerade på det isolerade syntetiska målet med oförändrade originalprojektioner. Den installerade436-matrisen och sju separata faktiska samtidighetsfall har passerat med exakt cleanup och bevarade originalprojektioner. Fullmatrisen redovisas som ärvd i återupptagningens slutrapport, med uttrycklig begränsning för den tidigare provkörningens osorterade audithash. SQL-verktygen är pushade i63fa5ca. Worker/API30 med verklig lokal OIDC/MFA har nu passerat med exakt cleanup; sex faktiska dator-/telefonfall pågår. Ordinarie3012 kör fortfarande tidigare bygge `f4987b6`; separat provbygge `3f421c5` kör nu på den registrerade provporten3013 efter verifierad portflytt från3067. Ingen full krav-/fasacceptans eller mänsklig acceptans följer av detta delsteg.
 
@@ -487,10 +487,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-15
-**Stopped At:** CLASS-COHORT-10 förberedd, awaiting_user; faktiskt mänskligt klassprov inväntas.
+**Stopped At:** CLASS-COHORT-10 funktionellt godkänd med UI-anmärkning;11/11 paketplaner avslutade.
 **Resume File:** [Klassorganisationens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — CLASS-COHORT-10, avgränsat mänskligt klassprov. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
+**Planned Phase:** 5 — fortsatt avgränsning av kvarstående arbete; UI-förenkling fångad i befintlig todo. Inget upprepat klassprov beställt. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
 
 ### Senaste användarfynd, 2026-10-02
 

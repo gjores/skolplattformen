@@ -1,13 +1,13 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: CLASS-COHORT-10
-status: awaiting_user
+status: complete
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04, PLANERING-05]
 ---
 
 # Konkret klassprov förberett
 
-Den automatiska förberedelsen är klar; checkpointen inväntar faktiskt mänskligt svar. Paketet har10 av11 slutförda planer. Plan10 är inte slutförd och hela fas5 eller fulla krav markeras inte godkända.
+Checkpointen har fått ett faktiskt användarsvar: klassflödet fungerar, med kvarstående UI-anmärkning. Plan10 avslutas och paketet har11 av11 slutförda planer. Hela fas5 och fulla krav markeras inte godkända.
 
 ## Förutsättningar och förberedelse
 
@@ -27,6 +27,12 @@ Granskad v2 undantar endast denna migrationstabell från låset, behåller den i
 
 ## Checkpoint och standard
 
-[USER-TRIAL](05-CLASS-COHORT-USER-TRIAL.md) erbjuder endast nytt tidigt klassflöde, Gör senare/återöppning, två tomma klasser och tydligt tillämpningsläsår. Kopiering är redan mänskligt godkänd och efterfrågas inte igen. Användarens svar och enhet saknas; inget automatiskt prov blir mänsklig acceptans.
+[USER-TRIAL](05-CLASS-COHORT-USER-TRIAL.md) erbjuder endast nytt tidigt klassflöde, Gör senare/återöppning, två tomma klasser och tydligt tillämpningsläsår. Kopiering är redan mänskligt godkänd och efterfrågas inte igen. Användaren har lämnat ett samlat funktionsgodkännande med UI-anmärkning; enhet och delsteg är inte särredovisade.
 
-Plan10 kräver: ”Avvakta faktiskt mänskligt svar; automatiska tester är inte användaracceptans.” Nästa steg är därför användarens konkreta utfall. Fulla ADMIN-/PLANERING-krav, historiska88/100 planer och3/8 faser består. SS12000:2024/OpenAPI2.1.0 är modellavstämning med kvarvarande interna begränsningar, ingen verifierad export/kommunanslutning.
+Plan10 kräver: ”Avvakta faktiskt mänskligt svar; automatiska tester är inte användaracceptans.” Detta svar har nu inkommit; fortsatt UI-förenkling följs separat. Fulla ADMIN-/PLANERING-krav, historiska88/100 planer och3/8 faser består. SS12000:2024/OpenAPI2.1.0 är modellavstämning med kvarvarande interna begränsningar, ingen verifierad export/kommunanslutning.
+
+## Registrerat mänskligt utfall
+
+Användaren svarade2026-10-15: ”ok allt funkar men vi kommer behöva se över detta så UI och allt funkar smidigt. Mycket knappar med tekniska grejre nu”. Klassflödet registreras som användarrapporterat funktionellt godkänt med kvarstående UI-anmärkning. Enhet och enskilda delsteg särredovisades inte; inget separat fysiskt telefonprov eller fullständigt begriplighetsgodkännande antas. Frågan före godkännandet, ”hur sparar jag när jag har gjort ny klass?”, är ett konkret fynd om att sparvägen behöver bli tydligare.
+
+Återkopplingen läggs till i [den samlade UI-genomgången](../../todos/pending/2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Färre tekniska knappar, tydlig huvudåtgärd och verksamhetsord ska planeras och prövas i en avgränsad fortsättning. Inga produkt-/databasändringar eller nya automatiska prov görs vid denna registrering.
