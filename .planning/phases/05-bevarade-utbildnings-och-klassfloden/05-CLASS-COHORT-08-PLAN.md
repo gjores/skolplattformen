@@ -12,7 +12,9 @@ files_modified:
   - work/pilot/verify-class-cohort-api.mjs
   - work/pilot/apply-class-cohort.mjs
   - web/e2e/class-cohort-actual.spec.ts
+  - web/playwright.class-cohort-actual.config.ts
   - work/pilot/verify-class-timplans.mjs
+  - work/pilot/phase5-class-cohort-oidc-fixtures.mjs
 must_haves:
   truths:
     - "Hela tidiga klassflödet fungerar med syntetiska data genom verklig Worker och databas."
@@ -82,3 +84,11 @@ Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-0
 ## Genomförandeprecisering efter plan01/02
 
 Plan01:s äldre `--applied` verifierar åtta klassfunktioner mot klassmigrationen och kalenderfixen. När plan03 ersätter identifierade länkfunktioner ska regressionsverktyget verifiera de senaste tillämpliga migrationskällorna, inte godta ett äldre funktionsfingeravtryck. Samma verktygs nya klassfixturer behöver explicit kalenderstart innan klassbildning enligt plan02; inga historiska rader eller kvitton ska fyllas i. Därför ingår `verify-class-timplans.mjs` som femte avgränsad provfil i plan08. Återanvänd plan02:s versionshanterade datumsetup och redovisa dess tidigare rollback-bevis separat från samtidighetsproven.
+
+## Verifierad OIDC-fixturavgränsning
+
+En sjätte provfil, `phase5-class-cohort-oidc-fixtures.mjs`, behövs för verkliga egna OIDC-konton och exakt städning av nya kvitton/callback-sessioner. Befintliga gym-/programplansfixturer mintar DB-sessioner och kan därför inte ensamma bevisa OIDC/MFA. Adaptern återanvänder deras egna verksamhetsfixturer men skapar enbart slumpnamngivna Keycloak-konton; befintliga konton/mandat ändras inte. Login går genom riktig callback och serverns MFA-bedömning. Privata manifest-/TOTP-nycklar ändras/städas endast för egna konton under exklusivt körlås.
+
+Basens cleanup känner inte `class_cohort_commands` och kör replica vid radering av uppdrag. Adaptern måste före delete bevisa exakta egna actor/assignment/request/command-ID:n, radera enbart dessa receipts och riktiga egna callback-sessioner, därefter kontrollera noll kvarvarande främmande referenser. Alla gamla kvitton, gamla audit-/identitetsankare samt nya auditerade identitetsankare bevaras med hash/count före/efter. Nya GoTrue-authankare och sessioner omfattas uttryckligen; inga råa lösenord/tokens/personfält hamnar i Git eller rapportsammanfattning. Okänt HTTP-utfall måste lösas före cleanup. Detta motiverade filundantag verifierar den redan beslutade faktiska inloggningen utan att bygga om generiska fixturer.
+
+Befintliga actual-konfigurationer har fasta testMatch. En sjunde liten fil, `web/playwright.class-cohort-actual.config.ts`, väljer den nya actual-specen med `PHASE5_BASE_URL`, dator/telefon, workers1, retries0 och ingen Vite-webServer. Trace är av för att inte spara inloggningshemligheter. Konfigurationen binds i verifieringsbeviset.

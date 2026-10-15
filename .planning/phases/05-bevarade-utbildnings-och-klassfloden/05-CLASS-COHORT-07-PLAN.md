@@ -13,6 +13,9 @@ files_modified:
   - web/app/protected-programplan-workspace.tsx
   - web/app/protected-programplan-flow.tsx
   - web/e2e/class-cohort.spec.ts
+  - web/e2e/fixtures/programplan-copy-preview.tsx
+  - web/e2e/fixtures/operational-preview.tsx
+  - web/playwright.usability.config.ts
 must_haves:
   truths:
     - "Efter sparad utbildning kan behörig rektor/admin förbereda klasser innan timplanen är fastställd."
@@ -79,3 +82,11 @@ Ny programplansversion återanvänder klassorganisationen och huvudmannen får i
 <output>
 Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-07-SUMMARY.md med faktiskt resultat, kommandon/exitkoder, bevisreferenser, kvarstående gränser och SS12000-bedömning. Uppdatera paketets status proportionerligt. Versionshantera endast denna plans avgränsade ändringar; pusha aktuell gren och verifiera avsedd fjärrcommit enligt AGENTS.md.
 </output>
+
+## Förberett provharness 2026-10-15
+
+Tre små befintliga provfiler behöver ingå utöver de fem ursprungliga filerna: full programplansarbetsyta i `programplan-copy-preview.tsx` får administrator, start utan initialPlan och kontrollerade kontextövergångar; `operational-preview.tsx` får en separat panelgren för förlorade/sena svar; befintlig usability-konfiguration tar med den nya specen. Detta är ett avgränsat undantag från paketets ursprungliga femfilsgräns för att verifiera redan beslutade beteenden genom riktig komponentmontering. Inga nya HTML-/Vite-servrar behövs. Befintliga kopie-/klassprov ska fortfarande fungera. Full arbetsyta och nyflöde provas utöver den isolerade panelen.
+
+## Begäran över verklig MFA och omladdning
+
+Befintlig `startStepUp` lämnar sidan. Panelen behöver därför en versionsmärkt fliksjournal i sessionStorage med exakt strikt parsad request samt kund/medlemskap/uppdrag/epoch/utbildning/skola före första POST. Lagringsfel stoppar innan mutation; inga credentials/elevfält eller payload i URL. Riktig MFA-refresh bevarar sessionens kontext, men journalen är inget behörighetsbevis. Återkomst/hårdomladdning validerar hela journalen och exakt aktuell serverläst scope; den gör endast requestbunden status först. Found följs av verifierad underlagsläsning innan journal rensas. not_found tillåter endast uttryckligt omförsök med samma commandId/request och aktuell källa; ändrad källa kräver ny granskning. Misslyckad efterläsning av känt kvitto får aldrig omskapa klasser. Främmande scope visar inga namn och gör inga anrop. Okänd tidigare mutation får aldrig bli oskickad på grund av ett senare MFA-/statusfel. Panelens egen MFA-knapp säkrar journalen och använder befintlig startStepUp med endast verifierade planeringsurval i returadressen.
