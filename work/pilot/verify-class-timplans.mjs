@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {createRequire} from 'node:module';
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,existsSync,openSync,writeSync,ftruncateSync,fsyncSync,closeSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {assertTarget} from './verify-target.mjs';
@@ -15,7 +15,7 @@ import {nextCohortStart} from '../../web/lib/programplan-lifecycle.ts';
 import {parseClassPlanUnderlag,parseClassPlanCreateReply,parseClassPlanLinkReply} from '../../web/lib/class-timplan.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url)),rollback=Error('class_rollback');
 export const migrationName='20261012210000_class_timplan_flow.sql';
-export const sourcePaths=['supabase/migrations/'+migrationName,'supabase/migrations/20261012240000_class_start_calendar.sql','supabase/tests/phase5_class_timplan_flow.test.sql','web/lib/class-timplan.ts','web/lib/server/class-timplan.ts','web/app/api/klasser/underlag/route.ts','web/app/api/klasser/skapa/route.ts','web/app/api/klasser/koppla/route.ts','work/pilot/verify-class-timplans.mjs','work/pilot/verify-target.mjs','work/pilot/verify-plan-decision-flow.mjs','work/pilot/verify-programplan-locks.mjs','work/pilot/apply-vocational-plan-decisions.mjs','work/pilot/vocational-plan-fixture.mjs','supabase/tests/phase5_programplan_drafts.test.sql'];
+export const sourcePaths=['supabase/migrations/'+migrationName,'supabase/migrations/20261012240000_class_start_calendar.sql','supabase/migrations/20261015100000_class_cohort_dates.sql','supabase/migrations/20261015101000_class_cohort_link_identity.sql','supabase/migrations/20261015102000_class_cohort_commands.sql','supabase/tests/phase5_class_timplan_flow.test.sql','web/lib/class-timplan.ts','web/lib/server/class-timplan.ts','web/app/api/klasser/underlag/route.ts','web/app/api/klasser/skapa/route.ts','web/app/api/klasser/koppla/route.ts','work/pilot/verify-class-timplans.mjs','work/pilot/verify-target.mjs','work/pilot/verify-plan-decision-flow.mjs','work/pilot/verify-programplan-locks.mjs','work/pilot/apply-vocational-plan-decisions.mjs','work/pilot/vocational-plan-fixture.mjs','supabase/tests/phase5_programplan_drafts.test.sql'];
 export const sourceHashes=()=>Object.fromEntries(sourcePaths.map(p=>[p,createHash('sha256').update(readFileSync(resolve(root,p))).digest('hex')]));
 export async function classBusinessHashes(db,installed=false){const r=await decisionBusinessHashes(db,vocationalTables.filter(t=>t!=='class_timplans'));const [v]=await db.unsafe(`select count(*)::integer count,md5(coalesce(string_agg(r::text,'' order by r::text),'')) hash from (select to_jsonb(c)${installed?"-'class_id'-'revision'":''} r from public.class_timplans c) s`);r.class_timplans=v;return r;}
 export async function classFixture(tx){
@@ -33,7 +33,7 @@ export async function approvedClassFixture(tx,code='BF25'){
  let reference,rows,terms;
  if(code==='SA25'){const program=catalog.programs.find(p=>p.code==='SA25'&&p.version===4);reference={catalogId,programRef:{code:'SA25',version:4},orientationCode:'SABEP',startedOn:nextCohortStart(),specializationRefs:[{subjectCode:'ENGE',subjectVersion:1,itemCode:'ENGE3000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM1000X',points:100},{subjectCode:'ANIM',subjectVersion:1,itemCode:'ANIM2000X',points:100}],choiceBlocks:defaultProgramplanChoiceBlocks(program,'SABEP')};rows=programplanTermRows(program,reference);terms=suggestProgramplanTerms(rows,[],programplanLevelRanks(program));}
  else({reference,rows,terms}=vocationalFixture(catalog,code,catalogId));
- await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code) values(${id(46)},${id(2)},${id(30)},'gymnasium','Syntetisk klass','Syntetisk framtida kull',${reference.programRef.code},${reference.orientationCode})`;
+ await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year) values(${id(46)},${id(2)},${id(30)},'gymnasium','Syntetisk klass','Syntetisk framtida kull',${reference.programRef.code},${reference.orientationCode},${Number(reference.startedOn.slice(0,4))})`;
  const created=(await tx`select public.phase5_create_programplan_draft(${id(46)},0,${tx.json(reference)}) result`)[0].result;
  const programId=created.id;
  await actor('principal');await tx`select public.phase5_write_programplan_terms(${programId},0,${tx.json(terms)})`;
@@ -46,7 +46,7 @@ export async function approvedClassFixture(tx,code='BF25'){
  await decision('timplan',g.reply.id,'submit');await actor('hm');await decision('timplan',g.reply.id,'approve');await actor('principal');
  return{...f,programId,planId:g.reply.id,decision,year:Number(reference.startedOn.slice(0,4))-(reference.startedOn.slice(5,7)<'07'?1:0)};
 }
-async function scenarios(tx,checks,code){
+export async function classTimplanScenarios(tx,checks,code){
  const f=await approvedClassFixture(tx,code),{actor,planId,year,id}=f;
  const ok=name=>checks.push({name:`${code}: ${name}`,ok:true});
  const denied=async(name,fn,codes=['42501','40001','22023','23505','55000'])=>{let error;try{await tx.savepoint(fn);}catch(e){error=e;}assert.ok(error,name);assert.ok(codes.includes(error.code),`${name}: ${error.code}`);ok(name);};
@@ -95,16 +95,18 @@ async function scenarios(tx,checks,code){
  await tx.savepoint(async s=>{const [p]=await s`select * from public.timplans where id=${g2.reply.id}`;const [o]=await s`select * from public.offerings where id=${p.offering_id}`;const changed={...o,start_year:year+1};const blockers=(await s`select public.phase5_class_blockers(jsonb_populate_record(null::public.timplans,${s.json(p)}),jsonb_populate_record(null::public.offerings,${s.json(changed)})) b`)[0].b;assert.ok(blockers.some(b=>b.includes('kullstart')));ok('current offering cohort mismatch blocks instead of changing frozen year');});
 
 }
-async function appliedDefinitions(db){
+export async function appliedDefinitions(db){
  // Compare installed function bodies and execution properties with the exact
  // current migration sources, without executing any migration DDL.
  const expected=new Map();
- for(const migration of [migrationName,'20261012240000_class_start_calendar.sql']){
+ const hasCohort=(await db`select to_regprocedure('public.phase5_class_cohort_command(jsonb)') present`)[0].present;
+ for(const migration of [migrationName,'20261012240000_class_start_calendar.sql',...(hasCohort?['20261015101000_class_cohort_link_identity.sql']:[])]){
   const source=readFileSync(resolve(root,'supabase/migrations',migration),'utf8');
   assert.equal((await db`select version from supabase_migrations.schema_migrations where version=${migration.slice(0,14)}`).length,1,'REFUSED: required class migration missing');
   for(const match of source.matchAll(/create(?: or replace)? function public\.(\w+)\(([\s\S]*?)\) returns ([\s\S]*?) as \$\$([\s\S]*?)\$\$;/g)){
    const [,name,args,header,body]=match;
    const signature=`public.${name}(${args?args.split(',').map(arg=>arg.trim().split(/\s+/)[1]).join(','):''})`;
+   if(migration==='20261015101000_class_cohort_link_identity.sql'&&!expected.has(signature))continue;
    expected.set(signature,{body,definer:header.includes('security definer'),volatility:header.includes(' stable ')?'s':'v'});
   }
  }
@@ -124,10 +126,13 @@ async function main(){
  const args=process.argv.slice(2),applied=args[0]==='--applied';if(applied)args.shift();
  assert.equal(args.length,2,'REFUSED: use [--applied] --out /private/tmp/name.json');assert.equal(args[0],'--out');
  const out=resolve(args[1]);assert.ok(out.startsWith('/private/tmp/')&&out.endsWith('.json'),'REFUSED: private report required');
- const sources=sourceHashes(),target=await assertTarget('protected'),db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
+ assert.ok(!existsSync(out),'REFUSED: output exists');
+ const fd=openSync(out,'wx',0o600);const save=report=>{ftruncateSync(fd,0);writeSync(fd,JSON.stringify(report,null,2)+'\n',0,'utf8');fsyncSync(fd);};save({kind:'class-timplans-rollback',status:'FAIL',failureCode:'run_incomplete'});
+ const sources=sourceHashes();let db;
  const checks=[];let before,after,beforeFingerprint,afterFingerprint,definitions,failure;
  const snapshot=applied?allBusinessHashes:classBusinessHashes;
  try{
+  const target=await assertTarget('protected');db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
   before=await snapshot(db);beforeFingerprint=await vocationalDatabaseFingerprint(db);
   try{await db.begin(async tx=>{
    await tx`set local lock_timeout='5s'`;await tx`set local statement_timeout='60s'`;
@@ -139,16 +144,16 @@ async function main(){
     await tx.unsafe(readFileSync(resolve(root,'supabase/tests/phase5_class_timplan_flow.test.sql'),'utf8'));
     assert.deepEqual(await classBusinessHashes(tx,true),before);checks.push({name:'migration preserves complete existing business rows',ok:true});
    }
-   for(const code of ['SA25','BF25'])await tx.savepoint(async s=>{await scenarios(s,checks,code);throw rollback;}).catch(e=>{if(e!==rollback)throw e;});
+   for(const code of ['SA25','BF25'])await tx.savepoint(async s=>{await classTimplanScenarios(s,checks,code);throw rollback;}).catch(e=>{if(e!==rollback)throw e;});
    throw rollback;
   });}catch(e){if(e!==rollback)failure=e;}
   after=await snapshot(db);afterFingerprint=await vocationalDatabaseFingerprint(db);
   assert.deepEqual(after,before);assert.equal(beforeFingerprint,afterFingerprint);
   if(applied&&definitions)assert.deepEqual(await appliedDefinitions(db),definitions);
   checks.push({name:'all business data and full DDL ACL journal rolled back',ok:true});
- }catch(e){failure=e;}finally{await db.end({timeout:5});}
+ }catch(e){failure=e;}finally{if(db)try{await db.end({timeout:5});}catch(e){failure=e;}}
  const finalSourceHashes=sourceHashes();if(JSON.stringify(sources)!==JSON.stringify(finalSourceHashes))failure=Error('Source changed');
  const report={kind:'class-timplans-rollback',mode:applied?'applied':'migration',target:'protected',status:failure?'FAIL':'PASS',rollback:true,sourceHashes:sources,finalSourceHashes,definitions,beforeHashes:before,afterHashes:after,beforeFingerprint,afterFingerprint,checks,failure:failure?{code:failure.code??'ASSERTION',message:failure.message?.split('\n')[0]}:null};
- writeFileSync(out,JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log(`${report.status}: ${checks.length} class SQL checks`);if(failure)process.exitCode=1;
+ save(report);closeSync(fd);console.log(`${report.status}: ${checks.length} class SQL checks`);if(failure)process.exitCode=1;
 }
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await main();
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await main().catch(()=>{console.error('FAIL: class SQL preflight');process.exitCode=1;});

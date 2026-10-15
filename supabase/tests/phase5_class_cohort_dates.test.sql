@@ -32,7 +32,10 @@ begin
   and old_class.created_at is null and old_class.updated_at is null,'legacy dates and metadata remain unknown');
  foreach role_name in array array['anon','authenticated','service_role','skolplattform_worker'] loop
   for f in select oid from pg_proc where pronamespace='public'::regnamespace and proname like 'phase5_class_cohort_%' loop
-   perform pg_temp.cohort_assert(not has_function_privilege(role_name,f.oid,'EXECUTE'),'private helper '||role_name||' '||f.oid);
+   perform pg_temp.cohort_assert(has_function_privilege(role_name,f.oid,'EXECUTE')=(role_name='skolplattform_worker' and f.oid in (
+    coalesce(to_regprocedure('public.phase5_class_cohort_underlag(uuid,uuid)')::oid,0),
+    coalesce(to_regprocedure('public.phase5_class_cohort_command(jsonb)')::oid,0),
+    coalesce(to_regprocedure('public.phase5_class_cohort_status(jsonb)')::oid,0))), 'exact cohort ACL '||role_name||' '||f.oid);
   end loop;
  end loop;
  perform pg_temp.cohort_assert(public.phase5_class_cohort_date('2028-02-29')='2028-02-29','real leap day');

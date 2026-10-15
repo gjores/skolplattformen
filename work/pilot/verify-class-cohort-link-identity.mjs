@@ -18,7 +18,7 @@ export function classCohortLinkSourceHashes(){
 }
 // A second approved offering in the SAME school is essential: a separate
 // customer/school would never exercise the preserved historical name/year PK.
-async function secondCohort(tx,f){
+export async function secondCohort(tx,f){
  const [p]=await tx`select * from public.point_plans where id=${f.programId}`;
  const reference={...p.basis_reference,startedOn:`${f.year+1}-08-17`},offeringId=randomUUID();
  await f.actor('hm');
@@ -35,17 +35,8 @@ async function secondCohort(tx,f){
  await f.decision('timplan',gym.reply.id,'submit');await f.actor('hm');await f.decision('timplan',gym.reply.id,'approve');await f.actor('principal');
  return{offeringId,planId:gym.reply.id,programId:plan.id,year:f.year+1};
 }
-export async function verifyClassCohortLinks(out){
- const output=resolve(out);assert.ok(output.startsWith('/private/tmp/')&&output.endsWith('.json'),'Private --out required');assert.ok(!existsSync(output),'Output exists; choose new private path');
- const target=await assertTarget('protected');const sources=classCohortLinkSourceHashes();
- const db=createRequire(resolve(root,'web/package.json'))('postgres')(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
- const rollback=Error('expected_link_identity_rollback');let before,after,fingerprint,afterFingerprint,failure,checks=[],passed=false;
- try{
-  before=await allPublicHashes(db);fingerprint=await vocationalDatabaseFingerprint(db);
-  try{await db.begin('isolation level read committed',async tx=>{
-   await tx`set local lock_timeout='5s'`;await tx`set local statement_timeout='60s'`;
-   assert.equal((await tx`select pg_try_advisory_xact_lock(5520) locked`)[0].locked,true);
-   assert.equal((await tx`select version from supabase_migrations.schema_migrations where version>='20261015100000'`).length,0,'Package already applied; use applied verifier');
+// Historical rows are seeded only before the date migration, without bypass.
+export async function setupClassCohortLinkFixture(tx){
    const f=await setupClassCohortDatesFixture(tx);
    // Legacy link and its receipt predate both new migrations.
    const [{revision}]=await tx`select revision from public.timplans where id=${f.planId}`;
@@ -57,6 +48,20 @@ export async function verifyClassCohortLinks(out){
    // look unambiguously adopted. Seed before02, never bypass its triggers.
    for(const year of [f.year,f.year+1])await tx`insert into public.school_classes(customer_id,organizer_id,unit_id,offering_id,name,start_year)
     values(${f.id(1)},${f.id(2)},${f.id(30)},${f.id(46)},'AMBIGUOUS',${year})`;
+   return f;
+}
+export async function verifyClassCohortLinks(out){
+ const output=resolve(out);assert.ok(output.startsWith('/private/tmp/')&&output.endsWith('.json'),'Private --out required');assert.ok(!existsSync(output),'Output exists; choose new private path');
+ const target=await assertTarget('protected');const sources=classCohortLinkSourceHashes();
+ const db=createRequire(resolve(root,'web/package.json'))('postgres')(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
+ const rollback=Error('expected_link_identity_rollback');let before,after,fingerprint,afterFingerprint,failure,checks=[],passed=false;
+ try{
+  before=await allPublicHashes(db);fingerprint=await vocationalDatabaseFingerprint(db);
+  try{await db.begin('isolation level read committed',async tx=>{
+   await tx`set local lock_timeout='5s'`;await tx`set local statement_timeout='60s'`;
+   assert.equal((await tx`select pg_try_advisory_xact_lock(5520) locked`)[0].locked,true);
+   assert.equal((await tx`select version from supabase_migrations.schema_migrations where version>='20261015100000'`).length,0,'Package already applied; use applied verifier');
+   const f=await setupClassCohortLinkFixture(tx);
    await tx.unsafe(readFileSync(resolve(root,'supabase/migrations/20261015100000_class_cohort_dates.sql'),'utf8'));
    const before03=await allPublicHashes(tx);
    const relationProtection=async()=>({
