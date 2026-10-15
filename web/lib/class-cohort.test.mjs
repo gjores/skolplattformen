@@ -148,3 +148,18 @@ test('read class identity, validity provenance and inclusive end are strict with
   bad(() => parseClassCohortUnderlag({ ...underlag(), classes: [{ ...legacy, endsOn: '2027-08-17' }] }, read));
   bad(() => parseClassCohortUnderlag({ ...underlag(), classes: Array.from({ length: 2001 }, (_, i) => ({ ...legacy, id: id(100 + i) })) }, read));
 });
+
+test('read preserves older PostgreSQL names for both provenance types; new batch receipts remain strict', () => {
+  for (const name of ['😀'.repeat(60), 'A\u200dB', '\u00a0A', 'A\u00a0']) {
+    for (const provenance of ['legacy_unknown', 'education_start']) {
+      const row = { ...classes(request())[0], name, validitySource: provenance,
+        ...(provenance === 'legacy_unknown' ? { startsOn: null } : {}) };
+      assert.equal(parseClassCohortUnderlag({ ...underlag(), classes: [row] }, read).classes[0].name, name);
+    }
+    bad(() => parseClassCohortCreateRequest({ ...request(), names: [name] }));
+    const r = reply(); r.classes[0].name = name;
+    bad(() => parseClassCohortCreateReply(r, request()));
+  }
+  for (const name of ['', 'A'.repeat(61), '😀'.repeat(61)])
+    bad(() => parseClassCohortUnderlag({ ...underlag(), classes: [{ ...classes(request())[0], name }] }, read));
+});
