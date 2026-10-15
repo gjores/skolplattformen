@@ -76,7 +76,7 @@ En skola kan inte tas bort från planen så länge skolans klasser, elevplacerin
 
 **Timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad programram för ett stött Gy25-program, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
 
-Rektor och skoladministratör kan förbereda tomma klasser redan i programplanens utkast, enligt avsnittet nedan. Kopplingen till en fastställd gymnasietimplan görs senare för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-klass-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
+Rektor och skoladministratör kan förbereda tomma klasser redan i programplanens utkast, enligt avsnittet nedan. Kopplingen till en fastställd gymnasietimplan görs senare för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-eller-flera-klasser-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
 
 ## Ny programplan
 
@@ -98,7 +98,7 @@ Rektor och skoladministratör med aktuellt uppdrag för skolan kan skapa klasser
 
 När du skriver namn eller granskar dem är klasserna ännu inte sparade. Efter sparning visas de i listan med **Sparad klass**. Det beskedet gäller klassen; det betyder inte att en timplan har kopplats.
 
-Nästa steg är att öppna **Timplaner**, välja utbildningens fastställda timplan och välja **Koppla klass** under **Klasser och läsår**. Välj läsår och klass och bekräfta kopplingen. Upprepa för varje klass som ska använda samma timplan. Kopplingarnas resultat visas i timplanen.
+Nästa steg är att öppna **Timplaner** och välja utbildningens fastställda, namngivna timplan. **Klasser** vid planens namn öppnar **Klasser och läsår**. Kontrollera läsår, markera en eller flera klasser och välj **Koppla valda klasser**. Granska namn, version och läsår innan du bekräftar. Resultatet visas separat för varje klass. Om klasserna behöver olika undervisningstid kan de använda olika namngivna timplaner för samma programplan.
 
 Klasserna skapas utan elever och utan timplanskoppling. De tillhör samma utbildning, kull och skola även när programplanen får en ny version. Kopiering till en ny utbildning tar inte med klasser eller elever.
 

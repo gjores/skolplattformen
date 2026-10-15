@@ -24,13 +24,16 @@ const sources=()=>Object.fromEntries(sourceFiles.map(p=>[p,hash(readFileSync(pat
 const migrationNames=['20261015200000_named_timplan_series.sql','20261015201000_named_timplan_commands.sql','20261015202000_named_timplan_decisions.sql','20261015203000_named_timplan_reads.sql','20261015204000_worker_named_timplans.sql'];
 const migrationSources=()=>Object.fromEntries(migrationNames.map(n=>['supabase/migrations/'+n,hash(readFileSync(path.join(root,'supabase/migrations',n)))]));
 const verificationFiles=['work/pilot/named-timplan-snapshot.mjs','work/pilot/named-timplan-runtime.mjs','work/pilot/named-timplan-oidc-fixtures.mjs','work/pilot/named-timplan-api-scenarios.mjs','work/pilot/named-timplan-browser-scenarios.mjs','work/pilot/verify-named-timplans-api.mjs'];
-const verificationClosure=new Set();
+const verificationClosure=new Set(),ts=createRequire(path.join(root,'web/package.json'))('typescript');
 function includeVerificationFile(file){
  assert.ok(!path.isAbsolute(file)&&!file.split('/').includes('..'));if(verificationClosure.has(file))return;
  const absolute=path.join(root,file);assert.ok(existsSync(absolute),'Missing verification dependency: '+file);verificationClosure.add(file);
  const source=readFileSync(absolute,'utf8');
- for(const match of source.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)){
-  const dependency=path.relative(root,path.resolve(path.dirname(absolute),match[2]));
+ const syntax=ts.createSourceFile(absolute,source,ts.ScriptTarget.Latest,true);
+ for(const statement of syntax.statements){
+  if(!(ts.isImportDeclaration(statement)||ts.isExportDeclaration(statement)))continue;
+  const specifier=statement.moduleSpecifier;if(!specifier||!ts.isStringLiteral(specifier)||!specifier.text.startsWith('.'))continue;
+  const dependency=path.relative(root,path.resolve(path.dirname(absolute),specifier.text));
   if(/\.(?:mjs|js|ts)$/u.test(dependency))includeVerificationFile(dependency);
  }
 }

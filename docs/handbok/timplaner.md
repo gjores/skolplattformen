@@ -42,25 +42,34 @@ Välj **Skapa ny version** i en fastställd eller ersatt gymnasietimplan. Finns 
 
 Enbart fastställande av programplanen ger ingen varning om ändrat innehåll. En varning visas när det sparade programinnehållet faktiskt skiljer sig från det aktuella underlaget.
 
-### Koppla en klass till ett läsår
+### Koppla en eller flera klasser till ett läsår
 
-Rektor och skoladministratör kan välja **Koppla klass** i en fastställd gymnasietimplan inom sitt skoluppdrag. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
+Rektor och skoladministratör kan koppla klasser till en fastställd gymnasietimplan inom sitt skoluppdrag. Välj **Klasser** vid timplanens namn för att öppna **Klasser och läsår**, eller **Koppla klass** i kortet. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
 
-1. Kontrollera läsåret. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda. Det globala planeringsåret visas separat. Om det ligger inom utbildningens tre läsår används det som första förslag. Annars behöver du uttryckligen välja ett giltigt läsår innan du kopplar klassen.
-2. Välj en befintlig klass för samma utbildning, kull och skola, eller skriv klassnamn och välj **Skapa klass**. Klasser som förberetts i [programplanens klasssteg](./programplaner.md#klasser-för-utbildningen) kan väljas här. En ny klass skapas utan elever och behöver sedan kopplas.
-3. Välj **Koppla vald klass**. Granska skola, läsår, årskurs och exakt timplansversion och välj **Bekräfta koppling**.
+1. Kontrollera timplanens namn, version och läsår. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda. Det globala planeringsåret visas separat. Om det ligger inom utbildningens tre läsår används det som första förslag. Annars behöver du uttryckligen välja ett giltigt läsår.
+2. Markera en eller flera befintliga klasser för samma utbildning, kull och skola. Varje klass visar sin nuvarande timplan för det valda läsåret. En klass som redan använder den valda planen behöver inte kopplas igen. Saknas klassen kan du ange klassnamn och välja **Skapa klass**. Den skapas utan elever och behöver sedan markeras och kopplas. Klasser från [programplanens klasssteg](./programplaner.md#klasser-för-utbildningen) finns också här.
+3. Välj **Koppla valda klasser**. Granska varje klass, dess tidigare koppling och den nya timplanens namn, version, skola, läsår och årskurs. Välj **Bekräfta koppling** och invänta **Sparad och återläst** för varje klass.
 
-Har klassen redan en timplan visas den tidigare versionen före bytet. Ändringen gäller endast det valda läsåret. När en ny timplansversion fastställs ligger klassens tidigare koppling kvar tills du uttryckligen byter den. Äldre namnkopplingar märks ut och måste bekräftas för en bestämd klass; systemet gissar inte klassens identitet.
+Markeringar sparar inga kopplingar. Ändringen gäller endast de valda klasserna och läsåret. En ny timplansversion flyttar inte klassens tidigare koppling; du byter den uttryckligen. Äldre namnkopplingar märks ut och måste bekräftas för en bestämd klass; systemet gissar inte klassens identitet.
+
+#### Om bara en del blir sparad
+
+Klasserna sparas en i taget. **Resultat per klass** visar vad som är sparat och återläst, vad som återstår och om någon klass har okänd sparstatus eller konflikt. Redan sparade kopplingar ligger kvar även om en senare klass inte kan kopplas.
+
+- Vid **Okänd sparstatus** eller när ett kvitto behöver återläsas använder du **Kontrollera och fortsätt**. Samma granskade begäran kontrolleras; skapa inte en ny koppling för att ersätta ett oklart svar.
+- Vid konflikt stoppas resten. När ingen begäran längre har okänd status kan du välja **Avsluta och granska på nytt** och sedan granska de klasser som återstår. Tidigare sparade kopplingar återställs inte automatiskt.
+- Den granskade kopplingsbegäran finns kvar efter omladdning och verifiering med engångskod i samma webbläsarflik. Omladdning läser status; du väljer själv **Kontrollera och fortsätt** för att fortsätta. Stäng inte fliken medan statusen är okänd.
+- För ett oklart svar när själva klassen skapas visas **Hämta sparstatus**. Följ det beskedet innan du skapar en annan klass.
 
 Utbildningsstart, klassens giltighet och kopplingens läsår beskriver olika saker. Vid start 17 augusti 2027 börjar första läsåret 2027 och motsvarar årskurs 1; läsåret 2028/2029 motsvarar årskurs 2. Vid vårstart 15 januari 2027 är första läsåret i stället 2026/2027. Klassens giltighet börjar på själva startdagen och får inget antaget slutdatum. En koppling måste stämma med klassens kända giltighet. Om timplanens startunderlag saknas eller är motstridigt kan läsår inte väljas och kopplingen spärras.
 
-Listan **Kopplade till version …** visar samtliga läsår för den öppnade versionen, även när versionen är ersatt. Om uppgiften har ändrats under tiden väljer du **Läs om klasskopplingar** och granskar på nytt. Vid tappat svar används **Hämta sparstatus** för samma begäran, så att klassen eller kopplingen inte skapas dubbelt.
+Listan **Kopplade till version …** visar samtliga läsår för den öppnade versionen, även när versionen är ersatt. Om uppgiften har ändrats under tiden väljer du **Läs om klasskopplingar** och granskar på nytt.
 
 ### När programramen ändras
 
-Timplanen skrivs inte om automatiskt. Välj **Välj nytt underlag** och därefter **Nytt timplansutkast** för skolan. Granskningen visar hur många rader som behåller tid och hur många som börjar ofördelade. Bara samma rad med oförändrade totalpoäng och poäng i samtliga sex terminer får behålla timmarna. Ett äldre öppet utkast bevaras som **Ersatt**; en fastställd föregångare ligger kvar oförändrad. Klasskopplingar flyttas inte.
+Timplanen skrivs inte om automatiskt. Öppna den namngivna timplanen och välj **Skapa ny version** när källinnehållet har ändrats. Ett inskickat förslag behöver återtas först. Granskningen visar hur många rader som behåller tid och hur många som börjar ofördelade. Bara samma rad med oförändrade totalpoäng och poäng i samtliga sex terminer får behålla timmarna. Ett äldre öppet utkast bevaras som **Ersatt**; en fastställd föregångare ligger kvar oförändrad. Klasskopplingar flyttas inte.
 
-Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kvar i cellerna för jämförelse. Radens besked visar sparade timmar; **Spara min fördelning** prövar din rad mot den nya revisionen och **Använd sparade värden** lämnar din lokala ändring. Kan sparstatus inte läsas väljer du **Läs aktuell timplan** innan du sparar igen. Ett oklart skapandesvar kan hämtas med samma begäran genom **Hämta sparad timplan**, så att ytterligare en timplan inte skapas.
+Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kvar i cellerna för jämförelse. Radens besked visar sparade timmar; **Spara min fördelning** prövar din rad mot den nya revisionen och **Använd sparade värden** lämnar din lokala ändring. Kan sparstatus inte läsas väljer du **Läs aktuell timplan** innan du sparar igen. Ett oklart skapandesvar kontrolleras med **Kontrollera samma begäran**, så att ytterligare en timplan inte skapas.
 
 Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Ett utkast är förberedande planering tills huvudmannen har fastställt det enligt flödet nedan.
 

@@ -37,11 +37,13 @@ Introduktionsprogrammets timmar visas per vecka. De räknas inte om till årstim
 
 ## Överblick, saknat och noll
 
-Överblicken sammanfattar hela urvalet. Poäng i en gemensam programram räknas en gång. Skolvisa timmar hålls isär. Klassbundet underlag, förberedande planering och prognos skiljs åt.
+Överblicken grupperar utbildning, elevkull, skola och årets årskurs. Varje namngiven timplansversion visas separat med status, timmar och antal kopplade klasser för året. **Öppna timplan** leder till just den versionen; där finns ämnenas timmar och klassernas namn. **Källa och underlag** visar bakgrundsuppgifter. Saknade klasskopplingar och prognos visas uttryckligt.
+
+Under **Summor och förklaringar** räknas en gemensam programram en gång. **Summa i de visade timplanerna** summerar de planversioner som faktiskt visas. Två klasser på samma version fördubblar inte timmarna. Summan är inte bemanningsbehov.
 
 Välj mellan **Programplaner**, gymnasiets eller grundskolans timplaner och introduktionsprogrammets veckoramar. Det valda underlaget markeras. Med **Visa och öppna planerna** överst går du till listan för samma underlag, skola och läsår.
 
-Knapparna **Ny kull**, **Fortsättande kull** och **Start saknas** filtrerar urvalet och markerar det valda filtret. Tryck på den valda knappen igen för att åter visa nya och fortsättande kullar samt kullar med okänd start. Antalen gäller det aktuella, filtrerade urvalet. Under **Så räknas överblicken** finns en utfällbar förklaring till summeringen.
+Knapparna **Ny kull**, **Fortsättande kull** och **Start saknas** filtrerar urvalet och markerar det valda filtret. Tryck på den valda knappen igen för att åter visa nya och fortsättande kullar samt kullar med okänd start. Antalen gäller det aktuella, filtrerade urvalet. Under **Summor och förklaringar**, följt av **Så räknas överblicken**, finns förklaringen till summeringen.
 
 **Saknas** eller **Okänt** betyder att underlaget inte räcker för en säker uppgift. Ett tomt timfält är ofördelat; `0` är ett sparat nollvärde. En delvis känd summa bevisar inte att hela ramen är känd. En saknad start, kalender eller årsbindning får inte fyllas med en gissning.
 
@@ -55,10 +57,10 @@ Vid en samtidig ändring jämför du aktuellt sparat underlag med dina värden. 
 
 Se [Programplaner](./programplaner.md) och [Timplaner](./timplaner.md) för planernas arbetsmoment och aktuella begränsningar. Färdigmarkering av rektors arbete och huvudmannens godkännande är ännu inte tillgängliga i detta flöde.
 
-### Skolans timplan i Programplaner
+### Skolans timplaner i Programplaner
 
-Varje rad visar utbildning, skola och elevkull, programplanens status och version samt **Skolans timplan**. **Timplan skapad** visar timplanens status, version och vilken programplansversion den bygger på. Statusen gäller just den skolan, även om andra skolor använder samma utbildning. Den gäller sparade planer oavsett valt planeringsläsår.
+Varje rad visar utbildning, skola och elevkull samt programplanens status och version. Under **Skolans timplan** visas skolans namngivna timplaner med status, version och använd programplansversion. Flera planer kan vara version 1. Läs namnet och välj **Öppna timplan** vid just den fördelning du vill arbeta med. Äldre klassbundna versioner kan visas tillsammans med en nyare version.
 
-Välj **Öppna timplan** för en befintlig plan. Om timplan saknas kan rektor eller skoladministratör välja **Skapa timplan**. Då öppnas underlaget med radens programplansversion och skola valda. Inget sparas direkt: komplettera underlaget vid behov och välj sedan **Skapa timplansutkast**. Om ingen programplan är sparad behöver den skapas först. Arkiverade utbildningar får ingen skapaknapp. Huvudmannen kan öppna befintliga timplaner; skolans rektor eller administratör skapar dem.
+Om timplan saknas kan rektor eller skoladministratör välja **Skapa timplan**. Då öppnas underlaget med radens programplansversion och skola valda. Inget sparas direkt: komplettera underlaget vid behov och välj **Skapa ny timplan**, ange namn och granska innan du bekräftar. Om ingen programplan är sparad behöver den skapas först. Arkiverade utbildningar får ingen skapaknapp. Huvudmannen kan öppna befintliga timplaner; skolans rektor eller administratör skapar dem.
 
-**Öppna programplan** leder till ämnen och poäng. Under **Visa detaljer** finns årsuppgifter och kopiering till nästa elevkull. Om timplanen bygger på en annan programplansversion står det uttryckligen på raden.
+**Öppna programplan** leder till ämnen och poäng. Under **Visa detaljer** finns årsuppgifter och kopiering till nästa elevkull. Om en timplan bygger på en annan programplansversion står det uttryckligen vid den planen.
