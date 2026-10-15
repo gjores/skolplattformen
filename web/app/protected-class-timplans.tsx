@@ -12,19 +12,32 @@ import './protected-class-timplans.css';
 
 type Pending = {kind:'create';request:ClassPlanCreateRequest} | {kind:'link';request:ClassPlanLinkRequest};
 type Props = {plan:GymTimplan;schoolYear:number;canPrepare:boolean;disabled:boolean;onSecurityFailure:(error:unknown)=>boolean};
-const yearLabel = (year:number) => `${year}/${year+1}`;
+const yearLabel = (year:number) => `${year}/${String(year+1).slice(-2)}`;
+function frozenStartYear(value:string|null):number|null {
+  if(!value||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+  const date=new Date(`${value}T00:00:00Z`);
+  if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value)return null;
+  return date.getUTCFullYear()-(date.getUTCMonth()<6?1:0);
+}
 export default function ProtectedClassTimplans({plan,schoolYear,canPrepare,disabled,onSecurityFailure}:Props) {
   const [open,setOpen]=useState(false),[year,setYear]=useState(schoolYear),[data,setData]=useState<ClassPlanUnderlag|null>(null);
   const [busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[notice,setNotice]=useState<string|null>(null);
   const [name,setName]=useState(''),[selected,setSelected]=useState(''),[confirmation,setConfirmation]=useState<ClassPlanLinkRequest|null>(null);
   const [pending,setPending]=useState<Pending|null>(null),[mfa,setMfa]=useState(false),[uncertain,setUncertain]=useState(false);
   const active=useRef(true),running=useRef(false),generation=useRef(0);
+  const yearSelect=useRef<HTMLSelectElement>(null),restoreYearFocus=useRef(false);
+  useEffect(()=>{if(!busy&&restoreYearFocus.current){restoreYearFocus.current=false;yearSelect.current?.focus();}},[busy]);
   useEffect(()=>{active.current=true;return()=>{active.current=false;};},[]);
   // Unknown command outcomes must be resolved with the same command ID before navigating away.
   useUnsavedChanges(`navigation-block:class-plan:${plan.id}`,busy||uncertain);
   useUnsavedChanges(`class-plan-form:${plan.id}`,name.trim().length>0||!!confirmation);
   const valid = data?.plan.id===plan.id && data.plan.unitId===plan.unitId && data.plan.offeringId===plan.offeringId && data.plan.revision===plan.revision;
-  const canManage=valid&&data.canManage&&!disabled;
+  const firstYear=data?.plan.startYear??null;
+  const sourceYear=frozenStartYear(plan.source.startedOn);
+  const consistentStart=sourceYear!==null&&firstYear!==null&&sourceYear===firstYear;
+  const allowedYears=consistentStart?[firstYear,firstYear+1,firstYear+2]:[];
+  const canManage=valid&&data.schoolYear===year&&data.canManage&&consistentStart&&!error&&!disabled;
+  const outsidePlanningYear=consistentStart&&!allowedYears.includes(schoolYear);
   const relative=data?.plan.startYear===null||data?.plan.startYear===undefined?null:year-data.plan.startYear;
   const column:ClassPlanColumn|null=relative!==null&&relative>=0&&relative<=2?(['ar1','ar2','ar3'] as const)[relative]:null;
   const chosen=data?.classes.find(c=>c.id===selected);
@@ -36,13 +49,14 @@ export default function ProtectedClassTimplans({plan,schoolYear,canPrepare,disab
   }
   async function load(nextYear=year) {
     if(running.current||uncertain)return;
-    const token=++generation.current;setBusy(true);setError(null);setData(null);setYear(nextYear);
+    restoreYearFocus.current=document.activeElement===yearSelect.current;
+    const token=++generation.current;setBusy(true);setError(null);setYear(nextYear);
     try{const result=await fetchData(nextYear);if(active.current&&token===generation.current)setData(result);}
     catch(caught){if(active.current&&token===generation.current&&!onSecurityFailure(caught))setError(caught instanceof ApiError?caught.message:'Klasskopplingarna kunde inte läsas. Försök igen.');}
     finally{if(active.current&&token===generation.current)setBusy(false);}
   }
   async function execute(command:Pending) {
-    if(running.current||disabled)return;
+    if(running.current||disabled||(!uncertain&&!canManage))return;
     running.current=true;setPending(command);setBusy(true);setError(null);setMfa(false);let accepted=false;
     try{
       if(command.kind==='create'){
@@ -72,13 +86,21 @@ export default function ProtectedClassTimplans({plan,schoolYear,canPrepare,disab
     <div className="class-plan-heading"><div><h2>Klasser och läsår</h2><p>Klassen använder den version du väljer. En ny timplansversion flyttar inte befintliga klasskopplingar.</p></div>
       <Button variant="outline" disabled={disabled||busy||uncertain} aria-expanded={open} onClick={()=>{setOpen(!open);if(!open)void load();}}>{open?'Dölj klasskopplingar':canPrepare&&plan.status==='faststalld'?'Koppla klass':'Visa klasskopplingar'}</Button></div>
     {open&&<div aria-busy={busy}>
-      <div className="class-plan-controls"><label>Läsår<select aria-label="Läsår för klasskoppling" value={year} disabled={busy||uncertain||disabled} onChange={event=>{setConfirmation(null);void load(Number(event.target.value));}}>
-        {[...new Set([year,...(data?.plan.startYear!==null&&data?.plan.startYear!==undefined?[data.plan.startYear,data.plan.startYear+1,data.plan.startYear+2]:[schoolYear])])].sort((a,b)=>a-b).map(value=><option key={value} value={value}>{yearLabel(value)}</option>)}
+      <dl className="class-plan-dates">
+        <div><dt>Valt planeringsår</dt><dd>{yearLabel(schoolYear)}</dd></div>
+        <div><dt>Fryst utbildningsstart</dt><dd>{plan.source.startedOn??'Saknas'}</dd></div>
+        <div><dt>Första läsår</dt><dd>{firstYear===null?'Okänt':yearLabel(firstYear)}</dd></div>
+      </dl>
+      {outsidePlanningYear&&<p className="class-plan-year-notice">Planeringsåret {yearLabel(schoolYear)} ligger utanför utbildningens tre läsår. Välj ett giltigt läsår för klasskopplingen. Ditt planeringsår ändras inte.</p>}
+      <div className="class-plan-controls"><label>Läsår för klassens timplan<select ref={yearSelect} aria-label="Läsår för klasskoppling" value={allowedYears.includes(year)?year:''} disabled={busy||uncertain||disabled||!consistentStart} onChange={event=>{setConfirmation(null);void load(Number(event.target.value));}}>
+        {!allowedYears.includes(year)&&<option value="" disabled>Välj ett giltigt läsår</option>}
+        {allowedYears.map((value,index)=><option key={value} value={value}>Årskurs {index+1} · {yearLabel(value)}</option>)}
       </select></label><Button variant="outline" disabled={busy||uncertain||disabled} onClick={()=>void load()}>Läs om klasskopplingar</Button></div>
       {error&&<p role="alert">{error}</p>}{mfa&&<MfaStepUpNotice message={error??'Verifiera med engångskod för att fortsätta.'}/>}
       {notice&&<output>{notice}</output>}{uncertain&&pending&&<Button disabled={busy||disabled} onClick={()=>void execute(pending)}>Hämta sparstatus</Button>}
       {busy&&!data&&<output>Hämtar klasskopplingar…</output>}
       {data&&<>
+        {!consistentStart&&<p role="alert">Utbildningsstart och första läsår saknas eller stämmer inte överens. Läs om timplanen och kontrollera underlaget innan du skapar eller kopplar en klass.</p>}
         {!valid&&<p role="alert">Timplanen har ändrats. Läs om timplanen innan du ändrar en klasskoppling.</p>}
         {data.blockers.length>0&&<ul>{data.blockers.map(reason=><li key={reason}>{reason}</li>)}</ul>}
         <h3>Kopplade till version {plan.version}</h3>
