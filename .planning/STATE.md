@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-03A/04/05
+current_plan: CLASS-COHORT-04/05
 status: executing
 stopped_at: CLASS-COHORT-01–03 verifierade; våg4 genomförs med fryst gemensamt kontrakt.
 last_updated: "2026-10-15"
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Klassorganisation, felkanal verifierad 2026-10-15:** CLASS-COHORT-03A har typade svenska konfliktbesked, oförändrad behörighetsmaskning och obligatorisk audit. Node9/UI42 dator+telefon samt typ/lint PASS; oberoende granskning utan blockerande fynd. 4 av11 paketplaner genomförda. 04/05 pågår före06; faktiskt Workerprov och lokal leverans återstår.
 
 **Klassorganisation, våg3 verifierad 2026-10-15:** [CLASS-COHORT-03](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-03-SUMMARY.md) använder klass-ID först och bevarar gamla namnnycklar. SQL156 PASS, inklusive rättat versionsbyte för omdöpt klass, full rollback av61 tabeller och57 källhashar vid commit910ff0c. 3 av11 paketplaner genomförda. Våg4 (03A/04/05) pågår med gemensamt kontrakt. Ingen permanent apply, faktisk konkurrens, ny3012-leverans eller full fasacceptans ännu.
 
