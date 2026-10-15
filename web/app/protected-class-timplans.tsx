@@ -72,7 +72,7 @@ export default function ProtectedClassTimplans({plan,schoolYear,canPrepare,disab
       if(!active.current||onSecurityFailure(caught))return;
       const unknown=accepted||uncertain||!(caught instanceof ApiError&&caught.hasExplicitCode);
       setUncertain(unknown);setMfa(caught instanceof ApiError&&caught.code==='mfa_required');
-      setError(unknown?'Svaret kunde inte bekräftas. Hämta sparstatus med samma begäran innan du fortsätter.':caught instanceof ApiError&&caught.status===409?'Uppgiften har ändrats. Läs om klasskopplingar och granska det aktuella valet innan du försöker igen.':caught instanceof ApiError?caught.message:'Ändringen kunde inte sparas.');
+      setError(unknown?'Svaret kunde inte bekräftas. Hämta sparstatus med samma begäran innan du fortsätter.':caught instanceof ApiError&&caught.status===409&&!['class_name_year_conflict','class_cohort_start_locked','class_plan_not_ready'].includes(caught.code)?'Uppgiften har ändrats. Läs om klasskopplingar och granska det aktuella valet innan du försöker igen.':caught instanceof ApiError?caught.message:'Ändringen kunde inte sparas.');
       if(!unknown){setPending(null);setConfirmation(null);if(caught instanceof ApiError&&caught.status===409)setData(null);}
     }finally{running.current=false;if(active.current)setBusy(false);}
   }

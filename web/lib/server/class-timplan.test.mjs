@@ -39,3 +39,38 @@ test('MFA and CSRF failures cannot issue SQL mutation',async()=>{for(const mode 
 test('mandatory Worker audit failure rolls back command',async()=>{reset();state.auditFails=true;const r=await create(request('skapa',creation));assert.equal(r.status,500);assert.equal(state.mutations.length,0);});
 test('SQL stale revision, scope denial and audit failure are minimized',async()=>{for(const[code,status]of[['40001',409],['42501',403],['55000',500]]){reset();state.sqlError={code,message:'private detail'};const r=await create(request('skapa',creation));assert.equal(r.status,status);assert.ok(!(await r.text()).includes('private detail'));}});
 test('invalid payload and unrelated result fail closed',async()=>{reset();assert.equal((await create(request('skapa',{...creation,role:'huvudman'}))).status,400);assert.equal(state.mutations.length,0);reset();state.reply.startYear=2028;assert.equal((await create(request('skapa',creation))).status,500);assert.equal(state.mutations.length,0);});
+
+const {messageText}=await import('../session-channel.ts');
+const {sanitizeAuditDetails}=await import('./audit-details.ts');
+const {ApiError,api}=await import('../server-client.ts');
+const safeClassMessages={
+ class_name_year_conflict:'Klassnamnet är redan upptaget på skolan för den berörda kullen eller läsåret. Välj ett annat namn eller kontrollera klasskopplingen.',
+ class_cohort_start_locked:'Utbildningsstarten kan inte ändras när klasser finns. Skapa en ny kull om utbildningen ska ha en annan start.',
+ class_plan_not_ready:'Utbildningens start eller timplanens underlag behöver kontrolleras. Läs om underlaget innan du fortsätter.',
+};
+test('specific SQL conflicts reach audited safe client messages without SQL details',async()=>{
+ for(const [hint,expectedCode] of [['class_name_year_conflict','class_name_year_conflict'],['class_cohort_start_locked','class_cohort_start_locked'],['class_cohort_source_invalid','class_plan_not_ready']]){
+  reset();state.sqlError={code:'40001',hint,message:'private foreign school',detail:'private class identity'};
+  const response=await create(request('skapa',creation));assert.equal(response.status,409);
+  const body=await response.clone().json();assert.equal(body.code,expectedCode);assert.ok(!JSON.stringify(body).includes('private'));
+  assert.equal(state.events.at(-1).details.code,expectedCode);assert.equal(state.events.at(-1).details.path,'/api/klasser');assert.ok(!JSON.stringify(state.events.at(-1).details).includes('private'));
+  assert.equal(messageText(expectedCode),safeClassMessages[expectedCode]);
+  assert.deepEqual(sanitizeAuditDetails({code:expectedCode,message:'private',className:'private'}),{code:expectedCode});
+  const previousFetch=globalThis.fetch;globalThis.fetch=async()=>response;
+  try{await assert.rejects(api.post('/api/klasser/skapa',creation),error=>error instanceof ApiError&&error.status===409&&error.code===expectedCode&&error.message===safeClassMessages[expectedCode]&&error.hasExplicitCode);}
+  finally{globalThis.fetch=previousFetch;}
+ }
+});
+test('unknown hints remain generic and permissions never reveal class conflicts',async()=>{
+ for(const [sqlCode,hint,expectedCode,status] of [['40001',undefined,'conflict',409],['40001','private foreign scope','conflict',409],['42501','class_name_year_conflict','forbidden',403],['42501','class_cohort_start_locked','forbidden',403],['42501','class_cohort_source_invalid','forbidden',403]]){
+  reset();state.sqlError={code:sqlCode,hint,message:'private'};const response=await create(request('skapa',creation));
+  assert.equal(response.status,status);const body=await response.json();assert.equal(body.code,expectedCode);assert.ok(!JSON.stringify(body).includes('private'));
+ }
+ assert.deepEqual(sanitizeAuditDetails({code:'private foreign scope'}),{});
+});
+test('a conflict cannot bypass mandatory failure audit',async()=>{
+ for(const hint of ['class_name_year_conflict','class_cohort_start_locked','class_cohort_source_invalid']){
+  reset();state.sqlError={code:'40001',hint,message:'private'};state.auditFails=true;
+  const response=await create(request('skapa',creation));assert.equal(response.status,500);assert.equal((await response.json()).code,'audit_unavailable');assert.equal(state.mutations.length,0);
+ }
+});
