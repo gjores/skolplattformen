@@ -94,7 +94,7 @@ export async function createNamedTimplanOidcFixture({snapshot,runtime,evidenceDi
   };
   return{scope:{programId:fixture.programId,planId:fixture.planId,unitId:fixture.id(30),secondUnitId:fixture.id(31),offeringId:fixture.id(46),customerId:fixture.id(1),year:fixture.year},actors,login,request,view,cleanup,
    async expireMfa(page,role){const s=await view(page,role);await db`update public.app_sessions set auth_time=now()-interval '9 hours' where id=${s.sessionId} and identity_id=${actors[role].identityId}`;},
-   async revoke(role){await db`update public.memberships set status='blocked' where id=${actors[role].membershipId} and identity_id=${actors[role].identityId}`;},
+   async revoke(role){await db`update public.memberships set status='blocked',blocked_at=now() where id=${actors[role].membershipId} and identity_id=${actors[role].identityId}`;},
    proof:()=>({runId,auth:journal.auth,cleanup:journal.cleanup}),
   };
  }catch(error){try{await cleanup();}catch{journal.cleanup='failed';save();}throw error;}

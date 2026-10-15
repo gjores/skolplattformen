@@ -1,14 +1,17 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: NAMED-TIMPLANS-UX-07
-status: prepared_server_contracts_verified
+status: actual_http_oidc_verified
 updated: 2026-10-15
-remaining: [actual_sql_projection_parity, actual_http_oidc]
+remaining: []
 ---
 
 # Skyddade API-kontrakt — verifierad förberedelse
 
 Två skyddade POST-vägar förbereds för separat namngiven timplan och namnbyte. Befintlig versionsväg behåller sitt kontrakt. Plan07 är ännu inte slutverifierad: faktisk paritet med03–05 och HTTP/OIDC återstår. Workergrants är separat SQL-verifierade enligt04. Ingen permanent migration eller lokal runtimeleverans har gjorts.
+
+
+**Slutverifiering2026-10-16:**05:s faktiska SQL-/TypeScript-paritet och11:s sammanhängande38-kontrollers HTTP/OIDC/browserprov passerar. Se [samlad verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md). Ovanstående förberedelsestatus är historik; lokal leverans och mänsklig acceptans hanteras separat i12.
 
 ## Genomförande
 

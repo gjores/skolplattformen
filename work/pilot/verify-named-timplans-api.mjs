@@ -53,10 +53,11 @@ try{
  const playwright=createRequire(path.join(root,'web/package.json'))('@playwright/test');browser=await playwright.chromium.launch({headless:true});
  if(smoke){const context=await browser.newContext({baseURL:runtime.baseURL}),page=await context.newPage();await fixture.login(page,'principal');report.checks.push({name:'Actual isolated Keycloak-GoTrue-Worker callback and MFA',ok:true});await context.close();}
  else{
-  report.api=await namedTimplanApiScenarios({fixture,browser,snapshot,checks:report.checks});save();
   const {runNamedBrowserScenarios}=await import('./named-timplan-browser-scenarios.mjs');
   const desktop=await runNamedBrowserScenarios({fixture,browser,device:'desktop',snapshot,checks:report.checks,evidenceDir});report.browserEvidence.desktop={path:path.join(evidenceDir,'browser-desktop.json'),sha256:hash(readFileSync(path.join(evidenceDir,'browser-desktop.json'))),result:desktop,visualReview:'pending'};save();await browser.close();browser=null;
   browser=await playwright.webkit.launch({headless:true});const phone=await runNamedBrowserScenarios({fixture,browser,device:'phone',snapshot,checks:report.checks,evidenceDir});report.browserEvidence.phone={path:path.join(evidenceDir,'browser-phone.json'),sha256:hash(readFileSync(path.join(evidenceDir,'browser-phone.json'))),result:phone,visualReview:'pending'};
+  await browser.close();browser=await playwright.chromium.launch({headless:true});
+  report.api=await namedTimplanApiScenarios({fixture,browser,snapshot,checks:report.checks});save();
   report.finalSources=sources();report.finalMigrationSources=migrationSources();report.finalVerificationSources=verificationSources();report.finalArtifact=artifactManifest(buildRoot);
   assert.deepEqual(report.finalSources,initialSources,'Product source changed during actual verification');assert.deepEqual(report.finalMigrationSources,initialMigrations);assert.deepEqual(report.finalVerificationSources,initialVerification);assert.deepEqual(report.finalArtifact,runtime.proof.artifact);
  }

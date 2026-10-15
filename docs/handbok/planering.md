@@ -55,7 +55,7 @@ Invänta sparbeskedet innan du byter år, skola, vy eller uppdrag. Om sparstatus
 
 Vid en samtidig ändring jämför du aktuellt sparat underlag med dina värden. Om uppdraget återkallas eller sessionen går ut rensas innehållet även när en sparning är oklar. Du får ingen ny behörighet genom att ändra år eller adress.
 
-Se [Programplaner](./programplaner.md) och [Timplaner](./timplaner.md) för planernas arbetsmoment och aktuella begränsningar. Färdigmarkering av rektors arbete och huvudmannens godkännande är ännu inte tillgängliga i detta flöde.
+Se [Programplaner](./programplaner.md) och [Timplaner](./timplaner.md) för planernas arbetsmoment och aktuella begränsningar. Beslut hanteras i den öppnade planen.
 
 ### Skolans timplaner i Programplaner
 

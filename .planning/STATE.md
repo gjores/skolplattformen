@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: NAMED-TIMPLANS-UX-05
+current_plan: NAMED-TIMPLANS-UX-11
 status: executing
-stopped_at: NAMED-TIMPLANS-UX 01–04 delverifierade; läsprojektioner05 och sammanhängande UI08–10 pågår. Faktisk paketverifiering och lokal leverans återstår.
+stopped_at: NAMED-TIMPLANS-UX 01–10 delverifierade; 11 faktisk SQL passerar, faktisk API/browser pågår. Lokal migration och leverans återstår.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
 last_activity_desc: "Användaren har godkänt mockupriktningen. NAMED-TIMPLANS-UX planeras och genomförs; befintlig lokal leverans och användardata bevaras."
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Aktuellt NAMED-TIMPLANS-UX:** Plan01–10 har verifierade delresultat enligt respektive SUMMARY.11:s isolerade SQL-paket, rollback och åtta faktiskt överlappande konkurrensfall passerar. Produktbygge `c8f3256` (204 filer, artefakt `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e`) är byggt och faktisk HTTP/OIDC/browser provas mot egen schemakopia med syntetiska data. Typkontroll, full applint, skyddat bygge och handboksbygge passerar.21 HTTP-kontroller har passerat men full körning återstår efter rättningar i testverktygets auditstatus och syntetiska spärrdatum; inga produktfel hävdas av dessa två fixtureavvikelser. Inga nya migrationer är installerade på användarens mål och ingen ny version levererad. Den aktiva3012-processens gamla201-filsartefakt `88145bc` återställdes exakt efter att kandidatbygget skrivit samma byggkatalog; privata filer matchar tidigare dokumenterade hashvärden, processer och databas förblev oförändrade. Detaljer samlas i11/12:s slutrapport. Gapet förblir öppet tills teknisk leverans och användarens begriplighetsprov är klara. Äldre statusstycken nedan är historik.
 
 **Godkänd design och påbörjat genomförande 2026-10-15:** Användarens ”kör på” efter mockupgenomgången gäller gemensamt skol-/läsårsval, årskursöverblick, klassflödet i v2 och tidigare beställda namngivna parallella timplaner. [Beslutad riktning och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-CONTEXT.md) skiljer designval från mockupens icke beslutade lås-/sparregler. Plan01 klasslista är UI-verifierad;02–04 seriegrund, kommandon och beslut är SQL-verifierade i schema-only-kopia med syntetiska fixturer.06–07 kontrakt/server är förberedda;05 läsprojektioner och08–10 sammanhängande UI pågår.09 flerval är mockverifierat.07:s två nya Workergrants har verifierats med faktisk SQL-roll. Samlad faktisk HTTP/OIDC, konkurrens, dator/telefon och handbok återstår. Inga liverader exporterades. Ingen ny lokal leverans eller permanent migration är gjord. CLASS-COHORT-UX-01 förblir öppet; tidigare genomförda paketplansantal och hela fasens status består.
 

@@ -1,15 +1,18 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: NAMED-TIMPLANS-UX-06
-status: prepared_contracts_verified
+status: sql_contract_parity_verified
 updated: 2026-10-15
 gap: CLASS-COHORT-UX-01
-remaining: [verify_against_05_sql_projections, sql_typescript_name_parity]
+remaining: []
 ---
 
 # Strikta serie- och läskontrakt — verifierat delresultat
 
 Ren kontraktsimplementation och dess Node-prov är klara. **Plan 06 är inte slutverifierad**: den uppdaterade planen beror på 05:s faktiska SQL-projektioner och namn-/SQLparitet återstår. Ingen ny serveradapter eller produktleverans ingår i detta delresultat.
+
+
+**Slutverifiering2026-10-16:**05:s faktiska SQL-/TypeScript-paritet och11:s sammanhängande38-kontrollers HTTP/OIDC/browserprov passerar. Se [samlad verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md). Ovanstående förberedelsestatus är historik; lokal leverans och mänsklig acceptans hanteras separat i12.
 
 ## Implementerat
 
