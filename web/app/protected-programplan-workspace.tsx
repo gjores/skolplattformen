@@ -19,6 +19,8 @@ import MfaStepUpNotice from './mfa-step-up';
 import { AnalysisView, SaveDialog } from './protected-programplan-sheet';
 import { analyseProgramplan, type PlanIssue } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
+import ProtectedClassCohorts from './protected-class-cohorts';
+import { planLocationQuery } from '@/lib/protected-plan-location.ts';
 import ProgramplanList from './protected-programplan-list';
 import { LifecycleBadge, LifecycleDialog, nextDay, type LifecycleDialogKind } from './protected-programplan-lifecycle';
 import { programplanLifecycleActions, programplanSchoolActions, programplanSchoolLabel, programplanLockReason, startsAfter, stockholmToday } from '@/lib/programplan-lifecycle.ts';
@@ -45,7 +47,9 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const page = 1;
   const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
+  const classPending = useHasUnsaved('class-cohort:');
   const initialOpened = useRef(false);
+  const [classStepOffering, setClassStepOffering] = useState<string | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialPlan?.unitId ?? planningUnit);
   const selectedUnit = useRef<string | null>(selectedUnitId);
   const hasUnsaved = useHasUnsaved();
@@ -554,7 +558,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
   const planBody = boardActive && plan && program ? <>
     <ProgramplanBoard yearView={yearProjection ? { projection: yearProjection, year: shownYear, onYear: changeMatrixYear,
-      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} initialTerms={reloadedTerms} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null}
+      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} initialTerms={reloadedTerms} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null || classPending}
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onNavigationBlocked={onBoardBlocked} onTerms={onReadTerms} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,true,true)}/>
   </> : <>
     {plan && !plan.basisReference && planningSelection && <output className="pp-notice">Årsdelen för {planningYearLabel(planningSelection.schoolYear)} saknar verifierat startdatum. Hela planen visas.</output>}
@@ -572,7 +576,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       canCreateTimplan={!!onTimplan && ['rektor', 'administrator'].includes(context.function)} onTimplan={openRowTimplan}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
-      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={(id,catalogId,planId,unitId)=>openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined)}/></div>}
+      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={async(id,catalogId,planId,unitId,created)=>{if(created)setClassStepOffering(id);await openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined);}}/></div>}
     {(workspace||draft)&&<div className="pps-page">
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">
@@ -597,11 +601,16 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.delete&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('delete');}}><Trash2 size={16} aria-hidden="true"/>Ta bort</Button>}
         </div>
       </div>}
+      {workspace&&selectedSchool&&!draft&&!preparation&&!copy&&view==='plan'&&<ProtectedClassCohorts context={context} epoch={epoch} offeringId={workspace.education.id} unitId={selectedSchool.id}
+        disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepOffering===workspace.education.id}
+        sourceKey={JSON.stringify([workspace.lifecycle.revision,workspace.versions.map(version=>[version.id,version.revision,version.status])])}
+        returnTo={'/'+planLocationQuery({view:'programplaner',programplan:plan?{offeringId:workspace.education.id,planId:plan.id,version:plan.version,unitId:selectedSchool.id}:null,
+          planning:{schoolYear:planningSelection?.schoolYear,unitId:selectedSchool.id,schoolform:'gymnasium'},allYears:true})} onSecurityFailure={securityFailure}/>}
       {workspace&&!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
       {lifecycleDialog&&lifecycleTarget&&<LifecycleDialog key={lifecycleDialog} kind={lifecycleDialog} target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
         onChanged={(message,reply)=>lifecycleChanged(message,reply.command==='delete')} onStale={lifecycleStale}/>}
       {workspace&&!draft&&!preparation&&lockReason&&view==='plan'&&<output className="pp-notice ppl-lock">{lockReason}</output>}
-      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
+      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock||classPending} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={fixIssue} actionUnavailable={actionUnavailable}/>}
       {view==='plan'&&<>
         {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">
