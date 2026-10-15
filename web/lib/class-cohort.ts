@@ -61,6 +61,15 @@ function nonemptyText(value: unknown): string {
 function reviewedName(value: unknown): string {
   const result = gymText(value, 60);
   if (!result || result !== result.trim().toUpperCase() || /[\p{Cc}\p{Cf}]/u.test(result)) bad();
+  // JSON can carry lone UTF-16 surrogates, while PostgreSQL text cannot.
+  // Validate scalar pairs without requiring String.isWellFormed in browsers.
+  for (let index = 0; index < result.length; index++) {
+    const unit = result.charCodeAt(index);
+    if (unit >= 0xd800 && unit <= 0xdbff) {
+      const next = result.charCodeAt(++index);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) bad();
+    } else if (unit >= 0xdc00 && unit <= 0xdfff) bad();
+  }
   return result;
 }
 function storedName(value: unknown): string {
@@ -120,7 +129,7 @@ export function parseClassCohortUnderlag(value: unknown, input: ClassCohortUnder
   if (result.educationStartsOn !== null && firstSchoolYear(result.educationStartsOn) !== result.firstSchoolYear) bad();
   const outsideWriteYears = result.firstSchoolYear !== null && (result.firstSchoolYear < 2000 || result.firstSchoolYear > 2100);
   if ((unknown || outsideWriteYears) && (!result.blockers.length || result.canManage)) bad();
-  if (result.canManage && result.blockers.length) bad();
+  if (result.canManage && (result.blockers.length || result.classes.length >= 2000)) bad();
   return result;
 }
 export function parseClassCohortCreateReply(value: unknown, input: ClassCohortCreateRequest): ClassCohortCreateReply {

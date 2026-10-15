@@ -49,7 +49,7 @@ test('UUIDs, source tokens and revisions reject coercion and malformed identitie
 test('canonical names preserve reviewed Unicode and order; maximum is UTF-16 units', () => {
   const accepted = ['SA27A', 'ÅÄÖ 27', 'A B', '😀'.repeat(30), '𐐀27'];
   for (const name of accepted) assert.deepEqual(parseClassCohortCreateRequest({ ...request(), names: [name] }).names, [name]);
-  const rejected = ['', ' A', 'A ', 'a', 'å', 'A\nB', 'A\u200dB', 'A\ufeffB', '\u00a0A', 'A\u00a0', '😀'.repeat(31), '𐐨27', 'ß27'];
+  const rejected = ['', ' A', 'A ', 'a', 'å', 'A\nB', 'A\u200dB', 'A\ufeffB', '\u00a0A', 'A\u00a0', '😀'.repeat(31), '𐐨27', 'ß27', '\ud800', '\udc00', 'A\ud800B', '\udc00\ud800'];
   for (const name of rejected) bad(() => parseClassCohortCreateRequest({ ...request(), names: [name] }));
   for (const names of [[], ['A', 'A'], ['A', ' a '], ['Å', 'å'], Array.from({ length: 21 }, (_, i) => `A${i}`), [null], 'A'])
     bad(() => parseClassCohortCreateRequest({ ...request(), names }));
@@ -162,4 +162,11 @@ test('read preserves older PostgreSQL names for both provenance types; new batch
   }
   for (const name of ['', 'A'.repeat(61), '😀'.repeat(61)])
     bad(() => parseClassCohortUnderlag({ ...underlag(), classes: [{ ...classes(request())[0], name }] }, read));
+});
+
+test('a complete 2000-class school education remains readable but cannot claim room for another batch', () => {
+  const value = { ...underlag(), canManage: false, blockers: ['Utbildningen har nått klassgränsen.'],
+    classes: Array.from({ length: 2000 }, (_, i) => ({ ...classes(request())[0], id: id(100 + i), name: `A${i}` })) };
+  assert.equal(parseClassCohortUnderlag(value, read).classes.length, 2000);
+  bad(() => parseClassCohortUnderlag({ ...value, blockers: [], canManage: true }, read));
 });
