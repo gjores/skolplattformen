@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-RESEARCH
-status: ready_for_planning
-stopped_at: Kopieringsprov användarrapporterat godkänt; klass-/kullresearch klar inför avgränsad genomförandeplan.
+current_plan: CLASS-COHORT-01
+status: ready_for_execution
+stopped_at: CLASS-COHORT plancheck PASS; nästa är genomförande av CLASS-COHORT-01 och paketets beroendekedja.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "Användaren bekräftar att testet i övrigt fungerade enligt plan. Kopieprov godkänt; klassorganisation följs som separat förbättring."
-state_head: f4987b6
+last_activity_desc: "Elva klass-/kullplaner granskade; oförändrade mandat bekräftade, SS 12000 mappad. Genomförande återstår."
+state_head: bc26c07
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
 worker_status: running_on_3012_registry_compatibility_verified
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Aktuellt 2026-10-15 — klassorganisation:** Användaren har valt första etappen med oförändrade mandat. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-CONTEXT.md) och [SS 12000-mappning](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-SS12000.md) är skrivna. [Genomförandepaket](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md) har elva granskade planer i nio vågor; [plancheck PASS](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-PLAN-CHECK.md). Nästa är genomförande av CLASS-COHORT-01. Kopieringsprovet är redan godkänt och ska inte upprepas som mänsklig checkpoint. Inget nytt produkt-/databas-/körbevis följer av planeringen; tidigare bygguppgifter nedan är senast sparad historik.
 
 **Användarresultat 2026-10-15:** ”annars fnukade testet enlgit plan” registreras som godkänt för [kopieringsprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-REMAINING-USER-TRIAL.md). Ingen omtest behövs av detta prov. Klass-/kullresearchen kvarstår som underlag för nästa avgränsade plan; tidigare provgränser, historiska integritetsavvikelser och prestandabacklogg består. Äldre noteringar nedan beskriver tidigare lägen.
 
@@ -101,10 +103,10 @@ milestone_name: milestone
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-07)
+See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Modell/SQL/API05-36–38 och det avgränsade prestandakorrektivet är verifierade. Kod-/benämningssökningen är också faktiskt verifierad. Nu UI05-39–43 och konkret användarprov. Planeringsår och elevregisterår ska vara separata. Programplanens blockramar och terminsfördelning består; blockhanteringen är borttagen enligt användarens förtydligande 2026-10-06. Den beställda [övergången från programplan till skolans timutkast](phases/05-bevarade-utbildnings-och-klassfloden/05-PROGRAMPLAN-TIMPLAN-TRANSITION-PLAN.md) fungerar fortsatt med fryst källa och separat skolvis timfördelning. Paket finns inte i programplanerna. Teknisk 05-23/E är avslutad enligt aktuell ram; yrkesram 05-17, formella beslut och garantikontroll återstår. Det aktuella grundflödet är användarrapporterat godkänt 2026-10-06. Äldre 05-25–35 kräver omplanering mot den nya övergången.
+**Current focus:** Tidigare klassorganisation och begripligt kullstart-/läsårsval i CLASS-COHORT-paketet. Oförändrade mandat bekräftade 2026-10-15. Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
 
@@ -263,12 +265,12 @@ Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.
 **Current Phase:** 05
 **Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** 05-40; därefter05-41–43. SEARCH och separat planeringskontext05-39 fullständigt verifierade inom sina avgränsningar; API15/247 och28 entries består. Äldre05-25–35 kräver omplanering.
-**Total Plans in Phase:** 05-36–38 och prestandakorrektivet har SUMMARY/verifiering; SEARCH och UI05-39–43 återstår. 05-17 saknar PLAN. Mänskliga prov och full fasverifiering är separata.
-**Status:** 05-23/E tekniskt PASS lokalt. Grundflödet användarrapporterat godkänt. ADMIN-02/03/04, hela fas 5 och båda nya gapen är Pending; 05-22 metadata PARTIAL består.
+**Current Plan:** CLASS-COHORT-01, redo efter plancheck PASS; endast paketets beroendekedja ska genomföras.
+**Total Plans in Phase:** Historiska totalsiffror är inte omräknade. CLASS-COHORT och tidigare namngivna tillägg redovisas separat i sina paketöversikter.
+**Status:** CLASS-COHORT plancheck PASS; genomförande ej startat. Godkända användarprov består; full fasacceptans och äldre integritetsavvikelser är fortsatt öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-10-07
-**Last Activity Description:** Fullt prestandakorrektiv PASS: SQL143/46+93/18 och API15/247; alla15 originaltabeller/audit/ACL28 bevarade. SEARCH och UI följer.
+**Last Activity:** 2026-10-15
+**Last Activity Description:** Elva planer granskade mot kod, bekräftad omfattning och SS 12000; nästa är CLASS-COHORT-01.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 
@@ -462,11 +464,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-10-07
-**Stopped At:** Prestanda och SEARCH fullrollback/apply/applied, actualAPI15/247 och sökning19/204 PASS. Fortsätter autonomt med UI05-39–43 tills konkret användarprov enligt beställningen. Ordinarie3012 består; alla övriga krav/gap är öppna.
-**Resume File:** [Läsårsplaneringens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-IMPLEMENTATION.md)
+**Last Date:** 2026-10-15
+**Stopped At:** CLASS-COHORT plancheck PASS. Genomförande från 01 återstår; ingen ny produkt-/databasverifiering gjord.
+**Resume File:** [Klassorganisationens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — UI05-39–43 efter genomförd SEARCH. Äldre05-25–35 kräver omplanering; besluts-/mobilgap samt fulla krav kvarstår.
+**Planned Phase:** 5 — CLASS-COHORT-01 och paketets beroendekedja. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
 
 ### Senaste användarfynd, 2026-10-02
 

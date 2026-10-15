@@ -1,6 +1,6 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
-status: new_class_cohort_research_followup
+status: class_cohort_planned_pending_execution
 reviewed: 2026-10-14
 requirements: [ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, PLANERING-01, PLANERING-02, PLANERING-03, PLANERING-04, PLANERING-05]
 method: current_source_and_evidence_with_independent_gsd_verifier
@@ -37,4 +37,4 @@ Efter användarens ”allt funkar” för skolflödet är de två konkreta imple
 
 Den nya skolvägen använder faktiskt Skolverkets publika API. Dess skrivprov använder en separat syntetisk kund i lokal skyddad databas. Manualprovet på 5198 var simulerat och dess godkännande gäller användbarhet. Dessa bevis kombineras utan att beskrivas som verklig kommunanslutning.
 
-Kullkopieringens mänskliga checkpoint är nu godkänd. Nästa steg är planering av klass-/kullförbättringen. Historiska 05-22:s fyra ändrade `updated_at` och 1 827 saknade auditankare förblir öppna integritetsavvikelser med separat uppföljning. Senare PASS skriver inte om dem. Fas 4:s egen checkpoint och full pilot-/kommunacceptans är också separata. Historiska 88/100 planer och 3/8 verifierade faser räknas inte om utan full inventering. Fas 5 är ännu inte markerad slutgodkänd.
+Kullkopieringens mänskliga checkpoint är nu godkänd. Klass-/kullförbättringen har nu [elva granskade genomförandeplaner](05-CLASS-COHORT-IMPLEMENTATION.md) med bekräftat oförändrade mandat. Nästa steg är CLASS-COHORT-01; ingen ny implementation eller användaracceptans följer av planchecken. Historiska 05-22:s fyra ändrade `updated_at` och 1 827 saknade auditankare förblir öppna integritetsavvikelser med separat uppföljning. Senare PASS skriver inte om dem. Fas 4:s egen checkpoint och full pilot-/kommunacceptans är också separata. Historiska 88/100 planer och 3/8 verifierade faser räknas inte om utan full inventering. Fas 5 är ännu inte markerad slutgodkänd.
