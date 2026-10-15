@@ -10,11 +10,11 @@ import { confirmDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-
 import { parseProgramplanWorkspace, type ProgramplanWorkspace } from '@/lib/programplan-workspace-contract.ts';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { statusLabel } from '@/lib/protected-timplan.ts';
-import { gymTimplanCanEdit, parseGymTimplan, parseGymTimplanCreateReply, parseGymTimplanUnderlag, type GymTimplan, type GymTimplanCreateRequest,
+import { gymTimplanCanEdit, parseGymTimplan, parseGymTimplanUnderlag, type GymTimplan,
   type GymTimplanUnderlag, type GymTimplanUnit } from '@/lib/gym-timplan.ts';
 import type { GymTimplanLocation, ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import type { ActiveContext } from './context-switch';
-import MfaStepUpNotice from './mfa-step-up';
+import NamedTimplanActions, {type TimplanAction} from './named-timplan-actions';
 import ProtectedGymTimplanHours from './protected-gym-timplan-hours';
 import ProtectedClassTimplans from './protected-class-timplans';
 import './protected-gym-timplan.css';
@@ -23,8 +23,6 @@ import { usePlanningContext, type PlanningMatrixYear } from './planning-context'
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
-type CreateDraft = { request: GymTimplanCreateRequest; schoolName: string; sourceVersion: number; previousVersion: number | null;
-  preserved: number; cleared: number; error: string | null; uncertain: boolean; stale: boolean; mfa: boolean };
 type Props = { context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
   onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
@@ -37,7 +35,9 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   const [selectedUnit, setSelectedUnit] = useState<string | null>(initialTarget?.unitId ?? planningUnit ?? null);
   const selectedUnitRef = useRef<string | null>(selectedUnit), initialOpened = useRef(false);
   const [underlag, setUnderlag] = useState<GymTimplanUnderlag | null>(null), [plan, setPlan] = useState<GymTimplan | null>(null);
-  const [creating, setCreating] = useState<CreateDraft | null>(null);
+  const [action, setAction] = useState<TimplanAction | null>(null);
+  const [commandBlocked, setCommandBlocked] = useState(false);
+  const commandScope = JSON.stringify([context.customerId, context.membershipId, context.assignmentId]);
   const [showSource, setShowSource] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
   const active = useRef(true), generation = useRef(0), controller = useRef<AbortController | null>(null), saving = useRef(false);
@@ -47,25 +47,24 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   const hoursDirty = useHasUnsaved(`${unsavedId}-hours`);
   const decisionPending = useHasUnsaved('navigation-block:plan-decision:');
   const classDirty = useHasUnsaved('class-plan-form:');
-  const dirty = hoursDirty || classDirty || !!creating?.uncertain;
+  const dirty = hoursDirty || classDirty || commandBlocked;
   const navigationBlocked = useHasUnsaved('navigation-block:');
-  const navigationBlockedRef = useRef(navigationBlocked), hoursBlockedRef = useRef(false), creatingRef = useRef(creating);
+  const navigationBlockedRef = useRef(navigationBlocked), hoursBlockedRef = useRef(false);
   useEffect(() => { navigationBlockedRef.current = navigationBlocked; }, [navigationBlocked]);
-  const updateCreating = useCallback((next: CreateDraft | null) => { creatingRef.current = next; setCreating(next); }, []);
   const onHoursBlocked = useCallback((blocked: boolean) => { hoursBlockedRef.current = blocked; }, []);
   const allowNavigation = useCallback(() => {
-    if (!saving.current && !hoursBlockedRef.current && !creatingRef.current?.uncertain && !navigationBlockedRef.current) return true;
+    if (!saving.current && !hoursBlockedRef.current && !navigationBlockedRef.current) return true;
     setNotice('Invänta sparandet eller läs aktuell sparstatus innan du lämnar timplanen.'); return false;
   }, []);
-  useUnsavedChanges(unsavedId, !!creating?.uncertain || busy && !!creating);
-  useUnsavedChanges(`navigation-block:${unsavedId}`, !!creating?.uncertain || busy && !!creating);
+  useUnsavedChanges(unsavedId, commandBlocked || busy && !!action);
+  useUnsavedChanges(`navigation-block:${unsavedId}`, commandBlocked || busy && !!action);
   const invalidate = useCallback(() => { generation.current++; controller.current?.abort(); controller.current = null; }, []);
   const begin = useCallback(() => { invalidate(); const c = new AbortController(); controller.current = c; return { token: generation.current, signal: c.signal }; }, [invalidate]);
   const current = useCallback((token: number) => active.current && generation.current === token, []);
   const securityFailure = useCallback((caught: unknown) => {
     if (!(caught instanceof ApiError) || !(caught.status === 401 || caught.status === 403 && caught.code !== 'mfa_required')) return false;
-    invalidate(); setMissing(null); setUnderlag(null); setPlan(null); updateCreating(null); setShowSource(false); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
-  }, [invalidate, onSessionLost, updateCreating]);
+    invalidate(); setMissing(null); setUnderlag(null); setPlan(null); setAction(null); setShowSource(false); setError(null); setNotice(null); setBusy(false); onSessionLost(); return true;
+  }, [invalidate, onSessionLost]);
 
   const loadList = useCallback(() => {
     if (!allowNavigation()) return;
@@ -138,28 +137,12 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
     else if (row.source) void loadUnderlag(row.source.planId, { kind: 'source', id: row.source.planId, unitId: row.unitId, offeringId: row.source.offeringId, version: row.source.version }, row.source);
     else void loadMissingEducation(row.offeringId, row.unitId);
   }
-  async function prepareCreate(unit: GymTimplanUnit, basis = underlag) {
-    if (!basis || busy || selectedUnit !== null && unit.unitId !== selectedUnit || !unit.canPlan || !basis.readiness.ready || !allowNavigation()) return;
-    const previous = unit.plans.find(p => ['utkast', 'forslag', 'atersand'].includes(p.status)) ?? unit.plans.find(p => p.status === 'faststalld') ?? null;
-    const request: GymTimplanCreateRequest = { commandId: crypto.randomUUID(), sourcePlanId: basis.source.planId,
-      expectedSourceRevision: basis.source.revision, expectedEducationRevision: basis.source.educationRevision,
-      unitId: unit.unitId, predecessorPlanId: previous?.id ?? null, expectedPredecessorRevision: previous?.revision ?? null };
-    let preserved = 0;
-    if (previous?.sourcePlanId) {
-      const r = begin(); setBusy(true); setError(null);
-      try {
-        const old = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: previous.id }, r.signal), previous.id);
-        if (!current(r.token)) return;
-        if (old.revision !== previous.revision) { setBusy(false); await loadUnderlag(basis.source.planId); setNotice('Timplanen ändrades. Välj åtgärden igen från det aktuella underlaget.'); return; }
-        preserved = basis.rows.filter(row => old.rows.some(before => before.key === row.key && before.points === row.points && before.pointTerms.every((p, i) => p === row.pointTerms[i]))).length;
-      } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Tidigare timplan kunde inte jämföras. Läs om innan du skapar nästa version.')); return; }
-      finally { if (current(r.token)) { setBusy(false); if (plan) verifiedPlan.current = {token:r.token,planId:plan.id}; } }
-    }
-    updateCreating({ request, schoolName: unit.schoolName, sourceVersion: basis.source.version, previousVersion: previous?.version ?? null, preserved,
-      cleared: basis.rows.length - preserved, error: null, uncertain: false, stale: false, mfa: false });
+  function prepareCreate(unit: GymTimplanUnit) {
+    if (!underlag || busy || !unit.canPlan || !underlag.readiness.ready || !allowNavigation()) return;
+    setAction({kind:'new',basis:underlag,unit});
   }
   async function prepareNewVersion() {
-    if (!plan || busy || !allowNavigation() || classDirty && !confirmDiscard() || plan.archived || !['faststalld', 'ersatt'].includes(plan.status)) return;
+    if (!plan || busy || !allowNavigation() || classDirty && !confirmDiscard() || plan.archived || !(['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status))) return;
     const own = plan, r = begin(); setBusy(true); setError(null);
     try {
       const sourcePlanId = own.currentSource?.planId ?? own.source.planId;
@@ -168,32 +151,18 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
       const unit = basis.units.find(u => u.unitId === own.unitId);
       if (basis.source.offeringId !== own.offeringId || !unit || !unit.canPlan || !planningSetup?.units.some(u => u.unitId === own.unitId && u.canRead.gymnasium))
         throw new Error('wrong_version_scope');
-      const draft = unit.plans.find(p => ['utkast', 'atersand', 'forslag'].includes(p.status));
-      if (draft) { setBusy(false); await openPlan(draft.id, {kind:'plan',id:draft.id,unitId:unit.unitId,offeringId:own.offeringId,version:draft.version}); setNotice('Utbildningen har redan en pågående timplansversion. Fortsätt här.'); return; }
+      if (!own.series) throw new Error('missing_series');
+      const ownPlans = unit.plans.filter(p => p.series?.id === own.series?.id);
+      const draft = ownPlans.find(p => ['utkast', 'atersand', 'forslag'].includes(p.status));
+      if (draft && (draft.status === 'forslag' || draft.sourcePlanId === basis.source.planId && draft.sourceRevision === basis.source.revision)) { setBusy(false); await openPlan(draft.id, {kind:'plan',id:draft.id,unitId:unit.unitId,offeringId:own.offeringId,version:draft.version}); setNotice('Den här timplanen har redan en pågående version. Fortsätt här.'); return; }
       if (!basis.readiness.ready) { setBusy(false); setNotice(`Komplettera programplanen före nästa timplansversion: ${basis.readiness.missing.join(' ')}`); return; }
-      setBusy(false); await prepareCreate(unit, basis);
+      const previous = ownPlans.filter(p => ['faststalld','utkast','atersand'].includes(p.status)).sort((a,b) => b.version-a.version)[0];
+      if (!previous) throw new Error('missing_predecessor');
+      setBusy(false); setAction({kind:'version',basis,unit,previous});
     } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Aktuellt underlag kunde inte hämtas. Försök igen innan du skapar en version.')); }
     finally { if (current(r.token)) { setBusy(false); verifiedPlan.current = {token:r.token,planId:own.id}; } }
   }
-  async function createPlan() {
-    if (!creating || busy || saving.current || creating.stale) return;
-    const own = creating, r = begin(); saving.current = true; setBusy(true); updateCreating({ ...own, error: null, mfa: false }); let accepted = false;
-    try {
-      const reply = parseGymTimplanCreateReply(await api.post('/api/timplaner/gym/skapa', own.request, r.signal), own.request);
-      accepted = true;
-      if (!current(r.token)) return;
-      const fresh = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: reply.id }, r.signal), reply.id);
-      if (!current(r.token)) return;
-      setPlan(fresh); setUnderlag(null); updateCreating(null); selectedUnitRef.current = fresh.unitId; setSelectedUnit(fresh.unitId); verifiedPlan.current = { token: r.token, planId: fresh.id }; opened.current({ kind: 'plan', id: fresh.id, unitId: fresh.unitId, offeringId: fresh.offeringId, version: fresh.version }, fresh.source.planId);
-      setNotice(own.previousVersion ? `Version ${fresh.version} sparades. ${reply.carriedRows} oförändrade rader behöll sin tid; ${reply.resetRows} rader behöver fördelas.` : 'Timplansutkastet sparades. Fyll i skolans undervisningstid.');
-    } catch (caught) {
-      if (!current(r.token) || aborted(caught) || securityFailure(caught)) return;
-      const explicit = caught instanceof ApiError && caught.hasExplicitCode;
-      updateCreating({ ...own, uncertain: accepted || !explicit || own.uncertain, stale: !accepted && explicit && caught.status === 409 && !own.uncertain,
-        mfa: caught instanceof ApiError && caught.code === 'mfa_required', error: explicit ? message(caught, 'Kunde inte skapa timplanen.') : 'Svaret kunde inte bekräftas. Försök igen med samma begäran för att hämta den sparade timplanen.' });
-    } finally { saving.current = false; if (current(r.token)) setBusy(false); }
-  }
-  function leave(action: () => void) { if (allowNavigation() && !busy && (!dirty || confirmDiscard())) { updateCreating(null); action(); } }
+  function leave(action: () => void) { if (allowNavigation() && !busy && (!dirty || confirmDiscard())) { setAction(null); action(); } }
   const editable = plan ? gymTimplanCanEdit(plan) : false;
   // Timetables use the frozen source even when a newer live program version exists.
   const yearProjection = useMemo(() => plan && planningSelection ? projectGymTimplanYear(planningSelection.schoolYear, plan,
@@ -207,15 +176,16 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
     requestMatrixYear(year === 'all' ? 'all' : Number(year) as 0 | 1 | 2);
   }
   useEffect(() => {
-    if (!plan || !yearProjection || busy || navigationBlocked || creating?.uncertain || hoursBlockedRef.current
+    if (!plan || !yearProjection || busy || navigationBlocked || commandBlocked || hoursBlockedRef.current
       || verifiedPlan.current?.planId !== plan.id || !current(verifiedPlan.current.token)) return;
     if (matrixYear === null || yearProjection.terms.length !== 6 && matrixYear !== 'all') requestMatrixYear(shownYear);
-  }, [plan, yearProjection, busy, navigationBlocked, creating?.uncertain, current, matrixYear, shownYear, requestMatrixYear]);
+  }, [plan, yearProjection, busy, navigationBlocked, commandBlocked, current, matrixYear, shownYear, requestMatrixYear]);
 
 
   return <section className="gym-timplan" data-testid="protected-gym-timplan-workspace" aria-busy={busy}>
     {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => loadList())}>Välj utbildning igen</Button></div>}
     {notice && <output className="gt-notice">{notice}</output>}
+    {(plan || underlag) && <ol className="gt-flow" aria-label="Utbildningens arbetsmoment"><li>Programplan · {statusLabel[(plan?.source ?? underlag!.source).status]}</li><li>Klasser · kan göras senare</li><li aria-current="step">Timplaner{plan ? ` · ${statusLabel[plan.status]}` : ' · välj eller skapa'}</li><li>Klasskopplingar · efter fastställande</li></ol>}
     {!plan && !underlag && !missing && <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner för gymnasiet</h1><p>Här visas skapade timplaner. För att skapa en ny timplan, öppna utbildningen under Programplaner och välj Timplan.</p></div></div>
       <ProtectedPlanList disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>
     </>}
@@ -232,42 +202,46 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
       <Button variant="ghost" disabled={busy} onClick={() => leave(() => loadList())}><ArrowLeft size={16}/>Alla gymnasietimplaner</Button>
       <header className="gt-head"><div><h1>{underlag.source.education.name}</h1><p>{underlag.source.education.cohort} · Programplan version {underlag.source.version}, revision {underlag.source.revision} ({statusLabel[underlag.source.status].toLocaleLowerCase('sv')})</p></div>
         <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: underlag.source.offeringId, planId: underlag.source.planId, version: underlag.source.version, ...(selectedUnit ? { unitId: selectedUnit } : {}) }))}><FileText size={16}/>Öppna programplan</Button></header>
-      <p className="gt-explanation">Programplanens poäng och terminer är underlag. Varje skola fördelar sin undervisningstid i ett eget timplansutkast. Ett programutkast blir inte fastställt av detta.</p>
+      <p className="gt-explanation">Programplanens poäng och terminer är underlag. Skolan kan ha flera namngivna timplaner med olika undervisningstid. Ett programutkast blir inte fastställt av detta.</p>
       {!underlag.readiness.ready && <output className="gt-source-missing"><strong>Programramen behöver kompletteras före timplaneringen.</strong><ul>{underlag.readiness.missing.map((reason, i) => <li key={i}>{reason}</li>)}</ul></output>}
-      <section className="gt-schools" aria-label="Välj skola"><h2>Skolans timplan</h2><div className="gt-school-grid">{underlag.units.filter(unit => selectedUnit === null || unit.unitId === selectedUnit).map(unit => {
-        const open = unit.plans.find(p => ['utkast', 'forslag', 'atersand'].includes(p.status));
-        const currentPlan = open ?? unit.plans.find(p => p.status === 'faststalld');
-        const sourceMatches = !!currentPlan && currentPlan.sourcePlanId === underlag.source.planId && currentPlan.sourceRevision === underlag.source.revision;
+      <section className="gt-schools" aria-label="Välj skola"><h2>Skolans timplaner</h2><div className="gt-school-grid">{underlag.units.filter(unit => selectedUnit === null || unit.unitId === selectedUnit).map(unit => {
+        const series = [...new Set(unit.plans.map(p => p.series?.id ?? 'legacy'))];
         return <article className="gt-school" key={unit.unitId}><h3>{unit.schoolName}</h3>
-          {currentPlan ? <p>{statusLabel[currentPlan.status]} · Version {currentPlan.version}{currentPlan.sourceVersion !== null ? ` · Programplan v${currentPlan.sourceVersion}` : ' · Äldre underlag'}</p> : <p>Ingen timplan skapad.</p>}
-          {currentPlan?.sourcePlanId && <Button variant="outline" disabled={busy} aria-label={`Öppna timplan, version ${currentPlan.version}, ${unit.schoolName}`} onClick={() => void openPlan(currentPlan.id, { kind: 'plan', id: currentPlan.id, unitId: unit.unitId, offeringId: underlag.source.offeringId, version: currentPlan.version })}>Öppna timplan</Button>}
-          {currentPlan && !currentPlan.sourcePlanId && <p className="gt-muted">Den äldre versionens timmar bevaras. Ett nytt utkast börjar utan kopierad tid.</p>}
-          {unit.canPlan && underlag.readiness.ready && (!open || !sourceMatches) && <Button disabled={busy || !!open && !['utkast', 'atersand'].includes(open.status)} aria-label={`${currentPlan ? 'Nytt' : 'Skapa'} timplansutkast för ${unit.schoolName}`} onClick={() => void prepareCreate(unit)}>{currentPlan ? 'Nytt timplansutkast' : 'Skapa timplansutkast'}</Button>}
-          {!unit.canPlan && !currentPlan && <p className="gt-muted">Rektor eller skoladministratör förbereder skolans timplan.</p>}
-          {unit.plans.filter(p => p.sourcePlanId && p.id !== currentPlan?.id).length > 0 && <details><summary>Tidigare versioner</summary>{unit.plans.filter(p => p.sourcePlanId && p.id !== currentPlan?.id).map(p => <button type="button" key={p.id} disabled={busy} onClick={() => void openPlan(p.id, { kind: 'plan', id: p.id, unitId: unit.unitId, offeringId: underlag.source.offeringId, version: p.version })} aria-label={`Öppna timplan, version ${p.version}, ${unit.schoolName}`}>Version {p.version} · {statusLabel[p.status]}</button>)}</details>}
+          {!unit.plans.length && <p>Ingen timplan skapad.</p>}
+          {series.map(seriesId => {
+            const versions = unit.plans.filter(p => (p.series?.id ?? 'legacy') === seriesId).sort((a,b) => b.version-a.version);
+            const latest = versions[0];
+            const open = (p: typeof latest) => void openPlan(p.id, {kind:'plan',id:p.id,unitId:unit.unitId,offeringId:underlag.source.offeringId,version:p.version});
+            return <section className="gt-series-card" key={seriesId}><h4>{latest.series?.name ?? 'Äldre timplan'}</h4><p>{statusLabel[latest.status]} · version {latest.version}</p>
+              {latest.sourcePlanId ? <Button variant="outline" disabled={busy || commandBlocked} aria-label={`Öppna ${latest.series?.name ?? 'äldre timplan'}, version ${latest.version}, ${unit.schoolName}`} onClick={()=>open(latest)}>Öppna timplan</Button> : <p>Äldre underlag. Timmarna bevaras.</p>}
+              {versions.length>1 && <details><summary>Tidigare versioner ({versions.length-1})</summary>{versions.slice(1).map(p=><button key={p.id} disabled={busy || !p.sourcePlanId || commandBlocked} onClick={()=>open(p)}>{p.series?.name ?? 'Äldre timplan'} · version {p.version} · {statusLabel[p.status]}</button>)}</details>}
+            </section>;
+          })}
+          {unit.canPlan && underlag.readiness.ready && <Button disabled={busy || commandBlocked} data-named-timplan-action={`new:${unit.unitId}`} aria-label={`Skapa ny timplan för ${unit.schoolName}`} onClick={() => prepareCreate(unit)}>Skapa ny timplan</Button>}
+          <p className="gt-muted">Flera klasser kan dela samma timplan. Skapa en separat plan när de behöver olika undervisningstid.</p>
         </article>;
       })}</div></section>
     </>}
     {plan && <>
-      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.source.planId, { kind: 'source', id: plan.source.planId, offeringId: plan.offeringId, unitId: plan.unitId, version: plan.source.version }))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty || classDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button>{!plan.archived && ['faststalld', 'ersatt'].includes(plan.status) && ['rektor', 'administrator'].includes(context.function) && <Button disabled={busy || navigationBlocked} onClick={() => void prepareNewVersion()}>Skapa ny version</Button>}</div>
-      <header className="gt-head"><div><h1>{plan.source.education.name}</h1><p>{plan.schoolName} · {plan.source.education.cohort}</p><span className="gt-state">{statusLabel[plan.status]} · Timplan version {plan.version}</span></div>
+      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.source.planId, { kind: 'source', id: plan.source.planId, offeringId: plan.offeringId, unitId: plan.unitId, version: plan.source.version }))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty || classDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button>{plan.canPlan && !plan.archived && (['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status)) && ['rektor', 'administrator'].includes(context.function) && <Button data-named-timplan-action={`version:${plan.unitId}`} disabled={busy || navigationBlocked} onClick={() => void prepareNewVersion()}>Skapa ny version</Button>}</div>
+      <header className="gt-head"><div><h1>{plan.series?.name ?? plan.source.education.name}</h1><p>{plan.source.education.name} · {plan.schoolName} · {plan.source.education.cohort}</p><span className="gt-state">{statusLabel[plan.status]} · Timplan version {plan.version}</span></div>
         <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: plan.offeringId, planId: plan.source.planId, version: plan.source.version, unitId: plan.unitId }))}><FileText size={16}/>Öppna programplan</Button></header>
+      {plan.series && plan.canPlan && !plan.archived && <Button variant="outline" disabled={busy || navigationBlocked || hoursDirty || classDirty} data-named-timplan-action={`rename:${plan.unitId}`} onClick={()=>setAction({kind:'rename',plan})}>Byt namn</Button>}
       <div className="gt-source-line"><button type="button" onClick={() => setShowSource(true)}><FileText size={15}/>Underlag: Programplan v{plan.source.version}, revision {plan.source.revision} ({statusLabel[plan.source.status].toLocaleLowerCase('sv')})</button><span>{editable ? 'Fyll i timmar direkt i terminscellerna' : plan.archived ? 'Utbildningen är arkiverad' : 'Läsvy'}</span></div>
-      {plan.sourceChanged && <p className="gt-changed">Programplanens innehåll har ändrats. Timplanen använder fortfarande det sparade underlaget ovan. Skapa ett nytt timplansutkast för att använda det aktuella innehållet. {plan.currentSource && <Button variant="link" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource!.planId))}>Välj nytt underlag</Button>}</p>}
-      <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
+      {plan.sourceChanged && <p className="gt-changed">Programplanens innehåll har ändrats. Timplanen använder fortfarande det sparade underlaget ovan. Välj Skapa ny version för att använda det aktuella innehållet i samma timplan. {plan.currentSource && <Button variant="link" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource!.planId))}>Välj nytt underlag</Button>}</p>}
+      <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty||commandBlocked} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
       <ProtectedClassTimplans scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])} returnTo={'/?' + new URLSearchParams({vy:'timplaner',timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version),planeringslasar:String(planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()),planeringsskola:plan.unitId,planeringsform:'gymnasium'}).toString()} key={`classes-${plan.id}-${planningSelection?.schoolYear}`} plan={plan} schoolYear={planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()} canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || decisionPending || commandBlocked} onSecurityFailure={securityFailure}/>
-      <ProtectedGymTimplanHours disabled={decisionPending} key={plan.id} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
+      <ProtectedGymTimplanHours disabled={decisionPending || commandBlocked} key={plan.id} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
         onSaved={setPlan} onSaving={setBusy} onNavigationBlocked={onHoursBlocked} onSecurityFailure={securityFailure}/>
 
     </>}
     <Dialog open={showSource && !!plan} onOpenChange={setShowSource}><DialogContent className="gt-source-dialog"><DialogTitle>Sparat programunderlag</DialogTitle><DialogDescription>Programplan version {plan?.source.version}, revision {plan?.source.revision}. Detta är den frysta poängram som timplanen använder.</DialogDescription>
       {plan && <div className="gt-table-scroll"><table className="gt-matrix"><caption>{plan.source.education.name} · {plan.source.education.cohort} · {plan.rows.reduce((n, r) => n + r.points, 0)} poäng</caption><thead><tr><th>Ämne, nivå eller block</th>{PROGRAMPLAN_TERMS.map((term, index) => <th key={term}>{yearProjection?.terms.find(value => value.index === index)?.label ?? term}</th>)}</tr></thead><tbody>{plan.rows.map(row => <tr key={row.key}><th>{`${row.name} ${row.levelName}`}</th>{row.pointTerms.map((points, i) => <td key={i}>{points}</td>)}</tr>)}</tbody></table></div>}
       <Button variant="outline" onClick={() => setShowSource(false)}>Stäng underlaget</Button></DialogContent></Dialog>
-    <Dialog open={!!creating} onOpenChange={open => { if (!open) leave(() => updateCreating(null)); }}><DialogContent><DialogTitle>Skapa timplansutkast</DialogTitle><DialogDescription>{creating?.schoolName} · Programplan version {creating?.sourceVersion}, revision {creating?.request.expectedSourceRevision}. Poängramen kopieras som underlag; timmar anges separat.</DialogDescription>
-      {creating && <>{creating.previousVersion !== null ? <p>Version {creating.previousVersion} och dess klasskopplingar bevaras. Klassen byter version först när du ändrar kopplingen uttryckligen. {creating.preserved} rader har samma poäng och terminsram och behåller sin tid. {creating.cleared} rader börjar ofördelade.</p> : <p>Alla undervisningstimmar börjar ofördelade.</p>}
-        {creating.error && <p role="alert">{creating.error}</p>}{creating.mfa && <MfaStepUpNotice message={creating.error ?? 'Verifiering med engångskod krävs.'}/>}
-        <div className="gt-dialog-actions"><Button variant="outline" disabled={busy} onClick={() => leave(() => updateCreating(null))}>Avbryt</Button>{creating.stale ? <Button disabled={busy} onClick={() => { updateCreating(null); void loadUnderlag(creating.request.sourcePlanId); }}>Läs aktuellt underlag</Button> : <Button disabled={busy} onClick={() => void createPlan()}>{busy ? 'Sparar…' : creating.uncertain ? 'Hämta sparad timplan' : 'Skapa timplansutkast'}</Button>}</div>
-      </>}</DialogContent></Dialog>
+    <NamedTimplanActions key={commandScope} scope={commandScope} action={action} onClose={()=>setAction(null)} onBlocked={setCommandBlocked} onSecurityFailure={securityFailure}
+      returnTo={'/?'+new URLSearchParams({vy:'timplaner',...(plan?{timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version)}:underlag?{programunderlag:underlag.source.planId,timplansutbildning:underlag.source.offeringId,timplansversion:String(underlag.source.version),...(selectedUnit?{timplansskola:selectedUnit}:{})}:{}),planeringslasar:String(planningSelection?.schoolYear??planningSetup?.currentYear??new Date().getFullYear()),planeringsform:'gymnasium'}).toString()}
+      onSaved={(fresh,text)=>{invalidate();setPlan(fresh);setUnderlag(null);selectedUnitRef.current=fresh.unitId;setSelectedUnit(fresh.unitId);verifiedPlan.current={token:generation.current,planId:fresh.id};opened.current({kind:'plan',id:fresh.id,unitId:fresh.unitId,offeringId:fresh.offeringId,version:fresh.version},fresh.source.planId);setNotice(text);}}/>
+
 
   </section>;
 }

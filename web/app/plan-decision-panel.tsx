@@ -72,7 +72,7 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
   const ready = !!detail && detail.blockers.length === 0 && detail.checks.every(check => checks.includes(check.id));
   const feedback = detail?.stage === 'returned' ? detail.history.find(event => event.action === 'return') : null;
   return <section className="plan-decision-panel" aria-label="Beslut och nästa steg" aria-busy={loading || sending}>
-    <div className="plan-decision-heading"><div><h2>Beslut och nästa steg</h2>{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
+    <div className="plan-decision-heading"><div><h2>Beslut och nästa steg</h2>{detail?.series && <p>{detail.series.name} · version {detail.version}</p>}{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
       <Button variant="outline" disabled={loading || pending !== null || disabled} onClick={() => setRetry(n => n + 1)}>Läs beslutsstatus</Button></div>
     {loading && !detail && <output>Hämtar aktuellt beslutsunderlag…</output>}
     {error && <p role="alert">{error}</p>}
@@ -100,8 +100,8 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
           disabled={disabled || !!pending || loading || (action === 'approve' || action === 'submit') && !ready || action === 'return' && !comment.trim()}
           onClick={() => action === 'approve' ? setConfirm(true) : act(action)}>{actionLabel[action]}</Button>)}</div>
       </>}
-      <details><summary>Beslutshistorik ({detail.history.length})</summary>{detail.history.length ? <ol className="decision-history">{detail.history.map((event, index) => <li key={index}><strong>{historyLabel[event.action]}</strong><span>{event.actorName} · {new Date(event.at).toLocaleString('sv-SE')}</span>{event.comment && <p>{event.comment}</p>}</li>)}</ol> : <p>Inga beslut har registrerats för den här versionen.</p>}</details>
+      <details><summary>Beslutshistorik ({detail.history.length})</summary>{detail.history.length ? <ol className="decision-history">{detail.history.map((event, index) => <li key={index}><strong>{historyLabel[event.action]}</strong>{kind==='timplan' && <span>{event.nameAtDecision ?? 'Namnet vid beslutet är inte registrerat'}</span>}<span>{event.actorName} · {new Date(event.at).toLocaleString('sv-SE')}</span>{event.comment && <p>{event.comment}</p>}</li>)}</ol> : <p>Inga beslut har registrerats för den här versionen.</p>}</details>
     </>}
-    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>Fastställ {kind === 'programplan' ? 'programplanen' : 'timplanen'}?</DialogTitle><DialogDescription>{detail?.educationName}{detail?.schoolName ? ` · ${detail.schoolName}` : ''} · Version {detail?.version}. Den granskade versionen låses och beslutet sparas i historiken.</DialogDescription><div className="decision-actions"><Button variant="outline" onClick={() => setConfirm(false)}>Avbryt</Button><Button disabled={disabled || !ready || !!pending} onClick={() => act('approve')}>Ja, fastställ planen</Button></div></DialogContent></Dialog>
+    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>Fastställ {kind === 'programplan' ? 'programplanen' : 'timplanen'}?</DialogTitle><DialogDescription>{detail?.series?.name ?? detail?.educationName}{detail?.schoolName ? ` · ${detail.schoolName}` : ''} · Version {detail?.version}. Den granskade versionen låses och beslutet sparas i historiken.</DialogDescription><div className="decision-actions"><Button variant="outline" onClick={() => setConfirm(false)}>Avbryt</Button><Button disabled={disabled || !ready || !!pending} onClick={() => act('approve')}>Ja, fastställ planen</Button></div></DialogContent></Dialog>
   </section>;
 }

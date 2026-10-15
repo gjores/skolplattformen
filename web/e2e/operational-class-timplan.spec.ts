@@ -34,12 +34,12 @@ test('explicit byte visar tidigare version, konflikt kräver omläsning',async({
 for(const params of ['?hm=1','?old=1'])test(`huvudman och ersatt version visar läsvy ${params}`,async({page})=>{
  const state=await classMock(page,{role:params.includes('hm')?'huvudman':'rektor',old:params.includes('old')});await page.goto(base+params);await page.getByRole('button',{name:'Visa klasskopplingar'}).click();await expect(page.getByText('Inga klasser är kopplade',{exact:false})).toBeVisible();await expect(page.getByRole('button',{name:'Skapa klass',exact:true})).toHaveCount(0);expect(state.commands).toEqual([]);
 });
-async function gymMock(page:Page,draft=false){const errors:string[]=[];let creates=0;page.on('pageerror',e=>errors.push(e.message));await page.route('**/api/**',async route=>{
+async function gymMock(page:Page,draft=false){const named={...operationPlan,canPlan:true,series:{id:oid(50),name:'Grundfördelning',revision:0},nameAtCreation:'Grundfördelning'};const errors:string[]=[];let creates=0;page.on('pageerror',e=>errors.push(e.message));await page.route('**/api/**',async route=>{
  const path=new URL(route.request().url()).pathname,body=route.request().method()==='POST'?route.request().postDataJSON():null;let json:any;
  if(path==='/api/planering/urval')json={customerId:oid(7),serverDate:'2026-10-12',currentYear:2026,minimumYear:2000,maximumYear:2100,units:[{unitId:oid(3),schoolName:'Exempelskolan',canRead:{programplan:true,gymnasium:true,grundskola:true,introduktionsprogram:true}}]};
  else if(path==='/api/planbeslut/inkorg')json={items:[],total:0,actionCount:0,decisionCount:0,truncated:false};
- else if(path==='/api/timplaner/gym/lasa')json=body.planId===oid(11)?{...operationPlan,id:oid(11),status:'utkast',version:2,revision:0,canPlan:true}:operationPlan;
- else if(path==='/api/timplaner/gym/underlag')json={source:{...operationPlan.source,...operationPlan.currentSource},rows:operationPlan.rows,readiness:{ready:true,missing:[]},units:[{unitId:oid(3),schoolName:'Exempelskolan',canPlan:true,plans:[...(draft?[{id:oid(11),version:2,revision:0,status:'utkast',sourcePlanId:oid(4),sourceVersion:1,sourceRevision:3}]:[]),{id:oid(1),version:1,revision:4,status:'faststalld',sourcePlanId:oid(4),sourceVersion:1,sourceRevision:2}]}]};
+ else if(path==='/api/timplaner/gym/lasa')json=body.planId===oid(11)?{...named,source:{...named.source,revision:3},id:oid(11),status:'utkast',version:2,revision:0}:named;
+ else if(path==='/api/timplaner/gym/underlag')json={source:{...operationPlan.source,...operationPlan.currentSource},rows:operationPlan.rows,readiness:{ready:true,missing:[]},units:[{unitId:oid(3),schoolName:'Exempelskolan',canPlan:true,plans:[...(draft?[{series:named.series,id:oid(11),version:2,revision:0,status:'utkast',sourcePlanId:oid(4),sourceVersion:1,sourceRevision:3}]:[]),{series:named.series,id:oid(1),version:1,revision:4,status:'faststalld',sourcePlanId:oid(4),sourceVersion:1,sourceRevision:2}]}]};
  else if(path==='/api/timplaner/gym/skapa'){creates++;json={id:oid(11),offeringId:oid(2),unitId:oid(3),version:2,revision:0,sourcePlanId:oid(4),sourceRevision:3,replayed:false,carriedRows:1,resetRows:0};}
  else if(path==='/api/planbeslut/underlag'){return route.fulfill({status:409,json:{code:'conflict',message:'Syntetiskt separat beslutsprov'}});}
  else return route.fulfill({status:500,json:{code:'unexpected',message:path}});
@@ -47,7 +47,7 @@ async function gymMock(page:Page,draft=false){const errors:string[]=[];let creat
  });return{errors,count:()=>creates};}
 for(const draft of [false,true])test(`ny version använder aktuell källa och återanvänder befintligt utkast ${draft}`,async({page})=>{
  const state=await gymMock(page,draft);await page.goto(base+'?gym=1');await expect(page.getByRole('button',{name:'Skapa ny version',exact:true})).toBeVisible();await page.getByRole('button',{name:'Skapa ny version',exact:true}).click();
- if(!draft){await expect(page.getByRole('dialog')).toContainText('klasskopplingar bevaras');await page.getByRole('button',{name:'Skapa timplansutkast',exact:true}).click();}
+ if(!draft){await expect(page.getByRole('dialog')).toContainText('klasskopplingar bevaras');await page.getByRole('button',{name:'Granska',exact:true}).click();await page.getByRole('button',{name:'Bekräfta och spara',exact:true}).click();}
  await expect(page.locator('.gt-state')).toContainText('Timplan version 2');expect(state.count()).toBe(draft?0:1);expect(state.errors).toEqual([]);
 });
 

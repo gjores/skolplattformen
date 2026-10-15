@@ -33,7 +33,7 @@ import { parseProgramplanSelection } from '@/lib/programplan-education-contract.
 import './protected-programplan.css';
 import { usePlanningContext, type PlanningMatrixYear } from './planning-context';
 import { planningYearLabel, projectGymYear } from '@/lib/planning-year-model.ts';
-import type { PlanningRow } from '@/lib/planning-year-contract.ts';
+import type { PlanningRow, PlanningSchoolTimplan } from '@/lib/planning-year-contract.ts';
 import type { ProgramplanLocation, GymTimplanLocation } from '@/lib/protected-plan-location.ts';
 
 export type ClassStepTarget = { offeringId: string; planId: string; unitId: string };
@@ -264,12 +264,18 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     void openEducation(row.offeringId, 1, null, row.plan?.id ?? null, null, false, false,
       { unitId: row.unitId, version: row.plan?.version, missing: row.plan === null, copy: copying });
   }
-  function openRowTimplan(row: PlanningRow) {
+  function openRowTimplan(row: PlanningRow, target?: PlanningSchoolTimplan) {
     if (!onTimplan || !canNavigate() || busy || hasUnsaved && !confirmDiscard()) return;
     if (!planningSetup || row.customerId !== context.customerId || row.schoolform !== 'gymnasium'
       || !planningSetup.units.some(u => u.unitId === row.unitId && u.canRead.programplan)
       || planningSelection?.unitId !== null && planningSelection?.unitId !== row.unitId) return;
-    const time = row.schoolTimplan;
+    if (target) {
+      const allowed = row.schoolTimplans ?? (row.schoolTimplan ? [row.schoolTimplan] : []);
+      if (!allowed.some(value=>JSON.stringify(value)===JSON.stringify(target))) return;
+      onTimplan({kind:'plan',id:target.id,offeringId:row.offeringId,unitId:row.unitId,version:target.version}); return;
+    }
+    const time = row.schoolTimplans ? row.schoolTimplans.length === 1 ? row.schoolTimplans[0] : null : row.schoolTimplan;
+    if (row.schoolTimplans && row.schoolTimplans.length > 1 && row.plan) { onTimplan({kind:'source',id:row.plan.id,offeringId:row.offeringId,unitId:row.unitId,version:row.plan.version}); return; }
     if (time) onTimplan({ kind: 'plan', id: time.id, offeringId: row.offeringId, unitId: row.unitId, version: time.version });
     else if (time === null && row.plan && !row.archived && ['rektor', 'administrator'].includes(context.function))
       onTimplan({ kind: 'source', id: row.plan.id, offeringId: row.offeringId, unitId: row.unitId, version: row.plan.version });
@@ -483,7 +489,6 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const activeFocusIssue = focusIssue && analysis?.issues.some(issue => issue.id === focusIssue.id &&
     (issue.target?.kind !== 'row' || focusIssue.target?.kind === 'row' && issue.target.rowKey === focusIssue.target.rowKey)) ? focusIssue : null;
   const canEditInline = !!draft && editableRefs && draft.mode === 'edit';
-  const ready = !!plan && plan.status === 'utkast' && boardActive && !!analysis?.ready;
   const incomplete = !!plan?.basisReference && plan.basisReference.choiceBlocks === undefined;
   const decisionStage = decision?.planId === plan?.id ? decision?.stage : null;
   const statusText = plan ? `${decisionStage ? decisionStageLabel[decisionStage] : incomplete ? 'Ofullständig' : programplanStatus[plan.status]} · Version ${plan.version}` : draft ? 'Nytt utkast' : 'Ingen programplan ännu';
@@ -597,7 +602,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         </div>
         <div className="pps-actions">
           <LifecycleBadge lifecycle={workspace.lifecycle}/>
-          <span className={ready?'pps-state pp-status pps-ready':'pps-state pp-status'}>{statusText}</span>
+          <span className="pps-state pp-status">{statusText}</span>
           {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))setView('analysis');}}>Analys{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
           {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())onTimplan({ kind: 'source', id: plan.id, offeringId: plan.offeringId, version: plan.version, ...(selectedUnit.current ? { unitId: selectedUnit.current } : {}) });}}>Timplan</Button>}
           {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>{if(canNavigate())setCopy(newCopy(workspace.education.name));}}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
@@ -611,6 +616,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.delete&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('delete');}}><Trash2 size={16} aria-hidden="true"/>Ta bort</Button>}
         </div>
       </div>}
+      {workspace&&plan&&view==='plan'&&<ol className="pps-stepper" aria-label="Utbildningens arbetsmoment"><li aria-current="step">Programplan · {programplanStatus[plan.status]}</li><li>Klasser · kan göras senare</li><li>Timplaner · fördela timmar</li><li>Klasskopplingar · efter fastställande</li></ol>}
       {workspace&&selectedSchool&&!draft&&!preparation&&!copy&&view==='plan'&&<ProtectedClassCohorts context={context} epoch={epoch} offeringId={workspace.education.id} unitId={selectedSchool.id}
         disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepTarget?.offeringId===workspace.education.id&&classStepTarget.planId===plan?.id&&classStepTarget.unitId===selectedSchool.id}
         onInitialOpen={()=>{const target=classStepRef.current;if(target&&target.offeringId===workspace.education.id&&target.planId===plan?.id&&target.unitId===selectedSchool.id){classStepRef.current=null;setClassStepTarget(null);onClassStepMounted?.(target);}}}
