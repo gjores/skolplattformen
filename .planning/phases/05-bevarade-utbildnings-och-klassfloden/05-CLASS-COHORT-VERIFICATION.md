@@ -1,12 +1,12 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: CLASS-COHORT
-status: executing
+status: awaiting_user
 updated: 2026-10-15
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04, PLANERING-05]
 actual_browser_status: passed
 local_delivery_status: passed
-human_trial_status: pending_preconditions
+human_trial_status: awaiting_user
 standard: SS 12000:2024
 openapi_document_version: 2.1.0
 ---
@@ -29,7 +29,7 @@ Tidiga tomma klasser, skolmandat och uttryckliga läsårs-/versionskopplingar ä
 | Faktiska browserflöden | 6/6 PASS: A01/A02/A03 på dator och telefon | Exit0, inga skips/omprov/errors; sex fulla cleanup och14 visuellt granskade bilder. |
 | Handbok | Granskad och byggd, exit0 | Lokal leverans sker separat i09. Ingen publicering. |
 | Lokal3012-leverans | PASS, samma201 byggfiler från88145bc | Verklig läsande OIDC/MFA,59 business +4 äldre sessionstabeller och loggankare bevarade. Första städfel/återställning dokumenterade i09. |
-| Mänskligt klassprov | Inte erbjudet | Erbjuds först efter verifierad lokal leverans och konkret syntetisk provförberedelse. |
+| Mänskligt klassprov |awaiting_user |Separat vårkull förberedd; faktiskt användarsvar återstår. |
 
 SQL-slutbevis SHA256: `1f6c0ae62a9e26d8725d7abf4ab641db52467c7d35e0c5f49c4f8a8410516473`.
 
@@ -66,3 +66,5 @@ En utbildning per intern klass, okända äldre datum/tidsstämplar och kvarvaran
 Aktuell browserrapport SHA256 `9d2c0f9a92106729e9c4251f5170d9fcf6940425f5b8a6339be9f5428efb97bc`; samlad08-grind SHA256 `e4b9780373485ac5d100039196a80895e9319bb20d75c36f1db20e4b97474c33`. Telefonens fokushopplänk överlagrar viss metadata i fullsidesbilderna; ingen felfri UI påstås.
 
 Leverans09 slutbevis SHA256 `427a9f15463303d5ec3773b03ff2d3768575f9826308cd4597be1d93ffdc700b`. Tokenbunden kontroll av endast egna authmetadataiat/exp har48 negativa/positiva prov PASS och full privat före-bild. Första leveransens exakta historiska egna metadatadiff saknas; avgränsning och återhämtning finns i [09-SUMMARY](05-CLASS-COHORT-09-SUMMARY.md).
+
+Plan10:s syntetiska vårkull är förberedd med83 tabellers originalrader bevarade,0klasser/0länkar initialt och läsande återöppning PASS. [Användarprovet](05-CLASS-COHORT-USER-TRIAL.md) är erbjudet2026-10-15 och inväntar mänskligt svar; detta är inte full krav-/fasacceptans.

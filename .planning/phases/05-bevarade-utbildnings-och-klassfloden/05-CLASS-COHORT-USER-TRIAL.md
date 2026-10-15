@@ -2,68 +2,51 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: CLASS-COHORT
 plan: CLASS-COHORT-10
-status: pending
+status: awaiting_user
 updated: 2026-10-15
-trial_readiness: pending_synthetic_preparation
-human_result: not_requested
+trial_readiness: ready
+human_result: awaiting_user
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04, PLANERING-05]
 ---
 
-# Utkast till avgränsat användarprov
+# Avgränsat användarprov av klassorganisation
 
-Provet är ännu inte redo att erbjudas. Sex faktiska dator-/telefonfall och leverans av samma testade bygge på3012 har passerat. Förberedelse av den egna syntetiska utbildningen återstår. Inget mänskligt utfall är insamlat och ingen ny användaracceptans påstås. Det här dokumentet är provunderlag för fortsatt arbete, inte en uppmaning att börja prova nu.
+Provet är förberett på den skyddade lokala appen på3012. Samma201 byggfiler från88145bc är verifierade med faktisk lokal OIDC, Worker/API och browser på dator/emulerad telefon. Automatiska resultat och gränser finns i [VERIFICATION](05-CLASS-COHORT-VERIFICATION.md). **Mänskligt resultat saknas.** Tidigare godkänd kullkopiering ska inte upprepas.
 
-Syftet är att bedöma tidig klassbildning och om utbildningens startdatum, klassens första läsår och planeringens valda läsår är begripliga. Tidigare godkända prov av kullkopiering ska inte upprepas. Automatiserad status och bevisgränser finns i [VERIFICATION](05-CLASS-COHORT-VERIFICATION.md) och [08-SUMMARY](05-CLASS-COHORT-08-SUMMARY.md).
+## Konkret underlag
 
-## Förutsättningar före erbjudandet
+En separat syntetisk vårkull finns i den befintliga provskolan och täcks av befintliga skolmandat. Den har fastställd programplan v1, fastställd timplan v1 och programplansutkast v2 med samma startdatum. Vid förberedelsen fanns noll klasser och noll timplanskopplingar. Användaren får privata direktlänkar i chatten; konton, objekt-ID:n och länkar lagras inte i Git.
 
-| Förutsättning | Status |
-| --- | --- |
-| Installerad SQL436 och separat faktisk samtidighet7 | Verifierat delresultat; proveniens och begränsningar i08-SUMMARY. |
-| Verklig lokal Worker/API med OIDC/MFA30 | Verifierat delresultat; exakt cleanup och bevarande kontrollerade. |
-| Riktade Node41, typ/lint och skyddat bygge | Verifierat delresultat. |
-| Sex actual-fall och granskade bilder på dator/telefon |6/6 PASS,14 granskade bilder. |
-| Handbok och samma prövade bygge på3012 med läsande OIDC-kontroll |09 PASS; produkt88145bc,201 filer. |
-| Egen syntetisk vårkull och privat återöppningsjournal | Förberedelseskript finns; ingen mutation eller objektförberedelse är genomförd. |
-| Privata direktlänkar till programplansutkast och fastställd timplan | Tillkommer först efter godkänd09-leverans och kontrollerad10-preparering. Inga objekt-ID:n eller konton lagras här. |
+Förberedelse och separat skrivfri återöppning PASS. Alla tidigare rader i83 public-/authtabeller bevarades. Endast egna uttryckligen tillåtna syntetiska objektrader lades till. Två egna syntetiska SQL-sessioner är återkallade/utgångna och behålls som historikankare; inga cookies utfärdades. Förberedelsen är inte ett nytt bevis för OIDC, MFA eller mänskligt beslut.
 
-Den planerade fixturen ligger i den befintliga syntetiska skolan med dess befintliga skolmandat. En ny separat utbildning får en fastställd programplan v1, en fastställd timplan och programplansutkast v2 med samma startdatum. Den ska initialt ha noll klasser och noll klass-/timplanskopplingar. Användarens äldre utbildningar, versioner, elever och länkar ska bevaras. Prepareringen är syntetisk och ersätter inget prov av inloggning eller mänskligt beslut.
-
-## Det datumexempel som ska kunna förstås
-
-| Uppgift | Förberett värde | Betydelse |
+| Uppgift | Värde | Betydelse |
 | --- | --- | --- |
-| Utbildningens start och nya klassers giltighetsstart | 15 januari2028 | Exakt startdatum. Inget slutdatum antas. |
-| Klassens första läsår | 2027/2028 | Vårstarten hör till läsåret som började2027. |
-| Valt planeringsläsår i provets ingång | 2026/2027 | Ett separat planeringsurval som inte ändrar utbildningsstart eller klassdatum. |
-| Timplanens tillämpning | 2027/2028 för år1; 2028/2029 för år2 | Ett uttryckligt läsårsval vid koppling till den fastställda timplansversionen. Året före kullstart ska inte kunna tillämpas. |
+| Utbildningsstart och nya klassers giltighetsstart |15 januari2028 | Exakt dag; slutdatum okänt. |
+| Första läsår |2027/2028 | Vårstarten hör till läsåret som började2027. |
+| Planeringsläsår i ingångslänken |2026/2027 | Separat urval; ändrar inte utbildningsstart eller klassdatum. |
+| Timplanens tillämpning |2027/2028 för år1;2028/2029 för år2 | Uttryckligt giltigt läsår vid koppling till fastställd version. |
 
-Om appen behöver normalisera ett inkommande planeringsurval ska det faktiska synliga urvalet och beskedet noteras. Utkastets ingångsvärde får inte beskrivas som en observerad visning innan provet genomförts.
+Länkens planeringsår är ett förberett ingångsvärde. Om appen normaliserar urvalet ska det faktiska synliga året noteras; det är ännu inte mänskligt bedömt.
 
-## Kort provtext att ge användaren när underlaget är klart
+## Kort prov
 
-1. Öppna den privata länken till den förberedda vårkullens programplansutkast och välj ditt skoluppdrag. Öppna **Klasser för utbildningen**. Kontrollera att startdatumet15 januari2028 och första läsåret2027/2028 går att förstå och skilja från valt planeringsår.
-2. Välj **Gör senare** och öppna klasssteget igen. Kontrollera att det går att fortsätta utan att utbildningen måste skapas på nytt.
-3. Skapa två tomma klasser med egna tydligt syntetiska namn. Granska namn och startdatum innan du sparar. Kontrollera att klasserna finns kvar när du återöppnar utbildningen.
-4. Öppna den privata länken till samma utbildnings fastställda timplan. Kontrollera att klasserna ännu saknar timplanskoppling. Öppna **Koppla klass**, välj en av klasserna och granska läsårsvalet:2027/2028 hör till år1 och2028/2029 till år2. Bedöm om tillämpningsläsåret är tydligt skilt från planeringsåret. För detta begriplighetsprov räcker det att granska kopplingen före bekräftelse.
-5. Beskriv om klassflödet fungerar eller vilket steg som är oklart eller fel. Ange gärna om du använde dator eller telefon.
+1. Öppna vårkullens programplansutkast med rektorsuppdrag. Välj **Visa klasser**. Kontrollera start15 januari2028 och första läsår2027/2028. Välj **Gör senare** och öppna klasssteget igen.
+2. Skapa två tomma klasser med tydligt syntetiska namn. Granska namn/startdatum och spara. Läs om och kontrollera att båda klasserna finns kvar.
+3. Öppna länken till samma utbildnings fastställda timplan. Klasserna ska ännu sakna koppling. Välj **Koppla klass**, välj giltigt läsår och en klass:2027/2028 är år1,2028/2029 är år2. Granska skillnaden mot planeringsåret; för begriplighetsprovet räcker granskning före bekräftelse.
+4. Svara om flödet fungerar eller vilket steg som är oklart/fel. Ange gärna enhet; ospecificerat svar ger inget antaget telefonresultat.
 
-Om användaren redan har skapat klasser i just detta nya prov ska återöppningen bevara dem och använda en befintlig klass. Inget återställningsskript får radera mänskligt arbete för att återskapa initialt tomt läge. Huvudmannens läsläge kan visas separat vid behov; byte av roll eller en extra inloggning är inget obligatoriskt nytt acceptanskrav.
+Återöppna befintliga provobjekt om användaren redan har börjat. Återskapa eller återställ inte kullen, och radera inte mänskligt skapade klasser. HM-läsläge är automatiskt verifierat och är inget obligatoriskt ytterligare inloggningsprov.
 
-## Resultat att fylla efter faktisk leverans och mänskligt svar
+## Resultat
 
-| Fält | Ännu inte fastställt |
+| Del | Status |
 | --- | --- |
-| Levererat bygge, artefakthash och leveransdatum |88145bc, artefakt5dcc159d…,2026-10-15. Se09-SUMMARY. |
-| Privat prepareringsbevis och kontrollerade direktlänkar | Väntar på10:s faktiska preparering och läsning. |
-| Datum då provet erbjuds | Inte erbjudet. |
-| Användarens svar | Inget svar insamlat för detta prov. |
-| Enhet | Inte angiven. Anta inte telefon- eller datorkontroll. |
-| Begriplighet för startdatum/första läsår/planeringsår | Ej bedömd. |
-| Gör senare, återöppning och tidiga tomma klasser | Ej mänskligt bedömda. |
-| Tydligt läsår/årskurs vid timplanskoppling | Ej mänskligt bedömt. |
-| Eventuella kvarstående problem | Fyll med faktisk återkoppling och avgränsad uppföljning. |
+| Tekniska förutsättningar08/09 |PASS; första fel och bevisgränser bevarade. |
+| Syntetiskt underlag och lokal3012 |Förberett och läsande återkontrollerat2026-10-15. |
+| Prov erbjudet |2026-10-15, efter färdig förberedelse. |
+| Användarens svar/enhet |Inväntas; inget mänskligt PASS. |
+| Datum, Gör senare/återöppning, tomma klasser, läsårsval |Automatiskt verifierat; mänsklig begriplighet inväntas. |
 
-När samtliga tekniska förutsättningar är verifierade kan provet erbjudas och status ändras till väntan på användarsvar. Därefter registreras endast den omfattning användaren faktiskt bekräftar. Ett misslyckat delsteg kräver en avgränsad rättning; redan godkända delar ska inte upprepas utan skäl.
+Privata bevis och första avbrutna förberedelsen redovisas i [10-SUMMARY](05-CLASS-COHORT-10-SUMMARY.md). Avgränsat mänskligt utfall registreras först efter faktiskt svar. Fulla krav/fas5, historiska integritetsavvikelser och andra öppna delar består.
 
-Provet omfattar ingen elevimport, kommunanslutning eller standardexport. SS12000:2024/OpenAPI2.1.0 är paketets dokumenterade modellavstämning, inte ett påstående om verifierat informationsutbyte. Tidigare öppna krav och full fasacceptans påverkas inte automatiskt av ett godkänt klassprov.
+SS12000:2024/OpenAPI2.1.0 är dokumenterad modellavstämning. Provet omfattar ingen elevimport, standardexport eller kommunanslutning och belägger inte standardefterlevnad.

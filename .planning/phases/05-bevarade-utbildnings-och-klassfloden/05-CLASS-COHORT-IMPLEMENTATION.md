@@ -1,15 +1,15 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: CLASS-COHORT
-status: executing
+status: awaiting_user
 date: 2026-10-15
-implementation: in_progress
+implementation: awaiting_human_verification
 requirements: [ADMIN-03, ADMIN-04, PLANERING-04, PLANERING-05]
 ---
 
 # Genomförande av tidig klassorganisation
 
-Användaren har valt förslaget med oförändrade mandat. Plan01–09 inklusive03A är genomförda:10/11 planer. Automatiska lokala syntetiska prov och exakt lokal leverans passerar; nästa10 förbereder det mänskliga klassprovet. Läs [beslutad omfattning](05-CLASS-COHORT-CONTEXT.md) och [SS 12000-avstämningen](05-CLASS-COHORT-SS12000.md). [Planchecken](05-CLASS-COHORT-PLAN-CHECK.md) beskriver planeringen; aktuellt resultat finns i [verifieringen](05-CLASS-COHORT-VERIFICATION.md).
+Användaren har valt förslaget med oförändrade mandat. Plan01–09 inklusive03A är genomförda:10/11 planer. Automatiska lokala syntetiska prov och exakt lokal leverans passerar; plan10:s konkreta klassprov är förberett och inväntar användarsvar. Läs [beslutad omfattning](05-CLASS-COHORT-CONTEXT.md) och [SS 12000-avstämningen](05-CLASS-COHORT-SS12000.md). [Planchecken](05-CLASS-COHORT-PLAN-CHECK.md) beskriver planeringen; aktuellt resultat finns i [verifieringen](05-CLASS-COHORT-VERIFICATION.md).
 
 ## Körning och beroenden
 
