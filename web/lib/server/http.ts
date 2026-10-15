@@ -29,6 +29,8 @@ export type ErrorCode =
   | 'gym_timplan_source_not_ready'
   | 'gym_timplan_archived'
   | 'programplan_submitted'
+  | 'class_name_year_conflict'
+  | 'class_cohort_start_locked'
   | 'class_plan_not_ready'
   | 'class_plan_limit'
   | 'plan_decision_conflict'

@@ -37,6 +37,9 @@ const ERROR_TEXT: Record<string, string> = {
   gym_timplan_source_not_ready: 'Programramen behöver kompletteras. Läs aktuellt underlag innan du skapar timplansutkastet.',
   gym_timplan_archived: 'Utbildningen är arkiverad. Timplanen kan läsas men inte ändras.',
   programplan_submitted: 'Programplanen är inskickad för beslut. Läs om planen och ta tillbaka förslaget innan du ändrar underlaget.',
+  class_name_year_conflict: 'Klassnamnet är redan upptaget på skolan för den berörda kullen eller läsåret. Välj ett annat namn eller kontrollera klasskopplingen.',
+  class_cohort_start_locked: 'Utbildningsstarten kan inte ändras när klasser finns. Skapa en ny kull om utbildningen ska ha en annan start.',
+  class_plan_not_ready: 'Utbildningens start eller timplanens underlag behöver kontrolleras. Läs om underlaget innan du fortsätter.',
   plan_decision_conflict: 'Planen eller beslutsunderlaget har ändrats. Läs om och granska den aktuella versionen.',
   plan_decision_blocked: 'Planen behöver kompletteras före beslut. Läs om beslutsunderlaget för att se vad som återstår.',
 };
