@@ -65,6 +65,7 @@ export async function setupClassCohortDatesFixture(tx){
 
 export async function verifyClassCohortDates(out){
  assert.ok(resolve(out).startsWith('/private/tmp/')&&out.endsWith('.json'),'Private --out /private/tmp/name.json required');
+ assert.ok(!existsSync(resolve(out)),'Output already exists; use a new private report path');
  const target=await assertTarget('protected');
  const db=createRequire(resolve(root,'web/package.json'))('postgres')(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}});
  const rollback=Error('expected_class_cohort_rollback'),sources=classCohortDateSourceHashes();

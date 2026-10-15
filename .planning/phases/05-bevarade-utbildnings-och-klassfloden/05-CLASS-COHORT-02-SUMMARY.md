@@ -23,19 +23,20 @@ Planens två uppgifter är genomförda och verifierade mot faktisk PostgreSQL i 
 
 | Kontroll | Faktiskt resultat |
 | --- | --- |
-| `node work/pilot/verify-class-cohort-dates.mjs --out /private/tmp/class-cohort-02-full-2.json` | exit 0, **89 kontroller PASS**, `rollbackRestored=true` |
+| `node work/pilot/verify-class-cohort-dates.mjs --out /private/tmp/class-cohort-02-full-3.json` | exit 0, **89 kontroller PASS**, `rollbackRestored=true` |
 | Ursprungliga data | Samtliga offentliga tabellrader lika före/efter. Gamla klasskolumner och kompletta medlemskapsrader jämfördes dessutom direkt efter additiv migration. |
 | Schema/rättigheter | Fullt fingeravtryck för funktioner, tabeller, kolumner, constraints, index, triggers, ACL, policies och migrationsjournal lika efter rollback. Alla nya hjälpare privata även för Worker. |
 | Faktiska SQL-/RPC-flöden | Gamla create/replay, datum-/registreringsmetadata, direkta datumändringar, livscykeländring, ny version, skolborttagningsspärr, GR/IM, faktisk kullkopia, motstridiga datum, saknat kalenderår och bevarad legacyversion PASS. |
 | Faktiska registermutationer | Klassbyte före start nekat utan delvis ändrad elev/medlemskap; på/efter start tillåtet. Utbildningsbyte före/på/efter klassstart bevarar tillåtna medlemsperioder; direkt tidigareläggning av medlemskap nekas. |
 | Isolationsnegativ | Egna fixturer under REPEATABLE READ respektive SERIALIZABLE: utbildningsstart, planstart och klassinsert nekas med exakt `40001`/hint. **Inte ett samtidighetsprov.** |
+| Befintlig rapportfil | Slutrunnern nekade befintlig `--out /private/tmp/class-cohort-02-full-2.json` med exit 1 före mål-/DB-kontakt; första bevis skrivs aldrig över. |
 | `git diff --check` och `node --check work/pilot/verify-class-cohort-dates.mjs` | exit 0 |
 
 Rapportens 51 källhashar binder produktfiler, prov, SQL-fixtur, katalog och lokal importkedja. Rådata och första felbevis ligger privat utanför Git. Slutkällornas SHA256:
 
 - Migration: `a39b5771a357c1b9e0ed2923bd89f2543cc5c0c3ee360a04132c7964e7591f67`.
 - SQL-prov: `ef51d542c0df3ea71d4ae505701b519c61d3a5e1f19f743ac26789e66f3fb699`.
-- Runner: `98de6c2adfb8acd2ba92d4cb0b5b1434cb300090f120754f621400634fe1d0a1`.
+- Runner: `83af6ea052a6f479a72cb4e1bcdc831764bbb50c88a57de39b63de55ae981504`.
 
 ## Avvikelser och preciseringar
 
