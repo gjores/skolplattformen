@@ -1,4 +1,6 @@
 ---
+
+**Klassorganisation, våg 1 genomförd 2026-10-15:** [CLASS-COHORT-01](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-01-SUMMARY.md) skiljer planeringsår, fryst utbildningsstart och tillämpningsläsår. SQL60/61 hela tabellers bevarande, UI36 dator/telefon, Node5, typ/lint och separat skyddat bygge PASS. Endast simulerade API-svar i UI-provet; faktisk Worker/OIDC återstår i plan08. Nästa är plan02 enligt paketets beroendekedja. 1 av 11 paketplaner genomförd, ingen ny full krav-/fasacceptans. Ordinarie3012 och tidigare användargodkännanden består.
 gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
@@ -465,10 +467,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-15
-**Stopped At:** CLASS-COHORT plancheck PASS. Genomförande från 01 återstår; ingen ny produkt-/databasverifiering gjord.
+**Stopped At:** CLASS-COHORT-01 genomförd och granskad; nästa CLASS-COHORT-02.
 **Resume File:** [Klassorganisationens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — CLASS-COHORT-01 och paketets beroendekedja. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
+**Planned Phase:** 5 — CLASS-COHORT-02 och paketets beroendekedja. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
 
 ### Senaste användarfynd, 2026-10-02
 
