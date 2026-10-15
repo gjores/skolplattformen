@@ -128,7 +128,7 @@ test('A01: ny utbildning, frivilligt klasssteg, återläsning och uttrycklig tim
   const saved=await saveClasses(principal.page,2);expect(saved.request.names).toEqual(['SA A','SA B']);
   const before=await classes(principal,'principal',education);expect(byClassId(before.classes)).toEqual(byClassId(saved.receipt.classes));
   await principal.page.reload();await panel(principal.page).getByRole('button',{name:'Visa klasser',exact:true}).click();
-  await expect(panel(principal.page).getByLabel('Befintliga klasser (2)',{exact:true})).toBeVisible();
+  await expect(panel(principal.page).getByRole('heading',{name:'Sparade klasser (2)',exact:true})).toBeVisible();
   expect((await classes(principal,'principal',education)).classes).toEqual(before.classes);
   await capture(principal.page,info,'early-classes-reloaded');
 
@@ -163,7 +163,7 @@ test('A02: vårstart, administratörens namnkonflikt, huvudmannens läsläge och
   await panel(admin.page).getByRole('button',{name:'Gör senare',exact:true}).click();
   await openEducation(hm.page,education);await expect(panel(hm.page)).toContainText('Du läser som huvudman');
   await expect(panel(hm.page).getByRole('button',{name:'Skapa tomma klasser',exact:true})).toHaveCount(0);
-  await panel(hm.page).getByLabel('Befintliga klasser (1)',{exact:true}).selectOption(saved.receipt.classes[0].id);
+  await expect(panel(hm.page).getByRole('list',{name:'Sparade klasser',exact:true}).getByText(saved.receipt.classes[0].name,{exact:true})).toBeVisible();
   await expect(panel(hm.page)).toContainText(startedOn);expect((await classes(hm,'hm',education)).classes).toEqual(saved.receipt.classes);
   const forbidden=await fixture.request(hm.context,'hm',CREATE,{...saved.request,commandId:randomUUID(),names:['HM SKA INTE SKAPA']});
   expect(forbidden.status).toBe(403);expect((await classes(hm,'hm',education)).classes).toEqual(saved.receipt.classes);
@@ -225,6 +225,6 @@ test('A03: verklig MFA-retur återställer samma journal och kräver uttryckligt
   expect(writes).toEqual([original,original]);expect(byClassId((await classes(principal,'principal',education)).classes)).toEqual(byClassId(receipt.classes));
   expect(await principal.page.evaluate(()=>Object.keys(sessionStorage).filter(key=>key.startsWith('sp:class-cohort:')))).toEqual([]);
   await principal.page.reload();await panel(principal.page).getByRole('button',{name:'Visa klasser',exact:true}).click();
-  await expect(panel(principal.page).getByLabel('Befintliga klasser (2)',{exact:true})).toBeVisible();
+  await expect(panel(principal.page).getByRole('heading',{name:'Sparade klasser (2)',exact:true})).toBeVisible();
   expect(writes).toHaveLength(2);await capture(principal.page,info,'mfa-classes-reloaded');
 });

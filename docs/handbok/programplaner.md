@@ -92,15 +92,21 @@ När en ny utbildning och dess första programplansutkast har sparats öppnas **
 
 Rektor och skoladministratör med aktuellt uppdrag för skolan kan skapa klasser. Huvudmannen kan läsa befintliga klasser och deras datum. Skoladministratörens rätt att skapa klasser innebär inte rätt att ändra själva programplanen.
 
-1. Kontrollera **Utbildningsstart**, **Första läsår** och **Nya klassers giltighet**. Välj en befintlig klass för att läsa dess giltighet; det valet ändrar ingen koppling.
+1. Kontrollera **Utbildningsstart**, **Första läsår** och **Nya klassers giltighet**. Alla sparade klasser visas samtidigt under **Sparade klasser**, med namn, första läsår och giltighet. Listan är en översikt; du behöver inte välja en klass för att läsa uppgifterna.
 2. Välj **Skapa tomma klasser** om nya klasser behövs. Ange ett namn per rad och använd **Lägg till klassrad** för fler, högst 20 åt gången.
 3. Välj **Granska klasser**. Namnen visas med stora bokstäver. Kontrollera namn och startdatum och välj sedan **Spara … klasser**. Invänta beskedet att klasserna har sparats och lästs tillbaka.
+
+När du skriver namn eller granskar dem är klasserna ännu inte sparade. Efter sparning visas de i listan med **Sparad klass**. Det beskedet gäller klassen; det betyder inte att en timplan har kopplats.
+
+Nästa steg är att öppna **Timplaner**, välja utbildningens fastställda timplan och välja **Koppla klass** under **Klasser och läsår**. Välj läsår och klass och bekräfta kopplingen. Upprepa för varje klass som ska använda samma timplan. Kopplingarnas resultat visas i timplanen.
 
 Klasserna skapas utan elever och utan timplanskoppling. De tillhör samma utbildning, kull och skola även när programplanen får en ny version. Kopiering till en ny utbildning tar inte med klasser eller elever.
 
 Utbildningsstart är den verkliga startdagen. En ny klass gäller från samma datum; slutdatumet är okänt. **Första läsår** anger vilket läsår starten hör till. Exempelvis hör 17 augusti 2027 till 2027/2028, medan 15 januari 2027 hör till 2026/2027. Det globala planeringsåret ändrar inte dessa uppgifter. Äldre klasser kan sakna giltighetsdatum och visas då med okända datum.
 
 Om utbildningsstarten saknas eller olika underlag ger motstridiga uppgifter kan nya klasser inte skapas. Läs beskedet och rätta utbildningens underlag innan du försöker igen. Ett klassnamn som redan används på skolan under överlappande läsår kan behöva bytas; ett annat namn krävs i det nuvarande stödet.
+
+Hjälpen **Om klasser och timplanskopplingar** förklarar sambandet. **Läs klassunderlaget igen** visas vid läsfel, när du behöver försöka läsa uppgifterna igen.
 
 Om ett svar inte kan bekräftas behålls den granskade begäran i samma webbläsarflik. Använd **Läs sparstatus** eller **Läs klasserna igen** enligt beskedet. **Försök igen med samma begäran** visas först när sparstatus och underlag har kontrollerats. Krävs engångskod väljer du **Verifiera med engångskod**; efter återkomsten kontrolleras sparstatus innan du själv väljer omförsök. Om underlaget har ändrats behöver du granska klasserna på nytt.
 
