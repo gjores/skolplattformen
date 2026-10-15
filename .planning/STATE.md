@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: COPY-REMAINING-USER-TRIAL
-status: awaiting_user
-stopped_at: Samlad fasbedömning och äldre API-rättning klara; endast kullkopieringens mänskliga prov väntar.
-last_updated: "2026-10-14"
-last_activity: 2026-10-14
-last_activity_desc: "Skolprov godkänt. Äldre adapter rättad med faktisk Worker/API; f4987b6 levererad. Kort kopieprov är nästa checkpoint."
+current_plan: CLASS-COHORT-RESEARCH
+status: research_complete
+stopped_at: Klass-/kullresearch klar; nästa steg är avgränsad plan för tydligare årsurval och tidig klassorganisation. Kopieresultat fortfarande öppet.
+last_updated: "2026-10-15"
+last_activity: 2026-10-15
+last_activity_desc: "Källresearch, oberoende kodgranskning och läsning av visad plan klara. Klass-/kullförslag dokumenterat; ingen produktändring."
 state_head: f4987b6
 verification_worker_build_revision: f4987b60cd691df9faebe2c4403126cf1bf543bd
 verification_worker_status: registry_adapter_actual_workerd_pass_readback_oidc5_pass_prior_school_flow_bounded
@@ -23,6 +23,8 @@ milestone_name: milestone
 ---
 
 # Project State
+
+**Klassorganisation 2026-10-15:** Användaren beställer research om tidigare läsårsval och klassval/skapande vid ny programplan. [Research](research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md) och [planeringspunkt](todos/pending/2026-10-15-klassorganisation-vid-utbildningsstart.md) är klara. Den visade timplanens frysta start är 2027-08-01, så 2027/28 är giltigt i just exemplet; ingen sparad förtidig koppling är belagd. Förslag: tidigt frivilligt klasssteg per utbildning/kull, separerat från timplansversion och med oförändrade mandat i första etappen. Ingen implementation eller kopieacceptans följer av researchen.
 
 **Aktuell fasbedömning:** Skolflödets användarprov är godkänt och den äldre registeradapterns Workerfel är rättat. [Samlad kravbedömning](phases/05-bevarade-utbildnings-och-klassfloden/05-CURRENT-ACCEPTANCE-REVIEW.md) pekar ut endast [kullkopieringens mänskliga prov](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-REMAINING-USER-TRIAL.md) som nästa användartest. Godkända skol-/års-/besluts-/versionsprov ska inte upprepas. Bygge `f4987b6` kör på 3012; API-adapterprov, 27 Node-prov och fem läsande OIDC-kontroller passerar. Prestandabacklogg och historiska integritetsavvikelser består; fasen är inte slutgodkänd.
 

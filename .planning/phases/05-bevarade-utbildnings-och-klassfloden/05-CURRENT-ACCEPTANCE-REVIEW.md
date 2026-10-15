@@ -1,12 +1,14 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
-status: awaiting_copy_user_trial
+status: new_class_cohort_research_followup
 reviewed: 2026-10-14
 requirements: [ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, PLANERING-01, PLANERING-02, PLANERING-03, PLANERING-04, PLANERING-05]
 method: current_source_and_evidence_with_independent_gsd_verifier
 ---
 
 # Samlad aktuell fasbedömning
+
+**Ny användarobservation 2026-10-15:** [Klass-/kullresearch](../../research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md) kompletterar slutsatsen nedan om endast kvarstående kopieprov. Tidig klassorganisation och tydlig skillnad mellan kullstart och valt läsår behöver planeras. Exakt visad plan startar 2027-08-01; otillåten sparad koppling är inte belagd. Detta ändrar inte tidigare testresultat och är inget kopiegodkännande.
 
 Efter användarens ”allt funkar” för skolflödet är de två konkreta implementationsluckorna från [tidigare genomgång](05-CURRENT-AUDIT-20261014.md) åtgärdade: atomär kullkopiering och huvudmannens skolimport/registeruppdatering. En oberoende GSD-verifierare har läst aktuell kod, senare verifieringar och användarresultat. Det är en käll-/bevisgranskning, inte nya körningar av varje historisk svit.
 
