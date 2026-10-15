@@ -3,12 +3,12 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 plan: NAMED-TIMPLANS-UX-07
 status: prepared_server_contracts_verified
 updated: 2026-10-15
-remaining: [actual_sql_projection_parity, worker_grant_verification, actual_http_oidc]
+remaining: [actual_sql_projection_parity, actual_http_oidc]
 ---
 
 # Skyddade API-kontrakt — verifierad förberedelse
 
-Två skyddade POST-vägar förbereds för separat namngiven timplan och namnbyte. Befintlig versionsväg behåller sitt kontrakt. Plan07 är ännu inte slutverifierad: faktisk paritet med03–05 och installerade Workergrants återstår. Ingen permanent migration eller lokal runtimeleverans har gjorts.
+Två skyddade POST-vägar förbereds för separat namngiven timplan och namnbyte. Befintlig versionsväg behåller sitt kontrakt. Plan07 är ännu inte slutverifierad: faktisk paritet med03–05 och HTTP/OIDC återstår. Workergrants är separat SQL-verifierade enligt04. Ingen permanent migration eller lokal runtimeleverans har gjorts.
 
 ## Genomförande
 
@@ -17,7 +17,7 @@ Två skyddade POST-vägar förbereds för separat namngiven timplan och namnbyte
 - Gymadaptern kontrollerar hela frysta katalogen, poängramen och återförda rader före commit. Planens stabila serie och namn vid skapandet binds till kvittot. Godtyckliga eller saknade SQL-fält avbryter transaktionen.
 - Aktiverade gym-, klass-, besluts- och årsadaptrar kräver den nya serieformen. Pureparsers uttryckliga legacygren kan inte dölja saknade nya läsfält. Äldre beslutshistorik får behålla sin gamla form när SQL additivt kompletterar ett äldre kvittos saknade serieuppgift; lagrat kvitto och hash ändras inte.
 - Namnkonflikten ger ett minimerat svenskt besked. SQL-permissionsfel ger fortsatt generellt behörighetsfel och avslöjar inget namn i annan skola. Audit innehåller ingen timmatris eller fritt plannamn.
-- En separat grantmigration förbereder endast de två nya entrypointsen. Den får inte appliceras separat från paketet och är ännu inte verifierad mot installerad SQL.
+- En separat grantmigration förbereder endast de två nya entrypointsen. Den får inte appliceras separat från paketet.04:s isolerade slutprov verifierar exakt två nya grants, oförändrade tabell-ACL och verklig Workerroll som skapar och byter namn; detta är inte ett HTTP-prov.
 
 ## Kontroller
 
