@@ -12,7 +12,7 @@ import { startStepUp } from './mfa-step-up';
 import './protected-class-cohorts.css';
 
 type Props = { context: ActiveContext; epoch: number; offeringId: string; unitId: string; disabled: boolean;
-  sourceKey: string; returnTo: string; initiallyOpen?: boolean; onSecurityFailure: (error: unknown) => boolean };
+  sourceKey: string; returnTo: string; initiallyOpen?: boolean; onInitialOpen?: () => void; onSecurityFailure: (error: unknown) => boolean };
 type Phase = 'awaitingOutcome' | 'mfaDenied' | 'receiptNeedsRead';
 type Journal = { version: 1; scope: string; phase: Phase; request: ClassCohortCreateRequest };
 const base = '/api/klasser/organisation';
@@ -36,13 +36,19 @@ export default function ProtectedClassCohorts(props: Props) {
   const scope = JSON.stringify([props.context.customerId, props.context.membershipId, props.context.assignmentId, props.epoch, props.offeringId, props.unitId]);
   return <CohortPanel key={scope} {...props} scope={scope}/>;
 }
-function CohortPanel({ context, offeringId, unitId, disabled, sourceKey, returnTo, initiallyOpen = false, onSecurityFailure, scope }: Props & { scope: string }) {
+function CohortPanel({ context, offeringId, unitId, disabled, sourceKey, returnTo, initiallyOpen = false, onInitialOpen, onSecurityFailure, scope }: Props & { scope: string }) {
   const key = storagePrefix + scope;
   const [stored] = useState(() => restore(key, scope));
   const restored = stored.journal?.request;
   const wrongTarget = !!restored && (restored.offeringId !== offeringId || restored.unitId !== unitId);
   const [broken] = useState(stored.broken || wrongTarget);
   const [open, setOpen] = useState(initiallyOpen || !!restored || broken);
+  const initialOpening = useRef(initiallyOpen);
+  useLayoutEffect(() => {
+    if (!initialOpening.current) return;
+    initialOpening.current = false;
+    onInitialOpen?.();
+  }, [onInitialOpen]);
   const [data, setData] = useState<ClassCohortUnderlag | null>(null);
   const [verified, setVerified] = useState(false);
   const [names, setNames] = useState<string[]>(['']);

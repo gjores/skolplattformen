@@ -20,6 +20,12 @@ async function workspaceMock(page:Page,role='rektor',fresh=false){
  await page.route('**/api/**',async route=>{
   const path=new URL(route.request().url()).pathname,body=route.request().method()==='POST'?route.request().postDataJSON():null;
   const reply=(json:unknown,status=200)=>route.fulfill({status,json,headers:{'X-Context-Epoch':'1'}});
+  if(path==='/api/session'){
+   const context={assignmentId:id(4),membershipId:id(5),customerId:id(1),customerName:'Syntetisk huvudman',organizerId:null,organizerName:null,unitId:null,unitName:null,function:role,label:role,blocked:false,valid:true};
+   const assignment={...context,id:context.assignmentId,validFrom:'2026-01-01',validTo:null,endedAt:null,membershipStatus:'active',state:'giltigt'};
+   return reply({identity:{issuer:'synthetic',subject:'synthetic-cohort',displayName:'Syntetisk användare',email:null},assignments:[assignment],assignmentGroups:{valid:[assignment],upcoming:[],ended:[]},context,today:'2026-10-15',mfa:{acr:null,amr:[],authTime:null,proof:false},epoch:1,expiresAt:'2099-01-01T00:00:00Z',correlationId:'synthetic-cohort'});
+  }
+  if(path==='/api/elever/urval')return reply({scope:{schools,groups:[],cases:[]},schoolYears:[2026,2027,2028],currentSchoolYear:2026,endsAt:null,approverName:null,purposeCode:null,serverNow:'2026-10-15T10:00:00Z'});
   if(path==='/api/planering/urval')return reply({customerId:id(1),serverDate:'2026-10-15',currentYear:2026,minimumYear:2000,maximumYear:2100,units:schools.map(s=>({unitId:s.id,schoolName:s.name,canRead:{programplan:true,gymnasium:true,grundskola:true,introduktionsprogram:true}}))});
   if(path==='/api/planering/lista')return reply({selection:body,selectionRevision:`sha256:${'a'.repeat(64)}`,count:0,pageSize:50,rows:[]});
   if(path==='/api/planbeslut/inkorg')return reply({items:[],total:0,actionCount:0,decisionCount:0,truncated:false});
@@ -85,6 +91,69 @@ test('Pågående gammalt svar och journal läcker inte till annan skola eller an
 for(const role of ['huvudman','administrator'] as const)test(`Befintlig full arbetsyta, Gör senare och mandat: ${role}`,async({page},info)=>{const w=await workspaceMock(page,role),m=await cohortMock(page,{full:true,role});await page.goto(`/e2e/fixtures/programplan-copy-preview.html?cohort&role=${role}`);await panel(page).getByRole('button',{name:'Visa klasser'}).click();await expect(panel(page)).toContainText('Första läsår');await panel(page).getByRole('button',{name:'Gör senare'}).click();await expect(panel(page).getByRole('button',{name:'Visa klasser'})).toBeFocused();expect(m.commands).toEqual([]);await panel(page).getByRole('button',{name:'Visa klasser'}).click();if(role==='huvudman'){await expect(panel(page)).toContainText('Du läser som huvudman');await expect(panel(page).getByRole('button',{name:'Skapa tomma klasser'})).toHaveCount(0);}else{await prepare(page);await save(page);await done(page);}expect(w.unexpected).toEqual([]);expect(m.errors).toEqual([]);await page.screenshot({path:info.outputPath(`full-${role}.png`),fullPage:true});});
 test('Otydlig datumkälla visar äldre klasser men inga skapandeknappar',async({page})=>{const m=await cohortMock(page,{unknown:true});m.classes.set(oid(2),[{id:oid(88),name:'Äldre klass',cohortStartYear:2020,startsOn:null,endsOn:null,validitySource:'legacy_unknown'}]);await page.goto('/e2e/fixtures/operational-preview.html?cohort');await expect(panel(page)).toContainText('Inte entydigt verifierad');await panel(page).getByLabel('Befintliga klasser (1)').selectOption(oid(88));await expect(panel(page)).toContainText('giltighetsdatum okända');await expect(panel(page).getByRole('button',{name:'Skapa tomma klasser'})).toHaveCount(0);expect(m.commands).toEqual([]);});
 test('Ny utbildning genom hela flödet öppnar separat frivilligt klasssteg',async({page})=>{const w=await workspaceMock(page,'huvudman',true),m=await cohortMock(page,{full:true,role:'huvudman'});await page.clock.install({time:new Date('2026-10-15T10:00:00Z')});await page.goto('/e2e/fixtures/programplan-copy-preview.html?new&cohort&role=huvudman');await page.getByRole('button',{name:'Ny programplan',exact:true}).click();await page.getByLabel('Skola',{exact:true}).selectOption(id(2));await page.getByLabel('1. Program',{exact:true}).selectOption(`${program.code}:${program.version}`);await page.getByLabel('2. Inriktning',{exact:true}).selectOption(orientation);await page.getByLabel('Utbildningens namn',{exact:true}).fill('Ny syntetisk utbildning');await page.getByLabel('Elevkull',{exact:true}).fill('2027–2030');await page.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill('2027-08-15');await page.getByRole('button',{name:'Granska utkast'}).click();await page.getByRole('button',{name:'Spara utbildning och utkast'}).click();await expect(panel(page)).toContainText('Inga klasser finns ännu');expect(w.writes).toEqual(['/api/programplaner/utbildning/skapa']);expect(m.commands).toEqual([]);await panel(page).getByRole('button',{name:'Gör senare'}).click();await expect(page.getByRole('heading',{name:'Ny syntetisk utbildning',exact:true})).toBeVisible();expect(w.unexpected).toEqual([]);});
+
+async function createInShell(page:Page,changedSchool:boolean){
+ // The actual ProtectedHome owns selection, onOpened and the school-based key.
+ // A direct workspace harness cannot reproduce this remount.
+ await page.goto(`/e2e/fixtures/usability-preview.html?vy=programplaner&planeringsskola=${id(changedSchool?3:2)}&planeringslasar=2027&planeringsallaar=1`);
+ await expect(page.getByLabel('Planeringsskola',{exact:true})).toHaveValue(id(changedSchool?3:2));
+ await page.getByRole('button',{name:'Ny programplan',exact:true}).click();
+ const flow=page.getByRole('region',{name:'Program, inriktning och fördjupning',exact:true});
+ await flow.getByLabel('Skola',{exact:true}).selectOption(id(2));
+ await flow.getByLabel('1. Program',{exact:true}).selectOption(`${program.code}:${program.version}`);
+ await flow.getByLabel('2. Inriktning',{exact:true}).selectOption(orientation);
+ await flow.getByLabel('Utbildningens namn',{exact:true}).fill('Ny syntetisk utbildning');
+ await flow.getByLabel('Elevkull',{exact:true}).fill('2027–2030');
+ await flow.getByLabel('Utbildningens exakta startdatum',{exact:true}).fill('2027-08-15');
+ await flow.getByRole('button',{name:'Granska utkast'}).click();
+ await flow.getByRole('button',{name:'Spara utbildning och utkast'}).click();
+}
+for(const changedSchool of [false,true])test(`Skyddat skal öppnar klasssteget en gång efter ny utbildning: ${changedSchool?'skolbyte':'samma skola'}`,async({page})=>{
+ const w=await workspaceMock(page,'huvudman',true),m=await cohortMock(page,{full:true,role:'huvudman'});
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.clock.install({time:new Date('2026-10-15T10:00:00Z')});
+ await createInShell(page,changedSchool);
+ await expect(page.getByLabel('Planeringsskola',{exact:true})).toHaveValue(id(2));
+ await expect(panel(page)).toContainText('Inga klasser finns ännu');
+ expect(w.writes).toEqual(['/api/programplaner/utbildning/skapa']);expect(m.commands).toEqual([]);
+ await panel(page).getByRole('button',{name:'Gör senare'}).click();
+ await expect(panel(page).getByRole('button',{name:'Visa klasser'})).toBeFocused();
+ // Recreate only the panel, then the whole workspace: neither may reuse the intent.
+ await page.getByRole('button',{name:/^Analys/}).click();await expect(panel(page)).toHaveCount(0);
+ await page.getByRole('button',{name:'Tillbaka till planen',exact:true}).first().click();
+ await expect(panel(page).getByRole('button',{name:'Visa klasser'})).toBeVisible();
+ await page.getByLabel('Planeringsläsår',{exact:true}).selectOption('2028');
+ await expect(page.getByLabel('Planeringsläsår',{exact:true})).toHaveValue('2028');
+ await expect(panel(page).getByRole('button',{name:'Visa klasser'})).toBeVisible();
+ await expect(panel(page).getByRole('button',{name:'Gör senare'})).toHaveCount(0);
+ await panel(page).getByRole('button',{name:'Visa klasser'}).click();
+ await expect(panel(page)).toContainText('Inga klasser finns ännu');
+ expect(w.unexpected).toEqual([]);expect(m.errors).toEqual([]);expect(errors).toEqual([]);
+});
+
+for(const field of ['Planeringsskola','Planeringsläsår'])test(`Ny navigation rensar klassöppning före målåterläsning: ${field}`,async({page})=>{
+ const w=await workspaceMock(page,'huvudman',true),m=await cohortMock(page,{full:true,role:'huvudman'});
+ let reads=0,held=false,release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve;});
+ await page.route('**/api/programplaner/underlag',async route=>{
+  if(++reads===2){held=true;await gate;} // First read in the school's replacement workspace.
+  await route.fallback();
+ });
+ try{
+  await page.clock.install({time:new Date('2026-10-15T10:00:00Z')});await createInShell(page,true);
+  await expect.poll(()=>held).toBe(true);
+  await expect(page.getByLabel('Planeringsskola',{exact:true})).toHaveValue(id(2));
+  const value=field==='Planeringsskola'?id(3):'2028';
+  await page.getByLabel(field,{exact:true}).selectOption(value);
+  await expect(page.getByLabel(field,{exact:true})).toHaveValue(value);
+  release();
+  // A school change clears the target; Back reopens it within the SAME shell
+  // and document. A year change retains and remounts the target directly.
+  if(field==='Planeringsskola')await page.goBack();
+  await expect(panel(page).getByRole('button',{name:'Visa klasser'})).toBeVisible();
+  await expect(panel(page).getByRole('button',{name:'Gör senare'})).toHaveCount(0);
+  expect(w.writes).toEqual(['/api/programplaner/utbildning/skapa']);expect(m.commands).toEqual([]);expect(w.unexpected).toEqual([]);
+ }finally{release();}
+});
 test('Ändrad källversion under granskning kräver granskning av färskt underlag',async({page})=>{const m=await cohortMock(page);await openPanel(page);await prepare(page);m.changeSource();await page.getByRole('button',{name:'Simulera ny källversion'}).click();await expect(panel(page)).toContainText('granska på nytt');await expect(panel(page).getByRole('button',{name:'Spara 2 klasser'})).toHaveCount(0);await panel(page).getByRole('button',{name:'Granska klasser'}).click();await save(page);await done(page);expect(m.commands[0].expectedEducationRevision).toBe(8);});
 test('Klassbegäran spärrar syskonredigering och beslut men egen återhämtning fungerar',async({page})=>{const w=await workspaceMock(page),m=await cohortMock(page,{full:true,mode:'lost'});await page.goto('/e2e/fixtures/programplan-copy-preview.html?cohort&role=rektor');await panel(page).getByRole('button',{name:'Visa klasser'}).click();await prepare(page);await expect(page.getByRole('button',{name:'Skicka för beslut',exact:true})).toBeDisabled();const inputs=page.locator('input[data-term]');await expect(inputs.first()).toBeDisabled();await save(page);await expect(page.getByRole('button',{name:'Skicka för beslut',exact:true})).toBeDisabled();await panel(page).getByRole('button',{name:'Läs sparstatus',exact:true}).click();await done(page);await expect(inputs.first()).toBeEnabled();expect(m.commands).toHaveLength(1);expect(w.unexpected).toEqual([]);});
 test('Ny programplansversion behåller samma klass-ID:n i full arbetsyta',async({page})=>{const w=await workspaceMock(page),m=await cohortMock(page,{full:true});await page.goto('/e2e/fixtures/programplan-copy-preview.html?cohort&role=rektor');await panel(page).getByRole('button',{name:'Visa klasser'}).click();await prepare(page);await save(page);await done(page);const before=m.classes.get(id(10));w.nextVersion();await page.getByRole('button',{name:'Läs om',exact:true}).click();await page.getByText('Underlag och tidigare versioner',{exact:true}).click();await page.getByRole('button',{name:'Version 2 · Utkast',exact:true}).click();await panel(page).getByRole('button',{name:'Visa klasser'}).click();await expect(panel(page).getByLabel('Befintliga klasser (2)')).toBeVisible();expect(m.classes.get(id(10))).toEqual(before);expect(m.commands).toHaveLength(1);expect(w.unexpected).toEqual([]);});

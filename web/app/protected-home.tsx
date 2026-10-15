@@ -53,7 +53,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-workspace';
 import ProtectedTimplanWorkspace from './protected-timplan-workspace';
 import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
-import ProtectedProgramplanWorkspace from './protected-programplan-workspace';
+import ProtectedProgramplanWorkspace, { type ClassStepTarget } from './protected-programplan-workspace';
 import ProtectedPlanningOverview from './protected-planning-overview';
 import { normalizePlanLocation, planningCollectionLocation, planLocationQuery, readPlanLocation, type GymTimplanLocation, type OtherTimplanLocation, type PlanLocation, type ProgramplanLocation } from '@/lib/protected-plan-location.ts';
 import { PlanningContextProvider, PlanningContextBar, usePlanningContext } from './planning-context';
@@ -269,6 +269,7 @@ function ProtectedShell() {
   const [lock, setLock] = useState<LockReason | null>(null);
   const [view, setView] = useState<ProtectedView>('stangt');
   const [programplanTarget, setProgramplanTarget] = useState<ProgramplanLocation | null>(null);
+  const [classStepIntent, setClassStepIntent] = useState<{ scope: string; target: ClassStepTarget } | null>(null);
   const [timplanTarget, setTimplanTarget] = useState<GymTimplanLocation | null>(null);
   const [otherTimplanTarget, setOtherTimplanTarget] = useState<OtherTimplanLocation | null>(null);
   const [timplanMode, setTimplanMode] = useState<'gym' | 'other'>('gym');
@@ -305,6 +306,7 @@ function ProtectedShell() {
     setKnownEpoch(null);
     clearRegisterLocation(preserveAuthentication); setRegisterSetup(null); setSchoolYear(null); setHelp(false); setSession(null);
     setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null); setTimplanMode('gym'); lastGymPlan.current = null;
+    setClassStepIntent(null);
   }, []);
   const lockChangedContext = useCallback(() => {
     const wasSupport = sessionRef.current?.context?.function === 'support';
@@ -348,6 +350,7 @@ function ProtectedShell() {
         sessionRef.current = loaded;
         setSession(loaded);
         if (!previous || changed) {
+          setClassStepIntent(null);
           const location = !changed && ['huvudman','rektor','administrator'].includes(loaded.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
           const nextView = location?.view ?? shellView(window.location.search, loaded);
           setView(nextView); viewRef.current = nextView;
@@ -444,7 +447,7 @@ function ProtectedShell() {
     const scopeChanged = !!unitId && typeof prior?.unitId === 'string' && prior.unitId !== unitId;
     return { scopeChanged, planning: scopeChanged ? { ...prior, unitId, page: 1, selectionRevision: null } : prior };
   }
-  function programplanOpened(target: ProgramplanLocation | null) {
+  function programplanOpened(target: ProgramplanLocation | null, options?: { openClasses: boolean }) {
     if (sessionScope(sessionRef.current) !== contextKey) return;
     const prior = planningLocationRef.current;
     const firstOpenedTarget = !!target && prior?.view === 'programplaner' && !prior.programplan && !prior.overview;
@@ -452,10 +455,20 @@ function ProtectedShell() {
     // A changed school remounts the workspace. Pin the new verified target
     // before its selection changes, so a previous row cannot be reopened.
     if (next.scopeChanged) setProgramplanTarget(target);
+    const transfer = next.scopeChanged && options?.openClasses === true && !!target?.unitId;
+    if (transfer) setClassStepIntent({ scope: contextKey, target: { offeringId: target.offeringId, planId: target.planId, unitId: target.unitId! } });
+    else setClassStepIntent(previous => previous?.scope === contextKey && previous.target.offeringId === target?.offeringId
+      && previous.target.planId === target.planId && previous.target.unitId === target.unitId ? previous : null);
     // Preserve the annual list for Back without remounting this verified workspace.
     // Existing targets and explicit null (local return or absent candidate) replace.
     writePlanLocation({ view: 'programplaner', programplan: target, planning: next.planning,
       ...(target && prior?.view === 'programplaner' ? { relativeYear: prior.relativeYear, allYears: prior.allYears } : {}) }, !firstOpenedTarget);
+    return transfer;
+  }
+  function classStepMounted(target: ClassStepTarget) {
+    if (sessionScope(sessionRef.current) !== contextKey) return;
+    setClassStepIntent(previous => previous?.scope === contextKey && previous.target.offeringId === target.offeringId
+      && previous.target.planId === target.planId && previous.target.unitId === target.unitId ? null : previous);
   }
   function gymTimplanOpened(target: GymTimplanLocation | null, sourcePlanId?: string) {
     if (sessionScope(sessionRef.current) !== contextKey) return;
@@ -483,6 +496,7 @@ function ProtectedShell() {
       : { view: next, gym: null, planning: prior?.planning };
   }
   function applyPlanningLocation(location: PlanLocation) {
+    setClassStepIntent(null);
     setProgramplanTarget(location.view === 'programplaner' ? location.programplan : null);
     setTimplanTarget(location.view === 'timplaner' ? location.gym : null);
     setOtherTimplanTarget(location.view === 'timplaner' ? location.other ?? null : null);
@@ -537,6 +551,7 @@ function ProtectedShell() {
   function navigate(next: ProtectedView) {
     if (next === view && !isPlanningView(next) || !canNavigate()) return;
     if (view === 'elever') rememberRegister();
+    setClassStepIntent(null);
     setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null); setPlanNavigation(value => value + 1);
     if (isPlanningView(next)) {
       const location = planningFor(next); applyPlanningLocation(location); writePlanLocation(location);
@@ -570,6 +585,7 @@ function ProtectedShell() {
       }
       if (priorView === 'elever') rememberRegister(new URL(locationRef.current, window.location.origin).search);
       setNavigationNotice(null); setPlanNavigation(value => value + 1);
+      setClassStepIntent(null);
       if (location) applyPlanningLocation(location);
       else {
         setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null);
@@ -706,7 +722,7 @@ function ProtectedShell() {
                   : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
               </>}
               {!overview && view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
-                onOpened={programplanOpened}/>}
+                initialClassStep={classStepIntent?.scope===contextKey?classStepIntent.target:null} onClassStepMounted={classStepMounted} onOpened={programplanOpened}/>}
             </>}</PlanningArea>}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>

@@ -36,20 +36,24 @@ import { planningYearLabel, projectGymYear } from '@/lib/planning-year-model.ts'
 import type { PlanningRow } from '@/lib/planning-year-contract.ts';
 import type { ProgramplanLocation, GymTimplanLocation } from '@/lib/protected-plan-location.ts';
 
+export type ClassStepTarget = { offeringId: string; planId: string; unitId: string };
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void; initialPlan?: ProgramplanLocation | null;
-  onOpened?: (target: ProgramplanLocation | null) => void; onTimplan?: (source: string | GymTimplanLocation) => void };
+  initialClassStep?: ClassStepTarget | null; onClassStepMounted?: (target: ClassStepTarget) => void;
+  // true means the parent accepted the one-use opening intent across its remount.
+  onOpened?: (target: ProgramplanLocation | null, options?: { openClasses: boolean }) => boolean | void; onTimplan?: (source: string | GymTimplanLocation) => void };
 const aborted = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
 const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för ändring', replace: 'Ändra fördjupning', clone: 'Skapa ny version' };
 type ReadRecovery = { offeringId: string; versionPage: number; catalogId: string | null; planId: string | null; deleted: boolean; message: string; copied?: boolean };
 function newCopy(name: string) { return { name: `${name} – kopia`.slice(0, 120), cohort: '', localCode: '', startedOn: '', command: null, error: null, uncertain: false, stale: false }; }
 
-export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost, initialPlan, onOpened, onTimplan }: Props) {
+export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost, initialPlan, initialClassStep, onClassStepMounted, onOpened, onTimplan }: Props) {
   const page = 1;
   const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
   const classPending = useHasUnsaved('class-cohort:');
   const initialOpened = useRef(false);
-  const [classStepOffering, setClassStepOffering] = useState<string | null>(null);
+  const [classStepTarget, setClassStepTarget] = useState<ClassStepTarget | null>(initialClassStep ?? null);
+  const classStepRef = useRef(classStepTarget);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialPlan?.unitId ?? planningUnit);
   const selectedUnit = useRef<string | null>(selectedUnitId);
   const hasUnsaved = useHasUnsaved();
@@ -104,7 +108,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     // Called only after the complete scoped read and its current-generation check.
     verifiedPlan.current = selected ? { token: generation.current, planId: selected.id } : null;
     const unitId = selectedUnit.current;
-    opened.current?.(selected ? { offeringId: fresh.education.id, planId: selected.id, version: selected.version, ...(unitId ? { unitId } : {}) } : null);
+    const target = selected ? { offeringId: fresh.education.id, planId: selected.id, version: selected.version, ...(unitId ? { unitId } : {}) } : null;
+    const intent = classStepRef.current;
+    const openClasses = !!intent && intent.offeringId === target?.offeringId && intent.planId === target.planId && intent.unitId === target.unitId;
+    const transferred = opened.current?.(target, { openClasses });
+    // The old workspace must not consume an intent handed to its replacement.
+    if (intent && (!openClasses || transferred === true)) { classStepRef.current = null; setClassStepTarget(null); }
   }, []);
   const dirty = !!preparation?.catalogId || !!draft && draft.mode !== 'applied' && (draft.kind !== 'replace' || draft.startedOn !== draft.originalStart
     || !sameProgramplanLevels(draft.refs, draft.originalRefs) || draft.mode !== 'edit');
@@ -150,6 +159,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   }
   // Detta är en lokal återgång, aldrig ett bevis för ett okänt skrivutfall.
   const resetList = useCallback(() => {
+    classStepRef.current = null; setClassStepTarget(null);
     selectedUnit.current = planningUnit; setSelectedUnitId(planningUnit);
     invalidate(); setWorkspace(null); setPlan(null); setPlanSummary(null); setPreparation(null); setDraft(null); setFocusIssue(null); setNotice(null); setError(null); setBusy(false); setShowFlow(false); setCopy(null); setFlowRevision(value=>value+1);
     opened.current?.(null);
@@ -576,7 +586,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       canCreateTimplan={!!onTimplan && ['rektor', 'administrator'].includes(context.function)} onTimplan={openRowTimplan}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
-      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={async(id,catalogId,planId,unitId,created)=>{if(created)setClassStepOffering(id);await openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined);}}/></div>}
+      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={async(id,catalogId,planId,unitId,created)=>{if(created&&planId&&unitId){const intent={offeringId:id,planId,unitId};classStepRef.current=intent;setClassStepTarget(intent);}await openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined);}}/></div>}
     {(workspace||draft)&&<div className="pps-page">
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">
@@ -602,7 +612,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         </div>
       </div>}
       {workspace&&selectedSchool&&!draft&&!preparation&&!copy&&view==='plan'&&<ProtectedClassCohorts context={context} epoch={epoch} offeringId={workspace.education.id} unitId={selectedSchool.id}
-        disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepOffering===workspace.education.id}
+        disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepTarget?.offeringId===workspace.education.id&&classStepTarget.planId===plan?.id&&classStepTarget.unitId===selectedSchool.id}
+        onInitialOpen={()=>{const target=classStepRef.current;if(target&&target.offeringId===workspace.education.id&&target.planId===plan?.id&&target.unitId===selectedSchool.id){classStepRef.current=null;setClassStepTarget(null);onClassStepMounted?.(target);}}}
         sourceKey={JSON.stringify([workspace.lifecycle.revision,workspace.versions.map(version=>[version.id,version.revision,version.status])])}
         returnTo={'/'+planLocationQuery({view:'programplaner',programplan:plan?{offeringId:workspace.education.id,planId:plan.id,version:plan.version,unitId:selectedSchool.id}:null,
           planning:{schoolYear:planningSelection?.schoolYear,unitId:selectedSchool.id,schoolform:'gymnasium'},allYears:true})} onSecurityFailure={securityFailure}/>}
