@@ -33,11 +33,13 @@ Enbart fastställande av programplanen ger ingen varning om ändrat innehåll. E
 
 Rektor och skoladministratör kan välja **Koppla klass** i en fastställd gymnasietimplan inom sitt skoluppdrag. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
 
-1. Välj läsår. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda.
-2. Välj en befintlig klass för samma utbildning och kull, eller skriv klassnamn och välj **Skapa klass**. En ny klass skapas utan elever och behöver sedan kopplas.
+1. Kontrollera läsåret. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda. Det globala planeringsåret visas separat. Om det ligger inom utbildningens tre läsår används det som första förslag. Annars behöver du uttryckligen välja ett giltigt läsår innan du kopplar klassen.
+2. Välj en befintlig klass för samma utbildning, kull och skola, eller skriv klassnamn och välj **Skapa klass**. Klasser som förberetts i [programplanens klasssteg](./programplaner.md#klasser-för-utbildningen) kan väljas här. En ny klass skapas utan elever och behöver sedan kopplas.
 3. Välj **Koppla vald klass**. Granska skola, läsår, årskurs och exakt timplansversion och välj **Bekräfta koppling**.
 
 Har klassen redan en timplan visas den tidigare versionen före bytet. Ändringen gäller endast det valda läsåret. När en ny timplansversion fastställs ligger klassens tidigare koppling kvar tills du uttryckligen byter den. Äldre namnkopplingar märks ut och måste bekräftas för en bestämd klass; systemet gissar inte klassens identitet.
+
+Utbildningsstart, klassens giltighet och kopplingens läsår beskriver olika saker. Vid start 17 augusti 2027 börjar första läsåret 2027 och motsvarar årskurs 1; läsåret 2028/2029 motsvarar årskurs 2. Vid vårstart 15 januari 2027 är första läsåret i stället 2026/2027. Klassens giltighet börjar på själva startdagen och får inget antaget slutdatum. En koppling måste stämma med klassens kända giltighet. Om timplanens startunderlag saknas eller är motstridigt kan läsår inte väljas och kopplingen spärras.
 
 Listan **Kopplade till version …** visar samtliga läsår för den öppnade versionen, även när versionen är ersatt. Om uppgiften har ändrats under tiden väljer du **Läs om klasskopplingar** och granskar på nytt. Vid tappat svar används **Hämta sparstatus** för samma begäran, så att klassen eller kopplingen inte skapas dubbelt.
 

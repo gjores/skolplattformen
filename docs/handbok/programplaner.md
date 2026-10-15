@@ -44,7 +44,7 @@ Att ändra planen omfattar programfördjupning, terminsfördelning, nya versione
 
 Knapparna finns i planens huvud:
 
-- **Ändra uppgifter** ändrar namn, lokal kod och elevkull. Startdatumet kan ändras bara när utbildningen har en enda version som är ett utkast, och det nya datumet måste ligga efter i dag.
+- **Ändra uppgifter** ändrar namn, lokal kod och elevkull. Startdatumet kan ändras bara när utbildningen har en enda version som är ett utkast och ännu saknar klasser, och det nya datumet måste ligga efter i dag. När en klass har skapats är utbildningsstarten låst.
 - **Ta bort** tar bort utbildningen och alla dess versioner permanent, efter att du bekräftat med en kryssruta. Det går bara för en framtida plan och nekas om klasser, elevplaceringar, timplaner eller tillstånd hör till utbildningen. Borttagningen sparas i loggen.
 - **Arkivera** döljer planen i listan. Versioner, beslut och historik bevaras och planen kan inte ändras medan den är arkiverad. **Ta fram ur arkivet** gör den synlig igen; därefter avgör statusen vad som får ändras.
 
@@ -76,7 +76,7 @@ En skola kan inte tas bort från planen så länge skolans klasser, elevplacerin
 
 **Timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad programram för ett stött Gy25-program, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
 
-Rektor och skoladministratör kan skapa en tom klass och koppla den till en fastställd gymnasietimplan för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-klass-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
+Rektor och skoladministratör kan förbereda tomma klasser redan i programplanens utkast, enligt avsnittet nedan. Kopplingen till en fastställd gymnasietimplan görs senare för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-klass-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
 
 ## Ny programplan
 
@@ -85,6 +85,24 @@ Rektor och skoladministratör kan skapa en tom klass och koppla den till en fast
 3. För en ny utbildning anger du namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**, alltså den verkliga dagen enligt utbildningens uppgifter. Datumet måste ligga efter i dag: en ny plan kan bara skapas för en elevkull som inte har börjat. Välj programfördjupning, välj **Granska utkast** och sedan **Spara utbildning och utkast**.
 
 Programunderlaget från Skolverket visas längst ned i finstilt. Om flera underlag finns behöver du välja ett innan du går vidare.
+
+## Klasser för utbildningen
+
+När en ny utbildning och dess första programplansutkast har sparats öppnas **Klasser för utbildningen**. Du kan välja **Gör senare** och sedan återöppna med **Visa klasser** i utbildningens programplan. Kontrollera utbildning, elevkull och skola innan du arbetar med klasserna.
+
+Rektor och skoladministratör med aktuellt uppdrag för skolan kan skapa klasser. Huvudmannen kan läsa befintliga klasser och deras datum. Skoladministratörens rätt att skapa klasser innebär inte rätt att ändra själva programplanen.
+
+1. Kontrollera **Utbildningsstart**, **Första läsår** och **Nya klassers giltighet**. Välj en befintlig klass för att läsa dess giltighet; det valet ändrar ingen koppling.
+2. Välj **Skapa tomma klasser** om nya klasser behövs. Ange ett namn per rad och använd **Lägg till klassrad** för fler, högst 20 åt gången.
+3. Välj **Granska klasser**. Namnen visas med stora bokstäver. Kontrollera namn och startdatum och välj sedan **Spara … klasser**. Invänta beskedet att klasserna har sparats och lästs tillbaka.
+
+Klasserna skapas utan elever och utan timplanskoppling. De tillhör samma utbildning, kull och skola även när programplanen får en ny version. Kopiering till en ny utbildning tar inte med klasser eller elever.
+
+Utbildningsstart är den verkliga startdagen. En ny klass gäller från samma datum; slutdatumet är okänt. **Första läsår** anger vilket läsår starten hör till. Exempelvis hör 17 augusti 2027 till 2027/2028, medan 15 januari 2027 hör till 2026/2027. Det globala planeringsåret ändrar inte dessa uppgifter. Äldre klasser kan sakna giltighetsdatum och visas då med okända datum.
+
+Om utbildningsstarten saknas eller olika underlag ger motstridiga uppgifter kan nya klasser inte skapas. Läs beskedet och rätta utbildningens underlag innan du försöker igen. Ett klassnamn som redan används på skolan under överlappande läsår kan behöva bytas; ett annat namn krävs i det nuvarande stödet.
+
+Om ett svar inte kan bekräftas behålls den granskade begäran i samma webbläsarflik. Använd **Läs sparstatus** eller **Läs klasserna igen** enligt beskedet. **Försök igen med samma begäran** visas först när sparstatus och underlag har kontrollerats. Krävs engångskod väljer du **Verifiera med engångskod**; efter återkomsten kontrolleras sparstatus innan du själv väljer omförsök. Om underlaget har ändrats behöver du granska klasserna på nytt.
 
 ## Planen som tabell
 

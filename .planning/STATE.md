@@ -26,7 +26,7 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt CLASS-COHORT 2026-10-15:** Plan08 färdig: SQL436+7 samtidighetsfall, Worker/API30 och faktisk browser6/6 PASS med full cleanup.9/11 paketplaner klara. Nästa09: samma201 byggfiler från88145bc till lokal3012, därefter10 konkret mänskligt klassprov. Fulla krav/fas5 och historiska88/100 samt3/8 består. Se [verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-VERIFICATION.md). Äldre lägesnoteringar nedan är historik.
+**Aktuellt CLASS-COHORT 2026-10-15:** Plan08 färdig: SQL436+7 samtidighetsfall, Worker/API30 och faktisk browser6/6 PASS med full cleanup.10/11 paketplaner klara.09 levererat: samma201 byggfiler från88145bc kör på lokal3012 med verklig läsande OIDC och bevarande PASS. Nästa10 förbereder konkret mänskligt klassprov. Fulla krav/fas5 och historiska88/100 samt3/8 består. Se [verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-VERIFICATION.md). Äldre lägesnoteringar nedan är historik.
 
 **Klassorganisation, lokal schemaändring 2026-10-15:** Plan08:s436 samlade SQL-kontroller har passerat med full rollback. Tre granskade migrationer är därefter installerade på det isolerade syntetiska målet med oförändrade originalprojektioner. Den installerade436-matrisen och sju separata faktiska samtidighetsfall har passerat med exakt cleanup och bevarade originalprojektioner. Fullmatrisen redovisas som ärvd i återupptagningens slutrapport, med uttrycklig begränsning för den tidigare provkörningens osorterade audithash. SQL-verktygen är pushade i63fa5ca. Worker/API30 med verklig lokal OIDC/MFA har nu passerat med exakt cleanup; sex faktiska dator-/telefonfall pågår. Ordinarie3012 kör fortfarande tidigare bygge `f4987b6`; separat provbygge `3f421c5` kör nu på den registrerade provporten3013 efter verifierad portflytt från3067. Ingen full krav-/fasacceptans eller mänsklig acceptans följer av detta delsteg.
 
@@ -487,10 +487,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-10-15
-**Stopped At:** CLASS-COHORT-08 genomförd; nästa CLASS-COHORT-09 lokal leverans.
+**Stopped At:** CLASS-COHORT-09 genomförd; nästa CLASS-COHORT-10 provförberedelse.
 **Resume File:** [Klassorganisationens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md)
 
-**Planned Phase:** 5 — CLASS-COHORT-09 och paketets beroendekedja. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
+**Planned Phase:** 5 — CLASS-COHORT-10, avgränsat mänskligt klassprov. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
 
 ### Senaste användarfynd, 2026-10-02
 

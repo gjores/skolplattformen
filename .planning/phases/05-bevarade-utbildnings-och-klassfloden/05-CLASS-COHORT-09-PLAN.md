@@ -11,6 +11,7 @@ files_modified:
   - docs/handbok/programplaner.md
   - docs/handbok/timplaner.md
   - work/pilot/deliver-class-cohort.mjs
+  - work/pilot/deliver-class-cohort.test.mjs
 must_haves:
   truths:
     - "Handboken beskriver det faktiskt verifierade klassflödet och dess begränsningar."
@@ -75,3 +76,7 @@ Användarprovet öppnar exakt det lokala bygge som har testats.
 Explicita GSD-outputartefakter: .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-VERIFICATION.md och .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-USER-TRIAL.md; uppdatera .planning/STATE.md och berörd kravspårning. Dessa är dokumentationsoutput utöver files_modified:s produkt-/provfiler.
 Skriv .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-09-SUMMARY.md med faktiskt resultat, kommandon/exitkoder, bevisreferenser, kvarstående gränser och SS12000-bedömning. Uppdatera paketets status proportionerligt. Versionshantera endast denna plans avgränsade ändringar; pusha aktuell gren och verifiera avsedd fjärrcommit enligt AGENTS.md.
 </output>
+
+## Genomförandeprecisering
+
+Leveransens OIDC-bevis sparar full privat hållbar före-bild innan inloggning. Endast det egna kontots iat/exp i authmetadata får rotera och måste matcha exakt cookie-/auditbunden, serververifierad callbacktoken. Alla övriga nästade fält/nycklar och äldre rader bevaras.48 rena positiva/negativa prov i deliver-class-cohort.test.mjs verifierar gränsen. Första leveransens FAIL, egen återhämtning och bevisgräns redovisas i09-SUMMARY.
