@@ -179,3 +179,23 @@ begin
   end loop;
  end loop;
 end $$;
+
+-- The old upsert payload cannot silently turn an identified row back into a
+-- name-only link, even if invoked through an otherwise privileged data path.
+do $$
+declare x jsonb;p public.timplans;l public.class_timplans;other_plan uuid;y integer;
+begin
+ select value into x from cohort_context;y:=(x->>'year')::integer;
+ select * into p from public.timplans where id=(x->>'replacementPlanId')::uuid;
+ select * into l from public.class_timplans where class_id=(x->>'sharedClassId')::uuid and start_year=y+1;
+ perform pg_temp.link_denied(format(
+  'insert into public.class_timplans(unit_id,class_name,start_year,timplan_id,column_id) values(%L,%L,%s,%L,%L) on conflict(unit_id,class_name,start_year) do update set timplan_id=excluded.timplan_id,column_id=excluded.column_id',
+  l.unit_id,l.class_name,l.start_year,p.id,l.column_id),'40001',null,'legacy upsert cannot overwrite identified link without revision');
+ perform pg_temp.link_denied(format('update public.class_timplans set class_id=null where unit_id=%L and class_name=%L and start_year=%s',
+  l.unit_id,l.class_name,l.start_year),'42501',null,'identified link cannot be detached to legacy through direct update');
+ other_plan:=(x#>>'{second,planId}')::uuid;
+ perform pg_temp.link_denied(format('update public.class_timplans set class_id=%L,timplan_id=%L,column_id=''ar1'',revision=revision+1 where unit_id=%L and class_name=%L and start_year=%s',
+  x->>'secondSharedId',other_plan,l.unit_id,l.class_name,l.start_year),'40001',null,'direct update cannot transfer stable identity to another cohort');
+ perform pg_temp.link_assert(exists(select 1 from public.class_timplans where class_id=l.class_id and start_year=l.start_year and timplan_id=p.id and revision=l.revision),
+  'all alternative legacy writes retain exact identified winner');
+end $$;

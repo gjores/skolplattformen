@@ -59,9 +59,17 @@ export async function verifyClassCohortLinks(out){
     values(${f.id(1)},${f.id(2)},${f.id(30)},${f.id(46)},'AMBIGUOUS',${year})`;
    await tx.unsafe(readFileSync(resolve(root,'supabase/migrations/20261015100000_class_cohort_dates.sql'),'utf8'));
    const before03=await allPublicHashes(tx);
+   const relationProtection=async()=>({
+    tables:await tx`select c.relname,c.relacl::text acl,c.relowner,c.relrowsecurity,c.relforcerowsecurity from pg_class c where c.oid in ('public.class_timplans'::regclass,'public.school_classes'::regclass) order by c.relname`,
+    constraints:await tx`select conrelid::regclass::text relation,conname,pg_get_constraintdef(oid) definition from pg_constraint where conrelid in ('public.class_timplans'::regclass,'public.school_classes'::regclass) order by 1,2`,
+    policies:await tx`select * from pg_policies where schemaname='public' and tablename in ('class_timplans','school_classes') order by tablename,policyname`
+   });
+   const protectionsBefore=await relationProtection();
    const aclBefore=await tx`select p.oid::regprocedure::text signature,p.proacl::text acl,p.proowner from pg_proc p where p.oid in ('public.phase5_class_underlag(uuid,integer)'::regprocedure,'public.phase5_class_command(jsonb)'::regprocedure,'public.validate_class_timplan()'::regprocedure) order by 1`;
    await tx.unsafe(readFileSync(resolve(root,migration),'utf8'));
    assert.deepEqual(await allPublicHashes(tx),before03);
+   assert.deepEqual(await relationProtection(),protectionsBefore);
+   checks.push({name:'legacy primary key class uniqueness table ACL owners and RLS policies remain exact',ok:true});
    assert.deepEqual(await tx`select p.oid::regprocedure::text signature,p.proacl::text acl,p.proowner from pg_proc p where p.oid in ('public.phase5_class_underlag(uuid,integer)'::regprocedure,'public.phase5_class_command(jsonb)'::regprocedure,'public.validate_class_timplan()'::regprocedure) order by 1`,aclBefore);
    checks.push({name:'03 migration changes no stored rows or existing function ACL/owners',ok:true});
    await tx.unsafe(readFileSync(resolve(root,'supabase/tests/phase5_class_cohort_dates.test.sql'),'utf8'));
