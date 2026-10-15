@@ -34,6 +34,13 @@ Paketrot är `web/`; projekt- och GSD-rot är katalogen ovanför. React/TypeScri
 
 Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noEmit`, `npx oxlint app lib` och `npm run build`. Anpassa kontroller till ändringen; en dokumentändring kräver inte en ny appbyggnad. Vid UI-ändring prövas berört användarflöde på dator och telefon. Tidigare passerade tester är historik, inte bevis för nya ändringar.
 
+## SS 12000 som genomgående grundregel
+
+- Enligt användarbeslut 2026-10-15 ska SS 12000 beaktas löpande i hela applikationens utveckling: vid krav, planering, datamodellering, implementation, ändringar och verifiering. Skjut inte kompatibilitetsfrågor till integrationsfasen.
+- Vid varje relevant förändring ska berörda begrepp, objekt och relationer stämmas av mot standarden. Kontrollera särskilt stabila identifierare och externa ID:n, organisationer, personer, klasser och undervisningsgrupper, placeringar, medlemskap, giltighetstider samt käll- och skrivansvar. Interna modeller får vara egna, men standardens information och betydelse ska kunna bevaras vid informationsutbyte.
+- Dokumentera i berörd GSD-plan hur förändringen förhåller sig till SS 12000: tillämplig specifikationsversion, objektmappning, begränsningar och nödvändiga verifieringsfall. Om ett område ligger utanför standardens omfattning ska det framgå. Synliggör och hantera modellkonflikter före implementation; bygg inte in tysta avvikelser.
+- Skilj avsedd kompatibilitet från verifierat stöd. En källbeteckning, intern modell eller simulator bevisar inte standardefterlevnad. Verifiera kontrakt, stödda objekt och informationsutbyte mot den aktuella specifikationen och motpartens faktiska stöd innan en anslutning anges som fungerande. Standarden ersätter inte behörighetskontroll, informationsansvar eller avtal.
+
 ## Identitet, data och integration
 
 - `signInDemo` och `bootstrap_demo_profile` ger demobesökare huvudmannarättigheter. De får inte användas med verkliga elevuppgifter eller i pilotens skyddade driftvägar.
@@ -47,4 +54,4 @@ Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noE
 
 Skriv på svenska med tydliga verksamhetsord. Beskriv vad användaren kan göra, vad som faktiskt är verifierat och vad som återstår. Förslag, implementation, test mot syntetiska data och godkänd verklig anslutning är olika status.
 
-*Skapad vid GSD-initiering 2026-09-10; senast uppdaterad med löpande GitHub-push 2026-09-28.*
+*Skapad vid GSD-initiering 2026-09-10; senast uppdaterad med genomgående SS 12000-regel 2026-10-15.*
