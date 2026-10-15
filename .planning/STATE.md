@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: CLASS-COHORT-10
-status: ready_to_plan
-stopped_at: CLASS-COHORT-10 funktionellt användargodkänd med UI-anmärkning;11/11 paketplaner klara.
+current_plan: NAMED-TIMPLANS-UX-01
+status: executing
+stopped_at: NAMED-TIMPLANS-UX genomförs efter godkänd designriktning; klasslista, additiv seriegrund och namnkontrakt pågår.
 last_updated: "2026-10-15"
 last_activity: 2026-10-15
-last_activity_desc: "CLASS-COHORT-UX-01 utökat med namngivna parallella timplaner för samma programplan/skola, exempelvis mer matematik för A-klassen. Designunderlag uppdaterat; modellplan och implementation återstår."
+last_activity_desc: "Användaren har godkänt mockupriktningen. NAMED-TIMPLANS-UX planeras och genomförs; befintlig lokal leverans och användardata bevaras."
 state_head: b939383
 verification_worker_build_revision: 88145bcec46317929dcd9383d3fe8c80195e6415
 verification_worker_status: class_cohort_actual_sql_api_browser_local_delivery_pass
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Godkänd design och påbörjat genomförande 2026-10-15:** Användarens ”kör på” efter mockupgenomgången gäller gemensamt skol-/läsårsval, årskursöverblick, klassflödet i v2 och tidigare beställda namngivna parallella timplaner. [Beslutad riktning och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-CONTEXT.md) skiljer designval från mockupens icke beslutade lås-/sparregler. Plan01 klasslista, plan02 additiv seriegrund och den oberoende domändelen av06 genomförs. Ingen ny lokal leverans eller permanent migration är gjord. CLASS-COHORT-UX-01 förblir öppet; tidigare genomförda paketplansantal och hela fasens status består.
 
 **Namngivna timplaner 2026-10-15:** Användaren preciserar att klasser med samma programplan kan behöva olika timfördelning, exempelvis mer matematik i A-klassen än i B-klassen, och att planerna måste kunna benämnas tydligt. Behovet är infört i [gap och modellavgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-UX-GAP.md) samt Claude Design-prompten. Separata planer ska skiljas från versioner; dagens versionskedja per utbildning/skola räcker inte. Detta är beställt behov, inte implementerat stöd. Modell-/API-plan, migrering, SS 12000-avstämning och verifiering återstår.
 
