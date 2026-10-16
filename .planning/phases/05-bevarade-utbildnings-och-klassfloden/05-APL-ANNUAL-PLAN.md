@@ -1,18 +1,20 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: APL-ANNUAL
-status: proposed
+status: delivered_awaiting_user
 scope: school-term-hours-and-annual-apl
-implementation_started: false
+implementation_started: true
 ---
 
 # Skolförlagd tid per termin och APL per årskurs
 
 ## Beställning och avgränsning
 
-Användarens senaste referens och kolumnrubriker anger **Skola HT, Skola VT och separat APL per årskurs**. Det är en ändrad verksamhetsmodell jämfört med nuvarande totaltimmar inklusive APL. Användaren vill kunna planera timmar per ämne och årskurs först och förlägga perioder senare. Den riktningen är beställd. Lagringsformat, övergångsmetod och leveranssteg nedan är tekniska rekommendationer, inte redan installerad eller verifierad funktion.
+2026-10-16: Användaren beställer genomförande nu och preciserar att högskoleförberedande program inte ska ha APL. Dessa visar enbart skoltimmar; nya APL-skrivningar nekas även på servern. Historiska underlag och kvitton får inte raderas eller omtolkas. Negativa UI/API/SQL-prov ska omfatta denna avgränsning.
 
-GUIDE-DATES är ett separat levererat paket med produktcommit `c02e600`; dess handledning beskriver nuvarande app. Samlad verifiering och lokal leverans finns i `05-APL-GUIDE-DATES-VERIFICATION.md`. Årsmodellen får inte smygas in i det paketet. Den nya modellen ändrar inte klasskopplingar, mandat eller programplanens ämnespoäng. Referensbildens eventuella APL-poäng införs inte. Faktisk närvaro, arbetsplatsplaceringar och elevuppföljning är fortsatt senare etapper.
+Användarens senaste referens och kolumnrubriker anger **Skola HT, Skola VT och separat APL per årskurs**. Det är en ändrad verksamhetsmodell jämfört med nuvarande totaltimmar inklusive APL. Användaren vill kunna planera timmar per ämne och årskurs först och förlägga perioder senare. Den riktningen är beställd. Lagringsformat, övergångsmetod och leveranssteg nedan beskriver den ursprungliga genomförandeplanen. De är nu implementerade och lokalt verifierade enligt slutredovisningen.
+
+GUIDE-DATES är ett tidigare separat levererat paket med produktcommit `c02e600`; årsmodellen har därefter uppdaterat berörda handbokssidor. Samlad verifiering och lokal leverans finns i `05-APL-GUIDE-DATES-VERIFICATION.md`. Årsmodellen får inte smygas in i det paketet. Den nya modellen ändrar inte klasskopplingar, mandat eller programplanens ämnespoäng. Referensbildens eventuella APL-poäng införs inte. Faktisk närvaro, arbetsplatsplaceringar och elevuppföljning är fortsatt senare etapper.
 
 Mål: rektor kan ange exempelvis **Skola HT 80 h, Skola VT 70 h, APL åk 1 115 h**, spara utan perioder och se **265 h totalt, varav APL 43,4 %**. När 60 APL-timmar förläggs i perioder är totalen fortfarande 265 h: 60 h är förlagda och 55 h återstår att förlägga. Detta är ett räkneexempel, ingen timregel för ett visst ämne.
 
@@ -119,6 +121,6 @@ Utgångspunkt är projektets dokumenterade avstämning mot SS 12000:2024 utgåva
 
 ## Villkor före leverans
 
-Modellbeslutet är klart nog för genomförande, men implementation och verifiering återstår. Blockera inte vanlig utveckling på ett nytt godkännande av användarens redan valda kolumner. Om permanent databasinstallation behöver ett nytt uttryckligt beslut ska användaren få det konkreta testade migrationspaketet och bevarandebevisen först, inte en abstrakt fråga nu.
+Genomförande, automatisk verifiering och lokal leverans är klara 2026-10-17; se [slutredovisningen](05-APL-ANNUAL-04-SUMMARY.md). Användarens begriplighetsbedömning återstår. Blockera inte vanlig utveckling på ett nytt godkännande av användarens redan valda kolumner. Om permanent databasinstallation behöver ett nytt uttryckligt beslut ska användaren få det konkreta testade migrationspaketet och bevarandebevisen först, inte en abstrakt fråga nu.
 
 Nuvarande code-only GUIDE-DATES-verktyg kan inte användas som migrationsbevis: det kräver oförändrad schemafingerprint. Ny installation kräver egen prövad före/efter-kedja. Återställning till gammal app är bara säker före nya V2-skrivningar; efter sådana skrivningar får man inte återställa till en klient som saknar V2-lässtöd. Ha en kompatibel återställningskandidat eller stoppa med tydlig återhämtningsstatus. Ingen aktiv dist byggs om, ingen databas återställs och inga gamla verksamhetsrader tas bort.

@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: APL-ANNUAL-03
 type: execute
-status: proposed
+status: completed
 wave: 3
 depends_on: [APL-ANNUAL-02]
 autonomous: true

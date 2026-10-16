@@ -44,3 +44,7 @@ Privata provloggar: `/private/tmp/annual-consumers-regression-02.log`, `/private
 ## Återstående inför leverans
 
 Samordnad SQL/TS-paritet, full aktuellt produktbygge, faktisk Worker/OIDC och dator-/telefonflöde, granskade skärmbilder samt installerings-/leveransbevis krävs innan detta får anges som levererat. Lägg till SQL-agentens faktiska resultat och slutlig paketverifiering här eller i separat ANNUAL-04-verifiering.
+
+## Slutlig paketstatus 2026-10-17
+
+Faktisk SQL48, Worker/OIDC14 på dator och telefon samt lokal installation och exakt kandidatöverföring har nu passerat. Se [ANNUAL-04](05-APL-ANNUAL-04-SUMMARY.md) och [samlad verifiering](05-APL-ANNUAL-VERIFICATION.md). Tidigare återstående steg ovan beskriver delplanens ursprungliga avgränsning; mänsklig begriplighet väntar fortsatt.

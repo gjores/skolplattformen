@@ -67,7 +67,7 @@ export function requirePreviousRuntimeProof(previous,artifact,runtime,{cleanupPr
   assert.deepEqual(business,previous.beforeBusiness);assert.deepEqual(configuration,previous.beforeConfiguration);
   previous={kind:previous.kind,mode:previous.mode,status:'PASS',applied:true,afterArtifact:previous.beforeArtifact,afterRuntime:previous.restoredRuntime};
  }
- assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
+ assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery','apl-annual-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
  for(const part of ['listener','preview','manager']){const old=previous.afterRuntime[part],current=runtime[part];for(const key of ['pid','started','args'])assert.equal(current[key],old[key],'Active process differs from previous delivery');if(part!=='manager')assert.equal(current.ppid,old.ppid);else assert.ok(current.ppid===old.ppid||current.ppid===1,'Manager parent changed unexpectedly');}
 }
 async function health(){
@@ -398,7 +398,8 @@ async function readAplAfterDelivery({db,target,baseURL,scope,evidenceDir}){
     const aplResponse=await context.request.post('/api/timplaner/gym/apl/lasa',{headers,data:{planId}});assert.equal(aplResponse.status(),200);
     const {parseAplReadReply}=await import(path.join(root,'web/lib/apl-plan.ts'));
     const apl=parseAplReadReply(await aplResponse.json(),{planId});assert.equal(apl.revision,gym.revision);assert.equal(apl.organizerId,view.context.organizerId);
-    assert.equal(apl.capabilities.canSave,gym.canPlan);assert.equal(apl.capabilities.canConfirm,gym.canPlan);
+    const {gymTimplanAllowsApl}=await import(path.join(root,'web/lib/gym-timplan.ts'));const allowsApl=gymTimplanAllowsApl(gym);
+    assert.equal(apl.capabilities.canSave,allowsApl&&gym.canPlan);assert.equal(apl.capabilities.canConfirm,allowsApl&&gym.canPlan);
     const decisionResponse=await context.request.post('/api/planbeslut/underlag',{headers,data:{kind:'timplan',planId}});assert.equal(decisionResponse.status(),200);
     const {parsePlanDecisionDetail}=await import(path.join(root,'web/lib/plan-decision.ts'));
     const decision=parsePlanDecisionDetail(await decisionResponse.json(),{kind:'timplan',planId});assert.equal(decision.contractVersion,'apl_decision_v1');assert.equal(decision.revision,gym.revision);

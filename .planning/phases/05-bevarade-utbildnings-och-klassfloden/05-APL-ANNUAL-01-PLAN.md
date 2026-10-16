@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: APL-ANNUAL-01
 type: tdd
-status: proposed
+status: completed
 wave: 1
 depends_on: []
 autonomous: true

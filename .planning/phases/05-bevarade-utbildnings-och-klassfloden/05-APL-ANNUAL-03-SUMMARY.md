@@ -26,3 +26,7 @@ Privata bevis: `/private/tmp/annual-time-ui-final4.log`, `/private/tmp/annual-ti
 ## Begränsning och nästa steg
 
 Detta är komponent-/domänprov med syntetisk transport, inte faktisk OIDC/Worker eller lokal leverans. ANNUAL-04 prövar och installerar exakt byggd kandidat. Mänsklig begriplighet, faktisk APL-närvaro och extern SS12000-anslutning är separata och inte godkända genom dessa prov. Handboken beskriver timmar först, perioder senare och fortsatt granskning inför beslut.
+
+## Slutlig paketstatus 2026-10-17
+
+Faktisk SQL48, Worker/OIDC14 på dator och telefon samt lokal installation och exakt kandidatöverföring har nu passerat. Se [ANNUAL-04](05-APL-ANNUAL-04-SUMMARY.md) och [samlad verifiering](05-APL-ANNUAL-VERIFICATION.md). Tidigare återstående steg ovan beskriver delplanens ursprungliga avgränsning; mänsklig begriplighet väntar fortsatt.
