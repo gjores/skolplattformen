@@ -13,7 +13,7 @@ SQL och TypeScript använder heltalsminuter, skilda null/noll och fryst ämnesak
 
 ## Verifiering
 
-Slutligt isolerat PostgreSQL-prov: **44/44 PASS**, tre observerade samtidighetsfall, 75 oförändrade källhashar och full cleanup. Privat rapport `/private/tmp/timplan-time-v2-sql-14.json`. Endast schema kopierades, därefter egna syntetiska fixturer. Ingen aktiv installation ingår i detta resultat.
+Slutligt isolerat PostgreSQL-prov: **48/48 PASS**, tre observerade samtidighetsfall, 75 oförändrade källhashar och full cleanup. Privat rapport `/private/tmp/timplan-time-v2-sql-15.json`. Endast schema kopierades, därefter egna syntetiska fixturer. Ingen aktiv installation ingår i detta resultat.
 
 - Installation och rollback bevarar 74 tidigare tabeller, gamla kvitton och rättigheter; inga gamla planer fylls på automatiskt.
 - 80 timmar minus 30 minuters registrerad APL blir 79:30 skoltid och 0:30 års-APL. Äldre kvitto återspelas exakt efter övergången.
@@ -24,7 +24,7 @@ Slutligt isolerat PostgreSQL-prov: **44/44 PASS**, tre observerade samtidighetsf
 - SQL/TypeScript-paritet, kopieringsbortfall med granskning och minutbaserade årsöversikter passerar.
 - Samtidig övergång samt båda riktningarna årsrad mot periodskrivning visar verklig låsväntan: en commit, en nekad gammal revision.
 
-Tidigare utvecklingsfel och deras cleanup bevaras i privata rapporter 01–13; de anges inte som slutligt godkända prov. Samordnad Node-kontroll ger 161/161 PASS. Faktisk HTTP/OIDC/browser och aktiv installation verifieras separat i ANNUAL-04.
+Tidigare utvecklingsfel och deras cleanup bevaras i privata rapporter 01–14. SQL14 prövade inte uppskjutna kontroller vid commit och är därför begränsat bevis. Faktiskt HTTP-prov01 avslöjade att den äldre matriskontrollen nekade nya V2-planer vid commit. Rättningen väljer rätt matris efter tidsmodell och kopplar uppskjutna kontroller även till de två nya tabellerna. SQL15 verkställer samtliga uppskjutna kontroller, genomför en faktisk Worker-rolls commit och återläsning samt nekar saknad rad och fel radnyckel. Dessa nya kontroller passerar. Samordnad Node-kontroll ger 161/161 PASS. Faktisk HTTP/OIDC/browser och aktiv installation verifieras separat i ANNUAL-04.
 
 ## SS 12000
 

@@ -1078,3 +1078,30 @@ begin
   raise exception 'Planning source conflict' using errcode='40001';end if;
  return result;
 end $$;
+
+
+-- Deferred completeness must validate the stored model at COMMIT, including new
+-- empty V2 plans whose rows intentionally do not exist in the legacy matrix.
+create or replace function public.phase5_gym_timplan_matrix_guard() returns trigger
+language plpgsql security definer set search_path=pg_catalog,public as $$
+declare p public.timplans;pid uuid;
+begin
+ if tg_table_name='timplans' then pid:=coalesce(new.id,old.id);
+ elsif tg_table_name in ('timplan_time_models','timplan_time_cells_v2') then pid:=coalesce(new.plan_id,old.plan_id);
+ else pid:=coalesce(new.timplan_id,old.timplan_id);end if;
+ select * into p from public.timplans where id=pid;
+ if p.id is null or p.gym_basis is null then return null;end if;
+ if exists(select 1 from public.timplan_time_models m where m.plan_id=p.id) then
+  if (select count(*) from public.timplan_time_cells_v2 c where c.plan_id=p.id)<>jsonb_array_length(p.gym_basis->'rows')
+   or exists(select 1 from jsonb_array_elements(p.gym_basis->'rows') r where not exists(select 1 from public.timplan_time_cells_v2 c where c.plan_id=p.id and c.row_key=r->>'key')) then
+   raise exception 'Invalid gym timplan minute matrix' using errcode='22023';end if;
+ elsif (select count(*) from public.timplan_cells c where c.timplan_id=p.id)<>jsonb_array_length(p.gym_basis->'rows')
+  or exists(select 1 from jsonb_array_elements(p.gym_basis->'rows') r where not exists(select 1 from public.timplan_cells c where c.timplan_id=p.id and c.row_id=r->>'key')) then
+  raise exception 'Invalid gym timplan matrix' using errcode='22023';
+ end if;
+ return null;
+end $$;
+create constraint trigger timplan_time_models_gym_matrix after insert or update or delete on public.timplan_time_models
+ deferrable initially deferred for each row execute function public.phase5_gym_timplan_matrix_guard();
+create constraint trigger timplan_time_cells_v2_gym_matrix after insert or update or delete on public.timplan_time_cells_v2
+ deferrable initially deferred for each row execute function public.phase5_gym_timplan_matrix_guard();

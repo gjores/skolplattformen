@@ -187,7 +187,19 @@ export async function verifyTimplanTime(out){
  assert.equal(await schemaFingerprint(db),report.baseline.fingerprint);assert.deepEqual(await allPublicHashes(db),report.baseline.rows);report.migrationRollbackRestored=true;record(report,'both migrations roll back exact schema/ACL and every original row');
  await db.begin(async tx=>{for(const p of timeMigrations)await tx.unsafe(readFileSync(resolve(root,p),'utf8'));});
  report.installed={fingerprint:await schemaFingerprint(db),structure:await schemaFingerprint(db,true),rows:await allPublicHashes(db)};for(const k in report.baseline.rows)assert.deepEqual(report.installed.rows[k],report.baseline.rows[k]);report.originalRowsPreserved=true;record(report,'additive install preserves all original tables and receipt rows without backfill');save();
- const before=await allPublicHashes(db);try{await db.begin(async tx=>{await matrix(tx,report,f,other);throw rollback;});}catch(e){if(e!==rollback)throw e;}assert.deepEqual(await allPublicHashes(db),before);report.rollbackRestored=true;
+ const before=await allPublicHashes(db);try{await db.begin(async tx=>{await matrix(tx,report,f,other);await tx`set constraints all immediate`;record(report,'all deferred matrix constraints pass before rollback');throw rollback;});}catch(e){if(e!==rollback)throw e;}assert.deepEqual(await allPublicHashes(db),before);report.rollbackRestored=true;
+ const committed=await db.begin(async tx=>{await aplActor(tx,f,'principal');const p=await raw(tx,f.planId);await tx`set local role skolplattform_worker`;return (await tx`select public.phase5_named_timplan_create(${tx.json({commandId:randomUUID(),sourcePlanId:p.source.planId,expectedSourceRevision:p.source.revision,expectedEducationRevision:p.source.educationRevision,unitId:p.unitId,name:'Syntetisk verifierad commit',copyFromPlanId:null,expectedCopyFromRevision:null})}) value`)[0].value;});
+ const committedRead=await db.begin(async tx=>{await aplActor(tx,f,'principal');return raw(tx,committed.reply.id);});assert.deepEqual(committedRead.timeRows,committed.plan.timeRows);assert.equal(committedRead.timeModel,'school_terms_annual_apl_v2');record(report,'actual Worker-role new V2 creation commits all deferred constraints and reads back exact minute matrix');
+ await db.begin(async tx=>{const key=Object.keys(committed.plan.timeRows)[0];
+  // Owner-only fault injection bypasses the immediate row guard to exercise the
+  // independent deferred completeness invariant, including equal row counts.
+  for(const mismatch of ['missing row','wrong key'])await aplDeny(tx,report.checks,'deferred V2 matrix rejects '+mismatch,async t=>{
+   await t`alter table public.timplan_time_cells_v2 disable trigger timplan_time_cells_v2_guard`;
+   if(mismatch==='missing row')await t`delete from public.timplan_time_cells_v2 where plan_id=${committed.reply.id} and row_key=${key}`;
+   else await t`update public.timplan_time_cells_v2 set row_key='synthetic:unknown' where plan_id=${committed.reply.id} and row_key=${key}`;
+   await t`set constraints all immediate`;
+  },['22023']);
+ });
  const b=await db.begin(async tx=>{await aplActor(tx,f,'principal');return basis(tx,f.planId);});const q=transition(b),rival={...q,commandId:randomUUID()};
  const race=await aplRace(snapshot,report,f,'simultaneous annual-model transitions','principal',t=>command(t,q),'admin',t=>command(t,rival));assert.equal(race.right.ok,false);assert.equal(race.right.error.code,'40001');report.concurrencyComplete=true;record(report,'observed concurrent transition: one commit, one stale rejection');
  const raceBudget=await db.begin(async tx=>{await aplActor(tx,f,'principal');const p=await raw(tx,f.planId),key=Object.keys(p.timeRows).find(k=>p.timeRows[k].schoolMinutes[0]!==null),row=structuredClone(p.timeRows[key]);row.annualAplMinutes[0]=3600;return{key,row,saved:await command(tx,request(p,'save_row',{rowKey:key,row}))};});

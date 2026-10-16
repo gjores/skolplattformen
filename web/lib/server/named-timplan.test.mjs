@@ -63,6 +63,27 @@ test('new plan and rename use exact reviewed JSON within school planning roles',
     assert.equal(response.headers.get('cache-control'),'no-store');
   }
 });
+test('new vocational annual plan projects empty minute cells and rejects an incomplete returned matrix',async()=>{
+  const vocational=artifact.programs.find(p=>p.code==='BF25'),orientation=vocational.orientations[0].code;
+  const choiceBlocks=defaultProgramplanChoiceBlocks(vocational,orientation);
+  choiceBlocks.push({id:'fordj',name:'Programfördjupning',kind:'specialization',points:programFrame(vocational,orientation).specializationRoom});
+  const reference={catalogId:artifact.catalogId,programRef:{code:vocational.code,version:vocational.version},orientationCode:orientation,
+    startedOn:'2027-08-01',specializationRefs:[],choiceBlocks};
+  const rows=programplanTermRows(vocational,reference),terms=suggestProgramplanTerms(rows,[],programplanLevelRanks(vocational));
+  for(const incomplete of [false,true]){
+    reset();const plan=state.created.plan;
+    const source={...rawSource(),basisReference:reference,distribution:terms,rows:rows.map(row=>({key:row.key,points:row.points})),
+      education:{name:'Syntetisk BF',cohort:'27/28',programCode:vocational.code,orientationCode:orientation}};
+    plan.source=source;plan.currentSourceBasis=structuredClone(source);delete plan.hours;
+    plan.timeModel='school_terms_annual_apl_v2';plan.timeCopyReview=[];
+    plan.timeRows=Object.fromEntries(rows.map(row=>[row.key,{schoolMinutes:[null,null,null,null,null,null],annualAplMinutes:[null,null,null]}]));
+    state.created.reply.resetRows=rows.length;
+    if(incomplete)delete plan.timeRows[rows[0].key];
+    const response=await create(request('skapa',command()));assert.equal(response.status,incomplete?500:200);
+    if(incomplete){assert.equal(state.mutations.length,0);assert.equal(state.events.some(e=>e.outcome==='ok'),false);}
+    else{assert.deepEqual(await response.json(),state.created.reply);assert.equal(state.mutations.length,1);assert.equal(state.events[0].action,'named_timplan_created');}
+  }
+});
 test('create replay returns frozen receipt after later edits and rename',async()=>{
   reset();state.created.reply.replayed=true;state.created.plan.revision=5;
   state.created.plan.series={id:unit,name:'Nytt namn',revision:3};
