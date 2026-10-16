@@ -120,6 +120,22 @@ function request(path, body, options = {}) {
 }
 const noCommit = () => { assert.equal(state.mutations.length, 0); assert.equal(state.events.some(e => e.outcome === 'ok'), false); };
 
+test('yrkeskull 2028 läses med SQLs ej stödda källprofil och förfalskat stöd avvisas', async () => {
+  await reset();
+  const basis = state.read.basis;
+  basis.gymTimplan.source.basisReference.startedOn = '2028-08-15';
+  basis.gymTimplan.currentSourceBasis.basisReference.startedOn = '2028-08-15';
+  const context = await contextFor(basis); context.program.sourceSupported = false;
+  state.read.result = await makeDetail(basis, aplPlan());
+  state.read.result.program.sourceSupported = false;
+  state.read.result.contentHash = await aplContentHash(context, state.read.result.plan);
+  assert.equal((await read(request('lasa', { planId }))).status, 200);
+  assert.equal(projectAplPlan(context, state.read.result.plan).readyForConfirmation, false);
+  context.program.sourceSupported = true; state.read.result.program.sourceSupported = true;
+  state.read.result.contentHash = await aplContentHash(context, state.read.result.plan);
+  assert.equal((await read(request('lasa', { planId }))).status, 500);
+});
+
 test('three planning roles read verified APL without MFA; multi-school context is not reduced to one unit hint', async () => {
   for (const fn of ['huvudman', 'rektor', 'administrator']) {
     await reset(fn); state.mfa = false; state.contextUnit = uid(99);

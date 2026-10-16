@@ -210,9 +210,16 @@ export function splitAplMinutes(minutes: number): { hours: number; minutes: numb
 function supportedProfile(ctx: AplContext, plan: AplPlan | null): boolean {
   const { program, plan: timetable } = ctx, started = timetable.source.startedOn, profile = programplanProfile(program);
   return plan?.educationForm === 'school_based' && program.sourceSupported && profile?.vocational === true
-    && started !== null && started >= '2025-07-01' && started < '2028-07-02' && program.startDate !== null
+    && aplSourceProfileSupported(program, started);
+}
+/** Profile/date part of SQL source_blockers; combine with independently verified source readiness.
+ * The input sourceSupported flag is deliberately not used to establish itself. */
+export function aplSourceProfileSupported(value: AplProgram, startedOn: string | null): boolean {
+  const program = parseAplProgram(value), started = nullableDate(startedOn), profile = programplanProfile(program);
+  return profile !== null && started !== null && started >= '2025-07-01' && program.startDate !== null
     && started >= program.startDate && (program.endDate === null || started <= program.endDate)
-    && (program.canceledDate === null || started < program.canceledDate);
+    && (program.canceledDate === null || started < program.canceledDate)
+    && (!profile.vocational || started < '2028-07-02');
 }
 function allocationIssues(ctx: AplContext, plan: AplPlan): AplIssue[] {
   const issues: AplIssue[] = [], byKey = new Map(ctx.plan.rows.map(row => [row.key, row]));

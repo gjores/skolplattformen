@@ -77,3 +77,11 @@ Verifierade flöden:
 SS 12000:2024 utgåva 4/OpenAPI 2.1.0 beaktas enligt APL-kontraktet: stabila organisations-, skol-, plan- och periodidentiteter samt giltighet/källansvar bevaras i strikt verifierat fryst underlag. APL är fortsatt ett internt planobjekt utan verifierad full extern motsvarighet. API:t skapar ingen Placement, Attendance, klasskoppling, elevförflyttning eller standardexport. Inget externt informationsutbyte verifieras här.
 
 APL-04A äger parallellt versionsmedvetna beslut och klientjournal. APL-05/07 äger UI-flödet. Faktisk HTTP i Worker-runtime, OIDC/MFA och användarbeteende återstår enligt APL-08; verklig PostgreSQL-Workerroll och Node-serverhelpers är verifierade ovan. Full fas- eller kravacceptans följer inte av Node-proven. Samordnaren äger commit, push och samlad planeringsstatus.
+
+## Komplettering från APL-07: källprofil för kullstart 2028
+
+Det faktiska kopieringsprovet visade att SQL korrekt gav `sourceSupported:false` för en yrkeskull från 2028-07-02, medan serverns frysta projektion enbart använde den allmänna källberedskapen. Det gjorde att läsning av ett korrekt markerat underlag avvisades. `aplSourceProfileSupported` härleder nu samma profil- och datumvillkor oberoende av den inkommande stödflaggan, och kombineras med verifierad källberedskap i servern och den isolerade kommandorunnern. Begränsningen för yrkeskullar från detta datum kvarstår; underlaget kan läsas utan att det felaktigt anges som beslutsklart. Ingen migration ändrades.
+
+Nytt serverprov var först RED (500 i stället för 200). Efter rättningen passerar 71/71 riktade modell-, APL-server- och beslutsserverprov, TypeScript och riktad produktlint. Ett korrekt omhashat men falskt påstående om källstöd avvisas fortfarande. Datumgränser, okänd profil, programmens slut-/annulleringsdatum och högskoleförberedande program provas separat. Den uppdaterade faktiska SQL-/serverpariteten redovisas i APL-07; äldre resultat ovan är bevis för respektive dåvarande källversion.
+
+Efter rättningen passerar även hela faktiska åtkomst-/serverprovet igen: `/private/tmp/apl-access-profile-fixed.json`, 28 kontroller, exakt tre Worker-grants och fem observerade projektionsfel efter skrivning med full rollback, `cleanup:complete`. APL-07 samlar de förnyade kopierings- och samtidighetsbevisen.

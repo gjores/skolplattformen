@@ -1,6 +1,6 @@
 import {
   AplContractError, parseAplContext, parseAplFrozenBasis, parseAplReadReply, parseAplCommandReply,
-  parseAplSqlEnvelope, parseAplStatusReply, projectAplPlan, verifyAplReadReply,
+  parseAplSqlEnvelope, parseAplStatusReply, projectAplPlan, verifyAplReadReply, aplSourceProfileSupported,
   type AplCommand, type AplCommandReply, type AplContext, type AplFrozenBasis, type AplProgram,
   type AplReadReply, type AplReadRequest, type AplStatusRequest,
 } from '../apl-plan.ts';
@@ -26,10 +26,12 @@ export async function projectAplFrozenBasis(value: unknown, expectedPlanId: stri
   // projectSource has already verified the entire exact catalogue, including this program.
   const program = (gym.catalog as { programs: AplProgram[] }).programs.find(p => p.code === ref.code && p.version === ref.version);
   if (!program) invalid();
-  const context = parseAplContext({ organizerId: basis.organizerId, plan, copyReview: basis.copyReview, program: {
+  const verifiedProgram: AplProgram = {
     code: program.code, version: program.version, category: program.category, startDate: program.startDate,
     endDate: program.endDate, canceledDate: program.canceledDate, sourceSupported: source.readiness.ready,
-  } });
+  };
+  verifiedProgram.sourceSupported = source.readiness.ready && aplSourceProfileSupported(verifiedProgram, plan.source.startedOn);
+  const context = parseAplContext({ organizerId: basis.organizerId, plan, copyReview: basis.copyReview, program: verifiedProgram });
   return { basis, context };
 }
 

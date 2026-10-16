@@ -13,7 +13,7 @@ import { approvedClassFixture, sourceHashes as fixtureSources } from './verify-c
 import { gymRowKey } from '../../web/lib/gym-timplan.ts';
 import { parseAplCommand, parseAplReadReply, parseAplCommandReply, parseAplStatusReply, parseAplSqlEnvelope,
  verifyAplReadReply, projectAplPlan, aplHashCanonical, aplPlanCanonicalPayload,
- aplCanonicalSerialize } from '../../web/lib/apl-plan.ts';
+ aplCanonicalSerialize, aplSourceProfileSupported } from '../../web/lib/apl-plan.ts';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 export const aplMigration = 'supabase/migrations/20261016120000_apl_planning.sql';
 const rollback = Error('expected_apl_commands_rollback');
@@ -133,6 +133,7 @@ export async function aplVerifiedEnvelope(raw, operation, request) {
  const context={organizerId:basis.organizerId,plan,copyReview:basis.copyReview,program:{
   code:program.code,version:program.version,category:program.category,startDate:program.startDate,
   endDate:program.endDate,canceledDate:program.canceledDate,sourceSupported:source.readiness.ready}};
+ context.program.sourceSupported=source.readiness.ready&&aplSourceProfileSupported(context.program,plan.source.startedOn);
  const detail=operation==='read'?envelope.result:operation==='command'?envelope.result.detail:envelope.result.result.detail;
  await verifyAplReadReply(detail,context);
  return{envelope,context,detail};

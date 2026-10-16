@@ -38,6 +38,20 @@ const confirmation = hash => ({ id: uid(30), planId: uid(2), unitId: uid(4), act
   actorName: 'Syntetisk rektor', at: '2026-10-16T09:15:00.000Z', revision: 7, contentHash: hash, comment: 'Granskad.' });
 const hasIssue = (result, code) => result.issues.some(issue => issue.code === code);
 
+test('APL-källprofil följer samma exakta datumgränser som besluts-SQL utan att lita på sin egen flagga', () => {
+  const vocational = context().program;
+  for (const [started, expected] of [[null, false], ['2025-06-30', false], ['2025-07-01', true],
+    ['2028-07-01', true], ['2028-07-02', false], ['2029-08-01', false]])
+    assert.equal(call('aplSourceProfileSupported', vocational, started), expected);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, sourceSupported: false }, '2027-08-01'), true);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, code: 'SA25', category: 'PRELIMINARY_PROGRAM_FOR_HIGHER_EDUCATION' }, '2029-08-01'), true);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, code: 'ZZ25' }, '2027-08-01'), false);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, startDate: null }, '2027-08-01'), false);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, endDate: '2027-08-01' }, '2027-08-01'), true);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, endDate: '2027-08-01' }, '2027-08-02'), false);
+  assert.equal(call('aplSourceProfileSupported', { ...vocational, canceledDate: '2027-08-01' }, '2027-08-01'), false);
+});
+
 test('15 granskade hela veckor ger 345 GUT-timmar inom totalen, 14 ger kompletteringsbehov', () => {
   const result = call('projectAplPlan', context(), plan());
   assert.equal(result.ruleProfile, 'gy25_school_vocational_v1');
