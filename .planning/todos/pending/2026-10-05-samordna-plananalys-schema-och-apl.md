@@ -1,5 +1,6 @@
 ---
 created: 2026-10-05
+updated: 2026-10-16
 title: Samordna analysen för programplan, timplan och schema samt utred APL
 area: planering
 status: pending
@@ -18,6 +19,12 @@ files:
 Användaren bekräftade 2026-10-05 att analysen ska vara sammanhållen mellan programplan och timplan och senare visa sambandet med schemat. Användaren vill också se över APL och bad att detta registreras i GSD för fortsatt arbete.
 
 Programplanens innehåll och poäng, timplanens undervisningstid och schemats konkreta tillfällen behöver kunna jämföras utan skilda eller motstridiga besked. APL berör samma kedja samt elevens placering och uppföljning. Den nuvarande läsårsmodellen har APL som orsak till gruppavvikelse; det är inte ett komplett APL-flöde. Produktunderlagets mer omfattande placerings-/handledar-/lärandeflöde är ett förslag, inte genomförd funktion.
+
+## Research genomförd 2026-10-16
+
+Användaren beställer tydligare APL-redovisning och grundlig research om rektors och huvudmannens stöd för planering och genomförande. [Daterad research](../../research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) och [APL-01-gap](../../phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md) samlar primärkällor, färsk skyddad kod, SS 12000:2024/OpenAPI 2.1.0 och föreslagna verifieringsfall. Rekommendationen är tre etapper: APL-plan i timplanen, elevplatser/ansvar, därefter genomförande/kvalitet. Äldre timmar får inte dubbelräknas; delveckor och frånvaro behöver fortsatt beräkningsutredning. Implementation och ny full kravacceptans följer inte av researchen.
+
+Den äldre hänvisningen nedan till oplanerad yrkesprofil beskriver läget 2026-10-05. Senare VOCATIONAL-leverans har verifierat stödda nationella Gy25-profiler och manuellt APL-intygande. Det löser inte detta gap om strukturerad APL-planering och genomförande.
 
 ## Avsikt och kommande arbete
 
@@ -45,4 +52,4 @@ Relaterat: [skapa timplan från programplan](2026-10-03-skapa-timplaner-fran-pro
 - Saknad APL-regelprofil eller ofullständiga placeringar ger en tydlig kontrollpunkt, aldrig ett obestyrkt godkännande. Lärande som saknar uppföljningsunderlag blir inte uppfyllt enbart genom registrerad tid.
 - Ny planversion, ändrad APL-period och återkallat mandat prövas med bevarad historik och explicita konsekvenser. Full handledar-/placeringsverifiering hör till de egna kommande planerna.
 
-Status: användarbeställd riktning och registrerad todo. Utredning, avgränsade genomförandeplaner, implementation och användarverifiering återstår.
+Status: användarbeställd riktning och registrerad todo. APL-research är genomförd 2026-10-16. Avgränsningsbeslut, beräkningsprecisering, genomförandeplaner, implementation och användarverifiering återstår. Den sammanhållna analysens och schemakopplingens bredare omfattning förblir öppen.

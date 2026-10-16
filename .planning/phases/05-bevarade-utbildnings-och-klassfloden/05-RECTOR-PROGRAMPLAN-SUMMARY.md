@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: RECTOR-PROGRAMPLAN
-status: complete_local_verified
+status: complete_local_verified_user_reported_accepted
 date: 2026-10-16
 product_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 ---
@@ -11,6 +11,10 @@ product_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 Användarens beställning är implementerad och levererad till den lokala skyddade appen på 3012. Rektor kan skapa utbildning med första programplansutkast och kopiera till nästa elevkull på vald egen skola. Det fungerar även när källan delas med andra skolor och har en annan ursprungsskola. Rektors kopia tillhör endast målskolan. Huvudmannen behåller sitt befintliga skolval vid kopiering och ensam rätt att godkänna/fastställa. Original, elever, klasser och timplanskopplingar bevaras.
 
 Alla tre delsteg i [planen](05-RECTOR-PROGRAMPLAN-PLAN.md) är genomförda. Användarens ”kör på!” bekräftar genomförandet; det är inte ett nytt användarprov eller full fasacceptans.
+
+## Användarresultat 2026-10-16
+
+Användaren svarar ”Funkar!” efter lokal leverans och övergår till att beställa APL-research. Detta registreras som användarrapporterat godkännande av det levererade rektorsflödet. Enhet och enskilda skapande-/kopieringssteg särredovisades inte. Det utökar inte tidigare automatiska prov eller innebär full fasacceptans. APL-beställningen följs separat i [APL-01](05-APL-GAP.md).
 
 ## Verifiering
 

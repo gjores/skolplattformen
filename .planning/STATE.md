@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: RECTOR-PROGRAMPLAN
+current_plan: APL-DISCOVERY
 status: executing
-stopped_at: Rektorspaketet levererat och lokalt verifierat; övriga fasgap och full fasbedömning består.
+stopped_at: APL-research klar; tre föreslagna etapper behöver avgränsas och planeras före implementation.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "Rektor skapar och kopierar för egen skola; huvudmannen godkänner. SQL/API/UI och lokal leverans PASS."
-state_head: a34dd19
+last_activity_desc: "APL-regler, aktuell kod, ledningsstöd och SS 12000 utredda. Researchunderlag och öppet APL-gap dokumenterade; rektorsflödet användarrapporterat godkänt."
+state_head: 39e69e8
 verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
 worker_status: rector_programplan_local_delivery_verified
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-research 2026-10-16:** [Research med primärkällor och kodinventering](research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) är genomförd på användarens beställning. [APL-01-gapet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md) föreslår tre etapper: tydlig APL-plan i timplanen, elevplatser/ansvar och genomförande/kvalitet. Berör bevarande av ADMIN-02/04 och PLANERING-01 samt framtida SCHEMA-01/03/07/08. Ingen implementation, ny kravacceptans eller automatisk utökning av pilotens 42 krav. Användarens ”Funkar!” registreras samtidigt som avgränsat godkännande av levererat rektorsflöde; enhet och delsteg särredovisades inte.
 
 **Aktuellt RECTOR-PROGRAMPLAN 2026-10-16:** Användaren beställer att rektor ska kunna skapa programplaner och kopiera till nästa kull för egen skola, med huvudmannens godkännande kvar. [Beslut och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-CONTEXT.md) och [plan](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-PLAN.md). Alla tre delsteg är genomförda: SQL45, faktisk API/browser23 med 12 OIDC/MFA-callbackar, simulerad UI24+62, API19, verktygsprov91, typ/lint/app-/handboksbygge PASS. Migrationen bevarade alla originalrader i 65 tabeller och rättigheter. Samma a34dd19/204-filsbygge kör på 3012; läsande rektorsprov och 62 verksamhetstabellers bevarande PASS. [Slutredovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-SUMMARY.md). Full fasacceptans följer inte av detta paket. Namngivna timplaners tidigare användargodkännande består.
 
