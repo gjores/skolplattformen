@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-01
-status: planned
-stopped_at: APL etapp 1 planerad och plancheck PASS; nästa steg är APL-01. Ingen implementation påbörjad.
+current_plan: APL-02
+status: in_progress
+stopped_at: APL-01 modell och kontrakt verifierade; APL-02 stängd SQL och isolerade kommandoprov pågår.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "APL etapp 1: elva planer i åtta vågor, oberoende plancheck PASS. Användarens riktning dokumenterad; app/databas oförändrade."
-state_head: af70fb1
+last_activity_desc: "APL-01 klar med 62 modell-/regressionsprov, typ/lint. APL-02 pågår; ingen ny lokal leverans."
+state_head: 53c0cb6
 verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
 worker_status: rector_programplan_local_delivery_verified
@@ -25,6 +25,10 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL våg 1 verifierad 2026-10-16:** [APL-01](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-01-SUMMARY.md) har strikt modell, minutberäkning, innehållshash och frysta kvittokontrakt. RED 0/26, GREEN 62/62 inklusive 30 APL-fall, typkontroll och riktad lint PASS. Oberoende granskningens veckokapacitet, innehållskoppling och kvittofynd är rättade. 1 av 11 paketplaner klar; APL-02:s stängda SQL och isolerade kommandoprov pågår. SQL-paritet, UI, faktisk Worker och lokal leverans återstår; ursprungliga pilotantal och kravstatus består.
+
+**APL-genomförande beställt 2026-10-16:** Användaren svarade ”top kör på nu” på rekommendationen att genomföra första etappen nu. APL-01 pågår enligt det granskade paketet. Etapp 2–3 ligger kvar som senare arbete; paketet är ett avgränsat tillägg och ändrar inte pilotens ursprungliga acceptanskriterier. Ingen ny lokal leverans eller funktionell acceptans ännu.
 
 **APL-riktning godkänd 2026-10-16:** Användaren svarade ”låter som en bra lösning” på [researchens](research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) tre etapper och rekommenderade start i timplanen. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTEXT.md), [kontrakt](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTRACT.md) och [planpaket](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-IMPLEMENTATION.md) konkretiserar etapp 1: perioder, innehåll, total/varav APL och separata rektors-/huvudmannabeslut. Elva planer i åtta vågor har passerat [oberoende plancheck](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-PLAN-CHECK.md); nästa steg är APL-01. Inga produkt-/databasändringar eller nya verifierade krav följer av planeringen. APL1-01–08 är paketets lokala acceptanskriterier; pilotens 42 krav, fasantal och tidigare bevis består. [APL-gapet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md) är öppet tills implementering och verifiering är gjorda.
 

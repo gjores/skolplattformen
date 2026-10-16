@@ -6,7 +6,7 @@ wave: 1
 depends_on: []
 files_modified: ["web/lib/apl-plan.ts", "web/lib/apl-plan.test.mjs"]
 autonomous: true
-status: planned
+status: complete
 gap: APL-01
 must_haves:
   truths: ["Rektor ser skillnad mellan planerad helvecka, ogranskad omfattning och faktisk genomförandetid.", "APL är ett delmått i befintliga timplanstotaler och räknas aldrig två gånger.", "Okänd utbildningsform eller delveckor ger inget automatiskt uppfyllelsebesked."]

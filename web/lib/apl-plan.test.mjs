@@ -15,7 +15,7 @@ const keyA = 'programmeSpecific:BYGG:1:BYGG1000X';
 const keyB = 'programmeSpecific:HUSB:1:HUSB1000X';
 const row = key => ({ key, name: key === keyA ? 'Bygg' : 'Husbyggnad', levelName: 'Nivå 1', points: 100,
   part: 'programmeSpecific', pointTerms: [50, 50, 0, 0, 0, 0], rowKind: 'fixed' });
-const context = () => ({ organizerId: uid(1), plan: {
+const context = () => ({ organizerId: uid(1), copyReview: [], plan: {
   id: uid(2), offeringId: uid(3), unitId: uid(4), schoolName: 'Syntetisk skola', version: 1, revision: 7,
   status: 'utkast', series: { id: uid(5), name: 'Bygg A – extra matematik', revision: 0 }, nameAtCreation: 'Bygg A',
   source: { planId: uid(6), offeringId: uid(3), version: 2, revision: 3, status: 'faststalld',
@@ -31,7 +31,7 @@ const period = (weeks = 15) => ({ id: uid(10), name: 'APL på hösten', startsOn
   contents: [{ rowKey: keyA, description: 'Arbetsmoment A' }, { rowKey: keyB, description: 'Arbetsmoment B' }],
   allocations: [{ rowKey: keyA, termIndex: 0, gutMinutes: weeks * 23 * 60 }] });
 const plan = () => ({ contractVersion: 'structured_v1', educationForm: 'school_based', classification: 'complete', periods: [period()] });
-const save = () => ({ contractVersion: 'structured_v1', action: 'save', commandId: uid(20), planId: uid(2), expectedRevision: 7, plan: plan() });
+const save = () => ({ contractVersion: 'structured_v1', action: 'save', commandId: uid(20), planId: uid(2), expectedRevision: 7, plan: plan(), copyReviewResolutions: [] });
 const confirm = hash => ({ contractVersion: 'structured_v1', action: 'confirm', commandId: uid(21), planId: uid(2), expectedRevision: 7,
   expectedContentHash: hash, comment: 'Jag har granskat förläggningen.' });
 const confirmation = hash => ({ id: uid(30), planId: uid(2), unitId: uid(4), actorId: uid(31), assignmentId: uid(32),
@@ -177,6 +177,7 @@ test('vårstart återanvänder frysta sex terminer och kräver uttrycklig gransk
   value.periods[0].allocations[0].termIndex = 1;
   const result = call('projectAplPlan', ctx, value);
   assert.equal(result.periods[0].termIndices[0], 1); assert(hasIssue(result, 'spring_start_review'));
+  assert.equal(result.readyForConfirmation, true); assert.equal(result.issues.find(i => i.code === 'spring_start_review').level, 'review');
   value.periods[0].startsOn = '2027-01-01'; assert(hasIssue(call('projectAplPlan', ctx, value), 'period_before_start'));
 });
 
@@ -194,6 +195,53 @@ test('valbart block kan spara innehåll men räknas inte som verifierad ämnesni
   const value = plan(); value.periods[0].contents.push({ rowKey: block.key, description: 'Ämnesval saknas.' });
   assert.doesNotThrow(() => call('validateAplAllocationWrite', ctx, value));
   assert(hasIssue(call('projectAplPlan', ctx, value), 'unresolved_content'));
+  const old = { ...row(keyB), key: 'meta:individualChoice', rowKind: 'fixed', part: 'individualChoice' };
+  ctx.plan.rows.push(old); ctx.plan.hours[old.key] = [100, 100, null, null, null, null];
+  value.periods[0].contents = [{ rowKey: old.key, description: 'Äldre ospecificerat individuellt val.' }]; value.periods[0].allocations = [];
+  assert(hasIssue(call('projectAplPlan', ctx, value), 'unresolved_content'));
+});
+
+test('separata korta perioder får inte dubbelräkna samma kalendervecka, inte heller dolda delmängder', () => {
+  const value = plan(); value.periods = Array.from({ length: 15 }, (_, i) => {
+    const day = `2026-08-${String(i + 3).padStart(2, '0')}`;
+    return { ...period(1), id: uid(100 + i), startsOn: day, endsOn: day };
+  });
+  let result = call('projectAplPlan', context(), value);
+  assert.equal(result.readyForConfirmation, false); assert.equal(result.reviewedWholeWeeks, null);
+  assert(hasIssue(result, 'whole_week_capacity_conflict'));
+  value.periods = [{ ...period(1), startsOn: '2026-08-03', endsOn: '2026-08-04' },
+    { ...period(1), id: uid(11), startsOn: '2026-08-05', endsOn: '2026-08-06' },
+    { ...period(13), id: uid(12), startsOn: '2026-08-10', endsOn: '2026-12-31' }];
+  result = call('projectAplPlan', context(), value);
+  assert(hasIssue(result, 'whole_week_capacity_conflict')); assert.equal(result.readyForConfirmation, false);
+  // A shared edge week does not always mean duplicate time: enough distinct weeks still permits manual review.
+  value.periods = [{ ...period(5), startsOn: '2026-08-03', endsOn: '2026-09-08' },
+    { ...period(10), id: uid(11), startsOn: '2026-09-09', endsOn: '2026-11-22' }];
+  result = call('projectAplPlan', context(), value);
+  assert(!hasIssue(result, 'whole_week_capacity_conflict')); assert.equal(result.readyForConfirmation, true);
+});
+
+test('kopieringsbortfall bevaras separat, blockerar tills uttryckligt hanterat och binds i rektorshash', async () => {
+  const ctx = context(), original = plan(), review = { id: uid(60), sourcePlanId: uid(61), sourceVersion: 2,
+    sourcePeriodId: uid(62), sourcePeriodName: 'Tidigare APL', reason: 'missing_row',
+    contents: [{ rowKey: 'specialization:MATE:1:MATE1000X', description: 'Tidigare moment' }],
+    allocations: [{ rowKey: 'specialization:MATE:1:MATE1000X', termIndex: 2, gutMinutes: 690 }], resolution: null };
+  ctx.copyReview = [review]; const before = structuredClone(ctx), hash = await call('aplContentHash', ctx, original);
+  assert.doesNotThrow(() => call('validateAplAllocationWrite', ctx, original));
+  assert(hasIssue(call('projectAplPlan', ctx, original), 'copy_review_pending'));
+  const resolution = { id: review.id, note: 'Momentet ersatt och tiden omfördelad i den nya perioden.' };
+  call('validateAplCopyReviewResolutions', ctx.copyReview, [resolution]);
+  assert.deepEqual(call('aplMutationEffect', original, original, 'save', [resolution]),
+    { changed: true, revisionDelta: 1, auditAction: 'apl_plan_saved' });
+  for (const resolutions of [[{ ...resolution, id: uid(99) }], [resolution, resolution], [{ ...resolution, note: '' }]])
+    invalid(() => call('validateAplCopyReviewResolutions', ctx.copyReview, resolutions));
+  assert.deepEqual(ctx, before);
+  review.resolution = { actorId: uid(31), assignmentId: uid(32), at: '2026-10-16T10:00:00.000Z', note: resolution.note };
+  invalid(() => call('validateAplCopyReviewResolutions', ctx.copyReview, [resolution]));
+  assert.equal(call('projectAplPlan', ctx, original).readyForConfirmation, true);
+  assert.notEqual(await call('aplContentHash', ctx, original), hash);
+  assert.equal(ctx.copyReview[0].allocations[0].gutMinutes, 690);
+  invalid(() => call('parseAplCommand', { ...save(), copyReview: ctx.copyReview }));
 });
 
 test('befintliga gränser för källa, Gy25, programkategori och yrkesprov 2028 består', () => {
@@ -223,7 +271,7 @@ test('hostila getters, symboler, prototyper och glesa listor avvisas utan körni
   invalid(() => call('parseAplPlan', getter));
   const symbol = plan(); symbol[Symbol('private')] = 'secret'; invalid(() => call('parseAplPlan', symbol));
   const proto = Object.assign(Object.create({ role: 'rektor' }), plan()); invalid(() => call('parseAplPlan', proto));
-  const sparse = plan(); delete sparse.periods[0].contents[0]; invalid(() => call('parseAplPlan', sparse));
+  const sparse = plan(); Reflect.deleteProperty(sparse.periods[0].contents, '0'); invalid(() => call('parseAplPlan', sparse));
 });
 
 test('spar- och bekräftelsekommandon accepterar aldrig klientvalt mandat eller eget beslut', () => {
@@ -239,11 +287,13 @@ test('spar- och bekräftelsekommandon accepterar aldrig klientvalt mandat eller 
 test('kanonisering har en explicit portabel UTF-8-vektor för SQL', async () => {
   const values = ['APL-å', 23, null, true, false, ['é', 690]], canonical = 'a6:s6:APL-åi23;ntfa2:s2:éi690;';
   assert.equal(call('aplCanonicalSerialize', values), canonical);
+  assert.equal(await call('aplHashCanonical', values), 'sha256:b54eabd4a0ee5d100187de548a9cde8fa8402391e02ef338914515e14a62230c');
   assert.equal(await call('aplHashCanonical', values), `sha256:${createHash('sha256').update(canonical).digest('hex')}`);
 });
 
 test('rektorshash bevaras vid enbart status, revision och planbenämning men ändras med underlaget', async () => {
   const ctx = context(), value = plan(), before = await call('aplContentHash', ctx, value);
+  assert.equal(before, 'sha256:712b6f8b5c78706128cda90bcb56d3d5c9fa11329d38f5073f3c9d574a371907');
   const renamed = structuredClone(ctx); Object.assign(renamed.plan, { revision: 99, status: 'faststalld', schoolName: 'Nytt visningsnamn' });
   Object.assign(renamed.plan.series, { name: 'Ny benämning', revision: 9 }); renamed.plan.nameAtCreation = 'Annat namn';
   Object.assign(renamed.plan.source, { revision: 99, status: 'ersatt', educationRevision: 8 }); renamed.plan.source.education.name = 'Namn';
@@ -281,17 +331,21 @@ test('historisk rektorshändelse har oförändrad aktör, uppdrag och revision m
 });
 
 test('läsning tar uttryckliga serverkapabiliteter och bevarar legacy utan påhittad form', async () => {
-  const hash = await call('aplContentHash', context(), null), value = { contractVersion: 'structured_v1', planId: uid(2), revision: 7,
-    plan: null, contentHash: hash, confirmations: [], capabilities: { canSave: false, canConfirm: false } };
+  const hash = await call('aplContentHash', context(), null), value = { contractVersion: 'structured_v1', organizerId: uid(1), program: context().program, planId: uid(2), revision: 7,
+    plan: null, copyReview: [], contentHash: hash, confirmations: [], capabilities: { canSave: false, canConfirm: false } };
   assert.deepEqual(call('parseAplReadReply', value, { planId: uid(2) }), value);
   invalid(() => call('parseAplReadReply', { ...value, capabilities: { role: 'rektor' } }, { planId: uid(2) }));
   invalid(() => call('parseAplReadReply', { ...value, planId: uid(3) }, { planId: uid(2) }));
   invalid(() => call('parseAplReadReply', { ...value, confirmations: [confirmation(hash)] }, { planId: uid(2) }));
+  assert.deepEqual(await call('verifyAplReadReply', value, context()), value);
+  await assert.rejects(() => call('verifyAplReadReply', { ...value, contentHash: `sha256:${'f'.repeat(64)}` }, context()), error => error.code === 'invalid_apl_plan');
+  for (const change of [{ organizerId: uid(99) }, { program: { ...value.program, sourceSupported: false } }])
+    await assert.rejects(() => call('verifyAplReadReply', { ...value, ...change }, context()), error => error.code === 'invalid_apl_plan');
 });
 
 test('requestbundna kvitton och status kontrollerar identitet, effekt och frysta svar', async () => {
   const input = save(), hash = await call('aplContentHash', context(), input.plan);
-  const detail = { contractVersion: 'structured_v1', planId: uid(2), revision: 8, plan: input.plan, contentHash: hash,
+  const detail = { contractVersion: 'structured_v1', organizerId: uid(1), program: context().program, planId: uid(2), revision: 8, plan: input.plan, copyReview: [], contentHash: hash,
     confirmations: [], capabilities: { canSave: true, canConfirm: true } };
   const result = { receipt: { contractVersion: 'structured_v1', commandId: uid(20), planId: uid(2), action: 'save', revision: 8,
     changed: true, replayed: false, contentHash: hash, confirmationId: null }, detail };
@@ -299,9 +353,50 @@ test('requestbundna kvitton och status kontrollerar identitet, effekt och frysta
   assert.deepEqual(call('parseAplStatusReply', { state: 'completed', result: { ...result, receipt: { ...result.receipt, replayed: true } } }, { command: input }).state, 'completed');
   assert.deepEqual(call('parseAplStatusReply', { state: 'not_found', result: null }, { command: input }), { state: 'not_found', result: null });
   for (const mutate of [r => r.receipt.commandId = uid(90), r => r.receipt.revision = 9, r => r.detail.revision = 9,
-    r => r.receipt.confirmationId = uid(30), r => r.detail.plan.educationForm = 'unknown', r => r.receipt.role = 'rektor']) {
+    r => r.receipt.confirmationId = uid(30), r => r.detail.plan.educationForm = 'unknown', r => r.receipt.role = 'rektor',
+    r => r.detail.confirmations.push({ ...confirmation(hash), revision: 8 })]) {
     const changed = structuredClone(result); mutate(changed); invalid(() => call('parseAplCommandReply', changed, input));
   }
+  const unchanged = { receipt: { ...result.receipt, revision: 7, changed: false }, detail: { ...detail, revision: 7 } };
+  assert.equal(call('parseAplCommandReply', unchanged, input).receipt.revision, 7);
+  const confirmedInput = confirm(hash), confirmed = { receipt: { ...result.receipt, commandId: uid(21), action: 'confirm', confirmationId: uid(30) },
+    detail: { ...detail, confirmations: [{ ...confirmation(hash), revision: 8, comment: confirmedInput.comment }] } };
+  assert.deepEqual(call('parseAplCommandReply', confirmed, confirmedInput), confirmed);
+  for (const mutate of [r => r.receipt.changed = false, r => r.detail.confirmations[0].comment = 'Annan kommentar',
+    r => r.detail.confirmations[0].contentHash = `sha256:${'f'.repeat(64)}`]) {
+    const changed = structuredClone(confirmed); mutate(changed); invalid(() => call('parseAplCommandReply', changed, confirmedInput));
+  }
+});
+
+test('privat SQL-envelope håller fryst katalog och timmatris separat från klientkontraktet', async () => {
+  const ctx = context(), hash = await call('aplContentHash', ctx, plan()), detail = { contractVersion: 'structured_v1', organizerId: uid(1), program: context().program, planId: uid(2), revision: 7,
+    plan: plan(), copyReview: [], contentHash: hash, confirmations: [], capabilities: { canSave: true, canConfirm: true } };
+  const { rows: _rows, sourceChanged: _changed, ...rawGym } = ctx.plan;
+  const envelope = { contractVersion: 'apl_sql_v1', basis: { organizerId: uid(1), copyReview: [],
+    gymTimplan: { ...rawGym, catalog: { frozen: 'validated by server projection, never by this outer parser' }, currentSourceBasis: null } }, result: detail };
+  const parser = value => call('parseAplReadReply', value, { planId: uid(2) });
+  assert.deepEqual(call('parseAplSqlEnvelope', envelope, parser), envelope);
+  invalid(() => call('parseAplSqlEnvelope', { ...envelope, basis: null }, parser));
+  invalid(() => call('parseAplSqlEnvelope', { ...envelope, contractVersion: 'legacy' }, parser));
+  const missing = { contractVersion: 'apl_sql_v1', basis: null, result: { state: 'not_found', result: null } };
+  assert.deepEqual(call('parseAplSqlEnvelope', missing, value => call('parseAplStatusReply', value, { command: save() })), missing);
+  invalid(() => call('parseAplSqlEnvelope', { ...missing, basis: envelope.basis }, value => call('parseAplStatusReply', value, { command: save() })));
+});
+
+test('korrekt hash räcker inte för att läsa omöjliga aktiva APL-allokeringar', async () => {
+  for (const change of [ctx => { ctx.plan.hours[keyA][0] = 344; }, ctx => { ctx.plan.hours[keyA][0] = null; }]) {
+    const ctx = context(); change(ctx); const value = plan();
+    const detail = { contractVersion: 'structured_v1', organizerId: uid(1), program: context().program, planId: uid(2), revision: 7, plan: value, copyReview: [],
+      contentHash: await call('aplContentHash', ctx, value), confirmations: [], capabilities: { canSave: true, canConfirm: true } };
+    await assert.rejects(() => call('verifyAplReadReply', detail, ctx), error => ['allocation_exceeds_total', 'allocation_without_total'].includes(error.reason));
+    value.periods[0].allocations = []; detail.contentHash = await call('aplContentHash', ctx, value);
+    assert.deepEqual(await call('verifyAplReadReply', detail, ctx), detail);
+  }
+  const value = plan(); value.periods[0].contents.push({ rowKey: 'specialization:MATE:1:MATE1000X', description: 'Finns inte i källan.' });
+  assert.throws(() => call('validateAplAllocationWrite', context(), value), error => error.reason === 'unknown_content');
+  const ctx = context(), detail = { contractVersion: 'structured_v1', organizerId: uid(1), program: context().program, planId: uid(2), revision: 7, plan: value, copyReview: [],
+    contentHash: await call('aplContentHash', ctx, value), confirmations: [], capabilities: { canSave: true, canConfirm: true } };
+  await assert.rejects(() => call('verifyAplReadReply', detail, ctx), error => error.reason === 'unknown_content');
 });
 
 export { context as aplTestContext, plan as aplTestPlan };
