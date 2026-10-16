@@ -8,6 +8,7 @@ import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { gymTimplanCanEdit, gymTimplanTotals, parseGymTimplan, parseGymTimplanHourInput, parseGymTimplanRowReply,
   type GymTimplan, type GymTimplanHours, type GymTimplanRow } from '@/lib/gym-timplan.ts';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedGymTimplanDistribution from './protected-gym-timplan-distribution';
 import { planningYearLabel, type GymYearProjection } from '@/lib/planning-year-model.ts';
 
 type Draft = { values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'unread'; error: string | null; mfa: boolean };
@@ -25,18 +26,22 @@ const matches = (values: string[], saved: GymTimplanHours) => { const parsed = h
 export default function ProtectedGymTimplanHours({ aplInclusive = false, onActivity, disabled = false, yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [onlyMissing, setOnlyMissing] = useState(false);
+  const [distributionOpen, setDistributionOpen] = useState(false), [distributionNotice, setDistributionNotice] = useState<string | null>(null);
+  const distribution = useRef(false);
   const latest = useRef(drafts), saved = useRef(plan), queue = useRef(new Set<string>()), running = useRef(false);
   const disabledRef = useRef(disabled);
   useLayoutEffect(() => { disabledRef.current = disabled; }, [disabled]);
   const active = useRef(true), controller = useRef<AbortController | null>(null);
   useEffect(() => { if (plan.revision >= saved.current.revision) saved.current = plan; }, [plan]);
   useEffect(() => { const pendingRows = queue.current; active.current = true; return () => { active.current = false; controller.current?.abort(); pendingRows.clear(); }; }, []);
-  const blocked = savingKey !== null || [...drafts.values()].some(d => d.mode === 'unread');
-  useUnsavedChanges(unsavedId, drafts.size > 0 || savingKey !== null);
+  const blocked = distributionOpen || savingKey !== null || [...drafts.values()].some(d => d.mode === 'unread');
+  useUnsavedChanges(unsavedId, drafts.size > 0 || savingKey !== null || distributionOpen);
   useUnsavedChanges(`navigation-block:${unsavedId}`, blocked);
   useEffect(() => { onNavigationBlocked(blocked); }, [blocked, onNavigationBlocked]);
-  function reportBlocked() { onNavigationBlocked(running.current || [...latest.current.values()].some(d => d.mode === 'unread')); onActivity?.(running.current || latest.current.size > 0); }
-  const editable = !disabled && gymTimplanCanEdit(plan);
+  function reportBlocked() { onNavigationBlocked(distribution.current || running.current || [...latest.current.values()].some(d => d.mode === 'unread')); onActivity?.(distribution.current || running.current || latest.current.size > 0); }
+  const editable = !distributionOpen && !disabled && gymTimplanCanEdit(plan);
+  function closeDistribution() { distribution.current = false; setDistributionOpen(false); reportBlocked(); }
+  function openDistribution() { if (disabledRef.current || running.current || latest.current.size || !gymTimplanCanEdit(saved.current)) return; distribution.current = true; setDistributionOpen(true); setDistributionNotice(null); reportBlocked(); }
   function update(next: Map<string, Draft>) { latest.current = next; setDrafts(next); reportBlocked(); }
   function replace(key: string, draft: Draft | null) {
     const next = new Map(latest.current); if (draft) next.set(key, draft); else next.delete(key); update(next);
@@ -153,7 +158,9 @@ export default function ProtectedGymTimplanHours({ aplInclusive = false, onActiv
   const issues = [...drafts.values()].some(d => d.error || d.mode !== 'edit' || d.mfa);
   return <>
     <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{totals.terms[y * 2] + totals.terms[y * 2 + 1]} <small>timmar</small></strong><span>HT {totals.terms[y * 2]} · VT {totals.terms[y * 2 + 1]}</span></div>)}</div>
-    <div className="gt-toolbar"><p><strong>{totals.total} timmar</strong> planerade · {totals.missingRows.length ? `${totals.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'} <output className={`gt-save-state${issues ? ' gt-save-warning' : ''}`}>{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p><Button variant="outline" onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
+    <div className="gt-toolbar"><p><strong>{totals.total} timmar</strong> planerade · {totals.missingRows.length ? `${totals.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'} <output className={`gt-save-state${issues ? ' gt-save-warning' : ''}`}>{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p><Button disabled={!editable || drafts.size > 0 || savingKey !== null} onClick={openDistribution}>Autofördela timmar</Button><Button variant="outline" disabled={distributionOpen} onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
+    {distributionNotice && <output className="gt-explanation">{distributionNotice}</output>}
+    {distributionOpen && <ProtectedGymTimplanDistribution plan={plan} onClose={closeDistribution} onSaved={adopt} onComplete={() => { closeDistribution(); setDistributionNotice('Fördelningen är sparad. Granska timmarna per ämne och termin.'); }} onSecurityFailure={onSecurityFailure}/>}
     {yearProjection && <p className="gt-year-context">{yearProjection.relativeYear === null
       ? `Årsdelen för ${planningYearLabel(yearProjection.schoolYear)} är okänd eller ligger utanför kullens tre år.`
       : `Planeringsläsåret ${planningYearLabel(yearProjection.schoolYear)} avser årskurs ${yearProjection.relativeYear}.`}

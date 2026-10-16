@@ -36,6 +36,21 @@ Flera klasser får dela en fastställd timplan. Att skapa eller kopiera en plan 
 
 **Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
 
+### Autofördela timmar för hela timplanen
+
+Välj **Autofördela timmar** när du vill få ett förslag utifrån en totalsumma. Spara först eventuella ändringar i cellerna eller APL-planeringen.
+
+1. Ange **Total undervisningstid (timmar)** för hela utbildningen, alla tre årskurser. Dialogen visar garanterad undervisningstid, **GUT**, för den kända Gy25-profilen. GUT är en miniminivå; du kan planera fler timmar. Om underlaget saknar en känd profil visas ingen antagen GUT.
+2. **Fyll bara tomma celler** behåller befintliga timmar, även uttryckliga nollor, och fördelar återstoden. Välj uttryckligen **Fördela om alla timmar** om även befintliga värden ska ersättas. Om inga celler är tomma kan du behöva välja det alternativet.
+3. Kontrollera förslaget per årskurs och termin. Välj **Granska fördelning** och sedan **Spara fördelning**. Alla ändrade rader sparas tillsammans. Vänta på **Fördelningen är sparad**.
+4. Granska ämnenas behov i tabellen och justera vid behov. Poängen används för att ta fram ett proportionellt startförslag; de bestämmer inte ämnets undervisningsbehov.
+
+Fördelningen gäller hela planen även om tabellen visar en enda årskurs. Totalen omfattar APL; APL-tid läggs inte till igen. Sparade APL-minuter bevaras som en miniminivå för varje berörd ämnes- och terminscell, avrundad uppåt till hela timmar. APL-perioder och innehåll ändras inte. Om undervisningstiden ändras kan rektor behöva bekräfta APL på nytt.
+
+En total under GUT markeras och kan sparas som utkast, men behöver kompletteras inför beslut. Inte heller en total över GUT är ett intyg om genomförd undervisning eller att varje elev fått rätt undervisningstid.
+
+Om någon annan har ändrat planen eller sparsvaret är oklart, välj **Läs aktuell timplan**. Kontrollera den sparade totalsumman och granska ett nytt förslag innan du sparar igen. Ingen sparbegäran skickas om automatiskt. Vid begäran om engångskod verifierar du dig och öppnar sedan dialogen för en ny granskning.
+
 ### Ny version efter fastställande
 
 Välj **Skapa ny version** i en fastställd eller ersatt gymnasietimplan. Finns redan ett pågående utkast eller förslag öppnas det. Annars hämtas aktuellt programunderlag och du får granska vilka rader som behåller sina timmar innan du skapar utkastet. Tidigare versioner och klasskopplingar ligger kvar.

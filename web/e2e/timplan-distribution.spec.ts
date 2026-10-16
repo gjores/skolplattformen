@@ -1,0 +1,43 @@
+// Component previews with mocked API only; actual Worker/OIDC evidence is separate.
+import {test,expect,type Page} from '@playwright/test';
+import {operationPlan,oid} from './fixtures/operational-data';
+import {suggestGymTimplanHours} from '../lib/gym-timplan-distribution';
+const url='/e2e/fixtures/timplan-distribution-preview.html',row=operationPlan.rows[0];
+async function mock(page:Page,mode='saved'){
+ const writes:any[]=[],errors:string[]=[];let fail=true,later=false;
+ let current:any={...operationPlan,status:'utkast',canPlan:true,series:{id:oid(50),name:'SA26A – grundfördelning',revision:0},nameAtCreation:'SA26A – grundfördelning',rows:[{...row,points:2500,pointTerms:[500,500,500,500,250,250]}],hours:{[row.key]:[40,null,null,null,null,null]}};
+ if(mode==='zero')current.hours[row.key][0]=0;
+ if(mode==='filled')current.hours[row.key]=[40,40,40,40,40,40];
+ if(mode==='unknown')current.source={...current.source,education:{...current.source.education,programCode:'UNKNOWN'}};
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/timplaner/gym/**',async route=>{
+  if(route.request().url().endsWith('/lasa')){
+   if(mode==='read-error')return route.fulfill({status:503,json:{code:'unavailable',message:'Kan inte läsa underlaget.'}});
+   if(later){later=false;current={...current,revision:current.revision+1,hours:{[row.key]:[500,400,400,400,250,250]}};}
+   return route.fulfill({json:current});
+  }
+  const body=route.request().postDataJSON();writes.push(body);
+  if(mode==='conflict'&&fail){fail=false;current={...current,revision:8,hours:{[row.key]:[150,null,null,null,null,null]}};return route.fulfill({status:409,json:{code:'revision_conflict',message:'Ändrad'}});}
+  if(mode==='mfa')return route.fulfill({status:403,json:{code:'mfa_required',message:'Verifiera med engångskod.'}});
+  const proposal=suggestGymTimplanHours(current,body.totalHours,body.mode);current={...current,revision:current.revision+proposal.changedRows.length,hours:proposal.hours};
+  if(mode==='lost'&&fail){fail=false;return route.abort();}
+  if(mode==='later')later=true;
+  if(mode==='wrong-reply')return route.fulfill({json:{...current,revision:current.revision+1}});
+  return route.fulfill({json:current});
+ });return{writes,errors,current:()=>current};
+}
+async function open(page:Page){await page.goto(url);await page.getByRole('button',{name:'Autofördela timmar',exact:true}).click();await expect(page.getByLabel('Total undervisningstid (timmar)',{exact:true})).toBeEnabled();}
+async function review(page:Page){await page.getByRole('button',{name:'Granska fördelning',exact:true}).click();await expect(page.getByRole('heading',{name:'Granska före sparande'})).toBeVisible();}
+async function save(page:Page){await page.getByRole('button',{name:'Spara fördelning',exact:true}).click();}
+test('total och GUT granskas för hela planen, bevarar timmar, sparar atomiskt',async({page},info)=>{const m=await mock(page);await open(page);const modal=page.getByRole('dialog');await expect(modal).toContainText('Garanterad undervisningstid');await expect(page.getByLabel('Total undervisningstid (timmar)',{exact:true})).toHaveValue('2180');await expect(modal).toContainText('Årskurs 3');await expect(page.getByRole('button',{name:'Lämna arbetsytan',includeHidden:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Ändra APL',includeHidden:true})).toBeDisabled();await review(page);expect(m.writes).toHaveLength(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);for(const height of await modal.locator('button').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().height)))expect(height).toBeGreaterThanOrEqual(44);await page.screenshot({path:info.outputPath('distribution-review.png'),fullPage:true});await save(page);await expect(modal).toHaveCount(0);await expect(page.getByRole('status').filter({hasText:'Fördelningen är sparad'})).toBeVisible();expect(m.writes).toEqual([{planId:operationPlan.id,expectedRevision:4,totalHours:2180,mode:'fill-empty'}]);expect(m.current().hours[row.key][0]).toBe(40);expect(m.current().hours[row.key].reduce((a:number,b:number)=>a+b,0)).toBe(2180);expect(m.errors).toEqual([]);});
+test('uttrycklig omfördelning och varning under GUT',async({page})=>{const m=await mock(page,'filled');await open(page);await page.getByLabel('Fördela om alla timmar',{exact:false}).check();await page.getByLabel('Total undervisningstid (timmar)',{exact:true}).fill('1200');await expect(page.getByRole('dialog')).toContainText('980 timmar saknas till GUT');await review(page);await save(page);await expect(page.getByRole('dialog')).toHaveCount(0);expect(m.current().hours[row.key]).toEqual([240,240,240,240,120,120]);expect(m.writes[0].mode).toBe('replace');});
+for(const mode of ['conflict','lost'])test(`oklart svar eller konflikt kräver återläsning och ny granskning: ${mode}`,async({page})=>{const m=await mock(page,mode);await open(page);await review(page);await save(page);await expect(page.getByRole('button',{name:'Läs aktuell timplan',exact:true})).toBeEnabled();await expect(page.getByRole('button',{name:'Avbryt',exact:true})).toBeDisabled();expect(m.writes).toHaveLength(1);await page.getByRole('button',{name:'Läs aktuell timplan',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('Aktuell timplan är hämtad');expect(m.writes).toHaveLength(1);if(mode==='conflict'){await review(page);await save(page);await expect(page.getByRole('dialog')).toHaveCount(0);expect(m.writes[1].expectedRevision).toBe(8);expect(m.current().hours[row.key][0]).toBe(150);}else{await expect(page.getByRole('button',{name:'Granska fördelning'})).toBeDisabled();await page.getByRole('button',{name:'Avbryt',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);}});
+test('MFA återför aldrig automatiskt en skrivning',async({page})=>{const m=await mock(page,'mfa');await open(page);await review(page);await save(page);await expect(page.getByRole('button',{name:'Verifiera med engångskod'})).toBeVisible();await expect(page.getByRole('button',{name:'Granska fördelning'})).toBeDisabled();expect(m.writes).toHaveLength(1);});
+test('avbryt återställer tillgänglighet och skriver inget',async({page})=>{const m=await mock(page);await open(page);await page.getByLabel('Total undervisningstid (timmar)',{exact:true}).fill('2400');await page.getByRole('button',{name:'Avbryt',exact:true}).click();await expect(page.getByRole('button',{name:'Autofördela timmar'})).toBeFocused();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();expect(m.writes).toHaveLength(0);});
+
+test('initialt läsfel kan stängas utan skrivning',async({page})=>{const m=await mock(page,'read-error');await page.goto(url);await page.getByRole('button',{name:'Autofördela timmar'}).click();await expect(page.getByRole('alert')).toBeVisible();await page.getByRole('button',{name:'Avbryt',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);expect(m.writes).toHaveLength(0);});
+test('okänd profil visar ingen gissad GUT',async({page})=>{const m=await mock(page,'unknown');await open(page);await expect(page.getByRole('dialog')).toContainText('GUT kan inte fastställas automatiskt');await expect(page.getByLabel('Total undervisningstid (timmar)',{exact:true})).toHaveValue('40');expect(m.writes).toHaveLength(0);});
+test('uttrycklig nolla bevaras vid fyll tomma celler',async({page})=>{const m=await mock(page,'zero');await open(page);await review(page);await save(page);await expect(page.getByRole('dialog')).toHaveCount(0);expect(m.current().hours[row.key][0]).toBe(0);});
+test('felaktigt sparbesked återanvänds inte',async({page})=>{const m=await mock(page,'wrong-reply');await open(page);await review(page);await save(page);await expect(page.getByRole('button',{name:'Läs aktuell timplan'})).toBeEnabled();expect(m.writes).toHaveLength(1);await expect(page.getByRole('status').filter({hasText:'Fördelningen är sparad'})).toHaveCount(0);});
+test('senare ändring ersätts aldrig av lyckat äldre svar',async({page})=>{const m=await mock(page,'later');await open(page);await review(page);await save(page);await expect(page.getByRole('dialog')).toContainText('timplanen har ändrats igen');await expect(page.getByRole('dialog')).toContainText('2 200');expect(m.writes).toHaveLength(1);await expect(page.getByRole('status').filter({hasText:'Fördelningen är sparad'})).toHaveCount(0);});
+test('osparad inlinecell blockerar autofördelning',async({page})=>{const m=await mock(page);await page.goto(url);await page.locator('input[data-term="0"]').fill('99');await expect(page.getByRole('button',{name:'Autofördela timmar'})).toBeDisabled();expect(m.writes).toHaveLength(0);});

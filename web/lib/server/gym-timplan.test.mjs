@@ -22,8 +22,8 @@ const fixture=globalThis.__gymTimplanTest={
   env:{APP_MODE:'protected',DATABASE_URL:'postgres://synthetic@127.0.0.1:56322/postgres',SUPABASE_URL:'http://127.0.0.1:56321',OIDC_ISSUER:issuer,OIDC_CLIENT_ID:clientId,MFA_MAX_AGE_SECONDS:'28800',SESSION_SECRET:'synthetic-gym-only'},
   session(){const future=new Date(Date.now()+60000);return{session:{id,identityId:id,membershipId:id,assignmentId:id,customerId:id,expiresAt:future,absoluteExpiresAt:future,epoch:1}};},
   async login(_corr,fn){return fn(fixture.tx);},
-  async context(_ctx,fn){const events=state.events.length,mutations=state.mutations.length;try{return await fn(fixture.tx,{sessionId:id,identityId:id,membershipId:id,assignmentId:id,customerId:id,identity:{issuer,subject:'synthetic'},correlationId:id,accessFunction:state.fn,epoch:1,
-    mfa:{issuer,clientId,audience:[clientId],profileId:'local-keycloak-admin',profileVersion:1,acr:state.mfa?'2':'1',amr:state.mfa?['pwd','otp']:['pwd'],authTime:new Date(Date.now()-1000),checkedAt:new Date()}});}catch(error){state.events.length=events;state.mutations.length=mutations;throw error;}},
+  async context(_ctx,fn){const events=state.events.length,mutations=state.mutations.length,plan=structuredClone(state.plan);try{return await fn(fixture.tx,{sessionId:id,identityId:id,membershipId:id,assignmentId:id,customerId:id,identity:{issuer,subject:'synthetic'},correlationId:id,accessFunction:state.fn,epoch:1,
+    mfa:{issuer,clientId,audience:[clientId],profileId:'local-keycloak-admin',profileVersion:1,acr:state.mfa?'2':'1',amr:state.mfa?['pwd','otp']:['pwd'],authTime:new Date(Date.now()-1000),checkedAt:new Date()}});}catch(error){state.events.length=events;state.mutations.length=mutations;state.plan=plan;throw error;}},
   tx:async(strings,...values)=>{
     const sql=strings.join('?');
     if(sql.includes('select i.auth_user_id'))return[{function:state.fn}];
@@ -32,7 +32,9 @@ const fixture=globalThis.__gymTimplanTest={
     if(sql.includes('phase5_gym_timplan_underlag'))return[{result:state.underlag}];
     if(sql.includes('phase5_read_gym_timplan'))return[{result:state.plan}];
     if(sql.includes('phase5_create_gym_timplan')){state.mutations.push(values);return[{result:state.created}];}
-    if(sql.includes('phase5_write_gym_timplan_row')){state.mutations.push(values);return[{result:state.saved??{id:values[0],revision:values[1]+1,rowKey:values[2],hours:values[3]}}];}
+    if(sql.includes('phase5_write_gym_timplan_row')){state.mutations.push(values);
+      if(state.distribution){if(state.failAt===state.mutations.length)throw{code:'40001'};state.plan.hours[values[2]]=structuredClone(values[3]);state.plan.revision=values[1]+1;}
+      return[{result:state.saved??{id:values[0],revision:values[1]+1,rowKey:values[2],hours:values[3]}}];}
     throw new Error('Unexpected synthetic query');
   },
 };fixture.tx.json=value=>value;
@@ -163,4 +165,30 @@ test('only real source content changes warn; approval metadata stays quiet and m
   state.plan.currentSourceBasis.distribution[0].points=[0,100,0,0,0,0];response=await read(request('lasa',{planId}));assert.equal(response.status,200);assert.equal((await response.json()).sourceChanged,true);
   state.plan.currentSourceBasis.revision=5;assert.equal((await read(request('lasa',{planId}))).status,500);
   reset();state.plan.currentSource=null;state.plan.currentSourceBasis=null;response=await read(request('lasa',{planId}));assert.equal(response.status,200);assert.equal((await response.json()).sourceChanged,true);
+});
+
+const {POST:distribute}=await import('../../app/api/timplaner/gym/fordela/route.ts');
+const autoCommand=()=>({planId,expectedRevision:0,totalHours:2200,mode:'fill-empty'});
+test('autofördelning saves exact whole-plan total in one audited transaction',async()=>{
+ reset();state.distribution=true;const response=await distribute(request('fordela',autoCommand()));assert.equal(response.status,200);const body=await response.json();
+ assert.equal(Object.values(body.hours).flat().reduce((n,h)=>n+(h??0),0),2200);assert.equal(body.revision,termRows.length);
+ assert.equal(state.events.length,1);assert.equal(state.events[0].action,'gym_timplan_hours_distributed');
+ assert.equal(state.events[0].details.count,termRows.length);
+});
+test('autofördelning rolls back every row when a later row or required audit fails',async()=>{
+ for(const patch of [{failAt:2},{auditFails:true}]){reset();state.distribution=true;Object.assign(state,patch);const before=structuredClone(state.plan);
+  const response=await distribute(request('fordela',autoCommand()));assert.equal(response.status,patch.failAt?409:500);
+  assert.deepEqual(state.plan,before);assert.equal(state.mutations.length,0);assert.equal(state.events.some(e=>e.outcome==='ok'),false);
+ }
+});
+test('autofördelning denies stale revision, locked plans, HM, absent MFA, foreign origin and malformed scope',async()=>{
+ for(const [patch,command,origin,status]of [
+  [{},{...autoCommand(),expectedRevision:9},'http://localhost',409],
+  [{fn:'huvudman'},autoCommand(),'http://localhost',403],
+  [{mfa:false},autoCommand(),'http://localhost',403],
+  [{},autoCommand(),'https://foreign.invalid',403],
+  [{},{...autoCommand(),role:'rektor'},'http://localhost',400],
+  [{},{...autoCommand(),totalHours:2.5},'http://localhost',400],
+ ]){reset();Object.assign(state,patch);const response=await distribute(request('fordela',command,origin));assert.equal(response.status,status);assert.equal(state.mutations.length,0);}
+ reset();state.plan.canPlan=false;state.plan.status='faststalld';assert.equal((await distribute(request('fordela',autoCommand()))).status,403);assert.equal(state.mutations.length,0);
 });
