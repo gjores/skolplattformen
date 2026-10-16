@@ -5,15 +5,15 @@ title: Programplaner
 
 Programplanen gäller en utbildning och elevkull. Hela planen är en tabell: fasta ämnen och nivåer, valbara block med poängram och fördelningen över sex terminer ligger på samma ställe.
 
-Huvudmannen kan lägga till en ny utbildning med dess första programplansutkast. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Skoladministratören kan läsa planen inom sitt skoluppdrag. Ett sparat utkast är inte en fastställd plan.
+Rektor och huvudman kan lägga till en ny utbildning med dess första programplansutkast inom sina aktuella skoluppdrag. Huvudmannen godkänner och fastställer planen. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Skoladministratören kan läsa planen inom sitt skoluppdrag. Ett sparat utkast är inte en fastställd plan.
 
 ## Startsidan
 
 **Programplaner** visar underlagen för vald skola och valt planeringsår. Sök på utbildning, lokal kod, program eller inriktning. Använd år-, skol-, status-, elevkulls- och arkivfiltren och sidknapparna för att hitta rätt rad. Sökningen gäller även senare sidor. Överblicken sammanfattar hela urvalet.
 
 - **Öppna** visar radens exakta programplansversion. Ett nyare utkast väljs inte automatiskt i stället för en äldre årsrad.
-- **Kopiera** skapar en ny utbildning med den valda planens underlag, programfördjupning, terminsfördelning och skolval. Tidigare sparat skolutbud följer inte med. Ange namn, elevkull och ett verkligt startdatum efter både i dag och originalets start. Hela kopian sparas tillsammans och blir ett nytt utkast; originalet ändras inte. Knappen visas först när aktuellt mandat för att lägga till utbildningar har kunnat läsas. Om mandatet inte kan läsas visas möjlighet att försöka igen.
-- **Ny programplan** öppnar det befintliga valet av program och inriktning. Huvudmannen kan skapa en ny utbildning; en behörig användare kan förbereda plan för en befintlig utbildning enligt det aktuella mandatet.
+- **Kopiera** skapar en ny utbildning med den valda planens underlag, programfördjupning och terminsfördelning. Rektors kopia gäller vald egen skola; huvudmannens kopia behåller skolvalet. Tidigare sparat skolutbud följer inte med. Ange namn, elevkull och ett verkligt startdatum efter både i dag och originalets start. Hela kopian sparas tillsammans och blir ett nytt utkast; originalet ändras inte. Knappen visas först när aktuellt mandat för att lägga till utbildningar har kunnat läsas. Om mandatet inte kan läsas visas möjlighet att försöka igen.
+- **Ny programplan** öppnar det befintliga valet av program och inriktning. Rektor och huvudman kan skapa en ny utbildning för en skola inom sitt aktuella uppdrag; en behörig användare kan förbereda plan för en befintlig utbildning enligt det aktuella mandatet.
 
 Om radens plan saknas visar vyn den luckan och ett uttryckligt val av underlag eller version. Inget skapas när du öppnar årslistan. Om en gemensam ram används på flera skolor anges den faktiskt valda skolan i arbetsytan. Kontrollera skolan innan du går vidare till dess timplan.
 
@@ -52,9 +52,9 @@ Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte k
 
 ## Kopiera till nästa elevkull
 
-Som huvudman öppnar du den programplansversion du vill utgå från och väljer **Kopiera**. Ange namn, elevkull, eventuell lokal kod och ett startdatum efter originalets start och efter i dag. Välj **Spara kopia**.
+Som rektor eller huvudman öppnar du den programplansversion du vill utgå från och väljer **Kopiera**. Ange namn, elevkull, eventuell lokal kod och ett startdatum efter originalets start och efter i dag. Välj **Spara kopia**.
 
-Den nya utbildningen får ett första programutkast med samma ram, programfördjupning, terminsfördelning och skolval. Elever, klasser, skolornas timplaner, paketval och tidigare beslut följer inte med. Originalets innehåll, historik och kopplingar finns kvar.
+Den nya utbildningen får ett första programutkast med samma ram, programfördjupning, terminsfördelning och, för huvudmannen, samma skolval. Som rektor skapar du kopian endast för den skola du har öppnat planen för, även om originalet delas med andra skolor. Kopian är ett nytt utkast som du skickar till huvudmannen för godkännande. Elever, klasser, skolornas timplaner, paketval och tidigare beslut följer inte med. Originalets innehåll, historik och kopplingar finns kvar.
 
 Om sparandet misslyckas skapas ingen delvis färdig kopia. Om originalets plan eller skolval har ändrats stänger du kopieringen, läser om originalet och granskar det innan du kopierar igen.
 
@@ -66,7 +66,7 @@ Huvudmannen väljer **Skolor** i den öppnade planen, markerar sina gymnasieskol
 
 Skolor kan läggas till i framtida, pågående och avslutade planer, och när starten är okänd. En skola kan bara tas bort från en framtida plan. Arkiverade planer kan inte få skolvalet ändrat. När en programplan är inskickad för beslut är även utbildningsuppgifter och skolval låsta; ta tillbaka förslaget eller återsänd det före ändring.
 
-Den som ändrar programplanen behöver aktuellt mandat för samtliga kopplade skolor. Rektor med mandat för bara en del av skolorna kan läsa planen och ser beskedet **Planen delas med skolor utanför ditt uppdrag och kan bara läsas**. Huvudmannen ändrar skolvalet.
+Den som ändrar programplanen behöver aktuellt mandat för samtliga kopplade skolor. Rektor med mandat för bara en del av skolorna kan läsa planen och ser beskedet **Planen delas med skolor utanför ditt uppdrag och kan bara läsas**. Rektor kan ändå kopiera planen till nästa elevkull för den valda skolan inom sitt uppdrag. Huvudmannen ändrar skolvalet på den delade originalplanen.
 
 Listan visar en egen rad för varje behörig skola som använder programramen. Skolvalet begränsar vilka skolrader som visas.
 
@@ -80,7 +80,7 @@ Rektor och skoladministratör kan förbereda tomma klasser redan i programplanen
 
 ## Ny programplan
 
-1. Kontrollera skolan och välj **Befintlig utbildning** eller, som huvudman, **Ny utbildning**.
+1. Kontrollera skolan och välj **Befintlig utbildning** eller, som rektor eller huvudman, **Ny utbildning**.
 2. Välj **Program** och därefter **Inriktning**. Ett program utan inriktning visar detta direkt.
 3. För en ny utbildning anger du namn, elevkull, eventuell lokal kod och **Utbildningens exakta startdatum**, alltså den verkliga dagen enligt utbildningens uppgifter. Datumet måste ligga efter i dag: en ny plan kan bara skapas för en elevkull som inte har börjat. Välj programfördjupning, välj **Granska utkast** och sedan **Spara utbildning och utkast**.
 

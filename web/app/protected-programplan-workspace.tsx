@@ -43,8 +43,8 @@ type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void;
   onOpened?: (target: ProgramplanLocation | null, options?: { openClasses: boolean }) => boolean | void; onTimplan?: (source: string | GymTimplanLocation) => void };
 const aborted = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
 const titles = { create: 'Skapa programplan', bind: 'Gör utkastet redo för ändring', replace: 'Ändra fördjupning', clone: 'Skapa ny version' };
-type ReadRecovery = { offeringId: string; versionPage: number; catalogId: string | null; planId: string | null; deleted: boolean; message: string; copied?: boolean };
-function newCopy(name: string) { return { name: `${name} – kopia`.slice(0, 120), cohort: '', localCode: '', startedOn: '', command: null, error: null, uncertain: false, stale: false }; }
+type ReadRecovery = { offeringId: string; versionPage: number; catalogId: string | null; planId: string | null; deleted: boolean; message: string; copied?: boolean; unitId?: string };
+function newCopy(name: string, unitId: string) { return { unitId, name: `${name} – kopia`.slice(0, 120), cohort: '', localCode: '', startedOn: '', command: null, error: null, uncertain: false, stale: false }; }
 
 export default function ProtectedProgramplanWorkspace({ context, epoch, onSessionLost, initialPlan, initialClassStep, onClassStepMounted, onOpened, onTimplan }: Props) {
   const page = 1;
@@ -93,7 +93,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   useLayoutEffect(() => { latestCreationKey.current = creationKey; }, [creationKey]);
   const permission = creationPermission.key === creationKey ? creationPermission : null;
   const canCreate = permission?.canCreate === true;
-  const [copy, setCopy] = useState<{ name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanCopyRequest | null; error: string | null; uncertain: boolean; stale: boolean } | null>(null);
+  const [copy, setCopy] = useState<{ unitId: string; name: string; cohort: string; localCode: string; startedOn: string; command: ProgramplanCopyRequest | null; error: string | null; uncertain: boolean; stale: boolean } | null>(null);
   const [lifecycleDialog, setLifecycleDialog] = useState<LifecycleDialogKind | null>(null);
   const reviewRef = useRef<HTMLElement | null>(null);
   const draftRef = useRef<HTMLElement | null>(null);
@@ -227,7 +227,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     if (!force && (!canNavigate() || busy || !keepPreparation && hasUnsaved && !confirmDiscard())) return;
     const priorRecovery = recoveryRef.current;
     const copyRecovery = force && priorRecovery?.copied === true && priorRecovery.offeringId === offeringId && priorRecovery.planId === planId;
-    if (force) rememberRecovery({ offeringId, versionPage, catalogId, planId, deleted: false, copied: copyRecovery,
+    if (force) rememberRecovery({ offeringId, versionPage, catalogId, planId, deleted: false, copied: copyRecovery, unitId: expected?.unitId ?? priorRecovery?.unitId ?? selectedUnit.current ?? undefined,
       message: copyRecovery ? priorRecovery.message : 'Aktuell programplan och sparstatus har lästs.' });
     initialOpened.current = true;
     if (expected?.unitId) { selectedUnit.current = expected.unitId; setSelectedUnitId(expected.unitId); }
@@ -244,10 +244,10 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       }
       if (current(r.token)) { setReloadedTerms(terms); setWorkspace(fresh); setPlan(selected); setPlanSummary(summary); if (force) { clearRecovery(); if (copyRecovery) { setCopy(null); setNotice(priorRecovery!.message); } }
         publishReadSelection(fresh, selected);
-        if (expected?.copy) { if (selected?.id === planId && selected.basisReference) setCopy(newCopy(fresh.education.name)); else setNotice('Utbildningen har ingen kopplad programplan att kopiera. Öppna planen och koppla den till ett underlag först.'); } }
+        if (expected?.copy) { if (selected?.id === planId && selected.basisReference) setCopy(newCopy(fresh.education.name, context.function === 'huvudman' ? fresh.education.unitId : expected.unitId ?? selectedUnit.current!)); else setNotice('Utbildningen har ingen kopplad programplan att kopiera. Öppna planen och koppla den till ett underlag först.'); } }
     } catch (e) { if (current(r.token) && !aborted(e) && !securityFailure(e)) setError(e instanceof ApiError ? e.message : 'Aktuellt programplansunderlag kunde inte läsas. Välj utbildningen igen.'); if (propagateError) throw e; }
     finally { if (current(r.token)) setBusy(false); }
-  }, [begin, busy, canNavigate, clearRecovery, current, hasUnsaved, publishReadSelection, readSelection, rememberRecovery, securityFailure]);
+  }, [begin, busy, canNavigate, clearRecovery, context.function, current, hasUnsaved, publishReadSelection, readSelection, rememberRecovery, securityFailure]);
   useEffect(() => {
     // A verified school change can remount before the former Flow's registry cleanup commits.
     // Wait for that cleanup; the normal read must still pass every navigation guard.
@@ -280,22 +280,26 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     else if (time === null && row.plan && !row.archived && ['rektor', 'administrator'].includes(context.function))
       onTimplan({ kind: 'source', id: row.plan.id, offeringId: row.offeringId, unitId: row.unitId, version: row.plan.version });
   }
+  function copySavedMessage() { return context.function === 'rektor'
+    ? 'Kopian sparades som ett nytt utkast för vald skola. Ram och terminsfördelning följde med. Huvudmannen godkänner planen efter att du skickat in den. Elever, klasser, timplaner, paketval och tidigare beslut kopierades inte.'
+    : 'Kopian sparades som en ny utbildning med ett första utkast. Ram, terminsfördelning och skolval följde med. Elever, klasser, skolans paketval, timplaner och tidigare beslut kopierades inte.'; }
   async function openCreatedCopy(command: ProgramplanCopyRequest, value: unknown) {
     const created = parseProgramplanCopyCreated(value, command);
+    const openedUnitId = context.function === 'rektor' ? command.unitId : selectedUnit.current ?? command.unitId;
     // The receipt is immutable. Read the exact new plan for its current terms,
     // revision and schools; no follow-up write belongs to this browser flow.
-    rememberRecovery({ offeringId: created.education.id, versionPage: 1, catalogId: created.plan.catalogId, planId: created.plan.id, deleted: false, copied: true,
-      message: 'Kopian sparades som en ny utbildning med ett första utkast. Ram, terminsfördelning och skolval följde med. Elever, klasser, skolans paketval, timplaner och tidigare beslut kopierades inte.' });
-    await openEducation(created.education.id, 1, created.plan.catalogId, created.plan.id, null, true, true);
+    rememberRecovery({ offeringId: created.education.id, versionPage: 1, catalogId: created.plan.catalogId, planId: created.plan.id, deleted: false, copied: true, unitId: openedUnitId,
+      message: copySavedMessage() });
+    await openEducation(created.education.id, 1, created.plan.catalogId, created.plan.id, null, true, true, { unitId: openedUnitId });
     if (!mounted.current || recoveryRef.current) return;
     setCopy(null);
-    setNotice('Kopian sparades som en ny utbildning med ett första utkast. Ram, terminsfördelning och skolval följde med. Elever, klasser, skolans paketval, timplaner och tidigare beslut kopierades inte.');
+    setNotice(copySavedMessage());
   }
   async function saveCopy() {
-    if (!copy || !workspace || !plan?.basisReference || context.function !== 'huvudman' || copy.stale || recoveryRef.current || busy || saving.current) return;
+    if (!copy || !workspace || !plan?.basisReference || !['huvudman', 'rektor'].includes(context.function) || !canCreate || !workspace.lifecycle.units.some(unit => unit.id === copy.unitId && unit.inMandate) || copy.stale || recoveryRef.current || busy || saving.current) return;
     let own = copy.command;
     try {
-      own ??= newCopyCommand({ unitId: workspace.education.unitId, name: copy.name.trim(), cohort: copy.cohort.trim(), localCode: copy.localCode.trim() || null,
+      own ??= newCopyCommand({ unitId: copy.unitId, name: copy.name.trim(), cohort: copy.cohort.trim(), localCode: copy.localCode.trim() || null,
         sourcePlanId: plan.id, expectedSourceRevision: plan.revision, expectedEducationRevision: workspace.lifecycle.revision,
         basisReference: { ...upgradeProgramplanBasis(workspace.catalog.program!, plan.basisReference).basisReference, startedOn: copy.startedOn } }, crypto.randomUUID());
     } catch { setCopy({ ...copy, error: 'Ange namn, elevkull och verkligt startdatum för den nya utbildningen.' }); return; }
@@ -503,7 +507,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   async function recoverTarget(target: ReadRecovery) {
     rememberRecovery(target);
     if (!target.deleted) {
-      await openEducation(target.offeringId, target.versionPage, target.catalogId, target.planId, null, true, true);
+      await openEducation(target.offeringId, target.versionPage, target.catalogId, target.planId, null, true, true, target.unitId ? { unitId: target.unitId } : undefined);
       if (mounted.current && !recoveryRef.current) setNotice(target.message);
       return;
     }
@@ -520,7 +524,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       if (!current(request.token)) return;
       if (ids.length !== first.count || new Set(ids).size !== ids.length) throw new Error('Hela utbildningslistan kunde inte kontrolleras. Läs om igen.');
       if (ids.includes(target.offeringId)) {
-        await openEducation(target.offeringId, target.versionPage, target.catalogId, target.planId, null, true, true);
+        await openEducation(target.offeringId, target.versionPage, target.catalogId, target.planId, null, true, true, target.unitId ? { unitId: target.unitId } : undefined);
         if (mounted.current && !recoveryRef.current) setNotice('Utbildningen finns kvar. Aktuellt underlag har lästs.');
       } else {
         clearRecovery(); resetList(); setNotice(target.message);
@@ -591,7 +595,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       canCreateTimplan={!!onTimplan && ['rektor', 'administrator'].includes(context.function)} onTimplan={openRowTimplan}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
     {!workspace&&!draft&&showFlow&&<div className="pps-page"><div className="pps-head-text"><button type="button" className="pps-back" disabled={busy} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>Alla programplaner</button><h1 className="ppl-title">Ny programplan</h1><p className="ppl-sub">Välj program och inriktning. Skapa en ny utbildning eller lägg en plan på en befintlig utbildning som saknar plan.</p></div>
-      <ProtectedProgramplanFlow key={flowRevision} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={async(id,catalogId,planId,unitId,created)=>{if(created&&planId&&unitId){const intent={offeringId:id,planId,unitId};classStepRef.current=intent;setClassStepTarget(intent);}await openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined);}}/></div>}
+      <ProtectedProgramplanFlow key={flowRevision} initialUnitId={planningUnit} initialMode={canCreate?'new':'existing'} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null} onSecurityFailure={securityFailure} onOpen={async(id,catalogId,planId,unitId,created)=>{if(created&&planId&&unitId){const intent={offeringId:id,planId,unitId};classStepRef.current=intent;setClassStepTarget(intent);}await openEducation(id,1,catalogId,planId??null,null,!!planId,!!planId,unitId?{unitId}:undefined);}}/></div>}
     {(workspace||draft)&&<div className="pps-page">
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">
@@ -605,7 +609,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <span className="pps-state pp-status">{statusText}</span>
           {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))setView('analysis');}}>Analys{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
           {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())onTimplan({ kind: 'source', id: plan.id, offeringId: plan.offeringId, version: plan.version, ...(selectedUnit.current ? { unitId: selectedUnit.current } : {}) });}}>Timplan</Button>}
-          {!draft&&!preparation&&!copy&&canCreate&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>{if(canNavigate())setCopy(newCopy(workspace.education.name));}}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
+          {!draft&&!preparation&&!copy&&canCreate&&(context.function==='huvudman'||!!selectedSchool)&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>{if(canNavigate())setCopy(newCopy(workspace.education.name, context.function === 'huvudman' ? workspace.education.unitId : selectedSchool!.id));}}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
           {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>{if(canNavigate())void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null,null,false,false,{missing:plan===null});}}><RefreshCw size={16}/>Läs om</Button>}
           {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||hasUnsaved||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
@@ -633,6 +637,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">
           <h3>Kopiera till ny utbildning</h3>
           <p>Den nya utbildningen får samma program, inriktning, underlag och {plan.basisReference.specializationRefs.length===1?'1 fördjupningsnivå':`${plan.basisReference.specializationRefs.length} fördjupningsnivåer`} som {workspace.education.name}. Terminsfördelningen följer med. Den sparas som ett nytt utkast; originalet ändras inte.</p>
+          <p>{context.function === 'rektor' ? `Kopian gäller endast ${workspace.lifecycle.units.find(unit => unit.id === copy.unitId)?.name ?? 'vald skola'}. Huvudmannen godkänner planen när du har skickat in den.` : 'Kopian behåller originalets skolval. Huvudmannen fastställer det nya utkastet separat.'}</p>
           {copy.error&&<output role="alert" className="pp-alert">{copy.error}</output>}
           <div className="pp-new-fields">
             <div className="pp-field"><label htmlFor="ppl-copy-name">Utbildningens namn</label><input id="ppl-copy-name" value={copy.name} maxLength={120} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,name:e.target.value,error:null})}/></div>

@@ -17,9 +17,9 @@ import MfaStepUpNotice from './mfa-step-up';
 import { nextDay } from './protected-programplan-lifecycle';
 import { startsAfter, stockholmToday } from '@/lib/programplan-lifecycle.ts';
 
-type Props = { onOpen: (id: string, catalogId: string | null, planId?: string, unitId?: string, created?: boolean) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new' };
+type Props = { onOpen: (id: string, catalogId: string | null, planId?: string, unitId?: string, created?: boolean) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new'; initialUnitId?: string | null };
 const empty: ProgramplanSelectionRequest = { unitId: null, catalogId: null, programRef: null };
-export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope, initialMode = 'existing' }: Props) {
+export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope, initialMode = 'existing', initialUnitId = null }: Props) {
   const [data,setData]=useState<ProgramplanSelection|null>(null), [offerings,setOfferings]=useState<ProgramplanOfferingRow[]>([]);
   const [chosenMode,setMode]=useState<'existing'|'new'>(initialMode),[orientation,setOrientation]=useState<string|null>(null),[orientationChosen,setOrientationChosen]=useState(false);
   const [programCode,setProgramCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[mfa,setMfa]=useState(false);
@@ -48,7 +48,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
           all.push(...extra.offerings);
         }
         if(new Set(all.map(o=>o.id)).size!==all.length)throw new Error('Utbildningslistan ändrades.');
-        if(selected.units.length===1){const next={...empty,unitId:selected.units[0].id};selected=parseProgramplanSelection(await api.post('/api/programplaner/val',next,r.signal),next);}
+        if(!selected.selection.unitId&&selected.units.length===1){const next={...empty,unitId:selected.units[0].id};selected=parseProgramplanSelection(await api.post('/api/programplaner/val',next,r.signal),next);}
         if(current(r.token))setOfferings(all);
       }
       if(selected.selection.unitId&&selected.selection.catalogId===null&&selected.catalogs.length===1){
@@ -59,7 +59,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
     }catch(e){if(current(r.token)&&!(e instanceof DOMException&&e.name==='AbortError')&&!onSecurityFailure(e))setError(e instanceof ApiError?e.message:e instanceof Error?e.message:'Valen kunde inte hämtas.');}
     finally{if(current(r.token))setBusy(false);}
   },[begin,current,onSecurityFailure]);
-  useEffect(()=>{mounted.current=true;queueMicrotask(()=>{if(mounted.current)void load(empty,true);});return()=>{mounted.current=false;invalidate();};},[load,invalidate]);
+  useEffect(()=>{mounted.current=true;queueMicrotask(()=>{if(mounted.current)void load({...empty,unitId:initialUnitId},true);});return()=>{mounted.current=false;invalidate();};},[load,invalidate,initialUnitId]);
   useEffect(()=>{if(!reviewing)return;const frame=requestAnimationFrame(()=>reviewRef.current?.focus());return()=>cancelAnimationFrame(frame);},[reviewing]);
   const locked=disabled||busy||unresolved;
   const program=data?.projection?.program??null;
@@ -122,11 +122,11 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
   function editAgain(){if(locked)return;setCommand(null);setRetryAllowed(false);setReviewing(false);setError(null);}
   return <section className="pp-flow" aria-label="Program, inriktning och fördjupning" aria-busy={busy}>
     <ol className="pp-flow-steps pps-stepper">{([['Program',!programCode,!!programCode],['Inriktning',!!programCode&&!orientationChosen,!!programCode&&orientationChosen],['Programfördjupning',!!programCode&&orientationChosen,false]] as const).map(([label,active,done],i)=><li key={label} aria-current={active?'step':undefined} data-done={done}><span aria-hidden="true">{done?'✓':i+1}</span>{i+1}. {label}</li>)}</ol>
-    {error&&<div className="pp-alert" role="alert"><p>{error}</p>{!data&&!busy&&<Button onClick={()=>void load(empty,true)}>Läs valen igen</Button>}</div>}
+    {error&&<div className="pp-alert" role="alert"><p>{error}</p>{!data&&!busy&&<Button onClick={()=>void load({...empty,unitId:initialUnitId},true)}>Läs valen igen</Button>}</div>}
     {busy&&<output>Hämtar aktuella val…</output>}
     {data&&<>
       <div className="pp-flow-support"><div className="pp-field"><label htmlFor="pp-flow-school">Skola</label><select id="pp-flow-school" value={unitId??''} disabled={locked} onChange={e=>{if(allowChange()){resetDraft();setProgramCode('');setOrientationChosen(false);void load({...empty,unitId:e.target.value||null});}}}><option value="">Välj skola</option>{schools.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
-      <fieldset className="pp-flow-mode" aria-label="Befintlig eller ny utbildning"><Button data-active={mode==='existing'} variant={mode==='existing'?'default':'outline'} disabled={locked} onClick={()=>changeMode('existing')}>Befintlig utbildning</Button>{data.canCreateEducation?<Button data-active={mode==='new'} variant={mode==='new'?'default':'outline'} disabled={locked||!unitId} onClick={()=>changeMode('new')}>Ny utbildning</Button>:<p>Huvudmannen lägger till nya utbildningar. Du kan arbeta med skolans befintliga programplaner.</p>}</fieldset></div>
+      <fieldset className="pp-flow-mode" aria-label="Befintlig eller ny utbildning"><Button data-active={mode==='existing'} variant={mode==='existing'?'default':'outline'} disabled={locked} onClick={()=>changeMode('existing')}>Befintlig utbildning</Button>{data.canCreateEducation?<Button data-active={mode==='new'} variant={mode==='new'?'default':'outline'} disabled={locked||!unitId} onClick={()=>changeMode('new')}>Ny utbildning</Button>:<p>Ditt aktuella uppdrag ger inte rätt att skapa en ny utbildning. Välj en befintlig programplan.</p>}</fieldset></div>
       {!data.selection.catalogId&&sourcePanel}
       <div className="pp-flow-selection"><div className="pp-field"><label htmlFor="pp-flow-program">1. Program</label><select id="pp-flow-program" value={programValue} disabled={locked||!unitId||mode==='new'&&!data.selection.catalogId} onChange={e=>changeProgram(e.target.value)}><option value="">Välj program</option>{data.programs.map(p=><option key={`${p.programRef.code}:${p.programRef.version}`} value={`${p.programRef.code}:${p.programRef.version}`}>{p.name} · version {p.programRef.version}</option>)}{mode==='existing'&&legacyCodes.map(code=><option key={code} value={code}>{code} · befintlig utbildning</option>)}</select></div>
       {programCode&&<div className="pp-field"><label htmlFor="pp-flow-orientation">2. Inriktning</label>{selectedProgram&&orientationRows.length===0&&!(mode==='existing'&&olderOrientations.some(code=>code!==null))?<p>Programmet har ingen inriktning.</p>:<select id="pp-flow-orientation" value={orientationChosen?orientation??'__none__':''} disabled={locked} onChange={e=>changeOrientation(e.target.value==='__none__'?'':e.target.value)}><option value="">Välj inriktning</option>{selectedProgram&&orientationRows.length===0&&<option value="__none__">Ingen inriktning</option>}{orientationRows.map(o=><option key={o.code} value={o.code}>{o.name}</option>)}{mode==='existing'&&olderOrientations.filter(code=>code!==null||!selectedProgram||orientationRows.length>0).map(code=><option key={code??'__none__'} value={code??'__none__'}>{code??'Ingen inriktning angiven'} · äldre uppgift</option>)}</select>}</div>}</div>

@@ -6,7 +6,7 @@ import { parseProgramplanCopyRequest } from '../../../../../lib/programplan-copy
 
 export async function POST(request: Request): Promise<Response> {
   return protectedRoute(request, 'programplan_education_copied', { mutating: true, mfa: true,
-    audit: 'required', functions: ['huvudman'] }, async (_ctx, tx) => {
+    audit: 'required', functions: ['huvudman', 'rektor'] }, async (_ctx, tx) => {
     let body: unknown;
     try { body = await request.json(); } catch { throw new Deny('bad_request', 400); }
     return copyProgramplanEducation(tx, programplanRequest(parseProgramplanCopyRequest, body));

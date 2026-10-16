@@ -8,7 +8,7 @@ export async function POST(request: Request): Promise<Response> {
   // Apply the same MFA/CSRF assurance to receipt recovery. SQL status_only=true
   // still guarantees that this endpoint never creates a copy.
   return protectedRoute(request, 'programplan_copy_status_read', { mutating: true, mfa: true,
-    audit: 'required', functions: ['huvudman'] }, async (_ctx, tx) => {
+    audit: 'required', functions: ['huvudman', 'rektor'] }, async (_ctx, tx) => {
     let body: unknown;
     try { body = await request.json(); } catch { throw new Deny('bad_request', 400); }
     return copyProgramplanEducation(tx, programplanRequest(parseProgramplanCopyRequest, body), true);

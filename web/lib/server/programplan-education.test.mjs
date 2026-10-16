@@ -32,14 +32,14 @@ function request(route,body=route==='val'?selectionInput():route==='utbildning/s
 const originalContext=fixture.context.bind(fixture);const baseContext=(...args)=>originalContext(...args);fixture.context=async(...args)=>{const[ctx,fn]=args;return baseContext(ctx,(tx,c)=>{if(state.mfa){c.mfa.acr='2';c.mfa.amr=['pwd','otp'];}return fn(tx,c);});};
 for(const route of Object.keys(routes))test(`${route}: exact SQL result and required Worker audit`,async()=>{reset(route);state.mfa=true;const r=await routes[route](request(route));assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');const body=await r.json();assert.equal(state.events.filter(e=>e.outcome==='ok').length,1);assert.equal(body.commandId??body.selection.programRef.code,route==='val'?'SA25':id);if(route==='val'){assert.ok(body.projection.subjects.length<artifact.subjects.length);assert.equal('payload'in body,false);}else if(route==='utbildning/skapa'){assert.equal(state.calls.length,2);assert.deepEqual(state.calls[1].values,[id,unit,'Syntetisk',null,'Kull',basis()]);}else assert.equal(body.status,'created');});
 for(const route of Object.keys(routes))test(`${route}: denied authority, origin, epoch, malformed input and audit rollback`,async()=>{
- for(const fn of ['larare','it','kundadmin','support',...(route==='val'?[]:['rektor','administrator'])]){reset(route);state.fn=fn;state.mfa=true;const r=await routes[route](request(route));assert.equal(r.status,403);assert.equal(state.calls.length,0);}
+ for(const fn of ['larare','it','kundadmin','support',...(route==='val'?[]:['administrator'])]){reset(route);state.fn=fn;state.mfa=true;const r=await routes[route](request(route));assert.equal(r.status,403);assert.equal(state.calls.length,0);}
  reset(route);state.mfa=true;const stale=request(route);stale.headers.set('X-Context-Epoch','2');assert.equal((await routes[route](stale)).status,409);assert.equal(state.calls.length,0);
  reset(route);state.mfa=true;assert.equal((await routes[route](request(route,undefined,'https://foreign.test'))).status,403);assert.equal(state.calls.length,0);
  reset(route);state.mfa=true;const invalid=request(route);const body=JSON.parse(await invalid.text());body.role='huvudman';assert.equal((await routes[route](request(route,body))).status,400);assert.equal(state.calls.length,0);
  for(const[code,expected]of[['42501',403],['22023',400],['40001',409],['55000',500]]){reset(route);state.mfa=true;state.sqlError={code,message:'private SQL'};const r=await routes[route](request(route));assert.equal(r.status,expected);assert.equal(JSON.stringify(await r.json()).includes('private'),false);}
  reset(route);state.mfa=true;state.auditFails=true;const r=await routes[route](request(route));assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
 });
-test('new education needs MFA; rektor selection is read only; null selection sends SQL null',async()=>{reset('utbildning/skapa');assert.equal((await create(request('utbildning/skapa'))).status,403);assert.equal(state.calls.length,0);for(const fn of ['rektor','administrator']){reset();state.fn=fn;state.selection.canCreateEducation=false;const read=await selection(request('val'));assert.equal(read.status,200);assert.equal((await read.json()).canCreateEducation,false);}reset();const input={unitId:unit,catalogId:null,programRef:null};state.selection.selection=input;state.selection.payload=null;const r=await selection(request('val',input));assert.equal(r.status,200);assert.equal((await r.json()).projection,null);assert.equal(state.calls[0].values[2],null);});
+test('new education needs MFA; server capability distinguishes rektor and administrator; null selection sends SQL null',async()=>{reset('utbildning/skapa');assert.equal((await create(request('utbildning/skapa'))).status,403);assert.equal(state.calls.length,0);for(const fn of ['rektor','administrator']){reset();state.fn=fn;state.selection.canCreateEducation=fn==='rektor';const read=await selection(request('val'));assert.equal(read.status,200);assert.equal((await read.json()).canCreateEducation,fn==='rektor');}reset();const input={unitId:unit,catalogId:null,programRef:null};state.selection.selection=input;state.selection.payload=null;const r=await selection(request('val',input));assert.equal(r.status,200);assert.equal((await r.json()).projection,null);assert.equal(state.calls[0].values[2],null);});
 test('whole catalogue tamper, extra metadata, mismatched pin or command cannot return success',async()=>{
  for(const mutate of [()=>state.selection.payload.programs[0].name='Tampered',()=>state.selection.private='secret',()=>state.result.plan.basisReference.startedOn='2026-08-02',()=>state.result.commandId=unit]){reset('utbildning/skapa');state.mfa=true;mutate();const r=await create(request('utbildning/skapa'));assert.equal(r.status,500);assert.equal((await r.json()).code,'audit_unavailable');assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);}
  reset();state.selection.selection.programRef={code:'SA25',version:3};assert.equal((await selection(request('val'))).status,500);
@@ -59,7 +59,7 @@ for(const [route,handler,statusOnly] of [['utbildning/kopiera',copyEducation,fal
   assert.equal(state.events.filter(e=>e.outcome==='ok')[0].action,statusOnly?'programplan_copy_status_read':'programplan_education_copied');
  });
  test(`${String(route)}: role/MFA/origin/context and malformed source stop before copying`,async()=>{
-  for(const fn of ['rektor','administrator','kundadmin','larare','support']){reset();state.fn=fn;state.mfa=true;assert.equal((await handler(request(route,copyInput()))).status,403);assert.equal(state.calls.length,0);}
+  for(const fn of ['administrator','kundadmin','larare','support']){reset();state.fn=fn;state.mfa=true;assert.equal((await handler(request(route,copyInput()))).status,403);assert.equal(state.calls.length,0);}
   reset();assert.equal((await handler(request(route,copyInput()))).status,403);assert.equal(state.calls.length,0);
   reset();state.mfa=true;assert.equal((await handler(request(route,copyInput(),'https://foreign.test'))).status,403);assert.equal(state.calls.length,0);
   reset();state.mfa=true;const stale=request(route,copyInput());stale.headers.set('X-Context-Epoch','2');assert.equal((await handler(stale)).status,409);assert.equal(state.calls.length,0);
@@ -75,4 +75,13 @@ test('copy not_found status never invokes create or catalogue verification',asyn
  reset('utbildning/status');state.mfa=true;state.result={commandId:id,status:'not_found'};
  assert.deepEqual(await (await copyEducationStatus(request('utbildning/kopiera/status',copyInput()))).json(),state.result);
  assert.equal(state.calls.length,1);assert.equal(state.calls[0].values.at(-1),true);
+});
+
+for(const [route,handler,statusOnly] of [['utbildning/skapa',create,false],['utbildning/status',status,true],['utbildning/kopiera',copyEducation,false],['utbildning/kopiera/status',copyEducationStatus,true]])test(`${String(route)}: principal reaches scoped SQL without gaining approval authority`,async()=>{
+ reset(statusOnly?'utbildning/status':'utbildning/skapa');state.fn='rektor';state.mfa=true;
+ const input=route.includes('kopiera')?copyInput():statusOnly?{commandId:id}:createInput();
+ const reply=await handler(request(route,input));assert.equal(reply.status,200);assert.equal((await reply.json()).plan.status,'utkast');assert.equal(state.events.filter(e=>e.outcome==='ok').length,1);
+ reset(statusOnly?'utbildning/status':'utbildning/skapa');state.fn='rektor';state.mfa=true;state.sqlError={code:'42501',message:'outside active school'};
+ const denied=await handler(request(route,input));assert.equal(denied.status,403);assert.equal(JSON.stringify(await denied.json()).includes('outside active school'),false);
+ assert.equal(state.events.filter(e=>e.outcome==='ok').length,0);
 });
