@@ -6,7 +6,7 @@ wave: 4
 depends_on: ["APL-01", "APL-03"]
 files_modified: ["web/lib/server/apl-plan.ts", "web/lib/server/apl-plan.test.mjs", "web/app/api/timplaner/gym/apl/lasa/route.ts", "web/app/api/timplaner/gym/apl/kommando/route.ts", "web/app/api/timplaner/gym/apl/status/route.ts", "supabase/migrations/20261016122000_apl_worker_access.sql"]
 autonomous: true
-status: planned
+status: in_progress
 gap: APL-01
 must_haves:
   truths: ["Sparat besked bygger på serverns kvitto och återläsning.", "Återladdning efter okänt svar återanvänder exakt request och samma kommando.", "Nya och historiska beslutsunderlag kan läsas säkert utan dold legacyfallback."]

@@ -6,7 +6,7 @@ wave: 4
 depends_on: ["APL-01", "APL-03"]
 files_modified: ["web/lib/plan-decision.ts", "web/lib/plan-decision.test.mjs", "web/lib/server/plan-decision.ts", "web/lib/server/plan-decision.test.mjs", "web/lib/apl-plan-journal.ts", "web/lib/apl-plan-journal.test.mjs"]
 autonomous: true
-status: planned
+status: in_progress
 gap: APL-01
 must_haves:
   truths: ["Historiska beslutskvitton kan återhämtas utan omtolkning enligt nya APL-regler.", "Nya beslutsunderlag kan inte använda legacy som klientvald genväg.", "Ett osäkert APL-sparförsök kan återupptas med samma scope och request."]
