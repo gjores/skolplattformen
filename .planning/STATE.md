@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-04/04A
+current_plan: APL-05/06/07
 status: in_progress
-stopped_at: APL-03 beslut och kopiering verifierade; APL-04/04A API och återhämtning pågår.
+stopped_at: APL-04/04A verifierade; APL-05/06 UI och handbok samt APL-07 samlad SQL pågår.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "APL-03 klar: SQL33, tre samtidighetsfall och 495 ursprungsrader bevarade. APL-04/04A pågår; ingen ny lokal leverans."
-state_head: 88d1634
+last_activity_desc: "APL-04/04A klara: Node89 och faktisk SQL/Worker28 med fem post-write rollbackfall. UI/handbok/fullSQL pågår; ingen ny lokal leverans."
+state_head: 40c9223
 verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
 worker_status: rector_programplan_local_delivery_verified
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL våg 4 verifierad 2026-10-16:** [APL-04](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-04-SUMMARY.md) och [APL-04A](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-04A-SUMMARY.md) har skyddad API, exakt Workeråtkomst, versionsmedvetna beslut och scopebunden återhämtning. Node89 och faktisk isolerad PostgreSQL-Worker/server28 PASS, inklusive fem observerade rollbackfall efter skrivning, exakt tre grants, 79 oförändrade källhashar och komplett cleanup. Oberoende granskning utan blockerare. 5 av 11 paketplaner klara; APL-05/06 UI/handbok och APL-07 samlad SQL/samtidighet pågår. Faktisk HTTP/OIDC och lokal installation återstår; pilotens ursprungliga antal och kravstatus består.
 
 **APL våg 3 verifierad 2026-10-16:** [APL-03](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-03-SUMMARY.md) har versionsbundna beslut, exakt historiskt replay och uttrycklig strukturkopiering med synligt bortfall. Faktisk isolerad SQL33, tre observerade tvåsessionsfall, 65 tabellers/schema/ACL-rollback, 495 ursprungliga syntetiska raders bevarande efter samtidighet och 68 oförändrade källhashar PASS. Första produktfelet och runnerfel är rättade och redovisade. 3 av 11 paketplaner klara; APL-04/04A API, beslutsparsers och journal pågår parallellt. Faktisk Worker/UI och lokal installation återstår; ursprungliga pilotantal och kravstatus består.
 

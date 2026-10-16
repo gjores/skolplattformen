@@ -6,7 +6,7 @@ wave: 5
 depends_on: ["APL-04", "APL-04A"]
 files_modified: ["work/pilot/verify-apl-plan.mjs", "work/pilot/apl-plan-fixtures.mjs", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-VERIFICATION.md"]
 autonomous: true
-status: planned
+status: in_progress
 gap: APL-01
 must_haves:
   truths: ["Installerade SQL-funktioner ger samma APL-resultat som domänmodellen.", "Samtidiga ändringar kan inte skapa dubbla eller motsägelsefulla underlag.", "Migrationen bevarar syntetiska förhandsplaner, timmar, klasslänkar och historiska beslut."]

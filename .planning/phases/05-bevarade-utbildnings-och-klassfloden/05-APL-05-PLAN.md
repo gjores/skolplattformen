@@ -6,7 +6,7 @@ wave: 5
 depends_on: ["APL-04", "APL-04A"]
 files_modified: ["web/app/protected-apl-plan.tsx", "web/app/protected-apl-plan.css", "web/app/protected-gym-timplan-workspace.tsx", "web/app/protected-gym-timplan-hours.tsx", "web/e2e/apl-plan.spec.ts", "web/playwright.apl-preview.config.ts", "web/e2e/fixtures/apl-plan-preview.tsx", "web/e2e/fixtures/apl-plan-preview.html"]
 autonomous: true
-status: planned
+status: in_progress
 gap: APL-01
 must_haves:
   truths: ["Rektor kan planera APL från rätt namngivna timplan och se vad som saknas.", "Total undervisningstid och varav APL kan granskas före sparande.", "Flera ämneskopplingar skapar inte dubbla timmar och okänt underlag visas tydligt."]

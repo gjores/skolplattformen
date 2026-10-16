@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parsePlanDecisionCommand,parsePlanDecisionDetail,parsePlanDecisionInbox} from './plan-decision.ts';
 const id='55402000-0000-4000-8000-000000000001';
-const item=()=>({kind:'programplan',planId:id,offeringId:id,unitId:null,educationName:'Syntetisk plan',schoolName:null,version:1,stage:'draft',nextActor:'rektor'});
-const detail=()=>({...item(),revision:3,decisionRevision:1,basisHash:`sha256:${'a'.repeat(64)}`,actions:['submit'],blockers:[],checks:[{id:'structure',label:'Granska struktur'}],history:[],sourceInfo:null});
+const item=()=>({series:null,apl:null,kind:'programplan',planId:id,offeringId:id,unitId:null,educationName:'Syntetisk plan',schoolName:null,version:1,stage:'draft',nextActor:'rektor'});
+const detail=()=>({...item(),contractVersion:'apl_decision_v1',revision:3,decisionRevision:1,basisHash:`sha256:${'a'.repeat(64)}`,actions:['submit'],blockers:[],checks:[{id:'structure',label:'Granska struktur'}],history:[],sourceInfo:null});
 const command=()=>({kind:'programplan',planId:id,commandId:id,action:'submit',expectedRevision:3,expectedDecisionRevision:1,basisHash:`sha256:${'a'.repeat(64)}`,comment:'',confirmedChecks:['structure','choices']});
 test('commands bind revisions and fingerprint, with mandatory return reason',()=>{
  assert.deepEqual(parsePlanDecisionCommand(command()),command());
@@ -66,5 +66,25 @@ test('named decision metadata and historical names reject hostile descriptors wi
  let called=false;const value=namedItem();Object.defineProperty(value,'series',{enumerable:true,get(){called=true;return series();}});assert.throws(()=>parsePlanDecisionInbox(inbox([value])));assert.equal(called,false);
  const d={...detail(),series:null,history:[{action:'submit',at:'2026-10-15T12:00:00Z',actorName:'Rektor',comment:'',nameAtDecision:null}]};
  Object.defineProperty(d.history[0],'nameAtDecision',{enumerable:true,get(){called=true;return null;}});assert.throws(()=>parsePlanDecisionDetail(d,{kind:'programplan',planId:id}));assert.equal(called,false);
- const legacy={...detail(),history:[{action:'submit',at:'2026-10-15T12:00:00Z',actorName:'Rektor',comment:'',nameAtDecision:null}]};assert.throws(()=>parsePlanDecisionDetail(legacy,{kind:'programplan',planId:id}));
+ const legacy={...detail(),history:[{action:'submit',at:'2026-10-15T12:00:00Z',actorName:'Rektor',comment:'',nameAtDecision:null}]};delete legacy.series;assert.throws(()=>parsePlanDecisionDetail(legacy,{kind:'programplan',planId:id}));
+});
+
+test('new details require explicit version and APL fields; legacy replay is explicitly marked',()=>{
+ const expected={kind:'programplan',planId:id};
+ for(const key of ['contractVersion','apl','series']){const d=detail();delete d[key];assert.throws(()=>parsePlanDecisionDetail(d,expected));}
+ const old=detail();delete old.apl;delete old.series;old.contractVersion='legacy';
+ assert.deepEqual(parsePlanDecisionDetail(old,expected),old);
+ assert.throws(()=>parsePlanDecisionDetail({...old,apl:null},expected));
+ assert.throws(()=>parsePlanDecisionDetail({...detail(),contractVersion:'legacy'},expected));
+});
+test('bounded raw APL blockers preserve repeated period messages before semantic server comparison',()=>{
+ const d={...detail(),blockers:Array.from({length:200},()=> 'Perioden saknar datum.')};
+ assert.equal(parsePlanDecisionDetail(d,{kind:'programplan',planId:id}).blockers.length,200);
+ assert.throws(()=>parsePlanDecisionDetail({...d,blockers:Array(100001).fill('Fel')},{kind:'programplan',planId:id}));
+});
+test('new inbox requires explicit APL summary and keeps review discoverable when incomplete',()=>{
+ const row={...namedItem(),stage:'submitted',nextActor:'huvudman',task:'review',apl:{state:'legacy',ready:false,blockers:['Planering saknas.']}};
+ assert.equal(parsePlanDecisionInbox({...inbox([row]),decisionCount:1}).items[0].task,'review');
+ for(const patch of [{apl:{...row.apl,ready:true}},{apl:{...row.apl,blockers:[]}},{apl:{...row.apl,state:'unknown'}}])assert.throws(()=>parsePlanDecisionInbox({...inbox([{...row,...patch}]),decisionCount:1}));
+ const missing={...row};delete missing.apl;assert.throws(()=>parsePlanDecisionInbox({...inbox([missing]),decisionCount:1}));
 });
