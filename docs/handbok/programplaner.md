@@ -178,7 +178,7 @@ Poängramen för programfördjupning räknas ut så här: programmets poäng min
 
 **Att göra** syns i appens navigation och öppnar **Dina uppgifter och beslut** på Start. Antalet gäller det aktiva uppdragets skolor och alla läsår. Rektor ser planer att förbereda eller rätta. Huvudmannen ser planer att granska och besluta om. Planer som väntar på en annan roll visas separat. Byt uppdrag för att se den rollens uppgifter.
 
-I **Dina uppgifter och beslut** kan du söka efter utbildning eller skola och filtrera på plantyp, beslutsskede och egna eller väntande uppgifter. **Mina uppgifter** visas före väntande uppgifter. Sidknapparna når även uppgifter som inte ryms på första sidan. Antalet i navigationen gäller fortfarande hela ditt uppdrag, oavsett sökfilter.
+I **Dina uppgifter och beslut** kan du söka efter utbildning, timplansnamn eller skola och filtrera på plantyp, beslutsskede och egna eller väntande uppgifter. **Mina uppgifter** visas före väntande uppgifter. Sidknapparna når även uppgifter som inte ryms på första sidan. Antalet i navigationen gäller fortfarande hela ditt uppdrag, oavsett sökfilter.
 
 I **Programplaner**, under **Fler filter**, kan du välja **Inväntar beslut** eller **Tillbaka för rättning**. Raden visar beslutsskede och vem som ska agera härnäst. Ett inskickat eller återsänt programutkast blir inte fastställt förrän huvudmannen beslutar.
 
@@ -192,6 +192,14 @@ Huvudmannen kan även granska och fastställa ett komplett programutkast direkt.
 Flödet stödjer högskoleförberedande Gy25-program och de tolv nationella Gy25-yrkesprogrammen med verifierad källa och fullständig terminsfördelning. Yrkesprogrammens grundläggande behörighetsnivåer ingår i den gemensamma planen; en enskild elevs bortval görs inte här. Yrkesplaner kräver också uttrycklig granskning av behörighetsnivåer och APL. Beslutspanelen spärrar okända programprofiler och ofullständiga underlag med en förklaring. Manuell granskning av struktur och elevens möjliga val behövs även när automatiska kontroller är godkända. Fastställ programplanen innan elevkullen börjar. Redan fastställda planer kan inte skickas tillbaka; fortsatt ändring kräver en ny version.
 
 För yrkeskullar som börjar den 2 juli 2028 eller senare spärras beslut tills systemet stödjer den nya yrkesprovsmodellen. Den nuvarande planen använder gymnasiearbete och ska inte godkännas som om den hanterade yrkesprov.
+
+### Programplan och skolans APL-planering
+
+Programplanen anger det gemensamma innehållet och poängen. Skolans namngivna timplan anger undervisningstiden och har sin egen APL-planering. Två klasser kan följa samma programplan men använda olika timplaner med olika perioder och fördelning av APL-tid. Ändringar i en timplansvariant ändrar inte den andra variantens timmar eller den gemensamma programplanen.
+
+Programplanens APL-kontroll är en granskning av den gemensamma ramen. Den kräver inte att skolornas APL-perioder redan är färdigplanerade och är inte rektors bekräftelse av förläggningen. Programplanen kan därför fastställas innan skolans APL-underlag är färdigt. Timplanen behöver däremot sin kompletta APL-planering och rektors aktuella bekräftelse innan den kan skickas och fastställas.
+
+Fortsätt med **Timplan**, välj rätt skola och namngiven variant och följ [Planera APL i en yrkestimplan](./timplaner.md#planera-apl-i-en-yrkestimplan). Rektor och skoladministratör förbereder underlaget, rektor bekräftar förläggningen och huvudmannen prövar timplanens fastställande. Det handlar om planerad APL; platser, närvaro och genomförande följs ännu inte upp i detta flöde.
 
 ## Äldre underlag och nya planversioner
 

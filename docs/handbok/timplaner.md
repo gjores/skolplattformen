@@ -75,6 +75,46 @@ Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad u
 
 Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. Utbildningar utan timplan finns under **Programplaner**. Skapa och spara programplanen, välj **Timplan**, välj skola och sedan **Skapa ny timplan**. Först när utkastet är sparat visas det i timplanslistan.
 
+## Planera APL i en yrkestimplan
+
+APL-planeringen hör till en bestämd namngiven timplan och version på skolan. Två klasser med samma programplan kan därför ha olika APL-upplägg i var sin timplan. Planeringen visar avsedd omfattning, arbetsmoment och hur mycket av undervisningstiden som ska vara APL.
+
+### Perioder, innehåll och undervisningstid
+
+1. Öppna rätt timplan och kontrollera namn, skola och version. Gå till **Planera APL**.
+2. Välj utbildningsform. Ett äldre underlag får ingen antagen form. Skolförlagd utbildning, lärlingsutbildning och ännu okänd form hålls isär.
+3. Välj **Lägg till period**. Ange periodens namn, start- och slutdatum samt läsår. Ange omfattning och granska veckounderlaget. Datumintervallet räknas inte automatiskt som ett visst antal hela APL-veckor.
+4. Välj ämnesinnehåll och beskriv arbetsmomenten. Fördela **Varav APL** i timmar och minuter på innehållet och de terminer där det ska ingå. En valbar ram utan konkret ämnesinnehåll behöver kompletteras innan förläggningen kan bekräftas.
+5. Granska timplanens total och dess APL-andel. Välj **Granska ändringar** och **Spara APL-plan**. Vänta på beskedet att det sparade underlaget har lästs tillbaka. Sparning av ett utkast är inte ett rektorsbeslut.
+
+För den stödda skolförlagda yrkesutbildningen motsvarar en hel APL-vecka **23 undervisningstimmar**, alltså 1 380 minuter. Minst 15 hela granskade veckor behöver planeras; 15 veckor motsvarar 345 timmar. Tiden ska fördelas på det ämnesinnehåll som ingår. Minutprecision gör det exempelvis möjligt att fördela 11 h 30 min på en ämnesnivå.
+
+APL-tiden **ingår i timplanens total** och läggs inte ovanpå den. Om en terminscell har 100 timmar och 23 av dem är APL är totalen fortfarande 100 timmar. APL-andelen får inte överstiga den sparade totaltiden. När klassificeringen är fullständig kan återstående tid visas som skolförlagd. Äldre eller ofullständigt klassificerad tid får inte automatiskt betraktas som skoltid.
+
+Delveckor och blandade upplägg omvandlas inte automatiskt till hela 23-timmarsveckor. De kan finnas som planeringsunderlag men behöver särskild granskning och ger inget automatiskt besked om uppfylld APL-omfattning. Lärlingsutbildning och okänd utbildningsform får inte heller ett sådant besked i detta flöde. Överlappande perioder, datum utanför utbildningen, ofördelad tid och saknat ämnesinnehåll visas som brister.
+
+### Rektors bekräftelse och huvudmannens beslut
+
+Rektor och skoladministratör kan förbereda och spara APL-planeringen inom skolans uppdrag. **Endast rektor** kan välja **Bekräfta förläggningen** när underlaget är komplett och granskat. Bekräftelsen sparar vem som tog ansvar, när det skedde och vilket innehåll som granskades. Skoladministratören kan inte ersätta den bekräftelsen.
+
+I **APL inför beslut** visas det sparade underlaget, periodernas uppgivna omfattning, deras granskningsstatus och rektors bekräftelse. Öppna **Visa sparade perioder och arbetsmoment** för detaljerna. **Öppna APL-planeringen** leder till samma timplans APL-avsnitt. Underlaget finns också när huvudmannen öppnar ett ärende från **Dina uppgifter och beslut**. Inkorgen skiljer APL-underlag som finns från APL som behöver kompletteras; antalet granskningsärenden är inte ett antal godkännandeklara planer.
+
+Rektors bekräftelse av förläggningen och huvudmannens **Fastställ planen** är två skilda beslut. Huvudmannen granskar även timplanens övriga kontroller och kan fastställa eller skicka tillbaka med motivering. APL-panelen visar planering och ansvarshändelser, inte att APL har genomförts.
+
+Om APL-innehållet eller den undervisningstid som det bygger på ändras behöver rektor granska och bekräfta igen. Den tidigare bekräftelsen finns kvar men märks som inaktuell. Enbart inskickande eller fastställande gör inte en oförändrad bekräftelse inaktuell. Pågående, osparade eller oklart sparade ändringar måste hanteras innan planen kan skickas eller fastställas, även om en beslutsdialog redan är öppen.
+
+### Äldre planer, kopiering och oklart sparbesked
+
+Ett äldre utkast utan strukturerat APL-underlag visar **APL-planeringen behöver kompletteras**. Det betyder att fördelningen är okänd, inte att planen har noll APL. Ett redan inskickat ärende kan skickas tillbaka av huvudmannen eller tas tillbaka av den som planerar. Komplettera, spara och låt rektor bekräfta förläggningen innan planen skickas på nytt.
+
+En äldre fastställd eller ersatt plan behåller sitt historiska beslut. Den får inget nytt besked om att APL-underlaget är komplett. Fortsatt ändring görs i en ny version. Vid uttrycklig kopiering kan sparad APL-struktur följa med som underlag, men den behöver granskas på nytt. Rektors bekräftelse följer inte med. Innehåll eller tidsfördelning som inte passar den nya planen visas för granskning i stället för att försvinna tyst.
+
+Om sparsvaret uteblir, använd **Läs sparstatus** och följ beskedet innan du gör ett nytt sparförsök. Den granskade begäran finns kvar vid omladdning och ny verifiering med engångskod i samma webbläsarflik och uppdrag. Ett tidigare lyckat sparbesked kan avse en äldre version av innehållet; den aktuella timplanen läses då om och skrivs inte över med det gamla beskedet. Stäng inte fliken medan sparstatus är okänd.
+
+### Vad APL-planeringen ännu inte visar
+
+Arbetsplatser, handledare, individuella placeringar, närvaro, utförda arbetsmoment och elevens lärande följs ännu inte upp här. Planerade undervisningstimmar är inte samma sak som tid på arbetsplatsen eller faktiskt genomförd undervisning. En färdig planering eller rektors bekräftelse är därför inget intyg om genomförd APL.
+
 ## Skicka, återsänd och fastställ gymnasiets timplan
 
 Rektor och skoladministratör fördelar timmar och skickar planen för godkännande. Huvudmannen granskar och fastställer eller återsänder med motivering. Beslutspanelen visar status, nästa ansvariga roll, hinder och historik. **Att göra** i navigationen visar uppgifter inom ditt aktiva uppdrag; Start samlar dem över alla läsår.
@@ -85,7 +125,7 @@ Programplanen måste vara fastställd innan timplanen skickas. Du får skapa och
 
 En inskickad plan är låst. Den som planerar kan återta den till utkast. Huvudmannen skriver vad som är fel i **Kommentar – vad behöver rättas?** och väljer **Skicka tillbaka för rättning**. Rektor eller skoladministratör ser uppgiften **Läs återkoppling och rätta** och kommentaren direkt i planen under **Det här behöver rättas**. Efter rättning och sparande skickas planen igen. En tom kommentar kan inte skickas. Fastställande kräver en uttrycklig bekräftelse. Tidigare fastställda versioner av samma namngivna timplan bevaras som ersatta när dess nya version fastställs. Andra namngivna timplaner påverkas inte. Befintliga klasskopplingar flyttas aldrig automatiskt.
 
-Yrkesprogram kräver även granskning av grundläggande behörighet och APL. Kontrollera minst 15 veckors APL, eller mer än halva utbildningen vid lärlingsutbildning. En APL-vecka räknas som 23 undervisningstimmar och får inte räknas dubbelt. Timplanen är ett planerat underlag; den ersätter inte APL-organisation eller uppföljning av genomförd tid. Beslut för yrkeskullar från den 2 juli 2028 spärras tills yrkesprovsmodellen stöds.
+Yrkesprogram kräver även granskning av grundläggande behörighet samt komplett APL-planering med rektors aktuella bekräftelse. Följ [APL-flödet ovan](#planera-apl-i-en-yrkestimplan). Den automatiska APL-kontrollen gäller det stödda skolförlagda upplägget; lärling och delveckor får inget automatiskt godkännande genom samma beräkning. Beslut för yrkeskullar från den 2 juli 2028 spärras tills yrkesprovsmodellen stöds.
 
 Fastställda planer kan inte skickas tillbaka; ändringar görs i en ny version. Grundskola och introduktionsprogram har andra regelprofiler och får ingen ny beslutskedja genom detta gymnasieflöde.
 

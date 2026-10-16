@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { splitAplMinutes } from '@/lib/apl-plan.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parsePlanDecisionDetail, type PlanDecisionAction, type PlanDecisionDetail, type PlanDecisionKind, type PlanDecisionStage } from '@/lib/plan-decision.ts';
@@ -12,6 +13,62 @@ import MfaStepUpNotice from './mfa-step-up';
 type Command = { commandId: string; kind: PlanDecisionKind; planId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
 const actionLabel = { submit: 'Skicka för beslut', return: 'Skicka tillbaka för rättning', approve: 'Fastställ planen', withdraw: 'Ta tillbaka för ändring' };
 const historyLabel = { submit: 'Skickad för beslut', return: 'Skickad tillbaka för rättning', approve: 'Fastställd', withdraw: 'Tillbakatagen för ändring' };
+function plannedTime(total: number): string {
+  const {hours,minutes} = splitAplMinutes(total);
+  return `${hours.toLocaleString('sv-SE')} h${minutes ? ` ${minutes} min` : ''}`;
+}
+function displayDate(value: string | null): string {
+  return value ? new Date(`${value}T12:00:00`).toLocaleDateString('sv-SE', {day:'numeric',month:'short',year:'numeric'}) : 'Datum saknas';
+}
+/** Presentation only: readiness and current confirmation come from the verified server reply. */
+function AplDecisionEvidence({detail}: {detail: PlanDecisionDetail}) {
+  const apl = detail.apl;
+  if (!apl) return null;
+  const plan = apl.detail.plan, latest = apl.detail.confirmations.at(-1);
+  const current = latest && latest.id === apl.currentConfirmationId;
+  const historical = ['approved','replaced'].includes(detail.stage);
+  const minutes = plan?.periods.reduce((total,period)=>total+period.allocations.reduce((sum,allocation)=>sum+allocation.gutMinutes,0),0);
+  return <section className="grid min-w-0 gap-4 rounded-lg border border-border bg-muted/30 p-4" aria-label="APL inför beslut">
+    <div><h3 className="text-lg font-semibold">APL inför beslut</h3>
+      <p className="decision-secondary">Sparad planering för {detail.series?.name ?? 'timplanen'} · version {detail.version}. Tiden ingår i timplanens total.</p></div>
+    {!plan ? <div className="grid gap-2">
+      <p><strong>{historical ? 'Äldre plan utan registrerat APL-underlag' : 'APL-planeringen behöver kompletteras'}</strong></p>
+      <p>{historical ? 'Det tidigare fastställandet ligger kvar. Den här vyn kan inte visa hur APL fördelades i den äldre planen. Saknat underlag betyder inte noll APL.'
+        : 'Perioder, innehåll och APL-tid behöver sparas i timplanen. Därefter bekräftar rektor förläggningen innan planen kan skickas och fastställas.'}</p>
+      {!historical && detail.stage === 'submitted' && <p>{detail.actions.includes('return')
+        ? 'Skicka tillbaka planen med en kommentar om APL-kompletteringen.' : 'Ta tillbaka planen för att komplettera APL och skicka den på nytt.'}</p>}
+    </div> : <>
+      <dl className="grid gap-3 sm:grid-cols-3">
+        <div><dt className="text-sm text-muted-foreground">Utbildningsform</dt><dd className="font-semibold">{plan.educationForm === 'school_based' ? 'Skolförlagd utbildning' : plan.educationForm === 'apprenticeship' ? 'Lärlingsutbildning' : 'Inte vald'}</dd></div>
+        <div><dt className="text-sm text-muted-foreground">Sparade APL-perioder</dt><dd className="font-semibold">{plan.periods.length}</dd></div>
+        <div><dt className="text-sm text-muted-foreground">Fördelad APL-tid</dt><dd className="font-semibold">{plannedTime(minutes ?? 0)}</dd></div>
+      </dl>
+      <p><strong>{apl.ready ? 'APL-underlaget är klart för prövning' : 'APL-underlaget behöver granskas eller kompletteras'}</strong></p>
+      <div className="grid gap-2 rounded-md border border-border bg-background p-3" aria-label="Rektors bekräftelse">
+        <h4 className="font-semibold">Rektors bekräftelse av förläggningen</h4>
+        {latest ? <><p><strong>{current ? 'Gäller det sparade innehållet' : 'Behöver förnyas efter ändring'}</strong></p>
+          <p>{latest.actorName} · {new Date(latest.at).toLocaleString('sv-SE')}</p>
+          {!current && <p>Den tidigare bekräftelsen gäller ett annat innehåll. Rektor behöver granska och bekräfta förläggningen igen.</p>}
+          {latest.comment && <p className="whitespace-pre-wrap break-words">{latest.comment}</p>}</>
+          : <p>Rektor har ännu inte bekräftat förläggningen. Det görs i APL-planeringen efter att underlaget har sparats och granskats.</p>}
+        <p className="decision-secondary">Rektors bekräftelse gäller förläggningen. Huvudmannens fastställande av timplanen är ett separat beslut.</p>
+      </div>
+      <details><summary>Visa sparade perioder och arbetsmoment ({plan.periods.length})</summary>
+        <ol className="mt-3 grid list-none gap-4 p-0">{plan.periods.map(period=><li key={period.id} className="min-w-0 rounded-md border border-border bg-background p-3">
+          <h4 className="break-words font-semibold">{period.name || 'Namnlös period'}</h4>
+          <p>{displayDate(period.startsOn)} – {displayDate(period.endsOn)}{period.schoolYear !== null && ` · Läsår ${period.schoolYear}/${period.schoolYear+1}`}</p>
+          <p>{period.extent.basis === 'whole_weeks' && period.extent.weeks !== null ? `Uppgiven omfattning: ${period.extent.weeks} hela veckor` : period.extent.basis === 'mixed_weeks' ? 'Omfattning: delveckor eller blandat upplägg' : 'Omfattning: behöver anges'}</p>
+          <p className="decision-secondary">{period.extent.reviewed ? 'Veckounderlaget har markerats som granskat.' : 'Veckounderlaget behöver granskas.'}</p>
+          {period.extent.reviewNote && <p className="whitespace-pre-wrap break-words">{period.extent.reviewNote}</p>}
+          <p><strong>Varav APL: {plannedTime(period.allocations.reduce((sum,a)=>sum+a.gutMinutes,0))}</strong></p>
+          {period.contents.length ? <ul className="ml-5 list-disc break-words">{period.contents.map(content=><li key={content.rowKey}>{content.description || 'Arbetsmoment behöver beskrivas'}</li>)}</ul> : <p>Ämnesinnehåll och arbetsmoment behöver beskrivas.</p>}
+        </li>)}</ol>
+      </details>
+    </>}
+    <p className="decision-secondary">Visar planerad APL. Arbetsplatser, handledare, närvaro och genomförande följs ännu inte upp här.</p>
+    <a href="#apl-planering" className="w-fit text-primary underline underline-offset-4">Öppna APL-planeringen</a>
+  </section>;
+}
 export default function PlanDecisionPanel({ kind, planId, revision, disabled, onChanged, onSecurityFailure, onStage }: {
   kind: PlanDecisionKind; planId: string; revision: number | string; disabled: boolean; onStage?: (stage: PlanDecisionStage | null) => void;
   onChanged: () => void | Promise<void>; onSecurityFailure: (error: unknown) => boolean;
@@ -65,11 +122,12 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
     } finally { inFlight.current = false; if (active.current) setSending(false); }
   }
   function act(action: PlanDecisionAction) {
-    if (!detail || disabled || loading || pending || !detail.actions.includes(action)) return;
+    if (!detail || disabled || loading || pending || !detail.actions.includes(action) || (action === 'submit' || action === 'approve') && !ready) return;
     void execute({ commandId: crypto.randomUUID(), kind, planId, action, expectedRevision: detail.revision, expectedDecisionRevision: detail.decisionRevision,
       basisHash: detail.basisHash, comment: comment.trim(), confirmedChecks: checks });
   }
-  const ready = !!detail && detail.blockers.length === 0 && detail.checks.every(check => checks.includes(check.id));
+  const ready = !!detail && detail.apl?.ready !== false && detail.blockers.length === 0 && detail.checks.every(check => checks.includes(check.id));
+  const availableActions = detail?.actions.filter(action => detail.apl?.ready !== false || action === 'return' || action === 'withdraw') ?? [];
   const feedback = detail?.stage === 'returned' ? detail.history.find(event => event.action === 'return') : null;
   return <section className="plan-decision-panel" aria-label="Beslut och nästa steg" aria-busy={loading || sending}>
     <div className="plan-decision-heading"><div><h2>Beslut och nästa steg</h2>{detail?.series && <p>{detail.series.name} · version {detail.version}</p>}{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
@@ -89,19 +147,20 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
         ? 'Granska underlaget. Om något är fel, beskriv vad som behöver rättas i kommentaren och skicka tillbaka planen. Fastställ först när granskningen är klar.'
         : detail.actions.includes('withdraw') ? 'Planen väntar på huvudmannens beslut. Ta tillbaka den om du behöver göra ändringar.' : 'Planen väntar på huvudmannens beslut och kan inte ändras under granskningen.'}</p>}
       {detail.stage === 'approved' && <p>Den här versionen är fastställd och låst. Fortsatta ändringar görs i en ny version.</p>}
+      <AplDecisionEvidence detail={detail}/>
       {detail.sourceInfo && <p className="decision-secondary">{detail.sourceInfo}</p>}
       {detail.blockers.length > 0 && <div><strong>Behöver åtgärdas före beslut</strong><ul className="decision-blockers">{detail.blockers.map((blocker, index) => <li key={index}>{blocker}</li>)}</ul></div>}
-      {detail.actions.some(action => action === 'approve' || action === 'submit') && detail.checks.map(check => <label className="decision-check" key={check.id}><input type="checkbox" checked={checks.includes(check.id)} disabled={disabled || !!pending} onChange={event => setChecks(current => event.target.checked ? [...current, check.id] : current.filter(id => id !== check.id))}/><span>{check.label}</span></label>)}
-      {detail.actions.length > 0 && <>
-        <label className="decision-comment">Kommentar{detail.actions.includes('return') ? ' – vad behöver rättas?' : ' (frivillig)'}<textarea value={comment} maxLength={2000} disabled={disabled || !!pending} onChange={event => setComment(event.target.value)}/></label>
+      {availableActions.some(action => action === 'approve' || action === 'submit') && detail.checks.map(check => <label className="decision-check" key={check.id}><input type="checkbox" checked={checks.includes(check.id)} disabled={disabled || loading || !!pending} onChange={event => setChecks(current => event.target.checked ? [...current, check.id] : current.filter(id => id !== check.id))}/><span>{check.label}</span></label>)}
+      {availableActions.length > 0 && <>
+        <label className="decision-comment">Kommentar{detail.actions.includes('return') ? ' – vad behöver rättas?' : ' (frivillig)'}<textarea value={comment} maxLength={2000} disabled={disabled || loading || !!pending} onChange={event => setComment(event.target.value)}/></label>
         {detail.actions.includes('return') && <p className="decision-secondary">En kommentar krävs för att skicka tillbaka planen. Den visas för den som ska rätta och sparas i beslutshistoriken.</p>}
         {disabled && <p>Spara eller avsluta pågående ändringar innan du går vidare med beslutet.</p>}
-        <div className="decision-actions">{detail.actions.map(action => <Button key={action} variant={action === 'approve' || action === 'submit' ? 'default' : 'outline'}
+        <div className="decision-actions">{availableActions.map(action => <Button key={action} variant={action === 'approve' || action === 'submit' ? 'default' : 'outline'}
           disabled={disabled || !!pending || loading || (action === 'approve' || action === 'submit') && !ready || action === 'return' && !comment.trim()}
           onClick={() => action === 'approve' ? setConfirm(true) : act(action)}>{actionLabel[action]}</Button>)}</div>
       </>}
       <details><summary>Beslutshistorik ({detail.history.length})</summary>{detail.history.length ? <ol className="decision-history">{detail.history.map((event, index) => <li key={index}><strong>{historyLabel[event.action]}</strong>{kind==='timplan' && <span>{event.nameAtDecision ?? 'Namnet vid beslutet är inte registrerat'}</span>}<span>{event.actorName} · {new Date(event.at).toLocaleString('sv-SE')}</span>{event.comment && <p>{event.comment}</p>}</li>)}</ol> : <p>Inga beslut har registrerats för den här versionen.</p>}</details>
     </>}
-    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>Fastställ {kind === 'programplan' ? 'programplanen' : 'timplanen'}?</DialogTitle><DialogDescription>{detail?.series?.name ?? detail?.educationName}{detail?.schoolName ? ` · ${detail.schoolName}` : ''} · Version {detail?.version}. Den granskade versionen låses och beslutet sparas i historiken.</DialogDescription><div className="decision-actions"><Button variant="outline" onClick={() => setConfirm(false)}>Avbryt</Button><Button disabled={disabled || !ready || !!pending} onClick={() => act('approve')}>Ja, fastställ planen</Button></div></DialogContent></Dialog>
+    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>Fastställ {kind === 'programplan' ? 'programplanen' : 'timplanen'}?</DialogTitle><DialogDescription>{detail?.series?.name ?? detail?.educationName}{detail?.schoolName ? ` · ${detail.schoolName}` : ''} · Version {detail?.version}. Den granskade versionen låses och beslutet sparas i historiken.</DialogDescription><div className="decision-actions"><Button variant="outline" onClick={() => setConfirm(false)}>Avbryt</Button><Button disabled={disabled || loading || !ready || !!pending} onClick={() => act('approve')}>Ja, fastställ planen</Button></div></DialogContent></Dialog>
   </section>;
 }

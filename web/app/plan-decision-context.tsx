@@ -86,6 +86,8 @@ export function DecisionInbox({ roleLabel, onOpen }: { roleLabel: string; onOpen
   const waiting = items.filter(item => ['waiting','blocked'].includes(item.task));
   const row = (item: PlanDecisionItem) => <li key={`${item.kind}:${item.planId}:${item.unitId}`}>
     <div><strong>{item.educationName}</strong><span>{item.kind === 'programplan' ? 'Programplan' : 'Timplan'} · Version {item.version}{item.schoolName && ` · ${item.schoolName}`}</span>
+      {item.series && <span className="font-medium">{item.series.name}</span>}
+      {item.apl && <span>{item.apl.ready ? 'APL-underlag och rektorsbekräftelse finns' : item.apl.state === 'legacy' ? 'APL-planering behöver kompletteras' : 'APL behöver granskas eller kompletteras'}</span>}
       <span>{decisionStageLabel[item.stage]}{item.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(item.kind, item.nextActor)}`}</span></div>
     <button type="button" onClick={() => onOpen(item)}>{item.task === 'waiting' && item.stage === 'returned' ? 'Inväntar rättning' : item.task === 'waiting' && item.stage === 'draft' ? 'Inväntar förberedelse' : taskLabel[item.task]}<ArrowRight size={16} aria-hidden="true"/></button>
   </li>;
@@ -94,7 +96,7 @@ export function DecisionInbox({ roleLabel, onOpen }: { roleLabel: string; onOpen
     {error ? <p role="alert">{error}</p> : !inbox ? <output>Hämtar uppgifter…</output> : <>
       <p className="decision-inbox-summary"><strong>{inbox.decisionCount} {inbox.decisionCount === 1 ? 'plan väntar' : 'planer väntar'} på ditt beslut</strong><span>{inbox.actionCount} {inbox.actionCount === 1 ? 'uppgift' : 'uppgifter'} att arbeta vidare med</span></p>
       <form className="decision-filters" onSubmit={event => { event.preventDefault(); change({query:filters.draft.trim()}); }}>
-        <label>Sök uppgift<input type="search" maxLength={200} value={filters.draft} placeholder="Utbildning eller skola" onChange={event => setFilters(previous => ({...previous,draft:event.target.value}))}/></label>
+        <label>Sök uppgift<input type="search" maxLength={200} value={filters.draft} placeholder="Utbildning, timplan eller skola" onChange={event => setFilters(previous => ({...previous,draft:event.target.value}))}/></label>
         <label>Beslutsskede<select value={selection.stage} onChange={event => change({stage:event.target.value as PlanDecisionQuery['stage']})}>
           <option value="all">Alla skeden</option><option value="draft">Utkast</option><option value="submitted">Inväntar beslut</option><option value="returned">Tillbaka för rättning</option>
         </select></label>

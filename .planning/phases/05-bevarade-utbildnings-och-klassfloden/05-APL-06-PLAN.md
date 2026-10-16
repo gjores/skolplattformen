@@ -6,7 +6,7 @@ wave: 5
 depends_on: ["APL-04", "APL-04A"]
 files_modified: ["web/app/plan-decision-panel.tsx", "web/app/plan-decision-context.tsx", "web/e2e/apl-decision.spec.ts", "web/playwright.apl-decision.config.ts", "web/e2e/fixtures/apl-decision-preview.tsx", "web/e2e/fixtures/apl-decision-preview.html", "docs/handbok/timplaner.md", "docs/handbok/programplaner.md"]
 autonomous: true
-status: in_progress
+status: complete
 gap: APL-01
 must_haves:
   truths: ["Rektor ser ett eget förläggningsbeslut och huvudmannen ett separat fastställande.", "Gamla ärenden visar en begriplig väg till komplettering.", "Handboken beskriver exakt vad APL-planeringen visar och ännu inte följer upp."]
