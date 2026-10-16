@@ -67,7 +67,7 @@ export function requirePreviousRuntimeProof(previous,artifact,runtime,{cleanupPr
   assert.deepEqual(business,previous.beforeBusiness);assert.deepEqual(configuration,previous.beforeConfiguration);
   previous={kind:previous.kind,mode:previous.mode,status:'PASS',applied:true,afterArtifact:previous.beforeArtifact,afterRuntime:previous.restoredRuntime};
  }
- assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
+ assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
  for(const part of ['listener','preview','manager']){const old=previous.afterRuntime[part],current=runtime[part];for(const key of ['pid','started','args'])assert.equal(current[key],old[key],'Active process differs from previous delivery');if(part!=='manager')assert.equal(current.ppid,old.ppid);else assert.ok(current.ppid===old.ppid||current.ppid===1,'Manager parent changed unexpectedly');}
 }
 async function health(){
@@ -589,3 +589,6 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   const r=await deliverAplPlan(mode,options);if(r.status!=='PASS')process.exitCode=1;
  }catch{console.error('FAIL: local APL delivery preflight');process.exitCode=1;}
 }
+
+// Shared, unchanged local-transfer mechanics for code-only packages.
+export { reserveDeliveryReport, failureMetadata, health, privateConfiguration, businessHashes, stopRuntime, startRuntime, stopOwnStartingManager, inspectDeliveryScope, readOnlyOidc };

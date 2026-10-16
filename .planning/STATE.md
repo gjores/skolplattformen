@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-UX-03
+current_plan: TIMPLAN-AUTO
 status: awaiting_user
-stopped_at: APL-UX lokalt levererad på3012; användarens nya begriplighetsbedömning väntar.
+stopped_at: Autofördelning tekniskt klar och lokalt levererad på3012; användarprov väntar.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "Användaren rapporterar mycket bra funktion men kräver enklare UX. Valt flöde: årskurs/termin först, exakta veckor/datum senare. APL-UX:s tre planer är tekniskt verifierade och lokalt levererade; mänsklig begriplighet återstår."
-state_head: 9d208ea
-verification_worker_build_revision: c739bb38feadee27189cb2d44feb658ab5ee9585
-verification_worker_status: apl_ux_actual_sql_api_browser_local_delivery_pass
-worker_status: apl_ux_local_delivery_verified
-worker_build_revision: c739bb38feadee27189cb2d44feb658ab5ee9585
+last_activity_desc: "Autofördelning med total och GUT lokalt levererad. Modell/server90, UI24, faktisk Worker/OIDC14 och bevarande71 tabeller PASS. Ingen migration. Mänskligt prov och tidigare APL-UX-bedömning väntar."
+state_head: a55a15a
+verification_worker_build_revision: a55a15a2d05f59bcda4bf71621e18c03fffa89dd
+verification_worker_status: timplan_auto_actual_api_browser_local_delivery_pass
+worker_status: timplan_auto_local_delivery_verified
+worker_build_revision: a55a15a2d05f59bcda4bf71621e18c03fffa89dd
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Autofördelning levererad 2026-10-16:** Timplanens nya dialog frågar efter total timmar och visar GUT, bevarar befintliga värden eller fördelar om hela planen och skyddar sparad APL-tid. Modell/server90, UI24, faktisk Worker/OIDC14 och lokalt appbyte PASS. Exakt testad a55a15a/210-fils kandidat kör på3012, utan migration och med71 verksamhetstabeller bevarade. [Resultat och användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-AUTO-SUMMARY.md). Mänsklig begriplighetsbedömning, tidigare APL-UX-prov och full fasacceptans kvarstår. Historiska88/100 och3/8 består.
 
 **APL-UX levererad 2026-10-16:** Årskurs och termin kan väljas och sparas först; datum/omfattning och ämnen/tid preciseras senare. Tre avgränsade planer klara. Modell/SQL, dator/telefon, faktisk Worker/OIDC och bevarandekontroller PASS. Samma c739bb3/209-fils kandidat kör på 3012 efter additiv migration, med 74 originaltabeller bevarade vid installation och 71 verksamhetstabeller vid appbyte/läsprov. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-UX-VERIFICATION.md) och [leverans/användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-UX-RELEASE.md). Ny mänsklig begriplighetsbedömning väntar; genomförandeetapper och full pilot-/fasacceptans kvarstår. Historik nedan ändras inte.
 
