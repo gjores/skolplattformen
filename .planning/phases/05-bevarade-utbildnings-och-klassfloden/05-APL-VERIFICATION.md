@@ -2,13 +2,15 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: APL
 stage: 1
-status: sql_verified_ui_simulated
+status: actual_verified_release_pending
 updated: 2026-10-16
 ---
 
 # APL etapp 1 – samlad verifieringsmatris
 
-**Slutstatus2026-10-16:** APL-07 PASS65 kontroller/12 observerade överlapp,65 originaltabeller/530 ursprungliga syntetiska rader bevarade,99 oförändrade aktuella källhashar, full rollback/cleanup. Se [APL-07](05-APL-07-SUMMARY.md). APL-05 UI44, APL-06 UI26 och slutlig Node91 PASS. Faktisk HTTP/OIDC, installation och mänsklig acceptans återstår. Matrisens äldre pågår-noteringar nedan ersätts av detta slutbevis för SQL, inte för verklig integration.
+**Aktuell slutstatus2026-10-16:** [APL-08](05-APL-08-SUMMARY.md) PASS34 faktisk Worker/HTTP/OIDC, 2/2 dator-/telefonflöden utan omprov,14 visuellt granskade bilder,19 callbacks och full cleanup. Kandidat68cecb4/209 filer. Läsande installations- och leveransförberedelse PASS. APL1-01–08 har lokala automatiska bevis; permanent installation och mänsklig begriplighet kvarstår i09/10. Inget nytt fullkravs- eller fasgodkännande.
+
+**SQL-slutstatus före APL-08:** APL-07 PASS65 kontroller/12 observerade överlapp,65 originaltabeller/530 ursprungliga syntetiska rader bevarade,99 oförändrade aktuella källhashar, full rollback/cleanup. Se [APL-07](05-APL-07-SUMMARY.md). APL-05 UI44, APL-06 UI26 och slutlig Node91 PASS. Faktisk HTTP/OIDC, installation och mänsklig acceptans återstår. Matrisens äldre pågår-noteringar nedan ersätts av detta slutbevis för SQL, inte för verklig integration.
 
 Denna fil skiljer körda delprov, pågående samlad SQL-verifiering och återstående användar-/leveransprov. Ingen aktiv installation eller full fasacceptans följer av en syntetisk SQL-körning.
 
@@ -33,7 +35,9 @@ APL-07 använder en egen schema-only-kopia med syntetiska kunder, uppdrag, skolo
 | Äldre draft/submitted/approved/replaced, beslut och byteidentiska receipts | APL1-04/05/06 | APL-03/04 samt APL-07 LEGACY | PASS enligt APL-07 |
 | Rollback, originalrader, schema och exakt tre nya Workergrants | APL1-05/06/08 | APL-07 PRESERVE + delad strukturvalidator | PASS i samlat slutprov |
 | Verklig SQL-skrivning följd av projektionsfel/auditfel | APL1-05 | APL-04 fem observerade post-write rollbackfall; APL-07 AUDIT | PASS efter profilfix; APL-04/07 |
-| UI, dator/telefon, journal, docs, HTTP/OIDC och lokal leverans | APL1-05/07/08 | APL-05/06/08 | Separata planer; ingen acceptans hävdas här |
+| UI, dator/telefon, journal och handbok | APL1-05/07/08 | APL-05 UI44, APL-06 UI26/handbok, APL-08 faktisk browser14 | Automatiskt PASS; begriplighetsprov10 kvar |
+| Faktisk HTTP/OIDC, minuter, regler, mandat, återhämtning och beslut | APL1-01–08 | APL-08 browser14/API20 på samma kandidat, SQL07 som komplement | PASS lokalt syntetiskt; ingen extern anslutning |
+| Aktiv installation och samma kandidat på3012 | APL1-06/08 | APL-08 läsande preflight/prepare; APL-09 | Förberett PASS; installation väntar på exakt beslut |
 
 ## Första fel och återhämtning
 

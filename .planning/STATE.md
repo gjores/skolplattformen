@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-08
-status: in_progress
-stopped_at: APL-05/07 verifierade; separat skyddad kandidat byggd, faktisk APL-08-integration återstår.
+current_plan: APL-09
+status: awaiting_release_authorization
+stopped_at: APL-08 PASS34 och läsande releaseförberedelse PASS; APL-09 väntar på exakt installationsbeslut, aktiv3012 oförändrad.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "APL-06 klar: simulerad UI26 på dator/telefon, Node32, typ/lint och handbok PASS. APL-05/07 pågår; ingen ny lokal leverans."
-state_head: cf319f0
+last_activity_desc: "APL-08 klar: faktisk34, dator/telefon, bildgranskning och releaseförberedelse PASS. 9/11 klara; installation och mänsklig begriplighet återstår."
+state_head: 68cecb4
 verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
 worker_status: rector_programplan_local_delivery_verified
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-08 klar2026-10-16:** [Redovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-08-SUMMARY.md) PASS34 faktiska kontroller, dator/telefon utan omprov,14 granskade bilder,19 callbacks och full cleanup. Samma68cecb4/209-fils kandidat,386 produktkällor/59 verifieringskällor oförändrade. Läsande installation/leveransförberedelse PASS och oberoende granskning utan blockerare. 9/11 paketplaner klara; [exakt release](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-RELEASE.md) väntar på APL-09:s installationsbeslut. Aktiv databas och3012/a34dd19 är oförändrade. Mänsklig begriplighet i10, etapp2–3 och fulla pilotkrav kvarstår.
 
 **APL våg5 verifierad2026-10-16:** [APL-07](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-07-SUMMARY.md) PASS65 faktiska SQL-kontroller/12 observerade överlapp,65 originaltabeller/530 rader bevarade,99 aktuella källhashar och full cleanup. APL-05 UI44 är klar. 8 av11 paketplaner klara. Separat skyddad kandidat från467f9ea är byggd utan ändring av aktiv artefakt. APL-08 faktisk HTTP/OIDC återstår; ingen aktiv installation eller mänsklig acceptans.
 
