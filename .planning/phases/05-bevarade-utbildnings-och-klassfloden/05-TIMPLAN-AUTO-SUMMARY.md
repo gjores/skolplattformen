@@ -3,7 +3,7 @@ phase: 05-bevarade-utbildnings-och-klassfloden
 plan: TIMPLAN-AUTO
 status: locally_delivered
 completed: 2026-10-16
-user_trial: awaiting_user
+user_trial: user_reported_pass
 ---
 
 # Autofördelning av undervisningstid
@@ -62,3 +62,7 @@ Mänskligt begriplighetsprov **awaiting_user**: ladda om3012, öppna eget timpla
 ## SS 12000 och gränser
 
 SS 12000:2024 utgåva 4/OpenAPI 2.1.0 enligt planens avstämning. Intern planerad undervisningstid, utan nya standardobjekt eller informationsutbyte. Stabila identifierare och explicita klassrelationer bevaras. Automatiska prov är inte mänsklig begriplighetsacceptans, genomförd APL eller verifierad kommunanslutning. Tidigare APL-UX-användarprov och övriga fasluckor kvarstår.
+
+## Användaråterkoppling 2026-10-16
+
+Användaren svarar ”alltså det funkar” och beställer tydligare APL-handledning samt datumväljare med veckonummer. Registrerat som användarrapporterat godkänt för autofördelningens funktion; enheter/delsteg särredovisades inte. Nytt avgränsat paket [APL-GUIDE-DATES](05-APL-GUIDE-DATES-PLAN.md) hanterar önskemålen. Full fasacceptans antas inte.

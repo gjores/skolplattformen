@@ -12,7 +12,7 @@ implementation_started: false
 
 Användarens senaste referens och kolumnrubriker anger **Skola HT, Skola VT och separat APL per årskurs**. Det är en ändrad verksamhetsmodell jämfört med nuvarande totaltimmar inklusive APL. Användaren vill kunna planera timmar per ämne och årskurs först och förlägga perioder senare. Den riktningen är beställd. Lagringsformat, övergångsmetod och leveranssteg nedan är tekniska rekommendationer, inte redan installerad eller verifierad funktion.
 
-GUIDE-DATES är ett eget pågående leveranspaket med produktcommit `2b383dc`; dess handledning beskriver nuvarande app. Årsmodellen får inte smygas in i det paketet. Den nya modellen ändrar inte klasskopplingar, mandat eller programplanens ämnespoäng. Referensbildens eventuella APL-poäng införs inte. Faktisk närvaro, arbetsplatsplaceringar och elevuppföljning är fortsatt senare etapper.
+GUIDE-DATES är ett separat levererat paket med produktcommit `c02e600`; dess handledning beskriver nuvarande app. Samlad verifiering och lokal leverans finns i `05-APL-GUIDE-DATES-VERIFICATION.md`. Årsmodellen får inte smygas in i det paketet. Den nya modellen ändrar inte klasskopplingar, mandat eller programplanens ämnespoäng. Referensbildens eventuella APL-poäng införs inte. Faktisk närvaro, arbetsplatsplaceringar och elevuppföljning är fortsatt senare etapper.
 
 Mål: rektor kan ange exempelvis **Skola HT 80 h, Skola VT 70 h, APL åk 1 115 h**, spara utan perioder och se **265 h totalt, varav APL 43,4 %**. När 60 APL-timmar förläggs i perioder är totalen fortfarande 265 h: 60 h är förlagda och 55 h återstår att förlägga. Detta är ett räkneexempel, ingen timregel för ett visst ämne.
 

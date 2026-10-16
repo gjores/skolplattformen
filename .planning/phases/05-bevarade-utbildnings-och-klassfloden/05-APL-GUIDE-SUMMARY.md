@@ -2,12 +2,12 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: APL-GUIDE-DATES
 scope: GUIDE-01/GUIDE-02
-status: implemented_baseline_pending_flow_decision
+status: delivered_verified
 ---
 
 # APL-handledning – avgränsad implementation
 
-2026-10-16. Guide och handbok beskriver den befintliga termins-/periodbaserade APL-planeringen. Under arbetet lämnade användaren ny styrning om planering direkt per ämne/årskurs. Regel- och ansvarsdelarna är återanvändbara, men denna summary innebär inte att en ny årsbudget eller ny arbetsgång är genomförd eller levererad. Root samordnar det beslutet och faktisk leverans.
+2026-10-16. Guide och handbok beskriver den befintliga termins-/periodbaserade APL-planeringen. Under arbetet lämnade användaren ny styrning om planering direkt per ämne/årskurs. Regel- och ansvarsdelarna är återanvändbara, men denna summary innebär inte att en ny årsbudget eller ny arbetsgång är genomförd eller levererad. Den kompletterande bilden med kolumnrubriker har nu klargjort riktningen: skolförlagd HT/VT och separat års-APL. Genomförandet beskrivs i `05-APL-ANNUAL-PLAN.md`; faktisk basleverans redovisas i `05-APL-GUIDE-DATES-VERIFICATION.md`.
 
 ## Ändrat
 
@@ -19,7 +19,7 @@ status: implemented_baseline_pending_flow_decision
 ## Kontroller
 
 - APL-preview, simulerad HTTP: **60/60 passerade** på dator och telefon, noll retries. Befintliga spar-/återhämtnings-/mandat-/term-/beslutsregressioner ingår. Logg `/private/tmp/apl-guide-preview.log`.
-- Efter explicit labelkoppling och bildförbättring: smalt guide-/datumprov **4/4 passerade**. Slutbilder i `/private/tmp/apl-guide-final-ui-results` och logg `/private/tmp/apl-guide-final-preview.log` (root behöver slutligt frysa och kontrollera källorna).
+- Efter explicit labelkoppling och bildförbättring: smalt guide-/datumprov **4/4 passerade**. Slutbilder i `/private/tmp/apl-guide-final-ui-results` och logg `/private/tmp/apl-guide-final-preview.log` (slutlig källfrysning och faktisk leverans redovisas i samlad verifiering).
 - `npx tsc --noEmit`: PASS vid gemensam arbetskopia; `/private/tmp/apl-guide-types.log`.
 - `npx oxlint app/protected-apl-guide.tsx app/protected-apl-plan.tsx`: PASS efter labelrättning; `/private/tmp/apl-guide-final-lint.log`.
 - `npm run docs:build`: PASS; `/private/tmp/apl-guide-docs-build.log`.
@@ -27,3 +27,5 @@ status: implemented_baseline_pending_flow_decision
 Komponentbilder granskade för radbrytning, mobilbredd och läslighet. Scrollmarginaler gör att guideankare kan visas under befintlig fast planeringsrad. Fullt skyddat användarprov och installation på 3012 är **inte** utförda av guideagenten. Ingen databasändring, runtimeändring eller commit utförd.
 
 Se `05-APL-GUIDE-RESEARCH.md` för källor, lag/app-gräns och SS 12000-avstämning.
+
+Root har därefter verifierat och installerat exakt kandidat på 3012. Se `05-APL-GUIDE-DATES-VERIFICATION.md` för faktisk dator-/telefonkontroll, bevarade data och kvarstående årsmodell.

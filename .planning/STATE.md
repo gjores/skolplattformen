@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: TIMPLAN-AUTO
-status: awaiting_user
-stopped_at: Autofördelning tekniskt klar och lokalt levererad på3012; användarprov väntar.
+current_plan: APL-ANNUAL-01
+status: ready_to_execute
+stopped_at: GUIDE-DATES levererad; nästa är årsvis APL enligt referensbilderna.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "Autofördelning med total och GUT lokalt levererad. Modell/server90, UI24, faktisk Worker/OIDC14 och bevarande71 tabeller PASS. Ingen migration. Mänskligt prov och tidigare APL-UX-bedömning väntar."
-state_head: a55a15a
-verification_worker_build_revision: a55a15a2d05f59bcda4bf71621e18c03fffa89dd
-verification_worker_status: timplan_auto_actual_api_browser_local_delivery_pass
-worker_status: timplan_auto_local_delivery_verified
-worker_build_revision: a55a15a2d05f59bcda4bf71621e18c03fffa89dd
+last_activity_desc: "GUIDE-DATES faktisk kontroll och lokal leverans PASS. Årsvis APL och skola HT/VT planerade i fyra steg; implementation återstår."
+state_head: c02e600
+verification_worker_build_revision: c02e6000b7b2d27654adec67668932acc4f8ef12
+verification_worker_status: apl_guide_dates_actual_browser_local_delivery_pass
+worker_status: apl_guide_dates_local_delivery_verified
+worker_build_revision: c02e6000b7b2d27654adec67668932acc4f8ef12
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-handledning och kalender levererade 2026-10-16:** Handledning med regler, appens arbetsgång och skolans genomförandeansvar samt svensk kalender med ISO-veckor i alla 19 datumpositioner. Komponentprov, typ/lint, skyddat bygge, handboksbygge och 8 faktiska dator-/telefonkontroller PASS; 14 bilder granskade. Exakt c02e600/210-fils kandidat kör nu på 3012, utan migration och med 71 verksamhetstabeller bevarade. [Samlad verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GUIDE-DATES-VERIFICATION.md). Referensbildernas **skola HT/VT + APL per årskurs, perioder senare** är [planerade i fyra steg](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-ANNUAL-PLAN.md), ännu inte implementerade. Mänsklig begriplighet och full fasacceptans kvarstår. Äldre leveransnoteringar nedan är historik; pilotantal 88/100 och 3/8 består.
 
 **Autofördelning levererad 2026-10-16:** Timplanens nya dialog frågar efter total timmar och visar GUT, bevarar befintliga värden eller fördelar om hela planen och skyddar sparad APL-tid. Modell/server90, UI24, faktisk Worker/OIDC14 och lokalt appbyte PASS. Exakt testad a55a15a/210-fils kandidat kör på3012, utan migration och med71 verksamhetstabeller bevarade. [Resultat och användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-AUTO-SUMMARY.md). Mänsklig begriplighetsbedömning, tidigare APL-UX-prov och full fasacceptans kvarstår. Historiska88/100 och3/8 består.
 

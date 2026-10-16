@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {requireDistributionProof,requireCodePreflight} from './deliver-timplan-distribution.mjs';
+import {requireDistributionProof,requireGuideDatesProof,requireCodePreflight} from './deliver-timplan-distribution.mjs';
 import {requirePreviousRuntimeProof} from './deliver-apl-plan.mjs';
 const sources={'web/a.ts':'a'.repeat(64)};
 function proof(){
@@ -20,4 +20,12 @@ test('completed code-only delivery is accepted as next predecessor but failure i
  const runtime={listener:{pid:3,ppid:2,started:'time',args:'workerd'},preview:{pid:2,ppid:1,started:'time',args:'preview'},manager:{pid:1,ppid:99,started:'time',args:'manager'}},artifact={sha256:'old'};
  const r={kind:'code-local-delivery',mode:'--apply',status:'PASS',applied:true,afterArtifact:artifact,afterRuntime:runtime};
  requirePreviousRuntimeProof(r,artifact,runtime);assert.throws(()=>requirePreviousRuntimeProof({...r,status:'FAIL'},artifact,runtime));
+});
+
+function guideProof(){const r=proof();r.kind='apl-guide-dates-actual-browser';delete r.api;
+ for(const d of ['desktop','phone']){r.browserEvidence[d].result.checks=[{ok:true},{ok:true},{ok:true}];r.browserEvidence[d].result.features={guide:true,calendar:true,aplSaveReload:true};}return r;}
+test('guidance/calendar package binds its own actual browser features, not unrelated API assertions',()=>requireGuideDatesProof(guideProof(),sources));
+for(const [name,change]of [['wrong package',r=>r.kind='timplan-distribution-actual-api-browser'],['missing guide',r=>r.browserEvidence.desktop.result.features.guide=false],['calendar absent',r=>r.browserEvidence.phone.result.features.calendar=false],['no reload',r=>r.browserEvidence.phone.result.features.aplSaveReload=false],['failed browser check',r=>r.browserEvidence.phone.result.checks[0].ok=false],['insufficient checks',r=>r.browserEvidence.phone.result.checks=[]],['changed schema',r=>r.finalFingerprint='a'.repeat(64)],['no phone review',r=>r.browserEvidence.phone.visualReview='pending']])test('guide release blocks '+name,()=>{const r=guideProof();change(r);assert.throws(()=>requireGuideDatesProof(r,sources));});
+test('preflight cannot be reused for a different package or unregistered package',()=>{
+ const r={kind:'code-local-delivery',packageId:'apl-guide-dates',mode:'--verify',status:'PASS',databaseClosed:true,toolSha256:'tool',databaseUnchanged:true,runtimeUnchanged:true};requireCodePreflight(r,'tool','apl-guide-dates');assert.throws(()=>requireCodePreflight(r,'tool'));assert.throws(()=>requireCodePreflight(r,'tool','unknown'));
 });
