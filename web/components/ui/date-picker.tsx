@@ -19,12 +19,22 @@ const fullDate = (date: Date) => date.toLocaleDateString('sv-SE', { weekday: 'lo
 /** Swedish date input; the parent's string remains a date, never a timestamp. */
 export function DatePicker({ value, onValueChange, id, min, max, required, disabled, readOnly, className, onKeyDown, ...props }: DatePickerProps) {
   const generated = useId(), inputId = id ?? `date-${generated}`, helpId = `${inputId}-calendar-help`;
-  const input = useRef<HTMLInputElement>(null), container = useRef<HTMLSpanElement>(null);
+  const input = useRef<HTMLInputElement>(null), trigger = useRef<HTMLButtonElement>(null), popup = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false), [month, setMonth] = useState<Date>();
   const selected = parseCalendarDate(value), lower = min ? parseCalendarDate(min) : undefined, upper = max ? parseCalendarDate(max) : undefined;
   const error = calendarDateError(value, min, max), week = selected ? calendarIsoWeek(selected) : null;
   const unavailable = () => !!(disabled || readOnly || input.current?.matches(':disabled'));
   useEffect(() => { input.current?.setCustomValidity(error); }, [error]);
+  // The standard body portal avoids competing nested-dialog focus managers.
+  // Preserve inherited fieldset locking even though the popup is outside it.
+  useEffect(() => {
+    if (!open) return;
+    const observer = new MutationObserver(() => { if (input.current?.matches(':disabled')) setOpen(false); });
+    for (let parent = input.current?.parentElement; parent; parent = parent.parentElement) {
+      if (parent.tagName === 'FIELDSET') observer.observe(parent, { attributes: true, attributeFilter: ['disabled'] });
+    }
+    return () => observer.disconnect();
+  }, [open]);
   const change = (next: string) => { if (!unavailable()) onValueChange(next); };
   const choose = (date: Date | undefined) => {
     if (!date || unavailable()) return;
@@ -45,7 +55,7 @@ export function DatePicker({ value, onValueChange, id, min, max, required, disab
   const today = calendarDateValue(new Date());
   const earliest = lower ?? new Date(Math.min(1900, selected?.getFullYear() ?? 1900), 0, 1);
   const latest = upper ?? new Date(Math.max(new Date().getFullYear() + 30, selected?.getFullYear() ?? 0), 11, 31);
-  return <span className="school-date" ref={container}>
+  return <span className="school-date">
     <span className="school-date-control">
       <input {...props} id={inputId} ref={input} type="date" min={min} max={max} value={value} required={required} disabled={disabled} readOnly={readOnly}
         className={`school-date-input ${className ?? ''}`} placeholder={props.placeholder ?? 'ÅÅÅÅ-MM-DD'} inputMode="numeric" autoComplete={props.autoComplete ?? 'off'}
@@ -56,12 +66,12 @@ export function DatePicker({ value, onValueChange, id, min, max, required, disab
           if (!event.defaultPrevented && event.altKey && event.key === 'ArrowDown') { event.preventDefault(); openCalendar(true); }
         }} />
       <Popover.Root open={open && !disabled && !readOnly} onOpenChange={openCalendar}>
-        <Popover.Trigger type="button" className="school-date-trigger" disabled={disabled || readOnly} aria-label="Öppna kalender" aria-describedby={inputId}>
+        <Popover.Trigger ref={trigger} type="button" className="school-date-trigger" disabled={disabled || readOnly} aria-label="Öppna kalender" aria-describedby={inputId}>
           <CalendarDays size={20} aria-hidden="true" />
         </Popover.Trigger>
-        <Popover.Portal container={container}>
+        <Popover.Portal>
           <Popover.Positioner className="school-date-positioner" sideOffset={8} align="end" collisionPadding={8}>
-            <Popover.Popup className="school-date-popup" aria-label="Välj datum" initialFocus={() => container.current?.querySelector<HTMLButtonElement>('.rdp-day_button[tabindex="0"]') ?? true}>
+            <Popover.Popup ref={popup} finalFocus={trigger} className="school-date-popup" aria-label="Välj datum" initialFocus={() => popup.current?.querySelector<HTMLButtonElement>('.rdp-day_button[tabindex="0"]') ?? true}>
               <Popover.Title className="school-date-title">Välj datum</Popover.Title>
               <DayPicker mode="single" required selected={selected} onSelect={choose} month={month} onMonthChange={setMonth}
                 locale={sv} ISOWeek showWeekNumber showOutsideDays captionLayout="dropdown" navLayout="after" startMonth={earliest} endMonth={latest}

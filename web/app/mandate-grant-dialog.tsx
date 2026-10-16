@@ -265,12 +265,12 @@ export default function MandateGrantDialog(props: Props) {
               <small>Syfte: syntetisk felsökning. Du godkänner uppdraget; det upphör automatiskt. Supporten ser bara den valda eleven eller eleverna i de valda grupperna och kan inte exportera.</small>
             </label>
           </> : <>
-            <label>Gäller från
-              <DatePicker aria-label="Gäller från" value={draft.validFrom} min={options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validFrom')} onValueChange={value => { update({ validFrom: value }); setErrors((previous) => ({ ...previous, validFrom: undefined })); }} />{fieldError('validFrom')}
-            </label>
-            <label>Gäller till{options.validTo ? '' : ' (valfritt)'}
-              <DatePicker aria-label={options.validTo ? 'Gäller till' : 'Gäller till (valfritt)'} value={draft.validTo} min={draft.validFrom || options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validTo')} onValueChange={value => { update({ validTo: value }); setErrors((previous) => ({ ...previous, validTo: undefined })); }} />{fieldError('validTo')}
-            </label>
+            <div className="protected-date-field"><label htmlFor="grant-valid-from">Gäller från</label>
+              <DatePicker id="grant-valid-from" value={draft.validFrom} min={options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validFrom')} onValueChange={value => { update({ validFrom: value }); setErrors((previous) => ({ ...previous, validFrom: undefined })); }} />{fieldError('validFrom')}
+            </div>
+            <div className="protected-date-field"><label htmlFor="grant-valid-to">Gäller till{options.validTo ? '' : ' (valfritt)'}</label>
+              <DatePicker id="grant-valid-to" value={draft.validTo} min={draft.validFrom || options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validTo')} onValueChange={value => { update({ validTo: value }); setErrors((previous) => ({ ...previous, validTo: undefined })); }} />{fieldError('validTo')}
+            </div>
           </>}
           <div className="mandate-actions">
             <DialogClose render={<Button type="button" variant="outline" disabled={busy} />}>Avbryt</DialogClose>

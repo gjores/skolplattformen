@@ -1,11 +1,11 @@
 .school-date { display: inline-flex; flex-direction: column; gap: .3rem; width: 100%; min-width: 0; font-size: 1rem; font-weight: 400; }
 .school-date-control { display: flex; align-items: stretch; gap: .35rem; min-width: 0; }
 .school-date .school-date-input { box-sizing: border-box; min-width: 0; width: 100%; border: 1px solid #cbd5e1; border-radius: .5rem; padding: .6rem .7rem; background: #fff; color: #1e293b; font: inherit; }
-.school-date .school-date-input:focus-visible, .school-date button:focus-visible, .school-date select:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.school-date .school-date-input:focus-visible, .school-date button:focus-visible, .school-date select:focus-visible, .school-date-popup button:focus-visible, .school-date-popup select:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
 .school-date .school-date-trigger { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; min-height: 44px; border: 1px solid #cbd5e1; border-radius: .5rem; padding: .4rem; background: #fff; color: #334155; cursor: pointer; }
 .school-date-help { font-size: .78rem; color: #475569; line-height: 1.4; }
 .school-date-error { color: #b91c1c; }
-.school-date button:disabled, .school-date input:disabled { opacity: .55; cursor: not-allowed; }
+.school-date button:disabled, .school-date input:disabled, .school-date-popup button:disabled { opacity: .55; cursor: not-allowed; }
 .school-date-positioner { z-index: 120; max-width: calc(100vw - 16px); }
 .school-date-popup { box-sizing: border-box; width: 352px; max-width: calc(100vw - 16px); max-height: min(580px, var(--available-height)); overflow: auto; padding: 12px; border: 1px solid #cbd5e1; border-radius: .8rem; background: #fff; color: #1e293b; box-shadow: 0 12px 36px #0f172a33; font: 400 14px/1.4 system-ui, sans-serif; }
 .school-date-title { margin: 0 0 .5rem; font-size: 1rem; font-weight: 650; }
