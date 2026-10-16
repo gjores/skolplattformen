@@ -12,13 +12,22 @@ import {artifactManifest} from './verify-programplan-copy-api.mjs';
 import {connect,classCohortTargetIdentity} from './verify-class-cohort.mjs';
 import {schemaFingerprint} from './named-timplan-snapshot.mjs';
 import {readPrivateEvidence as readEvidence,readPackageEvidence,installedPackage,assertStructureTransition} from './apply-apl-plan.mjs';
+import * as termIntentPackage from './apply-apl-term-intent.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url)),web=path.join(root,'web');
 const destination=path.join(web,'dist-protected'),baseURL='http://127.0.0.1:3012';
 const sha=value=>createHash('sha256').update(typeof value==='string'||Buffer.isBuffer(value)?value:JSON.stringify(value)).digest('hex');
 const command=(name,args)=>execFileSync(name,args,{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const ownSource=()=>sha(readFileSync(fileURLToPath(import.meta.url)));
+export function deliveryPackage(packageId='apl-plan'){
+ assert.ok(['apl-plan','apl-term-intent'].includes(packageId),'Unknown delivery package');
+ return packageId==='apl-plan'?{readPackageEvidence,installedPackage,assertStructureTransition,installationKind:'apl-plan-live-installation',installerFile:'apply-apl-plan.mjs'}
+  :{...termIntentPackage,installationKind:'apl-term-intent-live-installation',installerFile:'apply-apl-term-intent.mjs'};
+}
+const ownSource=(packageId='apl-plan')=>{
+ const source=sha(readFileSync(fileURLToPath(import.meta.url)));
+ return packageId==='apl-plan'?source:sha([source,sha(readFileSync(path.join(root,'work/pilot',deliveryPackage(packageId).installerFile)))]);
+};
 // All evidence remains private. Rename only after file fsync, then fsync its directory.
 function privateJson(file,value,{exclusive=false}={}){
  const output=path.resolve(file);assert.ok(output.startsWith('/private/tmp/')&&output.endsWith('.json'),'Private JSON output required');
@@ -109,17 +118,19 @@ async function stopOwnStartingManager(manager){
  }throw Error('Own failed preview did not release the runtime');
 }
 // Installation evidence is produced only after current actual API/browser and SQL proofs pass.
-export function requireInstallationProof(report,{target,installed,toolSha256}){
- assert.equal(report.kind,'apl-plan-live-installation');assert.equal(report.mode,'--apply');assert.equal(report.status,'PASS');assert.equal(report.committed,true);assert.equal(report.databaseClosed,true);assert.equal(report.oldWorkerCompatibleAfterCommit,false);assert.equal(report.candidateTransferRequired,true);
+export function requireInstallationProof(report,{target,installed,toolSha256,packageId='apl-plan'}){
+ const contract=deliveryPackage(packageId);
+ assert.equal(report.kind,contract.installationKind);assert.equal(report.mode,'--apply');assert.equal(report.status,'PASS');assert.equal(report.committed,true);assert.equal(report.databaseClosed,true);assert.equal(report.oldWorkerCompatibleAfterCommit,false);assert.equal(report.candidateTransferRequired,true);
  assert.equal(report.toolSha256,toolSha256);assert.deepEqual(report.target,target);assert.deepEqual(report.installed,installed);
  assert.deepEqual(report.beforeProjection,report.afterProjection);assert.deepEqual(report.beforeJournal,report.afterOriginalJournal);
- assert.equal(report.structureVerified,true);assertStructureTransition(report.beforeStructure,report.afterStructure);
+ assert.equal(report.structureVerified,true);contract.assertStructureTransition(report.beforeStructure,report.afterStructure);
  assert.notEqual(report.recoveryRequired,true);assert.ok(report.lockHoldMsBeforeCommit>=0&&report.lockHoldMsBeforeCommit<30000);
 }
-async function acceptance(file,db,target){
+async function acceptance(file,db,target,packageId){
+ const contract=deliveryPackage(packageId);
  const installation=readEvidence(file),r=installation.value;
- requireInstallationProof(r,{target:await classCohortTargetIdentity(db,target),installed:await installedPackage(db),toolSha256:sha(readFileSync(path.join(root,'work/pilot/apply-apl-plan.mjs')))});
- const proof=readPackageEvidence({sqlEvidence:r.sql.path,apiEvidence:r.api.path});assert.equal(proof.sql.sha256,r.sql.sha256);assert.equal(proof.api.sha256,r.api.sha256);assert.deepEqual(r.packages,proof.packages);assert.deepEqual(r.build,{root:proof.buildRoot,artifact:proof.api.value.finalArtifact});
+ requireInstallationProof(r,{target:await classCohortTargetIdentity(db,target),installed:await contract.installedPackage(db),toolSha256:sha(readFileSync(path.join(root,'work/pilot',contract.installerFile))),packageId});
+ const proof=contract.readPackageEvidence({sqlEvidence:r.sql.path,apiEvidence:r.api.path});assert.equal(proof.sql.sha256,r.sql.sha256);assert.equal(proof.api.sha256,r.api.sha256);assert.deepEqual(r.packages,proof.packages);assert.deepEqual(r.build,{root:proof.buildRoot,artifact:proof.api.value.finalArtifact});
  return{sha256:installation.sha256,report:r,sql:{evidenceSha256:installation.sha256},build:{buildRoot:proof.buildRoot,buildRevision:proof.api.value.build.revision,artifact:proof.api.value.finalArtifact}};
 }
 // The new capability remains a school-scoped read; it grants no decision rights.
@@ -485,10 +496,10 @@ async function inspectDeliveryScope(db,target,file){
 }
 
 /** Read-only preparation before permanent installation. It binds the exact current process and candidate. */
-export async function prepareAplDelivery({sqlEvidence,apiEvidence,out,previousRuntime,scope}){
+export async function prepareAplDelivery({sqlEvidence,apiEvidence,out,previousRuntime,scope,packageId='apl-plan'}){
  const sink=reserveDeliveryReport(out,'apl-plan-delivery-preparation','--prepare'),r=sink.report;let db;
  try{
-  r.deliverySourceSha256=ownSource();const proof=readPackageEvidence({sqlEvidence,apiEvidence});
+  r.packageId=packageId;r.deliverySourceSha256=ownSource(packageId);const proof=deliveryPackage(packageId).readPackageEvidence({sqlEvidence,apiEvidence});
   const target=await assertTarget('protected',{requireIdp:true});db=connect(target);r.scopePreparation=(await inspectDeliveryScope(db,target,scope)).proof;r.target=await classCohortTargetIdentity(db,target);
   r.beforeFingerprint=await schemaFingerprint(db);assert.equal(r.beforeFingerprint,proof.sql.value.baseline.fingerprint);
   r.beforeRuntime=localRuntime();r.beforeArtifact=artifactManifest(destination);r.beforeConfiguration=privateConfiguration(target);
@@ -502,7 +513,8 @@ export async function prepareAplDelivery({sqlEvidence,apiEvidence,out,previousRu
  finally{if(db)try{await db.end({timeout:5});r.databaseClosed=true;}catch{r.status='FAIL';r.databaseClosed=false;}r.stage='finished';r.finishedAt=new Date().toISOString();sink.close();}
  return r;
 }
-export function requirePreparedTransfer(prepared,{source,target,previousRuntime,artifact,configuration,build,sql,api,scopePreparation}){
+export function requirePreparedTransfer(prepared,{source,target,previousRuntime,artifact,configuration,build,sql,api,scopePreparation,packageId='apl-plan'}){
+ deliveryPackage(packageId);assert.equal(prepared.packageId??'apl-plan',packageId,'Prepared package mismatch');
  assert.equal(prepared.kind,'apl-plan-delivery-preparation');assert.equal(prepared.mode,'--prepare');assert.equal(prepared.status,'PASS');
  assert.equal(prepared.databaseClosed,true);assert.equal(prepared.databaseUnchanged,true);assert.equal(prepared.runtimeUnchanged,true);
  assert.equal(prepared.deliverySourceSha256,source);assert.deepEqual(prepared.target,target);
@@ -512,22 +524,23 @@ export function requirePreparedTransfer(prepared,{source,target,previousRuntime,
 export function recordAplTransferFailure(report){
  if(report.databasePackageInstalled){report.recoveryRequired=true;report.applicationRollbackRestoresCompatibility=false;}
 }
-export async function deliverAplPlan(mode,{evidence,out,scope,previousRuntime,prepared,sqlEvidence,apiEvidence}){
- if(mode==='--prepare')return prepareAplDelivery({sqlEvidence,apiEvidence,out,previousRuntime,scope});
+export async function deliverAplPlan(mode,{evidence,out,scope,previousRuntime,prepared,sqlEvidence,apiEvidence,packageId='apl-plan'}){
+ deliveryPackage(packageId);
+ if(mode==='--prepare')return prepareAplDelivery({sqlEvidence,apiEvidence,out,previousRuntime,scope,packageId});
  const sink=reserveDeliveryReport(out,'apl-plan-local-delivery',mode),r=sink.report;let db,locked=false,completed=false,stopAttempted=false,stopped=false,movedOld=false,swapped=false,newRuntime,newManager,backup,transferRoot;
  try{
-  assert.ok(['--verify','--apply'].includes(mode));r.deliverySourceSha256=ownSource();
+  assert.ok(['--verify','--apply'].includes(mode));r.packageId=packageId;r.deliverySourceSha256=ownSource(packageId);
   const input=readEvidence(evidence),prior=mode==='--apply'?input.value:null;
-  if(prior){assert.equal(prior.kind,'apl-plan-local-delivery');assert.equal(prior.status,'PASS');assert.equal(prior.mode,'--verify');assert.equal(prior.databaseClosed,true);assert.equal(prior.deliverySourceSha256,r.deliverySourceSha256);}
+  if(prior){assert.equal(prior.packageId??'apl-plan',packageId);assert.equal(prior.kind,'apl-plan-local-delivery');assert.equal(prior.status,'PASS');assert.equal(prior.mode,'--verify');assert.equal(prior.databaseClosed,true);assert.equal(prior.deliverySourceSha256,r.deliverySourceSha256);}
   const target=await assertTarget('protected');db=connect(target);assert.equal((await db`select pg_try_advisory_lock(5520) locked`)[0].locked,true);locked=true;
-  const proof=await acceptance(prior?prior.acceptance.path:evidence,db,target);r.acceptance={path:prior?prior.acceptance.path:path.resolve(evidence),sha256:proof.sha256};r.databasePackageInstalled=true;r.oldWorkerCompatible=false;if(prior)assert.deepEqual(r.acceptance,prior.acceptance);
+  const proof=await acceptance(prior?prior.acceptance.path:evidence,db,target,packageId);r.acceptance={path:prior?prior.acceptance.path:path.resolve(evidence),sha256:proof.sha256};r.databasePackageInstalled=true;r.oldWorkerCompatible=false;if(prior)assert.deepEqual(r.acceptance,prior.acceptance);
   const scoped=await inspectDeliveryScope(db,target,scope),selected=scoped.scope;r.scopePreparation=scoped.proof;r.scopeEvidence=scoped.proof.scopeEvidence;
   r.beforeRuntime=localRuntime();r.beforeArtifact=artifactManifest(destination);const previous=readEvidence(prior?prior.previousRuntimeEvidence.path:previousRuntime);r.previousRuntimeEvidence={path:previous.path,sha256:previous.sha256};if(prior)assert.deepEqual(r.previousRuntimeEvidence,prior.previousRuntimeEvidence);r.beforeConfiguration=privateConfiguration(target);r.beforeBusiness=await businessHashes(db);const cleanupProof=previous.value.status==='FAIL'&&previous.value.readOnlyOidc?.proofPath?readEvidence(previous.value.readOnlyOidc.proofPath):undefined;requirePreviousRuntimeProof(previous.value,r.beforeArtifact,r.beforeRuntime,{cleanupProof,business:r.beforeBusiness,configuration:r.beforeConfiguration});r.beforeHealth=await health();
   if(prior)for(const key of ['scopeEvidence','beforeRuntime','beforeArtifact','beforeConfiguration','beforeBusiness'])assert.deepEqual(r[key],prior[key],`Preflight changed: ${key}`);
   r.testedBuild={root:proof.build.buildRoot,revision:proof.build.buildRevision,artifact:proof.build.artifact};r.sqlEvidenceSha256=proof.sql.evidenceSha256;
   const preparation=readEvidence(prior?prior.preparedEvidence.path:prepared);r.preparedEvidence={path:preparation.path,sha256:preparation.sha256};if(prior)assert.deepEqual(r.preparedEvidence,prior.preparedEvidence);
   requirePreparedTransfer(preparation.value,{source:r.deliverySourceSha256,target:await classCohortTargetIdentity(db,target),previousRuntime:r.beforeRuntime,
-   artifact:r.beforeArtifact,configuration:r.beforeConfiguration,build:r.testedBuild,sql:proof.report.sql,api:proof.report.api,scopePreparation:r.scopePreparation});
+   artifact:r.beforeArtifact,configuration:r.beforeConfiguration,build:r.testedBuild,sql:proof.report.sql,api:proof.report.api,scopePreparation:r.scopePreparation,packageId});
   assert.deepEqual(preparation.value.packages,proof.report.packages);assert.equal(preparation.value.beforeFingerprint,proof.report.beforeFingerprint);
   if(mode==='--apply'){
    transferRoot=path.join(root,'work/pilot/targets/protected/runtime',`apl-plan-delivery-${randomUUID()}`);mkdirSync(transferRoot,{mode:0o700});
@@ -541,7 +554,7 @@ export async function deliverAplPlan(mode,{evidence,out,scope,previousRuntime,pr
    r.readOnlyOidc=await readOnlyOidc({db,target,baseURL,scope:selected,evidenceDir:readEvidenceDir});
    r.afterArtifact=artifactManifest(destination);assert.deepEqual(r.afterArtifact,proof.build.artifact);assert.deepEqual(privateConfiguration(target),r.beforeConfiguration);r.afterHealth=await health();r.applied=true;r.candidateCompatible=true;r.recoveryRequired=false;
   }
-  r.afterBusiness=await businessHashes(db);assert.deepEqual(r.afterBusiness,r.beforeBusiness);assert.equal(ownSource(),r.deliverySourceSha256);completed=true;
+  r.afterBusiness=await businessHashes(db);assert.deepEqual(r.afterBusiness,r.beforeBusiness);assert.equal(ownSource(packageId),r.deliverySourceSha256);completed=true;
  }catch(error){
   recordAplTransferFailure(r);
   r.failureCode=error.code??'delivery_verification_failed';r.failedStage=r.stage;
@@ -570,8 +583,8 @@ export async function deliverAplPlan(mode,{evidence,out,scope,previousRuntime,pr
  console.log(`${r.status}: local APL delivery ${mode}; applied=${r.applied===true}; restored=${r.runtimeRestored===true}`);return r;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- try{const args=process.argv.slice(2),mode=args.shift(),options={},keys={'--evidence':'evidence','--out':'out','--scope':'scope','--previous-runtime':'previousRuntime','--prepared':'prepared','--sql-evidence':'sqlEvidence','--api-evidence':'apiEvidence'};
-  for(let i=0;i<args.length;i+=2){assert.ok(Object.hasOwn(keys,args[i])&&args[i+1]);const key=keys[args[i]];assert.ok(!options[key]);options[key]=path.resolve(args[i+1]);}
+ try{const args=process.argv.slice(2),mode=args.shift(),options={},keys={'--evidence':'evidence','--out':'out','--scope':'scope','--previous-runtime':'previousRuntime','--prepared':'prepared','--sql-evidence':'sqlEvidence','--api-evidence':'apiEvidence','--package':'packageId'};
+  for(let i=0;i<args.length;i+=2){assert.ok(Object.hasOwn(keys,args[i])&&args[i+1]);const key=keys[args[i]];assert.ok(!options[key]);options[key]=key==='packageId'?args[i+1]:path.resolve(args[i+1]);}
   assert.ok(options.out&&options.scope);if(mode!=='--prepare')assert.ok(options.evidence);
   const r=await deliverAplPlan(mode,options);if(r.status!=='PASS')process.exitCode=1;
  }catch{console.error('FAIL: local APL delivery preflight');process.exitCode=1;}
