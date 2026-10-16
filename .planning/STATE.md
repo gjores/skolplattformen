@@ -4,12 +4,12 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: NAMED-TIMPLANS-UX-12
-status: awaiting_user
-stopped_at: NAMED-TIMPLANS-UX01–12 tekniskt klara; fem migrationer installerade och samma testade bygge levererat på 3012. Begriplighetsprov awaiting_user.
+status: package_complete
+stopped_at: NAMED-TIMPLANS-UX01–12 klara; användaren svarade ”funkar bra”. CLASS-COHORT-UX-01 avslutat; övriga fasgap består.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "Uttryckligt godkänd lokal installation och leverans PASS med bevarade verksamhetsuppgifter; användarens begriplighetsprov återstår."
-state_head: ade19ac
+last_activity_desc: "Användarrapporterat godkännande av namngivna timplaner och klassflöde; användbarhetsgapet avslutat."
+state_head: aa4866d
 verification_worker_build_revision: c8f3256fc869c0002c44fd1c181cd6a27d0df6ab
 verification_worker_status: named_timplans_actual_sql_api_browser_local_delivery_pass
 worker_status: named_timplans_local_delivery_verified
@@ -26,7 +26,7 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt NAMED-TIMPLANS-UX 2026-10-16:** Alla tolv genomförandeplaner är tekniskt klara. Användarens ”absolut det godkänns” godkände fem permanenta lokala migrationer och appbyte. Installation PASS med bevarade originalkolumner i 62 tabeller. Samma produktbygge `c8f3256`/204 filer/artefakt `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e` kör nu på 3012. Första bytet återställdes efter felaktigt valt testunderlag; rättad förkontroll och 67 verktygsprov PASS, därefter andra bytet med faktisk läsande OIDC/MFA och 62 verksamhetstabellers bevarande PASS. Tidigare 38 faktiska API-/browserprov och handboksbygge består för oförändrad produkt. [Leveransresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-12-SUMMARY.md) och [begriplighetsprov](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-USER-TRIAL.md). Gapet CLASS-COHORT-UX-01 är `awaiting_user`; ingen mänsklig begriplighetsacceptans eller fullfasacceptans antas. Historiska 88/100 och 3/8 består. Äldre statusstycken nedan är historik.
+**Aktuellt NAMED-TIMPLANS-UX 2026-10-16:** Alla tolv genomförandeplaner är tekniskt klara. Användarens ”absolut det godkänns” godkände fem permanenta lokala migrationer och appbyte. Installation PASS med bevarade originalkolumner i 62 tabeller. Samma produktbygge `c8f3256`/204 filer/artefakt `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e` kör nu på 3012. Första bytet återställdes efter felaktigt valt testunderlag; rättad förkontroll och 67 verktygsprov PASS, därefter andra bytet med faktisk läsande OIDC/MFA och 62 verksamhetstabellers bevarande PASS. Tidigare 38 faktiska API-/browserprov och handboksbygge består för oförändrad produkt. [Leveransresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-12-SUMMARY.md) och [begriplighetsprov](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-USER-TRIAL.md). Användaren svarade därefter ”funkar bra”. Det registreras som användarrapporterat godkännande av det levererade flödet och avslutar CLASS-COHORT-UX-01. Enhet, enskilda delsteg och eventuell hjälp särredovisades inte; fullfasacceptans antas inte. Historiska 88/100 och 3/8 består. Äldre statusstycken nedan är historik.
 
 **Godkänd design och påbörjat genomförande 2026-10-15:** Användarens ”kör på” efter mockupgenomgången gäller gemensamt skol-/läsårsval, årskursöverblick, klassflödet i v2 och tidigare beställda namngivna parallella timplaner. [Beslutad riktning och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-CONTEXT.md) skiljer designval från mockupens icke beslutade lås-/sparregler. Plan01 klasslista är UI-verifierad;02–04 seriegrund, kommandon och beslut är SQL-verifierade i schema-only-kopia med syntetiska fixturer.06–07 kontrakt/server är förberedda;05 läsprojektioner och08–10 sammanhängande UI pågår.09 flerval är mockverifierat.07:s två nya Workergrants har verifierats med faktisk SQL-roll. Samlad faktisk HTTP/OIDC, konkurrens, dator/telefon och handbok återstår. Inga liverader exporterades. Ingen ny lokal leverans eller permanent migration är gjord. CLASS-COHORT-UX-01 förblir öppet; tidigare genomförda paketplansantal och hela fasens status består.
 

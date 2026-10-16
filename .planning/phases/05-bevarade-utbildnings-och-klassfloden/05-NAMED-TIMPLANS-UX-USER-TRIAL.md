@@ -1,17 +1,17 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: NAMED-TIMPLANS-UX-12
-status: awaiting_user
-acceptance: not_observed
+status: accepted_user_reported
+acceptance: user_reported
 ---
 
 # Begriplighetsprov: namngivna timplaner och klasser
 
-Detta är förberett provmaterial, inte ett genomfört användarprov. Teknisk verifiering, lokal leverans och användarens egen bedömning redovisas separat. Gapet CLASS-COHORT-UX-01 får inte stängas utifrån automatiserade tester.
+Användaren svarade ”funkar bra” 2026-10-16 efter leverans och uppmaningen att prova namngivna timplaner, flera klasser och byte för endast A-klassen. Detta registreras som användarrapporterat godkännande av det levererade flödet och avslutar CLASS-COHORT-UX-01. Enhet, enskilda delsteg och eventuell hjälp särredovisades inte; inga sådana observationer fabriceras. Teknisk verifiering och användarens bedömning redovisas separat.
 
 ## Förutsättningar för provledaren
 
-Den lokala kandidaten på http://127.0.0.1:3012 har passerat paketets faktiska verifiering och läsande leveranskontroll 2026-10-16. Exakt revision och bevis finns nedan. Användarens egen bedömning är ännu inte observerad.
+Den lokala kandidaten på http://127.0.0.1:3012 har passerat paketets faktiska verifiering och läsande leveranskontroll 2026-10-16. Exakt revision och bevis finns nedan. Användarens samlade bedömning är registrerad nedan.
 
 Använd en särskild syntetisk utbildning med sparad programplan, komplett underlag och känt startdatum. Håll den åtskild från användarens tidigare klasser och timplaner. Deltagaren får själv välja lämpliga syntetiska objekt. Förbered inte kopplingar som uppgifterna ska pröva. Om deltagaren saknar en beslutsroll kan provledaren utföra enbart nödvändiga fastställanden efter deltagarens begäran; anteckna hjälpen. Användaren ska inte behöva få chattinstruktioner om var knapparna finns.
 
@@ -31,17 +31,17 @@ Om något är oklart: säg vad du väntade dig och var du skulle försöka gå v
 
 | Uppgift | Resultat eller observation |
 | --- | --- |
-| Tidpunkt | Ej genomfört |
+| Tidpunkt | Användarens svar 2026-10-16 |
 | Kandidatens Git-revision och artefaktidentitet | `c8f3256fc869c0002c44fd1c181cd6a27d0df6ab`; 204 filer; SHA256 `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e` |
 | Länk till faktisk teknisk verifiering och leveransbevis | [Samlad verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md) och [lokal leverans med rapporthashar](05-NAMED-TIMPLANS-UX-12-SUMMARY.md) |
-| Provad enhet, webbläsare och skärmstorlek | Ej observerat |
-| Sparade klasser förstås utan chattstegledning | Ej observerat |
-| Separata timplaner skiljs från versioner | Ej observerat |
-| Flera klasser till samma plan och läsår | Ej observerat |
-| Endast A byter till extra matematik | Ej observerat |
-| Namn, timmar, klassantal, år och version återfinns | Ej observerat |
-| Vilken hjälp gavs, i vilket moment? | Ej observerat |
-| Användarens egna ord om vad som är tydligt eller oklart | Ej observerat |
-| Samlad begriplighetsbedömning | Ej observerat; inget godkännande antas |
+| Provad enhet, webbläsare och skärmstorlek | Inte särredovisat |
+| Sparade klasser förstås utan chattstegledning | Inte särredovisat |
+| Separata timplaner skiljs från versioner | Inte särredovisat |
+| Flera klasser till samma plan och läsår | Inte särredovisat |
+| Endast A byter till extra matematik | Inte särredovisat |
+| Namn, timmar, klassantal, år och version återfinns | Inte särredovisat |
+| Vilken hjälp gavs, i vilket moment? | Inte särredovisat |
+| Användarens egna ord om vad som är tydligt eller oklart | ”funkar bra” |
+| Samlad begriplighetsbedömning | Användarrapporterat godkänt för det levererade flödet; enskilda uppgifter särredovisades inte |
 
 Provledaren antecknar resultatet utan att ersätta användarens egen bedömning med ett automatiserat PASS. Om flödet kräver chattstegledning för kärnuppgifterna kvarstår gapet och konkreta brister dokumenteras. Detta återöppnar inte tidigare godkända kopierings- eller grundfunktioner och innebär inte godkännande av hela fas 5, SS 12000-utbyte eller en verklig kommunanslutning.

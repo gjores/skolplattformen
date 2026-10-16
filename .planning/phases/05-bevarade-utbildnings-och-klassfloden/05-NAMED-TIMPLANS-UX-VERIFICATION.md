@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: NAMED-TIMPLANS-UX
-status: local_delivery_verified_awaiting_user
+status: local_delivery_verified_user_accepted
 ---
 
 # Samlad verifiering av namngivna timplaner
@@ -51,7 +51,7 @@ Samordnarens kandidatbygge skrev av misstag till den katalog som den äldre3012-
 
 ## Kvarvarande gränser
 
-Lokal schemaapply med originalkolumnbevarande, exakt artefaktöverföring och läsande leveranskontroll har passerat 2026-10-16; se leveransresultatet nedan. Användarens begriplighetsprov är förberett men inte observerat. Historiska integritets-/prestandagränser och fasens övriga gap består. SS12000:2024/OpenAPI2.1.0 följer paketets mappning; timplansserie är intern planeringsmetadata och inget externt informationsutbyte har provats.
+Lokal schemaapply med originalkolumnbevarande, exakt artefaktöverföring och läsande leveranskontroll har passerat 2026-10-16; se leveransresultatet nedan. Användarens ”funkar bra” 2026-10-16 registreras som samlat användarrapporterat godkännande; enskilda delsteg och enhet särredovisades inte. Historiska integritets-/prestandagränser och fasens övriga gap består. SS12000:2024/OpenAPI2.1.0 följer paketets mappning; timplansserie är intern planeringsmetadata och inget externt informationsutbyte har provats.
 
 ## Historik: tidigare installationsgräns
 
@@ -61,4 +61,4 @@ Läsande förprov `/private/tmp/named-install-verify.json` PASS, SHA256 `1d116ed
 
 Användarens ”absolut det godkänns” gav uttryckligt godkännande för fem lokala migrationer och appbytet. Nytt förprov och installation PASS; 62 originaltabellers gamla kolumner, ACL och journal bevarades. Första leveransen stannade på ett saknat gymnasieunderlag i den valda testutbildningen, med full egen cleanup och verifierad återställning. Förkontrollen har flyttats före bytet, verifierad återställning kan bindas som tidigare processbevis och 67/67 verktygsprov passerar. Nytt förprov och andra leveransförsöket PASS med befintligt syntetiskt läsunderlag. Produktkällor och byggbytes är oförändrade.
 
-Samma 204-filsartefakt kör på 3012. Faktisk OIDC/MFA, klassläsning och namngivna timplaner gav 200 med DB-/Worker-audit. Alla 62 verksamhetstabellers hashvärden är lika före/efter. Egen app-/GoTrue-session borttagen, tidigare sessioner och audit bevarade, endast exakt verifierade egna inloggningsmetadata ändrades. [Plan 12:s resultat och rapporthashar](05-NAMED-TIMPLANS-UX-12-SUMMARY.md) binder installation, första återställda försök, slutligt förprov, slutlig leverans och läsande OIDC/cleanup. Begriplighetsprovet är nu `awaiting_user` och har ännu inget observerat resultat.
+Samma 204-filsartefakt kör på 3012. Faktisk OIDC/MFA, klassläsning och namngivna timplaner gav 200 med DB-/Worker-audit. Alla 62 verksamhetstabellers hashvärden är lika före/efter. Egen app-/GoTrue-session borttagen, tidigare sessioner och audit bevarade, endast exakt verifierade egna inloggningsmetadata ändrades. [Plan 12:s resultat och rapporthashar](05-NAMED-TIMPLANS-UX-12-SUMMARY.md) binder installation, första återställda försök, slutligt förprov, slutlig leverans och läsande OIDC/cleanup. Begriplighetsprovet är därefter användarrapporterat godkänt genom ”funkar bra” 2026-10-16. Gapet CLASS-COHORT-UX-01 avslutas; inga enskilda delsteg eller enhetsobservationer fabriceras.

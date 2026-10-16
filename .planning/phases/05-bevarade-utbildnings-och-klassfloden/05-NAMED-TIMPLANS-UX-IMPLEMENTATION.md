@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: NAMED-TIMPLANS-UX
-status: locally_delivered_awaiting_user
+status: complete_user_reported_acceptance
 date: 2026-10-15
 gap: CLASS-COHORT-UX-01
 requirements: [ADMIN-02, ADMIN-03, ADMIN-04, PLANERING-01, PLANERING-04, PLANERING-05]
@@ -11,7 +11,7 @@ requirements: [ADMIN-02, ADMIN-03, ADMIN-04, PLANERING-01, PLANERING-04, PLANERI
 
 Användarens ”kör på” godkänner [riktningen](05-NAMED-TIMPLANS-UX-CONTEXT.md). Målet är att klasser på samma skola kan använda samma programplan men olika tydligt namngivna timfördelningar, och att användaren förstår skapa, spara, koppla och följa resultat utan chattvägledning. Detta paket hanterar gap CLASS-COHORT-UX-01. Övriga fasgap, tidigare användargodkännanden och historiska 88/100 planer samt 3/8 faser ändras inte automatiskt.
 
-**Aktuellt 2026-10-16:** Alla tolv genomförandeplaner är tekniskt slutförda. Fem migrationer är installerade efter uttryckligt användargodkännande; samma verifierade bygge kör på 3012 med läsande OIDC och bevarandekontroller PASS. [Leveransresultat](05-NAMED-TIMPLANS-UX-12-SUMMARY.md). Begriplighetsprov och gap är `awaiting_user`.
+**Aktuellt 2026-10-16:** Alla tolv genomförandeplaner är tekniskt slutförda. Fem migrationer är installerade efter uttryckligt användargodkännande; samma verifierade bygge kör på 3012 med läsande OIDC och bevarandekontroller PASS. [Leveransresultat](05-NAMED-TIMPLANS-UX-12-SUMMARY.md). Användarens ”funkar bra” 2026-10-16 registreras som användarrapporterat godkännande av det levererade flödet; begriplighetsgapet avslutas. Enskilda delsteg och enhet särredovisades inte.
 
 ## Avgränsning och genomförandeordning
 

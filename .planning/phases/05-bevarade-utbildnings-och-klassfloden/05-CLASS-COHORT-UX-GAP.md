@@ -1,16 +1,16 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 gap: CLASS-COHORT-UX-01
-status: open_awaiting_user
+status: closed_user_reported
 created: 2026-10-15
 requirements: [ADMIN-04, PLANERING-04, PLANERING-05]
 ---
 
-# Öppen användbarhetslucka: skapa klasser och koppla till timplan
+# Avslutad användbarhetslucka: skapa klasser och koppla till timplan
 
 ## Aktuellt2026-10-16
 
-Godkänd mockupriktning är implementerad och lokalt levererad i NAMED-TIMPLANS-UX01–12: synliga sparade klasser, granskning och flerval, separata namngivna timplansserier, egna versioner/beslut och årsöverblick. Faktisk isolerad verifiering 38/38 PASS på dator/telefon med riktiga lokala OIDC-/SQL-kedjor. Efter uttryckligt användargodkännande är fem migrationer installerade och samma testade bygge kör på 3012; läsande OIDC och bevarandekontroller passerar. [Verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md) och [leveransresultat](05-NAMED-TIMPLANS-UX-12-SUMMARY.md). [Begriplighetsprovet](05-NAMED-TIMPLANS-UX-USER-TRIAL.md) är `awaiting_user`. Gapet kvarstår tills användaren har bedömt tydligheten. Modell-/kodbeskrivningen nedan är ursprunglig felhistorik, inte dagens implementation.
+Godkänd mockupriktning är implementerad och lokalt levererad i NAMED-TIMPLANS-UX01–12: synliga sparade klasser, granskning och flerval, separata namngivna timplansserier, egna versioner/beslut och årsöverblick. Faktisk isolerad verifiering 38/38 PASS på dator/telefon med riktiga lokala OIDC-/SQL-kedjor. Efter uttryckligt användargodkännande är fem migrationer installerade och samma testade bygge kör på 3012; läsande OIDC och bevarandekontroller passerar. [Verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md) och [leveransresultat](05-NAMED-TIMPLANS-UX-12-SUMMARY.md). Användaren svarade ”funkar bra” 2026-10-16 efter leverans och provuppgifter. [Begriplighetsprovet](05-NAMED-TIMPLANS-UX-USER-TRIAL.md) är användarrapporterat godkänt och gapet avslutas. Enhet, enskilda delsteg och eventuell hjälp särredovisades inte. Full fasacceptans följer inte av detta. Modell-/kodbeskrivningen nedan är ursprunglig felhistorik, inte dagens implementation.
 
 ## Underlag och avgränsning
 

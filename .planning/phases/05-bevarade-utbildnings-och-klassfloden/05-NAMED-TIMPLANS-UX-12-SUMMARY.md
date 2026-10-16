@@ -2,11 +2,11 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: NAMED-TIMPLANS-UX-12
 status: complete
-acceptance: awaiting_user
+acceptance: accepted_user_reported
 updated: 2026-10-16
 ---
 
-# Lokal leverans klar; begriplighetsprov återstår
+# Lokal leverans klar och användarprov godkänt
 
 Användaren godkände de fem permanenta lokala migrationerna och bytet på 3012 med ”absolut det godkänns” 2026-10-16. Installationen är genomförd. Samma testade produktrevision `c8f3256fc869c0002c44fd1c181cd6a27d0df6ab`, 204 filer och artefakt-SHA256 `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e`, kör nu på lokal 3012. Ingen extern driftsättning eller nytt produktbygge har gjorts.
 
@@ -33,6 +33,6 @@ Leveransverktyget kontrollerar nu att en befintlig gymnasietimplan finns före p
 | Slutlig leverans | `/private/tmp/named-delivery-apply-second.json` | `ee9e5edd8c0e6a7393074523ef6be36a39a80840cc67cf31e727410e47eafd11` |
 | Läsande OIDC och cleanup | `/private/tmp/3aebe835-4c80-4bb5-8327-7f3931c901d6-readonly/delivery-readonly-3390e749-2cf8-4931-a2db-6020e288737b.json` | `37369e533eed84c78afee01e619d346959030a23897d695a02a8376067bef068` |
 
-## Kvarstående användarbedömning
+## Användarbedömning 2026-10-16
 
-Plan 12:s leverans och förberedda [begriplighetsprov](05-NAMED-TIMPLANS-UX-USER-TRIAL.md) är klara. Paketets tolv genomförandeplaner är tekniskt slutförda. Gapet CLASS-COHORT-UX-01 förblir `awaiting_user` tills användaren själv bedömt det nya flödet. Tidigare funktionsgodkännanden består; historiska 88/100 planer och 3/8 faser ändras inte. SS 12000-mappningen består, men inget externt standardutbyte eller fullfasacceptans påstås.
+Plan 12:s leverans och förberedda [begriplighetsprov](05-NAMED-TIMPLANS-UX-USER-TRIAL.md) är klara. Paketets tolv genomförandeplaner är tekniskt slutförda. Användaren svarade ”funkar bra” efter leveransen och provuppgifterna. Det registreras som användarrapporterat godkännande och gapet CLASS-COHORT-UX-01 avslutas. Enhet, enskilda delsteg och eventuell hjälp särredovisades inte. Tidigare funktionsgodkännanden består; historiska 88/100 planer och 3/8 faser ändras inte. SS 12000-mappningen består, men inget externt standardutbyte eller fullfasacceptans påstås.
