@@ -6,7 +6,7 @@ wave: 3
 depends_on: ["APL-02"]
 files_modified: ["supabase/migrations/20261016121000_apl_plan_decisions.sql", "work/pilot/verify-apl-plan-decisions.mjs"]
 autonomous: true
-status: planned
+status: in_progress
 gap: APL-01
 must_haves:
   truths: ["Huvudmannen kan bedöma ett aktuellt APL-underlag och rektors förläggningsbeslut separat.", "Gamla fastställda planer, beslut och kvitton behåller sin historiska innebörd.", "En ny plan eller version får ingen kopierad godkännandestatus."]

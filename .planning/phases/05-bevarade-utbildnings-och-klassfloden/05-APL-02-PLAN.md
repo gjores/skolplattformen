@@ -6,7 +6,7 @@ wave: 2
 depends_on: ["APL-01"]
 files_modified: ["supabase/migrations/20261016120000_apl_planning.sql", "work/pilot/verify-apl-plan-commands.mjs"]
 autonomous: true
-status: in_progress
+status: complete
 gap: APL-01
 must_haves:
   truths: ["APL-planen sparas atomärt för exakt skolans timplansversion.", "Endast aktuellt skolmandat kan läsa eller bereda underlaget; en faktisk rektor beslutar förläggningen.", "Ett förlorat svar kan återhämtas utan dubbletter eller delvis sparade perioder."]

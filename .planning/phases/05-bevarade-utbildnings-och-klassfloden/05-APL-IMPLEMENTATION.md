@@ -11,7 +11,7 @@ related_requirements: [ADMIN-02, ADMIN-04, PLANERING-01]
 
 # APL i timplanen – genomförandepaket
 
-Användaren har godkänt riktningen med ”låter som en bra lösning”. [Kontexten](05-APL-CONTEXT.md) avgränsar etapp 1 och [kontraktet](05-APL-CONTRACT.md) anger modell, roller, bevarande och lokala acceptanskriterier. Användaren beställde genomförandet med **”top kör på nu”** 2026-10-16. APL-01 är klar med 62 modell-/regressionsprov, typkontroll och lint; se [handoff](05-APL-01-SUMMARY.md). APL-02 pågår. Ingen SQL-/runtimeverifiering eller ny lokal leverans finns ännu. Etapp 2–3 och full fasacceptans förblir öppna.
+Användaren har godkänt riktningen med ”låter som en bra lösning”. [Kontexten](05-APL-CONTEXT.md) avgränsar etapp 1 och [kontraktet](05-APL-CONTRACT.md) anger modell, roller, bevarande och lokala acceptanskriterier. Användaren beställde genomförandet med **”top kör på nu”** 2026-10-16. APL-01 är klar med 62 modell-/regressionsprov, typkontroll och lint; se [handoff](05-APL-01-SUMMARY.md). APL-02 är klar med faktisk isolerad SQL, 46 kontroller, 5 680 nyckelprober och två samtidighetsfall; se [redovisning](05-APL-02-SUMMARY.md). APL-03 pågår. Ingen faktisk Worker-/UI-verifiering eller ny lokal leverans finns ännu. Etapp 2–3 och full fasacceptans förblir öppna.
 
 Målet är att rektor och skoladministratör kan planera APL i rätt namngivna timplan, se total undervisningstid och varav APL, spara ett granskningsbart underlag och skilja rektors förläggningsbeslut från huvudmannens fastställande. Det första automatiskt bedömda området är appens redan stödda skolförlagda nationella Gy25-yrkesprogram. Perioder med osäker omfattning kan sparas men får inget falskt uppfyllelsebesked. Elevplatser, genomförande och närvaro ingår inte.
 

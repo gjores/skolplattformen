@@ -1,0 +1,239 @@
+{
+  "gym": {
+    "id": "5a110000-0000-4000-8000-000000000002",
+    "unitId": "5a110000-0000-4000-8000-000000000004",
+    "offeringId": "5a110000-0000-4000-8000-000000000003",
+    "version": 1,
+    "series": {
+      "id": "5a110000-0000-4000-8000-000000000005"
+    },
+    "hours": {
+      "programmeSpecific:BYGG:1:BYGG1000X": [
+        400,
+        400,
+        null,
+        null,
+        null,
+        null
+      ],
+      "programmeSpecific:HUSB:1:HUSB1000X": [
+        400,
+        400,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "source": {
+      "planId": "5a110000-0000-4000-8000-000000000006",
+      "version": 2,
+      "catalogId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "basisReference": {
+        "startedOn": "2026-08-01",
+        "programRef": {
+          "code": "BA25",
+          "version": 1
+        },
+        "choiceBlocks": []
+      },
+      "education": {
+        "programCode": "BA25",
+        "orientationCode": null
+      },
+      "rows": [
+        {
+          "key": "programmeSpecific:BYGG:1:BYGG1000X",
+          "points": 100
+        },
+        {
+          "key": "programmeSpecific:HUSB:1:HUSB1000X",
+          "points": 100
+        }
+      ],
+      "distribution": [
+        {
+          "rowKey": "programmeSpecific:BYGG:1:BYGG1000X",
+          "points": [
+            50,
+            50,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "rowKey": "programmeSpecific:HUSB:1:HUSB1000X",
+          "points": [
+            50,
+            50,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "organizer": "5a110000-0000-4000-8000-000000000001",
+  "apl": {
+    "contractVersion": "structured_v1",
+    "educationForm": "school_based",
+    "classification": "complete",
+    "periods": [
+      {
+        "id": "5a110000-0000-4000-8000-000000000010",
+        "name": "APL på hösten",
+        "startsOn": "2026-08-03",
+        "endsOn": "2026-11-15",
+        "schoolYear": 2026,
+        "extent": {
+          "basis": "whole_weeks",
+          "weeks": 15,
+          "reviewed": true,
+          "reviewNote": "Granskat helt veckounderlag."
+        },
+        "contents": [
+          {
+            "rowKey": "programmeSpecific:BYGG:1:BYGG1000X",
+            "description": "Arbetsmoment A"
+          },
+          {
+            "rowKey": "programmeSpecific:HUSB:1:HUSB1000X",
+            "description": "Arbetsmoment B"
+          }
+        ],
+        "allocations": [
+          {
+            "rowKey": "programmeSpecific:BYGG:1:BYGG1000X",
+            "termIndex": 0,
+            "gutMinutes": 20700
+          }
+        ]
+      }
+    ]
+  },
+  "reviews": [],
+  "program": {
+    "code": "BA25",
+    "version": 1,
+    "category": "VOCATIONAL_PROGRAM",
+    "startDate": "2025-07-01",
+    "endDate": null,
+    "canceledDate": null,
+    "sourceSupported": true
+  },
+  "expectedPayload": [
+    "apl_content_v1",
+    [
+      "5a110000-0000-4000-8000-000000000001",
+      "5a110000-0000-4000-8000-000000000004",
+      "5a110000-0000-4000-8000-000000000003",
+      "5a110000-0000-4000-8000-000000000002",
+      "5a110000-0000-4000-8000-000000000005",
+      1
+    ],
+    [
+      "5a110000-0000-4000-8000-000000000006",
+      2,
+      "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "2026-08-01",
+      "BA25",
+      null,
+      1,
+      "VOCATIONAL_PROGRAM",
+      "2025-07-01",
+      null,
+      null,
+      true
+    ],
+    [
+      [
+        "programmeSpecific:BYGG:1:BYGG1000X",
+        100,
+        "programmeSpecific",
+        "fixed",
+        [
+          50,
+          50,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          400,
+          400,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      [
+        "programmeSpecific:HUSB:1:HUSB1000X",
+        100,
+        "programmeSpecific",
+        "fixed",
+        [
+          50,
+          50,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          400,
+          400,
+          null,
+          null,
+          null,
+          null
+        ]
+      ]
+    ],
+    [
+      "structured_v1",
+      "school_based",
+      "complete",
+      [
+        [
+          "5a110000-0000-4000-8000-000000000010",
+          "APL på hösten",
+          "2026-08-03",
+          "2026-11-15",
+          2026,
+          [
+            "whole_weeks",
+            15,
+            true,
+            "Granskat helt veckounderlag."
+          ],
+          [
+            [
+              "programmeSpecific:BYGG:1:BYGG1000X",
+              "Arbetsmoment A"
+            ],
+            [
+              "programmeSpecific:HUSB:1:HUSB1000X",
+              "Arbetsmoment B"
+            ]
+          ],
+          [
+            [
+              "programmeSpecific:BYGG:1:BYGG1000X",
+              0,
+              20700
+            ]
+          ]
+        ]
+      ]
+    ],
+    []
+  ],
+  "expectedCanonical": "a6:s14:apl_content_v1a6:s36:5a110000-0000-4000-8000-000000000001s36:5a110000-0000-4000-8000-000000000004s36:5a110000-0000-4000-8000-000000000003s36:5a110000-0000-4000-8000-000000000002s36:5a110000-0000-4000-8000-000000000005i1;a12:s36:5a110000-0000-4000-8000-000000000006i2;s71:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaas10:2026-08-01s4:BA25ni1;s18:VOCATIONAL_PROGRAMs10:2025-07-01nnta2:a6:s34:programmeSpecific:BYGG:1:BYGG1000Xi100;s17:programmeSpecifics5:fixeda6:i50;i50;i0;i0;i0;i0;a6:i400;i400;nnnna6:s34:programmeSpecific:HUSB:1:HUSB1000Xi100;s17:programmeSpecifics5:fixeda6:i50;i50;i0;i0;i0;i0;a6:i400;i400;nnnna4:s13:structured_v1s12:school_baseds8:completea1:a8:s36:5a110000-0000-4000-8000-000000000010s15:APL på höstens10:2026-08-03s10:2026-11-15i2026;a4:s11:whole_weeksi15;ts28:Granskat helt veckounderlag.a2:a2:s34:programmeSpecific:BYGG:1:BYGG1000Xs14:Arbetsmoment Aa2:s34:programmeSpecific:HUSB:1:HUSB1000Xs14:Arbetsmoment Ba1:a3:s34:programmeSpecific:BYGG:1:BYGG1000Xi0;i20700;a0:",
+  "expectedHash": "sha256:712b6f8b5c78706128cda90bcb56d3d5c9fa11329d38f5073f3c9d574a371907"
+}
