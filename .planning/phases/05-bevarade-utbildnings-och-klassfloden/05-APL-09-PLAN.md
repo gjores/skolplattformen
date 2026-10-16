@@ -6,7 +6,7 @@ wave: 7
 depends_on: ["APL-08"]
 files_modified: [".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-RELEASE.md", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-USER-TRIAL.md", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-VERIFICATION.md", ".planning/STATE.md"]
 autonomous: true
-status: planned
+status: complete
 gap: APL-01
 execution_prerequisite: explicit_approval_for_exact_apl_release
 must_haves:

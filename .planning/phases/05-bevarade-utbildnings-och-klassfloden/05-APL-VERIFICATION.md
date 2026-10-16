@@ -2,11 +2,13 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: APL
 stage: 1
-status: actual_verified_release_pending
+status: delivered_user_trial_pending
 updated: 2026-10-16
 ---
 
 # APL etapp 1 – samlad verifieringsmatris
+
+**Leverans2026-10-16:** [APL-09](05-APL-09-SUMMARY.md) PASS: tre uttryckligen godkända migrationer, ursprungliga rader i65 tabeller och rättigheter bevarade. Samma68cecb4/209 filer kör på3012; verklig läsande OIDC/MFA och71 verksamhetstabellers bevarande PASS. Extra användaringångsprov läste faktisk BYGGHUS27 men hade ett testhjälpsfel efter sidrendering; exakt egen sessionstädning redovisas separat. APL-10 awaiting_user. Äldre leveransväntande status nedan är historik.
 
 **Aktuell slutstatus2026-10-16:** [APL-08](05-APL-08-SUMMARY.md) PASS34 faktisk Worker/HTTP/OIDC, 2/2 dator-/telefonflöden utan omprov,14 visuellt granskade bilder,19 callbacks och full cleanup. Kandidat68cecb4/209 filer. Läsande installations- och leveransförberedelse PASS. APL1-01–08 har lokala automatiska bevis; permanent installation och mänsklig begriplighet kvarstår i09/10. Inget nytt fullkravs- eller fasgodkännande.
 
@@ -37,7 +39,7 @@ APL-07 använder en egen schema-only-kopia med syntetiska kunder, uppdrag, skolo
 | Verklig SQL-skrivning följd av projektionsfel/auditfel | APL1-05 | APL-04 fem observerade post-write rollbackfall; APL-07 AUDIT | PASS efter profilfix; APL-04/07 |
 | UI, dator/telefon, journal och handbok | APL1-05/07/08 | APL-05 UI44, APL-06 UI26/handbok, APL-08 faktisk browser14 | Automatiskt PASS; begriplighetsprov10 kvar |
 | Faktisk HTTP/OIDC, minuter, regler, mandat, återhämtning och beslut | APL1-01–08 | APL-08 browser14/API20 på samma kandidat, SQL07 som komplement | PASS lokalt syntetiskt; ingen extern anslutning |
-| Aktiv installation och samma kandidat på3012 | APL1-06/08 | APL-08 läsande preflight/prepare; APL-09 | Förberett PASS; installation väntar på exakt beslut |
+| Aktiv installation och samma kandidat på3012 | APL1-06/08 | APL-08 läsande preflight/prepare; APL-09 | APL-09 installerad och bevarandeverifierad; mänskligt prov10 kvar |
 
 ## Första fel och återhämtning
 

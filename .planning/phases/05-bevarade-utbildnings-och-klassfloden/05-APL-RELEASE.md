@@ -2,13 +2,13 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: APL
 stage: 1
-status: awaiting_release_authorization
+status: delivered_user_trial_pending
 updated: 2026-10-16
 ---
 
 # APL etapp 1 – lokal leveranskandidat
 
-Faktiskt integrationsprov och läsande leveransförberedelse är godkända. Paketet är klart för installationsbeslut. Ingen APL-migration har installerats i aktiv databas och port 3012 har inte bytt version. Denna fil är ett granskningsunderlag, inte ett installationsgodkännande eller ett godkänt användarprov.
+Paketet är installerat efter användarens uttryckliga godkännande. De tre migrationerna och samma testade68cecb4/209-fils kandidat kör lokalt. Installation, originalbevarande och verklig läsande OIDC/MFA PASS. [APL-09](05-APL-09-SUMMARY.md) redovisar journaler och extra provhjälpsavvikelse med exakt egen återhämtning. [Användarprovet](05-APL-USER-TRIAL.md) väntar på mänsklig bedömning.
 
 ## Vad användaren får
 
@@ -24,7 +24,7 @@ Detta är planering. Arbetsplatser, elevplaceringar, närvaro och genomförd APL
 
 Målet är befintlig lokal skyddad miljö, med app på `http://127.0.0.1:3012`. Produktionsdrift eller externa anslutningar ingår inte.
 
-- Nuvarande app: `a34dd199a96a1c24448c1c6ad8a688da4b91949a`; exakt process och artefakt binds mot föregående leveransbevis.
+- Tidigare app före bytet: `a34dd199a96a1c24448c1c6ad8a688da4b91949a`; exakt process och artefakt binds mot föregående leveransbevis.
 - Ny skyddad byggrevision: `68cecb41e1d61ae8381951ee295758c4f764511c`.
 - Ny artefakt: 209 filer, SHA-256 `e37a996c33ba301a86490512aff7ab4a65f3ccd32337ba91ac5cc713062ae9c6`.
 - Bygget görs i separat lokal källkopia utanför ignorerade kataloger. Genererade dialog-/layoutstilar och oförändrad aktiv artefakt kontrolleras. Samma färdiga bytes som integrationsprovas ska överföras; inget nytt bygge vid leverans.
@@ -51,7 +51,9 @@ Slutkandidaten passerar34 faktiska kontroller, dator/telefon utan omprov,19 veri
 
 Privata bevis ligger utanför Git. Inga råa sessionsuppgifter, hemligheter eller användardata läggs i denna fil.
 
-## Installation efter konkret godkännande
+## Godkännande och installation
+
+Användaren godkände uttryckligen 2026-10-16: ”Ja, godkänner de tre APL-databasändringarna och bytet på 3012. Kör på!” Godkännandet gäller de tre migrationshasharna och kandidat68cecb4 ovan. APL-09 påbörjas med förnyad läsande kontroll; ingen ny tillåtelse behövs.
 
 APL-09 kräver godkännande av just dessa tre migrationer och denna testade kandidat. Tidigare godkännande av fem andra migrationer gäller inte detta paket. Faktiskt prov och läsande förkontroller är klara; nästa steg är detta konkreta installationsbeslut.
 

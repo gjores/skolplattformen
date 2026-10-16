@@ -6,7 +6,7 @@ wave: 8
 depends_on: ["APL-09"]
 files_modified: [".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-USER-TRIAL.md", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md", ".planning/STATE.md"]
 autonomous: false
-status: planned
+status: awaiting_user
 gap: APL-01
 must_haves:
   truths: ["Användaren förstår att spara APL-plan och fatta/skilja rektors- och huvudmannabeslut.", "Användaren kan tolka total/varav APL utan att tro att genomförande är verifierat."]

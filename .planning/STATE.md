@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-09
-status: awaiting_release_authorization
-stopped_at: APL-08 PASS34 och läsande releaseförberedelse PASS; APL-09 väntar på exakt installationsbeslut, aktiv3012 oförändrad.
+current_plan: APL-10
+status: awaiting_user
+stopped_at: APL-09 levererad och verifierad; APL-10 begriplighetsprov awaiting_user.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "APL-08 klar: faktisk34, dator/telefon, bildgranskning och releaseförberedelse PASS. 9/11 klara; installation och mänsklig begriplighet återstår."
-state_head: 68cecb4
-verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
-verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
-worker_status: rector_programplan_local_delivery_verified
-worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
+last_activity_desc: "APL-09: tre godkända migrationer och exakt209-fils kandidat levererad, bevarande/OIDC PASS. 10/11 klara; mänsklig begriplighet återstår."
+state_head: 90ef9a8
+verification_worker_build_revision: 68cecb41e1d61ae8381951ee295758c4f764511c
+verification_worker_status: apl_actual_sql_api_browser_local_delivery_pass
+worker_status: apl_local_delivery_verified
+worker_build_revision: 68cecb41e1d61ae8381951ee295758c4f764511c
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-09 levererad2026-10-16:** Användaren godkände tre exakta APL-migrationer och3012-byte. Installation med65 originaltabellers/rättigheters bevarande, samma68cecb4/209 filer, verklig rektors-OIDC/MFA och71 verksamhetstabellers bevarande PASS. Extra startsidesprov och exakt egen återhämtning redovisas i [APL-09](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-09-SUMMARY.md). Senare främmande session/dataändringar bevarade. 10/11 paketplaner klara. [APL-användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-USER-TRIAL.md) är awaiting_user; ingen mänsklig acceptans eller etapp2/3-leverans antas.
 
 **APL-08 klar2026-10-16:** [Redovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-08-SUMMARY.md) PASS34 faktiska kontroller, dator/telefon utan omprov,14 granskade bilder,19 callbacks och full cleanup. Samma68cecb4/209-fils kandidat,386 produktkällor/59 verifieringskällor oförändrade. Läsande installation/leveransförberedelse PASS och oberoende granskning utan blockerare. 9/11 paketplaner klara; [exakt release](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-RELEASE.md) väntar på APL-09:s installationsbeslut. Aktiv databas och3012/a34dd19 är oförändrade. Mänsklig begriplighet i10, etapp2–3 och fulla pilotkrav kvarstår.
 
