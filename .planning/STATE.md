@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: NAMED-TIMPLANS-UX-12
-status: package_complete
-stopped_at: NAMED-TIMPLANS-UX01–12 klara; användaren svarade ”funkar bra”. CLASS-COHORT-UX-01 avslutat; övriga fasgap består.
+current_plan: RECTOR-PROGRAMPLAN
+status: executing
+stopped_at: Rektors skapande och kopiering till egen skola implementeras och verifieras; huvudmannens godkännande består.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
 last_activity_desc: "Användarrapporterat godkännande av namngivna timplaner och klassflöde; användbarhetsgapet avslutat."
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Aktuellt RECTOR-PROGRAMPLAN 2026-10-16:** Användaren beställer att rektor ska kunna skapa programplaner och kopiera till nästa kull för egen skola, med huvudmannens godkännande kvar. [Beslut och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-CONTEXT.md) och [plan](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-PLAN.md). SQL-, API- och UI-ändringar verifieras; ingen installation eller ny lokal leverans för detta paket ännu. Namngivna timplaners tidigare användargodkännande består.
 
 **Aktuellt NAMED-TIMPLANS-UX 2026-10-16:** Alla tolv genomförandeplaner är tekniskt klara. Användarens ”absolut det godkänns” godkände fem permanenta lokala migrationer och appbyte. Installation PASS med bevarade originalkolumner i 62 tabeller. Samma produktbygge `c8f3256`/204 filer/artefakt `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e` kör nu på 3012. Första bytet återställdes efter felaktigt valt testunderlag; rättad förkontroll och 67 verktygsprov PASS, därefter andra bytet med faktisk läsande OIDC/MFA och 62 verksamhetstabellers bevarande PASS. Tidigare 38 faktiska API-/browserprov och handboksbygge består för oförändrad produkt. [Leveransresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-12-SUMMARY.md) och [begriplighetsprov](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-USER-TRIAL.md). Användaren svarade därefter ”funkar bra”. Det registreras som användarrapporterat godkännande av det levererade flödet och avslutar CLASS-COHORT-UX-01. Enhet, enskilda delsteg och eventuell hjälp särredovisades inte; fullfasacceptans antas inte. Historiska 88/100 och 3/8 består. Äldre statusstycken nedan är historik.
 
