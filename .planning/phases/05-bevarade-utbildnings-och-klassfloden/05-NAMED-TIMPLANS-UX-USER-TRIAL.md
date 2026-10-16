@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: NAMED-TIMPLANS-UX-12
-status: prepared_awaiting_verified_delivery_and_user
+status: awaiting_user
 acceptance: not_observed
 ---
 
@@ -11,7 +11,7 @@ Detta är förberett provmaterial, inte ett genomfört användarprov. Teknisk ve
 
 ## Förutsättningar för provledaren
 
-Använd först den lokala kandidat som har passerat paketets verkliga verifiering och läsande leveranskontroll. Fyll i exakt revision, artefakt och bevislänk nedan innan användaren provar. Inga sådana resultat antas här.
+Den lokala kandidaten på http://127.0.0.1:3012 har passerat paketets faktiska verifiering och läsande leveranskontroll 2026-10-16. Exakt revision och bevis finns nedan. Användarens egen bedömning är ännu inte observerad.
 
 Använd en särskild syntetisk utbildning med sparad programplan, komplett underlag och känt startdatum. Håll den åtskild från användarens tidigare klasser och timplaner. Deltagaren får själv välja lämpliga syntetiska objekt. Förbered inte kopplingar som uppgifterna ska pröva. Om deltagaren saknar en beslutsroll kan provledaren utföra enbart nödvändiga fastställanden efter deltagarens begäran; anteckna hjälpen. Användaren ska inte behöva få chattinstruktioner om var knapparna finns.
 
@@ -32,8 +32,8 @@ Om något är oklart: säg vad du väntade dig och var du skulle försöka gå v
 | Uppgift | Resultat eller observation |
 | --- | --- |
 | Tidpunkt | Ej genomfört |
-| Kandidatens Git-revision och artefaktidentitet | Fylls i efter verifierad lokal leverans |
-| Länk till faktisk teknisk verifiering och leveransbevis | Saknas ännu i detta dokument |
+| Kandidatens Git-revision och artefaktidentitet | `c8f3256fc869c0002c44fd1c181cd6a27d0df6ab`; 204 filer; SHA256 `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e` |
+| Länk till faktisk teknisk verifiering och leveransbevis | [Samlad verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md) och [lokal leverans med rapporthashar](05-NAMED-TIMPLANS-UX-12-SUMMARY.md) |
 | Provad enhet, webbläsare och skärmstorlek | Ej observerat |
 | Sparade klasser förstås utan chattstegledning | Ej observerat |
 | Separata timplaner skiljs från versioner | Ej observerat |

@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: NAMED-TIMPLANS-UX
-status: actual_verification_pass_local_delivery_pending
+status: local_delivery_verified_awaiting_user
 ---
 
 # Samlad verifiering av namngivna timplaner
@@ -51,8 +51,14 @@ Samordnarens kandidatbygge skrev av misstag till den katalog som den äldre3012-
 
 ## Kvarvarande gränser
 
-Lokal schemaapply med originalkolumnbevarande, exakt artefaktöverföring och läsande leveranskontroll återstår. Användarens begriplighetsprov är förberett men inte observerat. Historiska integritets-/prestandagränser och fasens övriga gap består. SS12000:2024/OpenAPI2.1.0 följer paketets mappning; timplansserie är intern planeringsmetadata och inget externt informationsutbyte har provats.
+Lokal schemaapply med originalkolumnbevarande, exakt artefaktöverföring och läsande leveranskontroll har passerat 2026-10-16; se leveransresultatet nedan. Användarens begriplighetsprov är förberett men inte observerat. Historiska integritets-/prestandagränser och fasens övriga gap består. SS12000:2024/OpenAPI2.1.0 följer paketets mappning; timplansserie är intern planeringsmetadata och inget externt informationsutbyte har provats.
 
-## Plan12:s aktuella installationsgräns
+## Historik: tidigare installationsgräns
 
 Läsande förprov `/private/tmp/named-install-verify.json` PASS, SHA256 `1d116ed86927e9ff206b48d6942f362c0b5cf068dce46247031513c07eb947ea`, committed=false,62 originaltabeller. Därefter avvisade automatisk godkännandegranskning `node work/pilot/apply-named-timplans.mjs --apply ...` före exekvering: permanent lokal schemaändring bedömdes sakna senare specifikt godkännande. Ingen applyrapport skapades och inga migrationer installerades. Användaren har tillfrågats uttryckligen; pågående3012-version är fortfarande88145bc. Inga alternativa eller indirekta migrationsvägar har körts.
+
+## Godkänd installation och slutlig lokal leverans 2026-10-16
+
+Användarens ”absolut det godkänns” gav uttryckligt godkännande för fem lokala migrationer och appbytet. Nytt förprov och installation PASS; 62 originaltabellers gamla kolumner, ACL och journal bevarades. Första leveransen stannade på ett saknat gymnasieunderlag i den valda testutbildningen, med full egen cleanup och verifierad återställning. Förkontrollen har flyttats före bytet, verifierad återställning kan bindas som tidigare processbevis och 67/67 verktygsprov passerar. Nytt förprov och andra leveransförsöket PASS med befintligt syntetiskt läsunderlag. Produktkällor och byggbytes är oförändrade.
+
+Samma 204-filsartefakt kör på 3012. Faktisk OIDC/MFA, klassläsning och namngivna timplaner gav 200 med DB-/Worker-audit. Alla 62 verksamhetstabellers hashvärden är lika före/efter. Egen app-/GoTrue-session borttagen, tidigare sessioner och audit bevarade, endast exakt verifierade egna inloggningsmetadata ändrades. [Plan 12:s resultat och rapporthashar](05-NAMED-TIMPLANS-UX-12-SUMMARY.md) binder installation, första återställda försök, slutligt förprov, slutlig leverans och läsande OIDC/cleanup. Begriplighetsprovet är nu `awaiting_user` och har ännu inget observerat resultat.

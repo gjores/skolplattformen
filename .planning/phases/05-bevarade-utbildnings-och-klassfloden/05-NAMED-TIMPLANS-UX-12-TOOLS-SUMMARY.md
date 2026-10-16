@@ -35,3 +35,7 @@ Read-only processinspektion visade att den aktiva 3012-processen faktiskt läste
 ## Kvar inför körning
 
 Samordnaren behöver slutföra plan 11:s faktiska dator-/telefonprov, granska bilder, lägga deras hashbindning och granska verktygen. Därefter körs läsande installationförhandskontroll, bounded installation, leveransförhandskontroll och exakt lokal leverans. Full plan 12 kräver även handboksbygge, faktisk leveranskontroll och mänskligt begriplighetsprov; inget av detta markeras klart här. SS 12000:2024/OpenAPI 2.1.0 påverkas inte av dessa driftverktyg; originalens stabila klass-/organisations-ID:n och giltigheter bevaras och inget externt standardutbyte påstås.
+
+## Leveransrättning och faktiskt resultat 2026-10-16
+
+Efter användarens uttryckliga installationsgodkännande passerade migrationerna. Första appbytet återställdes efter att läsunderlaget visade sig sakna gymnasietimplan. Verktyget kontrollerar nu detta före processbyte och kan återanvända ett fullständigt verifierat återställningsbevis utan att klassa det misslyckade försöket som levererat. Tolv nya regressioner täcker accepterad återställning och nekade avvikelser; totalt 67/67 PASS (`/private/tmp/named-delivery-tools-recovery.log`). Det andra faktiska bytet, OIDC/MFA, två underlagsläsningar och full egen cleanup PASS. Produktkällor och kandidatartefakt är oförändrade. [Resultat och exakta bevis](05-NAMED-TIMPLANS-UX-12-SUMMARY.md).

@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 gap: CLASS-COHORT-UX-01
-status: open_implemented_awaiting_local_installation_and_user
+status: open_awaiting_user
 created: 2026-10-15
 requirements: [ADMIN-04, PLANERING-04, PLANERING-05]
 ---
@@ -10,7 +10,7 @@ requirements: [ADMIN-04, PLANERING-04, PLANERING-05]
 
 ## Aktuellt2026-10-16
 
-Godkänd mockupriktning är implementerad i NAMED-TIMPLANS-UX01–11: synliga sparade klasser, granskning och flerval, separata namngivna timplansserier, egna versioner/beslut och årsöverblick. Faktisk isolerad verifiering38/38PASS på dator/telefon med riktiga lokala OIDC-/SQL-kedjor. [Verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md).12:s lokala installationsförprovPASS; permanent migration avvisades före körning av automatisk godkännandegranskning och uttryckligt godkännande har efterfrågats. Ingen ny3012-leverans eller mänskligt begriplighetsresultat ännu. [Nästa steg](05-NAMED-TIMPLANS-UX-12-SUMMARY.md). Gapet kvarstår tills leverans och användarprov är klara. Modell-/kodbeskrivningen nedan är ursprunglig felhistorik, inte dagens implementation.
+Godkänd mockupriktning är implementerad och lokalt levererad i NAMED-TIMPLANS-UX01–12: synliga sparade klasser, granskning och flerval, separata namngivna timplansserier, egna versioner/beslut och årsöverblick. Faktisk isolerad verifiering 38/38 PASS på dator/telefon med riktiga lokala OIDC-/SQL-kedjor. Efter uttryckligt användargodkännande är fem migrationer installerade och samma testade bygge kör på 3012; läsande OIDC och bevarandekontroller passerar. [Verifiering](05-NAMED-TIMPLANS-UX-VERIFICATION.md) och [leveransresultat](05-NAMED-TIMPLANS-UX-12-SUMMARY.md). [Begriplighetsprovet](05-NAMED-TIMPLANS-UX-USER-TRIAL.md) är `awaiting_user`. Gapet kvarstår tills användaren har bedömt tydligheten. Modell-/kodbeskrivningen nedan är ursprunglig felhistorik, inte dagens implementation.
 
 ## Underlag och avgränsning
 

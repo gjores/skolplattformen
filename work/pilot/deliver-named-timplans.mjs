@@ -46,7 +46,17 @@ export function localRuntime(){
  assert.ok(manager.args.endsWith('scripts/run-mode.mjs preview --mode protected --port 3012'),'Unexpected preview manager');
  assert.equal(processCwd(manager.pid),web);return{listener,preview,manager};
 }
-export function requirePreviousRuntimeProof(previous,artifact,runtime){
+export function requirePreviousRuntimeProof(previous,artifact,runtime,{cleanupProof,business,configuration}={}){
+ if(previous.status==='FAIL'&&previous.runtimeRestored===true){
+  assert.equal(previous.kind,'named-timplan-local-delivery');assert.equal(previous.mode,'--apply');assert.equal(previous.databaseClosed,true);assert.notEqual(previous.recoveryRequired,true);
+  assert.equal(previous.failedStage,'readonly_oidc_pending');assert.equal(previous.readOnlyOidc?.status,'FAIL');
+  assert.equal(cleanupProof?.sha256,previous.readOnlyOidc.proofSha256);const clean=cleanupProof?.value;
+  assert.equal(clean?.kind,'named-timplan-delivery-readonly');assert.equal(clean?.stage,'complete');
+  for(const key of ['quiesced','oldSessionsPreserved','oldAuditPreserved','oldBusinessPreserved','loginMetadataOnly'])assert.equal(clean.cleanup?.[key],true);
+  assert.deepEqual(clean.before.business,previous.beforeBusiness);assert.deepEqual(clean.after.business,previous.beforeBusiness);
+  assert.deepEqual(business,previous.beforeBusiness);assert.deepEqual(configuration,previous.beforeConfiguration);
+  previous={kind:previous.kind,mode:previous.mode,status:'PASS',applied:true,afterArtifact:previous.beforeArtifact,afterRuntime:previous.restoredRuntime};
+ }
  assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
  for(const part of ['listener','preview','manager']){const old=previous.afterRuntime[part],current=runtime[part];for(const key of ['pid','started','args'])assert.equal(current[key],old[key],'Active process differs from previous delivery');if(part!=='manager')assert.equal(current.ppid,old.ppid);else assert.ok(current.ppid===old.ppid||current.ppid===1,'Manager parent changed unexpectedly');}
 }
@@ -333,6 +343,7 @@ async function readNamedTimplansAfterDelivery({db,target,baseURL,scope,evidenceD
       and session_id=any(${[...appIds]}::uuid[]) and assignment_id=${scope.assignmentId} and customer_id=${scope.customerId} and outcome='ok'
       and action='class_cohort_read' and object_type='education' and object_id=${scope.offeringId}`;
     assert.deepEqual(readAudit.map(item=>item.source).sort(),['db','worker']);
+    checkpoint('reading_named_timplans','existing_synthetic_gym_source');
     const plans=await db`select distinct source_programplan_id::text source_id from public.timplans where offering_id=${scope.offeringId} and unit_id=${scope.unitId} and gym_basis is not null order by source_id`;
     assert.ok(plans.length>0,'Selected scope needs an existing synthetic gym timplan');
     const sourcePlanId=plans[0].source_id,namedResponse=await context.request.post('/api/timplaner/gym/underlag',{headers:{Origin:baseURL,'Sec-Fetch-Site':'same-origin','X-Context-Epoch':String(view.epoch)},data:{sourcePlanId}});assert.equal(namedResponse.status(),200);
@@ -405,7 +416,9 @@ export async function deliverNamedTimplans(mode,{evidence,out,scope,previousRunt
     and a.function='rektor' and mu.unit_id=${selected.unitId} and o.id=${selected.offeringId} and o.kind='gymnasium'
     and i.issuer=${target.idp.issuer} and i.subject=${configured.subject} and public.phase3_mandate_is_valid(a.id)`;
   assert.equal(readable.length,1,'The existing synthetic school mandate must cover the selected education before transfer');
-  r.beforeRuntime=localRuntime();r.beforeArtifact=artifactManifest(destination);const previous=readEvidence(prior?prior.previousRuntimeEvidence.path:previousRuntime);r.previousRuntimeEvidence={path:previous.path,sha256:previous.sha256};if(prior)assert.deepEqual(r.previousRuntimeEvidence,prior.previousRuntimeEvidence);requirePreviousRuntimeProof(previous.value,r.beforeArtifact,r.beforeRuntime);r.beforeConfiguration=privateConfiguration(target);r.beforeBusiness=await businessHashes(db);r.beforeHealth=await health();
+  const existingPlans=await db`select id from public.timplans where offering_id=${selected.offeringId} and unit_id=${selected.unitId} and gym_basis is not null and source_programplan_id is not null`;
+  assert.ok(existingPlans.length>0,'Selected scope needs an existing synthetic gym timplan before transfer');
+  r.beforeRuntime=localRuntime();r.beforeArtifact=artifactManifest(destination);const previous=readEvidence(prior?prior.previousRuntimeEvidence.path:previousRuntime);r.previousRuntimeEvidence={path:previous.path,sha256:previous.sha256};if(prior)assert.deepEqual(r.previousRuntimeEvidence,prior.previousRuntimeEvidence);r.beforeConfiguration=privateConfiguration(target);r.beforeBusiness=await businessHashes(db);const cleanupProof=previous.value.status==='FAIL'&&previous.value.readOnlyOidc?.proofPath?readEvidence(previous.value.readOnlyOidc.proofPath):undefined;requirePreviousRuntimeProof(previous.value,r.beforeArtifact,r.beforeRuntime,{cleanupProof,business:r.beforeBusiness,configuration:r.beforeConfiguration});r.beforeHealth=await health();
   if(prior)for(const key of ['scopeEvidence','beforeRuntime','beforeArtifact','beforeConfiguration','beforeBusiness'])assert.deepEqual(r[key],prior[key],`Preflight changed: ${key}`);
   r.testedBuild={root:proof.build.buildRoot,revision:proof.build.buildRevision,artifact:proof.build.artifact};r.sqlEvidenceSha256=proof.sql.evidenceSha256;
   if(mode==='--apply'){
