@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-07/08
+current_plan: APL-08
 status: in_progress
-stopped_at: APL-05 editor verifierad; APL-07 sista samtidighetsprov och APL-08 integrationsverktyg pågår.
+stopped_at: APL-05/07 verifierade; separat skyddad kandidat byggd, faktisk APL-08-integration återstår.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
 last_activity_desc: "APL-06 klar: simulerad UI26 på dator/telefon, Node32, typ/lint och handbok PASS. APL-05/07 pågår; ingen ny lokal leverans."
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL våg5 verifierad2026-10-16:** [APL-07](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-07-SUMMARY.md) PASS65 faktiska SQL-kontroller/12 observerade överlapp,65 originaltabeller/530 rader bevarade,99 aktuella källhashar och full cleanup. APL-05 UI44 är klar. 8 av11 paketplaner klara. Separat skyddad kandidat från467f9ea är byggd utan ändring av aktiv artefakt. APL-08 faktisk HTTP/OIDC återstår; ingen aktiv installation eller mänsklig acceptans.
 
 **APL-editor verifierad 2026-10-16:** [APL-05](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-05-SUMMARY.md) passerar44 simulerade dator-/telefonprov, slutlig Node91, typkontroll och full produktlint. 7 av11 paketplaner klara. APL-07 rättar testets återkallningsväg till faktisk produktfunktion; APL-08:s granskade verktyg förbereds. Aktiv databas/3012 är oförändrade; faktisk HTTP/OIDC, installation och mänsklig begriplighet återstår.
 
