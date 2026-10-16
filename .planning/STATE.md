@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-DISCOVERY
-status: executing
-stopped_at: APL-research klar; tre föreslagna etapper behöver avgränsas och planeras före implementation.
+current_plan: APL-01
+status: planned
+stopped_at: APL etapp 1 planerad och plancheck PASS; nästa steg är APL-01. Ingen implementation påbörjad.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "APL-regler, aktuell kod, ledningsstöd och SS 12000 utredda. Researchunderlag och öppet APL-gap dokumenterade; rektorsflödet användarrapporterat godkänt."
-state_head: 39e69e8
+last_activity_desc: "APL etapp 1: elva planer i åtta vågor, oberoende plancheck PASS. Användarens riktning dokumenterad; app/databas oförändrade."
+state_head: af70fb1
 verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
 worker_status: rector_programplan_local_delivery_verified
@@ -26,7 +26,7 @@ milestone_name: milestone
 
 # Project State
 
-**APL-research 2026-10-16:** [Research med primärkällor och kodinventering](research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) är genomförd på användarens beställning. [APL-01-gapet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md) föreslår tre etapper: tydlig APL-plan i timplanen, elevplatser/ansvar och genomförande/kvalitet. Berör bevarande av ADMIN-02/04 och PLANERING-01 samt framtida SCHEMA-01/03/07/08. Ingen implementation, ny kravacceptans eller automatisk utökning av pilotens 42 krav. Användarens ”Funkar!” registreras samtidigt som avgränsat godkännande av levererat rektorsflöde; enhet och delsteg särredovisades inte.
+**APL-riktning godkänd 2026-10-16:** Användaren svarade ”låter som en bra lösning” på [researchens](research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) tre etapper och rekommenderade start i timplanen. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTEXT.md), [kontrakt](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTRACT.md) och [planpaket](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-IMPLEMENTATION.md) konkretiserar etapp 1: perioder, innehåll, total/varav APL och separata rektors-/huvudmannabeslut. Elva planer i åtta vågor har passerat [oberoende plancheck](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-PLAN-CHECK.md); nästa steg är APL-01. Inga produkt-/databasändringar eller nya verifierade krav följer av planeringen. APL1-01–08 är paketets lokala acceptanskriterier; pilotens 42 krav, fasantal och tidigare bevis består. [APL-gapet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md) är öppet tills implementering och verifiering är gjorda.
 
 **Aktuellt RECTOR-PROGRAMPLAN 2026-10-16:** Användaren beställer att rektor ska kunna skapa programplaner och kopiera till nästa kull för egen skola, med huvudmannens godkännande kvar. [Beslut och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-CONTEXT.md) och [plan](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-PLAN.md). Alla tre delsteg är genomförda: SQL45, faktisk API/browser23 med 12 OIDC/MFA-callbackar, simulerad UI24+62, API19, verktygsprov91, typ/lint/app-/handboksbygge PASS. Migrationen bevarade alla originalrader i 65 tabeller och rättigheter. Samma a34dd19/204-filsbygge kör på 3012; läsande rektorsprov och 62 verksamhetstabellers bevarande PASS. [Slutredovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-SUMMARY.md). Full fasacceptans följer inte av detta paket. Namngivna timplaners tidigare användargodkännande består.
 

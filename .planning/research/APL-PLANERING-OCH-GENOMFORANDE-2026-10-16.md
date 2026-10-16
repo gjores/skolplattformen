@@ -1,7 +1,7 @@
 ---
 title: APL – från timplan till genomförande och kvalitetsuppföljning
 date: 2026-10-16
-status: research_complete_proposals_not_implemented
+status: research_complete_direction_accepted_not_implemented
 phase: 05
 related_requirements: [ADMIN-02, ADMIN-04, PLANERING-01, SCHEMA-01, SCHEMA-03, SCHEMA-07, SCHEMA-08]
 code_revision: 39e69e81841470a597129420c98ef2e8d3b0867a
@@ -15,7 +15,7 @@ code_revision: 39e69e81841470a597129420c98ef2e8d3b0867a
 
 Första etappen bör ge synliga APL-perioder och en begriplig tidsredovisning i timplanen. Därefter behövs individuell placering och genomförande. En förbättrad summering kan inte ensam visa att APL har ägt rum eller hållit god kvalitet.
 
-Användaren beställde denna research 2026-10-16 efter att ha godkänt rektors skapande-/kopieringsflöde med ”Funkar!”. **Researchen är genomförd; nedanstående funktioner och etapper är förslag.** Inga produkt- eller databasändringar har gjorts. Fokus är det befintliga skyddade Gy25-flödet. Andra utbildningsformer beskrivs för att undvika felaktiga gemensamma regler.
+Användaren beställde denna research 2026-10-16 efter att ha godkänt rektors skapande-/kopieringsflöde med ”Funkar!”. **Researchen är genomförd.** Efter redovisningen svarade användaren ”låter som en bra lösning”: riktningen och start med etapp 1 är godkända. Detaljerade funktioner nedan är fortsatt designförslag; [etappens kontext](../phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTEXT.md) och [planpaket](../phases/05-bevarade-utbildnings-och-klassfloden/05-APL-IMPLEMENTATION.md) preciserar genomförandet. Inga produkt- eller databasändringar har gjorts. Fokus är det befintliga skyddade Gy25-flödet. Andra utbildningsformer beskrivs för att undvika felaktiga gemensamma regler.
 
 ## 1. Vad som är belagt
 
@@ -179,7 +179,7 @@ Detta är schemaanalys och avsedd kompatibilitet. Ingen motpart eller extern ans
 
 Rekommenderad första omfattning: befintliga skolförlagda nationella Gy25-yrkesprogram. Lärling identifieras tydligt, men automatisk andelskontroll införs först när start, nämnare och avdrag har ett verifierat kontrakt. Andra skolformer får egna planer. Full handledarportal och externa integrationer behöver egna mandat-/säkerhets- och verksamhetsprov.
 
-Etapperna är inte en tidplan eller en beslutad utökning av pilotens 42 krav. Gapet ska planeras tillsammans med den befintliga sammanhållna analysen och schemadelprojektets S1/S4, utan att låta första timplansförbättringen invänta en full schemamodul.
+Etappernas riktning är därefter godkänd, men är inte en tidplan eller en utökning av pilotens 42 krav. Gapet ska planeras tillsammans med den befintliga sammanhållna analysen och schemadelprojektets S1/S4, utan att låta första timplansförbättringen invänta en full schemamodul.
 
 ## 8. Acceptansfall inför planering
 
@@ -217,4 +217,4 @@ Alla webbkällor ovan kontrollerades 2026-10-16. Utkastets regler, kodreferenser
 
 Ingen generell nationell regel om två lärarbesök, automatisk närvaroprocent för betyg eller en universell delveckeschablon har verifierats. Äldre promemorieförslag om fasta lärlingsveckotal används inte som gällande regel. Den aktuella kodinventeringen är källgranskning; föregående rektorspakets passerade runtimeprov är inget nytt APL-bevis.
 
-Nästa GSD-steg: [avgränsa och planera APL-gapet](../phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md). Tidigare [analys-/schema-/APL-todo](../todos/pending/2026-10-05-samordna-plananalys-schema-och-apl.md) uppdateras med denna research; den ersätts inte av en parallell dubblett.
+Nästa GSD-steg: [följ det granskade planpaketet för etapp 1](../phases/05-bevarade-utbildnings-och-klassfloden/05-APL-IMPLEMENTATION.md), med start i APL-01. Tidigare [analys-/schema-/APL-todo](../todos/pending/2026-10-05-samordna-plananalys-schema-och-apl.md) uppdateras med denna research; den ersätts inte av en parallell dubblett.

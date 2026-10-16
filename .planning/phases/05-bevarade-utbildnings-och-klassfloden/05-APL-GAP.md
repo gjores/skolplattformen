@@ -1,9 +1,9 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 gap: APL-01
-status: open_research_complete
+status: direction_accepted_stage1_planned
 date: 2026-10-16
-implementation: not_planned
+implementation: stage1_planned_not_started
 related_requirements: [ADMIN-02, ADMIN-04, PLANERING-01, SCHEMA-01, SCHEMA-03, SCHEMA-07, SCHEMA-08]
 ---
 
@@ -11,17 +11,17 @@ related_requirements: [ADMIN-02, ADMIN-04, PLANERING-01, SCHEMA-01, SCHEMA-03, S
 
 ## Beställning och status
 
-Användaren säger att rektorsflödet fungerar och beställer ordentlig research om hur timplanen och planeringsmodulen kan stödja rektor och huvudman i att planera och genomföra APL. [Researchen](../../research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) är klar: aktuella primärkällor, färsk kodinventering, arbetsflöden, modellrisker och föreslagna verifieringsfall. Genomförandet är inte beställt eller planerat genom denna research.
+Användaren säger att rektorsflödet fungerar och beställer ordentlig research om hur timplanen och planeringsmodulen kan stödja rektor och huvudman i att planera och genomföra APL. [Researchen](../../research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) är klar: aktuella primärkällor, färsk kodinventering, arbetsflöden, modellrisker och föreslagna verifieringsfall. Användaren svarade därefter ”låter som en bra lösning”. Riktningen med tre etapper och start i timplanen är därmed godkänd; etapp 1 konkretiseras i [kontext](05-APL-CONTEXT.md), [kontrakt](05-APL-CONTRACT.md) och [genomförandeplaner](05-APL-IMPLEMENTATION.md). Ingen funktion är ännu implementerad.
 
 Dagens skyddade timplan har generiska terminstimmar och ett manuellt APL-intygande. Den saknar strukturerad APL-plan, elevplatser och faktisk uppföljning. Kryssrutan är bevarad beslutshistorik, inte bevis på planerade perioder eller genomförd utbildning. Äldre APL-exempel i läsårsmodellen och produktdesignen är inte ett skyddat genomförandeflöde.
 
-## Föreslagen ordning
+## Godkänd riktning
 
-1. **APL i timplanen:** utbildningsform, perioder, ämnesnivåer/delar, läsår och total/varav APL. Visa om omfattning och timfördelning är granskade. Första föreslagna omfattningen är befintliga skolförlagda nationella Gy25-yrkesprogram. Lärling får inte passera med den vanliga 15-veckorsregeln.
+1. **APL i timplanen:** utbildningsform, perioder, ämnesnivåer/delar, läsår och total/varav APL. Visa om omfattning och timfördelning är granskade. Första etappen avgränsas till befintliga skolförlagda nationella Gy25-yrkesprogram. Lärling får inte passera med den vanliga 15-veckorsregeln.
 2. **Platser och ansvar:** arbetsställen och kapacitet per period, elevplacering, handledare och lärare, förberedelser och åtgärder inför start. Rektor ser individluckor; huvudmannen ser kapacitetsproblem och åtgärdsbehov.
 3. **Genomförande och kvalitet:** faktiska tillfällen, frånvaro och okänt utfall, avbrott, läraruppföljning, komplettering och utvecklingsåtgärder. Schema-/närvarokällor och extern handledaråtkomst får egna kontrakt och verifiering.
 
-Etapperna är produktförslag, ingen beslutad tidplan. En enklare timplansförbättring ska kunna göras innan en full schemamodul finns.
+Etappernas riktning är godkänd; detaljkontraktet är en konkretisering och ingen beslutad tidplan. En enklare timplansförbättring ska kunna göras innan en full schemamodul finns.
 
 ## Bevarande och nödvändiga modellbeslut
 
@@ -36,6 +36,6 @@ Etapperna är produktförslag, ingen beslutad tidplan. En enklare timplansförb�
 
 ADMIN-02, ADMIN-04 och PLANERING-01 är berörda bevarandegränser i fas 5, inte nya godkända APL-krav. SCHEMA-01/03/07/08 berör senare kalender, informationsutbyte och uppföljning i schemadelprojektets S1/S4. Researchen ger inga nya implementerings- eller runtimebevis för dessa krav och ändrar inte pilotens 42 krav eller fulla fasacceptans.
 
-Avgränsa etapp 1 i GSD-discuss/plan utifrån den redan beställda riktningen. Planen ska precisera datamodell och beräkning, granskning av äldre timmar, mandat, migrationsbevarande samt dator-/telefonprov och berörda handbokssidor med dokumentationsbygge. Researchens acceptansfall omfattar dubbelräkning, klassvarianter, individluckor, lärling, historik, säkerhet och SS 12000; de är föreslagna, ännu inte utförda.
+Etapp 1 är avgränsad i GSD-discuss/plan utifrån godkänd riktning. Elva planer i åtta vågor har passerat [oberoende plancheck](05-APL-PLAN-CHECK.md). [Planpaketet](05-APL-IMPLEMENTATION.md) preciserar datamodell och beräkning, granskning av äldre timmar, mandat, migrationsbevarande samt dator-/telefonprov och berörda handbokssidor med dokumentationsbygge. Researchens acceptansfall omfattar dubbelräkning, klassvarianter, individluckor, lärling, historik, säkerhet och SS 12000; de är föreslagna, ännu inte utförda.
 
 Den befintliga [analys-/schema-/APL-punkten](../../todos/pending/2026-10-05-samordna-plananalys-schema-och-apl.md) behålls och uppdateras. Senast levererade produktrevision är a34dd199a96a1c24448c1c6ad8a688da4b91949a enligt rektorspaketets bevis; ingen app-/databasändring eller ny runtimekontroll görs i detta researchsteg.
