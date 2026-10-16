@@ -1,13 +1,19 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 gap: APL-01
-status: stage1_in_progress
+status: stage1_delivered_ux_gap
 date: 2026-10-16
-implementation: stage1_in_progress
+implementation: stage1_delivered_ux_simplification_requested
 related_requirements: [ADMIN-02, ADMIN-04, PLANERING-01, SCHEMA-01, SCHEMA-03, SCHEMA-07, SCHEMA-08]
 ---
 
 # APL – planering, elevplatser och uppföljning
+
+## Aktuell användarbedömning och UX-lucka
+
+Användaren: ”Alltså det fnukar riktigt bra. MEN det är onödigt krångligt med datum vt/ht och sånt. UX måste förenklas.” Därefter valt arbetssätt: **”Årskurs och termin först; exakta veckor eller datum senare”**.
+
+**APL-UX-01:** årskurs/termin ska vara första valet; exakt kalenderförläggning kompletteras senare. Dagens UI ber om datum och separat läsår och visar flera terminsfält per ämne. Perioderna saknar ett eget fält för preliminär termin, så hållbar förenkling behöver både beständig representation och UI. Detta är en verifierad kodbegränsning, inte ett krav på nya kalenderdatum. APL1-07 är fortsatt öppet för UX; tidigare funktionella och tekniska bevis består.
 
 ## Beställning och status
 

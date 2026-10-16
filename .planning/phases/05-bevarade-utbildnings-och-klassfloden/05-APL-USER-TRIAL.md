@@ -2,11 +2,13 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: APL
 stage: 1
-status: awaiting_user
+status: reported_functional_pass_ux_gap
 updated: 2026-10-16
 ---
 
 # Prova APL-planeringen
+
+**Resultat2026-10-16:** Användaren: ”Alltså det fnukar riktigt bra. MEN det är onödigt krångligt med datum vt/ht och sånt. UX måste förenklas.” Därefter valt arbetssätt: **”Årskurs och termin först; exakta veckor eller datum senare”**. Funktionen är positivt bedömd, men UX-luckan APL-UX-01 är öppen. [Bedömning](05-APL-10-SUMMARY.md). Stegen nedan beskriver den provade versionen; de ska inte återbegäras oförändrade.
 
 Den nya versionen finns på3012. Logga in som rektor för **Syntetisk skola11**. Ingången är befintlig **BYGGHUS27**, vars APL-/beslutsunderlag har lästs med det riktiga skolmandatet. Ingen provkopia har skapats åt dig och inga befintliga klasser har ändrats. Gör en separat namngiven timplan i första steget om du vill prova utan att ändra din ordinarie plan.
 
@@ -19,4 +21,4 @@ Den nya versionen finns på3012. Logga in som rektor för **Syntetisk skola11**.
 
 **Bedömning:** Är det tydligt vad som är sparat, vad som saknas och vem som ska göra nästa steg? Berätta vad som fungerar eller var du fastnar. Du behöver inte återprova tidigare klasskopplingar eller köra tekniska tester. Ange gärna om du provar på dator eller telefon; annars registreras ingen särskild enhet som mänskligt verifierad.
 
-Teknisk leverans: [APL-09](05-APL-09-SUMMARY.md). Mänskligt resultat är ännu inte rapporterat. Arbetsplatser, elevplaceringar och genomförande tillhör senare etapper.
+Teknisk leverans: [APL-09](05-APL-09-SUMMARY.md). Mänskligt resultat: funktionellt positivt, förenkling krävs. Arbetsplatser, elevplaceringar och genomförande tillhör senare etapper.

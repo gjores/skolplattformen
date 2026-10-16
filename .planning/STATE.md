@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-10
-status: awaiting_user
-stopped_at: APL-09 levererad och verifierad; APL-10 begriplighetsprov awaiting_user.
+current_plan: APL-UX
+status: planning
+stopped_at: APL-10 funktionellt positivt med UX-gap; planerar årskurs och termin först, datum senare.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "APL-09: tre godkända migrationer och exakt209-fils kandidat levererad, bevarande/OIDC PASS. 10/11 klara; mänsklig begriplighet återstår."
+last_activity_desc: "Användaren rapporterar mycket bra funktion men kräver enklare UX. Valt flöde: årskurs/termin först, exakta veckor/datum senare. APL-UX planeras."
 state_head: 90ef9a8
 verification_worker_build_revision: 68cecb41e1d61ae8381951ee295758c4f764511c
 verification_worker_status: apl_actual_sql_api_browser_local_delivery_pass
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-UX beställt2026-10-16:** Användaren: ”Alltså det fnukar riktigt bra. MEN det är onödigt krångligt med datum vt/ht och sånt. UX måste förenklas.” Därefter valt arbetssätt: **”Årskurs och termin först; exakta veckor eller datum senare”**. [APL-10](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-10-SUMMARY.md) avslutar bedömningsuppgiften med öppet APL-UX-01. Ingen full begriplighetsacceptans antas. Nuvarande leverans68cecb4 består; ett avgränsat kontrakt-/UI-paket planeras utan fabricerade datum eller tappade sparade uppgifter.
 
 **APL-09 levererad2026-10-16:** Användaren godkände tre exakta APL-migrationer och3012-byte. Installation med65 originaltabellers/rättigheters bevarande, samma68cecb4/209 filer, verklig rektors-OIDC/MFA och71 verksamhetstabellers bevarande PASS. Extra startsidesprov och exakt egen återhämtning redovisas i [APL-09](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-09-SUMMARY.md). Senare främmande session/dataändringar bevarade. 10/11 paketplaner klara. [APL-användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-USER-TRIAL.md) är awaiting_user; ingen mänsklig acceptans eller etapp2/3-leverans antas.
 

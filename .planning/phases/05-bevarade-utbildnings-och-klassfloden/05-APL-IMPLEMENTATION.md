@@ -15,6 +15,9 @@ Användaren har godkänt riktningen med ”låter som en bra lösning”. [Konte
 
 Målet är att rektor och skoladministratör kan planera APL i rätt namngivna timplan, se total undervisningstid och varav APL, spara ett granskningsbart underlag och skilja rektors förläggningsbeslut från huvudmannens fastställande. Det första automatiskt bedömda området är appens redan stödda skolförlagda nationella Gy25-yrkesprogram. Perioder med osäker omfattning kan sparas men får inget falskt uppfyllelsebesked. Elevplatser, genomförande och närvaro ingår inte.
 
+
+**Användarbedömning 2026-10-16:** [APL-10](05-APL-10-SUMMARY.md) är redovisad: funktionellt positiv återkoppling med öppet UX-gap. Användaren väljer årskurs och termin först, exakta veckor/datum senare. 11/11 ursprungliga uppgifter är redovisade, men APL1-07:s begriplighet är inte slutgodkänd. Förenklingen hanteras separat i APL-UX; äldre status nedan är historik.
+
 ## Ordning och filägarskap
 
 Discovery består av [primärkälleresearchen](../../research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) och färsk kodinventering av skyddade SQL-, server- och UI-vägar. Inga nya externa bibliotek eller integrationer behövs. Septemberkartorna beskriver äldre kod; varje executor kontrollerar senaste funktionsdefinitionen före ändring.
