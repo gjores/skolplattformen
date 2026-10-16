@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   AlertTriangle,
   Building2,
@@ -1146,15 +1147,15 @@ export default function OrganisationWorkspace({
                     <div className="og-two">
                       <div>
                         <label className="field-label" htmlFor="pm-decided">Beslutsdatum</label>
-                        <Input id="pm-decided" type="date" value={permitDraft.decided} onChange={(e) => setPermitDraft({ ...permitDraft, decided: e.target.value })} />
+                        <DatePicker id="pm-decided" value={permitDraft.decided} onValueChange={value => setPermitDraft({ ...permitDraft, decided: value })} />
                       </div>
                       <div>
                         <label className="field-label" htmlFor="pm-from">Gäller från</label>
-                        <Input id="pm-from" type="date" value={permitDraft.validFrom} onChange={(e) => setPermitDraft({ ...permitDraft, validFrom: e.target.value })} />
+                        <DatePicker id="pm-from" value={permitDraft.validFrom} onValueChange={value => setPermitDraft({ ...permitDraft, validFrom: value })} />
                       </div>
                     </div>
                     <label className="field-label" htmlFor="pm-to">Gäller till (valfritt)</label>
-                    <Input id="pm-to" type="date" value={permitDraft.validTo ?? ''} onChange={(e) => setPermitDraft({ ...permitDraft, validTo: e.target.value })} />
+                    <DatePicker id="pm-to" value={permitDraft.validTo ?? ''} onValueChange={value => setPermitDraft({ ...permitDraft, validTo: value })} />
                     <label className="field-label" htmlFor="pm-scope">Vad beslutet omfattar</label>
                     <Textarea id="pm-scope" rows={2} value={permitDraft.scope} placeholder="Program, inriktning, skolenhet, kommun, eventuellt elevantal." onChange={(e) => setPermitDraft({ ...permitDraft, scope: e.target.value })} />
                     <label className="field-label" htmlFor="pm-file">Bifoga beslutet</label>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { ArrowLeft, RefreshCw, Copy, Pencil } from 'lucide-react';
 import PlanDecisionPanel from './plan-decision-panel';
 import { decisionStageLabel } from './plan-decision-context';
@@ -643,7 +644,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
             <div className="pp-field"><label htmlFor="ppl-copy-name">Utbildningens namn</label><input id="ppl-copy-name" value={copy.name} maxLength={120} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,name:e.target.value,error:null})}/></div>
             <div className="pp-field"><label htmlFor="ppl-copy-cohort">Elevkull</label><input id="ppl-copy-cohort" value={copy.cohort} maxLength={120} placeholder="Till exempel 2027–2030" disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,cohort:e.target.value,error:null})}/></div>
             <div className="pp-field"><label htmlFor="ppl-copy-code">Lokal kod (valfri)</label><input id="ppl-copy-code" value={copy.localCode} maxLength={80} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,localCode:e.target.value,error:null})}/></div>
-            <div className="pp-field"><label htmlFor="ppl-copy-start">Utbildningens exakta startdatum</label><input id="ppl-copy-start" type="date" min={nextDay(copyAfter)} aria-invalid={!!copy.startedOn&&!startsAfter(copy.startedOn, copyAfter)} value={copy.startedOn} disabled={busy||!!copy.command} onChange={e=>setCopy({...copy,startedOn:e.target.value,error:null})}/></div>
+            <div className="pp-field"><label htmlFor="ppl-copy-start">Utbildningens exakta startdatum</label><DatePicker id="ppl-copy-start" min={nextDay(copyAfter)} aria-invalid={!!copy.startedOn&&!startsAfter(copy.startedOn, copyAfter)} value={copy.startedOn} disabled={busy||!!copy.command} onValueChange={value =>setCopy({...copy,startedOn:value,error:null})}/></div>
           </div>
           <div className="pp-dialog-actions"><Button variant="outline" disabled={busy} onClick={()=>{if(canNavigate()&&(!copyDirty||confirmDiscard()))setCopy(null);}}>Avbryt</Button>{copy.startedOn&&!startsAfter(copy.startedOn, copyAfter)&&<p role="alert" className="pp-alert">Startdatumet måste ligga efter i dag och efter originalets start. Välj en senare elevkull.</p>}
           <Button disabled={busy||recovery!==null||copy.stale||!copy.name.trim()||!copy.cohort.trim()||!copy.startedOn||!startsAfter(copy.startedOn, copyAfter)} onClick={()=>void saveCopy()}>{busy?'Sparar…':copy.command?'Försök igen':'Spara kopia'}</Button></div>
@@ -662,7 +663,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <h3 className="pp-sr">{titles[draft.kind]}</h3>
           {draft.error&&!draft.mfa&&<output role="alert" className="pp-alert">{draft.error}</output>}
           {draft.mfa&&<MfaStepUpNotice message={draft.error??'Verifiering med engångskod krävs.'} detail="Dina uppgifter finns kvar här. Om du väljer verifiering lämnar du sidan; det osparade formuläret följer inte med."/>}
-          {(draft.kind==='create'||draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<div className="pp-field pps-start"><label htmlFor="pp-start">Utbildningens exakta startdatum</label><input id="pp-start" type="date" value={draft.startedOn} disabled={formLocked} aria-describedby="pp-start-help" onChange={e=>setDraft({...draft,startedOn:e.target.value,error:null,mfa:false})}/><p id="pp-start-help">Den dag utbildningen började eller börjar enligt utbildningens uppgifter, inte dagens datum.</p></div>}
+          {(draft.kind==='create'||draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<div className="pp-field pps-start"><label htmlFor="pp-start">Utbildningens exakta startdatum</label><DatePicker id="pp-start" value={draft.startedOn} disabled={formLocked} aria-describedby="pp-start-help" onValueChange={value =>setDraft({...draft,startedOn:value,error:null,mfa:false})}/><p id="pp-start-help">Den dag utbildningen började eller börjar enligt utbildningens uppgifter, inte dagens datum.</p></div>}
           {!editableRefs&&<><p>Alla tidigare val följer med i samma ordning. Ändra själva valen efteråt.</p>{(draft.kind==='bind'||draft.kind==='clone'&&!draft.sourceBound)&&<label className="pp-check"><input type="checkbox" disabled={formLocked} checked={draft.legacyConfirmed} onChange={e=>setDraft({...draft,legacyConfirmed:e.target.checked,error:null})}/><span>Jag har kontrollerat att alla äldre val bevaras i samma ordning och att startdatum samt underlag gäller för utbildningen.</span></label>}</>}
           <div hidden={draft.mode==='edit'&&reviewing}>{planBody}</div>
           {!analysis&&draft.refs.length>0&&<ol className="pp-edit-levels" aria-label="Dina fördjupningsval">{draft.refs.map((r,i)=><li key={`${i}-${r.itemCode}`}><strong>{programplanLevelName(r,draft.options)}</strong><span>{r.itemCode} · {r.points} poäng</span></li>)}</ol>}

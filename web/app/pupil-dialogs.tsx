@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode, type SyntheticEvent } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
@@ -443,22 +444,22 @@ export function PupilChangeDialog(props: ChangeDialogProps) {
           </>}
           {kind === 'municipality' && <>
             {box('municipalityCode', 'Kommunkod', <input type="text" inputMode="numeric" autoComplete="off" maxLength={4} value={values.municipalityCode} disabled={busy} {...control('municipalityCode', true)} onChange={event => update('municipalityCode', event.target.value)} />, 'Fyra siffror, till exempel 0180.')}
-            {box('startsOn', 'Gäller från', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
+            {box('startsOn', 'Gäller från', <DatePicker value={values.startsOn} disabled={busy} {...control('startsOn')} onValueChange={value => update('startsOn', value)} />)}
           </>}
           {kind === 'transfer' && <>
             {box('unitId', 'Ny skola', <select value={values.unitId} disabled={busy} {...control('unitId')} onChange={event => { update('unitId', event.target.value); update('educationId', ''); }}><option value="">Välj skola</option>{otherSchools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}</select>)}
             {box('educationId', 'Utbildning', <select value={values.educationId} disabled={busy || !values.unitId || !unitOptions} {...control('educationId')} onChange={event => update('educationId', event.target.value)}><option value="">{values.unitId && !unitOptions ? 'Hämtar utbud…' : 'Välj utbildning'}</option>{transferEducations.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>)}
-            {box('startsOn', 'Startdatum', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
+            {box('startsOn', 'Startdatum', <DatePicker value={values.startsOn} disabled={busy} {...control('startsOn')} onValueChange={value => update('startsOn', value)} />)}
             <p>Klass på den nya skolan väljs efter skolbytet med Byt klass.</p>
           </>}
           {kind === 'education' && <>
             {box('educationId', 'Ny utbildning', <select value={values.educationId} disabled={busy} {...control('educationId')} onChange={event => update('educationId', event.target.value)}><option value="">Välj utbildning</option>{educations.filter(item => item.id !== placement?.educationId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>)}
-            {box('startsOn', 'Gäller från', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
+            {box('startsOn', 'Gäller från', <DatePicker value={values.startsOn} disabled={busy} {...control('startsOn')} onValueChange={value => update('startsOn', value)} />)}
           </>}
-          {kind === 'end-placement' && box('endsOn', 'Slutdatum (sista dag)', <input type="date" value={values.endsOn} disabled={busy} {...control('endsOn')} onChange={event => update('endsOn', event.target.value)} />)}
+          {kind === 'end-placement' && box('endsOn', 'Slutdatum (sista dag)', <DatePicker value={values.endsOn} disabled={busy} {...control('endsOn')} onValueChange={value => update('endsOn', value)} />)}
           {kind === 'class' && <>
             {box('classId', 'Ny klass', <select value={values.classId} disabled={busy} {...control('classId')} onChange={event => update('classId', event.target.value)}><option value="">Välj klass</option>{classes.filter(item => item.id !== currentClass?.classId).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>)}
-            {box('startsOn', 'Gäller från', <input type="date" value={values.startsOn} disabled={busy} {...control('startsOn')} onChange={event => update('startsOn', event.target.value)} />)}
+            {box('startsOn', 'Gäller från', <DatePicker value={values.startsOn} disabled={busy} {...control('startsOn')} onValueChange={value => update('startsOn', value)} />)}
             {classWarning && <Warning>{classWarning}</Warning>}
           </>}
           <div className="mandate-actions">

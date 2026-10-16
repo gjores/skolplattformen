@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -183,7 +184,7 @@ function EducationLifecycleDialog({ kind, target, onClose, onChanged, onStale, o
         <div className="pp-field"><label htmlFor="ppl-edit-name">Utbildningens namn</label><input id="ppl-edit-name" value={name} maxLength={120} disabled={busy || unresolved || mfa} onChange={e => setName(e.target.value)}/></div>
         <div className="pp-field"><label htmlFor="ppl-edit-cohort">Elevkull</label><input id="ppl-edit-cohort" value={cohort} maxLength={120} disabled={busy || unresolved || mfa} onChange={e => setCohort(e.target.value)}/></div>
         <div className="pp-field"><label htmlFor="ppl-edit-code">Lokal kod (valfri)</label><input id="ppl-edit-code" value={localCode} maxLength={80} disabled={busy || unresolved || mfa} onChange={e => setLocalCode(e.target.value)}/></div>
-        {target.startEditable ? <div className="pp-field"><label htmlFor="ppl-edit-start">Utbildningens exakta startdatum</label><input id="ppl-edit-start" type="date" min={nextDay(today)} value={startedOn} disabled={busy || unresolved || mfa} aria-invalid={startChanged && !startsAfter(startedOn, today)} onChange={e => setStartedOn(e.target.value)}/>
+        {target.startEditable ? <div className="pp-field"><label htmlFor="ppl-edit-start">Utbildningens exakta startdatum</label><DatePicker id="ppl-edit-start" min={nextDay(today)} value={startedOn} disabled={busy || unresolved || mfa} aria-invalid={startChanged && !startsAfter(startedOn, today)} onValueChange={value => setStartedOn(value)}/>
           <p>{startChanged && !startsAfter(startedOn, today) ? 'Startdatumet måste ligga efter i dag.' : 'Kan ändras så länge planen bara har ett utkast.'}</p></div>
           : <p className="pp-field">Startdatum: {target.lifecycle.startsOn ?? 'saknas'}. Det kan bara ändras när utbildningen har en enda version som är ett utkast.</p>}
       </div>}

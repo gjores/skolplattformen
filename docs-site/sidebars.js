@@ -5,6 +5,7 @@ module.exports = { handbok: [
     'anvandning',
     'planering',
     'timplaner',
+    'apl-planering',
     'programplaner',
     'inloggningsmetoder',
     'kundadministration',

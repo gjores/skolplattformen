@@ -1,5 +1,6 @@
 'use client';
 import { classesWithBindings, type ClassTimplan } from '@/lib/cohort-model.ts';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Fragment, useState } from 'react';
 import {
   AlertTriangle,
@@ -531,7 +532,7 @@ export default function LasarView({
                         {edge === 'start' ? 'Börjar' : 'Slutar'}
                       </label>
                       {editable ? (
-                        <Input id={`ly-${part}-${edge}`} type="date" value={sy[part][edge]} onChange={(e) => { if (e.target.value) apply((s) => setTerm(s, sy.id, part, edge, e.target.value)); }} />
+                        <DatePicker id={`ly-${part}-${edge}`} value={sy[part][edge]} onValueChange={value => { if (value) apply((s) => setTerm(s, sy.id, part, edge, value)); }} />
                       ) : (
                         <strong id={`ly-${part}-${edge}`}>{formatLong(sy[part][edge])}</strong>
                       )}

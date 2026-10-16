@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
@@ -265,10 +266,10 @@ export default function MandateGrantDialog(props: Props) {
             </label>
           </> : <>
             <label>Gäller från
-              <input type="date" value={draft.validFrom} min={options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validFrom')} onChange={(event) => { update({ validFrom: event.target.value }); setErrors((previous) => ({ ...previous, validFrom: undefined })); }} />{fieldError('validFrom')}
+              <DatePicker aria-label="Gäller från" value={draft.validFrom} min={options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validFrom')} onValueChange={value => { update({ validFrom: value }); setErrors((previous) => ({ ...previous, validFrom: undefined })); }} />{fieldError('validFrom')}
             </label>
             <label>Gäller till{options.validTo ? '' : ' (valfritt)'}
-              <input type="date" value={draft.validTo} min={draft.validFrom || options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validTo')} onChange={(event) => { update({ validTo: event.target.value }); setErrors((previous) => ({ ...previous, validTo: undefined })); }} />{fieldError('validTo')}
+              <DatePicker aria-label={options.validTo ? 'Gäller till' : 'Gäller till (valfritt)'} value={draft.validTo} min={draft.validFrom || options.validFrom} max={options.validTo ?? undefined} disabled={busy} {...invalid('validTo')} onValueChange={value => { update({ validTo: value }); setErrors((previous) => ({ ...previous, validTo: undefined })); }} />{fieldError('validTo')}
             </label>
           </>}
           <div className="mandate-actions">

@@ -1,0 +1,40 @@
+.school-date { display: inline-flex; flex-direction: column; gap: .3rem; width: 100%; min-width: 0; font-size: 1rem; font-weight: 400; }
+.school-date-control { display: flex; align-items: stretch; gap: .35rem; min-width: 0; }
+.school-date .school-date-input { box-sizing: border-box; min-width: 0; width: 100%; border: 1px solid #cbd5e1; border-radius: .5rem; padding: .6rem .7rem; background: #fff; color: #1e293b; font: inherit; }
+.school-date .school-date-input:focus-visible, .school-date button:focus-visible, .school-date select:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.school-date .school-date-trigger { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; min-height: 44px; border: 1px solid #cbd5e1; border-radius: .5rem; padding: .4rem; background: #fff; color: #334155; cursor: pointer; }
+.school-date-help { font-size: .78rem; color: #475569; line-height: 1.4; }
+.school-date-error { color: #b91c1c; }
+.school-date button:disabled, .school-date input:disabled { opacity: .55; cursor: not-allowed; }
+.school-date-positioner { z-index: 120; max-width: calc(100vw - 16px); }
+.school-date-popup { box-sizing: border-box; width: 352px; max-width: calc(100vw - 16px); max-height: min(580px, var(--available-height)); overflow: auto; padding: 12px; border: 1px solid #cbd5e1; border-radius: .8rem; background: #fff; color: #1e293b; box-shadow: 0 12px 36px #0f172a33; font: 400 14px/1.4 system-ui, sans-serif; }
+.school-date-title { margin: 0 0 .5rem; font-size: 1rem; font-weight: 650; }
+.school-date-popup .rdp-months, .school-date-popup .rdp-month { width: 100%; }
+.school-date-popup .rdp-month_caption { display: flex; align-items: center; min-height: 44px; }
+.school-date-popup .rdp-dropdowns { display: flex; gap: .4rem; width: 100%; }
+.school-date-popup .rdp-dropdown_root { position: relative; flex: 1; }
+.school-date-popup .rdp-dropdown { width: 100%; min-height: 42px; border: 1px solid #cbd5e1; border-radius: .4rem; background: #fff; padding: .3rem; font: inherit; color: inherit; }
+.school-date-popup .rdp-caption_label { display: none; }
+.school-date-popup .rdp-nav { display: flex; justify-content: space-between; margin: .3rem 0; }
+.school-date-popup .rdp-button_previous, .school-date-popup .rdp-button_next { display: grid; place-items: center; width: 44px; height: 36px; padding: .2rem; border: 1px solid #cbd5e1; border-radius: .4rem; background: #f8fafc; }
+.school-date-popup .rdp-chevron { width: 18px; height: 18px; fill: #334155; }
+.school-date-popup .rdp-month_grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.school-date-popup .rdp-weekday, .school-date-popup .rdp-week_number_header { height: 30px; padding: 0; font-size: .75rem; font-weight: 500; text-align: center; color: #475569; }
+.school-date-popup .rdp-week_number_header, .school-date-popup .rdp-week_number { width: 28px; color: #475569; text-align: center; font-size: .75rem; background: #f1f5f9; font-weight: 500; }
+.school-date-popup .rdp-day { padding: 0; height: 40px; text-align: center; }
+.school-date-popup .rdp-day_button { display: block; width: 100%; min-width: 0; height: 40px; padding: 0; border: 2px solid transparent; border-radius: .4rem; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.school-date-popup .rdp-day_button:hover:not(:disabled) { background: #e2e8f0; }
+.school-date-popup .rdp-today .rdp-day_button { border-color: #64748b; font-weight: 650; }
+.school-date-popup .rdp-selected .rdp-day_button, .school-date-popup .rdp-selected .rdp-day_button:hover { background: #1d4ed8; color: #fff; }
+.school-date-popup .rdp-outside .rdp-day_button { color: #64748b; }
+.school-date-popup .rdp-selected.rdp-outside .rdp-day_button { color: #fff; }
+.school-date-popup .rdp-hidden { visibility: hidden; }
+.school-date-popup .rdp-disabled .rdp-day_button { opacity: .35; }
+.school-date-popup .school-date-selection { margin: .7rem 0; font-size: .8rem; font-weight: 400; }
+.school-date-popup .school-date-actions { display: flex; flex-wrap: wrap; gap: .4rem; border-top: 1px solid #e2e8f0; padding-top: .6rem; }
+.school-date-popup .school-date-actions button { min-height: 40px; padding: .4rem .65rem; border: 1px solid #cbd5e1; border-radius: .4rem; background: #fff; color: inherit; font: inherit; }
+.school-date-popup .school-date-actions button:last-child { margin-left: auto; }
+@media (max-width: 380px) { .school-date-popup { padding: 8px; } }
+/* Native date editing keeps browser validation and YYYY-MM-DD events. The
+   explicit calendar button provides the same ISO-week calendar on all devices. */
+.school-date-input::-webkit-calendar-picker-indicator { display: none; }

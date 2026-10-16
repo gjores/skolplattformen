@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -130,8 +131,8 @@ export default function LoggWorkspace({ epoch, onSessionLost }: Props) {
       {error && <output role="alert" className="validation-warning">{error}</output>}
       <section className="protected-card">
         <form className="protected-filter" onSubmit={(event) => { event.preventDefault(); void load(filters); }}>
-          <label>Från<input type="date" required value={filters.from} onChange={(event) => setFilters({ ...filters, from: event.target.value })} /></label>
-          <label>Till<input type="date" required value={filters.to} onChange={(event) => setFilters({ ...filters, to: event.target.value })} /></label>
+          <label htmlFor="audit-from">Från<DatePicker id="audit-from" aria-label="Från" required value={filters.from} onValueChange={value => setFilters({ ...filters, from: value })} /></label>
+          <label htmlFor="audit-to">Till<DatePicker id="audit-to" aria-label="Till" required value={filters.to} onValueChange={value => setFilters({ ...filters, to: value })} /></label>
           <label>Åtgärd<input value={filters.action} maxLength={80} onChange={(event) => setFilters({ ...filters, action: event.target.value })} /></label>
           <Button type="submit" disabled={busy}>Visa</Button>
           <Button type="button" variant="outline" disabled={busy} onClick={() => void exportCsv()}>Exportera CSV</Button>

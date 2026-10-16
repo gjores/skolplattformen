@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
@@ -14,6 +15,7 @@ import { createAplJournal, loadAplJournal, persistAplJournal, removeAplJournal, 
   type AplJournal, type AplJournalScope } from '@/lib/apl-plan-journal.ts';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedAplGuide from './protected-apl-guide';
 import './protected-apl-plan.css';
 
 type Props = { plan: GymTimplan; context: ActiveContext; identityKey: string | null; disabled: boolean; isBlocked: () => boolean;
@@ -209,6 +211,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   return <section id="apl-planering" tabIndex={-1} className="apl-plan" aria-label="APL-planering" aria-busy={busy || loading}>
     <header><div><h2>APL-planering</h2><p>Planera arbetsplatsförlagt lärande inom timplanens undervisningstid.</p></div><span className="apl-state">{journal ? 'Sparstatus behöver kontrolleras' : dirty ? 'Osparade ändringar' : confirmed ? 'Förläggningen bekräftad' : reply?.plan ? 'Sparat planeringsunderlag' : 'APL-underlag saknas'}</span></header>
     <p>Detta visar planering. Arbetsplatser, närvaro och genomförd APL följs inte upp här ännu.</p>
+    <ProtectedAplGuide/>
     {loading && <output>Läser APL-underlaget…</output>}
     {error && <div role="alert" className="apl-error"><p>{error}</p>{!reply && !loading && <Button variant="outline" onClick={() => { setLoading(true); const c = new AbortController(); controller.current = c; void loadRef.current(c, scopeKey); }}>Läs APL-underlaget igen</Button>}</div>}
     {notice && <output className="apl-notice">{notice}</output>}
@@ -263,12 +266,12 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
         {differs && <p className="apl-notice">Perioden innehåller datum eller undervisningstid utanför den valda terminen. Uppgifterna är kvar. Kontrollera förläggningen eller ändra terminsvalet.</p>}
         {savedTimes.length > 0 && <div className="apl-saved-times"><strong>Periodens fördelade APL-tid</strong><ul>{savedTimes.map(a => <li key={`${a.row}:${a.term}`}>{plan.rows.find(r => r.key === a.row)?.name ?? 'Ämne'} · {PROGRAMPLAN_TERMS[a.term]}: {a.value.hours || '0'} h {a.value.minutes || '0'} min</li>)}</ul></div>}
         <details className="apl-details"><summary>Datum och omfattning</summary><p>Komplettera när förläggningen är känd. Exakta datum behövs inför rektors bekräftelse.</p>
-        <div className="apl-fields"><label>Startdatum<input type="date" value={p.startsOn ?? ''} onChange={e => periodChange(p.id, old => ({ ...old, startsOn: e.target.value || null, extent: { ...old.extent, reviewed: false } }))}/></label>
-          <label>Slutdatum<input type="date" value={p.endsOn ?? ''} onChange={e => periodChange(p.id, old => ({ ...old, endsOn: e.target.value || null, extent: { ...old.extent, reviewed: false } }))}/></label>
+        <div className="apl-fields"><div><label htmlFor={`apl-start-${p.id}`}>Startdatum</label><DatePicker id={`apl-start-${p.id}`} aria-label="Startdatum" disabled={locked} value={p.startsOn ?? ''} onValueChange={value => periodChange(p.id, old => ({ ...old, startsOn: value || null, extent: { ...old.extent, reviewed: false } }))}/></div>
+          <div><label htmlFor={`apl-end-${p.id}`}>Slutdatum</label><DatePicker id={`apl-end-${p.id}`} aria-label="Slutdatum" disabled={locked} value={p.endsOn ?? ''} onValueChange={value => periodChange(p.id, old => ({ ...old, endsOn: value || null, extent: { ...old.extent, reviewed: false } }))}/></div>
           <label>Periodens läsår<select value={p.schoolYear ?? ''} onChange={e => periodChange(p.id, old => ({ ...old, schoolYear: e.target.value ? Number(e.target.value) : null, extent: { ...old.extent, reviewed: false } }))}><option value="">Välj läsår</option>{Array.from({ length: 101 }, (_, i) => 2000 + i).map(y => <option key={y} value={y}>{y}/{y + 1}</option>)}</select></label></div>
         <div className="apl-fields"><label>Omfattning<select value={p.extent.basis} onChange={e => periodChange(p.id, old => ({ ...old, extent: { ...old.extent, basis: e.target.value as AplPeriod['extent']['basis'], weeks: null, reviewed: false } }))}><option value="unknown">Behöver utredas</option><option value="whole_weeks">Hela APL-veckor</option><option value="mixed_weeks">Delar av veckor eller blandveckor</option></select></label>
           {p.extent.basis === 'whole_weeks' && <label>Uppgivna hela veckor<input type="number" min={1} max={160} step={1} value={p.extent.weeks ?? ''} onChange={e => periodChange(p.id, old => ({ ...old, extent: { ...old.extent, weeks: e.target.value === '' ? null : Number(e.target.value), reviewed: false } }))}/></label>}</div>
-        <p>Veckotalet är en uttrycklig uppgift. Datum räknar inte fram det.</p>
+        <p>Kalenderns veckonummer hjälper dig att välja datum. Antalet kalenderveckor är inte granskad APL-omfattning. Ange veckotalet utifrån det verkliga upplägget; datum räknar inte fram det.</p>
         <label>Underlag för omfattningen<textarea maxLength={2000} value={p.extent.reviewNote} onChange={e => periodChange(p.id, old => ({ ...old, extent: { ...old.extent, reviewNote: e.target.value, reviewed: false } }))}/></label>
         {p.extent.basis === 'whole_weeks' && <label className="apl-check"><input type="checkbox" disabled={!p.extent.weeks || !p.extent.reviewNote.trim()} checked={p.extent.reviewed} onChange={e => periodChange(p.id, old => ({ ...old, extent: { ...old.extent, reviewed: e.target.checked } }))}/>Omfattningen är granskad mot underlaget</label>}
         {p.extent.basis !== 'whole_weeks' && <p>Den här omfattningen kan sparas som planeringsunderlag. Den räknas inte automatiskt om till hela APL-veckor.</p>}

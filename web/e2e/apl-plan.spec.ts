@@ -95,6 +95,30 @@ async function mock(page: Page, options: { plan?: AplPlan | null; mode?: Mode; a
 const editor = (page: Page) => page.getByRole('region', { name: 'APL-planering', exact: true });
 async function open(page: Page) { await page.goto(url()); await expect(editor(page).getByRole('button', { name: 'Planera APL', exact: true })).toBeEnabled(); }
 async function editName(page: Page, name = 'Ny APL-period') { await editor(page).getByRole('button', { name: 'Planera APL', exact: true }).click(); await editor(page).getByLabel('Periodens namn').fill(name); await editor(page).getByText('Datum och omfattning', { exact: true }).click(); await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); }
+
+test('APL-handledning går att läsa i låst plan utan att ändra underlaget', async ({ page }, info) => {
+  const m = await mock(page, { plan: planned(), approved: true });
+  await page.goto(url()); await expect(editor(page)).toContainText('Den här versionen är låst');
+  const guide = editor(page).getByLabel('Handledning för APL');
+  await guide.locator(':scope > summary').focus(); await page.keyboard.press('Enter');
+  await expect(guide).toHaveAttribute('open', '');
+  await expect(guide.getByText('Minst 15 veckor', { exact: true })).toBeVisible();
+  await expect(guide).toContainText('inte elevens arbetsschema');
+  await guide.getByText('3. Koppla innehåll och fördela timmar', { exact: true }).click();
+  await expect(guide.locator('.apl-guide-example')).toBeVisible();
+  await expect(guide.locator('.apl-guide-example')).toContainText('115 GUT-timmar');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await guide.locator('.apl-guide-facts').evaluate(node => node.scrollIntoView({ block: 'start' })); await page.screenshot({ path: info.outputPath('apl-guide-start.png') });
+  await guide.locator('.apl-guide-example').evaluate(node => node.scrollIntoView({ block: 'start' })); await page.screenshot({ path: info.outputPath('apl-guide-planning.png') });
+  await guide.getByText('5. Säkra arbetsplatsen och följ varje elev', { exact: true }).click();
+  await expect(guide.getByText(/Dessa uppgifter registreras eller kontrolleras ännu inte här/)).toBeVisible();
+  await guide.getByText('Andra upplägg och regelkällor', { exact: true }).click();
+  await expect(guide.getByText(/mer än hälften av utbildningen/)).toBeVisible();
+  const links = await guide.locator('a').evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).href));
+  expect(links.every(link => ['www.riksdagen.se', 'www.skolverket.se', 'www.av.se'].includes(new URL(link).hostname))).toBe(true);
+  await guide.getByText(/Dessa uppgifter registreras eller kontrolleras ännu inte här/).evaluate(node => node.scrollIntoView({ block: 'start' })); await page.screenshot({ path: info.outputPath('apl-guide-responsibilities.png') });
+  expect(m.commands).toHaveLength(0); m.verify();
+});
 async function save(page: Page) { await editor(page).getByRole('button', { name: 'Granska ändringar' }).click(); await expect(page.getByRole('dialog')).toBeVisible(); await page.getByRole('button', { name: 'Spara APL-plan', exact: true }).click(); }
 
 test('äldre plan visar okänt APL, tomt underlag kan granskas och sparas utan att totaltiden ändras', async ({ page }, info) => {

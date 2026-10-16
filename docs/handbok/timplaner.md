@@ -92,6 +92,8 @@ Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen
 
 ## Planera APL i en yrkestimplan
 
+Läs [Planera och följa upp APL](./apl-planering.md) för regler, arbetsgång och ansvar före, under och efter en period. I appen finns **Så planerar du APL** direkt i APL-avsnittet, även i läsläge.
+
 APL-planeringen hör till en bestämd namngiven timplan och version på skolan. Två klasser med samma programplan kan därför ha olika APL-upplägg i var sin timplan. Planeringen visar avsedd omfattning, arbetsmoment och hur mycket av undervisningstiden som ska vara APL.
 
 ### Perioder, innehåll och undervisningstid
