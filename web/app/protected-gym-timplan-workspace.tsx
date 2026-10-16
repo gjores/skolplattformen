@@ -13,6 +13,7 @@ import { statusLabel } from '@/lib/protected-timplan.ts';
 import { gymTimplanCanEdit, parseGymTimplan, parseGymTimplanUnderlag, type GymTimplan,
   type GymTimplanUnderlag, type GymTimplanUnit } from '@/lib/gym-timplan.ts';
 import type { GymTimplanLocation, ProgramplanLocation } from '@/lib/protected-plan-location.ts';
+import type { AplJournalScope } from '@/lib/apl-plan-journal.ts';
 import type { ActiveContext } from './context-switch';
 import NamedTimplanActions, {type TimplanAction} from './named-timplan-actions';
 import ProtectedGymTimplanHours from './protected-gym-timplan-hours';
@@ -175,6 +176,11 @@ export default function ProtectedGymTimplanWorkspace({ identityKey = null, conte
   }
   function leave(action: () => void) { if (allowNavigation() && !busy && (!dirty || confirmDiscard())) { setAction(null); action(); } }
   const editable = plan ? gymTimplanCanEdit(plan) : false;
+  const timePlanId = plan?.id, timeUnitId = plan?.unitId, timeVersion = plan?.version;
+  const timeJournalScope = useMemo<AplJournalScope | null>(() => timePlanId && timeUnitId && timeVersion && identityKey && context.organizerId && (context.function === 'rektor' || context.function === 'administrator') ? {
+    identityKey, customerId: context.customerId, membershipId: context.membershipId, assignmentId: context.assignmentId,
+    organizerId: context.organizerId, unitId: timeUnitId, planId: timePlanId, planVersion: timeVersion, accessFunction: context.function,
+  } : null, [identityKey, context.customerId, context.membershipId, context.assignmentId, context.organizerId, context.function, timePlanId, timeUnitId, timeVersion]);
   // Timetables use the frozen source even when a newer live program version exists.
   const yearProjection = useMemo(() => plan && planningSelection ? projectGymTimplanYear(planningSelection.schoolYear, plan,
     [0, 1, 2, 3, 4, 5].map(index => plan.rows.reduce((total, row) => total + row.pointTerms[index], 0))) : null, [plan, planningSelection]);
@@ -243,10 +249,11 @@ export default function ProtectedGymTimplanWorkspace({ identityKey = null, conte
       {plan.sourceChanged && <p className="gt-changed">Programplanens innehåll har ändrats. Timplanen använder fortfarande det sparade underlaget ovan. Välj Skapa ny version för att använda det aktuella innehållet i samma timplan. {plan.currentSource && <Button variant="link" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource!.planId))}>Välj nytt underlag</Button>}</p>}
       <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty||aplDirty||aplPending||classDirty||commandBlocked} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
       <div ref={classSection} tabIndex={-1} aria-label="Klasskopplingar" style={{scrollMarginTop:'11rem'}}><ProtectedClassTimplans openRequest={classOpenRequest.planId===plan.id?classOpenRequest.count:0} scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])} returnTo={'/?' + new URLSearchParams({vy:'timplaner',timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version),planeringslasar:String(planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()),planeringsskola:plan.unitId,planeringsform:'gymnasium'}).toString()} key={`classes-${plan.id}-${planningSelection?.schoolYear}`} plan={plan} schoolYear={planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()} canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || decisionPending || commandBlocked || aplDirty || aplPending} onSecurityFailure={securityFailure}/></div>
+      <ProtectedGymTimplanHours timeJournalScope={timeJournalScope} aplInclusive={VOCATIONAL_GY25_CODES.some(code => code === plan.source.education.programCode)} disabled={decisionPending || commandBlocked || aplDirty || aplPending} key={JSON.stringify([plan.id, timeJournalScope, epoch])} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
+        onSaved={setPlan} onSaving={setBusy} onNavigationBlocked={onHoursBlocked} onActivity={onHoursActivity} onSecurityFailure={securityFailure}/>
       {VOCATIONAL_GY25_CODES.some(code => code === plan.source.education.programCode) && <ProtectedAplPlan key={`apl-${plan.id}`} plan={plan} context={context} identityKey={identityKey}
         disabled={busy || hoursDirty || decisionPending || commandBlocked || classDirty} isBlocked={isAplBlocked} onChanged={setPlan} onSecurityFailure={securityFailure}/>}
-      <ProtectedGymTimplanHours aplInclusive={VOCATIONAL_GY25_CODES.some(code => code === plan.source.education.programCode)} disabled={decisionPending || commandBlocked || aplDirty || aplPending} key={plan.id} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
-        onSaved={setPlan} onSaving={setBusy} onNavigationBlocked={onHoursBlocked} onActivity={onHoursActivity} onSecurityFailure={securityFailure}/>
+
 
     </>}
     <Dialog open={showSource && !!plan} onOpenChange={setShowSource}><DialogContent className="gt-source-dialog"><DialogTitle>Sparat programunderlag</DialogTitle><DialogDescription>Programplan version {plan?.source.version}, revision {plan?.source.revision}. Detta är den frysta poängram som timplanen använder.</DialogDescription>

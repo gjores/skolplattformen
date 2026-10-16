@@ -1,4 +1,4 @@
-import type { GymTimplan } from '../../lib/gym-timplan';
+import type { GymTimplanLegacy as GymTimplan } from '../../lib/gym-timplan';
 export const oid=(n:number)=>`77101300-0000-4000-8000-${String(n).padStart(12,'0')}`;
 export const operationPlan:GymTimplan={id:oid(1),offeringId:oid(2),unitId:oid(3),schoolName:'Exempelskolan',version:1,revision:4,status:'faststalld',
  source:{planId:oid(4),offeringId:oid(2),version:1,revision:2,status:'utkast',catalogId:`sha256:${'a'.repeat(64)}`,startedOn:'2026-08-15',educationRevision:0,education:{name:'Samhällsvetenskapsprogrammet',cohort:'2026–2029',programCode:'SA25',orientationCode:'SABEP'}},

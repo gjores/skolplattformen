@@ -3,7 +3,7 @@
 import { expect,test,type Page,type TestInfo } from '@playwright/test';
 import { createGymTimplanFixture,verifyGymTimplanBrowserTarget } from '../../work/pilot/phase5-gym-timplan-fixtures.mjs';
 import { PROGRAMPLAN_TERMS } from '../lib/programplan-terms.ts';
-import type { GymTimplan,GymTimplanHours,GymTimplanRow } from '../lib/gym-timplan.ts';
+import type { GymTimplanLegacy as GymTimplan,GymTimplanHours,GymTimplanRow } from '../lib/gym-timplan.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
 
 type Fixture=Awaited<ReturnType<typeof createGymTimplanFixture>>;

@@ -14,7 +14,7 @@ import {SEARCH_SOURCE_PATHS,SEARCH_API_CASES,validateHistoricalSources,historica
  validateSearchApplied,validateSearchDependencies,searchCasesComplete,searchCleanupPreserved,searchTimingsComplete,verifySearchWorker} from '../../work/pilot/verify-planning-year-search-details.mjs';
 import {planningSelection} from '../../work/pilot/verify-planning-year-api.mjs';
 import {parsePlanningList,parsePlanningSetup,parsePlanningSelection,type PlanningSelection,type PlanningSetup} from '../lib/planning-year-contract.ts';
-import {parseGymTimplan,parseGymTimplanRowReply,type GymTimplanHours} from '../lib/gym-timplan.ts';
+import {parseGymTimplan as parseAnyGymTimplan, isGymTimplanV2,parseGymTimplanRowReply,type GymTimplanHours} from '../lib/gym-timplan.ts';
 import {parseProgramplanTermReply,type ProgramplanTermWrite} from '../lib/programplan-terms-contract.ts';
 import {projectGymYear} from '../lib/planning-year-model.ts';
 import {waitForHydration} from './helpers/keycloak.ts';
@@ -304,12 +304,12 @@ test('G02: program-åk2 sparar originalindex2 och hela sexvärdesdistributionen'
  await page.reload();await expect(board(page)).toBeVisible();await visualYear(page,'programplan',2);await expect(pcell(page,r,2)).toHaveValue('14');await capture(page,info,'program-index2-readback');
 });
 test('G03: GY-åk3 sparar index4 med fem dolda timvärden och frysta poäng kvar',async({page},info)=>{
- const r=metadata.cohorts[2],year=metadata.planningYear+2,before=await ownedNode('readback', () => fixture.readGym(r.planId)),state=await fixture.ownedState(r.planId);
+ const r=metadata.cohorts[2],year=metadata.planningYear+2,before=await ownedNode('readback', () => readLegacyGym(r.planId)),state=await fixture.ownedState(r.planId);
  await enter(page,r,'timplan',year);await visualYear(page,'timplan',3);
  const waiting=page.waitForResponse(match(ROW));await gcell(page,r,4).fill('77');await gcell(page,r,4).press('Enter');const reply=await waiting;
  const command={planId:r.planId,expectedRevision:before.revision,rowKey:r.rowKey,hours:[11,22,33,44,77,66] as GymTimplanHours};
  expect(reply.status()).toBe(200);expect(reply.request().postDataJSON()).toEqual(command);parseGymTimplanRowReply(await reply.json(),command);
- await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');const actual=await ownedNode('readback', () => fixture.readGym(r.planId));expect(actual.hours[r.rowKey]).toEqual(command.hours);expect(actual.source).toEqual(before.source);expect(actual.rows).toEqual(before.rows);
+ await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');const actual=await ownedNode('readback', () => readLegacyGym(r.planId));expect(actual.hours[r.rowKey]).toEqual(command.hours);expect(actual.source).toEqual(before.source);expect(actual.rows).toEqual(before.rows);
  const after=await fixture.ownedState(r.planId);expect(after.sourceHash).toBe(state.sourceHash);expect(after.classLinksHash).toBe(state.classLinksHash);
  await fullGym(page,r);for(let i=0;i<6;i++)await expect(gcell(page,r,i)).toHaveValue(String(command.hours[i]));await capture(page,info,'gym-index4-six-values');
 });
@@ -326,10 +326,10 @@ test('G04: manuellt år och hela matrisen ändrar varken globalåret eller data'
  expect(writes).toEqual([]);expect(await fixture.ownedState(r.planId)).toEqual(state);await capture(page,info,'manual-whole-calendar-year');
 });
 test('G05: ändrad aktuell källstart kan inte ändra timplanens frysta årssnitt',async({page},info)=>{
- const r=metadata.cohorts[1],before=await ownedNode('readback', () => fixture.readGym(r.planId));await ownedNode('fixture-mutation', () => fixture.changeCurrentStart(r.planId));
+ const r=metadata.cohorts[1],before=await ownedNode('readback', () => readLegacyGym(r.planId));await ownedNode('fixture-mutation', () => fixture.changeCurrentStart(r.planId));
  const state=await fixture.ownedState(r.planId);await enter(page,r,'timplan');await visualYear(page,'timplan',2);
  await expect(gym(page)).toContainText('Programplanen har ändrats');await expect(gym(page).locator('.gt-year-context')).toContainText(r.startedOn);
- const actual=await ownedNode('readback', () => fixture.readGym(r.planId));expect(actual.source).toEqual(before.source);expect(actual.hours).toEqual(before.hours);expect(actual.sourceChanged).toBe(true);
+ const actual=await ownedNode('readback', () => readLegacyGym(r.planId));expect(actual.source).toEqual(before.source);expect(actual.hours).toEqual(before.hours);expect(actual.sourceChanged).toBe(true);
  await gym(page).getByRole('button',{name:/^Underlag: Programplan/u}).click();const dialog=page.getByRole('dialog',{name:'Sparat programunderlag',exact:true});
  await expect(dialog).toContainText(`HT ${Number(r.startedOn.slice(0,4))}`);await expect(dialog).toContainText(`VT ${Number(r.startedOn.slice(0,4))+3}`);
  await dialog.getByRole('button',{name:'Stäng underlaget',exact:true}).click();await capture(page,info,'frozen-start-current-changed');
@@ -363,7 +363,7 @@ test('G08: år utanför kullens tre år visar hela sexmatrisen utan gissad åk1'
 });
 test('G09: huvudman läser rätt GY-år men får inga timskrivkontroller',async({page},info)=>{
  const r=metadata.cohorts[1],before=await fixture.ownedState(r.planId);const writes:string[]=[];page.on('request',q=>{if(pathname(q)===ROW)writes.push(q.url());});
- const actual=await ownedNode('readback', () => fixture.readGym(r.planId,fixture.hm));expect(actual.canPlan).toBe(false);await enter(page,r,'timplan',metadata.planningYear,fixture.hm);await visualYear(page,'timplan',2);
+ const actual=await ownedNode('readback', () => readLegacyGym(r.planId,fixture.hm));expect(actual.canPlan).toBe(false);await enter(page,r,'timplan',metadata.planningYear,fixture.hm);await visualYear(page,'timplan',2);
  await expect(gym(page).locator('input.gt-term-input')).toHaveCount(0);await gym(page).getByRole('button',{name:'Visa hela planen',exact:true}).click();
  expect(writes).toEqual([]);expect(await fixture.ownedState(r.planId)).toEqual(before);await capture(page,info,'hm-read-only-year');
 });
@@ -373,19 +373,19 @@ test('G10: passerad programstart och arkiverad GY-plan behåller befintliga skri
  expect(await fixture.ownedState(r.planId)).toEqual(before);await capture(page,info,'started-archived-locks');
 });
 test('G11: held verklig timskrivning behåller år och köar ny inmatning med nästa CAS',async({page},info)=>{
- const r=metadata.cohorts[2],year=metadata.planningYear+1;await enter(page,r,'timplan',year);const before=await ownedNode('readback', () => fixture.readGym(r.planId)),held=gate(),writes:{expectedRevision:number;hours:GymTimplanHours}[]=[];
+ const r=metadata.cohorts[2],year=metadata.planningYear+1;await enter(page,r,'timplan',year);const before=await ownedNode('readback', () => readLegacyGym(r.planId)),held=gate(),writes:{expectedRevision:number;hours:GymTimplanHours}[]=[];
  await page.route('**'+ROW,async route=>{const command=route.request().postDataJSON();writes.push(command);const actual=await actualRouteFetch(route);expect(actual.status()).toBe(200);parseGymTimplanRowReply(await actual.json(),command);await audit(actual,ROW,command);
   if(writes.length===1){held.readyResolve(actual);await held.released;}await route.fulfill({response:actual});});
  await gcell(page,r,2).fill('70');await gcell(page,r,2).press('Enter');await held.ready;
  await expect(gym(page).getByRole('button',{name:'Åk 1',exact:true})).toBeDisabled();const oldURL=page.url();await blockedGlobal(page,oldURL,year);
  await gcell(page,r,2).fill('71');await gcell(page,r,2).press('Enter');expect(writes).toHaveLength(1);held.release();
  await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');expect(writes).toHaveLength(2);expect(writes.map(w=>w.expectedRevision)).toEqual([before.revision,before.revision+1]);
- expect((await ownedNode('readback', () => fixture.readGym(r.planId))).hours[r.rowKey]).toEqual([11,22,71,44,55,66]);await visualYear(page,'timplan',2);await capture(page,info,'held-queue-context-block');
+ expect((await ownedNode('readback', () => readLegacyGym(r.planId))).hours[r.rowKey]).toEqual([11,22,71,44,55,66]);await visualYear(page,'timplan',2);await capture(page,info,'held-queue-context-block');
 });
 test('G12: verklig CAS409 ger jämförelse utan att ändra dolda timmar',async({page},info)=>{
- const r=metadata.cohorts[2];await enter(page,r,'timplan');const fresh=await ownedNode('fixture-mutation', () => fixture.writeHours(r.planId,[11,22,88,44,55,66]));const waiting=page.waitForResponse(match(ROW));
+ const r=metadata.cohorts[2];await enter(page,r,'timplan');const fresh=await ownedNode('fixture-mutation', () => fixture.writeHours(r.planId,[11,22,88,44,55,66]));if (isGymTimplanV2(fresh)) throw new Error('Expected legacy fixture');const waiting=page.waitForResponse(match(ROW));
  await gcell(page,r,0).fill('72');await gcell(page,r,0).press('Enter');const conflict=await waiting;expect(conflict.status()).toBe(409);
- await expect(gym(page)).toContainText('Jämför sparade timmar');expect((await ownedNode('readback', () => fixture.readGym(r.planId))).hours[r.rowKey]).toEqual(fresh.hours[r.rowKey]);
+ await expect(gym(page)).toContainText('Jämför sparade timmar');expect((await ownedNode('readback', () => readLegacyGym(r.planId))).hours[r.rowKey]).toEqual(fresh.hours[r.rowKey]);
  await gym(page).getByRole('button',{name:'Använd sparade värden',exact:true}).click();await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');
  await fullGym(page,r);for(let i=0;i<6;i++)await expect(gcell(page,r,i)).toHaveValue(String(fresh.hours[r.rowKey][i]));await capture(page,info,'actual-cas-hidden-values');
 });
@@ -395,7 +395,7 @@ test('G13: accepterat timsvar och readfail låser navigation tills faktisk åter
  await page.route('**'+GYREAD,async route=>{const actual=await actualRouteFetch(route);expect(actual.status()).toBe(200);parseGymTimplan(await actual.json(),r.planId);await audit(actual,GYREAD,route.request().postDataJSON());controlledReplies.add(route.request());await route.fulfill({status:503,contentType:'application/json',body:'{"error":"Kontrollerat transportfel efter faktisk återläsning"}'});});
  await gcell(page,r,0).fill('73');await gcell(page,r,0).press('Enter');await expect(gym(page)).toContainText('Sparstatus kunde inte läsas');const old=page.url();
  await expect(gym(page).getByRole('button',{name:'Använd sparade värden',exact:true})).toBeDisabled();await expect(gym(page).getByRole('button',{name:'Åk 2',exact:true})).toBeDisabled();await blockedGlobal(page,old,metadata.planningYear);
- expect((await ownedNode('readback', () => fixture.readGym(r.planId))).hours[r.rowKey][0]).toBe(73);expect(writes).toBe(1);await page.unroute('**'+GYREAD);
+ expect((await ownedNode('readback', () => readLegacyGym(r.planId))).hours[r.rowKey][0]).toBe(73);expect(writes).toBe(1);await page.unroute('**'+GYREAD);
  await gym(page).getByRole('button',{name:'Läs aktuell timplan',exact:true}).click();await expect(gym(page).locator('.gt-save-state')).toHaveText('Allt sparat');expect(writes).toBe(1);
  await gym(page).getByRole('button',{name:'Åk 2',exact:true}).click();await visualYear(page,'timplan',2);await capture(page,info,'unknown-write-actual-recovery');
 });
@@ -411,7 +411,7 @@ test('G15: aktiv nolltid och ofördelad cell förblir skilda över alla sex inde
  const r=metadata.cohorts[2],expected:[number,null,number,number,number,number]=[0,null,33,44,55,66];await ownedNode('fixture-mutation', () => fixture.writeHours(r.planId,expected));const before=await fixture.ownedState(r.planId);
  await enter(page,r,'timplan');await fullGym(page,r);await expect(gcell(page,r,0)).toHaveValue('0');await expect(gcell(page,r,1)).toHaveValue('');
  await expect(gym(page).locator(`tr[data-row-key="${r.rowKey}"]`)).toContainText('1 kvar');await gym(page).getByRole('button',{name:'Visa bara ofördelade',exact:true}).click();await expect(gcell(page,r,0)).toBeVisible();
- expect((await ownedNode('readback', () => fixture.readGym(r.planId))).hours[r.rowKey]).toEqual(expected);expect(await fixture.ownedState(r.planId)).toEqual(before);
+ expect((await ownedNode('readback', () => readLegacyGym(r.planId))).hours[r.rowKey]).toEqual(expected);expect(await fixture.ownedState(r.planId)).toEqual(before);
  const table=gym(page).getByRole('region',{name:'Skolans undervisningstid',exact:true});await table.focus();await expect(table).toBeFocused();await table.press('ArrowRight');await capture(page,info,'zero-unallocated-keyboard-scroll');
 });
 test('G16: programanalysens fokus är tillfälligt och återgång behåller planeringsåret',async({page},info)=>{
@@ -443,3 +443,16 @@ test('G19: legacy-start är okänd och erbjuder explicit underlag utan gissad ma
  await expect(program(page).getByRole('region',{name:'Dina sparade fördjupningsval',exact:true})).toContainText('Äldre sparade val');
  await expect(board(page)).toHaveCount(0);await expect(program(page).locator('input[data-term]')).toHaveCount(0);await capture(page,info,'legacy-unknown-no-invented-matrix');
 });
+
+// These regression fixtures deliberately exercise the preserved legacy time model.
+function parseGymTimplan(...args: Parameters<typeof parseAnyGymTimplan>) {
+  const plan = parseAnyGymTimplan(...args);
+  if (isGymTimplanV2(plan)) throw new Error("Expected a legacy fixture");
+  return plan;
+}
+
+async function readLegacyGym(...args: Parameters<Fixture["readGym"]>) {
+  const plan = await fixture.readGym(...args);
+  if (isGymTimplanV2(plan)) throw new Error("Expected legacy fixture");
+  return plan;
+}

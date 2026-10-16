@@ -28,6 +28,14 @@ Flera klasser får dela en fastställd timplan. Att skapa eller kopiera en plan 
 
 ### Fördela skolans timmar
 
+I nya yrkestimplaner anger du **Skola HT**, **Skola VT** och **APL** separat för varje årskurs. APL avser hela årskursen. Exempel: 20 timmar skola på hösten + 20 på våren + 60 APL = **100 timmar totalt**. Du kan spara timmarna innan perioder eller datum är kända. Ange hela timmar eller `h:mm`, exempelvis `79:30` för 79 timmar och 30 minuter. Tomma fält är ofördelade; ange `0` när ingen tid ska ligga i cellen.
+
+Högskoleförberedande program har bara skolförlagd tid i HT och VT. Där finns inga APL-kolumner eller APL-planering.
+
+Äldre yrkestimplaner visar fortfarande totaltid inklusive APL. I ett redigerbart utkast kan du granska byte till separata skoltimmar och års-APL. Granskningen visar hur redan angiven APL dras från terminstotalerna och samlas per årskurs; den sammanlagda tiden bevaras exakt. Kontrollera att all APL är identifierad innan du bekräftar. Avbryt lämnar planen oförändrad. Fastställda versioner ändras genom en ny version.
+
+Följande heltalsgräns gäller den äldre terminstabellen och högskoleförberedande planer:
+
 1. Öppna skolans timplan och fyll i timmar direkt i tabellens terminsceller.
 2. Ange hela timmar mellan 0 och 2 000 för terminer som har poäng i underlaget. Ett tomt fält är ofördelat; `0` betyder angivna noll timmar. Terminer som inte ingår kan inte fyllas i.
 3. Lämna raden eller tryck Enter för att spara och invänta **Allt sparat**. Du kan gå med Tab mellan celler på samma rad innan den sparas. Hela raden sparas tillsammans; ny inmatning under pågående sparning följer med nästa sparning.
@@ -44,6 +52,8 @@ Välj **Autofördela timmar** när du vill få ett förslag utifrån en totalsum
 2. **Fyll bara tomma celler** behåller befintliga timmar, även uttryckliga nollor, och fördelar återstoden. Välj uttryckligen **Fördela om alla timmar** om även befintliga värden ska ersättas. Om inga celler är tomma kan du behöva välja det alternativet.
 3. Kontrollera förslaget per årskurs och termin. Välj **Granska fördelning** och sedan **Spara fördelning**. Alla ändrade rader sparas tillsammans. Vänta på **Fördelningen är sparad**.
 4. Granska ämnenas behov i tabellen och justera vid behov. Poängen används för att ta fram ett proportionellt startförslag; de bestämmer inte ämnets undervisningsbehov.
+
+I den nya yrkestabellen reserverar autofördelningen angiven års-APL och fördelar bara återstående tid på skolterminerna. Års-APL och perioderna ändras inte. Saknade APL-värden behöver fortfarande fyllas i; autofördelning gör inte dessa celler färdiga.
 
 Fördelningen gäller hela planen även om tabellen visar en enda årskurs. Totalen omfattar APL; APL-tid läggs inte till igen. Sparade APL-minuter bevaras som en miniminivå för varje berörd ämnes- och terminscell, avrundad uppåt till hela timmar. APL-perioder och innehåll ändras inte. Om undervisningstiden ändras kan rektor behöva bekräfta APL på nytt.
 

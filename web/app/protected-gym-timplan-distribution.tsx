@@ -4,13 +4,15 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { gymTimplanCanEdit, gymTimplanTotals, parseGymTimplan, type GymTimplan } from '@/lib/gym-timplan.ts';
-import { gymTimplanGut, suggestGymTimplanHours, type GymTimplanDistributionMode } from '@/lib/gym-timplan-distribution.ts';
+import { gymTimplanCanEdit, gymTimplanTotals, isGymTimplanV2, parseGymTimplan, type GymTimplan } from '@/lib/gym-timplan.ts';
+import { gymTimplanGut, suggestGymTimplanHours, suggestGymTimplanTimeV2, type GymTimplanDistributionMode } from '@/lib/gym-timplan-distribution.ts';
 import { parseAplReadReply, type AplPlan } from '@/lib/apl-plan.ts';
 import { VOCATIONAL_GY25_CODES } from '@/lib/programplan-profile.ts';
+import { timplanTimeTotals, formatTimplanMinutes } from '@/lib/timplan-time.ts';
 import MfaStepUpNotice from './mfa-step-up';
 
 type Props = { plan: GymTimplan; onClose: () => void; onSaved: (plan: GymTimplan) => void; onComplete: () => void; onSecurityFailure: (error: unknown) => boolean };
+const totalHours = (plan: GymTimplan) => isGymTimplanV2(plan) ? timplanTimeTotals(plan).totalMinutes / 60 : gymTimplanTotals(plan).total;
 const message = (error: unknown) => error instanceof Error ? error.message : 'Underlaget kunde inte läsas. Försök igen.';
 
 /** A proposal is based on a fresh, jointly revision-checked plan and APL snapshot. Never retries a write. */
@@ -38,18 +40,18 @@ export default function ProtectedGymTimplanDistribution(props: Props) {
     try {
       const fresh = await read(c.signal); if (!active.current) return;
       setBasis(fresh); callbacks.current.onSaved(fresh.plan); setUnread(false); setUncertain(false);
-      if (initial) { const existing = gymTimplanTotals(fresh.plan).total, gut = gymTimplanGut(fresh.plan); setTotal(String(Math.max(existing, gut?.hours ?? 0) || '')); }
+      if (initial) { const existing = totalHours(fresh.plan), gut = gymTimplanGut(fresh.plan); setTotal(String(Math.max(existing, gut?.hours ?? 0) || '')); }
       else setNotice('Aktuell timplan är hämtad. Kontrollera den sparade totalsumman och granska ett nytt förslag innan du sparar.');
     } catch (caught) { if (active.current && !callbacks.current.onSecurityFailure(caught)) { setError(message(caught)); setUnread(true); setMfa(caught instanceof ApiError && caught.code === 'mfa_required'); } }
     finally { operation.current = false; if (active.current) setBusy(false); }
   }
   useEffect(() => { active.current = true; queueMicrotask(() => { if (active.current) void load(true); }); return () => { active.current = false; controller.current?.abort(); }; }, []);
   const gut = basis ? gymTimplanGut(basis.plan) : null;
-  let proposal: ReturnType<typeof suggestGymTimplanHours> | null = null, proposalError: string | null = null;
+  let proposal: ReturnType<typeof suggestGymTimplanHours> | ReturnType<typeof suggestGymTimplanTimeV2> | null = null, proposalError: string | null = null;
   if (basis && !unread) {
     try {
       if (!/^\d+$/u.test(total)) throw new Error('Ange total undervisningstid i hela timmar.');
-      proposal = suggestGymTimplanHours(basis.plan, Number(total), mode, basis.apl);
+      proposal = isGymTimplanV2(basis.plan) ? suggestGymTimplanTimeV2(basis.plan, Number(total), mode) : suggestGymTimplanHours(basis.plan, Number(total), mode, basis.apl);
     } catch (caught) { proposalError = message(caught); }
   }
   const canSave = basis && gymTimplanCanEdit(basis.plan) && proposal && proposal.changedRows.length > 0 && !busy && !unread && !mfa;
@@ -59,9 +61,14 @@ export default function ProtectedGymTimplanDistribution(props: Props) {
     const c = new AbortController(); controller.current = c;
     try {
       const expected = proposal!;
-      const sameHours = (plan: GymTimplan) => Object.keys(plan.hours).length === Object.keys(expected.hours).length && Object.entries(expected.hours).every(([key, values]) => plan.hours[key]?.every((value, i) => value === values[i]));
-      const reply = parseGymTimplan(await api.post('/api/timplaner/gym/fordela', { planId: basis.plan.id, expectedRevision: basis.plan.revision, totalHours: Number(total), mode }, c.signal), basis.plan.id);
-      if (reply.revision !== basis.plan.revision + expected.changedRows.length || !sameHours(reply)) throw new Error('Sparsvaret stämmer inte med förslaget.');
+      const sameHours = (plan: GymTimplan) => {
+        if ('timeRows' in expected) return isGymTimplanV2(plan) && Object.keys(plan.timeRows).length === Object.keys(expected.timeRows).length && Object.entries(expected.timeRows).every(([key, row]) => {
+          const saved = plan.timeRows[key]; return saved && row.schoolMinutes.every((n, i) => saved.schoolMinutes[i] === n) && row.annualAplMinutes.every((n, i) => saved.annualAplMinutes[i] === n);
+        });
+        return !isGymTimplanV2(plan) && Object.keys(plan.hours).length === Object.keys(expected.hours).length && Object.entries(expected.hours).every(([key, values]) => plan.hours[key]?.every((value, i) => value === values[i]));
+      };
+      const reply = parseGymTimplan(await api.post('/api/timplaner/gym/fordela', { planId: basis.plan.id, expectedRevision: basis.plan.revision, totalHours: Number(total), mode, ...(isGymTimplanV2(basis.plan) ? {commandId: crypto.randomUUID()} : {}) }, c.signal), basis.plan.id);
+      if (reply.revision !== basis.plan.revision + (isGymTimplanV2(basis.plan) ? 1 : expected.changedRows.length) || !sameHours(reply)) throw new Error('Sparsvaret stämmer inte med förslaget.');
       const fresh = await read(c.signal); if (!active.current) return;
       callbacks.current.onSaved(fresh.plan);
       if (fresh.plan.revision !== reply.revision || !sameHours(fresh.plan)) {
@@ -88,14 +95,14 @@ export default function ProtectedGymTimplanDistribution(props: Props) {
       {!reviewing && <fieldset disabled={busy || unread || mfa} className="gt-distribution-fields"><legend>Välj total och fördelning</legend>
         <label className="gt-distribution-total">Total undervisningstid (timmar)<input inputMode="numeric" type="text" value={total} onChange={e => { change(); setTotal(e.target.value); }}/></label>
         <label><input type="radio" name="distribution-mode" value="fill-empty" checked={mode === 'fill-empty'} onChange={() => { change(); setMode('fill-empty'); }}/><span>Fyll bara tomma celler<small>Behåller alla angivna timmar, även noll.</small></span></label>
-        <label><input type="radio" name="distribution-mode" value="replace" checked={mode === 'replace'} onChange={() => { change(); setMode('replace'); }}/><span>Fördela om alla timmar<small>Ersätter befintliga timmar i hela planen.</small></span></label>
+        <label><input type="radio" name="distribution-mode" value="replace" checked={mode === 'replace'} onChange={() => { change(); setMode('replace'); }}/><span>{isGymTimplanV2(basis.plan) ? 'Fördela om skoltimmarna' : 'Fördela om alla timmar'}<small>{isGymTimplanV2(basis.plan) ? 'Ersätter skoltimmarna. Behåller års-APL.' : 'Ersätter befintliga timmar i hela planen.'}</small></span></label>
       </fieldset>}
-      {reviewing && <p><strong>{mode === 'fill-empty' ? 'Fyll bara tomma celler' : 'Fördela om alla timmar'}</strong></p>}
-      <p>Sparat nu: <strong>{gymTimplanTotals(basis.plan).total.toLocaleString('sv-SE')} timmar</strong>.</p>
+      {reviewing && <p><strong>{mode === 'fill-empty' ? 'Fyll bara tomma celler' : isGymTimplanV2(basis.plan) ? 'Fördela om skoltimmarna' : 'Fördela om alla timmar'}</strong></p>}
+      <p>Sparat nu: <strong>{totalHours(basis.plan).toLocaleString('sv-SE')} timmar</strong>.</p>
       {gut && /^\d+$/u.test(total) && <p className={Number(total) < gut.hours ? 'gt-distribution-warning' : undefined}>{Number(total) < gut.hours ? `${gut.hours - Number(total)} timmar saknas till GUT. Förslaget kan sparas som utkast men behöver kompletteras inför beslut.` : `${Number(total) - gut.hours} timmar över GUT.`}</p>}
-      {gut?.vocational && <p>APL ingår i totalen och läggs inte ovanpå. Sparad APL-tid bevaras som miniminivå per ämne och termin. Återstående timmar fördelas efter poängen. Ändrad undervisningstid kan kräva en ny rektorsbekräftelse av APL.</p>}
+      {basis && isGymTimplanV2(basis.plan) ? <p>Års-APL är reserverad: <strong>{formatTimplanMinutes(timplanTimeTotals(basis.plan).aplMinutes)} timmar</strong>. Förslaget fördelar återstående tid på skola HT och VT. Års-APL och perioder ändras inte.{timplanTimeTotals(basis.plan).missingAplCells > 0 && ' Det finns obesvarade APL-celler; förslaget gör inte planen komplett.'}</p> : gut?.vocational && <p>APL ingår i totalen och läggs inte ovanpå. Sparad APL-tid bevaras som miniminivå per ämne och termin. Återstående timmar fördelas efter poängen. Ändrad undervisningstid kan kräva en ny rektorsbekräftelse av APL.</p>}
       {proposalError && !busy && <p className="gt-distribution-warning" role="alert">{proposalError}</p>}
-      {proposal && <section aria-label="Fördelningsförslag" className="gt-distribution-preview"><h3>{reviewing ? 'Granska före sparande' : 'Förslag för hela planen'}</h3><p><strong>{proposal.total.toLocaleString('sv-SE')} timmar totalt</strong> · {proposal.changedRows.length} rader ändras{mode === 'fill-empty' ? ` · ${proposal.keptHours.toLocaleString('sv-SE')} timmar behålls` : ''}.</p><div className="gt-distribution-years">{[0,1,2].map(y => <div key={y}><strong>Årskurs {y + 1}</strong><span>{proposal!.terms[y * 2] + proposal!.terms[y * 2 + 1]} timmar</span><small>HT {proposal!.terms[y * 2]} · VT {proposal!.terms[y * 2 + 1]}</small></div>)}</div><p>Granska ämnenas behov i tabellen efteråt.</p>{proposal.changedRows.length === 0 && <p>Inga timmar behöver ändras. Välj en annan total eller fördela om alla timmar.</p>}</section>}
+      {proposal && <section aria-label="Fördelningsförslag" className="gt-distribution-preview"><h3>{reviewing ? 'Granska före sparande' : 'Förslag för hela planen'}</h3><p><strong>{('totalMinutes' in proposal ? proposal.totalMinutes / 60 : proposal.total).toLocaleString('sv-SE')} timmar totalt</strong> · {proposal.changedRows.length} rader ändras{mode === 'fill-empty' ? ` · ${('keptMinutes' in proposal ? proposal.keptMinutes / 60 : proposal.keptHours).toLocaleString('sv-SE')} timmar behålls` : ''}.</p><div className="gt-distribution-years">{[0,1,2].map(y => <div key={y}><strong>Årskurs {y + 1}</strong><span>{'yearMinutes' in proposal! ? formatTimplanMinutes(proposal.yearMinutes[y]) : proposal!.terms[y * 2] + proposal!.terms[y * 2 + 1]} timmar</span><small>{'termMinutes' in proposal! ? `Skola HT ${formatTimplanMinutes(proposal.termMinutes[y * 2])} · VT ${formatTimplanMinutes(proposal.termMinutes[y * 2 + 1])} · APL ${formatTimplanMinutes(proposal.annualAplMinutes[y])}` : `HT ${proposal!.terms[y * 2]} · VT ${proposal!.terms[y * 2 + 1]}`}</small></div>)}</div><p>Granska ämnenas behov i tabellen efteråt.</p>{proposal.changedRows.length === 0 && <p>Inga timmar behöver ändras. Välj en annan total eller ändra fördelningssätt.</p>}</section>}
       {!gymTimplanCanEdit(basis.plan) && <p role="alert">Den aktuella timplanen kan inte ändras. Stäng dialogen och kontrollera status och behörighet.</p>}
     </>}
     <div className="gt-dialog-actions"><Button variant="outline" disabled={busy || uncertain} onClick={props.onClose}>Avbryt</Button>{unread ? <Button disabled={busy || mfa} onClick={() => void load()}>Läs aktuell timplan</Button> : reviewing ? <><Button variant="outline" disabled={busy} onClick={() => setReviewing(false)}>Ändra förslag</Button><Button disabled={!canSave} onClick={() => void save()}>Spara fördelning</Button></> : <Button disabled={!canSave} onClick={() => setReviewing(true)}>Granska fördelning</Button>}</div>

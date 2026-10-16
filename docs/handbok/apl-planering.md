@@ -20,11 +20,21 @@ Denna handledning gäller skolförlagda nationella yrkesprogram i gymnasieskolan
 
 Källa: [gymnasieförordningen (2010:2039), 4 kap. 12 och 14 §§](https://www.riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/gymnasieforordning-20102039_sfs-2010-2039/).
 
-## 1. Välj rätt plan och lägg in en preliminär period
+## 1. Planera timmarna först
+
+Nya yrkestimplaner har **Skola HT**, **Skola VT** och separat **APL per årskurs**. Ange timmarna per ämne i timplanens tabell och invänta **Allt sparat**. Du behöver inga perioder, datum eller veckotal för att spara årsramen. Högskoleförberedande program har enbart skoltimmar och ingen APL-planering i appen.
+
+Exempel: **HT 20 + VT 20 + APL 60 = 100 timmar**. När 40 av APL-timmarna senare förläggs i en period återstår 20 att förlägga. Timplanens total är fortfarande 100 timmar.
+
+När förläggningen är känd väljer du **Förlägg APL i perioder**. Översikten visar årsram, förlagd tid och kvar att förlägga. Vid behov ändrar du årsramen i timtabellen innan mer tid läggs i perioder. Inför rektors bekräftelse behöver hela årsramen vara förlagd och det övriga underlaget granskat.
+
+Äldre yrkestimplaner har totaltid inklusive APL. Där används **Planera APL** enligt stegen nedan tills ett granskat byte till skoltid och års-APL har sparats. Ingen sparad timme ändrar betydelse när du bara öppnar en äldre plan.
+
+### Lägg in en preliminär period
 
 Kontrollera timplanens namn, skola, version och klasskopplingar. Två klasser kan följa samma programplan men behöva olika namngivna timplaner och APL-upplägg.
 
-1. Välj **Planera APL** och **Lägg till period**.
+1. Välj **Förlägg APL i perioder** (eller **Planera APL** i en äldre plan) och **Lägg till period**.
 2. Välj **Årskurs** och **Termin**. Appen visar läsåret utifrån utbildningens start.
 3. Välj **Granska ändringar**, därefter **Spara APL-plan**. Vänta på beskedet att planen är sparad.
 
@@ -46,7 +56,7 @@ För delveckor eller blandade upplägg väljer du **Delar av veckor eller blandv
 
 **Exempel:** Fem hela granskade APL-veckor motsvarar 5 × 23 = **115 GUT-timmar**. De kan exempelvis fördelas som 80 timmar på en ämnesnivå och 35 på en annan. Samma period räknas en gång även om flera ämnen ingår. Om timplanens total är 2 625 timmar ingår de 115 där; de ska inte läggas ovanpå så att totalen blir 2 740.
 
-Appen jämför periodens fördelade minuter med veckounderlaget. Summan måste stämma exakt inför bekräftelsen. APL-tiden från alla perioder får tillsammans inte överstiga den sparade totaltiden i en ämnes- och terminscell. Ospecificerade valblock måste preciseras till ämnesnivåer. **Autofördela timmar** i timplanen fördelar totaltid och skyddar sparad APL-tid, men väljer inte perioder, arbetsmoment eller APL-innehåll åt skolan.
+Appen jämför periodens fördelade minuter med veckounderlaget. Summan måste stämma exakt inför bekräftelsen. I den nya tabellen får APL-tiden från alla perioder tillsammans inte överstiga ämnets sparade APL-ram för årskursen. För äldre timplaner gäller i stället den sparade totaltiden i respektive ämnes- och terminscell. Ospecificerade valblock måste preciseras till ämnesnivåer. **Autofördela timmar** i timplanen fördelar totaltid och skyddar sparad APL-tid, men väljer inte perioder, arbetsmoment eller APL-innehåll åt skolan.
 
 ## 4. Granska och ta beslut
 

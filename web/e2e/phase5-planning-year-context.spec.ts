@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createPlanningYearFixture, verifyPlanningYearBrowserTarget } from '../../work/pilot/phase5-planning-year-fixtures.mjs';
 import { schoolYearLabel, selectionToQuery, type Selection } from '../lib/pupil-register-model.ts';
-import type { GymTimplan } from '../lib/gym-timplan.ts';
+import type { GymTimplanLegacy as GymTimplan } from '../lib/gym-timplan.ts';
 import { parsePlanningList, parsePlanningSelection, parsePlanningSetup } from '../lib/planning-year-contract.ts';
 import { parseProgramplanSelection } from '../lib/programplan-education-contract.ts';
 import { waitForHydration } from './helpers/keycloak.ts';

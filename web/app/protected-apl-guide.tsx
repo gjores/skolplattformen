@@ -5,19 +5,26 @@ const organisation = 'https://www.skolverket.se/larande-och-trygghet/elevens-for
 const safety = 'https://www.av.se/arbetsmiljoarbete-och-inspektioner/arbetsgivarens-ansvar-for-arbetsmiljon/minderariga-arbetstagare/praktik-for-minderariga/';
 
 /** Readable guidance, independent of write permissions and never an attestation. */
-export default function ProtectedAplGuide() {
+export default function ProtectedAplGuide({ annual = false }: { annual?: boolean }) {
   return <details className="apl-guide" aria-label="Handledning för APL">
-    <summary><span>Så planerar du APL<small>Regler, arbetsgång och ansvar – från första terminsval till uppföljning</small></span></summary>
+    <summary><span>Så planerar du APL<small>Regler, arbetsgång och ansvar – från timmar till uppföljning</small></span></summary>
     <div className="apl-guide-body">
       <p>För skolans skolförlagda Gy25-yrkesprogram. Appen hjälper er att granska <strong>planeringen</strong>. Skolan behöver också följa varje elevs faktiska APL.</p>
       <div className="apl-guide-facts"><div><strong>Minst 15 veckor</strong><span>APL under utbildningen</span></div><div><strong>23 timmar per vecka</strong><span>räknas inom garanterad undervisningstid, GUT</span></div></div>
       <p className="apl-guide-source">Regel: <a href={regulation} target="_blank" rel="noreferrer">gymnasieförordningen 4 kap. 12 §</a>. 23 timmar är beräkningsmåttet för GUT, inte elevens arbetsschema på arbetsplatsen.</p>
 
+      {annual ? <details className="apl-guide-step" open><summary>1. Börja med timmar per årskurs</summary>
+        <p>Fyll i <strong>Skola HT</strong>, <strong>Skola VT</strong> och <strong>APL</strong> för respektive årskurs i timplanens tabell. Lämna raden för att spara. Vänta på <b>Allt sparat</b>. Tomt betyder ofördelat och 0 betyder angivna noll timmar.</p>
+        <p><strong>Exempel:</strong> Skola HT 20 + Skola VT 20 + APL 60 = 100 timmar. Perioder och datum behövs inte för att spara dessa timmar.</p>
+        <p>När ni vet när APL ska ligga väljer ni <b>Förlägg APL i perioder</b>. Perioderna använder den redan sparade årsramen. Förlägger ni 40 av 60 timmar återstår 20; totalen är fortfarande 100 timmar.</p>
+        <p>Rektor beslutar vilka delar av ämnesnivåerna som ska genomföras på arbetsplatser och hur APL fördelas över läsåren. En sparad årsram är inte en bekräftad förläggning.</p>
+      </details> : <>
       <details className="apl-guide-step" open><summary>1. Börja med årskurs och termin</summary>
         <p>Rektor beslutar vilka delar av ämnesnivåerna som ska genomföras på arbetsplatser och hur APL fördelas över läsåren.</p>
         <p><strong>Gör så här:</strong> Kontrollera timplanens namn, skola och version. Välj <b>Planera APL</b>, lägg till en period och välj årskurs och termin. Spara via <b>Granska ändringar</b> och <b>Spara APL-plan</b>. Datum, omfattning och innehåll kan kompletteras senare.</p>
         <p><strong>Appen hjälper med:</strong> Läsåret hämtas från utbildningens start. Olika klassers upplägg kan ligga i olika namngivna timplaner. Ett terminsval flyttar inte redan angivna datum eller timmar.</p>
       </details>
+      </>}
       <details className="apl-guide-step"><summary>2. Granska datum och verklig omfattning</summary>
         <p><strong>Gör så här:</strong> Öppna periodens datum och omfattning. Ange datum, välj hela APL-veckor eller blandveckor och beskriv underlaget. Granska verklig förläggning, lov och avbrott innan du markerar omfattningen som granskad.</p>
         <p><strong>Appen kontrollerar:</strong> Datum, läsår, överlappningar och om uppgivna hela veckor ryms i kalendern. Veckonummer hjälper dig att välja datum; de bevisar inte att veckan är en hel APL-vecka. För det stödda upplägget krävs minst 15 granskade hela veckor inför bekräftelsen.</p>

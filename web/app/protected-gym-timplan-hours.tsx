@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
-import { gymTimplanCanEdit, gymTimplanTotals, parseGymTimplan, parseGymTimplanHourInput, parseGymTimplanRowReply,
-  type GymTimplan, type GymTimplanHours, type GymTimplanRow } from '@/lib/gym-timplan.ts';
+import { gymTimplanCanEdit, gymTimplanTotals, isGymTimplanV2, gymTimplanAllowsApl, parseGymTimplan, parseGymTimplanHourInput, parseGymTimplanRowReply,
+  type GymTimplan, type GymTimplanLegacy, type GymTimplanHours, type GymTimplanRow } from '@/lib/gym-timplan.ts';
+import ProtectedGymTimplanTime from './protected-gym-timplan-time';
+import ProtectedTimplanTimeTransition from './protected-timplan-time-transition';
+import { loadTimplanTimeJournal, type TimplanTimeJournalScope } from '@/lib/timplan-time-journal.ts';
 import MfaStepUpNotice from './mfa-step-up';
 import ProtectedGymTimplanDistribution from './protected-gym-timplan-distribution';
 import { planningYearLabel, type GymYearProjection } from '@/lib/planning-year-model.ts';
 
 type Draft = { values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'unread'; error: string | null; mfa: boolean };
-type Props = { aplInclusive?: boolean; onActivity?: (pending: boolean) => void; disabled?: boolean; yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
+export type GymTimplanHoursProps = { timeJournalScope?: TimplanTimeJournalScope | null; aplInclusive?: boolean; onActivity?: (pending: boolean) => void; disabled?: boolean; yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
   onSaved: (plan: GymTimplan) => void; onSaving: (saving: boolean) => void; onNavigationBlocked: (blocked: boolean) => void; onSecurityFailure: (error: unknown) => boolean };
 const strings = (hours: GymTimplanHours) => hours.map(value => value === null ? '' : String(value));
 const hours = (values: string[]): GymTimplanHours | null => {
@@ -23,9 +26,13 @@ const same = (a: GymTimplanHours, b: GymTimplanHours) => a.every((value, i) => v
 const matches = (values: string[], saved: GymTimplanHours) => { const parsed = hours(values); return !!parsed && same(parsed, saved); };
 
 /** Inlineceller delar den befintliga atomiska radskrivningen. Kön håller CAS-revisioner i ordning. */
-export default function ProtectedGymTimplanHours({ aplInclusive = false, onActivity, disabled = false, yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
+function LegacyGymTimplanHours({ timeJournalScope, aplInclusive = false, onActivity, disabled = false, yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Omit<GymTimplanHoursProps, 'plan'> & { plan: GymTimplanLegacy }) {
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [onlyMissing, setOnlyMissing] = useState(false);
+  const [transitionOpen, setTransitionOpen] = useState(false), [transitionChecking, setTransitionChecking] = useState(!!timeJournalScope && gymTimplanAllowsApl(plan)), [transitionError, setTransitionError] = useState<string | null>(null);
+  const resumeCallbacks = useRef({ plan, onNavigationBlocked, onActivity });
+  useLayoutEffect(() => { resumeCallbacks.current = { plan, onNavigationBlocked, onActivity }; }, [plan, onNavigationBlocked, onActivity]);
+  useEffect(() => { let cancelled = false; if (!timeJournalScope || !gymTimplanAllowsApl(resumeCallbacks.current.plan)) return; void loadTimplanTimeJournal(window.sessionStorage, timeJournalScope).then(pending => { if (cancelled) return; if (pending) { setTransitionOpen(true); resumeCallbacks.current.onNavigationBlocked(true); resumeCallbacks.current.onActivity?.(true); } setTransitionChecking(false); }).catch(() => { if (!cancelled) setTransitionError('Ett tidigare sparförsök kunde inte kontrolleras. Läs om arbetsytan innan du fortsätter.'); }); return () => { cancelled = true; }; }, [timeJournalScope]);
   const [distributionOpen, setDistributionOpen] = useState(false), [distributionNotice, setDistributionNotice] = useState<string | null>(null);
   const distribution = useRef(false);
   const latest = useRef(drafts), saved = useRef(plan), queue = useRef(new Set<string>()), running = useRef(false);
@@ -34,23 +41,25 @@ export default function ProtectedGymTimplanHours({ aplInclusive = false, onActiv
   const active = useRef(true), controller = useRef<AbortController | null>(null);
   useEffect(() => { if (plan.revision >= saved.current.revision) saved.current = plan; }, [plan]);
   useEffect(() => { const pendingRows = queue.current; active.current = true; return () => { active.current = false; controller.current?.abort(); pendingRows.clear(); }; }, []);
-  const blocked = distributionOpen || savingKey !== null || [...drafts.values()].some(d => d.mode === 'unread');
-  useUnsavedChanges(unsavedId, drafts.size > 0 || savingKey !== null || distributionOpen);
+  const blocked = transitionChecking || transitionOpen || distributionOpen || savingKey !== null || [...drafts.values()].some(d => d.mode === 'unread');
+  useUnsavedChanges(unsavedId, drafts.size > 0 || savingKey !== null || distributionOpen || transitionOpen);
   useUnsavedChanges(`navigation-block:${unsavedId}`, blocked);
   useEffect(() => { onNavigationBlocked(blocked); }, [blocked, onNavigationBlocked]);
   function reportBlocked() { onNavigationBlocked(distribution.current || running.current || [...latest.current.values()].some(d => d.mode === 'unread')); onActivity?.(distribution.current || running.current || latest.current.size > 0); }
-  const editable = !distributionOpen && !disabled && gymTimplanCanEdit(plan);
+  const editable = !transitionChecking && !transitionOpen && !distributionOpen && !disabled && gymTimplanCanEdit(plan);
   function closeDistribution() { distribution.current = false; setDistributionOpen(false); reportBlocked(); }
   function openDistribution() { if (disabledRef.current || running.current || latest.current.size || !gymTimplanCanEdit(saved.current)) return; distribution.current = true; setDistributionOpen(true); setDistributionNotice(null); reportBlocked(); }
   function update(next: Map<string, Draft>) { latest.current = next; setDrafts(next); reportBlocked(); }
   function replace(key: string, draft: Draft | null) {
     const next = new Map(latest.current); if (draft) next.set(key, draft); else next.delete(key); update(next);
   }
-  function adopt(fresh: GymTimplan) { saved.current = fresh; onSaved(fresh); }
+  function adopt(fresh: GymTimplan) { if (isGymTimplanV2(fresh)) { onSaved(fresh); return; } saved.current = fresh; onSaved(fresh); }
   async function read(signal: AbortSignal) {
-    return parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: saved.current.id }, signal), saved.current.id);
+    const fresh = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: saved.current.id }, signal), saved.current.id);
+    if (isGymTimplanV2(fresh)) throw new Error('Timplanen har bytt till skoltid och års-APL. Dina värden finns kvar; öppna den aktuella timplanen igen.');
+    return fresh;
   }
-  function reconcile(key: string, fresh: GymTimplan, sent: GymTimplanHours, confirmed: boolean) {
+  function reconcile(key: string, fresh: GymTimplanLegacy, sent: GymTimplanHours, confirmed: boolean) {
     adopt(fresh);
     const now = latest.current.get(key); if (!now) return;
     if (matches(now.values, fresh.hours[key])) replace(key, null);
@@ -157,6 +166,9 @@ export default function ProtectedGymTimplanHours({ aplInclusive = false, onActiv
   const rows = plan.rows.filter(row => !onlyMissing || totals.missingRows.includes(row.key) || drafts.has(row.key));
   const issues = [...drafts.values()].some(d => d.error || d.mode !== 'edit' || d.mfa);
   return <>
+    {transitionChecking && <output>Kontrollerar tidigare byte av timtabell…</output>}{transitionError && <p role="alert">{transitionError}</p>}
+    {gymTimplanAllowsApl(plan) && <div className="gt-explanation"><p>Den här timplanen anger totaltid inklusive APL. Byt efter granskning för att ange skoltid och APL separat.</p>{gymTimplanCanEdit(plan) && <Button variant="outline" disabled={!timeJournalScope || disabled || drafts.size > 0 || savingKey !== null || distributionOpen || transitionOpen} onClick={() => { setTransitionOpen(true); onNavigationBlocked(true); onActivity?.(true); }}>Granska byte till skola och APL</Button>}</div>}
+    {transitionOpen && <ProtectedTimplanTimeTransition plan={plan} scope={timeJournalScope ?? null} onSaved={onSaved} onClose={() => { setTransitionOpen(false); onNavigationBlocked(false); onActivity?.(false); }} onSecurityFailure={onSecurityFailure}/>}
     <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{totals.terms[y * 2] + totals.terms[y * 2 + 1]} <small>timmar</small></strong><span>HT {totals.terms[y * 2]} · VT {totals.terms[y * 2 + 1]}</span></div>)}</div>
     <div className="gt-toolbar"><p><strong>{totals.total} timmar</strong> planerade · {totals.missingRows.length ? `${totals.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'} <output className={`gt-save-state${issues ? ' gt-save-warning' : ''}`}>{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p><Button disabled={!editable || drafts.size > 0 || savingKey !== null} onClick={openDistribution}>Autofördela timmar</Button><Button variant="outline" disabled={distributionOpen} onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
     {distributionNotice && <output className="gt-explanation">{distributionNotice}</output>}
@@ -198,4 +210,10 @@ export default function ProtectedGymTimplanHours({ aplInclusive = false, onActiv
       </table>{!rows.length && <p className="gt-empty">Alla rader har angiven tid i de aktiva terminerna.</p>}
     </section>
   </>;
+}
+
+export default function ProtectedGymTimplanHours(props: GymTimplanHoursProps) {
+  return isGymTimplanV2(props.plan)
+    ? <ProtectedGymTimplanTime {...props} plan={props.plan}/>
+    : <LegacyGymTimplanHours {...props} plan={props.plan}/>;
 }

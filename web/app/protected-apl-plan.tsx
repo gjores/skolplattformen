@@ -6,7 +6,8 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
-import { parseGymTimplan, type GymTimplan } from '@/lib/gym-timplan.ts';
+import { parseGymTimplan, isGymTimplanV2, type GymTimplan } from '@/lib/gym-timplan.ts';
+import { timplanTimeTotals } from '@/lib/timplan-time.ts';
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { parseAplPlan, parseAplReadReply, parseAplCommandReply, projectAplPlan, verifyAplReadReply, validateAplAllocationWrite,
@@ -39,12 +40,12 @@ function candidate(plan: AplPlan, inputs: MinutesInput): AplPlan {
       return [{ rowKey: c.rowKey, termIndex, gutMinutes: Number(input.hours) * 60 + Number(input.minutes) }];
     })) })) });
 }
-function Summary({ projection, label }: { projection: AplProjection; label: string }) {
+function Summary({ projection, label, annual = false }: { projection: AplProjection; label: string; annual?: boolean }) {
   return <div className="apl-summary" aria-label={label}>
     <div><span>Total undervisningstid</span><strong>{aplTime(projection.totalMinutes)}</strong><small>Inklusive APL</small></div>
-    <div><span>Varav planerad APL</span><strong>{aplTime(projection.allocatedGutMinutes)}</strong><small>{projection.state === 'legacy' ? 'APL är ännu inte redovisad' : 'Fördelad inom totaltiden'}</small></div>
+    <div><span>{annual ? 'APL förlagd i perioder' : 'Varav planerad APL'}</span><strong>{aplTime(projection.allocatedGutMinutes)}</strong><small>{projection.state === 'legacy' ? 'APL är ännu inte redovisad' : 'Fördelad inom totaltiden'}</small></div>
     <div><span>Granskade hela veckor</span><strong>{projection.reviewedWholeWeeks ?? 'Okänt'}</strong><small>Motsvarar {aplTime(projection.expectedGutMinutes)} undervisningstid</small></div>
-    <div><span>Återstående skolförlagd tid</span><strong>{aplTime(projection.schoolMinutes)}</strong><small>{projection.schoolMinutes === null ? 'Fördelningen behöver granskas' : 'Enligt granskad fördelning'}</small></div>
+    <div><span>{annual ? 'Planerad skolförlagd tid' : 'Återstående skolförlagd tid'}</span><strong>{aplTime(projection.schoolMinutes)}</strong><small>{projection.schoolMinutes === null ? 'Fördelningen behöver granskas' : 'Enligt granskad fördelning'}</small></div>
   </div>;
 }
 
@@ -211,7 +212,12 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   return <section id="apl-planering" tabIndex={-1} className="apl-plan" aria-label="APL-planering" aria-busy={busy || loading}>
     <header><div><h2>APL-planering</h2><p>Planera arbetsplatsförlagt lärande inom timplanens undervisningstid.</p></div><span className="apl-state">{journal ? 'Sparstatus behöver kontrolleras' : dirty ? 'Osparade ändringar' : confirmed ? 'Förläggningen bekräftad' : reply?.plan ? 'Sparat planeringsunderlag' : 'APL-underlag saknas'}</span></header>
     <p>Detta visar planering. Arbetsplatser, närvaro och genomförd APL följs inte upp här ännu.</p>
-    <ProtectedAplGuide/>
+    <ProtectedAplGuide annual={isGymTimplanV2(plan)}/>
+    {isGymTimplanV2(plan) && <section aria-label="Årsram och förläggning" className="apl-by-year"><h3>Förlägg års-APL när perioderna är kända</h3><p>Timmarna i tabellen kan sparas utan perioder. Perioderna använder årsramen och ökar inte timplanens total.</p>{[0, 1, 2].map(year => {
+      const totals = timplanTimeTotals(plan), placed = (reply?.plan?.periods ?? []).flatMap(p => p.allocations).filter(a => Math.floor(a.termIndex / 2) === year).reduce((n, a) => n + a.gutMinutes, 0);
+      const unknown = plan.rows.some(row => (row.pointTerms[year * 2] > 0 || row.pointTerms[year * 2 + 1] > 0) && plan.timeRows[row.key].annualAplMinutes[year] === null);
+      return <p key={year}><strong>Årskurs {year + 1}</strong> · Årsram {aplTime(totals.annualAplMinutes[year])}{unknown ? ' (inte färdigfördelad)' : ''} · {loading || !reply ? 'Förläggning läses in' : `Förlagt ${aplTime(placed)} · ${placed > totals.annualAplMinutes[year] ? 'Årsramen behöver rättas' : `Kvar att förlägga ${aplTime(totals.annualAplMinutes[year] - placed)}`}`}</p>;
+    })}<p>Inför rektors bekräftelse behöver årsramen vara förlagd, omfattningen granskad och ämnesinnehållet beskrivet.</p></section>}
     {loading && <output>Läser APL-underlaget…</output>}
     {error && <div role="alert" className="apl-error"><p>{error}</p>{!reply && !loading && <Button variant="outline" onClick={() => { setLoading(true); const c = new AbortController(); controller.current = c; void loadRef.current(c, scopeKey); }}>Läs APL-underlaget igen</Button>}</div>}
     {notice && <output className="apl-notice">{notice}</output>}
@@ -221,7 +227,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
       const pending = journal; operation.current = true; setBusy(true);
       void removeAplJournal(window.sessionStorage, pending, scope).then(() => { if (live()) { setJournal(null); setRetryExact(false); setNotice('Det osparade underlaget finns kvar. Granska innan du gör ett nytt sparförsök.'); } }).catch(() => { if (live()) setError('Sparförsöket kunde inte avslutas. Läs sparstatus igen.'); }).finally(() => { operation.current = false; if (live()) setBusy(false); });
     }}>Granska underlaget igen</Button></>}</div>}
-    {savedProjection && (editing ? <details className="apl-details"><summary>Visa tidsöversikt</summary><Summary projection={projectedDraft ?? savedProjection} label="APL-planens aktuella inmatning"/></details> : <Summary projection={savedProjection} label="Sparad APL-plan"/>)}
+    {savedProjection && (editing ? <details className="apl-details"><summary>Visa tidsöversikt</summary><Summary projection={projectedDraft ?? savedProjection} annual={isGymTimplanV2(plan)} label="APL-planens aktuella inmatning"/></details> : <Summary projection={savedProjection} annual={isGymTimplanV2(plan)} label="Sparad APL-plan"/>)}
     {!editing && !!reply?.plan?.periods.length && <ul className="apl-period-overview">{reply.plan.periods.map((p, index) => <li key={p.id}><strong>{p.name || `Period ${index + 1}`}</strong> · {p.plannedTermIndex === undefined ? 'Terminsval inte angivet' : termLabel(p.plannedTermIndex)}{!p.startsOn || !p.endsOn ? ' · Preliminär – datum kommer senare' : ` · ${p.startsOn}–${p.endsOn}`}</li>)}</ul>}
     {!editing && displayedPlan && schoolYears.length > 0 && <div className="apl-by-year" aria-label="APL per läsår"><h3>Omfattning per läsår</h3>{schoolYears.map(year => {
       const periods = displayedPlan.periods.filter(p => p.schoolYear === year), values = periods.map(p => displayedProjection?.periods.find(value => value.id === p.id));
@@ -233,7 +239,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
     {reply && <>
       {!reply.capabilities.canSave && <p>{['faststalld','ersatt'].includes(plan.status) ? 'Den här versionen är låst. Skapa en ny version av timplanen för att ändra APL-planeringen.' : 'APL-underlaget visas i läsläge för ditt aktuella uppdrag.'}</p>}
       {disabled && <p className="apl-notice">Avsluta eller kontrollera den andra pågående ändringen i timplanen innan du ändrar APL.</p>}
-      {!editing && <div className="apl-actions">{reply.capabilities.canSave && <Button disabled={locked} onClick={() => { if (!canStart()) return; setDraft(clone(reply.plan ?? emptyPlan())); setInputs(inputsFor(reply.plan)); setEditing(true); setNotice(null); setTermChoices({}); setOtherTerms({}); }}>Planera APL</Button>}
+      {!editing && <div className="apl-actions">{reply.capabilities.canSave && <Button disabled={locked} onClick={() => { if (!canStart()) return; setDraft(clone(reply.plan ?? emptyPlan())); setInputs(inputsFor(reply.plan)); setEditing(true); setNotice(null); setTermChoices({}); setOtherTerms({}); }}>{isGymTimplanV2(plan) ? 'Förlägg APL i perioder' : 'Planera APL'}</Button>}
         {reply.capabilities.canConfirm && <Button variant="outline" disabled={locked || dirty || !savedProjection?.readyForConfirmation || confirmed} onClick={() => { if (canStart()) { setComment(''); setConfirming(true); } }}>Bekräfta förläggningen</Button>}</div>}
       <details className="apl-details"><summary>Inför rektors bekräftelse – visa vad som saknas{(projectedDraft ?? savedProjection)?.issues.length ? ` (${(projectedDraft ?? savedProjection)!.issues.length})` : ''}</summary>
         {(projectedDraft ?? savedProjection)?.issues.length ? <ul>{(projectedDraft ?? savedProjection)!.issues.map((issue, index) => <li key={index}>{issue.periodId && <strong>{(draft ?? reply.plan)?.periods.find(p => p.id === issue.periodId)?.name || 'Period'}: </strong>}{issue.message}</li>)}</ul> : <p>Planeringsunderlaget är komplett för rektors bekräftelse. Det är inte ett besked om genomförd APL.</p>}
@@ -283,7 +289,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
           {row?.rowKind !== 'fixed' && <p>Detta innehåll behöver preciseras till en ämnesnivå innan förläggningen kan bekräftas.</p>}
           {selected !== undefined && row && row.pointTerms[selected] === 0 && <p>Ämnet är inte fördelat på den valda terminen i timplanen. Kontrollera terminsvalet eller visa andra terminer.</p>}
           <label>Arbetsmoment<textarea maxLength={2000} value={c.description} onChange={e => periodChange(p.id, old => ({ ...old, contents: old.contents.map(item => item.rowKey === c.rowKey ? { ...item, description: e.target.value } : item) }))}/></label>
-          <div className="apl-allocations">{[0,1,2,3,4,5].filter(term => ((selected === undefined || otherTerms[p.id] || selected === term) && (row?.pointTerms[term] ?? 0) > 0) || inputs[keyFor(p.id, c.rowKey, term)]).map(term => { const values = inputs[keyFor(p.id, c.rowKey, term)] ?? { hours: '', minutes: '' }; return <div key={term} className="apl-allocation"><strong>{PROGRAMPLAN_TERMS[term]}</strong><span>Total: {row ? plan.hours[row.key][term] === null ? 'Ofördelad' : `${plan.hours[row.key][term]} h` : 'Saknas'}</span>
+          <div className="apl-allocations">{[0,1,2,3,4,5].filter(term => ((selected === undefined || otherTerms[p.id] || selected === term) && (row?.pointTerms[term] ?? 0) > 0) || inputs[keyFor(p.id, c.rowKey, term)]).map(term => { const values = inputs[keyFor(p.id, c.rowKey, term)] ?? { hours: '', minutes: '' }; return <div key={term} className="apl-allocation"><strong>{PROGRAMPLAN_TERMS[term]}</strong><span>{isGymTimplanV2(plan) ? `Årsram APL åk ${Math.floor(term / 2) + 1}: ${row ? aplTime(plan.timeRows[row.key].annualAplMinutes[Math.floor(term / 2)]) : 'Saknas'}` : `Total: ${row ? plan.hours[row.key][term] === null ? 'Ofördelad' : `${plan.hours[row.key][term]} h` : 'Saknas'}`}</span>
             <div className="apl-time-input"><label>Varav APL, timmar<input type="text" inputMode="numeric" value={values.hours} aria-label={`${row?.name ?? 'Ämne'}, ${PROGRAMPLAN_TERMS[term]}, APL timmar`} onChange={e => allocationChange(p.id, c.rowKey, term, 'hours', e.target.value)}/></label><label>Minuter<input type="text" inputMode="numeric" value={values.minutes} aria-label={`${row?.name ?? 'Ämne'}, ${PROGRAMPLAN_TERMS[term]}, APL minuter`} onChange={e => allocationChange(p.id, c.rowKey, term, 'minutes', e.target.value)}/></label></div></div>; })}</div>
           <Button variant="outline" onClick={() => periodChange(p.id, old => ({ ...old, contents: old.contents.filter(item => item.rowKey !== c.rowKey), allocations: old.allocations.filter(a => a.rowKey !== c.rowKey) }))}>Ta bort ämnesinnehållet</Button></div>; })}
         <label>Lägg till ämnesinnehåll<select value="" onChange={e => { if (e.target.value) periodChange(p.id, old => ({ ...old, contents: [...old.contents, { rowKey: e.target.value, description: '' }] })); }}><option value="">Välj ämne, nivå eller block</option>{plan.rows.filter(r => !p.contents.some(c => c.rowKey === r.key)).map(r => <option key={r.key} value={r.key}>{r.name} {r.levelName}</option>)}</select></label>

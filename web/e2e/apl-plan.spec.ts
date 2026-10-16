@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { aplContentHash, parseAplCommand, projectAplPlan, type AplPlan, type AplReadReply, type AplCommandReply } from '../lib/apl-plan';
-import { parseGymTimplan, type GymTimplan } from '../lib/gym-timplan';
+import { parseGymTimplan as parseAnyGymTimplan, isGymTimplanV2, type GymTimplanLegacy as GymTimplan } from '../lib/gym-timplan';
 import { parsePlanDecisionDetail } from '../lib/plan-decision';
 
 // Simulated HTTP only: actual shell, parsers, journal, editor and navigation. No actual Worker/DB/IdP evidence.
@@ -310,3 +310,10 @@ test('vald termin visas först och fler terminer kan öppnas utan att flytta tid
   await expect(editor(page).getByLabel('Pedagogik, Åk 1 VT, APL timmar', { exact: true })).toBeVisible(); await expect(editor(page).locator('.apl-saved-times')).toContainText('Åk 1 VT: 2 h');
   await save(page); await expect(editor(page)).toContainText('APL-planen är sparad.'); expect(m.apl!.periods[0].plannedTermIndex).toBe(0); expect(m.apl!.periods[0].allocations).toEqual([{ rowKey: firstRow, termIndex: 1, gutMinutes: 120 }]); m.verify();
 });
+
+// These regression fixtures deliberately exercise the preserved legacy time model.
+function parseGymTimplan(...args: Parameters<typeof parseAnyGymTimplan>) {
+  const plan = parseAnyGymTimplan(...args);
+  if (isGymTimplanV2(plan)) throw new Error("Expected a legacy fixture");
+  return plan;
+}
