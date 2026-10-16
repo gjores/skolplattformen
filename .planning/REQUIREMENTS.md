@@ -181,18 +181,20 @@ GROUP-01 och SCHEMA-01/03/07/08 har beröringspunkter; MODUL-03 ska medge kompat
 
 ## Beställt planeringsspår för tjänstefördelning och lärartid
 
+**GSD-plan beställd 2026-10-16:** T1–T2 planeras tillsammans med tjänstefördelningen inom fas 5 i [05-TJANST](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-IMPLEMENTATION.md). Användaren har valt **rektor fastställer, huvudmannen följer upp**, och **huvudmannen ska kunna välja olika kollektivavtal**. [Kontraktets TJ1-01–10](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-CONTRACT.md) konkretiserar paketets lokala acceptans och koppling till TID-/TJANST-målen; genomförande och verifiering återstår. Pilotens ursprungliga 42 krav ändras inte. T3/T4 behöver fortsatt eget genomförande för verkligt schema och utfall.
+
 **Research 2026-10-16:** Användaren vill ha stöd för rektors individuella tjänstebedömning, kollektivavtal, dokumenterade skäl, lärarkategorier, reglerad tid/förtroendetid, mentorskap, uppföljning, skydd mot dubbelräkning och tydlig schemaandel. Detta utvecklar den tidigare beställda Plan Digital-ersättningen; behovet ska inte senareläggas enbart för att kommunanslutning återstår. Detaljerade mål nedan är **förslag**, inte tillägg till pilotens godkända 42 krav eller verifierad leverans.
 
 [Research och full mål-/provmatris](research/LARARTID-OCH-TJANSTEBEDOMNING-2026-10-16.md) korrigerar äldre tolkning: gymnasiets grundnivå för planering/uppföljning är 120 procent; lärarinitiativ enligt 11 § krävs uttryckligen för punkt 1, inte för alla undantag. Förordningen träder i kraft 2027-07-01. Avtalsversion, individuell tillämpning och period måste hållas synliga.
 
 | Föreslagna mål | Ansvarigt steg | Verifieringsstatus |
 | --- | --- | --- |
-| TID-01–04 och TID-08: tidslägen, regelprofiler, klassificering, gränser/deltid och avtal | T1, tillsammans med tjänstefördelning och SCHEMA S1 | Ej implementerade eller produktverifierade; källor och räknefall finns i researchen. |
-| TID-05–07 och TID-09: bedömning, undantag, huvudmannens översikt och hela uppdraget | T2, tillsammans med tjänstefördelning och LLEG-03 | Ej implementerade eller produktverifierade; mandat och beslut behöver genomförandeplan. |
+| TID-01–04 och TID-08: tidslägen, regelprofiler, klassificering, gränser/deltid och avtal | T1 i fas 5:s 05-TJANST-paket; samordning med SCHEMA S1 | Planerade med konkreta verifieringsfall; ej implementerade eller produktverifierade. |
+| TID-05–07 och TID-09: bedömning, undantag, huvudmannens översikt och hela uppdraget | T2 i fas 5:s 05-TJANST-paket; senare lärarregisterkoppling LLEG-03 | Planerade med mandat och beslut; ej implementerade eller produktverifierade. |
 | TID-10–11: dubbelräkning och schemaandel | T3, tillsammans med SCHEMA S3 | Ej implementerade eller produktverifierade; kalender-, samläsnings- och importfall specificerade. |
 | TID-12: utfall, prognos och åtgärdsuppföljning | T4, tillsammans med SCHEMA S4 | Ej implementerat eller produktverifierat; eventuell faktisk anslutning får eget bevis. |
 
-Den [befintliga planeringspunkten](todos/pending/2026-10-07-lararens-undervisningsuppdrag-enligt-sfs-2026-1487.md) är uppdaterad. Fasplacering och genomförandeplaner återstår; pågående fas 5/APL och tidigare kravacceptans ändras inte av researchen. SS 12000:2024/OpenAPI 2.1.0 är avstämt på schemanivå; fungerande motpartsutbyte har inte verifierats.
+Den [befintliga planeringspunkten](todos/pending/2026-10-07-lararens-undervisningsuppdrag-enligt-sfs-2026-1487.md) är uppdaterad. T1–T2 har genomförandeplaner inom fas 5; pågående APL och tidigare kravacceptans ändras inte av planeringen. SS 12000:2024/OpenAPI 2.1.0 är avstämt på schemanivå; fungerande motpartsutbyte har inte verifierats.
 
 ## Out of Scope
 

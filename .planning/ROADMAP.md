@@ -353,11 +353,13 @@ MODUL-01–04 kompletterar projektet med användarens beslut om separat köp av 
 
 ### Lärartid och tjänstebedömning — research 2026-10-16
 
+**Planbeställning senare samma dag:** [05-TJANST-paketet](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-IMPLEMENTATION.md) samlar avtalsgrund, rektors individuella bedömning och tjänstefördelning inom befintlig fas 5. Huvudmannen väljer olika kollektivavtal; rektor fastställer och huvudmannen följer upp, enligt uttryckliga användarsvar. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-CONTEXT.md) och [kontrakt](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-CONTRACT.md) avgränsar första etappen till skyddad Gy25-grund, utan att utlova fullt schema, faktiskt arbetstidsutfall eller externa anslutningar. Alla TJ1-01–10 väntar på implementation och verifiering. Aktiv APL-plan i STATE behålls.
+
 Användaren har beställt fördjupad research om kollektivavtal, individuell bedömning/motivering, lärarkategorier, reglerad tid/förtroendetid, mentorskap, uppföljning, dubbelräkning och schemaandel. [Underlaget](research/LARARTID-OCH-TJANSTEBEDOMNING-2026-10-16.md) och den [uppdaterade planeringspunkten](todos/pending/2026-10-07-lararens-undervisningsuppdrag-enligt-sfs-2026-1487.md) föreslår T1 avtal/tidsgrund, T2 rektors bedömning, T3 schemakoppling och T4 uppföljning. TID-01–12 har en föreslagen ansvarig etapp och konkreta ännu ej genomförda verifieringsfall.
 
 T1–T2 bör planeras tillsammans med den redan beställda tjänstefördelningen för Plan Digital-ersättningen; tidsmodellen ska inte läggas på i efterhand. T3–T4 kopplas till SCHEMA S3/S4, och SS 12000-kontrakt beaktas från T1/S1. Researchen rättar tidigare 20-procentsuppgift till gymnasiets 120 procent och begränsar lärarinitiativkravet till 11 § punkt 1. Förordningens ikraftträdande 2027-07-01 skiljs från dagens avtalsregler och framtidssimulering.
 
-Inga nya numrerade pilotfaser eller färdiga produktfunktioner följer av detta. Fasplacering, faktisk avtalsprofil för 2027/28 och genomförandeplaner återstår. Pågående APL-arbete och tidigare godkännanden består.
+Inga nya numrerade pilotfaser eller färdiga produktfunktioner följer av detta. T1–T2 är nu planerade i 05-TJANST; faktiskt giltig avtalsversion för varje period måste fortfarande väljas och granskas före användning. T3–T4 återstår. Pågående APL-arbete och tidigare godkännanden består.
 
 ## Genomförande och verifiering
 
