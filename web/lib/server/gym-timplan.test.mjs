@@ -114,7 +114,7 @@ test('an unknown national point profile cannot be committed despite otherwise co
 test('row writes preserve explicit zero and null, bind CAS and log no cell values',async()=>{
   for(const fn of ['rektor','administrator']){
     reset();state.fn=fn;const response=await write(request('rad',rowCommand()));assert.equal(response.status,200);assert.deepEqual(await response.json(),{id:planId,revision:1,rowKey:key,hours:rowCommand().hours});
-    assert.deepEqual(state.calls[0].values,[planId,0,key,rowCommand().hours]);assert.equal(state.events[0].action,'gym_timplan_row_changed');assert.equal('rowKey'in state.events[0].details,false);assert.equal('hours'in state.events[0].details,false);
+    assert.deepEqual(state.calls.find(call=>call.sql.includes('phase5_write_gym_timplan_row')).values,[planId,0,key,rowCommand().hours]);assert.equal(state.events[0].action,'gym_timplan_row_changed');assert.equal('rowKey'in state.events[0].details,false);assert.equal('hours'in state.events[0].details,false);
   }
 });
 test('wrong roles, missing MFA, foreign origin and stale context deny before mutation SQL',async()=>{

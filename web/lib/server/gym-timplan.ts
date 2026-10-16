@@ -5,7 +5,7 @@ import { programTotal } from '../programplan-table.ts';
 import { parseProgramplanTermDistribution } from '../programplan-terms-contract.ts';
 import { programplanLevelRanks, programplanTermRows, validateProgramplanTermDistribution } from '../programplan-terms.ts';
 import {
-  gymArray, gymBoolean, gymInteger, gymRowKey, gymShape, gymSourceStatus, gymUuid,
+  isGymTimplanV2, gymObject, gymArray, gymBoolean, gymInteger, gymRowKey, gymShape, gymSourceStatus, gymUuid,
   parseGymTimplan, parseGymTimplanCreateReply, parseGymTimplanCurrentSource, parseGymTimplanEducation,
   parseGymTimplanRowReply, parseGymTimplanUnderlag, type GymTimplanCreateRequest, type GymTimplanReadRequest,
   type GymTimplanRow, type GymTimplanRowRequest, type GymTimplanSource, type GymTimplanUnderlagRequest,
@@ -82,7 +82,8 @@ export async function gymTimplanOperation<T>(fn: () => Promise<T>): Promise<T> {
 }
 function one(rows: {result: unknown}[]): unknown { if (rows.length !== 1) throw new AuditUnavailable(); return rows[0].result; }
 export async function projectGymTimplan(value: unknown, expectedId: string) {
-  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog', 'currentSource', 'currentSourceBasis', 'hours', 'canPlan', 'archived', 'series', 'nameAtCreation']);
+  const v2 = Object.hasOwn(gymObject(value), 'timeModel');
+  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog', 'currentSource', 'currentSourceBasis', ...(v2 ? ['timeModel', 'timeRows', 'timeCopyReview'] : ['hours']), 'canPlan', 'archived', 'series', 'nameAtCreation']);
   const { source, rows, readiness } = await projectSource(r.source, r.catalog);
   const currentSource = parseGymTimplanCurrentSource(r.currentSource);
   const live = r.currentSourceBasis === null ? null : rawSource(r.currentSourceBasis).projected;
@@ -96,6 +97,11 @@ export async function projectGymTimplan(value: unknown, expectedId: string) {
   const sourceChanged = live === null || content(r.source) !== content(r.currentSourceBasis);
   const { catalog: _catalog, source: _source, currentSourceBasis: _currentSourceBasis, ...rest } = r;
   const body = parseGymTimplan({ ...rest, source: source.projected, currentSource, rows, sourceChanged }, expectedId);
+  if (isGymTimplanV2(body)) {
+    const catalog = gymShape(r.catalog, ['schemaVersion', 'source', 'subjects', 'programs']);
+    const program = gymArray(catalog.programs, 2000).map(gymObject).find(p => p.code === source.projected.education.programCode);
+    if (!program || program.category !== 'VOCATIONAL_PROGRAM') bad();
+  }
   return { body, readiness, frozenSource: source };
 }
 export async function readGymTimplanUnderlag(tx: Tx, input: GymTimplanUnderlagRequest) {
@@ -131,6 +137,8 @@ export async function createGymTimplan(tx: Tx, input: GymTimplanCreateRequest) {
   return { body: reply, event: { action: 'gym_timplan_created', objectType: 'timplan', objectId: reply.id } };
 }
 export async function writeGymTimplanRow(tx: Tx, input: GymTimplanRowRequest) {
+  const { body: current } = await readGymTimplan(tx, { planId: input.planId });
+  if (isGymTimplanV2(current)) throw new Deny('bad_request', 400, { reason: 'timplan_time_model_mismatch' });
   const raw = one(await gymTimplanOperation(() => tx<{result: unknown}[]>`select public.phase5_write_gym_timplan_row(
     ${input.planId},${input.expectedRevision},${input.rowKey},${tx.json(input.hours)}::jsonb) as result`));
   try {

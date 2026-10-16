@@ -36,16 +36,17 @@ export async function projectAplFrozenBasis(value: unknown, expectedPlanId: stri
 }
 
 /** Authority comes from protectedRoute's freshly checked session, never from a request or receipt. */
-export async function projectAplFrozenRead(value: unknown, basisValue: unknown, expectedPlanId: string, authority: AplProjectionAuthority):
+export async function projectAplFrozenRead(value: unknown, basisValue: unknown, expectedPlanId: string, authority: AplProjectionAuthority, historicalReplay = false):
   Promise<{ body: AplReadReply; basis: AplFrozenBasis; context: AplContext }> {
   const projected = await projectAplFrozenBasis(basisValue, expectedPlanId);
   const { context } = projected, body = await verifyAplReadReply(value, context);
   if (!authority.assignmentId || !authority.identityId || authority.organizerId !== context.organizerId
     || !['huvudman', 'rektor', 'administrator'].includes(authority.accessFunction ?? '')) invalid();
   const editable = !context.plan.archived && ['utkast', 'atersand'].includes(context.plan.status);
-  const canSave = editable && ['rektor', 'administrator'].includes(authority.accessFunction ?? '');
-  const canConfirm = editable && authority.accessFunction === 'rektor';
-  if (body.capabilities.canSave !== canSave || body.capabilities.canConfirm !== canConfirm || context.plan.canPlan !== canSave) invalid();
+  const canPlan = editable && ['rektor', 'administrator'].includes(authority.accessFunction ?? '');
+  const applicable = context.program.category === 'VOCATIONAL_PROGRAM' || historicalReplay;
+  const canSave = applicable && canPlan, canConfirm = applicable && editable && authority.accessFunction === 'rektor';
+  if (body.capabilities.canSave !== canSave || body.capabilities.canConfirm !== canConfirm || context.plan.canPlan !== canPlan) invalid();
   return { ...projected, body };
 }
 
@@ -65,7 +66,7 @@ function commandActor(reply: AplCommandReply, input: AplCommand, authority: AplP
 
 const conflictReasons = new Set(['apl_command_conflict', 'apl_revision_conflict', 'apl_content_conflict', 'apl_confirmation_limit']);
 const inputReasons = new Set(['invalid_apl_plan', 'duplicate', 'unknown_content', 'allocation_without_content',
-  'inactive_term', 'allocation_without_total', 'allocation_exceeds_total', 'invalid_copy_review_resolution']);
+  'apl_not_vocational', 'inactive_term', 'allocation_without_total', 'allocation_exceeds_total', 'invalid_copy_review_resolution']);
 async function operation<T>(fn: () => Promise<T>): Promise<T> {
   return mandateOperation(async () => {
     try { return await fn(); }
@@ -106,7 +107,8 @@ export async function commandAplPlan(tx: Tx, input: AplCommand, authority: AplPr
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.phase5_apl_plan_command(${tx.json(input)}) as result`));
   try {
     const envelope = parseAplSqlEnvelope(raw, value => parseAplCommandReply(value, input));
-    const { context } = await projectAplFrozenRead(envelope.result.detail, envelope.basis, input.planId, authority);
+    const { context } = await projectAplFrozenRead(envelope.result.detail, envelope.basis, input.planId, authority, envelope.result.receipt.replayed);
+    if (!envelope.result.receipt.replayed && context.program.category !== 'VOCATIONAL_PROGRAM') invalid();
     commandActor(envelope.result, input, authority, context);
     return { body: envelope.result, event: { action: 'apl_plan_command', objectType: 'timplan', objectId: input.planId } };
   } catch { throw new AuditUnavailable(); }
@@ -119,7 +121,7 @@ export async function readAplStatus(tx: Tx, input: AplStatusRequest, authority: 
   try {
     const envelope = parseAplSqlEnvelope(raw, value => parseAplStatusReply(value, input));
     if (envelope.result.state === 'completed') {
-      const { context } = await projectAplFrozenRead(envelope.result.result.detail, envelope.basis, input.command.planId, authority);
+      const { context } = await projectAplFrozenRead(envelope.result.result.detail, envelope.basis, input.command.planId, authority, true);
       commandActor(envelope.result.result, input.command, authority, context);
     }
     return { body: envelope.result, event: { action: 'apl_plan_status_read', objectType: 'timplan', objectId: input.command.planId } };

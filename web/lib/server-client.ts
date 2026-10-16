@@ -55,7 +55,7 @@ type ErrorBody = { code?: unknown; correlationId?: unknown; details?: unknown };
 type Download = { blob: Blob; filename: string | null };
 
 async function request<T>(
-  method: 'GET' | 'POST' | 'PATCH',
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT',
   path: string,
   body?: unknown,
   download = false,
@@ -147,6 +147,9 @@ export const api = {
   },
   post<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
     return request<T>('POST', path, body, false, signal);
+  },
+  put<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+    return request<T>('PUT', path, body, false, signal);
   },
   patch<T>(path: string, body: unknown): Promise<T> {
     return request<T>('PATCH', path, body);

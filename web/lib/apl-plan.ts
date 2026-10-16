@@ -1,4 +1,5 @@
-import { gymArray, gymBoolean, gymInteger, gymRowKey, gymShape, gymUuid, parseGymTimplan, type GymTimplan } from './gym-timplan.ts';
+import { timplanTimeTotals } from './timplan-time.ts';
+import { gymObject, isGymTimplanV2, gymArray, gymBoolean, gymInteger, gymRowKey, gymShape, gymUuid, parseGymTimplan, type GymTimplan } from './gym-timplan.ts';
 import { isValidDate, currentSchoolYear } from './pupil-register-model.ts';
 import { projectGymTimplanYear } from './planning-year-model.ts';
 import { programplanProfile } from './programplan-profile.ts';
@@ -50,7 +51,7 @@ export type AplIssueCode = 'legacy' | 'unsupported_profile' | 'education_form_un
   | 'minimum_weeks' | 'overlapping_periods' | 'school_year_mismatch' | 'period_before_start' | 'period_outside_plan'
   | 'spring_start_review' | 'unknown_content' | 'unresolved_content' | 'content_description_missing'
   | 'period_allocation_mismatch' | 'allocation_outside_period' | 'inactive_term' | 'allocation_without_total'
-  | 'allocation_exceeds_total' | 'total_hours_incomplete' | 'copy_review_pending' | 'whole_week_capacity_conflict';
+  | 'allocation_exceeds_total' | 'total_hours_incomplete' | 'copy_review_pending' | 'whole_week_capacity_conflict' | 'annual_apl_unallocated' | 'time_copy_review_pending';
 export type AplIssue = { code: AplIssueCode; level: 'blocker' | 'review'; periodId: string | null; rowKey: string | null; message: string };
 export type AplPeriodProjection = { id: string; declaredWholeWeeks: number | null; reviewedWholeWeeks: number | null;
   expectedGutMinutes: number | null; allocatedGutMinutes: number; isoWeekUpperBound: number | null; termIndices: number[] };
@@ -137,8 +138,9 @@ export function parseAplContext(value: unknown): AplContext {
   return guarded(() => {
     const r = gymShape(value, ['organizerId', 'plan', 'program', 'copyReview']);
     // Validate descriptors before accessing the id, just as in all public wire parsers.
+    const v2 = Object.hasOwn(gymObject(r.plan), 'timeModel');
     const planRecord = gymShape(r.plan, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'currentSource',
-      'rows', 'hours', 'canPlan', 'archived', 'sourceChanged', 'series', 'nameAtCreation']);
+      'rows', ...(v2 ? ['timeModel', 'timeRows', 'timeCopyReview'] : ['hours']), 'canPlan', 'archived', 'sourceChanged', 'series', 'nameAtCreation']);
     const plan = parseGymTimplan(r.plan, gymUuid(planRecord.id));
     const program = parseAplProgram(r.program);
     if (program.code !== plan.source.education.programCode) bad();
@@ -231,15 +233,16 @@ function allocationIssues(ctx: AplContext, plan: AplPlan): AplIssue[] {
     const add = (code: AplIssueCode, message: string) => issues.push({ code, message, level: 'blocker', periodId: period.id, rowKey });
     if (!row) { add('unknown_content', 'Tiden avser innehåll som saknas i den här frysta programkällan. Fördelningen behöver rättas.'); continue; }
     if (row.pointTerms[termIndex] === 0) { add('inactive_term', 'APL-tid får bara fördelas på en termin där innehållet ingår.'); continue; }
-    const total = ctx.plan.hours[rowKey][termIndex];
-    if (total === null) add('allocation_without_total', 'Fördela först totaltimmarna i timplanen. APL ingår i dessa timmar.');
-    const cell = `${rowKey}|${termIndex}`, previous = totals.get(cell)?.minutes ?? 0;
+    const annual = isGymTimplanV2(ctx.plan);
+    const total = isGymTimplanV2(ctx.plan) ? ctx.plan.timeRows[rowKey].annualAplMinutes[Math.floor(termIndex / 2)] : ctx.plan.hours[rowKey][termIndex];
+    if (total === null) add('allocation_without_total', annual ? 'Ange först års-APL för innehållet och årskursen.' : 'Fördela först totaltimmarna i timplanen. APL ingår i dessa timmar.');
+    const cell = `${rowKey}|${annual ? Math.floor(termIndex / 2) : termIndex}`, previous = totals.get(cell)?.minutes ?? 0;
     totals.set(cell, { rowKey, termIndex, minutes: previous + allocation.gutMinutes });
   }
   for (const cell of totals.values()) {
-    const total = ctx.plan.hours[cell.rowKey][cell.termIndex];
-    if (total !== null && cell.minutes > total * 60) issues.push({ code: 'allocation_exceeds_total', level: 'blocker', periodId: null,
-      rowKey: cell.rowKey, message: 'APL-andelen överstiger sparad total tid. Justera APL-fördelningen eller totaltimmarna innan du sparar.' });
+    const total = isGymTimplanV2(ctx.plan) ? ctx.plan.timeRows[cell.rowKey].annualAplMinutes[Math.floor(cell.termIndex / 2)] : ctx.plan.hours[cell.rowKey][cell.termIndex];
+    if (total !== null && cell.minutes > total * (isGymTimplanV2(ctx.plan) ? 1 : 60)) issues.push({ code: 'allocation_exceeds_total', level: 'blocker', periodId: null,
+      rowKey: cell.rowKey, message: isGymTimplanV2(ctx.plan) ? 'Periodernas APL-tid överstiger angiven års-APL.' : 'APL-andelen överstiger sparad total tid. Justera APL-fördelningen eller totaltimmarna innan du sparar.' });
   }
   return issues;
 }
@@ -254,8 +257,11 @@ export function validateAplAllocationWrite(context: AplContext, value: AplPlan):
 
 export function projectAplPlan(context: AplContext, value: AplPlan | null): AplProjection {
   const ctx = parseAplContext(context), plan = value === null ? null : parseAplPlan(value);
-  const activeTotals = ctx.plan.rows.flatMap(row => row.pointTerms.flatMap((points, i) => points ? [ctx.plan.hours[row.key][i]] : []));
-  const totalMinutes = activeTotals.some(n => n === null) ? null : activeTotals.reduce<number>((sum, n) => sum + (n ?? 0) * 60, 0);
+  const timetable = ctx.plan, annual = isGymTimplanV2(timetable);
+  const annualTotals = isGymTimplanV2(timetable) ? timplanTimeTotals(timetable) : null;
+  const activeTotals = timetable.rows.flatMap(row => row.pointTerms.flatMap((points, i) => points ? [isGymTimplanV2(timetable) ? timetable.timeRows[row.key].schoolMinutes[i] : timetable.hours[row.key][i]] : []));
+  const totalMinutes = annualTotals ? (annualTotals.complete ? annualTotals.totalMinutes : null)
+    : activeTotals.some(n => n === null) ? null : activeTotals.reduce<number>((sum, n) => sum + (n ?? 0) * 60, 0);
   const issues: AplIssue[] = [], add = (code: AplIssueCode, message: string, periodId: string | null = null, rowKey: string | null = null,
     level: AplIssue['level'] = 'blocker') => { issues.push({ code, level, periodId, rowKey, message }); };
   if (plan === null) return { state: 'legacy', ruleProfile: null, declaredWholeWeeks: null, reviewedWholeWeeks: null,
@@ -269,14 +275,14 @@ export function projectAplPlan(context: AplContext, value: AplPlan | null): AplP
   if (ctx.copyReview.some(item => item.resolution === null)) add('copy_review_pending',
     'Kopieringen innehåller tid eller innehåll som inte kunde överföras till den nya källan. Granska varje bevarad punkt och dokumentera hur den har hanterats.');
   if (!plan.periods.length) add('no_periods', 'Lägg till planerade APL-perioder.');
-  if (totalMinutes === null) add('total_hours_incomplete', 'Timplanen saknar totaltimmar i ett eller flera aktiva terminsfält.');
+  if (activeTotals.some(n => n === null)) add('total_hours_incomplete', 'Timplanen saknar totaltimmar i ett eller flera aktiva terminsfält.');
   issues.push(...allocationIssues(ctx, plan));
   const started = ctx.plan.source.startedOn;
   let projection: ReturnType<typeof projectGymTimplanYear> | null = null;
   if (started !== null) {
     const year = currentSchoolYear(started);
     if (year >= 2000 && year <= 2100) projection = projectGymTimplanYear(year, ctx.plan,
-      [0, 1, 2, 3, 4, 5].map(i => ctx.plan.rows.reduce((sum, row) => sum + (ctx.plan.hours[row.key][i] ?? 0), 0)));
+      [0, 1, 2, 3, 4, 5].map(i => timetable.rows.reduce((sum, row) => sum + (isGymTimplanV2(timetable) ? timetable.timeRows[row.key].schoolMinutes[i] ?? 0 : timetable.hours[row.key][i] ?? 0), 0)));
   }
   if (projection?.reviewTermIndices.length) add('spring_start_review',
     'Utbildningen börjar på våren. Granska förläggningen mot det faktiska startdatumet; terminskolumnerna är visningsintervall.', null, null, 'review');
@@ -326,9 +332,15 @@ export function projectAplPlan(context: AplContext, value: AplPlan | null): AplP
   const reviewedWholeWeeks = supported && !overlaps && !capacityConflict ? sumKnown('reviewedWholeWeeks') : null;
   const expectedGutMinutes = supported && !overlaps && !capacityConflict ? sumKnown('expectedGutMinutes') : null;
   if (supported && reviewedWholeWeeks !== null && reviewedWholeWeeks < 15) add('minimum_weeks', 'Minst 15 hela granskade APL-veckor behöver planeras för den här utbildningsformen.');
+  if (isGymTimplanV2(timetable)) {
+    if (timetable.timeCopyReview.some(review => review.resolution === null)) add('time_copy_review_pending', 'Kopieringen har tidsrader som behöver granskas. Skapa en plan med verifierbar källa innan beslut.');
+    if (timetable.rows.some(row => [0, 1, 2].some(year => (row.pointTerms[year * 2] > 0 || row.pointTerms[year * 2 + 1] > 0)
+      && timetable.timeRows[row.key].annualAplMinutes[year] !== plan.periods.reduce((sum, p) => sum + p.allocations.filter(a => a.rowKey === row.key && Math.floor(a.termIndex / 2) === year).reduce((n, a) => n + a.gutMinutes, 0), 0))))
+      add('annual_apl_unallocated', 'Fördela all angiven års-APL på perioder innan förläggningen bekräftas.');
+  }
   const allocatedGutMinutes = periods.reduce((sum, p) => sum + p.allocatedGutMinutes, 0), readyForConfirmation = !issues.some(i => i.level === 'blocker');
   return { state: 'structured', ruleProfile: supported ? APL_RULE_PROFILE : null, declaredWholeWeeks, reviewedWholeWeeks, expectedGutMinutes,
-    allocatedGutMinutes, totalMinutes, schoolMinutes: readyForConfirmation && totalMinutes !== null ? totalMinutes - allocatedGutMinutes : null,
+    allocatedGutMinutes, totalMinutes, schoolMinutes: annual && annualTotals ? (annualTotals.missingSchoolCells ? null : annualTotals.schoolMinutes) : readyForConfirmation && totalMinutes !== null ? totalMinutes - allocatedGutMinutes : null,
     readyForConfirmation, periods, issues };
 }
 
@@ -369,15 +381,16 @@ export function aplPlanCanonicalPayload(value: AplPlan | null): AplCanonicalValu
 /** Frozen identities/content only; plan/source/series administrative revisions, statuses and display names are excluded. */
 export function aplContentHashPayload(context: AplContext, value: AplPlan | null): AplCanonicalValue {
   const ctx = parseAplContext(context), { plan, program } = ctx, source = plan.source;
-  return ['apl_content_v1', [ctx.organizerId, plan.unitId, plan.offeringId, plan.id, plan.series!.id, plan.version],
+  return [isGymTimplanV2(plan) ? 'apl_content_v2' : 'apl_content_v1', [ctx.organizerId, plan.unitId, plan.offeringId, plan.id, plan.series!.id, plan.version],
     [source.planId, source.version, source.catalogId, source.startedOn, source.education.programCode, source.education.orientationCode,
       program.version, program.category, program.startDate, program.endDate, program.canceledDate, program.sourceSupported],
-    [...plan.rows].sort((a, b) => ordinal(a.key, b.key)).map(row => [row.key, row.points, row.part, row.rowKind, [...row.pointTerms], [...plan.hours[row.key]]]),
+    [...plan.rows].sort((a, b) => ordinal(a.key, b.key)).map(row => [row.key, row.points, row.part, row.rowKind, [...row.pointTerms], ...(isGymTimplanV2(plan) ? [[...plan.timeRows[row.key].schoolMinutes], [...plan.timeRows[row.key].annualAplMinutes]] : [[...plan.hours[row.key]]])]),
     aplPlanCanonicalPayload(value),
     [...ctx.copyReview].sort((a, b) => ordinal(a.id, b.id)).map(r => [r.id, r.sourcePlanId, r.sourceVersion, r.sourcePeriodId, r.sourcePeriodName, r.reason,
       [...r.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(c => [c.rowKey, c.description]),
       [...r.allocations].sort((a, b) => ordinal(a.rowKey, b.rowKey) || a.termIndex - b.termIndex).map(a => [a.rowKey, a.termIndex, a.gutMinutes]),
-      r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]])];
+      r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]]),
+    ...(isGymTimplanV2(plan) ? [plan.timeCopyReview.map(r => [r.id, r.contractVersion, r.sourcePlanId, r.sourceVersion, r.rowKey, r.reason, [...r.row.schoolMinutes], [...r.row.annualAplMinutes], r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]])] : [])];
 }
 export async function aplContentHash(context: AplContext, value: AplPlan | null): Promise<string> {
   return aplHashCanonical(aplContentHashPayload(context, value));
@@ -490,8 +503,9 @@ export async function verifyAplReadReply(value: unknown, context: AplContext): P
 export function parseAplFrozenBasis(value: unknown): AplFrozenBasis {
   return guarded(() => {
     const r = gymShape(value, ['organizerId', 'gymTimplan', 'copyReview']);
+    const v2 = Object.hasOwn(gymObject(r.gymTimplan), 'timeModel');
     const gymTimplan = gymShape(r.gymTimplan, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog',
-      'currentSource', 'currentSourceBasis', 'hours', 'canPlan', 'archived', 'series', 'nameAtCreation']);
+      'currentSource', 'currentSourceBasis', ...(v2 ? ['timeModel', 'timeRows', 'timeCopyReview'] : ['hours']), 'canPlan', 'archived', 'series', 'nameAtCreation']);
     return { organizerId: gymUuid(r.organizerId), gymTimplan, copyReview: parseAplCopyReview(r.copyReview) };
   });
 }

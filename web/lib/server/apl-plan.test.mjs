@@ -60,6 +60,9 @@ const fixture = globalThis.__aplServerTest = {
       state.events.push({ action: values[8], objectType: values[9], objectId: values[10], outcome: values[11], details: values[12] }); return [];
     }
     state.calls.push({ sql, values }); if (state.sqlError) throw state.sqlError;
+    if (sql.includes('phase5_timplan_time_command')) { state.mutations.push(values[0]); return [{ result: state.timeReply }]; }
+    if (sql.includes('phase5_timplan_time_status')) return [{ result: state.timeStatus }];
+    if (sql.includes('phase5_read_gym_timplan')) return [{ result: state.read.basis.gymTimplan }];
     if (sql.includes('phase5_apl_plan_read')) return [{ result: state.read }];
     if (sql.includes('phase5_apl_plan_status')) return [{ result: state.status }];
     if (sql.includes('phase5_apl_plan_command')) { state.mutations.push(values[0]); return [{ result: state.command }]; }
@@ -319,4 +322,40 @@ test('2 MiB is an actual streamed-byte boundary, including dishonest or absent C
   }
   await reset(); const response = await command(request('kommando', saveInput(), { headers: { 'Content-Length': String(APL_REQUEST_BYTES + 1) } }));
   assert.equal(response.status, 400); assert.equal(state.calls.length, 0); noCommit();
+});
+
+
+const { POST: timeWrite } = await import('../../app/api/timplaner/gym/tidsrad/route.ts');
+const { POST: timeStatus } = await import('../../app/api/timplaner/gym/tidsstatus/route.ts');
+const { POST: legacyTimeWrite } = await import('../../app/api/timplaner/gym/rad/route.ts');
+async function annualFixture() {
+  await reset(); const gym=state.read.basis.gymTimplan;
+  gym.timeModel='school_terms_annual_apl_v2';gym.timeCopyReview=[];
+  gym.timeRows=Object.fromEntries(distribution.map(r=>[r.rowKey,{schoolMinutes:r.points.map(p=>p>0?24000:null),annualAplMinutes:[0,1,2].map(y=>r.points[y*2]>0||r.points[y*2+1]>0?0:null)}]));
+  gym.timeRows[key].schoolMinutes[0]=0;gym.timeRows[key].annualAplMinutes[0]=20700;delete gym.hours;
+  state.read.result=await makeDetail(state.read.basis,aplPlan());
+  const q={contractVersion:'timplan_time_v2',commandId:uid(55),planId,expectedRevision:7,action:'save_row',rowKey:key,row:structuredClone(gym.timeRows[key])};
+  q.row.schoolMinutes[0]=30;
+  const result=structuredClone(gym);result.revision=8;result.timeRows[key]=structuredClone(q.row);
+  state.timeReply={contractVersion:'timplan_time_sql_v2',plan:result,receipt:{commandId:q.commandId,planId,action:q.action,revision:8,changed:true,replayed:false}};
+  return q;
+}
+test('V2 APL frozen basis counts school plus annual once; zero school still permits budgeted periods',async()=>{
+ await annualFixture();const ctx=await contextFor(state.read.basis), projection=projectAplPlan(ctx,aplPlan());
+ assert.equal(projection.readyForConfirmation,true);assert.equal((await read(request('lasa',{planId}))).status,200);
+ const total=projection.totalMinutes;state.read.basis.gymTimplan.timeRows[key].annualAplMinutes[0]++;
+ state.read.result=await makeDetail(state.read.basis,aplPlan());const changed=projectAplPlan(await contextFor(state.read.basis),aplPlan());
+ assert.equal(changed.totalMinutes,total+1);assert.equal(changed.readyForConfirmation,false);assert.ok(changed.issues.some(i=>i.code==='annual_apl_unallocated'));
+});
+test('V2 row protected route validates exact frozen result, status replay, scope and rollback',async()=>{
+ let q=await annualFixture();let response=await timeWrite(request('../tidsrad',q));assert.equal(response.status,200);const body=await response.json();assert.equal(body.plan.timeRows[key].schoolMinutes[0],30);assert.equal('hours' in body.plan,false);
+ q=await annualFixture();state.timeReply.receipt.replayed=true;state.timeStatus={state:'completed',result:state.timeReply};response=await timeStatus(request('../tidsstatus',{command:q}));assert.equal(response.status,200);assert.equal((await response.json()).result.receipt.replayed,true);
+ for(const patch of [{fn:'huvudman'},{mfa:false}]){q=await annualFixture();Object.assign(state,patch);assert.equal((await timeWrite(request('../tidsrad',q))).status,403);assert.equal(state.mutations.length,0);}
+ q=await annualFixture();assert.equal((await timeWrite(request('../tidsrad',{...q,actorId:id}))).status,400);assert.equal(state.calls.length,0);
+ for(const mutate of [()=>state.timeReply.plan.timeRows[key].schoolMinutes[0]++,()=>state.timeReply.plan.hours={},()=>state.timeReply.receipt.revision++,()=>state.auditFails=true]){q=await annualFixture();mutate();assert.equal((await timeWrite(request('../tidsrad',q))).status,500);noCommit();}
+});
+test('legacy write route rejects V2 before old SQL mutation and school-only APL forgery fails',async()=>{
+ await annualFixture();assert.equal((await legacyTimeWrite(request('../rad',{planId,expectedRevision:7,rowKey:key,hours:[0,null,null,null,null,null]}))).status,400);assert.equal(state.mutations.length,0);
+ await annualFixture();state.read.basis.gymTimplan.timeRows[key].annualAplMinutes[0]=1;
+ await assert.rejects(projectAplFrozenRead(state.read.result,state.read.basis,planId,authority('rektor')));
 });

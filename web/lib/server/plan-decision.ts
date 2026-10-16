@@ -1,3 +1,4 @@
+import { parseTimplanTimeCells, TIMPLAN_TIME_MODEL_V2, timplanTimeTotals } from '../timplan-time.ts';
 import { gymArray, gymShape, gymObject, gymRowKey, parseGymTimplanHours } from '../gym-timplan.ts';
 import { parseLegacyPlanDecisionDetail, parsePlanDecisionDetail, parsePlanDecisionInbox, parsePlanDecisionPage, type PlanDecisionDetail, type PlanDecisionQuery, type PlanDecisionCommand, type PlanDecisionRead } from '../plan-decision.ts';
 import { projectSource } from './gym-timplan.ts';
@@ -42,8 +43,10 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
   const legacy = envelope.resultContract === 'legacy', result = gymObject(envelope.result);
   if (legacy && (!command || !envelope.replayed || envelope.aplBasis !== null || Object.hasOwn(result,'contractVersion') || Object.hasOwn(result,'apl'))) throw new TypeError('Invalid legacy dispatch');
   const keys = legacy ? DETAIL_KEYS.filter(key => key !== 'series' || Object.hasOwn(result,'series')) : [...DETAIL_KEYS,'contractVersion','apl'];
-  const raw = gymShape(result, [...keys, 'source','catalog','hours']);
-  const { source: sourceValue, catalog: catalogValue, hours: hoursValue, ...detail } = raw;
+  const v2 = Object.hasOwn(result, 'timeModel');
+  if (v2 && (legacy || expected.kind !== 'timplan' || result.timeModel !== TIMPLAN_TIME_MODEL_V2)) throw new TypeError('Invalid decision time model');
+  const raw = gymShape(result, [...keys, 'source','catalog', ...(v2 ? ['timeModel', 'timeRows'] : ['hours'])]);
+  const { source: sourceValue, catalog: catalogValue, hours: hoursValue, timeModel: _timeModel, timeRows: timeRowsValue, ...detail } = raw;
   const body = legacy ? parseLegacyPlanDecisionDetail(detail,expected) : parsePlanDecisionDetail(detail, expected);
   const {source,rows,readiness} = await projectSource(sourceValue,catalogValue);
   if (source.projected.offeringId !== body.offeringId || (expected.kind === 'programplan' && source.projected.planId !== expected.planId)) throw new TypeError('Invalid decision source');
@@ -59,11 +62,16 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
   }
   if (profile && rows.reduce((sum,row) => sum+row.points,0) !== profile.points) blockers.push(`Programplanen behöver omfatta exakt ${formatCount(profile.points)} poäng.`);
   if (profile?.vocational && started && started >= '2028-07-02') blockers.push('Beslutsregler för yrkesprov från höstterminen 2028 saknas. Den här elevkullen kan inte fastställas med gymnasiearbete som enda modell.');
-  const hours = gymArray(hoursValue,2000).map(value => {
+  const timeRows = v2 ? parseTimplanTimeCells(timeRowsValue, rows, profile?.vocational === true) : null;
+  const hours = gymArray(v2 ? [] : hoursValue,2000).map(value => {
     const r = gymShape(value,['rowKey','hours']); return {rowKey:gymRowKey(r.rowKey),hours:parseGymTimplanHours(r.hours)};
   });
   if (expected.kind === 'programplan' && hours.length) throw new TypeError('Invalid program hours');
-  if (expected.kind === 'timplan') {
+  if (timeRows) {
+    const totals = timplanTimeTotals({ rows, timeRows }, profile?.vocational === true);
+    if (!totals.complete || rows.some(row => [...timeRows[row.key].schoolMinutes, ...timeRows[row.key].annualAplMinutes].reduce<number>((sum, n) => sum + (n ?? 0), 0) === 0)) blockers.push('Fördela undervisningstid på varje rad och i alla aktiva terminsfält.');
+    if (profile && totals.totalMinutes < profile.hours * 60) blockers.push(`Timplanen innehåller färre än ${formatCount(profile.hours)} planerade undervisningstimmar.`);
+  } else if (expected.kind === 'timplan') {
     const allocations = new Map(hours.map(row => [row.rowKey,row.hours]));
     if (allocations.size !== hours.length || hours.some(row => !rows.some(r => r.key === row.rowKey))) throw new TypeError('Invalid time rows');
     let incomplete = false, total = 0;
@@ -86,7 +94,7 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
     if (body.apl) {
       const {context,basis} = await projectAplFrozenRead(body.apl.detail,envelope.aplBasis,expected.planId,authority);
       const gym = basis.gymTimplan, plan = context.plan;
-      if (!sameJson(raw.source,gym.source) || !sameJson(raw.catalog,gym.catalog) || !sameJson(Object.fromEntries(hours.map(row=>[row.rowKey,row.hours])),gym.hours)
+      if (!sameJson(raw.source,gym.source) || !sameJson(raw.catalog,gym.catalog) || !(v2 ? gym.timeModel === TIMPLAN_TIME_MODEL_V2 && sameJson(timeRows, gym.timeRows) : !Object.hasOwn(gym, 'timeModel') && sameJson(Object.fromEntries(hours.map(row=>[row.rowKey,row.hours])),gym.hours))
         || body.offeringId !== plan.offeringId || body.unitId !== plan.unitId || body.version !== plan.version
         || body.revision !== plan.revision || body.schoolName !== plan.schoolName || !sameJson(body.series,plan.series)
         || body.stage !== ({utkast:'draft',forslag:'submitted',atersand:'returned',faststalld:'approved',ersatt:'replaced'} as const)[plan.status]) {

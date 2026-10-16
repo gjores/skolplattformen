@@ -408,3 +408,11 @@ test('named references retain older bound version beside current version but nev
  const sparse=structuredClone(program);delete sparse.schoolTimplans[0];assert.throws(()=>parseList([sparse],selected));
  const nested=structuredClone(program);nested.schoolTimplans[0].series[Symbol('extra')]=1;assert.throws(()=>parseList([nested],selected));
 });
+
+test('V2 yearly list/overview adds annual APL once and retains subhour minutes without fabricated term totals',()=>{
+ const p=row();p.cells=[{...cell(),hourValues:null,timeModel:'school_terms_annual_apl_v2',schoolMinutes:[null,null,1200,1200,0,0],annualAplMinutes:[null,3601,0]}];
+ const parsed=parseList([p]).rows[0];assert.equal(planningAnnualMetrics(parsed,2027).hours.value,6001/60);assert.equal(parsed.cells[0].hourValues,null);
+ const o=overview([p],selection(),totals({annualHours:measure(6001/60)}));assert.equal(parsePlanningOverview(o,selection(),setup()).totals.annualHours.value,6001/60);
+ const missing=structuredClone(p);missing.cells[0].annualAplMinutes[1]=null;missing.diagnostics=['missing-hours'];assert.equal(planningAnnualMetrics(parseList([missing]).rows[0],2027).hours.complete,false);
+ for(const alter of [c=>c.hourValues=[null,null,20,20,0,0],c=>c.annualAplMinutes[0]=0,c=>c.timeModel='v3']){const changed=structuredClone(p);alter(changed.cells[0]);assert.throws(()=>parseList([changed]));}
+});

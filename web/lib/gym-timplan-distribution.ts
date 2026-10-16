@@ -1,13 +1,15 @@
-import { gymInteger, gymShape, gymUuid, gymTimplanTotals, type GymTimplan, type GymTimplanHours } from './gym-timplan.ts';
+import { parseTimplanTimeCells, timplanTimeTotals, type TimplanTimeRows } from './timplan-time.ts';
+import { gymInteger, gymObject, gymShape, gymUuid, gymTimplanTotals, type GymTimplan, type GymTimplanLegacy, type GymTimplanV2, type GymTimplanHours } from './gym-timplan.ts';
 import { programplanProfile, VOCATIONAL_GY25_CODES } from './programplan-profile.ts';
 import type { AplPlan } from './apl-plan.ts';
 
 export type GymTimplanDistributionMode = 'fill-empty' | 'replace';
-export type GymTimplanDistributionRequest = { planId: string; expectedRevision: number; totalHours: number; mode: GymTimplanDistributionMode };
+export type GymTimplanDistributionRequest = { planId: string; expectedRevision: number; totalHours: number; mode: GymTimplanDistributionMode; commandId?: string };
 export function parseGymTimplanDistributionRequest(value: unknown): GymTimplanDistributionRequest {
-  const r = gymShape(value, ['planId', 'expectedRevision', 'totalHours', 'mode']);
+  const hasCommand = Object.hasOwn(gymObject(value), 'commandId');
+  const r = gymShape(value, ['planId', 'expectedRevision', 'totalHours', 'mode', ...(hasCommand ? ['commandId'] : [])]);
   if (r.mode !== 'fill-empty' && r.mode !== 'replace') throw new TypeError('Invalid distribution mode');
-  return { planId: gymUuid(r.planId), expectedRevision: gymInteger(r.expectedRevision), totalHours: gymInteger(r.totalHours, 24_000_000, 1), mode: r.mode };
+  return { planId: gymUuid(r.planId), expectedRevision: gymInteger(r.expectedRevision), totalHours: gymInteger(r.totalHours, 24_000_000, 1), mode: r.mode, ...(hasCommand ? { commandId: gymUuid(r.commandId) } : {}) };
 }
 
 /** National programme reference only; never a claim about an individual student's entitlement. */
@@ -19,7 +21,7 @@ export function gymTimplanGut(plan: GymTimplan): { hours: number; vocational: bo
 }
 
 /** Proportional proposal, not a legal subject-hour rule. APL stays within total teaching time. */
-export function suggestGymTimplanHours(plan: GymTimplan, totalHours: number, mode: GymTimplanDistributionMode, apl: AplPlan | null = null) {
+export function suggestGymTimplanHours(plan: GymTimplanLegacy, totalHours: number, mode: GymTimplanDistributionMode, apl: AplPlan | null = null) {
   if (!Number.isSafeInteger(totalHours) || totalHours < 1 || totalHours > 24_000_000) throw new Error('Ange ett positivt heltal för hela timplanens timmar.');
   if (mode !== 'fill-empty' && mode !== 'replace') throw new Error('Välj hur timmarna ska fördelas.');
   const hours: Record<string, GymTimplanHours> = {}, minutes = new Map<string, number>();
@@ -66,4 +68,42 @@ export function suggestGymTimplanHours(plan: GymTimplan, totalHours: number, mod
   const totals = gymTimplanTotals({ rows: plan.rows, hours });
   const changedRows = plan.rows.filter(row => hours[row.key].some((v, i) => v !== plan.hours[row.key][i])).map(row => row.key);
   return { hours, changedRows, keptHours, terms: totals.terms, total: totals.total };
+}
+
+/** Reserve the annual APL budget; distribute only school minutes without changing null APL cells or any period. */
+export function suggestGymTimplanTimeV2(plan: GymTimplanV2, totalHours: number, mode: GymTimplanDistributionMode) {
+  if (!Number.isSafeInteger(totalHours) || totalHours < 1 || totalHours > 24_000_000) throw new Error('Ange ett positivt heltal för hela timplanens timmar.');
+  if (mode !== 'fill-empty' && mode !== 'replace') throw new Error('Välj hur timmarna ska fördelas.');
+  const timeRows: TimplanTimeRows = parseTimplanTimeCells(plan.timeRows, plan.rows);
+  const reservedApl = timplanTimeTotals(plan).aplMinutes;
+  const cells: { key: string; term: number; weight: number; value: number; order: number }[] = [];
+  let keptMinutes = 0;
+  for (const row of [...plan.rows].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0)) for (let term = 0; term < 6; term++) {
+    if (row.pointTerms[term] <= 0) continue;
+    const saved = timeRows[row.key].schoolMinutes[term];
+    if (mode === 'fill-empty' && saved !== null) keptMinutes += saved;
+    else cells.push({ key: row.key, term, weight: row.pointTerms[term], value: 0, order: cells.length });
+  }
+  const target = totalHours * 60;
+  if (!plan.rows.length || target < reservedApl + keptMinutes) throw new Error('Totalen är lägre än angiven års-APL och den skoltid som ska bevaras.');
+  if (target > reservedApl + keptMinutes + cells.length * 120000) throw new Error(cells.length ? 'Totalen ryms inte inom högst 2 000 skoltimmar per terminscell.' : 'Alla skolceller är ifyllda. Välj att fördela om skoltimmarna.');
+  let remaining = target - reservedApl - keptMinutes, active = cells;
+  while (remaining > 0) {
+    const weight = active.reduce((sum, c) => sum + c.weight, 0);
+    const capped = active.filter(c => remaining * c.weight >= (120000 - c.value) * weight);
+    if (capped.length) {
+      for (const c of capped) { remaining -= 120000 - c.value; c.value = 120000; }
+      active = active.filter(c => c.value < 120000); continue;
+    }
+    const shares = active.map(c => ({ c, extra: Math.floor(remaining * c.weight / weight), remainder: remaining * c.weight % weight }));
+    let leftover = remaining;
+    for (const { c, extra } of shares) { c.value += extra; leftover -= extra; }
+    shares.sort((a, b) => b.remainder - a.remainder || a.c.order - b.c.order);
+    for (let i = 0; i < leftover; i++) shares[i].c.value++;
+    remaining = 0;
+  }
+  for (const c of cells) timeRows[c.key].schoolMinutes[c.term] = c.value;
+  const totals = timplanTimeTotals({ rows: plan.rows, timeRows });
+  const changedRows = plan.rows.filter(row => timeRows[row.key].schoolMinutes.some((v, i) => v !== plan.timeRows[row.key].schoolMinutes[i])).map(row => row.key);
+  return { timeRows, changedRows, keptMinutes, ...totals };
 }

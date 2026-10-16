@@ -1,3 +1,4 @@
+import { TIMPLAN_TIME_MODEL_V2, parseTimplanTimeRow, type TimeRowV2 } from './timplan-time.ts';
 import { parseTimplanSeries, type TimplanSeries } from './named-timplan.ts';
 import { currentSchoolYear, isValidDate } from './pupil-register-model.ts';
 import { gymRowKey } from './gym-timplan.ts';
@@ -19,7 +20,8 @@ export type PlanningSelection = {
 export type PlanningPlanReference = { id: string; version: number; revision: number; status: TimplanStatus; decisionStage?: 'draft' | 'submitted' | 'returned' | 'approved' | 'replaced' };
 export type PlanningSourceReference = { planId: string; offeringId: string; version: number; revision: number };
 export type PlanningClassReference = { id: string; customerId: string; unitId: string; offeringId: string };
-export type PlanningCell = { rowKey: string; points: number | null; pointTerms: number[] | null; hourValues: (number | null)[] | null };
+type PlanningCellBase = { rowKey: string; points: number | null; pointTerms: number[] | null };
+export type PlanningCell = PlanningCellBase & ({ timeModel?: never; hourValues: (number | null)[] | null } | ({ timeModel: typeof TIMPLAN_TIME_MODEL_V2; hourValues: null } & TimeRowV2));
 /** Search/presentation details from the row's own education and verified pinned catalogue. */
 export type PlanningSearchDetails = {
   localCode: string | null; programCode: string | null; orientationCode: string | null;
@@ -156,7 +158,9 @@ function parseColumnMap(value: unknown, plan: PlanningPlanReference | null): GrC
   return { kind: 'verified', planId: plan.id, version: plan.version, provenance: choice(r.provenance, ['frozen-plan', 'verified-original']), columnIds };
 }
 function parseCell(value: unknown, schoolform: TimplanKind, map: GrColumnMap | null): PlanningCell {
-  const r = shape(value, ['rowKey', 'points', 'pointTerms', 'hourValues']);
+  const v2 = Object.hasOwn(object(value), 'timeModel');
+  const r = shape(value, ['rowKey', 'points', 'pointTerms', 'hourValues', ...(v2 ? ['timeModel', 'schoolMinutes', 'annualAplMinutes'] : [])]);
+  if (v2 && (schoolform !== 'gymnasium' || r.timeModel !== TIMPLAN_TIME_MODEL_V2 || r.hourValues !== null)) bad();
   const rowKey = text(r.rowKey, 320);
   const pointTerms = r.pointTerms === null ? null : array(r.pointTerms, 6).map(v => integer(v, 0, 10000));
   const points = r.points === null ? null : integer(r.points, 0, 10000);
@@ -171,6 +175,7 @@ function parseCell(value: unknown, schoolform: TimplanKind, map: GrColumnMap | n
       || (hourValues !== null && (hourValues.length === 0 || (schoolform === 'introduktionsprogram' && hourValues.length !== 1)
         || (map?.kind === 'verified' && hourValues.length !== map.columnIds.length)))) bad();
   }
+  if (v2) { if (!pointTerms) bad(); return { rowKey, points, pointTerms, hourValues: null, timeModel: TIMPLAN_TIME_MODEL_V2, ...parseTimplanTimeRow({ schoolMinutes: r.schoolMinutes, annualAplMinutes: r.annualAplMinutes }, pointTerms) }; }
   return { rowKey, points, pointTerms, hourValues };
 }
 function requireCanonicalGymRows(cells: PlanningCell[]): void {
@@ -295,10 +300,10 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
     if (plan && source === null) required.push('missing-source');
     if (source === null && cells.length) bad();
     if (plan && source && selection.view === 'programplan' && (plan.id !== source.planId || plan.version !== source.version || plan.revision !== source.revision
-      || !['utkast', 'faststalld', 'ersatt'].includes(plan.status) || start.provenance === 'timplan-source' || cells.some(c => c.hourValues !== null))) bad();
+      || !['utkast', 'faststalld', 'ersatt'].includes(plan.status) || start.provenance === 'timplan-source' || cells.some(c => c.hourValues !== null || c.timeModel !== undefined))) bad();
     if (selection.view === 'timplan' && start.provenance === 'program-version') bad();
     if (start.startedOn !== null) {
-      const terms = Array.from({ length: 6 }, (_, i) => cells.reduce((sum, c) => sum + (c.pointTerms?.[i] ?? 0) + (c.hourValues?.[i] ?? 0), 0));
+      const terms = Array.from({ length: 6 }, (_, i) => cells.reduce((sum, c) => sum + (c.pointTerms?.[i] ?? 0) + (c.timeModel === TIMPLAN_TIME_MODEL_V2 ? c.schoolMinutes[i] ?? 0 : c.hourValues?.[i] ?? 0), 0));
       required.push(...projectGymYear(selection.schoolYear, start, terms).diagnostics);
     }
   } else {
@@ -322,7 +327,7 @@ function parseRow(value: unknown, selection: PlanningSelection, setup: PlanningS
 export function planningAnnualMetrics(row: PlanningRow, schoolYear: number): PlanningAnnualMetrics {
   const selected = indices(row, schoolYear), gym = row.schoolform === 'gymnasium';
   const canonical = canonicalCells(row, schoolYear);
-  let points = 0, hours = 0, pointsComplete = row.plan !== null && selected !== null && row.cells.length > 0,
+  let points = 0, hourMinutes = 0, pointsComplete = row.plan !== null && selected !== null && row.cells.length > 0,
     hoursComplete = row.plan !== null && selected !== null && canonical.cells.length > 0 && canonical.diagnostics.length === 0;
   for (const cell of canonical.cells) {
     if (gym && (!cell.pointTerms || cell.pointTerms.reduce((a, b) => a + b, 0) !== cell.points)) { pointsComplete = false; hoursComplete = false; }
@@ -330,11 +335,15 @@ export function planningAnnualMetrics(row: PlanningRow, schoolYear: number): Pla
     for (const index of selected) {
       if (gym) points += cell.pointTerms?.[index] ?? 0;
       if (gym && cell.pointTerms?.[index] === 0) continue;
-      const value = cell.hourValues?.[index];
-      if (value === null || value === undefined) hoursComplete = false; else hours += value;
+      const value = cell.timeModel === TIMPLAN_TIME_MODEL_V2 ? cell.schoolMinutes[index] : cell.hourValues?.[index];
+      if (value === null || value === undefined) hoursComplete = false; else hourMinutes += value * (cell.timeModel === TIMPLAN_TIME_MODEL_V2 ? 1 : 60);
+    }
+    if (cell.timeModel === TIMPLAN_TIME_MODEL_V2) for (const year of new Set(selected.map(index => Math.floor(index / 2)))) {
+      if (!cell.pointTerms?.[year * 2] && !cell.pointTerms?.[year * 2 + 1]) continue;
+      const amount = cell.annualAplMinutes[year]; if (amount === null) hoursComplete = false; else hourMinutes += amount;
     }
   }
-  return { points: gym ? measure(points, pointsComplete) : null, hours: measure(hours, hoursComplete),
+  return { points: gym ? measure(points, pointsComplete) : null, hours: measure(hourMinutes / 60, hoursComplete),
     measure: row.schoolform === 'introduktionsprogram' ? 'hours-per-week' : 'hours-per-year',
     classCount: measure(row.classes.length, !row.diagnostics.some(d => d === 'missing-class' || d === 'ambiguous-class')) };
 }
@@ -384,7 +393,7 @@ export function parsePlanningList(value: unknown, expected: PlanningSelection, s
 
 function overviewTotals(rows: PlanningRow[], schoolYear: number, view: PlanningSelection['view'], schoolform: TimplanKind): PlanningOverviewTotals {
   const pointCells = new Map<string, string>(), hourCells = new Map<string, string>(), classes = new Set<string>();
-  let points = 0, annual = 0, weekly = 0, pointsComplete = true, annualComplete = true, weeklyComplete = true, classesComplete = true;
+  let points = 0, annualMinutes = 0, weekly = 0, pointsComplete = true, annualComplete = true, weeklyComplete = true, classesComplete = true;
   const hasPoints = schoolform === 'gymnasium';
   const add = (seen: Map<string, string>, key: unknown[], payload: unknown): boolean => {
     const k = JSON.stringify(key), p = JSON.stringify(payload);
@@ -402,17 +411,20 @@ function overviewTotals(rows: PlanningRow[], schoolYear: number, view: PlanningS
       const yearIndex = row.schoolform === 'gymnasium' ? Math.floor(selected[0] / 2) : row.application?.columnId ?? 'vecka';
       const pointValue = selected.reduce((sum, i) => sum + (cell.pointTerms?.[i] ?? 0), 0);
       if (row.source && add(pointCells, [row.source.planId, row.source.version, yearIndex, cell.rowKey], [row.source.revision, cell.points, cell.pointTerms])) points += pointValue;
-      if (view === 'timplan' && add(hourCells, [row.plan.id, row.plan.version, row.unitId, yearIndex, cell.rowKey], [row.plan.revision, cell.hourValues])) {
-        const amount = selected.reduce((sum, i) => sum + (row.schoolform === 'gymnasium' && cell.pointTerms?.[i] === 0 ? 0 : cell.hourValues?.[i] ?? 0), 0);
-        if (row.schoolform === 'introduktionsprogram') weekly += amount; else annual += amount;
+      if (view === 'timplan' && add(hourCells, [row.plan.id, row.plan.version, row.unitId, yearIndex, cell.rowKey], [row.plan.revision, cell.timeModel === TIMPLAN_TIME_MODEL_V2 ? [cell.timeModel, cell.schoolMinutes, cell.annualAplMinutes] : cell.hourValues])) {
+        const amount = selected.reduce((sum, i) => sum + (row.schoolform === 'gymnasium' && cell.pointTerms?.[i] === 0 ? 0 : cell.timeModel === TIMPLAN_TIME_MODEL_V2 ? cell.schoolMinutes[i] ?? 0 : (cell.hourValues?.[i] ?? 0) * 60), 0)
+          + (cell.timeModel === TIMPLAN_TIME_MODEL_V2 ? [...new Set(selected.map(i => Math.floor(i / 2)))].reduce((sum, year) => sum + (cell.annualAplMinutes[year] ?? 0), 0) : 0);
+        if (row.schoolform === 'introduktionsprogram') weekly += amount / 60; else annualMinutes += amount;
       }
     }
   }
-  return { points: hasPoints ? measure(points, pointsComplete) : null, annualHours: measure(annual, annualComplete), weeklyHours: measure(weekly, weeklyComplete),
+  return { points: hasPoints ? measure(points, pointsComplete) : null, annualHours: measure(annualMinutes / 60, annualComplete), weeklyHours: measure(weekly, weeklyComplete),
     classCount: measure(classes.size, classesComplete), hasForecast: rows.some(r => r.underlag === 'forecast') };
 }
-function parseMeasure(value: unknown): PlanningMeasure {
-  const r = shape(value, ['value', 'known', 'complete']), known = integer(r.known, 0, Number.MAX_SAFE_INTEGER), complete = boolean(r.complete);
+function parseMeasure(value: unknown, minutes = false): PlanningMeasure {
+  const r = shape(value, ['value', 'known', 'complete']);
+  if (minutes && (typeof r.known !== 'number' || !Number.isFinite(r.known) || r.known < 0 || r.known > Number.MAX_SAFE_INTEGER / 60)) bad();
+  const known = minutes ? r.known as number : integer(r.known, 0, Number.MAX_SAFE_INTEGER), complete = boolean(r.complete);
   if (r.value !== (complete ? known : null)) bad();
   return measure(known, complete);
 }
@@ -422,7 +434,7 @@ export function parsePlanningOverview(value: unknown, expected: PlanningSelectio
   const parsed = rows(e.r.rows, 10000, e.selected, e.setup);
   if (parsed.length !== e.count) bad();
   const t = shape(e.r.totals, ['points', 'annualHours', 'weeklyHours', 'classCount', 'hasForecast']);
-  const totals = { points: t.points === null ? null : parseMeasure(t.points), annualHours: parseMeasure(t.annualHours), weeklyHours: parseMeasure(t.weeklyHours),
+  const totals = { points: t.points === null ? null : parseMeasure(t.points), annualHours: parseMeasure(t.annualHours, true), weeklyHours: parseMeasure(t.weeklyHours),
     classCount: parseMeasure(t.classCount), hasForecast: boolean(t.hasForecast) };
   if (!same(totals, overviewTotals(parsed, e.selected.schoolYear, e.selected.view, e.selected.schoolform))) bad();
   return { selection: e.selected, selectionRevision: e.selectionRevision, count: e.count, rows: parsed, totals };

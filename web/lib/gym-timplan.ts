@@ -1,3 +1,5 @@
+import { TIMPLAN_TIME_MODEL_V2, parseTimplanTimeCells, parseTimplanTimeRow, type TimeRowV2, type TimplanTimeRows } from './timplan-time.ts';
+import { VOCATIONAL_GY25_CODES } from './programplan-profile.ts';
 import { ProgramplanContractError, catalogDate } from './programplan-catalog.ts';
 import { parseProgramplanTermDistribution } from './programplan-terms-contract.ts';
 import type { ProgramplanTermPoints, ProgramplanTermRow } from './programplan-terms.ts';
@@ -23,12 +25,36 @@ export type GymTimplanUnderlag = {
   source: GymTimplanSource; units: GymTimplanUnit[]; rows: GymTimplanRow[]; readiness: { ready: boolean; missing: string[] };
 };
 export type GymTimplanCurrentSource = Pick<GymTimplanSource, 'planId' | 'version' | 'revision' | 'status'>;
-export type GymTimplan = {
+export type GymTimplanCommon = {
   id: string; offeringId: string; unitId: string; schoolName: string; version: number; revision: number; status: TimplanStatus;
   series?: TimplanSeries; nameAtCreation?: string | null;
   source: GymTimplanSource; currentSource: GymTimplanCurrentSource | null; rows: GymTimplanRow[];
-  hours: Record<string, GymTimplanHours>; canPlan: boolean; archived: boolean; sourceChanged: boolean;
+  canPlan: boolean; archived: boolean; sourceChanged: boolean;
 };
+export type TimplanTimeCopyReview = { id: string; resolution: null | { actorId: string; assignmentId: string; at: string; note: string }; contractVersion: 'time_copy_review_v2'; sourcePlanId: string; sourceVersion: number; rowKey: string;
+  reason: 'missing_row' | 'changed_source'; row: TimeRowV2 };
+export type GymTimplanLegacy = GymTimplanCommon & { timeModel?: never; hours: Record<string, GymTimplanHours> };
+export type GymTimplanV2 = GymTimplanCommon & { timeModel: typeof TIMPLAN_TIME_MODEL_V2; timeRows: TimplanTimeRows; timeCopyReview: TimplanTimeCopyReview[] };
+export type GymTimplan = GymTimplanLegacy | GymTimplanV2;
+export function isGymTimplanV2(plan: GymTimplan): plan is GymTimplanV2 { return plan.timeModel === TIMPLAN_TIME_MODEL_V2; }
+/** UI/profile hint only. Server additionally checks the exact verified frozen catalogue. */
+export function gymTimplanAllowsApl(plan: Pick<GymTimplan, 'source'>): boolean {
+  return VOCATIONAL_GY25_CODES.some(code => code === plan.source.education.programCode);
+}
+export function parseTimplanTimeCopyReview(value: unknown): TimplanTimeCopyReview[] {
+  return gymArray(value, 2000).map(value => {
+    const r = gymShape(value, ['id', 'resolution', 'contractVersion', 'sourcePlanId', 'sourceVersion', 'rowKey', 'reason', 'row']);
+    if (r.contractVersion !== 'time_copy_review_v2' || r.reason !== 'missing_row' && r.reason !== 'changed_source') bad();
+    let resolution: TimplanTimeCopyReview['resolution'] = null;
+    if (r.resolution !== null) {
+      const v = gymShape(r.resolution, ['actorId', 'assignmentId', 'at', 'note']), at = gymText(v.at, 24), note = gymText(v.note, 2000);
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(at) || !Number.isFinite(Date.parse(at)) || new Date(at).toISOString() !== at || !note.trim() || note !== note.trim()) bad();
+      resolution = { actorId: gymUuid(v.actorId), assignmentId: gymUuid(v.assignmentId), at, note };
+    }
+    return { id: gymUuid(r.id), resolution, contractVersion: 'time_copy_review_v2', sourcePlanId: gymUuid(r.sourcePlanId), sourceVersion: gymInteger(r.sourceVersion, 2147483647, 1),
+      rowKey: gymRowKey(r.rowKey), reason: r.reason, row: parseTimplanTimeRow(r.row) };
+  });
+}
 export type GymTimplanUnderlagRequest = { sourcePlanId: string };
 export type GymTimplanReadRequest = { planId: string };
 export type GymTimplanCreateRequest = {
@@ -160,24 +186,31 @@ export function parseGymTimplanUnderlag(value: unknown, sourcePlanId: string): G
   return { source, units: parseGymTimplanUnits(r.units), rows: parseGymTimplanRows(r.rows), readiness: { ready, missing } };
 }
 export function parseGymTimplan(value: unknown, planId: string): GymTimplan {
-  const hasSeries = Object.hasOwn(gymObject(value), 'series');
-  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'currentSource', 'rows', 'hours', 'canPlan', 'archived', 'sourceChanged',
+  const input = gymObject(value), hasSeries = Object.hasOwn(input, 'series'), v2 = Object.hasOwn(input, 'timeModel');
+  if (v2 && input.timeModel !== TIMPLAN_TIME_MODEL_V2) bad();
+  const r = gymShape(value, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'currentSource', 'rows', ...(v2 ? ['timeModel', 'timeRows', 'timeCopyReview'] : ['hours']), 'canPlan', 'archived', 'sourceChanged',
     ...(hasSeries ? ['series', 'nameAtCreation'] : [])]);
   const id = gymUuid(r.id), source = parseGymTimplanSource(r.source), rows = parseGymTimplanRows(r.rows), currentSource = parseGymTimplanCurrentSource(r.currentSource);
   if (id !== gymUuid(planId) || gymUuid(r.offeringId) !== source.offeringId || source.catalogId === null || !rows.length
     || rows.some(row => row.pointTerms.reduce((n, p) => n + p, 0) !== row.points)) bad();
-  const rawHours = gymObject(r.hours);
-  if (Object.getOwnPropertyNames(rawHours).length !== rows.length || rows.some(row => !Object.hasOwn(rawHours, row.key))) bad();
-  const hours = Object.fromEntries(rows.map(row => {
-    const values = parseGymTimplanHours(rawHours[row.key]);
-    if (values.some((value, index) => row.pointTerms[index] === 0 && value !== null)) bad();
-    return [row.key, values];
-  }));
+  let time: Pick<GymTimplanLegacy, 'hours'> | Pick<GymTimplanV2, 'timeModel' | 'timeRows' | 'timeCopyReview'>;
+  if (v2) {
+    time = { timeModel: TIMPLAN_TIME_MODEL_V2, timeRows: parseTimplanTimeCells(r.timeRows, rows, gymTimplanAllowsApl({ source })),
+      timeCopyReview: parseTimplanTimeCopyReview(r.timeCopyReview) };
+  } else {
+    const rawHours = gymObject(r.hours);
+    if (Object.getOwnPropertyNames(rawHours).length !== rows.length || rows.some(row => !Object.hasOwn(rawHours, row.key))) bad();
+    time = { hours: Object.fromEntries(rows.map(row => {
+      const values = parseGymTimplanHours(rawHours[row.key]);
+      if (values.some((value, index) => row.pointTerms[index] === 0 && value !== null)) bad();
+      return [row.key, values];
+    })) };
+  }
   // The server compares complete source content; a revision alone may only record approval.
   const sourceChanged = gymBoolean(r.sourceChanged);
   if (!sourceChanged && (currentSource === null || currentSource.planId !== source.planId || currentSource.version !== source.version)) bad();
   return { id, offeringId: source.offeringId, unitId: gymUuid(r.unitId), schoolName: gymText(r.schoolName), version: gymInteger(r.version, 2147483647, 1),
-    revision: gymInteger(r.revision), status: gymStatus(r.status), source, currentSource, rows, hours,
+    revision: gymInteger(r.revision), status: gymStatus(r.status), source, currentSource, rows, ...time,
     canPlan: gymBoolean(r.canPlan), archived: gymBoolean(r.archived), sourceChanged,
     ...(hasSeries ? { series: parseTimplanSeries(r.series), nameAtCreation: r.nameAtCreation === null ? null : parseTimplanName(r.nameAtCreation) } : {}) };
 }
@@ -213,7 +246,7 @@ export function parseGymTimplanRowReply(value: unknown, expected: GymTimplanRowR
   return { id: expected.planId, revision: expected.expectedRevision + 1, rowKey: expected.rowKey, hours };
 }
 export function gymTimplanCanEdit(plan: GymTimplan): boolean { return plan.canPlan && !plan.archived && (plan.status === 'utkast' || plan.status === 'atersand'); }
-export function gymTimplanTotals(plan: Pick<GymTimplan, 'rows' | 'hours'>) {
+export function gymTimplanTotals(plan: Pick<GymTimplanLegacy, 'rows' | 'hours'>) {
   const terms = [0, 0, 0, 0, 0, 0], missingRows: string[] = [];
   for (const row of plan.rows) {
     const values = plan.hours[row.key];
