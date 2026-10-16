@@ -13,7 +13,7 @@ related_requirements: [ADMIN-02, ADMIN-04, PLANERING-01, SCHEMA-01, SCHEMA-03, S
 
 Användaren: ”Alltså det fnukar riktigt bra. MEN det är onödigt krångligt med datum vt/ht och sånt. UX måste förenklas.” Därefter valt arbetssätt: **”Årskurs och termin först; exakta veckor eller datum senare”**.
 
-**APL-UX-01:** årskurs/termin ska vara första valet; exakt kalenderförläggning kompletteras senare. Dagens UI ber om datum och separat läsår och visar flera terminsfält per ämne. Perioderna saknar ett eget fält för preliminär termin, så hållbar förenkling behöver både beständig representation och UI. Detta är en verifierad kodbegränsning, inte ett krav på nya kalenderdatum. APL1-07 är fortsatt öppet för UX; tidigare funktionella och tekniska bevis består.
+**APL-UX-01: implementerat och lokalt levererat, ny användarbedömning väntar.** Årskurs/termin kan nu sparas först i ett eget beständigt fält. Läsår härleds; datum, omfattning och ämnesfördelning utvecklas senare. [Teknisk verifiering](05-APL-UX-VERIFICATION.md) och [lokal leverans med nytt användarprov](05-APL-UX-RELEASE.md) redovisar samma testade kandidat på 3012, faktiska dator-/telefonflöden och originalbevarande. APL1-07:s mänskliga begriplighetsdel är fortfarande öppen; ingen användaracceptans antas från tekniska prov.
 
 ## Beställning och status
 

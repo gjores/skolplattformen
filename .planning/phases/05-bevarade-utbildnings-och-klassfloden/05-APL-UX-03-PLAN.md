@@ -4,7 +4,7 @@ plan: APL-UX-03
 type: execute
 wave: 3
 depends_on: [APL-UX-01, APL-UX-02]
-status: planned
+status: complete
 autonomous: true
 files_modified:
   - work/pilot/apl-ux-fixtures.mjs

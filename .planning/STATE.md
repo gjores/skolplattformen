@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-UX
-status: planning
-stopped_at: APL-10 funktionellt positivt med UX-gap; planerar årskurs och termin först, datum senare.
+current_plan: APL-UX-03
+status: awaiting_user
+stopped_at: APL-UX lokalt levererad på3012; användarens nya begriplighetsbedömning väntar.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "Användaren rapporterar mycket bra funktion men kräver enklare UX. Valt flöde: årskurs/termin först, exakta veckor/datum senare. APL-UX planeras."
-state_head: 90ef9a8
-verification_worker_build_revision: 68cecb41e1d61ae8381951ee295758c4f764511c
-verification_worker_status: apl_actual_sql_api_browser_local_delivery_pass
-worker_status: apl_local_delivery_verified
-worker_build_revision: 68cecb41e1d61ae8381951ee295758c4f764511c
+last_activity_desc: "Användaren rapporterar mycket bra funktion men kräver enklare UX. Valt flöde: årskurs/termin först, exakta veckor/datum senare. APL-UX:s tre planer är tekniskt verifierade och lokalt levererade; mänsklig begriplighet återstår."
+state_head: 9d208ea
+verification_worker_build_revision: c739bb38feadee27189cb2d44feb658ab5ee9585
+verification_worker_status: apl_ux_actual_sql_api_browser_local_delivery_pass
+worker_status: apl_ux_local_delivery_verified
+worker_build_revision: c739bb38feadee27189cb2d44feb658ab5ee9585
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-UX levererad 2026-10-16:** Årskurs och termin kan väljas och sparas först; datum/omfattning och ämnen/tid preciseras senare. Tre avgränsade planer klara. Modell/SQL, dator/telefon, faktisk Worker/OIDC och bevarandekontroller PASS. Samma c739bb3/209-fils kandidat kör på 3012 efter additiv migration, med 74 originaltabeller bevarade vid installation och 71 verksamhetstabeller vid appbyte/läsprov. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-UX-VERIFICATION.md) och [leverans/användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-UX-RELEASE.md). Ny mänsklig begriplighetsbedömning väntar; genomförandeetapper och full pilot-/fasacceptans kvarstår. Historik nedan ändras inte.
 
 **APL-UX beställt2026-10-16:** Användaren: ”Alltså det fnukar riktigt bra. MEN det är onödigt krångligt med datum vt/ht och sånt. UX måste förenklas.” Därefter valt arbetssätt: **”Årskurs och termin först; exakta veckor eller datum senare”**. [APL-10](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-10-SUMMARY.md) avslutar bedömningsuppgiften med öppet APL-UX-01. Ingen full begriplighetsacceptans antas. Nuvarande leverans68cecb4 består; ett avgränsat kontrakt-/UI-paket planeras utan fabricerade datum eller tappade sparade uppgifter.
 

@@ -4,7 +4,7 @@ plan: APL-UX-02
 type: execute
 wave: 2
 depends_on: [APL-UX-01]
-status: planned
+status: complete
 autonomous: true
 files_modified:
   - web/app/protected-apl-plan.tsx
