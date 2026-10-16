@@ -179,6 +179,21 @@ Användaren har beställt en översyn av hur Skolverkets lärarregister kan beak
 
 GROUP-01 och SCHEMA-01/03/07/08 har beröringspunkter; MODUL-03 ska medge kompatibelt externt personalunderlag. ACL-02 avser fortsatt lokala läraruppdrag. Elevimportens INT-02–06 och anslutningsprovet INT-07 uppfylls inte av en lärarregisterimport. Offentligt dokumenterat API för personuppslag är ännu inte verifierat.
 
+## Beställt planeringsspår för tjänstefördelning och lärartid
+
+**Research 2026-10-16:** Användaren vill ha stöd för rektors individuella tjänstebedömning, kollektivavtal, dokumenterade skäl, lärarkategorier, reglerad tid/förtroendetid, mentorskap, uppföljning, skydd mot dubbelräkning och tydlig schemaandel. Detta utvecklar den tidigare beställda Plan Digital-ersättningen; behovet ska inte senareläggas enbart för att kommunanslutning återstår. Detaljerade mål nedan är **förslag**, inte tillägg till pilotens godkända 42 krav eller verifierad leverans.
+
+[Research och full mål-/provmatris](research/LARARTID-OCH-TJANSTEBEDOMNING-2026-10-16.md) korrigerar äldre tolkning: gymnasiets grundnivå för planering/uppföljning är 120 procent; lärarinitiativ enligt 11 § krävs uttryckligen för punkt 1, inte för alla undantag. Förordningen träder i kraft 2027-07-01. Avtalsversion, individuell tillämpning och period måste hållas synliga.
+
+| Föreslagna mål | Ansvarigt steg | Verifieringsstatus |
+| --- | --- | --- |
+| TID-01–04 och TID-08: tidslägen, regelprofiler, klassificering, gränser/deltid och avtal | T1, tillsammans med tjänstefördelning och SCHEMA S1 | Ej implementerade eller produktverifierade; källor och räknefall finns i researchen. |
+| TID-05–07 och TID-09: bedömning, undantag, huvudmannens översikt och hela uppdraget | T2, tillsammans med tjänstefördelning och LLEG-03 | Ej implementerade eller produktverifierade; mandat och beslut behöver genomförandeplan. |
+| TID-10–11: dubbelräkning och schemaandel | T3, tillsammans med SCHEMA S3 | Ej implementerade eller produktverifierade; kalender-, samläsnings- och importfall specificerade. |
+| TID-12: utfall, prognos och åtgärdsuppföljning | T4, tillsammans med SCHEMA S4 | Ej implementerat eller produktverifierat; eventuell faktisk anslutning får eget bevis. |
+
+Den [befintliga planeringspunkten](todos/pending/2026-10-07-lararens-undervisningsuppdrag-enligt-sfs-2026-1487.md) är uppdaterad. Fasplacering och genomförandeplaner återstår; pågående fas 5/APL och tidigare kravacceptans ändras inte av researchen. SS 12000:2024/OpenAPI 2.1.0 är avstämt på schemanivå; fungerande motpartsutbyte har inte verifierats.
+
 ## Out of Scope
 
 | Funktion | Skäl |

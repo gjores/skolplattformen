@@ -351,6 +351,14 @@ MODUL-01–04 kompletterar projektet med användarens beslut om separat köp av 
 
 [Underlaget](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) och [uppgiften](todos/pending/2026-10-05-integrera-skolverkets-lararbehorigheter.md) beskriver L1 kontrakt/personmatchning tillsammans med S1, L2 skyddad XML-import, L3 tjänstefördelning och regelkontroll i S3 samt L4 faktiskt anslutnings-/driftprov kopplat till S4. S2 ska kunna pröva syntetiska behörighetsbegränsningar. LLEG-01–04 är föreslagna planeringsmål med ett ansvarigt steg och väntande verifiering, inte tillägg till pilotens godkända krav eller nya numrerade faser. Omfattning och genomförandeplaner återstår. Aktuell fas 5-ordning behålls.
 
+### Lärartid och tjänstebedömning — research 2026-10-16
+
+Användaren har beställt fördjupad research om kollektivavtal, individuell bedömning/motivering, lärarkategorier, reglerad tid/förtroendetid, mentorskap, uppföljning, dubbelräkning och schemaandel. [Underlaget](research/LARARTID-OCH-TJANSTEBEDOMNING-2026-10-16.md) och den [uppdaterade planeringspunkten](todos/pending/2026-10-07-lararens-undervisningsuppdrag-enligt-sfs-2026-1487.md) föreslår T1 avtal/tidsgrund, T2 rektors bedömning, T3 schemakoppling och T4 uppföljning. TID-01–12 har en föreslagen ansvarig etapp och konkreta ännu ej genomförda verifieringsfall.
+
+T1–T2 bör planeras tillsammans med den redan beställda tjänstefördelningen för Plan Digital-ersättningen; tidsmodellen ska inte läggas på i efterhand. T3–T4 kopplas till SCHEMA S3/S4, och SS 12000-kontrakt beaktas från T1/S1. Researchen rättar tidigare 20-procentsuppgift till gymnasiets 120 procent och begränsar lärarinitiativkravet till 11 § punkt 1. Förordningens ikraftträdande 2027-07-01 skiljs från dagens avtalsregler och framtidssimulering.
+
+Inga nya numrerade pilotfaser eller färdiga produktfunktioner följer av detta. Fasplacering, faktisk avtalsprofil för 2027/28 och genomförandeplaner återstår. Pågående APL-arbete och tidigare godkännanden består.
+
 ## Genomförande och verifiering
 
 Varje fas följer GSD:s diskussion, planering, genomförande och användarverifiering. Fasplanen utgår från aktuell berörd kod och beskriver dagens beteende, önskat beteende, datavägar, migrering, återgång och användarprov. En dataväg växlas i taget med avstämda ID:n; återgång får inte återöppna demoåtkomst eller äldre överbehörigheter.
