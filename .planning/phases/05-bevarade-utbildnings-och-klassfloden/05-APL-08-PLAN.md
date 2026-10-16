@@ -6,7 +6,7 @@ wave: 6
 depends_on: ["APL-05", "APL-06", "APL-07"]
 files_modified: ["work/pilot/verify-apl-plan-api.mjs", "work/pilot/apl-plan-oidc-fixtures.mjs", "web/playwright.apl-actual.config.ts", "web/e2e/apl-plan-actual.spec.ts", "work/pilot/apply-apl-plan.mjs", "work/pilot/deliver-apl-plan.mjs", "work/pilot/deliver-apl-plan.test.mjs", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-VERIFICATION.md", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-APL-RELEASE.md"]
 autonomous: true
-status: planned
+status: in_progress
 gap: APL-01
 must_haves:
   truths: ["Samma APL-kandidat fungerar med verklig Worker/OIDC på dator och telefon.", "Rektor och huvudman arbetar med samma sparade innehåll under verkliga mandat.", "En exakt verifierad och granskningsbar release finns innan aktiv databasändring begärs."]
@@ -68,3 +68,7 @@ Inventera aktuella definitioner vid start; äldre kodkartor och tidigare PASS ä
 <output>
 Skriv 05-APL-08-SUMMARY.md i samma katalog med ändrade filer, utförda kontroller, bevarande, avvikelser och nästa beroende. Samordnaren hanterar avgränsad commit/push och paketstatus.
 </output>
+
+## Utförandeavvikelse 2026-10-16
+
+Första verkliga byggprovet gav saknade layoututilities i källkopia under ignorerad katalog; kandidaten levererades inte. En separat lokal sparse-källkopia utanför ignoreträdet bygger samma produkt med kontrollerade dialogstilar. Andra faktiska körningen sparade/reloadade tre perioder och återhämtade rektors bekräftelse efter riktig MFA på båda enheterna, men länken till APL-underlaget tappade fokus genom navigering/remontering. Länken hanterar nu ankaret inom den monterade planen, uppdaterar URL och flyttar fokus/scroll uttryckligen. Två riktade tangentbordsprov på dator/telefon samt TypeScript och full app/lib-lint PASS; ny faktisk helkörning krävs. Inga datamodeller, mandat eller SS12000-relationer ändras av fokusfixen. Handbokens befintliga länkflöde består.

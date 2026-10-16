@@ -66,7 +66,16 @@ function AplDecisionEvidence({detail}: {detail: PlanDecisionDetail}) {
       </details>
     </>}
     <p className="decision-secondary">Visar planerad APL. Arbetsplatser, handledare, närvaro och genomförande följs ännu inte upp här.</p>
-    <a href="#apl-planering" className="w-fit text-primary underline underline-offset-4">Öppna APL-planeringen</a>
+    <a href="#apl-planering" className="w-fit text-primary underline underline-offset-4" onClick={event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = document.getElementById('apl-planering');
+      if (!target) return;
+      // Keep this within the mounted plan; a router navigation can remount and lose focus.
+      event.preventDefault();
+      if (window.location.hash !== '#apl-planering') window.history.pushState(window.history.state, '', '#apl-planering');
+      target.focus({preventScroll: true});
+      target.scrollIntoView({block: 'start'});
+    }}>Öppna APL-planeringen</a>
   </section>;
 }
 export default function PlanDecisionPanel({ kind, planId, revision, disabled, onChanged, onSecurityFailure, onStage }: {

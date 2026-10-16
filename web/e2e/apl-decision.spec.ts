@@ -63,7 +63,7 @@ test('rektor skickar bekräftad plan och administrativ revision gör inte bekrä
 test('beredare ser sparat underlag men kan inte ersätta rektors bekräftelse',async({page})=>{
  const m=await mock(page,'administrator','unconfirmed');await open(page,'administrator');await expect(evidence(page)).toContainText('Rektor har ännu inte bekräftat');
  await expect(page.getByRole('button',{name:'Skicka för beslut'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Bekräfta förläggningen'})).toHaveCount(0);
- await page.getByRole('link',{name:'Öppna APL-planeringen'}).click();await expect(page).toHaveURL(/#apl-planering$/);await expect(page.getByRole('heading',{name:'Planera APL',exact:true})).toBeInViewport();expect(m.commands).toEqual([]);
+ await page.getByRole('link',{name:'Öppna APL-planeringen'}).focus();await page.keyboard.press('Enter');await expect(page).toHaveURL(/#apl-planering$/);await expect(page.locator('#apl-planering')).toBeFocused();await expect(page.getByRole('heading',{name:'Planera APL',exact:true})).toBeInViewport();expect(m.commands).toEqual([]);
 });
 test('ändrat innehåll visar tidigare rektor men kräver ny bekräftelse',async({page},info)=>{
  const m=await mock(page,'huvudman','stale');await open(page);await expect(evidence(page)).toContainText('Behöver förnyas efter ändring');await expect(evidence(page)).toContainText('Rektor Anna Exempel');
