@@ -1,5 +1,7 @@
 # Skolplattformen
 
+**Rektors programplaner 2026-10-16:** Rektor kan nu skapa programplansutkast och kopiera till nästa kull för vald egen skola. Huvudmannen godkänner fortfarande. SQL45, faktiskt API/browser23 och lokal leverans på 3012 med bevarade data PASS. [Resultat och kravspårning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-SUMMARY.md). Avgränsat delbevis för ADMIN-02/03/04 och PLANERING-01; full fasacceptans, historiska 88/100 planer och 3/8 faser består.
+
 **Klassorganisationens användarprov2026-10-15:** Användaren bekräftar ”ok allt funkar” och efterfrågar smidigare UI med färre tekniska knappar. CLASS-COHORT-10 avslutas;11/11 paketplaner klara. Funktionsgodkännandet särredovisar inte enhet/delsteg. UI-anmärkningen finns i [samlad UI-genomgång](todos/pending/2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Fulla krav/fas5 och historiska88/100 samt3/8 består. Äldre lägesnoteringar nedan är historik.
 
 **Klassorganisation levererad2026-10-15:** Tidiga tomma klasser, oförändrade skolmandat och uttryckliga läsårs-/versionskopplingar är implementerade och automatiskt verifierade. Samma201 byggfiler från88145bc kör på lokal3012; verklig läsande OIDC och bevarande PASS.10/11 paketplaner klara. En separat syntetisk vårkull är förberedd för [det nya klassprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-USER-TRIAL.md), awaiting_user. Kopieringsprovet ska inte upprepas. Fulla krav/fas5 kvarstår; äldre noteringar nedan är historik.

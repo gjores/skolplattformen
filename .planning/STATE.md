@@ -5,15 +5,15 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: RECTOR-PROGRAMPLAN
 status: executing
-stopped_at: Rektors skapande och kopiering till egen skola implementeras och verifieras; huvudmannens godkännande består.
+stopped_at: Rektorspaketet levererat och lokalt verifierat; övriga fasgap och full fasbedömning består.
 last_updated: "2026-10-16"
 last_activity: 2026-10-16
-last_activity_desc: "Användarrapporterat godkännande av namngivna timplaner och klassflöde; användbarhetsgapet avslutat."
-state_head: aa4866d
-verification_worker_build_revision: c8f3256fc869c0002c44fd1c181cd6a27d0df6ab
-verification_worker_status: named_timplans_actual_sql_api_browser_local_delivery_pass
-worker_status: named_timplans_local_delivery_verified
-worker_build_revision: c8f3256fc869c0002c44fd1c181cd6a27d0df6ab
+last_activity_desc: "Rektor skapar och kopierar för egen skola; huvudmannen godkänner. SQL/API/UI och lokal leverans PASS."
+state_head: a34dd19
+verification_worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
+verification_worker_status: rector_programplan_actual_sql_api_browser_local_delivery_pass
+worker_status: rector_programplan_local_delivery_verified
+worker_build_revision: a34dd199a96a1c24448c1c6ad8a688da4b91949a
 progress:
   total_phases: 8
   completed_phases: 3
@@ -26,7 +26,7 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt RECTOR-PROGRAMPLAN 2026-10-16:** Användaren beställer att rektor ska kunna skapa programplaner och kopiera till nästa kull för egen skola, med huvudmannens godkännande kvar. [Beslut och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-CONTEXT.md) och [plan](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-PLAN.md). SQL-, API- och UI-ändringar verifieras; ingen installation eller ny lokal leverans för detta paket ännu. Namngivna timplaners tidigare användargodkännande består.
+**Aktuellt RECTOR-PROGRAMPLAN 2026-10-16:** Användaren beställer att rektor ska kunna skapa programplaner och kopiera till nästa kull för egen skola, med huvudmannens godkännande kvar. [Beslut och avgränsning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-CONTEXT.md) och [plan](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-PLAN.md). Alla tre delsteg är genomförda: SQL45, faktisk API/browser23 med 12 OIDC/MFA-callbackar, simulerad UI24+62, API19, verktygsprov91, typ/lint/app-/handboksbygge PASS. Migrationen bevarade alla originalrader i 65 tabeller och rättigheter. Samma a34dd19/204-filsbygge kör på 3012; läsande rektorsprov och 62 verksamhetstabellers bevarande PASS. [Slutredovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-SUMMARY.md). Full fasacceptans följer inte av detta paket. Namngivna timplaners tidigare användargodkännande består.
 
 **Aktuellt NAMED-TIMPLANS-UX 2026-10-16:** Alla tolv genomförandeplaner är tekniskt klara. Användarens ”absolut det godkänns” godkände fem permanenta lokala migrationer och appbyte. Installation PASS med bevarade originalkolumner i 62 tabeller. Samma produktbygge `c8f3256`/204 filer/artefakt `9ef82e4d125e231082ec70e4ba2f1b3dd0df7a7d1dbed40a820a4eebc6871c2e` kör nu på 3012. Första bytet återställdes efter felaktigt valt testunderlag; rättad förkontroll och 67 verktygsprov PASS, därefter andra bytet med faktisk läsande OIDC/MFA och 62 verksamhetstabellers bevarande PASS. Tidigare 38 faktiska API-/browserprov och handboksbygge består för oförändrad produkt. [Leveransresultat](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-12-SUMMARY.md) och [begriplighetsprov](phases/05-bevarade-utbildnings-och-klassfloden/05-NAMED-TIMPLANS-UX-USER-TRIAL.md). Användaren svarade därefter ”funkar bra”. Det registreras som användarrapporterat godkännande av det levererade flödet och avslutar CLASS-COHORT-UX-01. Enhet, enskilda delsteg och eventuell hjälp särredovisades inte; fullfasacceptans antas inte. Historiska 88/100 och 3/8 består. Äldre statusstycken nedan är historik.
 

@@ -33,7 +33,7 @@ must_haves:
   artifacts:
     - supabase/migrations/20261016100000_rector_programplan_creation.sql
     - web/e2e/programplan-copy.spec.ts
-  - web/e2e/class-cohort.spec.ts
+    - web/e2e/class-cohort.spec.ts
     - docs/handbok/programplaner.md
     - .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-SUMMARY.md
   key_links:
