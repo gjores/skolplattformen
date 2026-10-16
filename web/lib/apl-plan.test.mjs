@@ -414,3 +414,42 @@ test('korrekt hash räcker inte för att läsa omöjliga aktiva APL-allokeringar
 });
 
 export { context as aplTestContext, plan as aplTestPlan };
+
+test('term-first draft persists without invented dates, names, subjects or minutes', () => {
+  for (let index = 0; index <= 5; index++) {
+    const value = plan(); value.periods = [{ ...period(), name: '', plannedTermIndex: index,
+      startsOn: null, endsOn: null, schoolYear: null, contents: [], allocations: [],
+      extent: { basis: 'unknown', weeks: null, reviewed: false, reviewNote: '' } }];
+    assert.deepEqual(call('parseAplPlan', value), value);
+    call('validateAplAllocationWrite', context(), value);
+    assert.equal(call('projectAplPlan', context(), value).readyForConfirmation, false);
+    assert.deepEqual(call('aplPlanCanonicalPayload', value)[3][0][8], ['planned_term_v1', index]);
+  }
+});
+
+test('optional planned term rejects null, undefined, non-integers, accessors and extra keys', () => {
+  for (const index of [null, undefined, -1, 6, 0.5, '2', true, NaN, Infinity]) {
+    const value = plan(); value.periods[0].plannedTermIndex = index;
+    invalid(() => call('parseAplPlan', value));
+  }
+  const value = plan(); let accessed = false;
+  Object.defineProperty(value.periods[0], 'plannedTermIndex', { get() { accessed = true; return 2; } });
+  invalid(() => call('parseAplPlan', value)); assert.equal(accessed, false);
+  const extra = plan(); Object.assign(extra.periods[0], { plannedTermIndex: 2, invented: 1 });
+  invalid(() => call('parseAplPlan', extra));
+});
+
+test('pre-extension canonical and content hashes remain exact; explicit term changes require confirmation', async () => {
+  const value = plan(), parsed = call('parseAplPlan', value);
+  assert.equal(Object.hasOwn(parsed.periods[0], 'plannedTermIndex'), false);
+  assert.equal(call('aplPlanCanonicalPayload', parsed)[3][0].length, 8);
+  assert.equal(await call('aplHashCanonical', call('aplPlanCanonicalPayload', parsed)), 'sha256:24d0575aafd111a9e5703d8686269ee0ca92ca709c94d237500f985c84f30d60');
+  const oldHash = await call('aplContentHash', context(), parsed);
+  assert.equal(oldHash, 'sha256:712b6f8b5c78706128cda90bcb56d3d5c9fa11329d38f5073f3c9d574a371907');
+  parsed.periods[0].plannedTermIndex = 0;
+  const explicitHash = await call('aplContentHash', context(), parsed);
+  assert.notEqual(explicitHash, oldHash);
+  parsed.periods[0].plannedTermIndex = 1;
+  assert.notEqual(await call('aplContentHash', context(), parsed), explicitHash);
+  assert.equal(call('projectAplPlan', context(), parsed).readyForConfirmation, true, 'intent does not introduce a new date rule');
+});

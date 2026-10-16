@@ -13,7 +13,8 @@ export type AplExtent = { basis: 'whole_weeks' | 'mixed_weeks' | 'unknown'; week
 export type AplContent = { rowKey: string; description: string };
 export type AplAllocation = { rowKey: string; termIndex: number; gutMinutes: number };
 export type AplPeriod = { id: string; name: string; startsOn: string | null; endsOn: string | null; schoolYear: number | null;
-  extent: AplExtent; contents: AplContent[]; allocations: AplAllocation[] };
+  /** Preliminary intent only; absent preserves historical hashes. Never an exact date interval. */
+  plannedTermIndex?: number; extent: AplExtent; contents: AplContent[]; allocations: AplAllocation[] };
 export type AplPlan = { contractVersion: typeof APL_CONTRACT_VERSION; educationForm: AplEducationForm;
   classification: 'unreviewed' | 'complete'; periods: AplPeriod[] };
 /** Constructed from the verified frozen catalog by the server, never accepted on a write request. */
@@ -101,7 +102,8 @@ export function parseAplPlan(value: unknown): AplPlan {
   return guarded(() => {
     const r = gymShape(value, ['contractVersion', 'educationForm', 'classification', 'periods']);
     const periods = unique(gymArray(r.periods, APL_LIMITS.periods).map(value => {
-      const p = gymShape(value, ['id', 'name', 'startsOn', 'endsOn', 'schoolYear', 'extent', 'contents', 'allocations']);
+      const hasTerm = value !== null && typeof value === 'object' && Object.hasOwn(value, 'plannedTermIndex');
+      const p = gymShape(value, ['id', 'name', 'startsOn', 'endsOn', 'schoolYear', 'extent', 'contents', 'allocations', ...(hasTerm ? ['plannedTermIndex'] : [])]);
       const startsOn = nullableDate(p.startsOn), endsOn = nullableDate(p.endsOn);
       if (startsOn !== null && endsOn !== null && startsOn > endsOn) bad('invalid_period_dates');
       const schoolYear = p.schoolYear === null ? null : gymInteger(p.schoolYear, 2100, 2000);
@@ -115,7 +117,7 @@ export function parseAplPlan(value: unknown): AplPlan {
         return { rowKey, termIndex: gymInteger(a.termIndex, 5), gutMinutes: gymInteger(a.gutMinutes, APL_LIMITS.gutMinutesPerAllocation) };
       }), a => `${a.rowKey}|${a.termIndex}`);
       return { id: gymUuid(p.id), name: text(p.name, APL_LIMITS.periodName), startsOn, endsOn, schoolYear,
-        extent: parseExtent(p.extent), contents, allocations };
+        extent: parseExtent(p.extent), contents, allocations, ...(hasTerm ? { plannedTermIndex: gymInteger(p.plannedTermIndex, 5) } : {}) };
     }), p => p.id);
     if (periods.reduce((sum, p) => sum + p.allocations.length, 0) > APL_LIMITS.allocations) bad();
     return { contractVersion: contract(r.contractVersion), educationForm: choice(r.educationForm, ['school_based', 'apprenticeship', 'unknown']),
@@ -361,7 +363,8 @@ export function aplPlanCanonicalPayload(value: AplPlan | null): AplCanonicalValu
     [...plan.periods].sort((a, b) => ordinal(a.id, b.id)).map(p => [p.id, p.name, p.startsOn, p.endsOn, p.schoolYear,
       [p.extent.basis, p.extent.weeks, p.extent.reviewed, p.extent.reviewNote],
       [...p.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(c => [c.rowKey, c.description]),
-      [...p.allocations].sort((a, b) => ordinal(a.rowKey, b.rowKey) || a.termIndex - b.termIndex).map(a => [a.rowKey, a.termIndex, a.gutMinutes])])];
+      [...p.allocations].sort((a, b) => ordinal(a.rowKey, b.rowKey) || a.termIndex - b.termIndex).map(a => [a.rowKey, a.termIndex, a.gutMinutes]),
+      ...(p.plannedTermIndex === undefined ? [] : [['planned_term_v1', p.plannedTermIndex]])])];
 }
 /** Frozen identities/content only; plan/source/series administrative revisions, statuses and display names are excluded. */
 export function aplContentHashPayload(context: AplContext, value: AplPlan | null): AplCanonicalValue {

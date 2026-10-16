@@ -128,3 +128,16 @@ test('fel kvitto, främmande snapshot och motsägande revisionshash får inte bl
   for (const stale of [{ ...live(), revision: 3 }, { ...live(), contentHash: `sha256:${'b'.repeat(64)}` }])
     assert.equal((await recoverAplJournal(journal, scope(), completed(), stale)).state, 'needs_review');
 });
+
+test('pre-extension journal hash and recovery stay exact; new term intent is bound through reload', async () => {
+  const old = await createAplJournal(scope(), request());
+  assert.equal(old.requestHash, 'sha256:dbbd0f5333475bc55ac67b8f49de2292112452ddd66a81d4c3dcf4258979b544');
+  assert.deepEqual(await parseAplJournal(JSON.parse(JSON.stringify(old)), scope()), old);
+  const q = request(); q.plan.periods[0].plannedTermIndex = 3;
+  const journal = await createAplJournal(scope(), q), store = storage();
+  assert.notEqual(journal.requestHash, old.requestHash);
+  await persistAplJournal(store, journal, scope());
+  assert.deepEqual((await loadAplJournal(store, scope())).request, q);
+  const changed = structuredClone(journal); changed.request.plan.periods[0].plannedTermIndex = 4;
+  await assert.rejects(parseAplJournal(changed, scope()), { code: 'changed_journal_request' });
+});
