@@ -42,7 +42,7 @@ async function mockApp(page: Page, role = 'rektor') {
     const assignment = { ...context, id: context.assignmentId, validFrom: '2026-01-01', validTo: null, endedAt: null, membershipStatus: 'active', state: 'giltigt' };
     let json: unknown;
     if (path === '/api/session') json = { identity: { issuer: 'synthetic', subject: 'synthetic-ui', displayName: 'Exempelanvändare', email: null }, assignments: [assignment], assignmentGroups: { valid: [assignment], upcoming: [], ended: [] }, context, today: '2026-10-12', mfa: { acr: null, amr: [], authTime: null, proof: false }, epoch: 1, expiresAt: '2099-01-01T00:00:00Z', correlationId: 'synthetic-ui' };
-    else if (path === '/api/planbeslut/inkorg') json = { items: [{ kind: role === 'administrator' ? 'timplan' : 'programplan', planId: id(20), offeringId: id(10), unitId: role === 'administrator' ? id(2) : null, educationName: 'Plan att hantera', schoolName: role === 'administrator' ? schools[0].name : null, version: 1, stage: role === 'huvudman' ? 'submitted' : role === 'administrator' ? 'returned' : 'draft', nextActor: role === 'huvudman' ? 'huvudman' : 'rektor', task: role === 'huvudman' ? 'review' : role === 'administrator' ? 'revise' : 'prepare' }, {kind: 'programplan', planId: id(99), offeringId: id(98), unitId: null, educationName: 'Arkiverad plan', schoolName: null, version: 1, stage: 'draft', nextActor: null, task: 'blocked'}], total: 2, actionCount: 1, decisionCount: role === 'huvudman' ? 1 : 0, truncated: false };
+    else if (path === '/api/planbeslut/inkorg') json = { items: [{ apl:null,series:role==='administrator'?{id:id(800),name:'Grundfördelning',revision:0}:null, kind: role === 'administrator' ? 'timplan' : 'programplan', planId: id(20), offeringId: id(10), unitId: role === 'administrator' ? id(2) : null, educationName: 'Plan att hantera', schoolName: role === 'administrator' ? schools[0].name : null, version: 1, stage: role === 'huvudman' ? 'submitted' : role === 'administrator' ? 'returned' : 'draft', nextActor: role === 'huvudman' ? 'huvudman' : 'rektor', task: role === 'huvudman' ? 'review' : role === 'administrator' ? 'revise' : 'prepare' }, {apl:null,series:null,kind: 'programplan', planId: id(99), offeringId: id(98), unitId: null, educationName: 'Arkiverad plan', schoolName: null, version: 1, stage: 'draft', nextActor: null, task: 'blocked'}], total: 2, actionCount: 1, decisionCount: role === 'huvudman' ? 1 : 0, truncated: false };
     else if (path === '/api/planering/urval') json = setup;
     else if (path === '/api/planering/lista') json = parsePlanningList({ selection: body, selectionRevision: revision, count: rowsFor(body).length, pageSize: 50, rows: rowsFor(body) }, body, setup);
     else if (path === '/api/planering/oversikt') {
@@ -207,7 +207,8 @@ for (const kind of ['programplan', 'timplan'] as const) test(`${kind}: huvudmann
   let stage = 'draft', revision = 0;
   const commands: Record<string, unknown>[] = [];
   const history: Record<string, unknown>[] = [];
-  const detail = () => ({ kind, planId: id(20), offeringId: id(10), unitId: kind === 'timplan' ? id(2) : null, educationName: 'Bygg- och anläggningsprogrammet', schoolName: kind === 'timplan' ? 'Exempelskolan Nord' : null,
+  // Historical decision-only flow; structured APL approval has its own suite.
+  const detail = () => ({ contractVersion:'legacy', kind, planId: id(20), offeringId: id(10), unitId: kind === 'timplan' ? id(2) : null, educationName: 'Bygg- och anläggningsprogrammet', schoolName: kind === 'timplan' ? 'Exempelskolan Nord' : null,
     version: 1, revision, decisionRevision: revision, basisHash: `sha256:${'b'.repeat(64)}`, stage, nextActor: stage === 'approved' ? null : stage === 'submitted' ? 'huvudman' : 'rektor',
     actions: stage === 'approved' ? [] : stage === 'submitted' ? ['approve','return','withdraw'] : ['submit'], blockers: [], checks: [{ id: 'review', label: 'Jag har granskat ämnen och poäng.' }], history, sourceInfo: null });
   await page.route('**/api/**', async route => {
@@ -271,7 +272,7 @@ for (const kind of ['programplan', 'timplan'] as const) test(`${kind}: huvudmann
 
 test('okänt beslut låser navigation, återanvänder kommandot och läser nyare beslut efter återspelning', async ({ page }) => {
   const commands: Record<string, unknown>[] = [];
-  const baseDetail = { kind: 'programplan', planId: id(20), offeringId: id(10), unitId: null, educationName: 'Samhällsvetenskap', schoolName: null,
+  const baseDetail = { contractVersion:'apl_decision_v1',apl:null,series:null, kind: 'programplan', planId: id(20), offeringId: id(10), unitId: null, educationName: 'Samhällsvetenskap', schoolName: null,
     version: 1, revision: 0, decisionRevision: 0, basisHash: `sha256:${'b'.repeat(64)}`, stage: 'draft', nextActor: 'huvudman', actions: ['submit'], blockers: [], checks: [], history: [], sourceInfo: null };
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;
@@ -317,7 +318,7 @@ for (const previousStatus of ['atersand', 'forslag'] as const) test(`korrigerad 
     }
     return route.fulfill({ status: 500, json: { code: 'unexpected_request' } });
   });
-  await page.route('**/api/planbeslut/underlag', route => route.fulfill({ json: { kind: 'timplan', series,planId: route.request().postDataJSON().planId, offeringId: id(10), unitId: id(2), educationName: source.education.name, schoolName: schools[0].name,
+  await page.route('**/api/planbeslut/underlag', route => route.fulfill({ json: { contractVersion:'apl_decision_v1',apl:null, kind: 'timplan', series,planId: route.request().postDataJSON().planId, offeringId: id(10), unitId: id(2), educationName: source.education.name, schoolName: schools[0].name,
     version: route.request().postDataJSON().planId===id(90)?1:2, revision: route.request().postDataJSON().planId===id(90)?3:0, decisionRevision: 0, basisHash: `sha256:${'d'.repeat(64)}`, stage: 'draft', nextActor: 'rektor', actions: ['submit'], blockers: [], checks: [], history: [], sourceInfo: null } }));
   await page.goto(`${base}?vy=timplaner&timplan=${id(90)}&timplansskola=${id(2)}&timplansutbildning=${id(10)}&timplansversion=1&planeringsskola=${id(2)}&planeringsform=gymnasium`);
   const next = page.getByRole('button', { name: 'Skapa ny version', exact: true });
@@ -338,7 +339,7 @@ for (const previousStatus of ['atersand', 'forslag'] as const) test(`korrigerad 
 test('huvudmannen inväntar rättning efter retur av båda plantyperna', async ({ page }) => {
   const verify = await mockApp(page, 'huvudman');
   await page.route('**/api/planbeslut/inkorg', route => route.fulfill({ json: {
-    items: ['programplan', 'timplan'].map((kind, n) => ({ kind, planId: id(70+n), offeringId: id(10),
+    items: ['programplan', 'timplan'].map((kind, n) => ({ apl:null,series:kind==='timplan'?{id:id(810+n),name:'Grundfördelning',revision:0}:null, kind, planId: id(70+n), offeringId: id(10),
       unitId: kind === 'timplan' ? id(2) : null, schoolName: kind === 'timplan' ? schools[0].name : null,
       educationName: 'Barn- och fritidsprogrammet', version: 1, stage: 'returned', nextActor: 'rektor', task: 'waiting' })),
     total: 2, actionCount: 0, decisionCount: 0, truncated: false,
@@ -389,7 +390,7 @@ for (const outcome of ['saved', 'conflict', 'decision-read-failed'] as const) te
     decisions++;
     if(decisions>1)await new Promise<void>(resolve=>{releaseRead=resolve;});
     if(outcome==='decision-read-failed'&&decisions>1)return route.fulfill({status:503,json:{code:'unavailable'}});
-    await route.fulfill({json:{kind:'programplan',planId:id(20),offeringId:id(10),unitId:null,educationName:education.name,schoolName:null,version:1,revision:planRevision,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:'draft',nextActor:'rektor',actions:['submit'],blockers:[],checks:[],history:[],sourceInfo:null}});
+    await route.fulfill({json:{contractVersion:'apl_decision_v1',apl:null,series:null,kind:'programplan',planId:id(20),offeringId:id(10),unitId:null,educationName:education.name,schoolName:null,version:1,revision:planRevision,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:'draft',nextActor:'rektor',actions:['submit'],blockers:[],checks:[],history:[],sourceInfo:null}});
   });
   await page.goto(`${base}?vy=programplaner&utbildning=${id(10)}&programplan=${id(20)}&programplansversion=1&planeringsskola=${id(2)}&planeringslasar=2027&planeringsallaar=1`);
   const workspace=page.getByTestId('protected-programplan-workspace');
@@ -430,7 +431,7 @@ for (const outcome of ['saved', 'conflict', 'decision-read-failed'] as const) te
 
 for (const role of ['huvudman','rektor','administrator']) test(`beslutsinkorg söker och bläddrar genom fler än 500 uppgifter: ${role}`, async ({page}, info) => {
   const verify=await mockApp(page,role);
-  const items=Array.from({length:520},(_,i)=>({kind:role==='administrator'?'timplan':'programplan',planId:id(2000+i),offeringId:id(3000+i),unitId:role==='administrator'?id(2):null,
+  const items=Array.from({length:520},(_,i)=>({apl:null,series:role==='administrator'?{id:id(5000+i),name:'Grundfördelning',revision:0}:null,kind:role==='administrator'?'timplan':'programplan',planId:id(2000+i),offeringId:id(3000+i),unitId:role==='administrator'?id(2):null,
     schoolName:role==='administrator'?schools[0].name:null,educationName:`Syntetisk uppgift ${String(i).padStart(4,'0')}`,version:1,
     stage:i<260?(role==='huvudman'?'submitted':'returned'):(role==='huvudman'?'returned':'submitted'),nextActor:i<260?(role==='huvudman'?'huvudman':'rektor'):(role==='huvudman'?'rektor':'huvudman'),
     task:i<260?(role==='huvudman'?'review':'revise'):'waiting'}));

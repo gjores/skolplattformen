@@ -31,6 +31,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { aplJournalIdentityKey } from '@/lib/apl-plan-journal.ts';
 import { contextLabel } from '@/lib/access-rules.ts';
 import { selectionFromQuery, selectionToQuery, type Selection } from '@/lib/pupil-register-model.ts';
 import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client.ts';
@@ -265,6 +266,17 @@ function SessionLock({ reason, expired }: { reason: LockReason; expired?: boolea
 
 function ProtectedShell() {
   const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
+  const identitySource = session && session !== 'loading' ? JSON.stringify([session.identity.issuer, session.identity.subject]) : null;
+  const [journalIdentity, setJournalIdentity] = useState<{ source: string; key: string } | null>(null);
+  useEffect(() => {
+    let current = true;
+    if (identitySource) {
+      const [issuer, subject] = JSON.parse(identitySource) as [string, string];
+      void aplJournalIdentityKey(issuer, subject).then(key => { if (current) setJournalIdentity({ source: identitySource, key }); }).catch(() => { if (current) setJournalIdentity(null); });
+    }
+    return () => { current = false; };
+  }, [identitySource]);
+  const aplIdentityKey = journalIdentity?.source === identitySource ? journalIdentity?.key ?? null : null;
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [expired, setExpired] = useState(false);
   const [lock, setLock] = useState<LockReason | null>(null);
@@ -718,7 +730,7 @@ function ProtectedShell() {
                     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                   }}>Grundskola och introduktionsprogram</Button>}</nav>
-                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
+                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace identityKey={aplIdentityKey} key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
                   onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
                   : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
               </>}

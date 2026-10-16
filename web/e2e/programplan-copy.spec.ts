@@ -62,7 +62,7 @@ async function mockCopy(page:Page,outcome:Outcome='saved',role='huvudman'){
   if(path==='/api/programplaner/terminer/lasa'){reads.push({path,body});const copied=body.planId===id(21);return respond(route,{planId:copied?id(21):id(20),revision:copied?2:4,status:'utkast',distribution});}
   if(path==='/api/planbeslut/underlag'){
    const copied=body.planId===id(21),p=copied?copyPlan():sourcePlan;
-   return respond(route,{kind:'programplan',planId:p.id,offeringId:p.offeringId,unitId:null,educationName:p.education.name,schoolName:null,version:1,revision:p.revision,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:'draft',nextActor:'rektor',actions:[],blockers:[],checks:[],history:[],sourceInfo:null});
+   return respond(route,{contractVersion:'apl_decision_v1',apl:null,series:null,kind:'programplan',planId:p.id,offeringId:p.offeringId,unitId:null,educationName:p.education.name,schoolName:null,version:1,revision:p.revision,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:'draft',nextActor:'rektor',actions:[],blockers:[],checks:[],history:[],sourceInfo:null});
   }
   unexpected.push(path);return respond(route,{code:'unexpected_request'},500);
  });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
@@ -11,7 +11,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import { planningYearLabel, type GymYearProjection } from '@/lib/planning-year-model.ts';
 
 type Draft = { values: string[]; original: GymTimplanHours; mode: 'edit' | 'compare' | 'unread'; error: string | null; mfa: boolean };
-type Props = { disabled?: boolean; yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
+type Props = { aplInclusive?: boolean; onActivity?: (pending: boolean) => void; disabled?: boolean; yearProjection?: GymYearProjection; plan: GymTimplan; year: string; onYear: (year: string) => void; unsavedId: string;
   onSaved: (plan: GymTimplan) => void; onSaving: (saving: boolean) => void; onNavigationBlocked: (blocked: boolean) => void; onSecurityFailure: (error: unknown) => boolean };
 const strings = (hours: GymTimplanHours) => hours.map(value => value === null ? '' : String(value));
 const hours = (values: string[]): GymTimplanHours | null => {
@@ -22,10 +22,12 @@ const same = (a: GymTimplanHours, b: GymTimplanHours) => a.every((value, i) => v
 const matches = (values: string[], saved: GymTimplanHours) => { const parsed = hours(values); return !!parsed && same(parsed, saved); };
 
 /** Inlineceller delar den befintliga atomiska radskrivningen. Kön håller CAS-revisioner i ordning. */
-export default function ProtectedGymTimplanHours({ disabled = false, yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
+export default function ProtectedGymTimplanHours({ aplInclusive = false, onActivity, disabled = false, yearProjection, plan, year, onYear, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure }: Props) {
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [onlyMissing, setOnlyMissing] = useState(false);
   const latest = useRef(drafts), saved = useRef(plan), queue = useRef(new Set<string>()), running = useRef(false);
+  const disabledRef = useRef(disabled);
+  useLayoutEffect(() => { disabledRef.current = disabled; }, [disabled]);
   const active = useRef(true), controller = useRef<AbortController | null>(null);
   useEffect(() => { if (plan.revision >= saved.current.revision) saved.current = plan; }, [plan]);
   useEffect(() => { const pendingRows = queue.current; active.current = true; return () => { active.current = false; controller.current?.abort(); pendingRows.clear(); }; }, []);
@@ -33,7 +35,7 @@ export default function ProtectedGymTimplanHours({ disabled = false, yearProject
   useUnsavedChanges(unsavedId, drafts.size > 0 || savingKey !== null);
   useUnsavedChanges(`navigation-block:${unsavedId}`, blocked);
   useEffect(() => { onNavigationBlocked(blocked); }, [blocked, onNavigationBlocked]);
-  function reportBlocked() { onNavigationBlocked(running.current || [...latest.current.values()].some(d => d.mode === 'unread')); }
+  function reportBlocked() { onNavigationBlocked(running.current || [...latest.current.values()].some(d => d.mode === 'unread')); onActivity?.(running.current || latest.current.size > 0); }
   const editable = !disabled && gymTimplanCanEdit(plan);
   function update(next: Map<string, Draft>) { latest.current = next; setDrafts(next); reportBlocked(); }
   function replace(key: string, draft: Draft | null) {
@@ -55,7 +57,7 @@ export default function ProtectedGymTimplanHours({ disabled = false, yearProject
       error: 'Aktuell timplan har hämtats. Jämför sparade timmar med dina värden innan du sparar igen.' });
   }
   async function drain() {
-    if (running.current || !active.current) return;
+    if (running.current || !active.current || disabledRef.current) return;
     running.current = true; reportBlocked(); onSaving(true);
     try {
       while (queue.current.size && active.current) {
@@ -103,11 +105,11 @@ export default function ProtectedGymTimplanHours({ disabled = false, yearProject
   }
   function commit(key: string) {
     const draft = latest.current.get(key);
-    if (!draft || draft.mode !== 'edit' || draft.mfa) return;
+    if (disabledRef.current || !draft || draft.mode !== 'edit' || draft.mfa) return;
     queue.current.add(key); void drain();
   }
   function setCell(row: GymTimplanRow, i: number, value: string) {
-    if (!gymTimplanCanEdit(saved.current) || row.pointTerms[i] === 0) return;
+    if (disabledRef.current || !gymTimplanCanEdit(saved.current) || row.pointTerms[i] === 0) return;
     const own = latest.current.get(row.key) ?? { values: strings(saved.current.hours[row.key]), original: saved.current.hours[row.key], mode: 'edit' as const, error: null, mfa: false };
     replace(row.key, { ...own, values: own.values.map((old, j) => i === j ? value : old), error: own.mode === 'edit' ? null : own.error });
   }
@@ -165,7 +167,7 @@ export default function ProtectedGymTimplanHours({ disabled = false, yearProject
     <section className="gt-table-scroll" aria-label="Skolans undervisningstid"
       // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla även läsvyn.
       tabIndex={0}>
-      <table className="gt-matrix"><caption>{editable ? 'Fyll i timmar direkt i terminscellerna. Ändringar sparas när du lämnar raden eller trycker Enter. ' : ''}Tom cell är ofördelad; 0 är angivna noll timmar. Poängen under cellerna är programplanens underlag.</caption>
+      <table className="gt-matrix"><caption>{aplInclusive ? 'Total undervisningstid inklusive APL. APL-fördelningen ovan läggs inte till en gång till. ' : ''}{editable ? 'Fyll i timmar direkt i terminscellerna. Ändringar sparas när du lämnar raden eller trycker Enter. ' : ''}Tom cell är ofördelad; 0 är angivna noll timmar. Poängen under cellerna är programplanens underlag.</caption>
         <thead><tr><th scope="col">Ämne, nivå eller block</th><th scope="col">Poäng</th>{columns.map(({ label, i }) => <th scope="col" key={i}>{label}</th>)}<th scope="col">Fördelat</th></tr></thead>
         <tbody>{rows.map(row => {
           const own = drafts.get(row.key), invalid = !!own && !hours(own.values), missing = row.pointTerms.filter((p, i) => p > 0 && displayHours[row.key][i] === null).length;

@@ -38,7 +38,7 @@ async function workspaceMock(page:Page,role='rektor',fresh=false){
   }
   if(path==='/api/programplaner/lasa')return reply(plan(body.planId===id(21)?id(11):id(10),created||copied?0:4,body.planId===id(22)?2:1));
   if(path==='/api/programplaner/terminer/lasa')return reply({planId:body.planId,revision:created||copied?0:4,status:body.planId===id(20)&&version===2?'ersatt':'utkast',distribution});
-  if(path==='/api/planbeslut/underlag'){const p=plan(body.planId===id(21)?id(11):id(10),created||copied?0:4,body.planId===id(22)?2:1);return reply({kind:'programplan',planId:p.id,offeringId:p.offeringId,unitId:null,educationName:p.education.name,schoolName:null,version:p.version,revision:created||copied?0:4,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:p.version<version?'approved':'draft',nextActor:p.version<version?null:'rektor',actions:p.version===version&&role==='rektor'?['submit']:[],blockers:[],checks:[],history:[],sourceInfo:null});}
+  if(path==='/api/planbeslut/underlag'){const p=plan(body.planId===id(21)?id(11):id(10),created||copied?0:4,body.planId===id(22)?2:1);return reply({contractVersion:'apl_decision_v1',apl:null,series:null,kind:'programplan',planId:p.id,offeringId:p.offeringId,unitId:null,educationName:p.education.name,schoolName:null,version:p.version,revision:created||copied?0:4,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage:p.version<version?'approved':'draft',nextActor:p.version<version?null:'rektor',actions:p.version===version&&role==='rektor'?['submit']:[],blockers:[],checks:[],history:[],sourceInfo:null});}
   unexpected.push(path);return reply({code:'unexpected'},500);
  });
  return{writes,unexpected,nextVersion:()=>{version++;}};

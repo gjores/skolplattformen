@@ -16,6 +16,8 @@ import type { GymTimplanLocation, ProgramplanLocation } from '@/lib/protected-pl
 import type { ActiveContext } from './context-switch';
 import NamedTimplanActions, {type TimplanAction} from './named-timplan-actions';
 import ProtectedGymTimplanHours from './protected-gym-timplan-hours';
+import ProtectedAplPlan from './protected-apl-plan';
+import { VOCATIONAL_GY25_CODES } from '@/lib/programplan-profile.ts';
 import ProtectedClassTimplans from './protected-class-timplans';
 import './protected-gym-timplan.css';
 import ProtectedPlanList from './protected-plan-list';
@@ -23,12 +25,12 @@ import { usePlanningContext, type PlanningMatrixYear } from './planning-context'
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
-type Props = { context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
+type Props = { identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
   onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
 
-export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan }: Props) {
+export default function ProtectedGymTimplanWorkspace({ identityKey = null, context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan }: Props) {
   const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
   const [missing, setMissing] = useState<{ workspace: ProgramplanWorkspace; unitId: string } | null>(null);
@@ -47,9 +49,16 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
   const opened = useRef(onOpened); useLayoutEffect(() => { opened.current = onOpened; }, [onOpened]);
   const unsavedId = `gym-timplan-${epoch}-${context.assignmentId}`;
   const hoursDirty = useHasUnsaved(`${unsavedId}-hours`);
+  const aplDirty = useHasUnsaved('apl-draft:');
+  const aplPending = useHasUnsaved('navigation-block:apl:');
+  const hoursActivity = useRef(false);
+  const onHoursActivity = useCallback((pending: boolean) => { hoursActivity.current = pending; }, []);
+  const aplOtherBlocked = useRef(false);
+  const isAplBlocked = useCallback(() => hoursActivity.current || aplOtherBlocked.current, []);
   const decisionPending = useHasUnsaved('navigation-block:plan-decision:');
   const classDirty = useHasUnsaved('class-plan-form:');
-  const dirty = hoursDirty || classDirty || commandBlocked;
+  const dirty = hoursDirty || aplDirty || classDirty || commandBlocked;
+  useLayoutEffect(() => { aplOtherBlocked.current = decisionPending || commandBlocked || classDirty; }, [decisionPending, commandBlocked, classDirty]);
   const navigationBlocked = useHasUnsaved('navigation-block:');
   const navigationBlockedRef = useRef(navigationBlocked), hoursBlockedRef = useRef(false);
   useEffect(() => { navigationBlockedRef.current = navigationBlocked; }, [navigationBlocked]);
@@ -131,7 +140,7 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
     finally { if (current(r.token)) setBusy(false); }
   }
   function chooseAnnualRow(row: PlanningRow) {
-    if (!allowNavigation() || busy || hoursDirty && !confirmDiscard()) return;
+    if (!allowNavigation() || busy || dirty && !confirmDiscard()) return;
     if (!planningSetup || row.customerId !== context.customerId || row.schoolform !== 'gymnasium'
       || !planningSetup.units.some(u => u.unitId === row.unitId && u.canRead.gymnasium)
       || planningUnit !== null && planningUnit !== row.unitId) { setError('Årsraden hör inte till det aktuella planeringsurvalet. Läs om listan.'); return; }
@@ -144,7 +153,7 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
     setAction({kind:'new',basis:underlag,unit});
   }
   async function prepareNewVersion() {
-    if (!plan || busy || !allowNavigation() || classDirty && !confirmDiscard() || plan.archived || !(['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status))) return;
+    if (!plan || busy || !allowNavigation() || dirty && !confirmDiscard() || plan.archived || !(['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status))) return;
     const own = plan, r = begin(); setBusy(true); setError(null);
     try {
       const sourcePlanId = own.currentSource?.planId ?? own.source.planId;
@@ -225,17 +234,19 @@ export default function ProtectedGymTimplanWorkspace({ context, epoch, initialTa
       })}</div></section>
     </>}
     {plan && <>
-      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.source.planId, { kind: 'source', id: plan.source.planId, offeringId: plan.offeringId, unitId: plan.unitId, version: plan.source.version }))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty || classDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button>{plan.canPlan && !plan.archived && (['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status)) && ['rektor', 'administrator'].includes(context.function) && <Button data-named-timplan-action={`version:${plan.unitId}`} disabled={busy || navigationBlocked} onClick={() => void prepareNewVersion()}>Skapa ny version</Button>}</div>
+      <div className="gt-toolbar"><Button variant="ghost" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.source.planId, { kind: 'source', id: plan.source.planId, offeringId: plan.offeringId, unitId: plan.unitId, version: plan.source.version }))}><ArrowLeft size={16}/>Skolans timplaner</Button><Button variant="outline" disabled={busy || hoursDirty || aplDirty || aplPending || classDirty} onClick={() => void openPlan(plan.id)}><RefreshCw size={16}/>Läs om</Button>{!plan.archived && (['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status)) && ['rektor', 'administrator'].includes(context.function) && <Button data-named-timplan-action={`version:${plan.unitId}`} disabled={busy || navigationBlocked} onClick={() => void prepareNewVersion()}>Skapa ny version</Button>}</div>
       <header className="gt-head"><div><h1>{plan.series?.name ?? plan.source.education.name}</h1><p>{plan.source.education.name} · {plan.schoolName} · {plan.source.education.cohort}</p><span className="gt-state">{statusLabel[plan.status]} · Timplan version {plan.version}</span></div>
         <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: plan.offeringId, planId: plan.source.planId, version: plan.source.version, unitId: plan.unitId }))}><FileText size={16}/>Öppna programplan</Button></header>
       {['faststalld','ersatt'].includes(plan.status)&&<Button variant="outline" disabled={busy||commandBlocked} onClick={()=>{setClassOpenRequest(previous=>({planId:plan.id,count:previous.count+1}));classSection.current?.focus({preventScroll:true});classSection.current?.scrollIntoView({block:'start',behavior:'instant'});}}>Klasser</Button>}
-      {plan.series && plan.canPlan && !plan.archived && <Button variant="outline" disabled={busy || navigationBlocked || hoursDirty || classDirty} data-named-timplan-action={`rename:${plan.unitId}`} onClick={()=>setAction({kind:'rename',plan})}>Byt namn</Button>}
+      {plan.series && plan.canPlan && !plan.archived && <Button variant="outline" disabled={busy || navigationBlocked || hoursDirty || aplDirty || classDirty} data-named-timplan-action={`rename:${plan.unitId}`} onClick={()=>setAction({kind:'rename',plan})}>Byt namn</Button>}
       <div className="gt-source-line"><button type="button" onClick={() => setShowSource(true)}><FileText size={15}/>Underlag: Programplan v{plan.source.version}, revision {plan.source.revision} ({statusLabel[plan.source.status].toLocaleLowerCase('sv')})</button><span>{editable ? 'Fyll i timmar direkt i terminscellerna' : plan.archived ? 'Utbildningen är arkiverad' : 'Läsvy'}</span></div>
       {plan.sourceChanged && <p className="gt-changed">Programplanens innehåll har ändrats. Timplanen använder fortfarande det sparade underlaget ovan. Välj Skapa ny version för att använda det aktuella innehållet i samma timplan. {plan.currentSource && <Button variant="link" disabled={busy} onClick={() => leave(() => void loadUnderlag(plan.currentSource!.planId))}>Välj nytt underlag</Button>}</p>}
-      <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty||commandBlocked} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
-      <div ref={classSection} tabIndex={-1} aria-label="Klasskopplingar" style={{scrollMarginTop:'11rem'}}><ProtectedClassTimplans openRequest={classOpenRequest.planId===plan.id?classOpenRequest.count:0} scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])} returnTo={'/?' + new URLSearchParams({vy:'timplaner',timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version),planeringslasar:String(planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()),planeringsskola:plan.unitId,planeringsform:'gymnasium'}).toString()} key={`classes-${plan.id}-${planningSelection?.schoolYear}`} plan={plan} schoolYear={planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()} canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || decisionPending || commandBlocked} onSecurityFailure={securityFailure}/></div>
-      <ProtectedGymTimplanHours disabled={decisionPending || commandBlocked} key={plan.id} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
-        onSaved={setPlan} onSaving={setBusy} onNavigationBlocked={onHoursBlocked} onSecurityFailure={securityFailure}/>
+      <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty||aplDirty||aplPending||classDirty||commandBlocked} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
+      <div ref={classSection} tabIndex={-1} aria-label="Klasskopplingar" style={{scrollMarginTop:'11rem'}}><ProtectedClassTimplans openRequest={classOpenRequest.planId===plan.id?classOpenRequest.count:0} scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])} returnTo={'/?' + new URLSearchParams({vy:'timplaner',timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version),planeringslasar:String(planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()),planeringsskola:plan.unitId,planeringsform:'gymnasium'}).toString()} key={`classes-${plan.id}-${planningSelection?.schoolYear}`} plan={plan} schoolYear={planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()} canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || decisionPending || commandBlocked || aplDirty || aplPending} onSecurityFailure={securityFailure}/></div>
+      {VOCATIONAL_GY25_CODES.some(code => code === plan.source.education.programCode) && <ProtectedAplPlan key={`apl-${plan.id}`} plan={plan} context={context} identityKey={identityKey}
+        disabled={busy || hoursDirty || decisionPending || commandBlocked || classDirty} isBlocked={isAplBlocked} onChanged={setPlan} onSecurityFailure={securityFailure}/>}
+      <ProtectedGymTimplanHours aplInclusive={VOCATIONAL_GY25_CODES.some(code => code === plan.source.education.programCode)} disabled={decisionPending || commandBlocked || aplDirty || aplPending} key={plan.id} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
+        onSaved={setPlan} onSaving={setBusy} onNavigationBlocked={onHoursBlocked} onActivity={onHoursActivity} onSecurityFailure={securityFailure}/>
 
     </>}
     <Dialog open={showSource && !!plan} onOpenChange={setShowSource}><DialogContent className="gt-source-dialog"><DialogTitle>Sparat programunderlag</DialogTitle><DialogDescription>Programplan version {plan?.source.version}, revision {plan?.source.revision}. Detta är den frysta poängram som timplanen använder.</DialogDescription>
