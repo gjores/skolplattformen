@@ -81,11 +81,16 @@ APL-planeringen hör till en bestämd namngiven timplan och version på skolan. 
 
 ### Perioder, innehåll och undervisningstid
 
-1. Öppna rätt timplan och kontrollera namn, skola och version. Gå till **Planera APL**.
-2. Välj utbildningsform. Ett äldre underlag får ingen antagen form. Skolförlagd utbildning, lärlingsutbildning och ännu okänd form hålls isär.
-3. Välj **Lägg till period**. Ange periodens namn, start- och slutdatum samt läsår. Ange omfattning och granska veckounderlaget. Datumintervallet räknas inte automatiskt som ett visst antal hela APL-veckor.
-4. Välj ämnesinnehåll och beskriv arbetsmomenten. Fördela **Varav APL** i timmar och minuter på innehållet och de terminer där det ska ingå. En valbar ram utan konkret ämnesinnehåll behöver kompletteras innan förläggningen kan bekräftas.
-5. Granska timplanens total och dess APL-andel. Välj **Granska ändringar** och **Spara APL-plan**. Vänta på beskedet att det sparade underlaget har lästs tillbaka. Sparning av ett utkast är inte ett rektorsbeslut.
+1. Öppna rätt timplan och kontrollera namn, skola och version. Välj **Planera APL** och **Lägg till period**.
+2. Välj **Årskurs** och **Termin**, exempelvis årskurs 2 och vårtermin. Läsåret visas från utbildningens start i timplanens underlag. Du kan ge perioden ett namn, men det behövs inte för att spara ett preliminärt terminsval.
+3. Välj **Granska ändringar** och **Spara APL-plan**. Du kan spara redan nu, utan datum, veckotal eller ämnen. När beskedet **APL-planen är sparad** visas har det sparade underlaget lästs tillbaka.
+4. Fortsätt senare under **Datum och omfattning**. Ange start- och slutdatum, kontrollera periodens läsår och granska veckounderlaget. Datumintervallet räknas inte automatiskt som ett visst antal hela APL-veckor.
+5. Öppna **Ämnesinnehåll och undervisningstid**. Välj ämnen, beskriv arbetsmomenten och fördela **Varav APL** i timmar och minuter. Den valda terminen visas först. Välj **Fördela även på andra terminer** om perioden sträcker sig längre. Tid som redan finns i andra terminer visas alltid och flyttas inte när du ändrar terminsvalet.
+6. Under **Utbildningsform och granskning** anger du utbildningsform och markerar när hela APL-fördelningen har granskats. Spara ändringarna på samma sätt. Sparning är inte ett rektorsbeslut.
+
+Exempel: spara en period för **årskurs 2, vårtermin** medan arbetsplats och exakta datum fortfarande diskuteras. När förläggningen är klar kompletterar du samma period. **Inför rektors bekräftelse – visa vad som saknas** visar det som återstår inför beslutet; det hindrar inte att preliminär planering sparas.
+
+Vid vårstart följer årskurs och termin timplanens befintliga indelning. Kontrollera därför förläggningen mot utbildningens start. Startuppgiften måste finnas i timplanens verifierade underlag. Om det underlaget inte kan läsas behöver det rättas innan planeringen kan fortsätta; appen hittar inte på ett läsår. Äldre perioder behåller sina datum och sin tidsfördelning utan att automatiskt få ett terminsval. Ett ändrat terminsval flyttar inga datum eller timmar; en eventuell skillnad visas för granskning.
 
 För den stödda skolförlagda yrkesutbildningen motsvarar en hel APL-vecka **23 undervisningstimmar**, alltså 1 380 minuter. Minst 15 hela granskade veckor behöver planeras; 15 veckor motsvarar 345 timmar. Tiden ska fördelas på det ämnesinnehåll som ingår. Minutprecision gör det exempelvis möjligt att fördela 11 h 30 min på en ämnesnivå.
 
@@ -95,7 +100,7 @@ Delveckor och blandade upplägg omvandlas inte automatiskt till hela 23-timmarsv
 
 ### Rektors bekräftelse och huvudmannens beslut
 
-Rektor och skoladministratör kan förbereda och spara APL-planeringen inom skolans uppdrag. **Endast rektor** kan välja **Bekräfta förläggningen** när underlaget är komplett och granskat. Bekräftelsen sparar vem som tog ansvar, när det skedde och vilket innehåll som granskades. Skoladministratören kan inte ersätta den bekräftelsen.
+Rektor och skoladministratör kan förbereda och spara APL-planeringen inom skolans uppdrag. Exakta datum, ämnesinnehåll och övrigt granskningsunderlag behövs fortfarande inför bekräftelsen. **Endast rektor** kan välja **Bekräfta förläggningen** när underlaget är komplett och granskat. Bekräftelsen sparar vem som tog ansvar, när det skedde och vilket innehåll som granskades. Skoladministratören kan inte ersätta den bekräftelsen.
 
 I **APL inför beslut** visas det sparade underlaget, periodernas uppgivna omfattning, deras granskningsstatus och rektors bekräftelse. Öppna **Visa sparade perioder och arbetsmoment** för detaljerna. **Öppna APL-planeringen** leder till samma timplans APL-avsnitt. Underlaget finns också när huvudmannen öppnar ett ärende från **Dina uppgifter och beslut**. Inkorgen skiljer APL-underlag som finns från APL som behöver kompletteras; antalet granskningsärenden är inte ett antal godkännandeklara planer.
 
