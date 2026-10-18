@@ -11,7 +11,7 @@ Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är unde
 
 Rektor och skoladministratör kan välja **Skapa ny timplan** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Övergången stöder högskoleförberedande Gy25-program och de tolv nationella Gy25-yrkesprogrammen med känd poängram.
 
-Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. Valbara block är ramar; språkpaket, elevval, grupper och bemanning hanteras senare. Alternativa ämnen och block räknas en gång.
+Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. För berörda yrkeskullar följer även programplanens sparade kontroll av yrkesprov eller gymnasiearbete med. Valbara block är ramar; språkpaket, elevval, grupper och bemanning hanteras senare. Alternativa ämnen och block räknas en gång.
 
 Tabellen är arbetsytans huvuddel. **Visa programplan** öppnar planen som timplanen bygger på. **Fler alternativ** samlar namnbyte, ny version, uppdatering och **Visa planens underlag**, utifrån vad ditt uppdrag och planens status tillåter. Beslut och **Klasser och läsår** finns efter tabellen.
 
@@ -27,6 +27,14 @@ Två klasser kan följa samma programplan men behöva olika undervisningstid. Na
 Välj **Granska** och sedan **Bekräfta och spara**. Vänta tills planen är sparad och återläst. Om svaret uteblir visar **Kontrollera samma begäran** resultatet utan att skapa en extra plan. Begäran finns kvar efter omladdning och verifiering med engångskod i samma webbläsarflik. Stäng inte fliken medan sparstatus är okänd. Efter en namnkonflikt väljer du ett annat namn och granskar igen.
 
 Flera klasser får dela en fastställd timplan. Att skapa eller kopiera en plan kopplar inga klasser automatiskt; välj klasser och läsår i **Klasser och läsår**.
+
+### Yrkesprov eller gymnasiearbete i timplanen
+
+Examensformen granskas i [programplanen](./programplaner.md#examensform-för-elevkullen). Timplanen använder det sparade underlaget och visar **Yrkesprov** eller **Gymnasiearbete** som avslutande moment. Raden omfattar 100 poäng; du planerar undervisningstimmarna separat. Varken poängen eller timmarna läggs ovanpå programmets befintliga total.
+
+För nya nationella treåriga yrkeskullar med start från den 2 juli 2028 behöver kontrollen gälla den aktuella utbildningsstarten. Om underlaget saknas eller behöver rättas går du tillbaka till programplanen. Timkraven och årsramen för APL gäller fortfarande. Skolans kontroll av examensformen är inte en automatiskt verifierad uppgift om att ett prov finns.
+
+Huvudmannen kan läsa examensformen med källa, kontrolldatum och skolans beskrivning under **Examensform inför beslut**. Timplanens underlag är fryst. Om examensformen ändras i programplanen behöver du granska en ny timplansversion från det nya underlaget; en befintlig timplan skrivs inte om. Vid byte mellan yrkesprov och gymnasiearbete blir just den avslutande 100-poängsradens timmar ofördelade i den nya timplanen. De tidigare timmarna finns i granskningsunderlaget. Granska raden och fördela tiden för det nya momentet; övriga oförändrade rader behåller sina timmar. Tidigare beslut och klasskopplingar bevaras.
 
 ### Fördela skolans timmar
 
@@ -168,7 +176,7 @@ Programplanen måste vara fastställd innan timplanen skickas. Du får skapa och
 
 En inskickad plan är låst. Den som planerar kan återta den till utkast. Huvudmannen skriver vad som är fel i **Kommentar – vad behöver rättas?** och väljer **Skicka tillbaka för rättning**. Rektor eller skoladministratör ser uppgiften **Läs återkoppling och rätta** och kommentaren direkt i planen under **Det här behöver rättas**. Efter rättning och sparande skickas planen igen. En tom kommentar kan inte skickas. Fastställande kräver en uttrycklig bekräftelse. Tidigare fastställda versioner av samma namngivna timplan bevaras som ersatta när dess nya version fastställs. Andra namngivna timplaner påverkas inte. Befintliga klasskopplingar flyttas aldrig automatiskt.
 
-Yrkesprogram kräver även granskning av grundläggande behörighet och den planerade årsramen för APL. Perioder och rektors bekräftelse krävs inte för timtabellens godkännande; de hanteras därefter i [APL-arbetsytan](#planera-apl-i-en-yrkestimplan). Där gäller bekräftelsekontrollen det stödda skolförlagda upplägget; lärling och delveckor får inget automatiskt besked genom samma beräkning. Beslut för yrkeskullar från den 2 juli 2028 spärras tills yrkesprovsmodellen stöds.
+Yrkesprogram kräver även granskning av grundläggande behörighet och den planerade årsramen för APL. Perioder och rektors bekräftelse krävs inte för timtabellens godkännande; de hanteras därefter i [APL-arbetsytan](#planera-apl-i-en-yrkestimplan). Där gäller bekräftelsekontrollen det stödda skolförlagda upplägget; lärling och delveckor får inget automatiskt besked genom samma beräkning. För berörda yrkeskullar från 2028 krävs också programplanens sparade kontroll av examensformen. Saknat eller ändrat underlag behöver åtgärdas innan timplanen kan skickas eller fastställas.
 
 Fastställda planer kan inte skickas tillbaka; ändringar görs i en ny version. Grundskola och introduktionsprogram har andra regelprofiler och får ingen ny beslutskedja genom detta gymnasieflöde.
 

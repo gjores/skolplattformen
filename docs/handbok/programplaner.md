@@ -60,7 +60,7 @@ Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte k
 
 Som rektor eller huvudman öppnar du den programplansversion du vill utgå från och väljer **Fler alternativ → Kopiera till nästa kull**. Ange namn, elevkull, eventuell lokal kod och ett startdatum efter originalets start och efter i dag. Välj **Spara kopia**.
 
-Den nya utbildningen får ett första programutkast med samma ram, programfördjupning, terminsfördelning och, för huvudmannen, samma skolval. Som rektor skapar du kopian endast för den skola du har öppnat planen för, även om originalet delas med andra skolor. Kopian är ett nytt utkast som du skickar till huvudmannen för godkännande. Elever, klasser, skolornas timplaner, paketval och tidigare beslut följer inte med. Originalets innehåll, historik och kopplingar finns kvar.
+Den nya utbildningen får ett första programutkast med samma ram, programfördjupning, terminsfördelning och, för huvudmannen, samma skolval. Som rektor skapar du kopian endast för den skola du har öppnat planen för, även om originalet delas med andra skolor. Kopian är ett nytt utkast som du skickar till huvudmannen för godkännande. Elever, klasser, skolornas timplaner, paketval och tidigare beslut följer inte med. En kontroll av yrkesprov eller gymnasiearbete följer inte heller med till nästa kull; granska examensformen på nytt för den nya utbildningsstarten. Originalets innehåll, historik och kopplingar finns kvar.
 
 Om sparandet misslyckas skapas ingen delvis färdig kopia. Om originalets plan eller skolval har ändrats stänger du kopieringen, läser om originalet och granskar det innan du kopierar igen.
 
@@ -92,6 +92,30 @@ Rektor och skoladministratör kan förbereda tomma klasser redan i programplanen
 
 Programunderlaget från Skolverket visas längst ned i finstilt. Om flera underlag finns behöver du välja ett innan du går vidare.
 
+## Examensform för elevkullen
+
+För yrkesutbildning vars första år börjar höstterminen 2028 införs yrkesprov. Om ett tillämpligt yrkesprov saknas ska gymnasiearbete ingå i stället. Det avslutande momentet omfattar **100 poäng** inom programmets befintliga poängram. Högskoleförberedande program behåller gymnasiearbete. Reglerna är beslutade genom [SFS 2026:1243, 16 kap. 22 §, bilaga 2 och övergångsbestämmelserna](https://svenskforfattningssamling.se/sites/default/files/sfs/2026-06/SFS2026-1243.pdf).
+
+Appens granskningssteg gäller nya nationella treåriga yrkeskullar med utbildningsstart från den 2 juli 2028. Första startdagen och elevkullen ska vara riktiga; använd inte ett ändrat datum för att få ett annat regelutfall. En vårstart 2028 blir inte en höststart för att planen ändras senare. Individuella omtag, skolbyten och förlängda äldre utbildningar omfattas inte av en automatisk övergångsbedömning här.
+
+Öppna ett sparat, redigerbart programplansutkast. Rektor eller huvudman med rätt att ändra planen gör kontrollen under **Examensform för elevkullen**:
+
+1. Välj **Granska examensform** och kontrollera Skolverkets aktuella underlag för utbildningen och elevkullen.
+2. Välj **Yrkesprov – ett tillämpligt prov finns** eller **Gymnasiearbete – tillämpligt yrkesprov saknas** utifrån det kontrollerade underlaget. Inget alternativ är förvalt. Gymnasiearbete är inte ett fritt undantag när ett tillämpligt prov finns.
+3. Fyll i **Källa hos Skolverket** med en officiell länk som börjar med `https://`. Under **Vad har du kontrollerat?** anger du provets namn eller kod, relevant beslut och varför det gäller. Om prov saknas beskriver du vilket underlag du kontrollerat och varför ett tillämpligt prov saknas.
+4. Ange **Kontrollerat den** och markera bekräftelsen först när du har granskat att uppgiften gäller just utbildningen och elevkullen. Datumet får inte ligga i framtiden.
+5. Välj **Spara examensform** och invänta beskedet att den är sparad för versionen. Planen är fortfarande ett utkast. **Avbryt** lämnar den sparade kontrollen oförändrad.
+
+Efter sparandet visar kortet examensform och kontrolldatum. **Visa källa och kontroll** visar länken och din beskrivning.
+
+Uppgiften är **skolans dokumenterade kontroll**. Appen kontrollerar att underlaget är ifyllt, men läser inte källans innehåll för att avgöra om ett tillämpligt prov finns. En godkänd länk är därför inte ett automatiskt verifierat prov. En misslyckad sökning eller saknad uppgift i appen betyder inte att yrkesprov saknas. Fortsätt utreda och behåll planen som utkast om frågan är oklar.
+
+**Ändra kontrollen** öppnar en ny granskning. Kontrollens datum och bekräftelse behöver anges igen. Om sparsvaret är oklart väljer du **Läs aktuell sparstatus** och granskar det som faktiskt är sparat innan du försöker på nytt. Krävs engångskod visas det i arbetsytan.
+
+En ny version för samma utbildning behåller underlaget, men den nya planen behöver granskas och beslutas igen. Vid kopiering till nästa elevkull tas kontrollen bort och behöver göras om för den nya starten. Fastställda versioner och tidigare beslut ändras inte i efterhand.
+
+Detta steg planerar utbildningens avslutande moment. Det registrerar inte elevens provdeltagande, betyg eller examen och ersätter inte granskningen av APL.
+
 ## Klasser för utbildningen
 
 När en ny utbildning och dess första programplansutkast har sparats öppnas **Klasser för utbildningen**. Du kan välja **Gör senare** och sedan återöppna med **Visa klasser** i utbildningens programplan. Kontrollera utbildning, elevkull och skola innan du arbetar med klasserna.
@@ -122,7 +146,7 @@ Om ett svar inte kan bekräftas behålls den granskade begäran i samma webbläs
 
 Välj en annan årskurs utan att byta det globala planeringsåret. **Visa hela planen** visar alla sex terminer och **Visa planeringsårets del** återgår till årets del. Ett okänt startunderlag ger ett konkret besked och ingen gissad första årskurs.
 
-Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och gymnasiearbete. Att visa två terminer ändrar inte de andra terminernas sparade fördelning.
+Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegemensamma ämnen, programgemensamma ämnen, inriktning, programfördjupning, individuellt val och avslutande moment: gymnasiearbete eller yrkesprov enligt planens underlag. Att visa två terminer ändrar inte de andra terminernas sparade fördelning.
 
 **Fördela poäng**
 
@@ -132,7 +156,7 @@ Tabellen har en rad per fast nivå eller valbart block, grupperad i gymnasiegeme
   - nivåerna i ett ämne läggs i ordning,
   - gymnasiegemensamma och programgemensamma ämnen läggs från årskurs 1,
   - inriktning och programfördjupning läggs från årskurs 2,
-  - individuellt val läggs i årskurs 2–3 och gymnasiearbetet i årskurs 3,
+  - individuellt val läggs i årskurs 2–3 och det avslutande momentet i årskurs 3,
   - varje nivå delas lika på höst och vår,
   - ämnen med en enda nivå läggs där läsåret har minst poäng.
 
@@ -176,9 +200,9 @@ Beslutsunderlaget kontrollerar bland annat att:
 - analysen inte har några andra fel,
 - utbildningens startdatum finns.
 
-Beslutsstatus och nästa ansvariga roll visas i beslutspanelen. Knappen **Kontrollera planen** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. En färdig analys är inte ett beslut. Beslutspanelen kontrollerar det sparade underlaget och visar vad som återstår före inskickning eller fastställande.
+Beslutsstatus och nästa ansvariga roll visas i beslutspanelen. Knappen **Kontrollera planen** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett avslutande moment före årskurs 3, stoppar inte men bör ses över. En färdig analys är inte ett beslut. Beslutspanelen kontrollerar det sparade underlaget och visar vad som återstår före inskickning eller fastställande.
 
-Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. Barn- och fritidsprogrammet, Hotell- och turismprogrammet samt Vård- och omsorgsprogrammet omfattar 2 700 poäng. Övriga stödda nationella yrkesprogram omfattar 2 800 poäng. Programfördjupningens ram kontrolleras mot respektive programs total. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
+Poängramen för programfördjupning räknas ut så här: programmets poäng minus avslutande moment (100), individuellt val (200) och programgrunden. Barn- och fritidsprogrammet, Hotell- och turismprogrammet samt Vård- och omsorgsprogrammet omfattar 2 700 poäng. Övriga stödda nationella yrkesprogram omfattar 2 800 poäng. Programfördjupningens ram kontrolleras mot respektive programs total. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
 
 ## Från utkast till fastställd programplan
 
@@ -197,7 +221,7 @@ Huvudmannen kan även granska och fastställa ett komplett programutkast direkt.
 
 Flödet stödjer högskoleförberedande Gy25-program och de tolv nationella Gy25-yrkesprogrammen med verifierad källa och fullständig terminsfördelning. Yrkesprogrammens grundläggande behörighetsnivåer ingår i den gemensamma planen; en enskild elevs bortval görs inte här. Yrkesplaner kräver också uttrycklig granskning av behörighetsnivåer och APL. Beslutspanelen spärrar okända programprofiler och ofullständiga underlag med en förklaring. Manuell granskning av struktur och elevens möjliga val behövs även när automatiska kontroller är godkända. Fastställ programplanen innan elevkullen börjar. Redan fastställda planer kan inte skickas tillbaka; fortsatt ändring kräver en ny version.
 
-För yrkeskullar som börjar den 2 juli 2028 eller senare spärras beslut tills systemet stödjer den nya yrkesprovsmodellen. Den nuvarande planen använder gymnasiearbete och ska inte godkännas som om den hanterade yrkesprov.
+För nya nationella treåriga yrkeskullar med start från den 2 juli 2028 behöver examensformen vara granskad och sparad innan planen skickas eller fastställs. Huvudmannen ser valet, utbildningsstarten, kontrolldatumet, källan och skolans beskrivning under **Examensform inför beslut**. [Se arbetsgången för examensform](#examensform-för-elevkullen).
 
 ### Programplan och skolans APL-planering
 

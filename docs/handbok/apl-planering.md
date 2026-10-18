@@ -90,4 +90,6 @@ Gymnasial lärlingsutbildning ska till mer än hälften genomföras som APL, rä
 
 Om APL-plats saknas får skolan inte fritt ersätta APL med skolförlagd tid. Huvudmannen behöver pröva de särskilda förutsättningarna och åtgärderna i [gymnasieförordningen 4 kap. 13 §](https://www.riksdagen.se/sv/dokument-och-lagar/dokument/svensk-forfattningssamling/gymnasieforordning-20102039_sfs-2010-2039/). Appen har inget beslut för ett sådant undantag.
 
-Appens automatiska kontroll kräver en verifierad, stödd programkälla och elevkull. Beslut för yrkeskullar med start från den 2 juli 2028 spärras tills yrkesprovsmodellen stöds. En felaktig utbildningsform eller ett ändrat datum ska inte användas för att kringgå en saknad regelprofil.
+Appens automatiska kontroll kräver en stödd programkälla och elevkull. För nya nationella treåriga yrkeskullar med start från den 2 juli 2028 krävs även den sparade [kontrollen av examensformen i programplanen](./programplaner.md#examensform-för-elevkullen). Den följer med timplanens underlag. Skolans dokumenterade kontroll är inte en automatiskt verifierad uppgift om publicerade yrkesprov.
+
+Yrkesprov eller gymnasiearbete ersätter inte APL-kraven. Planera fortfarande årsram, perioder och lärande enligt arbetsgången ovan. Appen registrerar inte provdeltagande, betyg eller examen. Äldre elevers individuella omtag och övergångar till nya regler bedöms inte automatiskt. En felaktig utbildningsform eller ett ändrat datum ska inte användas för att kringgå saknat underlag.
