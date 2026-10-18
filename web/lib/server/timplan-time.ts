@@ -28,7 +28,7 @@ export async function readTimplanTimeBasis(tx: Tx, input: GymTimplanReadRequest,
   const { body: plan } = await readGymTimplan(tx, input);
   const { body: apl } = await readAplPlan(tx, input, authority);
   try {
-    if (isGymTimplanV2(plan) || apl.revision !== plan.revision) throw new TypeError('Stale transition');
+    if (isGymTimplanV2(plan) || (apl.timplanRevision ?? apl.revision) !== plan.revision) throw new TypeError('Stale transition');
     const body = parseTimplanTimeBasis(raw, input.planId), proposal = projectTimplanTimeTransition(plan, apl.plan);
     if (body.revision !== plan.revision || JSON.stringify(body.rows) !== JSON.stringify(proposal.timeRows)) {
       // JSON objects have no semantic key ordering; compare each exact row independently.

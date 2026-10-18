@@ -15,18 +15,19 @@ export async function distributeGymTimplan(tx: Tx, input: GymTimplanDistribution
   if (isGymTimplanV2(before)) {
     if (!input.commandId) throw new Deny('bad_request', 400);
     let proposal;
-    try { proposal = suggestGymTimplanTimeV2(before, input.totalHours, input.mode); } catch { throw new Deny('bad_request', 400); }
+    try { proposal = suggestGymTimplanTimeV2(before, input.totalHours, input.mode, input.apl); } catch { throw new Deny('bad_request', 400); }
     const saved = await commandTimplanTime(tx, { contractVersion: 'timplan_time_v2', action: 'save_rows', commandId: input.commandId,
       planId: input.planId, expectedRevision: input.expectedRevision, rows: proposal.timeRows });
     const { body } = await readGymTimplan(tx, { planId: input.planId });
     if (!isGymTimplanV2(body) || body.revision !== saved.body.receipt.revision || body.rows.some(row =>
       body.timeRows[row.key].schoolMinutes.some((n, i) => n !== proposal.timeRows[row.key]?.schoolMinutes[i])
-      || body.timeRows[row.key].annualAplMinutes.some((n, i) => n !== before.timeRows[row.key]?.annualAplMinutes[i]))) throw new AuditUnavailable();
+      || body.timeRows[row.key].annualAplMinutes.some((n, i) => n !== proposal.timeRows[row.key]?.annualAplMinutes[i]))) throw new AuditUnavailable();
     return { body, event: { action: 'gym_timplan_hours_distributed', objectType: 'timplan', objectId: input.planId, details: { count: proposal.changedRows.length } } };
   }
+  if (input.apl) throw new Deny('bad_request', 400);
   const apl = VOCATIONAL_GY25_CODES.some(code => code === before.source.education.programCode)
     ? (await readAplPlan(tx, { planId: input.planId }, authority)).body : null;
-  if (apl && apl.revision !== before.revision) throw new Deny('conflict', 409);
+  if (apl && (apl.timplanRevision ?? apl.revision) !== before.revision) throw new Deny('conflict', 409);
   let proposal;
   try { proposal = suggestGymTimplanHours(before, input.totalHours, input.mode, apl?.plan); }
   catch { throw new Deny('bad_request', 400); }
