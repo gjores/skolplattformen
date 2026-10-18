@@ -73,8 +73,10 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
     if (separated && parseTimplanTimeCopyReview(timeCopyReviewValue).some(item => item.resolution === null)) blockers.push('Kopieringen har tidsrader som behöver granskas innan timplanen godkänns.');
     const totals = timplanTimeTotals({ rows, timeRows }, profile?.vocational === true);
     if (!totals.complete || rows.some(row => [...timeRows[row.key].schoolMinutes, ...timeRows[row.key].annualAplMinutes].reduce<number>((sum, n) => sum + (n ?? 0), 0) === 0)) blockers.push('Fördela undervisningstid på varje rad och i alla aktiva terminsfält.');
+    if (separated && !envelope.replayed && profile?.vocational && totals.aplMinutes < 20700) blockers.push('Planera minst 345 timmar APL i timplanen. Perioder och veckor planeras senare.');
     if (profile && totals.totalMinutes < profile.hours * 60) blockers.push(`Timplanen innehåller färre än ${formatCount(profile.hours)} planerade undervisningstimmar.`);
   } else if (expected.kind === 'timplan') {
+    if (separated && !envelope.replayed && profile?.vocational) blockers.push('Byt till timtabellen med separat APL per årskurs innan timplanen skickas för godkännande.');
     const allocations = new Map(hours.map(row => [row.rowKey,row.hours]));
     if (allocations.size !== hours.length || hours.some(row => !rows.some(r => r.key === row.rowKey))) throw new TypeError('Invalid time rows');
     let incomplete = false, total = 0;

@@ -264,12 +264,13 @@ test('new frozen replay survives current APL changes without reinterpreting a co
  assert.equal((await change(request('andra',input))).status,500);assert.equal(state.mutations.length,1);
 });
 
-async function separateTimetableReply() {
+async function separateTimetableReply(aplMinutes=20700) {
  const input=await vocationalReply('BF25','timplan'),r=state.reply;
  r.contractVersion='timetable_decision_v2';r.apl=null;r.blockers=[];state.aplBasis=null;
  r.checks=r.checks.map(c=>c.id==='apl'?{id:'apl-budget',label:'Årsram granskas nu, perioder senare'}:c);
  r.timeModel='school_terms_annual_apl_v2';r.timeCopyReview=[];
  r.timeRows=Object.fromEntries(r.hours.map(row=>[row.rowKey,{schoolMinutes:row.hours.map(n=>n===null?null:n*60),annualAplMinutes:[0,1,2].map(i=>row.hours[i*2]!==null||row.hours[i*2+1]!==null?0:null)}]));delete r.hours;
+ const aplRow=Object.values(r.timeRows).find(row=>row.annualAplMinutes.some(n=>n!==null));aplRow.annualAplMinutes[aplRow.annualAplMinutes.findIndex(n=>n!==null)]=aplMinutes;
  state.envelopeOverride={contractVersion:'apl_decision_sql_v1',resultContract:'timetable_decision_v2',replayed:false,result:r,aplBasis:null};
  return{...input,confirmedChecks:r.checks.map(c=>c.id)};
 }
@@ -286,4 +287,34 @@ test('new timetable contract cannot smuggle period snapshots or select old serve
  for(const mutate of [s=>s.envelopeOverride.aplBasis={},s=>s.envelopeOverride.resultContract='apl_decision_v1',s=>s.reply.apl={},s=>delete s.reply.timeCopyReview]){
   const input=await separateTimetableReply();mutate(state);assert.equal((await change(request('andra',input))).status,500);assert.equal(state.mutations.length,0);
  }
+});
+
+const minimumAplMessage='Planera minst 345 timmar APL i timplanen. Perioder och veckor planeras senare.';
+test('server rejects insufficient annual APL independently of SQL blockers and preserves draft presentation',async()=>{
+ for(const minutes of [0,20699]){
+  const input=await separateTimetableReply(minutes);
+  const detail=await projectPlanDecision(state.envelopeOverride,{kind:'timplan',planId},authority());
+  assert.ok(detail.blockers.includes(minimumAplMessage));
+  assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+ }
+});
+test('exactly 345 hours and larger annual APL budgets pass without period evidence',async()=>{
+ for(const minutes of [20700,20701]){
+  const input=await separateTimetableReply(minutes);
+  assert.equal((await change(request('andra',input))).status,200);
+ }
+});
+test('historical timetable receipt below new minimum retains original blockers',async()=>{
+ const input=await separateTimetableReply(0);state.envelopeOverride.replayed=true;
+ const detail=await projectPlanDecision(state.envelopeOverride,input,authority(),input);
+ assert.deepEqual(detail.blockers,[]);assert.equal((await change(request('andra',input))).status,200);
+});
+test('vocational legacy timetable requires explicit annual APL transition for a new decision',async()=>{
+ const input=await separateTimetableReply();const r=state.reply;
+ r.hours=Object.entries(r.timeRows).map(([rowKey,row])=>({rowKey,hours:row.schoolMinutes.map(n=>n===null?null:n/60)}));
+ delete r.timeRows;delete r.timeModel;delete r.timeCopyReview;
+ const detail=await projectPlanDecision(state.envelopeOverride,{kind:'timplan',planId},authority());
+ assert.ok(detail.blockers.some(x=>x.startsWith('Byt till timtabellen')));
+ assert.equal((await change(request('andra',input))).status,409);
+ state.envelopeOverride.replayed=true;assert.equal((await change(request('andra',input))).status,200);
 });
