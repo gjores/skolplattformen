@@ -46,6 +46,20 @@ Följande heltalsgräns gäller den äldre terminstabellen och högskoleförbere
 
 **Fler alternativ → Visa planens underlag** visar den sparade poängramen. **Visa programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Gå till timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
 
+### Kontrollera att timmarna räcker
+
+**Räcker timmarna?** ovanför tabellen visar planerade timmar, miniminivå och hur mycket som saknas. Kontrollen gäller hela utbildningen, även när du bara visar en årskurs eller ofördelade rader. Summorna följer dina inmatningar; osparade och ofullständiga värden märks som preliminära. Invänta sparbeskedet innan du går vidare.
+
+För de Gy25-program som appen stöder jämförs totalen med programmets garanterade undervisningstid, GUT: 2 180 timmar för högskoleförberedande program, 2 625 för BF, HT och VO samt 2 720 för övriga nationella yrkesprogram. Den gemensamma planen omfattar hela programmets poängram; individuella bortval hanteras separat.
+
+Yrkesprogram har dessutom en egen kontroll av **Varav APL**: minst **345 timmar**, motsvarande 15 veckor × 23 GUT-timmar. Dessa timmar ingår redan i totalen. Mycket skoltid ersätter inte APL-kravet. Högskoleförberedande program har ingen APL-kontroll eller APL-kolumn i appen.
+
+Du kan spara ett utkast med för få timmar. Det går däremot inte att skicka in eller godkänna en timplan med för låg total eller för lite års-APL. En äldre yrkestimplan behöver först få skoltimmar och APL särredovisade genom **Granska byte till skola och APL**. Tidigare beslut och deras kvitton ändras inte.
+
+**Timnivån uppnådd** avser timbudgeten. Perioder, ämnesinnehåll, minst 15 faktiska veckor och genomförande behöver fortfarande granskas i nästa process. Lärlingsutbildning kräver en större andel APL. Kontrollen inför inte fasta timkrav per ämne eller årskurs; skolan behöver granska varje möjlig studiegång och elevernas behov. Om programmets ram eller elevkull saknar verifierade regler visas det i stället för ett besked om uppnådd timnivå.
+
+Regelgrund: [Skolverkets undervisningstid](https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema) och [APL och lärlingsutbildning](https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/arbetsplatsforlagt-larande-apl-och-larlingsutbildning).
+
 ### Autofördela timmar för hela timplanen
 
 Välj **Autofördela timmar** när du vill få ett förslag utifrån en totalsumma. Spara först eventuella ändringar i cellerna eller APL-planeringen.

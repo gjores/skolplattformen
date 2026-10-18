@@ -24,6 +24,8 @@ Källa: [gymnasieförordningen (2010:2039), 4 kap. 12 och 14 §§](https://www.r
 
 Nya yrkestimplaner har **Skola HT**, **Skola VT** och separat **APL per årskurs**. Ange timmarna per ämne i timplanens tabell och invänta **Allt sparat**. Du behöver inga perioder, datum eller veckotal för att spara årsramen. Högskoleförberedande program har enbart skoltimmar och ingen APL-planering i appen.
 
+Redan vid timtabellen visar **Räcker timmarna?** om både programmets totala GUT och minst 345 APL-timmar är planerade. Ett utkast får sparas med mindre tid, men kan inte skickas in eller godkännas förrän timkraven är uppfyllda. 345 timmar är ett planeringsmått för 15 veckor × 23 timmar, inte ett intyg om genomförda veckor eller tillräcklig omfattning för lärlingsutbildning. [Läs om timkontrollen](./timplaner.md#kontrollera-att-timmarna-räcker).
+
 Exempel: **HT 20 + VT 20 + APL 60 = 100 timmar**. När 40 av APL-timmarna senare förläggs i en period återstår 20 att förlägga. Timplanens total är fortfarande 100 timmar.
 
 Huvudmannen godkänner timtabellen först. Perioder och datum behövs inte för det godkännandet. Välj därefter **Fortsätt till APL-planering** och öppna periodplaneringen. Översikten visar årsram, förlagd tid och kvar att förlägga. Behöver årsramen ändras skapar du en ny timplansversion och låter den godkännas innan du fortsätter med dess perioder. Inför rektors bekräftelse behöver hela årsramen vara förlagd och det övriga underlaget granskat.

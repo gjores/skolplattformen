@@ -8,6 +8,7 @@ import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { gymTimplanCanEdit, gymTimplanTotals, isGymTimplanV2, gymTimplanAllowsApl, parseGymTimplan, parseGymTimplanHourInput, parseGymTimplanRowReply,
   type GymTimplan, type GymTimplanLegacy, type GymTimplanHours, type GymTimplanRow } from '@/lib/gym-timplan.ts';
 import ProtectedGymTimplanTime from './protected-gym-timplan-time';
+import ProtectedTimplanBudget from './protected-timplan-budget';
 import ProtectedTimplanTimeTransition from './protected-timplan-time-transition';
 import { loadTimplanTimeJournal, type TimplanTimeJournalScope } from '@/lib/timplan-time-journal.ts';
 import MfaStepUpNotice from './mfa-step-up';
@@ -169,6 +170,7 @@ function LegacyGymTimplanHours({ timeJournalScope, aplInclusive = false, onActiv
     {transitionChecking && <output>Kontrollerar tidigare byte av timtabell…</output>}{transitionError && <p role="alert">{transitionError}</p>}
     {gymTimplanAllowsApl(plan) && <div className="gt-explanation"><p>Den här timplanen anger totaltid inklusive APL. Byt efter granskning för att ange skoltid och APL separat.</p>{gymTimplanCanEdit(plan) && <Button variant="outline" disabled={!timeJournalScope || disabled || drafts.size > 0 || savingKey !== null || distributionOpen || transitionOpen} onClick={() => { setTransitionOpen(true); onNavigationBlocked(true); onActivity?.(true); }}>Granska byte till skola och APL</Button>}</div>}
     {transitionOpen && <ProtectedTimplanTimeTransition plan={plan} scope={timeJournalScope ?? null} onSaved={onSaved} onClose={() => { setTransitionOpen(false); onNavigationBlocked(false); onActivity?.(false); }} onSecurityFailure={onSecurityFailure}/>}
+    <ProtectedTimplanBudget plan={plan} totalMinutes={totals.total * 60} aplMinutes={null} complete={totals.missingRows.length === 0} pending={drafts.size > 0 || savingKey !== null} invalid={[...drafts.values()].some(draft => hours(draft.values) === null)}/>
     <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{totals.terms[y * 2] + totals.terms[y * 2 + 1]} <small>timmar</small></strong><span>HT {totals.terms[y * 2]} · VT {totals.terms[y * 2 + 1]}</span></div>)}</div>
     <div className="gt-toolbar"><p><strong>{totals.total} timmar</strong> planerade · {totals.missingRows.length ? `${totals.missingRows.length} rader kvar att fördela` : 'alla aktiva terminer ifyllda'} <output className={`gt-save-state${issues ? ' gt-save-warning' : ''}`}>{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p><Button disabled={!editable || drafts.size > 0 || savingKey !== null} onClick={openDistribution}>Autofördela timmar</Button><Button variant="outline" disabled={distributionOpen} onClick={() => setOnlyMissing(value => !value)}>{onlyMissing ? 'Visa alla rader' : 'Visa bara ofördelade'}</Button></div>
     {distributionNotice && <output className="gt-explanation">{distributionNotice}</output>}

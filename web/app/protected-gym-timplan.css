@@ -98,3 +98,13 @@
 .gt-more > summary { min-height:44px; padding:.65rem 1rem; cursor:pointer; border:1px solid var(--border); border-radius:.6rem; }
 .gt-more-actions { display:grid; gap:.3rem; padding:.6rem; border:1px solid var(--border); border-radius:.6rem; background:var(--card); }
 .gt-plan-picker { width:min(95vw,72rem); max-width:72rem; max-height:90dvh; overflow:auto; }
+
+.gt-budget { margin: 1rem 0; padding: 1rem; border: 1px solid #cbd5e1; border-radius: .75rem; background: #f8fafc; color: #1e293b; }
+.gt-budget > p, .gt-budget details { font-size: .875rem; margin-top: .65rem; }
+.gt-budget-checks { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .65rem; }
+.gt-budget-check { display: flex; flex: 1 1 15rem; flex-direction: column; gap: .2rem; padding: .75rem; border-left: 4px solid #b45309; background: #fffbeb; }
+.gt-budget-check b { color: #92400e; }
+.gt-budget-sufficient { border-left-color: #047857; background: #ecfdf5; }
+.gt-budget-sufficient b { color: #065f46; }
+.gt-budget summary { cursor: pointer; }
+.gt-budget a { text-decoration: underline; }

@@ -13,6 +13,7 @@ import type { GymTimplanHoursProps } from './protected-gym-timplan-hours';
 import ProtectedGymTimplanDistribution from './protected-gym-timplan-distribution';
 import ProtectedTimplanTimeCopyReview from './protected-timplan-time-copy-review';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedTimplanBudget from './protected-timplan-budget';
 
 type Draft = { values: string[]; original: TimeRowV2; mode: 'edit' | 'compare' | 'unread' | 'retry'; error: string | null; mfa: boolean; pending?: TimplanTimeRowCommand };
 const strings = (row: TimeRowV2) => [...row.schoolMinutes, ...row.annualAplMinutes].map(formatTimplanMinutes);
@@ -200,6 +201,7 @@ export default function ProtectedGymTimplanTime({ timeJournalScope: scope = null
 
     {!journalReady && !journalError && <output>Kontrollerar tidigare sparförsök…</output>}
     <p className="gt-explanation">Planera skoltimmar för HT och VT och APL för hela årskursen. APL-perioder, veckor och datum kan du lägga in senare. Års-APL ingår redan i totalen.</p>
+    <ProtectedTimplanBudget plan={plan} totalMinutes={totals.totalMinutes} aplMinutes={totals.aplMinutes} complete={totals.complete} pending={drafts.size > 0 || savingKey !== null || general !== null} invalid={[...drafts.values()].some(draft => values(draft.values) === null)}/>
     <div className="gt-year-totals">{[0, 1, 2].map(y => <div key={y}><span>Årskurs {y + 1}</span><strong>{hours(totals.yearMinutes[y])}</strong><span>Skola {hours(totals.termMinutes[y * 2] + totals.termMinutes[y * 2 + 1])} · APL {hours(totals.annualAplMinutes[y])}</span></div>)}</div>
     <div className="gt-toolbar"><p><strong>Hela planen: {hours(totals.totalMinutes)}</strong> · varav APL {percent(totals.aplPercent)}{!totals.complete && ' (preliminärt)'} <output className="gt-save-state">{savingKey ? 'Sparar…' : drafts.size ? 'Osparade ändringar' : 'Allt sparat'}</output></p>
       <Button disabled={!editable || drafts.size > 0 || savingKey !== null} onClick={() => { if (running.current || latest.current.size || disabledRef.current) return; distribution.current = true; setDistributionOpen(true); setNotice(null); report(); }}>Autofördela timmar</Button>
