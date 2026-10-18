@@ -67,7 +67,7 @@ export function requirePreviousRuntimeProof(previous,artifact,runtime,{cleanupPr
   assert.deepEqual(business,previous.beforeBusiness);assert.deepEqual(configuration,previous.beforeConfiguration);
   previous={kind:previous.kind,mode:previous.mode,status:'PASS',applied:true,afterArtifact:previous.beforeArtifact,afterRuntime:previous.restoredRuntime};
  }
- assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery','apl-annual-local-delivery','planning-flow-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
+ assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery','apl-annual-local-delivery','planning-flow-local-delivery','timplan-minimum-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
  for(const part of ['listener','preview','manager']){const old=previous.afterRuntime[part],current=runtime[part];for(const key of ['pid','started','args'])assert.equal(current[key],old[key],'Active process differs from previous delivery');if(part!=='manager')assert.equal(current.ppid,old.ppid);else assert.ok(current.ppid===old.ppid||current.ppid===1,'Manager parent changed unexpectedly');}
 }
 async function health(){
