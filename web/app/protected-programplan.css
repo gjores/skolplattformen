@@ -205,3 +205,11 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .ppb-whole-plan[aria-pressed=true]{border-color:#365ce6;font-weight:600}.ppb-year-context{font-size:.9rem;color:#46586d;line-height:1.5}
 .ppb[data-year="0"] .ppb-y1,.ppb[data-year="0"] .ppb-y2,.ppb[data-year="1"] .ppb-y0,.ppb[data-year="1"] .ppb-y2,.ppb[data-year="2"] .ppb-y0,.ppb[data-year="2"] .ppb-y1{display:none}
 @media(max-width:767px){.ppb[data-year="all"] .ppb-table{min-width:760px}.ppb-mobile-years{max-width:100%;flex-wrap:wrap}.ppb-table-wrap{max-width:100%;overflow-x:auto}}
+
+/* Sekundära åtgärder öppnas vid behov och fungerar även utan pekdon. */
+.pps-more-actions{border:1px solid #d4dfeb;border-radius:8px;background:#fff;max-width:100%}
+.pps-more-actions>summary{cursor:pointer;min-height:44px;padding:10px 14px;font-size:.875rem;font-weight:500}
+.pps-more-actions>summary:focus-visible{outline:3px solid #5b8ec1;outline-offset:2px;border-radius:8px}
+.pps-more-actions[open]{flex-basis:100%}
+.pps-more-actions-content{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 12px}
+@media(max-width:700px){.pps-more-actions-content{display:grid;grid-template-columns:minmax(0,1fr)}.pps-more-actions-content button{justify-content:flex-start}}

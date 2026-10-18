@@ -7,11 +7,13 @@ Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är unde
 
 ## Från programplan till gymnasiets timplan
 
-Öppna en sparad programplan och välj **Timplan**, eller öppna **Timplaner**, välj gymnasium och hitta årsradens utbildning och skola. Årsraden öppnar sin exakta timplansversion. Listan visar bara skapade timplaner. Utbildningar utan timplan finns under **Programplaner**, där du öppnar den sparade programplanen och väljer **Timplan**. Inget utkast skapas genom att öppna underlaget eller byta år. Välj en bestämd skola när samma programram används av flera. Varje skola kan ha flera namngivna timplaner med egna timmar och versioner.
+Öppna en sparad programplan och välj **Gå till timplan**, eller öppna **Timplaner**, välj gymnasium och hitta årsradens utbildning och skola. Årsraden öppnar sin exakta timplansversion. Listan visar bara skapade timplaner. Utbildningar utan timplan finns under **Programplaner**, där du öppnar den sparade programplanen och väljer **Gå till timplan**. Inget utkast skapas genom att öppna underlaget eller byta år. Välj en bestämd skola när samma programram används av flera. Varje skola kan ha flera namngivna timplaner med egna timmar och versioner.
 
 Rektor och skoladministratör kan välja **Skapa ny timplan** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Övergången stöder högskoleförberedande Gy25-program och de tolv nationella Gy25-yrkesprogrammen med känd poängram.
 
 Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. Valbara block är ramar; språkpaket, elevval, grupper och bemanning hanteras senare. Alternativa ämnen och block räknas en gång.
+
+Tabellen är arbetsytans huvuddel. **Visa programplan** öppnar planen som timplanen bygger på. **Fler alternativ** samlar namnbyte, ny version, uppdatering och **Visa planens underlag**, utifrån vad ditt uppdrag och planens status tillåter. Beslut och **Klasser och läsår** finns efter tabellen.
 
 ### Flera timplaner för samma programplan
 
@@ -42,7 +44,7 @@ Följande heltalsgräns gäller den äldre terminstabellen och högskoleförbere
 
 Årskurssummorna visar planerade timmar. Planeringsåret och det frysta underlagets startdatum avgör vilken årsdel som visas från början. Välj **Åk 1**, **Åk 2** eller **Åk 3**, **Visa hela planen** eller **Visa planeringsårets del** utan att ändra det globala planeringsåret. På telefon finns samma årskursknappar och tabellen kan rullas i sidled. **Visa bara ofördelade** hittar tomma aktiva terminer. En sparad ändring bevarar hela radens sex terminer, även dem som inte visas. När sidan laddas om öppnas samma sparade version igen.
 
-**Underlag: Programplan v…** visar den frysta poängramen. **Öppna programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
+**Fler alternativ → Visa planens underlag** visar den sparade poängramen. **Visa programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Gå till timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
 
 ### Autofördela timmar för hela timplanen
 
@@ -69,7 +71,7 @@ Enbart fastställande av programplanen ger ingen varning om ändrat innehåll. E
 
 ### Koppla en eller flera klasser till ett läsår
 
-Rektor och skoladministratör kan koppla klasser till en fastställd gymnasietimplan inom sitt skoluppdrag. Välj **Klasser** vid timplanens namn för att öppna **Klasser och läsår**, eller **Koppla klass** i kortet. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
+Rektor och skoladministratör kan koppla klasser till en fastställd gymnasietimplan inom sitt skoluppdrag. Öppna **Klasser och läsår** efter tabellen och välj **Koppla klass**. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
 
 1. Kontrollera timplanens namn, version och läsår. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda. Det globala planeringsåret visas separat. Om det ligger inom utbildningens tre läsår används det som första förslag. Annars behöver du uttryckligen välja ett giltigt läsår.
 2. Markera en eller flera befintliga klasser för samma utbildning, kull och skola. Varje klass visar sin nuvarande timplan för det valda läsåret. En klass som redan använder den valda planen behöver inte kopplas igen. Saknas klassen kan du ange klassnamn och välja **Skapa klass**. Den skapas utan elever och behöver sedan markeras och kopplas. Klasser från [programplanens klasssteg](./programplaner.md#klasser-för-utbildningen) finns också här.
@@ -98,58 +100,47 @@ Om någon annan hunnit spara hämtas aktuell timplan och din inmatning finns kva
 
 Utbildningens start låser inte skolans timplanering automatiskt. En arkiverad utbildnings timplaner kan läsas men inte ändras. Ett utkast är förberedande planering tills huvudmannen har fastställt det enligt flödet nedan.
 
-Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. Utbildningar utan timplan finns under **Programplaner**. Skapa och spara programplanen, välj **Timplan**, välj skola och sedan **Skapa ny timplan**. Först när utkastet är sparat visas det i timplanslistan.
+Gymnasiets timplan måste alltid vara kopplad till en programplan. Programplanen får finnas som ett utkast innan någon timplan skapas. Utbildningar utan timplan finns under **Programplaner**. Skapa och spara programplanen, välj **Gå till timplan**, välj skola och sedan **Skapa ny timplan**. Först när utkastet är sparat visas det i timplanslistan.
 
 ## Planera APL i en yrkestimplan
 
-Läs [Planera och följa upp APL](./apl-planering.md) för regler, arbetsgång och ansvar före, under och efter en period. I appen finns **Så planerar du APL** direkt i APL-avsnittet, även i läsläge.
+APL-perioderna har en egen arbetsyta. Timplanen innehåller ämnenas **Skola HT**, **Skola VT** och **APL per årskurs**. Du behöver inte välja APL-terminer, datum eller arbetsmoment här. Huvudmannen kan godkänna timtabellen innan perioderna är planerade.
 
-APL-planeringen hör till en bestämd namngiven timplan och version på skolan. Två klasser med samma programplan kan därför ha olika APL-upplägg i var sin timplan. Planeringen visar avsedd omfattning, arbetsmoment och hur mycket av undervisningstiden som ska vara APL.
+När timplanen är godkänd väljer du **Fortsätt till APL-planering**. Du kan också öppna **APL-planering** i menyn och välja rätt timplan. Kontrollera alltid namn, skola, elevkull och version. För ett utkast visar **Visa APL-planering** eventuella tidigare uppgifter, men perioderna kan inte ändras förrän timplanen är godkänd. Högskoleförberedande program har ingen APL-planering.
+
+Ämnen, årskurser och APL-timmar från timplanen är underlaget för det fortsatta arbetet. Den separata vyn visar årsramen, förlagd tid och kvar att förlägga. **HT 20 + VT 20 + APL 60 = 100 timmar** även när 40 av APL-timmarna senare förläggs till en period; 20 återstår då att förlägga. Perioderna lägger inte timmar ovanpå timplanens total.
 
 ### Perioder, innehåll och undervisningstid
 
-1. Öppna rätt timplan och kontrollera namn, skola och version. Välj **Planera APL** och **Lägg till period**.
-2. Välj **Årskurs** och **Termin**, exempelvis årskurs 2 och vårtermin. Läsåret visas från utbildningens start i timplanens underlag. Du kan ge perioden ett namn, men det behövs inte för att spara ett preliminärt terminsval.
-3. Välj **Granska ändringar** och **Spara APL-plan**. Du kan spara redan nu, utan datum, veckotal eller ämnen. När beskedet **APL-planen är sparad** visas har det sparade underlaget lästs tillbaka.
-4. Fortsätt senare under **Datum och omfattning**. Ange start- och slutdatum, kontrollera periodens läsår och granska veckounderlaget. Datumintervallet räknas inte automatiskt som ett visst antal hela APL-veckor.
-5. Öppna **Ämnesinnehåll och undervisningstid**. Välj ämnen, beskriv arbetsmomenten och fördela **Varav APL** i timmar och minuter. Den valda terminen visas först. Välj **Fördela även på andra terminer** om perioden sträcker sig längre. Tid som redan finns i andra terminer visas alltid och flyttas inte när du ändrar terminsvalet.
-6. Under **Utbildningsform och granskning** anger du utbildningsform och markerar när hela APL-fördelningen har granskats. Spara ändringarna på samma sätt. Sparning är inte ett rektorsbeslut.
+I **APL-planering** väljer du **Lägg till period**, årskurs och termin. Du kan spara detta preliminära val och komplettera datum, omfattning och arbetsmoment senare. Terminen väljs alltså när APL ska förläggas; APL-kolumnen i timplanen avser hela årskursen.
 
-Exempel: spara en period för **årskurs 2, vårtermin** medan arbetsplats och exakta datum fortfarande diskuteras. När förläggningen är klar kompletterar du samma period. **Inför rektors bekräftelse – visa vad som saknas** visar det som återstår inför beslutet; det hindrar inte att preliminär planering sparas.
+Under **Ämnesinnehåll och undervisningstid** väljer du berörda ämnesnivåer ur timplanen, beskriver arbetsmomenten och fördelar tid från årsramen. Använd ämnesplanen som stöd för innehållet. Appen har ännu ingen fullständig katalog med centralt innehåll att välja arbetsmoment ur; beskrivningen görs manuellt. Ingenting från en ämnesplan läggs automatiskt in som ett genomfört arbetsmoment.
 
-Vid vårstart följer årskurs och termin timplanens befintliga indelning. Kontrollera därför förläggningen mot utbildningens start. Startuppgiften måste finnas i timplanens verifierade underlag. Om det underlaget inte kan läsas behöver det rättas innan planeringen kan fortsätta; appen hittar inte på ett läsår. Äldre perioder behåller sina datum och sin tidsfördelning utan att automatiskt få ett terminsval. Ett ändrat terminsval flyttar inga datum eller timmar; en eventuell skillnad visas för granskning.
-
-För den stödda skolförlagda yrkesutbildningen motsvarar en hel APL-vecka **23 undervisningstimmar**, alltså 1 380 minuter. Minst 15 hela granskade veckor behöver planeras; 15 veckor motsvarar 345 timmar. Tiden ska fördelas på det ämnesinnehåll som ingår. Minutprecision gör det exempelvis möjligt att fördela 11 h 30 min på en ämnesnivå.
-
-APL-tiden **ingår i timplanens total** och läggs inte ovanpå den. Om en terminscell har 100 timmar och 23 av dem är APL är totalen fortfarande 100 timmar. APL-andelen får inte överstiga den sparade totaltiden. När klassificeringen är fullständig kan återstående tid visas som skolförlagd. Äldre eller ofullständigt klassificerad tid får inte automatiskt betraktas som skoltid.
-
-Delveckor och blandade upplägg omvandlas inte automatiskt till hela 23-timmarsveckor. De kan finnas som planeringsunderlag men behöver särskild granskning och ger inget automatiskt besked om uppfylld APL-omfattning. Lärlingsutbildning och okänd utbildningsform får inte heller ett sådant besked i detta flöde. Överlappande perioder, datum utanför utbildningen, ofördelad tid och saknat ämnesinnehåll visas som brister.
+Läs [Planera och följa upp APL](./apl-planering.md) för hela arbetsgången, reglerna och vad som behöver vara klart före en period. Hjälpen **Så planerar du APL** finns i APL-arbetsytan.
 
 ### Rektors bekräftelse och huvudmannens beslut
 
-Rektor och skoladministratör kan förbereda och spara APL-planeringen inom skolans uppdrag. Exakta datum, ämnesinnehåll och övrigt granskningsunderlag behövs fortfarande inför bekräftelsen. **Endast rektor** kan välja **Bekräfta förläggningen** när underlaget är komplett och granskat. Bekräftelsen sparar vem som tog ansvar, när det skedde och vilket innehåll som granskades. Skoladministratören kan inte ersätta den bekräftelsen.
+Timplanens godkännande och APL-förläggningens granskning är skilda moment. Den godkända timtabellen låser skolans timmar och årsramen för APL. Rektor och skoladministratör med skolans aktuella mandat kan sedan planera APL-perioderna inom den ramen. Bara rektor kan välja **Bekräfta förläggningen** när perioder, omfattning, innehåll och tid är kompletta och granskade.
 
-I **APL inför beslut** visas det sparade underlaget, periodernas uppgivna omfattning, deras granskningsstatus och rektors bekräftelse. Öppna **Visa sparade perioder och arbetsmoment** för detaljerna. **Öppna APL-planeringen** leder till samma timplans APL-avsnitt. Underlaget finns också när huvudmannen öppnar ett ärende från **Dina uppgifter och beslut**. Inkorgen skiljer APL-underlag som finns från APL som behöver kompletteras; antalet granskningsärenden är inte ett antal godkännandeklara planer.
+Huvudmannen granskar APL i den separata arbetsytan och kan se det sparade innehållet och rektors bekräftelse. Den granskningen är inte ett nytt fastställande av timtabellen. En godkänd timplan betyder inte att APL är färdigplanerad eller genomförd.
 
-Rektors bekräftelse av förläggningen och huvudmannens **Fastställ planen** är två skilda beslut. Huvudmannen granskar även timplanens övriga kontroller och kan fastställa eller skicka tillbaka med motivering. APL-panelen visar planering och ansvarshändelser, inte att APL har genomförts.
-
-Om APL-innehållet eller den undervisningstid som det bygger på ändras behöver rektor granska och bekräfta igen. Den tidigare bekräftelsen finns kvar men märks som inaktuell. Enbart inskickande eller fastställande gör inte en oförändrad bekräftelse inaktuell. Pågående, osparade eller oklart sparade ändringar måste hanteras innan planen kan skickas eller fastställas, även om en beslutsdialog redan är öppen.
+När APL-innehållet ändras behöver rektor granska och bekräfta förläggningen igen. Tidigare bekräftelser finns kvar i historiken. Periodändringar inom årsramen ändrar inte timplanens godkända tabell eller klasskopplingar. Behöver själva ramen ändras skapar du en ny timplansversion och låter den godkännas.
 
 ### Äldre planer, kopiering och oklart sparbesked
 
-Ett äldre utkast utan strukturerat APL-underlag visar **APL-planeringen behöver kompletteras**. Det betyder att fördelningen är okänd, inte att planen har noll APL. Ett redan inskickat ärende kan skickas tillbaka av huvudmannen eller tas tillbaka av den som planerar. Komplettera, spara och låt rektor bekräfta förläggningen innan planen skickas på nytt.
+Äldre APL-underlag finns kvar vid rätt timplan och version. Saknade uppgifter betyder att planeringen behöver kompletteras, inte att det finns noll APL. Ersatta och arkiverade versioner kan läsas men inte få nya periodändringar. En aktuell godkänd timplan kan kompletteras i APL-arbetsytan utan att dess timmar ändras.
 
-En äldre fastställd eller ersatt plan behåller sitt historiska beslut. Den får inget nytt besked om att APL-underlaget är komplett. Fortsatt ändring görs i en ny version. Vid uttrycklig kopiering kan sparad APL-struktur följa med som underlag, men den behöver granskas på nytt. Rektors bekräftelse följer inte med. Innehåll eller tidsfördelning som inte passar den nya planen visas för granskning i stället för att försvinna tyst.
+Vid uttrycklig kopiering kan sparad APL-struktur följa med som underlag, men den behöver granskas på nytt. Rektors bekräftelse följer inte med. Innehåll eller tidsfördelning som inte passar den nya planen visas för granskning i stället för att försvinna tyst. Den nya timtabellen behöver godkännas innan dess APL-perioder bearbetas.
 
-Om sparsvaret uteblir, använd **Läs sparstatus** och följ beskedet innan du gör ett nytt sparförsök. Den granskade begäran finns kvar vid omladdning och ny verifiering med engångskod i samma webbläsarflik och uppdrag. Ett tidigare lyckat sparbesked kan avse en äldre version av innehållet; den aktuella timplanen läses då om och skrivs inte över med det gamla beskedet. Stäng inte fliken medan sparstatus är okänd.
+Om sparsvaret uteblir, använd **Läs sparstatus** och följ beskedet innan du gör ett nytt sparförsök. Den granskade begäran finns kvar vid omladdning och ny verifiering med engångskod i samma webbläsarflik och uppdrag. Ett tidigare lyckat sparbesked kan avse äldre innehåll; aktuella uppgifter läses då om och skrivs inte över med det gamla beskedet. Stäng inte fliken medan sparstatus är okänd.
 
 ### Vad APL-planeringen ännu inte visar
 
-Arbetsplatser, handledare, individuella placeringar, närvaro, utförda arbetsmoment och elevens lärande följs ännu inte upp här. Planerade undervisningstimmar är inte samma sak som tid på arbetsplatsen eller faktiskt genomförd undervisning. En färdig planering eller rektors bekräftelse är därför inget intyg om genomförd APL.
+Arbetsplatser, handledare, individuella placeringar, närvaro, utförda arbetsmoment och elevens lärande följs ännu inte upp här. Skolan behöver ordna och följa upp dem i ett senare steg utanför denna arbetsyta. Planerade undervisningstimmar är inte samma sak som tid på arbetsplatsen eller faktiskt genomförd undervisning. En färdig planering eller rektors bekräftelse är inget intyg om genomförd APL.
 
 ## Skicka, återsänd och fastställ gymnasiets timplan
 
-Rektor och skoladministratör fördelar timmar och skickar planen för godkännande. Huvudmannen granskar och fastställer eller återsänder med motivering. Beslutspanelen visar status, nästa ansvariga roll, hinder och historik. **Att göra** i navigationen visar uppgifter inom ditt aktiva uppdrag; Start samlar dem över alla läsår.
+Rektor och skoladministratör fördelar timmar och skickar planen för godkännande. Huvudmannen granskar och fastställer eller återsänder med motivering. Beslutspanelen finns efter tabellen och visar status och nästa ansvariga roll. Öppna **Granska och skicka** eller **Granska och godkänn** för kontrollerna och beslutet; **Visa beslut och historik** visar redan registrerade händelser. **Att göra** i navigationen visar uppgifter inom ditt aktiva uppdrag; Start samlar dem över alla läsår.
 
 För att skicka och fastställa behöver varje aktivt terminsfält vara ifyllt och varje rad ha undervisningstid. Ett uttryckligt nollvärde kan användas i ett enskilt fält, men en hel rad utan tid behöver åtgärdas. Högskoleförberedande Gy25-program behöver minst **2 180 undervisningstimmar**. Barn- och fritidsprogrammet, Hotell- och turismprogrammet samt Vård- och omsorgsprogrammet behöver minst **2 625 timmar**, och övriga stödda nationella yrkesprogram minst **2 720 timmar**. En timme är 60 minuter. Granska också att tiden är undervisning och att alla möjliga ämnesval får tillräcklig tid. En totalsumma bevisar inte elevens faktiska genomförda undervisningstid.
 
@@ -157,7 +148,7 @@ Programplanen måste vara fastställd innan timplanen skickas. Du får skapa och
 
 En inskickad plan är låst. Den som planerar kan återta den till utkast. Huvudmannen skriver vad som är fel i **Kommentar – vad behöver rättas?** och väljer **Skicka tillbaka för rättning**. Rektor eller skoladministratör ser uppgiften **Läs återkoppling och rätta** och kommentaren direkt i planen under **Det här behöver rättas**. Efter rättning och sparande skickas planen igen. En tom kommentar kan inte skickas. Fastställande kräver en uttrycklig bekräftelse. Tidigare fastställda versioner av samma namngivna timplan bevaras som ersatta när dess nya version fastställs. Andra namngivna timplaner påverkas inte. Befintliga klasskopplingar flyttas aldrig automatiskt.
 
-Yrkesprogram kräver även granskning av grundläggande behörighet samt komplett APL-planering med rektors aktuella bekräftelse. Följ [APL-flödet ovan](#planera-apl-i-en-yrkestimplan). Den automatiska APL-kontrollen gäller det stödda skolförlagda upplägget; lärling och delveckor får inget automatiskt godkännande genom samma beräkning. Beslut för yrkeskullar från den 2 juli 2028 spärras tills yrkesprovsmodellen stöds.
+Yrkesprogram kräver även granskning av grundläggande behörighet och den planerade årsramen för APL. Perioder och rektors bekräftelse krävs inte för timtabellens godkännande; de hanteras därefter i [APL-arbetsytan](#planera-apl-i-en-yrkestimplan). Där gäller bekräftelsekontrollen det stödda skolförlagda upplägget; lärling och delveckor får inget automatiskt besked genom samma beräkning. Beslut för yrkeskullar från den 2 juli 2028 spärras tills yrkesprovsmodellen stöds.
 
 Fastställda planer kan inte skickas tillbaka; ändringar görs i en ny version. Grundskola och introduktionsprogram har andra regelprofiler och får ingen ny beslutskedja genom detta gymnasieflöde.
 

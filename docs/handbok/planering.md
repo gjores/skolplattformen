@@ -7,13 +7,13 @@ Planeringsåret hjälper dig att se vilket underlag som gäller under ett läså
 
 ## Välj skola och läsår
 
-Öppna **Programplaner** eller **Timplaner**. Timplanslistan och timplansurvalet i läsårsöverblicken visar bara skapade timplaner. Gymnasieutbildningar utan timplan finns under **Programplaner**; öppna en sparad programplan och välj **Timplan** för att gå vidare. Överst väljer du skola och planeringsläsår. Du kan gå till föregående eller nästa år, välja ett år direkt och återgå till det aktuella året. Ett år kan väljas även när det saknas planer eller kalenderuppgifter för året.
+Öppna **Programplaner** eller **Timplaner**. Timplanslistan och timplansurvalet i läsårsöverblicken visar bara skapade timplaner. Gymnasieutbildningar utan timplan finns under **Programplaner**; öppna en sparad programplan och välj **Gå till timplan** för att gå vidare. Överst väljer du skola och planeringsläsår. Du kan gå till föregående eller nästa år, välja ett år direkt och återgå till det aktuella året. Ett år kan väljas även när det saknas planer eller kalenderuppgifter för året.
 
 År och skola följer med mellan planeringsvyerna inom samma uppdrag. När du återvänder till **Elever** används elevregistrets eget år och filter. Webbläsarens Tillbaka och en omladdning återläser det urval som står i adressen. När uppdraget ändras eller du loggar ut rensas planeringsurval och öppet innehåll.
 
 ## Hitta rätt underlag
 
-I menyn finns **Läsårsöverblick**, **Programplaner** och **Timplaner**. Utbildningarnas programplaner öppnas under **Programplaner**; där finns också **Ny programplan** för den som får skapa en utbildning.
+I menyn finns **Läsårsöverblick**, **Programplaner**, **Timplaner** och **APL-planering**. Arbeta först med ämnen och poäng i programplanen, sedan med skolans timmar och årsramen för APL i timplanen. APL-perioder planeras i den separata arbetsytan när timplanen är godkänd. Utbildningarnas programplaner öppnas under **Programplaner**; där finns också **Ny programplan** för den som får skapa en utbildning.
 
 Listan visar skolans utbildningar och underlaget för det valda året. Sök på namn, lokal kod, program eller inriktning. I timplaner visas även skolform direkt. Välj **Fler filter** för årskurs, planstatus, elevkull och arkiv. Raden **Visar** beskriver urvalet även när filterpanelen är stängd; antalet på knappen visar hur många extra filter som avviker från grundurvalet. **Rensa filter** återställer sökning och extra filter men behåller skola och läsår. Du kan ändra sortering och gå mellan sidor. Sökningen gäller hela urvalet, även rader efter första sidan.
 

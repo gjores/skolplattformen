@@ -4,7 +4,7 @@ import { gymInteger, gymShape, gymUuid } from './gym-timplan.ts';
 
 /** Browser recovery data, never proof of authority. Every server call rechecks the current mandate. */
 export type AplJournalScope = { identityKey: string; customerId: string; membershipId: string; assignmentId: string;
-  organizerId: string; unitId: string; planId: string; planVersion: number; accessFunction: 'rektor' | 'administrator' };
+  organizerId: string; unitId: string; planId: string; planVersion: number; accessFunction: 'rektor' | 'administrator' | 'huvudman' };
 export type AplJournal = { version: 1; scope: AplJournalScope; request: AplCommand; requestHash: string };
 export type AplJournalStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export type AplRecovery = { state: 'retry_exact' | 'needs_review' | 'completed_current' | 'completed_historical';
@@ -24,7 +24,7 @@ function hash(value: unknown): string {
 }
 export function parseAplJournalScope(value: unknown): AplJournalScope {
   const r = gymShape(value, ['identityKey', 'customerId', 'membershipId', 'assignmentId', 'organizerId', 'unitId', 'planId', 'planVersion', 'accessFunction']);
-  if (r.accessFunction !== 'rektor' && r.accessFunction !== 'administrator') fail('invalid_journal_role');
+  if (r.accessFunction !== 'rektor' && r.accessFunction !== 'administrator' && r.accessFunction !== 'huvudman') fail('invalid_journal_role');
   return { identityKey: hash(r.identityKey), customerId: gymUuid(r.customerId), membershipId: gymUuid(r.membershipId),
     assignmentId: gymUuid(r.assignmentId), organizerId: gymUuid(r.organizerId), unitId: gymUuid(r.unitId),
     planId: gymUuid(r.planId), planVersion: gymInteger(r.planVersion, 2147483647, 1), accessFunction: r.accessFunction };
@@ -44,7 +44,7 @@ async function requestHash(scope: AplJournalScope, request: AplCommand): Promise
 }
 export async function createAplJournal(scopeValue: AplJournalScope, requestValue: AplCommand): Promise<AplJournal> {
   const scope = parseAplJournalScope(scopeValue), request = parseAplCommand(requestValue);
-  if (scope.planId !== request.planId || request.action === 'confirm' && scope.accessFunction !== 'rektor') fail('wrong_journal_scope');
+  if (scope.planId !== request.planId || request.action === 'confirm' && scope.accessFunction !== 'rektor' || request.action === 'review' && scope.accessFunction !== 'huvudman' || request.action !== 'review' && scope.accessFunction === 'huvudman') fail('wrong_journal_scope');
   return { version: 1, scope, request, requestHash: await requestHash(scope, request) };
 }
 export async function parseAplJournal(value: unknown, expectedScope: AplJournalScope): Promise<AplJournal> {
@@ -97,11 +97,14 @@ export async function recoverAplJournal(value: AplJournal, scopeValue: AplJourna
   if (details.some(detail => detail.organizerId !== scope.organizerId || detail.confirmations.some(event => event.unitId !== scope.unitId)))
     fail('wrong_journal_scope');
   if (status.state === 'not_found') {
-    const mayRetry = live.revision === journal.request.expectedRevision && live.capabilities.canSave
-      && (journal.request.action === 'save' || live.capabilities.canConfirm && live.contentHash === journal.request.expectedContentHash);
+    const mayRetry = live.revisionScope === journal.request.revisionScope && live.revision === journal.request.expectedRevision
+      && (journal.request.revisionScope !== 'apl' || live.timplanRevision === journal.request.expectedTimplanRevision)
+      && (journal.request.action === 'review' ? live.capabilities.canReview && live.contentHash === journal.request.expectedContentHash
+        : live.capabilities.canSave && (journal.request.action === 'save' || live.capabilities.canConfirm && live.contentHash === journal.request.expectedContentHash));
     return { state: mayRetry ? 'retry_exact' : 'needs_review', journal, status, reloadRequired: !mayRetry };
   }
   const receipt = status.result.receipt;
+  if (live.revisionScope !== status.result.detail.revisionScope) return { state: 'completed_historical', journal, status, reloadRequired: true };
   if (live.revision < receipt.revision || live.revision === receipt.revision && live.contentHash !== receipt.contentHash)
     return { state: 'needs_review', journal, status, reloadRequired: true };
   return { state: live.revision === receipt.revision ? 'completed_current' : 'completed_historical', journal, status,

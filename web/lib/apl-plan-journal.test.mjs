@@ -141,3 +141,19 @@ test('pre-extension journal hash and recovery stay exact; new term intent is bou
   const changed = structuredClone(journal); changed.request.plan.periods[0].plannedTermIndex = 4;
   await assert.rejects(parseAplJournal(changed, scope()), { code: 'changed_journal_request' });
 });
+
+test('separate journals bind both counters and old commands cannot be retried as new writes',async()=>{
+ const q={...request(),revisionScope:'apl',expectedTimplanRevision:10},journal=await createAplJournal(scope(),q);
+ const next={...live(),revision:3,revisionScope:'apl',timplanRevision:10,reviews:[],capabilities:{canSave:true,canConfirm:true,canReview:false}};
+ assert.equal((await recoverAplJournal(journal,scope(),missing,next)).state,'retry_exact');
+ for(const changed of [{...next,timplanRevision:11},{...next,revision:4}])assert.equal((await recoverAplJournal(journal,scope(),missing,changed)).state,'needs_review');
+ const old=await createAplJournal(scope(),request());assert.equal((await recoverAplJournal(old,scope(),missing,next)).state,'needs_review');
+ assert.equal((await recoverAplJournal(old,scope(),completed(),next)).state,'completed_historical');
+});
+test('organizer review journal is isolated from rector and content-writing roles',async()=>{
+ const s={...scope(),accessFunction:'huvudman'},q={contractVersion:'structured_v1',action:'review',commandId:uid(7),planId:uid(6),expectedRevision:4,expectedContentHash:hash,comment:'Granskad separat.',revisionScope:'apl',expectedTimplanRevision:10};
+ const journal=await createAplJournal(s,q),next={...live(),revisionScope:'apl',timplanRevision:10,reviews:[],capabilities:{canSave:false,canConfirm:false,canReview:true}};
+ assert.equal((await recoverAplJournal(journal,s,missing,next)).state,'retry_exact');
+ assert.equal((await recoverAplJournal(journal,s,missing,{...next,contentHash:`sha256:${'b'.repeat(64)}`})).state,'needs_review');
+ await assert.rejects(createAplJournal(scope(),q));await assert.rejects(createAplJournal(s,request()));
+});

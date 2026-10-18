@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseGymTimplan, isGymTimplanV2, type GymTimplan } from '@/lib/gym-timplan.ts';
-import { timplanTimeTotals } from '@/lib/timplan-time.ts';
+import { timplanTimeTotals, timplanTimePeriodBalance } from '@/lib/timplan-time.ts';
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { parseAplPlan, parseAplReadReply, parseAplCommandReply, projectAplPlan, verifyAplReadReply, validateAplAllocationWrite,
@@ -62,11 +62,11 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   const [journalReady, setJournalReady] = useState(false), loadedScope = useRef<string | null>(null);
   const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null), [mfa, setMfa] = useState(false);
-  const [review, setReview] = useState<AplPlan | null>(null), [confirming, setConfirming] = useState(false), [comment, setComment] = useState('');
+  const [review, setReview] = useState<AplPlan | null>(null), [confirming, setConfirming] = useState(false), [reviewingByHuvudman, setReviewingByHuvudman] = useState(false), [comment, setComment] = useState('');
   const active = useRef(true), operation = useRef(false), controller = useRef<AbortController | null>(null), latestPlan = useRef(plan);
   const callbacks = useRef({ onChanged, onSecurityFailure, isBlocked });
   useLayoutEffect(() => { callbacks.current = { onChanged, onSecurityFailure, isBlocked }; latestPlan.current = plan; }, [plan, onChanged, onSecurityFailure, isBlocked]);
-  const scope = useMemo<AplJournalScope | null>(() => identityKey && context.organizerId && (context.function === 'rektor' || context.function === 'administrator') ? {
+  const scope = useMemo<AplJournalScope | null>(() => identityKey && context.organizerId && (context.function === 'rektor' || context.function === 'administrator' || context.function === 'huvudman') ? {
     identityKey, customerId: context.customerId, membershipId: context.membershipId, assignmentId: context.assignmentId,
     organizerId: context.organizerId, unitId: plan.unitId, planId: plan.id, planVersion: plan.version, accessFunction: context.function,
   } : null, [identityKey, context.customerId, context.membershipId, context.assignmentId, context.organizerId, context.function, plan.id, plan.unitId, plan.version]);
@@ -79,7 +79,10 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   let projectedDraft: AplProjection | null = null, draftError: string | null = null;
   try { if (aplContext && draft) projectedDraft = projectAplPlan(aplContext, candidate(draft, inputs)); }
   catch (caught) { draftError = caught instanceof Error && !(caught instanceof TypeError) ? caught.message : 'Kontrollera periodens datum, veckor och granskningsanteckning.'; }
-  const locked = disabled || !journalReady || loading || busy || journal !== null || !reply?.capabilities.canSave || reply.revision !== plan.revision || !scope;
+  const sameBasis = !!reply && (reply.revisionScope === 'apl' ? reply.timplanRevision : reply.revision) === plan.revision;
+  const commandLocked = disabled || !journalReady || loading || busy || journal !== null || !sameBasis || !scope;
+  const locked = commandLocked || !reply?.capabilities.canSave;
+  const commandBasis = reply?.revisionScope === 'apl' ? { revisionScope: 'apl' as const, expectedTimplanRevision: reply.timplanRevision } : {};
   const canStart = () => !operation.current && !callbacks.current.isBlocked();
   const live = (ownScope = scopeKey) => active.current && scopeRef.current === ownScope;
   function adopt(fresh: { gym: GymTimplan; apl: AplReadReply }, keepDraft = false) {
@@ -93,7 +96,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
       const gym = parseGymTimplan(await api.post('/api/timplaner/gym/lasa', { planId: own.id }, signal), own.id);
       if (gym.unitId !== own.unitId || gym.offeringId !== own.offeringId || gym.version !== own.version || gym.revision < own.revision) throw new Error('Timplanens skola eller version kunde inte kontrolleras. Läs om arbetsytan.');
       const raw = parseAplReadReply(await api.post('/api/timplaner/gym/apl/lasa', { planId: own.id }, signal), { planId: own.id });
-      if (raw.revision !== gym.revision && attempt === 0) continue;
+      if ((raw.revisionScope === 'apl' ? raw.timplanRevision : raw.revision) !== gym.revision && attempt === 0) continue;
       if (!context.organizerId) throw new Error('APL-underlagets huvudman kunde inte kontrolleras.');
       const apl = await verifyAplReadReply(raw, { organizerId: context.organizerId, plan: gym, program: raw.program, copyReview: raw.copyReview });
       return { gym, apl };
@@ -102,7 +105,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   }
   useEffect(() => { active.current = true; return () => { active.current = false; controller.current?.abort(); }; }, []);
   async function load(c: AbortController, ownScope: string) {
-    if (operation.current || reply && (journal || dirty) || reply?.revision === plan.revision && loadedScope.current === ownScope) return;
+    if (operation.current || reply && (journal || dirty) || sameBasis && loadedScope.current === ownScope) return;
     if (context.function !== 'huvudman' && !scope) return;
     controller.current = c; setLoading(true); setJournalReady(false); setError(null);
     try {
@@ -145,6 +148,27 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
     if (locked || !canStart()) return;
     const key = keyFor(id, row, term); setInputs(previous => ({ ...previous, [key]: { ...(previous[key] ?? { hours: '', minutes: '' }), [field]: value } })); setDirty(true); setReview(null);
   }
+  function fillAnnualBudget(period: AplPeriod) {
+    if (!draft || !isGymTimplanV2(plan) || period.plannedTermIndex === undefined || locked || !canStart()) return;
+    try {
+      const current = candidate(draft, inputs), term = period.plannedTermIndex, year = Math.floor(term / 2);
+      const balances = timplanTimePeriodBalance(plan, current), next = clone(current), additions = { ...inputs };
+      const target = next.periods.find(p => p.id === period.id)!;
+      let count = 0;
+      for (const row of plan.rows) {
+        const remaining = balances.rows[row.key][year]?.remainingMinutes ?? 0;
+        if (row.pointTerms[term] <= 0 || remaining <= 0) continue;
+        // Keep all existing allocations and add only the currently unallocated annual balance.
+        const old = target.allocations.find(a => a.rowKey === row.key && a.termIndex === term)?.gutMinutes ?? 0;
+        if (old + remaining > 120000) continue;
+        if (!target.contents.some(c => c.rowKey === row.key)) target.contents.push({ rowKey: row.key, description: '' });
+        additions[keyFor(period.id, row.key, term)] = { hours: String(Math.floor((old + remaining) / 60)), minutes: String((old + remaining) % 60) };
+        count++;
+      }
+      change(next); setInputs(additions);
+      setNotice(count ? 'Återstående APL-tid har lagts i perioden. Justera timmarna om tiden ska delas mellan flera perioder och beskriv innehållet innan du sparar.' : 'Ingen återstående APL-tid kan hämtas för ämnen på den valda terminen. Kontrollera årskurs, termin och redan fördelad tid.');
+    } catch { setError('Kontrollera periodernas inmatade tid innan du hämtar återstående APL-tid.'); }
+  }
   function startReview() {
     if (!draft || !aplContext || locked || !canStart()) return;
     try {
@@ -158,24 +182,24 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
     if (!scope) return;
     await removeAplJournal(window.sessionStorage, pending, scope);
     if (!live()) return;
-    adopt(fresh); setJournal(null); setRetryExact(false); setReview(null); setConfirming(false); setMfa(false); setNotice(message); setError(null);
+    adopt(fresh); setJournal(null); setRetryExact(false); setReview(null); setConfirming(false); setReviewingByHuvudman(false); setMfa(false); setNotice(message); setError(null);
   }
   async function send(command: AplCommand, existing?: AplJournal) {
-    if (!scope || !canStart() || !existing && (locked || !reply)) return;
+    if (!scope || !canStart() || !existing && (commandLocked || !reply || !(command.action === 'review' ? reply.capabilities.canReview : command.action === 'confirm' ? reply.capabilities.canConfirm : reply.capabilities.canSave))) return;
     operation.current = true; setBusy(true); setError(null); setRetryExact(false);
     const ownScope = scopeKey, c = new AbortController(); controller.current = c;
     let persisted: AplJournal | null = existing ?? null;
     try {
       persisted = await persistAplJournal(window.sessionStorage, existing ?? await createAplJournal(scope, command), scope);
       if (!live(ownScope)) return;
-      setJournal(persisted); setReview(null); setConfirming(false);
+      setJournal(persisted); setReview(null); setConfirming(false); setReviewingByHuvudman(false);
       const result = parseAplCommandReply(await api.post('/api/timplaner/gym/apl/kommando', persisted.request, c.signal), persisted.request);
       const fresh = await readBoth(c.signal); if (!live(ownScope)) return;
       if (fresh.apl.revision < result.receipt.revision || fresh.apl.revision === result.receipt.revision && fresh.apl.contentHash !== result.receipt.contentHash) throw new Error('inconsistent_receipt');
-      await finish(persisted, fresh, fresh.apl.revision > result.receipt.revision ? 'Sparandet är bekräftat. En senare ändring finns också; den aktuella timplanen visas.' : command.action === 'confirm' ? 'Förläggningen är bekräftad av rektor. Huvudmannen fastställer timplanen separat.' : 'APL-planen är sparad. Du kan fortsätta med datum, omfattning och ämnen senare.');
+      await finish(persisted, fresh, fresh.apl.revision > result.receipt.revision ? 'Sparandet är bekräftat. En senare ändring finns också; den aktuella timplanen visas.' : command.action === 'review' ? 'Huvudmannens granskning av APL-planen är sparad.' : command.action === 'confirm' ? 'APL-planen är bekräftad av rektor och kan granskas av huvudmannen.' : 'APL-planen är sparad. Du kan fortsätta med datum, omfattning och ämnen senare.');
     } catch (caught) {
       if (!live(ownScope) || callbacks.current.onSecurityFailure(caught)) return;
-      if (!persisted) { setReview(null); setConfirming(false); }
+      if (!persisted) { setReview(null); setConfirming(false); setReviewingByHuvudman(false); }
       setMfa(caught instanceof ApiError && caught.code === 'mfa_required');
       // Even an explicit conflict is reconciled via status, preserving the exact pending request and draft.
       setError(persisted ? caught instanceof ApiError && caught.code === 'mfa_required' ? 'Verifiera med engångskod och läs sedan sparstatus.' : 'Sparandet kunde inte bekräftas. Dina uppgifter finns kvar. Läs sparstatus innan du fortsätter.' : 'Sparförsöket kunde inte lagras i den här fliken. Inget skickades. Kontrollera att webbläsaren tillåter sessionslagring och försök igen.');
@@ -189,7 +213,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
       const fresh = await readBoth(c.signal);
       const recovery = await recoverAplJournal(pending, scope, status, fresh.apl); if (!live(ownScope)) return;
       if (recovery.state === 'completed_current' || recovery.state === 'completed_historical') await finish(pending, fresh,
-        recovery.state === 'completed_historical' ? 'Sparandet är bekräftat. En senare ändring finns också; den aktuella timplanen visas.' : pending.request.action === 'confirm' ? 'Rektors bekräftelse är sparad. Huvudmannens fastställande är ett separat steg.' : 'APL-planen är sparad och återläst.');
+        recovery.state === 'completed_historical' ? 'Sparandet är bekräftat. En senare ändring finns också; den aktuella timplanen visas.' : pending.request.action === 'review' ? 'Huvudmannens granskning av APL-planen är sparad.' : pending.request.action === 'confirm' ? 'Rektors bekräftelse är sparad. APL-planen kan granskas av huvudmannen.' : 'APL-planen är sparad och återläst.');
       else if (recovery.state === 'retry_exact') { adopt(fresh, true); setRetryExact(true); setMfa(false); setNotice('Sparförsöket finns inte registrerat. Du kan skicka exakt samma underlag igen.'); }
       else if (recovery.status.state === 'not_found') {
         await removeAplJournal(window.sessionStorage, pending, scope); if (!live(ownScope)) return;
@@ -200,6 +224,7 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
     finally { operation.current = false; if (live(ownScope)) setBusy(false); }
   }
   const confirmed = !!reply?.confirmations.length && reply.confirmations.at(-1)?.contentHash === reply.contentHash;
+  const reviewedByHuvudman = confirmed && !!reply?.reviews?.some(event => event.contentHash === reply.contentHash && event.timplanRevision === plan.revision && event.rectorConfirmationId === reply.confirmations.at(-1)?.id);
   const reviewProjection = review && aplContext ? projectAplPlan(aplContext, review) : null;
   const isTermOnly = (period: AplPeriod) => !period.startsOn && !period.endsOn && period.contents.length === 0 && period.allocations.length === 0 && period.extent.basis === 'unknown';
   const preliminaryReview = !!review?.periods.length && review.classification === 'unreviewed' && review.periods.every(isTermOnly)
@@ -208,10 +233,12 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   const displayedPlan = editing ? draft : reply?.plan;
   const displayedProjection = editing && projectedDraft ? projectedDraft : savedProjection;
   const schoolYears = [...new Set(displayedPlan?.periods.map(p => p.schoolYear) ?? [])].sort((a, b) => (a ?? 9999) - (b ?? 9999));
-  const returnTo = '/?' + new URLSearchParams({ vy: 'timplaner', timplan: plan.id, timplansskola: plan.unitId, timplansutbildning: plan.offeringId, timplansversion: String(plan.version) });
+  const returnTo = '/?' + new URLSearchParams({ vy: 'apl-planering', timplan: plan.id, timplansskola: plan.unitId, timplansutbildning: plan.offeringId, timplansversion: String(plan.version) });
   return <section id="apl-planering" tabIndex={-1} className="apl-plan" aria-label="APL-planering" aria-busy={busy || loading}>
-    <header><div><h2>APL-planering</h2><p>Planera arbetsplatsförlagt lärande inom timplanens undervisningstid.</p></div><span className="apl-state">{journal ? 'Sparstatus behöver kontrolleras' : dirty ? 'Osparade ändringar' : confirmed ? 'Förläggningen bekräftad' : reply?.plan ? 'Sparat planeringsunderlag' : 'APL-underlag saknas'}</span></header>
+    <header><div><h2>APL-planering</h2><p>Planera arbetsplatsförlagt lärande inom timplanens undervisningstid.</p></div><span className="apl-state">{journal ? 'Sparstatus behöver kontrolleras' : dirty ? 'Osparade ändringar' : reviewedByHuvudman ? 'Granskad av huvudmannen' : reply?.reviews?.length ? 'Behöver ny granskning' : confirmed ? 'Bekräftad av rektor' : reply?.plan ? 'Sparat planeringsunderlag' : 'APL-underlag saknas'}</span></header>
     <p>Detta visar planering. Arbetsplatser, närvaro och genomförd APL följs inte upp här ännu.</p>
+    {!!reply?.reviews?.length && !reviewedByHuvudman && <p className="apl-notice">APL-planen har ändrats sedan huvudmannens granskning. Rektor behöver bekräfta det aktuella innehållet innan huvudmannen granskar det igen. Den tidigare granskningen finns kvar i historiken.</p>}
+    {!!reply?.reviews?.length && <details className="apl-details"><summary>Tidigare granskningar ({reply.reviews.length})</summary><ul>{reply.reviews.map(event => <li key={event.id}>{new Date(event.at).toLocaleString('sv-SE')} · {event.comment}</li>)}</ul></details>}
     <ProtectedAplGuide annual={isGymTimplanV2(plan)}/>
     {isGymTimplanV2(plan) && <section aria-label="Årsram och förläggning" className="apl-by-year"><h3>Förlägg års-APL när perioderna är kända</h3><p>Timmarna i tabellen kan sparas utan perioder. Perioderna använder årsramen och ökar inte timplanens total.</p>{[0, 1, 2].map(year => {
       const totals = timplanTimeTotals(plan), placed = (reply?.plan?.periods ?? []).flatMap(p => p.allocations).filter(a => Math.floor(a.termIndex / 2) === year).reduce((n, a) => n + a.gutMinutes, 0);
@@ -237,10 +264,11 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
       return <p key={year ?? 'unknown'}><strong>{year === null ? 'Läsår saknas' : `${year}/${year + 1}`}</strong> · {weeks === null ? 'Veckounderlaget behöver granskas' : `${weeks} granskade hela veckor`} · motsvarande undervisningstid: {aplTime(expectedMinutes)}</p>;
     })}</div>}
     {reply && <>
-      {!reply.capabilities.canSave && <p>{['faststalld','ersatt'].includes(plan.status) ? 'Den här versionen är låst. Skapa en ny version av timplanen för att ändra APL-planeringen.' : 'APL-underlaget visas i läsläge för ditt aktuella uppdrag.'}</p>}
+      {!reply.capabilities.canSave && <p>{plan.status !== 'faststalld' ? 'Godkänn timplanen först. Därefter kan rektor planera APL här.' : 'APL-underlaget visas i läsläge för ditt aktuella uppdrag.'}</p>}
       {disabled && <p className="apl-notice">Avsluta eller kontrollera den andra pågående ändringen i timplanen innan du ändrar APL.</p>}
       {!editing && <div className="apl-actions">{reply.capabilities.canSave && <Button disabled={locked} onClick={() => { if (!canStart()) return; setDraft(clone(reply.plan ?? emptyPlan())); setInputs(inputsFor(reply.plan)); setEditing(true); setNotice(null); setTermChoices({}); setOtherTerms({}); }}>{isGymTimplanV2(plan) ? 'Förlägg APL i perioder' : 'Planera APL'}</Button>}
-        {reply.capabilities.canConfirm && <Button variant="outline" disabled={locked || dirty || !savedProjection?.readyForConfirmation || confirmed} onClick={() => { if (canStart()) { setComment(''); setConfirming(true); } }}>Bekräfta förläggningen</Button>}</div>}
+        {reply.capabilities.canConfirm && <Button variant="outline" disabled={commandLocked || dirty || !savedProjection?.readyForConfirmation || confirmed} onClick={() => { if (canStart()) { setComment(''); setConfirming(true); } }}>Bekräfta förläggningen</Button>}
+        {reply.capabilities.canReview && <Button disabled={commandLocked || dirty || !confirmed || !savedProjection?.readyForConfirmation || reviewedByHuvudman} onClick={() => { if (canStart()) { setComment(''); setReviewingByHuvudman(true); } }}>Granska APL-planen</Button>}</div>}
       <details className="apl-details"><summary>Inför rektors bekräftelse – visa vad som saknas{(projectedDraft ?? savedProjection)?.issues.length ? ` (${(projectedDraft ?? savedProjection)!.issues.length})` : ''}</summary>
         {(projectedDraft ?? savedProjection)?.issues.length ? <ul>{(projectedDraft ?? savedProjection)!.issues.map((issue, index) => <li key={index}>{issue.periodId && <strong>{(draft ?? reply.plan)?.periods.find(p => p.id === issue.periodId)?.name || 'Period'}: </strong>}{issue.message}</li>)}</ul> : <p>Planeringsunderlaget är komplett för rektors bekräftelse. Det är inte ett besked om genomförd APL.</p>}
         {draftError && <p role="alert">{draftError}</p>}</details>
@@ -283,6 +311,8 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
         {p.extent.basis !== 'whole_weeks' && <p>Den här omfattningen kan sparas som planeringsunderlag. Den räknas inte automatiskt om till hela APL-veckor.</p>}
         </details>
         <details className="apl-details"><summary>Ämnesinnehåll och undervisningstid</summary>
+        {isGymTimplanV2(plan) && <><p>Ämnen och APL-timmar hämtas från timplanen. Välj termin ovan och hämta den tid som ännu inte har fördelats. Du kan sedan dela tiden mellan flera perioder.</p><Button variant="outline" disabled={selected === undefined} onClick={() => fillAnnualBudget(p)}>Hämta återstående APL-tid</Button></>}
+        <p>Utgå från ämnesplanens centrala innehåll och beskriv vilka arbetsmoment eleven ska få arbeta med. Ämnesplanens fullständiga innehåll finns ännu inte som val i appen.</p>
         {selected !== undefined && <><p>Fördela tid för {termLabel(selected).toLowerCase()}. Redan angiven tid i andra terminer visas också.</p><label className="apl-check"><input type="checkbox" checked={otherTerms[p.id] ?? false} onChange={e => setOtherTerms(old => ({ ...old, [p.id]: e.target.checked }))}/>Fördela även på andra terminer</label></>}
 
         {p.contents.map(c => { const row = plan.rows.find(r => r.key === c.rowKey); return <div key={c.rowKey} className="apl-content"><h4>{row ? `${row.name} ${row.levelName}` : 'Innehållet finns inte längre i timplanen'}</h4>
@@ -310,8 +340,9 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
       {!!review?.periods.length && <ul className="apl-review-periods">{review.periods.map((p, index) => <li key={p.id}><strong>{p.name || `Period ${index + 1}`}</strong>: {p.plannedTermIndex === undefined ? 'Terminsval inte angivet' : termLabel(p.plannedTermIndex)}{!p.startsOn || !p.endsOn ? ' · Preliminär – datum kommer senare' : ` · ${p.startsOn}–${p.endsOn}`}</li>)}</ul>}
       {preliminaryReview && <p>Du sparar en preliminär planering. Datum, omfattning och ämnen kan kompletteras senare.</p>}
       {savedProjection && reviewProjection && <details className="apl-details apl-review-times" open={!preliminaryReview}><summary>Visa tidsjämförelse</summary><h3>Sparat underlag</h3><Summary projection={savedProjection} label="Före ändringen"/><h3>Efter ändringen</h3><Summary projection={reviewProjection} label="Efter ändringen"/><p>{reply?.plan?.classification === 'complete' ? 'Tidigare fördelning var granskad.' : 'Tidigare fördelning var okänd eller inte färdiggranskad.'} {review?.classification === 'complete' ? 'Du anger nu att all APL-tid är identifierad.' : 'Fördelningen behöver fortfarande granskas.'}</p><p>Ämneskopplingar: {reply?.plan?.periods.reduce((sum, p) => sum + p.contents.length, 0) ?? 0} → {review?.periods.reduce((sum, p) => sum + p.contents.length, 0)}. Perioder: {reply?.plan?.periods.length ?? 0} → {review?.periods.length}.</p>{reviewProjection.issues.length > 0 && <p>{reviewProjection.issues.length} punkter behöver fortfarande kompletteras. Du kan spara underlaget och fortsätta senare.</p>}</details>}
-      <div className="apl-actions"><Button disabled={locked || !review} onClick={() => { if (review && reply) void send({ contractVersion: 'structured_v1', action: 'save', commandId: crypto.randomUUID(), planId: plan.id, expectedRevision: reply.revision, plan: review, copyReviewResolutions: Object.entries(notes).filter(([, n]) => n.resolved).map(([id, n]) => ({ id, note: n.note.trim() })) }); }}>Spara APL-plan</Button><Button variant="outline" disabled={busy} onClick={() => setReview(null)}>Fortsätt redigera</Button></div>
+      <div className="apl-actions"><Button disabled={locked || !review} onClick={() => { if (review && reply) void send({ contractVersion: 'structured_v1', action: 'save', commandId: crypto.randomUUID(), planId: plan.id, expectedRevision: reply.revision, ...commandBasis, plan: review, copyReviewResolutions: Object.entries(notes).filter(([, n]) => n.resolved).map(([id, n]) => ({ id, note: n.note.trim() })) }); }}>Spara APL-plan</Button><Button variant="outline" disabled={busy} onClick={() => setReview(null)}>Fortsätt redigera</Button></div>
     </DialogContent></Dialog>
-    <Dialog open={confirming} onOpenChange={open => { if (!busy) setConfirming(open); }}><DialogContent className="apl-dialog"><DialogTitle>Bekräfta förläggningen</DialogTitle><DialogDescription>Som rektor bekräftar du den sparade APL-förläggningen och dess ämnesinnehåll. Huvudmannen fastställer timplanen separat.</DialogDescription><label>Rektors kommentar<textarea maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></label><div className="apl-actions"><Button disabled={locked || dirty || !comment.trim() || !savedProjection?.readyForConfirmation} onClick={() => { if (reply && canStart()) void send({ contractVersion: 'structured_v1', action: 'confirm', commandId: crypto.randomUUID(), planId: plan.id, expectedRevision: reply.revision, expectedContentHash: reply.contentHash, comment: comment.trim() }); }}>Bekräfta förläggningen</Button><Button variant="outline" disabled={busy} onClick={() => setConfirming(false)}>Avbryt</Button></div></DialogContent></Dialog>
+    <Dialog open={confirming} onOpenChange={open => { if (!busy) setConfirming(open); }}><DialogContent className="apl-dialog"><DialogTitle>Bekräfta förläggningen</DialogTitle><DialogDescription>Som rektor bekräftar du den sparade APL-förläggningen och dess ämnesinnehåll. Huvudmannen granskar APL-planen i nästa steg. Timplanens godkännande ändras inte.</DialogDescription><label>Rektors kommentar<textarea maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></label><div className="apl-actions"><Button disabled={commandLocked || !reply?.capabilities.canConfirm || dirty || !comment.trim() || !savedProjection?.readyForConfirmation} onClick={() => { if (reply && canStart()) void send({ contractVersion: 'structured_v1', action: 'confirm', commandId: crypto.randomUUID(), planId: plan.id, expectedRevision: reply.revision, ...commandBasis, expectedContentHash: reply.contentHash, comment: comment.trim() }); }}>Bekräfta förläggningen</Button><Button variant="outline" disabled={busy} onClick={() => setConfirming(false)}>Avbryt</Button></div></DialogContent></Dialog>
+    <Dialog open={reviewingByHuvudman} onOpenChange={open => { if (!busy) setReviewingByHuvudman(open); }}><DialogContent className="apl-dialog"><DialogTitle>Granska APL-planen</DialogTitle><DialogDescription>Bekräfta att du som huvudman har granskat rektors APL-planering. Detta gäller planeringen, inte genomförd APL. Timplanens godkännande ändras inte.</DialogDescription><label>Huvudmannens kommentar<textarea maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></label><div className="apl-actions"><Button disabled={commandLocked || !reply?.capabilities.canReview || !confirmed || !comment.trim() || !savedProjection?.readyForConfirmation} onClick={() => { if (reply && canStart()) void send({ contractVersion: 'structured_v1', action: 'review', commandId: crypto.randomUUID(), planId: plan.id, expectedRevision: reply.revision, ...commandBasis, expectedContentHash: reply.contentHash, comment: comment.trim() }); }}>Bekräfta granskningen</Button><Button variant="outline" disabled={busy} onClick={() => setReviewingByHuvudman(false)}>Avbryt</Button></div></DialogContent></Dialog>
   </section>;
 }

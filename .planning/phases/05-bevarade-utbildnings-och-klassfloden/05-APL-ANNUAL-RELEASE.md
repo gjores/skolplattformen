@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: APL-ANNUAL
 status: delivered
-user_trial: awaiting_user
+user_trial: user_reported_pass
 updated: 2026-10-17
 ---
 
@@ -20,7 +20,7 @@ När det är dags väljer du **Förlägg APL i perioder**. En period på40 timma
 2. Ange20 i Skola HT,20 i Skola VT och60 i APL på en lämplig rad i samma årskurs. Lämna raden och ladda om; totalen ska vara100 utan att du behövt ange perioder.
 3. Prova senare förläggning och läs årsram, förlagt och kvar. Kontrollera även att ett högskoleförberedande program enbart visar skoltid.
 
-Automatiska dator-/telefonprov har passerat. Ingen ny mänsklig bedömning har ännu lämnats av denna arbetsgång.
+Automatiska dator-/telefonprov har passerat. Användaren bekräftade ”Funkar!”2026-10-18. Enhet och enskilda delsteg särredovisades inte. Därefter beställdes enklare flöde och separat APL-process; det arbetet redovisas i PLANNING-FLOW-UX.
 
 ## Teknisk leverans
 

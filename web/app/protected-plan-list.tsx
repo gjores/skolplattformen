@@ -72,10 +72,11 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
 }
 
 type Props = { disabled?: boolean; onSecurityFailure: (error: unknown) => boolean; onOpen: (row: PlanningRow) => void;
+  unavailableReason?: (row: PlanningRow) => string | null;
   actions?: (row: PlanningRow) => ReactNode; showFilters?: boolean;
   programRows?: { canCreateTimplan: boolean; onTimplan: (row: PlanningRow, target?: PlanningSchoolTimplan) => void } };
 type Result = { key: string; data: PlanningList | null; error: string | null; notice: string | null; loading: boolean };
-export default function ProtectedPlanList({ disabled = false, onSecurityFailure, onOpen, actions, showFilters = true, programRows }: Props) {
+export default function ProtectedPlanList({ disabled = false, onSecurityFailure, onOpen, actions, unavailableReason, showFilters = true, programRows }: Props) {
   const { setup, selection, requestChange } = usePlanningContext();
   const { inbox } = usePlanDecisions();
   const decisionFor = (kind: 'programplan' | 'timplan', id: string) => inbox?.items.find(item => item.kind === kind && item.planId === id);
@@ -190,8 +191,8 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
               <td data-label="Status">{row.plan ? decisionText(selected.view === 'programplan' ? 'programplan' : 'timplan', row.plan) : 'Plan saknas'}{selected.view==='timplan'&&<small>{metrics.classCount.complete?`${metrics.classCount.value} kopplade klasser`:'Klasskopplingar okända'}{row.underlag==='forecast'?' · Prognos':''}</small>}</td>
               {selected.schoolform === 'gymnasium' && <td data-label="Årets poäng" className="plan-list-secondary">{planningMeasureText(metrics.points)}</td>}
               <td data-label={selected.view === 'timplan' ? selected.schoolform === 'introduktionsprogram' ? 'Timmar per vecka' : 'Årets timmar' : 'Underlag'} className="plan-list-secondary">{selected.view === 'timplan' ? planningMeasureText(metrics.hours) : row.underlag === 'missing' ? 'Programplan saknas' : row.underlag === 'forecast' ? 'Prognos' : 'Programram'}</td>
-              <td className="plan-list-actions"><button type="button" disabled={locked} onClick={() => onOpen(row)} aria-label={`Öppna ${row.series?`${row.series.name}, `:''}${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
-                {row.plan ? 'Öppna' : 'Visa underlag'}</button>{actions?.(row)}
+              <td className="plan-list-actions"><button type="button" disabled={locked || !!unavailableReason?.(row)} onClick={() => onOpen(row)} aria-label={`Öppna ${row.series?`${row.series.name}, `:''}${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
+                {row.plan ? 'Öppna' : 'Visa underlag'}</button>{unavailableReason?.(row) && <small>{unavailableReason(row)}</small>}{actions?.(row)}
                 <button type="button" className="plan-list-details-toggle" aria-expanded={isExpanded}
                   aria-label={`${isExpanded ? 'Dölj' : 'Visa'} detaljer för ${row.educationName}, ${row.schoolName}`}
                   onClick={() => setExpanded(previous => { const rows = previous.key === key ? previous.rows : []; return { key, rows: rows.includes(rowKey) ? rows.filter(value => value !== rowKey) : [...rows, rowKey] }; })}>

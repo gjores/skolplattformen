@@ -38,3 +38,6 @@
 .decision-filters button,.decision-pages button { min-height:44px;padding:.5rem; }
 .decision-pages { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem; }
 .decision-inbox button:disabled { opacity:.5;cursor:default; }
+
+.decision-review > summary { min-height:44px; display:flex; align-items:center; gap:.5rem; font-weight:600; color:var(--primary); }
+.decision-review-body { display:grid; gap:1rem; margin-top:1rem; }

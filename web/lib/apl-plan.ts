@@ -29,22 +29,25 @@ export type AplCopyReviewResolution = { id: string; note: string };
 export type AplContext = { organizerId: string; plan: GymTimplan; program: AplProgram; copyReview: AplCopyReview[] };
 export type AplConfirmation = { id: string; planId: string; unitId: string; actorId: string; assignmentId: string;
   actorName: string; at: string; revision: number; contentHash: string; comment: string };
+export type AplReview = AplConfirmation & { timplanRevision: number; rectorConfirmationId: string };
+export type AplRevisionScope = { revisionScope?: 'apl'; timplanRevision?: number; reviews?: AplReview[] };
 export type AplReadRequest = { planId: string };
-export type AplReadReply = { contractVersion: typeof APL_CONTRACT_VERSION; planId: string; revision: number;
+export type AplReadReply = AplRevisionScope & { contractVersion: typeof APL_CONTRACT_VERSION; planId: string; revision: number;
   organizerId: string; program: AplProgram; plan: AplPlan | null; copyReview: AplCopyReview[]; contentHash: string;
-  confirmations: AplConfirmation[]; capabilities: { canSave: boolean; canConfirm: boolean } };
-type AplCommandIdentity = { contractVersion: typeof APL_CONTRACT_VERSION; commandId: string; planId: string; expectedRevision: number };
+  confirmations: AplConfirmation[]; capabilities: { canSave: boolean; canConfirm: boolean; canReview?: boolean } };
+type AplCommandIdentity = { contractVersion: typeof APL_CONTRACT_VERSION; commandId: string; planId: string; expectedRevision: number; revisionScope?: 'apl'; expectedTimplanRevision?: number };
 export type AplSaveCommand = AplCommandIdentity & { action: 'save'; plan: AplPlan; copyReviewResolutions: AplCopyReviewResolution[] };
 export type AplConfirmCommand = AplCommandIdentity & { action: 'confirm'; expectedContentHash: string; comment: string };
-export type AplCommand = AplSaveCommand | AplConfirmCommand;
+export type AplReviewCommand = AplCommandIdentity & { action: 'review'; expectedContentHash: string; comment: string };
+export type AplCommand = AplSaveCommand | AplConfirmCommand | AplReviewCommand;
 export type AplReceipt = { contractVersion: typeof APL_CONTRACT_VERSION; commandId: string; planId: string;
-  action: AplCommand['action']; revision: number; changed: boolean; replayed: boolean; contentHash: string; confirmationId: string | null };
+  action: AplCommand['action']; revision: number; changed: boolean; replayed: boolean; contentHash: string; confirmationId: string | null; reviewId?: string | null };
 export type AplCommandReply = { receipt: AplReceipt; detail: AplReadReply };
 /** Replaying a bare commandId is insufficient: actor/assignment and the exact command must match in the server. */
 export type AplStatusRequest = { command: AplCommand };
 export type AplStatusReply = { state: 'not_found'; result: null } | { state: 'completed'; result: AplCommandReply };
 /** Private SQL transport, never exposed as a client write field. The entire basis is frozen with each completed receipt. */
-export type AplFrozenBasis = { organizerId: string; gymTimplan: Record<string, unknown>; copyReview: AplCopyReview[] };
+export type AplFrozenBasis = { organizerId: string; gymTimplan: Record<string, unknown>; aplRevision?: number; copyReview: AplCopyReview[] };
 export type AplSqlEnvelope<T> = { contractVersion: 'apl_sql_v1'; basis: AplFrozenBasis | null; result: T };
 export type AplIssueCode = 'legacy' | 'unsupported_profile' | 'education_form_unknown' | 'apprenticeship_needs_review'
   | 'classification_unreviewed' | 'no_periods' | 'incomplete_period' | 'extent_needs_review' | 'weeks_exceed_calendar_bound'
@@ -395,7 +398,7 @@ export function aplContentHashPayload(context: AplContext, value: AplPlan | null
 export async function aplContentHash(context: AplContext, value: AplPlan | null): Promise<string> {
   return aplHashCanonical(aplContentHashPayload(context, value));
 }
-export function aplMutationEffect(previous: AplPlan | null, next: AplPlan, action: AplCommand['action'], resolutions: AplCopyReviewResolution[] = []):
+export function aplMutationEffect(previous: AplPlan | null, next: AplPlan, action: 'save' | 'confirm', resolutions: AplCopyReviewResolution[] = []):
   { changed: boolean; revisionDelta: 0 | 1; auditAction: 'apl_plan_unchanged' | 'apl_plan_saved' | 'apl_placement_confirmed' } {
   choice(action, ['save', 'confirm']); parseAplPlan(next);
   if (action === 'confirm') return { changed: true, revisionDelta: 1, auditAction: 'apl_placement_confirmed' };
@@ -426,16 +429,19 @@ export function parseAplCommand(value: unknown): AplCommand {
     // Strict descriptors before reading the discriminant; no user-controlled role, hash proof or actor field.
     const descriptor = Object.getOwnPropertyDescriptor(value ?? {}, 'action');
     if (!descriptor || descriptor.get || descriptor.set) bad();
-    const action = choice(descriptor.value, ['save', 'confirm']);
-    const r = gymShape(value, ['contractVersion', 'action', 'commandId', 'planId', 'expectedRevision', ...(action === 'save' ? ['plan', 'copyReviewResolutions'] : ['expectedContentHash', 'comment'])]);
-    const identity = { contractVersion: contract(r.contractVersion), commandId: gymUuid(r.commandId), planId: gymUuid(r.planId), expectedRevision: gymInteger(r.expectedRevision, 2147483646) };
+    const action = choice(descriptor.value, ['save', 'confirm', 'review']);
+    const separated = Object.hasOwn(gymObject(value), 'revisionScope');
+    if (action === 'review' && !separated) bad();
+    const r = gymShape(value, ['contractVersion', 'action', 'commandId', 'planId', 'expectedRevision', ...(separated ? ['revisionScope', 'expectedTimplanRevision'] : []), ...(action === 'save' ? ['plan', 'copyReviewResolutions'] : ['expectedContentHash', 'comment'])]);
+    const identity = { contractVersion: contract(r.contractVersion), commandId: gymUuid(r.commandId), planId: gymUuid(r.planId), expectedRevision: gymInteger(r.expectedRevision, 2147483646), ...(separated ? { revisionScope: choice(r.revisionScope, ['apl'] as const), expectedTimplanRevision: gymInteger(r.expectedTimplanRevision, 2147483646) } : {}) };
     return action === 'save' ? { ...identity, action, plan: parseAplPlan(r.plan), copyReviewResolutions: parseAplCopyReviewResolutions(r.copyReviewResolutions) }
       : { ...identity, action, expectedContentHash: hash(r.expectedContentHash), comment: text(r.comment, 2000, false) };
   });
 }
 export function parseAplReadReply(value: unknown, expected: AplReadRequest): AplReadReply {
   return guarded(() => {
-    const r = gymShape(value, ['contractVersion', 'planId', 'revision', 'organizerId', 'program', 'plan', 'copyReview', 'contentHash', 'confirmations', 'capabilities']);
+    const separated = Object.hasOwn(gymObject(value), 'revisionScope');
+    const r = gymShape(value, ['contractVersion', 'planId', 'revision', 'organizerId', 'program', 'plan', 'copyReview', 'contentHash', 'confirmations', 'capabilities', ...(separated ? ['revisionScope', 'timplanRevision', 'reviews'] : [])]);
     const planId = gymUuid(r.planId), revision = gymInteger(r.revision), plan = r.plan === null ? null : parseAplPlan(r.plan);
     if (planId !== parseAplReadRequest(expected).planId) bad();
     const confirmations = unique(gymArray(r.confirmations, APL_LIMITS.confirmations).map(parseAplConfirmation), event => event.id);
@@ -443,22 +449,30 @@ export function parseAplReadReply(value: unknown, expected: AplReadRequest): Apl
       || new Set(confirmations.map(event => event.revision)).size !== confirmations.length
       || confirmations.some((event, i) => i > 0 && event.revision <= confirmations[i - 1].revision)
       || new Set(confirmations.map(event => event.unitId)).size > 1) bad();
-    const caps = gymShape(r.capabilities, ['canSave', 'canConfirm']), copyReview = parseAplCopyReview(r.copyReview);
+    const caps = gymShape(r.capabilities, ['canSave', 'canConfirm', ...(separated ? ['canReview'] : [])]), copyReview = parseAplCopyReview(r.copyReview);
     if (plan === null && copyReview.length) bad();
-    return { contractVersion: contract(r.contractVersion), planId, revision, organizerId: gymUuid(r.organizerId), program: parseAplProgram(r.program), plan, copyReview, contentHash: hash(r.contentHash), confirmations,
-      capabilities: { canSave: gymBoolean(caps.canSave), canConfirm: gymBoolean(caps.canConfirm) } };
+    const reviews = separated ? unique(gymArray(r.reviews, APL_LIMITS.confirmations).map(value => {
+      const { timplanRevision, rectorConfirmationId, ...event } = gymShape(value, ['id', 'planId', 'unitId', 'actorId', 'assignmentId', 'actorName', 'at', 'revision', 'contentHash', 'comment', 'timplanRevision', 'rectorConfirmationId']);
+      return { ...parseAplConfirmation(event), timplanRevision: gymInteger(timplanRevision), rectorConfirmationId: gymUuid(rectorConfirmationId) };
+    }), event => event.id) : undefined;
+    if (reviews?.some((event, i) => event.planId !== planId || event.revision > revision || i > 0 && event.revision <= reviews[i - 1].revision
+      || !confirmations.some(c => c.id === event.rectorConfirmationId && c.contentHash === event.contentHash && c.revision < event.revision && c.unitId === event.unitId))) bad();
+    return { contractVersion: contract(r.contractVersion), planId, revision, ...(separated ? { revisionScope: choice(r.revisionScope, ['apl'] as const), timplanRevision: gymInteger(r.timplanRevision), reviews } : {}), organizerId: gymUuid(r.organizerId), program: parseAplProgram(r.program), plan, copyReview, contentHash: hash(r.contentHash), confirmations,
+      capabilities: { canSave: gymBoolean(caps.canSave), canConfirm: gymBoolean(caps.canConfirm), ...(separated ? { canReview: gymBoolean(caps.canReview) } : {}) } };
   });
 }
 export function parseAplCommandReply(value: unknown, expected: AplCommand): AplCommandReply {
   return guarded(() => {
     const input = parseAplCommand(expected), r = gymShape(value, ['receipt', 'detail']);
-    const v = gymShape(r.receipt, ['contractVersion', 'commandId', 'planId', 'action', 'revision', 'changed', 'replayed', 'contentHash', 'confirmationId']);
+    const v = gymShape(r.receipt, ['contractVersion', 'commandId', 'planId', 'action', 'revision', 'changed', 'replayed', 'contentHash', 'confirmationId', ...(input.revisionScope === 'apl' ? ['reviewId'] : [])]);
     const receipt: AplReceipt = { contractVersion: contract(v.contractVersion), commandId: gymUuid(v.commandId), planId: gymUuid(v.planId),
-      action: choice(v.action, ['save', 'confirm']), revision: gymInteger(v.revision), changed: gymBoolean(v.changed), replayed: gymBoolean(v.replayed),
-      contentHash: hash(v.contentHash), confirmationId: v.confirmationId === null ? null : gymUuid(v.confirmationId) };
+      action: choice(v.action, ['save', 'confirm', 'review']), revision: gymInteger(v.revision), changed: gymBoolean(v.changed), replayed: gymBoolean(v.replayed),
+      contentHash: hash(v.contentHash), confirmationId: v.confirmationId === null ? null : gymUuid(v.confirmationId), ...(input.revisionScope === 'apl' ? { reviewId: v.reviewId === null ? null : gymUuid(v.reviewId) } : {}) };
     if (receipt.commandId !== input.commandId || receipt.planId !== input.planId || receipt.action !== input.action
       || receipt.revision !== input.expectedRevision + (receipt.changed ? 1 : 0)) bad();
     const detail = parseAplReadReply(r.detail, { planId: input.planId });
+    if (detail.revisionScope !== input.revisionScope || input.revisionScope === 'apl' && detail.timplanRevision !== input.expectedTimplanRevision) bad();
+    if (input.action !== 'review' && receipt.reviewId != null) bad();
     if (detail.plan === null || detail.revision !== receipt.revision || detail.contentHash !== receipt.contentHash) bad();
     if (input.action === 'save') {
       if (receipt.confirmationId !== null || detail.confirmations.some(event => event.revision > input.expectedRevision)
@@ -466,6 +480,11 @@ export function parseAplCommandReply(value: unknown, expected: AplCommand): AplC
       for (const resolution of input.copyReviewResolutions) {
         if (!receipt.changed || detail.copyReview.find(r => r.id === resolution.id)?.resolution?.note !== resolution.note) bad();
       }
+    } else if (input.action === 'review') {
+      const event = detail.reviews?.at(-1);
+      if (!receipt.changed || receipt.confirmationId !== null || !receipt.reviewId || !event || event.id !== receipt.reviewId
+        || event.revision !== receipt.revision || event.contentHash !== receipt.contentHash || receipt.contentHash !== input.expectedContentHash
+        || event.comment !== input.comment || event.timplanRevision !== input.expectedTimplanRevision) bad();
     } else {
       const event = detail.confirmations.at(-1);
       if (!receipt.changed || receipt.confirmationId === null || receipt.contentHash !== input.expectedContentHash
@@ -492,7 +511,7 @@ export function parseAplStatusReply(value: unknown, expected: AplStatusRequest):
 export async function verifyAplReadReply(value: unknown, context: AplContext): Promise<AplReadReply> {
   const ctx = parseAplContext(context), detail = parseAplReadReply(value, { planId: ctx.plan.id });
   if (detail.plan !== null) validateAplAllocationWrite(ctx, detail.plan);
-  if (detail.revision !== ctx.plan.revision || detail.confirmations.some(event => event.unitId !== ctx.plan.unitId)
+  if ((detail.revisionScope === 'apl' ? detail.timplanRevision !== ctx.plan.revision : detail.revision !== ctx.plan.revision) || detail.confirmations.some(event => event.unitId !== ctx.plan.unitId)
     || detail.contentHash !== await aplContentHash(ctx, detail.plan)) bad('invalid_read_snapshot');
   const replyContext = { ...ctx, organizerId: detail.organizerId, program: detail.program, copyReview: detail.copyReview };
   if (aplCanonicalSerialize(aplContentHashPayload(replyContext, detail.plan)) !== aplCanonicalSerialize(aplContentHashPayload(ctx, detail.plan))) bad('invalid_read_snapshot');
@@ -502,11 +521,12 @@ export async function verifyAplReadReply(value: unknown, context: AplContext): P
 /** Only the raw outer shape is checked here. Server04 must independently project/verify the full frozen catalog and matrix. */
 export function parseAplFrozenBasis(value: unknown): AplFrozenBasis {
   return guarded(() => {
-    const r = gymShape(value, ['organizerId', 'gymTimplan', 'copyReview']);
+    const separated = Object.hasOwn(gymObject(value), 'aplRevision');
+    const r = gymShape(value, ['organizerId', 'gymTimplan', 'copyReview', ...(separated ? ['aplRevision'] : [])]);
     const v2 = Object.hasOwn(gymObject(r.gymTimplan), 'timeModel');
     const gymTimplan = gymShape(r.gymTimplan, ['id', 'offeringId', 'unitId', 'schoolName', 'version', 'revision', 'status', 'source', 'catalog',
       'currentSource', 'currentSourceBasis', ...(v2 ? ['timeModel', 'timeRows', 'timeCopyReview'] : ['hours']), 'canPlan', 'archived', 'series', 'nameAtCreation']);
-    return { organizerId: gymUuid(r.organizerId), gymTimplan, copyReview: parseAplCopyReview(r.copyReview) };
+    return { organizerId: gymUuid(r.organizerId), gymTimplan, ...(separated ? { aplRevision: gymInteger(r.aplRevision) } : {}), copyReview: parseAplCopyReview(r.copyReview) };
   });
 }
 /** The caller chooses the trusted operation parser; a wire field cannot select an older verifier. Null basis is only for not_found status. */

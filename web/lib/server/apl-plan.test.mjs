@@ -359,3 +359,48 @@ test('legacy write route rejects V2 before old SQL mutation and school-only APL 
  await annualFixture();state.read.basis.gymTimplan.timeRows[key].annualAplMinutes[0]=1;
  await assert.rejects(projectAplFrozenRead(state.read.result,state.read.basis,planId,authority('rektor')));
 });
+
+async function separateFixture(fn = 'rektor', action = 'save') {
+  await reset(fn);
+  const basis = state.read.basis; basis.aplRevision = 17;
+  Object.assign(basis.gymTimplan, { status: 'faststalld', revision: 10, canPlan: false });
+  const detail = await makeDetail(basis, aplPlan());
+  Object.assign(detail, { revisionScope: 'apl', timplanRevision: 10, revision: 17, reviews: [],
+    capabilities: { canSave: fn !== 'huvudman', canConfirm: fn === 'rektor', canReview: fn === 'huvudman' } });
+  const rector = { id: uid(31), planId, unitId, actorId: id, assignmentId, actorName: 'Syntetisk rektor',
+    at: '2026-10-18T10:00:00.000Z', revision: 17, contentHash: detail.contentHash, comment: 'Granskad förläggning.' };
+  detail.confirmations = [rector]; state.read.result = detail;
+  const q = { ...(action === 'save' ? saveInput() : confirmInput()), action, revisionScope: 'apl', expectedTimplanRevision: 10, expectedRevision: 17 };
+  const result = structuredClone(detail); result.revision++;
+  const reviewId = action === 'review' ? uid(32) : null;
+  if (reviewId) result.reviews.push({ ...rector, id: reviewId, revision: 18, actorName: 'Syntetisk huvudman',
+    timplanRevision: 10, rectorConfirmationId: rector.id, comment: q.comment });
+  state.command = envelope({ ...structuredClone(basis), aplRevision: 18 }, { receipt: { contractVersion: 'structured_v1',
+    commandId: q.commandId, planId, action, revision: 18, changed: true, replayed: false, contentHash: result.contentHash,
+    confirmationId: null, reviewId }, detail: result });
+  return q;
+}
+test('approved timetable is read-only while separate APL is editable and uses an independent revision', async () => {
+  const q = await separateFixture();
+  assert.equal((await read(request('lasa', { planId }))).status, 200);
+  const response = await command(request('kommando', q)); assert.equal(response.status, 200);
+  const body = await response.json(); assert.equal(body.detail.revision, 18); assert.equal(body.detail.timplanRevision, 10);
+  assert.equal(state.command.basis.gymTimplan.revision, 10);
+});
+test('separate organizer review is protected by role, MFA and exact confirmation binding', async () => {
+  let q = await separateFixture('huvudman', 'review');
+  assert.equal((await command(request('kommando', q))).status, 200);
+  q = await separateFixture('huvudman', 'review'); state.mfa = false;
+  assert.equal((await command(request('kommando', q))).status, 403); noCommit();
+  for (const fn of ['rektor', 'administrator']) {
+    q = await separateFixture(fn, 'review'); assert.equal((await command(request('kommando', q))).status, 403); noCommit();
+  }
+  q = await separateFixture('huvudman', 'review'); state.command.result.detail.reviews[0].rectorConfirmationId = uid(99);
+  assert.equal((await command(request('kommando', q))).status, 500); noCommit();
+});
+test('separate APL reply cannot substitute a different timetable revision or independent counter', async () => {
+  for (const mutate of [s => s.command.basis.aplRevision++, s => s.command.basis.gymTimplan.revision++,
+    s => s.command.result.detail.timplanRevision++, s => s.command.result.detail.capabilities.canSave = false]) {
+    const q = await separateFixture(); mutate(state); assert.equal((await command(request('kommando', q))).status, 500); noCommit();
+  }
+});

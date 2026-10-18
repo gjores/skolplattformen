@@ -354,3 +354,28 @@ test('annual named variants keep exact plan ID and year across reload, regardles
  assert.equal(planningRowLocation({...base,plan:null},selection),null);
  for(const schoolform of ['grundskola','introduktionsprogram']){const target=planningRowLocation({...base,schoolform,relativeYear:null,application:schoolform==='grundskola'?{columnId:'ak8'}:null}, {...selection,schoolform});assert.equal(target.other.id,id);assert.equal(target.other.kind,schoolform);assert.deepEqual(normalizePlanLocation(readPlanLocation(planLocationQuery(target)),setup()).location,target);}
 });
+
+test('APL is a separate address preserving the exact timetable, school and planning year', () => {
+  const location = {view:'timplaner', process:'apl', gym:{kind:'plan',id,unitId:other,offeringId:id,version:2},planning:{schoolYear:2027,unitId:other,schoolform:'gymnasium'}};
+  assert.match(planLocationQuery(location), /^\?vy=apl-planering&/);
+  assert.deepEqual(readPlanLocation(planLocationQuery(location)), location);
+  const normalized = normalizePlanLocation(location, setup());
+  assert.equal(normalized.location.process, 'apl');
+  assert.equal(normalized.selection.view, 'timplan');
+  assert.equal(normalized.selection.schoolform, 'gymnasium');
+  const moved = planningLocationChange(normalized.location,{unitId:id},setup());
+  assert.equal(moved.location.process,'apl');
+  assert.equal(moved.location.gym,null);
+  assert.equal(moved.selection.unitId,id);
+});
+test('APL addresses cannot mount source creation or other-schoolform writers', () => {
+  for(const suffix of [`programunderlag=${id}`,`ovrigtimplan=${id}&timplansform=grundskola`]) {
+    const result=readPlanLocationResult('?vy=apl-planering&'+suffix);
+    assert.equal(result.location.process,'apl'); assert.equal(result.location.gym,null);assert.equal(result.location.other,undefined);
+    assert.ok(result.normalizationNotice);
+  }
+  const result=normalizePlanLocation({view:'timplaner',process:'apl',gym:null,planning:{schoolform:'grundskola'}},setup());
+  assert.equal(result.selection.schoolform,'gymnasium');
+  const overview=readPlanLocation(`?vy=apl-planering&planeringsoversikt=1&timplan=${id}`);
+  assert.equal(overview.process,undefined);assert.equal(overview.gym,null);
+});

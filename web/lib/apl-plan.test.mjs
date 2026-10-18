@@ -453,3 +453,49 @@ test('pre-extension canonical and content hashes remain exact; explicit term cha
   assert.notEqual(await call('aplContentHash', context(), parsed), explicitHash);
   assert.equal(call('projectAplPlan', context(), parsed).readyForConfirmation, true, 'intent does not introduce a new date rule');
 });
+
+test('separate APL commands bind their own counter and the approved timetable revision', () => {
+  for (const action of ['save', 'confirm', 'review']) {
+    const q = { ...(action === 'save' ? save() : confirm(`sha256:${'a'.repeat(64)}`)), action,
+      revisionScope: 'apl', expectedTimplanRevision: 42 };
+    assert.deepEqual(call('parseAplCommand', q), q);
+    for (const field of ['revisionScope', 'expectedTimplanRevision']) {
+      const broken = { ...q }; delete broken[field]; invalid(() => call('parseAplCommand', broken));
+    }
+    invalid(() => call('parseAplCommand', { ...q, expectedTimplanRevision: -1 }));
+    invalid(() => call('parseAplCommand', { ...q, revisionScope: 'timplan' }));
+  }
+  invalid(() => call('parseAplCommand', { ...confirm(`sha256:${'a'.repeat(64)}`), action: 'review' }));
+});
+
+test('separate read permits APL revision past frozen timetable while rejecting a changed timetable reference', async () => {
+  const ctx = context(); ctx.plan.status = 'faststalld'; ctx.plan.canPlan = false;
+  const value = plan(), contentHash = await call('aplContentHash', ctx, value);
+  const rector = { ...confirmation(contentHash), revision: 15 };
+  const review = { ...rector, id: uid(40), actorName: 'Syntetisk huvudman', revision: 16,
+    timplanRevision: ctx.plan.revision, rectorConfirmationId: rector.id };
+  const detail = { contractVersion: 'structured_v1', revisionScope: 'apl', timplanRevision: ctx.plan.revision,
+    planId: ctx.plan.id, revision: 16, organizerId: ctx.organizerId, program: ctx.program, plan: value,
+    copyReview: [], contentHash, confirmations: [rector], reviews: [review], capabilities: { canSave: false, canConfirm: false, canReview: true } };
+  assert.deepEqual(await call('verifyAplReadReply', detail, ctx), detail);
+  await assert.rejects(() => call('verifyAplReadReply', { ...detail, timplanRevision: 6 }, ctx));
+  invalid(() => call('parseAplReadReply', { ...detail, reviews: [{ ...review, rectorConfirmationId: uid(99) }] }, { planId: ctx.plan.id }));
+  invalid(() => call('parseAplReadReply', { ...detail, reviews: [{ ...review, contentHash: `sha256:${'b'.repeat(64)}` }] }, { planId: ctx.plan.id }));
+});
+
+test('organizer review receipt must bind its exact event, content, comment and timetable revision', async () => {
+  const ctx = context(), value = plan(), contentHash = await call('aplContentHash', ctx, value);
+  const rector = confirmation(contentHash), review = { ...rector, id: uid(40), revision: 8,
+    timplanRevision: 42, rectorConfirmationId: rector.id, comment: 'Separat huvudmannagranskning.' };
+  const q = { ...confirm(contentHash), action: 'review', revisionScope: 'apl', expectedTimplanRevision: 42, comment: review.comment };
+  const reply = { receipt: { contractVersion: 'structured_v1', commandId: q.commandId, planId: q.planId,
+    action: 'review', revision: 8, changed: true, replayed: false, contentHash, confirmationId: null, reviewId: review.id },
+    detail: { contractVersion: 'structured_v1', revisionScope: 'apl', timplanRevision: 42, planId: q.planId,
+      revision: 8, organizerId: ctx.organizerId, program: ctx.program, plan: value, copyReview: [], contentHash,
+      confirmations: [rector], reviews: [review], capabilities: { canSave: false, canConfirm: false, canReview: true } } };
+  assert.deepEqual(call('parseAplCommandReply', reply, q), reply);
+  for (const mutate of [r => r.receipt.reviewId = uid(99), r => r.detail.reviews[0].timplanRevision = 41,
+    r => r.detail.reviews[0].comment = 'Annat', r => r.receipt.confirmationId = rector.id]) {
+    const broken = structuredClone(reply); mutate(broken); invalid(() => call('parseAplCommandReply', broken, q));
+  }
+});

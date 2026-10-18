@@ -1,5 +1,5 @@
 import { parseTimplanTimeCells, TIMPLAN_TIME_MODEL_V2, timplanTimeTotals } from '../timplan-time.ts';
-import { gymArray, gymShape, gymObject, gymRowKey, parseGymTimplanHours } from '../gym-timplan.ts';
+import { gymArray, gymShape, gymObject, gymRowKey, parseGymTimplanHours, parseTimplanTimeCopyReview } from '../gym-timplan.ts';
 import { parseLegacyPlanDecisionDetail, parsePlanDecisionDetail, parsePlanDecisionInbox, parsePlanDecisionPage, type PlanDecisionDetail, type PlanDecisionQuery, type PlanDecisionCommand, type PlanDecisionRead } from '../plan-decision.ts';
 import { projectSource } from './gym-timplan.ts';
 import { AuditUnavailable } from './authz.ts';
@@ -39,15 +39,17 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
   command: PlanDecisionCommand | null = null): Promise<PlanDecisionDetail> {
   const envelope = gymShape(value,['contractVersion','resultContract','replayed','result','aplBasis']);
   if (envelope.contractVersion !== 'apl_decision_sql_v1' || typeof envelope.replayed !== 'boolean'
-    || !['legacy','apl_decision_v1'].includes(String(envelope.resultContract)) || !command && envelope.replayed) throw new TypeError('Invalid decision envelope');
+    || !['legacy','apl_decision_v1','timetable_decision_v2'].includes(String(envelope.resultContract)) || !command && envelope.replayed) throw new TypeError('Invalid decision envelope');
+  const separated = envelope.resultContract === 'timetable_decision_v2';
   const legacy = envelope.resultContract === 'legacy', result = gymObject(envelope.result);
   if (legacy && (!command || !envelope.replayed || envelope.aplBasis !== null || Object.hasOwn(result,'contractVersion') || Object.hasOwn(result,'apl'))) throw new TypeError('Invalid legacy dispatch');
   const keys = legacy ? DETAIL_KEYS.filter(key => key !== 'series' || Object.hasOwn(result,'series')) : [...DETAIL_KEYS,'contractVersion','apl'];
   const v2 = Object.hasOwn(result, 'timeModel');
   if (v2 && (legacy || expected.kind !== 'timplan' || result.timeModel !== TIMPLAN_TIME_MODEL_V2)) throw new TypeError('Invalid decision time model');
-  const raw = gymShape(result, [...keys, 'source','catalog', ...(v2 ? ['timeModel', 'timeRows'] : ['hours'])]);
-  const { source: sourceValue, catalog: catalogValue, hours: hoursValue, timeModel: _timeModel, timeRows: timeRowsValue, ...detail } = raw;
+  const raw = gymShape(result, [...keys, 'source','catalog', ...(v2 ? ['timeModel', 'timeRows', ...(separated ? ['timeCopyReview'] : [])] : ['hours'])]);
+  const { source: sourceValue, catalog: catalogValue, hours: hoursValue, timeModel: _timeModel, timeRows: timeRowsValue, timeCopyReview: timeCopyReviewValue, ...detail } = raw;
   const body = legacy ? parseLegacyPlanDecisionDetail(detail,expected) : parsePlanDecisionDetail(detail, expected);
+  if (body.contractVersion !== envelope.resultContract || separated && envelope.aplBasis !== null) throw new TypeError('Invalid decision dispatch');
   const {source,rows,readiness} = await projectSource(sourceValue,catalogValue);
   if (source.projected.offeringId !== body.offeringId || (expected.kind === 'programplan' && source.projected.planId !== expected.planId)) throw new TypeError('Invalid decision source');
   const blockers = [...body.blockers,...readiness.missing];
@@ -68,6 +70,7 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
   });
   if (expected.kind === 'programplan' && hours.length) throw new TypeError('Invalid program hours');
   if (timeRows) {
+    if (separated && parseTimplanTimeCopyReview(timeCopyReviewValue).some(item => item.resolution === null)) blockers.push('Kopieringen har tidsrader som behöver granskas innan timplanen godkänns.');
     const totals = timplanTimeTotals({ rows, timeRows }, profile?.vocational === true);
     if (!totals.complete || rows.some(row => [...timeRows[row.key].schoolMinutes, ...timeRows[row.key].annualAplMinutes].reduce<number>((sum, n) => sum + (n ?? 0), 0) === 0)) blockers.push('Fördela undervisningstid på varje rad och i alla aktiva terminsfält.');
     if (profile && totals.totalMinutes < profile.hours * 60) blockers.push(`Timplanen innehåller färre än ${formatCount(profile.hours)} planerade undervisningstimmar.`);
@@ -86,10 +89,10 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
     if (profile && total < profile.hours) blockers.push(`Timplanen innehåller färre än ${formatCount(profile.hours)} planerade undervisningstimmar.`);
   }
   const expectedChecks = expected.kind === 'programplan' ? ['structure','choices'] : ['teacher-led','choice-paths'];
-  if (profile?.vocational) expectedChecks.push('eligibility','apl');
+  if (profile?.vocational) expectedChecks.push('eligibility', separated ? 'apl-budget' : 'apl');
   if (body.checks.length !== expectedChecks.length || expectedChecks.some(id=>!body.checks.some(check=>check.id===id))) throw new TypeError('Invalid decision checks');
   if (!legacy) {
-    const requiresApl = expected.kind === 'timplan' && profile?.vocational === true;
+    const requiresApl = !separated && expected.kind === 'timplan' && profile?.vocational === true;
     if (requiresApl !== (body.apl != null) || requiresApl !== (envelope.aplBasis !== null)) throw new TypeError('Invalid APL decision profile');
     if (body.apl) {
       const {context,basis} = await projectAplFrozenRead(body.apl.detail,envelope.aplBasis,expected.planId,authority);

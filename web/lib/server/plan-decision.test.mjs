@@ -263,3 +263,27 @@ test('new frozen replay survives current APL changes without reinterpreting a co
  state.reply.apl.detail.plan.periods[0].allocations[0].gutMinutes++;
  assert.equal((await change(request('andra',input))).status,500);assert.equal(state.mutations.length,1);
 });
+
+async function separateTimetableReply() {
+ const input=await vocationalReply('BF25','timplan'),r=state.reply;
+ r.contractVersion='timetable_decision_v2';r.apl=null;r.blockers=[];state.aplBasis=null;
+ r.checks=r.checks.map(c=>c.id==='apl'?{id:'apl-budget',label:'Årsram granskas nu, perioder senare'}:c);
+ r.timeModel='school_terms_annual_apl_v2';r.timeCopyReview=[];
+ r.timeRows=Object.fromEntries(r.hours.map(row=>[row.rowKey,{schoolMinutes:row.hours.map(n=>n===null?null:n*60),annualAplMinutes:[0,1,2].map(i=>row.hours[i*2]!==null||row.hours[i*2+1]!==null?0:null)}]));delete r.hours;
+ state.envelopeOverride={contractVersion:'apl_decision_sql_v1',resultContract:'timetable_decision_v2',replayed:false,result:r,aplBasis:null};
+ return{...input,confirmedChecks:r.checks.map(c=>c.id)};
+}
+test('new timetable decision approves table without APL periods or rector event',async()=>{
+ const input=await separateTimetableReply();assert.equal((await change(request('andra',input))).status,200);
+ assert.equal(state.mutations.length,1);
+});
+test('time-copy losses still block table approval when period planning is separate',async()=>{
+ const input=await separateTimetableReply(),key=Object.keys(state.reply.timeRows)[0];
+ state.reply.timeCopyReview=[{id:unit,resolution:null,contractVersion:'time_copy_review_v2',sourcePlanId:planId,sourceVersion:1,rowKey:key,reason:'missing_row',row:state.reply.timeRows[key]}];
+ assert.equal((await change(request('andra',input))).status,409);assert.equal(state.mutations.length,0);
+});
+test('new timetable contract cannot smuggle period snapshots or select old server verifier',async()=>{
+ for(const mutate of [s=>s.envelopeOverride.aplBasis={},s=>s.envelopeOverride.resultContract='apl_decision_v1',s=>s.reply.apl={},s=>delete s.reply.timeCopyReview]){
+  const input=await separateTimetableReply();mutate(state);assert.equal((await change(request('andra',input))).status,500);assert.equal(state.mutations.length,0);
+ }
+});

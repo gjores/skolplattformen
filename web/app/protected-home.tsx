@@ -144,12 +144,16 @@ function ProtectedNavigation({
   setView,
   overview,
   onOverview,
+  aplProcess,
+  onApl,
 }: {
   session: SessionResponse;
   view: ProtectedView;
   setView: (view: ProtectedView) => void;
   overview: boolean;
   onOverview: () => void;
+  aplProcess: boolean;
+  onApl: () => void;
 }) {
   const { setOpenMobile } = useSidebar();
   const go = (next: ProtectedView) => {
@@ -216,8 +220,9 @@ function ProtectedNavigation({
               onClick={() => { onOverview(); setOpenMobile(false); }} className="nav-button"><CalendarClock size={19}/><span>Läsårsöverblick</span></SidebarMenuButton></SidebarMenuItem>
             <SidebarMenuItem><SidebarMenuButton data-testid="programplan-list-nav" isActive={!overview && view === 'programplaner'} aria-current={!overview && view === 'programplaner' ? 'page' : undefined}
               onClick={() => go('programplaner')} className="nav-button"><ListChecks size={19}/><span>Programplaner</span></SidebarMenuButton></SidebarMenuItem>
-            <SidebarMenuItem><SidebarMenuButton data-testid="timplan-list-nav" isActive={!overview && view === 'timplaner'} aria-current={!overview && view === 'timplaner' ? 'page' : undefined}
+            <SidebarMenuItem><SidebarMenuButton data-testid="timplan-list-nav" isActive={!overview && !aplProcess && view === 'timplaner'} aria-current={!overview && !aplProcess && view === 'timplaner' ? 'page' : undefined}
               onClick={() => go('timplaner')} className="nav-button"><CalendarClock size={19}/><span>Timplaner</span></SidebarMenuButton></SidebarMenuItem>
+            <SidebarMenuItem><SidebarMenuButton data-testid="apl-planning-nav" isActive={aplProcess} aria-current={aplProcess ? 'page' : undefined} onClick={() => { onApl(); setOpenMobile(false); }} className="nav-button"><CalendarClock size={19}/><span>APL-planering</span></SidebarMenuButton></SidebarMenuItem>
           </SidebarMenu>
         </>}
       </SidebarContent>
@@ -490,7 +495,7 @@ function ProtectedShell() {
     const next = planningAfterOpened(target?.unitId);
     if (next.scopeChanged) setTimplanTarget(target);
     if (target?.kind === 'plan' && sourcePlanId) lastGymPlan.current = { sourcePlanId, target };
-    writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning,
+    writePlanLocation({ view: 'timplaner', gym: target, planning: next.planning, ...(prior?.view === 'timplaner' && prior.process === 'apl' ? { process: 'apl' as const } : {}),
       ...(target && prior?.view === 'timplaner' ? { relativeYear: prior.relativeYear, allYears: prior.allYears } : {}) }, !firstOpenedTarget);
   }
   function otherTimplanOpened(target: OtherTimplanLocation | null) {
@@ -547,6 +552,15 @@ function ProtectedShell() {
     const target = selectGymTimplanTarget(source, cached, prior.planning?.unitId);
     const location: PlanLocation = { ...prior, view: 'timplaner', gym: target, planning: { ...prior.planning, schoolform: 'gymnasium',
       ...(target.unitId ? { unitId: target.unitId } : {}) } };
+    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+  }
+  function goToApl(target: GymTimplanLocation | null = null) {
+    if (!canNavigate()) return;
+    if (view === 'elever') rememberRegister();
+    const prior = planningFor('timplaner');
+    const location: PlanLocation = { view: 'timplaner', process: 'apl', gym: target,
+      planning: { ...prior.planning, schoolform: 'gymnasium', page: 1, selectionRevision: null,
+        ...(target?.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
   function navigateOverview() {
@@ -672,7 +686,8 @@ function ProtectedShell() {
   );
   const validContext = session.context?.valid && !session.context.blocked;
   const overview = isPlanningView(view) && planningLocation?.overview === true;
-  const currentTitle = overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
+  const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
+  const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
 
   return (
     <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
@@ -681,7 +696,7 @@ function ProtectedShell() {
     <SidebarProvider style={{ '--sidebar-width': '15.5rem' } as React.CSSProperties}>
       <a className="skip" href="#workspace">Till innehållet</a>
       <Sidebar className="app-sidebar">
-        <ProtectedNavigation session={session} view={view} setView={navigate} overview={overview} onOverview={navigateOverview}/>
+        <ProtectedNavigation session={session} view={view} setView={navigate} overview={overview} onOverview={navigateOverview} aplProcess={aplProcess} onApl={() => goToApl()}/>
       </Sidebar>
       <div className="application">
         <header className="topbar protected-topbar">
@@ -720,7 +735,7 @@ function ProtectedShell() {
                 return false;
               }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => navigate(view)} onOpen={row=>{if(!canNavigate())return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>}
               {!overview && view === 'timplaner' && <>
-                <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => {
+                {!aplProcess && <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => {
                   if (!canNavigate()) return;
                   const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'gymnasium', page: 1, selectionRevision: null } };
                   applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
@@ -729,8 +744,8 @@ function ProtectedShell() {
                     if (!canNavigate()) return;
                     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
-                  }}>Grundskola och introduktionsprogram</Button>}</nav>
-                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace identityKey={aplIdentityKey} key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
+                  }}>Grundskola och introduktionsprogram</Button>}</nav>}
+                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace process={aplProcess ? 'apl' : 'timetable'} onApl={goToApl} onTimplan={goToTimplan} identityKey={aplIdentityKey} key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
                   onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
                   : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
               </>}

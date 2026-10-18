@@ -8,7 +8,7 @@ export type PlanDecisionApl = { detail: AplReadReply; blockers: string[]; curren
 export type PlanDecisionAplSummary = { state: 'legacy' | 'structured_v1'; ready: boolean; blockers: string[] };
 export type PlanDecisionItem = { apl: PlanDecisionAplSummary | null; kind: PlanDecisionKind; series?: TimplanSeries | null; planId: string; offeringId: string; unitId: string | null; educationName: string; schoolName: string | null; version: number; stage: PlanDecisionStage; nextActor: 'huvudman' | 'rektor' | null; task: 'prepare' | 'review' | 'revise' | 'waiting' | 'blocked' };
 export type PlanDecisionInbox = { items: PlanDecisionItem[]; actionCount: number; decisionCount: number; total: number; truncated: boolean };
-export type PlanDecisionDetail = Omit<PlanDecisionItem, 'task' | 'apl'> & { contractVersion: 'legacy' | 'apl_decision_v1'; apl?: PlanDecisionApl | null; revision: number; decisionRevision: number; basisHash: string; actions: PlanDecisionAction[]; blockers: string[]; checks: { id: string; label: string }[]; history: { action: PlanDecisionAction; at: string; actorName: string; comment: string; nameAtDecision?: string | null }[]; sourceInfo: string | null };
+export type PlanDecisionDetail = Omit<PlanDecisionItem, 'task' | 'apl'> & { contractVersion: 'legacy' | 'apl_decision_v1' | 'timetable_decision_v2'; apl?: PlanDecisionApl | null; revision: number; decisionRevision: number; basisHash: string; actions: PlanDecisionAction[]; blockers: string[]; checks: { id: string; label: string }[]; history: { action: PlanDecisionAction; at: string; actorName: string; comment: string; nameAtDecision?: string | null }[]; sourceInfo: string | null };
 export type PlanDecisionRead = { kind: PlanDecisionKind; planId: string };
 export type PlanDecisionCommand = PlanDecisionRead & { commandId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
 const kinds = ['programplan', 'timplan'] as const, actions = ['submit', 'return', 'approve', 'withdraw'] as const, stages = ['draft', 'submitted', 'returned', 'approved', 'replaced'] as const;
@@ -75,17 +75,19 @@ export function parsePlanDecisionDetail(value: unknown, expected: PlanDecisionRe
   const {contractVersion: _version,...raw} = object;
   return parseLegacyPlanDecisionDetail(raw,expected);
  }
- if (object.contractVersion !== 'apl_decision_v1') bad();
- return detailFields(value,expected,'apl_decision_v1');
+ if (object.contractVersion !== 'apl_decision_v1' && object.contractVersion !== 'timetable_decision_v2') bad();
+ return detailFields(value,expected,object.contractVersion);
 }
-function detailFields(value: unknown, expected: PlanDecisionRead, version: 'legacy' | 'apl_decision_v1'): PlanDecisionDetail {
- const current = version === 'apl_decision_v1';
+function detailFields(value: unknown, expected: PlanDecisionRead, version: 'legacy' | 'apl_decision_v1' | 'timetable_decision_v2'): PlanDecisionDetail {
+ const current = version !== 'legacy';
+ if (version === 'timetable_decision_v2' && expected.kind !== 'timplan') bad();
  const r = gymShape(value, ['kind','planId','offeringId','unitId','educationName','schoolName','version','stage','nextActor','revision','decisionRevision','basisHash','actions','blockers','checks','history','sourceInfo',...(current ? ['series','contractVersion','apl'] : seriesKeys(value))]);
  const item = base(r); if (item.kind !== expected.kind || item.planId !== expected.planId) bad();
  const available = unique(gymArray(r.actions, 4).map(v => choice(v, actions)));
  if (['approved','replaced'].includes(item.stage) && available.length) bad();
  const history = gymArray(r.history, 1000).map(v => { const hasName = Object.hasOwn(gymObject(v), 'nameAtDecision'); if (hasName && !Object.hasOwn(r, 'series')) bad(); const e = gymShape(v, ['action','at','actorName','comment', ...(hasName ? ['nameAtDecision'] : [])]); const at = text(e.at, 50); if (!Number.isFinite(Date.parse(at))) bad(); return { action: choice(e.action, actions), at, actorName: text(e.actorName), comment: text(e.comment, 2000), ...(hasName ? { nameAtDecision: e.nameAtDecision === null ? null : item.kind === 'timplan' ? parseTimplanName(e.nameAtDecision) : bad() } : {}) }; });
  const apl = current ? parseDecisionApl(r.apl, expected) : undefined;
+ if (version === 'timetable_decision_v2' && apl !== null) bad();
  if (apl && (item.kind !== 'timplan' || apl.detail.revision !== r.revision)) bad();
  return { ...item, contractVersion: version, ...(current ? {apl} : {}), revision: gymInteger(r.revision), decisionRevision: gymInteger(r.decisionRevision), basisHash: hash(r.basisHash), actions: available,
   blockers: current ? parseDecisionBlockers(r.blockers) : unique(gymArray(r.blockers, 100).map(v => text(v, 2000))), checks: unique(gymArray(r.checks, 20).map(v => { const c = gymShape(v, ['id','label']); return { id: text(c.id, 80), label: text(c.label, 2000) }; }), c => c.id), history, sourceInfo: r.sourceInfo === null ? null : text(r.sourceInfo, 2000) };

@@ -18,6 +18,7 @@ import { defaultProgramplanChoiceBlocks, upgradeProgramplanBasis } from '@/lib/p
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import { AnalysisView, SaveDialog } from './protected-programplan-sheet';
+import { programplanProfile } from '@/lib/programplan-profile.ts';
 import { analyseProgramplan, type PlanIssue } from '@/lib/programplan-analysis.ts';
 import ProtectedProgramplanFlow from './protected-programplan-flow';
 import ProtectedClassCohorts from './protected-class-cohorts';
@@ -591,7 +592,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
 
     {error && <div className="pp-alert" role="alert"><p>{error}</p><Button disabled={busy} variant="outline" onClick={()=>{if(recoveryRef.current)void recoverPending().catch(()=>undefined);else if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}>{recovery ? 'Läs aktuell sparstatus' : 'Hämta utbildningarna igen'}</Button></div>}
     {notice && <output className="pp-notice">{notice}</output>}
-    {permission?.error && <div className="pp-alert" role="alert"><p>{permission.error}</p><Button variant="outline" onClick={retryCreationPermission}>Läs skapanderätt igen</Button></div>}
+    {permission?.error && <div className="pp-alert" role="alert"><p>{permission.error}</p><Button variant="outline" onClick={retryCreationPermission}>Kontrollera behörighet igen</Button></div>}
     {!workspace&&!draft&&!showFlow&&<ProgramplanList key={flowRevision} disabled={busy} canEditPlans={context.function !== 'administrator'} onSecurityFailure={securityFailure} canCreateEducation={canCreate} creationLoading={!permission || permission.loading}
       canCreateTimplan={!!onTimplan && ['rektor', 'administrator'].includes(context.function)} onTimplan={openRowTimplan}
       onOpen={row=>openAnnualRow(row)} onCopy={row=>openAnnualRow(row,true)} onNew={()=>setShowFlow(true)}/>}
@@ -601,42 +602,40 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
       {workspace&&<div className="pps-head">
         <div className="pps-head-text">
           <button type="button" className="pps-back" disabled={busy||termsActive} onClick={()=>{if(view==='analysis'){setView('plan');return;}if(canNavigate()&&(!hasUnsaved||confirmDiscard()))void loadList(page);}}><ArrowLeft size={14} aria-hidden="true"/>{view==='analysis'?'Tillbaka till planen':'Alla programplaner'}</button>
-          <h2>{view==='analysis'?'Analys av programplanen':workspace.education.name}</h2>
+          <h2>{view==='analysis'?'Kontrollera programplanen':workspace.education.name}</h2>
           {selectedSchool && <p>Vald skola: {selectedSchool.name}{workspace.lifecycle.units.length > 1 ? ' · Gemensam programram' : ''}</p>}
           <p>{[program?.name??workspace.education.programCode, orientationName ?? (workspace.education.orientationCode ? workspace.education.orientationCode : null), programplanSchoolLabel(workspace.lifecycle), workspace.education.cohort??'Elevkull saknas'].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="pps-actions">
           <LifecycleBadge lifecycle={workspace.lifecycle}/>
           <span className="pps-state pp-status">{statusText}</span>
-          {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))setView('analysis');}}>Analys{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
-          {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())onTimplan({ kind: 'source', id: plan.id, offeringId: plan.offeringId, version: plan.version, ...(selectedUnit.current ? { unitId: selectedUnit.current } : {}) });}}>Timplan</Button>}
-          {!draft&&!preparation&&!copy&&canCreate&&(context.function==='huvudman'||!!selectedSchool)&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>{if(canNavigate())setCopy(newCopy(workspace.education.name, context.function === 'huvudman' ? workspace.education.unitId : selectedSchool!.id));}}><Copy size={16} aria-hidden="true"/>Kopiera</Button>}
-          {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>{if(canNavigate())void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null,null,false,false,{missing:plan===null});}}><RefreshCw size={16}/>Läs om</Button>}
+          {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))setView('analysis');}}>Kontrollera planen{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
+          {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())onTimplan({ kind: 'source', id: plan.id, offeringId: plan.offeringId, version: plan.version, ...(selectedUnit.current ? { unitId: selectedUnit.current } : {}) });}}>Gå till timplan</Button>}
           {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||hasUnsaved||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
+          {!draft&&!preparation&&<details className="pps-more-actions">
+            <summary>Fler alternativ</summary>
+            <div className="pps-more-actions-content" aria-label="Fler alternativ för programplanen">
+          {!draft&&!preparation&&!copy&&canCreate&&(context.function==='huvudman'||!!selectedSchool)&&!!plan?.basisReference&&view==='plan'&&<Button variant="outline" disabled={busy||termsActive||hasUnsaved} onClick={()=>{if(canNavigate())setCopy(newCopy(workspace.education.name, context.function === 'huvudman' ? workspace.education.unitId : selectedSchool!.id));}}><Copy size={16} aria-hidden="true"/>Kopiera till nästa kull</Button>}
+          {!draft&&!preparation&&<Button variant="outline" disabled={busy||termsActive} onClick={()=>{if(canNavigate())void openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan?.id??null,null,false,false,{missing:plan===null});}}><RefreshCw size={16} aria-hidden="true"/>Uppdatera sidan</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.editDetails&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('update');}}><Pencil size={16} aria-hidden="true"/>Ändra uppgifter</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&context.function !== 'administrator' && programplanSchoolActions(workspace.lifecycle, context.function === 'huvudman' ? 'huvudman' : 'rektor').add&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('units');}}>Skolor</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.archive&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('archive');}}><Archive size={16} aria-hidden="true"/>Arkivera</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.restore&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('restore');}}><ArchiveRestore size={16} aria-hidden="true"/>Ta fram ur arkivet</Button>}
           {!draft&&!preparation&&!copy&&view==='plan'&&lifecycleActions?.delete&&<Button variant="outline" disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())setLifecycleDialog('delete');}}><Trash2 size={16} aria-hidden="true"/>Ta bort</Button>}
+            </div>
+          </details>}
         </div>
       </div>}
-      {workspace&&plan&&view==='plan'&&<ol className="pps-stepper" aria-label="Utbildningens arbetsmoment"><li aria-current="step">Programplan · {programplanStatus[plan.status]}</li><li>Klasser · kan göras senare</li><li>Timplaner · fördela timmar</li><li>Klasskopplingar · efter fastställande</li></ol>}
-      {workspace&&selectedSchool&&!draft&&!preparation&&!copy&&view==='plan'&&<ProtectedClassCohorts context={context} epoch={epoch} offeringId={workspace.education.id} unitId={selectedSchool.id}
-        disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepTarget?.offeringId===workspace.education.id&&classStepTarget.planId===plan?.id&&classStepTarget.unitId===selectedSchool.id}
-        onInitialOpen={()=>{const target=classStepRef.current;if(target&&target.offeringId===workspace.education.id&&target.planId===plan?.id&&target.unitId===selectedSchool.id){classStepRef.current=null;setClassStepTarget(null);onClassStepMounted?.(target);}}}
-        sourceKey={JSON.stringify([workspace.lifecycle.revision,workspace.versions.map(version=>[version.id,version.revision,version.status])])}
-        returnTo={'/'+planLocationQuery({view:'programplaner',programplan:plan?{offeringId:workspace.education.id,planId:plan.id,version:plan.version,unitId:selectedSchool.id}:null,
-          planning:{schoolYear:planningSelection?.schoolYear,unitId:selectedSchool.id,schoolform:'gymnasium'},allYears:true})} onSecurityFailure={securityFailure}/>}
+      {workspace&&plan&&view==='plan'&&<ol className="pps-stepper" aria-label="Utbildningens arbetsmoment"><li aria-current="step">1. Programplan · fördela poäng</li><li>2. Timplan · fördela timmar</li>{program&&programplanProfile(program)?.vocational&&<li>3. APL · planera perioder senare</li>}</ol>}
       {workspace&&!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
       {lifecycleDialog&&lifecycleTarget&&<LifecycleDialog key={lifecycleDialog} kind={lifecycleDialog} target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
         onChanged={(message,reply)=>lifecycleChanged(message,reply.command==='delete')} onStale={lifecycleStale}/>}
       {workspace&&!draft&&!preparation&&lockReason&&view==='plan'&&<output className="pp-notice ppl-lock">{lockReason}</output>}
-      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock||classPending} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
       {view==='analysis'&&analysis&&<AnalysisView analysis={analysis} onBack={()=>setView('plan')} onFix={fixIssue} actionUnavailable={actionUnavailable}/>}
       {view==='plan'&&<>
-        {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till ny utbildning">
-          <h3>Kopiera till ny utbildning</h3>
+        {workspace&&copy&&plan?.basisReference&&<section className="pps-card ppl-copy" aria-label="Kopiera till nästa kull">
+          <h3>Kopiera till nästa kull</h3>
           <p>Den nya utbildningen får samma program, inriktning, underlag och {plan.basisReference.specializationRefs.length===1?'1 fördjupningsnivå':`${plan.basisReference.specializationRefs.length} fördjupningsnivåer`} som {workspace.education.name}. Terminsfördelningen följer med. Den sparas som ett nytt utkast; originalet ändras inte.</p>
           <p>{context.function === 'rektor' ? `Kopian gäller endast ${workspace.lifecycle.units.find(unit => unit.id === copy.unitId)?.name ?? 'vald skola'}. Huvudmannen godkänner planen när du har skickat in den.` : 'Kopian behåller originalets skolval. Huvudmannen fastställer det nya utkastet separat.'}</p>
           {copy.error&&<output role="alert" className="pp-alert">{copy.error}</output>}
@@ -671,7 +670,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
             <p className="pps-note">{draft.educationName} · start {draft.startedOn||'saknas'} · {draft.refs.length===1?'1 vald nivå':`${draft.refs.length} valda nivåer`}. Planen förblir ett utkast och fastställs inte.</p></SaveDialog>}
           {draft.mode==='edit'&&reviewing&&!analysis&&<section className="pps-dialog" aria-label="Kontrollera före sparning"><p>Underlaget kunde inte analyseras. {draft.refs.length===1?'1 vald nivå':`${draft.refs.length} valda nivåer`} sparas som utkast.</p><div className="pps-dialog-actions"><Button variant="outline" disabled={busy} onClick={()=>setReviewing(false)}>Tillbaka till uppgifterna</Button><Button disabled={busy} onClick={()=>void saveDraft()}>{busy?'Sparar…':'Spara utkast'}</Button></div></section>}
           {draft.mode==='refreshing'&&<output>Hämtar aktuellt underlag. Dina uppgifter behålls…</output>}
-          {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuella fördjupningsval: {namedChoices(plan?.basisReference?.specializationRefs??[])}</p><p>Dina fördjupningsval: {namedChoices(draft.refs,draft.options)}</p><details><summary>Jämför referenser och revisioner</summary><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella referenser: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina referenser: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p></details>{!retryCompatible(draft)&&<p>Detta kommando kan inte skickas igen automatiskt. Stäng formuläret och granska den aktuella versionen innan du väljer nästa åtgärd.</p>}</div>}
+          {draft.mode==='compare'&&<div className="pp-comparison" aria-live="polite"><p>{draft.uncertain?'Sparandet kunde inte bekräftas. Aktuellt underlag har lästs om.':'Planen eller utbildningen ändrades av någon annan. Aktuellt underlag har lästs om.'}</p><p>Aktuella fördjupningsval: {namedChoices(plan?.basisReference?.specializationRefs??[])}</p><p>Dina fördjupningsval: {namedChoices(draft.refs,draft.options)}</p><details><summary>Jämför referenser och revisioner</summary><p>Aktuell revision: {plan?.revision??'Ingen plan'} · ditt tidigare underlag: revision {draft.expectedRevision}.</p><p>Aktuella referenser: {plan?.basisReference?.specializationRefs.map(r=>r.itemCode).join(', ')||'Inga bundna val'}</p><p>Dina referenser: {draft.refs.map(r=>r.itemCode).join(', ')||'Inga val'}</p></details>{!retryCompatible(draft)&&<p>Ändringarna kan inte sparas igen automatiskt. Stäng formuläret och kontrollera den aktuella planen innan du fortsätter.</p>}</div>}
           {draft.mode==='applied'&&<output className="pp-notice">Ett aktuellt utkast innehåller redan samma bundna underlag och val. Inget nytt sparande behövs.</output>}
           {<div className="pp-dialog-actions"><Button type="button" variant="outline" disabled={busy} onClick={closeDraft}>{draft.mode==='applied'?'Stäng':'Avbryt'}</Button>{draft.mode==='refresh-failed'&&<Button disabled={busy} onClick={()=>void reloadDraft()}>Läs om underlaget</Button>}{draft.mode==='compare'&&<Button disabled={busy||!retryCompatible(draft)} onClick={()=>void saveDraft()}>{busy?'Sparar…':'Använd mina val'}</Button>}</div>}
         </section>}
@@ -681,6 +680,13 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         {!draft&&plan&&!plan.basisReference&&<section className="pp-saved pps-card" aria-label="Dina sparade fördjupningsval"><h3>Äldre sparade val</h3><p>Valen visas precis som de lagrats. De behöver kopplas till ett underlag innan de kan ändras.</p><ol className="pp-levels">{(legacy??[]).map((code,i)=><li key={`${i}-${code}`}><strong>{code||'(Tomt äldre värde)'}</strong></li>)}</ol>{legacy?.length===0&&<p>Inga äldre fördjupningsval sparade.</p>}</section>}
       </>}
       {!draft&&<div hidden={view==='analysis'}>{planBody}</div>}
+      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock||classPending} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
+      {workspace&&selectedSchool&&!draft&&!preparation&&!copy&&view==='plan'&&<ProtectedClassCohorts context={context} epoch={epoch} offeringId={workspace.education.id} unitId={selectedSchool.id}
+        disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepTarget?.offeringId===workspace.education.id&&classStepTarget.planId===plan?.id&&classStepTarget.unitId===selectedSchool.id}
+        onInitialOpen={()=>{const target=classStepRef.current;if(target&&target.offeringId===workspace.education.id&&target.planId===plan?.id&&target.unitId===selectedSchool.id){classStepRef.current=null;setClassStepTarget(null);onClassStepMounted?.(target);}}}
+        sourceKey={JSON.stringify([workspace.lifecycle.revision,workspace.versions.map(version=>[version.id,version.revision,version.status])])}
+        returnTo={'/'+planLocationQuery({view:'programplaner',programplan:plan?{offeringId:workspace.education.id,planId:plan.id,version:plan.version,unitId:selectedSchool.id}:null,
+          planning:{schoolYear:planningSelection?.schoolYear,unitId:selectedSchool.id,schoolform:'gymnasium'},allYears:true})} onSecurityFailure={securityFailure}/>}
       {workspace&&<details className="pp-underlying pps-details"><summary>Underlag och tidigare versioner</summary>
         <section className="pp-source" aria-label="Versionsbundet katalogunderlag"><h3>Underlag</h3><p>Beslutsstatus och nästa steg visas ovan. Gymnasiepoäng omvandlas inte till undervisningstimmar.</p>
           {plan&&<p>Version {plan.version} · Revision {plan.revision}{plan.decidedOn&&` · Beslut ${plan.decidedOn}`}</p>}

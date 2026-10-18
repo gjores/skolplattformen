@@ -6,7 +6,7 @@ export type OtherTimplanLocation = { kind: 'grundskola' | 'introduktionsprogram'
 export type PlanningLocationSelection = Partial<Omit<PlanningSelection, 'view'>>;
 type PlanningLocationFields = { planning?: PlanningLocationSelection; relativeYear?: 1 | 2 | 3; allYears?: boolean; overview?: boolean };
 export type PlanLocation = ({ view: 'programplaner'; programplan: ProgramplanLocation | null }
-  | { view: 'timplaner'; gym: GymTimplanLocation | null; other?: OtherTimplanLocation }) & PlanningLocationFields;
+  | { view: 'timplaner'; gym: GymTimplanLocation | null; other?: OtherTimplanLocation; process?: 'apl' }) & PlanningLocationFields;
 const validId = (value: string | null): value is string => value !== null && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(value);
 const printable = (value: string) => { for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) < 32 || value.charCodeAt(i) === 127) return false; return true; };
 const revision = (value: string) => /^sha256:[0-9a-f]{64}$/u.test(value);
@@ -25,7 +25,7 @@ export function readPlanLocationResult(search: string): { location: PlanLocation
   const params = new URLSearchParams(search); let normalized = false;
   const one = (key: string) => { const values = params.getAll(key); if (values.length > 1) { normalized = true; return null; } return values[0] ?? null; };
   const id = (key: string) => { const value = one(key); if (value !== null && !validId(value)) normalized = true; return validId(value) ? value : null; };
-  const view = one('vy'); let location: PlanLocation | null = null;
+  const requestedView = one('vy'), view = requestedView === 'apl-planering' ? 'timplaner' : requestedView; let location: PlanLocation | null = null;
   if (view === 'programplaner') {
     const offeringId = id('utbildning'), planId = id('programplan');
     if (!!offeringId !== !!planId) normalized = true;
@@ -54,6 +54,10 @@ export function readPlanLocationResult(search: string): { location: PlanLocation
       if (version !== null) { if (bounded(version, 1, 2147483647)) location.gym.version = Number(version); else normalized = true; }
       if (column !== null) normalized = true;
     } else if (column !== null || offeringId !== null || version !== null || unitId !== null) normalized = true;
+  }
+  if (location?.view === 'timplaner' && requestedView === 'apl-planering') {
+    location.process = 'apl';
+    if (location.other || location.gym?.kind === 'source') { location.gym = null; delete location.other; normalized = true; }
   }
   if (location) {
     const overview = one('planeringsoversikt');
@@ -86,7 +90,7 @@ export function readPlanLocationResult(search: string): { location: PlanLocation
 }
 export function readPlanLocation(search: string): PlanLocation | null { return readPlanLocationResult(search).location; }
 export function planLocationQuery(location: PlanLocation): string {
-  const params = new URLSearchParams({ vy: location.view });
+  const params = new URLSearchParams({ vy: location.view === 'timplaner' && location.process === 'apl' && !location.overview ? 'apl-planering' : location.view });
   if (!location.overview && location.view === 'programplaner' && location.programplan) {
     params.set('utbildning', location.programplan.offeringId); params.set('programplan', location.programplan.planId);
     if (location.programplan.unitId !== undefined) params.set('programplanskola', location.programplan.unitId);
@@ -119,7 +123,7 @@ export function planLocationQuery(location: PlanLocation): string {
 /** Keep only the requested collection and its independent planning selection. */
 function collectionOnly(location: PlanLocation): PlanLocation {
   const fields = { ...(location.planning ? { planning: location.planning } : {}), ...(location.overview !== undefined ? { overview: location.overview } : {}) };
-  return location.view === 'programplaner' ? { view: location.view, programplan: null, ...fields } : { view: location.view, gym: null, ...fields };
+  return location.view === 'programplaner' ? { view: location.view, programplan: null, ...fields } : { view: location.view, gym: null, ...(!location.overview && location.process === 'apl' ? { process: 'apl' as const } : {}), ...fields };
 }
 /** An explicit collection choice starts a clean filter/page without inventing another view in the read contract. */
 export function planningCollectionLocation(location: PlanLocation, view: PlanningSelection['view'], schoolform: PlanningSelection['schoolform'], setup: PlanningSetup): ReturnType<typeof normalizePlanLocation> {
@@ -138,9 +142,9 @@ export function normalizePlanLocation(location: PlanLocation, value: PlanningSet
     changed = !!(location.view === 'programplaner' ? location.programplan : location.gym || location.other) || location.relativeYear !== undefined || location.allYears !== undefined;
     location = collectionOnly(location);
   }
-  let schoolform = view === 'programplan' || location.view === 'timplaner' && location.gym ? 'gymnasium' as const : location.view === 'timplaner' ? location.other?.kind ?? requested.schoolform ?? 'gymnasium' : 'gymnasium';
+  let schoolform = view === 'programplan' || location.view === 'timplaner' && (location.gym || location.process === 'apl') ? 'gymnasium' as const : location.view === 'timplaner' ? location.other?.kind ?? requested.schoolform ?? 'gymnasium' : 'gymnasium';
   if (requested.schoolform !== undefined && requested.schoolform !== schoolform) changed = true;
-  if (view === 'timplan' && !setup.units.some(u => u.canRead[schoolform])) {
+  if (view === 'timplan' && !(location.view === 'timplaner' && location.process === 'apl') && !setup.units.some(u => u.canRead[schoolform])) {
     const available = (['gymnasium', 'grundskola', 'introduktionsprogram'] as const).find(form => setup.units.some(u => u.canRead[form]));
     if (available && available !== schoolform) { schoolform = available; changed = true; clearTarget = true; }
   }

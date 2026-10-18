@@ -2,9 +2,9 @@
 title: Planera och följa upp APL
 ---
 
-Arbetsplatsförlagt lärande, APL, behöver planeras både som utbildning och som en trygg vistelse på en arbetsplats. Plattformen stödjer timplanens perioder, innehåll, tidsfördelning och beslut. Arbetsplatser, handledare, riskbedömningar, närvaro och individuell uppföljning hanteras ännu utanför denna vy.
+Arbetsplatsförlagt lärande, APL, behöver planeras både som utbildning och som en trygg vistelse på en arbetsplats. Plattformen skiljer på programplanens innehåll, timplanens timmar och den efterföljande APL-planeringen av perioder och arbetsmoment. Arbetsplatser, handledare, riskbedömningar, närvaro och individuell uppföljning hanteras ännu utanför denna vy.
 
-Öppna en yrkestimplan och välj **Så planerar du APL** för samma arbetsgång direkt i appen. Handledningen går att läsa även när du saknar rätt att ändra planen.
+När yrkestimplanen är godkänd väljer du **Fortsätt till APL-planering**, eller öppnar **APL-planering** i menyn och väljer timplan. I den arbetsytan finns **Så planerar du APL** för samma arbetsgång direkt i appen. Handledningen går att läsa även när du saknar rätt att ändra planen.
 
 ## Vilka regler gäller här?
 
@@ -26,19 +26,21 @@ Nya yrkestimplaner har **Skola HT**, **Skola VT** och separat **APL per årskurs
 
 Exempel: **HT 20 + VT 20 + APL 60 = 100 timmar**. När 40 av APL-timmarna senare förläggs i en period återstår 20 att förlägga. Timplanens total är fortfarande 100 timmar.
 
-När förläggningen är känd väljer du **Förlägg APL i perioder**. Översikten visar årsram, förlagd tid och kvar att förlägga. Vid behov ändrar du årsramen i timtabellen innan mer tid läggs i perioder. Inför rektors bekräftelse behöver hela årsramen vara förlagd och det övriga underlaget granskat.
+Huvudmannen godkänner timtabellen först. Perioder och datum behövs inte för det godkännandet. Välj därefter **Fortsätt till APL-planering** och öppna periodplaneringen. Översikten visar årsram, förlagd tid och kvar att förlägga. Behöver årsramen ändras skapar du en ny timplansversion och låter den godkännas innan du fortsätter med dess perioder. Inför rektors bekräftelse behöver hela årsramen vara förlagd och det övriga underlaget granskat.
 
-Äldre yrkestimplaner har totaltid inklusive APL. Där används **Planera APL** enligt stegen nedan tills ett granskat byte till skoltid och års-APL har sparats. Ingen sparad timme ändrar betydelse när du bara öppnar en äldre plan.
+Äldre yrkestimplaner har totaltid inklusive APL. Deras sparade APL-underlag finns också i den separata APL-arbetsytan. Ett granskat byte till skoltid och års-APL görs i timplanens utkast, eller i en ny version när timplanen redan är fastställd. Ingen sparad timme ändrar betydelse när du bara öppnar en äldre plan.
 
 ### Lägg in en preliminär period
 
 Kontrollera timplanens namn, skola, version och klasskopplingar. Två klasser kan följa samma programplan men behöva olika namngivna timplaner och APL-upplägg.
 
-1. Välj **Förlägg APL i perioder** (eller **Planera APL** i en äldre plan) och **Lägg till period**.
+1. Öppna **APL-planering** för den godkända timplansversionen. Välj **Förlägg APL i perioder** (eller **Planera APL** för äldre underlag) och **Lägg till period**.
 2. Välj **Årskurs** och **Termin**. Appen visar läsåret utifrån utbildningens start.
 3. Välj **Granska ändringar**, därefter **Spara APL-plan**. Vänta på beskedet att planen är sparad.
 
 Du kan spara terminsvalet utan exakta datum, veckotal eller ämnesinnehåll. Det gör det möjligt att planera exempelvis årskurs 2, vårtermin, innan alla detaljer är klara. Ett ändrat terminsval flyttar inte tidigare datum eller timmar; kontrollera dem separat. Vid vårstart behöver förläggningen granskas mot utbildningens faktiska start.
+
+Timtabellens ämnen, årskurser och APL-timmar återanvänds som underlag. Du väljer hur den sparade årsramen ska förläggas. För ett utkast eller en ersatt version kan du läsa tidigare APL, men inte ändra perioderna. En ny APL-period ändrar inte den godkända timtabellen eller klasskopplingarna.
 
 ## 2. Beskriv datum och omfattning
 
@@ -52,19 +54,19 @@ För delveckor eller blandade upplägg väljer du **Delar av veckor eller blandv
 
 ## 3. Beskriv lärandet och fördela undervisningstiden
 
-Öppna **Ämnesinnehåll och undervisningstid**. Lägg till ämnesnivåer och beskriv arbetsmomenten. Ange **Varav APL** i timmar och minuter för varje berörd termin. Visa andra terminer om perioden sträcker sig över flera terminer; redan angivna värden ligger kvar.
+Öppna **Ämnesinnehåll och undervisningstid**. Välj ämnesnivåer ur timplanens befintliga rader och beskriv arbetsmomenten. Utgå från ämnesplanens centrala innehåll när du beskriver vad som ska läras på arbetsplatsen. Appens katalog innehåller ännu inte det fullständiga centrala innehållet för en automatisk väljare; arbetsmomenten skrivs manuellt. Ange **Varav APL** i timmar och minuter för varje berörd termin. Visa andra terminer om perioden sträcker sig över flera terminer; redan angivna värden ligger kvar.
 
 **Exempel:** Fem hela granskade APL-veckor motsvarar 5 × 23 = **115 GUT-timmar**. De kan exempelvis fördelas som 80 timmar på en ämnesnivå och 35 på en annan. Samma period räknas en gång även om flera ämnen ingår. Om timplanens total är 2 625 timmar ingår de 115 där; de ska inte läggas ovanpå så att totalen blir 2 740.
 
 Appen jämför periodens fördelade minuter med veckounderlaget. Summan måste stämma exakt inför bekräftelsen. I den nya tabellen får APL-tiden från alla perioder tillsammans inte överstiga ämnets sparade APL-ram för årskursen. För äldre timplaner gäller i stället den sparade totaltiden i respektive ämnes- och terminscell. Ospecificerade valblock måste preciseras till ämnesnivåer. **Autofördela timmar** i timplanen fördelar totaltid och skyddar sparad APL-tid, men väljer inte perioder, arbetsmoment eller APL-innehåll åt skolan.
 
-## 4. Granska och ta beslut
+## 4. Granska och bekräfta APL-förläggningen
 
 Under **Utbildningsform och granskning** väljer du **Skolförlagd yrkesutbildning** och granskar att all APL-tid är identifierad inom totaltiden. Öppna **Inför rektors bekräftelse – visa vad som saknas** för perioder, innehåll och tid som behöver kompletteras. Spara ändringarna.
 
-Rektor och skoladministratör kan förbereda underlaget inom sina aktuella skoluppdrag. Bara rektor kan välja **Bekräfta förläggningen**. Därefter hanteras timplanens inskickande och huvudmannens fastställande i den separata beslutsgången. Appen bevarar vem som bekräftade vilket innehåll. Ändras APL-innehållet eller den undervisningstid det bygger på blir den tidigare bekräftelsen inaktuell och behöver göras om.
+Rektor och skoladministratör kan förbereda underlaget inom sina aktuella skoluppdrag. Bara rektor kan välja **Bekräfta förläggningen**. Det sker efter timtabellens godkännande och är en separat kontroll av APL-förläggningen. Appen bevarar vem som bekräftade vilket innehåll. Ändras APL-innehållet eller den undervisningstid det bygger på blir den tidigare bekräftelsen inaktuell och behöver göras om.
 
-Huvudmannen granskar **APL inför beslut** tillsammans med övrigt beslutsunderlag. Att underlaget kan fastställas visar att de införda planeringskontrollerna passerar; det bevisar inte att varje elev får eller har genomfört rätt APL. Se [Timplaner](./timplaner.md#rektors-bekräftelse-och-huvudmannens-beslut) för sparstatus, kopierat underlag och beslutsgång.
+Huvudmannen öppnar **APL-planering** för att granska perioderna, arbetsmomenten och rektors bekräftelse. Det är separat från godkännandet av timtabellen. En godkänd timtabell är inget besked om färdig APL. Inte heller en bekräftad APL-förläggning bevisar att varje elev får eller har genomfört rätt APL. Se [Timplaner](./timplaner.md#rektors-bekräftelse-och-huvudmannens-beslut) för sparstatus, kopierat underlag och beslutsgång.
 
 ## 5. Ordna en säker arbetsplats
 

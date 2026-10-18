@@ -42,29 +42,37 @@ export async function projectAplFrozenRead(value: unknown, basisValue: unknown, 
   const { context } = projected, body = await verifyAplReadReply(value, context);
   if (!authority.assignmentId || !authority.identityId || authority.organizerId !== context.organizerId
     || !['huvudman', 'rektor', 'administrator'].includes(authority.accessFunction ?? '')) invalid();
-  const editable = !context.plan.archived && ['utkast', 'atersand'].includes(context.plan.status);
+  const separated = projected.basis.aplRevision !== undefined;
+  if (separated !== (body.revisionScope === 'apl') || separated && projected.basis.aplRevision !== body.revision) invalid();
+  const editable = !context.plan.archived && (separated ? context.plan.status === 'faststalld' : ['utkast', 'atersand'].includes(context.plan.status));
   const canPlan = editable && ['rektor', 'administrator'].includes(authority.accessFunction ?? '');
   const applicable = context.program.category === 'VOCATIONAL_PROGRAM' || historicalReplay;
   const canSave = applicable && canPlan, canConfirm = applicable && editable && authority.accessFunction === 'rektor';
-  if (body.capabilities.canSave !== canSave || body.capabilities.canConfirm !== canConfirm || context.plan.canPlan !== canPlan) invalid();
+  if (body.capabilities.canSave !== canSave || body.capabilities.canConfirm !== canConfirm || !separated && context.plan.canPlan !== canPlan) invalid();
+  if (separated && body.capabilities.canReview !== (applicable && editable && authority.accessFunction === 'huvudman')) invalid();
   return { ...projected, body };
 }
 
 function commandActor(reply: AplCommandReply, input: AplCommand, authority: AplProjectionAuthority, context: AplContext): void {
   // APL commands never change plan status: their frozen result must still be editable,
   // even when replaying that receipt after the live plan has subsequently been approved.
-  if (!reply.detail.capabilities.canSave || input.action === 'confirm' && !reply.detail.capabilities.canConfirm) invalid();
+  if (input.action === 'review' ? !reply.detail.capabilities.canReview : !reply.detail.capabilities.canSave || input.action === 'confirm' && !reply.detail.capabilities.canConfirm) invalid();
   if (input.action === 'confirm') {
     const event = reply.detail.confirmations.at(-1);
     if (!event || event.actorId !== authority.identityId || event.assignmentId !== authority.assignmentId
       || authority.accessFunction !== 'rektor' || !projectAplPlan(context, reply.detail.plan).readyForConfirmation) invalid();
+  } else if (input.action === 'review') {
+    const event = reply.detail.reviews?.at(-1), rector = reply.detail.confirmations.at(-1);
+    if (!event || !rector || event.actorId !== authority.identityId || event.assignmentId !== authority.assignmentId
+      || authority.accessFunction !== 'huvudman' || event.rectorConfirmationId !== rector.id || rector.contentHash !== reply.detail.contentHash
+      || context.plan.status !== 'faststalld' || !projectAplPlan(context, reply.detail.plan).readyForConfirmation) invalid();
   } else for (const resolution of input.copyReviewResolutions) {
     const saved = reply.detail.copyReview.find(review => review.id === resolution.id)?.resolution;
     if (!saved || saved.actorId !== authority.identityId || saved.assignmentId !== authority.assignmentId) invalid();
   }
 }
 
-const conflictReasons = new Set(['apl_command_conflict', 'apl_revision_conflict', 'apl_content_conflict', 'apl_confirmation_limit']);
+const conflictReasons = new Set(['apl_command_conflict', 'apl_revision_conflict', 'apl_content_conflict', 'apl_confirmation_limit', 'apl_timplan_revision_conflict', 'apl_workflow_required']);
 const inputReasons = new Set(['invalid_apl_plan', 'duplicate', 'unknown_content', 'allocation_without_content',
   'apl_not_vocational', 'inactive_term', 'allocation_without_total', 'allocation_exceeds_total', 'invalid_copy_review_resolution']);
 async function operation<T>(fn: () => Promise<T>): Promise<T> {
@@ -97,7 +105,7 @@ export async function readAplPlan(tx: Tx, input: AplReadRequest, authority: AplP
 }
 
 function commandAuthority(input: AplCommand, authority: AplProjectionAuthority): void {
-  if (!['rektor', 'administrator'].includes(authority.accessFunction ?? '') || input.action === 'confirm' && authority.accessFunction !== 'rektor') {
+  if (input.action === 'review' ? authority.accessFunction !== 'huvudman' : !['rektor', 'administrator'].includes(authority.accessFunction ?? '') || input.action === 'confirm' && authority.accessFunction !== 'rektor') {
     throw new Deny('forbidden', 403);
   }
 }

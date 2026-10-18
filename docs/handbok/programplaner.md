@@ -19,6 +19,12 @@ Om radens plan saknas visar vyn den luckan och ett uttryckligt val av underlag e
 
 Se [Planering](./planering.md) om separat registerår, årsfilter och saknat underlag.
 
+## Tabellen och nästa steg
+
+Arbeta med ämnen, nivåer och poäng direkt i tabellen. Sparstatus och sådant som behöver rättas visas i arbetsytan. **Kontrollera planen** öppnar sammanställningen av fel och sådant som behöver granskas. **Gå till timplan** fortsätter med skolans timmar för den valda skolan.
+
+**Fler alternativ** samlar **Kopiera till nästa kull**, **Ändra uppgifter**, **Skolor**, **Uppdatera sidan** och de arkivåtgärder ditt uppdrag tillåter. Beslut och klassförberedelse finns efter tabellen. **Underlag och tidigare versioner** innehåller källa och historik. Programplanen blir inte godkänd av att du går vidare till timplanen.
+
 ## Planens status
 
 Varje plan har en status som räknas fram från elevkullens start. Du väljer den inte själv.
@@ -52,7 +58,7 @@ Om någon annan har ändrat planen, om engångskod krävs eller om svaret inte k
 
 ## Kopiera till nästa elevkull
 
-Som rektor eller huvudman öppnar du den programplansversion du vill utgå från och väljer **Kopiera**. Ange namn, elevkull, eventuell lokal kod och ett startdatum efter originalets start och efter i dag. Välj **Spara kopia**.
+Som rektor eller huvudman öppnar du den programplansversion du vill utgå från och väljer **Fler alternativ → Kopiera till nästa kull**. Ange namn, elevkull, eventuell lokal kod och ett startdatum efter originalets start och efter i dag. Välj **Spara kopia**.
 
 Den nya utbildningen får ett första programutkast med samma ram, programfördjupning, terminsfördelning och, för huvudmannen, samma skolval. Som rektor skapar du kopian endast för den skola du har öppnat planen för, även om originalet delas med andra skolor. Kopian är ett nytt utkast som du skickar till huvudmannen för godkännande. Elever, klasser, skolornas timplaner, paketval och tidigare beslut följer inte med. Originalets innehåll, historik och kopplingar finns kvar.
 
@@ -62,7 +68,7 @@ Om svaret från sparandet inte kan bekräftas behålls uppgifterna. **Försök i
 
 ## Skolor som använder planen
 
-Huvudmannen väljer **Skolor** i den öppnade planen, markerar sina gymnasieskolor och väljer **Spara skolor**. Samma programplan med samma versioner och innehåll visas på alla valda skolor. Skolan där utbildningen skapades är märkt **Skapad här** och kan aldrig avmarkeras.
+Huvudmannen väljer **Fler alternativ → Skolor** i den öppnade planen, markerar sina gymnasieskolor och väljer **Spara skolor**. Samma programplan med samma versioner och innehåll visas på alla valda skolor. Skolan där utbildningen skapades är märkt **Skapad här** och kan aldrig avmarkeras.
 
 Skolor kan läggas till i framtida, pågående och avslutade planer, och när starten är okänd. En skola kan bara tas bort från en framtida plan. Arkiverade planer kan inte få skolvalet ändrat. När en programplan är inskickad för beslut är även utbildningsuppgifter och skolval låsta; ta tillbaka förslaget eller återsänd det före ändring.
 
@@ -74,7 +80,7 @@ Tillagda skolor kan använda utbildningen för sina egna elevplaceringar och kla
 
 En skola kan inte tas bort från planen så länge skolans klasser, elevplaceringar eller timplaner är kopplade till utbildningen.
 
-**Timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad programram för ett stött Gy25-program, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
+**Gå till timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad programram för ett stött Gy25-program, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
 
 Rektor och skoladministratör kan förbereda tomma klasser redan i programplanens utkast, enligt avsnittet nedan. Kopplingen till en fastställd gymnasietimplan görs senare för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-eller-flera-klasser-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
 
@@ -98,7 +104,7 @@ Rektor och skoladministratör med aktuellt uppdrag för skolan kan skapa klasser
 
 När du skriver namn eller granskar dem är klasserna ännu inte sparade. Efter sparning visas de i listan med **Sparad klass**. Det beskedet gäller klassen; det betyder inte att en timplan har kopplats.
 
-Nästa steg är att öppna **Timplaner** och välja utbildningens fastställda, namngivna timplan. **Klasser** vid planens namn öppnar **Klasser och läsår**. Kontrollera läsår, markera en eller flera klasser och välj **Koppla valda klasser**. Granska namn, version och läsår innan du bekräftar. Resultatet visas separat för varje klass. Om klasserna behöver olika undervisningstid kan de använda olika namngivna timplaner för samma programplan.
+Nästa steg är att öppna **Timplaner** och välja utbildningens fastställda, namngivna timplan. **Klasser och läsår** finns efter timtabellen. Kontrollera läsår, markera en eller flera klasser och välj **Koppla valda klasser**. Granska namn, version och läsår innan du bekräftar. Resultatet visas separat för varje klass. Om klasserna behöver olika undervisningstid kan de använda olika namngivna timplaner för samma programplan.
 
 Klasserna skapas utan elever och utan timplanskoppling. De tillhör samma utbildning, kull och skola även när programplanen får en ny version. Kopiering till en ny utbildning tar inte med klasser eller elever.
 
@@ -112,7 +118,7 @@ Om ett svar inte kan bekräftas behålls den granskade begäran i samma webbläs
 
 ## Planen som tabell
 
-Överst visas utbildningens namn, status och knapparna **Analys**, **Kopiera** och **Läs om**. Årskurskorten visar poäng per läsår, uppdelat på höst och vår. Planeringsåret och den faktiskt öppnade versionens startdatum avgör vilken del som visas från början.
+Överst visas utbildningens namn, status, **Kontrollera planen** och **Gå till timplan**. Kopiering och uppdatering finns under **Fler alternativ**. Årskurskorten visar poäng per läsår, uppdelat på höst och vår. Planeringsåret och den faktiskt öppnade versionens startdatum avgör vilken del som visas från början.
 
 Välj en annan årskurs utan att byta det globala planeringsåret. **Visa hela planen** visar alla sex terminer och **Visa planeringsårets del** återgår till årets del. Ett okänt startunderlag ger ett konkret besked och ingen gissad första årskurs.
 
@@ -155,7 +161,7 @@ På telefon väljer du **Åk 1**, **Åk 2** eller **Åk 3** med knappar ovanför
 
 ## Analys och beslutsunderlag
 
-**Analys** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
+**Kontrollera planen** samlar fel mot regelverket, risker, sådant som måste kontrolleras manuellt och det som är uppfyllt. Fel hindrar inte att utkastet sparas, men planen kan inte bli klar förrän de är åtgärdade.
 
 **Åtgärd** tar dig till rätt del av det redigerbara utkastet. **Fördela**, **Flytta nivån** och **Flytta** markerar den berörda raden; på telefon visas också rätt årskurs. **Jämna ut** tar dig till årskurskorten. **Lägg till nivå** öppnar sökfältet i Programfördjupning och **Ta bort nivåer** pekar ut en vald nivå. Markeringen försvinner när raden är åtgärdad. Dina fördelade poäng behålls. Ändra poängen eller nivåvalet där; länken gör ingen ändring åt dig.
 
@@ -170,7 +176,7 @@ Beslutsunderlaget kontrollerar bland annat att:
 - analysen inte har några andra fel,
 - utbildningens startdatum finns.
 
-Beslutsstatus och nästa ansvariga roll visas i beslutspanelen. Knappen **Analys** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. En färdig analys är inte ett beslut. Beslutspanelen kontrollerar det sparade underlaget och visar vad som återstår före inskickning eller fastställande.
+Beslutsstatus och nästa ansvariga roll visas i beslutspanelen. Knappen **Kontrollera planen** visar antalet fel och risker; öppna den för att se vad som behöver åtgärdas. Analysen gäller planens fasta innehåll och blockramar. Den bedömer inte skolans paketutbud, elevval eller bemanning. Nivåer som läses under samma termin ger en risk, även när de börjar samtidigt. Ett mellanrum mellan nivåerna ger inget ordningsfel. Risker, till exempel ojämn arbetsbörda mellan läsåren eller ett gymnasiearbete före årskurs 3, stoppar inte men bör ses över. En färdig analys är inte ett beslut. Beslutspanelen kontrollerar det sparade underlaget och visar vad som återstår före inskickning eller fastställande.
 
 Poängramen för programfördjupning räknas ut så här: programmets poäng minus gymnasiearbete (100), individuellt val (200) och programgrunden. Barn- och fritidsprogrammet, Hotell- och turismprogrammet samt Vård- och omsorgsprogrammet omfattar 2 700 poäng. Övriga stödda nationella yrkesprogram omfattar 2 800 poäng. Programfördjupningens ram kontrolleras mot respektive programs total. Gymnasiepoäng beskriver omfattningen, inte lektionstimmar.
 
@@ -182,7 +188,7 @@ I **Dina uppgifter och beslut** kan du söka efter utbildning, timplansnamn elle
 
 I **Programplaner**, under **Fler filter**, kan du välja **Inväntar beslut** eller **Tillbaka för rättning**. Raden visar beslutsskede och vem som ska agera härnäst. Ett inskickat eller återsänt programutkast blir inte fastställt förrän huvudmannen beslutar.
 
-1. Rektor färdigställer och sparar programplanens innehåll. Beslutspanelen visar hinder och kontroller som behöver granskas.
+1. Rektor färdigställer och sparar programplanens innehåll. Under tabellen öppnar **Granska och skicka** beslutets kontroller. Huvudmannen använder **Granska och godkänn** när planen kan godkännas. Hinder och sådant som behöver rättas visas i arbetsytan.
 2. Rektor granskar struktur och alternativa studiegångar, markerar kontrollerna och skickar planen för godkännande. Innehållet låses medan huvudmannen granskar. Rektor kan återta förslaget till utkast.
 3. Huvudmannen öppnar planen från sina uppgifter, granskar underlaget och väljer att fastställa eller **Skicka tillbaka för rättning**. För att skicka tillbaka måste huvudmannen beskriva felet i **Kommentar – vad behöver rättas?**. Rektor får uppgiften **Läs återkoppling och rätta**. Kommentaren visas direkt under **Det här behöver rättas** i planen och bevaras i historiken. Rektor rättar, sparar och skickar in igen. Under tiden ser huvudmannen **Inväntar rättning**, och planen räknas inte som ett nytt beslut.
 4. Vid fastställande bekräftar huvudmannen den valda versionen. Historiken visar handling, tidpunkt, aktör och eventuell motivering. En tidigare fastställd version blir ersatt; originalet bevaras.
@@ -197,9 +203,9 @@ För yrkeskullar som börjar den 2 juli 2028 eller senare spärras beslut tills 
 
 Programplanen anger det gemensamma innehållet och poängen. Skolans namngivna timplan anger undervisningstiden och har sin egen APL-planering. Två klasser kan följa samma programplan men använda olika timplaner med olika perioder och fördelning av APL-tid. Ändringar i en timplansvariant ändrar inte den andra variantens timmar eller den gemensamma programplanen.
 
-Programplanens APL-kontroll är en granskning av den gemensamma ramen. Den kräver inte att skolornas APL-perioder redan är färdigplanerade och är inte rektors bekräftelse av förläggningen. Programplanen kan därför fastställas innan skolans APL-underlag är färdigt. Timplanen behöver däremot sin kompletta APL-planering och rektors aktuella bekräftelse innan den kan skickas och fastställas.
+Programplanens APL-kontroll är en granskning av den gemensamma ramen. Den kräver inte att skolornas APL-perioder redan är färdigplanerade och är inte rektors bekräftelse av förläggningen. Programplanen kan därför fastställas innan skolans APL-underlag är färdigt. Även timtabellen kan godkännas innan APL-perioderna finns. Godkännandet gäller undervisningstiden, inklusive APL-ramen per årskurs. Det innebär inte att APL-förläggningen är klar.
 
-Fortsätt med **Timplan**, välj rätt skola och namngiven variant och följ [Planera APL i en yrkestimplan](./timplaner.md#planera-apl-i-en-yrkestimplan). Rektor och skoladministratör förbereder underlaget, rektor bekräftar förläggningen och huvudmannen prövar timplanens fastställande. Det handlar om planerad APL; platser, närvaro och genomförande följs ännu inte upp i detta flöde.
+Fortsätt med **Gå till timplan**, välj rätt skola och namngiven variant och följ [Planera APL i en yrkestimplan](./timplaner.md#planera-apl-i-en-yrkestimplan). När timplanen är godkänd fortsätter du till **APL-planering**, där årskursens APL-tid förläggs i perioder. Rektor och skoladministratör förbereder underlaget, rektor bekräftar förläggningen och huvudmannen granskar den separat. Det handlar om planerad APL; platser, närvaro och genomförande följs ännu inte upp i detta flöde.
 
 ## Äldre underlag och nya planversioner
 

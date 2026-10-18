@@ -16,12 +16,12 @@ export default function ProtectedAplGuide({ annual = false }: { annual?: boolean
       {annual ? <details className="apl-guide-step" open><summary>1. Börja med timmar per årskurs</summary>
         <p>Fyll i <strong>Skola HT</strong>, <strong>Skola VT</strong> och <strong>APL</strong> för respektive årskurs i timplanens tabell. Lämna raden för att spara. Vänta på <b>Allt sparat</b>. Tomt betyder ofördelat och 0 betyder angivna noll timmar.</p>
         <p><strong>Exempel:</strong> Skola HT 20 + Skola VT 20 + APL 60 = 100 timmar. Perioder och datum behövs inte för att spara dessa timmar.</p>
-        <p>När ni vet när APL ska ligga väljer ni <b>Förlägg APL i perioder</b>. Perioderna använder den redan sparade årsramen. Förlägger ni 40 av 60 timmar återstår 20; totalen är fortfarande 100 timmar.</p>
+        <p>Huvudmannen godkänner timtabellen först. Välj därefter <b>Fortsätt till APL-planering</b> och <b>Förlägg APL i perioder</b>. Årskursens APL-termin väljs här, när perioderna planeras. Perioderna använder den redan sparade årsramen. Förlägger ni 40 av 60 timmar återstår 20; totalen är fortfarande 100 timmar.</p>
         <p>Rektor beslutar vilka delar av ämnesnivåerna som ska genomföras på arbetsplatser och hur APL fördelas över läsåren. En sparad årsram är inte en bekräftad förläggning.</p>
       </details> : <>
       <details className="apl-guide-step" open><summary>1. Börja med årskurs och termin</summary>
         <p>Rektor beslutar vilka delar av ämnesnivåerna som ska genomföras på arbetsplatser och hur APL fördelas över läsåren.</p>
-        <p><strong>Gör så här:</strong> Kontrollera timplanens namn, skola och version. Välj <b>Planera APL</b>, lägg till en period och välj årskurs och termin. Spara via <b>Granska ändringar</b> och <b>Spara APL-plan</b>. Datum, omfattning och innehåll kan kompletteras senare.</p>
+        <p><strong>Gör så här:</strong> Öppna den separata APL-planeringen för en godkänd timplan. Kontrollera namn, skola och version. Välj <b>Planera APL</b>, lägg till en period och välj årskurs och termin. Spara via <b>Granska ändringar</b> och <b>Spara APL-plan</b>. Datum, omfattning och innehåll kan kompletteras senare.</p>
         <p><strong>Appen hjälper med:</strong> Läsåret hämtas från utbildningens start. Olika klassers upplägg kan ligga i olika namngivna timplaner. Ett terminsval flyttar inte redan angivna datum eller timmar.</p>
       </details>
       </>}
@@ -30,13 +30,13 @@ export default function ProtectedAplGuide({ annual = false }: { annual?: boolean
         <p><strong>Appen kontrollerar:</strong> Datum, läsår, överlappningar och om uppgivna hela veckor ryms i kalendern. Veckonummer hjälper dig att välja datum; de bevisar inte att veckan är en hel APL-vecka. För det stödda upplägget krävs minst 15 granskade hela veckor inför bekräftelsen.</p>
       </details>
       <details className="apl-guide-step"><summary>3. Koppla innehåll och fördela timmar</summary>
-        <p>APL genomför delar av utbildningens ämnesinnehåll. Lägg till ämnesnivåer under periodens innehåll och undervisningstid, beskriv arbetsmoment och fördela <b>Varav APL</b> mellan berörda ämnen och terminer.</p>
+        <p>APL genomför delar av utbildningens ämnesinnehåll. Ämnen, årskurser och APL-timmar finns redan i timplanen. Välj berörda ämnesnivåer under periodens innehåll och undervisningstid och fördela <b>Varav APL</b> mellan ämnen och terminer. Beskriv arbetsmomenten manuellt med ämnesplanen som stöd. Appen har ännu ingen fullständig katalogväljare för centralt innehåll.</p>
         <p className="apl-guide-example"><strong>Exempel:</strong> 5 hela granskade APL-veckor motsvarar 115 GUT-timmar. Fördela exempelvis 80 timmar på en ämnesnivå och 35 på en annan. Om timplanens total är 2 625 timmar ingår de 115 redan där; totalen blir inte 2 740.</p>
-        <p><strong>Appen kontrollerar:</strong> Periodens APL-tid ska stämma exakt med veckounderlaget och rymmas inom varje ämnes och termins sparade totaltid. Samma period ska inte räknas flera gånger för att flera ämnen ingår. Autofördelning av totaltimmar väljer inte APL-innehåll åt er.</p>
+        <p><strong>Appen kontrollerar:</strong> Periodens APL-tid ska stämma exakt med veckounderlaget och rymmas inom {annual ? 'ämnets sparade APL-ram för årskursen' : 'ämnets och terminens sparade totaltid'}. Samma period ska inte räknas flera gånger för att flera ämnen ingår. Autofördelning av totaltimmar väljer inte APL-innehåll åt er.</p>
       </details>
-      <details className="apl-guide-step"><summary>4. Granska, bekräfta och lämna för beslut</summary>
+      <details className="apl-guide-step"><summary>4. Granska och bekräfta APL-förläggningen</summary>
         <p>Rektor eller skoladministratör kan förbereda planen. Ange utbildningsform och granska att all APL-tid har identifierats inom totaltiden. Öppna listan med det som saknas inför rektors bekräftelse och rätta underlaget.</p>
-        <p><strong>I appen:</strong> Spara först. Endast rektor kan därefter bekräfta förläggningen. Huvudmannens fastställande av timplanen är ett separat steg. Ändras innehållet eller undervisningstiden behöver rektor bekräfta igen. En komplett planering visar inte att APL är genomförd.</p>
+        <p><strong>I appen:</strong> Spara först. Endast rektor kan därefter bekräfta förläggningen. Timtabellen är redan godkänd. Huvudmannen granskar APL-planeringen separat och kan se innehållet och rektors bekräftelse. Periodändringar inom årsramen ändrar inte timtabellens godkännande. Ändras innehållet eller undervisningstiden behöver rektor bekräfta igen. En komplett planering visar inte att APL är genomförd.</p>
       </details>
       <details className="apl-guide-step"><summary>5. Säkra arbetsplatsen och följ varje elev</summary>
         <p>Huvudmannen ansvarar för platserna och utbildningens kvalitet. Eleven ska ha en lämplig handledare med rätt kunskaper och erfarenhet. <a href={regulation} target="_blank" rel="noreferrer">Gymnasieförordningen 4 kap. 12 och 14 §§</a>.</p>

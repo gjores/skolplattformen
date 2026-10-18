@@ -40,47 +40,48 @@ async function mock(page:Page,role:Role='huvudman',scenario:Scenario='complete',
  });
  return {commands,reads,get current(){return current;},set(value:PlanDecisionDetail){current=value;}};
 }
-async function open(page:Page,role:Role='huvudman',query=''){await page.goto(`${url}?role=${role}${query}`);}
+async function expandReview(page:Page){const panel=page.locator('.decision-review');await expect(panel).toBeVisible();if(await panel.getAttribute('open')===null)await panel.locator(':scope > summary').click();const historical=page.getByText('APL-underlag från tidigare beslut',{exact:true});if(await historical.count()&&await historical.evaluate(e=>e.parentElement?.hasAttribute('open'))===false)await historical.click();}
+async function open(page:Page,role:Role='huvudman',query=''){await page.goto(`${url}?role=${role}${query}`);if(!query.includes('inbox'))await expandReview(page);}
 async function checks(page:Page){for(const input of await page.locator('.decision-check input').all())await input.check();}
-async function approve(page:Page){await checks(page);await page.getByRole('button',{name:'Fastställ planen',exact:true}).click();await page.getByRole('button',{name:'Ja, fastställ planen'}).click();}
+async function approve(page:Page){await checks(page);await page.getByRole('button',{name:'Godkänn planen',exact:true}).click();await page.getByRole('button',{name:'Ja, godkänn planen'}).click();}
 const evidence=(page:Page)=>page.getByRole('region',{name:'APL inför beslut'});
 
 test('huvudmannen öppnar exakt plan från inkorgen, granskar sparat APL och fastställer',async({page},info)=>{
  const m=await mock(page);await open(page,'huvudman','&inbox');
  await expect(page.getByText('BF27A – förstärkt pedagogik')).toBeVisible();await expect(page.getByText('APL-underlag och rektorsbekräftelse finns')).toBeVisible();
- await page.getByRole('button',{name:'Granska och besluta'}).click();await expect(evidence(page)).toContainText('345 h');await expect(evidence(page)).toContainText('Rektor Anna Exempel');
+ await page.getByRole('button',{name:'Granska och besluta'}).click();await expandReview(page);await expect(evidence(page)).toContainText('345 h');await expect(evidence(page)).toContainText('Rektor Anna Exempel');
  expect(m.reads[0]).toEqual({kind:'timplan',planId});const opened=JSON.parse(await page.getByTestId('opened-scope').textContent()??'{}');expect(opened).toMatchObject({planId,unitId,version:2});
  await page.getByText('Visa sparade perioder och arbetsmoment (1)',{exact:true}).click();await expect(evidence(page)).toContainText('Uppgiven omfattning: 15 hela veckor');await expect(evidence(page)).toContainText('Planera, genomföra och följa upp pedagogiska aktiviteter.');
  await expect(evidence(page)).not.toContainText('PEDG1000X');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.screenshot({path:info.outputPath('apl-decision-evidence.png'),fullPage:true});await approve(page);await expect(page.locator('.plan-decision-heading')).toContainText('Fastställd');
+ await page.screenshot({path:info.outputPath('apl-decision-evidence.png'),fullPage:true});await approve(page);await expect(page.locator('.plan-decision-heading')).toContainText('Fastställd');await expandReview(page);
  await expect(evidence(page)).toContainText('Gäller det sparade innehållet');expect(m.commands).toHaveLength(1);expect(m.commands[0]).toMatchObject({action:'approve',planId,expectedRevision:9});
 });
 test('rektor skickar bekräftad plan och administrativ revision gör inte bekräftelsen inaktuell',async({page})=>{
  const m=await mock(page,'rektor');await open(page,'rektor');await expect(evidence(page)).toContainText('Gäller det sparade innehållet');
- await expect(page.getByRole('button',{name:'Bekräfta förläggningen'})).toHaveCount(0);await checks(page);await page.getByRole('button',{name:'Skicka för beslut',exact:true}).click();
- await expect(page.locator('.plan-decision-heading')).toContainText('Inväntar beslut');await expect(evidence(page)).toContainText('Gäller det sparade innehållet');expect(m.current.apl?.detail.confirmations[0].revision).toBe(7);expect(m.current.revision).toBe(10);
+ await expect(page.getByRole('button',{name:'Bekräfta förläggningen'})).toHaveCount(0);await checks(page);await page.getByRole('button',{name:'Skicka till huvudmannen',exact:true}).click();
+ await expect(page.locator('.plan-decision-heading')).toContainText('Inväntar beslut');await expandReview(page);await expect(evidence(page)).toContainText('Gäller det sparade innehållet');expect(m.current.apl?.detail.confirmations[0].revision).toBe(7);expect(m.current.revision).toBe(10);
 });
 test('beredare ser sparat underlag men kan inte ersätta rektors bekräftelse',async({page})=>{
  const m=await mock(page,'administrator','unconfirmed');await open(page,'administrator');await expect(evidence(page)).toContainText('Rektor har ännu inte bekräftat');
- await expect(page.getByRole('button',{name:'Skicka för beslut'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Bekräfta förläggningen'})).toHaveCount(0);
- await page.getByRole('link',{name:'Öppna APL-planeringen'}).focus();await page.keyboard.press('Enter');await expect(page).toHaveURL(/#apl-planering$/);await expect(page.locator('#apl-planering')).toBeFocused();await expect(page.getByRole('heading',{name:'Planera APL',exact:true})).toBeInViewport();expect(m.commands).toEqual([]);
+ await expect(page.getByRole('button',{name:'Skicka till huvudmannen'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Bekräfta förläggningen'})).toHaveCount(0);
+ await expect(evidence(page)).toContainText('Öppna APL-planering i menyn för att fortsätta med perioderna.');await expect(page.getByRole('link',{name:'Öppna APL-planeringen'})).toHaveCount(0);expect(m.commands).toEqual([]);
 });
 test('ändrat innehåll visar tidigare rektor men kräver ny bekräftelse',async({page},info)=>{
  const m=await mock(page,'huvudman','stale');await open(page);await expect(evidence(page)).toContainText('Behöver förnyas efter ändring');await expect(evidence(page)).toContainText('Rektor Anna Exempel');
- await expect(page.getByRole('button',{name:'Fastställ planen',exact:true})).toHaveCount(0);await expect(page.getByText('APL-underlaget är klart för prövning',{exact:true})).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Godkänn planen',exact:true})).toHaveCount(0);await expect(page.getByText('APL-underlaget är klart för prövning',{exact:true})).toHaveCount(0);
  await page.screenshot({path:info.outputPath('apl-stale-confirmation.png'),fullPage:true});expect(m.commands).toEqual([]);
 });
 for(const [role,action] of [['huvudman','return'],['rektor','withdraw']] as const)test(`äldre inskickat ärende kan ${action} utan falskt grönt APL-besked`,async({page})=>{
  const m=await mock(page,role,'legacy');if(role==='rektor'){const d=m.current;m.set({...d,stage:'submitted',nextActor:'huvudman',actions:['withdraw']});}await open(page,role,'&inbox');
- await expect(page.getByText('APL-planering behöver kompletteras',{exact:true})).toBeVisible();await page.getByRole('button',{name:role==='huvudman'?'Granska och besluta':'Förbered beslut'}).click();
- await expect(evidence(page)).toContainText('APL-planeringen behöver kompletteras');await expect(evidence(page)).not.toContainText('0 h');await expect(page.getByRole('button',{name:'Fastställ planen',exact:true})).toHaveCount(0);
- if(action==='return'){await page.getByLabel('Kommentar – vad behöver rättas?').fill('Planera perioderna och låt rektor bekräfta APL.');await page.getByRole('button',{name:'Skicka tillbaka för rättning'}).click();}
+ await expect(page.getByText('APL-planering behöver kompletteras',{exact:true})).toBeVisible();await page.getByRole('button',{name:role==='huvudman'?'Granska och besluta':'Förbered beslut'}).click();await expandReview(page);
+ await expect(evidence(page)).toContainText('APL-planeringen behöver kompletteras');await expect(evidence(page)).not.toContainText('0 h');await expect(page.getByRole('button',{name:'Godkänn planen',exact:true})).toHaveCount(0);
+ if(action==='return'){await page.getByLabel('Kommentar – vad behöver rättas?').fill('Planera perioderna och låt rektor bekräfta APL.');await page.getByRole('button',{name:'Be om ändringar'}).click();}
  else await page.getByRole('button',{name:'Ta tillbaka för ändring'}).click();
  await expect(page.getByTestId('changed')).toHaveText('1');expect(m.commands[0].action).toBe(action);
 });
 test('äldre fastställd plan visar historik och okänd APL utan kompletteringsuppgift',async({page})=>{
  await mock(page,'huvudman','historical');await open(page);await expect(evidence(page)).toContainText('Det tidigare fastställandet ligger kvar');await expect(evidence(page)).not.toContainText('0 h');
- await expect(page.getByText('Behöver åtgärdas före beslut',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Fastställ planen',exact:true})).toHaveCount(0);
+ await expect(page.getByText('Behöver åtgärdas före beslut',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'Godkänn planen',exact:true})).toHaveCount(0);
  await page.getByText('Beslutshistorik (1)',{exact:true}).click();await expect(page.locator('.decision-history')).toContainText('BF27A – äldre benämning');
 });
 test('blandat upplägg visas utan påhittad omräkning till hela veckor',async({page})=>{
@@ -89,21 +90,21 @@ test('blandat upplägg visas utan påhittad omräkning till hela veckor',async({
  await expect(evidence(page)).not.toContainText('Uppgiven omfattning:');
 });
 test('gemensam programplan behåller sin checklista utan skolans APL-spärr',async({page})=>{
- const m=await mock(page,'huvudman','program');await open(page,'huvudman','&program');await expect(page.getByRole('button',{name:'Fastställ planen',exact:true})).toBeVisible();await expect(evidence(page)).toHaveCount(0);
+ const m=await mock(page,'huvudman','program');await open(page,'huvudman','&program');await expect(page.getByRole('button',{name:'Godkänn planen',exact:true})).toBeVisible();await expect(evidence(page)).toHaveCount(0);
  await approve(page);await expect(page.getByTestId('changed')).toHaveText('1');expect(m.commands[0].kind).toBe('programplan');
 });
 test('ny spärr stoppar redan öppnad fastställandedialog och även direkt knappklick',async({page})=>{
- const m=await mock(page);await open(page);await checks(page);await page.getByRole('button',{name:'Fastställ planen',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();
- await page.evaluate(()=>window.dispatchEvent(new CustomEvent('apl-test-block',{detail:true})));const confirm=page.getByRole('button',{name:'Ja, fastställ planen'});await expect(confirm).toBeDisabled();
- await confirm.evaluate(button=>(button as HTMLButtonElement).click());expect(m.commands).toEqual([]);await page.getByRole('button',{name:'Avbryt'}).click();await expect(page.getByRole('button',{name:'Fastställ planen',exact:true})).toBeDisabled();
+ const m=await mock(page);await open(page);await checks(page);await page.getByRole('button',{name:'Godkänn planen',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('apl-test-block',{detail:true})));const confirm=page.getByRole('button',{name:'Ja, godkänn planen'});await expect(confirm).toBeDisabled();
+ await confirm.evaluate(button=>(button as HTMLButtonElement).click());expect(m.commands).toEqual([]);await page.getByRole('button',{name:'Avbryt'}).click();await expect(page.getByRole('button',{name:'Godkänn planen',exact:true})).toBeDisabled();
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('apl-test-block',{detail:false})));await approve(page);expect(m.commands).toHaveLength(1);
 });
 test('konflikt kräver omläsning och ny granskning med begripliga ord',async({page})=>{
  const m=await mock(page,'huvudman','complete','conflict');await open(page);await approve(page);await expect(page.getByRole('alert')).toContainText('Läs om och granska på nytt');
- expect(m.commands).toHaveLength(1);await page.getByRole('button',{name:'Läs beslutsstatus'}).click();await expect(evidence(page)).toBeVisible();await expect(page.locator('.decision-check input').first()).not.toBeChecked();
+ expect(m.commands).toHaveLength(1);await page.getByRole('button',{name:'Uppdatera status'}).click();await expandReview(page);await expect(evidence(page)).toBeVisible();await expect(page.locator('.decision-check input').first()).not.toBeChecked();
 });
 for(const mode of ['lost','legacy-replay'] as const)test(`okänt ${mode}-svar återprövar samma kommando och visar sedan färsk plan`,async({page})=>{
  const m=await mock(page,'huvudman','complete',mode);await open(page);await approve(page);await expect(page.getByRole('button',{name:'Kontrollera och försök igen'})).toBeVisible();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeDisabled();
  m.set({...m.current,series:{...m.current.series!,name:'BF27A – senare benämning',revision:1}});await page.getByRole('button',{name:'Kontrollera och försök igen'}).click();
- await expect(page.locator('.plan-decision-heading')).toContainText('BF27A – senare benämning');await expect(evidence(page)).toContainText('Gäller det sparade innehållet');expect(m.commands).toHaveLength(2);expect(m.commands[1]).toEqual(m.commands[0]);
+ await expect(page.locator('.plan-decision-heading')).toContainText('BF27A – senare benämning');await expandReview(page);await expect(evidence(page)).toContainText('Gäller det sparade innehållet');expect(m.commands).toHaveLength(2);expect(m.commands[1]).toEqual(m.commands[0]);
 });

@@ -11,7 +11,7 @@ import { decisionNextActorLabel, decisionStageLabel, usePlanDecisions } from './
 import MfaStepUpNotice from './mfa-step-up';
 
 type Command = { commandId: string; kind: PlanDecisionKind; planId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
-const actionLabel = { submit: 'Skicka för beslut', return: 'Skicka tillbaka för rättning', approve: 'Fastställ planen', withdraw: 'Ta tillbaka för ändring' };
+const actionLabel = { submit: 'Skicka till huvudmannen', return: 'Be om ändringar', approve: 'Godkänn planen', withdraw: 'Ta tillbaka för ändring' };
 const historyLabel = { submit: 'Skickad för beslut', return: 'Skickad tillbaka för rättning', approve: 'Fastställd', withdraw: 'Tillbakatagen för ändring' };
 function plannedTime(total: number): string {
   const {hours,minutes} = splitAplMinutes(total);
@@ -34,9 +34,8 @@ function AplDecisionEvidence({detail}: {detail: PlanDecisionDetail}) {
     {!plan ? <div className="grid gap-2">
       <p><strong>{historical ? 'Äldre plan utan registrerat APL-underlag' : 'APL-planeringen behöver kompletteras'}</strong></p>
       <p>{historical ? 'Det tidigare fastställandet ligger kvar. Den här vyn kan inte visa hur APL fördelades i den äldre planen. Saknat underlag betyder inte noll APL.'
-        : 'Perioder, innehåll och APL-tid behöver sparas i timplanen. Därefter bekräftar rektor förläggningen innan planen kan skickas och fastställas.'}</p>
-      {!historical && detail.stage === 'submitted' && <p>{detail.actions.includes('return')
-        ? 'Skicka tillbaka planen med en kommentar om APL-kompletteringen.' : 'Ta tillbaka planen för att komplettera APL och skicka den på nytt.'}</p>}
+        : 'Det här beslutsunderlaget innehåller ingen sparad APL-förläggning. Perioder och arbetsmoment granskas i den separata APL-planeringen. Timtabellens godkännande betyder inte att APL är färdigplanerad.'}</p>
+
     </div> : <>
       <dl className="grid gap-3 sm:grid-cols-3">
         <div><dt className="text-sm text-muted-foreground">Utbildningsform</dt><dd className="font-semibold">{plan.educationForm === 'school_based' ? 'Skolförlagd utbildning' : plan.educationForm === 'apprenticeship' ? 'Lärlingsutbildning' : 'Inte vald'}</dd></div>
@@ -66,16 +65,7 @@ function AplDecisionEvidence({detail}: {detail: PlanDecisionDetail}) {
       </details>
     </>}
     <p className="decision-secondary">Visar planerad APL. Arbetsplatser, handledare, närvaro och genomförande följs ännu inte upp här.</p>
-    <a href="#apl-planering" className="w-fit text-primary underline underline-offset-4" onClick={event => {
-      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const target = document.getElementById('apl-planering');
-      if (!target) return;
-      // Keep this within the mounted plan; a router navigation can remount and lose focus.
-      event.preventDefault();
-      if (window.location.hash !== '#apl-planering') window.history.pushState(window.history.state, '', '#apl-planering');
-      target.focus({preventScroll: true});
-      target.scrollIntoView({block: 'start'});
-    }}>Öppna APL-planeringen</a>
+    <p>Öppna APL-planering i menyn för att fortsätta med perioderna.</p>
   </section>;
 }
 export default function PlanDecisionPanel({ kind, planId, revision, disabled, onChanged, onSecurityFailure, onStage }: {
@@ -84,6 +74,7 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
 }) {
   const { refresh } = usePlanDecisions();
   const [detail, setDetail] = useState<PlanDecisionDetail | null>(null), [loading, setLoading] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [error, setError] = useState<string | null>(null), [mfa, setMfa] = useState(false), [retry, setRetry] = useState(0);
   const [checks, setChecks] = useState<string[]>([]), [comment, setComment] = useState(''), [confirm, setConfirm] = useState(false);
   const [pending, setPending] = useState<Command | null>(null), [sending, setSending] = useState(false), [completed, setCompleted] = useState(0);
@@ -139,13 +130,17 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
   const availableActions = detail?.actions.filter(action => detail.apl?.ready !== false || action === 'return' || action === 'withdraw') ?? [];
   const feedback = detail?.stage === 'returned' ? detail.history.find(event => event.action === 'return') : null;
   return <section className="plan-decision-panel" aria-label="Beslut och nästa steg" aria-busy={loading || sending}>
-    <div className="plan-decision-heading"><div><h2>Beslut och nästa steg</h2>{detail?.series && <p>{detail.series.name} · version {detail.version}</p>}{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
-      <Button variant="outline" disabled={loading || pending !== null || disabled} onClick={() => setRetry(n => n + 1)}>Läs beslutsstatus</Button></div>
+    <div className="plan-decision-heading"><div><h2>Godkännande</h2>{detail?.series && <p>{detail.series.name} · version {detail.version}</p>}{detail && <p><strong>{decisionStageLabel[detail.stage]}</strong>{detail.nextActor && ` · Nästa steg hos ${decisionNextActorLabel(kind, detail.nextActor)}`}</p>}</div>
+      </div>
     {loading && !detail && <output>Hämtar aktuellt beslutsunderlag…</output>}
     {error && <p role="alert">{error}</p>}
+    {!detail && error && !pending && <Button variant="outline" disabled={loading || disabled} onClick={() => setRetry(n => n + 1)}>Uppdatera status</Button>}
     {mfa && <MfaStepUpNotice message="Beslutet kräver verifiering med engångskod."/>}
     {pending && <Button disabled={sending} onClick={() => void execute(pending)}>{sending ? 'Sparar beslut…' : 'Kontrollera och försök igen'}</Button>}
-    {detail && <>
+    {!!detail?.blockers.length && <div className="decision-blocker-summary"><p>{detail.blockers.length} {detail.blockers.length === 1 ? 'punkt behöver' : 'punkter behöver'} kompletteras före godkännande.</p><Button variant="outline" onClick={() => setReviewOpen(true)}>Visa vad som saknas</Button></div>}
+    {detail && <details className="decision-review" open={reviewOpen || !!pending || detail.stage === 'returned'} onToggle={event => setReviewOpen(event.currentTarget.open)}>
+      <summary>{detail.actions.includes('approve') ? 'Granska och godkänn' : detail.actions.includes('submit') ? 'Granska och skicka' : 'Visa beslut och historik'}</summary>
+      <div className="decision-review-body">
       <ol className="plan-decision-steps" aria-label="Planens beslutsgång">{(['draft','submitted','approved'] as const).map((stage, index) => <li key={stage} aria-current={detail.stage === stage || stage === 'draft' && detail.stage === 'returned' ? 'step' : undefined}>{index + 1}. {stage === 'draft' ? 'Bearbeta utkast' : stage === 'submitted' ? 'Granska och besluta' : 'Fastställd plan'}</li>)}</ol>
       {detail.stage === 'returned' && <section className="decision-feedback" aria-label="Återkoppling från huvudmannen">
         <h3>Det här behöver rättas</h3>
@@ -156,7 +151,8 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
         ? 'Granska underlaget. Om något är fel, beskriv vad som behöver rättas i kommentaren och skicka tillbaka planen. Fastställ först när granskningen är klar.'
         : detail.actions.includes('withdraw') ? 'Planen väntar på huvudmannens beslut. Ta tillbaka den om du behöver göra ändringar.' : 'Planen väntar på huvudmannens beslut och kan inte ändras under granskningen.'}</p>}
       {detail.stage === 'approved' && <p>Den här versionen är fastställd och låst. Fortsatta ändringar görs i en ny version.</p>}
-      <AplDecisionEvidence detail={detail}/>
+      {detail.apl && <details><summary>APL-underlag från tidigare beslut</summary><AplDecisionEvidence detail={detail}/></details>}
+      {detail.checks.some(check => check.id === 'apl-budget') && <p className="decision-secondary">Det här beslutet gäller timtabellen, inklusive årsramen för APL. Perioder och arbetsmoment granskas i APL-planeringen efteråt.</p>}
       {detail.sourceInfo && <p className="decision-secondary">{detail.sourceInfo}</p>}
       {detail.blockers.length > 0 && <div><strong>Behöver åtgärdas före beslut</strong><ul className="decision-blockers">{detail.blockers.map((blocker, index) => <li key={index}>{blocker}</li>)}</ul></div>}
       {availableActions.some(action => action === 'approve' || action === 'submit') && detail.checks.map(check => <label className="decision-check" key={check.id}><input type="checkbox" checked={checks.includes(check.id)} disabled={disabled || loading || !!pending} onChange={event => setChecks(current => event.target.checked ? [...current, check.id] : current.filter(id => id !== check.id))}/><span>{check.label}</span></label>)}
@@ -169,7 +165,8 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
           onClick={() => action === 'approve' ? setConfirm(true) : act(action)}>{actionLabel[action]}</Button>)}</div>
       </>}
       <details><summary>Beslutshistorik ({detail.history.length})</summary>{detail.history.length ? <ol className="decision-history">{detail.history.map((event, index) => <li key={index}><strong>{historyLabel[event.action]}</strong>{kind==='timplan' && <span>{event.nameAtDecision ?? 'Namnet vid beslutet är inte registrerat'}</span>}<span>{event.actorName} · {new Date(event.at).toLocaleString('sv-SE')}</span>{event.comment && <p>{event.comment}</p>}</li>)}</ol> : <p>Inga beslut har registrerats för den här versionen.</p>}</details>
-    </>}
-    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>Fastställ {kind === 'programplan' ? 'programplanen' : 'timplanen'}?</DialogTitle><DialogDescription>{detail?.series?.name ?? detail?.educationName}{detail?.schoolName ? ` · ${detail.schoolName}` : ''} · Version {detail?.version}. Den granskade versionen låses och beslutet sparas i historiken.</DialogDescription><div className="decision-actions"><Button variant="outline" onClick={() => setConfirm(false)}>Avbryt</Button><Button disabled={disabled || loading || !ready || !!pending} onClick={() => act('approve')}>Ja, fastställ planen</Button></div></DialogContent></Dialog>
+      <Button variant="ghost" disabled={loading || pending !== null || disabled} onClick={() => setRetry(n => n + 1)}>Uppdatera status</Button>
+      </div></details>}
+    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>Godkänn {kind === 'programplan' ? 'programplanen' : 'timplanen'}?</DialogTitle><DialogDescription>{detail?.series?.name ?? detail?.educationName}{detail?.schoolName ? ` · ${detail.schoolName}` : ''} · Version {detail?.version}. Den granskade versionen låses och beslutet sparas i historiken.</DialogDescription><div className="decision-actions"><Button variant="outline" onClick={() => setConfirm(false)}>Avbryt</Button><Button disabled={disabled || loading || !ready || !!pending} onClick={() => act('approve')}>Ja, godkänn planen</Button></div></DialogContent></Dialog>
   </section>;
 }
