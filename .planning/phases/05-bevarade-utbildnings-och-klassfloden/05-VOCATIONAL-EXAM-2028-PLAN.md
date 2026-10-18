@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: VOCATIONAL-EXAM-2028
-status: in-progress
+status: complete
 type: execute
 autonomous: true
 ---
@@ -34,3 +34,7 @@ Hundrapoängsraden behåller intern stabil identifierare `meta:diplomaWork`; anv
 ## SS 12000
 
 SS 12000:2024 utgåva4/OpenAPI2.1.0 är projektbaslinjen. Val av avslutande utbildningsmoment är en intern planegenskap, inte Attendance, Placement, elevresultat eller en tilldelad examen. Stabil programplans-/utbildnings-/skolenhets-/radidentitet, klassrelationer och käll-/versionsansvar bevaras. Den historiska interna radnyckeln dokumenteras som en100-poängskomponent, inte en nationell yrkesprovskod. Inga fabricerade externaID:n skapas. Inget externt standardutbyte eller faktiskt elevprov verifieras i denna leverans.
+
+## Resultat2026-10-18
+
+Levererad exakt7102cf8 på3012 efter SQL25, faktisk Worker/OIDC20,9 leveranskontraktprov, atomisk installation med79 originaltabeller och appbyte/läsprov med76 verksamhetstabeller bevarade. Modell201, server/route98, UI20, typ/lint, skyddat bygge och handbok PASS. Actual01 är kvar som diagnostiskt FAIL efter samtidiga externa UI-ändringar; actual02 använder fryst källcheckout och passerar. Mänskligt begriplighetsprov och bredare mobilöverlappning återstår; ingen full fasacceptans antas. Se [samlad verifiering](05-VOCATIONAL-EXAM-2028-VERIFICATION.md).

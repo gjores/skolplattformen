@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: TIMPLAN-APL-AUTO
+current_plan: VOCATIONAL-EXAM-2028
 status: awaiting_user
-stopped_at: APL-autofördelning levererad på3012; Node45/UI22+24/actual17 och bevarande76 PASS. Mänsklig tydlighetsbedömning återstår.
+stopped_at: Examensform förHT2028 levererad på3012; SQL25/actual20 samt installation79/appbyte76 bevarande PASS. Mänsklig begriplighetsbedömning återstår.
 last_updated: "2026-10-18"
 last_activity: 2026-10-18
-last_activity_desc: "TIMPLAN-APL-AUTO levererad: granskat förslag med GUT och tillräcklig års-APL.3012 kör29b870f utan migration."
-state_head: 29b870f
-verification_worker_build_revision: 29b870fd2e7d5049254ae5fe43999194f883ef52
-verification_worker_status: timplan_apl_auto_actual_browser_local_delivery_pass
-worker_status: timplan_apl_auto_local_delivery_verified
-worker_build_revision: 29b870fd2e7d5049254ae5fe43999194f883ef52
+last_activity_desc: "VOCATIONAL-EXAM-2028 levererad: versionsbundet granskat val,100-poängsrad och huvudmannagodkännande.3012 kör7102cf8."
+state_head: 7102cf8
+verification_worker_build_revision: 7102cf828fac7006b4296538290da1bac25bdd8c
+verification_worker_status: programplan_examination_actual_browser_local_delivery_pass
+worker_status: programplan_examination_local_delivery_verified
+worker_build_revision: 7102cf828fac7006b4296538290da1bac25bdd8c
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Examensform för HT2028 levererad2026-10-18:** Rektor dokumenterar yrkesprov när tillämpligt prov finns, annars gymnasiearbete, med källa och kontrolldatum före inskick till huvudmannen. Ingen automatisk verifiering av nationellt provutbud påstås.100-poängsraden och frysta beslut bevaras; ny kull eller ändrat innehåll kräver ny kontroll. Modell201/server98/UI20/SQL25/actual20 och lokal installation/efterprov PASS.3012 kör7102cf8 med79 originaltabeller bevarade vid installation och76 verksamhetstabeller vid appbytet. [Verifiering och användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-VOCATIONAL-EXAM-2028-VERIFICATION.md). Mänsklig begriplighet och bredare mobilöverlappning kvarstår; historiska88/100 och3/8 består. Äldre leveransnoteringar nedan är historik.
 
 **APL-autofördelning levererad2026-10-18:** Förval med GUT och minst345h års-APL inom totalen, ändringsbart ämnesurval och granskning före sparande. Befintlig APL bevaras; perioder planeras senare. Node45, UI22+24 samt slutligt mobilprov2, faktisk Worker/OIDC17 och lokal leverans med76 verksamhetstabeller bevarade PASS.3012 kör29b870f utan migration. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-APL-AUTO-VERIFICATION.md). Ny mänsklig begriplighetsbedömning återstår; historiska88/100 och3/8 består.
 

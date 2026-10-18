@@ -40,3 +40,7 @@ Se [registrerat användarutfall](../../phases/05-bevarade-utbildnings-och-klassf
 ## Konkret gap efter klasskopplingsprovet 2026-10-15
 
 Användaren misstog programplanens lista över befintliga klasser för timplanens klassval och kunde inte hitta hur två klasser kopplas. Efter vägledning fungerade kopplingen, men användaren beställde ett uttryckligt gap och designunderlag. [CLASS-COHORT-UX-01](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-UX-GAP.md) samlar fynd, avgränsning och stängningskriterier. [Prompt till Claude Design](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-CLAUDE-DESIGN-PROMPT.md) används med skärmdumpar för sammanhängande flöde, tydligt sparande, synliga klasskopplingar och föreslaget flerval. Design och implementation återstår; gapet ersätter inte denna bredare UI-genomgång.
+
+## Mobilens klistrade planeringskontext 2026-10-18
+
+Faktiskt telefonprov för VOCATIONAL-EXAM-2028 klarar granska/spara/skicka/godkänna. Elementscreenshots av det långa examensformsformuläret visar samtidigt att den befintliga klistrade skol-/läsårspanelen hamnar ovanpå delar av innehållet; statuskortets rubrik skymtar bakom panelen. Fälten kunde användas i provet, men bilderna är inte visuellt rena. Utred separat hur kontextpanelen tar plats vid mobilrullning och skärmbildtagning innan det breda mobil-UX-gapet stängs. Ingen ny användaracceptans eller generell mobilombyggnad ingår i detta delprov.
