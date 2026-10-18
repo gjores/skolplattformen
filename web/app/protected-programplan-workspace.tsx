@@ -39,6 +39,7 @@ import { usePlanningContext, type PlanningMatrixYear } from './planning-context'
 import { planningYearLabel, projectGymYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSchoolTimplan } from '@/lib/planning-year-contract.ts';
 import type { ProgramplanLocation, GymTimplanLocation } from '@/lib/protected-plan-location.ts';
+import PlanSteps from './plan-steps';
 
 export type ClassStepTarget = { offeringId: string; planId: string; unitId: string };
 type Props = { context: ActiveContext; epoch: number; onSessionLost: () => void; initialPlan?: ProgramplanLocation | null;
@@ -493,6 +494,8 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const analysis = program && workspace ? analyseProgramplan({ program, orientationCode: workspace.education.orientationCode, refs: shownRefs, startedOn: shownStart,
     sourceFetched: workspace.catalog.source?.fetched ?? null, serverNotes, terms: termInput, basisReference: draft ? { ...draft.pin, startedOn: draft.startedOn, specializationRefs: draft.refs } : plan?.basisReference }) : null;
   const problems = analysis ? analysis.counts.fel + analysis.counts.risk : 0;
+  // En primär handling: åtgärda fel först, annars vidare till timplanen.
+  const hasErrors = !!analysis && analysis.counts.fel > 0;
   const problemLabel = analysis ? [analysis.counts.fel ? `${analysis.counts.fel} fel` : '', analysis.counts.risk ? `${analysis.counts.risk} ${analysis.counts.risk === 1 ? 'risk' : 'risker'}` : ''].filter(Boolean).join(' · ') : '';
   // Behåll navigeringsmålet bara så länge samma rad fortfarande behöver åtgärdas.
   const activeFocusIssue = focusIssue && analysis?.issues.some(issue => issue.id === focusIssue.id &&
@@ -618,13 +621,12 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           <h2>{view==='analysis'?'Kontrollera programplanen':workspace.education.name}</h2>
           {selectedSchool && <p>Vald skola: {selectedSchool.name}{workspace.lifecycle.units.length > 1 ? ' · Gemensam programram' : ''}</p>}
           <p>{[program?.name??workspace.education.programCode, orientationName ?? (workspace.education.orientationCode ? workspace.education.orientationCode : null), programplanSchoolLabel(workspace.lifecycle), workspace.education.cohort??'Elevkull saknas'].filter(Boolean).join(' · ')}</p>
+          <div className="pps-status-line"><LifecycleBadge lifecycle={workspace.lifecycle}/><span className="pps-state pp-status">{statusText}</span></div>
         </div>
         <div className="pps-actions">
-          <LifecycleBadge lifecycle={workspace.lifecycle}/>
-          <span className="pps-state pp-status">{statusText}</span>
-          {analysis&&view==='plan'&&<Button variant="outline" disabled={termsActive} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))setView('analysis');}}>Kontrollera planen{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
-          {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())onTimplan({ kind: 'source', id: plan.id, offeringId: plan.offeringId, version: plan.version, ...(selectedUnit.current ? { unitId: selectedUnit.current } : {}) });}}>Gå till timplan</Button>}
-          {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button disabled={busy||termsActive||hasUnsaved||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
+          {analysis&&view==='plan'&&<Button variant={hasErrors?'default':'outline'} className={hasErrors?'pps-check-primary':undefined} disabled={termsActive} onClick={()=>{if(canNavigate()&&(!hasUnsaved||confirmDiscard()))setView('analysis');}}>Kontrollera planen{problems>0&&<span className="pps-badge" data-fel={analysis.counts.fel>0}>{problemLabel}</span>}</Button>}
+          {!draft&&!preparation&&!copy&&plan&&onTimplan&&view==='plan'&&<Button variant={hasErrors?'outline':'default'} disabled={busy||hasUnsaved} onClick={()=>{if(canNavigate())onTimplan({ kind: 'source', id: plan.id, offeringId: plan.offeringId, version: plan.version, ...(selectedUnit.current ? { unitId: selectedUnit.current } : {}) });}}>Gå till timplan</Button>}
+          {!draft&&!preparation&&changePlan&&!(boardActive&&plan?.status==='utkast'&&!anotherDraft)&&<Button variant={plan&&onTimplan?'outline':'default'} disabled={busy||termsActive||hasUnsaved||!anotherDraft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches} onClick={nextAction}>{anotherDraft?'Öppna utkastet':<><Pencil size={16} aria-hidden="true"/>{titles[nextKind]}</>}</Button>}
           {draft&&draft.mode==='edit'&&!reviewing&&<Button disabled={busy} onClick={()=>{setView('plan');setReviewing(true);}}>Spara utkast</Button>}
           {!draft&&!preparation&&<details className="pps-more-actions">
             <summary>Fler alternativ</summary>
@@ -640,7 +642,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
           </details>}
         </div>
       </div>}
-      {workspace&&plan&&view==='plan'&&<ol className="pps-stepper" aria-label="Utbildningens arbetsmoment"><li aria-current="step">1. Programplan · fördela poäng</li><li>2. Timplan · fördela timmar</li>{program&&programplanProfile(program)?.vocational&&<li>3. APL · planera perioder senare</li>}</ol>}
+      {workspace&&plan&&view==='plan'&&<PlanSteps current="programplan" apl={!!program&&!!programplanProfile(program)?.vocational}/>}
       {workspace&&!draft&&(nextKind==='replace'||nextKind==='clone'&&!!plan?.basisReference)&&!boundSourceMatches&&<p className="pp-alert" role="alert">Den här versionens sparade underlag kunde inte återfinnas. Läs om innan du ändrar eller skapar en ny version.</p>}
       {lifecycleDialog&&lifecycleTarget&&<LifecycleDialog key={lifecycleDialog} kind={lifecycleDialog} target={lifecycleTarget} onClose={()=>setLifecycleDialog(null)} onSecurityFailure={securityFailure}
         onChanged={(message,reply)=>lifecycleChanged(message,reply.command==='delete')} onStale={lifecycleStale}/>}

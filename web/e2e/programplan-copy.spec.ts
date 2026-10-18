@@ -133,7 +133,7 @@ test('Tabellen först, begripliga åtgärder och tangentöppnade alternativ',asy
  await expect(w.getByRole('button',{name:/^Kontrollera planen/u})).toBeEnabled();
  await expect(w.getByRole('button',{name:'Kopiera till nästa kull',exact:true})).not.toBeVisible();
  await expect(w.getByRole('button',{name:'Uppdatera sidan',exact:true})).not.toBeVisible();
- await expect(w.locator('.pps-stepper')).not.toContainText('APL');
+ await expect(w.locator('.plan-steps')).not.toContainText('APL');
  expect(await w.evaluate(root=>{
   const table=root.querySelector('[aria-label="Programplanen"]'),classes=root.querySelector('.class-cohorts');
   return !!table&&!!classes&&!!(table.compareDocumentPosition(classes)&Node.DOCUMENT_POSITION_FOLLOWING);

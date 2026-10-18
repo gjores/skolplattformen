@@ -1,0 +1,11 @@
+.plan-steps{display:flex;flex-wrap:wrap;align-items:center;gap:0;list-style:none;padding:0;margin:0 0 1.5rem;counter-reset:none}
+.plan-steps>li{display:flex;align-items:center;gap:.6rem;padding:0 1rem 0 0;border:0;background:none;color:#8a96a8;font-size:.875rem}
+.plan-steps>li+li::before{content:"";width:2rem;height:1px;background:#cbd2df;margin-right:.4rem}
+.plan-steps-number{width:1.75rem;height:1.75rem;flex:0 0 1.75rem;border-radius:50%;display:grid;place-items:center;border:1px solid #cbd2df;background:#fff;font-size:.75rem;font-weight:600}
+.plan-steps-text{display:flex;flex-direction:column;line-height:1.25}
+.plan-steps-text strong{font-weight:600}
+.plan-steps-text small{font-size:.75rem;font-weight:400}
+.plan-steps>li[aria-current=step]{color:#202b3b}
+.plan-steps>li[aria-current=step] .plan-steps-number{background:var(--primary,#365ce6);border-color:var(--primary,#365ce6);color:#fff}
+.plan-steps>li[data-before] {color:#46586d}
+@media(max-width:700px){.plan-steps>li{padding-right:.4rem;font-size:.8125rem}.plan-steps>li+li::before{width:.75rem;margin-right:.3rem}.plan-steps-text small{display:none}}

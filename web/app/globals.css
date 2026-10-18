@@ -1963,6 +1963,9 @@ textarea:disabled {
 .blocked-start output{display:block;margin-top:16px;color:var(--destructive);line-height:1.5}
 .blocked-start button{min-height:44px;margin-top:16px}
 @media(max-width:600px){.protected-topbar{align-items:flex-start;flex-direction:column;padding:10px 14px}.protected-topbar .top-actions{width:100%;justify-content:flex-start}.protected-topbar .top-actions .context-switch{order:3;width:100%}.protected-topbar .top-actions .og-unit-switch{width:100%;max-width:none;white-space:normal}.protected-topbar .context-label{order:3;width:100%;max-width:none}.protected-topbar .demo-pill{white-space:nowrap}}
+/* Assignment context is reference text, not a heading; keep the phone header to two short rows. */
+.protected-topbar .context-label{font-size:.875rem;color:var(--muted-foreground)}
+@media(max-width:600px){.protected-topbar{gap:4px;padding-top:6px;padding-bottom:6px}.protected-topbar .top-actions{gap:4px}.protected-topbar .context-label{min-height:0;font-size:.8125rem;line-height:1.35}}
 .protected-admin{display:flex;flex-direction:column;gap:20px}
 .protected-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:22px 24px;min-width:0}
 .protected-card>h2{font-size:1.25rem;font-weight:500;color:var(--foreground);margin:0 0 18px}

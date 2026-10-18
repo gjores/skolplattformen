@@ -21,6 +21,7 @@ import ProtectedAplPlan from './protected-apl-plan';
 import { VOCATIONAL_GY25_CODES } from '@/lib/programplan-profile.ts';
 import ProtectedClassTimplans from './protected-class-timplans';
 import './protected-gym-timplan.css';
+import PlanSteps from './plan-steps';
 import ProtectedPlanList from './protected-plan-list';
 import { usePlanningContext, type PlanningMatrixYear } from './planning-context';
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
@@ -209,7 +210,6 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
   return <section className="gym-timplan" data-testid="protected-gym-timplan-workspace" aria-busy={busy}>
     {error && <div role="alert" className="gt-error"><p>{error}</p><Button variant="outline" disabled={busy} onClick={() => leave(() => loadList())}>Välj utbildning igen</Button></div>}
     {notice && <output className="gt-notice">{notice}</output>}
-    {(plan || underlag) && <ol className="gt-flow" aria-label="Utbildningens arbetsmoment"><li>1. Programplan</li><li aria-current={!aplProcess ? 'step' : undefined}>2. Timplan</li>{(vocational || aplProcess) && <li aria-current={aplProcess ? 'step' : undefined}>3. APL-planering</li>}</ol>}
     {!plan && !underlag && !missing && (aplProcess ? <>
       <div className="gt-title"><Clock3 size={24}/><div><h1>APL-planering</h1><p>Planera perioder och arbetsmoment när timplanen är godkänd. Rektor bekräftar förläggningen och huvudmannen granskar APL separat.</p></div></div>
       <Button onClick={() => setAplPickerOpen(true)}>Välj timplan för APL</Button>
@@ -230,7 +230,7 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
       <Button variant="ghost" disabled={busy} onClick={() => leave(() => loadList())}><ArrowLeft size={16}/>Alla gymnasietimplaner</Button>
       <header className="gt-head"><div><h1>{underlag.source.education.name}</h1><p>{underlag.source.education.cohort} · Programplan version {underlag.source.version} ({statusLabel[underlag.source.status].toLocaleLowerCase('sv')})</p></div>
         <Button variant="outline" disabled={busy} onClick={() => leave(() => onProgramplan({ offeringId: underlag.source.offeringId, planId: underlag.source.planId, version: underlag.source.version, ...(selectedUnit ? { unitId: selectedUnit } : {}) }))}><FileText size={16}/>Öppna programplan</Button></header>
-      <p className="gt-explanation">Välj en timplan eller skapa en ny. Flera klasser kan dela samma plan.</p>
+      <PlanSteps current={aplProcess ? 'apl' : 'timplan'} apl={!!(vocational || aplProcess)}/>
       {!underlag.readiness.ready && <output className="gt-source-missing"><strong>Programramen behöver kompletteras före timplaneringen.</strong><ul>{underlag.readiness.missing.map((reason, i) => <li key={i}>{reason}</li>)}</ul></output>}
       <section className="gt-schools" aria-label="Välj skola"><h2>Skolans timplaner</h2><div className="gt-school-grid">{underlag.units.filter(unit => selectedUnit === null || unit.unitId === selectedUnit).map(unit => {
         const series = [...new Set(unit.plans.map(p => p.series?.id ?? 'legacy'))];
@@ -263,6 +263,7 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
           {!aplProcess && plan.series && plan.canPlan && !plan.archived && <Button variant="ghost" disabled={busy || navigationBlocked || hoursDirty || aplDirty || classDirty} data-named-timplan-action={`rename:${plan.unitId}`} onClick={()=>setAction({kind:'rename',plan})}>Byt namn</Button>}
           <Button variant="ghost" onClick={() => setShowSource(true)}>Visa planens underlag</Button>
         </div></details></div></header>
+      <PlanSteps current={aplProcess ? 'apl' : 'timplan'} apl={!!(vocational || aplProcess)}/>
       {!aplProcess && <>
         {plan.sourceChanged && <p className="gt-changed">Programplanen har ändrats. Skapa en ny version för att använda ändringarna i timplanen.</p>}
         <ProtectedGymTimplanHours timeJournalScope={timeJournalScope} aplInclusive={vocational} disabled={decisionPending || commandBlocked || aplDirty || aplPending} key={JSON.stringify([plan.id, timeJournalScope, epoch])} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}

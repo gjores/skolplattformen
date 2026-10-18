@@ -17,7 +17,7 @@ export default function ProgramplanList(props: Props) {
   const locked = props.disabled || props.creationLoading;
   return <section className="ppl" aria-label="Programplansöversikt">
     <div className="pps-head"><div className="pps-head-text"><h1 className="ppl-title">Programplaner</h1>
-      <p>Här ser du utbildningens programplan och skolans namngivna timplaner. Välj en timplan för att arbeta med fördelning och klasskopplingar.</p></div>
+      <p>Öppna en programplan för att fördela poäng. Skapa sedan skolans timplan för att fördela timmar.</p></div>
       {canCreate && props.canEditPlans && <div className="pps-actions"><Button disabled={locked} onClick={props.onNew}><Plus size={16} aria-hidden="true"/>Ny programplan</Button></div>}
     </div>
     <ProtectedPlanList programRows={{ canCreateTimplan: props.canCreateTimplan, onTimplan: props.onTimplan }} disabled={props.disabled} onSecurityFailure={props.onSecurityFailure} onOpen={props.onOpen}

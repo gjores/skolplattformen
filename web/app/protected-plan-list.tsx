@@ -37,9 +37,9 @@ export function PlanningFilterControls({ disabled = false }: { disabled?: boolea
   return <div className="plan-list-filters" aria-label="Filtrera planeringsunderlaget">
     <label htmlFor={`${id}-query`}>Sök utbildning<input id={`${id}-query`} type="search" maxLength={200} value={draft.text} disabled={disabled}
       placeholder="Namn, kod, program, inriktning eller kull" onChange={e => setDraft({ context, accepted: selection.query, text: e.target.value })}/></label>
-    {selection.view === 'timplan' && <label htmlFor={`${id}-form`}>Skolform<select id={`${id}-form`} value={selection.schoolform} disabled={disabled}
+    {selection.view === 'timplan' && selection.schoolform !== 'gymnasium' && <label htmlFor={`${id}-form`}>Skolform<select id={`${id}-form`} value={selection.schoolform} disabled={disabled}
       onChange={e => patch({ schoolform: e.target.value as PlanningSelection['schoolform'] })}>
-      <option value="gymnasium">Gymnasium</option><option value="grundskola">Grundskola</option><option value="introduktionsprogram">Introduktionsprogram</option>
+      <option value="grundskola">Grundskola</option><option value="introduktionsprogram">Introduktionsprogram</option>
     </select></label>}
     <button type="button" aria-expanded={filtersOpen} aria-controls={`${id}-extra`} onClick={() => setFiltersOpen(!filtersOpen)}>
       {filtersOpen ? 'Dölj filter' : 'Fler filter'}{activeFilters.length > 0 ? ` (${activeFilters.length})` : ''}
@@ -134,7 +134,7 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
       <button type="button" disabled={disabled} onClick={() => requestChange({ direction: selected.direction === 'asc' ? 'desc' : 'asc' })} aria-label={selected.direction === 'asc' ? 'Byt till fallande sortering' : 'Byt till stigande sortering'}>{selected.direction === 'asc' ? 'Stigande ↑' : 'Fallande ↓'}</button>
     </div><p className="plan-list-count">{data.count} {data.count === 1 ? 'träff' : 'träffar'}{data.count > 0 ? ` · visar ${(selected.page - 1) * 50 + 1}–${(selected.page - 1) * 50 + data.rows.length}` : ''}</p>
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Bara själva fokusbara rullytan hanterar sidledspilar; tabellens kontroller behåller sina tangenter. */}
-      {data.count === 0 ? <p>{selected.view === 'timplan' ? 'Inga skapade timplaner matchar valen.' : 'Inget underlag matchar valen.'} Rensa filtren eller välj ett annat läsår.</p> : <section className="plan-list-scroll" aria-label="Planeringstabell, kan rullas i sidled"
+      {data.count === 0 ? <p>{selected.view === 'timplan' ? 'Inga skapade timplaner matchar valen.' : 'Inget underlag matchar valen.'} Rensa filtren eller välj ett annat läsår.{selected.view === 'timplan' && selected.schoolform === 'gymnasium' && ' En gymnasietimplan skapas från en programplan: välj Skapa timplan på raden under Programplaner.'}</p> : <section className="plan-list-scroll" aria-label="Planeringstabell, kan rullas i sidled"
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Tangentbordet ska kunna rulla hela lästabellen, samma mönster som timmatrisen.
         tabIndex={0} onKeyDown={event => {
           if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -154,6 +154,8 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
               const timplans = row.schoolTimplans ?? (row.schoolTimplan ? [row.schoolTimplan] : []);
               const known = row.schoolTimplans !== undefined || row.schoolTimplan !== undefined;
               const canStart = known && timplans.length === 0 && row.plan !== null && !row.archived && programRows.canCreateTimplan;
+              // En primär knapp per rad: timplanen först när programplanen är fastställd, annars programplanen.
+              const timplanFirst = canStart && row.plan?.status === 'faststalld';
               return <tr key={rowKey}>
                 <th scope="row"><strong>{row.educationName}</strong>
                   {details?.programName && <small>{details.programName}</small>}
@@ -176,10 +178,11 @@ export default function ProtectedPlanList({ disabled = false, onSecurityFailure,
                 </li>)}</ul>:<><span className="program-row-status">{known?'Ingen timplan':'Status ej tillgänglig'}</span>
                   {known&&!row.plan&&<small>Skapa programplanen först.</small>}{known&&row.plan&&!programRows.canCreateTimplan&&<small>Rektor eller skoladministratör skapar timplanen.</small>}</>}</td>
                 <td className="plan-list-actions program-row-actions">
-                  {canStart&&<button type="button" className="program-row-primary" disabled={locked} aria-label={`Skapa timplan för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version??'saknas'}`} onClick={()=>programRows.onTimplan(row)}>Skapa timplan</button>}
-                  <button type="button" disabled={locked} onClick={() => onOpen(row)}
+                  {timplanFirst&&<button type="button" className={timplanFirst?'program-row-primary':undefined} disabled={locked} aria-label={`Skapa timplan för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version??'saknas'}`} onClick={()=>programRows.onTimplan(row)}>Skapa timplan</button>}
+                  <button type="button" className={timplanFirst?undefined:'program-row-primary'} disabled={locked} onClick={() => onOpen(row)}
                     aria-label={`${row.plan && decisionFor('programplan', row.plan.id)?.task === 'review' ? 'Granska och besluta om' : 'Öppna'} ${row.educationName}, ${row.schoolName}, ${row.plan ? `version ${row.plan.version}` : 'saknad plan'}`}>
                     {row.plan ? decisionFor('programplan', row.plan.id)?.task === 'review' ? 'Granska och besluta' : 'Öppna programplan' : 'Öppna utbildning'}</button>
+                  {canStart&&!timplanFirst&&<button type="button" className={timplanFirst?'program-row-primary':undefined} disabled={locked} aria-label={`Skapa timplan för ${row.educationName}, ${row.schoolName}, programplan version ${row.plan?.version??'saknas'}`} onClick={()=>programRows.onTimplan(row)}>Skapa timplan</button>}
                 </td>
               </tr>;
             }

@@ -19,7 +19,8 @@
   .planning-context-controls > label { flex: 1 1 100%; max-width: 100%; }
   .planning-context-years { flex: 1 1 100%; }
 }
-/* One shared context remains in reach while comparing plans. */
-.planning-context{position:sticky;top:.5rem;z-index:20;box-shadow:0 2px 12px #1522370a;border-top:3px solid var(--primary,#365ce6)}
+/* Shared context is a quiet toolbar above the page, not a sticky card that covers titles and table heads. */
+.planning-context{margin-bottom:1.5rem;padding:.6rem .85rem;background:var(--muted,#f4f6f9);border-color:transparent}
+.planning-context-controls>strong{font-size:.8125rem;font-weight:600;color:var(--muted-foreground,#526075);text-transform:uppercase;letter-spacing:.04em}
 .planning-context-scope{font-size:.75rem;color:var(--muted-foreground,#526075)}
 @media(max-width:600px){.planning-context{top:0;border-radius:.5rem;padding:.5rem .65rem}.planning-context-controls{gap:.4rem}.planning-context-scope{display:none}.planning-context-controls>label{flex-basis:100%}.planning-context-years{flex-basis:auto;flex-grow:1}.planning-context-controls>button{font-size:.75rem;max-width:7rem}}

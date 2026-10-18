@@ -14,7 +14,8 @@
 .decision-inbox button { display:flex;align-items:center;gap:.5rem;color:var(--primary);flex-shrink:0;cursor:pointer; }
 .decision-inbox summary,.plan-decision-panel summary { cursor:pointer; }
 .decision-inbox details ul { margin-top:.6rem; }
-.plan-decision-panel { margin:1rem 0;border-left:4px solid var(--primary); }
+.plan-decision-panel { margin:1.25rem 0;padding:1.25rem;border-radius:.75rem; }
+.decision-inbox h2,.plan-decision-panel h2 { font-size:1.15rem; }
 .plan-decision-steps { display:flex;flex-wrap:wrap;gap:.5rem;font-size:.85rem;padding:0;list-style:none; }
 .plan-decision-steps li { padding:.25rem .6rem;border-radius:1rem;background:var(--muted); }
 .plan-decision-steps li[aria-current="step"] { background:var(--primary);color:var(--primary-foreground);font-weight:600; }
