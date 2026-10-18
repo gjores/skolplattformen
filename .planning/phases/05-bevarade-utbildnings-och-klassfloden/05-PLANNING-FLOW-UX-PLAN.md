@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: PLANNING-FLOW-UX
-status: executing
+status: delivered
 created: 2026-10-18
 user_decision: timtabellen_godkanns_forst_apl_granskas_separat
 ---
@@ -72,6 +72,10 @@ Detta är lokala acceptanskriterier med anknytning till PLANERING-/ADMIN-kraven,
 ## SS 12000
 
 Följ projektets avstämda **SS 12000:2024 utgåva 4 / OpenAPI 2.1.0** (se `05-CLASS-COHORT-SS12000.md`). UI-destination, timbudget, APL-planeringsrevision och rektorsbekräftelse är interna arbetsflöden utanför de här använda standardobjekten. Bevara stabila utbildnings-, skolenhets-, klass-/grupp-ID:n, explicita klass–timplansrelationer, giltighet och källansvar. Planerad APL ska inte mappas till Attendance, CalendarEvent eller Placement som om genomförande vore verifierat. Prov: navigation/copy/version och migration måste bevara ID/relation/giltighet; annan skola nekas. Ingen ändrad extern kontraktsversion eller standardcertifiering följer av UI-/beslutsarbetet.
+
+## Leveransresultat
+
+Samtliga sex paketplaner genomförda2026-10-18. [Verifiering](05-PLANNING-FLOW-UX-VERIFICATION.md) och [lokal leverans/användarprov](05-PLANNING-FLOW-UX-RELEASE.md) anger faktiskt stöd och kvarstående begränsningar. Nedanstående leveransgräns beskriver planens kontrollvillkor.
 
 ## Leveransgräns
 

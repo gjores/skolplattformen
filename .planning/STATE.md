@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: PLANNING-FLOW-UX-06
-status: executing
-stopped_at: Förenklat program- och timplansflöde samt separat APL-process implementerade; faktisk verifiering och lokal leverans pågår.
+status: awaiting_user
+stopped_at: Förenklat planeringsflöde och separat APL-process levererade på3012; avgränsad begriplighetsbedömning återstår.
 last_updated: "2026-10-18"
 last_activity: 2026-10-18
-last_activity_desc: "Års-APL: SQL48, UI24, faktisk OIDC14 och två migrationer/exakt kandidatbyte PASS. 3012 kör 2cd3ad0."
-state_head: 2cd3ad0
-verification_worker_build_revision: 2cd3ad069754997f5035f735572a76e04ba51a64
-verification_worker_status: apl_annual_actual_browser_local_delivery_pass
-worker_status: apl_annual_local_delivery_verified
-worker_build_revision: 2cd3ad069754997f5035f735572a76e04ba51a64
+last_activity_desc: "PLANNING-FLOW-UX: sex planer levererade, SQL32/actual14 och bevarande PASS;3012 kör3a2edf3."
+state_head: 3a2edf3
+verification_worker_build_revision: 3a2edf30775580ff9610d742a1fb965c633f3cef
+verification_worker_status: planning_flow_actual_browser_local_delivery_pass
+worker_status: planning_flow_local_delivery_verified
+worker_build_revision: 3a2edf30775580ff9610d742a1fb965c633f3cef
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Enklare planeringsflöde levererat2026-10-18:** Program-/timplanstabeller i fokus, tydligare knappar och separat APL-planering. Huvudmannen godkänner timtabellen före perioderna; rektor bekräftar senare APL och huvudmannen granskar den separat. Ämnen/årsram återanvänds efter uttryckligt terminsval. Node146, UI86, SQL32, faktisk OIDC/browser14 och lokal installation/efterprov PASS. En migration bevarade77 originaltabeller; appbytet bevarade76 verksamhetstabeller. Exakt testad3a2edf3/213-fils kandidat kör på3012. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-FLOW-UX-VERIFICATION.md) och [arbetsgång](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-FLOW-UX-RELEASE.md). Fullständigt centralt innehåll och genomförandeuppföljning är fortsatt avgränsade; ny mänsklig begriplighetsbedömning återstår. Historiska88/100 och3/8 samt tidigare godkännanden består. Äldre noteringar nedan är historik.
 
 **Nytt flöde 2026-10-18:** Användaren bekräftar års-APL med ”Funkar!” och beställer enklare program-/timplansflöde. Huvudmannen ska uttryckligen kunna godkänna timtabellen innan senare APL-perioder granskas. [Sex avgränsade planer](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-FLOW-UX-PLAN.md) genomförs. Ämnen/nivåer, årskurs och årsbudget återanvänds; APL-termin väljs uttryckligen eftersom HT/VT i timtabellen avser skoltid. Fullständigt centralt innehåll finns inte i katalogen; arbetsmoment beskrivs manuellt med ämnesplan som stöd. Aktiva3012 är ännu inte uppdaterad. Full fas-/pilotacceptans och historiska88/100 samt3/8 består.
 

@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: PLANNING-FLOW-UX-05
 type: execute
-status: planned
+status: completed
 wave: 4
 depends_on: [PLANNING-FLOW-UX-01, PLANNING-FLOW-UX-04]
 autonomous: true
