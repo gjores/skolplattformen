@@ -227,3 +227,8 @@ Vid fasövergångar: flytta verifierade krav till Validated med fasreferens, dok
 
 ---
 *Last updated: 2026-10-04 — 05-18 terminsfördelning automatiskt verifierad; mänskligt prov, återstående fas 5 och fas 4:s checkpoint kvarstår.*
+
+
+## APL i autofördelningen —2026-10-18
+
+**APL-autofördelning levererad2026-10-18:** Förval med GUT och minst345h års-APL inom totalen, ändringsbart ämnesurval och granskning före sparande. Befintlig APL bevaras; perioder planeras senare. Node45, UI22+24 samt slutligt mobilprov2, faktisk Worker/OIDC17 och lokal leverans med76 verksamhetstabeller bevarade PASS.3012 kör29b870f utan migration. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-APL-AUTO-VERIFICATION.md). Ny mänsklig begriplighetsbedömning återstår; historiska88/100 och3/8 består.

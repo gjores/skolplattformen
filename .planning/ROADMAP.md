@@ -425,3 +425,8 @@ OPERATIONAL-01–06 är lokalt genomförda för gymnasiet: beständig klass → 
 ## Fas 5: uppföljning efter genomgång 2026-10-14
 
 [COPY-ATOMIC](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-ATOMIC-SUMMARY.md) avslutar delkopieringsluckan inom ADMIN-03 med aktuella lokala syntetiska bevis. [Kopie-/klassprov](phases/05-bevarade-utbildnings-och-klassfloden/05-COPY-CLASS-USER-TRIAL.md) väntar. Nästa självständiga implementation efter användarprovet är ADMIN-01:s skyddade huvudmannaflöde; [genomgången](phases/05-bevarade-utbildnings-och-klassfloden/05-CURRENT-AUDIT-20261014.md) håller detta och historiska avvikelser isär från redan levererade beslut, klasskoppling och årsplanering. Gamla 05-25–35 markeras inte kollektivt färdiga och historiska totalsiffror räknas inte om.
+
+
+## APL i autofördelningen —2026-10-18
+
+**APL-autofördelning levererad2026-10-18:** Förval med GUT och minst345h års-APL inom totalen, ändringsbart ämnesurval och granskning före sparande. Befintlig APL bevaras; perioder planeras senare. Node45, UI22+24 samt slutligt mobilprov2, faktisk Worker/OIDC17 och lokal leverans med76 verksamhetstabeller bevarade PASS.3012 kör29b870f utan migration. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-APL-AUTO-VERIFICATION.md). Ny mänsklig begriplighetsbedömning återstår; historiska88/100 och3/8 består.

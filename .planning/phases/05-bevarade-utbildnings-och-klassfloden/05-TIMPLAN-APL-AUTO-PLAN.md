@@ -2,7 +2,7 @@
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: TIMPLAN-APL-AUTO
 type: execute
-status: in-progress
+status: delivered-awaiting-user
 depends_on: [TIMPLAN-HOURS-CHECK]
 autonomous: true
 ---
@@ -10,6 +10,8 @@ autonomous: true
 # Autofördelning med tillräcklig APL-ram
 
 Användaren vill att autofördelningen även föreslår tillräckligt med APL i yrkestimplanen. Behåll senare periodplanering och befintligt timplansgodkännande. Detta är ett proportionellt timförslag, inte ett beslut om vilket undervisningsinnehåll som får förläggas på arbetsplats.
+
+Kravspårning: avgränsad användarbeställd förfining av fas 5:s planerings-/beslutsflöde inom ADMIN-02. Befintliga klass- och versionsrelationer inom ADMIN-04 ska bevaras. Slutresultatet länkas från STATE/PROJECT/ROADMAP; detta innebär inte full acceptans av dessa krav.
 
 ## Genomförande
 
@@ -30,4 +32,8 @@ Baslinje: SS 12000:2024 utgåva 4 och OpenAPI 2.1.0 enligt projektets tidigare a
 
 ## Ansvar och resultat
 
-Root äger modell/parser, UI, handbok, slutverifiering och leverans. Backenddelagent äger serverkoppling och regressionsprov. Separat verifieringsagent äger isolerat faktiskt API-/browserprov. Root sammanfattar resultat i `05-TIMPLAN-APL-AUTO-SUMMARY.md` och samordnar push efter avgränsade kontrollerade commits.
+Root äger modell/parser, produkt-UI, slutverifiering och leverans. UI-/handboksdelagent äger simulerade användarprov och handboken. Backenddelagent äger serverkoppling och regressionsprov. Separat verifieringsagent äger isolerat faktiskt API-/browserprov. Root sammanfattar resultat i `05-TIMPLAN-APL-AUTO-SUMMARY.md` och samordnar push efter avgränsade kontrollerade commits.
+
+## Genomfört2026-10-18
+
+[Sammanfattning](05-TIMPLAN-APL-AUTO-SUMMARY.md) och [verifiering/lokal leverans](05-TIMPLAN-APL-AUTO-VERIFICATION.md): modell/server45, UI22+24 och slutligt mobilprov2, faktiskt Worker/OIDC17 samt bevarande76 tabeller PASS. 3012 kör29b870f utan migration. Ny mänsklig begriplighetsbedömning och full fasacceptans återstår.

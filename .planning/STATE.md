@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: TIMPLAN-HOURS-CHECK
+current_plan: TIMPLAN-APL-AUTO
 status: awaiting_user
-stopped_at: Timkontroll levererad på3012; UI14/SQL17/actual18 och bevarande PASS. Mänsklig tydlighetsbedömning återstår.
+stopped_at: APL-autofördelning levererad på3012; Node45/UI22+24/actual17 och bevarande76 PASS. Mänsklig tydlighetsbedömning återstår.
 last_updated: "2026-10-18"
 last_activity: 2026-10-18
-last_activity_desc: "TIMPLAN-HOURS-CHECK levererad: min/GUT/underskott synligt; otillräcklig ram spärras.3012 körbc1378e."
-state_head: bc1378e
-verification_worker_build_revision: bc1378ebb71f4d136027e13043e2262505de1f89
-verification_worker_status: timplan_minimum_actual_browser_local_delivery_pass
-worker_status: timplan_minimum_local_delivery_verified
-worker_build_revision: bc1378ebb71f4d136027e13043e2262505de1f89
+last_activity_desc: "TIMPLAN-APL-AUTO levererad: granskat förslag med GUT och tillräcklig års-APL.3012 kör29b870f utan migration."
+state_head: 29b870f
+verification_worker_build_revision: 29b870fd2e7d5049254ae5fe43999194f883ef52
+verification_worker_status: timplan_apl_auto_actual_browser_local_delivery_pass
+worker_status: timplan_apl_auto_local_delivery_verified
+worker_build_revision: 29b870fd2e7d5049254ae5fe43999194f883ef52
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**APL-autofördelning levererad2026-10-18:** Förval med GUT och minst345h års-APL inom totalen, ändringsbart ämnesurval och granskning före sparande. Befintlig APL bevaras; perioder planeras senare. Node45, UI22+24 samt slutligt mobilprov2, faktisk Worker/OIDC17 och lokal leverans med76 verksamhetstabeller bevarade PASS.3012 kör29b870f utan migration. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-APL-AUTO-VERIFICATION.md). Ny mänsklig begriplighetsbedömning återstår; historiska88/100 och3/8 består.
 
 **Timkontroll levererad2026-10-18:** GUT och minst345h yrkes-APL kontrolleras redan i tabellen och före beslut. UI14, SQL17, actual18 och lokalt bevarande PASS;3012 körbc1378e. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-HOURS-CHECK-VERIFICATION.md). Historiska88/100 och3/8 består.
 
