@@ -325,7 +325,7 @@ export function PlanGrid({ yearView, canChangeYear, choiceBlocks, focusIssue, pr
         if (!list.length && !extra) return null;
         const partPoints = rows.filter(r => r.part === part).reduce((s, r) => s + r.points, 0);
         return <tbody key={part}>
-          <tr className="ppb-group"><th colSpan={2} scope="colgroup"><i style={{ background: partColor[part] }}/>{part === 'orientation' ? `Inriktning: ${program.orientations.find(o => o.code === orientationCode)?.name ?? ''}` : partTitle[part]}
+          <tr className="ppb-group"><th colSpan={2} scope="colgroup"><i style={{ background: partColor[part] }}/>{part === 'orientation' ? `Inriktning: ${program.orientations.find(o => o.code === orientationCode)?.name ?? ''}` : part === 'diplomaWork' ? rows.find(row => row.part === part)?.name ?? partTitle[part] : partTitle[part]}
             <small>{extra && frame.specializationRoom !== null ? `${fmt(status_.chosen)} av ${fmt(frame.specializationRoom)} poäng` : `${fmt(partPoints)} poäng`}</small></th>
             {PROGRAMPLAN_TERMS.map((t, i) => <td key={t} className={`ppb-term ppb-y${Math.floor(i / 2)}`} aria-hidden="true"/>)}<td className="ppb-state" aria-hidden="true"/></tr>
           {list.map(row => { const p = values.get(row.key) ?? blank(), s = sum(p), bad = invalid(row), dirty = dirtyKeys.includes(row.key);

@@ -26,6 +26,7 @@ export function parseProgramplanCopyRequest(value: unknown): ProgramplanCopyRequ
   const request = value as Record<string, unknown>;
   const created = parseProgramplanEducationCreate({ commandId: request.commandId, unitId: request.unitId,
     name: request.name, localCode: request.localCode, cohort: request.cohort, basisReference: request.basisReference });
+  if (Object.hasOwn(created.basisReference, 'examination')) invalid();
   // Reuse the education UUID rules without reading client-supplied properties through getters.
   const sourcePlanId = parseProgramplanEducationCreate({ ...created, commandId: request.sourcePlanId }).commandId;
   return { ...created, sourcePlanId, expectedSourceRevision: revision(request.expectedSourceRevision),

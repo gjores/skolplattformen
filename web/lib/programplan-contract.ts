@@ -1,4 +1,4 @@
-import { parseProgramplanChoiceBlocks, requireCurrentProgramplanBasis, type ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
+import { parseProgramplanChoiceBlocks, requireUnreviewedProgramplanBasis, type ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
 import { catalogDate, parseProgramplanBasisReference, ProgramplanContractError,
   type ProgramplanBasisReference, type ProgramplanLevelRef, type ProgramplanDiagnostic, type ProgramplanUnresolvedChoice } from './programplan-catalog.ts';
 
@@ -59,7 +59,7 @@ export function parseProgramplanRead(value: unknown): ProgramplanReadRequest {
 }
 export function parseProgramplanBind(value: unknown): ProgramplanBindRequest {
   const r = shape(value, ['planId','expectedRevision','basisReference']);
-  return { planId: uuid(r.planId), expectedRevision: integer(r.expectedRevision), basisReference: requireCurrentProgramplanBasis(r.basisReference) };
+  return { planId: uuid(r.planId), expectedRevision: integer(r.expectedRevision), basisReference: requireUnreviewedProgramplanBasis(r.basisReference) };
 }
 export function parseProgramplanReplace(value: unknown): ProgramplanReplaceRequest {
   const r = shape(value, ['planId','expectedRevision','specializationRefs']);
@@ -67,12 +67,12 @@ export function parseProgramplanReplace(value: unknown): ProgramplanReplaceReque
 }
 export function parseProgramplanCreate(value: unknown): ProgramplanCreateRequest {
   const r = shape(value, ['offeringId','expectedLatestVersion','basisReference']);
-  return { offeringId: uuid(r.offeringId), expectedLatestVersion: integer(r.expectedLatestVersion), basisReference: requireCurrentProgramplanBasis(r.basisReference) };
+  return { offeringId: uuid(r.offeringId), expectedLatestVersion: integer(r.expectedLatestVersion), basisReference: requireUnreviewedProgramplanBasis(r.basisReference) };
 }
 export function parseProgramplanClone(value: unknown): ProgramplanCloneRequest {
   const r = shape(value, ['sourcePlanId','expectedSourceRevision','expectedLatestVersion','explicitLegacyBasis']);
   return { sourcePlanId: uuid(r.sourcePlanId), expectedSourceRevision: integer(r.expectedSourceRevision), expectedLatestVersion: integer(r.expectedLatestVersion),
-    explicitLegacyBasis: r.explicitLegacyBasis === null ? null : requireCurrentProgramplanBasis(r.explicitLegacyBasis) };
+    explicitLegacyBasis: r.explicitLegacyBasis === null ? null : requireUnreviewedProgramplanBasis(r.explicitLegacyBasis) };
 }
 export type ProgramplanBlocksRequest = ProgramplanReadRequest & { expectedRevision: number; choiceBlocks: ProgramplanChoiceBlock[] };
 export function parseProgramplanBlocks(value: unknown): ProgramplanBlocksRequest {

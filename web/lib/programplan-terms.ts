@@ -1,3 +1,4 @@
+import { examinationLabel } from './programplan-examination.ts';
 import { programTotal } from './programplan-table.ts';
 import { programplanChoiceBlocks, programplanAlternativeGroups } from './programplan-choice-blocks.ts';
 import type { CatalogBlockSubject, CatalogProgram, ProgramplanBasisReference } from './programplan-catalog.ts';
@@ -37,7 +38,7 @@ export function programplanTermRows(program: CatalogProgram, basis: ProgramplanB
     ...fixed(orientation?.subjects ?? [], 'orientation'), ...alternatives(orientation?.subjects ?? [], 'orientation'), ...chosen,
     ...programplanChoiceBlocks(program, basis).map(b => ({key: b.rowKey, name: b.name, levelName: 'Valbart block', points: b.points, part: b.part})),
     ...(basis.choiceBlocks === undefined ? [{ key: 'meta:individualChoice', name: 'Individuellt val', levelName: 'Ram för individuellt val', points: 200, part: 'individualChoice' as const }] : []),
-    { key: 'meta:diplomaWork', name: 'Gymnasiearbete', levelName: 'Gymnasiearbete', points: 100, part: 'diplomaWork' as const }];
+    { key: 'meta:diplomaWork', name: examinationLabel(basis.examination), levelName: examinationLabel(basis.examination), points: 100, part: 'diplomaWork' as const }];
   if (new Set(rows.map(r => r.key)).size !== rows.length) throw new ProgramplanContractError('invalid_programplan_terms');
   return rows;
 }

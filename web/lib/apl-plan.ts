@@ -1,3 +1,4 @@
+import { validProgramplanExamination, type ProgramplanExamination } from './programplan-examination.ts';
 import { timplanTimeTotals } from './timplan-time.ts';
 import { gymObject, isGymTimplanV2, gymArray, gymBoolean, gymInteger, gymRowKey, gymShape, gymUuid, parseGymTimplan, type GymTimplan } from './gym-timplan.ts';
 import { isValidDate, currentSchoolYear } from './pupil-register-model.ts';
@@ -217,16 +218,16 @@ export function splitAplMinutes(minutes: number): { hours: number; minutes: numb
 function supportedProfile(ctx: AplContext, plan: AplPlan | null): boolean {
   const { program, plan: timetable } = ctx, started = timetable.source.startedOn, profile = programplanProfile(program);
   return plan?.educationForm === 'school_based' && program.sourceSupported && profile?.vocational === true
-    && aplSourceProfileSupported(program, started);
+    && aplSourceProfileSupported(program, started, timetable.source.examination);
 }
 /** Profile/date part of SQL source_blockers; combine with independently verified source readiness.
  * The input sourceSupported flag is deliberately not used to establish itself. */
-export function aplSourceProfileSupported(value: AplProgram, startedOn: string | null): boolean {
+export function aplSourceProfileSupported(value: AplProgram, startedOn: string | null, examination?: ProgramplanExamination): boolean {
   const program = parseAplProgram(value), started = nullableDate(startedOn), profile = programplanProfile(program);
   return profile !== null && started !== null && started >= '2025-07-01' && program.startDate !== null
     && started >= program.startDate && (program.endDate === null || started <= program.endDate)
     && (program.canceledDate === null || started < program.canceledDate)
-    && (!profile.vocational || started < '2028-07-02');
+    && (!profile.vocational || started < '2028-07-02' || validProgramplanExamination(examination, program.code, started));
 }
 function allocationIssues(ctx: AplContext, plan: AplPlan): AplIssue[] {
   const issues: AplIssue[] = [], byKey = new Map(ctx.plan.rows.map(row => [row.key, row]));
@@ -393,7 +394,8 @@ export function aplContentHashPayload(context: AplContext, value: AplPlan | null
       [...r.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(c => [c.rowKey, c.description]),
       [...r.allocations].sort((a, b) => ordinal(a.rowKey, b.rowKey) || a.termIndex - b.termIndex).map(a => [a.rowKey, a.termIndex, a.gutMinutes]),
       r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]]),
-    ...(isGymTimplanV2(plan) ? [plan.timeCopyReview.map(r => [r.id, r.contractVersion, r.sourcePlanId, r.sourceVersion, r.rowKey, r.reason, [...r.row.schoolMinutes], [...r.row.annualAplMinutes], r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]])] : [])];
+    ...(isGymTimplanV2(plan) ? [plan.timeCopyReview.map(r => [r.id, r.contractVersion, r.sourcePlanId, r.sourceVersion, r.rowKey, r.reason, [...r.row.schoolMinutes], [...r.row.annualAplMinutes], r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]])] : []),
+    ...(source.examination ? [['examination_v1', source.examination.model, source.examination.appliesToStart, source.examination.checkedOn, source.examination.referenceUrl, source.examination.referenceText]] : [])];
 }
 export async function aplContentHash(context: AplContext, value: AplPlan | null): Promise<string> {
   return aplHashCanonical(aplContentHashPayload(context, value));

@@ -1,3 +1,4 @@
+import { examinationLabel } from './programplan-examination.ts';
 // Analys av en programplan: fel mot regelverket, risker, sådant som måste kontrolleras manuellt
 // och det som är uppfyllt. Fel hindrar inte att ett utkast sparas, men ska vara synliga och stoppar
 // ett framtida fastställande. Bara regler som går att belägga med Skolverkets underlag tas med;
@@ -23,7 +24,7 @@ export const categoryDescription: Record<IssueCategory, string> = {
 };
 export const partLabel: Record<PlanPart, string> = {
   foundation: 'Gymnasiegemensamt', programmeSpecific: 'Programgemensamt', orientation: 'Inriktning',
-  specialization: 'Programfördjupning', other: 'Individuellt val och gymnasiearbete', meta: 'Uppgifter',
+  specialization: 'Programfördjupning', other: 'Individuellt val och avslutande moment', meta: 'Uppgifter',
 };
 export const categoryOrder: IssueCategory[] = ['fel', 'risk', 'info', 'ok'];
 
@@ -104,7 +105,7 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
     const total = rows.reduce((s, r) => s + r.points, 0), target = total / 3;
     if (termsComplete && years.some(y => Math.abs(y - target) > target * 0.15)) add({ id: 'terms-balance', category: 'risk', title: 'Ojämn arbetsbörda mellan läsåren', detail: `Åk 1: ${fmt(years[0])}, åk 2: ${fmt(years[1])}, åk 3: ${fmt(years[2])} poäng. Ett jämnt läsår är cirka ${fmt(Math.round(target))} poäng.`, part: 'meta', rule: 'Rimlig studiegång', action: 'Jämna ut', target: { kind: 'balance' } });
     const diploma = rows.find(r => r.part === 'diplomaWork'); const dp = diploma && byKey.get(diploma.key);
-    if (dp && dp.some(p => p > 0) && dp.findIndex(p => p > 0) < 4) add({ id: 'terms-diploma', category: 'risk', title: 'Gymnasiearbetet ligger före åk 3', detail: 'Gymnasiearbetet ska visa att eleven är förberedd för det programmet leder till och läggs normalt sist i utbildningen.', part: 'other', rule: 'Gymnasieförordningen 4 kap.', action: 'Flytta', target: { kind: 'row', rowKey: diploma!.key } });
+    if (dp && dp.some(p => p > 0) && dp.findIndex(p => p > 0) < 4) add({ id: 'terms-diploma', category: 'risk', title: `${examinationLabel(input.basisReference?.examination)} ligger före åk 3`, detail: 'Det avslutande momentet visar elevens förberedelse för programmets mål och läggs normalt sist i utbildningen.', part: 'other', rule: 'Gymnasieförordningen 4 kap.', action: 'Flytta', target: { kind: 'row', rowKey: diploma!.key } });
   }
   if (!input.startedOn) {
     add({ id: 'start-missing', category: 'risk', title: 'Utbildningens startdatum saknas', detail: 'Utkastet kan sparas, men planen kan inte kopplas till rätt underlag eller fastställas utan startdatum.', part: 'meta', rule: 'Krav för fastställande', action: 'Ange datum', target: { kind: 'start' } });
@@ -122,7 +123,7 @@ export function analyseProgramplan(input: AnalysisInput): Analysis {
   }
   const orientation = frame.sections.find(s => s.id === 'orientation');
   if (orientation) add({ id: 'orientation-ok', category: 'ok', title: 'Inriktningens ämnen följer programstrukturen', detail: `${fmt(orientation.points)} poäng enligt underlaget.`, part: 'orientation', rule: RULE_STRUCTURE, action: null });
-  add({ id: 'other-ok', category: 'ok', title: 'Individuellt val och gymnasiearbete avsatta', detail: `${INDIVIDUAL_CHOICE_POINTS} + ${DIPLOMA_WORK_POINTS} poäng.`, part: 'other', rule: RULE_STRUCTURE, action: null });
+  add({ id: 'other-ok', category: 'ok', title: `Individuellt val och ${examinationLabel(input.basisReference?.examination).toLocaleLowerCase('sv-SE')} avsatta`, detail: `${INDIVIDUAL_CHOICE_POINTS} + ${DIPLOMA_WORK_POINTS} poäng.`, part: 'other', rule: RULE_STRUCTURE, action: null });
 
   issues.sort((a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category));
   const counts = { fel: 0, risk: 0, info: 0, ok: 0 } as Record<IssueCategory, number>;

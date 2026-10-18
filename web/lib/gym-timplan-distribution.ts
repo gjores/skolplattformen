@@ -1,3 +1,4 @@
+import { validProgramplanExamination } from './programplan-examination.ts';
 import { parseTimplanTimeCells, timplanTimeTotals, type TimplanTimeRows } from './timplan-time.ts';
 import { gymArray, gymRowKey, gymInteger, gymObject, gymShape, gymUuid, gymTimplanTotals, type GymTimplan, type GymTimplanLegacy, type GymTimplanV2, type GymTimplanHours, type GymTimplanRow } from './gym-timplan.ts';
 import { programplanProfile, VOCATIONAL_GY25_CODES } from './programplan-profile.ts';
@@ -85,7 +86,7 @@ export function suggestGymTimplanHours(plan: GymTimplanLegacy, totalHours: numbe
 /** Add to explicitly selected subject/year budgets; never reduce saved APL or infer periods. */
 function suggestAnnualApl(plan: GymTimplanV2, timeRows: TimplanTimeRows, totalHours: number, input: GymTimplanAplDistribution) {
   const apl = parseGymTimplanAplDistribution(input), gut = gymTimplanGut(plan);
-  if (!gut?.vocational || plan.source.startedOn! >= '2028-07-02') throw new Error('APL-förslag kräver en stödd yrkesutbildning med fullständig programram.');
+  if (!gut?.vocational || plan.source.startedOn! >= '2028-07-02' && !validProgramplanExamination(plan.source.examination, plan.source.education.programCode, plan.source.startedOn)) throw new Error('APL-förslag kräver en stödd yrkesutbildning med fullständig programram.');
   if (totalHours < gut.hours) throw new Error(`Ange minst ${gut.hours} timmar totalt för att nå programmets GUT.`);
   const eligible = new Set(gymTimplanAplSuggestionRows(plan).map(row => row.key));
   if (apl.rowKeys.some(key => !eligible.has(key))) throw new Error('Välj specificerade yrkesämnen från den aktuella timplanen.');

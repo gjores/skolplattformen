@@ -82,3 +82,10 @@ export function requireCurrentProgramplanBasis(value: unknown): ProgramplanBasis
   if (basis.choiceBlocks === undefined) throw new ProgramplanContractError('invalid_basis_reference');
   return basis;
 }
+
+/** Generic creation/binding cannot stand in for an explicit examination review. */
+export function requireUnreviewedProgramplanBasis(value: unknown): ProgramplanBasisReference {
+  const basis = requireCurrentProgramplanBasis(value);
+  if (basis.examination !== undefined) throw new ProgramplanContractError('invalid_basis_reference');
+  return basis;
+}

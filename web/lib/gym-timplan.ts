@@ -1,3 +1,4 @@
+import { parseProgramplanExamination, validProgramplanExamination, type ProgramplanExamination } from './programplan-examination.ts';
 import { TIMPLAN_TIME_MODEL_V2, parseTimplanTimeCells, parseTimplanTimeRow, type TimeRowV2, type TimplanTimeRows } from './timplan-time.ts';
 import { VOCATIONAL_GY25_CODES } from './programplan-profile.ts';
 import { ProgramplanContractError, catalogDate } from './programplan-catalog.ts';
@@ -10,7 +11,7 @@ export type GymTimplanHours = [number | null, number | null, number | null, numb
 export type GymTimplanEducation = { name: string; cohort: string; programCode: string; orientationCode: string | null };
 export type GymTimplanSource = {
   planId: string; offeringId: string; version: number; revision: number; status: 'utkast' | 'faststalld' | 'ersatt';
-  catalogId: string | null; startedOn: string | null; educationRevision: number; education: GymTimplanEducation;
+  catalogId: string | null; startedOn: string | null; examination?: ProgramplanExamination; educationRevision: number; education: GymTimplanEducation;
 };
 export type GymTimplanRow = ProgramplanTermRow & {
   pointTerms: ProgramplanTermPoints; rowKind: 'fixed' | 'alternative' | 'block' | 'diplomaWork';
@@ -126,12 +127,14 @@ export function parseGymTimplanEducation(value: unknown): GymTimplanEducation {
   return { name: gymText(e.name), cohort: gymText(e.cohort), programCode: code(e.programCode), orientationCode: e.orientationCode === null ? null : code(e.orientationCode) };
 }
 export function parseGymTimplanSource(value: unknown): GymTimplanSource {
-  const s = gymShape(value, ['planId', 'offeringId', 'version', 'revision', 'status', 'catalogId', 'startedOn', 'educationRevision', 'education']);
+  const s = gymShape(value, ['planId', 'offeringId', 'version', 'revision', 'status', 'catalogId', 'startedOn', 'educationRevision', 'education', ...(Object.hasOwn(gymObject(value), 'examination') ? ['examination'] : [])]);
   if (s.catalogId !== null && (typeof s.catalogId !== 'string' || !/^sha256:[0-9a-f]{64}$/u.test(s.catalogId))) bad();
   const startedOn = s.startedOn === null ? null : catalogDate(s.startedOn);
   if ((s.catalogId === null) !== (startedOn === null)) bad();
+  const education = parseGymTimplanEducation(s.education), examination = Object.hasOwn(s, 'examination') ? parseProgramplanExamination(s.examination) : undefined;
+  if (examination && !validProgramplanExamination(examination, education.programCode, startedOn)) bad();
   return { planId: gymUuid(s.planId), offeringId: gymUuid(s.offeringId), version: gymInteger(s.version, 2147483647, 1), revision: gymInteger(s.revision),
-    status: gymSourceStatus(s.status), catalogId: s.catalogId, startedOn, educationRevision: gymInteger(s.educationRevision), education: parseGymTimplanEducation(s.education) };
+    status: gymSourceStatus(s.status), catalogId: s.catalogId, startedOn, educationRevision: gymInteger(s.educationRevision), education, ...(examination ? {examination} : {}) };
 }
 export function parseGymTimplanCurrentSource(value: unknown): GymTimplanCurrentSource | null {
   if (value === null) return null;

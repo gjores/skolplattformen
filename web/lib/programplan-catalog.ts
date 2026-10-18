@@ -1,3 +1,4 @@
+import { parseProgramplanExamination, validProgramplanExamination, type ProgramplanExamination } from './programplan-examination.ts';
 import { parseProgramplanChoiceBlocks, programplanChoiceBlockDiagnostics, programplanAlternativeGroups, defaultProgramplanChoiceBlocks, type ProgramplanChoiceBlock } from './programplan-choice-blocks.ts';
 export type CatalogDates = { startDate: string | null; endDate: string | null; canceledDate: string | null; skolfs: string | null };
 export type CatalogItem = { code: string; name: string; points: number };
@@ -23,7 +24,7 @@ const verifiedCatalogs = new WeakSet<object>();
 export type ProgramplanLevelRef = { subjectCode: string; subjectVersion: number; itemCode: string; points: number };
 export type ProgramplanBasisReference = {
   catalogId: string; programRef: {code: string; version: number}; orientationCode: string | null;
-  startedOn: string; specializationRefs: ProgramplanLevelRef[]; choiceBlocks?: ProgramplanChoiceBlock[];
+  startedOn: string; specializationRefs: ProgramplanLevelRef[]; choiceBlocks?: ProgramplanChoiceBlock[]; examination?: ProgramplanExamination;
 };
 export type ProgramplanDiagnostic = { code: string; subjectCode?: string; itemCode?: string; blockId?: string };
 export type ProgramplanUnresolvedChoice = {
@@ -193,16 +194,19 @@ export function parseProgramplanBasisReference(value: unknown): ProgramplanBasis
     const raw=record(value);
     if (!Object.hasOwn(raw,'catalogId') || !Object.hasOwn(raw,'programRef')) invalid('unpinned_basis');
     if (!Object.hasOwn(raw,'startedOn') || raw.startedOn==null || raw.startedOn==='') invalid('unknown_education_start');
-    const r=fields(value,['catalogId','programRef','orientationCode','startedOn','specializationRefs'],['choiceBlocks']);
+    const r=fields(value,['catalogId','programRef','orientationCode','startedOn','specializationRefs'],['choiceBlocks','examination']);
     if (typeof r.catalogId!=='string' || !/^sha256:[0-9a-f]{64}$/u.test(r.catalogId)) invalid('invalid_catalog_id');
     const p=fields(r.programRef,['code','version']);
     const refs=array(r.specializationRefs,200).map(value=>{
       const ref=fields(value,['subjectCode','subjectVersion','itemCode','points']);
       return {subjectCode:code(ref.subjectCode),subjectVersion:integer(ref.subjectVersion,1),itemCode:code(ref.itemCode),points:integer(ref.points,0,10000)};
     });
+    const examination = Object.hasOwn(r,'examination') ? parseProgramplanExamination(r.examination) : undefined;
+    if (examination && !validProgramplanExamination(examination, code(p.code), catalogDate(r.startedOn))) invalid('invalid_basis_reference');
     return {catalogId:r.catalogId,programRef:{code:code(p.code),version:integer(p.version,1)},
       orientationCode:r.orientationCode===null?null:code(r.orientationCode),startedOn:catalogDate(r.startedOn),specializationRefs:refs,
-      ...(Object.hasOwn(r,'choiceBlocks') ? {choiceBlocks:parseProgramplanChoiceBlocks(r.choiceBlocks)} : {})};
+      ...(Object.hasOwn(r,'choiceBlocks') ? {choiceBlocks:parseProgramplanChoiceBlocks(r.choiceBlocks)} : {}),
+      ...(examination ? {examination} : {})};
   } catch (error) {
     if (error instanceof ProgramplanContractError && error.code==='invalid_catalog') invalid('invalid_basis_reference');
     throw error;
