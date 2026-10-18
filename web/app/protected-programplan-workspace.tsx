@@ -4,6 +4,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { DatePicker } from '@/components/ui/date-picker';
 import { ArrowLeft, RefreshCw, Copy, Pencil } from 'lucide-react';
 import PlanDecisionPanel from './plan-decision-panel';
+import ProtectedProgramplanExamination from './protected-programplan-examination';
+import { requiresProgramplanExamination, type ProgramplanExamination } from '@/lib/programplan-examination.ts';
 import { decisionStageLabel } from './plan-decision-context';
 import type { PlanDecisionStage } from '@/lib/plan-decision.ts';
 import { Button } from '@/components/ui/button';
@@ -60,6 +62,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
   const selectedUnit = useRef<string | null>(selectedUnitId);
   const hasUnsaved = useHasUnsaved();
   const boardDirty = useHasUnsaved('programplan-board-');
+  const examinationPending = useHasUnsaved('navigation-block:programplan-examination:');
   const decisionPending = useHasUnsaved('navigation-block:plan-decision:');
   const [decision, setDecision] = useState<{ planId: string; stage: PlanDecisionStage | null } | null>(null);
   const hasNavigationBlock = useHasUnsaved('navigation-block:');
@@ -303,7 +306,7 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     try {
       own ??= newCopyCommand({ unitId: copy.unitId, name: copy.name.trim(), cohort: copy.cohort.trim(), localCode: copy.localCode.trim() || null,
         sourcePlanId: plan.id, expectedSourceRevision: plan.revision, expectedEducationRevision: workspace.lifecycle.revision,
-        basisReference: { ...upgradeProgramplanBasis(workspace.catalog.program!, plan.basisReference).basisReference, startedOn: copy.startedOn } }, crypto.randomUUID());
+        basisReference: (() => { const { examination: _previousExamination, ...basis } = upgradeProgramplanBasis(workspace.catalog.program!, plan.basisReference).basisReference; return { ...basis, startedOn: copy.startedOn }; })() }, crypto.randomUUID());
     } catch { setCopy({ ...copy, error: 'Ange namn, elevkull och verkligt startdatum för den nya utbildningen.' }); return; }
     saving.current = true; const r = begin(); setBusy(true); setCopy({ ...copy, command: own, error: null });
     try {
@@ -577,9 +580,19 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
     });
     return () => cancelAnimationFrame(frame);
   }, [view, focusIssue, draft?.kind, preparation?.kind]);
+  async function saveExamination(examination: ProgramplanExamination) {
+    if (!plan || !workspace || !changePlan || plan.status !== 'utkast' || saving.current) throw new Error('Planen kan inte ändras.');
+    const expectedRevision = Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision);
+    const r = begin(); saving.current = true; setBusy(true);
+    try {
+      const saved = parseProgramplan(await api.post('/api/programplaner/examensform', {planId:plan.id,expectedRevision,examination,confirmed:true},r.signal));
+      if(saved.id!==plan.id || saved.revision!==expectedRevision+1 || JSON.stringify(saved.basisReference?.examination)!==JSON.stringify(examination)) throw new Error('Sparsvaret avviker.');
+      if(current(r.token)) { await openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true); if(mounted.current)setNotice('Examensformen är sparad för denna version.'); }
+    } finally { saving.current=false; if(mounted.current)setBusy(false); }
+  }
   const planBody = boardActive && plan && program ? <>
     <ProgramplanBoard yearView={yearProjection ? { projection: yearProjection, year: shownYear, onYear: changeMatrixYear,
-      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} initialTerms={reloadedTerms} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null || classPending}
+      canChangeYear: () => verifiedYearCurrent() && !busy && canNavigate() } : undefined} key={`${epoch}-${context.assignmentId}-${plan.id}`} plan={plan} initialTerms={reloadedTerms} locked={!changePlan} lockReason={decisionStage === 'submitted' ? 'Planen är inskickad för beslut. Ta tillbaka den före ändring.' : lockReason} program={program} options={options} scope={`${epoch}-${context.assignmentId}`} disabled={busy || recovery !== null || classPending || examinationPending}
       focusIssue={view==='plan'?activeFocusIssue:null} onSecurityFailure={securityFailure} onNavigationBlocked={onBoardBlocked} onTerms={onReadTerms} onReload={()=>openEducation(workspace!.education.id,workspace!.versionPage,workspace!.catalog.catalogId,plan.id,null,true,true)}/>
   </> : <>
     {plan && !plan.basisReference && planningSelection && <output className="pp-notice">Årsdelen för {planningYearLabel(planningSelection.schoolYear)} saknar verifierat startdatum. Hela planen visas.</output>}
@@ -679,10 +692,14 @@ export default function ProtectedProgramplanWorkspace({ context, epoch, onSessio
         {workspace&&!program&&!preparation&&<output className="pp-alert">Skolverkets underlag för planen är inte valt eller inte tillgängligt. Välj underlag via {titles[nextKind]} för att se tabellen.</output>}
         {!draft&&plan&&!plan.basisReference&&<section className="pp-saved pps-card" aria-label="Dina sparade fördjupningsval"><h3>Äldre sparade val</h3><p>Valen visas precis som de lagrats. De behöver kopplas till ett underlag innan de kan ändras.</p><ol className="pp-levels">{(legacy??[]).map((code,i)=><li key={`${i}-${code}`}><strong>{code||'(Tomt äldre värde)'}</strong></li>)}</ol>{legacy?.length===0&&<p>Inga äldre fördjupningsval sparade.</p>}</section>}
       </>}
+      {workspace&&plan?.basisReference&&!draft&&!preparation&&!copy&&requiresProgramplanExamination(plan.education.programCode,plan.basisReference.startedOn)&&<ProtectedProgramplanExamination
+        key={`${epoch}-${context.assignmentId}-${plan.id}-${plan.revision}`} planId={plan.id} startedOn={plan.basisReference.startedOn} examination={plan.basisReference.examination}
+        canEdit={changePlan&&plan.status==='utkast'&&!anotherDraft} disabled={busy||boardDirty||boardBlocked||recovery!==null||classPending||decisionPending}
+        onSave={saveExamination} onRead={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)} onSecurityFailure={securityFailure}/>}
       {!draft&&<div hidden={view==='analysis'}>{planBody}</div>}
-      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock||classPending} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
+      {workspace&&plan&&!draft&&!preparation&&!copy&&<PlanDecisionPanel key={plan.id} kind="programplan" planId={plan.id} revision={Math.max(plan.revision, termSnapshot.planId === plan.id ? termSnapshot.revision ?? plan.revision : plan.revision)} disabled={busy||boardDirty||ownNavigationBlock||classPending||examinationPending} onSecurityFailure={securityFailure} onStage={stage=>setDecision({planId:plan.id,stage})} onChanged={()=>openEducation(workspace.education.id,workspace.versionPage,workspace.catalog.catalogId,plan.id,null,true,true)}/>}
       {workspace&&selectedSchool&&!draft&&!preparation&&!copy&&view==='plan'&&<ProtectedClassCohorts context={context} epoch={epoch} offeringId={workspace.education.id} unitId={selectedSchool.id}
-        disabled={busy||boardDirty||ownNavigationBlock} initiallyOpen={classStepTarget?.offeringId===workspace.education.id&&classStepTarget.planId===plan?.id&&classStepTarget.unitId===selectedSchool.id}
+        disabled={busy||boardDirty||ownNavigationBlock||examinationPending} initiallyOpen={classStepTarget?.offeringId===workspace.education.id&&classStepTarget.planId===plan?.id&&classStepTarget.unitId===selectedSchool.id}
         onInitialOpen={()=>{const target=classStepRef.current;if(target&&target.offeringId===workspace.education.id&&target.planId===plan?.id&&target.unitId===selectedSchool.id){classStepRef.current=null;setClassStepTarget(null);onClassStepMounted?.(target);}}}
         sourceKey={JSON.stringify([workspace.lifecycle.revision,workspace.versions.map(version=>[version.id,version.revision,version.status])])}
         returnTo={'/'+planLocationQuery({view:'programplaner',programplan:plan?{offeringId:workspace.education.id,planId:plan.id,version:plan.version,unitId:selectedSchool.id}:null,

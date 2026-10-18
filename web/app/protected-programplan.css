@@ -213,3 +213,18 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .pps-more-actions[open]{flex-basis:100%}
 .pps-more-actions-content{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 12px}
 @media(max-width:700px){.pps-more-actions-content{display:grid;grid-template-columns:minmax(0,1fr)}.pps-more-actions-content button{justify-content:flex-start}}
+
+/* Examensvalet hör till programversionen; källor och långa anteckningar får radbrytas. */
+.pp-examination { display:grid; gap:1rem; min-width:0; margin-bottom:1.25rem; padding:1.25rem; }
+.pp-examination > button { justify-self:start; }
+.pp-examination h2 { font-size:1.15rem; font-weight:700; }
+.pp-examination-form,.pp-examination-evidence { display:grid; gap:.85rem; min-width:0; }
+.pp-examination fieldset { display:grid; gap:.7rem; min-width:0; }
+.pp-examination legend { font-weight:600; margin-bottom:.6rem; }
+.pp-examination input[type=url],.pp-examination textarea { width:100%; min-width:0; border:1px solid #cbd5e1; border-radius:.5rem; padding:.65rem; background:var(--background,#fff); }
+.pp-examination .pp-check { align-items:flex-start; }
+.pp-examination input[type=radio],.pp-examination input[type=checkbox] { flex:0 0 auto; margin-top:.2rem; }
+.pp-examination-help { color:var(--muted-foreground,#475569); font-size:.9rem; }
+.pp-examination-reference { white-space:pre-wrap; overflow-wrap:anywhere; }
+.pp-examination-evidence a { overflow-wrap:anywhere; text-decoration:underline; }
+@media(max-width:600px) { .pp-examination .pp-actions { display:grid; grid-template-columns:1fr; } }

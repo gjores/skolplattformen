@@ -1,0 +1,56 @@
+// Simulated API only: renders the real workspace, parsers, editor and decision panel.
+import {test,expect,type Page} from '@playwright/test';
+import artifact from '../lib/programplan-catalog.generated.json' with {type:'json'};
+import {parseProgramplanCatalog} from '../lib/programplan-catalog';
+import {defaultProgramplanChoiceBlocks} from '../lib/programplan-choice-blocks';
+import {programplanTermRows,suggestProgramplanTerms,programplanLevelRanks} from '../lib/programplan-terms';
+import {parseProgramplanExamination,type ProgramplanExamination} from '../lib/programplan-examination';
+const id=(n:number)=>`77101400-0000-4000-8000-${String(n).padStart(12,'0')}`;
+const panel=(page:Page)=>page.getByRole('region',{name:'Examensform för elevkullen',exact:true});
+const examination:ProgramplanExamination={model:'vocational_exam',appliesToStart:'2028-08-15',checkedOn:'2026-10-18',referenceUrl:'https://www.skolverket.se/syntetiskt-prov',referenceText:'Syntetiskt provnamn och beslut för test. Detta är inte ett publicerat eller verifierat yrkesprov.'};
+async function mock(page:Page,{code='BF25',start='2028-08-15',role='rektor',stage='draft',saved=undefined as ProgramplanExamination|undefined,outcome='saved'}={}){
+ const catalog=parseProgramplanCatalog(artifact),program=catalog.programs.find(p=>p.code===code)!,orientationCode=program.orientations[0].code,schools=[{id:id(2),name:'Syntetisk Nord'}];
+ let revision=4,selected=saved;const writes:Record<string,unknown>[]=[],unexpected:string[]=[],errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const basis=()=>({catalogId:catalog.catalogId,programRef:{code:program.code,version:program.version},orientationCode,startedOn:start,specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(program,orientationCode),...(selected?{examination:selected}:{})});
+ const education=()=>({id:id(10),unitId:id(2),schoolName:schools[0].name,kind:'gymnasium',name:'Syntetisk yrkesplan',localCode:null,cohort:start.slice(0,4),startYear:Number(start.slice(0,4)),status:'planerad',programCode:code,orientationCode,latestVersion:1,draftId:stage==='approved'?null:id(20)});
+ const plan=()=>({id:id(20),offeringId:id(10),unitId:id(2),schoolName:schools[0].name,education:{name:education().name,cohort:start.slice(0,4),programCode:code,orientationCode},version:1,revision,status:stage==='approved'?'faststalld':'utkast',decidedOn:stage==='approved'?'2026-10-18':null,catalogId:catalog.catalogId,basisReference:basis(),resolution:{status:'resolved',diagnostics:[],unresolvedChoices:[],decisionReady:false}});
+ const codes=new Set([...program.foundation,...program.programmeSpecific,...program.orientations.flatMap(o=>o.subjects),...program.specialization].map(s=>s.code));
+ await page.route('**/api/**',async route=>{
+  const path=new URL(route.request().url()).pathname,body=route.request().method()==='POST'?route.request().postDataJSON():{};const reply=(json:unknown,status=200)=>route.fulfill({status,json,headers:{'X-Context-Epoch':'1'}});
+  if(path==='/api/planering/urval')return reply({customerId:id(1),serverDate:'2026-10-18',currentYear:2026,minimumYear:2000,maximumYear:2100,units:schools.map(s=>({unitId:s.id,schoolName:s.name,canRead:{programplan:true,gymnasium:true,grundskola:true,introduktionsprogram:true}}))});
+  if(path==='/api/planering/lista')return reply({selection:body,selectionRevision:`sha256:${'a'.repeat(64)}`,count:0,pageSize:50,rows:[]});
+  if(path==='/api/planbeslut/inkorg')return reply({items:[],total:0,actionCount:0,decisionCount:0,truncated:false});
+  if(path==='/api/programplaner/val')return reply({selection:body,units:schools,canCreateEducation:role!=='administrator',catalogs:[],programs:[],projection:null,decisionReady:false});
+  if(path==='/api/programplaner/underlag')return reply({education:education(),lifecycle:{phase:'framtida',startsOn:start,archived:false,revision:7,units:[{...schools[0],primary:true,inMandate:true}]},versions:[{id:id(20),version:1,revision,status:plan().status,decidedOn:plan().decidedOn,catalogId:catalog.catalogId,basisReference:basis(),legacySpecialization:null}],versionCount:1,versionPage:1,pageSize:50,catalogs:[{catalogId:catalog.catalogId,source:catalog.source}],catalog:body.catalogId?{status:'selected',catalogId:catalog.catalogId,diagnostic:null,source:catalog.source,program,subjects:catalog.subjects.filter(s=>codes.has(s.code))}:{status:'unselected',catalogId:null,diagnostic:null,source:null,program:null,subjects:[]},decisionReady:false});
+  if(path==='/api/programplaner/lasa')return reply(plan());
+  if(path==='/api/programplaner/terminer/lasa')return reply({planId:id(20),revision,status:plan().status,distribution:suggestProgramplanTerms(programplanTermRows(program,basis()),[],programplanLevelRanks(program))});
+  if(path==='/api/planbeslut/underlag')return reply({contractVersion:'apl_decision_v1',apl:null,series:null,kind:'programplan',planId:id(20),offeringId:id(10),unitId:null,educationName:education().name,schoolName:null,version:1,revision,decisionRevision:0,basisHash:`sha256:${'b'.repeat(64)}`,stage,nextActor:stage==='submitted'?'huvudman':'rektor',actions:stage==='submitted'&&role==='huvudman'?['approve','return']:stage==='draft'&&role==='rektor'?['submit']:[],blockers:selected||code==='SA25'||start<'2028-07-02'?[]:['Granska examensformen för den här elevkullen.'],checks:[],history:[],sourceInfo:null,...(selected?{examination:selected}:{})});
+  if(path==='/api/programplaner/examensform'){
+   writes.push(body);expect(body.planId).toBe(id(20));expect(body.expectedRevision).toBe(revision);expect(body.confirmed).toBe(true);const value=parseProgramplanExamination(body.examination);
+   if(outcome==='conflict')return reply({code:'conflict'},409);
+   selected=value;revision++;
+   if(outcome==='lost')return reply({code:'unknown'},502);
+   return reply(plan());
+  }
+  unexpected.push(path);return reply({code:'unexpected'},500);
+ });
+ return{writes,selected:()=>selected,verify:()=>{expect(unexpected).toEqual([]);expect(errors).toEqual([]);}};
+}
+async function open(page:Page,role='rektor'){await page.clock.install({time:new Date('2026-10-18T12:00:00Z')});await page.goto(`/e2e/fixtures/programplan-copy-preview.html?role=${role}`);await expect(page.getByRole('heading',{name:'Syntetisk yrkesplan',exact:true})).toBeVisible();}
+async function fill(page:Page,model='diploma_work'){
+ const p=panel(page);await p.getByRole('button',{name:'Granska examensform'}).click();await expect(p.getByRole('radio',{checked:true})).toHaveCount(0);
+ await p.getByRole('radio',{name:model==='diploma_work'?'Gymnasiearbete – tillämpligt yrkesprov saknas':'Yrkesprov – ett tillämpligt prov finns',exact:true}).check();
+ await p.getByLabel('Källa hos Skolverket',{exact:true}).fill(examination.referenceUrl);await p.getByLabel('Vad har du kontrollerat?',{exact:true}).fill(model==='diploma_work'?'Syntetisk kontroll av att tillämpligt yrkesprov saknas.':examination.referenceText);await p.getByLabel('Kontrollerat den',{exact:true}).fill('2026-10-18');
+}
+for(const model of ['diploma_work','vocational_exam'])test(`Rektor granskar utan förval, sparar och återläser ${model}`,async({page},info)=>{
+ const m=await mock(page);await open(page);await fill(page,model);await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeDisabled();await expect(panel(page).getByRole('button',{name:'Spara examensform'})).toBeDisabled();
+ await panel(page).getByRole('checkbox').check();await expect(panel(page).getByRole('button',{name:'Spara examensform'})).toBeEnabled();await panel(page).screenshot({path:info.outputPath(`exam-${model}-edit.png`)});
+ await panel(page).getByRole('button',{name:'Spara examensform'}).click();await expect(panel(page).getByRole('button',{name:'Ändra kontrollen'})).toBeVisible();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();expect(m.writes).toHaveLength(1);expect(m.selected()?.model).toBe(model);
+ await page.reload();await expect(panel(page)).toContainText('kontrollerat 2026-10-18');await panel(page).getByRole('button',{name:'Ändra kontrollen'}).click();await expect(panel(page).getByRole('checkbox')).not.toBeChecked();await expect(panel(page).getByRole('button',{name:'Spara examensform'})).toBeDisabled();m.verify();
+});
+test('Officiell källa, rätt datum och ny bekräftelse krävs',async({page})=>{const m=await mock(page);await open(page);await fill(page);await panel(page).getByLabel('Källa hos Skolverket').fill('https://skolverket.se.evil.invalid/prov');await expect(panel(page).getByRole('checkbox')).toBeDisabled();await panel(page).getByLabel('Källa hos Skolverket').fill(examination.referenceUrl);await panel(page).getByLabel('Kontrollerat den').fill('2026-10-19');await expect(panel(page).getByRole('checkbox')).toBeDisabled();expect(m.writes).toHaveLength(0);m.verify();});
+for(const outcome of ['lost','conflict'])test(`Osäkert svar/konflikt kräver läsning och gör ingen extra skrivning: ${outcome}`,async({page})=>{const m=await mock(page,{outcome});await open(page);await fill(page);await panel(page).getByRole('checkbox').check();await panel(page).getByRole('button',{name:'Spara examensform'}).click();await expect(panel(page).getByRole('button',{name:'Läs aktuell sparstatus'})).toBeVisible();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeDisabled();await panel(page).getByRole('button',{name:'Läs aktuell sparstatus'}).click();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();expect(m.writes).toHaveLength(1);m.verify();});
+for(const stage of ['submitted','approved'])test(`Huvudmannen läser sparat val utan editor när planen är ${stage}`,async({page},info)=>{const m=await mock(page,{role:'huvudman',stage,saved:examination});await open(page,'huvudman');await expect(panel(page)).toContainText('Yrkesprov');await expect(panel(page).getByRole('button')).toHaveCount(0);const decision=page.getByRole('region',{name:'Beslut och nästa steg'});await decision.locator('summary').first().click();const evidence=decision.getByRole('region',{name:'Examensform inför beslut'});await expect(evidence).toContainText(examination.referenceText);await expect(evidence.getByRole('link')).toHaveAttribute('href',examination.referenceUrl);await evidence.scrollIntoViewIfNeeded();await evidence.screenshot({path:info.outputPath(`exam-hm-${stage}.png`)});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect(m.writes).toHaveLength(0);m.verify();});
+for(const input of [{code:'BF25',start:'2027-08-15'},{code:'SA25',start:'2028-08-15'}])test(`Befintlig ${input.code} ${input.start} visar inget nytt steg`,async({page})=>{const m=await mock(page,input);await open(page);await expect(panel(page)).toHaveCount(0);expect(m.writes).toHaveLength(0);m.verify();});
+
+test('Huvudmannen kan granska ett oskickat utkast enligt samma redigeringsrätt',async({page})=>{const m=await mock(page,{role:'huvudman'});await open(page,'huvudman');await fill(page);await panel(page).getByRole('checkbox').check();await panel(page).getByRole('button',{name:'Spara examensform'}).click();await expect(panel(page).getByRole('button',{name:'Ändra kontrollen'})).toBeVisible();expect(m.writes).toHaveLength(1);m.verify();});

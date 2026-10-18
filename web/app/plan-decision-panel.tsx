@@ -9,6 +9,7 @@ import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parsePlanDecisionDetail, type PlanDecisionAction, type PlanDecisionDetail, type PlanDecisionKind, type PlanDecisionStage } from '@/lib/plan-decision.ts';
 import { decisionNextActorLabel, decisionStageLabel, usePlanDecisions } from './plan-decision-context';
 import MfaStepUpNotice from './mfa-step-up';
+import { ExaminationEvidence } from './protected-programplan-examination';
 
 type Command = { commandId: string; kind: PlanDecisionKind; planId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
 const actionLabel = { submit: 'Skicka till huvudmannen', return: 'Be om ändringar', approve: 'Godkänn planen', withdraw: 'Ta tillbaka för ändring' };
@@ -153,6 +154,7 @@ export default function PlanDecisionPanel({ kind, planId, revision, disabled, on
       {detail.stage === 'approved' && <p>Den här versionen är fastställd och låst. Fortsatta ändringar görs i en ny version.</p>}
       {detail.apl && <details><summary>APL-underlag från tidigare beslut</summary><AplDecisionEvidence detail={detail}/></details>}
       {detail.checks.some(check => check.id === 'apl-budget') && <p className="decision-secondary">Det här beslutet gäller timtabellen, inklusive årsramen för APL. Perioder och arbetsmoment granskas i APL-planeringen efteråt.</p>}
+      {detail.examination && <section className="pp-examination" aria-label="Examensform inför beslut"><h3>Examensform inför beslut</h3><ExaminationEvidence examination={detail.examination}/></section>}
       {detail.sourceInfo && <p className="decision-secondary">{detail.sourceInfo}</p>}
       {detail.blockers.length > 0 && <div><strong>Behöver åtgärdas före beslut</strong><ul className="decision-blockers">{detail.blockers.map((blocker, index) => <li key={index}>{blocker}</li>)}</ul></div>}
       {availableActions.some(action => action === 'approve' || action === 'submit') && detail.checks.map(check => <label className="decision-check" key={check.id}><input type="checkbox" checked={checks.includes(check.id)} disabled={disabled || loading || !!pending} onChange={event => setChecks(current => event.target.checked ? [...current, check.id] : current.filter(id => id !== check.id))}/><span>{check.label}</span></label>)}
