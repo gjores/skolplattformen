@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Preparation/installation only; imports are inert. --verify never runs live DDL.
 import assert from 'node:assert/strict';
-import {readPrivateEvidence,sha,productSources,savePrivateReport,assertOldRights} from './apply-named-timplans.mjs';
-export {readPrivateEvidence,sha,productSources,savePrivateReport,assertOldRights};
+import {readPrivateEvidence,sha,savePrivateReport,assertOldRights} from './apply-named-timplans.mjs';
+export {readPrivateEvidence,sha,savePrivateReport,assertOldRights};
+import {examinationCandidateSources} from './examination-candidate-sources.mjs';
 import {readFileSync,writeFileSync,openSync,closeSync,lstatSync,realpathSync,existsSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -49,7 +50,7 @@ export const requiredSqlChecks=[
 ];
 export const requiredApiFeatures=['scopeProtected','malformedDenied','casProtected','auditRollback','mfaProtected','frozenSource','copyRequiresReview','revokedDenied','originalPreserved'];
 export const requiredBrowserFeatures=['missingBlocked','diplomaReview','organizerApproval','annualApl','tableApproval'];
-export const toolSourceHashes=()=>Object.fromEntries(['work/pilot/apply-programplan-examination.mjs','work/pilot/apply-named-timplans.mjs',
+export const toolSourceHashes=()=>Object.fromEntries(['work/pilot/apply-programplan-examination.mjs','work/pilot/examination-candidate-sources.mjs','work/pilot/apply-named-timplans.mjs',
  'work/pilot/verify-target.mjs','work/pilot/named-timplan-snapshot.mjs','work/pilot/verify-class-cohort.mjs','work/pilot/verify-programplan-copy-api.mjs']
  .map(file=>[file,sha(readFileSync(resolve(root,file)))]));
 export const toolHash=()=>sha(JSON.stringify(toolSourceHashes()));
@@ -113,12 +114,14 @@ export function requirePackageProof(sql,api,{sources,packages}){
   assert.ok(race.blockers.includes(race.leftPid));assert.equal(race.wait_event_type,'Lock');assert.equal(race.left,'committed');assert.equal(race.right,'40001');}
  assert.deepEqual(sql.finalSources,sql.sources);for(const [p,h]of Object.entries(packages))assert.equal(sql.sources[p],h,'SQL package changed');
  assert.equal(api.kind,'programplan-examination-actual-api-browser');assert.equal(api.status,'PASS');assert.ok(api.checks.length>=20&&api.checks.every(c=>c.ok===true));
+ assert.match(api.candidateCheckout.revision,/^[a-f0-9]{40}$/u);assert.equal(api.candidateCheckout.revision,api.build.revision);assert.deepEqual(api.finalCandidateCheckout,api.candidateCheckout);
  assert.equal(api.api.status,'PASS');for(const feature of requiredApiFeatures)assert.equal(api.api[feature],true,feature);
  assert.deepEqual([...api.api.raceStatuses].sort(),[200,409]);assert.equal(api.originalRowsPreserved,true);
  assert.deepEqual(api.sources,sources);assert.deepEqual(api.finalSources,sources);assert.deepEqual(api.migrationSources,packages);assert.deepEqual(api.finalMigrationSources,packages);
  assert.equal(api.baselineFingerprint,sql.baseline.fingerprint);assert.equal(api.installedFingerprint,sql.installed.fingerprint);assert.equal(api.finalFingerprint,sql.installed.fingerprint);
  assert.ok(Object.keys(api.migrationBeforeRows).length>0);assert.deepEqual(api.migrationAfterRows,api.migrationBeforeRows,'All API migration rows must remain exact');
  assert.equal(api.build.mode,'protected');assert.equal(api.runtime.baseURL,'http://127.0.0.1:3014');assert.deepEqual(api.finalArtifact,api.runtime.artifact);assert.ok(api.finalArtifact.fileCount>0);
+ assert.deepEqual(api.originalArtifact,api.finalArtifact,'Original built artifact must match the verified runtime copy');
  assert.equal(api.snapshot.dataCopied,false);assert.equal(api.browserRuns.retries,0);assert.ok(api.oidcCleanup.verifiedCallbacks>0);assert.deepEqual(api.finalVerificationSources,api.verificationSources);
  assert.equal(api.runtimeCleanup.cleanup,'complete');assert.equal(api.snapshotCleanup.cleanup,'complete');assert.equal(api.oidcCleanup.cleanup,'complete');assert.equal(api.snapshot.sourceFingerprint,sql.snapshot.sourceFingerprint);
  for(const device of ['desktop','phone']){const b=api.browserEvidence[device];assert.equal(b.visualReview,'reviewed');assert.equal(b.result.status,'PASS');assert.equal(b.result.device,device);
@@ -128,13 +131,17 @@ export function requirePackageProof(sql,api,{sources,packages}){
  return true;
 }
 export function readPackageEvidence({sqlEvidence,apiEvidence}){
- const sql=readPrivateEvidence(sqlEvidence),api=readPrivateEvidence(apiEvidence),packages=migrationSources(),sources=productSources();requirePackageProof(sql.value,api.value,{sources,packages});
+ const sql=readPrivateEvidence(sqlEvidence),api=readPrivateEvidence(apiEvidence),packages=migrationSources();
+ const {sources,candidateCheckout}=examinationCandidateSources({checkout:api.value.candidateCheckout.path,revision:api.value.build.revision});
+ assert.deepEqual(candidateCheckout,api.value.candidateCheckout);requirePackageProof(sql.value,api.value,{sources,packages});
  assert.equal(sql.value.baseline.fingerprint,expectedBaselineFingerprint,'This package requires the verified APL autofill baseline');
  for(const device of ['desktop','phone']){const ref=api.value.browserEvidence[device],side=readPrivateEvidence(ref.path);assert.equal(side.sha256,ref.sha256);assert.deepEqual(side.value,ref.result);for(const shot of side.value.screenshots){assert.match(shot.file,new RegExp('^'+device+'-[a-z0-9-]+\\.png$','u'));const p=resolve(dirname(side.path),shot.file);assert.equal(realpathSync(p),p);assert.ok(lstatSync(p).isFile());assert.equal(sha(readFileSync(p)),ref.screenshotHashes[shot.file],'Reviewed screenshot changed');}}
  for(const [p,h]of [sql.value.sources,api.value.verificationSources].flatMap(manifest=>Object.entries(manifest))){assert.ok(!p.startsWith('/')&&!p.split('/').includes('..'));assert.equal(sha(readFileSync(resolve(root,p))),h,'Verification source changed');}
  assert.ok(Object.keys(api.value.verificationSources??{}).length>0,'Verification sources required');
  const buildRoot=realpathSync(api.value.runtime.buildRoot);assert.ok(buildRoot.startsWith(resolve(root,'work/pilot/targets/protected/runtime')+'/'));assert.deepEqual(artifactManifest(buildRoot),api.value.finalArtifact);assert.deepEqual(JSON.parse(readFileSync(resolve(buildRoot,'build-mode.json'),'utf8')),api.value.build);
- return{sql,api,packages,sources,buildRoot};
+ const originalBuild=resolve(candidateCheckout.path,'web/dist-protected');assert.equal(api.value.originalBuild,originalBuild);assert.equal(realpathSync(originalBuild),originalBuild);
+ assert.deepEqual(artifactManifest(originalBuild),api.value.originalArtifact);assert.deepEqual(JSON.parse(readFileSync(resolve(originalBuild,'build-mode.json'),'utf8')),api.value.build);
+ return{sql,api,packages,sources,buildRoot,candidateCheckout};
 }
 async function rights(db){return{tables:await db`select relname,relacl::text acl,relowner,relrowsecurity,relforcerowsecurity from pg_class where relnamespace='public'::regnamespace and relkind in ('r','p') order by relname`,functions:await db`select oid::regprocedure::text signature,proacl::text acl,proowner from pg_proc where pronamespace='public'::regnamespace and prokind='f' order by 1`};}
 async function journalHash(db,exclude=[]){return(await db`select count(*)::integer count,encode(sha256(convert_to(coalesce(string_agg(to_jsonb(m)::text,'' order by version),''),'UTF8')),'hex') sha256 from supabase_migrations.schema_migrations m where not(version=any(${exclude}::text[]))`)[0];}
@@ -158,7 +165,8 @@ export async function applyProgramplanExamination(mode,{sqlEvidence,apiEvidence,
     await absent(tx);assert.equal(await schemaFingerprint(tx),report.beforeFingerprint);report.beforeProjection=await projectionHashes(tx,report.originalColumns);report.beforeJournal=await journalHash(tx);report.beforeRights=await rights(tx);report.beforeStructure=await schemaFingerprint(tx,true);save();
     await installExaminationPackage(tx);assertColumnTransition(report.originalColumns,await catalogColumns(tx));await checkInstalledAdditions(tx);report.afterStructure=await schemaFingerprint(tx,true);assertStructureTransition(report.beforeStructure,report.afterStructure);report.structureVerified=true;assert.equal(await schemaFingerprint(tx),proof.sql.value.installed.fingerprint,'Installed definitions differ from verified SQL');
     report.afterProjection=await projectionHashes(tx,report.originalColumns);assert.deepEqual(report.afterProjection,report.beforeProjection);assertOldRights(report.beforeRights,await rights(tx));
-    report.afterOriginalJournal=await journalHash(tx,migrations.map(n=>n.slice(0,14)));assert.deepEqual(report.afterOriginalJournal,report.beforeJournal);report.installed=await installedPackage(tx);assert.deepEqual(migrationSources(),proof.packages);assert.deepEqual(productSources(),proof.sources);assert.deepEqual(artifactManifest(proof.buildRoot),report.build.artifact);
+    report.afterOriginalJournal=await journalHash(tx,migrations.map(n=>n.slice(0,14)));assert.deepEqual(report.afterOriginalJournal,report.beforeJournal);report.installed=await installedPackage(tx);assert.deepEqual(migrationSources(),proof.packages);
+    const finalCandidate=examinationCandidateSources({checkout:proof.candidateCheckout.path,revision:proof.candidateCheckout.revision});assert.deepEqual(finalCandidate.sources,proof.sources);assert.deepEqual(finalCandidate.candidateCheckout,proof.candidateCheckout);assert.deepEqual(artifactManifest(proof.buildRoot),report.build.artifact);
     report.lockHoldMsBeforeCommit=Date.now()-start;report.commitAttempted=true;report.stage='commit_pending';save();
    });report.committed=true;report.oldWorkerCompatibleAfterCommit=false;report.candidateTransferRequired=true;report.stage='committed';report.commitConfirmedAt=new Date().toISOString();save();assert.deepEqual(await installedPackage(db),report.installed);
    report.stage='local_migration_files';save();for(const n of migrations){const source=readFileSync(resolve(root,'supabase/migrations',n)),file=resolve(target.workdir,'supabase/migrations',n);if(existsSync(file))assert.equal(sha(readFileSync(file)),sha(source));else writeFileSync(file,source,{flag:'wx',mode:0o600});}report.localMigrationFilesSynced=true;

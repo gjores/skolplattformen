@@ -14,8 +14,8 @@ function proofs(){
  installed:{fingerprint:af,structure:installed,rows},finalFingerprint:af,finalStructure:installed,
  races:[{leftPid:1,rightPid:2,blockers:[1],wait_event_type:'Lock',left:'committed',right:'40001'}],sources:packages,finalSources:packages};
  const api={kind:'programplan-examination-actual-api-browser',status:'PASS',checks:Array.from({length:20},()=>({ok:true})),originalRowsPreserved:true,api:{status:'PASS',...Object.fromEntries(requiredApiFeatures.map(f=>[f,true])),raceStatuses:[409,200]},sources,finalSources:sources,migrationSources:packages,finalMigrationSources:packages,
- baselineFingerprint:bf,installedFingerprint:af,finalFingerprint:af,migrationBeforeRows:rows,migrationAfterRows:rows,build:{mode:'protected'},runtime:{baseURL:'http://127.0.0.1:3014',artifact:{fileCount:1}},finalArtifact:{fileCount:1},snapshot:{dataCopied:false,sourceFingerprint:bf},browserRuns:{retries:0},
- oidcCleanup:{cleanup:'complete',verifiedCallbacks:2},runtimeCleanup:{cleanup:'complete'},snapshotCleanup:{cleanup:'complete'},verificationSources:{...sources,...packages},finalVerificationSources:{...sources,...packages},
+ baselineFingerprint:bf,installedFingerprint:af,finalFingerprint:af,migrationBeforeRows:rows,migrationAfterRows:rows,build:{mode:'protected',revision:'c'.repeat(40)},candidateCheckout:{path:'/owned/synthetic',revision:'c'.repeat(40)},finalCandidateCheckout:{path:'/owned/synthetic',revision:'c'.repeat(40)},runtime:{baseURL:'http://127.0.0.1:3014',artifact:{fileCount:1}},finalArtifact:{fileCount:1},snapshot:{dataCopied:false,sourceFingerprint:bf},browserRuns:{retries:0},
+ originalArtifact:{fileCount:1},oidcCleanup:{cleanup:'complete',verifiedCallbacks:2},runtimeCleanup:{cleanup:'complete'},snapshotCleanup:{cleanup:'complete'},verificationSources:{...sources,...packages},finalVerificationSources:{...sources,...packages},
  browserEvidence:Object.fromEntries(['desktop','phone'].map(device=>[device,{visualReview:'reviewed',sha256:hash,result:{status:'PASS',device,features:Object.fromEntries(requiredBrowserFeatures.map(f=>[f,true])),checks:Array.from({length:18},()=>({ok:true})),screenshots:[{file:device+'-table.png'}]},screenshotHashes:{[device+'-table.png']:hash}}]))};return{sql,api};
 }
 test('examination package permits exactly eleven replacements and two restricted additions',()=>{
@@ -52,7 +52,7 @@ test('scenario-specific SQL, API and device evidence cannot be replaced with gen
  for(const change of [a=>a.api.raceStatuses=[200,200],a=>a.api.status='FAIL',a=>a.originalRowsPreserved=false,
   a=>a.migrationAfterRows={...a.migrationAfterRows,new_table:{count:1,hash}},a=>a.migrationSources={},
   a=>a.verificationSources['web/x.ts']='b'.repeat(64),a=>delete a.browserEvidence.phone,
-  a=>a.browserEvidence.desktop.screenshotHashes={},a=>a.kind='timplan-minimum-actual-api-browser']){
+  a=>a.browserEvidence.desktop.screenshotHashes={},a=>a.kind='timplan-minimum-actual-api-browser',a=>a.candidateCheckout.revision='d'.repeat(40),a=>a.finalCandidateCheckout.path='/other',a=>delete a.candidateCheckout]){
   const a=structuredClone(api);change(a);assert.throws(()=>requirePackageProof(sql,a,{sources,packages}));
  }
 });
