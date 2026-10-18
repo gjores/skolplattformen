@@ -1,3 +1,4 @@
+import { EXAMINATION_REVIEW_REQUIRED, requiresProgramplanExamination, validProgramplanExamination } from '../programplan-examination.ts';
 import { parseTimplanTimeCells, TIMPLAN_TIME_MODEL_V2, timplanTimeTotals } from '../timplan-time.ts';
 import { gymArray, gymShape, gymObject, gymRowKey, parseGymTimplanHours, parseTimplanTimeCopyReview } from '../gym-timplan.ts';
 import { parseLegacyPlanDecisionDetail, parsePlanDecisionDetail, parsePlanDecisionInbox, parsePlanDecisionPage, type PlanDecisionDetail, type PlanDecisionQuery, type PlanDecisionCommand, type PlanDecisionRead } from '../plan-decision.ts';
@@ -46,7 +47,7 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
   const keys = legacy ? DETAIL_KEYS.filter(key => key !== 'series' || Object.hasOwn(result,'series')) : [...DETAIL_KEYS,'contractVersion','apl'];
   const v2 = Object.hasOwn(result, 'timeModel');
   if (v2 && (legacy || expected.kind !== 'timplan' || result.timeModel !== TIMPLAN_TIME_MODEL_V2)) throw new TypeError('Invalid decision time model');
-  const raw = gymShape(result, [...keys, 'source','catalog', ...(v2 ? ['timeModel', 'timeRows', ...(separated ? ['timeCopyReview'] : [])] : ['hours'])]);
+  const raw = gymShape(result, [...keys, ...(Object.hasOwn(result,'examination') ? ['examination'] : []), 'source','catalog', ...(v2 ? ['timeModel', 'timeRows', ...(separated ? ['timeCopyReview'] : [])] : ['hours'])]);
   const { source: sourceValue, catalog: catalogValue, hours: hoursValue, timeModel: _timeModel, timeRows: timeRowsValue, timeCopyReview: timeCopyReviewValue, ...detail } = raw;
   const body = legacy ? parseLegacyPlanDecisionDetail(detail,expected) : parsePlanDecisionDetail(detail, expected);
   if (body.contractVersion !== envelope.resultContract || separated && envelope.aplBasis !== null) throw new TypeError('Invalid decision dispatch');
@@ -63,7 +64,9 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
     blockers.push('Beslutsreglerna är inte verifierade för den här programtypen och elevkullen.');
   }
   if (profile && rows.reduce((sum,row) => sum+row.points,0) !== profile.points) blockers.push(`Programplanen behöver omfatta exakt ${formatCount(profile.points)} poäng.`);
-  if (profile?.vocational && started && started >= '2028-07-02') blockers.push('Beslutsregler för yrkesprov från höstterminen 2028 saknas. Den här elevkullen kan inte fastställas med gymnasiearbete som enda modell.');
+  if (!envelope.replayed && program && requiresProgramplanExamination(program.code, started ?? null)
+    && !validProgramplanExamination(source.basis?.examination,program.code,started ?? null)) blockers.push(EXAMINATION_REVIEW_REQUIRED);
+  if (!sameJson(body.examination,source.basis?.examination)) throw new TypeError('Mismatched examination review');
   const timeRows = v2 ? parseTimplanTimeCells(timeRowsValue, rows, profile?.vocational === true) : null;
   const hours = gymArray(v2 ? [] : hoursValue,2000).map(value => {
     const r = gymShape(value,['rowKey','hours']); return {rowKey:gymRowKey(r.rowKey),hours:parseGymTimplanHours(r.hours)};
@@ -116,7 +119,7 @@ export async function projectPlanDecision(value: unknown, expected: PlanDecision
     }
   }
   // Historical replay returns its stored presentation. It is not reclassified by new APL requirements.
-  const projected: PlanDecisionDetail = legacy ? body : {...body,blockers:[...new Set(blockers)]};
+  const projected: PlanDecisionDetail = envelope.replayed ? body : {...body,blockers:[...new Set(blockers)]};
   if (command) {
     const stage = {submit:'submitted',return:'returned',approve:'approved',withdraw:'draft'}[command.action];
     if (projected.stage !== stage || projected.decisionRevision !== command.expectedDecisionRevision+1

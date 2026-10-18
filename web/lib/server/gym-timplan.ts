@@ -32,7 +32,7 @@ function rawSource(value: unknown): RawSource {
   if (!basis && (rows.length || distribution.length)) bad();
   return { projected: { planId: gymUuid(r.planId), offeringId: gymUuid(r.offeringId), version: gymInteger(r.version, 2147483647, 1), revision: gymInteger(r.revision),
     status: gymSourceStatus(r.status), catalogId: basis?.catalogId ?? null, startedOn: basis?.startedOn ?? null,
-    educationRevision: gymInteger(r.educationRevision), education }, basis, distribution, rows, archived: gymBoolean(r.archived) };
+    educationRevision: gymInteger(r.educationRevision), education, ...(basis?.examination ? { examination: basis.examination } : {}) }, basis, distribution, rows, archived: gymBoolean(r.archived) };
 }
 export async function projectSource(sourceValue: unknown, catalogValue: unknown) {
   const source = rawSource(sourceValue), missing: string[] = [];

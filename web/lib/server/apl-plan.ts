@@ -30,7 +30,7 @@ export async function projectAplFrozenBasis(value: unknown, expectedPlanId: stri
     code: program.code, version: program.version, category: program.category, startDate: program.startDate,
     endDate: program.endDate, canceledDate: program.canceledDate, sourceSupported: source.readiness.ready,
   };
-  verifiedProgram.sourceSupported = source.readiness.ready && aplSourceProfileSupported(verifiedProgram, plan.source.startedOn);
+  verifiedProgram.sourceSupported = source.readiness.ready && aplSourceProfileSupported(verifiedProgram, plan.source.startedOn, plan.source.examination);
   const context = parseAplContext({ organizerId: basis.organizerId, plan, copyReview: basis.copyReview, program: verifiedProgram });
   return { basis, context };
 }

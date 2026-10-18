@@ -47,13 +47,14 @@ const adapter=await import('./programplan-planning.ts');
 const contract=await import('../programplan-contract.ts');
 const {reference,plan}=await import('../programplan-contract.test.mjs');
 const {auditRoute,sanitizeAuditDetails}=await import('./audit-details.ts');
-const routes={};for(const name of ['lasa','binda','fordjupning','skapa','klona','block'])routes[name]=(await import(`../../app/api/programplaner/${name}/route.ts`)).POST;
-const forms={block:{planId:id,expectedRevision:0,choiceBlocks:reference().choiceBlocks},lasa:{planId:id},binda:{planId:id,expectedRevision:0,basisReference:reference()},fordjupning:{planId:id,expectedRevision:0,specializationRefs:reference().specializationRefs},skapa:{offeringId:id,expectedLatestVersion:0,basisReference:reference()},klona:{sourcePlanId:other,expectedSourceRevision:0,expectedLatestVersion:0,explicitLegacyBasis:reference()}};
-function expected(route){return {...plan(),id,offeringId:id,unitId:id,revision:['binda','fordjupning','block'].includes(route)?1:0,...(route==='klona'?{copiedPackageUnits:0}:{})};}
+const routes={};for(const name of ['lasa','binda','fordjupning','skapa','klona','block','examensform'])routes[name]=(await import(`../../app/api/programplaner/${name}/route.ts`)).POST;
+const examination={model:'vocational_exam',appliesToStart:'2028-08-15',checkedOn:'2026-10-18',referenceUrl:'https://www.skolverket.se/syntetiskt-prov',referenceText:'Syntetiskt granskningsunderlag, inte ett verkligt godkänt prov.'};
+const forms={examensform:{planId:id,expectedRevision:0,examination,confirmed:true},block:{planId:id,expectedRevision:0,choiceBlocks:reference().choiceBlocks},lasa:{planId:id},binda:{planId:id,expectedRevision:0,basisReference:reference()},fordjupning:{planId:id,expectedRevision:0,specializationRefs:reference().specializationRefs},skapa:{offeringId:id,expectedLatestVersion:0,basisReference:reference()},klona:{sourcePlanId:other,expectedSourceRevision:0,expectedLatestVersion:0,explicitLegacyBasis:reference()}};
+function expected(route){const p=plan();if(route==='examensform'){p.basisReference={...p.basisReference,programRef:{code:'BA25',version:1},startedOn:examination.appliesToStart,examination};p.education.programCode='BA25';}return {...p,id,offeringId:id,unitId:id,revision:['binda','fordjupning','block','examensform'].includes(route)?1:0,...(route==='klona'?{copiedPackageUnits:0}:{})};}
 function reset(route='lasa'){state={fn:'rektor',mfa:true,read:expected(route),result:expected(route),events:[],calls:[],mutations:[]};}
 function request(route,body=forms[route],origin='http://localhost'){return new Request(`http://localhost/api/programplaner/${route}`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-Context-Epoch':'1'},body:JSON.stringify(body)});}
 for(const route of Object.keys(routes))test(`${route}: HM/rektor har parametriserad operation och minimerad audit`,async()=>{
- for(const fn of route==='lasa'?['huvudman','rektor','administrator']:['huvudman','rektor']){reset(route);state.fn=fn;if(route==='lasa')state.mfa=false;const response=await routes[route](request(route));assert.equal(response.status,200);assert.deepEqual(await response.json(),expected(route));assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(state.events[0].objectId,id);assert.equal(state.events[0].action,{block:'programplan_blocks_changed',lasa:'programplan_read',binda:'programplan_basis_bound',fordjupning:'programplan_specialization_changed',skapa:'programplan_draft_created',klona:'programplan_draft_cloned'}[route]);assert.equal('basisReference'in state.events[0].details,false);assert.equal(state.calls.length,1);}
+ for(const fn of route==='lasa'?['huvudman','rektor','administrator']:['huvudman','rektor']){reset(route);state.fn=fn;if(route==='lasa')state.mfa=false;const response=await routes[route](request(route));assert.equal(response.status,200);assert.deepEqual(await response.json(),expected(route));assert.equal(response.headers.get('cache-control'),'no-store');assert.equal(state.events[0].objectId,id);assert.equal(state.events[0].action,{examensform:'programplan_examination_changed',block:'programplan_blocks_changed',lasa:'programplan_read',binda:'programplan_basis_bound',fordjupning:'programplan_specialization_changed',skapa:'programplan_draft_created',klona:'programplan_draft_cloned'}[route]);assert.equal('basisReference'in state.events[0].details,false);assert.equal(state.calls.length,1);}
 });
 for(const route of Object.keys(routes))test(`${route}: roll, slutna requests, SQLfel, råsvar och auditfel stoppar`,async()=>{
  for(const fn of route==='lasa'?['larare','support','it','kundadmin','elevhalsa','granskare']:['administrator','larare','support','it','kundadmin','elevhalsa','granskare']){reset(route);state.fn=fn;assert.equal((await routes[route](request(route))).status,403);assert.equal(state.calls.length,0);}
@@ -69,4 +70,14 @@ test('operationens ID/revision/version/ordnade val kontrolleras inom transaktion
  reset();state.read.id=other;assert.equal((await routes.lasa(request('lasa'))).status,500);
  assert.equal(auditRoute(`http://localhost/api/programplaner/${id}?secret=private`),'/api/programplaner');assert.deepEqual(sanitizeAuditDetails({path:'/api/programplaner',basisReference:reference(),sourcePlanId:id}),{path:'/api/programplaner'});
  assert.throws(()=>adapter.programplanRequest(contract.parseProgramplanRead,{planId:'invalid'}));
+});
+
+test('examensform requires explicit confirmation and exact returned review',async()=>{
+ for(const change of [b=>b.confirmed=false,b=>delete b.confirmed,b=>b.examination.referenceUrl='https://skolverket.se.evil.example/prov',b=>b.examination.model='optional']){
+  reset('examensform');const body=structuredClone(forms.examensform);change(body);assert.equal((await routes.examensform(request('examensform',body))).status,400);assert.equal(state.calls.length,0);
+ }
+ for(const change of [p=>p.basisReference.examination.referenceText='Annat underlag',p=>p.basisReference.examination.model='diploma_work',p=>p.revision=0,p=>p.status='faststalld']){
+  reset('examensform');state.result=structuredClone(state.result);change(state.result);assert.equal((await routes.examensform(request('examensform'))).status,500);assert.equal(state.mutations.length,0);
+ }
+ reset('examensform');state.sqlError={code:'42501',hint:'programplan_submitted'};assert.equal((await routes.examensform(request('examensform'))).status,409);
 });
