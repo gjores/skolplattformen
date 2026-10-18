@@ -14,7 +14,8 @@ import {createAplPlanOidcFixture,recoverAplOidcFixture} from './apl-plan-oidc-fi
 import {runProgramplanExaminationBrowserScenarios,runProgramplanExaminationApiScenarios} from './programplan-examination-browser-scenarios.mjs';
 import {seedPlanningFlowFixture} from './planning-flow-fixtures.mjs';
 import {artifactManifest} from './verify-programplan-copy-api.mjs';
-import {productSources,sha} from './apply-apl-plan.mjs';
+import {sha} from './apply-apl-plan.mjs';
+import {examinationCandidateSources} from './examination-candidate-sources.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url)),require=createRequire(path.join(root,'web/package.json'));
 const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 const migrations=['supabase/migrations/20261018180000_programplan_examination_review.sql'];
@@ -38,11 +39,15 @@ export async function verifyProgramplanExaminationActual({build,out}) {
  assert.ok(originalBuild.startsWith(path.join(root,'work/pilot/targets/protected/runtime/')),'Only an owned separately built candidate is allowed');
  assert.ok(out.startsWith('/private/tmp/')&&out.endsWith('.json'));assert.equal(existsSync(out),false);
  const evidenceDir=out.slice(0,-5)+'-evidence';mkdirSync(evidenceDir,{mode:0o700});chmodSync(evidenceDir,0o700);
- const initialSources=productSources(),initialMigrations=migrationSources(),initialVerification=verificationSources();
  const mark=JSON.parse(readFileSync(path.join(originalBuild,'build-mode.json'),'utf8'));assert.equal(mark.mode,'protected');
- assert.equal(git(['diff','--name-only',mark.revision,'HEAD','--',...Object.keys(initialSources)]),'','Candidate product does not match current committed sources');
+ const checkout=realpathSync(path.resolve(originalBuild,'../..'));
+ assert.equal(originalBuild,realpathSync(path.join(checkout,'web/dist-protected')),'Candidate build must belong to its frozen checkout');
+ const {sources:initialSources,candidateCheckout}=examinationCandidateSources({checkout,revision:mark.revision});
+ const initialMigrations=migrationSources(),initialVerification=verificationSources(),initialArtifact=artifactManifest(originalBuild);
+ for(const [file,hash]of Object.entries(initialMigrations))assert.equal(sha(readFileSync(path.join(checkout,file))),hash,'Candidate migration differs from actual test migration');
  const buildRoot=path.join(root,'work/pilot/targets/protected/runtime/apl-'+randomUUID());cpSync(originalBuild,buildRoot,{recursive:true,filter:p=>!p.endsWith('/.dev.vars')});
- const report={kind:'programplan-examination-actual-api-browser',status:'FAIL',startedAt:new Date().toISOString(),build:mark,sourceRevision:git(['rev-parse','HEAD']),sources:initialSources,migrationSources:initialMigrations,
+ assert.deepEqual(artifactManifest(buildRoot),initialArtifact,'Runtime copy must exactly match the frozen candidate artifact');
+ const report={kind:'programplan-examination-actual-api-browser',status:'FAIL',startedAt:new Date().toISOString(),build:mark,sourceRevision:git(['rev-parse','HEAD']),candidateCheckout,originalBuild,originalArtifact:initialArtifact,sources:initialSources,migrationSources:initialMigrations,
   verificationSources:initialVerification,browserEvidence:{},checks:[],limits:['Own schema-only database and synthetic identities/classes only; no live rows copied or business writes on3012',
    'Synthetic school review only: no claim of an actual published national vocational exam or SS12000 exchange','No authentication/business/transport mocks; browser scenarios run once per device, retries 0']};
  const save=()=>writeFileSync(out,JSON.stringify(report,null,2)+'\n',{mode:0o600});save();
@@ -88,7 +93,10 @@ export async function verifyProgramplanExaminationActual({build,out}) {
   fixture=await createAplPlanOidcFixture({snapshot,runtime,evidenceDir:apiDir,seed:seeds.api});
   browser=await require('@playwright/test').chromium.launch({headless:true});report.api=await runProgramplanExaminationApiScenarios({fixture,browser,snapshot,seed:seeds.api,checks:report.checks,onProgress:stage=>{report.apiStage=stage;save();}});save();
   report.finalFingerprint=await schemaFingerprint(snapshot.db);assert.equal(report.finalFingerprint,report.installedFingerprint);
-  report.finalSources=productSources();report.finalMigrationSources=migrationSources();report.finalVerificationSources=verificationSources();report.finalArtifact=artifactManifest(buildRoot);
+  const finalCandidate=examinationCandidateSources({checkout:candidateCheckout.path,revision:candidateCheckout.revision});
+  for(const [file,hash]of Object.entries(initialMigrations))assert.equal(sha(readFileSync(path.join(checkout,file))),hash,'Candidate migration changed during verification');
+  report.finalSources=finalCandidate.sources;report.finalCandidateCheckout=finalCandidate.candidateCheckout;report.finalMigrationSources=migrationSources();report.finalVerificationSources=verificationSources();report.finalArtifact=artifactManifest(buildRoot);
+  assert.deepEqual(report.finalCandidateCheckout,candidateCheckout);assert.deepEqual(artifactManifest(originalBuild),initialArtifact);assert.deepEqual(report.finalArtifact,initialArtifact);
   assert.deepEqual(report.finalSources,initialSources);assert.deepEqual(report.finalMigrationSources,initialMigrations);assert.deepEqual(report.finalVerificationSources,initialVerification);assert.deepEqual(report.finalArtifact,runtime.proof.artifact);
   report.status='PASS';
  }catch(error){failure=error;report.failureCode=error.code??'ASSERTION';report.failure=error.message;writeFileSync(path.join(evidenceDir,'failure.txt'),String(error.stack),{mode:0o600});}
