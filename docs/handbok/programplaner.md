@@ -114,6 +114,8 @@ Uppgiften är **skolans dokumenterade kontroll**. Appen kontrollerar att underla
 
 En ny version för samma utbildning behåller underlaget, men den nya planen behöver granskas och beslutas igen. Vid kopiering till nästa elevkull tas kontrollen bort och behöver göras om för den nya starten. Fastställda versioner och tidigare beslut ändras inte i efterhand.
 
+Om du ändrar utbildningsstart, programfördjupning eller valramar tas den sparade examensformskontrollen bort. Granska då på nytt att examensformen gäller det ändrade innehållet innan du skickar planen till huvudmannen. Om du sparar utan att ändra dessa uppgifter behålls kontrollen.
+
 Detta steg planerar utbildningens avslutande moment. Det registrerar inte elevens provdeltagande, betyg eller examen och ersätter inte granskningen av APL.
 
 ## Klasser för utbildningen
