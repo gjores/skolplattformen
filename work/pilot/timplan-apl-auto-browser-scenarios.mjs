@@ -57,7 +57,7 @@ export async function runTimplanAplAutoBrowserScenarios({fixture,browser,device,
   const [response]=await Promise.all([page.waitForResponse(responseAt),modal.getByRole('button',{name:'Spara fördelning',exact:true}).click()]);assert.equal(response.status(),200);
   const q=response.request().postDataJSON(),saved=parseResponse(await response.json());assert.equal(q.apl.totalHours,345);assert.ok(q.apl.rowKeys.length>0);assert.ok(q.apl.rowKeys.every(key=>eligible(original).includes(key)));assertBudget(saved,gut.hours);
   for(const row of saved.rows)if(!q.apl.rowKeys.includes(row.key))assert.ok(saved.timeRows[row.key].annualAplMinutes.every(v=>v===null||v===0));
-  await expect(modal).not.toBeVisible();await expect(page.getByText('Fördelningen är sparad. Granska timmarna per ämne och termin.',{exact:true})).toBeVisible();
+  await expect(modal).not.toBeVisible();await expect(page.getByText('Fördelningen är sparad. Skoltimmar och APL visas i tabellen.',{exact:true})).toBeVisible();
   await page.waitForLoadState('networkidle');await page.reload();await expect(page.getByRole('button',{name:'Autofördela timmar',exact:true})).toBeVisible();assert.deepEqual((await client.gym(saved.id)).timeRows,saved.timeRows);assert.equal((await client.read(saved.id)).detail.plan,null);
   result.features.saveReload=true;ok('One actual save persists exact GUT including 345 annual APL, complete active cells, all years and unchanged empty period plan after reload');
   const decision=page.getByRole('region',{name:'Beslut och nästa steg',exact:true});await decision.getByText('Granska och skicka',{exact:true}).click();for(const check of await decision.getByRole('checkbox').all())await check.check();
