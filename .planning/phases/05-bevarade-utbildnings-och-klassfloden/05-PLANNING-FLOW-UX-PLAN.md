@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 package: PLANNING-FLOW-UX
-status: planned
+status: executing
 created: 2026-10-18
 user_decision: timtabellen_godkanns_forst_apl_granskas_separat
 ---
@@ -26,8 +26,12 @@ Discovery nivå 0: befintliga interna modeller/komponenter/API återanvänds, in
 ## Avsett användarflöde
 
 1. **Programplan:** välj program/inriktning och arbeta i ämnes-/poängtabellen. Visa sparstatus, nästa huvudsakliga åtgärd och nödvändiga kompletteringar. Granskning och huvudmannens beslut finns kvar. Kopiera till nästa kull, namn, historik och övriga sällanåtgärder samlas tydligt under Fler alternativ.
-2. **Timplan:** arbeta i Skola HT/VT och års-APL, använd Fördela timmar och se total/GUT. Programplan, klasskopplingar och beslut är tillgängliga via tydliga avgränsade åtgärder, inte långa paneler framför tabellen. Timtabellen kan skickas/godkännas utan sparade APL-perioder.
+2. **Timplan:** arbeta i Skola HT/VT och års-APL, använd Autofördela timmar och se total/GUT. Programplan, klasskopplingar och beslut är tillgängliga via tydliga avgränsade åtgärder, inte långa paneler framför tabellen. Timtabellen kan skickas/godkännas utan sparade APL-perioder.
 3. **APL-planering:** egen tydlig destination efter Programplaner/Timplaner (vy=apl-planering; internt säker PlanLocation view=timplaner med process=apl), med exakt skola, utbildning, timplan och version. Här finns utbildningsform, perioder, veckor/datum, ämnesinnehåll, fördelad/kvarvarande års-APL, kopieringsgranskning och rektors bekräftelse. Årsramen ändras i timplanen. Godkänd timplan ger inte etiketten APL klar. Befintlig APL före timplansbeslut bevaras och går att hitta.
+
+## Återanvändning till senare APL
+
+Ämnen/nivåer och APL-budget per årskurs följer med från timplanen. HT/VT i timtabellen avser skoltid och anger inte APL-termin; användaren väljer denna i nästa steg. Hämta återstående APL-tid lägger endast ofördelad budget på ämnen som finns i den valda terminen, bevarar befintlig förläggning och sparar först efter granskning. Tiden kan delas mellan flera perioder. Datum och veckounderlag kan kompletteras senare. Katalogen saknar fullständigt centralt innehåll; appen erbjuder därför arbetsmomentsbeskrivning med ämnesplan som stöd, inte automatisk innehållsväljare. Centralt innehåll och betygskriterier blandas inte samman.
 
 ## Modell- och beslutsregler
 

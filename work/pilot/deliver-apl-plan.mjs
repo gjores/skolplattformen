@@ -67,7 +67,7 @@ export function requirePreviousRuntimeProof(previous,artifact,runtime,{cleanupPr
   assert.deepEqual(business,previous.beforeBusiness);assert.deepEqual(configuration,previous.beforeConfiguration);
   previous={kind:previous.kind,mode:previous.mode,status:'PASS',applied:true,afterArtifact:previous.beforeArtifact,afterRuntime:previous.restoredRuntime};
  }
- assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery','apl-annual-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
+ assert.ok(['class-cohort-local-delivery','named-timplan-local-delivery','rector-programplan-local-delivery','apl-plan-local-delivery','code-local-delivery','apl-annual-local-delivery','planning-flow-local-delivery'].includes(previous.kind));assert.equal(previous.mode,'--apply');assert.equal(previous.status,'PASS');assert.equal(previous.applied,true);assert.deepEqual(previous.afterArtifact,artifact,'Active directory no longer matches the previously delivered process artifact');
  for(const part of ['listener','preview','manager']){const old=previous.afterRuntime[part],current=runtime[part];for(const key of ['pid','started','args'])assert.equal(current[key],old[key],'Active process differs from previous delivery');if(part!=='manager')assert.equal(current.ppid,old.ppid);else assert.ok(current.ppid===old.ppid||current.ppid===1,'Manager parent changed unexpectedly');}
 }
 async function health(){
@@ -143,6 +143,23 @@ export function requireRectorCreationCapability(selection,expectedUnitIds,select
  return true;
 }
 // Real OIDC read against an existing synthetic school mandate, with exact session cleanup.
+// Explicit opt-in keeps the historical delivery proof contract unchanged.
+export function requireAplDeliveryRead({gym,apl,decision,allowsApl,aplWorkflow='legacy'}){
+ assert.ok(['legacy','separate_apl_v1'].includes(aplWorkflow));
+ assert.equal(decision.revision,gym.revision);
+ if(aplWorkflow==='separate_apl_v1'){
+  assert.equal(apl.revisionScope,'apl');assert.equal(apl.timplanRevision,gym.revision);
+  assert.ok(Number.isSafeInteger(apl.revision)&&apl.revision>=0);
+  const canPlan=allowsApl&&gym.status==='faststalld'&&!gym.archived;
+  assert.equal(apl.capabilities.canSave,canPlan);assert.equal(apl.capabilities.canConfirm,canPlan);assert.equal(apl.capabilities.canReview,false);
+  assert.equal(decision.contractVersion,'timetable_decision_v2');assert.equal(decision.apl,null);
+ }else{
+  assert.equal(apl.revision,gym.revision);assert.equal(apl.capabilities.canSave,allowsApl&&gym.canPlan);assert.equal(apl.capabilities.canConfirm,allowsApl&&gym.canPlan);
+  assert.equal(decision.contractVersion,'apl_decision_v1');
+  if(decision.apl!==null){assert.equal(decision.apl.detail.contentHash,apl.contentHash);assert.equal(decision.apl.detail.revision,apl.revision);}
+ }
+}
+
 const readOnlyOidc=(()=>{
 const require=createRequire(path.join(root,'web/package.json'));
 const {chromium}=require('@playwright/test');
@@ -252,7 +269,8 @@ async function existingLogin(page,{username,password,secret,issuer,stepUp=false}
   await page.waitForURL(url=>url.origin===ownOrigin&&url.pathname==='/api/health/db'&&!url.search,{timeout:30000});
 }
 
-async function readAplAfterDelivery({db,target,baseURL,scope,evidenceDir}){
+async function readAplAfterDelivery({db,target,baseURL,scope,evidenceDir,aplWorkflow='legacy'}){
+  assert.ok(['legacy','separate_apl_v1'].includes(aplWorkflow));
   assert.equal(baseURL,ownOrigin,'Only the reviewed local delivery endpoint is accepted');
   for(const key of ['customerId','unitId','offeringId','assignmentId'])assert.match(scope[key],UUID);
   assert.ok(path.isAbsolute(evidenceDir)&&path.resolve(evidenceDir).startsWith('/private/tmp/'));
@@ -397,13 +415,12 @@ async function readAplAfterDelivery({db,target,baseURL,scope,evidenceDir}){
     const gym=parseGymTimplan(await gymResponse.json(),planId);assert.equal(gym.unitId,scope.unitId);assert.equal(gym.offeringId,scope.offeringId);
     const aplResponse=await context.request.post('/api/timplaner/gym/apl/lasa',{headers,data:{planId}});assert.equal(aplResponse.status(),200);
     const {parseAplReadReply}=await import(path.join(root,'web/lib/apl-plan.ts'));
-    const apl=parseAplReadReply(await aplResponse.json(),{planId});assert.equal(apl.revision,gym.revision);assert.equal(apl.organizerId,view.context.organizerId);
+    const apl=parseAplReadReply(await aplResponse.json(),{planId});assert.equal(apl.organizerId,view.context.organizerId);
     const {gymTimplanAllowsApl}=await import(path.join(root,'web/lib/gym-timplan.ts'));const allowsApl=gymTimplanAllowsApl(gym);
-    assert.equal(apl.capabilities.canSave,allowsApl&&gym.canPlan);assert.equal(apl.capabilities.canConfirm,allowsApl&&gym.canPlan);
     const decisionResponse=await context.request.post('/api/planbeslut/underlag',{headers,data:{kind:'timplan',planId}});assert.equal(decisionResponse.status(),200);
     const {parsePlanDecisionDetail}=await import(path.join(root,'web/lib/plan-decision.ts'));
-    const decision=parsePlanDecisionDetail(await decisionResponse.json(),{kind:'timplan',planId});assert.equal(decision.contractVersion,'apl_decision_v1');assert.equal(decision.revision,gym.revision);
-    if(decision.apl!==null){assert.equal(decision.apl.detail.contentHash,apl.contentHash);assert.equal(decision.apl.detail.revision,apl.revision);}
+    const decision=parsePlanDecisionDetail(await decisionResponse.json(),{kind:'timplan',planId});
+    requireAplDeliveryRead({gym,apl,decision,allowsApl,aplWorkflow});
     for(const [response,action]of [[gymResponse,'gym_timplan_read'],[aplResponse,'apl_plan_read'],[decisionResponse,'plan_decision_basis_read']]){
       const correlation=response.headers()['x-correlation-id'];assert.match(correlation,UUID);
       const audit=await db`select source from public.security_events where correlation_id=${correlation} and actor_identity_id=${identity.id}
