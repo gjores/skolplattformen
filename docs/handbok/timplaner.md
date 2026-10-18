@@ -64,16 +64,22 @@ Regelgrund: [Skolverkets undervisningstid](https://www.skolverket.se/styrning-oc
 
 Välj **Autofördela timmar** när du vill få ett förslag utifrån en totalsumma. Spara först eventuella ändringar i cellerna eller APL-planeringen.
 
-1. Ange **Total undervisningstid (timmar)** för hela utbildningen, alla tre årskurser. Dialogen visar garanterad undervisningstid, **GUT**, för den kända Gy25-profilen. GUT är en miniminivå; du kan planera fler timmar. Om underlaget saknar en känd profil visas ingen antagen GUT.
-2. **Fyll bara tomma celler** behåller befintliga timmar, även uttryckliga nollor, och fördelar återstoden. Välj uttryckligen **Fördela om alla timmar** om även befintliga värden ska ersättas. Om inga celler är tomma kan du behöva välja det alternativet.
-3. Kontrollera förslaget per årskurs och termin. Välj **Granska fördelning** och sedan **Spara fördelning**. Alla ändrade rader sparas tillsammans. Vänta på **Fördelningen är sparad**.
-4. Granska ämnenas behov i tabellen och justera vid behov. Poängen används för att ta fram ett proportionellt startförslag; de bestämmer inte ämnets undervisningsbehov.
+1. Ange **Total undervisningstid (timmar)** för hela utbildningen, alla tre årskurser. Dialogen visar garanterad undervisningstid, **GUT**, för den kända Gy25-profilen. GUT är en miniminivå; du kan planera fler timmar.
+2. I en yrkestimplan med separata skol- och APL-kolumner är **Föreslå APL-timmar** förvalt. **APL totalt (timmar)** föreslås till minst 345 timmar, eller till den större APL-tid som redan finns i planen. Ange mer om utbildningens upplägg kräver det. APL ingår i totalen och läggs inte ovanpå.
+3. Granska vilka yrkesämnen som ska få APL. Appen föreslår specificerade yrkesämnen; ämnesvalet behöver stämma med utbildningens verkliga innehåll. Förslaget fördelar ytterligare APL efter de valda ämnenas poäng per årskurs. Befintlig APL minskas eller flyttas inte.
+4. **Fyll bara tomma celler** behåller angivna **skoltimmar**, även nollor. Välj **Fördela om skoltimmarna** om även dessa värden ska ersättas. Om alla skolceller är ifyllda och totalen inte ryms behöver du ändra totalen eller uttryckligen välja omfördelning.
+5. Kontrollera förslaget för ämnen och årskurser. Välj **Granska fördelning**, därefter **Spara fördelning**. Vänta på **Fördelningen är sparad**. **Avbryt** stänger förslaget utan att ändra timplanen.
+6. Granska ämnenas behov i tabellen och justera vid behov. Poäng används som beräkningsgrund för ett startförslag; de bestämmer inte hur mycket undervisning varje ämne behöver.
 
-I den nya yrkestabellen reserverar autofördelningen angiven års-APL och fördelar bara återstående tid på skolterminerna. Års-APL och perioderna ändras inte. Saknade APL-värden behöver fortfarande fyllas i; autofördelning gör inte dessa celler färdiga.
+När APL-förslaget är på måste totalen nå GUT och APL-ramen vara minst 345 timmar. APL kan inte vara lägre än redan angiven APL eller större än totalen. Ett tydligt valt APL-förslag kan öka även tidigare angivna APL-nollor i de valda ämnena. Övriga obesvarade, aktiva APL-fält fylls med noll. Det gör skillnaden mellan ofördelat och avsiktligt ingen APL tydlig. Befintliga positiva APL-värden bevaras som lägsta nivå för varje ämne och årskurs.
 
-Fördelningen gäller hela planen även om tabellen visar en enda årskurs. Totalen omfattar APL; APL-tid läggs inte till igen. Sparade APL-minuter bevaras som en miniminivå för varje berörd ämnes- och terminscell, avrundad uppåt till hela timmar. APL-perioder och innehåll ändras inte. Om undervisningstiden ändras kan rektor behöva bekräfta APL på nytt.
+Avmarkera **Föreslå APL-timmar** om du bara vill fördela skoltimmarna. Då reserveras befintlig års-APL, medan återstoden fördelas på skolterminerna. APL-värden, inklusive tomma fält, lämnas oförändrade. Fördelningen gäller hela planen även om tabellen visar en enda årskurs.
 
-En total under GUT markeras och kan sparas som utkast, men behöver kompletteras inför beslut. Inte heller en total över GUT är ett intyg om genomförd undervisning eller att varje elev fått rätt undervisningstid.
+Högskoleförberedande program saknar APL-förslag. I den äldre tabellen används **Fördela om alla timmar** för att ersätta befintliga terminstimmar. En äldre yrkestimplan behöver först ett granskat byte till skola och års-APL för att kunna få ett automatiskt års-APL-förslag. Dess vanliga timfördelning finns kvar och bevarar redan förlagd APL som miniminivå i berörda ämnes- och terminsceller.
+
+Autofördelningen skapar inga APL-perioder och ändrar inga datum eller arbetsmoment. Dessa planeras senare i **APL-planering**. 345 timmar är en budget för 15 × 23 undervisningstimmar; förslaget bevisar inte faktisk omfattning, färdig periodplanering eller genomförd APL. Lärlingsutbildning kräver en större andel APL.
+
+Om underlaget saknar en verifierad GUT-profil eller användbara yrkesämnen går det inte att skapa ett automatiskt APL-förslag. Den vanliga skolautofördelningen kan fortfarande användas där timplanen tillåter det. Utan APL-förslag kan en total under GUT sparas som utkast, men den behöver kompletteras inför beslut. Inte heller en total över GUT är ett intyg om genomförd undervisning eller att varje elev fått rätt undervisningstid.
 
 Om någon annan har ändrat planen eller sparsvaret är oklart, välj **Läs aktuell timplan**. Kontrollera den sparade totalsumman och granska ett nytt förslag innan du sparar igen. Ingen sparbegäran skickas om automatiskt. Vid begäran om engångskod verifierar du dig och öppnar sedan dialogen för en ny granskning.
 

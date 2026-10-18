@@ -26,6 +26,8 @@ Nya yrkestimplaner har **Skola HT**, **Skola VT** och separat **APL per årskurs
 
 Redan vid timtabellen visar **Räcker timmarna?** om både programmets totala GUT och minst 345 APL-timmar är planerade. Ett utkast får sparas med mindre tid, men kan inte skickas in eller godkännas förrän timkraven är uppfyllda. 345 timmar är ett planeringsmått för 15 veckor × 23 timmar, inte ett intyg om genomförda veckor eller tillräcklig omfattning för lärlingsutbildning. [Läs om timkontrollen](./timplaner.md#kontrollera-att-timmarna-räcker).
 
+Du kan också välja **Autofördela timmar** i timplanen och använda **Föreslå APL-timmar**. Ange total undervisningstid, APL totalt och vilka yrkesämnen som ska få APL. Appen föreslår minst 345 APL-timmar och fördelar ytterligare tid efter de valda ämnenas poäng per årskurs, utan att minska befintlig APL. Kontrollera ämnesvalet och förhandsgranskningen innan du sparar. Förslaget skapar inga perioder, datum eller arbetsmoment. [Läs hur autofördelningen fungerar](./timplaner.md#autofördela-timmar-för-hela-timplanen).
+
 Exempel: **HT 20 + VT 20 + APL 60 = 100 timmar**. När 40 av APL-timmarna senare förläggs i en period återstår 20 att förlägga. Timplanens total är fortfarande 100 timmar.
 
 Huvudmannen godkänner timtabellen först. Perioder och datum behövs inte för det godkännandet. Välj därefter **Fortsätt till APL-planering** och öppna periodplaneringen. Översikten visar årsram, förlagd tid och kvar att förlägga. Behöver årsramen ändras skapar du en ny timplansversion och låter den godkännas innan du fortsätter med dess perioder. Inför rektors bekräftelse behöver hela årsramen vara förlagd och det övriga underlaget granskat.
