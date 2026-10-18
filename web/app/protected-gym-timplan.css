@@ -108,3 +108,10 @@
 .gt-budget-sufficient b { color: #065f46; }
 .gt-budget summary { cursor: pointer; }
 .gt-budget a { text-decoration: underline; }
+
+.gt-distribution-apl-options { border-top: 1px solid #cbd5e1; padding-top: .75rem; }
+.gt-distribution-fields input[type=checkbox] { width: 22px; height: 22px; min-height: 22px; flex: 0 0 22px; }
+.gt-distribution-apl-options p, .gt-distribution-apl-options details { font-size: .875rem; margin: .6rem 0; }
+.gt-distribution-apl-preview { overflow: auto; max-height: 18rem; margin-top: .5rem; }
+.gt-distribution-apl-preview table { border-collapse: collapse; width: 100%; }
+.gt-distribution-apl-preview th, .gt-distribution-apl-preview td { padding: .4rem; text-align: left; border-bottom: 1px solid #cbd5e1; }

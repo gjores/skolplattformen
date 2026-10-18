@@ -10,7 +10,7 @@ function plan(){return{id,offeringId:id,unitId:id,schoolName:'Syntetisk skola',v
  currentSource:{planId:id,version:1,revision:0,status:'faststalld'},rows:[row(key,'programmeSpecific'),row(other,'orientation'),row(third,'foundation')],timeModel:'school_terms_annual_apl_v2',timeCopyReview:[],
  timeRows:Object.fromEntries([key,other,third].map(k=>[k,{schoolMinutes:[null,null,null,null,null,null],annualAplMinutes:[null,null,null]}]))};}
 let state;
-const fixture=globalThis.__autoAplServer={
+globalThis.__autoAplServer={
  read(){const body=structuredClone(state.plan);if(state.saved.length&&state.tamperRead)state.tamperRead(body);return{body};},
  write(q){state.saved.push(q);state.plan.hours[q.rowKey]=structuredClone(q.hours);state.plan.revision++;return{body:{revision:state.plan.revision}};},
  apl(){return{body:state.apl};},

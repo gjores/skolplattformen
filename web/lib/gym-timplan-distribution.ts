@@ -1,15 +1,27 @@
 import { parseTimplanTimeCells, timplanTimeTotals, type TimplanTimeRows } from './timplan-time.ts';
-import { gymInteger, gymObject, gymShape, gymUuid, gymTimplanTotals, type GymTimplan, type GymTimplanLegacy, type GymTimplanV2, type GymTimplanHours } from './gym-timplan.ts';
+import { gymArray, gymRowKey, gymInteger, gymObject, gymShape, gymUuid, gymTimplanTotals, type GymTimplan, type GymTimplanLegacy, type GymTimplanV2, type GymTimplanHours, type GymTimplanRow } from './gym-timplan.ts';
 import { programplanProfile, VOCATIONAL_GY25_CODES } from './programplan-profile.ts';
 import type { AplPlan } from './apl-plan.ts';
 
 export type GymTimplanDistributionMode = 'fill-empty' | 'replace';
-export type GymTimplanDistributionRequest = { planId: string; expectedRevision: number; totalHours: number; mode: GymTimplanDistributionMode; commandId?: string };
+export type GymTimplanAplDistribution = { totalHours: number; rowKeys: string[] };
+export type GymTimplanDistributionRequest = { planId: string; expectedRevision: number; totalHours: number; mode: GymTimplanDistributionMode; commandId?: string; apl?: GymTimplanAplDistribution };
+export function parseGymTimplanAplDistribution(value: unknown): GymTimplanAplDistribution {
+  const r = gymShape(value, ['totalHours', 'rowKeys']);
+  const rowKeys = gymArray(r.rowKeys, 2000).map(gymRowKey);
+  if (!rowKeys.length || new Set(rowKeys).size !== rowKeys.length) throw new TypeError('Choose distinct APL rows');
+  return { totalHours: gymInteger(r.totalHours, 24_000_000, 345), rowKeys };
+}
+/** Conservative suggestions only. The school reviews subject suitability; other rows remain manually plannable. */
+export function gymTimplanAplSuggestionRows(plan: Pick<GymTimplan, 'rows'>): GymTimplanRow[] {
+  return plan.rows.filter(row => row.rowKind === 'fixed' && ['programmeSpecific', 'orientation', 'specialization'].includes(row.part) && row.pointTerms.some(n => n > 0));
+}
 export function parseGymTimplanDistributionRequest(value: unknown): GymTimplanDistributionRequest {
   const hasCommand = Object.hasOwn(gymObject(value), 'commandId');
-  const r = gymShape(value, ['planId', 'expectedRevision', 'totalHours', 'mode', ...(hasCommand ? ['commandId'] : [])]);
+  const hasApl = Object.hasOwn(gymObject(value), 'apl');
+  const r = gymShape(value, ['planId', 'expectedRevision', 'totalHours', 'mode', ...(hasCommand ? ['commandId'] : []), ...(hasApl ? ['apl'] : [])]);
   if (r.mode !== 'fill-empty' && r.mode !== 'replace') throw new TypeError('Invalid distribution mode');
-  return { planId: gymUuid(r.planId), expectedRevision: gymInteger(r.expectedRevision), totalHours: gymInteger(r.totalHours, 24_000_000, 1), mode: r.mode, ...(hasCommand ? { commandId: gymUuid(r.commandId) } : {}) };
+  return { planId: gymUuid(r.planId), expectedRevision: gymInteger(r.expectedRevision), totalHours: gymInteger(r.totalHours, 24_000_000, 1), mode: r.mode, ...(hasCommand ? { commandId: gymUuid(r.commandId) } : {}), ...(hasApl ? { apl: parseGymTimplanAplDistribution(r.apl) } : {}) };
 }
 
 /** National programme reference only; never a claim about an individual student's entitlement. */
@@ -70,12 +82,48 @@ export function suggestGymTimplanHours(plan: GymTimplanLegacy, totalHours: numbe
   return { hours, changedRows, keptHours, terms: totals.terms, total: totals.total };
 }
 
-/** Reserve the annual APL budget; distribute only school minutes without changing null APL cells or any period. */
-export function suggestGymTimplanTimeV2(plan: GymTimplanV2, totalHours: number, mode: GymTimplanDistributionMode) {
+/** Add to explicitly selected subject/year budgets; never reduce saved APL or infer periods. */
+function suggestAnnualApl(plan: GymTimplanV2, timeRows: TimplanTimeRows, totalHours: number, input: GymTimplanAplDistribution) {
+  const apl = parseGymTimplanAplDistribution(input), gut = gymTimplanGut(plan);
+  if (!gut?.vocational || plan.source.startedOn! >= '2028-07-02') throw new Error('APL-förslag kräver en stödd yrkesutbildning med fullständig programram.');
+  if (totalHours < gut.hours) throw new Error(`Ange minst ${gut.hours} timmar totalt för att nå programmets GUT.`);
+  const eligible = new Set(gymTimplanAplSuggestionRows(plan).map(row => row.key));
+  if (apl.rowKeys.some(key => !eligible.has(key))) throw new Error('Välj specificerade yrkesämnen från den aktuella timplanen.');
+  const saved = timplanTimeTotals(plan).aplMinutes;
+  if (apl.totalHours * 60 < saved) throw new Error('APL-totalen får inte vara lägre än redan planerad APL.');
+  const selected = new Set(apl.rowKeys), cells: { key: string; year: number; weight: number; value: number; order: number }[] = [];
+  for (const row of [...plan.rows].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0)) for (let year = 0; year < 3; year++) {
+    const weight = row.pointTerms[year * 2] + row.pointTerms[year * 2 + 1];
+    if (!weight) continue;
+    timeRows[row.key].annualAplMinutes[year] ??= 0;
+    if (selected.has(row.key)) cells.push({ key: row.key, year, weight, value: timeRows[row.key].annualAplMinutes[year]!, order: cells.length });
+  }
+  let remaining = apl.totalHours * 60 - saved, active = cells.filter(cell => cell.value < 240000);
+  if (remaining > active.reduce((sum, cell) => sum + 240000 - cell.value, 0)) throw new Error('APL-tiden ryms inte i de valda ämnenas årskurser. Välj fler ämnen eller en lägre APL-total.');
+  while (remaining > 0) {
+    const weight = active.reduce((sum, cell) => sum + cell.weight, 0);
+    const capped = active.filter(cell => remaining * cell.weight >= (240000 - cell.value) * weight);
+    if (capped.length) {
+      for (const cell of capped) { remaining -= 240000 - cell.value; cell.value = 240000; }
+      active = active.filter(cell => cell.value < 240000); continue;
+    }
+    const shares = active.map(cell => ({ cell, extra: Math.floor(remaining * cell.weight / weight), remainder: remaining * cell.weight % weight }));
+    let leftover = remaining;
+    for (const { cell, extra } of shares) { cell.value += extra; leftover -= extra; }
+    shares.sort((a, b) => b.remainder - a.remainder || a.cell.order - b.cell.order);
+    for (let i = 0; i < leftover; i++) shares[i].cell.value++;
+    remaining = 0;
+  }
+  for (const cell of cells) timeRows[cell.key].annualAplMinutes[cell.year] = cell.value;
+}
+
+/** Reserve APL within the total, then distribute school minutes. Optional explicit APL proposal fills the annual frame. */
+export function suggestGymTimplanTimeV2(plan: GymTimplanV2, totalHours: number, mode: GymTimplanDistributionMode, apl?: GymTimplanAplDistribution) {
   if (!Number.isSafeInteger(totalHours) || totalHours < 1 || totalHours > 24_000_000) throw new Error('Ange ett positivt heltal för hela timplanens timmar.');
   if (mode !== 'fill-empty' && mode !== 'replace') throw new Error('Välj hur timmarna ska fördelas.');
   const timeRows: TimplanTimeRows = parseTimplanTimeCells(plan.timeRows, plan.rows);
-  const reservedApl = timplanTimeTotals(plan).aplMinutes;
+  if (apl) suggestAnnualApl(plan, timeRows, totalHours, apl);
+  const reservedApl = timplanTimeTotals({ rows: plan.rows, timeRows }).aplMinutes;
   const cells: { key: string; term: number; weight: number; value: number; order: number }[] = [];
   let keptMinutes = 0;
   for (const row of [...plan.rows].sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0)) for (let term = 0; term < 6; term++) {
@@ -85,7 +133,7 @@ export function suggestGymTimplanTimeV2(plan: GymTimplanV2, totalHours: number, 
     else cells.push({ key: row.key, term, weight: row.pointTerms[term], value: 0, order: cells.length });
   }
   const target = totalHours * 60;
-  if (!plan.rows.length || target < reservedApl + keptMinutes) throw new Error('Totalen är lägre än angiven års-APL och den skoltid som ska bevaras.');
+  if (!plan.rows.length || target < reservedApl + keptMinutes) throw new Error('Totalen är lägre än APL och den skoltid som ska bevaras. Höj totalen eller välj att fördela om skoltimmarna.');
   if (target > reservedApl + keptMinutes + cells.length * 120000) throw new Error(cells.length ? 'Totalen ryms inte inom högst 2 000 skoltimmar per terminscell.' : 'Alla skolceller är ifyllda. Välj att fördela om skoltimmarna.');
   let remaining = target - reservedApl - keptMinutes, active = cells;
   while (remaining > 0) {
@@ -104,6 +152,8 @@ export function suggestGymTimplanTimeV2(plan: GymTimplanV2, totalHours: number, 
   }
   for (const c of cells) timeRows[c.key].schoolMinutes[c.term] = c.value;
   const totals = timplanTimeTotals({ rows: plan.rows, timeRows });
-  const changedRows = plan.rows.filter(row => timeRows[row.key].schoolMinutes.some((v, i) => v !== plan.timeRows[row.key].schoolMinutes[i])).map(row => row.key);
+  if (apl && plan.rows.some(row => [...timeRows[row.key].schoolMinutes, ...timeRows[row.key].annualAplMinutes].every(n => (n ?? 0) === 0))) throw new Error('Minst en rad saknar undervisningstid. Fördela om skoltimmarna eller justera APL-totalen.');
+  const changedRows = plan.rows.filter(row => timeRows[row.key].schoolMinutes.some((v, i) => v !== plan.timeRows[row.key].schoolMinutes[i])
+    || timeRows[row.key].annualAplMinutes.some((v, i) => v !== plan.timeRows[row.key].annualAplMinutes[i])).map(row => row.key);
   return { timeRows, changedRows, keptMinutes, ...totals };
 }
