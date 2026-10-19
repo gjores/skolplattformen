@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "APL centralt innehåll levererat 2026-10-19 (migrationer installerade, 3012 kör 55ea3da); mänsklig begriplighetsbedömning återstår. Fas 05.1 Tjänstefördelning: kontext insamlad (05.1-CONTEXT.md), nästa steg gsd-plan-phase 05.1."
+stopped_at: "APL centralt innehåll levererat 2026-10-19 (migrationer installerade, 3012 kör 55ea3da); mänsklig begriplighetsbedömning återstår. Fas 05.1 Tjänstefördelning: etapp 1 planerad i 11 planer (UI-SPEC, research, plancheck PASS); nästa steg gsd-execute-phase 05.1. Etapp 2 planeras separat."
 last_updated: "2026-10-19"
 last_activity: 2026-10-19
-last_activity_desc: "APL centralt innehåll levererat, 3012 kör 55ea3da. Kontext för fas 05.1 Tjänstefördelning insamlad: Gy25 och GR/IM, två etapper, matrisvy, bara summor."
+last_activity_desc: "APL centralt innehåll levererat, 3012 kör 55ea3da. Etapp 1 av fas 05.1 planerad: 11 planer inklusive skyddad GR/IM-klasskoppling; plancheck PASS efter en revision."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -185,11 +185,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus (2026-10-19):** Fas 05.1 Tjänstefördelning (kontext klar, planering nästa). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
+**Current focus (2026-10-19):** Fas 05.1 Tjänstefördelning (etapp 1 planerad, genomförande nästa). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
 
-Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning har kontext ([05.1-CONTEXT](phases/05.1-tjanstefordelning/05.1-CONTEXT.md)) och väntar på planering; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
+Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 planerad i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); inget genomfört. Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 

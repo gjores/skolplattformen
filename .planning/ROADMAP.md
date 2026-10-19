@@ -327,7 +327,20 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 6. Rektor kan förlänga fördelningen från föregående läsår, flytta uppdrag mellan personer och massregistrera. Allt sker med förhandsvisning, atomär lagring och nya utkast, och tidigare beslut bevaras. (TJANST-06)
 7. Person, anställning, tjänstgöringsgrad och skoluppdrag hålls isär från systemmandat. En lärare på två skolor har en gemensam planerad kapacitet som inte förbrukas dubbelt. Arbetstidsram enligt avtal visas inte här. (TJANST-07)
 
-**Plans**: 0 plans — kör `/gsd-plan-phase 05.1`. Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), de ersatta [05-TJANST-planerna](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-IMPLEMENTATION.md), [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital.md) och [Plan Digital-researchen](research/PLAN-DIGITAL-ERSATTNING-2026-10-07.md).
+**Plans**: 11 plans (etapp 1; etapp 2 med TJANST-06:s årsrutiner planeras separat efter leverans och prov av etapp 1). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
+
+Plans:
+- [ ] 05.1-01-PLAN.md — GR/IM-klasser får skyddad, identifierad klass–timplanskoppling (D-21), våg 1
+- [ ] 05.1-02-PLAN.md — Kontrakt och modell: typad behovskälla, behov, summor, samläsning, kapacitet, hash (våg 1)
+- [ ] 05.1-03-PLAN.md — SQL: personal, delad kapacitet (D-12), mandatet Egen tjänst och elevspärr (våg 2)
+- [ ] 05.1-04-PLAN.md — Server och API: tjanst-rutter och adapter, engångskod enligt D-23 (våg 2)
+- [ ] 05.1-04B-PLAN.md — Egen tjänst på servern: scopeKind, self nekas som standard, mandatregler (våg 3)
+- [ ] 05.1-05-PLAN.md — Rektors vy Tjänstefördelning: matris, vyer, dialoger, Fastställ och publicera (våg 2)
+- [ ] 05.1-06-PLAN.md — SQL: fördelning, behov Gy25/GR/IM, versioner, publicering, egen läsning (våg 3)
+- [ ] 05.1-07-PLAN.md — Min tjänst, Personal, Bemanning, Egen tjänst i Mandat och navigering (våg 4)
+- [ ] 05.1-08-PLAN.md — SQL: specialuppdrag, samläsning, kvittens/kommentar och bemanning (våg 4)
+- [ ] 05.1-09-PLAN.md — Worker-rättigheter, faktiskt Worker/OIDC-prov på dator och telefon, handbok (våg 5)
+- [ ] 05.1-10-PLAN.md — Leverans: repetition, användarens godkännande, --apply och 3012-byte (våg 6)
 **UI hint**: yes
 
 Arbetstidsavtal, individuell tjänstebedömning och TID-01–12 ingår inte. En senare koppling till tjanstebedomning-appen sker via ett SS 12000-liknande utbyte, inte via delad databas. Import från Plan Digital och BIA-export ingår inte.
