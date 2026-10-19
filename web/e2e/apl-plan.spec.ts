@@ -7,7 +7,7 @@ import { parsePlanDecisionDetail } from '../lib/plan-decision';
 const id = (n: number) => `5a170000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const firstRow = 'programmeSpecific:PEDG:1:PEDG1000X', secondRow = 'foundation:ENGE:1:ENGE1000X';
 const base = '/e2e/fixtures/apl-plan-preview.html';
-const url = (planId = id(1), unitId = id(3)) => `${base}?vy=timplaner&timplan=${planId}&timplansskola=${unitId}&timplansutbildning=${id(2)}&timplansversion=1&planeringslasar=2027&planeringsskola=${unitId}&planeringsform=gymnasium&planeringsallaar=1`;
+const url = (planId = id(1), unitId = id(3)) => `${base}?vy=apl-planering&timplan=${planId}&timplansskola=${unitId}&timplansutbildning=${id(2)}&timplansversion=1&planeringslasar=2027&planeringsskola=${unitId}&planeringsform=gymnasium&planeringsallaar=1`;
 function gym(planId = id(1), unitId = id(3)): GymTimplan {
   return parseGymTimplan({ id: planId, offeringId: id(2), unitId, schoolName: unitId === id(3) ? 'Exempelskolan Nord' : 'Exempelskolan Syd', version: 1, revision: 0, status: 'utkast',
     series: { id: planId === id(1) ? id(20) : id(21), name: planId === id(1) ? 'BF27A – pedagogik' : 'BF27B – grundfördelning', revision: 0 }, nameAtCreation: 'BF27',
@@ -24,10 +24,11 @@ function planned(weeks = 15): AplPlan {
     contents: [{ rowKey: firstRow, description: 'Planera och följa upp pedagogiska aktiviteter.' }], allocations: [{ rowKey: firstRow, termIndex: 0, gutMinutes: weeks * 23 * 60 }] }] };
 }
 type Mode = 'normal' | 'lost' | 'not_sent' | 'conflict' | 'revoked' | 'held';
-async function mock(page: Page, options: { plan?: AplPlan | null; mode?: Mode; approved?: boolean; versionAllowed?: boolean; corrupt?: 'row' | 'term'; startedOn?: string | null; multipleTerms?: boolean } = {}) {
+async function mock(page: Page, options: { plan?: AplPlan | null; mode?: Mode; approved?: boolean; versionAllowed?: boolean; corrupt?: 'row' | 'term'; startedOn?: string | null; multipleTerms?: boolean; englishWithoutHours?: boolean } = {}) {
   const plans = new Map([[id(1), gym()], [id(11), gym(id(11))], [id(12), gym(id(12), id(13))]]);
   if (options.startedOn !== undefined) plans.get(id(1))!.source.startedOn = options.startedOn;
   if (options.startedOn === null) plans.get(id(1))!.source.catalogId = null;
+  if (options.englishWithoutHours) plans.get(id(1))!.hours[secondRow] = [null,null,null,null,null,null];
   if (options.multipleTerms) { plans.get(id(1))!.rows[0].pointTerms = [100,100,0,0,0,0]; plans.get(id(1))!.hours[firstRow] = [400,400,null,null,null,null]; }
   let apl = options.plan === undefined ? null : options.plan, mode = options.mode ?? 'normal', attempt = 0;
   const confirmations: AplReadReply['confirmations'] = [], receipts = new Map<string, AplCommandReply>();
@@ -140,7 +141,7 @@ for (const weeks of [14,15]) test(`${weeks} granskade veckor och inkluderad tid 
 
 test('flera ämnen delar samma tid; minuter, blandveckor och okänd återstod visas utan omräkning', async ({ page }, info) => {
   const m = await mock(page, { plan: planned() }); await open(page); await editName(page, 'APL med två ämnen');
-  await editor(page).getByLabel('Lägg till ämnesinnehåll').selectOption(secondRow); await editor(page).getByLabel('Arbetsmoment').nth(1).fill('Samtala på engelska i verksamheten.');
+  await editor(page).getByLabel('Lägg till kurs').selectOption(secondRow); await editor(page).getByLabel('Arbetsmoment').nth(1).fill('Samtala på engelska i verksamheten.');
   await editor(page).getByLabel('Pedagogik, Åk 1 HT, APL timmar', { exact: true }).fill('300'); await editor(page).getByLabel('Engelska, Åk 1 HT, APL timmar', { exact: true }).fill('45');
   await editor(page).getByLabel('Engelska, Åk 1 HT, APL minuter', { exact: true }).fill('1'); await editor(page).getByRole('combobox', { name: 'Omfattning', exact: true }).selectOption('mixed_weeks');
   await expect(editor(page).getByLabel('APL-planens aktuella inmatning')).toContainText('345 h 1 min'); await expect(editor(page).getByLabel('APL-planens aktuella inmatning')).toContainText('Okänt');
@@ -186,7 +187,7 @@ test('term planeras först och datum preciseras senare; tangentbord och mobilfä
   await editor(page).getByLabel('Startdatum', { exact: true }).fill('2027-08-16'); await editor(page).getByLabel('Slutdatum', { exact: true }).fill('2027-09-05');
   await editor(page).getByRole('combobox', { name: 'Periodens läsår', exact: true }).selectOption('2027'); await editor(page).getByRole('combobox', { name: 'Omfattning', exact: true }).selectOption('whole_weeks');
   await expect(editor(page).getByLabel('Uppgivna hela veckor')).toHaveValue(''); await editor(page).getByLabel('Uppgivna hela veckor').fill('3'); await editor(page).getByLabel('Underlag för omfattningen').fill('Tre hela veckor är planerade tillsammans med arbetsplatsen.');
-  await editor(page).getByRole('checkbox', { name: 'Omfattningen är granskad mot underlaget' }).check(); await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); await editor(page).getByLabel('Lägg till ämnesinnehåll').selectOption(firstRow); await editor(page).getByLabel('Arbetsmoment').fill('Pröva och planera pedagogiska aktiviteter.');
+  await editor(page).getByRole('checkbox', { name: 'Omfattningen är granskad mot underlaget' }).check(); await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); await editor(page).getByLabel('Lägg till kurs').selectOption(firstRow); await editor(page).getByLabel('Arbetsmoment').fill('Pröva och planera pedagogiska aktiviteter.');
   const hours = editor(page).getByLabel('Pedagogik, Åk 1 HT, APL timmar', { exact: true }); await hours.fill('69'); await hours.focus(); await hours.press('Tab'); await expect(editor(page).getByLabel('Pedagogik, Åk 1 HT, APL minuter', { exact: true })).toBeFocused();
   const bounds = await editor(page).getByRole('button', { name: 'Granska ändringar' }).boundingBox(); expect(bounds!.height).toBeGreaterThanOrEqual(44); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('apl-period-editor.png'), fullPage: true });
@@ -304,11 +305,18 @@ test('nytt terminsval efter rektors bekräftelse kräver ny granskning', async (
 
 test('vald termin visas först och fler terminer kan öppnas utan att flytta tid', async ({ page }) => {
   const m = await mock(page, { multipleTerms: true }); await open(page); await editor(page).getByRole('button', { name: 'Planera APL' }).click(); await editor(page).getByRole('button', { name: 'Lägg till period' }).click();
-  await editor(page).getByLabel('Årskurs', { exact: true }).selectOption('1'); await editor(page).getByLabel('Termin', { exact: true }).selectOption('HT'); await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); await editor(page).getByLabel('Lägg till ämnesinnehåll').selectOption(firstRow);
+  await editor(page).getByLabel('Årskurs', { exact: true }).selectOption('1'); await editor(page).getByLabel('Termin', { exact: true }).selectOption('HT'); await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); await editor(page).getByLabel('Lägg till kurs').selectOption(firstRow);
   await expect(editor(page).getByLabel('Pedagogik, Åk 1 HT, APL timmar', { exact: true })).toBeVisible(); await expect(editor(page).getByLabel('Pedagogik, Åk 1 VT, APL timmar', { exact: true })).toHaveCount(0);
   await editor(page).getByLabel('Fördela även på andra terminer').check(); await editor(page).getByLabel('Pedagogik, Åk 1 VT, APL timmar', { exact: true }).fill('2'); await editor(page).getByLabel('Fördela även på andra terminer').uncheck();
   await expect(editor(page).getByLabel('Pedagogik, Åk 1 VT, APL timmar', { exact: true })).toBeVisible(); await expect(editor(page).locator('.apl-saved-times')).toContainText('Åk 1 VT: 2 h');
   await save(page); await expect(editor(page)).toContainText('APL-planen är sparad.'); expect(m.apl!.periods[0].plannedTermIndex).toBe(0); expect(m.apl!.periods[0].allocations).toEqual([{ rowKey: firstRow, termIndex: 1, gutMinutes: 120 }]); m.verify();
+});
+
+test('kursvalet visar bara kurser med tid i timplanen', async ({ page }) => {
+  await mock(page, { englishWithoutHours: true }); await open(page); await editor(page).getByRole('button', { name: 'Planera APL' }).click(); await editor(page).getByRole('button', { name: 'Lägg till period' }).click();
+  await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); const choice = editor(page).getByLabel('Lägg till kurs');
+  await expect(choice.locator('option')).toHaveText(['Välj kurs med APL-tid i timplanen', 'Pedagogik Nivå 1 · totalt 400 h']);
+  await choice.selectOption(firstRow); await expect(editor(page).getByLabel('Lägg till kurs')).toHaveCount(0);
 });
 
 // These regression fixtures deliberately exercise the preserved legacy time model.

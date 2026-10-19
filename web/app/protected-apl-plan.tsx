@@ -55,6 +55,10 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
   const [termChoices, setTermChoices] = useState<Record<string, { year: string; season: string }>>({});
   const [otherTerms, setOtherTerms] = useState<Record<string, boolean>>({});
   const calendar = useMemo(() => projectGymTimplanYear(2000, plan), [plan]);
+  // Only fixed subject levels with APL time in the timplan can carry APL allocations.
+  const aplRowMinutes = (key: string) => isGymTimplanV2(plan) ? plan.timeRows[key].annualAplMinutes.reduce<number>((n, m) => n + (m ?? 0), 0)
+    : plan.hours[key].reduce<number>((n, h) => n + (h ?? 0) * 60, 0);
+  const aplRows = plan.rows.filter(r => r.rowKind === 'fixed' && aplRowMinutes(r.key) > 0);
   const termLabel = (index: number) => `Årskurs ${Math.floor(index / 2) + 1} · ${index % 2 ? 'Vårtermin' : 'Hösttermin'}${calendar.terms[index] ? ` (${calendar.terms[index].label.slice(3)})` : ''}`;
   const [inputs, setInputs] = useState<MinutesInput>({}), [editing, setEditing] = useState(false), [dirty, setDirty] = useState(false);
   const [notes, setNotes] = useState<Record<string, { note: string; resolved: boolean }>>({});
@@ -322,7 +326,9 @@ export default function ProtectedAplPlan({ plan, context, identityKey, disabled,
           <div className="apl-allocations">{[0,1,2,3,4,5].filter(term => ((selected === undefined || otherTerms[p.id] || selected === term) && (row?.pointTerms[term] ?? 0) > 0) || inputs[keyFor(p.id, c.rowKey, term)]).map(term => { const values = inputs[keyFor(p.id, c.rowKey, term)] ?? { hours: '', minutes: '' }; return <div key={term} className="apl-allocation"><strong>{PROGRAMPLAN_TERMS[term]}</strong><span>{isGymTimplanV2(plan) ? `Årsram APL åk ${Math.floor(term / 2) + 1}: ${row ? aplTime(plan.timeRows[row.key].annualAplMinutes[Math.floor(term / 2)]) : 'Saknas'}` : `Total: ${row ? plan.hours[row.key][term] === null ? 'Ofördelad' : `${plan.hours[row.key][term]} h` : 'Saknas'}`}</span>
             <div className="apl-time-input"><label>Varav APL, timmar<input type="text" inputMode="numeric" value={values.hours} aria-label={`${row?.name ?? 'Ämne'}, ${PROGRAMPLAN_TERMS[term]}, APL timmar`} onChange={e => allocationChange(p.id, c.rowKey, term, 'hours', e.target.value)}/></label><label>Minuter<input type="text" inputMode="numeric" value={values.minutes} aria-label={`${row?.name ?? 'Ämne'}, ${PROGRAMPLAN_TERMS[term]}, APL minuter`} onChange={e => allocationChange(p.id, c.rowKey, term, 'minutes', e.target.value)}/></label></div></div>; })}</div>
           <Button variant="outline" onClick={() => periodChange(p.id, old => ({ ...old, contents: old.contents.filter(item => item.rowKey !== c.rowKey), allocations: old.allocations.filter(a => a.rowKey !== c.rowKey) }))}>Ta bort ämnesinnehållet</Button></div>; })}
-        <label>Lägg till ämnesinnehåll<select value="" onChange={e => { if (e.target.value) periodChange(p.id, old => ({ ...old, contents: [...old.contents, { rowKey: e.target.value, description: '' }] })); }}><option value="">Välj ämne, nivå eller block</option>{plan.rows.filter(r => !p.contents.some(c => c.rowKey === r.key)).map(r => <option key={r.key} value={r.key}>{r.name} {r.levelName}</option>)}</select></label>
+        {(() => { const choices = aplRows.filter(r => !p.contents.some(c => c.rowKey === r.key));
+          return aplRows.length === 0 ? <p>Inga kurser har APL-tid i timplanen ännu. Ange APL-tid i timplanen först.</p>
+            : choices.length > 0 && <label>Lägg till kurs<select value="" onChange={e => { if (e.target.value) periodChange(p.id, old => ({ ...old, contents: [...old.contents, { rowKey: e.target.value, description: '' }] })); }}><option value="">Välj kurs med APL-tid i timplanen</option>{choices.map(r => <option key={r.key} value={r.key}>{r.name} {r.levelName} · {isGymTimplanV2(plan) ? "APL" : "totalt"} {aplTime(aplRowMinutes(r.key))}</option>)}</select></label>; })()}
         </details>
         <Button variant="outline" onClick={() => { if (draft) change({ ...draft, periods: draft.periods.filter(old => old.id !== p.id) }); }}>Ta bort perioden</Button>
       </fieldset>; })}

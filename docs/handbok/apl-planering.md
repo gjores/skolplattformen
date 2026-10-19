@@ -58,7 +58,7 @@ För delveckor eller blandade upplägg väljer du **Delar av veckor eller blandv
 
 ## 3. Beskriv lärandet och fördela undervisningstiden
 
-Öppna **Ämnesinnehåll och undervisningstid**. Välj ämnesnivåer ur timplanens befintliga rader och beskriv arbetsmomenten. Utgå från ämnesplanens centrala innehåll när du beskriver vad som ska läras på arbetsplatsen. Appens katalog innehåller ännu inte det fullständiga centrala innehållet för en automatisk väljare; arbetsmomenten skrivs manuellt. Ange **Varav APL** i timmar och minuter för varje berörd termin. Visa andra terminer om perioden sträcker sig över flera terminer; redan angivna värden ligger kvar.
+Öppna **Ämnesinnehåll och undervisningstid**. Under **Lägg till kurs** visas bara de ämnesnivåer som har fått APL-tid i timplanen (i äldre underlag: tid i timplanen). Har ingen kurs APL-tid visas en uppmaning att först ange APL-tid i timplanen. Valbara block och andra ospecificerade rader går inte att välja här. Beskriv sedan arbetsmomenten. Utgå från ämnesplanens centrala innehåll när du beskriver vad som ska läras på arbetsplatsen. Appens katalog innehåller ännu inte det fullständiga centrala innehållet för en automatisk väljare; arbetsmomenten skrivs manuellt. Ange **Varav APL** i timmar och minuter för varje berörd termin. Visa andra terminer om perioden sträcker sig över flera terminer; redan angivna värden ligger kvar.
 
 **Exempel:** Fem hela granskade APL-veckor motsvarar 5 × 23 = **115 GUT-timmar**. De kan exempelvis fördelas som 80 timmar på en ämnesnivå och 35 på en annan. Samma period räknas en gång även om flera ämnen ingår. Om timplanens total är 2 625 timmar ingår de 115 där; de ska inte läggas ovanpå så att totalen blir 2 740.
 
