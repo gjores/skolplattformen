@@ -20,7 +20,9 @@ const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"'
 function plain(html: string): string {
   const text = html.replace(/<[^>]*>/g, '').replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (_, e: string) =>
     e[0] === '#' ? String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : Number(e.slice(1))) : ENTITIES[e.toLowerCase()] ?? fail('unknown_entity'));
-  return text.replace(/\s+/g, ' ').trim();
+  // Osynliga formattecken (t.ex. mjukt bindestreck) tas bort och kontrolltecken blir mellanslag,
+  // så att texten klarar APL-planens textregler och visas likadant överallt.
+  return text.replace(/\p{Cf}/gu, '').replace(/\p{Cc}/gu, ' ').replace(/\s+/g, ' ').trim();
 }
 const INTRO = /^Undervisningen\b.*\bcentrala innehåll:?$/u;
 

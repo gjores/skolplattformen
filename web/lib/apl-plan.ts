@@ -9,10 +9,16 @@ import { programplanProfile } from './programplan-profile.ts';
 export const APL_CONTRACT_VERSION = 'structured_v1' as const;
 export const APL_RULE_PROFILE = 'gy25_school_vocational_v1' as const;
 export const APL_LIMITS = { periods: 100, contentsPerPeriod: 200, allocationsPerPeriod: 1200, allocations: 20000,
-  wholeWeeks: 160, gutMinutesPerAllocation: 120000, periodName: 120, description: 2000, confirmations: 1000 } as const;
+  wholeWeeks: 160, gutMinutesPerAllocation: 120000, periodName: 120, description: 2000, confirmations: 1000,
+  centralItems: 100, centralHeading: 300, centralText: 1000, otherContent: 2000 } as const;
 export type AplEducationForm = 'school_based' | 'apprenticeship' | 'unknown';
 export type AplExtent = { basis: 'whole_weeks' | 'mixed_weeks' | 'unknown'; weeks: number | null; reviewed: boolean; reviewNote: string };
-export type AplContent = { rowKey: string; description: string };
+export type AplCentralItem = { itemKey: string; heading: string | null; text: string };
+/** Selected central content points. Text and heading must equal the catalog; the server checks membership. */
+export type AplCentralSelection = { catalogId: string; items: AplCentralItem[] };
+/** central and otherContent are absent (never empty) when unused, so older contents keep their exact hash. */
+export type AplContent = { rowKey: string; description: string; central?: AplCentralSelection; otherContent?: string };
+const SYLLABUS_ROW = /^(?:foundation|programmeSpecific|orientation|specialization):[A-Z0-9]{1,16}:[1-9][0-9]{0,3}:[A-Z0-9]{1,24}$/;
 export type AplAllocation = { rowKey: string; termIndex: number; gutMinutes: number };
 export type AplPeriod = { id: string; name: string; startsOn: string | null; endsOn: string | null; schoolYear: number | null;
   /** Preliminary intent only; absent preserves historical hashes. Never an exact date interval. */
@@ -103,6 +109,30 @@ function parseExtent(value: unknown): AplExtent {
   if (basis !== 'whole_weeks' && (weeks !== null || reviewed) || reviewed && (weeks === null || !reviewNote)) bad();
   return { basis, weeks, reviewed, reviewNote };
 }
+function parseAplContent(value: unknown): AplContent {
+  const has = (key: string) => value !== null && typeof value === 'object' && Object.hasOwn(value, key);
+  const c = gymShape(value, ['rowKey', 'description', ...(has('central') ? ['central'] : []), ...(has('otherContent') ? ['otherContent'] : [])]);
+  const content: AplContent = { rowKey: gymRowKey(c.rowKey), description: text(c.description, APL_LIMITS.description) };
+  if (has('central')) {
+    if (!SYLLABUS_ROW.test(content.rowKey)) bad('central_content_without_level');
+    const central = gymShape(c.central, ['catalogId', 'items']);
+    if (typeof central.catalogId !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(central.catalogId)) bad();
+    const items = unique(gymArray(central.items, APL_LIMITS.centralItems).map(value => {
+      const i = gymShape(value, ['itemKey', 'heading', 'text']);
+      if (typeof i.itemKey !== 'string' || !/^[0-9a-f]{32}$/.test(i.itemKey)) bad();
+      return { itemKey: i.itemKey, heading: i.heading === null ? null : text(i.heading, APL_LIMITS.centralHeading, false), text: text(i.text, APL_LIMITS.centralText, false) };
+    }), i => i.itemKey);
+    if (!items.length) bad();
+    content.central = { catalogId: central.catalogId as string, items };
+  }
+  if (has('otherContent')) content.otherContent = text(c.otherContent, APL_LIMITS.otherContent, false);
+  return content;
+}
+/** Hash entry: exactly [rowKey, description] without selections, matching phase5_apl_content_hash_entry. */
+export function aplContentHashEntry(c: AplContent): AplCanonicalValue {
+  return [c.rowKey, c.description, ...(c.central || c.otherContent !== undefined ? [['apl_content_detail_v1', c.central?.catalogId ?? null,
+    [...(c.central?.items ?? [])].sort((a, b) => ordinal(a.itemKey, b.itemKey)).map(i => [i.itemKey, i.heading, i.text]), c.otherContent ?? null]] : [])];
+}
 export function parseAplPlan(value: unknown): AplPlan {
   return guarded(() => {
     const r = gymShape(value, ['contractVersion', 'educationForm', 'classification', 'periods']);
@@ -112,9 +142,7 @@ export function parseAplPlan(value: unknown): AplPlan {
       const startsOn = nullableDate(p.startsOn), endsOn = nullableDate(p.endsOn);
       if (startsOn !== null && endsOn !== null && startsOn > endsOn) bad('invalid_period_dates');
       const schoolYear = p.schoolYear === null ? null : gymInteger(p.schoolYear, 2100, 2000);
-      const contents = unique(gymArray(p.contents, APL_LIMITS.contentsPerPeriod).map(value => {
-        const c = gymShape(value, ['rowKey', 'description']); return { rowKey: gymRowKey(c.rowKey), description: text(c.description, APL_LIMITS.description) };
-      }), c => c.rowKey);
+      const contents = unique(gymArray(p.contents, APL_LIMITS.contentsPerPeriod).map(parseAplContent), c => c.rowKey);
       const allocations = unique(gymArray(p.allocations, APL_LIMITS.allocationsPerPeriod).map(value => {
         const a = gymShape(value, ['rowKey', 'termIndex', 'gutMinutes']);
         const rowKey = gymRowKey(a.rowKey);
@@ -378,7 +406,7 @@ export function aplPlanCanonicalPayload(value: AplPlan | null): AplCanonicalValu
   return [plan.contractVersion, plan.educationForm, plan.classification,
     [...plan.periods].sort((a, b) => ordinal(a.id, b.id)).map(p => [p.id, p.name, p.startsOn, p.endsOn, p.schoolYear,
       [p.extent.basis, p.extent.weeks, p.extent.reviewed, p.extent.reviewNote],
-      [...p.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(c => [c.rowKey, c.description]),
+      [...p.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(aplContentHashEntry),
       [...p.allocations].sort((a, b) => ordinal(a.rowKey, b.rowKey) || a.termIndex - b.termIndex).map(a => [a.rowKey, a.termIndex, a.gutMinutes]),
       ...(p.plannedTermIndex === undefined ? [] : [['planned_term_v1', p.plannedTermIndex]])])];
 }
@@ -391,7 +419,7 @@ export function aplContentHashPayload(context: AplContext, value: AplPlan | null
     [...plan.rows].sort((a, b) => ordinal(a.key, b.key)).map(row => [row.key, row.points, row.part, row.rowKind, [...row.pointTerms], ...(isGymTimplanV2(plan) ? [[...plan.timeRows[row.key].schoolMinutes], [...plan.timeRows[row.key].annualAplMinutes]] : [[...plan.hours[row.key]]])]),
     aplPlanCanonicalPayload(value),
     [...ctx.copyReview].sort((a, b) => ordinal(a.id, b.id)).map(r => [r.id, r.sourcePlanId, r.sourceVersion, r.sourcePeriodId, r.sourcePeriodName, r.reason,
-      [...r.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(c => [c.rowKey, c.description]),
+      [...r.contents].sort((a, b) => ordinal(a.rowKey, b.rowKey)).map(aplContentHashEntry),
       [...r.allocations].sort((a, b) => ordinal(a.rowKey, b.rowKey) || a.termIndex - b.termIndex).map(a => [a.rowKey, a.termIndex, a.gutMinutes]),
       r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]]),
     ...(isGymTimplanV2(plan) ? [plan.timeCopyReview.map(r => [r.id, r.contractVersion, r.sourcePlanId, r.sourceVersion, r.rowKey, r.reason, [...r.row.schoolMinutes], [...r.row.annualAplMinutes], r.resolution === null ? null : [r.resolution.actorId, r.resolution.assignmentId, r.resolution.at, r.resolution.note]])] : []),

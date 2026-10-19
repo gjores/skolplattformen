@@ -499,3 +499,41 @@ test('organizer review receipt must bind its exact event, content, comment and t
     const broken = structuredClone(reply); mutate(broken); invalid(() => call('parseAplCommandReply', broken, q));
   }
 });
+
+const bygg = (await import('node:fs')).readFileSync(new URL('./syllabus-central/BYGG-1.json', import.meta.url), 'utf8');
+const byggLevel = JSON.parse(bygg).levels.find(l => l.code === 'BYGG1000X');
+const centralIndex = JSON.parse((await import('node:fs')).readFileSync(new URL('./syllabus-central.index.json', import.meta.url), 'utf8'));
+const pick = (n = 2) => byggLevel.sections.flatMap(s => s.items.map(i => ({ itemKey: i.key, heading: s.heading, text: i.text }))).slice(0, n);
+const withCentral = (extra = {}) => { const value = plan();
+  value.periods[0].contents[0] = { ...value.periods[0].contents[0], central: { catalogId: centralIndex.catalogId, items: pick() }, otherContent: 'Säkerhetsgenomgång med handledare.', ...extra };
+  return value; };
+
+test('centralt innehåll och övrigt innehåll tolkas och påverkar hash, utan att ändra gamla poster', async () => {
+  const old = call('parseAplPlan', plan()), next = call('parseAplPlan', withCentral());
+  assert.deepEqual(next.periods[0].contents[1], old.periods[0].contents[1]);
+  assert.deepEqual(call('aplContentHashEntry', old.periods[0].contents[0]), [keyA, 'Arbetsmoment A']);
+  const entry = call('aplContentHashEntry', next.periods[0].contents[0]);
+  assert.equal(entry[2][0], 'apl_content_detail_v1');
+  assert.deepEqual(entry[2][2].map(i => i[0]), [...pick().map(i => i.itemKey)].sort());
+  assert.equal(await call('aplContentHash', context(), old), 'sha256:712b6f8b5c78706128cda90bcb56d3d5c9fa11329d38f5073f3c9d574a371907');
+  const hash = await call('aplContentHash', context(), next);
+  assert.notEqual(hash, await call('aplContentHash', context(), old));
+  const reordered = withCentral(); reordered.periods[0].contents[0].central.items.reverse();
+  assert.equal(await call('aplContentHash', context(), call('parseAplPlan', reordered)), hash, 'punktordning påverkar inte hash');
+  const onlyOther = plan(); onlyOther.periods[0].contents[0].otherContent = 'Övrigt.';
+  assert.notEqual(await call('aplContentHash', context(), call('parseAplPlan', onlyOther)), await call('aplContentHash', context(), old));
+  assert.equal(call('aplMutationEffect', old, next, 'save').changed, true);
+});
+
+test('val av centralt innehåll nekar tomma, dubblerade, felformade och nivålösa poster', () => {
+  invalid(() => call('parseAplPlan', withCentral({ otherContent: '' })));
+  invalid(() => call('parseAplPlan', withCentral({ central: { catalogId: centralIndex.catalogId, items: [] } })));
+  invalid(() => call('parseAplPlan', withCentral({ central: { catalogId: centralIndex.catalogId, items: [pick(1)[0], pick(1)[0]] } })));
+  invalid(() => call('parseAplPlan', withCentral({ central: { catalogId: 'sha256:x', items: pick() } })));
+  invalid(() => call('parseAplPlan', withCentral({ central: { catalogId: centralIndex.catalogId, items: [{ ...pick(1)[0], itemKey: 'A'.repeat(32) }] } })));
+  invalid(() => call('parseAplPlan', withCentral({ central: { catalogId: centralIndex.catalogId, items: [{ ...pick(1)[0], text: ' mellanslag' }] } })));
+  invalid(() => call('parseAplPlan', withCentral({ central: { catalogId: centralIndex.catalogId, items: pick(), extra: 1 } })));
+  invalid(() => call('parseAplPlan', withCentral({ unknown: 1 })));
+  const block = withCentral(); block.periods[0].contents[0].rowKey = 'block:extra'; block.periods[0].allocations = [];
+  assert.throws(() => call('parseAplPlan', block));
+});

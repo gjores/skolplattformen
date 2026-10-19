@@ -20,6 +20,7 @@ test('vanlig <p>, trasig <em> och inledning i <h4>/<h5> eller <span>', () => {
     [['Ritningar och modellering', ['Skisser.']], ['Fysikens arbetsmetoder', ['Mätning.']]]);
   assert.deepEqual(sections('<p><span style="font-size: 1.125rem;">Undervisningen i ämnet finsnickeri – teknik på nivå 4 ska behandla följande centrala innehåll:</span></p><ul><li>Fogar.</li></ul>'), [[null, ['Fogar.']]]);
   assert.deepEqual(sections('<p>Undervisningen på nivå 1 ska behandla följande centrala innehåll:</p>'), []);
+  assert.deepEqual(sections('<ul><li>gods\u00adhantering\u200b och\u0007 metoder</li></ul>'), [[null, ['godshantering och metoder']]]);
 });
 
 test('text utanför block, nästlad lista och okänd entitet avbryter tolkningen', () => {
@@ -61,6 +62,8 @@ test('genererad katalog: index, filer, nycklar och katalog-ID stämmer', async (
       for (const section of l.sections) for (const item of section.items) {
         const same = JSON.stringify([section.heading, item.text]), n = counts.get(same) ?? 0; counts.set(same, n + 1);
         assert.equal(item.key, await centralItemKey(s.code, s.version, l.code, section.heading, item.text, n));
+        for (const value of [item.text, section.heading ?? 'x'])
+          assert.ok(!/[\p{Cc}\p{Cf}\p{Cs}]/u.test(value) && value === value.trim() && [...value].length <= 1000, `${s.code} ${value}`);
       }
     }
   }

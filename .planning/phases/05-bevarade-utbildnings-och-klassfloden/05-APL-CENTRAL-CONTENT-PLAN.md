@@ -55,9 +55,28 @@ Baslinje: SS 12000:2024 utgåva 4 / OpenAPI 2.1.0. Referensen ämne/version/niv�
 ## Resultat våg 1 (2026-10-19)
 
 - `scripts/fetch-syllabus-central.mjs` hämtar exakt version via `/subjects/{kod}/versions/{version}`. Verifierat: ANAT v1 och v2 skiljer sig, och `?version=` ignoreras av API:et. Skolverkets nätfilter bryter alla sökvägar med `/PROC/`, så skriptet faller då tillbaka till aktuell version och godtar bara exakt efterfrågad version. För PROC är version 2 aktuell.
-- Katalogen omfattar 569 ämnesversioner, 1 113 nivåer och 18 051 punkter. Alla 18 052 `<li>` i källan är redovisade; den enda tomma är STAS nivå 1. Nivån ATVO1000X saknar punkter i källan. Katalog-ID: `sha256:87767f66e0b08c15a5829ae86a582d37958782f093ae23180be00ee78ed56b73`, API 1.16.2-SNAPSHOT, hämtad 2026-10-19. Omkörning ger samma ID.
+- Katalogen omfattar 569 ämnesversioner, 1 113 nivåer och 18 051 punkter. Alla 18 052 `<li>` i källan är redovisade; den enda tomma är STAS nivå 1. Nivån ATVO1000X saknar punkter i källan. Katalog-ID (efter våg 2-rättning nedan): `sha256:c494f387655644b97bb0c4e97cc87abba57fa8c006d1b26d8d52b51b415b28ec`, API 1.16.2-SNAPSHOT, hämtad 2026-10-19. Omkörning ger samma ID.
 - Tolkaren (`lib/syllabus-central.ts`) avbryter om text hamnar utanför rubrik, punkt eller inledning. Rubriker kan ligga i `<p><em>`, `<p><strong>`, vanlig `<p>` eller trasig `<em>`; inledningen kan ligga i `<p>`, `<h4>`, `<h5>` eller `<span>`.
 - Avvikelse från kontraktet: Skolverket upprepar sex punkter inom samma nivå, oftast under olika rubriker (DJUR, KULT, MOTO, VENI). Punktnyckeln (32 hex av sha256) binds därför till ämne, version, nivå, **rubrik**, text och förekomst.
-- Seed: `supabase/generated/syllabus_central_content_seed.sql` (4,6 MB) har en katalograd och 18 051 punktrader. Den laddades felfritt i ett tillfälligt PostgreSQL 14-kluster med utkasttabeller och gav rätt antal. Seeden är ännu ingen migration; våg 2 lägger in den efter tabellerna. `--check` skyddar mot avvikelse.
+- Seed: en katalograd och 18 051 punktrader (4,6 MB), först provladdad i ett tillfälligt PostgreSQL 14-kluster. I våg 2 flyttades den till migrationen `20261019100100_apl_central_content_seed.sql` med antalskontroll. `--check` skyddar mot avvikelse.
 - `lib/syllabus-central-load.ts` laddar en ämnesversion i taget via `import.meta.glob`. Den används först i våg 3 och är ännu inte prövad i ett bygge.
 - Kontroller: nod 10/10 (tolkning, nycklar, radnyckel, katalogintegritet, seed) och hela `lib/*.test.mjs` 772/772. `tsc` och `oxlint` utan fel. Ingen databas, server eller UI är ändrad.
+
+## Resultat våg 2 (2026-10-19)
+
+Fastställt kontrakt: en innehållspost är `{ rowKey, description, central?: { catalogId, items: [{ itemKey, heading, text }] }, otherContent? }`. Valfria fält saknas helt när de inte används, aldrig tomma. Fältet `central` tillåts bara på fasta ämnesnivåer (`part:ÄMNE:VERSION:NIVÅ`) och rymmer 1–100 unika punkter.
+
+- Migration `20261019100000_apl_central_content.sql`:
+  - Tabellerna `syllabus_central_catalogs` och `syllabus_central_items` är oföränderliga genom trigger och har inga rättigheter för någon roll.
+  - `apl_period_contents` får `other_content` och `central_catalog_id`.
+  - Ny tabell `apl_content_central_items` med ämneskod, version och nivå, kontroll mot radnyckeln och främmande nyckel till både innehållsposten (kaskad) och katalogpunkten. Den skyddas av samma APL-skrivskydd.
+  - Ny gemensam skrivväg `phase5_apl_insert_content`, som kräver exakt katalogtext och rubrik.
+  - Nya versioner av tolkning, värde, hash, kommando och kopiering. Hashposten är oförändrad `[rowKey, description]` utan val; med val läggs `apl_content_detail_v1` till med punkter i nyckelordning.
+- Seed-migration `20261019100100_apl_central_content_seed.sql`.
+- Rättning: Skolverkets text innehöll osynliga formattecken, till exempel mjukt bindestreck, i sex punkter, och APL-textreglerna nekar sådana. Tolkaren tar nu bort `\p{Cf}`, och katalogen genererades om. Nodtestet prövar att alla punkter klarar textreglerna.
+- Klient: `lib/apl-plan.ts` har samma tolkning och hashpost (`aplContentHashEntry`). Server-TS (`lib/server/apl-plan.ts`) behövde ingen ändring.
+- Kontroller:
+  - `work/pilot/verify-apl-central-content.mjs` gav **PASS 26** i egen schemakopia med syntetiska data. Där prövades återrullning till exakt schema och rader, bevarade originalrader vid installation, exakt katalogantal, privata tabeller och funktioner samt att frysta hashvektorer före utökningen är oförändrade i SQL.
+  - Samma prov täckte gammal form oförändrad, val och övrigt innehåll med TS-verifierad hash, nekad ändrad text, rubrik, annan nivå, okänd nyckel, okänd katalog, dubbletter och tomma fält, nekade direkta skrivningar och katalogändringar, att ändrat val bryter rektorsbekräftelsens hash, att borttagna val återställer exakt tidigare hash, sparning via Worker-rollen och kopiering till ny timplan med valen bevarade.
+  - Nod 774 + 344, `tsc`, `oxlint` och `npm run build` gav PASS.
+- Inte prövat: kopieringsbortfall (granskningspost) som innehåller val; tolkningen och hashen täcker formen, men inget SQL-fall skapar ett sådant bortfall. Ingen installation i aktiv databas, ingen HTTP/OIDC och inget UI. Våg 3 och 4 återstår.

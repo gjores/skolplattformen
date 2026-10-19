@@ -5,9 +5,8 @@ import { centralCatalogId } from '../lib/syllabus-central.ts';
 
 const indexFile = new URL('../lib/syllabus-central.index.json', import.meta.url);
 const subjectDir = new URL('../lib/syllabus-central/', import.meta.url);
-// Tabellerna skapas i APL-CENTRAL-CONTENT våg 2. Där läggs denna seed in i en migration
-// med senare tidsstämpel än tabellerna; filen här är inte själv en migration.
-const defaultOutput = new URL('../../supabase/generated/syllabus_central_content_seed.sql', import.meta.url);
+// Tabellerna skapas i 20261019100000_apl_central_content.sql; seeden måste komma efter.
+const defaultOutput = new URL('../../supabase/migrations/20261019100100_apl_central_content_seed.sql', import.meta.url);
 const CHUNK = 500;
 
 const literal = value => value === null ? 'null' : typeof value === 'number' ? String(value)
@@ -31,6 +30,12 @@ export async function createSyllabusCentralSql(index, subjects) {
     out.push('insert into public.syllabus_central_items(catalog_id,subject_code,subject_version,level_code,section_ordinal,heading,item_ordinal,item_key,text) values');
     out.push(rows.slice(i, i + CHUNK).map(r => `(${r.map(literal).join(',')})`).join(',\n') + ';');
   }
+  out.push('do $$ begin',
+    ` if (select count(*) from public.syllabus_central_items where catalog_id=${literal(index.catalogId)})<>${rows.length}`,
+    ` or (select count(distinct (subject_code,subject_version,level_code)) from public.syllabus_central_items where catalog_id=${literal(index.catalogId)})<>${levels - ordered.reduce((n, s) => n + s.levels.filter(l => !l.sections.length).length, 0)} then`,
+    "  raise exception 'Katalogen för centralt innehåll är ofullständig.';",
+    ' end if;',
+    'end $$;');
   return `${out.join('\n')}\n`;
 }
 
