@@ -1,0 +1,226 @@
+{
+  "kind": "tjanst-canonical-hash-vectors",
+  "version": 1,
+  "note": "Syntetiska värden. TS (web/lib/tjanst-contract.ts) och SQL (tjanst_canonical/tjanst_hash) ska ge samma sha256.",
+  "vectors": [
+    {
+      "name": "tom payload",
+      "input": [
+        "tjanst_payload_v1",
+        "discard_draft",
+        {}
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s13:discard_drafto0:",
+      "sha256": "sha256:54a357269f050129580df5e03b92769cb4ad3e10bb3915565fa807af67788a2c"
+    },
+    {
+      "name": "save_row",
+      "input": [
+        "tjanst_payload_v1",
+        "save_row",
+        {
+          "rowId": null,
+          "sourceKind": "class_timplan",
+          "sourceKey": "class_timplan:51a10000-0000-4000-8000-000000000010:2026:programmeSpecific:BYGG:1:BYGG1000X",
+          "personId": "51a10000-0000-4000-8000-000000000020",
+          "teacherHt": 3000,
+          "teacherVt": 3000,
+          "comment": ""
+        }
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s8:save_rowo7:s7:comments0:s8:personIds36:51a10000-0000-4000-8000-000000000020s5:rowIdns9:sourceKeys90:class_timplan:51a10000-0000-4000-8000-000000000010:2026:programmeSpecific:BYGG:1:BYGG1000Xs10:sourceKinds13:class_timplans9:teacherHti3000;s9:teacherVti3000;",
+      "sha256": "sha256:9d5abd45237c20fb39f3fdfe51b09e22c4cbb84f6886f0e70a735d63c2799223"
+    },
+    {
+      "name": "unicode i kommentar",
+      "input": [
+        "tjanst_payload_v1",
+        "save_row",
+        {
+          "rowId": "51a10000-0000-4000-8000-000000000030",
+          "sourceKind": "class_timplan",
+          "sourceKey": "class_timplan:51a10000-0000-4000-8000-000000000010:2026:programmeSpecific:BYGG:1:BYGG1000X",
+          "personId": null,
+          "teacherHt": 0,
+          "teacherVt": 2700,
+          "comment": "Åsa och Örjan läser tillsammans – vecka 3 ✓"
+        }
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s8:save_rowo7:s7:comments50:Åsa och Örjan läser tillsammans – vecka 3 ✓s8:personIdns5:rowIds36:51a10000-0000-4000-8000-000000000030s9:sourceKeys90:class_timplan:51a10000-0000-4000-8000-000000000010:2026:programmeSpecific:BYGG:1:BYGG1000Xs10:sourceKinds13:class_timplans9:teacherHti0;s9:teacherVti2700;",
+      "sha256": "sha256:6dbad65bbeca92e47526beec5c5a4a7260296e67ee2b9d53e87f5ed3a327a740"
+    },
+    {
+      "name": "nycklar i omvänd ordning",
+      "input": [
+        "tjanst_payload_v1",
+        "save_row",
+        {
+          "comment": "",
+          "teacherVt": 3000,
+          "teacherHt": 3000,
+          "personId": "51a10000-0000-4000-8000-000000000020",
+          "sourceKey": "class_timplan:51a10000-0000-4000-8000-000000000010:2026:programmeSpecific:BYGG:1:BYGG1000X",
+          "sourceKind": "class_timplan",
+          "rowId": null
+        }
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s8:save_rowo7:s7:comments0:s8:personIds36:51a10000-0000-4000-8000-000000000020s5:rowIdns9:sourceKeys90:class_timplan:51a10000-0000-4000-8000-000000000010:2026:programmeSpecific:BYGG:1:BYGG1000Xs10:sourceKinds13:class_timplans9:teacherHti3000;s9:teacherVti3000;",
+      "sha256": "sha256:9d5abd45237c20fb39f3fdfe51b09e22c4cbb84f6886f0e70a735d63c2799223"
+    },
+    {
+      "name": "publish med expectedContentHash",
+      "input": {
+        "commandId": "51a10000-0000-4000-8000-000000000040",
+        "unitId": "51a10000-0000-4000-8000-000000000001",
+        "schoolYear": 2026,
+        "action": "publish",
+        "expectedRevision": 7,
+        "payloadHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "payload": {},
+        "expectedContentHash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "canonical": "o8:s6:actions7:publishs9:commandIds36:51a10000-0000-4000-8000-000000000040s19:expectedContentHashs71:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbs16:expectedRevisioni7;s7:payloado0:s11:payloadHashs71:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaas10:schoolYeari2026;s6:unitIds36:51a10000-0000-4000-8000-000000000001",
+      "sha256": "sha256:2f094489de6fd79b6fb4590acbe38b1d66f38de33a4d922e58692c26d02810f2"
+    },
+    {
+      "name": "create_draft från publicerad version",
+      "input": [
+        "tjanst_payload_v1",
+        "create_draft",
+        {
+          "basedOnVersionId": "51a10000-0000-4000-8000-000000000050"
+        }
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s12:create_drafto1:s16:basedOnVersionIds36:51a10000-0000-4000-8000-000000000050",
+      "sha256": "sha256:9fc1fe85b02f66c1ccb5fb83f7a5780ea92b51a44c18870764aefa6e51f3d76a"
+    },
+    {
+      "name": "save_special mentor",
+      "input": [
+        "tjanst_payload_v1",
+        "save_special",
+        {
+          "specialId": null,
+          "kind": "mentor",
+          "label": "Mentor 7A",
+          "personId": "51a10000-0000-4000-8000-000000000020",
+          "classId": "51a10000-0000-4000-8000-000000000010",
+          "ht": 1200,
+          "vt": 1200,
+          "comment": ""
+        }
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s12:save_specialo8:s7:classIds36:51a10000-0000-4000-8000-000000000010s7:comments0:s2:hti1200;s4:kinds6:mentors5:labels9:Mentor 7As8:personIds36:51a10000-0000-4000-8000-000000000020s9:specialIdns2:vti1200;",
+      "sha256": "sha256:fdb438a0c84ca936d85885ddc6dd18e2d3e0545f903d90c74bb822ca58664968"
+    },
+    {
+      "name": "save_joint två klasser",
+      "input": [
+        "tjanst_payload_v1",
+        "save_joint",
+        {
+          "jointId": null,
+          "name": "Samläsning BYGG1000X",
+          "rowIds": [
+            "51a10000-0000-4000-8000-000000000031",
+            "51a10000-0000-4000-8000-000000000032"
+          ],
+          "teachers": [
+            {
+              "personId": "51a10000-0000-4000-8000-000000000020",
+              "ht": 1800,
+              "vt": 1800
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s17:tjanst_payload_v1s10:save_jointo4:s7:jointIdns4:names21:Samläsning BYGG1000Xs6:rowIdsa2:s36:51a10000-0000-4000-8000-000000000031s36:51a10000-0000-4000-8000-000000000032s8:teachersa1:o3:s2:hti1800;s8:personIds36:51a10000-0000-4000-8000-000000000020s2:vti1800;",
+      "sha256": "sha256:d8c8ef8dbcb969c088c490379ddf72a04b7a1316d8e34b28d61452fda71b1024"
+    },
+    {
+      "name": "personal create_person",
+      "input": [
+        "tjanst_personal_v1",
+        "create_person",
+        {
+          "givenName": "Syntetisk",
+          "familyName": "Lärare",
+          "externalId": null,
+          "externalIdSource": null
+        }
+      ],
+      "canonical": "a3:s18:tjanst_personal_v1s13:create_persono4:s10:externalIdns16:externalIdSourcens10:familyNames7:Lärares9:givenNames9:Syntetisk",
+      "sha256": "sha256:049a69a26ac06929cf4e3e57303a024d90008e947b1a1583d861fed40fc6bfe5"
+    },
+    {
+      "name": "personal save_duties 60+40",
+      "input": [
+        "tjanst_personal_v1",
+        "save_duties",
+        {
+          "personId": "51a10000-0000-4000-8000-000000000020",
+          "employmentId": "51a10000-0000-4000-8000-000000000060",
+          "duties": [
+            {
+              "dutyId": null,
+              "unitId": "51a10000-0000-4000-8000-000000000001",
+              "percent": 60,
+              "startsOn": "2026-08-01",
+              "endsOn": null
+            },
+            {
+              "dutyId": null,
+              "unitId": "51a10000-0000-4000-8000-000000000002",
+              "percent": 40,
+              "startsOn": "2026-08-01",
+              "endsOn": null
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s18:tjanst_personal_v1s11:save_dutieso3:s6:dutiesa2:o5:s6:dutyIdns6:endsOnns7:percenti60;s8:startsOns10:2026-08-01s6:unitIds36:51a10000-0000-4000-8000-000000000001o5:s6:dutyIdns6:endsOnns7:percenti40;s8:startsOns10:2026-08-01s6:unitIds36:51a10000-0000-4000-8000-000000000002s12:employmentIds36:51a10000-0000-4000-8000-000000000060s8:personIds36:51a10000-0000-4000-8000-000000000020",
+      "sha256": "sha256:2ccbba9f2fdbac567ee1339c3fde19965bb241f623ac2f6a97ace9d359dcf81d"
+    },
+    {
+      "name": "self ack",
+      "input": [
+        "tjanst_self_v1",
+        "ack",
+        {
+          "versionId": "51a10000-0000-4000-8000-000000000070"
+        }
+      ],
+      "canonical": "a3:s14:tjanst_self_v1s3:acko1:s9:versionIds36:51a10000-0000-4000-8000-000000000070",
+      "sha256": "sha256:f36e81bd11be0dabd4cd059d7c0053759d819caceee1a14f2acbe11315b12536"
+    },
+    {
+      "name": "self comment med radbrytningsfri unicode",
+      "input": [
+        "tjanst_self_v1",
+        "comment",
+        {
+          "versionId": "51a10000-0000-4000-8000-000000000070",
+          "body": "Jag vill gärna ha mentorskapet i 8B i stället – 😊"
+        }
+      ],
+      "canonical": "a3:s14:tjanst_self_v1s7:commento2:s4:bodys56:Jag vill gärna ha mentorskapet i 8B i stället – 😊s9:versionIds36:51a10000-0000-4000-8000-000000000070",
+      "sha256": "sha256:1cf33afdbd30b2955b2986baba0d29fcb85362a1b560c0f9539ab704d8f54be4"
+    },
+    {
+      "name": "negativa heltal, booleska värden och null",
+      "input": [
+        -5,
+        0,
+        true,
+        false,
+        null,
+        [],
+        [
+          ""
+        ]
+      ],
+      "canonical": "a7:i-5;i0;tfna0:a1:s0:",
+      "sha256": "sha256:e8d1929746c0b3dd14db1acc19d2d929417117aaeadafc4ad78c994927dc3f7b"
+    }
+  ]
+}
