@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: APL-CENTRAL-CONTENT
-status: planned
+status: in_progress
 type: execute
 autonomous: true
 ---
@@ -51,3 +51,13 @@ Baslinje: SS 12000:2024 utgåva 4 / OpenAPI 2.1.0. Referensen ämne/version/niv�
 ## Öppna frågor
 
 - Om **Arbetsmoment** och **Övrigt innehåll** upplevs som dubbla fält kan de slås ihop efter användarprov. Planen behåller båda så att sparade arbetsmoment inte ändrar betydelse.
+
+## Resultat våg 1 (2026-10-19)
+
+- `scripts/fetch-syllabus-central.mjs` hämtar exakt version via `/subjects/{kod}/versions/{version}`. Verifierat: ANAT v1 och v2 skiljer sig, och `?version=` ignoreras av API:et. Skolverkets nätfilter bryter alla sökvägar med `/PROC/`, så skriptet faller då tillbaka till aktuell version och godtar bara exakt efterfrågad version. För PROC är version 2 aktuell.
+- Katalogen omfattar 569 ämnesversioner, 1 113 nivåer och 18 051 punkter. Alla 18 052 `<li>` i källan är redovisade; den enda tomma är STAS nivå 1. Nivån ATVO1000X saknar punkter i källan. Katalog-ID: `sha256:87767f66e0b08c15a5829ae86a582d37958782f093ae23180be00ee78ed56b73`, API 1.16.2-SNAPSHOT, hämtad 2026-10-19. Omkörning ger samma ID.
+- Tolkaren (`lib/syllabus-central.ts`) avbryter om text hamnar utanför rubrik, punkt eller inledning. Rubriker kan ligga i `<p><em>`, `<p><strong>`, vanlig `<p>` eller trasig `<em>`; inledningen kan ligga i `<p>`, `<h4>`, `<h5>` eller `<span>`.
+- Avvikelse från kontraktet: Skolverket upprepar sex punkter inom samma nivå, oftast under olika rubriker (DJUR, KULT, MOTO, VENI). Punktnyckeln (32 hex av sha256) binds därför till ämne, version, nivå, **rubrik**, text och förekomst.
+- Seed: `supabase/generated/syllabus_central_content_seed.sql` (4,6 MB) har en katalograd och 18 051 punktrader. Den laddades felfritt i ett tillfälligt PostgreSQL 14-kluster med utkasttabeller och gav rätt antal. Seeden är ännu ingen migration; våg 2 lägger in den efter tabellerna. `--check` skyddar mot avvikelse.
+- `lib/syllabus-central-load.ts` laddar en ämnesversion i taget via `import.meta.glob`. Den används först i våg 3 och är ännu inte prövad i ett bygge.
+- Kontroller: nod 10/10 (tolkning, nycklar, radnyckel, katalogintegritet, seed) och hela `lib/*.test.mjs` 772/772. `tsc` och `oxlint` utan fel. Ingen databas, server eller UI är ändrad.

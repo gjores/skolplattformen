@@ -5,8 +5,8 @@
 //
 // Ögonblicksbilden versioneras i projektet med avsikt. Informationsmodellen
 // kräver att ett underlag går att återfinna i den version som användes, och ett
-// direktanrop vid varje sidvisning uppfyller inte det. Fulltext för centralt
-// innehåll och betygskriterier hämtas inte här; den hör till ett senare steg.
+// direktanrop vid varje sidvisning uppfyller inte det. Centralt innehåll hämtas
+// av fetch-syllabus-central.mjs; betygskriterier hämtas inte.
 
 import { writeFile } from 'node:fs/promises';
 

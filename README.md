@@ -58,6 +58,14 @@ cd web
 node scripts/fetch-syllabus.mjs
 ```
 
+Centralt innehåll per ämnesnivå hämtas för exakt de ämnesversioner som programplanskatalogen refererar till. Det skrivs till `web/lib/syllabus-central/` med index och katalog-ID. Seed-SQL för servern byggs därefter:
+
+```sh
+cd web
+node scripts/fetch-syllabus-central.mjs --cache /tmp/syllabus-raw
+node scripts/build-syllabus-central-sql.mjs
+```
+
 ## Omfattning
 
 Följande beskrivning är historik från arbetsversionen före fas 1. Den beskriver inte dagens skyddade datavägar. Aktuella användarflöden och begränsningar beskrivs i [handboken](docs/handbok/intro.md) och [pilotens kontoåtkomst](docs/pilot/account-access.md).
