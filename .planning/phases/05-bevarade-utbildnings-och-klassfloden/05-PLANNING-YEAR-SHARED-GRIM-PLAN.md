@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: PLANNING-YEAR-SHARED-GRIM
-status: sql_rollback_pass_awaiting_install_approval
+status: delivered_local_synthetic
 created: 2026-10-19
 depends_on: PLANNING-BROWSER-FIXES (517f1b8)
 ---
@@ -81,7 +81,7 @@ Köraren [verify-planning-year-shared-grim.mjs](../../../work/pilot/verify-plann
 
 1. **Klart:** migrationen, SQL-provet och köraren är skrivna. `diff` visar att funktionskroppen bara skiljer sig på scope-raden och kommentaren.
 2. **Klart, godkänt 2026-10-19 ("ja gör så"):** migrationen och SQL-provet kördes mot den skyddade lokala pilotdatabasen i en transaktion som rullades tillbaka. Ingen ändring består.
-3. **Kräver separat godkännande:** installera migrationen i den skyddade lokala pilotdatabasen. Lägg till tillägget i fall 11 och uppdatera klientkommentaren (`protected-timplan-workspace.tsx:104`) och handboken. Kör webbläsarproven och byt därefter appen på 3012.
+3. **Klart, godkänt 2026-10-19:** installera migrationen i den skyddade lokala pilotdatabasen. Lägg till tillägget i fall 11 och uppdatera klientkommentaren (`protected-timplan-workspace.tsx:104`) och handboken. Kör webbläsarproven och byt därefter appen på 3012.
 
 Klart när: alla SQL-fall PASS i isolerad körning, webbläsarproven gröna på dator och telefon, handboken uppdaterad och STATE noterad. Det är lokalt syntetiskt bevis, inget pilot- eller IdP-bevis.
 
@@ -104,3 +104,42 @@ Två tidigare körningar föll på provfel, inte på produktfel:
 Båda rättades i provet. Inget av dem räknas som PASS.
 
 Detta är lokalt syntetiskt bevis. Migrationen är inte installerad, och inga webbläsarprov är körda för ändringen.
+
+## Resultat 2026-10-19: installation och leverans
+
+Godkänt av användaren: installation i den skyddade lokala databasen, tillägg i fall 11, ändrad kommentar och handbok, webbläsarprov och byte på 3012.
+
+**Installation.** `node work/pilot/verify-planning-year-shared-grim.mjs --apply` gav PASS på alla 14 kontroller. Köraren upprepade först hela rollback-provet med 22/22. Därefter installerades migrationen i en egen transaktion med advisory lock och registrerades i `supabase_migrations.schema_migrations`. Låstiden före commit var 22 ms.
+
+Efter installationen är det bara `phase5_planning_year_rows` som har ändrats. ACL:en är oförändrad, liksom raderna i offerings, offering_units, timplans, timplan_cells, class_timplans och mandate_units. Rapporten ligger i sessionens scratchpad som `apply1.json`, SHA256 `03a07d1ee81e75de8273dcfdab7bda13c2cc217cc7938e81e6487b8f6256bee4`.
+
+**Bygge.** Bygget gjordes i skyddat läge från ae6c52e. Webbläsarproven kördes sekventiellt på port 3056, på dator och telefon:
+
+| Svit | Resultat | Kommentar |
+| --- | --- | --- |
+| phase5-timplan | 22/22 | Fall 11 visar nu skola 31:s egen plan i årslistan och ingen rad från skola 30. |
+| phase5-gym-timplan | 26/26 | |
+| phase5-programplan | 40/40 | |
+
+Övriga kontroller:
+
+- `node --test lib/*.test.mjs` gav 774/774.
+- `npx tsc --noEmit` och `npm run docs:build` gick igenom.
+- `npx oxlint app lib` gav 2 fel i `web/lib/apl-plan.test.mjs:517`. Felen kommer från APL-sessionens 0d46b4b och rör inte den här ändringen.
+
+**Ej körda: phase5-planning-year (context, lists, gym, other).** Sviterna stoppar före första fallet, med `APPROVED_PHASE_SOURCE_REQUIRED` och `--max-failures=1`. De är bundna till en godkänd källrevision och en faktisk release-rapport från 05-43-kedjan. Jag tillverkade inga sådana bevis, så sviterna räknas inte som PASS.
+
+**3012.** Före bytet gav sidans stilmallar och skript 500. `web/dist-protected` hade byggts om på plats kl. 08:18 (517f1b8) för proven på 3056, medan processen på 3012 fortfarande körde 7102cf8. Det gamla 7102cf8-bygget fanns därför inte längre kvar att återgå till.
+
+3056 och 3012 stoppades och 3012 startades på ae6c52e. Hälsokontrollen visar `skolplattform_worker`/`workerd`, och stilmallar och skript ger 200.
+
+Leveransen innehåller också tidigare olevererade commits efter 7102cf8:
+
+- 5e9f336: enklare layout.
+- 517f1b8: rättningar i planeringsvyerna.
+- c6781e8: APL-kursurval.
+- 09cf048 och 0d46b4b: APL-katalog och valfria fält för centralt innehåll. App-delen är bakåtkompatibel, och APL-migrationerna 20261019100000/100100 är inte installerade.
+
+Ingen inloggning med riktig IdP eller OIDC gjordes på 3012 efter bytet.
+
+Detta är lokalt syntetiskt bevis. Varken pilotacceptans, mänsklig begriplighetsbedömning eller verkligt informationsutbyte är verifierat.
