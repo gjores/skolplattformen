@@ -514,7 +514,7 @@ test('centralt innehåll och övrigt innehåll tolkas och påverkar hash, utan a
   assert.deepEqual(call('aplContentHashEntry', old.periods[0].contents[0]), [keyA, 'Arbetsmoment A']);
   const entry = call('aplContentHashEntry', next.periods[0].contents[0]);
   assert.equal(entry[2][0], 'apl_content_detail_v1');
-  assert.deepEqual(entry[2][2].map(i => i[0]), [...pick().map(i => i.itemKey)].sort());
+  assert.deepEqual(entry[2][2].map(i => i[0]), pick().map(i => i.itemKey).sort((x, y) => x < y ? -1 : 1));
   assert.equal(await call('aplContentHash', context(), old), 'sha256:712b6f8b5c78706128cda90bcb56d3d5c9fa11329d38f5073f3c9d574a371907');
   const hash = await call('aplContentHash', context(), next);
   assert.notEqual(hash, await call('aplContentHash', context(), old));

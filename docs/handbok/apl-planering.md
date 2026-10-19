@@ -58,7 +58,11 @@ För delveckor eller blandade upplägg väljer du **Delar av veckor eller blandv
 
 ## 3. Beskriv lärandet och fördela undervisningstiden
 
-Öppna **Ämnesinnehåll och undervisningstid**. Under **Lägg till kurs** visas bara de ämnesnivåer som har fått APL-tid i timplanen (i äldre underlag: tid i timplanen). Har ingen kurs APL-tid visas en uppmaning att först ange APL-tid i timplanen. Valbara block och andra ospecificerade rader går inte att välja här. Beskriv sedan arbetsmomenten. Utgå från ämnesplanens centrala innehåll när du beskriver vad som ska läras på arbetsplatsen. Appens katalog innehåller ännu inte det fullständiga centrala innehållet för en automatisk väljare; arbetsmomenten skrivs manuellt. Ange **Varav APL** i timmar och minuter för varje berörd termin. Visa andra terminer om perioden sträcker sig över flera terminer; redan angivna värden ligger kvar.
+Öppna **Ämnesinnehåll och undervisningstid**. Under **Lägg till kurs** visas bara de ämnesnivåer som har fått APL-tid i timplanen (i äldre underlag: tid i timplanen). Har ingen kurs APL-tid visas en uppmaning att först ange APL-tid i timplanen. Valbara block och andra ospecificerade rader går inte att välja här. Under varje vald kurs öppnar du **Centralt innehåll** och kryssar i de delar av ämnesplanens centrala innehåll som eleven ska arbeta med på arbetsplatsen. Rubriken visar hur många punkter som är valda. Punkterna kommer från en daterad kopia av Skolverkets ämnesplaner för exakt den ämnesversion och nivå som timplanen bygger på. Texten kan inte ändras i appen; servern godtar bara punkter som finns i den kopian. Om appen saknar centralt innehåll för en nivå visas det, och då beskriver du innehållet med text.
+
+Beskriv sedan i **Arbetsmoment** vad eleven ska göra. Annat som ingår utöver ämnesplanen, till exempel säkerhetsintroduktion eller branschkort, skriver du i **Övrigt innehåll**. Båda fälten rymmer 2 000 tecken. Om du tar bort kursen ur perioden tas även dess val bort. Valt centralt innehåll, arbetsmoment och övrigt innehåll visas i granskningen före sparande, i underlaget och för huvudmannen. Ändrade val gör en tidigare rektorsbekräftelse inaktuell. Vid kopiering till en ny timplan följer valen med när kursen finns kvar med samma ämnesversion.
+
+Ange **Varav APL** i timmar och minuter för varje berörd termin. Visa andra terminer om perioden sträcker sig över flera terminer; redan angivna värden ligger kvar.
 
 **Exempel:** Fem hela granskade APL-veckor motsvarar 5 × 23 = **115 GUT-timmar**. De kan exempelvis fördelas som 80 timmar på en ämnesnivå och 35 på en annan. Samma period räknas en gång även om flera ämnen ingår. Om timplanens total är 2 625 timmar ingår de 115 där; de ska inte läggas ovanpå så att totalen blir 2 740.
 
@@ -70,7 +74,7 @@ Under **Utbildningsform och granskning** väljer du **Skolförlagd yrkesutbildni
 
 Rektor och skoladministratör kan förbereda underlaget inom sina aktuella skoluppdrag. Bara rektor kan välja **Bekräfta förläggningen**. Det sker efter timtabellens godkännande och är en separat kontroll av APL-förläggningen. Appen bevarar vem som bekräftade vilket innehåll. Ändras APL-innehållet eller den undervisningstid det bygger på blir den tidigare bekräftelsen inaktuell och behöver göras om.
 
-Huvudmannen öppnar **APL-planering** för att granska perioderna, arbetsmomenten och rektors bekräftelse. Det är separat från godkännandet av timtabellen. En godkänd timtabell är inget besked om färdig APL. Inte heller en bekräftad APL-förläggning bevisar att varje elev får eller har genomfört rätt APL. Se [Timplaner](./timplaner.md#rektors-bekräftelse-och-huvudmannens-beslut) för sparstatus, kopierat underlag och beslutsgång.
+Huvudmannen öppnar **APL-planering** för att granska perioderna, valt centralt innehåll, arbetsmomenten, övrigt innehåll och rektors bekräftelse. Det är separat från godkännandet av timtabellen. En godkänd timtabell är inget besked om färdig APL. Inte heller en bekräftad APL-förläggning bevisar att varje elev får eller har genomfört rätt APL. Se [Timplaner](./timplaner.md#rektors-bekräftelse-och-huvudmannens-beslut) för sparstatus, kopierat underlag och beslutsgång.
 
 ## 5. Ordna en säker arbetsplats
 

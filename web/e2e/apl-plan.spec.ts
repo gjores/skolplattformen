@@ -319,6 +319,28 @@ test('kursvalet visar bara kurser med tid i timplanen', async ({ page }) => {
   await choice.selectOption(firstRow); await expect(editor(page).getByLabel('Lägg till kurs')).toHaveCount(0);
 });
 
+test('centralt innehåll väljs med kryssrutor, övrigt innehåll skrivs och båda syns i granskning och underlag', async ({ page }) => {
+  const m = await mock(page); await open(page); await editor(page).getByRole('button', { name: 'Planera APL' }).click(); await editor(page).getByRole('button', { name: 'Lägg till period' }).click();
+  await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click(); await editor(page).getByLabel('Lägg till kurs').selectOption(firstRow);
+  const central = editor(page).locator('.apl-central'); await expect(central.locator('summary')).toHaveText('Centralt innehåll (0 av 14 valda)');
+  await central.locator('summary').click();
+  await central.getByLabel('Hur individer, roller och grupper utvecklas.').check(); await central.getByLabel('Hur synen på kunskap, lärande, undervisning och utbildning har varierat över tid.').check();
+  await expect(central.locator('summary')).toHaveText('Centralt innehåll (2 av 14 valda)');
+  await editor(page).getByLabel('Arbetsmoment').fill('Leda en samling på fritidshemmet.'); await editor(page).getByLabel('Övrigt innehåll (valfritt)').fill('  Introduktion i arbetsplatsens säkerhetsrutiner.  ');
+  await editor(page).getByRole('button', { name: 'Granska ändringar' }).click(); const dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
+  await dialog.getByText('Visa ämnesinnehåll').click(); await expect(dialog).toContainText('Centralt innehåll (2 punkter)'); await expect(dialog).toContainText('Övrigt innehåll: Introduktion i arbetsplatsens säkerhetsrutiner.');
+  await page.getByRole('button', { name: 'Spara APL-plan', exact: true }).click(); await expect(editor(page)).toContainText('APL-planen är sparad.');
+  const content = m.apl!.periods[0].contents[0];
+  expect(content.central!.items.map(i => i.text)).toEqual(['Hur synen på kunskap, lärande, undervisning och utbildning har varierat över tid.', 'Hur individer, roller och grupper utvecklas.']);
+  expect(content.otherContent).toBe('Introduktion i arbetsplatsens säkerhetsrutiner.'); m.verify();
+  await editor(page).getByText('Visa underlag').click(); await expect(editor(page)).toContainText('Hur individer, roller och grupper utvecklas.');
+  await editor(page).getByRole('button', { name: 'Planera APL' }).click(); await editor(page).getByText('Ämnesinnehåll och undervisningstid', { exact: true }).click();
+  await expect(editor(page).locator('.apl-central summary')).toHaveText('Centralt innehåll (2 av 14 valda)');
+  await editor(page).locator('.apl-central').getByLabel('Hur individer, roller och grupper utvecklas.').uncheck(); await editor(page).locator('.apl-central').getByLabel('Hur synen på kunskap, lärande, undervisning och utbildning har varierat över tid.').uncheck();
+  await editor(page).getByLabel('Övrigt innehåll (valfritt)').fill(''); await save(page); await expect(editor(page)).toContainText('APL-planen är sparad.');
+  expect(Object.keys(m.apl!.periods[0].contents[0]).sort()).toEqual(['description', 'rowKey']); m.verify();
+});
+
 // These regression fixtures deliberately exercise the preserved legacy time model.
 function parseGymTimplan(...args: Parameters<typeof parseAnyGymTimplan>) {
   const plan = parseAnyGymTimplan(...args);

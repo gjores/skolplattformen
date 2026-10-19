@@ -142,7 +142,7 @@ När timplanen är godkänd väljer du **Fortsätt till APL-planering**. Du kan 
 
 I **APL-planering** väljer du **Lägg till period**, årskurs och termin. Du kan spara detta preliminära val och komplettera datum, omfattning och arbetsmoment senare. Terminen väljs alltså när APL ska förläggas; APL-kolumnen i timplanen avser hela årskursen.
 
-Under **Ämnesinnehåll och undervisningstid** väljer du berörda ämnesnivåer ur timplanen, beskriver arbetsmomenten och fördelar tid från årsramen. Använd ämnesplanen som stöd för innehållet. Appen har ännu ingen fullständig katalog med centralt innehåll att välja arbetsmoment ur; beskrivningen görs manuellt. Ingenting från en ämnesplan läggs automatiskt in som ett genomfört arbetsmoment.
+Under **Ämnesinnehåll och undervisningstid** väljer du kurser med APL-tid i timplanen, kryssar i centralt innehåll ur ämnesplanen, beskriver arbetsmomenten och eventuellt övrigt innehåll och fördelar tid från årsramen. Se [APL-planering](./apl-planering.md#3-beskriv-lärandet-och-fördela-undervisningstiden). Valt centralt innehåll är planering; ingenting markeras som genomfört.
 
 Läs [Planera och följa upp APL](./apl-planering.md) för hela arbetsgången, reglerna och vad som behöver vara klart före en period. Hjälpen **Så planerar du APL** finns i APL-arbetsytan.
 

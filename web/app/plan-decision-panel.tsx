@@ -10,6 +10,7 @@ import { parsePlanDecisionDetail, type PlanDecisionAction, type PlanDecisionDeta
 import { decisionNextActorLabel, decisionStageLabel, usePlanDecisions } from './plan-decision-context';
 import MfaStepUpNotice from './mfa-step-up';
 import { ExaminationEvidence } from './protected-programplan-examination';
+import { AplContentSummary } from './apl-central-content';
 
 type Command = { commandId: string; kind: PlanDecisionKind; planId: string; action: PlanDecisionAction; expectedRevision: number; expectedDecisionRevision: number; basisHash: string; comment: string; confirmedChecks: string[] };
 const actionLabel = { submit: 'Skicka till huvudmannen', return: 'Be om ändringar', approve: 'Godkänn planen', withdraw: 'Ta tillbaka för ändring' };
@@ -61,7 +62,7 @@ function AplDecisionEvidence({detail}: {detail: PlanDecisionDetail}) {
           <p className="decision-secondary">{period.extent.reviewed ? 'Veckounderlaget har markerats som granskat.' : 'Veckounderlaget behöver granskas.'}</p>
           {period.extent.reviewNote && <p className="whitespace-pre-wrap break-words">{period.extent.reviewNote}</p>}
           <p><strong>Varav APL: {plannedTime(period.allocations.reduce((sum,a)=>sum+a.gutMinutes,0))}</strong></p>
-          {period.contents.length ? <ul className="ml-5 list-disc break-words">{period.contents.map(content=><li key={content.rowKey}>{content.description || 'Arbetsmoment behöver beskrivas'}</li>)}</ul> : <p>Ämnesinnehåll och arbetsmoment behöver beskrivas.</p>}
+          {period.contents.length ? <ul className="ml-5 list-disc break-words">{period.contents.map(content=><AplContentSummary key={content.rowKey} content={content}/>)}</ul> : <p>Ämnesinnehåll och arbetsmoment behöver beskrivas.</p>}
         </li>)}</ol>
       </details>
     </>}

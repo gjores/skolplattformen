@@ -80,3 +80,18 @@ Fastställt kontrakt: en innehållspost är `{ rowKey, description, central?: { 
   - Samma prov täckte gammal form oförändrad, val och övrigt innehåll med TS-verifierad hash, nekad ändrad text, rubrik, annan nivå, okänd nyckel, okänd katalog, dubbletter och tomma fält, nekade direkta skrivningar och katalogändringar, att ändrat val bryter rektorsbekräftelsens hash, att borttagna val återställer exakt tidigare hash, sparning via Worker-rollen och kopiering till ny timplan med valen bevarade.
   - Nod 774 + 344, `tsc`, `oxlint` och `npm run build` gav PASS.
 - Inte prövat: kopieringsbortfall (granskningspost) som innehåller val; tolkningen och hashen täcker formen, men inget SQL-fall skapar ett sådant bortfall. Ingen installation i aktiv databas, ingen HTTP/OIDC och inget UI. Våg 3 och 4 återstår.
+
+## Resultat våg 3 (2026-10-19)
+
+- `app/apl-central-content.tsx`:
+  - Väljaren **Centralt innehåll (x av y valda)** har en kryssruta per punkt under ämnesplanens rubriker. Den laddar bara den aktuella ämnesversionen (en separat del i bygget per ämne). Den markerar sparade punkter som saknas i katalogen eller hör till äldre katalog och erbjuder borttagning. Nivåer utan centralt innehåll anges uttryckligen.
+  - Den gemensamma läsvyn `AplContentSummary` visar kurs, arbetsmoment, valda punkter grupperade under rubrik och övrigt innehåll.
+- `protected-apl-plan.tsx` har väljaren, fältet **Övrigt innehåll (valfritt)** (trimmas och utelämnas när det är tomt), ny instruktionstext, **Visa ämnesinnehåll** i granskningsdialogen och sammanfattning i **Visa underlag**. `plan-decision-panel.tsx` visar samma sammanfattning för huvudmannen.
+- Handbok: `apl-planering.md` avsnitt 3 och huvudmannens granskning samt `timplaner.md`. `npm run docs:build` PASS.
+- Kontroller:
+  - Nytt UI-prov i `apl-plan.spec.ts` på dator och telefon: välj kurs, kryssa två punkter, skriv arbetsmoment och övrigt innehåll, se dem i granskningen, spara (sparad ordning följer ämnesplanen, övrigt innehåll trimmat), se dem i underlaget, ta bort valen och spara exakt gammal form.
+  - `apl-decision.spec.ts` 26/26: huvudmannen ser kursnamn, en vald punkt och övrigt innehåll.
+  - Skärmbilder på dator och telefon är granskade. Dubbla listpunkter utan rubrik och fet kryssrutetext rättades.
+  - Nod 774, `tsc`, `oxlint` och `npm run build` PASS.
+- Avgränsat: `apl-plan.spec.ts` har kvar 13 fall (26 körningar) som felade redan före detta arbete. De förväntar sig det äldre flödet där timmar och APL låg på samma sida, äldre beslutstexter och knappar. Inget av dem rör kursvalet eller centralt innehåll, och de räknas inte som PASS. Totalt 38 PASS, varav 4 nya.
+- Inte prövat: faktisk HTTP/OIDC, installation och mänsklig begriplighetsbedömning (våg 4).

@@ -1,4 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+const pedg=JSON.parse(readFileSync(new URL('../lib/syllabus-central/PEDG-1.json',import.meta.url),'utf8')),centralIndex=JSON.parse(readFileSync(new URL('../lib/syllabus-central.index.json',import.meta.url),'utf8'));
 import {parsePlanDecisionDetail,type PlanDecisionDetail,type PlanDecisionAction,type PlanDecisionStage} from '../lib/plan-decision';
 const uid=(n:number)=>`5a160000-0000-4000-8000-${String(n).padStart(12,'0')}`,planId=uid(1),unitId=uid(2),offeringId=uid(3);
 const hash=`sha256:${'a'.repeat(64)}`,url='/e2e/fixtures/apl-decision-preview.html';
@@ -16,7 +18,7 @@ function detail(role:Role,scenario:Scenario):PlanDecisionDetail{
   apl:program?null:{ready:current,currentConfirmationId:current?uid(9):null,blockers,detail:{contractVersion:'structured_v1',planId,revision:9,organizerId:uid(5),program:{code:'BF25',version:1,category:'VOCATIONAL_PROGRAM',startDate:'2025-07-01',endDate:null,canceledDate:null,sourceSupported:true},
    plan:legacy?null:{contractVersion:'structured_v1',educationForm:'school_based',classification:'complete',periods:[{id:uid(6),name:'APL på fritidshem',startsOn:'2027-08-16',endsOn:'2027-11-28',schoolYear:2027,
     extent:scenario==='mixed'?{basis:'mixed_weeks',weeks:null,reviewed:false,reviewNote:''}:{basis:'whole_weeks',weeks:15,reviewed:true,reviewNote:'15 hela veckor planerade tillsammans med verksamheten.'},
-    contents:[{rowKey:'programmeSpecific:PEDG:1:PEDG1000X',description:'Planera, genomföra och följa upp pedagogiska aktiviteter.'}],allocations:[{rowKey:'programmeSpecific:PEDG:1:PEDG1000X',termIndex:0,gutMinutes:scenario==='mixed'?1381:20700}]}]},copyReview:[],contentHash:hash,
+    contents:[{rowKey:'programmeSpecific:PEDG:1:PEDG1000X',description:'Planera, genomföra och följa upp pedagogiska aktiviteter.',central:{catalogId:centralIndex.catalogId,items:[{itemKey:pedg.levels[0].sections[0].items[1].key,heading:null,text:pedg.levels[0].sections[0].items[1].text}]},otherContent:'Introduktion i verksamhetens säkerhetsrutiner.'}],allocations:[{rowKey:'programmeSpecific:PEDG:1:PEDG1000X',termIndex:0,gutMinutes:scenario==='mixed'?1381:20700}]}]},copyReview:[],contentHash:hash,
    confirmations:confirmed?[{id:uid(9),planId,unitId,actorId:uid(7),assignmentId:uid(8),actorName:'Rektor Anna Exempel',at:'2026-10-16T08:30:00.000Z',revision:7,contentHash:current?hash:`sha256:${'b'.repeat(64)}`,comment:'Förläggningen är granskad med ansvariga lärare.'}]:[],capabilities:{canSave:stage==='draft',canConfirm:stage==='draft'&&role==='rektor'}}}};
  return parsePlanDecisionDetail(raw,{kind:program?'programplan':'timplan',planId});
 }
@@ -52,6 +54,7 @@ test('huvudmannen öppnar exakt plan från inkorgen, granskar sparat APL och fas
  await page.getByRole('button',{name:'Granska och besluta'}).click();await expandReview(page);await expect(evidence(page)).toContainText('345 h');await expect(evidence(page)).toContainText('Rektor Anna Exempel');
  expect(m.reads[0]).toEqual({kind:'timplan',planId});const opened=JSON.parse(await page.getByTestId('opened-scope').textContent()??'{}');expect(opened).toMatchObject({planId,unitId,version:2});
  await page.getByText('Visa sparade perioder och arbetsmoment (1)',{exact:true}).click();await expect(evidence(page)).toContainText('Uppgiven omfattning: 15 hela veckor');await expect(evidence(page)).toContainText('Planera, genomföra och följa upp pedagogiska aktiviteter.');
+ await expect(evidence(page)).toContainText('Pedagogik Nivå 1');await expect(evidence(page)).toContainText('Centralt innehåll (1 punkt)');await expect(evidence(page)).toContainText('Hur individer, roller och grupper utvecklas.');await expect(evidence(page)).toContainText('Övrigt innehåll: Introduktion i verksamhetens säkerhetsrutiner.');
  await expect(evidence(page)).not.toContainText('PEDG1000X');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:info.outputPath('apl-decision-evidence.png'),fullPage:true});await approve(page);await expect(page.locator('.plan-decision-heading')).toContainText('Fastställd');await expandReview(page);
  await expect(evidence(page)).toContainText('Gäller det sparade innehållet');expect(m.commands).toHaveLength(1);expect(m.commands[0]).toMatchObject({action:'approve',planId,expectedRevision:9});
