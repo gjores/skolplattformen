@@ -10,9 +10,16 @@ let fixture: Fixture;
 const baseURL=process.env.PHASE5_BASE_URL??'http://127.0.0.1:3056';
 const workspace=(page: Page)=>page.getByTestId('protected-timplan-workspace');
 const matches=(path: string)=>(response: Response)=>new URL(response.url()).pathname===path && response.request().method()==='POST';
-const mainPlan='Öppna Syntetisk grundskola, Syntetiskt prov, version 1';
-const imPlan='Öppna Syntetisk IM, Syntetiskt prov, version 1';
-const lockedPlan='Öppna Syntetisk grundskola, Syntetiskt prov, version 2';
+// Redigering sker i en uttryckligt vald aktuell utkastmatris. Årslistan
+// (/api/planering/lista) visar bara årsbundna versioner i läsvy.
+const draftChoice=(name:string,school='Syntetisk skola 30',version=1)=>`Öppna aktuell utkastmatris, ${name}, ${school}, version ${version}`;
+const mainPlan=draftChoice('Syntetisk grundskola');
+const imPlan=draftChoice('Syntetisk IM');
+const lockedPlan='Öppna Syntetisk grundskola, Syntetisk skola 30, version 2';
+const annualList=(page: Page)=>workspace(page).getByRole('region',{name:'Alla timplaner',exact:true});
+const draftList=(page: Page)=>workspace(page).getByRole('region',{name:'Välj aktuell utkastmatris',exact:true});
+const planningList=(schoolform: string)=>(response: Response)=>matches('/api/planering/lista')(response)
+  && response.request().postDataJSON()?.view==='timplan' && response.request().postDataJSON()?.schoolform===schoolform;
 
 test('11: rektor på tillagd skola läser och ändrar bara sin egen timplan för delad utbildning',async({page},testInfo)=>{
   const school=await fixture.sharedSchool();
@@ -24,8 +31,10 @@ test('11: rektor på tillagd skola läser och ändrar bara sin egen timplan för
   expect(listed.body.plans.some((plan:{id:string;offeringId:string;unitId:string})=>
     plan.id===school.planId && plan.offeringId===school.offeringId && plan.unitId===school.unitId)).toBe(true);
   expect(listed.body.plans.some((plan:{id:string})=>plan.id===fixture.planId || plan.id===fixture.lockedPlanId)).toBe(false);
-  await expect(planChoice(page,mainPlan)).toHaveCount(1);
-  const read=await open(page);
+  await chooseDrafts(page);
+  await expect(planChoice(page,draftChoice('Syntetisk grundskola','Syntetisk skola 31'))).toHaveCount(1);
+  await expect(planChoice(page,mainPlan)).toHaveCount(0);
+  const read=await open(page,draftChoice('Syntetisk grundskola','Syntetisk skola 31'));
   expect(await read.json()).toMatchObject({id:school.planId,offeringId:school.offeringId,unitId:school.unitId,schoolName:'Syntetisk skola 31'});
   await pairedResponse(read,school.session,'timplan_read',school.planId);
   await expect(workspace(page)).toContainText('Syntetisk skola 31');
@@ -48,7 +57,7 @@ test('11: rektor på tillagd skola läser och ändrar bara sin egen timplan för
   expect(forbiddenWrite.body.code).toBe('forbidden');
   expect(await fixture.snapshot()).toEqual(primaryBefore);
   expect(await fixture.snapshot(school.planId)).toEqual(schoolAfter);
-  await page.reload();await navigate(page,'Timplaner');await open(page);
+  await page.reload();await navigate(page,'Timplaner');await open(page,draftChoice('Syntetisk grundskola','Syntetisk skola 31'));
   await expect(workspace(page).getByRole('button',{name:'Ändra Matematik, Åk 9, 121 timmar',exact:true})).toBeVisible();
   expect(await fixture.snapshot(school.planId)).toEqual(schoolAfter);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
@@ -82,18 +91,42 @@ async function enter(page: Page,session=fixture.principal) {
   await page.goto('/');
   await waitForHydration(page);
   await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();
-  const listed=page.waitForResponse(matches('/api/timplaner/lista'));
+  const listed=page.waitForResponse(planningList('grundskola'));
   await navigate(page,'Timplaner');
   expect((await listed).status()).toBe(200);
-  await expect(workspace(page)).toBeVisible();
+  await expect(annualList(page)).toHaveAttribute('aria-busy','false');
 }
-async function open(page: Page,label=mainPlan) {
+// Årslistan -> skolform -> Välj aktuell utkastmatris (/api/timplaner/lista).
+async function chooseDrafts(page: Page,schoolform:'grundskola'|'introduktionsprogram'='grundskola') {
+  if(await draftList(page).isVisible())return;
+  await expect(annualList(page)).toHaveAttribute('aria-busy','false');
+  if(await annualList(page).getByRole('combobox',{name:'Skolform',exact:true}).inputValue()!==schoolform){
+    const listed=page.waitForResponse(planningList(schoolform));
+    await annualList(page).getByRole('combobox',{name:'Skolform',exact:true}).selectOption(schoolform);
+    expect((await listed).status()).toBe(200);
+    await expect(annualList(page)).toHaveAttribute('aria-busy','false');
+  }
+  const listed=page.waitForResponse(matches('/api/timplaner/lista'));
+  await workspace(page).getByRole('button',{name:'Välj aktuell utkastmatris',exact:true}).click();
+  expect((await listed).status()).toBe(200);
+  await expect(workspace(page)).toHaveAttribute('aria-busy','false');
+}
+async function open(page: Page,label=mainPlan,matrix=true) {
+  if(label.startsWith('Öppna aktuell utkastmatris,'))await chooseDrafts(page,label.includes('Syntetisk IM')?'introduktionsprogram':'grundskola');
   const read=page.waitForResponse(matches('/api/timplaner/lasa'));
   await planChoice(page,label).click();
   const response=await read;
   expect(response.status()).toBe(200);
-  await expect(workspace(page).getByRole('region',{name:'Undervisningstid per ämne'})).toBeVisible();
+  await expect(workspace(page)).toHaveAttribute('aria-busy','false');
+  if(matrix)await expect(workspace(page).getByRole('region',{name:'Undervisningstid per ämne'})).toBeVisible();
   return response;
+}
+// Tillbaka från en öppen matris till årslistan för grundskola/IM.
+async function backToList(page: Page) {
+  const listed=page.waitForResponse(matches('/api/planering/lista'));
+  await workspace(page).getByRole('button',{name:'Alla timplaner',exact:true}).click();
+  expect((await listed).status()).toBe(200);
+  await expect(annualList(page)).toHaveAttribute('aria-busy','false');
 }
 async function edit(page: Page,value: number,current=100,column='Åk 9') {
   await workspace(page).getByRole('button',{name:`Ändra Matematik, ${column}, ${current} timmar`,exact:true}).click();
@@ -123,8 +156,8 @@ async function acceptDiscard(page: Page,action:()=>Promise<unknown>) {
   await prompt.accept();
   await operation;
 }
+// Vald plan får stå i adressen (djuplänk som återvalideras), men aldrig i webbläsarlagring.
 async function noStoredPlanId(page: Page) {
-  expect(new URL(page.url()).search+new URL(page.url()).hash).not.toContain(fixture.planId);
   const storage=await page.evaluate(()=>{
     const values=(storage:Storage)=>Array.from({length:storage.length},(_,index)=>{
       const key=storage.key(index);return [key,key===null?null:storage.getItem(key)];
@@ -174,7 +207,7 @@ test('10: skolformsanpassat regelstöd, källor och påminnelse vid ändring',as
   await expect(dialog.getByText(/Kontrollera ämnesramarna och huvudmannens beslut/u)).toBeVisible();
   await expect(dialog.getByText(/Sparningen är ingen kontroll av hela regelverket/u)).toBeVisible();
   await acceptDiscard(page,()=>dialog.getByRole('button',{name:'Avbryt',exact:true}).click());
-  await workspace(page).getByRole('button',{name:'Alla timplaner',exact:true}).click();
+  await backToList(page);
   await open(page,imPlan);
   await expect(summary).toHaveText('Regler och ansvar för introduktionsprogram');
   // Planbyte kan återanvända details-elementets öppna läge. Öppna bara om stängt.
@@ -247,12 +280,8 @@ test('01: rätt kolumnordning, IM-enhet, saknat underlag och mobilpresentation',
   }).map(el=>{const rect=el.getBoundingClientRect();return {label:el.getAttribute('aria-label')??el.textContent?.trim(),width:rect.width,height:rect.height};}));
   expect(targets).toEqual([]);
   await page.screenshot({path:testInfo.outputPath('grundskola.png'),fullPage:true});
-  const listed=page.waitForResponse(matches('/api/timplaner/lista'));
-  await workspace(page).getByRole('button',{name:'Alla timplaner',exact:true}).click();
-  expect((await listed).status()).toBe(200);
-  const im=page.waitForResponse(matches('/api/timplaner/lasa'));
-  await planChoice(page,imPlan).click();
-  expect((await im).status()).toBe(200);
+  await backToList(page);
+  await open(page,imPlan);
   await expect(workspace(page)).toContainText('Per vecka');
   await expect(workspace(page)).toContainText('timmar per vecka');
   await expect(workspace(page).getByRole('button',{name:/Ändra Matematik, grundskolenivå, Per vecka, 5/})).toBeVisible();
@@ -281,15 +310,15 @@ test('02: vald cell sparas en gång med faktisk revision, dubbel audit och omlä
 
 test('03: huvudman och fastställd version är läsning utan redigering',async({page})=>{
   await enter(page,fixture.hm);
-  let read=page.waitForResponse(matches('/api/timplaner/lasa'));
-  await planChoice(page,mainPlan).click();
-  expect((await read).status()).toBe(200);
+  await open(page,mainPlan);
   await expect(workspace(page).getByRole('button',{name:/^Ändra /u})).toHaveCount(0);
   await fixture.cookies(page.context(),fixture.principal,baseURL);await page.reload();
   await navigate(page,'Timplaner');
-  read=page.waitForResponse(matches('/api/timplaner/lasa'));
-  await planChoice(page,lockedPlan).click();
-  expect((await read).status()).toBe(200);
+  await expect(annualList(page)).toHaveAttribute('aria-busy','false');
+  // Den fastställda v2 saknar lagrade celler i fixturen och visas därför utan matris.
+  await open(page,lockedPlan,false);
+  await expect(workspace(page).getByTestId('other-year-binding')).toBeVisible();
+  await expect(workspace(page)).toContainText('Matrisen saknar lagrade kolumner.');
   await expect(workspace(page)).toContainText('Fastställd');
   await expect(workspace(page).getByRole('button',{name:/^Ändra /u})).toHaveCount(0);
   expect((await fixture.snapshot(fixture.lockedPlanId)).revision).toBe(0);
@@ -348,12 +377,8 @@ test('05: osparat skydd vid dialogstängning och byte till annan plan',async({pa
   expect(await page.evaluate(()=>window.dispatchEvent(new Event('beforeunload',{cancelable:true})))).toBe(false);
   await acceptDiscard(page,()=>page.getByRole('button',{name:'Avbryt',exact:true}).click());
   await expect(page.getByRole('dialog',{name:'Ändra undervisningstid'})).toHaveCount(0);
-  const listed=page.waitForResponse(matches('/api/timplaner/lista'));
-  await workspace(page).getByRole('button',{name:'Alla timplaner',exact:true}).click();
-  expect((await listed).status()).toBe(200);
-  const read=page.waitForResponse(matches('/api/timplaner/lasa'));
-  await planChoice(page,imPlan).click();
-  expect((await read).status()).toBe(200);
+  await backToList(page);
+  await open(page,imPlan);
   await expect(page.getByRole('dialog',{name:'Ändra undervisningstid'})).toHaveCount(0);
   expect((await fixture.snapshot()).revision).toBe(0);
 });
@@ -382,7 +407,7 @@ test('06: MFA och obligatoriskt loggfel ger ingen falsk sparbekräftelse',async(
 });
 
 test('07: session, epoch och återkallat mandat rensar uppgifter och sena verkliga svar',async({page})=>{
-  await enter(page);
+  await enter(page);await chooseDrafts(page);
   let release!:()=>void;
   const released=new Promise<void>(resolve=>{release=resolve;});
   let received!:()=>void;
@@ -425,31 +450,47 @@ test('08: pagination, tom lista, okänd rad och skyddad programplansnavigation',
   await fixture.unknownRow();await enter(page);await open(page);
   await expect(workspace(page)).toContainText(/okänd|ej stö|stöds inte/iu);
   await expect(workspace(page).getByRole('button',{name:/Ändra syntetisk_okand/iu})).toHaveCount(0);
-  const programList=page.waitForResponse(matches('/api/programplaner/lista'));
+  const programList=page.waitForResponse(response=>matches('/api/planering/lista')(response)&&response.request().postDataJSON()?.view==='programplan');
   await navigate(page,'Programplaner');
   expect((await programList).status()).toBe(200);
   const programWorkspace=page.getByTestId('protected-programplan-workspace');
   await expect(programWorkspace.getByRole('heading',{name:'Programplaner',exact:true})).toBeVisible();
   const list=programWorkspace.getByRole('region',{name:'Alla programplaner',exact:true});
   await expect(list).toHaveAttribute('aria-busy','false');
-  const education=list.getByRole('button',{name:/^Öppna utbildning Syntetiskt gymnasium,/u});await expect(education).toBeVisible();
+  const education=list.getByRole('button',{name:'Öppna Syntetiskt gymnasium, Syntetisk skola 30, saknad plan',exact:true});await expect(education).toBeVisible();
   await expect(programWorkspace).not.toContainText('Syntetisk annan grundskola');
   const selection=page.waitForResponse(matches('/api/programplaner/underlag'));await education.click();expect((await selection).status()).toBe(200);
   await expect(programWorkspace.getByRole('heading',{name:'Syntetiskt gymnasium',exact:true})).toBeVisible();
   await fixture.addPages();
-  await navigate(page,'Timplaner');
-  await expect(workspace(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(50);
+  // Matrisregistret pagineras på servern med 50 per sida; vyn visar bara öppna versioner.
+  const first=await fixture.request(baseURL,fixture.principal,'/api/timplaner/lista',{page:1});
+  const second=await fixture.request(baseURL,fixture.principal,'/api/timplaner/lista',{page:2});
+  expect(first.status).toBe(200);expect(second.status).toBe(200);
+  expect(first.body.plans).toHaveLength(50);expect(first.body.count).toBe(59);expect(second.body.plans).toHaveLength(9);
+  const ids=[...first.body.plans,...second.body.plans].map((plan:{id:string})=>plan.id);
+  expect(new Set(ids).size).toBe(59);expect(ids).toContain(fixture.planId);
+  await navigate(page,'Timplaner');await expect(annualList(page)).toHaveAttribute('aria-busy','false');
+  await chooseDrafts(page);
+  const pages=draftList(page).getByRole('navigation',{name:'Utkastmatrisernas sidor',exact:true});
+  await expect(pages).toContainText('Sida 1 av 2');
+  const onFirst=first.body.plans.some((plan:{id:string})=>plan.id===fixture.planId);
+  await expect(planChoice(page,mainPlan)).toHaveCount(onFirst?1:0);
   const next=page.waitForResponse(matches('/api/timplaner/lista'));
-  await workspace(page).getByRole('button',{name:'Nästa',exact:true}).click();
+  await pages.getByRole('button',{name:'Nästa',exact:true}).click();
   expect((await next).status()).toBe(200);
-  await expect(workspace(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(9);
+  await expect(pages).toContainText('Sida 2 av 2');
+  await expect(planChoice(page,mainPlan)).toHaveCount(onFirst?0:1);
+  await expect(draftList(page).getByRole('button',{name:/^Öppna aktuell utkastmatris, /u})).toHaveCount(onFirst?0:1);
   const previous=page.waitForResponse(matches('/api/timplaner/lista'));
-  await workspace(page).getByRole('button',{name:'Föregående',exact:true}).click();
+  await pages.getByRole('button',{name:'Föregående',exact:true}).click();
   expect((await previous).status()).toBe(200);
-  await expect(workspace(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(50);
+  await expect(pages).toContainText('Sida 1 av 2');
   await fixture.emptyPlans();await page.reload();await navigate(page,'Timplaner');
-  await expect(workspace(page)).toContainText(/inga timplaner/iu);
-  await expect(workspace(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(0);
+  await expect(annualList(page)).toHaveAttribute('aria-busy','false');
+  await expect(annualList(page)).toContainText(/inga skapade timplaner/iu);
+  await expect(annualList(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(0);
+  await chooseDrafts(page);
+  await expect(draftList(page).getByRole('button',{name:/^Öppna /u})).toHaveCount(0);
 });
 
 test('09: committad ändring med tappat svar ger okänt utfall och kräver omläsning',async({page})=>{
