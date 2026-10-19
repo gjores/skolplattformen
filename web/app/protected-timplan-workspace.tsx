@@ -101,9 +101,8 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
     if (explicitCurrent) {
       if (!recovering && !['utkast', 'atersand'].includes(matrix.status))
         throw new MissingAnnualTarget('Aktuell utkastmatris kräver en uttryckligt vald öppen version inom det aktuella uppdraget.');
-      // An explicitly chosen draft has no annual binding. The server read already
-      // requires a mandate for the plan's school; the annual overview still scopes
-      // shared GR/IM educations to offerings.unit_id, so it cannot prove membership here.
+      // An explicitly chosen draft has no annual binding, so no annual row is required.
+      // The server read already requires a mandate for the plan's school.
       return { matrix, row: null, target: { kind: expected.kind, id: matrix.id, unitId: matrix.unitId,
         offeringId: matrix.offeringId, version: matrix.version }, currentMatrix: true };
     }

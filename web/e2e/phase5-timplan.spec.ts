@@ -25,7 +25,13 @@ test('11: rektor på tillagd skola läser och ändrar bara sin egen timplan för
   const school=await fixture.sharedSchool();
   const primaryBefore=await fixture.snapshot();
   const schoolBefore=await fixture.snapshot(school.planId);
-  await enter(page,school.session);
+  const annual=await (await enter(page,school.session)).json();
+  // Årslistan följer offering_units: skolans egen plan för den delade utbildningen, inget från skola 30.
+  expect(annual.rows.filter((row:{unitId:string;offeringId:string;plan:{id:string}|null})=>
+    row.unitId===school.unitId && row.offeringId===school.offeringId && row.plan?.id===school.planId)).toHaveLength(1);
+  expect(annual.rows.some((row:{unitId:string})=>row.unitId!==school.unitId)).toBe(false);
+  await expect(annualList(page).getByRole('button',{name:'Öppna Syntetisk grundskola, Syntetisk skola 31, version 1',exact:true})).toHaveCount(1);
+  await expect(annualList(page).getByRole('button',{name:/, Syntetisk skola 30, /u})).toHaveCount(0);
   const listed=await fixture.request(baseURL,school.session,'/api/timplaner/lista',{page:1});
   expect(listed.status).toBe(200);
   expect(listed.body.plans.some((plan:{id:string;offeringId:string;unitId:string})=>
@@ -93,8 +99,10 @@ async function enter(page: Page,session=fixture.principal) {
   await expect(page.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();
   const listed=page.waitForResponse(planningList('grundskola'));
   await navigate(page,'Timplaner');
-  expect((await listed).status()).toBe(200);
+  const response=await listed;
+  expect(response.status()).toBe(200);
   await expect(annualList(page)).toHaveAttribute('aria-busy','false');
+  return response;
 }
 // Årslistan -> skolform -> Välj aktuell utkastmatris (/api/timplaner/lista).
 async function chooseDrafts(page: Page,schoolform:'grundskola'|'introduktionsprogram'='grundskola') {
