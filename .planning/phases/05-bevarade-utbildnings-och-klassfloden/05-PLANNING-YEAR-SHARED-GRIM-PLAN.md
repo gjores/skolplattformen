@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: PLANNING-YEAR-SHARED-GRIM
-status: proposed_awaiting_user
+status: sql_rollback_pass_awaiting_install_approval
 created: 2026-10-19
 depends_on: PLANNING-BROWSER-FIXES (517f1b8)
 ---
@@ -61,21 +61,46 @@ Nytt `supabase/tests/phase5_planning_year_shared_grim.test.sql` (pgTAP, egen syn
 5. En huvudman med mandat för A och B får en rad per skola. Totalsummorna dubbelräknar inte.
 6. Klassbunden GR-rad på B: `class_timplans`/`school_classes` på B räknas, och en A-klass med samma namn räknas inte.
 7. Skolan B utan egen timplan ger ingen rad, inte heller en `missing-plan`-rad.
-8. GY-paritet: GY-fixturen ger samma lista/översikt före och efter. Jämförelsen görs i samma transaktion mot den gamla definitionen, som sparas i `pg_temp`.
-9. Ett annat mandat eller en annan kund ger 42501 som tidigare.
-10. ACL för `phase5_planning_year_rows(jsonb)` är oförändrad efter migrationen.
-11. Förkontrollen avbryter när en huvudskolerad saknas. Det prövas med en savepoint och triggern tillfälligt avstängd i provtransaktionen.
+8. GY oförändrad: en delad GY-utbildning visas i programplansvyn på A och B för huvudmannen och bara på B för rektor B. GY-uttrycket i funktionen är dessutom ordagrant detsamma, vilket `diff` mot 20261016161000 visar.
+9. A-rektorn ger 42501 när hen väljer skola B, på samma sätt som C-rektorn (fall 4).
+
+Köraren [verify-planning-year-shared-grim.mjs](../../../work/pilot/verify-planning-year-shared-grim.mjs) prövar också följande, i en transaktion som alltid rullas tillbaka:
+
+- Provet faller på sina påståenden före migrationen.
+- Förkontrollen stoppar migrationen när en utbildning saknar huvudskolerad (savepoint).
+- Bara `phase5_planning_year_rows` ändras. ACL:en, övriga funktioner i `public` och antalet rader i offerings, offering_units och timplans är oförändrade.
+- Databasen är identisk efter rollback.
 
 ## Webbläsarprov
 
-- `web/e2e/phase5-timplan.spec.ts` fall 11 får ett tillägg: `/api/planering/oversikt` för skola 31 visar utbildning 40 med plan 55, och årslistan i UI:t visar raden. Fixturen `sharedSchool` räcker. Övriga fall ändras inte.
+- Vid installation får `web/e2e/phase5-timplan.spec.ts` fall 11 ett tillägg (inte före, eftersom fallet annars faller på nuvarande databas): `/api/planering/oversikt` för skola 31 visar utbildning 40 med plan 55, och årslistan i UI:t visar raden. Fixturen `sharedSchool` räcker. Övriga fall ändras inte.
 - Regression, sekventiellt på dator och telefon: phase5-timplan, phase5-planning-year (lists, other, context, gym) och phase5-gym-timplan.
 - `node --test lib/*.test.mjs`, `npx tsc --noEmit`, `npx oxlint app lib`, skyddat bygge.
 
 ## Genomförande och godkännanden
 
-1. **Utan databas:** skriv migrationen, SQL-provet, kommentaren och tillägget i fall 11. Kontrollera med `diff` att den nya funktionskroppen bara skiljer sig på scope-raden och kommentaren.
-2. **Kräver användarens godkännande:** kör migrationen och SQL-provet i en transaktion som rullas tillbaka. Det sker antingen mot den skyddade lokala pilotdatabasen, enligt tidigare SQL-bevis, eller mot ett tillfälligt PostgreSQL-kluster som byggts från migrationerna. Ingen ändring består.
-3. **Kräver separat godkännande:** installera migrationen i den skyddade lokala pilotdatabasen och kör webbläsarproven. Därefter byts appen på 3012 och handboken uppdateras.
+1. **Klart:** migrationen, SQL-provet och köraren är skrivna. `diff` visar att funktionskroppen bara skiljer sig på scope-raden och kommentaren.
+2. **Klart, godkänt 2026-10-19 ("ja gör så"):** migrationen och SQL-provet kördes mot den skyddade lokala pilotdatabasen i en transaktion som rullades tillbaka. Ingen ändring består.
+3. **Kräver separat godkännande:** installera migrationen i den skyddade lokala pilotdatabasen. Lägg till tillägget i fall 11 och uppdatera klientkommentaren (`protected-timplan-workspace.tsx:104`) och handboken. Kör webbläsarproven och byt därefter appen på 3012.
 
 Klart när: alla SQL-fall PASS i isolerad körning, webbläsarproven gröna på dator och telefon, handboken uppdaterad och STATE noterad. Det är lokalt syntetiskt bevis, inget pilot- eller IdP-bevis.
+
+## Resultat 2026-10-19: SQL-prov med rollback
+
+`node work/pilot/verify-planning-year-shared-grim.mjs` mot det skyddade lokala målet gav **PASS**:
+
+- Alla 9 körarkontroller gick igenom.
+- pgTAP **22/22** efter migrationen.
+- Före migrationen föll 10 av 22. Det var just fallen för delad GR/IM, vilket visar att provet fångar felet.
+- Källhashar: migration `fcfbc83e…cecc8`, prov `250792c8…40ce`.
+
+Rapporten ligger i sessionens scratchpad som `run4.json`, SHA256 `fe38a661ab2cf390fff44fdc5603c93db00b293b6e70a391458b529f1d9055e1`.
+
+Två tidigare körningar föll på provfel, inte på produktfel:
+
+1. Huvudmannen saknade mandat på skola C och fick därför inte utse rektor där.
+2. Jag hade räknat två förväntade IM-summor fel: 12 och 19 i stället för 14 och 21.
+
+Båda rättades i provet. Inget av dem räknas som PASS.
+
+Detta är lokalt syntetiskt bevis. Migrationen är inte installerad, och inga webbläsarprov är körda för ändringen.
