@@ -5,8 +5,8 @@ import { centralCatalogId } from '../lib/syllabus-central.ts';
 
 const indexFile = new URL('../lib/syllabus-central.index.json', import.meta.url);
 const subjectDir = new URL('../lib/syllabus-central/', import.meta.url);
-// Tabellerna skapas i 20261019100000_apl_central_content.sql; seeden måste komma efter.
-const defaultOutput = new URL('../../supabase/migrations/20261019100100_apl_central_content_seed.sql', import.meta.url);
+// Tabellerna skapas i 20261019200000_apl_central_content.sql; seeden måste komma efter.
+const defaultOutput = new URL('../../supabase/migrations/20261019200100_apl_central_content_seed.sql', import.meta.url);
 const CHUNK = 500;
 
 const literal = value => value === null ? 'null' : typeof value === 'number' ? String(value)

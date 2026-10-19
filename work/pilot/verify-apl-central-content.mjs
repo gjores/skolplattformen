@@ -15,7 +15,7 @@ import { syllabusRefFromRowKey } from '../../web/lib/syllabus-central.ts';
 const { projectAplFrozenRead, commandAplPlan } = await import('../../web/lib/server/apl-plan.ts');
 const { projectPlanDecision } = await import('../../web/lib/server/plan-decision.ts');
 const root = fileURLToPath(new URL('../../', import.meta.url));
-export const centralMigrations = ['supabase/migrations/20261019100000_apl_central_content.sql', 'supabase/migrations/20261019100100_apl_central_content_seed.sql'];
+export const centralMigrations = ['supabase/migrations/20261019200000_apl_central_content.sql', 'supabase/migrations/20261019200100_apl_central_content_seed.sql'];
 const sources = () => aplSources([...centralMigrations, 'work/pilot/verify-apl-central-content.mjs', 'web/lib/server/apl-plan.ts', 'web/lib/syllabus-central.ts', 'web/lib/syllabus-central.index.json']);
 const index = JSON.parse(readFileSync(resolve(root, 'web/lib/syllabus-central.index.json'), 'utf8'));
 const raw = async (tx, id) => (await tx`select public.phase5_gym_timplan_result(${id}) value`)[0].value;

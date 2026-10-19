@@ -74,7 +74,7 @@ function commandActor(reply: AplCommandReply, input: AplCommand, authority: AplP
 
 const conflictReasons = new Set(['apl_command_conflict', 'apl_revision_conflict', 'apl_content_conflict', 'apl_confirmation_limit', 'apl_timplan_revision_conflict', 'apl_workflow_required']);
 const inputReasons = new Set(['invalid_apl_plan', 'duplicate', 'unknown_content', 'allocation_without_content',
-  'apl_not_vocational', 'inactive_term', 'allocation_without_total', 'allocation_exceeds_total', 'invalid_copy_review_resolution']);
+  'apl_not_vocational', 'inactive_term', 'allocation_without_total', 'allocation_exceeds_total', 'invalid_copy_review_resolution', 'unknown_central_content']);
 async function operation<T>(fn: () => Promise<T>): Promise<T> {
   return mandateOperation(async () => {
     try { return await fn(); }
