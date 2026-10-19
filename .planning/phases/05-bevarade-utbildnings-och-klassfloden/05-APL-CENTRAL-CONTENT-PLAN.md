@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: APL-CENTRAL-CONTENT
-status: awaiting_install_approval
+status: delivered_local_synthetic
 type: execute
 autonomous: true
 ---
@@ -111,3 +111,21 @@ Fastställt kontrakt: en innehållspost är `{ rowKey, description, central?: { 
   - Katalogen får 18 051 punkter. Schemat är exakt återställt efteråt.
   - Rapport `/private/tmp/apl-central-apply-verify.json`.
 - Kvar efter godkännande: `--apply` (installerar och journalför) och byte av 3012 från ae6c52e till det provade 55ea3da-bygget, med hälsokontroll. Mänsklig begriplighetsbedömning återstår.
+
+## Våg 4: installation och leverans (2026-10-19)
+
+Användaren godkände: ”Ja, installera migrationerna med --apply i den skyddade lokala databasen och byt 3012 till det provade 55ea3da-bygget med hälsokontroll.”
+
+- `apply-apl-central-content.mjs --apply` gav **PASS 33/33**. Köraren upprepade först hela repetitionen med återrullning och installerade sedan i en egen transaktion med advisory lock. Alla kontroller upprepades inne i installationstransaktionen: ursprungliga kolumner i 79 tabeller oförändrade, 3 befintliga APL-planer med exakt samma värde, bara planerade objekt tillkom och samtliga är privata. Båda versionerna är journalförda i `supabase_migrations.schema_migrations`. Låstiden före commit var 12 984 ms, inklusive kontrollerna. Rapport `/private/tmp/apl-central-apply.json`, SHA256 `40d7bdf2f3a9bf07b332496103ee62b6656930a4a005d6f421234e726f448607`.
+- Läsande efterkontroll: journalen har 20261019150000, 20261019200000 och 20261019200100. Katalogen har 18 051 punkter och 0 val; APL-planerna är 3.
+- 3012: ae6c52e stoppades. 3012 kör nu det provade 55ea3da-bygget från kandidat-checkouten `work/pilot/targets/protected/runtime/apl-central-build-55ea3da/web`, med symbolisk länk till det lokala protected-manifestet; inga hemligheter kopierades. `/api/health/db` svarar `skolplattform_worker`/`workerd`. Startsida, stilmallar, skript och katalogdelen `PEDG-1` ger 200. Logg: `/private/tmp/apl-central-3012.log`.
+- Återgång: den delade `web/dist-protected` innehåller fortfarande ae6c52e-bygget. Det bygget saknar gränssnittet för val men tål de nya fälten.
+- Inte gjort: ingen inloggning med riktig IdP på 3012 efter bytet (det faktiska OIDC-provet kördes på 3014 mot egen schemakopia). Mänsklig begriplighetsbedömning återstår.
+
+### Användarprov
+
+1. Ladda om appen på 3012 och öppna **APL-planering** för en godkänd yrkestimplan.
+2. Välj **Förlägg APL i perioder**, lägg till en period och välj årskurs och termin.
+3. Under **Ämnesinnehåll och undervisningstid**, välj en kurs i **Lägg till kurs**. Bara kurser med APL-tid visas.
+4. Öppna **Centralt innehåll**, kryssa i punkter, skriv arbetsmoment och eventuellt **Övrigt innehåll**.
+5. Välj **Granska ändringar** och **Visa ämnesinnehåll**, och spara. Kontrollera valen under **Visa underlag** och som huvudman.
