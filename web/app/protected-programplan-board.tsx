@@ -46,6 +46,7 @@ const toMap = (d: ProgramplanTermDistribution) => new Map(d.map(r => [r.rowKey, 
 const fromMap = (rows: ProgramplanTermRow[], m: Map<string, ProgramplanTermPoints>): ProgramplanTermDistribution =>
   rows.flatMap(r => { const p = m.get(r.key); return p && p.some(n => n !== 0) ? [{ rowKey: r.key, points: [...p] as ProgramplanTermPoints }] : []; });
 const sameRow = (a?: ProgramplanTermPoints, b?: ProgramplanTermPoints) => (a ?? blank()).every((n, i) => n === (b ?? blank())[i]);
+const SAVED_NOT_RELOADED = 'Fördjupningen är sparad, men planen kunde inte läsas om. Läs om planen innan du fortsätter.';
 
 /** Programplanen som en tabell: ämnen, programfördjupning och sex terminer. Sparas automatiskt när en rad lämnas. */
 export default function ProgramplanBoard({ yearView, focusIssue, plan, initialTerms, program, options, scope, disabled, locked: lifecycleLocked = false, lockReason = null, onSecurityFailure, onReload, onNavigationBlocked, onTerms }: Props) {
@@ -178,7 +179,8 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, initialTe
       const expected = savedRef.current!.revision, c = new AbortController();
       const reply = parseProgramplan(await api.post('/api/programplaner/fordjupning', { planId: plan.id, expectedRevision: expected, specializationRefs: refs.map(programplanReference) }, c.signal));
       if (reply.id !== plan.id || reply.revision !== expected + 1 || !sameProgramplanLevels(reply.basisReference?.specializationRefs ?? [], refs)) throw new Error('Sparandet kunde inte bekräftas.');
-      await onReload();
+      // The write is accepted. A failed reload must not be reported as a failed change.
+      await reloadBoard(SAVED_NOT_RELOADED);
     } catch (e) {
       if (!mounted.current || failed(e)) return;
       if (e instanceof ApiError && e.status === 409) { changeState('conflict'); setMessage('Någon annan har ändrat planen. Läs om planen innan du ändrar fördjupningen.'); }
@@ -188,7 +190,7 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, initialTe
         // Okänt svar: läs tillbaka i stället för att skriva igen.
         try {
           const back = parseProgramplan(await api.post('/api/programplaner/lasa', { planId: plan.id }, new AbortController().signal));
-          if (back.id === plan.id && back.revision === (savedRef.current?.revision ?? -1) + 1 && sameProgramplanLevels(back.basisReference?.specializationRefs ?? [], refs)) { await onReload(); return; }
+          if (back.id === plan.id && back.revision === (savedRef.current?.revision ?? -1) + 1 && sameProgramplanLevels(back.basisReference?.specializationRefs ?? [], refs)) { await reloadBoard(SAVED_NOT_RELOADED); return; }
           if (back.id !== plan.id) throw new Error('Fel plan i sparstatus.');
           await onReload();
         } catch (inner) { if (mounted.current && !failed(inner)) { changeState('unknown'); setMessage('Sparstatus kunde inte läsas. Läs om planen innan du försöker igen.'); } }
@@ -196,9 +198,9 @@ export default function ProgramplanBoard({ yearView, focusIssue, plan, initialTe
     } finally { if (mounted.current) changeWorking(false); }
   }
 
-  async function reloadBoard() {
+  async function reloadBoard(failure = 'Aktuell sparstatus kunde inte läsas. Läs om planen innan du lämnar den.') {
     try { await onReload(); }
-    catch (e) { if (mounted.current && !failed(e)) { changeState('unknown'); setMessage('Aktuell sparstatus kunde inte läsas. Läs om planen innan du lämnar den.'); } }
+    catch (e) { if (mounted.current && !failed(e)) { changeState('unknown'); setMessage(failure); } }
   }
   const locked = !editable || disabled || working || state === 'conflict' || state === 'unknown' || state === 'mfa';
 

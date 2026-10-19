@@ -98,6 +98,15 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
       || selection.unitId !== null && matrix.unitId !== selection.unitId
       || !setup.units.some(unit => unit.unitId === matrix.unitId && unit.canRead[expected.kind]))
       throw new MissingAnnualTarget('Timplanens skola, utbildning, skolform eller version avviker från målet. Läs om årslistan.');
+    if (explicitCurrent) {
+      if (!recovering && !['utkast', 'atersand'].includes(matrix.status))
+        throw new MissingAnnualTarget('Aktuell utkastmatris kräver en uttryckligt vald öppen version inom det aktuella uppdraget.');
+      // An explicitly chosen draft has no annual binding. The server read already
+      // requires a mandate for the plan's school; the annual overview still scopes
+      // shared GR/IM educations to offerings.unit_id, so it cannot prove membership here.
+      return { matrix, row: null, target: { kind: expected.kind, id: matrix.id, unitId: matrix.unitId,
+        offeringId: matrix.offeringId, version: matrix.version }, currentMatrix: true };
+    }
     const query = { ...selection, unitId: matrix.unitId, query: '', status: 'all' as const, cohortRelation: 'all' as const,
       archive: 'all' as const, grade: null, page: 1, selectionRevision: null };
     const overview = parsePlanningOverview(await api.post('/api/planering/oversikt', query, signal), query, setup);
@@ -106,14 +115,6 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
     if (!membership.length) throw new MissingAnnualTarget('Utbildningen saknar årsrad för valt läsår. Ingen annan timversion har valts.');
     const candidates = membership.filter(row => row.plan?.id === matrix.id && row.plan.version === matrix.version
       && (expected.columnId == null || row.application?.columnId === expected.columnId));
-    if (explicitCurrent) {
-      if (!recovering && !['utkast', 'atersand'].includes(matrix.status))
-        throw new MissingAnnualTarget('Aktuell utkastmatris kräver en uttryckligt vald öppen version inom det aktuella uppdraget.');
-      // The selected annual version can still be an older class-bound plan.
-      // Its row establishes education/school membership, never a binding for this draft.
-      return { matrix, row: null, target: { kind: expected.kind, id: matrix.id, unitId: matrix.unitId,
-        offeringId: matrix.offeringId, version: matrix.version }, currentMatrix: true };
-    }
     if (candidates.length !== 1) throw new MissingAnnualTarget('Målet saknar en entydig årsrad för valt läsår. Välj en faktisk årsrad; ingen senaste version har valts.');
     const row = candidates[0];
     if (expected.kind === 'grundskola' && !row.application)

@@ -52,7 +52,7 @@ Följande heltalsgräns gäller den äldre terminstabellen och högskoleförbere
 
 Årskurssummorna visar planerade timmar. Planeringsåret och det frysta underlagets startdatum avgör vilken årsdel som visas från början. Välj **Åk 1**, **Åk 2** eller **Åk 3**, **Visa hela planen** eller **Visa planeringsårets del** utan att ändra det globala planeringsåret. På telefon finns samma årskursknappar och tabellen kan rullas i sidled. **Visa bara ofördelade** hittar tomma aktiva terminer. En sparad ändring bevarar hela radens sex terminer, även dem som inte visas. När sidan laddas om öppnas samma sparade version igen.
 
-**Fler alternativ → Visa planens underlag** visar den sparade poängramen. **Visa programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Gå till timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel.
+**Fler alternativ → Visa planens underlag** visar den sparade poängramen. **Visa programplan** öppnar den använda programversionen med dess nuvarande revision. Om programutkastet har ändrats sedan timplanen skapades finns de ursprungliga poängen fortfarande i det frysta underlaget. Välj **Gå till timplan** i programplanen för att gå vidare till samma skolas undervisningstid. Det frysta underlagets startdatum styr timplanens årsdel. En vald årskurs (**Åk 1**, **Åk 2**, **Åk 3** eller hela planen) följer med när du växlar mellan timplanen och programplanen.
 
 ### Kontrollera att timmarna räcker
 
@@ -190,7 +190,7 @@ Listan visar skola, utbildning, elevkull, version och status för valt planering
 
 För grundskolan kontrolleras den faktiska årsbindningen till version och kolumn. Äldre lagrade kolumner utan verifierad karta visas som **Lagrad kolumn 1**, **Lagrad kolumn 2** och så vidare. Då är årets timmar okända och cellerna kan inte ändras som årsdata. Årskursen i årsbindningen är inte ett bevis för hur äldre arraypositioner ska tolkas.
 
-**Välj aktuell utkastmatris** läser befintliga utkast och låter dig välja en bestämd skola och version. Den matrisen visar nuvarande årskurskolumner och ingen historisk årsbindning. Värden ändras i de faktiska sparade kolumnerna. Ett årbyte eller en omladdning återgår till kontroll av årsbindningen; en obunden matris blir inte automatiskt samma årsplan.
+**Välj aktuell utkastmatris** läser befintliga utkast och låter dig välja en bestämd skola och version. Den matrisen visar nuvarande årskurskolumner och ingen historisk årsbindning. Värden ändras i de faktiska sparade kolumnerna. Ett årbyte eller en omladdning återgår till kontroll av årsbindningen; en obunden matris blir inte automatiskt samma årsplan. Om en grundskole- eller IM-utbildning även ges på din skola öppnar du skolans egen timplan via **Välj aktuell utkastmatris**. Årslistan visar i dag sådana delade utbildningar bara på utbildningens ursprungliga skola.
 
 För introduktionsprogram visas **Timmar per vecka**. Årsvalet gör ingen årskursprogressering eller omräkning till årstimmar. **Saknas** betyder att en rad eller cell saknar användbart underlag; det är inte ett sparat nollvärde. En äldre plan med oläsbart fullständigt underlag visas som en lucka med möjlighet att läsa om.
 

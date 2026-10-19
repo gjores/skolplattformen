@@ -513,6 +513,14 @@ function ProtectedShell() {
     return next === 'programplaner' ? { view: next, programplan: null, planning: prior?.planning }
       : { view: next, gym: null, planning: prior?.planning };
   }
+  // Programplan and gymnasium timplan share Åk 1–3. Their cross-links keep the
+  // chosen year; lists, overviews, GR/IM and APL do not carry it.
+  function gymMatrixYear(): Pick<PlanLocation, 'relativeYear' | 'allYears'> {
+    const prior = planningLocationRef.current;
+    if (!prior || prior.overview || (prior.view === 'programplaner' ? !prior.programplan : !prior.gym || prior.other || prior.process === 'apl')) return {};
+    return { ...(prior.relativeYear !== undefined ? { relativeYear: prior.relativeYear } : {}),
+      ...(prior.allYears !== undefined ? { allYears: prior.allYears } : {}) };
+  }
   function applyPlanningLocation(location: PlanLocation) {
     setClassStepIntent(null);
     setProgramplanTarget(location.view === 'programplaner' ? location.programplan : null);
@@ -542,7 +550,7 @@ function ProtectedShell() {
     if (!canNavigate()) return;
     if (view === 'elever') rememberRegister();
     const prior = planningFor('programplaner');
-    const location: PlanLocation = { ...prior, view: 'programplaner', programplan: target, planning: { ...prior.planning, ...(target.unitId ? { unitId: target.unitId } : {}) } };
+    const location: PlanLocation = { ...prior, ...gymMatrixYear(), view: 'programplaner', programplan: target, planning: { ...prior.planning, ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
   function goToTimplan(source: string | GymTimplanLocation) {
@@ -550,7 +558,7 @@ function ProtectedShell() {
     if (view === 'elever') rememberRegister();
     const prior = planningFor('timplaner'), cached = lastGymPlan.current;
     const target = selectGymTimplanTarget(source, cached, prior.planning?.unitId);
-    const location: PlanLocation = { ...prior, view: 'timplaner', gym: target, planning: { ...prior.planning, schoolform: 'gymnasium',
+    const location: PlanLocation = { ...prior, ...gymMatrixYear(), view: 'timplaner', gym: target, planning: { ...prior.planning, schoolform: 'gymnasium',
       ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
