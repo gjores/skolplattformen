@@ -1,7 +1,7 @@
 ---
 phase: 05-bevarade-utbildnings-och-klassfloden
 plan: PLANNING-BROWSER-FIXES
-status: implemented_pending_verification
+status: verified_local_synthetic
 created: 2026-10-19
 ---
 
@@ -40,6 +40,12 @@ Modellkonflikt som återstår: årsöversikt och årslista (`phase5_planning_yea
 - `npx tsc --noEmit`, `npx oxlint app lib` och `node --test lib/*.test.mjs`.
 - Ändring 3 täcks inte av något prov. Den är kontrollerad genom kodgranskning, typkontroll och lint.
 
-## Resultat
+## Resultat 2026-10-19
 
-(fylls i efter körning)
+Bygge och preview: skyddat läge på 517f1b8, port 3056, med lokal syntetisk fixtur. Detta är inget IdP- eller pilotbevis.
+
+- phase5-timplan **22/22**. Fall 11 går igenom på dator och telefon. I första körningen föll fall 01 på telefon: klicket på **Välj aktuell utkastmatris** fastnade vid rullningen till knappen. Det skedde före ändrad kod, och körningen tog 11,3 minuter under hög belastning. Fall 01 gick igenom ensamt, och en ny hel körning gav 22/22 på 1,1 minut.
+- phase5-gym-timplan **26/26**. T01 går igenom på dator och telefon.
+- phase5-programplan **40/40**.
+- `node --test lib/*.test.mjs` 765/765, `npx tsc --noEmit` och `npx oxlint app lib` gröna. `npm run docs:build` gick igenom.
+- Kvar: modellkonflikten i årslistan för GR/IM (se ovan) och mänsklig bedömning av beteendet.
