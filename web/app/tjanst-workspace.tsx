@@ -97,7 +97,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   const [panelOpen, setPanelOpen] = useState(false), [checking, setChecking] = useState(false), [busy, setBusy] = useState(false);
   const phone = usePhone();
   const active = useRef(true), generation = useRef(0), running = useRef(false), origin = useRef<HTMLElement | null>(null), lost = useRef(onSessionLost);
-  const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId();
+  const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId(), pendingFocus = useRef<HTMLElement | null>(null);
+  const applyFocus = useCallback(() => {
+    const target = pendingFocus.current;
+    if (!target || target.closest('[inert]')) return;
+    pendingFocus.current = null;
+    (target.isConnected ? target : viewHeading.current)?.focus();
+  }, []);
   useLayoutEffect(() => { lost.current = onSessionLost; });
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   const scope = useMemo<TjanstJournalScope | null>(() => identityKey ? { identityKey, assignmentId: context.assignmentId } : null, [identityKey, context.assignmentId]);
@@ -124,6 +130,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   const filterKey = JSON.stringify(filter);
   useEffect(() => { queueMicrotask(() => void load()); }, [load, readKey, term, filterKey]);
   const refresh = useCallback(() => setReadKey(n => n + 1), []);
+  useEffect(() => { if (!loading) requestAnimationFrame(applyFocus); }, [loading, applyFocus]);
 
   // Ett osäkert sparförsök från en tidigare sidvisning kontrolleras med statuskvittot, aldrig med en ny skrivning.
   const recover = useCallback(async () => {
@@ -155,16 +162,16 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   useEffect(() => { queueMicrotask(() => void recover()); }, [recover]);
 
   const writeFailure = useCallback((caught: ApiError, op: Op): TjanstFailure => {
-    const correlationId = caught.correlationId, reload = refresh;
+    const correlationId = caught.correlationId, reload = refresh, code = caught.code;
     if (caught.code === 'mfa_required') return failed('', { mfa: op === 'publish' ? 'Att fastställa och publicera kräver verifiering med engångskod.'
       : op === 'personal' ? 'Att ändra personaluppgifter kräver verifiering med engångskod.' : 'Att ändra tjänstefördelningen kräver verifiering med engångskod.' });
-    if (caught.code === 'audit_unavailable') return failed('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig. Dina uppgifter finns kvar i formuläret.', { correlationId });
+    if (code === 'audit_unavailable') return failed('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig. Dina uppgifter finns kvar i formuläret.', { correlationId, code });
     if (LOCK_CODES.includes(caught.code)) return failed('Uppdraget har ändrats. Ladda om arbetsytan.', { correlationId });
     if (caught.status === 403) return failed(op === 'publish' ? 'Bara rektor kan fastställa och publicera tjänstefördelningen.' : 'Ditt aktuella uppdrag tillåter inte ändringen.', { correlationId });
     if (caught.status === 409) return failed(caught.code === 'tjanst_published_meanwhile'
       ? `Version ${data?.version?.versionNo ?? ''} har publicerats under tiden. Hämta aktuellt läge och välj Ändra i ny version.`
-      : 'Fördelningen har ändrats av någon annan. Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.', { correlationId, refresh: reload });
-    if (caught.status === 400) return failed(REASONS[caught.code] ?? 'Formuläret innehåller fel. Rätta de markerade fälten.', { correlationId });
+      : 'Fördelningen har ändrats av någon annan. Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.', { correlationId, code, refresh: reload });
+    if (caught.status === 400) return failed(REASONS[code] ?? 'Formuläret innehåller fel. Rätta de markerade fälten.', { correlationId, code });
     return failed('Ändringen kunde inte sparas. Dina uppgifter finns kvar i formuläret.', { correlationId });
   }, [data, refresh]);
 
@@ -268,10 +275,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   const empty = !!data && data.rows.length === 0 && data.teachers.length === 0 && data.specials.length === 0;
 
   function open(next: Dialog, from: HTMLElement | null) { origin.current = from; setPageError(null); setDialog(next); }
-  function close(focus?: HTMLElement | null) {
-    const target = focus ?? origin.current; setDialog(null);
-    requestAnimationFrame(() => { if (target?.isConnected) target.focus(); else viewHeading.current?.focus(); });
-  }
+  // Fokus återgår till cellen eller knappen som öppnade dialogen, efter omläsningen (innehållet är inert under läsning).
+  function close(focus?: HTMLElement | null) { pendingFocus.current = focus ?? origin.current ?? viewHeading.current; setDialog(null); requestAnimationFrame(applyFocus); }
   const rowName = (row: TjanstRow) => {
     const cls = data!.classes.find(c => c.classId === row.classId), need = cls?.needs.find(n => n.sourceKey === row.sourceKey);
     return { teacher: row.personId === null ? 'Vakant' : data!.teachers.find(t => t.personId === row.personId)?.displayName ?? 'Okänd lärare', course: need?.label ?? row.rowKey, cls: cls?.name ?? '' };
@@ -321,9 +326,9 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
         <TermSwitch term={term} onTerm={chooseTerm}/></div>}
     {phone && <TermSwitch term={term} onTerm={chooseTerm}/>}
     {data && (shownView === 'matris' || shownView === 'kurs') && <div className="protected-filter tjanst-filter">
-      <label>Klass<select value={filter.classId} onChange={e => patchSaved({ filter: { ...filter, classId: e.target.value } })}><option value="">Alla klasser</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></label>
-      <label>Ämne<select value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></label>
-      <label>Lärare<select value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></label>
+      <div className="tjanst-field"><label htmlFor={`${headingId}-klass`}>Klass</label><select id={`${headingId}-klass`} value={filter.classId} onChange={e => patchSaved({ filter: { ...filter, classId: e.target.value } })}><option value="">Alla klasser</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
+      <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+      <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
       <label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}
@@ -338,6 +343,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
     <div className="tjanst-messages">
       {notice && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
       {pageError && !dialog && <div role="alert" className="validation-warning"><p>{pageError.error}</p></div>}
+      {phone && dialog && <output className="admin-notice"><span>Redigeringen är stängd på den här skärmstorleken. Dina uppgifter finns kvar när du öppnar vyn på dator igen.</span></output>}
       {pendingCheck && !checking && scope && <div className="mandate-actions"><Button variant="outline" onClick={() => { setPageError(null); void recover(); }}>Kontrollera sparstatus</Button></div>}
       {readError && <div role="alert" className="validation-warning"><p>{readError.text}</p>{readError.correlationId && <p>Referens: {readError.correlationId}</p>}
         {readError.retry && <Button variant="outline" aria-label="Hämta tjänstefördelningen igen" onClick={refresh}>Hämta igen</Button>}</div>}
@@ -361,8 +367,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
     </div>}
     {data && dialog?.kind === 'row' && dialogEntry && <TjanstRowDialog {...base} key={`${dialog.target.sourceKey}:${dialog.target.personId}:${dialog.target.rowId}`} data={data} entry={dialogEntry} target={dialog.target} chooseTeacher={dialog.chooseTeacher}
       onClose={() => close()} onDelete={row => open({ kind: 'confirm', confirm: 'deleteRow', id: row.id }, origin.current)}
-      onSave={draft => plan('save_row', { rowId: dialog.target.rowId, sourceKind: dialogEntry.need.sourceKind, sourceKey: dialogEntry.need.sourceKey, ...draft }, () =>
-        `Tjänsteraden är sparad: ${draft.personId === null ? 'Vakant' : data.teachers.find(t => t.personId === draft.personId)?.displayName}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(draft.teacherHt)} · VT ${formatTime(draft.teacherVt)}.`)}/>}
+      onSave={async draft => { const who = draft.personId === null ? 'Vakant' : data.teachers.find(t => t.personId === draft.personId)?.displayName ?? '';
+        const outcome = await plan('save_row', { rowId: dialog.target.rowId, sourceKind: dialogEntry.need.sourceKind, sourceKey: dialogEntry.need.sourceKey, ...draft }, () =>
+          `Tjänsteraden är sparad: ${who}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(draft.teacherHt)} · VT ${formatTime(draft.teacherVt)}.`);
+        return !outcome.ok && outcome.code === 'tjanst_duplicate_row' ? { ...outcome, error: `${who} har redan en rad för ${dialogEntry.need.label} i ${dialogEntry.cls.name}. Ändra den befintliga raden.` } : outcome; }}/>}
     {data && dialog?.kind === 'special' && <TjanstSpecialDialog {...base} key={dialog.special?.id ?? 'ny'} data={data} special={dialog.special} onClose={() => close()} onDelete={s => open({ kind: 'confirm', confirm: 'deleteSpecial', id: s.id }, origin.current)}
       onSave={draft => plan('save_special', { specialId: dialog.special?.id ?? null, ...draft }, () =>
         `Specialuppdraget ${draft.label} är sparat för ${draft.personId === null ? 'Vakant' : data.teachers.find(t => t.personId === draft.personId)?.displayName}.`)}/>}
@@ -396,12 +404,13 @@ function Heading({ schoolName, schoolYear, forms, admin }: { schoolName: string 
 type PlanFn = <A extends TjanstPlanAction>(action: A, payload: TjanstPlanPayload[A], message: (detail: TjanstPlanRead) => string) => Promise<TjanstOutcome>;
 function Confirmation({ data, dialog, base, rowName, onClose, plan, classHeading }: { data: TjanstPlanRead; dialog: Extract<Dialog, { kind: 'confirm' }>; base: { checking: boolean; open: boolean };
   rowName: (row: TjanstRow) => { teacher: string; course: string; cls: string }; onClose: (focus?: HTMLElement | null) => void; plan: PlanFn; classHeading: (classId: string) => HTMLElement | null }) {
-  const version = data.version, published = data.versions.find(v => v.status === 'published');
+  const version = data.version, published = data.versions.find(v => v.status === 'published'), deleted = useRef(false);
   if (dialog.confirm === 'deleteRow') {
     const row = data.rows.find(r => r.id === dialog.id); if (!row) return null; const n = rowName(row);
-    return <TjanstConfirmDialog {...base} onClose={() => onClose()} title="Ta bort tjänsteraden?" text={`${n.teacher}, ${n.course}, ${n.cls} tas bort ur utkastet. Publicerade versioner ändras inte.`}
+    // Efter borttagen rad går fokus till klassrubriken; avbryt återför fokus till cellen.
+    return <TjanstConfirmDialog {...base} onClose={() => onClose(deleted.current ? classHeading(row.classId) : undefined)} title="Ta bort tjänsteraden?" text={`${n.teacher}, ${n.course}, ${n.cls} tas bort ur utkastet. Publicerade versioner ändras inte.`}
       keepLabel="Behåll raden" confirmLabel="Ta bort tjänsteraden" destructive onConfirm={async () => { const o = await plan('delete_row', { rowId: row.id }, () => `Tjänsteraden är borttagen: ${n.teacher}, ${n.course}, ${n.cls}.`);
-        if (o.ok) requestAnimationFrame(() => classHeading(row.classId)?.focus()); return o; }}/>;
+        deleted.current = o.ok; return o; }}/>;
   }
   if (dialog.confirm === 'deleteSpecial') {
     const s = data.specials.find(x => x.id === dialog.id); if (!s) return null;

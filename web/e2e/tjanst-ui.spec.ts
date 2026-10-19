@@ -1,7 +1,11 @@
 // Synthetic component evidence for Tjänstefördelning (05.1-05). /api/tjanst/* is answered by the fixture's in-browser mock;
 // no database, server or live authentication. Komponentprov, inte faktiskt prov.
 import {test,expect,type Page} from '@playwright/test';
+import {existsSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 const url='/e2e/fixtures/tjanst-preview.html';
+const UNIT_A='51a50000-0000-4000-8000-000000000003';
+const SHOTS=`${existsSync('/private/tmp')?'/private/tmp':tmpdir()}/tjanst-ui`;
 const ws=(page:Page)=>page.locator('.tjanst');
 type Logged={path:string;body:any};
 const commands=(page:Page)=>page.evaluate(()=>window.__tjanst.commands) as Promise<Logged[]>;
@@ -279,5 +283,379 @@ test.describe('dator',()=>{
    await ws(page).getByLabel('Lärare',{exact:true}).selectOption({label:teacher});
    expect(await ws(page).getByRole('region',{name:'Per lärare'}).textContent()).not.toMatch(banned);
   }
+ });
+
+ test('UI Matris, empty: fördelning utan rader, skola utan kopplade klasser och Alla behöriga skolor',async({page})=>{
+  await open(page,'?data=tom');
+  await expect(ws(page).getByRole('heading',{name:'Ingen tjänstefördelning för läsåret 26/27 ännu'})).toBeVisible();
+  await expect(ws(page).getByText('Lägg till lärare i fördelningen och fördela kurserna i matrisen. Behovet hämtas från klassernas timplaner.')).toBeVisible();
+  await expect(ws(page).locator('.tjanst-state').getByRole('button',{name:'Lägg till lärare i fördelningen'})).toBeVisible();
+  await open(page,'?data=utan-klasser');
+  await expect(ws(page).getByText('Ingen klass på skolan har en timplan för läsåret 26/27. Koppla klasserna till timplaner först.')).toBeVisible();
+  await expect(ws(page).locator('.tjanst-state').getByRole('button',{name:'Öppna klasskopplingar'})).toBeVisible();
+  await page.goto(url+'?skola=alla');
+  await expect(ws(page).getByText('Välj en skola i planeringsvalet. En tjänstefördelning gäller en skola.')).toBeVisible();
+  expect(await page.evaluate(()=>window.__tjanst.reads.length)).toBe(0);
+ });
+
+ test('UI Matris, loading: aria-busy och föregående innehåll står kvar inaktivt vid termins- och filterbyte',async({page})=>{
+  await open(page);
+  await page.evaluate(()=>window.__tjanst.holdNext('plan/lasa'));
+  await ws(page).getByRole('button',{name:'HT',exact:true}).click();
+  await expect(ws(page)).toHaveAttribute('aria-busy','true');await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toBeVisible();
+  await expect(page.locator('.tjanst-content')).toHaveAttribute('inert','');await expect(page.locator('.tjanst-matrix')).toBeVisible();
+  await expect(ws(page).getByRole('button',{name:'HT',exact:true})).toBeFocused();
+  await page.evaluate(()=>window.__tjanst.release());
+  await expect(ws(page)).toHaveAttribute('aria-busy','false');
+  await expect(page.locator('.tjanst-matrix caption')).toHaveText('Tjänstefördelning Syntetiska gymnasiet läsåret 26/27, HT');
+  expect(new URL(page.url()).searchParams.get('termin')).toBe('ht');
+  await page.evaluate(()=>window.__tjanst.holdNext('plan/lasa'));
+  await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'EK26'});
+  await expect(page.locator('.tjanst-content')).toHaveAttribute('inert','');await expect(page.locator('.tjanst-matrix')).toBeVisible();
+  await page.evaluate(()=>window.__tjanst.release());await expect(ws(page)).toHaveAttribute('aria-busy','false');
+  await expect(matrix(page).getByRole('rowheader',{name:/^TE26A/})).toHaveCount(0);
+  expect(new URL(page.url()).search).not.toContain(UNIT_A);
+  await page.goBack();await expect(page.locator('.tjanst-matrix caption')).toHaveText(/Hela läsåret$/);
+ });
+
+ test('UI Matris, error: nätverksfel, 403, loggfel och context_changed har egna texter',async({page})=>{
+  await page.goto(url+'?forsta=natverk');
+  const alert=ws(page).getByRole('alert');
+  await expect(alert).toContainText('Tjänsten kunde inte nås. Kontrollera anslutningen och försök igen.');
+  await alert.getByRole('button',{name:'Hämta tjänstefördelningen igen'}).click();
+  await expect(matrix(page)).toBeVisible();
+  await page.evaluate(()=>window.__tjanst.failNext('plan/lasa',{status:503,code:'audit_unavailable'}));
+  await ws(page).getByRole('button',{name:'VT',exact:true}).click();
+  await expect(alert).toContainText('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.');await expect(alert).toContainText('Referens: syntetisk-ref-1');
+  await expect(matrix(page)).toBeVisible();
+  await page.evaluate(()=>window.__tjanst.failNext('plan/lasa',{status:403,code:'forbidden'}));
+  await ws(page).getByRole('button',{name:'HT',exact:true}).click();
+  await expect(alert).toContainText('Ditt aktuella uppdrag tillåter inte att läsa tjänstefördelningen för den här skolan.');
+  await expect(page.locator('.tjanst-matrix')).toHaveCount(0);await expect(ws(page).getByText('Anna Andersson')).toHaveCount(0);
+  await open(page);
+  await page.evaluate(()=>window.__tjanst.failNext('plan/lasa',{status:409,code:'context_changed'}));
+  await ws(page).getByRole('button',{name:'VT',exact:true}).click();
+  await expect(alert).toContainText('Uppdraget har ändrats. Ladda om arbetsytan.');await expect(page.locator('.tjanst-matrix')).toHaveCount(0);
+ });
+
+ test('UI Matris, populated: klassgrupper, kursrader, lärarkolumner, Vakant och fotraden',async({page})=>{
+  await open(page);
+  for(const header of ['Kurs · klass','Behov','Fördelat','Avvikelse','Vakant'])await expect(matrix(page).getByRole('columnheader',{name:header,exact:true})).toBeVisible();
+  const heads=await matrix(page).locator('thead th.tjanst-teacher .tjanst-teacher-name').allTextContents();expect(heads).toEqual(['Anna Andersson','Bertil Berg','Cecilia Dahl']);
+  await expect(matrix(page).getByRole('columnheader',{name:/Cecilia Dahl/})).toContainText('Ny lärare');
+  for(const g of ['TE26A · Teknikprogrammet version 2','EK26 · Ekonomiprogrammet version 1','IMSPR · Språkintroduktion version 1'])await expect(matrix(page).getByRole('rowheader',{name:g})).toBeVisible();
+  await expect(matrix(page).getByRole('button',{name:'Vakant, Svenska som andraspråk 1, IMSPR: 72 h. Ändra.'})).toBeVisible();
+  await expect(matrix(page).getByRole('rowheader',{name:/^Svenska 1/}).first()).toContainText('Samläsning');
+  for(const [label,value] of [['Undervisning','150 h'],['Specialuppdrag','40 h'],['Totalt','190 h']])await expect(footer(page,label,'Anna Andersson')).toHaveText(value);
+  await expect(matrix(page).locator('tfoot tr').first().locator('td.tjanst-vacant')).toHaveText('72 h');
+  await expect(matrix(page).locator('caption')).toHaveText('Tjänstefördelning Syntetiska gymnasiet läsåret 26/27, Hela läsåret');
+  expect(await matrix(page).locator('thead th.tjanst-teacher').evaluateAll(n=>n.every(x=>x.getAttribute('scope')==='col'))).toBe(true);
+  expect(await matrix(page).locator('tbody th.tjanst-first').evaluateAll(n=>n.every(x=>x.getAttribute('scope')==='row'))).toBe(true);
+ });
+
+ test('UI Matris, partial: koppling saknas utan nollor, underlag saknas och avvikelse bara när den inte är noll',async({page})=>{
+  await open(page);
+  await expect(matrix(page).getByRole('rowheader',{name:'NA26B · koppling saknas'})).toBeVisible();
+  const english=matrix(page).getByRole('row').filter({has:page.getByRole('rowheader',{name:/^Engelska 5/})});
+  await expect(english.locator('td').nth(2)).toHaveText('');
+  const math=matrix(page).getByRole('row').filter({has:page.getByRole('rowheader',{name:/^Matematik 1c/})});
+  await expect(math.locator('td').nth(2)).toHaveText('−100 h');
+  await ws(page).getByRole('tab',{name:'Per lärare'}).click();
+  await expect(ws(page).getByRole('region',{name:'Per lärare'})).toContainText('Schemalagd tidUnderlag saknasVisas när schemat finns i Skolplattformen.');
+ });
+
+ test('UI Matris, zero-one-many: 1 lärare och flera lärare på samma kurs',async({page})=>{
+  await open(page);
+  await expect(matrix(page).getByRole('rowheader',{name:'TE26A · Teknikprogrammet version 2'})).toContainText('200 av 300 h · 2 lärare');
+  await expect(matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'})).toBeVisible();
+  await expect(matrix(page).getByRole('button',{name:'Bertil Berg, Engelska 5, TE26A: 50 h. Ändra.'})).toBeVisible();
+  await expect(matrix(page).getByRole('row').filter({has:page.getByRole('rowheader',{name:/^Engelska 5/})}).locator('td').nth(1)).toHaveText('100 h');
+  await page.getByRole('button',{name:'Byt skola'}).click();
+  await expect(matrix(page).getByRole('rowheader',{name:'SA26C · Samhällsvetenskapsprogrammet version 1'})).toContainText('50 av 50 h · 1 lärare');
+ });
+
+ test('UI Per klass/Per lärare/Specialuppdrag/Per kurs, empty: var sin tomtext',async({page})=>{
+  await open(page,'?tjvy=klass');
+  await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'NA26B'});
+  await expect(ws(page).getByText('Klassen har ingen timplan för läsåret 26/27. Behovet är okänt, inte noll.')).toBeVisible();
+  await ws(page).getByRole('tab',{name:'Per lärare'}).click();await ws(page).getByLabel('Lärare',{exact:true}).selectOption({label:'Cecilia Dahl'});
+  await expect(ws(page).getByText('Cecilia Dahl har ingen undervisning eller något uppdrag i den här versionen.')).toBeVisible();
+  await ws(page).getByRole('tab',{name:'Per kurs/ämne'}).click();
+  await expect(ws(page).getByText('Markera rader i olika klasser för att koppla dem till en samläsning.')).toBeVisible();
+  await open(page,'?data=utan-uppdrag&tjvy=special');
+  await expect(ws(page).getByText('Inga specialuppdrag ännu.')).toBeVisible();
+ });
+
+ test('UI Per klass/Per lärare, populated: täckning per kurs med alla lärare och summor per lärare',async({page})=>{
+  await open(page,'?tjvy=klass');
+  const view=ws(page).getByRole('region',{name:'Per klass'});
+  await expect(view.locator('dl')).toContainText('TimplanTeknikprogrammet · version 2');await expect(view.locator('dl')).toContainText('Täckning200 av 300 h · 2 lärare');
+  await expect(view.getByRole('row').filter({hasText:'Engelska 5'})).toContainText('Anna Andersson · HT 50 h · VT 0 h');
+  await expect(view.getByRole('row').filter({hasText:'Engelska 5'})).toContainText('Bertil Berg · HT 0 h · VT 50 h');
+  await ws(page).getByRole('tab',{name:'Per lärare'}).click();await ws(page).getByLabel('Lärare',{exact:true}).selectOption({label:'Bertil Berg'});
+  const teacher=ws(page).getByRole('region',{name:'Per lärare'});
+  await expect(teacher.locator('dl')).toContainText('UndervisningHT 50 h · VT 100 h · Läsår 150 h');await expect(teacher.locator('dl')).toContainText('Andel här100 %');
+  await expect(teacher.getByRole('row').filter({hasText:'Svenska 1'})).toContainText('Samläsning med EK26');
+  await expect(teacher.getByText(/^Personal-ID 51a50000-0000-4000-8000-000000000102$/)).toBeVisible();
+  expect(new URL(page.url()).search).not.toContain('000000000102');
+ });
+
+ test('UI Per kurs (samläsning), zero-one-many: minst två rader i två klasser',async({page})=>{
+  await open(page,'?tjvy=kurs');
+  const course=ws(page).getByRole('region',{name:'Per kurs/ämne'});
+  await course.getByRole('checkbox',{name:'Markera Engelska 5 TE26A, Anna Andersson'}).check();
+  await course.getByRole('checkbox',{name:'Markera Engelska 5 TE26A, Bertil Berg'}).check();
+  await expect(course.getByText('2 rader markerade')).toBeVisible();
+  await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
+  await expect(course.getByText('Markera minst två rader i minst två olika klasser.')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await course.getByRole('button',{name:'Avmarkera alla'}).click();await expect(course.getByText(/rader markerade|rad markerad/)).toHaveCount(0);
+ });
+
+ test('UI Per kurs (samläsning), error: redan kopplad rad, för få rader och 409',async({page})=>{
+  await open(page,'?tjvy=kurs');
+  const course=ws(page).getByRole('region',{name:'Per kurs/ämne'});
+  await course.getByRole('checkbox',{name:'Markera Svenska 1 TE26A, Bertil Berg'}).check();
+  await course.getByRole('checkbox',{name:'Markera Matematik 1b EK26, Anna Andersson'}).check();
+  await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
+  await expect(course.getByRole('alert')).toHaveText('Svenska 1 TE26A ingår redan i samläsningen Svenska 1 TE26A + EK26. Lös upp den först eller ändra den samläsningen.');
+  await course.getByRole('checkbox',{name:'Markera Svenska 1 TE26A, Bertil Berg'}).uncheck();
+  await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
+  await expect(course.getByRole('alert')).toHaveText('Markera minst två rader i minst två olika klasser.');
+  await course.getByRole('checkbox',{name:'Markera Engelska 5 TE26A, Anna Andersson'}).check();
+  await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:409,code:'tjanst_revision_conflict'}));
+  await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
+  const dialog=page.getByRole('dialog');await dialog.getByLabel('Namn').fill('Syntetisk samläsning');
+  await dialog.getByRole('button',{name:'Spara samläsningen'}).click();
+  await expect(dialog.getByRole('alert')).toContainText('Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.');
+  await expect(dialog.getByLabel('Namn')).toHaveValue('Syntetisk samläsning');
+ });
+
+ test('UI Dialoger, loading: Sparar… i knappen, fälten inaktiva och stängning spärrad',async({page})=>{
+  await open(page);
+  await page.evaluate(()=>window.__tjanst.holdNext('plan/kommando'));
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(dialog.getByRole('button',{name:'Sparar…'})).toBeDisabled();
+  await expect(dialog.getByLabel('Lärartid HT (timmar)')).toBeDisabled();await expect(dialog.getByRole('button',{name:'Stäng utan att spara'})).toBeDisabled();
+  await page.keyboard.press('Escape');await expect(dialog).toBeVisible();
+  await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toHaveCount(0);
+  await page.evaluate(()=>window.__tjanst.release());
+  await expect(dialog).toHaveCount(0);await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();
+ });
+
+ test('UI Dialoger, error: fältfel, 400, loggfel och MFA har egna texter och inmatningen bevaras',async({page})=>{
+  await open(page);
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  const dialog=page.getByRole('dialog'),ht=dialog.getByLabel('Lärartid HT (timmar)');
+  await ht.fill('abc');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(dialog.getByRole('alert').first()).toHaveText('Formuläret innehåller fel. Rätta de markerade fälten.');
+  await expect(ht).toHaveAttribute('aria-invalid','true');await expect(ht).toHaveAccessibleDescription(/Ange tid i timmar, till exempel 40 eller 37,5\./);
+  await ht.fill('-5');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();await expect(dialog.getByText('Tiden kan inte vara negativ.')).toBeVisible();
+  await ht.fill('37,5');
+  for(const [failure,text] of [[{status:400,code:'tjanst_duplicate_row'},'Cecilia Dahl har redan en rad för Matematik 1c i TE26A. Ändra den befintliga raden.'],
+   [{status:503,code:'audit_unavailable'},'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig. Dina uppgifter finns kvar i formuläret.'],
+   [{status:403,code:'mfa_required'},'Att ändra tjänstefördelningen kräver verifiering med engångskod.'],
+   [{status:403,code:'forbidden'},'Ditt aktuella uppdrag tillåter inte ändringen.']] as const){
+   await page.evaluate(f=>window.__tjanst.failNext('plan/kommando',f),failure);
+   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+   await expect(dialog.getByRole('alert')).toContainText(text);await expect(ht).toHaveValue('37,5');
+  }
+  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 37 h 30 min · VT 50 h.')).toBeVisible();
+  expect((await commands(page)).filter(c=>c.body.action==='save_row').at(-1)!.body.payload.teacherHt).toBe(2250);
+ });
+
+ test('UI Dialoger, partial: valfria fält får vara tomma och tid krävs för minst en termin',async({page})=>{
+  await open(page);
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  const dialog=page.getByRole('dialog');
+  await dialog.getByLabel('Lärartid HT (timmar)').fill('0');await dialog.getByLabel('Lärartid VT (timmar)').fill('');
+  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(dialog.getByText('Ange tid för minst en termin.')).toBeVisible();expect((await commands(page)).length).toBe(0);
+  await dialog.getByLabel('Lärartid VT (timmar)').fill('10');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 0 h · VT 10 h.')).toBeVisible();
+  expect((await commands(page))[0].body.payload.comment).toBe('');
+  await ws(page).getByRole('button',{name:'Lägg till specialuppdrag'}).click();
+  const special=page.getByRole('dialog');await special.getByLabel('Typ').selectOption('programansvar');
+  await expect(special.getByLabel('Klass (valfri)')).toHaveCount(0);
+  await special.getByLabel('Lärare').selectOption({label:'Vakant'});await special.getByLabel('Tid VT (timmar)').fill('5');
+  await special.getByRole('button',{name:'Spara specialuppdraget'}).click();
+  await expect(ws(page).getByText('Specialuppdraget Programansvar är sparat för Vakant.')).toBeVisible();
+  expect((await commands(page)).at(-1)!.body.payload).toMatchObject({kind:'programansvar',personId:null,classId:null,comment:''});
+ });
+
+ test('UI Fastställ-panelen, populated: stegrad, hinder, versionshistorik och återkoppling',async({page})=>{
+  await open(page,'?hinder=1&aterkoppling=1');
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
+  await expect(panel.getByRole('list',{name:'Fördelningens steg'})).toContainText('1. Utkast2. Fastställd och publicerad');
+  await expect(panel.getByText('1 punkt behöver åtgärdas innan du kan fastställa.')).toBeVisible();await expect(panel.getByText('En tjänsterad bygger på en äldre timplansversion.')).toBeVisible();
+  await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
+  await expect(panel.getByRole('button',{name:'Ta bort utkastet…'})).toBeEnabled();
+  await panel.getByRole('button',{name:'Versionshistorik'}).click();
+  await expect(panel.getByText('Version 2 · Utkast')).toBeVisible();await expect(panel.getByText(/^Version 1 · Fastställd och publicerad · Rektor Syntetisk · 2026-06-15 \d\d:\d\d$/)).toBeVisible();
+  await panel.getByRole('button',{name:'Lärarnas återkoppling (1)'}).click();
+  await expect(panel.getByText('Version 1 · Kvitterad av 1 av 2 lärare')).toBeVisible();await expect(panel.getByText(/Anna Andersson · 2026-06-16/)).toBeVisible();
+  await expect(panel).not.toContainText(/facklig/i);
+  await panel.getByRole('button',{name:'Ta bort utkastet…'}).click();
+  const dialog=page.getByRole('dialog');await expect(dialog.getByText('Alla ändringar i utkastet tas bort. Lärarna ser fortfarande version 1.')).toBeVisible();
+  await dialog.getByRole('button',{name:'Ta bort utkastet'}).click();
+  await expect(ws(page).getByText('Utkastet version 2 är borttaget.')).toBeVisible();await expect(ws(page).getByText('Fastställd och publicerad',{exact:true}).first()).toBeVisible();
+ });
+
+ test('UI Fastställ-panelen, error: 403, 409, MFA och okänt utfall; klar först efter kvitto',async({page})=>{
+  await open(page);
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Fastställ och publicera…'}).click();
+  const dialog=page.getByRole('dialog'),go=dialog.getByRole('button',{name:'Fastställ och publicera'});
+  await page.evaluate(()=>{window.__tjanst.failNext('plan/publicera',{status:403,code:'forbidden'});window.__tjanst.failNext('plan/publicera',{status:409,code:'tjanst_content_changed'});});
+  await go.click();await expect(dialog.getByRole('alert')).toContainText('Bara rektor kan fastställa och publicera tjänstefördelningen.');
+  await go.click();await expect(dialog.getByRole('alert')).toContainText('Fördelningen har ändrats av någon annan. Din ändring har inte sparats.');
+  await go.click();await expect(dialog.getByRole('alert')).toContainText('Att fastställa och publicera kräver verifiering med engångskod.');
+  await expect(ws(page).getByText(/är fastställd och publicerad/)).toHaveCount(0);
+  await page.evaluate(()=>{window.__tjanst.mfaVerified=true;window.__tjanst.failNext('plan/publicera','lost');window.__tjanst.holdNext('plan/status');});
+  await go.click();
+  await expect(dialog.getByText('Svaret uteblev. Vi kontrollerar om ändringen sparades.')).toBeVisible();await expect(dialog.getByRole('button',{name:'Publicerar…'})).toBeDisabled();
+  await expect(ws(page).getByText(/är fastställd och publicerad/)).toHaveCount(0);
+  await page.evaluate(()=>window.__tjanst.release());
+  await expect(ws(page).getByText('Version 2 är fastställd och publicerad. Lärarna ser den i Min tjänst.')).toBeVisible();
+ });
+
+ test('tangentbord: ett tabbstopp med piltangenter, Home, End och Enter samt fokus åter efter dialog och borttagning',async({page})=>{
+  await open(page);
+  const tabbable=await matrix(page).locator('.tjanst-cell button').evaluateAll(n=>n.filter(x=>x.getAttribute('tabindex')==='0').length);expect(tabbable).toBe(1);
+  const first=matrix(page).getByRole('button',{name:'Anna Andersson, Matematik 1c, TE26A: ingen tid. Tilldela.'});
+  await first.focus();
+  await page.keyboard.press('ArrowRight');await expect(matrix(page).getByRole('button',{name:'Bertil Berg, Matematik 1c, TE26A: ingen tid. Tilldela.'})).toBeFocused();
+  await page.keyboard.press('End');await expect(matrix(page).getByRole('button',{name:'Vakant, Matematik 1c, TE26A: ingen tid. Tilldela.'})).toBeFocused();
+  await page.keyboard.press('Home');await expect(first).toBeFocused();
+  await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowDown');
+  const english=matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'});await expect(english).toBeFocused();
+  expect(await english.getAttribute('tabindex')).toBe('0');expect(await first.getAttribute('tabindex')).toBe('-1');
+  await page.keyboard.press('Enter');const dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Ändra tjänsteraden'})).toBeVisible();
+  await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('50');
+  await dialog.getByRole('button',{name:'Stäng utan att spara'}).click();await expect(english).toBeFocused();
+  await page.keyboard.press('Space');await dialog.getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
+  const confirm=page.getByRole('dialog');await expect(confirm.getByRole('button',{name:'Behåll raden'})).toBeFocused();
+  await confirm.getByRole('button',{name:'Ta bort tjänsteraden'}).click();
+  await expect(ws(page).getByText('Tjänsteraden är borttagen: Anna Andersson, Engelska 5, TE26A.')).toBeVisible();
+  await expect(matrix(page).getByRole('rowheader',{name:'TE26A · Teknikprogrammet version 2'})).toBeFocused();
+ });
+
+ test('redigeringsläge stängs när fönstret krymper och osparad inmatning skyddas',async({page})=>{
+  await open(page);
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByLabel('Lärartid VT (timmar)').fill('12');
+  const size=page.viewportSize()!;await page.setViewportSize({width:390,height:844});
+  await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('.tjanst-matrix')).toHaveCount(0);
+  await expect(ws(page).getByText('Redigeringen är stängd på den här skärmstorleken. Dina uppgifter finns kvar när du öppnar vyn på dator igen.')).toBeVisible();
+  await expect(page.locator('[data-unsaved]')).toHaveAttribute('data-unsaved','true');
+  await page.setViewportSize(size);
+  await expect(page.getByRole('dialog').getByLabel('Lärartid VT (timmar)')).toHaveValue('12');
+ });
+
+ test('pekytor: minst 44 px på dator',async({page})=>{
+  await open(page,'?aterkoppling=1');
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  const small=await ws(page).locator('button:visible,select:visible,[role=tab]:visible,.tjanst-mark,.mandate-check').evaluateAll(n=>n.map(x=>{const r=x.getBoundingClientRect();return {name:x.getAttribute('aria-label')??x.textContent,h:r.height,w:r.width};}).filter(x=>x.h<44||x.w<44));
+  expect(small).toEqual([]);
+  await ws(page).getByRole('tab',{name:'Per kurs/ämne'}).click();
+  expect(await ws(page).locator('.tjanst-mark').evaluateAll(n=>n.every(x=>x.getBoundingClientRect().height>=44&&x.getBoundingClientRect().width>=44))).toBe(true);
+  await ws(page).getByRole('tab',{name:'Matris'}).click();
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  expect(await page.getByRole('dialog').locator('button,input,select,textarea').evaluateAll(n=>n.every(x=>x.getBoundingClientRect().height>=44))).toBe(true);
+ });
+
+ test('UI Matris, overflow: 40 lärare × 300 rader rullar i behållaren med klistrade delar',async({page},info)=>{
+  await open(page,'?data=stor');
+  await expect(matrix(page).locator('thead th.tjanst-teacher')).toHaveCount(40);await expect(matrix(page).locator('tbody th[scope=row]')).toHaveCount(300);
+  await noOverflow(page);
+  const scroller=page.locator('.tjanst-matrix-scroll');
+  await scroller.evaluate(el=>{el.scrollTop=el.scrollHeight/2;el.scrollLeft=el.scrollWidth;});
+  const box=(await scroller.boundingBox())!;
+  const head=(await matrix(page).getByRole('columnheader',{name:/Lärare40 Efternamn40/}).boundingBox())!;
+  expect(Math.abs(head.y-box.y)).toBeLessThan(3);
+  const firstCol=(await matrix(page).locator('tfoot th').first().boundingBox())!;
+  expect(Math.abs(firstCol.x-box.x)).toBeLessThan(3);expect(Math.abs(firstCol.y+firstCol.height*3-(box.y+box.height))).toBeLessThan(6);
+  const visibleRowHeader=await page.evaluate(()=>{const s=document.querySelector('.tjanst-matrix-scroll')!.getBoundingClientRect();const th=[...document.querySelectorAll('.tjanst-matrix tbody th[scope=row]')].find(x=>{const r=x.getBoundingClientRect();return r.top>s.top+100&&r.bottom<s.bottom-150;})!;return th.getBoundingClientRect().left-s.left;});
+  expect(Math.abs(visibleRowHeader)).toBeLessThan(3);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
+  await scroller.screenshot({path:`${SHOTS}/matris-40x300-${info.project.name}.png`});
+ });
+
+ test('UI Matris, long-text: långa lärar- och kursnamn bryts utan ellips',async({page},info)=>{
+  await open(page,'?data=lang');
+  const name=matrix(page).locator('thead .tjanst-teacher-name').filter({hasText:'Maximiliana'});
+  await expect(name).toHaveText('Maximiliana Konstantinopelska-Vasaborgsson Ekströmsdotter');
+  const m=await name.evaluate(el=>{const cs=getComputedStyle(el),th=el.closest('th')!;return {lines:el.getBoundingClientRect().height/parseFloat(cs.lineHeight),overflow:cs.textOverflow,fits:el.scrollWidth<=el.clientWidth,width:th.getBoundingClientRect().width};});
+  expect(m.lines).toBeGreaterThanOrEqual(2);expect(m.overflow).not.toBe('ellipsis');expect(m.fits).toBe(true);expect(m.width).toBeGreaterThanOrEqual(96);
+  const course=matrix(page).locator('tbody .tjanst-course').first();
+  const c=await course.evaluate(el=>{const cs=getComputedStyle(el);return {lines:el.getBoundingClientRect().height/parseFloat(cs.lineHeight),overflow:cs.textOverflow,fits:el.scrollWidth<=el.clientWidth,width:el.closest('th')!.getBoundingClientRect().width};});
+  expect(c.lines).toBeGreaterThanOrEqual(2);expect(c.overflow).not.toBe('ellipsis');expect(c.fits).toBe(true);expect(Math.round(c.width)).toBe(280);
+  await expect(ws(page).getByText(/PLANERING · Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad/)).toBeVisible();
+  await noOverflow(page);
+  await page.locator('.tjanst-matrix-scroll').screenshot({path:`${SHOTS}/lang-namn-matris-${info.project.name}.png`});
+ });
+
+ test('UI Dialoger, long-text: långa namn och fältfel bryts inom dialogen vid 320 px',async({page},info)=>{
+  // Dialoger renderas inte på telefon (D-15). 320 CSS-px prövas som 400 % förstoring av 1280 px (omflödning), med CSS-zoom.
+  await page.setViewportSize({width:1280,height:800});
+  await open(page,'?data=lang');
+  await matrix(page).getByRole('button',{name:/^Maximiliana Konstantinopelska-Vasaborgsson Ekströmsdotter, Matematik 1c med fördjupning.*: ingen tid\. Tilldela\.$/}).click();
+  const dialog=page.getByRole('dialog');await dialog.getByLabel('Lärartid HT (timmar)').fill('ogiltigt värde med ett mycket långt ord Programmeringsfördjupningsövningstimmar');
+  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();await expect(dialog.getByText('Ange tid i timmar, till exempel 40 eller 37,5.')).toBeVisible();
+  await page.evaluate(()=>{(document.documentElement.style as CSSStyleDeclaration & {zoom:string}).zoom='4';});
+  const r=await dialog.evaluate(el=>({fits:el.scrollWidth<=el.clientWidth,cssWidth:el.getBoundingClientRect().width/4,children:[...el.querySelectorAll('*')].filter(x=>x.getBoundingClientRect().right>el.getBoundingClientRect().right+1).length}));
+  expect(r.fits).toBe(true);expect(r.children).toBe(0);expect(r.cssWidth).toBeLessThanOrEqual(320);
+  // Granskningsbild: utan zoom med dialogen begränsad till 320 px bredd.
+  await page.evaluate(()=>{(document.documentElement.style as CSSStyleDeclaration & {zoom:string}).zoom='';});
+  await dialog.evaluate(el=>{(el as HTMLElement).style.maxWidth='320px';});
+  expect(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
+  await dialog.screenshot({path:`${SHOTS}/lang-namn-dialog-320-${info.project.name}.png`});
+ });
+});
+
+test.describe('telefon',()=>{
+ test.beforeEach(({},info)=>{test.skip(desktop(info.project.name),'Telefonprov.');});
+
+ test('telefon: öppnar Per lärare utan matris och utan redigeringskontroller',async({page},info)=>{
+  const errors=await open(page);
+  await expect(page.locator('.tjanst-matrix')).toHaveCount(0);await expect(ws(page).getByRole('tab')).toHaveCount(0);
+  await expect(ws(page).getByLabel('Vy')).toHaveValue('larare');await expect(ws(page).getByLabel('Vy').locator('option')).toHaveText(['Per klass','Per lärare','Specialuppdrag','Per kurs/ämne']);
+  await expect(ws(page).getByText('Matrisen och all redigering finns på dator. Här kan du läsa fördelningen.')).toHaveCount(1);
+  const editing=/Lägg till|Lägg upp|Ändra uppdraget|Ta bort|Koppla till|Lös upp|Ändra samläsningen|Fastställ och publicera…|Ändra i ny version|Tilldela|Ändra\.$/;
+  for(const view of ['Per lärare','Per klass','Specialuppdrag','Per kurs/ämne']){
+   await ws(page).getByLabel('Vy').selectOption({label:view});
+   expect((await ws(page).getByRole('button').allTextContents()).filter(t=>editing.test(t))).toEqual([]);
+   await expect(ws(page).locator('.tjanst-mark')).toHaveCount(0);
+   await noOverflow(page);
+  }
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
+  await expect(panel.getByRole('button',{name:'Versionshistorik'})).toBeVisible();await expect(panel.getByRole('button',{name:/Fastställ och publicera…|Ta bort utkastet/})).toHaveCount(0);
+  await ws(page).getByLabel('Vy').selectOption({label:'Per lärare'});
+  await expect(ws(page).getByRole('region',{name:'Per lärare'}).locator('.tjanst-cards').first()).toBeVisible();
+  await noOverflow(page);
+  await page.screenshot({path:`${SHOTS}/telefon-per-larare-${info.project.name}.png`,fullPage:true});
+  expect(errors).toEqual([]);
+ });
+
+ test('telefon: per klass och specialuppdrag som kort med långa namn utan sidledsrullning',async({page},info)=>{
+  await open(page,'?data=lang&tjvy=klass');
+  await expect(ws(page).getByRole('region',{name:'Per klass'}).locator('.tjanst-cards')).toBeVisible();
+  await expect(ws(page).getByRole('region',{name:'Per klass'}).locator('table')).toBeHidden();
+  await noOverflow(page);
+  await ws(page).getByLabel('Vy').selectOption({label:'Specialuppdrag'});
+  await expect(ws(page).getByRole('region',{name:'Specialuppdrag'}).locator('.tjanst-cards')).toContainText('Ingen grupp');
+  await noOverflow(page);
+  await page.screenshot({path:`${SHOTS}/telefon-lang-namn-${info.project.name}.png`,fullPage:true});
+ });
+
+ test('pekytor: minst 44 px på telefon',async({page})=>{
+  await open(page);
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  const small=await ws(page).locator('button:visible,select:visible').evaluateAll(n=>n.map(x=>{const r=x.getBoundingClientRect();return {name:x.getAttribute('aria-label')??x.textContent,h:r.height,w:r.width};}).filter(x=>x.h<44||x.w<44));
+  expect(small).toEqual([]);
  });
 });

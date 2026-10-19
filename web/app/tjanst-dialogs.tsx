@@ -14,7 +14,7 @@ import { formatDeviation, formatTime, SPECIAL_KIND_LABEL, yearLabel } from './tj
  * Redigeringsdialoger. Inmatningen ligger i dialogens yttre komponent och bevaras vid serverfel och när
  * dialogen tillfälligt döljs på smal skärm (D-15). Stängning är spärrad bara medan sparningen pågår.
  */
-export type TjanstFailure = { ok: false; error: string; correlationId?: string | null; mfa?: string; refresh?: () => void };
+export type TjanstFailure = { ok: false; error: string; code?: string; correlationId?: string | null; mfa?: string; refresh?: () => void };
 export type TjanstOutcome = { ok: true } | TjanstFailure;
 type Base = { open: boolean; checking: boolean; onClose: () => void };
 
@@ -78,7 +78,8 @@ export function TjanstRowDialog({ open, checking, onClose, data, entry, target, 
   const [comment, setComment] = useState(row?.comment ?? ''), [errors, setErrors] = useState<Record<string, string>>({});
   const [initial] = useState({ ht, vt, comment, person });
   const { busy, failure, run } = useSubmit(onClose);
-  useUnsavedChanges(`tjanst-row-dialog:${target.sourceKey}`, open && (ht !== initial.ht || vt !== initial.vt || comment !== initial.comment || person !== initial.person));
+  // Registreras också när dialogen är dold på smal skärm: inmatningen finns kvar och skyddas (D-15).
+  useUnsavedChanges(`tjanst-row-dialog:${target.sourceKey}`, ht !== initial.ht || vt !== initial.vt || comment !== initial.comment || person !== initial.person);
   const h = parseHours(ht), v = parseHours(vt);
   const live = (parsed: ReturnType<typeof parseHours>, need: number | null, other: number) => 'minutes' in parsed && need !== null ? formatDeviation(other + parsed.minutes - need) || 'ingen' : null;
   const devHt = live(h, entry.need.needHt, others.ht), devVt = live(v, entry.need.needVt, others.vt);
@@ -107,10 +108,10 @@ export function TjanstRowDialog({ open, checking, onClose, data, entry, target, 
       <fieldset disabled={busy}>
         {chooseTeacher && <Field id={`${id}-person`} label="Lärare" error={errors.person}><select {...described(`${id}-person`, errors.person)} value={person} onChange={e => setPerson(e.target.value)}>
           <option value="">Välj lärare</option>{free.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}<option value="vakant">Vakant</option></select></Field>}
-        <Field id={`${id}-ht`} label="Lärartid HT (timmar)" error={errors.ht} help={devHt === null ? 'Behovet för HT är okänt.' : `Avvikelse HT: ${devHt}`}>
-          <input {...described(`${id}-ht`, errors.ht, 'help')} inputMode="decimal" autoComplete="off" value={ht} onChange={e => setHt(e.target.value)}/></Field>
-        <Field id={`${id}-vt`} label="Lärartid VT (timmar)" error={errors.vt} help={devVt === null ? 'Behovet för VT är okänt.' : `Avvikelse VT: ${devVt}`}>
-          <input {...described(`${id}-vt`, errors.vt, 'help')} inputMode="decimal" autoComplete="off" value={vt} onChange={e => setVt(e.target.value)}/></Field>
+        <Field id={`${id}-ht`} label="Lärartid HT (timmar)" error={errors.ht} help={'error' in h ? undefined : devHt === null ? 'Behovet för HT är okänt.' : `Avvikelse HT: ${devHt}`}>
+          <input {...described(`${id}-ht`, errors.ht, 'error' in h ? undefined : 'help')} inputMode="decimal" autoComplete="off" value={ht} onChange={e => setHt(e.target.value)}/></Field>
+        <Field id={`${id}-vt`} label="Lärartid VT (timmar)" error={errors.vt} help={'error' in v ? undefined : devVt === null ? 'Behovet för VT är okänt.' : `Avvikelse VT: ${devVt}`}>
+          <input {...described(`${id}-vt`, errors.vt, 'error' in v ? undefined : 'help')} inputMode="decimal" autoComplete="off" value={vt} onChange={e => setVt(e.target.value)}/></Field>
         <Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field>
       </fieldset>
       <div className="mandate-actions">
@@ -133,7 +134,7 @@ export function TjanstSpecialDialog({ open, checking, onClose, data, special, on
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { busy, failure, run } = useSubmit(onClose);
   const dirty = special ? kind !== special.kind || person !== (special.personId ?? 'vakant') || ht !== hoursInput(special.ht) || vt !== hoursInput(special.vt) || comment !== special.comment : !!(kind || label || person || ht || vt || comment);
-  useUnsavedChanges('tjanst-special-dialog', open && dirty);
+  useUnsavedChanges('tjanst-special-dialog', dirty);
   function submit() {
     const h = parseHours(ht), v = parseHours(vt), next: Record<string, string> = {};
     if (!kind) next.kind = 'Välj typ av uppdrag.';
@@ -184,7 +185,7 @@ export function TjanstJointDialog({ open, checking, onClose, data, rows, joint, 
   })));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { busy, failure, run } = useSubmit(onClose);
-  useUnsavedChanges('tjanst-joint-dialog', open);
+  useUnsavedChanges('tjanst-joint-dialog', true);
   const parsed = people.map(p => ({ personId: p, ht: parseHours(times[p]?.ht ?? ''), vt: parseHours(times[p]?.vt ?? '') }));
   const group = parsed.reduce((sum, t) => ({ ht: sum.ht + ('minutes' in t.ht ? t.ht.minutes : 0), vt: sum.vt + ('minutes' in t.vt ? t.vt.minutes : 0) }), { ht: 0, vt: 0 });
   const classes = [...new Set(rows.map(r => r.classId))];
@@ -263,7 +264,7 @@ export function TjanstNewTeacherDialog({ open, checking, onClose, schoolName, on
   const id = useId();
   const [given, setGiven] = useState(''), [family, setFamily] = useState(''), [note, setNote] = useState(''), [errors, setErrors] = useState<Record<string, string>>({});
   const { busy, failure, run } = useSubmit(onClose);
-  useUnsavedChanges('tjanst-new-teacher', open && !!(given || family || note));
+  useUnsavedChanges('tjanst-new-teacher', !!(given || family || note));
   return <Shell open={open} busy={busy} onClose={onClose} title="Lägg upp ny lärare" description={<>Läraren läggs upp som utkast för {schoolName}. Huvudmannen kompletterar anställning och andel.</>}>
     <Problems failure={failure} checking={checking} summary={Object.keys(errors).length > 0}/>
     <form className="protected-form tjanst-form" onSubmit={event => { event.preventDefault(); const next: Record<string, string> = {};

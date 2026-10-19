@@ -20,7 +20,7 @@
 .tjanst-inline-field{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
 .tjanst-switch{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;min-width:0}
 .tjanst-switch [data-slot=tabs-list]{height:auto;flex-wrap:wrap}
-.tjanst-switch [data-slot=tabs-trigger]{min-height:44px;padding:8px 12px;font-size:14px}
+.tjanst-switch [data-slot=tabs-trigger]{min-height:44px;padding:8px 12px;font-size:14px;white-space:nowrap}
 .tjanst-term{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:500;border:0;margin:0;padding:0;min-width:0}
 .tjanst-term legend{float:left;padding:0;margin-right:8px}
 .tjanst-term button{border:1px solid var(--border);border-radius:8px;background:var(--card);padding:8px 12px;font-weight:500;color:var(--foreground)}
@@ -41,7 +41,7 @@
 .tjanst-empty-text{margin-top:32px;overflow-wrap:anywhere}
 /* Matris: klistrat huvud, första kolumn och fotrad (mönster .pt-matrix). */
 .tjanst-matrix-scroll{max-width:100%;max-height:calc(100dvh - 256px);min-height:320px;overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);isolation:isolate;overscroll-behavior:contain}
-.tjanst-matrix{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;min-width:100%}
+.tjanst-matrix{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums;width:max-content}
 .tjanst-matrix :is(th,td){border-bottom:1px solid var(--border);padding:8px;vertical-align:middle;background:var(--card);font-size:14px;line-height:1.5}
 .tjanst-matrix thead th{position:sticky;top:0;z-index:2;font-weight:500;text-align:left;vertical-align:bottom}
 .tjanst-matrix tfoot :is(th,td){position:sticky;z-index:2;background:var(--muted);font-weight:500}
@@ -129,6 +129,7 @@
 .tjanst-dialog textarea{min-height:88px;resize:vertical}
 .tjanst-dialog .mandate-actions{margin-top:0;gap:16px}
 .tjanst-after{display:grid;gap:8px}
+.tjanst-dialog .tjanst-facts{grid-template-columns:minmax(0,1fr)}
 @media(max-width:800px){
   .tjanst .tjanst-status{grid-template-columns:minmax(0,1fr);padding:16px}
   .tjanst-status-side{justify-content:flex-start}

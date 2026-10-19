@@ -42,6 +42,7 @@ function standardUnit():Unit{
  const old:Content={teachers:teachers.slice(0,2),rows:draft.rows.slice(0,2),specials:draft.specials.slice(0,1),joints:[]};
  const unit:Unit={unitId:A,schoolName:long?'Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad':'Syntetiska gymnasiet',revision:7,classes:[te,ek,im,na],versions:[v1,v2],draft,snapshots:new Map([[v1.id,old]]),blockers:params.has('hinder')?[{code:'stale_rows',message:'En tjänsterad bygger på en äldre timplansversion.'}]:[]};
  if(variant==='tom'){unit.versions=[{...v2,versionNo:1,basedOnVersionId:null}];unit.snapshots=new Map();unit.draft={teachers:[],rows:[],specials:[],joints:[]};}
+ if(variant==='utan-uppdrag')unit.draft!.specials=[];
  if(variant==='utan-klasser'){unit.classes=[na];unit.draft={teachers,rows:[],specials:[],joints:[]};}
  if(variant==='publicerad'){unit.versions=[v1];unit.draft=null;unit.snapshots=new Map([[v1.id,{...draft,joints:clone(draft.joints)}]]);}
  if(variant==='stor'){
@@ -75,6 +76,7 @@ const control:Control={commands:[],reads:[],fail:{},held:{},mfaVerified:false,op
  failNext:(route,failure)=>{(control.fail[route]??=[]).push(failure);},
  holdNext:route=>{control.held[route]=(control.held[route]??0)+1;}};
 window.__tjanst=control;
+if(params.get('forsta')==='natverk')control.failNext('plan/lasa','network');
 const EDIT:TjanstPlanAction[]=['add_teacher','save_row','delete_row','save_special','delete_special','save_joint','dissolve_joint'];
 const receipts=new Map<string,unknown>();
 function current(u:Unit){return u.versions.find(v=>v.status==='draft')??u.versions.find(v=>v.status==='published')??null;}
@@ -161,9 +163,9 @@ const feedback:TjanstFeedback|undefined=params.has('aterkoppling')?{versionNo:1,
 const context=(unitId:string|null):ActiveContext=>({assignmentId:tid(950),membershipId:tid(951),customerId:tid(952),customerName:'Syntetisk kund',organizerId:tid(953),organizerName:'Syntetisk huvudman',
  unitId,unitName:null,function:role,label:role==='rektor'?'Rektor':'Skoladministratör',blocked:false,valid:true});
 function Harness(){
- const [unit,setUnit]=useState<string|null>(params.get('skola')==='alla'?null:A);const blocked=useHasUnsaved('navigation-block:');
+ const [unit,setUnit]=useState<string|null>(params.get('skola')==='alla'?null:A);const blocked=useHasUnsaved('navigation-block:'),unsaved=useHasUnsaved();
  return <main id="workspace" lang="sv" style={{padding:'16px',maxWidth:'1800px',margin:'0 auto'}}>
-  <div style={{display:'flex',gap:'8px',marginBottom:'16px'}}><button type="button" onClick={()=>setUnit(unit===B?A:B)}>Byt skola</button><button type="button" disabled={blocked}>Lämna arbetsytan</button></div>
+  <div style={{display:'flex',gap:'8px',marginBottom:'16px'}}><button type="button" onClick={()=>setUnit(unit===B?A:B)}>Byt skola</button><button type="button" disabled={blocked}>Lämna arbetsytan</button><output data-unsaved={String(unsaved)}>{unsaved?'Osparat finns':''}</output></div>
   <TjanstWorkspace context={context(unit)} epoch={1} unitId={unit} schoolYear={YEAR} identityKey={KEY} feedback={feedback} onOpenClassLinks={()=>{control.openedLinks++;}} onSessionLost={()=>undefined}/>
  </main>;
 }
