@@ -1,5 +1,5 @@
 // Egen syntetisk kund. Ingen testförberedelse eller städning får beröra användarens planer.
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -12,7 +12,7 @@ import { programplanTermRows, programplanLevelRanks, suggestProgramplanTerms } f
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const require=createRequire(path.join(root,'web/package.json'));
 const SOURCE_PATHS=['web/lib/gym-timplan.ts','web/lib/gym-timplan.test.mjs','web/lib/server/gym-timplan.ts','web/lib/server/gym-timplan.test.mjs',
-  'web/app/api/timplaner/gym','web/app/protected-gym-timplan-workspace.tsx','web/app/protected-gym-timplan-hours.tsx','web/app/protected-gym-timplan.css','web/app/protected-timplan-workspace.tsx','web/app/protected-timplan.css',
+  'web/app/api/timplaner/gym','web/app/protected-gym-timplan-workspace.tsx','web/app/named-timplan-actions.tsx','web/lib/named-timplan.ts','web/lib/server/named-timplan.ts','web/app/protected-gym-timplan-hours.tsx','web/app/protected-gym-timplan.css','web/app/protected-timplan-workspace.tsx','web/app/protected-timplan.css',
   'web/app/protected-home.tsx','web/app/protected-programplan-workspace.tsx','web/app/protected-programplan-board.tsx',
   'web/lib/protected-plan-location.ts','web/lib/protected-plan-location.test.mjs','web/lib/server/http.ts',
   'web/lib/server-client.ts','web/lib/unsaved-changes.tsx','web/components/ui/dialog.tsx',
@@ -127,18 +127,19 @@ export async function createGymTimplanFixture() {
         await assertTarget('protected');await owned(db);
         return db`select to_jsonb(l) row from public.class_timplans l join public.school_units u on u.id=l.unit_id where u.organizer_id=${organizerId} order by l.unit_id,l.class_name,l.start_year`;
       },
-      async seedLegacyClassLink() {
-        const planId=randomUUID();await assertTarget('protected');
-        await db.begin(async tx=>{await owned(tx);await tx`set local session_replication_role=replica`;
-          await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,status,basis,decided_on)
-            values(${planId},${organizerId},${base.offeringId},${base.unitId},1,'faststalld','Syntetisk historisk treårsmatris','2026-09-10')`;
-          await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${planId},'ENGE1000X',array[30,40,50]::smallint[])`;
-          await tx`insert into public.class_timplans(unit_id,class_name,start_year,timplan_id,column_id)
-            values(${base.unitId},'SYN1A',2027,${planId},'ar1')`;});
-        return {planId,snapshot:await this.timplanSnapshot(planId),links:await this.classLinks()};
+      // Namngiven timplan: db loggar serien, worker den skapade versionen.
+      async pairedNamed(correlationId,session,planId,seriesId) {
+        const all=await base.events(correlationId);
+        return all.length===2&&[['db','timplan_series',seriesId],['worker','timplan',planId]].every(([source,type,id])=>all.some(row=>row.source===source&&row.action==='named_timplan_created'&&row.outcome==='ok'
+          &&row.actor_identity_id===session.identityId&&row.membership_id===session.membershipId&&row.assignment_id===session.assignmentId
+          &&row.session_id===session.id&&row.customer_id===base.customerId&&row.object_type===type&&row.object_id===id));
       },
       async pairedGym(correlationId,session,action,objectId,objectType='timplan') {
-        const all=await base.events(correlationId),rows=all.filter(row=>row.action===action);
+        // Radskrivningen läser först planens tidsmodell i samma transaktion; den läsningen loggas bara i db.
+        const events=await base.events(correlationId);
+        const read=action==='gym_timplan_row_changed'?events.filter(row=>row.source==='db'&&row.action==='gym_timplan_read'&&row.object_id===objectId&&row.outcome==='ok'&&row.session_id===session.id):[];
+        const all=events.filter(row=>!read.includes(row)),rows=all.filter(row=>row.action===action);
+        if(read.length>1)return false;
         return all.length===2&&rows.length===2&&['db','worker'].every(source=>rows.some(row=>row.source===source&&row.outcome==='ok'
           &&row.actor_identity_id===session.identityId&&row.membership_id===session.membershipId&&row.assignment_id===session.assignmentId
           &&row.session_id===session.id&&row.customer_id===base.customerId&&row.object_type===objectType&&row.object_id===objectId));
