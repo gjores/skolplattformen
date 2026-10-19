@@ -16,6 +16,7 @@ import { usePlanningContext } from './planning-context';
 import ProtectedPlanList from './protected-plan-list';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedGrimClassTimplans from './protected-grim-class-timplans';
 import { TimplanGuidance, TimplanEditGuidance } from './timplan-guidance';
 import './protected-timplan.css';
 
@@ -324,6 +325,11 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
             {weekly && <p>Veckoram. Kalender och individuell fördelning saknas; inga årstimmar beräknas.</p>}
           </div>}
         {positional && <output className="pt-alert" data-testid="other-column-map-unknown">Den historiska kolumnkartan är okänd. Hela timplanen visar lagrade positioner; dagens årskursordning används inte som historiskt bevis. Årets timmar och riktad årscellsändring är därför okända/spärrade.</output>}
+        {['faststalld','ersatt'].includes(plan.status) && <ProtectedGrimClassTimplans key={`grim-classes-${plan.id}`} plan={plan}
+          scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])}
+          returnTo={'/?' + new URLSearchParams({ vy: 'timplaner', ovrigtimplan: plan.id, timplansform: plan.education.kind, timplansutbildning: plan.offeringId,
+            timplansversion: String(plan.version), timplansskola: plan.unitId, ...(selection ? { planeringslasar: String(selection.schoolYear), planeringsform: plan.education.kind } : {}) }).toString()}
+          canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || Boolean(draft)} onSecurityFailure={securityFailure}/>}
         {!currentMatrix && setup && selection && ['utkast','atersand'].includes(plan.status) && <Button variant="outline" disabled={busy || Boolean(draft)}
           onClick={() => void openPlan({ kind:plan.education.kind as OtherTimplanLocation['kind'],id:plan.id,unitId:plan.unitId,offeringId:plan.offeringId,version:plan.version },true)}>Visa aktuell utkastmatris</Button>}
         <p className="pt-boundary">{weekly?'Timmar per vecka.':positional?'Timmar i lagrade positionskolumner.':'Timmar per årskurs i aktuell matris.'} Här visas lagrad undervisningstid.</p>

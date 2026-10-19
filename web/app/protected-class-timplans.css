@@ -9,3 +9,4 @@
 
 /* iOS native selects ignore min-height; an explicit height keeps the year target usable. */
 .class-timplans select{height:44px}
+.class-link-choices .grim-column-label{display:grid;gap:.35rem;overflow-wrap:normal;word-break:keep-all;cursor:default}

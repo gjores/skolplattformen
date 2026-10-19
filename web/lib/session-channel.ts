@@ -41,6 +41,10 @@ const ERROR_TEXT: Record<string, string> = {
   class_name_year_conflict: 'Klassnamnet är redan upptaget på skolan för den berörda kullen eller läsåret. Välj ett annat namn eller kontrollera klasskopplingen.',
   class_cohort_start_locked: 'Utbildningsstarten kan inte ändras när klasser finns. Skapa en ny kull om utbildningen ska ha en annan start.',
   class_plan_not_ready: 'Utbildningens start eller timplanens underlag behöver kontrolleras. Läs om underlaget innan du fortsätter.',
+  grim_class_duplicate: 'Klassnamnet finns redan på skolan för läsåret. Välj ett annat namn eller koppla den befintliga klassen.',
+  grim_class_link_revision: 'Klassens koppling har ändrats sedan du läste den. Läs om klasserna och granska kopplingen innan du försöker igen.',
+  grim_class_plan_revision: 'Timplanen har ändrats sedan du läste den. Läs om klasserna innan du försöker igen.',
+  grim_class_command_conflict: 'Samma begäran har redan använts för en annan ändring. Läs om klasserna och gör ändringen på nytt.',
   plan_decision_conflict: 'Planen eller beslutsunderlaget har ändrats. Läs om och granska den aktuella versionen.',
   plan_decision_blocked: 'Planen behöver kompletteras före beslut. Läs om beslutsunderlaget för att se vad som återstår.',
 };

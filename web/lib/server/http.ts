@@ -34,6 +34,10 @@ export type ErrorCode =
   | 'class_cohort_start_locked'
   | 'class_plan_not_ready'
   | 'class_plan_limit'
+  | 'grim_class_duplicate'
+  | 'grim_class_link_revision'
+  | 'grim_class_plan_revision'
+  | 'grim_class_command_conflict'
   | 'plan_decision_conflict'
   | 'plan_decision_blocked';
 
