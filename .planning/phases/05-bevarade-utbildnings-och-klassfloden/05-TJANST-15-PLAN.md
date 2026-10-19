@@ -6,7 +6,9 @@ wave: 7
 depends_on: ["TJANST-09"]
 files_modified: ["web/lib/tjanst-overforing.ts", "web/lib/tjanst-overforing.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-08, TJ1-09]
 must_haves:
   truths: ["Årsöverföring ger en entydig förhandsvisning av nya utkast och behåller gamla beslut/initiativ i källhistoriken.", "Flytt och massregistrering har explicit omfattning, stabila målidentiteter och en kanonisk granskningshash."]

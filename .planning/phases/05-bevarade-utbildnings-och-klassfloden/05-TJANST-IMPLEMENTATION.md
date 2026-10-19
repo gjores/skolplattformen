@@ -1,5 +1,7 @@
 # Avtalsgrund, tjänstefördelning och rektors bedömning — genomförande
 
+**Ersatt 2026-10-19 — kör inte dessa planer.** Tjänstefördelningen planeras om i fas 05.1 och tjänstebedömningen (avtal, individuell bedömning, undantag, TID-01–12) är utflyttad till repot `tjanstebedomning`. [Beslutsdokumentet](../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md) anger vart varje plan tog vägen. Texten nedan är historik.
+
 Datum: 2026-10-16. [Oberoende plancheck: PASS](05-TJANST-PLAN-CHECK.md). Status: **planerat, inte implementerat**. Planpaketet hör till befintlig fas 5. Aktivt APL-arbete och pilotens 42 krav/åtta faser behålls. Den här beställningen gäller planering, inte start av implementation.
 
 ## Målet

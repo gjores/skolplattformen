@@ -1,5 +1,7 @@
 # Avtalsgrund, tjänstefördelning och rektors tjänstebedömning
 
+**Ersatt 2026-10-19.** Användarbesluten om tjänstefördelning (rektor fastställer, huvudmannen följer upp) gäller fortsatt i fas 05.1. Besluten om kollektivavtal och bedömning hör till repot `tjanstebedomning`. Se [beslutsdokumentet](../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md).
+
 Datum: 2026-10-16. Status: beställt planpaket; ingen implementation eller produktacceptans.
 
 ## Beslut och avgränsning

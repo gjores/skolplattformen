@@ -6,7 +6,9 @@ wave: 3
 depends_on: ["TJANST-04", "TJANST-01A"]
 files_modified: ["supabase/migrations/20261016131000_tjanst_self_scope.sql", "work/pilot/verify-tjanst-self-sql.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Verifierad egen tjänst kan auktoriseras före elevgrupper utan att gamla elevvägar öppnas.", "Direkt elevlistning, registerurval, projektion och scope-probe nekar self före metadata hämtas.", "Återkallad personbindning eller mandat stoppar egen åtkomst även efter låsväntan; gruppmandat får oförändrad elevomfattning."]

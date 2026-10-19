@@ -1,5 +1,7 @@
 # Requirements: Skolplattformen
 
+**Infogade faser 2026-10-19:** Användaren godkände faserna 05.1–05.8 före faserna 6–8. Nedan i [Krav för infogade faser](#krav-för-infogade-faser-0510508--användarbeslut-2026-10-19) definieras TJANST-01–07, KLASS-01–04, ERS-01–07, SPAR-01–05 och EID-01–05. SCHEMA-, MODUL- och LLEG-01–03-målen har fått ansvariga faser. Tjänstebedömningen (TID-01–12) är utflyttad till repot `tjanstebedomning`; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). De 42 ursprungliga v1-kraven och deras fördelning är oförändrade. Inga nya krav är verifierade.
+
 **APL-riktning godkänd 2026-10-16:** Användaren svarade ”låter som en bra lösning” på [researchens](research/APL-PLANERING-OCH-GENOMFORANDE-2026-10-16.md) tre etapper och rekommenderade start i timplanen. [Kontext](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTEXT.md), [kontrakt](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CONTRACT.md) och [planpaket](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-IMPLEMENTATION.md) konkretiserar etapp 1: perioder, innehåll, total/varav APL och separata rektors-/huvudmannabeslut. Elva planer i åtta vågor har passerat [oberoende plancheck](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-PLAN-CHECK.md); nästa steg är APL-01. Inga produkt-/databasändringar eller nya verifierade krav följer av planeringen. APL1-01–08 är paketets lokala acceptanskriterier; pilotens 42 krav, fasantal och tidigare bevis består. [APL-gapet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-GAP.md) är öppet tills implementering och verifiering är gjorda.
 
 **Rektors programplaner 2026-10-16:** Rektor kan nu skapa programplansutkast och kopiera till nästa kull för vald egen skola. Huvudmannen godkänner fortfarande. SQL45, faktiskt API/browser23 och lokal leverans på 3012 med bevarade data PASS. [Resultat och kravspårning](phases/05-bevarade-utbildnings-och-klassfloden/05-RECTOR-PROGRAMPLAN-SUMMARY.md). Avgränsat delbevis för ADMIN-02/03/04 och PLANERING-01; full fasacceptans, historiska 88/100 planer och 3/8 faser består.
@@ -35,7 +37,7 @@
 
 **Core Value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
 
-**Status:** V1-kraven godkändes av användaren 2026-09-11 tillsammans med färdplanens åtta faser. 15 krav är verifierade efter fas 1–3; övriga 27 inväntar genomförande eller slutverifiering. SCHEMA-01–08 är registrerade som separat senare projektinriktning 2026-10-01 och är ännu inte verifierade.
+**Status:** V1-kraven godkändes av användaren 2026-09-11 tillsammans med färdplanens åtta faser. 15 krav är verifierade efter fas 1–3; övriga 27 inväntar genomförande eller slutverifiering. SCHEMA-01–08 är registrerade som separat senare projektinriktning 2026-10-01 och är ännu inte verifierade. 2026-10-19 fick 43 krav ansvar i de infogade faserna 05.1–05.8; alla är Pending.
 
 ## v1 Requirements
 
@@ -115,7 +117,7 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 Senarelagda delar av visionen. De är inte borttagna produktmål och behöver egen avgränsning.
 
 - **STUDY-01**: Beständiga individuella studieplansflöden, rättelser och relevant examens-/betygsvalidering.
-- **GROUP-01**: Fullständig tjänstefördelning, undervisningsgrupper och schemaflöden med datumsatta elev-/lärarrelationer.
+- **GROUP-01**: Fullständig tjänstefördelning, undervisningsgrupper och schemaflöden med datumsatta elev-/lärarrelationer. *Delat 2026-10-19:* tjänstefördelning till 05.1 (TJANST-01–07), undervisningsgrupper och schema till 05.2 (SCHEMA-01–08) och klassändringar till 05.3 (KLASS-01–04). Individuella elevgrupper bortom klass och samläsning ligger kvar här, tillsammans med STUDY-01.
 - **TEACH-01**: Undervisning, arbetsområden, elevinlämningar och återkoppling med riktig lagring och åtkomst.
 - **CASE-01**: Verksamhetsgranskade elevärenden, stödinsatser, beslut, kommunikation och uppföljning.
 - **GUARD-01**: Vårdnadshavarportal med verifierade relationer och lämplig e-legitimering.
@@ -146,7 +148,7 @@ Se [beslut och gränser](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANN
 
 ### Kundens köpbara moduler — användarbeslut 2026-10-01
 
-Gemensamt produktkrav: kunden ska kunna köpa och använda moduler var för sig och kombinera dem med befintliga externa system. Slutlig modulkatalog, priser och beställnings-/betalningsprocess återstår. Kraven nedan får första kontraktsarbete i schemadelprojektets S1 och verifieras i S4 enligt [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md); de är ännu inte implementerade eller verifierade och ändrar inte pilotens 42 v1-krav.
+**Fas 05.6 sedan 2026-10-19.** Gemensamt produktkrav: kunden ska kunna köpa och använda moduler var för sig och kombinera dem med befintliga externa system. Slutlig modulkatalog, priser och beställnings-/betalningsprocess återstår. Kraven nedan får första kontraktsarbete i schemadelprojektets S1 och verifieras i S4 enligt [projektunderlaget](research/SCHEMAMODUL-PROJEKT.md); de är ännu inte implementerade eller verifierade och ändrar inte pilotens 42 v1-krav.
 
 - **MODUL-01**: Kunden kan välja, köpa och aktivera avgränsade moduler och tillval samt senare lägga till fler utan att behöva köpa hela verksamhetssviten eller byta kundidentitet.
 - **MODUL-02**: Kundens giltiga modultillgång och personens aktuella operationsmandat kontrolleras var för sig på servern och i bakgrundsjobb; varken köp eller roll ensam ger verksamhetsåtkomst.
@@ -155,12 +157,12 @@ Gemensamt produktkrav: kunden ska kunna köpa och använda moduler var för sig 
 
 ### Sammanhängande schemamoduler — användarinriktning 2026-10-01
 
-Användaren har beställt ett sammanhängande delprojekt som ska beaktas redan i planeringen av återstående planflöden. Nedan är produkt- och utvärderingskrav för delprojektet, inte tillägg till pilotens 42 v1-krav eller redan verifierad leverans. Detaljerade roller, kontrakt och genomförandeplaner återstår. Ansvar inom delprojektet och verifieringsmål finns i [SCHEMAMODUL-PROJEKT.md](research/SCHEMAMODUL-PROJEKT.md); STUDY-01 och GROUP-01 förblir öppna och omfattar även arbete utanför schemaavgränsningen.
+**Placerat 2026-10-19:** SCHEMA-01–05, 07 och 08 hör till fas 05.2 och SCHEMA-06 till fas 05.6. Användaren har beställt ett sammanhängande delprojekt som ska beaktas redan i planeringen av återstående planflöden. Nedan är produkt- och utvärderingskrav för delprojektet, inte tillägg till pilotens 42 v1-krav eller redan verifierad leverans. Detaljerade roller, kontrakt och genomförandeplaner återstår. Ansvar inom delprojektet och verifieringsmål finns i [SCHEMAMODUL-PROJEKT.md](research/SCHEMAMODUL-PROJEKT.md); STUDY-01 och GROUP-01 förblir öppna och omfattar även arbete utanför schemaavgränsningen.
 
 - **SCHEMA-01**: Programplan, timplan, individuell studieplan, undervisningsgrupp och schema har gemensamt definierade identiteter, giltigheter, enheter och exakta versionskopplingar som går att följa genom hela flödet.
 - **SCHEMA-02**: Specifika schemauppdrag och operationsbundna rättigheter för underlag, regler, beräkning, granskning, publicering och integration genomdrivs på servern och i bakgrundsjobb, med återkallelse och spårbarhet.
 - **SCHEMA-03**: Schemat använder versionsbundna obligatoriska regler och uttryckliga prioriterade önskemål; saknat underlag och olösbara villkor visas utan tyst regeluppluckring.
-- **SCHEMA-04**: Rust ingår i en körbar avgränsad prototyp för beräkningstjänst/komponent med versionsbundet kontrakt, avbrott, resursgränser och kontrollerbar integration med befintlig backend.
+- **SCHEMA-04**: Schemaberäkningen körs i en egen Rust-tjänst med versionsbundet kontrakt, jobbstatus, avbrott, tids- och resursgränser, kundisolering och kontrollerad integration med befintlig TypeScript-backend; resten av appen skrivs inte om. *Omformulerat 2026-10-19 efter användarbeslutet ”schemamotorn som en egen tjänst”. Tidigare lydelse: ”Rust ingår i en körbar avgränsad prototyp för beräkningstjänst/komponent med versionsbundet kontrakt, avbrott, resursgränser och kontrollerbar integration med befintlig backend.”*
 - **SCHEMA-05 (utvärdering)**: Utvärdera Jev och liknande AI för konfliktprioritering, åtgärdsval eller alternativvärdering i schemamodulen jämfört med samma motor utan AI. Dokumentera kvalitet, tid, kostnad, stabilitet och integrationskomplexitet mot fördefinierade kriterier samt rekommendation att införa, avstå eller utreda vidare. Obligatoriska regler och mandat kontrolleras oberoende av modellen. AI i levererad produkt är inte ett krav; införande kräver separat beslut efter utvärderingen.
 - **SCHEMA-06**: Valda delar av interna och externa moduler kan kombineras och bytas genom avgränsade kontrakt; saknat stöd för nödvändiga regler eller data upptäcks före användning.
 - **SCHEMA-07**: Ändringar i plan-, grupp-, resurs- och kalendermoduler ger versionsbunden, avstämd synk och synliga konsekvenser i schemat, utan dubbletter, förlorade ändringar eller automatisk ombindning av tidigare beslut.
@@ -172,14 +174,16 @@ Användaren har beställt en översyn av hur Skolverkets lärarregister kan beak
 
 | Föreslaget mål | Ansvarigt steg | Avsett resultat | Verifiering |
 | --- | --- | --- | --- |
-| LLEG-01 | L1, tillsammans med S1 | Rätt intern lärarresurs binds kontrollerat till myndighetsunderlaget; källa, lokalt uppdrag och systemåtkomst hålls isär. | Ej genomförd; namnlika/omatchade personer, flera uppdrag, lärare utan konto och kundgräns. |
-| LLEG-02 | L2 | Behörig personal kan granska och tillämpa en versionsbunden XML-leverans med radfel, omkörning, historik och spårbarhet; en bekräftad API-adapter kan använda samma kontrakt. | Ej genomförd; dubblett/äldre/tom leverans, felaktig XML, konflikter och auditrollback. |
-| LLEG-03 | L3, kopplat till S3 | Tjänstefördelning och schema visar behörighetsmatchning per skolform, ämne och årskurs samt okänt underlag och konsekvenser av ändrad källa. | Ej genomförd; Gy11/Gy25, språk/specialisering, regelprofil, undantag och ändrad revision inför publicering. |
-| LLEG-04 | L4, kopplat till S4 | Vald faktisk XML-/API-leverans och avsedd informationshantering/drift kan granskas med separat anslutningsbevis och färskhetsregler. | Ej genomförd; åtkomst/ändamål, verkligt leveransprov, avbrott, återställning och avslut. |
+| LLEG-01 | L1, tillsammans med S1 — fas 05.4 | Rätt intern lärarresurs binds kontrollerat till myndighetsunderlaget; källa, lokalt uppdrag och systemåtkomst hålls isär. | Ej genomförd; namnlika/omatchade personer, flera uppdrag, lärare utan konto och kundgräns. |
+| LLEG-02 | L2 — fas 05.4 | Behörig personal kan granska och tillämpa en versionsbunden XML-leverans med radfel, omkörning, historik och spårbarhet; en bekräftad API-adapter kan använda samma kontrakt. | Ej genomförd; dubblett/äldre/tom leverans, felaktig XML, konflikter och auditrollback. |
+| LLEG-03 | L3, kopplat till S3 — fas 05.4 | Tjänstefördelning och schema visar behörighetsmatchning per skolform, ämne och årskurs samt okänt underlag och konsekvenser av ändrad källa. | Ej genomförd; Gy11/Gy25, språk/specialisering, regelprofil, undantag och ändrad revision inför publicering. |
+| LLEG-04 | L4, kopplat till S4 — ingen fas; extern gräns vid fas 7 | Vald faktisk XML-/API-leverans och avsedd informationshantering/drift kan granskas med separat anslutningsbevis och färskhetsregler. | Ej genomförd; åtkomst/ändamål, verkligt leveransprov, avbrott, återställning och avslut. |
 
 GROUP-01 och SCHEMA-01/03/07/08 har beröringspunkter; MODUL-03 ska medge kompatibelt externt personalunderlag. ACL-02 avser fortsatt lokala läraruppdrag. Elevimportens INT-02–06 och anslutningsprovet INT-07 uppfylls inte av en lärarregisterimport. Offentligt dokumenterat API för personuppslag är ännu inte verifierat.
 
 ## Beställt planeringsspår för tjänstefördelning och lärartid
+
+**Utflyttat 2026-10-19:** Tjänstebedömningen hör inte längre till Skolplattformen. TID-01–12 och T1–T4 hör till repot `tjanstebedomning`. Tjänstefördelningen ligger kvar som TJANST-01–07 i fas 05.1. Avsnittet nedan är historik; [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md) redovisar vad som flyttades.
 
 **GSD-plan beställd 2026-10-16:** T1–T2 planeras tillsammans med tjänstefördelningen inom fas 5 i [05-TJANST](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-IMPLEMENTATION.md). Användaren har valt **rektor fastställer, huvudmannen följer upp**, och **huvudmannen ska kunna välja olika kollektivavtal**. [Kontraktets TJ1-01–10](phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-CONTRACT.md) konkretiserar paketets lokala acceptans och koppling till TID-/TJANST-målen; genomförande och verifiering återstår. Pilotens ursprungliga 42 krav ändras inte. T3/T4 behöver fortsatt eget genomförande för verkligt schema och utfall.
 
@@ -195,6 +199,63 @@ GROUP-01 och SCHEMA-01/03/07/08 har beröringspunkter; MODUL-03 ska medge kompat
 | TID-12: utfall, prognos och åtgärdsuppföljning | T4, tillsammans med SCHEMA S4 | Ej implementerat eller produktverifierat; eventuell faktisk anslutning får eget bevis. |
 
 Den [befintliga planeringspunkten](todos/pending/2026-10-07-lararens-undervisningsuppdrag-enligt-sfs-2026-1487.md) är uppdaterad. T1–T2 har genomförandeplaner inom fas 5; pågående APL och tidigare kravacceptans ändras inte av planeringen. SS 12000:2024/OpenAPI 2.1.0 är avstämt på schemanivå; fungerande motpartsutbyte har inte verifierats.
+
+## Krav för infogade faser 05.1–05.8 — användarbeslut 2026-10-19
+
+Användaren godkände faslistan 2026-10-19. Kraven nedan är fastställda för respektive fas men inte planerade, genomförda eller verifierade. De utökar inte pilotens 42 ursprungliga v1-krav, som spåras separat. SCHEMA-01–08, MODUL-01–04 och LLEG-01–03 definieras i sina tidigare avsnitt ovan och har nu ansvariga faser.
+
+### Tjänstefördelning (fas 05.1)
+
+Källa: [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital.md) och [Plan Digital-researchen](research/PLAN-DIGITAL-ERSATTNING-2026-10-07.md). TJANST-04 och TJANST-05 har justerats och TJANST-07 är nytt; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md).
+
+- [ ] **TJANST-01**: Behörig personal kan skapa och ändra tjänsterader per läsår, kurs × klass × lärare × tid per termin, med exakt klass–timplansversion och ämnesrad som källa. Raden bär lärarens interna ID, inte personnummer.
+- [ ] **TJANST-02**: Specialuppdrag, till exempel programansvar, mentor och speciallärare, kan läggas med egen planerad tid och skiljs från undervisningsrader.
+- [ ] **TJANST-03**: Samläsning och blandgrupper är en egen relation mellan rader, inte en särskild radtyp. Varje lärares och klass tid räknas en gång.
+- [ ] **TJANST-04**: Tjänstefördelningen går från utkast till av rektor fastställd och publicerad version. Huvudmannen följer upp bemanning men beslutar inte. Statusbyten loggas, och ändring efter publicering skapar en ny version med spår.
+- [ ] **TJANST-05**: Läraren ser bara sin egen publicerade tjänst via inloggning, utan elevregister eller kollegors underlag, och kan lämna kommentar eller kvittens.
+- [ ] **TJANST-06**: Årsrutiner: förläng tjänstefördelningen från föregående läsår, flytta tjänst mellan personer och massregistrera, med förhandsvisning, atomär lagring och bevarade tidigare beslut.
+- [ ] **TJANST-07**: Person, anställning, tjänstgöringsgrad och skoluppdrag är separata uppgifter, skilda från systemmandat. En person kan finnas utan konto, och flera skoluppdrag delar samma planerade kapacitet.
+
+### Klassorganisation (fas 05.3)
+
+Källa: [klassresearchen](research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md), etapp C. Etapp A–B levererades i fas 5 (CLASS-COHORT).
+
+- [ ] **KLASS-01**: En klass har livscykel med giltighet och eget startdatum, skilt från registreringstid och timplanens tillämpningsläsår. Servern nekar läsår före start och utanför intervallet.
+- [ ] **KLASS-02**: Behörig personal kan dela, slå samman och byta klass genom en tidsbunden relation som bevarar elevtillhörigheter, timplanskopplingar och tidigare beslut. Klassens utbildning skrivs aldrig om automatiskt.
+- [ ] **KLASS-03**: En befintlig eller importerad klass kan kopplas till en utbildning först när informationsägare och externt ID är kända. Namnmatchning ensam räcker inte.
+- [ ] **KLASS-04**: En ändrad klassorganisation visar konsekvenser för tjänstefördelning och schemautkast och kräver uttrycklig ny tillämpning, utan automatisk omfördelning.
+
+### Interkommunal ersättning (fas 05.5)
+
+Källa: [ersättningsresearchen](research/HEMKOMMUN-ERSATTNING.md) och de sju todona från 2026-09-29 (ett krav per todo).
+
+- [ ] **ERS-01**: Ersättningsprocessen för första skolform, huvudmannatyp och motpart är beslutad med regelmatris, namngivna beslutsägare och val mellan faktura och utbetalning.
+- [ ] **ERS-02**: Hemkommun väljs ur en sökbar, daterad SCB-förteckning. Koden lagras som fyrsiffrig text, och historiska eller okända koder visas som avvikelse.
+- [ ] **ERS-03**: Ersättningsbeslut, betalande motpart, tariff och giltighetsperiod är versionsbundna med källa. Saknad eller överlappande tariff stoppar beräkningen.
+- [ ] **ERS-04**: Ekonomiroller får minsta nödvändiga elevuppgifter. Skyddad folkbokföring hanteras uttryckligen, och läsning, export och attest loggas.
+- [ ] **ERS-05**: Underlaget per hemkommun och period är reproducerbart och visar beräkningsgrund och källrevision. Luckor, överlapp och dubbla anspråk stoppas.
+- [ ] **ERS-06**: Ett attesterat underlag är låst. Senare ändringar ger spårbar differens och rättelse eller kredit kopplad till ursprunget.
+- [ ] **ERS-07**: Godkänt underlag överförs till ekonomisystem med stabil nyckel och säkra omförsök. Export, mottagning, betalning och differens hålls isär, och en verklig anslutning kräver eget bevis.
+
+### SPAR-synk (fas 05.7)
+
+Källa: [todon](todos/pending/2026-09-14-spar-synk-for-elever-och-vardnadshavare.md).
+
+- [ ] **SPAR-01**: Vald statlig källa (SPAR eller annan tjänst från Skatteverket), uppgifter, intervall och skrivansvar per fält är utredda och beslutade.
+- [ ] **SPAR-02**: Synken matchar säkert mot registrets stabila elev-ID. Skillnad mot en lokal rättelse visas, och behörig administratör väljer uttryckligen värde enligt skrivansvar.
+- [ ] **SPAR-03**: Vårdnadshavarrelationer hämtas bara från en källa som bevisligen tillhandahåller dem; annars redovisas att källa saknas.
+- [ ] **SPAR-04**: Skyddade personuppgifter, ändrade vårdnadsförhållanden, fel och återkommande leveranser hanteras med historik och utan röjande loggar.
+- [ ] **SPAR-05**: Ett anslutningsprov mot källans test- eller pilotmiljö redovisas skilt från syntetiska prov och från fas 6:s registerimport.
+
+### Stark identitet och BankID (fas 05.8)
+
+Källa: [BankID-todon](todos/pending/2026-09-13-planera-stark-identitetskontroll-och-bankid.md) och [Sverige-id-todon](todos/pending/2026-09-26-utred-sverige-id-och-integration.md).
+
+- [ ] **EID-01**: Identitetskrav per känslig åtgärd och beslutsflöde är beslutade tillsammans med verksamhet, dataskydd och säkerhet.
+- [ ] **EID-02**: BankID kan användas vid inloggning och som extra verifiering inför vald åtgärd. Styrkt identitet ger aldrig roll, uppdrag eller mandat.
+- [ ] **EID-03**: Ett konto länkas bara med en verifierad identifierare från rätt utfärdare. E-post räcker inte, och en kollision ger ingen åtkomst.
+- [ ] **EID-04**: Sverige-id via Sweden Connect är utrett mot appens OIDC-flöde med beslutsanteckning och ansluts när tjänsten är tillgänglig.
+- [ ] **EID-05**: Det finns ett beslutat alternativ för personer utan e-legitimation och vid driftavbrott. Aktör, tid och underlag loggas skyddat, och elektronisk underskrift utreds separat.
 
 ## Out of Scope
 
@@ -257,6 +318,58 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 
 **Coverage:** 42/42 v1-krav mappade; 0 omappade; 0 dubbla ansvariga faser. 27 krav är Pending; 15 krav är verifierade i fas 1–3 (lokal syntetisk nivå, se respektive VERIFICATION.md).
 
+### Spårbarhet för infogade faser 05.1–05.8
+
+Fastställd av användaren 2026-10-19 tillsammans med faslistan. Varje krav har exakt en ansvarig fas. LLEG-04 är fortsatt ett föreslaget mål utan fas, och TID-01–12 är utflyttade till repot `tjanstebedomning`.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| TJANST-01 | Phase 05.1 | Pending |
+| TJANST-02 | Phase 05.1 | Pending |
+| TJANST-03 | Phase 05.1 | Pending |
+| TJANST-04 | Phase 05.1 | Pending |
+| TJANST-05 | Phase 05.1 | Pending |
+| TJANST-06 | Phase 05.1 | Pending |
+| TJANST-07 | Phase 05.1 | Pending |
+| SCHEMA-01 | Phase 05.2 | Pending |
+| SCHEMA-02 | Phase 05.2 | Pending |
+| SCHEMA-03 | Phase 05.2 | Pending |
+| SCHEMA-04 | Phase 05.2 | Pending |
+| SCHEMA-05 | Phase 05.2 | Pending |
+| SCHEMA-07 | Phase 05.2 | Pending |
+| SCHEMA-08 | Phase 05.2 | Pending |
+| KLASS-01 | Phase 05.3 | Pending |
+| KLASS-02 | Phase 05.3 | Pending |
+| KLASS-03 | Phase 05.3 | Pending |
+| KLASS-04 | Phase 05.3 | Pending |
+| LLEG-01 | Phase 05.4 | Pending |
+| LLEG-02 | Phase 05.4 | Pending |
+| LLEG-03 | Phase 05.4 | Pending |
+| ERS-01 | Phase 05.5 | Pending |
+| ERS-02 | Phase 05.5 | Pending |
+| ERS-03 | Phase 05.5 | Pending |
+| ERS-04 | Phase 05.5 | Pending |
+| ERS-05 | Phase 05.5 | Pending |
+| ERS-06 | Phase 05.5 | Pending |
+| ERS-07 | Phase 05.5 | Pending |
+| MODUL-01 | Phase 05.6 | Pending |
+| MODUL-02 | Phase 05.6 | Pending |
+| MODUL-03 | Phase 05.6 | Pending |
+| MODUL-04 | Phase 05.6 | Pending |
+| SCHEMA-06 | Phase 05.6 | Pending |
+| SPAR-01 | Phase 05.7 | Pending |
+| SPAR-02 | Phase 05.7 | Pending |
+| SPAR-03 | Phase 05.7 | Pending |
+| SPAR-04 | Phase 05.7 | Pending |
+| SPAR-05 | Phase 05.7 | Pending |
+| EID-01 | Phase 05.8 | Pending |
+| EID-02 | Phase 05.8 | Pending |
+| EID-03 | Phase 05.8 | Pending |
+| EID-04 | Phase 05.8 | Pending |
+| EID-05 | Phase 05.8 | Pending |
+
+**Coverage, infogade faser:** 43/43 krav mappade; 0 omappade; 0 dubbla ansvariga faser; alla Pending.
+
 ## Acceptance Boundaries
 
 - Skolform, pilotvolym, IdP, registerleverantör och tidsmål beslutas i anslutningsprofilen; inga godtyckliga SLA-tal införs här.
@@ -266,7 +379,7 @@ Fördelningen nedan godkändes av användaren 2026-09-11 tillsammans med färdpl
 - Acceptans av en fas betyder inte att det är tillåtet att lägga verkliga elevuppgifter i utvecklingsprojektet.
 
 ---
-*Last updated: 2026-10-07 — PLANERING-01–05 spårade till 05-36–43; modell 05-36 och stängd lokal SQL 05-37 PASS. Worker05-38 avgränsat PASS; prestandarättning/UI och samlade krav återstår. LLEG-/SCHEMA-/MODUL-mål behålls. V1:s 42 krav och åtta faser är oförändrade; inga nya verksamhetsverifieringar av läsårsplaneringen.*
+*Last updated: 2026-10-19 — krav och spårbarhet för infogade faser 05.1–05.8; TID-01–12 utflyttade till tjanstebedomning. Tidigare: 2026-10-07 — PLANERING-01–05 spårade till 05-36–43; modell 05-36 och stängd lokal SQL 05-37 PASS. Worker05-38 avgränsat PASS; prestandarättning/UI och samlade krav återstår. LLEG-/SCHEMA-/MODUL-mål behålls. V1:s 42 krav och åtta faser är oförändrade; inga nya verksamhetsverifieringar av läsårsplaneringen.*
 
 ## Aktuellt delbevis för ADMIN-02 och ADMIN-04 — 2026-10-12
 

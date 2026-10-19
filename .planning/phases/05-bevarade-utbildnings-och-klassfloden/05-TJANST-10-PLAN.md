@@ -6,7 +6,9 @@ wave: 7
 depends_on: ["TJANST-09"]
 files_modified: ["web/lib/tjanst-journal.ts", "web/lib/tjanst-journal.test.mjs", "web/app/tjanst-personal.tsx", "web/app/tjanst-personal.css", "web/app/tjanst-workspace.tsx", "web/e2e/fixtures/tjanst-preview.tsx", "web/e2e/fixtures/tjanst-preview.html", "web/e2e/tjanst-personal.spec.ts", "web/playwright.tjanst-preview.config.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-02, TJ1-09, TJ1-10]
 must_haves:
   truths: ["Rektor ser rätt persons anställningar och tidsbegränsade skoluppdrag utan att skapa en ny helårsram per skola.", "En person kan finnas utan inloggningskonto; detta ger inga automatiska åtkomsträttigheter.", "Sparat betyder verifierat serverresultat; borttappat svar, omladdning och uppdragsbyte kan inte ge dubbelregistrering eller visa en annan persons uppgifter."]

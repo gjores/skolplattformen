@@ -5,6 +5,7 @@ area: ekonomi
 files:
   - web/lib/pupil-register-model.ts
   - .planning/research/HEMKOMMUN-ERSATTNING.md
+phase: "05.5 (ERS-05) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

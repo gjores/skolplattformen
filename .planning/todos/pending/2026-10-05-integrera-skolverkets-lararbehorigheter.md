@@ -11,6 +11,7 @@ files:
   - web/lib/admin-model.ts
   - web/lib/server/db.ts
   - supabase/migrations/20260922120000_phase3_staff_bindings.sql
+phase: "05.4 (L1–L3); L4 vid fas 7:s externa gräns — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Användarens uppdrag

@@ -10,6 +10,7 @@ files:
   - .planning/phases/05-bevarade-utbildnings-och-klassfloden/05-CONTEXT.md
   - web/lib/server/db.ts
   - web/lib/admin-model.ts
+phase: "05.2 (S1–S3); 05.6 (S4, köpbara moduler) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

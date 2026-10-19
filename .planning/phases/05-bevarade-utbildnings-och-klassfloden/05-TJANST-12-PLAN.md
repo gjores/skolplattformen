@@ -6,7 +6,9 @@ wave: 9
 depends_on: ["TJANST-10A", "TJANST-11"]
 files_modified: ["web/app/tjanst-bedomning.tsx", "web/app/tjanst-beslut.tsx", "web/app/tjanst-bedomning.css", "web/e2e/fixtures/tjanst-bedomning-preview.tsx", "web/e2e/tjanst-bedomning.spec.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-05, TJ1-06, TJ1-07, TJ1-09, TJ1-10]
 must_haves:
   truths: ["Rektor bedömer varje tjänst med synligt faktaunderlag, individuellt undervisningstak, planeringstid och egen motivering.", "Rektor fastställer den granskade fördelningen och gör den synlig atomiskt; huvudmannen har inget godkännandesteg.", "Nya arbetsuppgifter eller ändrad avtals-/källversion gör behovet av omprövning synligt utan att skriva om tidigare beslut.", "Lärarens synpunkt, läskvittens, rektorsbeslut och facklig samverkan är olika händelser."]

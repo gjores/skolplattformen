@@ -6,7 +6,9 @@ wave: 4
 depends_on: ["TJANST-01A", "TJANST-04", "TJANST-04A"]
 files_modified: ["web/lib/server/tjanst-personal.ts", "web/lib/server/tjanst-personal.test.mjs", "web/app/api/tjanst/personal/lasa/route.ts", "web/app/api/tjanst/personal/kommando/route.ts", "web/app/api/tjanst/personal/status/route.ts", "web/lib/server/tjanst-avtal.ts", "web/lib/server/tjanst-avtal.test.mjs", "web/app/api/tjanst/avtal/lasa/route.ts", "web/app/api/tjanst/avtal/kommando/route.ts", "web/app/api/tjanst/avtal/status/route.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Huvudmannens avtalsval och personalgrund kan användas från ett skyddat API.", "Rektor får endast de skoluppgifter och avtal som aktuellt mandat medger.", "Ogiltiga SQL-svar, återkallade mandat och osäkra skrivutfall ger inget falskt sparatbesked."]

@@ -3,14 +3,18 @@ created: 2026-10-07
 updated: 2026-10-16
 title: Stöd för lärares arbetstid och rektors tjänstebedömning
 area: tjanstefordelning
-status: pending
+status: moved
+moved_on: 2026-10-19
+moved_to: "repot tjanstebedomning (/Users/petter.gjores/dev/tjanstebedomning)"
 proposed_requirements: [TID-01, TID-02, TID-03, TID-04, TID-05, TID-06, TID-07, TID-08, TID-09, TID-10, TID-11, TID-12]
 related_requirements: [GROUP-01, SCHEMA-01, SCHEMA-03, SCHEMA-07, SCHEMA-08, LLEG-03, PLANERING-05, ACL-02, ACL-04]
-phase: "05-TJANST planerar T1–T2 med tjänstefördelning i fas 5; T3–T4 kvarstår med SCHEMA S3/S4"
+phase: "ingen — utflyttad ur Skolplattformen 2026-10-19"
 files:
   - .planning/research/LARARTID-OCH-TJANSTEBEDOMNING-2026-10-16.md
   - .planning/research/LARARES-TID-SFS-2026-1487-2026-10-07.md
 ---
+
+**Flyttad 2026-10-19.** Användaren: tjänstebedömningen är ”en helt annan grej som bara råkade hamna i det här projektet. Det ska ha flyttats ut helt.” T1–T4 och TID-01–12 hör nu till repot `tjanstebedomning`. Tjänstefördelningen (TJANST-01–07) ligger kvar i Skolplattformen som fas 05.1. Se [beslutsdokumentet](../../phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Texten nedan är historik.
 
 ## Beställning som består och ny research
 

@@ -6,7 +6,9 @@ wave: 3
 depends_on: ["TJANST-03", "TJANST-04"]
 files_modified: ["supabase/migrations/20261016132000_tjanst_plan.sql", "work/pilot/verify-tjanst-plan-commands.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Rektor kan spara klassernas undervisningsbehov, obemannade rader och hela läraruppdrag.", "Samtidigt arbete på två skolor kan inte använda samma personkapacitet två gånger.", "Huvudmannen kan följa samlade brister och dokumentera resursåtgärder utan att fastställa tjänstefördelningen."]

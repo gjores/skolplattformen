@@ -6,7 +6,9 @@ wave: 6
 depends_on: ["TJANST-04A", "TJANST-07", "TJANST-07B", "TJANST-08"]
 files_modified: ["supabase/migrations/20261016140000_tjanst_worker_access.sql", "work/pilot/tjanst-fixtures.mjs", "work/pilot/verify-tjanst.mjs", "work/pilot/verify-tjanst-api.mjs", ".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-VERIFICATION.md"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Det faktiska API:t och databasen ger samma tjänsteberäkning och mandatbesked som modellen.", "Samtidiga ändringar och återkallade uppdrag kan inte ge dubbla reservationer eller obehöriga beslut.", "Nya personalfunktioner lämnar befintliga elev-, klass-, program-/timplansflöden och åtkomstgränser intakta."]

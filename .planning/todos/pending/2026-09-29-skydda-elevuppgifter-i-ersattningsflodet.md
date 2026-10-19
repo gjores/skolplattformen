@@ -4,6 +4,7 @@ title: Skydda elevuppgifter i ersättningsflödet
 area: sakerhet
 files:
   - .planning/research/HEMKOMMUN-ERSATTNING.md
+phase: "05.5 (ERS-04) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

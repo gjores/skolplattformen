@@ -6,7 +6,9 @@ wave: 10
 depends_on: ["TJANST-11", "TJANST-15C"]
 files_modified: ["web/app/tjanst-overforing.tsx", "web/app/tjanst-overforing.css", "web/e2e/fixtures/tjanst-overforing-preview.tsx", "web/e2e/tjanst-overforing.spec.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-08, TJ1-09, TJ1-10]
 must_haves:
   truths: ["Rektor kan föra över uppdragsstruktur till ett nytt läsår och ser vilka avtal, personer och klasskällor som behöver kontrolleras på nytt.", "Flytt mellan personer och massregistrering visar exakta före-/efterrader och kapacitetskonsekvenser före sparning.", "UI rapporterar aldrig delvis batch som färdig och kopierar aldrig tidigare beslut, undantag eller lärarinitiativ till ett nytt giltigt underlag."]

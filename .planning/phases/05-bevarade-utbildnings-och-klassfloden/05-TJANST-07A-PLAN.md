@@ -6,7 +6,9 @@ wave: 4
 depends_on: ["TJANST-04A"]
 files_modified: ["web/lib/access-rules.ts", "web/app/api/session/route.ts", "web/app/api/context/route.ts", "web/app/context-switch.tsx", "web/lib/server/tjanst-session.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Valt uppdrag berättar om läraren har egen tjänst eller tilldelade elevgrupper utan att klienten får välja omfattningen.", "Kontextbyte och återläsning visar samma serverkontrollerade scope och giltighet.", "Återkallat eller utgånget self-mandat kan inte återupplivas med ett tidigare sessionssvar."]

@@ -7,6 +7,8 @@ proposed_requirements: [TID-01, TID-02, TID-03, TID-04, TID-05, TID-06, TID-07, 
 code_revision: 42fa2517a93e354bb76dfbf5834c091286a98a94
 ---
 
+**Utflyttad 2026-10-19.** Tjänstebedömningen hör inte längre till Skolplattformen. Den aktuella kopian av researchen finns i repot `tjanstebedomning` (`docs/research/`). Filen ligger kvar här som historik; se [beslutsdokumentet](../phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md).
+
 # Stöd för rektors bedömning och uppföljning av lärares arbetstid
 
 ## Rekommendation

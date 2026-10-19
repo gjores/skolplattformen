@@ -4,6 +4,7 @@ title: Besluta ersättningsflöde mot hemkommun
 area: ekonomi
 files:
   - .planning/research/HEMKOMMUN-ERSATTNING.md
+phase: "05.5 (ERS-01) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

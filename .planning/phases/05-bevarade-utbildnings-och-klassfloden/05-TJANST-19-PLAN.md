@@ -6,7 +6,9 @@ wave: 14
 depends_on: ["TJANST-18"]
 files_modified: [".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-USER-TRIAL.md",".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-VERIFICATION.md",".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-IMPLEMENTATION.md"]
 autonomous: false
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 must_haves:
   truths: ["Användaren kan välja avtal, bedöma en tjänst och förstå vad rektor fastställer.","Huvudmannens uppföljning och lärarens egenvy har begripligt ansvar och tydliga tidsmått."]
   artifacts: [".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-USER-TRIAL.md",".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-VERIFICATION.md",".planning/phases/05-bevarade-utbildnings-och-klassfloden/05-TJANST-IMPLEMENTATION.md"]

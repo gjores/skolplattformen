@@ -6,7 +6,9 @@ wave: 8
 depends_on: ["TJANST-10"]
 files_modified: ["web/app/tjanst-avtal.tsx", "web/app/tjanst-avtal.css", "web/e2e/fixtures/tjanst-avtal-preview.tsx", "web/e2e/tjanst-avtal.spec.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-01, TJ1-09, TJ1-10]
 must_haves:
   truths: ["Huvudmannen kan välja flera tillämpliga kollektivavtal och se deras skilda versioner, giltigheter och tjänsteformer.", "En lokal överenskommelse har synlig omfattning och källa; ett mallnamn är inte bevis för att avtalet gäller.", "Rektor ser vilka profiler huvudmannen har gjort tillgängliga men kan inte ändra deras regler eller förlänga giltigheten i det tysta."]

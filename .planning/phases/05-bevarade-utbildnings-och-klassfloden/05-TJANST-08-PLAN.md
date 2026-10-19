@@ -6,7 +6,9 @@ wave: 5
 depends_on: ["TJANST-04A", "TJANST-06", "TJANST-07"]
 files_modified: ["web/lib/server/tjanst-plan.ts", "web/lib/server/tjanst-plan.test.mjs", "web/app/api/tjanst/plan/lasa/route.ts", "web/app/api/tjanst/plan/kommando/route.ts", "web/app/api/tjanst/plan/status/route.ts", "web/lib/server/tjanst-bedomning.ts", "web/lib/server/tjanst-bedomning.test.mjs", "web/app/api/tjanst/bedomning/lasa/route.ts", "web/app/api/tjanst/bedomning/kommando/route.ts", "web/app/api/tjanst/bedomning/status/route.ts", "web/lib/server/tjanst-egen.ts", "web/lib/server/tjanst-egen.test.mjs", "web/app/api/tjanst/egen/lasa/route.ts", "web/app/api/tjanst/egen/kommando/route.ts", "web/app/api/tjanst/egen/status/route.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Rektor kan bereda och fastställa sin tjänstefördelning utan huvudmannagodkännande.", "Huvudmannen får resursbild och åtgärder; läraren får endast sin publicerade eller uttryckligt delade dialogversion.", "Samtidiga källändringar, förlorade svar och förfalskade lärarinitiativ ger säkra besked."]

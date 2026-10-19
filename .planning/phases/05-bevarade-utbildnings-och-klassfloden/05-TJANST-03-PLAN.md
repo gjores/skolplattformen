@@ -6,7 +6,9 @@ wave: 2
 depends_on: ["TJANST-01", "TJANST-02"]
 files_modified: ["web/lib/tjanst-plan.ts", "web/lib/tjanst-plan.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Rektor kan se undervisningsbehov och tjänsterader även innan en lärare är utsedd.", "Samläsning förbrukar lärartid en gång medan två deltagande lärare får varsin tid.", "Ändrad timplanskälla ändrar inte sparad tjänstefördelning i bakgrunden."]

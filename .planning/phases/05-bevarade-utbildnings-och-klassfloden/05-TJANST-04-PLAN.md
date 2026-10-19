@@ -6,7 +6,9 @@ wave: 2
 depends_on: ["TJANST-01", "TJANST-02"]
 files_modified: ["supabase/migrations/20261016130000_tjanst_personal_avtal.sql", "work/pilot/verify-tjanst-personal-avtal.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Personalresurser, anställningar och flera avtalsprofiler sparas beständigt utan nya användarkonton.", "Huvudmannen väljer avtal; rektor arbetar inom sin skola och de avtalsprofiler som faktiskt gäller.", "Profilbyte och periodändring lämnar historiska versioner intakta och kan återhämtas efter tappat svar."]

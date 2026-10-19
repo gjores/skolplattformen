@@ -6,7 +6,9 @@ wave: 10
 depends_on: ["TJANST-12"]
 files_modified: ["web/app/tjanst-egen.tsx", "web/app/tjanst-egen.css", "web/e2e/fixtures/tjanst-egen-preview.tsx", "web/e2e/tjanst-egen.spec.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-06, TJ1-07, TJ1-09, TJ1-10]
 must_haves:
   truths: ["En lärare kan se sin egen fastställda tjänst och en uttryckligt delad dialogversion, med fördelning och motivering, även utan undervisningsgruppmandat.", "Läraren kan lämna egen synpunkt och ett uttryckligt eget initiativ enligt11§punkt1; rektor kan inte imitera detta.", "Läraren ser vad som är mottaget, läst, diskuterat och beslutat utan att läsning innebär godkännande.", "Lärare utan verifierad kontokoppling visas inte som signerande och ingen identifieras genom namnmatchning."]

@@ -6,7 +6,9 @@ wave: 10
 depends_on: ["TJANST-12"]
 files_modified: ["web/app/tjanst-uppfoljning.tsx", "web/app/tjanst-uppfoljning.css", "web/e2e/fixtures/tjanst-uppfoljning-preview.tsx", "web/e2e/tjanst-uppfoljning.spec.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-02, TJ1-06, TJ1-09, TJ1-10]
 must_haves:
   truths: ["Huvudmannen ser vilka skolor som saknar aktuella bedömningar, har resursbrister eller använder ofullständigt avtalsunderlag utan att godkänna tjänsterna.", "Samma anställningsram räknas en gång även när en person arbetar på flera skolor; olika avtal och ofullständiga nämnare döljs inte av totalsiffror.", "En resursåtgärd kan tilldelas ansvarig, följas upp och avslutas med historik utan att ändra rektors individuella beslut.", "Huvudmannens sammanställning visar bara tillåtna individuppgifter och inga privata bedömningstexter."]

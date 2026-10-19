@@ -7,6 +7,7 @@ files:
   - web/app/pupil-card.tsx
   - web/lib/pupil-register-model.ts
   - .planning/research/HEMKOMMUN-ERSATTNING.md
+phase: "05.5 (ERS-02) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

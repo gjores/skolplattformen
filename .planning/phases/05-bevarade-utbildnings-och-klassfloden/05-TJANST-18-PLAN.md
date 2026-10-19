@@ -6,7 +6,9 @@ wave: 13
 depends_on: ["TJANST-17"]
 files_modified: ["work/pilot/apply-tjanst.mjs","work/pilot/apply-tjanst.test.mjs","work/pilot/deliver-tjanst.mjs","work/pilot/deliver-tjanst.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 must_haves:
   truths: ["Den lokala appen visar exakt den tjänstefördelning som har verifierats.","Befintliga utbildningar, klasser, beslut och personuppgifter bevaras vid installation.","Ett misslyckat appbyte återställer tidigare fungerande app utan att radera nya verksamhetsdata."]
   artifacts: ["work/pilot/apply-tjanst.mjs","work/pilot/apply-tjanst.test.mjs","work/pilot/deliver-tjanst.mjs","work/pilot/deliver-tjanst.test.mjs"]

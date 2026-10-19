@@ -6,7 +6,9 @@ wave: 3
 depends_on: ["TJANST-03"]
 files_modified: ["web/lib/tjanst-bedomning.ts", "web/lib/tjanst-bedomning.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Rektor bedömer varje tjänst och fastställer/publicerar skolans fördelning; huvudmannen följer upp.", "Bedömningen förklarar undervisningstak, planeringstid och hela uppdragets förutsättningar.", "Lärarens initiativ och synpunkter kan inte ersättas av rektors kryssruta eller läskvittens."]

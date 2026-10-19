@@ -3,28 +3,30 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: VOCATIONAL-EXAM-2028
-status: awaiting_user
-stopped_at: Examensform förHT2028 levererad på3012; SQL25/actual20 samt installation79/appbyte76 bevarande PASS. Mänsklig begriplighetsbedömning återstår.
-last_updated: "2026-10-18"
-last_activity: 2026-10-18
-last_activity_desc: "VOCATIONAL-EXAM-2028 levererad: versionsbundet granskat val,100-poängsrad och huvudmannagodkännande.3012 kör7102cf8."
-state_head: 7102cf8
-verification_worker_build_revision: 7102cf828fac7006b4296538290da1bac25bdd8c
-verification_worker_status: programplan_examination_actual_browser_local_delivery_pass
-worker_status: programplan_examination_local_delivery_verified
-worker_build_revision: 7102cf828fac7006b4296538290da1bac25bdd8c
+current_plan: APL-CENTRAL-CONTENT
+status: in_progress
+stopped_at: "Delad GR/IM-årsrad levererad 2026-10-19 och 3012 kör ae6c52e. APL centralt innehåll: våg 1–3 klara (f934091), våg 4 samt godkännande av migration och 3012-byte återstår. Infogade faser 05.1–05.8 inlagda, ej planerade."
+last_updated: "2026-10-19"
+last_activity: 2026-10-19
+last_activity_desc: "Faserna 05.1–05.8 infogade före fas 6 enligt användarbeslut; tjänstebedömningen utflyttad till tjanstebedomning. Senaste leverans: delad GR/IM-årsrad, 3012 kör ae6c52e."
+state_head: ae6c52e
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 88
+verification_worker_build_revision: ae6c52ef9fec45da7729fcc7319ec76fca27ce80
+verification_worker_status: planning_year_shared_grim_sql_browser_pass_no_oidc_after_switch
+worker_status: planning_year_shared_grim_local_delivery_verified
+worker_build_revision: ae6c52ef9fec45da7729fcc7319ec76fca27ce80
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Infogade faser 05.1–05.8 2026-10-19:** Användaren godkände nya faser före faserna 6–8: 05.1 Tjänstefördelning, 05.2 Schemaläggning med Rust-schemamotor (egen tjänst, resten av appen i TypeScript), 05.3 Klassorganisation, 05.4 Lärarbehörigheter, 05.5 Interkommunal ersättning, 05.6 Köpbara moduler, 05.7 SPAR-synk och 05.8 Stark identitet och BankID. Krav och framgångskriterier finns i [ROADMAP](ROADMAP.md) och [REQUIREMENTS](REQUIREMENTS.md). Tjänstebedömningen är utflyttad till repot `tjanstebedomning`, och 05-TJANST är ersatt enligt [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Inget i de nya faserna är planerat eller genomfört. Fas 5 är fortsatt aktuell fas, och frontmatterns progress anger de historiska 88/100 planer och 3/8 faser; de infogade faserna räknas inte in där. Nästa steg för de nya faserna är `/gsd-plan-phase 05.1` när användaren vill.
 
 **Delad GR/IM i årslistan levererad 2026-10-19:** Rektor på en tillagd skola ser skolans egen GR/IM-timplan i årslistan; andra skolors planer syns inte. Migrationen 20261019150000 är installerad, med SQL 22/22 och 14 installationskontroller PASS; bara `phase5_planning_year_rows` har ändrats. Webbläsarproven gav timplan 22/22, gym-timplan 26/26 och programplan 40/40. phase5-planning-year kördes inte, eftersom den är bunden till en historisk release-rapport. 3012 kör nu ae6c52e, som också innehåller tidigare olevererade commits efter 7102cf8. 3012 hade 500 på stilmallar och skript sedan ett bygge på plats kl. 08:18. [Plan och resultat](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-SHARED-GRIM-PLAN.md). Historiska 88/100 och 3/8 består.
 
@@ -152,7 +154,6 @@ milestone_name: milestone
 
 **UI42 färdigt 2026-10-08 — avgränsat PASS:** Full O01–18 på dator och telefon, ROOT42476 känd exit0/rå `c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901`, source `ac41d6c3ed9cdd9977bee6a9207fa30a146ad165`, spec `93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639` och bevarat bygge `17924ff417899dd5863c394bb4496a5bf22865bd`. 36/36 PASS utan skips/omprov/flaky; 36 normalcleanup/full15 exakt SEARCH/sex avslutsflaggor/egna16 samt foreignverksamhet/DDL0. 20 explicita/49 skyddade/241 produktfiler/båda parsers och fyra historiska C16/extraC04/L36/G38-kedjor matchar; inget nytt appbygge. Terminal audit197363/114cc50c och auditerade identiteter5387/3ebcec87. 16 geometrier minst44×44/contained och16 PNG/14 unika ROOT-granskade; telefonens fokushopplänk över text och O05:s svaga dialogtext redovisas, ingen felfriUI- eller orsaksförklaring. Oberoende full fil-/3/3-målgranskning PASS: `work/pilot/results/phase5-42-seventh-independent-full-file-review-20261008.json` · SHA `281713e9082cb51ecae6d61559df54c1660b5f62cae9cfcf5e81bb8df75867cc`. 87/100 planer,3/8 verifierade faser; nästa [05-43](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PLAN.md) med separat slutC16/release/3012 och konkret användarprov. Alla första fel och recoveries består; fulla PLANERING-/ADMIN-krav/fas5/05-17/formell rektors färdigmarkering och HM-godkännande kvarstår. Ordinarie3012/5dd7baf är inte överförd av detta steg.
 
-
 **UI42 sjätte ägda återställningen V3 2026-10-08 — faktiskt PASS:** ROOT12636 förkontroll exit0 (completion17da2431/reservedb5e71f1c) och separat ROOT96917 apply exit0 (completion198ca4e5/reserved4d070944) på fryst källa fb16e88b. Den unika egna MFA-sessionen och samma fulla DB-/Worker-cellpar verifierades vid händelsetiden med rätt occurred_at; revision1/[444,777,666] består.13 egna sessioner till0 och endast4991e99e:s egen verksamhetsgraf städad;111 egna audithändelser/fyra ankare kvar, foreignaudit0. Original15 exaktSEARCH/katalog/råACL28, ALLaudit192931/3ca2b8e0 och SQLauditedident5265/35657305, ALLolder5294/9f5b0c3e, staff31/391d766c och sju äldre mandatgrafer bevaras före/efter/postcommit med känd commit/DB-/filstängning. ROOTs filkontroller797b5a och4ea7bd samt oberoende slutfilgranskning501eecd4 PASS. V1/V2-förkontrollFAIL och sjätte fullOFAIL bevaras oförändrade. O15/O16-helper93c6 är källgranskad/typ/lint/list36 kontrollerad, produkt241/bygge179/180artefakt3b5 består utan nytt appbygge. Runtime är ännu stoppad påa9a/07c; därefter exakt övergång till granskad93c-källa, avgränsat O15/O16×dator/telefon och helt ny fullO36 med genuina pre/duringbevis.86/100,3/8, fulla krav/formella beslut och ordinarie3012 består.
 
 **UI42 återställningsförkontroll V2 2026-10-08 — FAIL före verksamhetsmutation:** ROOT 26995 exit1 på källa 92ab4a30 stoppade med PostgreSQL 42703: diagnosen använder `security_events.created_at`, medan det befintliga schemat har `occurred_at`. Immutable completion cbdb4d5a/reserved a0853f63 är bevarade separat i MAIN och runtime. `ownedMutationStarted=false`, `transactionCommitted=false`, `databaseClosed=true` och `reservedClosed=true`; `commitOutcomeUnknown=true` är fortsatt en generisk okänd utgång för det avbrutna transaktionsförsöket, inte en godkänd återställning. Tidigare V1-fel, sjätte fullO 05643/O15-deferred och alla äldre rårapporter består. V3 förbereds separat och saknar ännu faktiskt förkontroll-/applybevis. Runtime är fortsatt a9a/07c och den egna Worker-kedjan är stoppad. MAIN:s granskade O15/O16-helper 93c6 ger bara källberedskap, inget nytt beteende-PASS. Nästa målåtkomst först genom separat granskad V3-förkontroll och ägd återställning med känd commit/postcommit/DB-/filstängning; därefter nya browserprov och färsk full O36 med genuina metadata. Full 05-42/43, formella beslut och mänskligt prov förblir Pending; 86/100, 3/8 och vanlig 3012/5dd7baf oförändrade.
@@ -184,11 +185,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus:** Tidigare klassorganisation och begripligt kullstart-/läsårsval i CLASS-COHORT-paketet. Oförändrade mandat bekräftade 2026-10-15. Tidigare användargodkännanden och separata integritets-/prestandagränser består.
+**Current focus (2026-10-19):** Fas 5:s APL-paket för centralt innehåll (våg 4, leverans efter godkännande) och kvarstående mänskliga prov. Därefter de infogade faserna 05.1–05.8, med tjänstefördelning först. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
 
-Aktuellt:05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
+Aktuellt 2026-10-19: fas 5 pågår (APL centralt innehåll våg 4 återstår; delad GR/IM-årsrad levererad, 3012 kör ae6c52e). Infogade faser 05.1–05.8 väntar på planering. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 
@@ -414,6 +415,17 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 05.1 inserted after Phase 5: Tjänstefördelning (TJANST-01–07); 05-TJANST delad, tjänstebedömning utflyttad till tjanstebedomning — användarbeslut 2026-10-19
+- Phase 05.2 inserted after Phase 5: Schemaläggning med Rust-schemamotor som egen tjänst (SCHEMA-01–05, 07, 08) — användarbeslut 2026-10-19
+- Phase 05.3 inserted after Phase 5: Klassorganisation, etapp C (KLASS-01–04) — användarbeslut 2026-10-19
+- Phase 05.4 inserted after Phase 5: Lärarbehörigheter (LLEG-01–03) — användarbeslut 2026-10-19
+- Phase 05.5 inserted after Phase 5: Interkommunal ersättning (ERS-01–07) — användarbeslut 2026-10-19
+- Phase 05.6 inserted after Phase 5: Köpbara moduler (MODUL-01–04, SCHEMA-06) — användarbeslut 2026-10-19
+- Phase 05.7 inserted after Phase 5: SPAR-synk (SPAR-01–05) — användarbeslut 2026-10-19
+- Phase 05.8 inserted after Phase 5: Stark identitet och BankID (EID-01–05) — användarbeslut 2026-10-19
+
 ## Decisions Made
 
 - 2026-10-06: Valt planeringsläsår/skola följer med inom program-/timplaner och framtida planeringsmoduler. Elevregister/löpande administration har separat urval; inget planeringsår skapar placeringar, klasskopplingar eller ändrar mandat. Nya/fortsättande kullar ses tillsammans. GSD-planering beställd; 05-36–43 är ännu inte genomförda.
@@ -560,13 +572,11 @@ Historik före senaste underkännande: ännu mer pedagogik och fler gymnasieprog
 
 05-14:s mänskliga prov är underkänt som rörigt och osammanhängande. Användaren vill ha program → inriktning → programfördjupning och samma UI för nya/befintliga utbildningar. Historisk frontend läst och visuellt jämförd; se 05-PROGRAMFLOW-HISTORICAL-REVIEW och 05-15-FLOW-CONTEXT. 05-15 har verifierat atomiskt skapande för huvudmannen och säkert kvitto; 05-16 använder samma arbetsyta och ämnesgrupperade fördjupningsval. Ingen rektorsbehörighet eller nationell beslutsrätt utvidgas. Tidigare automatiska prov ovan är historik.
 
-
 ## Historiska automatiska bevis och överlämning — 2026-10-02
 
 05-15/05-16 genomförda automatiskt på skyddat bygge `023e68b`. Samma program → inriktning → programfördjupning används för befintligt rektorsarbete och huvudmannens nya gymnasieutbildning/utkast. Fulla programbrowser 38/38 och timplan 20/20, cleanup 58/58, ny API 43/43 och 128 riktade Node-prov PASS. Typ/lint/skyddat bygge och handbok PASS; tio dator-/telefonbilder granskade. Vanlig 3012 kör direkt workerd; nio bevarade exempel för R/HM lästa med 40 auditpar och fyra verkliga lokala OIDC/MFA-inloggningar PASS. Ny mänsklig begriplighetsbedömning väntar. ADMIN-02/full fas 5, nationella beslut, paket, kullkopiering och klasskoppling är öppna.
 
 Tidigare 05-14-introduktion/dialog/kort ovan är historik. 05-16-SUMMARY är aktuellt användarbeteende. Den generella Wrangler-proxyfrågan är öppen; vanlig lokal preview använder direkt workerd utan denna proxy.
-
 
 ## Telefonprov på samma wifi — 2026-10-02
 

@@ -6,7 +6,9 @@ wave: 4
 depends_on: ["TJANST-03A", "TJANST-04A", "TJANST-05"]
 files_modified: ["supabase/migrations/20261016134000_tjanst_assessment.sql", "work/pilot/verify-tjanst-assessment.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Endast aktuell rektor kan fastställa och publicera rätt skolas tjänstefördelning.", "En lärare kan läsa sin publicerade plan och lämna eget initiativ utan att få åtkomst till kollegor eller elever.", "Om underlaget ändras bevaras beslutet historiskt och ny bedömning krävs."]

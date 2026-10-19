@@ -6,7 +6,9 @@ wave: 5
 depends_on: ["TJANST-07A"]
 files_modified: ["web/app/mandate-grant-dialog.tsx", "web/app/mandate-workspace.tsx", "work/pilot/tjanst-self-fixtures.mjs", "work/pilot/verify-tjanst-self-access.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Rektor kan uttryckligen tilldela Egen tjänst till en identitetsbunden lärare utan att välja elevgrupp.", "En lärare med self får inga elevdata eller registermetadata via direkt HTTP/SQL.", "Lärare med befintligt gruppmandat behåller samma avgränsade elevåtkomst och kan inte få self genom klientmanipulation."]

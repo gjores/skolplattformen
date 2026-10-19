@@ -6,6 +6,7 @@ files:
   - .planning/REQUIREMENTS.md
   - .planning/phases/02-verifierad-konto-tkomst/02-CONTEXT.md
   - docs/kommunintegration-och-sakerhet.md
+phase: "05.8 (EID-01–03, EID-05) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

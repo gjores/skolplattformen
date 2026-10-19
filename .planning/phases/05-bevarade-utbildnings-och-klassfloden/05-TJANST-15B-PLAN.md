@@ -6,7 +6,9 @@ wave: 8
 depends_on: ["TJANST-15"]
 files_modified: ["supabase/migrations/20261017120000_tjanst_transfer.sql", "work/pilot/verify-tjanst-transfer.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-08, TJ1-09]
 must_haves:
   truths: ["Årsöverföring, flytt och massregistrering ger en hel transaktion eller noll ändring.", "Två samtidiga skolor/operationer kan inte använda samma sista anställningskapacitet.", "Gamla beslut och lärares initiativ bevaras; nya planer är utkast."]

@@ -6,7 +6,9 @@ wave: 1
 depends_on: []
 files_modified: ["web/lib/tjanst-personal.ts", "web/lib/tjanst-personal.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["En lärare kan planeras utan systemkonto och behåller samma identitet vid avtals- eller skolbyte.", "Två skoluppdrag delar anställningens periodbudget och skapar inte två helårsramar.", "Anställning, undervisningsuppdrag och rätt att använda systemet är skilda uppgifter."]

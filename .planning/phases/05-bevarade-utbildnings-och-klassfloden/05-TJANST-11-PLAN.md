@@ -6,7 +6,9 @@ wave: 8
 depends_on: ["TJANST-10"]
 files_modified: ["web/app/tjanst-fordelning.tsx", "web/app/tjanst-uppdrag-dialog.tsx", "web/app/tjanst-fordelning.css", "web/e2e/fixtures/tjanst-fordelning-preview.tsx", "web/e2e/tjanst-fordelning.spec.ts"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-03, TJ1-04, TJ1-09, TJ1-10]
 must_haves:
   truths: ["Rektor kan fördela undervisning per klass, ämnesnivå, lärare, termin och exakt timplanskälla samt återöppna samma fördelning.", "Mentorskap och andra uppdrag ingår i den enskilda lärarens ram utan att räknas en gång till genom sina etiketter eller gruppkopplingar.", "Samläsning visar gemensam aktivitet och varje lärares eget deltagande; elevtimmar och lärartimmar blandas inte.", "Underlag från schema och utfall saknas ännu och visas därför inte som noll procent eller färdig tidsuppföljning."]

@@ -6,7 +6,9 @@ wave: 2
 depends_on: ["TJANST-01"]
 files_modified: ["web/lib/tjanst-self-access.ts", "web/lib/tjanst-self-access.test.mjs", "web/lib/mandate-policy.ts", "web/lib/mandate-policy.test.mjs", "web/lib/server/mandates.ts", "web/lib/server/mandates.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["En lärare kan få ett uttryckligt mandat för egen tjänst utan elevgrupp.", "Egen tjänst kan aldrig väljas genom namn, e-post eller ett fritt person-ID.", "Ett eget mandat ger inga elev-, klasslistnings- eller planeringsrättigheter; gamla gruppmandat behåller sin omfattning."]

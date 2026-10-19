@@ -6,7 +6,9 @@ wave: 11
 depends_on: ["TJANST-10A","TJANST-11","TJANST-12","TJANST-13","TJANST-14","TJANST-15A"]
 files_modified: ["web/app/protected-home.tsx","web/app/tjanst-workspace.tsx","docs/handbok/tjanstefordelning.md","docs/handbok/mandat.md","docs-site/sidebars.js"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 must_haves:
   truths: ["Huvudmannen kan välja avtal och följa upp; rektor kan fördela, bedöma och fastställa inom rätt skola.","Lärare med eget mandat kan öppna Min tjänst utan undervisningsgrupp eller elevåtkomst.","Användaren hittar begriplig hjälp om avtal, arbetstid och beslutsansvar."]
   artifacts: ["web/app/protected-home.tsx","web/app/tjanst-workspace.tsx","docs/handbok/tjanstefordelning.md","docs/handbok/mandat.md","docs-site/sidebars.js"]

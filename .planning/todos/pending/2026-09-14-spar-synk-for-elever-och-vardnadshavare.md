@@ -6,6 +6,7 @@ area: integration
 files:
   - .planning/REQUIREMENTS.md
   - .planning/ROADMAP.md
+phase: "05.7 (SPAR-01–05) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

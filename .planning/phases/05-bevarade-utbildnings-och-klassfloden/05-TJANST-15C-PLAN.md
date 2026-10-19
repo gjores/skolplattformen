@@ -6,7 +6,9 @@ wave: 9
 depends_on: ["TJANST-15B"]
 files_modified: ["web/lib/server/tjanst-transfer.ts", "web/app/api/tjanst/overforing/lasa/route.ts", "web/app/api/tjanst/overforing/kommando/route.ts", "web/app/api/tjanst/overforing/status/route.ts", "supabase/migrations/20261017121000_tjanst_transfer_worker_access.sql", "work/pilot/verify-tjanst-transfer.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 local_acceptance: [TJ1-08, TJ1-09]
 must_haves:
   truths: ["Års-/massoperationerna kan nås via verklig skyddadAPI och ger samma atomiska resultat somSQL.", "Fel roll, person, skola, period och inaktuellt underlag nekas även via direktHTTP.", "Ett förlorat svar återhämtas genom samma kommandos status utan ny batch."]

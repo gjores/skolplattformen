@@ -6,7 +6,9 @@ wave: 12
 depends_on: ["TJANST-16"]
 files_modified: ["work/pilot/tjanst-oidc-fixtures.mjs","work/pilot/tjanst-api-scenarios.mjs","work/pilot/tjanst-browser-scenarios.mjs","work/pilot/verify-tjanst-api.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 must_haves:
   truths: ["En fastställd tjänst kan följas från vald avtalsversion och exakt klassbehov till lärarens egen publicerade vy.","Samtidiga rektorer kan inte förbruka samma kapacitet och lärare kan inte läsa andra personers tjänster eller skapa rektorsbeslut.","Samma flöde fungerar på dator och telefon med verkliga HTTP-svar."]
   artifacts: ["work/pilot/tjanst-oidc-fixtures.mjs","work/pilot/tjanst-api-scenarios.mjs","work/pilot/tjanst-browser-scenarios.mjs","work/pilot/verify-tjanst-api.mjs"]

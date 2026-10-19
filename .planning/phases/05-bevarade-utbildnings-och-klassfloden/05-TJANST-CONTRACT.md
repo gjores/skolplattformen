@@ -1,5 +1,7 @@
 # Tjänstefördelning — gemensamt kontrakt
 
+**Ersatt 2026-10-19.** TJ1-01–10 är fördelade mellan fas 05.1 och repot `tjanstebedomning` enligt [beslutsdokumentet](../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Texten nedan är historik.
+
 Datum: 2026-10-16. Status: planerat kontrakt; måste verifieras i implementation. Källor och rättsliga avgränsningar finns i [researchen](../../research/LARARTID-OCH-TJANSTEBEDOMNING-2026-10-16.md). Kodläget finns i [DISCOVERY](05-TJANST-DISCOVERY.md). Senare verifierade specifikationer och avtal ska granskas före faktisk användning.
 
 ## Lokala acceptanskriterier

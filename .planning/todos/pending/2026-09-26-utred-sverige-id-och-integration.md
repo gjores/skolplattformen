@@ -6,6 +6,7 @@ files:
   - .planning/REQUIREMENTS.md
   - docs/pilot/bankid-readiness-review.md
   - .planning/todos/pending/2026-09-13-planera-stark-identitetskontroll-och-bankid.md
+phase: "05.8 (EID-04) — infogad fas, användarbeslut 2026-10-19"
 ---
 
 ## Problem

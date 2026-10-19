@@ -6,7 +6,9 @@ wave: 1
 depends_on: []
 files_modified: ["web/lib/tjanst-avtal.ts", "web/lib/tjanst-avtal.test.mjs"]
 autonomous: true
-status: planned
+status: superseded
+superseded_on: 2026-10-19
+superseded_by: "Fas 05.1 (tjänstefördelning) eller repot tjanstebedomning (tjänstebedömning); se ../05.1-tjanstefordelning/05.1-SPLIT-DECISION.md"
 gap: TJANST-T1T2
 must_haves:
   truths: ["Huvudmannen kan tillhandahålla flera avtalsprofiler med olika giltighet och lokala tillägg.", "Rektor ser hur varje tidsram beräknats och vilka uppgifter som saknas.", "Gymnasiets grundnivå räknas som120 procent utan dubbel deltidsanpassning eller automatisk avräkning av förtroendetid."]
