@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1 våg 1 klar 2026-10-19: 05.1-01 (GR/IM-klasskoppling, SQL 43/43 i tillfällig PostgreSQL från migrationerna, UI 18/18) och 05.1-02 (kontrakt och modell, 37 tester). Inget installerat. Nästa: våg 2 (05.1-03, 05.1-04, 05.1-05)."
+stopped_at: "Fas 05.1 våg 2 klar 2026-10-19: 05.1-03 (personal, kapacitet, Egen tjänst enligt beslut A; SQL 77/77 i tillfällig PostgreSQL från migrationerna), 05.1-04 (server/API, 17 prov mot simulerad DB) och 05.1-05 (rektors vy, komponentprov 76/76 mot simulerade svar). Inget installerat. Nästa: våg 3 (05.1-04B, 05.1-06)."
 last_updated: "2026-10-19"
 last_activity: 2026-10-19
-last_activity_desc: "Våg 1 i fas 05.1 genomförd i molnmiljön: kontrakt/modell och skyddad GR/IM-klasskoppling. Migrationer 20261020100000/100100 ej installerade; lokal schemakopieprövning och installation återstår."
+last_activity_desc: "Våg 2 i fas 05.1 genomförd i molnmiljön: personal/kapacitet/Egen tjänst i SQL, tjanst-API och rektors vy. Migration 20261020110000 ej installerad; lokal schemakopieprövning, HTTP/OIDC och installation återstår."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 våg 2 genomförd 2026-10-19 (molnmiljö):** Användaren valde alternativ A för mandatet Egen tjänst: bara lärare, utan grupper, elever och ärenden. [05.1-03](phases/05.1-tjanstefordelning/05.1-03-SUMMARY.md): personal utan konto, anställning, andelar per skola med kapacitetsprövning per datum, rektors skolbegränsade läsning, utkastlärare och self-mandat med auditerad bindning. Alla nio elevfunktioner nekar self (42501), annars oförändrade. SQL PASS 77/77 i tillfällig PostgreSQL 16 från migrationerna, inte schemakopia av det skyddade målet. [05.1-04](phases/05.1-tjanstefordelning/05.1-04-SUMMARY.md): adapter och elva rutter under /api/tjanst/, engångskod enligt D-23. 17 prov mot simulerad DB/session; SQL-svaren för kommando/status bär omslaget tjanst_sql_v1 med aktör, som 03 levererar och 06/08 måste följa. [05.1-05](phases/05.1-tjanstefordelning/05.1-05-SUMMARY.md): rektors vy med matris, vyer, dialoger och Fastställ och publicera. Komponentprov 76/76 mot simulerade API-svar, telefon i Chromium med iPhone-mått. Samlat efter vågen: typkontroll, lint och Node 834/834 PASS. Migration 20261020110000 är inte installerad; prov mot lokal schemakopia, HTTP/OIDC och installation återstår (plan 09–10). Öppna beslut: (1) ska huvudmannen få lägga upp utkastlärare (02 säger ja, 03 nej; SQL nekar nu, adaptern släpper fram till SQL); (2) lärarnas kvittenser/kommentarer saknas i fördelningens läsning i kontraktet, bör avgöras före 07; (3) ska 409-svaret ange vem som ändrade och när; (4) audit-details.ts saknar /api/tjanst och nycklarna versionId/action. Nästa: våg 3 (05.1-04B, 05.1-06).
 
 **Fas 05.1 våg 1 genomförd 2026-10-19 (molnmiljö):** [05.1-02](phases/05.1-tjanstefordelning/05.1-02-SUMMARY.md) kontrakt, modell, journal och hashvektorer (37 tester). [05.1-01](phases/05.1-tjanstefordelning/05.1-01-SUMMARY.md) skyddad GR/IM-klass–timplanskoppling: SQL PASS 43/43 i en egen tillfällig PostgreSQL 16 byggd från migrationerna (inte schemakopia av det skyddade målet), Gy25-regression identisk före och efter, komponentprov 18/18 (telefon i Chromium med iPhone 13-mått). Migrationerna är inte installerade; prov mot lokal schemakopia, HTTP/OIDC och installation återstår (plan 09–10). Nästa: våg 2.
 
@@ -191,7 +193,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 planerad i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); inget genomfört. Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
+Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); våg 1–2 genomförda (01–05), inget installerat. Nästa är våg 3 (04B, 06). Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 
