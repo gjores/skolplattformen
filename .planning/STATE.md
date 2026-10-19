@@ -5,20 +5,20 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Delad GR/IM-årsrad levererad 2026-10-19 och 3012 kör ae6c52e. APL centralt innehåll: våg 1–3 klara (f934091), våg 4 samt godkännande av migration och 3012-byte återstår. Infogade faser 05.1–05.8 inlagda, ej planerade."
+stopped_at: "APL centralt innehåll levererat 2026-10-19 (migrationer installerade, 3012 kör 55ea3da); mänsklig begriplighetsbedömning återstår. Fas 05.1 Tjänstefördelning: diskussion påbörjad, ej planerad."
 last_updated: "2026-10-19"
 last_activity: 2026-10-19
-last_activity_desc: "Faserna 05.1–05.8 infogade före fas 6 enligt användarbeslut; tjänstebedömningen utflyttad till tjanstebedomning. Senaste leverans: delad GR/IM-årsrad, 3012 kör ae6c52e."
-state_head: ae6c52e
+last_activity_desc: "APL centralt innehåll levererat, 3012 kör 55ea3da. Diskussion av fas 05.1 Tjänstefördelning påbörjad."
+state_head: 55ea3da
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 88
-verification_worker_build_revision: ae6c52ef9fec45da7729fcc7319ec76fca27ce80
-verification_worker_status: planning_year_shared_grim_sql_browser_pass_no_oidc_after_switch
-worker_status: planning_year_shared_grim_local_delivery_verified
-worker_build_revision: ae6c52ef9fec45da7729fcc7319ec76fca27ce80
+verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
+verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
+worker_status: apl_central_content_local_delivery_verified
+worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 milestone_name: milestone
 ---
 
@@ -30,7 +30,7 @@ milestone_name: milestone
 
 **Delad GR/IM i årslistan levererad 2026-10-19:** Rektor på en tillagd skola ser skolans egen GR/IM-timplan i årslistan; andra skolors planer syns inte. Migrationen 20261019150000 är installerad, med SQL 22/22 och 14 installationskontroller PASS; bara `phase5_planning_year_rows` har ändrats. Webbläsarproven gav timplan 22/22, gym-timplan 26/26 och programplan 40/40. phase5-planning-year kördes inte, eftersom den är bunden till en historisk release-rapport. 3012 kör nu ae6c52e, som också innehåller tidigare olevererade commits efter 7102cf8. 3012 hade 500 på stilmallar och skript sedan ett bygge på plats kl. 08:18. [Plan och resultat](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANNING-YEAR-SHARED-GRIM-PLAN.md). Historiska 88/100 och 3/8 består.
 
-**Centralt innehåll i APL levererat 2026-10-19:** Kursvalet i APL-perioder visar bara ämnesnivåer med APL-tid i timplanen (c6781e8, UI-prov på dator/telefon). Användaren valde strukturerade val av centralt innehåll ur Skolverkets Syllabus-API plus fritext för övrigt innehåll, med migration. [Plan i fyra vågor](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CENTRAL-CONTENT-PLAN.md). Våg 1 (katalog), våg 2 (migration, kontrakt, hash, kopiering; SQL-prov PASS 26 i egen schemakopia) och våg 3 (kryssrutor, övrigt innehåll, granskning, huvudmannavy, handbok; UI-prov på dator/telefon) är klara. Våg 4 levererad efter godkännande: faktiskt Worker/OIDC-prov PASS 12/12, migrationerna 20261019200000/200100 installerade med PASS 33/33 (79 tabeller och 3 APL-planer oförändrade), 3012 kör 55ea3da med godkänd hälsokontroll. Mänsklig begriplighetsbedömning återstår. Migration och byte av 3012 kräver separat godkännande. Historiska 88/100 och 3/8 består.
+**Centralt innehåll i APL levererat 2026-10-19:** Kursvalet i APL-perioder visar bara ämnesnivåer med APL-tid i timplanen (c6781e8, UI-prov på dator/telefon). Användaren valde strukturerade val av centralt innehåll ur Skolverkets Syllabus-API plus fritext för övrigt innehåll, med migration. [Plan i fyra vågor](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-CENTRAL-CONTENT-PLAN.md). Våg 1 (katalog), våg 2 (migration, kontrakt, hash, kopiering; SQL-prov PASS 26 i egen schemakopia) och våg 3 (kryssrutor, övrigt innehåll, granskning, huvudmannavy, handbok; UI-prov på dator/telefon) är klara. Våg 4 levererad efter godkännande: faktiskt Worker/OIDC-prov PASS 12/12, migrationerna 20261019200000/200100 installerade med PASS 33/33 (79 tabeller och 3 APL-planer oförändrade), 3012 kör 55ea3da med godkänd hälsokontroll. Mänsklig begriplighetsbedömning återstår. Historiska 88/100 och 3/8 består.
 
 **Examensform för HT2028 levererad2026-10-18:** Rektor dokumenterar yrkesprov när tillämpligt prov finns, annars gymnasiearbete, med källa och kontrolldatum före inskick till huvudmannen. Ingen automatisk verifiering av nationellt provutbud påstås.100-poängsraden och frysta beslut bevaras; ny kull eller ändrat innehåll kräver ny kontroll. Modell201/server98/UI20/SQL25/actual20 och lokal installation/efterprov PASS.3012 kör7102cf8 med79 originaltabeller bevarade vid installation och76 verksamhetstabeller vid appbytet. [Verifiering och användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-VOCATIONAL-EXAM-2028-VERIFICATION.md). Mänsklig begriplighet och bredare mobilöverlappning kvarstår; historiska88/100 och3/8 består. Äldre leveransnoteringar nedan är historik.
 
@@ -185,11 +185,11 @@ milestone_name: milestone
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus (2026-10-19):** Fas 5:s APL-paket för centralt innehåll (våg 4, leverans efter godkännande) och kvarstående mänskliga prov. Därefter de infogade faserna 05.1–05.8, med tjänstefördelning först. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
+**Current focus (2026-10-19):** Fas 05.1 Tjänstefördelning (diskussion påbörjad). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
 
-Aktuellt 2026-10-19: fas 5 pågår (APL centralt innehåll våg 4 återstår; delad GR/IM-årsrad levererad, 3012 kör ae6c52e). Infogade faser 05.1–05.8 väntar på planering. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
+Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning diskuteras; 05.2–05.8 väntar på planering. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 
