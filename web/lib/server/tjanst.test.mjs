@@ -181,3 +181,208 @@ test('läsrutter kräver samma ursprung', async () => {
   assert.equal((await post('plan/lasa', { unitId: unit, schoolYear: year }, 'http://foreign')).status, 403);
   assert.equal(state.calls.length, 0);
 });
+
+// Uppgift 2: publicering, personal, egen väg och bemanning med MFA enligt D-23.
+Object.assign(routes, {
+  'plan/publicera': (await import('../../app/api/tjanst/plan/publicera/route.ts')).POST,
+  'personal/lasa': (await import('../../app/api/tjanst/personal/lasa/route.ts')).POST,
+  'personal/kommando': (await import('../../app/api/tjanst/personal/kommando/route.ts')).POST,
+  'personal/status': (await import('../../app/api/tjanst/personal/status/route.ts')).POST,
+  'egen/lasa': (await import('../../app/api/tjanst/egen/lasa/route.ts')).POST,
+  'egen/kommando': (await import('../../app/api/tjanst/egen/kommando/route.ts')).POST,
+  'egen/status': (await import('../../app/api/tjanst/egen/status/route.ts')).POST,
+  'bemanning/lasa': (await import('../../app/api/tjanst/bemanning/lasa/route.ts')).POST,
+});
+const { personalCommandRef, selfCommandRef } = await import('../tjanst-contract.ts');
+
+const published = version({ status: 'published', publishedByName: 'Syntetisk Rektor', publishedAt: '2026-08-20T08:00:00.000Z' });
+const publishCommand = () => createPlanCommand({ commandId: uid(41), unitId: unit, schoolYear: year, action: 'publish', expectedRevision: 4, expectedContentHash: hash('c'), payload: {} });
+const publishReply = () => wrap({ receipt: planReceipt({ commandId: uid(41), action: 'publish', revision: 5 }),
+  detail: planRead({ revision: 5, version: published, versions: [published], actions: ['create_draft'], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } }) });
+
+const draftPerson = { id: uid(21), givenName: 'Syntetisk', familyName: 'Utkast', externalId: null, externalIdSource: null, status: 'draft', proposedForUnitId: unit,
+  draftNote: '', revision: 1, employments: [], duties: [] };
+const unitPersonal = (extra = {}) => ({ contractVersion: 'tjanst_v1', scope: 'unit', unitId: unit, people: [draftPerson], actions: ['create_draft_teacher'], blockers: [],
+  capabilities: { canManage: false, canCreateDraft: true }, ...extra });
+const organizerPersonal = () => ({ contractVersion: 'tjanst_v1', scope: 'organizer', unitId: null, people: [draftPerson],
+  actions: ['create_person', 'update_person', 'save_employment', 'save_duties'], blockers: [], capabilities: { canManage: true, canCreateDraft: false } });
+const draftTeacher = { commandId: uid(42), action: 'create_draft_teacher', expectedRevision: 0, payload: { unitId: unit, givenName: 'Syntetisk', familyName: 'Utkast', draftNote: '' } };
+const createPerson = { commandId: uid(43), action: 'create_person', expectedRevision: 0, payload: { givenName: 'Syntetisk', familyName: 'Person', externalId: null, externalIdSource: null } };
+const personalReceipt = (command, personId = uid(21)) => ({ commandId: command.commandId, action: command.action, personId, revision: 1, replayed: false });
+
+const secret = 'Hemlig syntetisk kommentarstext om min tjänst';
+const publication = (extra = {}) => ({ versionId: uid(70), versionNo: 1, unitId: unit, schoolName: 'Syntetiska gymnasiet', schoolYear: year,
+  publishedAt: '2026-08-20T08:00:00.000Z', contentHash: hash('c'), rows: [{ id: uid(30), className: 'BA26A', rowKey, label: 'Bygg 1', ht: 3000, vt: 2400, joint: null }],
+  specials: [], acknowledgedAt: null, comments: [], ...extra });
+const selfView = (pubs = [publication()]) => ({ contractVersion: 'tjanst_v1', person: { id: person, displayName: 'Syntetisk Lärare' }, publications: pubs, capabilities: { canAck: true, canComment: true } });
+const comment = { commandId: uid(44), versionId: uid(70), action: 'comment', body: secret };
+const commentReply = () => wrap({ receipt: { commandId: uid(44), action: 'comment', versionId: uid(70), feedbackId: uid(71), replayed: false },
+  detail: selfView([publication({ comments: [{ id: uid(71), body: secret, at: '2026-08-21T08:00:00.000Z' }] })]) });
+const staffing = () => ({ contractVersion: 'tjanst_v1', schoolYear: year, units: [{ unitId: unit, schoolName: 'Syntetiska gymnasiet',
+  published: { versionId: uid(70), versionNo: 1, publishedAt: '2026-08-20T08:00:00.000Z' },
+  sums: { teaching: { ht: 3000, vt: 2400 }, special: { ht: 0, vt: 0 }, vacant: { ht: 0, vt: 0 }, unallocated: { ht: 0, vt: 600 }, unlinkedClasses: 0 } }], vacancies: [] });
+
+function reset2(fn) {
+  reset(fn);
+  Object.assign(state.replies, {
+    tjanst_personal_read: fn === 'rektor' ? unitPersonal() : organizerPersonal(),
+    tjanst_personal_command: wrap({ receipt: personalReceipt(fn === 'rektor' ? draftTeacher : createPerson), detail: fn === 'rektor' ? unitPersonal() : organizerPersonal() }),
+    tjanst_personal_status: wrap({ state: 'not_found', result: null }),
+    tjanst_self_read: selfView(),
+    tjanst_self_command: commentReply(),
+    tjanst_self_status: wrap({ state: 'not_found', result: null }),
+    tjanst_staffing_read: staffing(),
+  });
+}
+
+test('publicera utan MFA ger 403 mfa_required; administratör och huvudman ger 403', async () => {
+  reset2('rektor'); state.replies.tjanst_plan_command = publishReply();
+  const noMfa = await post('plan/publicera', await publishCommand());
+  assert.equal(noMfa.status, 403); assert.equal((await noMfa.json()).code, 'mfa_required');
+  assert.equal(state.calls.length, 0);
+  for (const fn of ['administrator', 'huvudman']) {
+    reset2(fn); state.mfa = true; state.replies.tjanst_plan_command = publishReply();
+    const response = await post('plan/publicera', await publishCommand());
+    assert.equal(response.status, 403); assert.equal((await response.json()).code, 'forbidden');
+    assert.equal(state.calls.length, 0);
+  }
+  // Rektor med engångskod publicerar via samma SQL-entrypoint som kommando.
+  reset2('rektor'); state.mfa = true; state.replies.tjanst_plan_command = publishReply();
+  const command = await publishCommand();
+  const ok = await post('plan/publicera', command);
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).detail.version.status, 'published');
+  assert.match(state.calls[0].sql, /select public\.tjanst_plan_command\(\?\) as result/u);
+  assert.deepEqual(state.calls[0].values, [JSON.parse(JSON.stringify(command))]);
+  assert.deepEqual(okEvents().map(e => [e.action, e.objectId]), [['tjanst_plan_published', uid(50)]]);
+  // publicera tar bara publish.
+  reset2('rektor'); state.mfa = true;
+  assert.equal((await post('plan/publicera', await saveRow())).status, 400);
+  assert.equal(state.calls.length, 0);
+});
+
+test('personal/kommando: huvudman utan MFA ger mfa_required; rektor create_draft_teacher utan MFA godkänns; rektor annan action ger 403 utan SQL', async () => {
+  reset2('huvudman');
+  const noMfa = await post('personal/kommando', createPerson);
+  assert.equal(noMfa.status, 403); assert.equal((await noMfa.json()).code, 'mfa_required');
+  assert.equal(state.calls.length, 0);
+  reset2('huvudman'); state.mfa = true;
+  const hm = await post('personal/kommando', createPerson);
+  assert.equal(hm.status, 200);
+  assert.match(state.calls[0].sql, /select public\.tjanst_personal_command\(\?\) as result/u);
+  assert.deepEqual(state.calls[0].values, [createPerson]);
+  reset2('rektor');
+  const draft = await post('personal/kommando', draftTeacher);
+  assert.equal(draft.status, 200);
+  assert.equal((await draft.json()).receipt.action, 'create_draft_teacher');
+  assert.deepEqual(okEvents().map(e => [e.action, e.objectId, e.details.unitId]), [['tjanst_personal_command', uid(21), unit]]);
+  reset2('rektor'); state.mfa = true;
+  const other = await post('personal/kommando', createPerson);
+  assert.equal(other.status, 403); assert.equal((await other.json()).code, 'forbidden');
+  assert.equal(state.calls.length, 0);
+  for (const fn of ['administrator', 'larare']) { reset2(fn); state.mfa = true; assert.equal((await post('personal/kommando', draftTeacher)).status, 403); assert.equal(state.calls.length, 0); }
+});
+
+test('personal/lasa och status: rektor kräver skola och får aldrig huvudmannens vy', async () => {
+  reset2('rektor');
+  assert.equal((await post('personal/lasa', { unitId: unit })).status, 200);
+  reset2('rektor');
+  assert.equal((await post('personal/lasa', {})).status, 400);
+  assert.equal(state.calls.length, 0);
+  reset2('rektor'); state.replies.tjanst_personal_read = unitPersonal({ capabilities: { canManage: false, canCreateDraft: true }, actions: ['create_draft_teacher', 'save_duties'] });
+  assert.equal((await post('personal/lasa', { unitId: unit })).status, 500);
+  reset2('huvudman');
+  assert.equal((await post('personal/lasa', {})).status, 200);
+  reset2('rektor');
+  assert.equal((await post('personal/status', { command: personalCommandRef(draftTeacher) })).status, 200);
+  reset2('rektor');
+  assert.equal((await post('personal/status', { command: personalCommandRef(createPerson) })).status, 403);
+  assert.equal(state.calls.length, 0);
+});
+
+test('egen/lasa, kommando och status: bara larare, ingen MFA; nyckeln personId ger 400', async () => {
+  reset2('larare');
+  const read = await post('egen/lasa', {});
+  assert.equal(read.status, 200);
+  assert.deepEqual(state.calls[0].values, [{}]);
+  reset2('larare');
+  assert.equal((await post('egen/kommando', comment)).status, 200);
+  assert.deepEqual(state.calls[0].values, [comment]);
+  reset2('larare');
+  assert.equal((await post('egen/status', { command: selfCommandRef(comment) })).status, 200);
+  for (const [path, body] of [['egen/lasa', { personId: person }], ['egen/kommando', { ...comment, personId: person }],
+    ['egen/status', { command: selfCommandRef(comment), personId: person }],
+    ['egen/status', { command: { ...selfCommandRef(comment), target: { ...selfCommandRef(comment).target, personId: person } } }]]) {
+    reset2('larare');
+    const response = await post(path, body);
+    assert.equal(response.status, 400, path);
+    assert.equal(state.calls.length, 0, path);
+  }
+  for (const fn of ['rektor', 'huvudman', 'administrator']) {
+    reset2(fn); state.mfa = true;
+    assert.equal((await post('egen/lasa', {})).status, 403);
+    assert.equal((await post('egen/kommando', comment)).status, 403);
+    assert.equal(state.calls.length, 0);
+  }
+});
+
+test('bemanning/lasa: bara huvudman', async () => {
+  reset2('huvudman');
+  const response = await post('bemanning/lasa', { schoolYear: year });
+  assert.equal(response.status, 200);
+  assert.match(state.calls[0].sql, /select public\.tjanst_staffing_read\(\?\) as result/u);
+  assert.deepEqual(okEvents().map(e => [e.action, e.details.schoolYear]), [['tjanst_staffing_read', year]]);
+  for (const fn of ['rektor', 'administrator', 'larare']) {
+    reset2(fn); state.mfa = true;
+    assert.equal((await post('bemanning/lasa', { schoolYear: year })).status, 403);
+    assert.equal(state.calls.length, 0);
+  }
+});
+
+test('55000 ger AuditUnavailable; svar med annan aktör än sessionen ger AuditUnavailable; okänd hint ger 500 utan innehåll', async () => {
+  reset2('rektor'); state.sqlError = { code: '55000', message: 'private audit' };
+  const audit = await post('plan/kommando', await saveRow());
+  assert.equal(audit.status, 500); assert.equal((await audit.json()).code, 'audit_unavailable');
+  for (const actor of [{ identityId: uid(99), assignmentId }, { identityId: id, assignmentId: uid(98) }]) {
+    reset2('rektor'); state.replies.tjanst_plan_command = wrap({ receipt: planReceipt(), detail: planRead() }, actor);
+    const foreign = await post('plan/kommando', await saveRow());
+    assert.equal(foreign.status, 500);
+    const body = await foreign.json();
+    assert.equal(body.code, 'audit_unavailable'); assert.equal(body.detail, undefined); assert.equal(okEvents().length, 0);
+  }
+  reset2('larare'); state.replies.tjanst_self_command = { ...commentReply(), actor: { identityId: uid(99), assignmentId } };
+  assert.equal((await post('egen/kommando', comment)).status, 500);
+  for (const [code, hint] of [['40001', 'tjanst_private_scope'], ['22023', 'private_reason'], ['XX000', undefined]]) {
+    reset2('rektor'); state.sqlError = { code, hint, message: 'private message', detail: 'private detail' };
+    const response = await post('plan/kommando', await saveRow());
+    assert.equal(response.status, 500);
+    const text = await response.text();
+    assert.ok(!text.includes('private') && !text.includes('tjanst_private_scope'));
+    assert.deepEqual(Object.keys(JSON.parse(text)).sort(), ['code', 'correlationId']);
+  }
+  // Vitlistad 22023-hint når klienten som reason.
+  reset2('larare'); state.sqlError = { code: '22023', hint: 'tjanst_comment_too_long', message: 'private' };
+  const long = await post('egen/kommando', comment);
+  assert.equal(long.status, 400); assert.equal((await long.json()).details.reason, 'tjanst_comment_too_long');
+});
+
+test('security_events-detaljer för comment innehåller ingen kommentarstext', async () => {
+  reset2('larare');
+  const response = await post('egen/kommando', comment);
+  assert.equal(response.status, 200);
+  assert.equal(okEvents().length, 1);
+  assert.deepEqual(okEvents()[0], { action: 'tjanst_self_command', objectType: 'tjanst_version', objectId: uid(70), outcome: 'ok', details: { accessFunction: 'larare' } });
+  assert.ok(!JSON.stringify(state.events).includes('Hemlig'));
+  // Även nekade och felande försök loggas utan text.
+  reset2('larare'); state.sqlError = { code: '22023', hint: 'tjanst_comment_too_long', message: secret };
+  await post('egen/kommando', comment);
+  reset2('larare');
+  await post('egen/kommando', { ...comment, body: `${secret} ${'x'.repeat(2001)}` });
+  assert.ok(!JSON.stringify(state.events).includes('Hemlig'));
+});
+
+test('alla elva tjanst-rutter finns', async () => {
+  const { readdir } = await import('node:fs/promises');
+  const files = (await readdir(new URL('../../app/api/tjanst/', import.meta.url), { recursive: true })).filter(f => f.endsWith('route.ts'));
+  assert.equal(files.length, 11);
+});
