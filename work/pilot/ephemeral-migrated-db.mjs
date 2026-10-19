@@ -38,8 +38,9 @@ export async function createEphemeralMigratedDb({ exclude = [] } = {}) {
   chmodSync(dir, 0o700); if (uid !== null) chownSync(dir, uid, gid);
   const data = join(dir, 'data'), log = join(dir, 'server.log'), opts = { stdio: ['ignore', 'ignore', 'pipe'], timeout: 120000 };
   let db, started = false;
+  const extra = new Set();
   const end = async () => {
-    try { if (db) await db.end({ timeout: 5 }); } finally {
+    try { for (const c of extra) await c.end({ timeout: 5 }); extra.clear(); if (db) await db.end({ timeout: 5 }); } finally {
       try { if (started) run(join(bin, 'pg_ctl'), ['-D', data, '-m', 'immediate', 'stop'], opts); } finally { rmSync(dir, { recursive: true, force: true }); }
     }
   };
@@ -63,7 +64,9 @@ export async function createEphemeralMigratedDb({ exclude = [] } = {}) {
     }
     for (const file of exclude) assert.ok(existsSync(resolve(root, 'supabase/migrations', file)), `Excluded migration missing: ${file}`);
     const [{ version }] = await db`select current_setting('server_version') version`;
-    return { db, end, provenance: { kind: 'ephemeral-migrated-postgresql', serverVersion: version, stubs: 'work/pilot/ephemeral-supabase-stubs.sql', applied: applied.length,
+    // Extra anslutningar till samma tillfälliga databas (t.ex. prov med samtidiga transaktioner); stängs av end().
+    const more = () => { const c = connect('skolplattform_ephemeral'); extra.add(c); return c; };
+    return { db, end, connect: more, provenance: { kind: 'ephemeral-migrated-postgresql', serverVersion: version, stubs: 'work/pilot/ephemeral-supabase-stubs.sql', applied: applied.length,
       appliedChainSha256: createHash('sha256').update(applied.map(a => a.file + ':' + a.sha256).join('\n')).digest('hex'), excluded: exclude } };
   } catch (error) { await end(); throw error; }
 }
