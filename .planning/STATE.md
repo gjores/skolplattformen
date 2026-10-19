@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "APL centralt innehåll levererat 2026-10-19 (migrationer installerade, 3012 kör 55ea3da); mänsklig begriplighetsbedömning återstår. Fas 05.1 Tjänstefördelning: etapp 1 planerad i 11 planer (UI-SPEC, research, plancheck PASS); nästa steg gsd-execute-phase 05.1. Etapp 2 planeras separat."
+stopped_at: "Fas 05.1 våg 1 klar 2026-10-19: 05.1-01 (GR/IM-klasskoppling, SQL 43/43 i tillfällig PostgreSQL från migrationerna, UI 18/18) och 05.1-02 (kontrakt och modell, 37 tester). Inget installerat. Nästa: våg 2 (05.1-03, 05.1-04, 05.1-05)."
 last_updated: "2026-10-19"
 last_activity: 2026-10-19
-last_activity_desc: "APL centralt innehåll levererat, 3012 kör 55ea3da. Etapp 1 av fas 05.1 planerad: 11 planer inklusive skyddad GR/IM-klasskoppling; plancheck PASS efter en revision."
+last_activity_desc: "Våg 1 i fas 05.1 genomförd i molnmiljön: kontrakt/modell och skyddad GR/IM-klasskoppling. Migrationer 20261020100000/100100 ej installerade; lokal schemakopieprövning och installation återstår."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 våg 1 genomförd 2026-10-19 (molnmiljö):** [05.1-02](phases/05.1-tjanstefordelning/05.1-02-SUMMARY.md) kontrakt, modell, journal och hashvektorer (37 tester). [05.1-01](phases/05.1-tjanstefordelning/05.1-01-SUMMARY.md) skyddad GR/IM-klass–timplanskoppling: SQL PASS 43/43 i en egen tillfällig PostgreSQL 16 byggd från migrationerna (inte schemakopia av det skyddade målet), Gy25-regression identisk före och efter, komponentprov 18/18 (telefon i Chromium med iPhone 13-mått). Migrationerna är inte installerade; prov mot lokal schemakopia, HTTP/OIDC och installation återstår (plan 09–10). Nästa: våg 2.
 
 **Infogade faser 05.1–05.8 2026-10-19:** Användaren godkände nya faser före faserna 6–8: 05.1 Tjänstefördelning, 05.2 Schemaläggning med Rust-schemamotor (egen tjänst, resten av appen i TypeScript), 05.3 Klassorganisation, 05.4 Lärarbehörigheter, 05.5 Interkommunal ersättning, 05.6 Köpbara moduler, 05.7 SPAR-synk och 05.8 Stark identitet och BankID. Krav och framgångskriterier finns i [ROADMAP](ROADMAP.md) och [REQUIREMENTS](REQUIREMENTS.md). Tjänstebedömningen är utflyttad till repot `tjanstebedomning`, och 05-TJANST är ersatt enligt [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Inget i de nya faserna är planerat eller genomfört. Fas 5 är fortsatt aktuell fas, och frontmatterns progress anger de historiska 88/100 planer och 3/8 faser; de infogade faserna räknas inte in där. Nästa steg för de nya faserna är `/gsd-plan-phase 05.1` när användaren vill.
 
