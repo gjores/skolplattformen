@@ -3,10 +3,14 @@
 // inga hemligheter och inga riktiga namn. Fixturen skapar inga temporära objekt, så den kan committas i en ägd
 // provdatabas och användas från flera anslutningar.
 import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { grimMigrations } from './verify-grim-class-timplans.mjs';
+import { vocationalFixture } from './vocational-plan-fixture.mjs';
+import { tjanstPayloadHash } from '../../web/lib/tjanst-contract.ts';
 
 /** Installationsordning för fas 05.1:s migrationer (planerna 06, 08 och 09 lägger till sina sist). */
-export const tjanstMigrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql'];
+export const tjanstMigrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql',
+  'supabase/migrations/20261020120000_tjanst_plan.sql'];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 
@@ -104,4 +108,75 @@ export async function staffWithDuties(t, f, { givenName = 'Syntetisk', familyNam
 /** Egen tjänst: rektor ger lärarkontot mandatet self för en person i huvudmannens personal. */
 export async function grantSelf(t, f, { teacher = 'teacherSelf', by = 'principalA', unitIds, staffPersonId, extra = {} }) {
   return f.assign(t, teacher, by, { function: 'larare', scopeKind: 'self', unitIds, staffPersonId, ...extra });
+}
+
+/** Plan och egen väg (kräver 20261020120000). Kommandon får sin payloadHash som klienten räknar den. */
+export const planRead = async (t, q) => (await t`select public.tjanst_plan_read(${t.json(q)}) value`)[0].value;
+export const planStatus = async (t, q) => (await t`select public.tjanst_plan_status(${t.json(q)}) value`)[0].value;
+export const selfRead = async (t) => (await t`select public.tjanst_self_read(${t.json({})}) value`)[0].value;
+export const planSend = async (t, q) => (await t`select public.tjanst_plan_command(${t.json(q)}) value`)[0].value;
+export async function planCommand(unitId, schoolYear, action, expectedRevision, payload, extra = {}) {
+  return { commandId: randomUUID(), unitId, schoolYear, action, expectedRevision, payloadHash: await tjanstPayloadHash(action, payload), payload, ...extra };
+}
+export const planRef = q => ({ family: 'plan', commandId: q.commandId, action: q.action, target: { unitId: q.unitId, schoolYear: q.schoolYear, versionId: null, personId: null } });
+
+/**
+ * Godkänd Gy25-timplan (BF25, v2-tid) på skola A med klassen BF-klass kopplad till år 1 för kullens första läsår.
+ * Samma steg som verify-separate-apl-workflow.mjs, i fixturens kund. Returnerar plan, klass och läsår.
+ */
+export async function seedGy25Class(t, f, name = 'SYNBF1') {
+  const root = new URL('../../', import.meta.url), catalog = JSON.parse(readFileSync(new URL('web/lib/programplan-catalog.generated.json', root), 'utf8'));
+  const { reference, rows, terms } = vocationalFixture(catalog, 'BF25');
+  const year = Number(reference.startedOn.slice(0, 4)) - (reference.startedOn.slice(5, 7) < '07' ? 1 : 0), offeringId = randomUUID();
+  await f.actor(t, 'hm');
+  await t`insert into public.school_unit_types(unit_id,school_type) values(${f.schools.A},'GY') on conflict do nothing`;
+  await t`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year) values(${offeringId},${f.id(2)},${f.schools.A},'gymnasium','Syntetiskt BF25','Syntetisk kull','BF25',${reference.orientationCode},${year})`;
+  const programId = (await t`select public.phase5_create_programplan_draft(${offeringId},0,${t.json(reference)}) value`)[0].value.id;
+  await f.actor(t, 'principalA'); await t`select public.phase5_write_programplan_terms(${programId},0,${t.json(terms)})`;
+  const decide = async (kind, planId, action) => { const d = (await t`select public.phase5_plan_decision_basis(${kind},${planId}) value`)[0].value.result;
+    await t`select public.phase5_plan_decision_command(${t.json({ kind, planId, commandId: randomUUID(), action, expectedRevision: d.revision, expectedDecisionRevision: d.decisionRevision, basisHash: d.basisHash, comment: 'Syntetisk kontroll', confirmedChecks: d.checks.map(c => c.id) })})`; };
+  await decide('programplan', programId, 'submit'); await f.actor(t, 'hm'); await decide('programplan', programId, 'approve'); await f.actor(t, 'principalA');
+  const sourceRevision = (await t`select revision from public.point_plans where id=${programId}`)[0].revision;
+  const made = (await t`select public.phase5_create_gym_timplan(${randomUUID()},${programId},${sourceRevision},0,${f.schools.A},null,null) value`)[0].value;
+  let gym = (await t`select public.phase5_gym_timplan_result(${made.reply.id}) value`)[0].value;
+  const key = rows.find(r => !r.key.startsWith('block:') && !r.key.startsWith('meta:') && terms.find(x => x.rowKey === r.key).points[0] > 0).key;
+  for (const r of rows) { const points = terms.find(x => x.rowKey === r.key).points;
+    const row = { schoolMinutes: points.map(p => p > 0 ? p * 60 : null), annualAplMinutes: [0, 1, 2].map(i => points[i * 2] + points[i * 2 + 1] > 0 ? (r.key === key && i === 0 ? 20700 : 0) : null) };
+    gym = (await t`select public.phase5_timplan_time_command(${t.json({ contractVersion: 'timplan_time_v2', action: 'save_row', commandId: randomUUID(), planId: gym.id, expectedRevision: gym.revision, rowKey: r.key, row })}) value`)[0].value.plan; }
+  await decide('timplan', gym.id, 'submit'); await f.actor(t, 'hm'); await decide('timplan', gym.id, 'approve'); await f.actor(t, 'principalA');
+  const plan = (await t`select revision from public.timplans where id=${gym.id}`)[0];
+  const cmd = q => t`select public.phase5_class_command(${t.json(q)}) value`.then(r => r[0].value);
+  const klass = await cmd({ operation: 'create', commandId: randomUUID(), planId: gym.id, expectedPlanRevision: plan.revision, name, startYear: year });
+  await cmd({ operation: 'link', commandId: randomUUID(), classId: klass.id, schoolYear: year, planId: gym.id, expectedPlanRevision: plan.revision, columnId: 'ar1', expectedLinkRevision: null, previousPlanId: null });
+  const timeRows = (await t`select public.phase5_timplan_time_rows(${gym.id}) value`)[0].value;
+  return { planId: gym.id, offeringId, classId: klass.id, year, rows, terms, timeRows, aplKey: key };
+}
+
+/**
+ * GR-timplan (ak7–9, fastställd) och IM-timplan på skola A för läsåret 2026, kopplade med rektors GR/IM-kommando:
+ * SYN7A → ak8 (90 årstimmar matematik, 60 engelska; NO/SO i både grupp- och delrader), IM-klassen → vecka (3 h/vecka).
+ * Fastställd läsårskalender för skola A 2026 med två lovdagar. Status sätts direkt i fixturen (GR/IM-beslut provas inte här).
+ */
+export async function seedGrimNeeds(t, f, { calendar = true } = {}) {
+  await f.actor(t, 'hm');
+  const grPlan = randomUUID(), imPlan = randomUUID(), imOffering = randomUUID(), imClass = randomUUID();
+  await t`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,start_year) values(${imOffering},${f.id(2)},${f.schools.A},'introduktionsprogram','Syntetiskt IM','Läsåret 2026/27',null,2026)`;
+  await t`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis) values(${grPlan},${f.id(2)},${f.id(40)},${f.schools.A},1,'Syntetisk GR'),(${imPlan},${f.id(2)},${imOffering},${f.schools.A},1,'Syntetiskt IM')`;
+  await t`insert into public.timplan_cells(timplan_id,row_id,hours) values
+   (${grPlan},'matematik',${[100, 90, 80]}::smallint[]),(${grPlan},'engelska',${[60, 60, 60]}::smallint[]),(${grPlan},'no',${[200, 200, 200]}::smallint[]),
+   (${grPlan},'biologi',${[70, 70, 70]}::smallint[]),(${grPlan},'idrott',${[0, 0, 0]}::smallint[]),(${imPlan},'im-ma',${[3]}::smallint[]),(${imPlan},'im-sv',${[5]}::smallint[])`;
+  await t`set local session_replication_role=replica`;
+  await t`update public.timplans set status='faststalld',decided_on='2026-06-01' where id in (${grPlan},${imPlan})`;
+  await t`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year) values(${imClass},${f.id(1)},${f.id(2)},${f.schools.A},${imOffering},'SYNIM',2026)`;
+  if (calendar) {
+    const sy = (await t`insert into public.school_years(organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,decided_on) values(${f.id(2)},${f.schools.A},2026,'2026-08-17','2026-12-22','2027-01-11','2027-06-11','faststalld','2026-05-01') returning id`)[0].id;
+    await t`insert into public.school_year_days(school_year_id,day,kind) values(${sy},'2026-10-30','lovdag'),(${sy},'2027-02-19','studiedag')`;
+  }
+  await t`set local session_replication_role=origin`;
+  await f.actor(t, 'principalA');
+  const grim = q => t`select public.phase51_grim_class_command(${t.json(q)}) value`.then(r => r[0].value);
+  await grim({ action: 'link', commandId: randomUUID(), classId: f.classes.group, planId: grPlan, expectedPlanRevision: 0, columnId: 'ak8', expectedLinkRevision: null, previousPlanId: null });
+  await grim({ action: 'link', commandId: randomUUID(), classId: imClass, planId: imPlan, expectedPlanRevision: 0, columnId: 'vecka', expectedLinkRevision: null, previousPlanId: null });
+  return { grPlan, imPlan, imClass, imOffering,
+    calendar: { ht: { start: '2026-08-17', end: '2026-12-22' }, vt: { start: '2027-01-11', end: '2027-06-11' }, exceptions: { '2026-10-30': { kind: 'lovdag' }, '2027-02-19': { kind: 'studiedag' } } } };
 }

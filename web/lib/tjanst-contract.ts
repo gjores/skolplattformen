@@ -181,7 +181,7 @@ function unique<T>(values: T[], key: (value: T) => string, reason = 'tjanst_inva
 }
 function terms(ht: number, vt: number): void { if (ht === 0 && vt === 0) bad('tjanst_invalid'); }
 function rowKey(value: unknown): string {
-  if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_:.-]{0,159}$/u.test(value) || /^(?:constructor|prototype|__proto__)$/u.test(value)) bad();
+  if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_:.+-]{0,159}$/u.test(value) || /^(?:constructor|prototype|__proto__)$/u.test(value)) bad();
   return value;
 }
 function column(value: unknown): string {

@@ -1,0 +1,384 @@
+#!/usr/bin/env node
+// 05.1-06: fördelning, behov (Gy25, GR, IM), versioner, publicering och lärarens egen läsning. Egen databas, syntetiska
+// fixturer; migrationen provas först med återrullning och installeras sedan bara i den egna databasen.
+//   node work/pilot/verify-tjanst-plan.mjs --out /private/tmp/tjanst-plan-sql.json              (schemakopia av skyddat lokalt mål)
+//   node work/pilot/verify-tjanst-plan.mjs --out /tmp/tjanst-plan-sql.json --ephemeral          (egen PostgreSQL byggd från migrationerna)
+// Ingen HTTP/OIDC och inget installerat mål ändras.
+import assert from 'node:assert/strict';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
+import { createTjanstFixture, grantSelf, planCommand, planRead, planRef, planSend, planStatus, seedGrimNeeds, seedGy25Class, selfRead, staffWithDuties,
+  tjanstMigrations } from './tjanst-fixtures.mjs';
+import { parsePlanCommandReply, parsePlanReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
+import { coverage, tjanstNeed } from '../../web/lib/tjanst-model.ts';
+import { summarize } from '../../web/lib/lasar-model.ts';
+
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const OWN = 'supabase/migrations/20261020120000_tjanst_plan.sql';
+const PREREQUISITES = tjanstMigrations.slice(0, tjanstMigrations.indexOf(OWN));
+const sourceFiles = [OWN, 'work/pilot/verify-tjanst-plan.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
+const sources = () => Object.fromEntries(sourceFiles.map(p => [p, createHash('sha256').update(readFileSync(resolve(root, p))).digest('hex')]));
+const sql = p => readFileSync(resolve(root, p), 'utf8');
+const rollback = Error('expected_tjanst_plan_rollback');
+const ENTRYPOINTS = ['tjanst_plan_read(jsonb)', 'tjanst_plan_command(jsonb)', 'tjanst_plan_status(jsonb)', 'tjanst_self_read(jsonb)'];
+const COLUMNS = {
+  tjanst_distributions: ['id', 'customer_id', 'organizer_id', 'unit_id', 'school_year', 'revision', 'created_at'],
+  tjanst_versions: ['id', 'distribution_id', 'version_no', 'status', 'based_on_version_id', 'content_hash', 'created_by_identity_id', 'created_by_assignment_id', 'created_at',
+    'published_by_identity_id', 'published_by_assignment_id', 'published_at'],
+  tjanst_version_teachers: ['version_id', 'staff_person_id'],
+  tjanst_rows: ['id', 'version_id', 'lineage_id', 'staff_person_id', 'source_kind', 'source_key', 'class_id', 'school_year', 'link_revision', 'timplan_id', 'series_id',
+    'timplan_version', 'timplan_row_key', 'link_column', 'need_label', 'need_ht_minutes', 'need_vt_minutes', 'need_basis', 'teacher_ht_minutes', 'teacher_vt_minutes', 'comment'],
+};
+const PLAN_ACTIONS = ['create_draft', 'add_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special', 'save_joint', 'dissolve_joint', 'discard_draft', 'publish'];
+
+async function fingerprint(db) {
+  const parts = await Promise.all([
+    db`select p.oid::regprocedure::text s,md5(pg_get_functiondef(p.oid)) d,coalesce(p.proacl::text,'') acl from pg_proc p where p.pronamespace='public'::regnamespace and p.prokind='f' order by 1`,
+    db`select c.relname,c.relkind,coalesce(c.relacl::text,'') acl,c.relrowsecurity,c.relforcerowsecurity from pg_class c where c.relnamespace='public'::regnamespace order by 1`,
+    db`select c.relname,a.attname,format_type(a.atttypid,a.atttypmod) t,a.attnotnull from pg_attribute a join pg_class c on c.oid=a.attrelid where c.relnamespace='public'::regnamespace and a.attnum>0 and not a.attisdropped order by 1,2`,
+    db`select conrelid::regclass::text r,conname,pg_get_constraintdef(oid) d from pg_constraint where connamespace='public'::regnamespace order by 1,2`,
+    db`select tablename,indexname,indexdef from pg_indexes where schemaname='public' order by 1,2`,
+    db`select tgrelid::regclass::text r,tgname,pg_get_triggerdef(oid) d from pg_trigger where not tgisinternal and tgrelid in (select oid from pg_class where relnamespace='public'::regnamespace) order by 1,2`,
+    db`select * from pg_policies where schemaname='public' order by tablename,policyname`]);
+  return createHash('sha256').update(JSON.stringify(parts)).digest('hex');
+}
+function check(report, name, detail) { report.checks.push({ name, ok: true, ...(detail === undefined ? {} : { detail }) }); console.log('PASS: ' + name); }
+async function deny(tx, report, name, fn, codes, hint) {
+  let error;
+  try { await tx.savepoint(fn); } catch (e) { error = e; }
+  assert.ok(error, name + ': expected denial');
+  assert.ok(codes.includes(error.code), `${name}: got ${error.code} ${error.hint ?? ''} ${error.message}`);
+  if (hint !== undefined) assert.equal(error.hint, hint, name + ': hint');
+  check(report, name, { code: error.code, ...(error.hint ? { hint: error.hint } : {}) });
+  return error;
+}
+/** Kommandosvaret tolkas med kontraktets parser mot exakt begäran (samma som servern i 05.1-04). */
+async function send(t, q) { const envelope = await planSend(t, q); assert.equal(envelope.contractVersion, 'tjanst_sql_v1'); return parsePlanCommandReply(envelope.result, q); }
+const read = async (t, unitId, schoolYear, versionId) => { const q = { unitId, schoolYear, ...(versionId ? { versionId } : {}) }; return parsePlanReadReply(await planRead(t, q), q); };
+
+async function matrix(tx, report, f) {
+  const A = f.schools.A, B = f.schools.B;
+  // Personal: P1 (60 % A, 40 % B, self-mandat på A), P2 (100 % A), P3 (bara B).
+  const p1 = await staffWithDuties(tx, f, { familyName: 'Ettan', duties: [{ unitId: A, percent: 60, startsOn: '2026-07-01' }, { unitId: B, percent: 40, startsOn: '2026-07-01' }] });
+  const p2 = await staffWithDuties(tx, f, { familyName: 'Tvåan', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
+  const p3 = await staffWithDuties(tx, f, { familyName: 'Trean', duties: [{ unitId: B, percent: 100, startsOn: '2026-07-01' }] });
+  const gy = await seedGy25Class(tx, f);
+  const Y = gy.year;
+  // Personalens andelar gäller från 2026-07-01 och utan slut, så de överlappar Gy-kullens läsår.
+  await grantSelf(tx, f, { unitIds: [A], staffPersonId: p1.personId });
+
+  // Spår: Gy25-behov → tjänsterad → publicerad → läraren ser den.
+  await f.actor(tx, 'principalA');
+  let d = await read(tx, A, Y);
+  assert.equal(d.version, null); assert.deepEqual(d.actions, ['create_draft']);
+  const klass = d.classes.find(c => c.classId === gy.classId);
+  assert.equal(klass.link.column, 'ar1'); assert.equal(klass.link.schoolform, 'gymnasium');
+  const need = klass.needs.find(n => n.rowKey === gy.aplKey);
+  const expected = tjanstNeed({ kind: 'gy_v2', schoolMinutes: gy.timeRows[gy.aplKey].schoolMinutes, yearInCohort: 1 });
+  assert.deepEqual([need.needHt, need.needVt, need.needBasis], [expected.needHt, expected.needVt, expected.needBasis]);
+  assert.ok(klass.needs.every(n => !n.rowKey.startsWith('meta:')));
+  let r = await send(tx, await planCommand(A, Y, 'create_draft', d.revision, { basedOnVersionId: null }));
+  d = r.detail; assert.equal(d.version.status, 'draft'); assert.equal(d.version.versionNo, 1);
+  r = await send(tx, await planCommand(A, Y, 'save_row', d.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId: p1.personId, teacherHt: 3000, teacherVt: 2400, comment: '' }));
+  d = r.detail;
+  const row = d.rows[0];
+  assert.equal(row.sourceKind, 'class_timplan'); assert.ok(row.sourceKey.startsWith(`class_timplan:${gy.classId}:${Y}:`));
+  assert.deepEqual([row.needHt, row.needVt, row.teacherHt, row.teacherVt], [expected.needHt, expected.needVt, 3000, 2400]);
+  const stored = (await tx`select * from public.tjanst_rows where id=${row.id}`)[0];
+  assert.deepEqual([stored.link_revision, stored.timplan_id, stored.link_column, stored.timplan_row_key], [0, gy.planId, 'ar1', gy.aplKey]);
+  await f.actor(tx, 'teacherSelf');
+  assert.deepEqual(parseSelfReadReply(await selfRead(tx)).publications, []);
+  await f.actor(tx, 'principalA');
+  r = await send(tx, await planCommand(A, Y, 'publish', d.revision, {}, { expectedContentHash: d.version.contentHash }));
+  d = r.detail; assert.equal(d.version.status, 'published'); assert.ok(d.version.publishedAt);
+  await f.actor(tx, 'teacherSelf');
+  let own = parseSelfReadReply(await selfRead(tx));
+  assert.equal(own.person.id, p1.personId); assert.equal(own.publications.length, 1);
+  assert.deepEqual(own.publications[0].rows.map(x => [x.ht, x.vt, x.className]), [[3000, 2400, 'SYNBF1']]);
+  check(report, 'spår: Gy25-rad sparad, utkast osynligt för läraren, publicerad, tjanst_self_read visar raden med teacherHt/teacherVt och behov skilt',
+    { sourceKey: row.sourceKey, need: [row.needHt, row.needVt], teacher: [3000, 2400] });
+  check(report, 'raden bär source_kind class_timplan, source_key class_timplan:{classId}:{schoolYear}:… och ögonblicksbild av koppling, timplan, kolumn och radnyckel');
+
+  // Ny version: lineage består, läraren ser den publicerade tills nästa publicering.
+  await f.actor(tx, 'principalA');
+  const published = d.version;
+  await deny(tx, report, 'utkast utan basedOnVersionId när publicerad version finns ger 40001', async t => send(t, await planCommand(A, Y, 'create_draft', d.revision, { basedOnVersionId: null })), ['40001'], 'tjanst_published_meanwhile');
+  r = await send(tx, await planCommand(A, Y, 'create_draft', d.revision, { basedOnVersionId: published.id }));
+  d = r.detail; assert.equal(d.version.versionNo, 2); assert.equal(d.rows[0].lineageId, row.lineageId); assert.notEqual(d.rows[0].id, row.id);
+  r = await send(tx, await planCommand(A, Y, 'save_row', d.revision, { rowId: d.rows[0].id, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId: p1.personId, teacherHt: 1200, teacherVt: 1200, comment: 'Ändrad' }));
+  d = r.detail;
+  await f.actor(tx, 'teacherSelf');
+  own = parseSelfReadReply(await selfRead(tx));
+  assert.deepEqual(own.publications[0].rows.map(x => [x.ht, x.vt]), [[3000, 2400]]); assert.equal(own.publications[0].versionId, published.id);
+  check(report, 'ny version: samma lineage_id och nya rad-id; lärarens egen läsning visar fortfarande den publicerade versionen medan utkastet ändras');
+  await deny(tx, report, 'publicerad versions rader kan inte ändras (trigger)', t => t`update public.tjanst_rows set teacher_ht_minutes=1 where version_id=${published.id}`, ['42501']);
+  await deny(tx, report, 'publicerad version kan inte ändras tillbaka till utkast', t => t`update public.tjanst_versions set status='draft' where id=${published.id}`, ['42501']);
+
+  // D-09: två lärare på samma källa blir två rader och täckningen summerar.
+  await f.actor(tx, 'principalA');
+  r = await send(tx, await planCommand(A, Y, 'save_row', d.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId: p2.personId, teacherHt: 1800, teacherVt: 1200, comment: '' }));
+  d = r.detail;
+  const cov = coverage(need.sourceKey, { ht: need.needHt ?? 0, vt: need.needVt ?? 0 }, d.rows, d.joints);
+  assert.equal(d.rows.filter(x => x.sourceKey === need.sourceKey).length, 2); assert.deepEqual(cov.covered, { ht: 3000, vt: 2400 }); assert.equal(cov.teachers, 2);
+  check(report, 'D-09: två lärare på samma kurs och klass blir två rader och täckningen summerar (tjanst-model coverage på SQL-svaret)', cov);
+  await deny(tx, report, 'samma lärare och källa en gång till ger tjanst_duplicate_row', async t => send(t, await planCommand(A, Y, 'save_row', d.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId: p2.personId, teacherHt: 60, teacherVt: 0, comment: '' })), ['22023'], 'tjanst_duplicate_row');
+
+  // Kommandogarantier.
+  await deny(tx, report, 'inaktuell expectedRevision ger 40001', async t => send(t, await planCommand(A, Y, 'add_teacher', d.revision - 1, { personId: p2.personId })), ['40001'], 'tjanst_revision_conflict');
+  const add = await planCommand(A, Y, 'add_teacher', d.revision, { personId: p2.personId });
+  const added = await send(tx, add);
+  const replay = await planSend(tx, add);
+  assert.equal(replay.result.receipt.replayed, true); assert.equal(replay.result.receipt.revision, added.receipt.revision);
+  check(report, 'samma commandId och samma begäran ger replayed med samma kvitto');
+  d = added.detail;
+  await deny(tx, report, 'ändrad begäran med samma commandId ger 40001', t => planSend(t, { ...add, expectedRevision: d.revision }), ['40001'], 'tjanst_command_conflict');
+  await deny(tx, report, 'fel payloadHash ger 22023', async t => planSend(t, { ...(await planCommand(A, Y, 'add_teacher', d.revision, { personId: p2.personId })), payloadHash: 'sha256:' + '0'.repeat(64) }), ['22023'], 'tjanst_payload_hash');
+  const status = await planStatus(tx, { command: planRef(add) });
+  assert.equal(status.result.state, 'completed'); assert.equal(status.result.result.receipt.commandId, add.commandId);
+  assert.equal((await planStatus(tx, { command: { ...planRef(add), commandId: randomUUID() } })).result.state, 'not_found');
+  await f.actor(tx, 'admin');
+  await deny(tx, report, 'status för en annan aktörs kommando nekas', t => planStatus(t, { command: planRef(add) }), ['40001'], 'tjanst_command_conflict');
+  check(report, 'status: completed för eget kommando och not_found för okänt commandId');
+  await f.actor(tx, 'principalA');
+  await deny(tx, report, 'ändrad innehållshash vid publicering ger tjanst_content_changed', async t => send(t, await planCommand(A, Y, 'publish', d.revision, {}, { expectedContentHash: published.contentHash })), ['40001'], 'tjanst_content_changed');
+  await deny(tx, report, 'audit-fel ger 55000 utan skrivning', async t => {
+    await t`alter table public.security_events add constraint tjanst_plan_audit_fault check (action<>'tjanst_plan_command') not valid`;
+    await send(t, await planCommand(A, Y, 'add_teacher', d.revision, { personId: p1.personId }));
+  }, ['55000']);
+  assert.equal((await tx`select revision from public.tjanst_distributions where unit_id=${A} and school_year=${Y}`)[0].revision, d.revision);
+  const actions = (await tx`select distinct action from public.tjanst_commands where family='plan'`).map(x => x.action);
+  assert.ok(actions.length >= 4 && actions.every(a => PLAN_ACTIONS.includes(a)));
+  check(report, 'TJANST-06: kommandojournalens åtgärd är text ur kontraktets lista; lineage_id och source_kind finns från start', { actions });
+
+  // Hinder: inaktuell rad efter ändrad koppling, och person utan skoluppdrag.
+  const before = d.rows.find(x => x.personId === p1.personId);
+  await tx.savepoint(async t => {
+    await t`set local session_replication_role=replica`;
+    await t`update public.class_timplans set revision=revision+1 where class_id=${gy.classId} and start_year=${Y}`;
+    await t`set local session_replication_role=origin`;
+    const stale = await read(t, A, Y);
+    assert.equal(stale.rows.find(x => x.id === before.id).stale, true); assert.ok(stale.blockers.some(b => b.code === 'stale_rows'));
+    assert.ok(!stale.actions.includes('publish')); assert.equal(stale.capabilities.canPublish, false);
+    assert.equal((await t`select need_ht_minutes from public.tjanst_rows where id=${before.id}`)[0].need_ht_minutes, before.needHt);
+    await deny(t, report, 'publicering med hinder ger tjanst_publish_blocked', async u => send(u, await planCommand(A, Y, 'publish', stale.revision, {}, { expectedContentHash: stale.version.contentHash })), ['40001'], 'tjanst_publish_blocked');
+    const resaved = await send(t, await planCommand(A, Y, 'save_row', stale.revision, { rowId: before.id, sourceKind: 'class_timplan', sourceKey: before.sourceKey, personId: p1.personId, teacherHt: 1200, teacherVt: 1200, comment: 'Ändrad' }));
+    assert.equal(resaved.detail.rows.find(x => x.id === before.id).stale, false);
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  check(report, 'ändrad koppling markerar raden som inaktuell utan att skriva om ögonblicksbilden; att spara raden igen förnyar den');
+  await deny(tx, report, 'lärare utan skoluppdrag på skolan nekas (tjanst_person_not_at_school)', async t => send(t, await planCommand(A, Y, 'add_teacher', d.revision, { personId: p3.personId })), ['22023'], 'tjanst_person_not_at_school');
+
+  // D-11 och roller.
+  await f.actor(tx, 'principalB');
+  const bRead = await read(tx, B, Y);
+  assert.equal(bRead.version, null); assert.deepEqual(bRead.teachers, []);
+  await deny(tx, report, 'rektor B läser inte skola A (42501)', t => planRead(t, { unitId: A, schoolYear: Y }), ['42501']);
+  r = await send(tx, await planCommand(B, Y, 'create_draft', bRead.revision, { basedOnVersionId: null }));
+  r = await send(tx, await planCommand(B, Y, 'add_teacher', r.detail.revision, { personId: p1.personId }));
+  assert.deepEqual(r.detail.teachers.map(x => [x.personId, x.shareHere]), [[p1.personId, 40]]);
+  assert.ok(!JSON.stringify(r.detail).includes(A) && !JSON.stringify(r.detail).includes('3000'));
+  check(report, 'D-11: rektor B ser bara 40 %-andelen och inget från skola A');
+  await f.actor(tx, 'principalAB');
+  const abA = await read(tx, A, Y);
+  assert.equal(abA.teachers.find(x => x.personId === p1.personId).shareHere, 60); assert.equal(abA.unitId, A);
+  check(report, 'rektor AB läser skola A som egen skolpost med A:s andel');
+  await f.actor(tx, 'admin');
+  const adminRead = await read(tx, A, Y);
+  assert.ok(adminRead.capabilities.canEdit); assert.equal(adminRead.capabilities.canPublish, false); assert.ok(!adminRead.actions.includes('publish'));
+  await deny(tx, report, 'administratör publicerar inte (42501)', async t => send(t, await planCommand(A, Y, 'publish', adminRead.revision, {}, { expectedContentHash: adminRead.version.contentHash })), ['42501']);
+  await f.actor(tx, 'hm');
+  const hmRead = await read(tx, A, Y);
+  assert.deepEqual(hmRead.actions, []); assert.equal(hmRead.capabilities.canEdit, false);
+  check(report, 'huvudman läser utan actions och utan redigering');
+  await deny(tx, report, 'huvudman skriver inte (42501)', async t => send(t, await planCommand(A, Y, 'add_teacher', hmRead.revision, { personId: p2.personId })), ['42501']);
+  await deny(tx, report, 'huvudman publicerar inte (42501)', async t => send(t, await planCommand(A, Y, 'publish', hmRead.revision, {}, { expectedContentHash: hmRead.version.contentHash })), ['42501']);
+  await f.actor(tx, 'foreignHm');
+  await deny(tx, report, 'annan kund nekas (42501)', t => planRead(t, { unitId: A, schoolYear: Y }), ['42501']);
+  await f.actor(tx, 'teacherGroup');
+  await deny(tx, report, 'lärare med gruppmandat når inte plan-familjen (42501)', t => planRead(t, { unitId: A, schoolYear: Y }), ['42501']);
+  await deny(tx, report, 'lärare med gruppmandat har ingen egen läsning (42501)', t => selfRead(t), ['42501']);
+
+  // D-24: äldre publicerade versioner läses i sin helhet.
+  await f.actor(tx, 'principalA');
+  d = await read(tx, A, Y);
+  r = await send(tx, await planCommand(A, Y, 'publish', d.revision, {}, { expectedContentHash: d.version.contentHash }));
+  const history = await read(tx, A, Y, published.id);
+  assert.equal(history.version.status, 'superseded'); assert.deepEqual(history.actions, []); assert.deepEqual(history.rows.map(x => [x.teacherHt, x.teacherVt]), [[3000, 2400]]);
+  assert.ok(history.versions.every(v => v.status !== 'published' || v.publishedByName));
+  check(report, 'D-24: ersatt version läses i sin helhet utan actions; historiken har status, aktör och tid', { versions: history.versions.map(v => [v.versionNo, v.status]) });
+  await f.actor(tx, 'teacherSelf');
+  own = parseSelfReadReply(await selfRead(tx));
+  assert.deepEqual(own.publications.map(p => p.versionNo), [2]);
+  check(report, 'efter ny publicering ser läraren bara den nya publicerade versionen');
+  await f.actor(tx, 'principalA');
+  await deny(tx, report, 'versionId från ett annat läsår nekas (42501)', t => planRead(t, { unitId: A, schoolYear: Y - 1, versionId: published.id }), ['42501']);
+  await deny(tx, report, 'source_key från ett annat läsår ger tjanst_unknown_source', async t => {
+    const cur = await read(t, A, Y); const created = await send(t, await planCommand(A, Y, 'create_draft', cur.revision, { basedOnVersionId: cur.version.id }));
+    await send(t, await planCommand(A, Y, 'save_row', created.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey.replace(`:${Y}:`, `:${Y - 1}:`), personId: p2.personId, teacherHt: 60, teacherVt: 0, comment: '' }));
+  }, ['22023'], 'tjanst_unknown_source');
+  await deny(tx, report, 'annan skola utanför mandatet nekas vid skrivning (42501)', async t => send(t, await planCommand(f.schools.C, Y, 'create_draft', 0, { basedOnVersionId: null })), ['42501']);
+  // discard_draft och delete_row.
+  d = await read(tx, A, Y);
+  r = await send(tx, await planCommand(A, Y, 'create_draft', d.revision, { basedOnVersionId: d.version.id }));
+  r = await send(tx, await planCommand(A, Y, 'delete_row', r.detail.revision, { rowId: r.detail.rows[0].id }));
+  r = await send(tx, await planCommand(A, Y, 'discard_draft', r.detail.revision, {}));
+  assert.equal(r.detail.version.status, 'published'); assert.equal((await tx`select status from public.tjanst_versions where id=${r.receipt.versionId}`)[0].status, 'discarded');
+  check(report, 'delete_row och discard_draft: kasserat utkast lämnar den publicerade versionen orörd');
+  await deny(tx, report, 'tomt utkast blockeras före publicering', async t => {
+    const cur = await read(t, A, Y); const created = await send(t, await planCommand(A, Y, 'create_draft', cur.revision, { basedOnVersionId: cur.version.id }));
+    let x = created.detail; for (const row of x.rows) x = (await send(t, await planCommand(A, Y, 'delete_row', x.revision, { rowId: row.id }))).detail;
+    assert.ok(x.blockers.some(b => b.code === 'empty_draft'));
+    await send(t, await planCommand(A, Y, 'publish', x.revision, {}, { expectedContentHash: x.version.contentHash }));
+  }, ['40001'], 'tjanst_publish_blocked');
+}
+
+/** GR- och IM-behov, okopplade klasser och namnrader (D-21, D-22). */
+async function grimMatrix(tx, report, f) {
+  const A = f.schools.A;
+  const g = await seedGrimNeeds(tx, f);
+  await tx`insert into public.class_timplans(unit_id,class_name,start_year,timplan_id,column_id) values(${A},'SYN7B',2026,${g.grPlan},'ak7')`;
+  await f.actor(tx, 'principalA');
+  const d = await read(tx, A, 2026);
+  const gr = d.classes.find(c => c.classId === f.classes.group), im = d.classes.find(c => c.classId === g.imClass), legacy = d.classes.find(c => c.classId === f.classes.other);
+  const math = gr.needs.find(n => n.rowKey === 'matematik');
+  assert.deepEqual([math.needHt, math.needVt, math.needBasis], [2700, 2700, 'even_split']);
+  assert.deepEqual(tjanstNeed({ kind: 'gr', annualHours: 90 }), { needHt: math.needHt, needVt: math.needVt, needBasis: math.needBasis });
+  check(report, 'GR ak8 90 årstimmar → 45/45 h (even_split), lika med tjanst-model');
+  assert.ok(gr.needs.some(n => n.rowKey === 'biologi') && !gr.needs.some(n => n.rowKey === 'no') && !gr.needs.some(n => n.rowKey === 'idrott'));
+  check(report, 'GR åk 8 räknar delrader och inte NO-grupprad; rader med 0 timmar ger inget behov');
+  const ts = summarize({ id: 'x', unitId: A, startYear: 2026, label: '2026/27', ...g.calendar, groupExceptions: {}, shortWeeks: {}, status: 'fastställd', history: [] });
+  const [sqlWeeks] = await tx`select public.tjanst_school_weeks(${A},2026) w`;
+  assert.deepEqual(sqlWeeks.w, { htSchoolDays: ts.terms.ht.skoldagar, vtSchoolDays: ts.terms.vt.skoldagar });
+  const ma = im.needs.find(n => n.rowKey === 'im-ma');
+  const expected = tjanstNeed({ kind: 'im', weeklyHours: 3, calendar: { status: 'faststalld', htSchoolDays: ts.terms.ht.skoldagar, vtSchoolDays: ts.terms.vt.skoldagar } });
+  assert.deepEqual([ma.needHt, ma.needVt, ma.needBasis], [expected.needHt, expected.needVt, expected.needBasis]);
+  check(report, 'IM 3 h/vecka mot fastställd kalender ger exakta minuter enligt tjanst-model; skoldagar lika med lasar-model (helgdagar och lovdagar)', { schoolDays: sqlWeeks.w, minutes: [ma.needHt, ma.needVt] });
+  assert.equal(legacy.link, null); assert.deepEqual(legacy.needs, []);
+  check(report, 'klass med bara namnrad ger link null och inga behov, aldrig 0');
+  await tx.savepoint(async t => {
+    await t`update public.school_years set status='utkast',decided_on=null where unit_id=${A} and start_year=2026`;
+    const noCal = await read(t, A, 2026);
+    assert.ok(noCal.classes.find(c => c.classId === g.imClass).needs.every(n => n.needHt === null && n.needVt === null));
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  check(report, 'IM utan fastställd kalender ger null, aldrig 0');
+}
+
+/** Valblock med, meta och APL-minuter inte med (Gy25-källan). */
+function gyRowRules(report, d, gy) {
+  const klass = d.classes.find(c => c.classId === gy.classId);
+  const blocks = gy.rows.filter(r => r.key.startsWith('block:') && gy.terms.find(t => t.rowKey === r.key).points.slice(0, 2).some(p => p > 0));
+  for (const b of blocks) assert.ok(klass.needs.some(n => n.rowKey === b.key), b.key);
+  assert.ok(klass.needs.every(n => !n.rowKey.startsWith('meta:')));
+  const apl = klass.needs.find(n => n.rowKey === gy.aplKey);
+  assert.equal(apl.needHt, gy.timeRows[gy.aplKey].schoolMinutes[0]);
+  check(report, 'Gy25: valblock blir behovsrader, meta:* och APL-minuter ingår inte', { blocks: blocks.length });
+}
+
+async function concurrency(db, connect, report, f) {
+  const setup = await db.begin(async t => {
+    const p = await staffWithDuties(t, f, { familyName: 'Samtidig', duties: [{ unitId: f.schools.A, percent: 100, startsOn: '2026-07-01' }] });
+    const g = await seedGrimNeeds(t, f, { calendar: false });
+    await f.actor(t, 'principalA');
+    const d = await read(t, f.schools.A, 2026);
+    const created = await send(t, await planCommand(f.schools.A, 2026, 'create_draft', d.revision, { basedOnVersionId: null }));
+    const need = created.detail.classes.find(c => c.classId === f.classes.group).needs.find(n => n.rowKey === 'matematik');
+    return { p, g, revision: created.detail.revision, need };
+  });
+  const c1 = await connect(), c2 = await connect();
+  const q = async (minutes) => planCommand(f.schools.A, 2026, 'save_row', setup.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: setup.need.sourceKey, personId: minutes === 1200 ? setup.p.personId : null, teacherHt: minutes, teacherVt: 0, comment: '' });
+  const [q1, q2] = [await q(1200), await q(600)];
+  let release; const gate = new Promise(r => { release = r; }); let held; const heldReady = new Promise(r => { held = r; });
+  const p1 = c1.begin(async t => { await f.actor(t, 'principalA'); const v = await planSend(t, q1); held(); await gate; return v; });
+  await heldReady;
+  const p2 = c2.begin(async t => { await f.actor(t, 'principalA'); return planSend(t, q2); });
+  let blocked = false;
+  for (let i = 0; i < 100 && !blocked; i++) { const [w] = await db`select count(*)::int n from pg_stat_activity where datname=current_database() and wait_event_type='Lock' and state='active'`; blocked = w.n > 0; if (!blocked) await new Promise(r => setTimeout(r, 50)); }
+  release();
+  const results = (await Promise.allSettled([p1, p2])).map(x => x.status === 'fulfilled' ? { ok: true } : { ok: false, code: x.reason.code, hint: x.reason.hint });
+  assert.equal(blocked, true); assert.deepEqual(results, [{ ok: true }, { ok: false, code: '40001', hint: 'tjanst_revision_conflict' }]);
+  check(report, 'två samtidiga save_row med samma revision från två anslutningar: exakt en lyckas', results);
+}
+
+export async function verifyTjanstPlan(out, { ephemeral = false } = {}) {
+  const output = resolve(out);
+  assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'REFUSED: use --out /private/tmp/<name>.json');
+  assert.ok(!existsSync(output), 'REFUSED: output exists; choose a new private path');
+  const fd = openSync(output, 'wx', 0o600);
+  const report = { kind: 'tjanst-plan-owned-database', status: 'FAIL', mode: ephemeral ? 'ephemeral' : 'schema-snapshot', checks: [], startedAt: new Date().toISOString(),
+    limitations: ['Own database and synthetic fixtures only; no installed target written', 'No HTTP/OIDC/browser claim; Worker grants come in plan 09',
+      ephemeral ? 'Schema built from repository migrations on a private PostgreSQL instance with minimal Supabase stubs, not from an installed target' : 'Schema-only copy of the protected local target',
+      'GR/IM plan status and one stale-link case are set directly in the fixture (owner, replica role)', 'Special assignments, joint teaching and feedback come in plan 08',
+      'SS 12000: Activity/DutyAssignment mapping is intended compatibility, no exchange verified'] };
+  const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
+  let source;
+  try {
+    report.sources = sources(); persist();
+    if (ephemeral) {
+      const { createEphemeralMigratedDb } = await import('./ephemeral-migrated-db.mjs');
+      const e = await createEphemeralMigratedDb({ exclude: tjanstMigrations.map(p => basename(p)) });
+      source = { db: e.db, provenance: e.provenance, close: e.end, connect: async () => e.connect() };
+    } else {
+      const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
+      const s = await createNamedTimplanSnapshot();
+      source = { db: s.db, provenance: s.provenance, close: async () => { report.cleanup = await s.cleanup(); }, connect: s.connect };
+    }
+    report.database = source.provenance; persist();
+    const db = source.db;
+    assert.equal((await db`select count(*)::int n from pg_proc where proname like 'tjanst_plan%'`)[0].n, 0, 'Plan migration already present');
+    for (const p of PREREQUISITES) await db.begin(tx => tx.unsafe(sql(p)));
+    report.prerequisites = PREREQUISITES;
+    const f = await db.begin(createTjanstFixture);
+    const baseline = { fingerprint: await fingerprint(db), rows: await allPublicHashes(db) };
+    try { await db.begin(async tx => { await tx.unsafe(sql(OWN)); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
+    assert.equal(await fingerprint(db), baseline.fingerprint); assert.deepEqual(await allPublicHashes(db), baseline.rows);
+    check(report, 'återrullning av migrationen återställer exakt schema, ACL och alla rader');
+    await db.begin(tx => tx.unsafe(sql(OWN)));
+    const installedRows = await allPublicHashes(db);
+    for (const [table, value] of Object.entries(baseline.rows)) assert.deepEqual(installedRows[table], value, table);
+    check(report, 'installation i den egna databasen lämnar alla befintliga rader orörda');
+    for (const [table, columns] of Object.entries(COLUMNS)) {
+      assert.deepEqual((await db`select a.attname from pg_attribute a where a.attrelid=${'public.' + table}::regclass and a.attnum>0 and not a.attisdropped order by a.attnum`).map(x => x.attname), columns, table);
+      const [t] = await db`select relrowsecurity r,relforcerowsecurity f from pg_class where oid=${'public.' + table}::regclass`;
+      assert.ok(t.r && t.f, table + ' RLS');
+      for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker'])
+        assert.equal((await db`select has_table_privilege(${role},${'public.' + table},'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') v`)[0].v, false, role + table);
+    }
+    check(report, 'exakt kolumnlista per ny tabell (behov och lärartid i skilda kolumner, inga avtal eller bedömningar), tvingad RLS och inga klienträttigheter', COLUMNS);
+    const helpers = (await db`select p.oid::regprocedure::text s from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'tjanst_%'`).map(x => x.s);
+    for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker']) for (const fn of helpers)
+      assert.equal((await db`select has_function_privilege(${role},${fn}::regprocedure,'EXECUTE') v`)[0].v, false, role + fn);
+    for (const fn of ENTRYPOINTS) assert.ok(helpers.includes(fn), fn);
+    check(report, 'alla tjanst-funktioner är stängda för klientroller och Worker tills grant-migrationen (plan 09)', { functions: helpers.length });
+    const installed = await allPublicHashes(db);
+    try { await db.begin(async tx => { await tx`set local lock_timeout='10s'`; await tx`set local statement_timeout='120s'`; await matrix(tx, report, f); throw rollback; }); }
+    catch (e) { if (e !== rollback) throw e; }
+    try { await db.begin(async tx => {
+      await tx`set local statement_timeout='120s'`;
+      const gy = await seedGy25Class(tx, f, 'SYNBF2'); await f.actor(tx, 'principalA');
+      gyRowRules(report, await read(tx, f.schools.A, gy.year), gy); throw rollback; }); }
+    catch (e) { if (e !== rollback) throw e; }
+    try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await grimMatrix(tx, report, f); throw rollback; }); }
+    catch (e) { if (e !== rollback) throw e; }
+    assert.deepEqual(await allPublicHashes(db), installed);
+    check(report, 'hela planprovet rullas tillbaka utan kvarvarande rader');
+    await concurrency(db, source.connect, report, f);
+  } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, where: e.where, stack: e.stack }; }
+  finally {
+    try { report.finalSources = sources(); assert.deepEqual(report.finalSources, report.sources); } catch (e) { report.sourceFailure = { message: e.message }; }
+    try { await source?.close(); } catch (e) { report.cleanupFailure = { message: e.message }; }
+    if (!report.failure && !report.sourceFailure && !report.cleanupFailure) report.status = 'PASS';
+    report.finishedAt = new Date().toISOString(); persist();
+  }
+  console.log(report.status === 'PASS' ? `PASS: ${report.checks.length} service allocation plan SQL checks` : `FAIL: ${report.failure?.message ?? report.sourceFailure?.message ?? report.cleanupFailure?.message}`);
+  if (report.status !== 'PASS') process.exitCode = 1;
+  return report;
+}
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2), ephemeral = args.includes('--ephemeral'), rest = args.filter(a => a !== '--ephemeral');
+  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral]');
+  await verifyTjanstPlan(rest[1], { ephemeral });
+}
