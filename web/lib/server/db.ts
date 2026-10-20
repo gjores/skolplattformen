@@ -43,6 +43,8 @@ export type SessionContext = {
   organizerId: string | null;
   unitId: string | null;
   appRole: 'huvudman' | 'rektor' | 'administrator' | 'larare' | null;
+  /** Scope of the locked assignment; 'self' (Egen tjänst) is denied by protectedRoute unless a route allows it. */
+  scopeKind?: string | null;
   correlationId: string;
 };
 
@@ -107,6 +109,7 @@ type AssignmentRow = {
   organizer_id: string | null;
   unit_id: string | null;
   function: AccessFunction;
+  scope_kind: string | null;
   assignment_valid: boolean;
   valid_from: string;
   valid_to: string | null;
@@ -196,7 +199,7 @@ export async function withSessionContext<T>(
       let assignment: AssignmentRow | null = null;
       if (row.assignment_id) {
         const assignments = await tx<AssignmentRow[]>`select
-            a.id, a.membership_id, a.customer_id, a.organizer_id, a.unit_id, a.function,
+            a.id, a.membership_id, a.customer_id, a.organizer_id, a.unit_id, a.function, a.scope_kind,
             public.assignment_is_valid(a) as assignment_valid,
             a.valid_from::text, a.valid_to::text, a.ended_at
           from public.access_assignments a
@@ -254,6 +257,7 @@ export async function withSessionContext<T>(
         organizerId: assignment?.organizer_id ?? null,
         unitId: assignment?.unit_id ?? null,
         appRole,
+        scopeKind: assignment?.scope_kind ?? null,
         correlationId: ctx.correlationId,
         epoch: row.context_epoch,
         membershipStatus: membership?.status ?? null,

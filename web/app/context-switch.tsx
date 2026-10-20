@@ -30,6 +30,8 @@ export type ActiveContext = {
   unitId: string | null;
   unitName: string | null;
   function: SessionAssignment['function'];
+  /** 'self' = Egen tjänst: only Min tjänst is shown; the server decides. */
+  scopeKind?: string | null;
   label: string;
   blocked: boolean;
   valid: boolean;

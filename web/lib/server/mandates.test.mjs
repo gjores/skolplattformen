@@ -103,3 +103,14 @@ test('period- och samtidighetsfel minimeras även med elevvärden i SQL-felet', 
     }), expected);
   }
 });
+
+// 05.1 D-03: staffPersonId krävs för och bara för scopeKind self.
+test('Egen tjänst: self kräver larare och staffPersonId; andra scope nekar staffPersonId', () => {
+  const self = { membershipId: id, function: 'larare', unitIds: [id], scopeKind: 'self', staffPersonId: id, validFrom: '2026-09-24' };
+  const parsed = parseMandatePayload(self);
+  assert.equal(parsed.scopeKind, 'self'); assert.equal(parsed.staffPersonId, id); assert.deepEqual(parsed.groups, []);
+  for (const change of [{ staffPersonId: undefined }, { staffPersonId: 'bad' }, { function: 'rektor' }, { groups: [{ id, kind: 'teaching' }] }, { pupilIds: [id] }, { caseIds: [id] }])
+    assert.throws(() => parseMandatePayload({ ...self, ...change }), JSON.stringify(change));
+  assert.throws(() => parseMandatePayload({ ...payload(), staffPersonId: id }));
+  assert.equal(parseMandatePayload(payload()).staffPersonId, null);
+});

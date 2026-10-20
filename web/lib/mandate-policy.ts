@@ -6,7 +6,8 @@ export type MandateFunction =
   | 'elevhalsoansvarig'
   | 'it'
   | 'support';
-export type MandateScope = 'school' | 'group' | 'pupil' | 'case';
+/** 'self' = Egen tjänst (05.1 D-03): larare only, no groups, pupils or cases, never pupil actions. */
+export type MandateScope = 'school' | 'group' | 'pupil' | 'case' | 'self';
 type Relation = { id: string; unitId: string };
 export type MandateAssignment = {
   id: string;
@@ -109,7 +110,7 @@ function shape(a: MandateAssignment): boolean {
     (!a.organizerId && !['kundadmin', 'granskare'].includes(a.function)) ||
     a.profileId !== 'synthetic-v1' ||
     !Object.hasOwn(ACTIONS, a.function) ||
-    !['school', 'group', 'pupil', 'case'].includes(a.scopeKind) ||
+    !['school', 'group', 'pupil', 'case', 'self'].includes(a.scopeKind) ||
     !validDate(a.validFrom) ||
     (a.validTo !== null && (!validDate(a.validTo) || a.validTo < a.validFrom))
   )
@@ -123,6 +124,12 @@ function shape(a: MandateAssignment): boolean {
     a.unitIds.some((id) => !id)
   )
     return false;
+  if (a.scopeKind === 'self')
+    return (
+      a.function === 'larare' &&
+      a.unitIds.length > 0 &&
+      relations.length === 0
+    );
   if (a.function === 'larare')
     return (
       a.scopeKind === 'group' &&
@@ -200,7 +207,7 @@ function inScope(
   a: MandateAssignment,
   resource: MandateRequest['resource'],
 ): boolean {
-  if (!resource || !a.unitIds.includes(resource.unitId)) return false;
+  if (!resource || !a.unitIds.includes(resource.unitId) || a.scopeKind === 'self') return false;
   if (a.scopeKind === 'school') return true;
   if (!resource.pupilId) return false;
   if (a.scopeKind === 'group')
@@ -272,7 +279,7 @@ export function decideMandate(input: {
       r.target && delegable(a, r.target) ? 'allowed' : 'delegation_denied',
     );
   }
-  if (!ACTIONS[a.function].includes(r.action)) return result('action_denied');
+  if (!ACTIONS[a.function].includes(r.action) || a.scopeKind === 'self' && r.action.startsWith('pupil.')) return result('action_denied');
   if (r.action !== 'audit.read' && !inScope(a, r.resource))
     return result('scope_denied');
   if (r.action.startsWith('pupil.') && !r.resource?.pupilId)

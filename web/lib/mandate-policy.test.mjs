@@ -676,3 +676,17 @@ test('programplan scope lets HM/rektor/admin read and choose own school packages
  for(const fn of ['larare','support','it','kundadmin','granskare','elevhalsa'])assert.equal(run(make({function:fn}),request).allowed,false);
  assert.equal(run(make({function:'administrator'}),{...request,fields:['personal_number']}).reasonCode,'fields_denied');
 });
+
+// 05.1 D-03: Egen tjänst (scopeKind self) speglar SQL-formen i 20261020110000.
+const self = (changes = {}) => child({ scopeKind: 'self', groups: [], ...changes });
+test('Egen tjänst: larare + self utan grupper godkänns som mandatform men får inga elevåtgärder', () => {
+  const decision = run(self(), read(), { ancestors: [make()] });
+  assert.equal(decision.allowed, false); assert.equal(decision.reasonCode, 'action_denied');
+  assert.equal(run(self(), read({ action: 'pupil.export' }), { ancestors: [make()] }).reasonCode, 'action_denied');
+  assert.equal(run(child(), read(), { ancestors: [make()] }).allowed, true);
+});
+test('Egen tjänst: self med grupp, elev eller ärende eller för annan funktion nekas som ogiltig form', () => {
+  for (const changes of [{ groups: [{ unitId: 's1', id: 'g1', kind: 'teaching' }] }, { pupils: [{ unitId: 's1', id: 'p1' }] },
+    { cases: [{ unitId: 's1', id: 'k1', pupilId: 'p1' }] }, { unitIds: [] }, { function: 'elevhalsa' }, { function: 'support' }])
+    assert.equal(run(self(changes), read(), { ancestors: [make()] }).reasonCode, 'invalid_assignment', JSON.stringify(changes));
+});

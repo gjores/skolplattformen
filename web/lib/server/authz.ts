@@ -251,7 +251,7 @@ function responseFromResult(result: ProtectedResult, corr: string, epoch: number
 export async function protectedRoute(
   request: Request,
   action: string,
-  opts: { mutating: boolean; mfa?: boolean; functions?: AccessFunction[]; audit?: 'required' },
+  opts: { mutating: boolean; mfa?: boolean; functions?: AccessFunction[]; audit?: 'required'; selfAllowed?: boolean },
   handler: (ctx: Context, tx: Tx, live: LiveSession) => Promise<ProtectedResult>,
 ): Promise<Response> {
   const corr = correlationId();
@@ -270,6 +270,8 @@ export async function protectedRoute(
         throw new Deny('context_changed', 409);
       }
       if (opts.functions) requireFunction(ctx, opts.functions);
+      // D-03: an Egen tjänst session is denied by default; only routes that explicitly allow it may answer.
+      if (ctx.scopeKind === 'self' && opts.selfAllowed !== true) throw new Deny('forbidden', 403);
       if (opts.mfa) requireMfa(ctx);
       const handled = await handler(ctx, tx, live);
       if (requiresAudit(opts.mutating, opts.audit) && !handled.event) {

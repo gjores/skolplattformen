@@ -30,6 +30,7 @@ type AssignmentRow = {
   unit_id: string | null;
   unit_name: string | null;
   function: AssignmentView['function'];
+  scope_kind: string | null;
   valid_from: string;
   valid_to: string | null;
   ended_at: Date | null;
@@ -40,6 +41,7 @@ type AssignmentRow = {
 type SessionAssignment = AssignmentView & {
   organizerId: string | null;
   unitId: string | null;
+  scopeKind: string | null;
 };
 
 function view(row: AssignmentRow): SessionAssignment {
@@ -53,6 +55,7 @@ function view(row: AssignmentRow): SessionAssignment {
     unitId: row.unit_id,
     unitName: row.unit_name,
     function: row.function,
+    scopeKind: row.scope_kind,
     validFrom: row.valid_from,
     validTo: row.valid_to,
     endedAt: row.ended_at ? new Date(row.ended_at).toISOString() : null,
@@ -80,7 +83,7 @@ async function loadSessionView(
   const assignments = await tx<AssignmentRow[]>`select
       a.id, a.membership_id, a.customer_id, c.name as customer_name,
       a.organizer_id, o.name as organizer_name, a.unit_id, u.name as unit_name,
-      a.function, a.valid_from::text, a.valid_to::text, a.ended_at,
+      a.function, a.scope_kind, a.valid_from::text, a.valid_to::text, a.ended_at,
       m.status as membership_status,
       (public.assignment_is_valid(a) and c.closed_at is null) as server_valid
     from public.access_assignments a
@@ -159,6 +162,7 @@ export async function GET(request: Request): Promise<Response> {
               unitId: selected.unitId,
               unitName: selected.unitName,
               function: selected.function,
+              scopeKind: selected.scopeKind,
               label: contextLabel(selected),
               blocked: selected.membershipStatus === 'blocked',
               valid: selected.membershipStatus === 'active' && selectedState === 'giltigt',

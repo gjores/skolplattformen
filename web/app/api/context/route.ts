@@ -17,6 +17,7 @@ type AssignmentRow = {
   unit_id: string | null;
   unit_name: string | null;
   function: AccessFunction;
+  scope_kind: string | null;
   valid_from: string;
   valid_to: string | null;
   ended_at: Date | null;
@@ -95,7 +96,7 @@ export async function POST(request: Request): Promise<Response> {
       const rows = await tx<AssignmentRow[]>`select
           a.id, a.membership_id, a.customer_id, c.name as customer_name,
           a.organizer_id, o.name as organizer_name, a.unit_id, u.name as unit_name,
-          a.function, a.valid_from::text, a.valid_to::text, a.ended_at,
+          a.function, a.scope_kind, a.valid_from::text, a.valid_to::text, a.ended_at,
           m.status, c.closed_at, public.assignment_is_valid(a) as valid,
           i.auth_user_id
         from public.access_assignments a
@@ -172,6 +173,7 @@ export async function POST(request: Request): Promise<Response> {
         organizerId: selected.organizer_id,
         unitId: selected.unit_id,
         appRole: role,
+        scopeKind: selected.scope_kind,
         correlationId: corr,
       };
       await logEvent(tx, { ...ctx, request }, {
@@ -199,6 +201,7 @@ export async function POST(request: Request): Promise<Response> {
           unitId: selected.unit_id,
           unitName: selected.unit_name,
           function: selected.function,
+          scopeKind: selected.scope_kind,
           label: contextLabel({
             ...assignment,
           }),

@@ -3,7 +3,7 @@ import { parseSelfCommand, selfCommand, tjanstRequest } from '../../../../../lib
 
 /** Kvittens och kommentar utan engångskod (D-23) och utan person-ID (D-03). */
 export async function POST(request: Request): Promise<Response> {
-  return protectedRoute(request, 'tjanst_self_command', { mutating: true, audit: 'required', functions: ['larare'] }, async (ctx, tx) => {
+  return protectedRoute(request, 'tjanst_self_command', { mutating: true, audit: 'required', functions: ['larare'], selfAllowed: true }, async (ctx, tx) => {
     return selfCommand(tx, await tjanstRequest(request, parseSelfCommand), ctx);
   });
 }

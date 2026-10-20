@@ -24,6 +24,7 @@ const KEYS = [
   'profession',
   'purposeCode',
   'staffAssignmentId',
+  'staffPersonId',
 ];
 export type MandatePayload = {
   membershipId: string;
@@ -40,6 +41,8 @@ export type MandatePayload = {
   profession: string | null;
   purposeCode: string | null;
   staffAssignmentId: string | null;
+  /** Required for and only for scopeKind 'self'; SQL binds the person to the membership atomically. */
+  staffPersonId: string | null;
 };
 function ids(value: unknown): string[] {
   if (
@@ -62,9 +65,15 @@ export function parseMandatePayload(input: unknown): MandatePayload {
     typeof p.function !== 'string' ||
     !FUNCTIONS.includes(p.function) ||
     typeof p.scopeKind !== 'string' ||
-    !['school', 'group', 'pupil', 'case'].includes(p.scopeKind)
+    !['school', 'group', 'pupil', 'case', 'self'].includes(p.scopeKind)
   )
     throw new TypeError('Invalid mandate');
+  const self = p.scopeKind === 'self';
+  if (
+    self !== (p.staffPersonId != null) ||
+    (self && (p.function !== 'larare' || typeof p.staffPersonId !== 'string' || !UUID.test(p.staffPersonId)))
+  )
+    throw new TypeError('Invalid staff person');
   if (
     typeof p.validFrom !== 'string' ||
     !/^\d{4}-\d{2}-\d{2}$/.test(p.validFrom)
@@ -101,6 +110,8 @@ export function parseMandatePayload(input: unknown): MandatePayload {
     new Set(groups.map((g) => g.id)).size !== groups.length
   )
     throw new TypeError('Invalid groups');
+  if (self && (groups.length > 0 || ids(p.pupilIds ?? []).length > 0 || ids(p.caseIds ?? []).length > 0))
+    throw new TypeError('Invalid scope');
   return {
     membershipId: p.membershipId,
     function: p.function,
@@ -116,6 +127,7 @@ export function parseMandatePayload(input: unknown): MandatePayload {
     profession: (p.profession as string) ?? null,
     purposeCode: (p.purposeCode as string) ?? null,
     staffAssignmentId: (p.staffAssignmentId as string) ?? null,
+    staffPersonId: (p.staffPersonId as string) ?? null,
   };
 }
 
