@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1 våg 3 klar 2026-10-20: 05.1-04B (self nekas som standard på servern, 7+126 prov) och 05.1-06 (fördelning, behov, versioner, publicering och egen läsning i SQL, 49/49 i tillfällig PostgreSQL). Inget installerat. Nästa: våg 4 (05.1-07, 05.1-08)."
-last_updated: "2026-10-19"
-last_activity: 2026-10-19
-last_activity_desc: "Våg 2 i fas 05.1 genomförd i molnmiljön: personal/kapacitet/Egen tjänst i SQL, tjanst-API och rektors vy. Migration 20261020110000 ej installerad; lokal schemakopieprövning, HTTP/OIDC och installation återstår."
+stopped_at: "Fas 05.1 våg 4 klar 2026-10-20: 05.1-08 (specialuppdrag, samläsning, återkoppling och bemanning i SQL) och 05.1-07 (Min tjänst, Personal, Bemanning och navigering; komponentprov 148 i fyra projekt, ny migration 20261020140000 för kontouppgiften, SQL 7/7). Inget installerat. Nästa: 05.1-09 (Worker-rättigheter, faktiskt prov och handbok) – det faktiska HTTP/OIDC-provet kräver den lokala miljön."
+last_updated: "2026-10-20"
+last_activity: 2026-10-20
+last_activity_desc: "Våg 4 i fas 05.1 genomförd i molnmiljön: SQL för specialuppdrag/samläsning/återkoppling/bemanning och UI för Min tjänst, Personal, Bemanning och Egen tjänst i Mandat. Migrationerna 20261020100000–140000 ej installerade; schemakopieprövning, HTTP/OIDC och installation återstår."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 våg 4 genomförd 2026-10-20 (molnmiljö):** [05.1-08](phases/05.1-tjanstefordelning/05.1-08-SUMMARY.md) specialuppdrag, samläsning, lärarnas kvittens/kommentar och huvudmannens bemanning i SQL (PASS 102/102 och 23/23). [05.1-07](phases/05.1-tjanstefordelning/05.1-07-SUMMARY.md) Min tjänst (self startar där, bara den menyn, inga elev- eller planeringsanrop), Personal med andelsdialog och kontouppgift, Bemanning med skrivskyddad Visa fördelningen, Tjänstefördelning i rektors meny och Egen tjänst i Mandat. Komponentprov mot simulerade API-svar: 148 passerade i fyra projekt (telefon i Chromium). Ny migration 20261020140000 (kontouppgift bara för huvudmannen) med SQL PASS 7/7. Rättat integrationsfel: tjänstefördelningens felorsak i details.reason nådde inte klienten. Regression: SQL 43/43 och 77/77, enhetsprov 820/820 och 331/331, tsc, oxlint och bygge PASS. Befintliga apl-plan- och usability-prov fallerar delvis i molnmiljön på samma sätt före och efter planen. Migrationerna 20261020100000–140000 är inte installerade. Nästa: 05.1-09; dess faktiska HTTP/OIDC-prov görs i den lokala miljön.
 
 **Fas 05.1 våg 3 genomförd 2026-10-20 (molnmiljö):** [05.1-04B](phases/05.1-tjanstefordelning/05.1-04B-SUMMARY.md) sessionen bär scopeKind och protectedRoute nekar Egen tjänst utom på egen-rutterna. [05.1-06](phases/05.1-tjanstefordelning/05.1-06-SUMMARY.md) fördelning, behov för Gy25/GR/IM, versioner, publicering och lärarens egen läsning: SQL PASS 49/49 i tillfällig PostgreSQL 16 från migrationerna, regression 77/77 och 43/43, enhetsprov 819/819 och 331/331, komponentprov 76/76 och 18/18, bygge PASS. Migrationerna 20261020100000–120000 är inte installerade. Nästa: våg 4.
 
@@ -195,7 +197,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); våg 1–2 genomförda (01–05), inget installerat. Nästa är våg 3 (04B, 06). Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
+Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); våg 1–4 genomförda (01–08 inklusive 04B), inget installerat. Nästa är 05.1-09 (faktiskt prov kräver lokal miljö) och 05.1-10 (installation efter uttryckligt ja). Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 
