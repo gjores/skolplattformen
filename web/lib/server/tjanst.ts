@@ -129,7 +129,7 @@ function planReadActor(body: TjanstPlanRead, authority: TjanstAuthority): Tjanst
   const fn = authority.accessFunction;
   if (fn !== 'rektor' && fn !== 'administrator' && fn !== 'huvudman') invalid();
   if (fn !== 'rektor' && (body.capabilities.canPublish || body.actions.includes('publish'))) invalid();
-  if (fn === 'huvudman' && (body.capabilities.canEdit || body.actions.length)) invalid();
+  if (fn === 'huvudman' && (body.capabilities.canEdit || body.actions.length || body.feedback)) invalid();
   return body;
 }
 /** Rektor ser bara sin skolas andel och kan bara lägga upp utkastlärare (D-11). */

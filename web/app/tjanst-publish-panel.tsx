@@ -4,14 +4,10 @@ import { History, MessageSquare, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { TjanstPlanRead, TjanstVersion } from '@/lib/tjanst-contract.ts';
+import type { TjanstFeedback, TjanstPlanRead, TjanstVersion } from '@/lib/tjanst-contract.ts';
 
-/**
- * Lärarnas återkoppling för senaste publicerade version. Fördelningens läsning (tjanst_v1) bär inte kvittenser och
- * kommentarer; vyn visar dem bara när en sådan uppgift skickas in (öppen fråga i 05.1-05-SUMMARY).
- */
-export type TjanstFeedback = { versionNo: number; teachers: { personId: string; name: string; acknowledgedAt: string | null }[];
-  comments: { id: string; personId: string; name: string; at: string; body: string }[] };
+/** Lärarnas återkoppling för senaste publicerade version kommer i rektors och administratörens läsning (05.1-08). */
+export type { TjanstFeedback };
 export const STATUS_LABEL: Record<TjanstVersion['status'], string> = { draft: 'Utkast', published: 'Fastställd och publicerad', superseded: 'Ersatt av senare version', discarded: 'Borttaget utkast' };
 export const dateText = (instant: string) => new Date(instant).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
 export const timeText = (instant: string) => new Date(instant).toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm', dateStyle: 'short', timeStyle: 'short' });

@@ -11,15 +11,17 @@ import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { createTjanstFixture, grantSelf, planCommand, planRead, planRef, planSend, planStatus, seedGrimNeeds, seedGy25Class, selfRead, staffWithDuties,
-  tjanstMigrations } from './tjanst-fixtures.mjs';
+  staffingRead, tjanstMigrations } from './tjanst-fixtures.mjs';
 import { parsePlanCommandReply, parsePlanReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
-import { coverage, tjanstNeed } from '../../web/lib/tjanst-model.ts';
+import { coverage, coverageLabel, schoolSums, teacherSums, tjanstNeed } from '../../web/lib/tjanst-model.ts';
 import { summarize } from '../../web/lib/lasar-model.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261020120000_tjanst_plan.sql';
 const PREREQUISITES = tjanstMigrations.slice(0, tjanstMigrations.indexOf(OWN));
-const sourceFiles = [OWN, 'work/pilot/verify-tjanst-plan.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
+/** Senare 05.1-migrationer: 06:s fall körs om med dem installerade, och 08:s fall för specialuppdrag och samläsning läggs till. */
+const FOLLOWING = tjanstMigrations.slice(tjanstMigrations.indexOf(OWN) + 1);
+const sourceFiles = [OWN, ...FOLLOWING, 'work/pilot/verify-tjanst-plan.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
 const sources = () => Object.fromEntries(sourceFiles.map(p => [p, createHash('sha256').update(readFileSync(resolve(root, p))).digest('hex')]));
 const sql = p => readFileSync(resolve(root, p), 'utf8');
 const rollback = Error('expected_tjanst_plan_rollback');
@@ -45,7 +47,7 @@ async function fingerprint(db) {
     db`select * from pg_policies where schemaname='public' order by tablename,policyname`]);
   return createHash('sha256').update(JSON.stringify(parts)).digest('hex');
 }
-function check(report, name, detail) { report.checks.push({ name, ok: true, ...(detail === undefined ? {} : { detail }) }); console.log('PASS: ' + name); }
+function check(report, name, detail) { name += report.tag ?? ''; report.checks.push({ name, ok: true, ...(detail === undefined ? {} : { detail }) }); console.log('PASS: ' + name); }
 async function deny(tx, report, name, fn, codes, hint) {
   let error;
   try { await tx.savepoint(fn); } catch (e) { error = e; }
@@ -303,6 +305,81 @@ async function concurrency(db, connect, report, f) {
   check(report, 'två samtidiga save_row med samma revision från två anslutningar: exakt en lyckas', results);
 }
 
+
+/** 05.1-08: specialuppdrag (TJANST-02) och samläsning (TJANST-03, D-16), med paritet mot tjanst-model. */
+async function jointMatrix(tx, report, f) {
+  const A = f.schools.A, Y = 2026;
+  const p1 = await staffWithDuties(tx, f, { familyName: 'Samläsare', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
+  const p2 = await staffWithDuties(tx, f, { familyName: 'Kollega', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
+  const g = await seedGrimNeeds(tx, f);
+  await grantSelf(tx, f, { unitIds: [A], staffPersonId: p1.personId });
+  await f.actor(tx, 'principalA');
+  await tx`select public.phase51_grim_class_command(${tx.json({ action: 'link', commandId: randomUUID(), classId: f.classes.other, planId: g.grPlan, expectedPlanRevision: 0, columnId: 'ak8', expectedLinkRevision: null, previousPlanId: null })})`;
+  let d = await read(tx, A, Y);
+  const needOf = (classId, rowKey) => d.classes.find(c => c.classId === classId).needs.find(n => n.rowKey === rowKey);
+  const en7a = needOf(f.classes.group, 'engelska'), en7b = needOf(f.classes.other, 'engelska'), ma7a = needOf(f.classes.group, 'matematik');
+  assert.deepEqual([en7a.needHt, en7a.needVt], [1800, 1800]);
+  let r = await send(tx, await planCommand(A, Y, 'create_draft', d.revision, { basedOnVersionId: null }));
+  const row = async (need, personId, ht, vt) => { r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId, teacherHt: ht, teacherVt: vt, comment: '' })); return r.detail.rows.find(x => x.sourceKey === need.sourceKey && x.personId === personId).id; };
+  const r1 = await row(en7a, p1.personId, 1800, 1800), r2 = await row(en7b, p1.personId, 1800, 1800);
+  const m1 = await row(ma7a, p1.personId, 1350, 1350); await row(ma7a, p2.personId, 1350, 1350);
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: null, name: 'Engelska 7A+7B', rowIds: [r1, r2], teachers: [{ personId: p1.personId, ht: 1800, vt: 1800 }] }));
+  d = r.detail;
+  assert.ok(d.rows.filter(x => [r1, r2].includes(x.id)).every(x => x.jointGroupId === d.joints[0].id));
+  const sums = teacherSums(p1.personId, d.rows, d.specials, d.joints);
+  assert.deepEqual(sums.teaching, { ht: 1800 + 1350, vt: 1800 + 1350, year: 6300 });
+  for (const n of [en7a, en7b]) assert.deepEqual(coverage(n.sourceKey, { ht: n.needHt, vt: n.needVt }, d.rows, d.joints).covered, { ht: 1800, vt: 1800 });
+  check(report, 'samläsning 2 klasser × 60 h behov och 1 lärare 60 h: lärartotal 60 h och båda klasserna täckta (tjanst-model på SQL-svaret)', sums.teaching);
+  assert.equal(coverageLabel(coverage(ma7a.sourceKey, { ht: ma7a.needHt, vt: ma7a.needVt }, d.rows, d.joints)), '90 av 90 h · 2 lärare');
+  check(report, '1 klass med 2 lärare ger full täckning och 2 lärare (90 av 90 h · 2 lärare)');
+  await deny(tx, report, 'samläsning med rader i bara en klass ger tjanst_joint_too_few', async t => send(t, await planCommand(A, Y, 'save_joint', d.revision, { jointId: null, name: 'Fel', rowIds: [m1, d.rows.find(x => x.sourceKey === ma7a.sourceKey && x.personId === p2.personId).id], teachers: [] })), ['22023'], 'tjanst_joint_too_few');
+  const m7b = await (async () => { r = { detail: d }; return row(needOf(f.classes.other, 'matematik'), p2.personId, 600, 600); })(); d = r.detail;
+  await deny(tx, report, 'rad som redan ingår i en samläsning ger tjanst_joint_already', async t => send(t, await planCommand(A, Y, 'save_joint', d.revision, { jointId: null, name: 'Dubbel', rowIds: [r1, m7b], teachers: [] })), ['22023'], 'tjanst_joint_already');
+  await deny(tx, report, 'lärartid för en lärare utanför radernas lärare nekas', async t => send(t, await planCommand(A, Y, 'save_joint', d.revision, { jointId: null, name: 'Fel lärare', rowIds: [m1, m7b], teachers: [{ personId: f.id(99), ht: 60, vt: 0 }] })), ['22023'], 'tjanst_invalid');
+  await deny(tx, report, 'en rad i en samläsning kan inte tas bort innan gruppen löses upp', async t => send(t, await planCommand(A, Y, 'delete_row', d.revision, { rowId: r1 })), ['22023'], 'tjanst_joint_already');
+  await tx.savepoint(async t => {
+    const mixed = await send(t, await planCommand(A, Y, 'save_joint', d.revision, { jointId: null, name: 'Blandgrupp', rowIds: [m1, m7b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }, { personId: p2.personId, ht: 600, vt: 600 }] }));
+    assert.equal(mixed.detail.joints.length, 2);
+    const dissolved = await send(t, await planCommand(A, Y, 'dissolve_joint', mixed.detail.revision, { jointId: mixed.detail.joints.find(j => j.name === 'Blandgrupp').id }));
+    const kept = Object.fromEntries(dissolved.detail.rows.filter(x => [m1, m7b].includes(x.id)).map(x => [x.id, [x.teacherHt, x.jointGroupId]]));
+    assert.deepEqual(kept, { [m1]: [1350, null], [m7b]: [600, null] });
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  check(report, 'blandgrupp mellan två kurser i två klasser godkänns; upplösning behåller radernas egen tid');
+  // Specialuppdrag: programansvar utan grupp och mentor med klass.
+  await deny(tx, report, 'specialuppdrag annat än mentor med klass nekas', async t => send(t, await planCommand(A, Y, 'save_special', d.revision, { specialId: null, kind: 'programansvar', label: 'Programansvar', personId: p1.personId, classId: f.classes.group, ht: 600, vt: 600, comment: '' })), ['22023'], 'tjanst_invalid');
+  r = await send(tx, await planCommand(A, Y, 'save_special', d.revision, { specialId: null, kind: 'programansvar', label: 'Programansvar GR', personId: p1.personId, classId: null, ht: 1200, vt: 600, comment: '' }));
+  r = await send(tx, await planCommand(A, Y, 'save_special', r.detail.revision, { specialId: null, kind: 'mentor', label: 'Mentor 7A', personId: p2.personId, classId: f.classes.group, ht: 600, vt: 600, comment: '' }));
+  r = await send(tx, await planCommand(A, Y, 'save_special', r.detail.revision, { specialId: null, kind: 'annat', label: 'Vakant uppdrag', personId: null, classId: null, ht: 300, vt: 0, comment: '' }));
+  d = r.detail;
+  await deny(tx, report, 'CHECK nekar klass på annat uppdrag än mentor även vid direkt skrivning', t => t`update public.tjanst_special_assignments set class_id=${f.classes.group} where label='Programansvar GR'`, ['23514']);
+  assert.deepEqual(teacherSums(p1.personId, d.rows, d.specials, d.joints).special, { ht: 1200, vt: 600, year: 1800 });
+  r = await send(tx, await planCommand(A, Y, 'publish', d.revision, {}, { expectedContentHash: d.version.contentHash }));
+  d = r.detail;
+  await f.actor(tx, 'teacherSelf');
+  const own = parseSelfReadReply(await selfRead(tx)).publications[0];
+  assert.deepEqual(own.specials.map(x => [x.kind, x.className, x.ht, x.vt]), [['programansvar', null, 1200, 600]]);
+  const jointRows = own.rows.filter(x => x.joint);
+  assert.equal(jointRows.length, 2); assert.deepEqual(jointRows[0].joint.colleagues, []); assert.equal(jointRows[0].joint.ht, 1800);
+  check(report, 'spår: programansvar publicerat syns hos läraren under Specialuppdrag, i summan Specialuppdrag och inte i Undervisning');
+  check(report, 'lärarens egen läsning visar samläsningen med lärarens tid i gruppen en gång och utan kollegors uppgifter utanför gruppen');
+  await deny(tx, report, 'publicerad samläsningsgrupp är oföränderlig', t => t`update public.tjanst_joint_groups set name='Ändrad' where version_id=${d.version.id}`, ['42501']);
+  await deny(tx, report, 'publicerat specialuppdrag är oföränderligt', t => t`delete from public.tjanst_special_assignments where version_id=${d.version.id}`, ['42501']);
+  await f.actor(tx, 'principalA');
+  const next = await send(tx, await planCommand(A, Y, 'create_draft', d.revision, { basedOnVersionId: d.version.id }));
+  const lineages = async v => [...(await tx`select lineage_id from public.tjanst_joint_groups where version_id=${v}`), ...(await tx`select lineage_id from public.tjanst_special_assignments where version_id=${v}`)].map(x => x.lineage_id).sort();
+  assert.deepEqual(await lineages(next.receipt.versionId), await lineages(d.version.id));
+  assert.deepEqual(next.detail.joints[0].rowIds.length, 2); assert.equal(next.detail.specials.length, 3);
+  check(report, 'nytt utkast kopierar specialuppdrag och samläsningar med nya id och samma lineage_id');
+  // Bemanningens summor lika tjanst-model.schoolSums för samma publicerade fixtur.
+  await f.actor(tx, 'hm');
+  const staffing = await staffingRead(tx, { schoolYear: Y });
+  const unitSums = staffing.units.find(u => u.unitId === A).sums;
+  assert.deepEqual(unitSums, schoolSums(d.classes, d.rows, d.specials, d.joints));
+  assert.equal(unitSums.teaching.ht, 1800 + 1350 + 1350 + 600);
+  check(report, 'samläst tid räknas en gång i bemanningen; summorna är lika i SQL och tjanst-model.schoolSums', unitSums);
+}
+
 export async function verifyTjanstPlan(out, { ephemeral = false } = {}) {
   const output = resolve(out);
   assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'REFUSED: use --out /private/tmp/<name>.json');
@@ -365,6 +442,18 @@ export async function verifyTjanstPlan(out, { ephemeral = false } = {}) {
     catch (e) { if (e !== rollback) throw e; }
     assert.deepEqual(await allPublicHashes(db), installed);
     check(report, 'hela planprovet rullas tillbaka utan kvarvarande rader');
+    for (const p of FOLLOWING) await db.begin(tx => tx.unsafe(sql(p)));
+    report.following = FOLLOWING;
+    const withFollowing = await allPublicHashes(db);
+    report.tag = ' (med 05.1-08 installerad)';
+    try { await db.begin(async tx => { await tx`set local lock_timeout='10s'`; await tx`set local statement_timeout='120s'`; await matrix(tx, report, f); throw rollback; }); }
+    catch (e) { if (e !== rollback) throw e; }
+    report.tag = '';
+    try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await jointMatrix(tx, report, f); throw rollback; }); }
+    catch (e) { if (e !== rollback) throw e; }
+    assert.deepEqual(await allPublicHashes(db), withFollowing);
+    check(report, 'specialuppdrag- och samläsningsprovet rullas tillbaka utan kvarvarande rader');
+    // Samtidighetsprovet committar sina fixturer och körs därför sist.
     await concurrency(db, source.connect, report, f);
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, where: e.where, stack: e.stack }; }
   finally {

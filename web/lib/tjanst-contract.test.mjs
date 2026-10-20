@@ -164,7 +164,7 @@ test('personal: kommandon är slutna, procent i heltal 1–100 och skapande krä
 
 const publication = (extra = {}) => ({ versionId: uid(70), versionNo: 2, unitId: unit, schoolName: 'Syntetiska gymnasiet', schoolYear: year,
   publishedAt: '2026-08-20T08:00:00.000Z', contentHash: hash('c'), rows: [{ id: uid(30), className: 'BA26A', rowKey, label: 'Bygg 1', ht: 3000, vt: 3000,
-    joint: { name: 'Samläsning', colleagues: ['Syntetisk Kollega'] } }], specials: [], acknowledgedAt: null, comments: [], ...extra });
+    joint: { jointId: uid(90), name: 'Samläsning', colleagues: ['Syntetisk Kollega'], ht: 1800, vt: 1800 } }], specials: [], acknowledgedAt: null, comments: [], ...extra });
 const selfRead = (pubs = [publication()]) => ({ contractVersion: 'tjanst_v1', person: { id: person, displayName: 'Syntetisk Lärare' }, publications: pubs, capabilities: { canAck: true, canComment: true } });
 
 test('egen väg: inget person-ID från klienten, kvittens utan text och kommentar högst 2 000 tecken', () => {
@@ -206,4 +206,16 @@ test('statusreferens bär bara familj, commandId, åtgärd och mål', () => {
   const done = parseStatusReply({ state: 'completed', result: { receipt: { commandId: uid(40) } } }, ref, v => v);
   assert.equal(done.state, 'completed');
   rejects(() => parseStatusReply({ state: 'completed', result: { receipt: { commandId: uid(41) } } }, ref, v => v), 'tjanst_command_conflict');
+});
+
+test('återkoppling i rektors läsning: valfri, bara för publicerad version och med slutna fält', () => {
+  const pub = version({ id: uid(51), versionNo: 1, status: 'published', publishedByName: 'Syntetisk Rektor', publishedAt: '2026-08-20T08:00:00.000Z' });
+  const feedback = { versionNo: 1, teachers: [{ personId: person, name: 'Syntetisk Lärare', acknowledgedAt: '2026-08-21T08:00:00.000Z' }],
+    comments: [{ id: uid(95), personId: person, name: 'Syntetisk Lärare', at: '2026-08-21T09:00:00.000Z', body: 'Syntetisk kommentar' }] };
+  const reply = read({ versions: [pub, version({ versionNo: 2 })], feedback });
+  assert.equal(parsePlanReadReply(reply, { unitId: unit, schoolYear: year }).feedback.comments[0].body, 'Syntetisk kommentar');
+  assert.equal(parsePlanReadReply(read(), { unitId: unit, schoolYear: year }).feedback, undefined);
+  rejects(() => parsePlanReadReply(read({ feedback }), { unitId: unit, schoolYear: year }));
+  rejects(() => parsePlanReadReply({ ...reply, feedback: { ...feedback, extra: 1 } }, { unitId: unit, schoolYear: year }));
+  rejects(() => parsePlanReadReply({ ...reply, feedback: { ...feedback, comments: [{ ...feedback.comments[0], body: 'x'.repeat(2001) }] } }, { unitId: unit, schoolYear: year }));
 });

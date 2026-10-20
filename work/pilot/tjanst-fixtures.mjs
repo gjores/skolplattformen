@@ -10,7 +10,7 @@ import { tjanstPayloadHash } from '../../web/lib/tjanst-contract.ts';
 
 /** Installationsordning för fas 05.1:s migrationer (planerna 06, 08 och 09 lägger till sina sist). */
 export const tjanstMigrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql',
-  'supabase/migrations/20261020120000_tjanst_plan.sql'];
+  'supabase/migrations/20261020120000_tjanst_plan.sql', 'supabase/migrations/20261020130000_tjanst_assignments_feedback.sql'];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 
@@ -118,6 +118,10 @@ export const planSend = async (t, q) => (await t`select public.tjanst_plan_comma
 export async function planCommand(unitId, schoolYear, action, expectedRevision, payload, extra = {}) {
   return { commandId: randomUUID(), unitId, schoolYear, action, expectedRevision, payloadHash: await tjanstPayloadHash(action, payload), payload, ...extra };
 }
+export const selfSend = async (t, q) => (await t`select public.tjanst_self_command(${t.json(q)}) value`)[0].value;
+export const selfStatus = async (t, q) => (await t`select public.tjanst_self_status(${t.json(q)}) value`)[0].value;
+export const staffingRead = async (t, q) => (await t`select public.tjanst_staffing_read(${t.json(q)}) value`)[0].value;
+export const selfRef = q => ({ family: 'self', commandId: q.commandId, action: q.action, target: { unitId: null, schoolYear: null, versionId: q.versionId, personId: null } });
 export const planRef = q => ({ family: 'plan', commandId: q.commandId, action: q.action, target: { unitId: q.unitId, schoolYear: q.schoolYear, versionId: null, personId: null } });
 
 /**

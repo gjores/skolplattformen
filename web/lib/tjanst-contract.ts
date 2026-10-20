@@ -54,13 +54,16 @@ export type TjanstSpecial = { id: string; lineageId: string; kind: TjanstSpecial
 export type TjanstJointTeacher = { personId: string; ht: number; vt: number };
 export type TjanstJoint = { id: string; lineageId: string; name: string; rowIds: string[]; teachers: TjanstJointTeacher[] };
 export type TjanstPlanCapabilities = { canEdit: boolean; canPublish: boolean; canReadHistory: boolean };
+/** Lärarnas kvittenser och kommentarer för den publicerade versionen; bara i rektors och administratörens läsning (05.1-08). */
+export type TjanstFeedback = { versionNo: number; teachers: { personId: string; name: string; acknowledgedAt: string | null }[];
+  comments: { id: string; personId: string; name: string; at: string; body: string }[] };
 
 export type TjanstPlanReadRequest = { unitId: string; schoolYear: number; versionId?: string };
 export type TjanstPlanRead = { contractVersion: typeof TJANST_CONTRACT_VERSION; unitId: string; schoolName: string; schoolYear: number;
   /** Distribution revision; every plan command expects it and the receipt returns it + 1. */
   revision: number; version: TjanstVersion | null; versions: TjanstVersion[]; teachers: TjanstTeacher[]; classes: TjanstClass[];
   rows: TjanstRow[]; specials: TjanstSpecial[]; joints: TjanstJoint[]; actions: TjanstPlanAction[]; blockers: TjanstBlocker[];
-  capabilities: TjanstPlanCapabilities };
+  capabilities: TjanstPlanCapabilities; feedback?: TjanstFeedback };
 
 export type TjanstPlanPayload = {
   create_draft: { basedOnVersionId: string | null };
@@ -105,7 +108,8 @@ export type TjanstPersonalReceipt = { commandId: string; action: TjanstPersonalA
 export type TjanstPersonalCommandReply = { receipt: TjanstPersonalReceipt; detail: TjanstPersonalRead };
 
 export type TjanstSelfRow = { id: string; className: string; rowKey: string; label: string; ht: number; vt: number;
-  joint: null | { name: string; colleagues: string[] } };
+  /** ht/vt is the teacher's time in the joint group, counted once per group (D-16). */
+  joint: null | { jointId: string; name: string; colleagues: string[]; ht: number; vt: number } };
 export type TjanstSelfSpecial = { id: string; kind: TjanstSpecialKind; label: string; className: string | null; ht: number; vt: number };
 export type TjanstSelfComment = { id: string; body: string; at: string };
 export type TjanstSelfPublication = { versionId: string; versionNo: number; unitId: string; schoolName: string; schoolYear: number;
@@ -367,11 +371,19 @@ function parseJoint(value: unknown): TjanstJoint {
   return { id: uuid(j.id), lineageId: uuid(j.lineageId), name: name(j.name), rowIds,
     teachers: unique(list(j.teachers, TJANST_LIMITS.teachers, parseTeacherTime), t => t.personId) };
 }
+function parseFeedback(value: unknown): TjanstFeedback {
+  const f = shape(value, ['versionNo', 'teachers', 'comments']);
+  const teachers = unique(list(f.teachers, TJANST_LIMITS.teachers, v => { const t = shape(v, ['personId', 'name', 'acknowledgedAt']);
+    return { personId: uuid(t.personId), name: name(t.name), acknowledgedAt: nullableInstant(t.acknowledgedAt) }; }), t => t.personId);
+  const comments = unique(list(f.comments, TJANST_LIMITS.feedback, v => { const c = shape(v, ['id', 'personId', 'name', 'at', 'body']);
+    return { id: uuid(c.id), personId: uuid(c.personId), name: name(c.name), at: instant(c.at), body: text(c.body, TJANST_LIMITS.comment, false, 'tjanst_comment_too_long') }; }), c => c.id);
+  return { versionNo: gymInteger(f.versionNo, 2147483647, 1), teachers, comments };
+}
 export function parsePlanReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstPlanRead {
   return guarded(() => {
     const request = parsePlanReadRequest(expected);
-    const r = shape(value, ['contractVersion', 'unitId', 'schoolName', 'schoolYear', 'revision', 'version', 'versions', 'teachers', 'classes',
-      'rows', 'specials', 'joints', 'actions', 'blockers', 'capabilities']);
+    const r = optionalShape(value, ['contractVersion', 'unitId', 'schoolName', 'schoolYear', 'revision', 'version', 'versions', 'teachers', 'classes',
+      'rows', 'specials', 'joints', 'actions', 'blockers', 'capabilities'], ['feedback']);
     const unitId = uuid(r.unitId), year = schoolYear(r.schoolYear);
     if (unitId !== request.unitId || year !== request.schoolYear) bad('wrong_scope');
     const version = r.version === null ? null : parseVersion(r.version);
@@ -394,8 +406,11 @@ export function parsePlanReadReply(value: unknown, expected: TjanstPlanReadReque
     const caps = shape(r.capabilities, ['canEdit', 'canPublish', 'canReadHistory']);
     const capabilities = { canEdit: bool(caps.canEdit), canPublish: bool(caps.canPublish), canReadHistory: bool(caps.canReadHistory) };
     if ((capabilities.canEdit || capabilities.canPublish) && version?.status !== 'draft' && version !== null) bad();
+    const feedback = has(r, 'feedback') ? parseFeedback(r.feedback) : undefined;
+    if (feedback && !versions.some(v => v.status === 'published' && v.versionNo === feedback.versionNo)) bad();
     return { contractVersion: contract(r.contractVersion), unitId, schoolName: name(r.schoolName), schoolYear: year, revision: revision(r.revision),
-      version, versions, teachers, classes, rows, specials, joints, actions: actions(r.actions, TJANST_PLAN_ACTIONS), blockers: blockers(r.blockers), capabilities };
+      version, versions, teachers, classes, rows, specials, joints, actions: actions(r.actions, TJANST_PLAN_ACTIONS), blockers: blockers(r.blockers), capabilities,
+      ...(feedback ? { feedback } : {}) };
   });
 }
 export function parsePlanCommandReply(value: unknown, command: TjanstPlanCommand): TjanstPlanCommandReply {
@@ -507,7 +522,8 @@ function parseSelfPublication(value: unknown): TjanstSelfPublication {
   const p = shape(value, ['versionId', 'versionNo', 'unitId', 'schoolName', 'schoolYear', 'publishedAt', 'contentHash', 'rows', 'specials', 'acknowledgedAt', 'comments']);
   const rows = unique(list(p.rows, TJANST_LIMITS.rows, v => { const r = shape(v, ['id', 'className', 'rowKey', 'label', 'ht', 'vt', 'joint']);
     let joint: TjanstSelfRow['joint'] = null;
-    if (r.joint !== null) { const j = shape(r.joint, ['name', 'colleagues']); joint = { name: name(j.name), colleagues: list(j.colleagues, 50, name) }; }
+    if (r.joint !== null) { const j = shape(r.joint, ['jointId', 'name', 'colleagues', 'ht', 'vt']);
+      joint = { jointId: uuid(j.jointId), name: name(j.name), colleagues: list(j.colleagues, 50, name), ht: minutes(j.ht), vt: minutes(j.vt) }; }
     return { id: uuid(r.id), className: text(r.className, 60, false), rowKey: rowKey(r.rowKey), label: text(r.label, 300, false), ht: minutes(r.ht), vt: minutes(r.vt), joint }; }), r => r.id);
   const specials = unique(list(p.specials, TJANST_LIMITS.specials, v => { const s = shape(v, ['id', 'kind', 'label', 'className', 'ht', 'vt']);
     const kind = choice(s.kind, TJANST_SPECIAL_KINDS), className = s.className === null ? null : text(s.className, 60, false);
