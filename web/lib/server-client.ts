@@ -7,12 +7,15 @@ export class ApiError extends Error {
   public correlationId: string | null;
   public details: ConflictDetails | null;
   public hasExplicitCode: boolean;
+  /** Vitlistad felorsak från tjänstefördelningens SQL (details.reason, t.ex. tjanst_capacity_exceeded); aldrig fri text. */
+  public reason: string | null;
   constructor(
     code: string,
     status: number,
     correlationId: string | null,
     details: ConflictDetails | null = null,
     hasExplicitCode = false,
+    reason: string | null = null,
   ) {
     super(messageText(code));
     this.name = 'ApiError';
@@ -21,6 +24,7 @@ export class ApiError extends Error {
     this.correlationId = correlationId;
     this.details = details;
     this.hasExplicitCode = hasExplicitCode;
+    this.reason = reason;
   }
 }
 
@@ -124,7 +128,10 @@ async function request<T>(
       // Tekniska fel och svar från ändrad serverkontext bär aldrig elevfält.
       const details = !unexpectedEpoch && code === 'conflict' && response.status === 409
         ? parseConflictDetails(error.details) : null;
-      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode);
+      const reason = !unexpectedEpoch && error.details && typeof error.details === 'object' && !Array.isArray(error.details)
+        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^tjanst_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
+        ? (error.details as { reason: string }).reason : null;
+      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason);
     }
     if (unexpectedEpoch) {
       throw new DOMException('Begäran tillhör en tidigare kontext.', 'AbortError');

@@ -13,13 +13,13 @@ import ProtectedPermissionDialog from './protected-permission-dialog';
 type School = { id: string; name: string };
 type Mandate = {
   id: string; displayName: string; function: AccessFunction; schools: School[];
-  scopeKind: 'school' | 'group' | 'pupil' | 'case';
+  scopeKind: 'school' | 'group' | 'pupil' | 'case' | 'self';
   validFrom: string; validTo: string | null; startsAt: string | null; endsAt: string | null;
   status: 'giltigt' | 'kommande'; approverName: string | null; purposeCode: string | null;
 };
 type Connection = { unitId: string; enabled: boolean; version: number; result: string | null };
 type Props = { context: ActiveContext; epoch: number; onMfaRequired: () => void; onSessionLost: () => void };
-const scopeLabels = { school: 'Skola', group: 'Tilldelade grupper', pupil: 'Tilldelade elever', case: 'Tilldelade ärenden' };
+const scopeLabels = { school: 'Skola', group: 'Tilldelade grupper', pupil: 'Tilldelade elever', case: 'Tilldelade ärenden', self: 'Egen tjänst' };
 
 function validity(row: Mandate) {
   if (row.startsAt && row.endsAt) return `${new Date(row.startsAt).toLocaleString('sv-SE')} – ${new Date(row.endsAt).toLocaleString('sv-SE')}`;

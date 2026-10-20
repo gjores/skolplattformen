@@ -15,6 +15,8 @@ export type PlanningContextValue = { setup: PlanningSetup | null; selection: Pla
   filtersOpen: boolean; setFiltersOpen: (open: boolean) => void;
   error: string | null; normalizationNotice: string | null; matrixYear: PlanningMatrixYear | null; requestMatrixYear: (year: PlanningMatrixYear) => void; requestChange: (patch: Partial<PlanningSelection>) => void; retry: () => void };
 const Context = createContext<PlanningContextValue | null>(null);
+/** Planeringsvalet följer med till Tjänstefördelning (05.1-07). */
+export const PLANNING_SCOPE_TEXT = 'Gäller årsöverblick, programplaner, timplaner och tjänstefördelning.';
 const WAIT = 'Invänta sparandet eller läs sparstatus innan du byter planeringsval.';
 type State = { key: string; active: boolean; inputQuery: string | null; ready: boolean; setup: PlanningSetup | null;
   location: PlanLocation | null; loading: boolean; error: string | null; notice: string | null };
@@ -154,7 +156,7 @@ export function PlanningContextBar() {
       {selection.schoolYear === setup.currentYear ? <span className="planning-context-current">Aktuellt läsår</span> :
         <button type="button" disabled={loading} onClick={() => requestChange({ schoolYear: setup.currentYear })}>Till aktuellt läsår</button>}
     </div>
-    <p className="planning-context-scope">Gäller årsöverblick, programplaner och timplaner.</p>
+    <p className="planning-context-scope">{PLANNING_SCOPE_TEXT}</p>
     {!units.length && <output>Du har ingen läsbehörig skola för den här skolformen.</output>}
     {normalizationNotice && <output>{normalizationNotice}</output>}
     {error && <p role="alert">{error} <button type="button" onClick={retry}>Försök igen</button></p>}

@@ -91,7 +91,9 @@ export type TjanstPerson = { id: string; givenName: string; familyName: string; 
   /** Organizer scope only; always empty for a principal (D-11). */
   employments: TjanstEmployment[];
   /** Organizer scope: every duty. Unit scope: only the requested school's share. */
-  duties: TjanstDuty[] };
+  duties: TjanstDuty[];
+  /** Organizer scope only: an active binding to an account exists. Never present for a principal (D-11). */
+  account?: boolean };
 export type TjanstPersonalReadRequest = { personId?: string; unitId?: string };
 export type TjanstPersonalRead = { contractVersion: typeof TJANST_CONTRACT_VERSION; scope: 'organizer' | 'unit'; unitId: string | null;
   people: TjanstPerson[]; actions: TjanstPersonalAction[]; blockers: TjanstBlocker[]; capabilities: { canManage: boolean; canCreateDraft: boolean } };
@@ -444,13 +446,13 @@ function externalId(value: unknown, source: unknown): { externalId: string | nul
     : { externalId: text(value, TJANST_LIMITS.externalId, false), externalIdSource: text(source, TJANST_LIMITS.externalIdSource, false) };
 }
 function parsePerson(value: unknown): TjanstPerson {
-  const p = shape(value, ['id', 'givenName', 'familyName', 'externalId', 'externalIdSource', 'status', 'proposedForUnitId', 'draftNote', 'revision', 'employments', 'duties']);
+  const p = optionalShape(value, ['id', 'givenName', 'familyName', 'externalId', 'externalIdSource', 'status', 'proposedForUnitId', 'draftNote', 'revision', 'employments', 'duties'], ['account']);
   const status = choice(p.status, ['active', 'draft'] as const), proposedForUnitId = nullableUuid(p.proposedForUnitId);
   const draftNote = p.draftNote === null ? null : text(p.draftNote, TJANST_LIMITS.draftNote);
   if (status === 'draft' && proposedForUnitId === null) bad();
   return { id: uuid(p.id), givenName: name(p.givenName), familyName: name(p.familyName), ...externalId(p.externalId, p.externalIdSource), status,
     proposedForUnitId, draftNote, revision: revision(p.revision), employments: unique(list(p.employments, TJANST_LIMITS.employments, parseEmployment), e => e.id),
-    duties: unique(list(p.duties, TJANST_LIMITS.duties, parseDuty), d => d.id) };
+    duties: unique(list(p.duties, TJANST_LIMITS.duties, parseDuty), d => d.id), ...(has(p, 'account') ? { account: bool(p.account) } : {}) };
 }
 export function parsePersonalReadRequest(value: unknown): TjanstPersonalReadRequest {
   return guarded(() => {
@@ -467,7 +469,8 @@ export function parsePersonalReadReply(value: unknown, expected: TjanstPersonalR
     if ((scope === 'unit') !== (unitId !== null) || request.unitId !== undefined && unitId !== request.unitId || scope === 'unit' && request.unitId === undefined) bad('wrong_scope');
     const people = unique(list(r.people, TJANST_LIMITS.people, parsePerson), p => p.id);
     if (request.personId !== undefined && people.some(p => p.id !== request.personId)) bad('wrong_scope');
-    if (scope === 'unit' && people.some(p => p.employments.length || p.duties.some(d => d.unitId !== unitId) || p.status === 'draft' && p.proposedForUnitId !== unitId)) bad('wrong_scope');
+    if (scope === 'organizer' && people.some(p => p.account === undefined)) bad();
+    if (scope === 'unit' && people.some(p => p.account !== undefined || p.employments.length || p.duties.some(d => d.unitId !== unitId) || p.status === 'draft' && p.proposedForUnitId !== unitId)) bad('wrong_scope');
     if (scope === 'organizer') for (const p of people) {
       const nested = p.employments.flatMap(e => e.duties).map(d => d.id).sort();
       if (JSON.stringify(nested) !== JSON.stringify(p.duties.map(d => d.id).sort())) bad();

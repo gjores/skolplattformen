@@ -138,8 +138,13 @@ test('personal: rektorns läsning har bara egen skolas andel och inga anställni
   rejects(() => parsePersonalReadReply(unitRead([personBody({ employments: [employment], duties: [duty(61, unit, 60)] })]), { unitId: unit }), 'wrong_scope');
   rejects(() => parsePersonalReadReply(unitRead([], { canManage: true, canCreateDraft: true }), { unitId: unit }));
   const hm = { contractVersion: 'tjanst_v1', scope: 'organizer', unitId: null, actions: ['create_person', 'save_employment', 'save_duties'], blockers: [], capabilities: { canManage: true, canCreateDraft: false },
-    people: [personBody({ employments: [{ ...employment, duties: [duty(61, unit, 60), duty(62, uid(2), 40)] }], duties: [duty(61, unit, 60), duty(62, uid(2), 40)] })] };
+    people: [personBody({ employments: [{ ...employment, duties: [duty(61, unit, 60), duty(62, uid(2), 40)] }], duties: [duty(61, unit, 60), duty(62, uid(2), 40)], account: true })] };
   assert.equal(parsePersonalReadReply(hm, {}).people[0].employments[0].duties.length, 2);
+  assert.equal(parsePersonalReadReply(hm, {}).people[0].account, true);
+  // Kontouppgiften finns bara i huvudmannens läsning: den krävs där och nekas i rektorns läsning (D-11).
+  { const { account: _omitted, ...withoutAccount } = hm.people[0]; void _omitted; rejects(() => parsePersonalReadReply({ ...hm, people: [withoutAccount] }, {})); }
+  rejects(() => parsePersonalReadReply({ ...hm, people: [{ ...hm.people[0], account: 'ja' }] }, {}));
+  rejects(() => parsePersonalReadReply(unitRead([personBody({ duties: [duty(61, unit, 60)], account: false })]), { unitId: unit }), 'wrong_scope');
   rejects(() => parsePersonalReadReply({ ...hm, people: [personBody({ ssn: '19900101-1234' })] }, {}));
 });
 

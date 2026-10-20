@@ -204,7 +204,7 @@ const draftPerson = { id: uid(21), givenName: 'Syntetisk', familyName: 'Utkast',
   draftNote: '', revision: 1, employments: [], duties: [] };
 const unitPersonal = (extra = {}) => ({ contractVersion: 'tjanst_v1', scope: 'unit', unitId: unit, people: [draftPerson], actions: ['create_draft_teacher'], blockers: [],
   capabilities: { canManage: false, canCreateDraft: true }, ...extra });
-const organizerPersonal = () => ({ contractVersion: 'tjanst_v1', scope: 'organizer', unitId: null, people: [draftPerson],
+const organizerPersonal = () => ({ contractVersion: 'tjanst_v1', scope: 'organizer', unitId: null, people: [{ ...draftPerson, account: false }],
   actions: ['create_person', 'update_person', 'save_employment', 'save_duties'], blockers: [], capabilities: { canManage: true, canCreateDraft: false } });
 const draftTeacher = { commandId: uid(42), action: 'create_draft_teacher', expectedRevision: 0, payload: { unitId: unit, givenName: 'Syntetisk', familyName: 'Utkast', draftNote: '' } };
 const createPerson = { commandId: uid(43), action: 'create_person', expectedRevision: 0, payload: { givenName: 'Syntetisk', familyName: 'Person', externalId: null, externalIdSource: null } };

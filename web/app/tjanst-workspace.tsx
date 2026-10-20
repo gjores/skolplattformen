@@ -40,7 +40,9 @@ type Dialog =
 type ReadFailure = { text: string; clear: boolean; retry: boolean; correlationId: string | null };
 export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unitId: string | null; schoolYear: number;
   /** Krävs för skrivningar: journalen binds till inloggad identitet och uppdrag (tjanst-journal). */
-  identityKey?: string | null; feedback?: TjanstFeedback; onOpenClassLinks?: () => void; onSessionLost?: () => void };
+  identityKey?: string | null; feedback?: TjanstFeedback; onOpenClassLinks?: () => void; onSessionLost?: () => void;
+  /** Huvudmannens Visa fördelningen (Bemanning): skrivskyddad, utan åtgärdsrad, panel och beslutsknapp (D-01). */
+  readOnly?: boolean };
 
 function readLocation(): { view: TjanstView; term: TjanstTermView; saved: Saved } {
   const q = new URLSearchParams(window.location.search), view = q.get('tjvy'), term = q.get('termin');
@@ -86,7 +88,7 @@ export default function TjanstWorkspace(props: TjanstWorkspaceProps) {
   return <Workspace key={`${props.epoch}-${props.context.assignmentId}-${props.unitId ?? 'alla'}-${props.schoolYear}`} {...props}/>;
 }
 
-function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, onOpenClassLinks, onSessionLost }: TjanstWorkspaceProps) {
+function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onSessionLost, readOnly = false }: TjanstWorkspaceProps) {
   const [initial] = useState(readLocation);
   const [view, setView] = useState<TjanstView>(initial.view), [term, setTerm] = useState<TjanstTermView>(initial.term);
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
@@ -162,13 +164,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   useEffect(() => { queueMicrotask(() => void recover()); }, [recover]);
 
   const writeFailure = useCallback((caught: ApiError, op: Op): TjanstFailure => {
-    const correlationId = caught.correlationId, reload = refresh, code = caught.code;
+    const correlationId = caught.correlationId, reload = refresh, code = caught.reason ?? caught.code;
     if (caught.code === 'mfa_required') return failed('', { mfa: op === 'publish' ? 'Att fastställa och publicera kräver verifiering med engångskod.'
       : op === 'personal' ? 'Att ändra personaluppgifter kräver verifiering med engångskod.' : 'Att ändra tjänstefördelningen kräver verifiering med engångskod.' });
     if (code === 'audit_unavailable') return failed('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig. Dina uppgifter finns kvar i formuläret.', { correlationId, code });
     if (LOCK_CODES.includes(caught.code)) return failed('Uppdraget har ändrats. Ladda om arbetsytan.', { correlationId });
     if (caught.status === 403) return failed(op === 'publish' ? 'Bara rektor kan fastställa och publicera tjänstefördelningen.' : 'Ditt aktuella uppdrag tillåter inte ändringen.', { correlationId });
-    if (caught.status === 409) return failed(caught.code === 'tjanst_published_meanwhile'
+    if (caught.status === 409) return failed(code === 'tjanst_published_meanwhile'
       ? `Version ${data?.version?.versionNo ?? ''} har publicerats under tiden. Hämta aktuellt läge och välj Ändra i ny version.`
       : 'Fördelningen har ändrats av någon annan. Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.', { correlationId, code, refresh: reload });
     if (caught.status === 400) return failed(REASONS[code] ?? 'Formuläret innehåller fel. Rätta de markerade fälten.', { correlationId, code });
@@ -257,7 +259,9 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
     writeLocation(view, term, next, 'replace');
   }
 
-  const editable = !!data && data.capabilities.canEdit && data.version?.status === 'draft' && !versionId && !phone && !!scope;
+  // Rektor och administratör får lärarnas återkoppling i läsningen; huvudmannens läsning har den aldrig (lib/server/tjanst.ts).
+  const feedback = feedbackProp ?? data?.feedback;
+  const editable = !readOnly && !!data && data.capabilities.canEdit && data.version?.status === 'draft' && !versionId && !phone && !!scope;
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
   const shownView: TjanstView = phone && view === 'matris' ? 'larare' : view;
   const teachers = useMemo(() => data ? sortTeachers(data.teachers) : [], [data]);
@@ -292,7 +296,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   const visibleKeys = useMemo(() => new Set(filtered.flatMap(g => g.entries.map(e => e.need.sourceKey))), [filtered]);
 
   if (!unitId) return <div className="admin-workspace protected-admin tjanst">
-    <Heading schoolName={null} schoolYear={schoolYear} forms={[]} admin={context.function === 'administrator'}/>
+    <Heading schoolName={null} schoolYear={schoolYear} forms={[]} admin={context.function === 'administrator'} readOnly={readOnly}/>
     <div className="admin-empty tjanst-state"><h2>Välj skola</h2><p>Välj en skola i planeringsvalet. En tjänstefördelning gäller en skola.</p></div>
   </div>;
 
@@ -301,7 +305,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
   const confirm = dialog?.kind === 'confirm' ? dialog : null;
   const base = { checking, open: !phone };
   return <div className="admin-workspace protected-admin tjanst" aria-busy={loading}>
-    <Heading schoolName={data?.schoolName ?? null} schoolYear={schoolYear} forms={schoolforms} admin={context.function === 'administrator'}/>
+    <Heading schoolName={data?.schoolName ?? null} schoolYear={schoolYear} forms={schoolforms} admin={context.function === 'administrator'} readOnly={readOnly}/>
     {data && <div className="tjanst-status protected-card">
       <div className="tjanst-status-main">
         {data.version ? <><Badge variant="outline" className="tjanst-badge">{STATUS_LABEL[data.version.status]}</Badge><strong>Version {data.version.versionNo}</strong></> : <strong>Ingen version ännu</strong>}
@@ -312,10 +316,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
         {data.capabilities.canReadHistory && data.versions.length > 1 && <label className="tjanst-inline-field">Visa version<select value={versionId} disabled={loading} onChange={e => setVersionId(e.target.value)}>
           <option value="">Aktuell version</option>{[...data.versions].filter(v => v.status !== 'discarded').sort((a, b) => b.versionNo - a.versionNo).map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>}
         {feedback && <span>{ackSummary(feedback)}</span>}
-        <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>
+        {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
       </div>
       {viewingOld && data.version && <p className="tjanst-readonly">Du läser version {data.version.versionNo} skrivskyddat{data.version.publishedAt ? `, publicerad ${dateText(data.version.publishedAt)} av ${data.version.publishedByName}` : ''}. {published && published.id !== data.version.id ? `Lärarna ser version ${published.versionNo}.` : data.version.status === 'published' ? `Lärarna ser den här versionen.` : ''}</p>}
-      {panelOpen && <TjanstPublishPanel data={data} phone={phone} busy={busy || loading} feedback={feedback} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
+      {panelOpen && !readOnly && <TjanstPublishPanel data={data} phone={phone} busy={busy || loading} feedback={feedback} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
         onDiscard={() => open({ kind: 'confirm', confirm: 'discard', id: data.version!.id }, document.activeElement as HTMLElement)}/>}
     </div>}
     {phone ? <><label className="tjanst-inline-field tjanst-view-select">Vy<select value={shownView} onChange={e => chooseView(e.target.value as TjanstView)}>
@@ -338,7 +342,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback, 
       {can('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
       <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
     </div>}
-    {data && !editable && !phone && !viewingOld && data.version?.status === 'published' && data.actions.includes('create_draft') && <div className="mandate-actions tjanst-actions">
+    {data && !readOnly && !editable && !phone && !viewingOld && data.version?.status === 'published' && data.actions.includes('create_draft') && <div className="mandate-actions tjanst-actions">
       <Button disabled={busy} onClick={() => void plan('create_draft', { basedOnVersionId: data.version!.id }, d => `Utkastet version ${d.version?.versionNo} är skapat. Lärarna ser version ${(d.version?.versionNo ?? 1) - 1} tills du publicerar.`)}>Ändra i ny version</Button></div>}
     <div className="tjanst-messages">
       {notice && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
@@ -392,12 +396,13 @@ function TermSwitch({ term, onTerm }: { term: TjanstTermView; onTerm: (term: Tja
   return <fieldset className="tjanst-term"><legend>Visa tid</legend>
     {TERMS.map(t => <button key={t} type="button" aria-pressed={term === t} onClick={() => onTerm(t)}>{TERM_LABEL[t]}</button>)}</fieldset>;
 }
-function Heading({ schoolName, schoolYear, forms, admin }: { schoolName: string | null; schoolYear: number; forms: string[]; admin: boolean }) {
+function Heading({ schoolName, schoolYear, forms, admin, readOnly }: { schoolName: string | null; schoolYear: number; forms: string[]; admin: boolean; readOnly: boolean }) {
   return <div className="admin-heading tjanst-heading"><div>
     <span className="admin-kicker">PLANERING{schoolName ? ` · ${schoolName}` : ''}</span>
     <h1>Tjänstefördelning</h1>
     <p className="tjanst-subline">Läsåret {yearLabel(schoolYear)}{forms.length ? ` · ${forms.join(' · ')}` : ''}</p>
-    <p>Fördela skolans undervisning och specialuppdrag på lärare. Behovet kommer från klassernas timplaner. Lärarna ser fördelningen först när du har fastställt och publicerat den.{admin ? ' Du kan förbereda fördelningen. Rektor fastställer och publicerar.' : ''}</p>
+    {readOnly ? <p>Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning.</p>
+      : <p>Fördela skolans undervisning och specialuppdrag på lärare. Behovet kommer från klassernas timplaner. Lärarna ser fördelningen först när du har fastställt och publicerat den.{admin ? ' Du kan förbereda fördelningen. Rektor fastställer och publicerar.' : ''}</p>}
   </div></div>;
 }
 

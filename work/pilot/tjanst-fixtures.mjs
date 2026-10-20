@@ -10,7 +10,8 @@ import { tjanstPayloadHash } from '../../web/lib/tjanst-contract.ts';
 
 /** Installationsordning för fas 05.1:s migrationer (planerna 06, 08 och 09 lägger till sina sist). */
 export const tjanstMigrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql',
-  'supabase/migrations/20261020120000_tjanst_plan.sql', 'supabase/migrations/20261020130000_tjanst_assignments_feedback.sql'];
+  'supabase/migrations/20261020120000_tjanst_plan.sql', 'supabase/migrations/20261020130000_tjanst_assignments_feedback.sql',
+  'supabase/migrations/20261020140000_tjanst_person_account.sql'];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 

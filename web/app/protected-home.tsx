@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
+  BriefcaseBusiness,
   CalendarClock,
+  ClipboardList,
   GraduationCap,
+  IdCard,
   House,
   LifeBuoy,
   ListChecks,
@@ -32,6 +35,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { aplJournalIdentityKey } from '@/lib/apl-plan-journal.ts';
+import { tjanstJournalIdentityKey } from '@/lib/tjanst-journal.ts';
 import { contextLabel } from '@/lib/access-rules.ts';
 import { selectionFromQuery, selectionToQuery, type Selection } from '@/lib/pupil-register-model.ts';
 import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client.ts';
@@ -64,8 +68,14 @@ import SchoolYearPicker, { type RegisterSetup } from './school-year-picker';
 import WorkspaceStart from './workspace-start';
 import { PlanDecisionProvider, DecisionIndicator } from './plan-decision-context';
 import type { PlanDecisionItem } from '@/lib/plan-decision.ts';
+import BemanningWorkspace from './bemanning-workspace';
+import MinTjanst from './min-tjanst';
+import PersonalWorkspace from './personal-workspace';
+import TjanstPlanningArea, { type TjanstPlanningSelection } from './tjanst-planning-bar';
+import TjanstWorkspace from './tjanst-workspace';
 
-export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner' | 'stangt';
+export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner'
+  | 'tjanst' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -87,6 +97,11 @@ export type SessionResponse = {
 };
 
 const PLANNING_FUNCTIONS = ['huvudman', 'rektor', 'administrator'];
+const TJANST_FUNCTIONS = ['rektor', 'administrator'];
+/** Egen tjänst (05.1-04B): läraren har bara Min tjänst. Servern nekar ändå allt annat; detta är vyvakten (D-03). */
+const isSelf = (session: SessionResponse | null) => session?.context?.scopeKind === 'self';
+/** Vyer som själva hanterar historik inom samma adress (tjvy, termin, personkort). */
+const OWN_HISTORY: ProtectedView[] = ['tjanst', 'personal', 'min-tjanst'];
 const isPlanningView = (value: ProtectedView): value is 'programplaner' | 'timplaner' => value === 'programplaner' || value === 'timplaner';
 export function selectGymTimplanTarget(source: string | GymTimplanLocation,
   cached: { sourcePlanId: string; target: GymTimplanLocation } | null, currentUnitId: string | null | undefined): GymTimplanLocation {
@@ -99,12 +114,19 @@ export function selectGymTimplanTarget(source: string | GymTimplanLocation,
     && target.offeringId !== undefined && (requested.offeringId === undefined || target.offeringId === requested.offeringId)
     ? target : requested;
 }
+/** Läsåret börjar 1 juli (samma gräns som planeringsvalets aktuella läsår). */
+function currentSchoolYear(today: string): number {
+  const year = Number(today.slice(0, 4)), month = Number(today.slice(5, 7));
+  return month >= 7 ? year : year - 1;
+}
 function sessionScope(value: SessionResponse | null | 'loading'): string {
   return value && value !== 'loading' && value.context?.valid && !value.context.blocked
     ? `${value.epoch}:${value.context.customerId}:${value.context.assignmentId}` : '';
 }
 function shellView(search: string, value: SessionResponse): ProtectedView {
   const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
+  if (isSelf(value)) return 'min-tjanst';
+  if (requested === 'tjanst' && TJANST_FUNCTIONS.includes(role) || (requested === 'personal' || requested === 'bemanning') && role === 'huvudman') return requested;
   if (requested === 'start' && PLANNING_FUNCTIONS.includes(role)) return 'start';
   if (requested === 'skolor' && role === 'huvudman' || requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
@@ -129,6 +151,7 @@ function PlanningArea({ location, children }: { location: PlanLocation | null; c
 }
 
 function startView(session: SessionResponse): ProtectedView {
+  if (isSelf(session)) return 'min-tjanst';
   if (PLANNING_FUNCTIONS.includes(session.context?.function ?? '')) return 'start';
   if (session.context?.function === 'granskare') return 'logg';
   if (session.context?.function === 'kundadmin') return 'kund';
@@ -160,6 +183,26 @@ function ProtectedNavigation({
     setView(next);
     setOpenMobile(false);
   };
+  const fn = session.context?.function ?? '';
+  const item = (target: ProtectedView, label: string, icon: ReactNode) => <SidebarMenuItem><SidebarMenuButton isActive={view === target} aria-current={view === target ? 'page' : undefined}
+    onClick={() => go(target)} className="nav-button">{icon}<span>{label}</span></SidebarMenuButton></SidebarMenuItem>;
+  if (isSelf(session)) return (
+    <>
+      <SidebarHeader className="brand-area">
+        <div className="brand"><span className="brand-symbol"><GraduationCap size={23} /></span><span>skolplattform<span className="brand-dot">.</span></span></div>
+        <div className="school protected-school"><span className="school-avatar">{session.context?.customerName.slice(0, 1) ?? 'S'}</span>
+          <div><strong>{session.context?.customerName ?? 'Skyddad arbetsyta'}</strong><small>{session.context?.label ?? 'Egen tjänst'}</small></div></div>
+      </SidebarHeader>
+      <SidebarContent>
+        <div className="nav-caption">ARBETSYTA</div>
+        <SidebarMenu className="main-nav">{item('min-tjanst', 'Min tjänst', <BriefcaseBusiness size={19}/>)}</SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter className="profile">
+        <span className="avatar">{(session.identity.displayName ?? 'P').slice(0, 2).toUpperCase()}</span>
+        <div><strong>{session.identity.displayName ?? 'Inloggad person'}</strong><small>{session.identity.email ?? session.identity.subject}</small></div>
+      </SidebarFooter>
+    </>
+  );
   return (
     <>
       <SidebarHeader className="brand-area">
@@ -184,6 +227,7 @@ function ProtectedNavigation({
             </SidebarMenuButton>
           </SidebarMenuItem>}
           {session.context?.function === 'huvudman' && <SidebarMenuItem><SidebarMenuButton isActive={view === 'skolor'} aria-current={view === 'skolor' ? 'page' : undefined} onClick={() => go('skolor')} className="nav-button"><House size={19}/><span>Skolor</span></SidebarMenuButton></SidebarMenuItem>}
+          {fn === 'huvudman' && item('personal', 'Personal', <IdCard size={19}/>)}
           {session.context?.function === 'kundadmin' && (
             <SidebarMenuItem>
               <SidebarMenuButton isActive={view === 'kund'} aria-current={view === 'kund' ? 'page' : undefined} onClick={() => go('kund')} className="nav-button">
@@ -223,6 +267,8 @@ function ProtectedNavigation({
             <SidebarMenuItem><SidebarMenuButton data-testid="timplan-list-nav" isActive={!overview && !aplProcess && view === 'timplaner'} aria-current={!overview && !aplProcess && view === 'timplaner' ? 'page' : undefined}
               onClick={() => go('timplaner')} className="nav-button"><CalendarClock size={19}/><span>Timplaner</span></SidebarMenuButton></SidebarMenuItem>
             <SidebarMenuItem><SidebarMenuButton data-testid="apl-planning-nav" isActive={aplProcess} aria-current={aplProcess ? 'page' : undefined} onClick={() => { onApl(); setOpenMobile(false); }} className="nav-button"><CalendarClock size={19}/><span>APL-planering</span></SidebarMenuButton></SidebarMenuItem>
+            {TJANST_FUNCTIONS.includes(fn) && item('tjanst', 'Tjänstefördelning', <BriefcaseBusiness size={19}/>)}
+            {fn === 'huvudman' && item('bemanning', 'Bemanning', <ClipboardList size={19}/>)}
           </SidebarMenu>
         </>}
       </SidebarContent>
@@ -272,16 +318,18 @@ function SessionLock({ reason, expired }: { reason: LockReason; expired?: boolea
 function ProtectedShell() {
   const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
   const identitySource = session && session !== 'loading' ? JSON.stringify([session.identity.issuer, session.identity.subject]) : null;
-  const [journalIdentity, setJournalIdentity] = useState<{ source: string; key: string } | null>(null);
+  const [journalIdentity, setJournalIdentity] = useState<{ source: string; key: string; tjanst: string } | null>(null);
   useEffect(() => {
     let current = true;
     if (identitySource) {
       const [issuer, subject] = JSON.parse(identitySource) as [string, string];
-      void aplJournalIdentityKey(issuer, subject).then(key => { if (current) setJournalIdentity({ source: identitySource, key }); }).catch(() => { if (current) setJournalIdentity(null); });
+      void Promise.all([aplJournalIdentityKey(issuer, subject), tjanstJournalIdentityKey(issuer, subject)])
+        .then(([key, tjanst]) => { if (current) setJournalIdentity({ source: identitySource, key, tjanst }); }).catch(() => { if (current) setJournalIdentity(null); });
     }
     return () => { current = false; };
   }, [identitySource]);
   const aplIdentityKey = journalIdentity?.source === identitySource ? journalIdentity?.key ?? null : null;
+  const tjanstIdentityKey = journalIdentity?.source === identitySource ? journalIdentity?.tjanst ?? null : null;
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [expired, setExpired] = useState(false);
   const [lock, setLock] = useState<LockReason | null>(null);
@@ -369,7 +417,7 @@ function ProtectedShell() {
         setSession(loaded);
         if (!previous || changed) {
           setClassStepIntent(null);
-          const location = !changed && ['huvudman','rektor','administrator'].includes(loaded.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
+          const location = !changed && !isSelf(loaded) && ['huvudman','rektor','administrator'].includes(loaded.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
           const nextView = location?.view ?? shellView(window.location.search, loaded);
           setView(nextView); viewRef.current = nextView;
           planningLocationRef.current = location; setPlanningLocation(location);
@@ -605,9 +653,14 @@ function ProtectedShell() {
     const pop = (event: PopStateEvent) => {
       const activeSession = sessionRef.current;
       if (!sessionScope(activeSession) || !activeSession || !locationRef.current) return;
-      const location = PLANNING_FUNCTIONS.includes(activeSession.context?.function ?? '') ? readPlanLocation(window.location.search) : null;
+      const location = PLANNING_FUNCTIONS.includes(activeSession.context?.function ?? '') && !isSelf(activeSession) ? readPlanLocation(window.location.search) : null;
       const nextView = location?.view ?? shellView(window.location.search, activeSession);
       const priorView = viewRef.current;
+      // Tjänstefördelningens flikar och termin samt personkortet hör till vyns egen lyssnare.
+      if (priorView === nextView && !location && OWN_HISTORY.includes(nextView)) {
+        locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
+        return;
+      }
       // Register list/card pops belong to its own existing listener. Never normalize them as planning.
       if (priorView === 'elever' && nextView === 'elever' && !location) {
         locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
@@ -639,7 +692,8 @@ function ProtectedShell() {
   const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.customerId}-${session.context.assignmentId}` : null;
   useEffect(() => {
     const currentSession = sessionRef.current;
-    if (!currentSession || !currentSession.context?.valid || !PUPIL_FUNCTIONS.includes(currentSession.context.function)) return;
+    // Egen tjänst monterar aldrig elevregistret och läser inte dess urval (D-03).
+    if (!currentSession || !currentSession.context?.valid || !PUPIL_FUNCTIONS.includes(currentSession.context.function) || isSelf(currentSession)) return;
     const scope = sessionScope(currentSession);
     const abort = new AbortController();
     let timer: number | undefined;
@@ -664,6 +718,26 @@ function ProtectedShell() {
     });
     return () => { abort.abort(); if (timer !== undefined) window.clearTimeout(timer); };
   }, [registerContextKey, registerRetry, clearSession]);
+
+  // Tjänstefördelning och Bemanning delar planeringsvalets skola och läsår utan att skriva dem i adressen.
+  function tjanstPlanning(): Partial<TjanstPlanningSelection> | null {
+    const planning = planningLocation?.planning;
+    return planning ? { ...(planning.unitId !== undefined ? { unitId: planning.unitId } : {}), ...(planning.schoolYear !== undefined ? { schoolYear: planning.schoolYear } : {}) } : null;
+  }
+  function rememberTjanstPlanning(selection: TjanstPlanningSelection) {
+    if (sessionScope(sessionRef.current) !== contextKey) return;
+    const prior = planningLocationRef.current ?? planningFor('timplaner');
+    const next: PlanLocation = { ...prior, planning: { ...prior.planning, schoolYear: selection.schoolYear,
+      ...(viewRef.current === 'tjanst' ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
+    planningLocationRef.current = next; setPlanningLocation(next);
+  }
+  function goToClassLinks(selection: TjanstPlanningSelection) {
+    if (!canNavigate()) return;
+    const prior = planningFor('timplaner');
+    const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...prior.planning, schoolform: 'grundskola', unitId: selection.unitId, schoolYear: selection.schoolYear,
+      page: 1, selectionRevision: null } };
+    applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
+  }
 
   async function logout() {
     if (!canNavigate()) return;
@@ -695,7 +769,8 @@ function ProtectedShell() {
   const validContext = session.context?.valid && !session.context.blocked;
   const overview = isPlanningView(view) && planningLocation?.overview === true;
   const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
-  const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner' : 'Kommande funktion';
+  const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner'
+    : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
 
   return (
     <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
@@ -760,6 +835,16 @@ function ProtectedShell() {
               {!overview && view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
                 initialClassStep={classStepIntent?.scope===contextKey?classStepIntent.target:null} onClassStepMounted={classStepMounted} onOpened={programplanOpened}/>}
             </>}</PlanningArea>}
+            {view === 'min-tjanst' && isSelf(session) && <MinTjanst context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
+              currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
+            {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
+                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenClassLinks={() => goToClassLinks(selection)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+            {view === 'personal' && session.context!.function === 'huvudman' && <PersonalWorkspace context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
+              today={session.today} onSessionLost={clearSession}/>}
+            {view === 'bemanning' && session.context!.function === 'huvudman' && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice={false}
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <BemanningWorkspace context={session.context!} epoch={session.epoch}
+                schoolYear={selection.schoolYear} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'stangt' && <section className="admin-empty"><h1>Stängt i denna fas</h1><p>Öppnas när mandat och elevregister är verifierade (fas 3–4).</p></section>}
           </main>
         )}

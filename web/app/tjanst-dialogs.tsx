@@ -29,13 +29,13 @@ export function parseHours(value: string): { minutes: number } | { error: string
 }
 export const hoursInput = (minutes: number | null) => minutes === null ? '' : (minutes / 60).toLocaleString('sv-SE', { maximumFractionDigits: 2, useGrouping: false });
 
-function Field({ id, label, error, help, children }: { id: string; label: string; error?: string; help?: string; children: ReactNode }) {
+export function Field({ id, label, error, help, children }: { id: string; label: string; error?: string; help?: string; children: ReactNode }) {
   return <div className="tjanst-field"><label htmlFor={id}>{label}</label>{children}{help && <small id={`${id}-help`}>{help}</small>}{error && <small id={`${id}-error`} className="field-error">{error}</small>}</div>;
 }
-const described = (id: string, error?: string, help?: string) => ({ id, ...(error ? { 'aria-invalid': true as const } : {}),
+export const described = (id: string, error?: string, help?: string) => ({ id, ...(error ? { 'aria-invalid': true as const } : {}),
   ...(error || help ? { 'aria-describedby': [help ? `${id}-help` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') } : {}) });
 
-function Problems({ failure, summary, checking }: { failure: TjanstFailure | null; summary: boolean; checking: boolean }) {
+export function Problems({ failure, summary, checking }: { failure: TjanstFailure | null; summary: boolean; checking: boolean }) {
   return <>
     {checking && <output className="admin-notice">Svaret uteblev. Vi kontrollerar om ändringen sparades.</output>}
     {summary && <p role="alert" className="validation-warning">Formuläret innehåller fel. Rätta de markerade fälten.</p>}
@@ -44,14 +44,14 @@ function Problems({ failure, summary, checking }: { failure: TjanstFailure | nul
       {failure.refresh && <Button type="button" variant="outline" onClick={failure.refresh}>Hämta aktuellt läge</Button>}</div>}
   </>;
 }
-function Shell({ open, busy, title, description, onClose, children }: { open: boolean; busy: boolean; title: string; description: ReactNode; onClose: () => void; children: ReactNode }) {
+export function Shell({ open, busy, title, description, onClose, children }: { open: boolean; busy: boolean; title: string; description: ReactNode; onClose: () => void; children: ReactNode }) {
   return <Dialog open={open} onOpenChange={value => { if (!value && !busy) onClose(); }}>
     <DialogContent className="mandate-dialog tjanst-dialog sm:max-w-xl" showCloseButton={false}>
       <DialogTitle>{title}</DialogTitle><DialogDescription>{description}</DialogDescription>{children}
     </DialogContent>
   </Dialog>;
 }
-function useSubmit(onSaved: () => void) {
+export function useSubmit(onSaved: () => void) {
   const [busy, setBusy] = useState(false), [failure, setFailure] = useState<TjanstFailure | null>(null), active = useRef(true);
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   async function run(task: () => Promise<TjanstOutcome>) {

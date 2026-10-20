@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { FUNCTION_LABEL, type AccessFunction } from '@/lib/access-rules.ts';
 import { api, ApiError } from '@/lib/server-client.ts';
+import { parsePersonalReadReply, type TjanstPerson } from '@/lib/tjanst-contract.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import MfaStepUpNotice from './mfa-step-up';
 
@@ -20,7 +21,7 @@ type Options = {
   validFrom: string;
   validTo: string | null;
 };
-type Scope = 'school' | 'group' | 'pupil' | 'case';
+type Scope = 'school' | 'group' | 'pupil' | 'case' | 'self';
 type Draft = {
   fn: AccessFunction | '';
   recipient: string;
@@ -33,6 +34,7 @@ type Draft = {
   validFrom: string;
   validTo: string;
   supportMinutes: '15' | '30' | '60';
+  staffPersonId: string;
 };
 type Field = 'fn' | 'recipient' | 'scope' | 'selection' | 'validFrom' | 'validTo';
 type Props = {
@@ -49,10 +51,11 @@ const scopeText: Record<Scope, string> = {
   group: 'Tilldelade grupper',
   pupil: 'Tilldelade elever',
   case: 'Tilldelade ärenden',
+  self: 'Egen tjänst',
 };
 const emptyDraft = (validFrom = ''): Draft => ({
   fn: '', recipient: '', scope: 'school', schoolIds: [], groupIds: [], groupKind: 'teaching',
-  pupilIds: [], caseIds: [], validFrom, validTo: '', supportMinutes: '30',
+  pupilIds: [], caseIds: [], validFrom, validTo: '', supportMinutes: '30', staffPersonId: '',
 });
 
 // Tidsbegränsad support gäller en namngiven elev eller en eller flera grupper på
@@ -63,7 +66,8 @@ const supportScopeText: Partial<Record<Scope, string>> = {
 };
 
 function scopesFor(fn: AccessFunction | '', options: Options | null): Scope[] {
-  if (fn === 'larare') return ['group'];
+  // Egen tjänst (05.1-04B): läraren ser bara sin publicerade tjänst, inga grupper eller elever (D-03).
+  if (fn === 'larare') return ['group', 'self'];
   if (fn === 'support') return ['pupil', ...(options?.groups.length ? ['group' as const] : [])];
   if (fn === 'elevhalsa') {
     return ['school', ...(options?.pupils.length ? ['pupil' as const] : []), ...(options?.cases.length ? ['case' as const] : [])];
@@ -86,13 +90,15 @@ export default function MandateGrantDialog(props: Props) {
   // urvalet avbryts i stället när dialogen stängs.
   const [saving, setSaving] = useState(false);
   const generation = useRef(0);
+  // Personer med skoluppdrag på vald skola, för Egen tjänst. Läses från personalen per skola (D-11).
+  const [staff, setStaff] = useState<{ unitId: string; people: TjanstPerson[] | null; error: string | null } | null>(null);
   // Fokus flyttas till dialogen när den öppnas. Standardvalet (första fokuserbara
   // elementet) blev stängknappen, som döljs medan urvalet hämtas; då föll fokus
   // tillbaka till sidan bakom dialogen.
   const popup = useRef<HTMLDivElement>(null);
   const callbacks = useRef(props);
   useEffect(() => { callbacks.current = props; });
-  const dirty = draft.fn !== '' || draft.recipient !== '' || draft.schoolIds.length > 0 || draft.groupIds.length > 0
+  const dirty = draft.fn !== '' || draft.recipient !== '' || draft.schoolIds.length > 0 || draft.groupIds.length > 0 || draft.staffPersonId !== ''
     || draft.pupilIds.length > 0 || draft.caseIds.length > 0 || draft.validTo !== '';
   useUnsavedChanges(`mandate-grant-${props.epoch}`, props.open && dirty);
 
@@ -142,6 +148,21 @@ export default function MandateGrantDialog(props: Props) {
 
   const scopes = scopesFor(draft.fn, options);
   const scope = scopes.includes(draft.scope) ? draft.scope : scopes[0];
+  const selfUnit = scope === 'self' ? draft.schoolIds[0] ?? '' : '';
+  useEffect(() => {
+    if (!selfUnit) return undefined;
+    let current = true;
+    queueMicrotask(() => { if (current) setStaff({ unitId: selfUnit, people: null, error: null }); });
+    api.post('/api/tjanst/personal/lasa', { unitId: selfUnit }).then(value => parsePersonalReadReply(value, { unitId: selfUnit })).then(read => {
+      if (current) setStaff({ unitId: selfUnit, people: read.people, error: null });
+    }).catch(caught => {
+      if (!current) return;
+      if (caught instanceof ApiError && caught.status === 401) { callbacks.current.onSessionLost(); return; }
+      setStaff({ unitId: selfUnit, people: null, error: caught instanceof ApiError && caught.status === 403 ? 'Ditt aktuella uppdrag tillåter inte att läsa personal för skolan.' : 'Personalen kunde inte hämtas. Välj skolan igen.' });
+    });
+    return () => { current = false; };
+  }, [selfUnit]);
+  const staffPeople = staff?.unitId === selfUnit ? staff.people : null;
   const update = (patch: Partial<Draft>) => { setDraft((previous) => ({ ...previous, ...patch })); setServerError(null); setMfaNeeded(false); };
   const toggle = (key: 'schoolIds' | 'groupIds' | 'pupilIds' | 'caseIds', id: string, single = false) => {
     setDraft((previous) => ({
@@ -155,8 +176,11 @@ export default function MandateGrantDialog(props: Props) {
     const found: Partial<Record<Field, string>> = {};
     if (!draft.fn) found.fn = 'Välj vilket uppdrag som ska tilldelas.';
     if (!draft.recipient) found.recipient = 'Välj mottagare.';
-    const selected = scope === 'school' ? draft.schoolIds : scope === 'group' ? draft.groupIds : scope === 'pupil' ? draft.pupilIds : draft.caseIds;
-    if (selected.length === 0) found.selection = scope === 'school' ? 'Välj minst en skola.' : scope === 'group' ? 'Välj minst en grupp.' : scope === 'pupil' ? 'Välj elev.' : 'Välj minst ett ärende.';
+    const selected = scope === 'school' || scope === 'self' ? draft.schoolIds : scope === 'group' ? draft.groupIds : scope === 'pupil' ? draft.pupilIds : draft.caseIds;
+    if (scope === 'self') {
+      if (draft.schoolIds.length !== 1) found.selection = 'Välj skola.';
+      else if (!draft.staffPersonId || !staffPeople?.some(p => p.id === draft.staffPersonId)) found.selection = 'Välj person.';
+    } else if (selected.length === 0) found.selection = scope === 'school' ? 'Välj minst en skola.' : scope === 'group' ? 'Välj minst en grupp.' : scope === 'pupil' ? 'Välj elev.' : 'Välj minst ett ärende.';
     if (draft.fn === 'support' && scope === 'pupil' && draft.pupilIds.length !== 1) found.selection = 'Supportuppdrag gäller exakt en elev.';
     if (draft.fn === 'support' && scope === 'group' && draft.groupIds.length > 0) {
       const schools = unique((options?.groups ?? []).filter((item) => draft.groupIds.includes(item.id)).map((item) => item.unitId));
@@ -183,7 +207,7 @@ export default function MandateGrantDialog(props: Props) {
       membershipId: draft.recipient,
       function: draft.fn,
       scopeKind: scope,
-      unitIds: scope === 'school' ? draft.schoolIds
+      unitIds: scope === 'school' || scope === 'self' ? draft.schoolIds
         : scope === 'group' ? unitsOf(options.groups, draft.groupIds)
         : scope === 'pupil' ? unitsOf(options.pupils, draft.pupilIds)
         : unitsOf(options.cases, draft.caseIds),
@@ -194,6 +218,7 @@ export default function MandateGrantDialog(props: Props) {
       caseIds: scope === 'case' ? draft.caseIds : [],
       validFrom: draft.validFrom,
       validTo: draft.fn === 'support' ? null : draft.validTo || null,
+      ...(scope === 'self' ? { staffPersonId: draft.staffPersonId } : {}),
       ...(draft.fn === 'support' ? {
         purposeCode: 'synthetic-troubleshooting',
         startsAt: new Date(now).toISOString(),
@@ -241,17 +266,30 @@ export default function MandateGrantDialog(props: Props) {
             {options.recipients.length === 0 && <small>Det finns ingen annan aktiv personal hos kunden att tilldela.</small>}
           </label>
           <label>Omfattning
-            <select value={scope} disabled={busy || scopes.length < 2} onChange={(event) => { update({ scope: event.target.value as Scope, groupIds: [], pupilIds: [], caseIds: [] }); setErrors((previous) => ({ ...previous, selection: undefined })); }}>
+            <select value={scope} disabled={busy || scopes.length < 2} onChange={(event) => { update({ scope: event.target.value as Scope, groupIds: [], pupilIds: [], caseIds: [], staffPersonId: '',
+              ...(event.target.value === 'self' ? { schoolIds: draft.schoolIds.slice(0, 1) } : {}) }); setErrors((previous) => ({ ...previous, selection: undefined })); }}>
               {scopes.map((value) => <option key={value} value={value}>{(draft.fn === 'support' ? supportScopeText[value] : undefined) ?? scopeText[value]}</option>)}
             </select>
           </label>
           <fieldset className="mandate-choice" aria-describedby={errors.selection ? 'grant-selection-error' : undefined}>
-            <legend>{scope === 'school' ? 'Skolor' : scope === 'group' ? 'Grupper' : scope === 'pupil' ? 'Elever (syntetiska)' : 'Ärenden (syntetiska)'}</legend>
+            <legend>{scope === 'school' ? 'Skolor' : scope === 'self' ? 'Skola' : scope === 'group' ? 'Grupper' : scope === 'pupil' ? 'Elever (syntetiska)' : 'Ärenden (syntetiska)'}</legend>
             {scope === 'school' && options.schools.map((school) => <label key={school.id} className="mandate-check"><input type="checkbox" checked={draft.schoolIds.includes(school.id)} disabled={busy} onChange={() => toggle('schoolIds', school.id)} />{school.name}</label>)}
-            {scope !== 'school' && items.map((item) => <label key={item.id} className="mandate-check"><input type={draft.fn === 'support' && scope === 'pupil' ? 'radio' : 'checkbox'} name={`grant-${scope}`} checked={draft[itemKey].includes(item.id)} disabled={busy} onChange={() => toggle(itemKey, item.id, draft.fn === 'support' && scope === 'pupil')} />{item.label}{scope === 'pupil' && <small> · {schoolName(item.unitId)}</small>}</label>)}
-            {scope !== 'school' && items.length === 0 && <p>Det finns inget sådant urval i ditt uppdrag.</p>}
+            {scope === 'self' && options.schools.map((school) => <label key={school.id} className="mandate-check"><input type="radio" name="grant-self-school" checked={draft.schoolIds.includes(school.id)} disabled={busy} onChange={() => { toggle('schoolIds', school.id, true); update({ staffPersonId: '' }); }} />{school.name}</label>)}
+            {scope === 'self' && <small>Läraren ser bara sin publicerade tjänst på skolan i Min tjänst. Uppdraget ger inga grupper och inga elever.</small>}
+            {scope !== 'school' && scope !== 'self' && items.map((item) => <label key={item.id} className="mandate-check"><input type={draft.fn === 'support' && scope === 'pupil' ? 'radio' : 'checkbox'} name={`grant-${scope}`} checked={draft[itemKey].includes(item.id)} disabled={busy} onChange={() => toggle(itemKey, item.id, draft.fn === 'support' && scope === 'pupil')} />{item.label}{scope === 'pupil' && <small> · {schoolName(item.unitId)}</small>}</label>)}
+            {scope !== 'school' && scope !== 'self' && items.length === 0 && <p>Det finns inget sådant urval i ditt uppdrag.</p>}
             {fieldError('selection')}
           </fieldset>
+          {scope === 'self' && selfUnit && <label>Person i personalen
+            <select value={draft.staffPersonId} disabled={busy || !staffPeople} {...(errors.selection && draft.schoolIds.length === 1 ? { 'aria-invalid': true, 'aria-describedby': 'grant-selection-error' } as const : {})}
+              onChange={(event) => { update({ staffPersonId: event.target.value }); setErrors((previous) => ({ ...previous, selection: undefined })); }}>
+              <option value="">Välj person</option>
+              {(staffPeople ?? []).map((person) => <option key={person.id} value={person.id}>{person.givenName} {person.familyName}</option>)}
+            </select>
+            {staff?.unitId === selfUnit && staff.people === null && !staff.error && <small>Hämtar personal…</small>}
+            {staff?.unitId === selfUnit && staff.error && <small role="alert" className="field-error">{staff.error}</small>}
+            {staffPeople && staffPeople.length === 0 && <small>Ingen person har skoluppdrag på skolan. Huvudmannen lägger upp personal och andelar.</small>}
+          </label>}
           {scope === 'group' && draft.fn !== 'support' && <label>Grupproll
             <select value={draft.groupKind} disabled={busy} onChange={(event) => update({ groupKind: event.target.value as Draft['groupKind'] })}>
               <option value="teaching">Undervisning</option><option value="mentor">Mentor</option>

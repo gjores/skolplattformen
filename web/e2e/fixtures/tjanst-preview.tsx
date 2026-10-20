@@ -89,7 +89,8 @@ function read(u:Unit,versionId?:string):TjanstPlanRead{
   teachers:clone(content.teachers),classes:clone(u.classes),rows:clone(content.rows),specials:clone(content.specials),joints:clone(content.joints),
   actions,blockers:isDraft?clone(u.blockers):[],capabilities:{canEdit:isDraft,canPublish:isDraft&&role==='rektor',canReadHistory:true}};
 }
-const error=(status:number,code:string):Reply=>({status,json:{code,correlationId:'syntetisk-ref-1'}});
+// Samma form som servern: tjänstefördelningens SQL-orsak ligger i details.reason under den generiska koden (lib/server/tjanst.ts).
+const error=(status:number,code:string):Reply=>({status,json:code.startsWith('tjanst_')?{code:status===409?'conflict':'bad_request',correlationId:'syntetisk-ref-1',details:{reason:code}}:{code,correlationId:'syntetisk-ref-1'}});
 function apply(u:Unit,body:any):Reply{
  if(body.expectedRevision!==u.revision)return error(409,'tjanst_revision_conflict');
  const p=body.payload,d=u.draft;let versionId=current(u)?.id??null;

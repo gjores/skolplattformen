@@ -130,7 +130,38 @@
 .tjanst-dialog .mandate-actions{margin-top:0;gap:16px}
 .tjanst-after{display:grid;gap:8px}
 .tjanst-dialog .tjanst-facts{grid-template-columns:minmax(0,1fr)}
+/* Min tjänst, Personal och Bemanning (05.1-07). En kolumn, kort i stället för tabeller ≤ 800 px. */
+.min-tjanst,.personal{max-width:960px}
+.min-tjanst-card,.personal-card{display:flex;flex-direction:column;gap:16px;padding:24px;min-width:0;overflow-wrap:anywhere}
+.min-tjanst-card h2,.personal-card h2{font-size:20px;font-weight:500;line-height:1.2;margin:0}
+.min-tjanst-card h3,.personal-card h3{font-size:16px;font-weight:500;margin:0}
+.min-tjanst-ack{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.min-tjanst-ack p{margin:0;max-width:72ch}
+.tjanst textarea,.tjanst input:not([type=checkbox]):not([type=radio]){min-height:44px;font-size:16px;border:1px solid var(--muted-foreground);border-radius:var(--radius);padding:8px 10px;background:var(--card);color:var(--foreground);max-width:100%;width:100%}
+.min-tjanst-comment{display:flex;flex-direction:column;gap:8px;max-width:100%}
+.min-tjanst-comment label{font-size:14px;font-weight:500}
+.min-tjanst-comment textarea{min-height:120px;resize:vertical}
+.min-tjanst-comment small{font-size:14px}
+.min-tjanst-comments{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.min-tjanst-comments li{border-top:1px solid var(--border);padding-top:16px;min-width:0}
+.min-tjanst-comments p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.min-tjanst-comment-time{font-size:14px;color:var(--muted-foreground)}
+.personal-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.personal-list>li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.personal-duties{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--border);padding-top:16px}
+.personal-duties p{margin:0}
+.tjanst .personal-filter{margin-top:0;padding-top:0;border-top:0;align-items:end}
+.tjanst .personal-filter .mandate-actions{margin-top:0}
+.tjanst .personal-name{padding:0;min-height:44px;height:auto;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:16px}
+.tjanst-dialog .personal-duty-line{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;border:1px solid var(--border);border-radius:8px;padding:16px;min-width:0}
+.tjanst-dialog .personal-duty-line legend{font-weight:500;padding:0 4px;overflow-wrap:anywhere}
+.tjanst-dialog .personal-sum{font-weight:500}
+.bemanning-detail{display:flex;flex-direction:column;gap:16px;min-width:0}
+.bemanning-vacancies{display:flex;flex-direction:column;gap:16px;padding:24px}
+.bemanning-vacancies h2{font-size:20px;font-weight:500;margin:0}
 @media(max-width:800px){
+  .min-tjanst-card,.personal-card,.bemanning-vacancies{padding:16px}
+  .tjanst-dialog .personal-duty-line{grid-template-columns:minmax(0,1fr)}
   .tjanst .tjanst-status{grid-template-columns:minmax(0,1fr);padding:16px}
   .tjanst-status-side{justify-content:flex-start}
   .tjanst-wide,.tjanst [data-slot=table-container]:has(.tjanst-wide){display:none}
