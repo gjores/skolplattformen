@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1 våg 4 klar 2026-10-20: 05.1-08 (specialuppdrag, samläsning, återkoppling och bemanning i SQL) och 05.1-07 (Min tjänst, Personal, Bemanning och navigering; komponentprov 148 i fyra projekt, ny migration 20261020140000 för kontouppgiften, SQL 7/7). Inget installerat. Nästa: 05.1-09 (Worker-rättigheter, faktiskt prov och handbok) – det faktiska HTTP/OIDC-provet kräver den lokala miljön."
-last_updated: "2026-10-20"
-last_activity: 2026-10-20
-last_activity_desc: "Våg 4 i fas 05.1 genomförd i molnmiljön: SQL för specialuppdrag/samläsning/återkoppling/bemanning och UI för Min tjänst, Personal, Bemanning och Egen tjänst i Mandat. Migrationerna 20261020100000–140000 ej installerade; schemakopieprövning, HTTP/OIDC och installation återstår."
+stopped_at: "Fas 05.1 våg 5 klar 2026-10-21: 05.1-09 (Worker-rättigheter, faktiskt Worker/OIDC/webbläsarprov PASS 40/40 i fyra projekt mot syntetiska data, handbok). Inget installerat och 3012 orört. Nästa: 05.1-10 (leverans; installation och 3012-byte kräver användarens uttryckliga ja)."
+last_updated: "2026-10-21"
+last_activity: 2026-10-21
+last_activity_desc: "Våg 5 i fas 05.1 genomförd lokalt: grant-migration 20261020190000 (tolv öppna entrypoints), faktiskt prov mot kandidat d1cd981 på 3015 med egen schemakopia och riktig OIDC, rättelser från provet och handbokssidor. Migrationerna 20261020100000–190000 ej installerade."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 våg 5 genomförd 2026-10-21 (lokal miljö):** [05.1-09](phases/05.1-tjanstefordelning/05.1-09-SUMMARY.md) grant-migration 20261020190000: Worker-rollen kan bara köra tolv entrypoints (tio tjanst, två GR/IM) och har inga tabellrättigheter. Faktiskt prov (`work/pilot/verify-tjanst-actual.mjs`) mot skyddat kandidatbygge av d1cd981 på 3015, egen schemakopia och riktig OIDC med syntetiska användare: status PASS, 40/40 kontroller i desktop, desktop-small, phone och phone-small, inga ej körda fall, 33 verifierade OIDC-callbacks och full städning; rapport `/private/tmp/tjanst-actual.json` SHA-256 `5f77e82b5fc3e84818930be416cd86d8492dea3f3ac3b3d0779f995409ea1b43`; 44 skärmbilder granskade. Provet hittade och rättade fem fel (första utkastet gick inte att skapa, step-up tappade läsåret, Gy25-rader saknade ämnesnamn, fastställd GR-plan utan klasskoppling gick inte att öppna, visuella fel). Avvikelse: isolerad GoTrue delas med APL-provet på 56331/56332. Ej rättat/ej provat: datumbrytning i Bemanning, befintlig IM-text om saknad kalender (fas 5), tilldelningsdialogen för Egen tjänst i Mandat, mänsklig begriplighetsbedömning. Handbok: Tjänstefördelning, Personal och bemanning, Min tjänst samt Mandat och Timplaner; docs:build PASS. TJANST-01–05 och 07 är implementerade och provade mot syntetiska data men inte installerade; kraven markeras först i 05.1-10. Nästa: 05.1-10, där installation och 3012-byte kräver användarens uttryckliga ja.
 
 **Fas 05.1 våg 4 genomförd 2026-10-20 (molnmiljö):** [05.1-08](phases/05.1-tjanstefordelning/05.1-08-SUMMARY.md) specialuppdrag, samläsning, lärarnas kvittens/kommentar och huvudmannens bemanning i SQL (PASS 102/102 och 23/23). [05.1-07](phases/05.1-tjanstefordelning/05.1-07-SUMMARY.md) Min tjänst (self startar där, bara den menyn, inga elev- eller planeringsanrop), Personal med andelsdialog och kontouppgift, Bemanning med skrivskyddad Visa fördelningen, Tjänstefördelning i rektors meny och Egen tjänst i Mandat. Komponentprov mot simulerade API-svar: 148 passerade i fyra projekt (telefon i Chromium). Ny migration 20261020140000 (kontouppgift bara för huvudmannen) med SQL PASS 7/7. Rättat integrationsfel: tjänstefördelningens felorsak i details.reason nådde inte klienten. Regression: SQL 43/43 och 77/77, enhetsprov 820/820 och 331/331, tsc, oxlint och bygge PASS. Befintliga apl-plan- och usability-prov fallerar delvis i molnmiljön på samma sätt före och efter planen. Migrationerna 20261020100000–140000 är inte installerade. Nästa: 05.1-09; dess faktiska HTTP/OIDC-prov görs i den lokala miljön.
 
@@ -420,6 +422,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 | Phase 04 P17 | 20min | 2 tasks | 14 files |
 | Phase 04 P19 | ca 2h inklusive fulla browseromprov | 2 tasks | 5 kod-/provfiler |
 | Phase 04 P20 | flera fulla lokala omprov | 2 tasks | fasgrind, provhjälp, intern beviskarta och miljöskript |
+| Phase 05.1 P09 | ca 3h45m | 3 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -495,6 +498,8 @@ Fullständiga beslut finns i PROJECT.md.
 - [Phase 04]: Listan ger skyddsflagga och protectedIds (hela urvalet) bara till administratör med skyddsbehörighet på skolan; obehörigas svar oförändrat (04-24, migration 20260929180000)
 - [Phase 04]: Exportens skyddsval är aldrig förvalt, återställs vid målbyte och prövas om av servern (användarbeslut 2026-09-28)
 - [Phase 04]: 04-17: Elevprovet avvecklat (migration 20260930100000); phase3_probe_cases, phase3_probe_scope och phase3_pupil_in_scope behålls och läser bara registret; /api/prov borttagen men kvar som loggklass
+- [Phase 05.1]: 05.1-09: Tjänstprovets Worker kör på 3015 men delar isolerad GoTrue 56331/56332 med APL-provet (isLocalMandateTarget)
+- [Phase 05.1]: 05.1-09: Fastställd/ersatt GR-plan utan klassbindning öppnas som planeringsunderlag så att första klassen kan kopplas
 
 ## Pending Todos
 

@@ -207,13 +207,13 @@ Användaren godkände faslistan 2026-10-19. Kraven nedan är fastställda för r
 
 Källa: [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital.md) och [Plan Digital-researchen](research/PLAN-DIGITAL-ERSATTNING-2026-10-07.md). TJANST-04 och TJANST-05 har justerats och TJANST-07 är nytt; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md).
 
-- [x] **TJANST-01**: Behörig personal kan skapa och ändra tjänsterader per läsår, kurs × klass × lärare × tid per termin, med exakt klass–timplansversion och ämnesrad som källa. Raden bär lärarens interna ID, inte personnummer.
-- [x] **TJANST-02**: Specialuppdrag, till exempel programansvar, mentor och speciallärare, kan läggas med egen planerad tid och skiljs från undervisningsrader.
-- [x] **TJANST-03**: Samläsning och blandgrupper är en egen relation mellan rader, inte en särskild radtyp. Varje lärares och klass tid räknas en gång.
-- [x] **TJANST-04**: Tjänstefördelningen går från utkast till av rektor fastställd och publicerad version. Huvudmannen följer upp bemanning men beslutar inte. Statusbyten loggas, och ändring efter publicering skapar en ny version med spår.
-- [x] **TJANST-05**: Läraren ser bara sin egen publicerade tjänst via inloggning, utan elevregister eller kollegors underlag, och kan lämna kommentar eller kvittens.
+- [ ] **TJANST-01**: Behörig personal kan skapa och ändra tjänsterader per läsår, kurs × klass × lärare × tid per termin, med exakt klass–timplansversion och ämnesrad som källa. Raden bär lärarens interna ID, inte personnummer.
+- [ ] **TJANST-02**: Specialuppdrag, till exempel programansvar, mentor och speciallärare, kan läggas med egen planerad tid och skiljs från undervisningsrader.
+- [ ] **TJANST-03**: Samläsning och blandgrupper är en egen relation mellan rader, inte en särskild radtyp. Varje lärares och klass tid räknas en gång.
+- [ ] **TJANST-04**: Tjänstefördelningen går från utkast till av rektor fastställd och publicerad version. Huvudmannen följer upp bemanning men beslutar inte. Statusbyten loggas, och ändring efter publicering skapar en ny version med spår.
+- [ ] **TJANST-05**: Läraren ser bara sin egen publicerade tjänst via inloggning, utan elevregister eller kollegors underlag, och kan lämna kommentar eller kvittens.
 - [ ] **TJANST-06**: Årsrutiner: förläng tjänstefördelningen från föregående läsår, flytta tjänst mellan personer och massregistrera, med förhandsvisning, atomär lagring och bevarade tidigare beslut.
-- [x] **TJANST-07**: Person, anställning, tjänstgöringsgrad och skoluppdrag är separata uppgifter, skilda från systemmandat. En person kan finnas utan konto, och flera skoluppdrag delar samma planerade kapacitet.
+- [ ] **TJANST-07**: Person, anställning, tjänstgöringsgrad och skoluppdrag är separata uppgifter, skilda från systemmandat. En person kan finnas utan konto, och flera skoluppdrag delar samma planerade kapacitet.
 
 ### Klassorganisation (fas 05.3)
 
