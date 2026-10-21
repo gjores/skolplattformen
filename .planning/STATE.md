@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1 våg 5 klar 2026-10-21: 05.1-09 (Worker-rättigheter, faktiskt Worker/OIDC/webbläsarprov PASS 40/40 i fyra projekt mot syntetiska data, handbok). Inget installerat och 3012 orört. Nästa: 05.1-10 (leverans; installation och 3012-byte kräver användarens uttryckliga ja)."
+stopped_at: "Fas 05.1 etapp 1 levererad lokalt 2026-10-21: 05.1-10 svar A, --apply PASS 26/26, sju 05.1-versioner journalförda, 3012 kör d1cd981 med godkänd hälsokontroll. Nästa: fasverifiering av 05.1 (gsd-verify-work) med användarprov och mänsklig begriplighetsbedömning; etapp 2 (TJANST-06) planeras därefter."
 last_updated: "2026-10-21"
 last_activity: 2026-10-21
-last_activity_desc: "Våg 5 i fas 05.1 genomförd lokalt: grant-migration 20261020190000 (tolv öppna entrypoints), faktiskt prov mot kandidat d1cd981 på 3015 med egen schemakopia och riktig OIDC, rättelser från provet och handbokssidor. Migrationerna 20261020100000–190000 ej installerade."
+last_activity_desc: "05.1-10: migrationerna 20261020100000–190000 installerade med --apply i den skyddade lokala databasen efter användarens svar A; 3012 bytt från 55ea3da till det provade d1cd981-bygget."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -17,14 +17,16 @@ progress:
   completed_plans: 88
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
-worker_status: apl_central_content_local_delivery_verified
-worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
+worker_status: tjanst_etapp1_local_delivery_health_pass
+worker_build_revision: d1cd9812ae6d145ebd0135721cfe72355a09f7a2
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 etapp 1 levererad 2026-10-21 (lokal miljö):** [05.1-10](phases/05.1-tjanstefordelning/05.1-10-SUMMARY.md) Användaren svarade A. `work/pilot/apply-tjanst.mjs --apply` gav PASS 26/26: repetitionen med återrullning upprepades, därefter installation i egen transaktion med advisory lock där alla kontroller upprepades (82 bevarade tabeller med oförändrade rader, 90 befintliga mandat oförändrade, 14 nya tabeller, 68 nya och 12 ersatta funktioner, bara tolv entrypoints öppna för skolplattform_worker, installerat schema lika med det faktiska provets). Journalen har alla sju 05.1-versioner 20261020100000–20261020190000. Rapport `/private/tmp/tjanst-apply.json` SHA-256 `dca1f0d5a7d4d6741d4a2e9e12b9eb0d2630b7d40c62a9aab5321811ec2ee4a6`. 3012 kör nu d1cd981 (artefaktmanifest 1 369 filer, samma som det faktiska provet) från `work/pilot/targets/protected/runtime/tjanst-build-d1cd981/web` med symbolisk länk till protected-manifestet; `/api/health/db` svarar skolplattform_worker/workerd, startsida, stilmallar och skript ger 200. Återgång: 3012 kan startas om från `runtime/apl-central-build-55ea3da/web`; databasen kräver nya migrationer. Status: TJANST-01–05 och 07 är implementerade, provade mot syntetiska data och installerade lokalt; inte mänskligt bedömda och inte inloggningsprovade på 3012. TJANST-06:s huvuddel (etapp 2) är inte planerad. SS 12000-mappningen är avsedd kompatibilitet; inget utbyte är verifierat. Nästa: fasverifiering av 05.1 med användarprov.
 
 **Fas 05.1 våg 5 genomförd 2026-10-21 (lokal miljö):** [05.1-09](phases/05.1-tjanstefordelning/05.1-09-SUMMARY.md) grant-migration 20261020190000: Worker-rollen kan bara köra tolv entrypoints (tio tjanst, två GR/IM) och har inga tabellrättigheter. Faktiskt prov (`work/pilot/verify-tjanst-actual.mjs`) mot skyddat kandidatbygge av d1cd981 på 3015, egen schemakopia och riktig OIDC med syntetiska användare: status PASS, 40/40 kontroller i desktop, desktop-small, phone och phone-small, inga ej körda fall, 33 verifierade OIDC-callbacks och full städning; rapport `/private/tmp/tjanst-actual.json` SHA-256 `5f77e82b5fc3e84818930be416cd86d8492dea3f3ac3b3d0779f995409ea1b43`; 44 skärmbilder granskade. Provet hittade och rättade fem fel (första utkastet gick inte att skapa, step-up tappade läsåret, Gy25-rader saknade ämnesnamn, fastställd GR-plan utan klasskoppling gick inte att öppna, visuella fel). Avvikelse: isolerad GoTrue delas med APL-provet på 56331/56332. Ej rättat/ej provat: datumbrytning i Bemanning, befintlig IM-text om saknad kalender (fas 5), tilldelningsdialogen för Egen tjänst i Mandat, mänsklig begriplighetsbedömning. Handbok: Tjänstefördelning, Personal och bemanning, Min tjänst samt Mandat och Timplaner; docs:build PASS. TJANST-01–05 och 07 är implementerade och provade mot syntetiska data men inte installerade; kraven markeras först i 05.1-10. Nästa: 05.1-10, där installation och 3012-byte kräver användarens uttryckliga ja.
 

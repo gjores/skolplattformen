@@ -1,6 +1,6 @@
 # Roadmap: Skolplattformen
 
-**Nya faser 05.1–05.8 inlagda 2026-10-19:** Användaren godkände faslistan för tjänstefördelning, schemaläggning med Rust-schemamotor som egen tjänst, klassorganisation, lärarbehörigheter, interkommunal ersättning, köpbara moduler, SPAR-synk samt stark identitet och BankID. Faserna ligger mellan fas 5 och faserna 6–8, som behåller sitt innehåll. Tjänstebedömningen är utflyttad till repot `tjanstebedomning`; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Inget är planerat eller genomfört i de nya faserna. Fas 5 pågår som tidigare, och historiska 88/100 och 3/8 består. Senaste leverans är delad GR/IM-årsrad 2026-10-19, och 3012 kör ae6c52e.
+**Nya faser 05.1–05.8 inlagda 2026-10-19:** Användaren godkände faslistan för tjänstefördelning, schemaläggning med Rust-schemamotor som egen tjänst, klassorganisation, lärarbehörigheter, interkommunal ersättning, köpbara moduler, SPAR-synk samt stark identitet och BankID. Faserna ligger mellan fas 5 och faserna 6–8, som behåller sitt innehåll. Tjänstebedömningen är utflyttad till repot `tjanstebedomning`; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Inget är planerat eller genomfört i de nya faserna. Fas 5 pågår som tidigare, och historiska 88/100 och 3/8 består. Senaste leverans är etapp 1 av 05.1 Tjänstefördelning 2026-10-21 (migrationer installerade lokalt), och 3012 kör d1cd981.
 
 **Examensform för HT2028 levererad2026-10-18:** Rektor dokumenterar yrkesprov när tillämpligt prov finns, annars gymnasiearbete, med källa och kontrolldatum före inskick till huvudmannen. Ingen automatisk verifiering av nationellt provutbud påstås.100-poängsraden och frysta beslut bevaras; ny kull eller ändrat innehåll kräver ny kontroll. Modell201/server98/UI20/SQL25/actual20 och lokal installation/efterprov PASS.3012 kör7102cf8 med79 originaltabeller bevarade vid installation och76 verksamhetstabeller vid appbytet. [Verifiering och användarprov](phases/05-bevarade-utbildnings-och-klassfloden/05-VOCATIONAL-EXAM-2028-VERIFICATION.md). Mänsklig begriplighet och bredare mobilöverlappning kvarstår; historiska88/100 och3/8 består. Äldre leveransnoteringar nedan är historik.
 
@@ -327,7 +327,7 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 6. Rektor kan förlänga fördelningen från föregående läsår, flytta uppdrag mellan personer och massregistrera. Allt sker med förhandsvisning, atomär lagring och nya utkast, och tidigare beslut bevaras. (TJANST-06)
 7. Person, anställning, tjänstgöringsgrad och skoluppdrag hålls isär från systemmandat. En lärare på två skolor har en gemensam planerad kapacitet som inte förbrukas dubbelt. Arbetstidsram enligt avtal visas inte här. (TJANST-07)
 
-**Plans**: 10/11 plans executed (etapp 1; etapp 2 med TJANST-06:s årsrutiner planeras separat efter leverans och prov av etapp 1). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
+**Plans**: 11/11 plans executed (etapp 1, installerad lokalt 2026-10-21 och 3012 på d1cd981; mänsklig begriplighetsbedömning och fasverifiering återstår; etapp 2 med TJANST-06:s årsrutiner planeras separat efter leverans och prov av etapp 1). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
 
 Plans:
 
@@ -341,7 +341,7 @@ Plans:
 - [x] 05.1-07-PLAN.md — Min tjänst, Personal, Bemanning, Egen tjänst i Mandat och navigering (våg 4)
 - [x] 05.1-08-PLAN.md — SQL: specialuppdrag, samläsning, kvittens/kommentar och bemanning (våg 4)
 - [x] 05.1-09-PLAN.md — Worker-rättigheter, faktiskt Worker/OIDC-prov på dator och telefon, handbok (våg 5)
-- [ ] 05.1-10-PLAN.md — Leverans: repetition, användarens godkännande, --apply och 3012-byte (våg 6)
+- [x] 05.1-10-PLAN.md — Leverans: repetition, användarens godkännande, --apply och 3012-byte (våg 6). Svar A; --apply PASS 26/26, alla sju 05.1-versioner journalförda, 3012 kör d1cd981 med godkänd hälsokontroll
 
 **UI hint**: yes
 
@@ -575,7 +575,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
-| 05.1. Tjänstefördelning (INSERTED) | 10/11 | In progress — våg 5 klar: 05.1-09 faktiskt prov PASS 40/40 mot syntetiska data; inget installerat. Nästa: 05.1-10 leverans med användarens godkännande | - |
+| 05.1. Tjänstefördelning (INSERTED) | 11/11 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A) och 3012 kör d1cd981; provad mot syntetiska data. Kvar: fasverifiering, användarprov och mänsklig begriplighetsbedömning; etapp 2 (TJANST-06) ej planerad | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |

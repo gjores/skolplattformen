@@ -207,6 +207,8 @@ Användaren godkände faslistan 2026-10-19. Kraven nedan är fastställda för r
 
 Källa: [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital.md) och [Plan Digital-researchen](research/PLAN-DIGITAL-ERSATTNING-2026-10-07.md). TJANST-04 och TJANST-05 har justerats och TJANST-07 är nytt; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md).
 
+**Status 2026-10-21 (05.1-10):** Etapp 1 (TJANST-01–05 och 07) är implementerad, provad mot syntetiska data och installerad i den skyddade lokala miljön; 3012 kör det provade bygget d1cd981. Kraven är inte avbockade: mänsklig begriplighetsbedömning återstår. TJANST-06:s huvuddel (årsrutiner) är etapp 2 och ännu inte planerad. SS 12000-mappningen är avsedd kompatibilitet; inget informationsutbyte är verifierat.
+
 - [ ] **TJANST-01**: Behörig personal kan skapa och ändra tjänsterader per läsår, kurs × klass × lärare × tid per termin, med exakt klass–timplansversion och ämnesrad som källa. Raden bär lärarens interna ID, inte personnummer.
 - [ ] **TJANST-02**: Specialuppdrag, till exempel programansvar, mentor och speciallärare, kan läggas med egen planerad tid och skiljs från undervisningsrader.
 - [ ] **TJANST-03**: Samläsning och blandgrupper är en egen relation mellan rader, inte en särskild radtyp. Varje lärares och klass tid räknas en gång.
@@ -323,13 +325,13 @@ Fastställd av användaren 2026-10-19 tillsammans med faslistan. Varje krav har 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TJANST-01 | Phase 05.1 | Pending |
-| TJANST-02 | Phase 05.1 | Pending |
-| TJANST-03 | Phase 05.1 | Pending |
-| TJANST-04 | Phase 05.1 | Pending |
-| TJANST-05 | Phase 05.1 | Pending |
-| TJANST-06 | Phase 05.1 | Pending |
-| TJANST-07 | Phase 05.1 | Pending |
+| TJANST-01 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Mänsklig begriplighetsbedömning återstår |
+| TJANST-02 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Mänsklig begriplighetsbedömning återstår |
+| TJANST-03 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Mänsklig begriplighetsbedömning återstår |
+| TJANST-04 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Mänsklig begriplighetsbedömning återstår |
+| TJANST-05 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Mänsklig begriplighetsbedömning återstår |
+| TJANST-06 | Phase 05.1 | Pending — huvuddelen (årsrutiner) är etapp 2, ännu inte planerad |
+| TJANST-07 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Mänsklig begriplighetsbedömning återstår |
 | SCHEMA-01 | Phase 05.2 | Pending |
 | SCHEMA-02 | Phase 05.2 | Pending |
 | SCHEMA-03 | Phase 05.2 | Pending |
