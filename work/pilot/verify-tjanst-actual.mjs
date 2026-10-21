@@ -5,6 +5,9 @@
 // Worker på 127.0.0.1:3015 och egen GoTrue mot en egen schemakopia (bara schema, inga rader) med fasens migrationer,
 // kör Playwright med privat manifest och städar OIDC-användare, Worker, GoTrue och schemakopian. Aldrig den skyddade
 // lokala databasen, aldrig 3012 och ingen installation.
+// 05.1-12: etapp 1 är installerad i målet (05.1-10). Målets migrationsjournal läses läsande innan schemakopian skapas, och i
+// kopian installeras bara de migrationer i tjanstMigrations som saknas i målet. De ska vara exakt tjanstGapMigrations
+// (rapportfältet pendingMigrations). migrationSources omfattar fortfarande hela tjanstMigrations, eftersom 05.1-13 jämför dem.
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync, cpSync, openSync, closeSync, realpathSync, rmSync, readdirSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -15,7 +18,8 @@ import path from 'node:path';
 import { createNamedTimplanSnapshot, schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { createNamedTimplanRuntime } from './named-timplan-runtime.mjs';
 import { recoverTjanstOidcFixture, TJANST_ACTUAL_BASE, TJANST_ACTUAL_CASES, TJANST_ACTUAL_PROJECTS } from './tjanst-oidc-fixtures.mjs';
-import { tjanstMigrations } from './tjanst-fixtures.mjs';
+import { tjanstGapMigrations, tjanstMigrations } from './tjanst-fixtures.mjs';
+import { assertTarget } from './verify-target.mjs';
 import { artifactManifest } from './verify-programplan-copy-api.mjs';
 import { productSources, sha } from './apply-apl-plan.mjs';
 
@@ -31,6 +35,22 @@ export const WORKER_ENTRYPOINTS = ['phase51_grim_class_command(jsonb)', 'phase51
   'tjanst_plan_command(jsonb)', 'tjanst_plan_read(jsonb)', 'tjanst_plan_status(jsonb)',
   'tjanst_self_command(jsonb)', 'tjanst_self_read(jsonb)', 'tjanst_self_status(jsonb)', 'tjanst_staffing_read(jsonb)'];
 const PHASE_TABLES = ['staff_people', 'staff_employments', 'staff_school_duties', 'staff_person_bindings'];
+const journalVersion = file => path.basename(file).slice(0, 14);
+
+/**
+ * Läser målets migrationsjournal i en läsande transaktion (inget skrivs) och avgör vilka av fasens migrationer som saknas där.
+ * De saknade ska vara exakt rättelsen; annars är schemakopian inte en kopia av det mål som 05.1-13 installerar i.
+ */
+export async function targetPendingMigrations() {
+  const target = await assertTarget('protected'), live = require('postgres')(target.dbUrl, { max: 1, prepare: false, onnotice: () => {} });
+  try {
+    const journal = await live.begin('read only', async tx => (await tx`select version from supabase_migrations.schema_migrations
+      where version = any(${tjanstMigrations.map(journalVersion)}) order by version`).map(r => r.version));
+    const pending = tjanstMigrations.filter(p => !journal.includes(journalVersion(p)));
+    assert.deepEqual(pending, tjanstGapMigrations, 'Målets saknade migrationer ska vara exakt rättelsen (tjanstGapMigrations)');
+    return { pending, journal: { read: 'read only', installed: journal, missing: pending.map(journalVersion) } };
+  } finally { await live.end({ timeout: 5 }); }
+}
 
 function verificationSources() {
   const files = new Set(), ts = require('typescript');
@@ -123,16 +143,20 @@ export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_
     sourceRevision: git(['rev-parse', 'HEAD']), sources: initialSources, migrationSources: initialMigrations, verificationSources: initialVerification,
     projects, browserEvidence: {}, checks: [], notExecuted: [],
     limits: ['Egen schemakopia utan rader och bara syntetiska identiteter, skolor, klasser och personal; inga verkliga rader kopieras och inget skrivs i den skyddade databasen eller på 3012',
-      'Ingen installation; migrationerna installeras bara i schemakopian', 'Inga autentiserings-, verksamhets- eller transportattrapper utom två märkta transportfel: ett svar som tappas efter riktig Worker-200 och en fördröjd läsning för laddningstillståndet',
+      'Ingen installation; målets migrationsjournal läses läsande, och bara de migrationer som saknas där (pendingMigrations, rättelsen) installeras i schemakopian av det installerade målet', 'Inga autentiserings-, verksamhets- eller transportattrapper utom två märkta transportfel: ett svar som tappas efter riktig Worker-200 och en fördröjd läsning för laddningstillståndet',
       'SS 12000: provet bekräftar bara intern lagring (heltalsandelar, stabila Person- och klass-ID, åtskilda behovs- och lärarminuter); inget informationsutbyte med en motpart provas',
       'Telefonprojekten läser en version som är förberedd i schemakopian med samma SQL-kommandon som Worker anropar; redigering finns bara på dator (D-15)',
       'Retries 0, en Playwright-worker'] };
   const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 }); save();
   let snapshot, runtime, failure;
   try {
+    const target = await targetPendingMigrations(); report.targetJournal = target.journal; report.pendingMigrations = target.pending; save();
     snapshot = await createNamedTimplanSnapshot(); report.snapshot = snapshot.provenance; save();
     report.baselineFingerprint = await schemaFingerprint(snapshot.db);
-    await snapshot.db.begin(async tx => { for (const p of tjanstMigrations) await tx.unsafe(readFileSync(path.join(root, p), 'utf8')); await tx`set constraints all immediate`; });
+    // Kopian ska motsvara journalen: etapp 1 finns, rättelsens tabell saknas.
+    assert.equal((await snapshot.db`select to_regprocedure('public.tjanst_plan_read(jsonb)') is not null ok`)[0].ok, true, 'Etapp 1 saknas i schemakopian');
+    assert.equal((await snapshot.db`select to_regclass('public.tjanst_self_mandates') r`)[0].r, null, 'Rättelsen finns redan i schemakopian');
+    await snapshot.db.begin(async tx => { for (const p of report.pendingMigrations) await tx.unsafe(readFileSync(path.join(root, p), 'utf8')); await tx`set constraints all immediate`; });
     report.installedFingerprint = await schemaFingerprint(snapshot.db); assert.notEqual(report.installedFingerprint, report.baselineFingerprint);
     report.grants = await workerGrants(snapshot.db); save();
     assert.deepEqual(report.grants.workerExecute, [...WORKER_ENTRYPOINTS].sort(), 'Worker ska ha exakt tolv öppna entrypoints');

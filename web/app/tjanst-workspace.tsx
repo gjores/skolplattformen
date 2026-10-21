@@ -43,7 +43,9 @@ export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unit
   /** Krävs för skrivningar: journalen binds till inloggad identitet och uppdrag (tjanst-journal). */
   identityKey?: string | null; feedback?: TjanstFeedback; onOpenClassLinks?: () => void; onSessionLost?: () => void;
   /** Huvudmannens Visa fördelningen (Bemanning): skrivskyddad, utan åtgärdsrad, panel och beslutsknapp (D-01). */
-  readOnly?: boolean };
+  readOnly?: boolean;
+  /** Versionen som läses först. Bemanning skickar skolans publicerade version, så att huvudmannen aldrig ser rektors utkast (WR-07). */
+  versionId?: string | null };
 
 function readLocation(): { view: TjanstView; term: TjanstTermView; saved: Saved } {
   const q = new URLSearchParams(window.location.search), view = q.get('tjvy'), term = q.get('termin');
@@ -86,14 +88,14 @@ const failed = (error: string, extra: Partial<TjanstFailure> = {}): TjanstFailur
 const aborted = (caught: unknown) => caught instanceof DOMException && caught.name === 'AbortError';
 
 export default function TjanstWorkspace(props: TjanstWorkspaceProps) {
-  return <Workspace key={`${props.epoch}-${props.context.assignmentId}-${props.unitId ?? 'alla'}-${props.schoolYear}`} {...props}/>;
+  return <Workspace key={`${props.epoch}-${props.context.assignmentId}-${props.unitId ?? 'alla'}-${props.schoolYear}-${props.versionId ?? 'aktuell'}`} {...props}/>;
 }
 
-function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onSessionLost, readOnly = false }: TjanstWorkspaceProps) {
+function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onSessionLost, readOnly = false, versionId: startVersion = null }: TjanstWorkspaceProps) {
   const [initial] = useState(readLocation);
   const [view, setView] = useState<TjanstView>(initial.view), [term, setTerm] = useState<TjanstTermView>(initial.term);
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
-  const [versionId, setVersionId] = useState(''), [readKey, setReadKey] = useState(0);
+  const [versionId, setVersionId] = useState(startVersion ?? ''), [readKey, setReadKey] = useState(0);
   const [data, setData] = useState<TjanstPlanRead | null>(null), [loading, setLoading] = useState(!!unitId), [readError, setReadError] = useState<ReadFailure | null>(null);
   const [notice, setNotice] = useState<string | null>(null), [pageError, setPageError] = useState<TjanstFailure | null>(null), [pendingCheck, setPendingCheck] = useState(false);
   const [dialog, setDialog] = useState<Dialog | null>(null), [marked, setMarked] = useState<string[]>([]), [markError, setMarkError] = useState<string | null>(null);
@@ -279,6 +281,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const effectiveClass = classId && data?.classes.some(c => c.classId === classId) ? classId : data?.classes[0]?.classId ?? '';
   const published = data?.versions.find(v => v.status === 'published') ?? null;
   const viewingOld = !!versionId && !!data?.version && data.version.status !== 'draft';
+  // Skrivskyddat (Bemanning) listar väljaren bara publicerade och ersatta versioner; inget val leder till utkastet (WR-07).
+  const choices = data ? [...data.versions].filter(v => readOnly ? v.status === 'published' || v.status === 'superseded' : v.status !== 'discarded')
+    .sort((a, b) => b.versionNo - a.versionNo) : [];
+  const showChoices = !!data && data.capabilities.canReadHistory && (readOnly ? choices.length > 1 : data.versions.length > 1);
   const schoolforms = data ? [...new Set(data.classes.flatMap(c => c.link ? [c.link.schoolform === 'gymnasium' ? 'Gy25' : 'GR/IM'] : []))] : [];
   const linked = data?.classes.some(c => c.link) ?? false;
   const empty = !!data && data.rows.length === 0 && data.teachers.length === 0 && data.specials.length === 0;
@@ -327,8 +333,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {data.version?.status === 'published' && !viewingOld && data.version.publishedAt && <span>Lärarna ser version {data.version.versionNo}, publicerad {dateText(data.version.publishedAt)}.</span>}
       </div>
       <div className="tjanst-status-side">
-        {data.capabilities.canReadHistory && data.versions.length > 1 && <label className="tjanst-inline-field">Visa version<select value={versionId} disabled={loading} onChange={e => setVersionId(e.target.value)}>
-          <option value="">Aktuell version</option>{[...data.versions].filter(v => v.status !== 'discarded').sort((a, b) => b.versionNo - a.versionNo).map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>}
+        {showChoices && <label className="tjanst-inline-field">Visa version<select value={versionId} disabled={loading} onChange={e => setVersionId(e.target.value)}>
+          {!readOnly && <option value="">Aktuell version</option>}{choices.map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>}
         {feedback && <span>{ackSummary(feedback)}</span>}
         {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
       </div>

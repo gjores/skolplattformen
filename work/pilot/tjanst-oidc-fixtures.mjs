@@ -24,15 +24,17 @@ const LOCK = path.join(root, 'work/pilot/targets/protected/idp/named-timplan-run
 export const TJANST_ACTUAL_PROJECTS = ['desktop', 'desktop-small', 'phone', 'phone-small'];
 /** Namngivna fall per projekt. Rapporten kräver ett godkänt fall per namn; saknade redovisas som ej körda. */
 const PHONE_CASES = ['Min tjänst på telefon', 'Per lärare på telefon utan redigeringskontroller', 'Bemanning på telefon utan redigeringskontroller', '44 px på telefon'];
+/** 05.1-12 (WR-07): huvudmannens Visa fördelningen läser den publicerade versionen med versionId, också när rektor har ett utkast. */
+const BEMANNING_PUBLISHED = 'Bemanning: Visa fördelningen visar publicerad version trots utkast';
 export const TJANST_ACTUAL_CASES = {
   desktop: ['spår', 'GR/IM-klass i Timplaner med behov', 'okopplad klass utan nollor', 'ny version: läraren ser den tidigare', 'äldre version skrivskyddad (D-24)',
     'fördela tom cell', 'person utan konto får rader', 'annan skola och annat läsår nekas', 'specialuppdrag', 'två lärare på samma kurs', 'samläsning räknas en gång',
     'utkastlärare från rektor', 'administratör utan knapp och 403 vid publicering', 'kvittens till tjanst_feedback', 'versionshistorik med aktör och tid',
     'huvudmannens Bemanning utan beslutsknapp och 403 vid publicering', 'personal: utan konto och utkastlärare', 'andelar 60 % + 40 % sparas och 60 % + 50 % nekas med engångskod',
     'rektor B ser bara Andel här 40 %', 'tillstånd: 403', 'två flikar: den andra får 409', 'avbrutet svar återhämtas via status', 'tillstånd: laddning', 'tillstånd: loggfel',
-    'tillstånd: MFA', 'tillstånd: context_changed', 'tangentbord, fokus och 44 px'],
+    'tillstånd: MFA', 'tillstånd: context_changed', BEMANNING_PUBLISHED, 'tangentbord, fokus och 44 px'],
   'desktop-small': ['fördela', 'samläsning', 'publicera', 'tangentbord, fokus och 44 px'],
-  phone: PHONE_CASES,
+  phone: [...PHONE_CASES, BEMANNING_PUBLISHED],
   'phone-small': PHONE_CASES,
 };
 

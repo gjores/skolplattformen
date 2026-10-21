@@ -12,7 +12,7 @@ const P={anna:id(101),bertil:id(102),cecilia:id(103),david:id(104)};
 const SCHOOL_A='Syntetiska gymnasiet',SCHOOL_B='Andra syntetiska skolan';
 type Role='self'|'rektor'|'huvudman';
 type Failure={status:number;json:unknown}|'abort'|'lost';
-type Options={role:Role;data?:'standard'|'tom'|'obunden'|'kvitterad'|'lang';mfa?:boolean};
+type Options={role:Role;data?:'standard'|'tom'|'obunden'|'kvitterad'|'lang'|'utkast';mfa?:boolean};
 const phone=(info:TestInfo)=>info.project.name.startsWith('phone');
 const desktopOnly=(info:TestInfo)=>test.skip(phone(info),'Redigering finns bara på dator (D-15).');
 
@@ -27,12 +27,24 @@ function session(role:Role){
 const setup={customerId:id(952),serverDate:TODAY,currentYear:YEAR,minimumYear:2000,maximumYear:2100,
  units:[A,B].map(unitId=>({unitId,schoolName:unitId===A?SCHOOL_A:SCHOOL_B,canRead:{programplan:true,gymnasium:true,grundskola:true,introduktionsprogram:true}}))};
 
-function planRead(unitId:string,role:Role){
+/** Med variant utkast har skolan en ersatt version 1, en publicerad version 2 och rektors utkast version 3 med annan tid (WR-07).
+ * Som servern: utan versionId svarar läsningen med utkastet, med versionId med den publicerade eller ersatta versionen. */
+function planRead(unitId:string,role:Role,variant='standard',versionId?:string){
  const sourceKey=`class_timplan:${id(201)}:${YEAR}:ENGENG05`;
  const cls={classId:id(201),name:'TE26A',link:{linkRevision:0,timplanId:id(701),seriesId:id(750),seriesName:'Teknikprogrammet',timplanVersion:2,column:'ar1',schoolform:'gymnasium'},
   needs:[{sourceKind:'class_timplan',sourceKey,rowKey:'ENGENG05',label:'Engelska 5',needHt:3000,needVt:3000,needBasis:'terms'}]};
  const v1={id:id(601),versionNo:1,status:'published',contentHash:hash(1),basedOnVersionId:null,publishedByName:'Rektor Syntetisk',publishedAt:'2026-06-15T08:00:00.000Z'};
  const row={id:id(301),lineageId:id(5301),sourceKind:'class_timplan',sourceKey,classId:id(201),rowKey:'ENGENG05',personId:P.anna,teacherHt:3000,teacherVt:3000,needHt:3000,needVt:3000,needBasis:'terms',stale:false,jointGroupId:null,comment:''};
+ if(variant==='utkast'){
+  const old={id:id(604),versionNo:1,status:'superseded',contentHash:hash(4),basedOnVersionId:null,publishedByName:'Rektor Syntetisk',publishedAt:'2026-06-15T08:00:00.000Z'};
+  const pub={id:id(605),versionNo:2,status:'published',contentHash:hash(5),basedOnVersionId:id(604),publishedByName:'Rektor Syntetisk',publishedAt:'2026-09-01T08:00:00.000Z'};
+  const draft={id:id(606),versionNo:3,status:'draft',contentHash:hash(6),basedOnVersionId:id(605),publishedByName:null,publishedAt:null};
+  const shown=[old,pub,draft].find(v=>v.id===versionId)??draft;
+  // Utkastet har 20 + 20 h, de publicerade versionerna 50 + 50 h.
+  const time=shown===draft?{teacherHt:1200,teacherVt:1200}:{teacherHt:3000,teacherVt:3000};
+  return{contractVersion:'tjanst_v1',unitId,schoolName:SCHOOL_A,schoolYear:YEAR,revision:5,version:shown,versions:[old,pub,draft],teachers:[{personId:P.anna,displayName:'Anna Andersson',draft:false,shareHere:60}],
+   classes:[cls],rows:[{...row,id:shown===draft?id(306):row.id,...time}],specials:[],joints:[],actions:[],blockers:[],capabilities:{canEdit:false,canPublish:false,canReadHistory:true}};
+ }
  return{contractVersion:'tjanst_v1',unitId,schoolName:SCHOOL_A,schoolYear:YEAR,revision:3,version:v1,versions:[v1],teachers:[{personId:P.anna,displayName:'Anna Andersson',draft:false,shareHere:60}],
   classes:[cls],rows:[row],specials:[],joints:[],actions:role==='rektor'?['create_draft']:[],blockers:[],capabilities:{canEdit:false,canPublish:false,canReadHistory:true}};
 }
@@ -71,12 +83,13 @@ async function mock(page:Page,options:Options){
  const unitRead=(unitId:string)=>({contractVersion:'tjanst_v1',scope:'unit',unitId,people:people.filter(p=>p.employments.some(e=>e.duties.some(d=>d.unitId===unitId))||p.proposedForUnitId===unitId)
   .map(({account:_a,employments,...p})=>({...structuredClone(p),employments:[],duties:employments.flatMap(e=>e.duties.filter(d=>d.unitId===unitId))})),actions:['create_draft_teacher'],blockers:[],capabilities:{canManage:false,canCreateDraft:true}});
  const staffing=()=>({contractVersion:'tjanst_v1',schoolYear:YEAR,units:[
-  {unitId:A,schoolName:SCHOOL_A,published:variant==='tom'?null:{versionId:id(601),versionNo:1,publishedAt:'2026-06-15T08:00:00.000Z'},
+  {unitId:A,schoolName:SCHOOL_A,published:variant==='tom'?null:variant==='utkast'?{versionId:id(605),versionNo:2,publishedAt:'2026-09-01T08:00:00.000Z'}:{versionId:id(601),versionNo:1,publishedAt:'2026-06-15T08:00:00.000Z'},
    sums:variant==='tom'?null:{teaching:{ht:6000,vt:3000},special:{ht:1200,vt:1200},vacant:{ht:2160,vt:2160},unallocated:{ht:1500,vt:4500},unlinkedClasses:1}},
   {unitId:B,schoolName:SCHOOL_B,published:null,sums:null}],vacancies:variant==='tom'?[]:[{unitId:A,kind:'row',id:id(305),label:'Svenska som andraspråk 1 IMSPR',ht:2160,vt:2160}]});
  // Mockens svar ska själva klara kontraktets parsers, annars bevisar provet inget.
  parseSelfReadReply(selfRead());parsePersonalReadReply(organizerRead(),{});parsePersonalReadReply(unitRead(A),{unitId:A});parseStaffingReadReply(staffing(),{schoolYear:YEAR});
  parsePlanReadReply(planRead(A,'huvudman'),{unitId:A,schoolYear:YEAR});
+ parsePlanReadReply(planRead(A,'huvudman','utkast'),{unitId:A,schoolYear:YEAR});parsePlanReadReply(planRead(A,'huvudman','utkast',id(605)),{unitId:A,schoolYear:YEAR,versionId:id(605)});
  const reason=(status:number,code:string)=>({status,json:{code:status===409?'conflict':'bad_request',correlationId:'syntetisk-ref-1',details:{reason:code}}});
  let mfaPending=options.mfa===true;
  function personal(body:any){
@@ -116,7 +129,7 @@ async function mock(page:Page,options:Options){
   else if(path==='/api/tjanst/personal/lasa')reply={status:200,json:body.unitId?unitRead(body.unitId):organizerRead()};
   else if(path==='/api/tjanst/personal/kommando'){reply=personal(body);if(reply.status===200)receipts.set(body.commandId,reply.json);}
   else if(path==='/api/tjanst/bemanning/lasa')reply={status:200,json:staffing()};
-  else if(path==='/api/tjanst/plan/lasa')reply={status:200,json:planRead(body.unitId,options.role)};
+  else if(path==='/api/tjanst/plan/lasa')reply={status:200,json:planRead(body.unitId,options.role,variant,body.versionId)};
   else if(path==='/api/kund/mandat'&&route.request().method()==='GET')reply={status:200,json:{mandates:[{id:id(960),displayName:'Anna Andersson',function:'larare',schools:[{id:A,name:SCHOOL_A}],scopeKind:'self',
    validFrom:'2026-08-01',validTo:null,startsAt:null,endsAt:null,status:'giltigt',approverName:null,purposeCode:null}]}};
   else if(path==='/api/kund/mandat/urval')reply={status:200,json:{functions:['larare','administrator'],recipients:[{membershipId:id(970),displayName:'Bertil Berg'}],schools:[{id:A,name:SCHOOL_A},{id:B,name:SCHOOL_B}],
@@ -486,16 +499,30 @@ test.describe('Bemanning',()=>{
   await expect(page.getByText('Ingen skola har en tjänstefördelning för läsåret 26/27 ännu.')).toBeVisible();
  });
 
- test('Bemanning Visa fördelningen är skrivskyddad utan åtgärdsrad och beslutsknapp',async({page})=>{
-  const m=await mock(page,{role:'huvudman'});
+ test('Bemanning Visa fördelningen är skrivskyddad och öppnar den publicerade versionen trots rektors utkast (WR-07)',async({page},info)=>{
+  const m=await mock(page,{role:'huvudman',data:'utkast'});
   await page.goto(url+'?vy=bemanning');
-  await page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_A}`}).first().click();
+  // Skola B saknar publicerad version: raden visar texten men har ingen knapp.
+  const rowB=phone(info)?page.locator('.bemanning ul.tjanst-cards li').filter({hasText:SCHOOL_B}):page.locator('table.bemanning-table').getByRole('row').filter({hasText:SCHOOL_B});
+  await expect(rowB).toContainText('Ingen publicerad version');
+  await expect(page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_B}`})).toHaveCount(0);
+  await page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_A}`}).locator('visible=true').click();
   await expect(heading(page,'Tjänstefördelning')).toBeVisible();
   await expect(page.getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
   await expect(page.locator('.tjanst').getByText('Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning.').first()).toBeVisible();
   for(const name of ['Fastställ och publicera','Ändra i ny version','Lägg till lärare i fördelningen','Lägg till specialuppdrag','Hämta aktuellt läge'])
    await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
-  expect(m.bodies.filter(b=>b.path==='/api/tjanst/plan/lasa').map(b=>b.body)).toEqual([{unitId:A,schoolYear:YEAR}]);
+  expect(m.bodies.filter(b=>b.path==='/api/tjanst/plan/lasa').map(b=>b.body)).toEqual([{unitId:A,schoolYear:YEAR,versionId:id(605)}]);
+  await expect(page.locator('.tjanst-readonly')).toHaveText('Du läser version 2 skrivskyddat, publicerad 2026-09-01 av Rektor Syntetisk. Lärarna ser den här versionen.');
+  // De publicerade summorna (50 + 50 h), inte utkastets (20 + 20 h).
+  if(phone(info))await expect(page.locator('.tjanst dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 50 h · Läsår 100 h');
+  else await expect(page.locator('[data-sum="Undervisning:Anna Andersson"]')).toHaveText('100 h');
+  const select=page.locator('.tjanst').getByLabel('Visa version');
+  await expect(select).toHaveValue(id(605));
+  expect(await select.locator('option').allInnerTexts()).toEqual(['Version 2 · publicerad 2026-09-01','Version 1 · publicerad 2026-06-15']);
+  await select.selectOption(id(604));
+  await expect(page.locator('.tjanst-readonly')).toHaveText('Du läser version 1 skrivskyddat, publicerad 2026-06-15 av Rektor Syntetisk. Lärarna ser version 2.');
+  expect(m.bodies.filter(b=>b.path==='/api/tjanst/plan/lasa').map(b=>b.body.versionId)).toEqual([id(605),id(604)]);
   expect(m.requests.filter(p=>/kommando|publicera/u.test(p))).toEqual([]);
   await page.getByRole('button',{name:'Tillbaka till bemanningen'}).click();
   await expect(page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_A}`}).locator('visible=true')).toBeFocused();

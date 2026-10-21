@@ -14,7 +14,8 @@ import './tjanst.css';
 /**
  * Huvudmannens Bemanning (D-01, D-19): uppföljning per skola för planeringsvalets läsår, utan beslutsknapp. Summorna kommer
  * från servern för den publicerade versionen. Ej fördelad tid räknas bara på kopplade klasser; okopplade klasser räknas
- * separat (Koppling saknas). Visa fördelningen öppnar skolans fördelning skrivskyddad. Lärarantal ingår inte i svaret.
+ * separat (Koppling saknas). Visa fördelningen finns bara för skolor med publicerad version och öppnar just den versionen skrivskyddad,
+ * också när rektor har ett utkast (WR-07). Lärarantal ingår inte i svaret.
  */
 export type BemanningWorkspaceProps = { context: ActiveContext; epoch: number; schoolYear: number; onSessionLost?: () => void };
 const LOCK_CODES = ['context_changed', 'assignment_ended', 'assignment_expired', 'membership_blocked'];
@@ -59,7 +60,7 @@ function Workspace({ context, epoch, schoolYear, onSessionLost }: BemanningWorks
 
   if (open) return <div className="bemanning-detail">
     <div className="mandate-actions"><Button variant="outline" onClick={() => setOpen(null)}>Tillbaka till bemanningen</Button></div>
-    <TjanstWorkspace context={context} epoch={epoch} unitId={open.unitId} schoolYear={schoolYear} readOnly onSessionLost={onSessionLost}/>
+    <TjanstWorkspace context={context} epoch={epoch} unitId={open.unitId} schoolYear={schoolYear} versionId={open.published?.versionId ?? null} readOnly onSessionLost={onSessionLost}/>
   </div>;
 
   const units = data ? [...data.units].sort((a, b) => a.schoolName.localeCompare(b.schoolName, 'sv')) : [];
@@ -90,13 +91,13 @@ function Workspace({ context, epoch, schoolYear, onSessionLost }: BemanningWorks
           <TableCell className="tjanst-num">{time(u.sums?.teaching)}</TableCell><TableCell className="tjanst-num">{time(u.sums?.special)}</TableCell>
           <TableCell className="tjanst-num">{time(u.sums?.vacant)}</TableCell><TableCell className="tjanst-num">{time(u.sums?.unallocated)}</TableCell>
           <TableCell className="tjanst-num">{u.sums ? u.sums.unlinkedClasses === 1 ? '1 klass' : `${u.sums.unlinkedClasses} klasser` : '–'}</TableCell>
-          <TableCell><Button variant="outline" data-staffing-open={u.unitId} aria-label={`Visa fördelningen för ${u.schoolName}`} onClick={() => { opener.current = u.unitId; setOpen(u); }}>Visa fördelningen</Button></TableCell>
+          <TableCell>{u.published && <Button variant="outline" data-staffing-open={u.unitId} aria-label={`Visa fördelningen för ${u.schoolName}`} onClick={() => { opener.current = u.unitId; setOpen(u); }}>Visa fördelningen</Button>}</TableCell>
         </TableRow>)}</TableBody></Table>
       <ul className="tjanst-cards">{units.map(u => <li key={u.unitId} className="protected-card">
         <strong>{u.schoolName}</strong><span>{u.published ? `Publicerad version ${u.published.versionNo}, ${dateText(u.published.publishedAt)}` : 'Ingen publicerad version'}</span>
         {u.sums && <><span>Undervisning {time(u.sums.teaching)} · Specialuppdrag {time(u.sums.special)}</span><span>Vakant tid {time(u.sums.vacant)} · Ej fördelad tid {time(u.sums.unallocated)}</span>
           <span>Koppling saknas: {u.sums.unlinkedClasses === 1 ? '1 klass' : `${u.sums.unlinkedClasses} klasser`}</span></>}
-        <Button variant="outline" data-staffing-open={u.unitId} aria-label={`Visa fördelningen för ${u.schoolName}`} onClick={() => { opener.current = u.unitId; setOpen(u); }}>Visa fördelningen</Button>
+        {u.published && <Button variant="outline" data-staffing-open={u.unitId} aria-label={`Visa fördelningen för ${u.schoolName}`} onClick={() => { opener.current = u.unitId; setOpen(u); }}>Visa fördelningen</Button>}
       </li>)}</ul>
       <p className="tjanst-empty-text">Ej fördelad tid räknas bara på klasser med timplan. Klasser utan koppling räknas i kolumnen Koppling saknas, eftersom deras behov är okänt.</p>
       {data.vacancies.length > 0 && <section className="protected-card bemanning-vacancies" aria-labelledby="bemanning-vacancies"><h2 id="bemanning-vacancies">Vakanser</h2>

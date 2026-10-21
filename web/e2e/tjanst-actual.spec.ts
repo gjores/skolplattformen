@@ -23,7 +23,7 @@ const PHONE=(p:string)=>p.startsWith('phone');
 test.describe.configure({mode:'serial'});
 
 let db:Db,fixture:Fixture|undefined,seed:Seed,project='',baseURL='';
-const contexts:Record<string,BrowserContext>={},pages:Record<string,Page>={},network:Record<string,{method:string;path:string;status:number|null}[]>={};
+const contexts:Record<string,BrowserContext>={},pages:Record<string,Page>={},network:Record<string,{method:string;path:string;status:number|null;versionId?:string|null}[]>={};
 const result:{status:string;project:string;checks:Check[];screenshots:{file:string;sha256:string;geometry:unknown}[];errors:unknown[];scope?:unknown}={status:'FAIL',project:'',checks:[],screenshots:[],errors:[]};
 const save=()=>writeFileSync(path.join(evidenceDir,`browser-${project}.json`),JSON.stringify(result,null,2)+'\n',{mode:0o600});
 function pass(name:string,check:string,details?:unknown){result.checks.push({case:name,name:check?`${name}: ${check}`:name,ok:true,...(details===undefined?{}:{details})});save();}
@@ -44,7 +44,10 @@ async function context(browser:Browser,info:TestInfo,role:string){
   contexts[role]=ctx;const page=await ctx.newPage();pages[role]=page;network[role]=[];
   page.on('pageerror',e=>{result.errors.push({role,message:e.message});save();});
   page.on('dialog',d=>void(d.type()==='beforeunload'?d.accept():d.dismiss()));
-  ctx.on('request',req=>{const u=new URL(req.url());if(u.origin!==baseURL)return;const entry={method:req.method(),path:u.pathname,status:null as number|null};network[role].push(entry);
+  ctx.on('request',req=>{const u=new URL(req.url());if(u.origin!==baseURL)return;const entry:{method:string;path:string;status:number|null;versionId?:string|null}={method:req.method(),path:u.pathname,status:null};
+    // Planläsningens versionId loggas (bara syntetiska ID:n), så att nätverksloggen visar vilken version som lästes (WR-07).
+    if(u.pathname==='/api/tjanst/plan/lasa')try{entry.versionId=(req.postDataJSON() as {versionId?:string}|null)?.versionId??null;}catch{entry.versionId=null;}
+    network[role].push(entry);
     void req.response().then(r=>{if(r)entry.status=r.status();}).catch(()=>{});});
   return page;
 }
@@ -638,6 +641,61 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   await changed.getByRole('button',{name:'Ladda om'}).click();await expect(p.getByRole('button',{name:'Logga ut',exact:true})).toBeVisible();
   pass('tillstånd: context_changed','när sessionens epok har ändrats på servern ger nästa läsning 409 context_changed; skalets dialog Kontexten ändrades i en annan flik rensar innehållet och erbjuder Ladda om');
   await openTjanst(p,seed.schools.A);
+});
+
+const BEMANNING_PUBLISHED='Bemanning: Visa fördelningen visar publicerad version trots utkast';
+/** Lärarens summa av lärartid i en version (rader utan samläsning; provets lärare ingår inte i någon samläsning). */
+async function teacherTime(versionId:string,personId:string){
+  const [t]=await db`select coalesce(sum(r.teacher_ht_minutes),0)::int ht,coalesce(sum(r.teacher_vt_minutes),0)::int vt,
+    count(*) filter (where exists(select 1 from public.tjanst_joint_members m where m.row_id=r.id))::int joint
+    from public.tjanst_rows r where r.version_id=${versionId} and r.staff_person_id=${personId}`;
+  expect(t.joint).toBe(0);return{ht:t.ht as number,vt:t.vt as number};
+}
+
+// 05.1-12 (WR-07). På dator har rektor A publicerat version 2 och skapat utkastet version 3 med ändrad tid (fallet samtidighet ovan).
+// På telefon har rektor A publicerat version 1 (seed) och skapar här utkastet version 2 med annan tid genom Worker, eftersom
+// redigering bara finns på dator (D-15).
+test('Bemanning: huvudmannens Visa fördelningen öppnar den publicerade versionen trots rektors utkast (WR-07)',async({browser},info)=>{
+  test.skip(project!=='desktop'&&project!=='phone','Körs på projekten desktop och phone.');
+  const A=seed.schools.A,teacher=project==='desktop'?{id:seed.people.t2,name:'Tor Berg'}:{id:seed.people.p1,name:'Pia Ek'};
+  if(project==='phone'){
+    const p=pages.principalA;
+    const [d]=await db`select d.revision::int r,v.id from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='published' where d.unit_id=${A} and d.school_year=${seed.year}`;
+    const created=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(A,seed.year,'create_draft',d.r,{basedOnVersionId:d.id}));
+    expect(created.status,JSON.stringify(created.body)).toBe(200);
+    const [row]=await db`select r.id,r.source_kind,r.source_key from public.tjanst_rows r join public.tjanst_versions v on v.id=r.version_id and v.status='draft'
+      join public.tjanst_distributions dd on dd.id=v.distribution_id and dd.unit_id=${A} and dd.school_year=${seed.year} where r.staff_person_id=${seed.people.p1}`;
+    const saved=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(A,seed.year,'save_row',created.body.detail.revision,
+      {rowId:row.id,sourceKind:row.source_kind,sourceKey:row.source_key,personId:seed.people.p1,teacherHt:1200,teacherVt:2400,comment:''}));
+    expect(saved.status,JSON.stringify(saved.body)).toBe(200);
+  }
+  const versions=await versionsOf(A),published=versions.find(v=>v.status==='published')!,draft=versions.find(v=>v.status==='draft')!;
+  expect(published).toBeTruthy();expect(draft).toBeTruthy();
+  const shown=await teacherTime(published.id,teacher.id),hidden=await teacherTime(draft.id,teacher.id);
+  expect(hidden).not.toEqual(shown);
+  const h=pages.hm??await signIn(browser,info,'hm');await h.bringToFront();
+  await nav(h,'Bemanning');await h.getByLabel('Planeringsläsår',{exact:true}).selectOption(String(seed.year));
+  const unitRow=project==='desktop'?h.locator('table.bemanning-table').getByRole('row').filter({hasText:'Syntetisk skola A'}):h.locator('.bemanning ul.tjanst-cards li').filter({hasText:'Syntetisk skola A'});
+  await expect(unitRow).toContainText(`Publicerad version ${published.no}`);
+  const logged=network.hm.length;
+  const read=h.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/lasa');
+  await h.getByRole('button',{name:'Visa fördelningen för Syntetisk skola A'}).locator('visible=true').click();
+  const body=(await read).postDataJSON();expect(body).toEqual({unitId:A,schoolYear:seed.year,versionId:published.id});
+  await expect(h.getByRole('heading',{name:'Tjänstefördelning',level:1})).toBeVisible();await settled(h);
+  await expect(ws(h).locator('.tjanst-readonly')).toHaveText(new RegExp(`^Du läser version ${published.no} skrivskyddat, publicerad \\d{4}-\\d\\d-\\d\\d av .+\\. Lärarna ser den här versionen\\.$`,'u'));
+  if(project==='desktop')await expect(footer(h,'Undervisning',teacher.name)).toHaveText(fmt(shown.ht+shown.vt));
+  else await expect(ws(h).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts')).toContainText(`UndervisningHT ${fmt(shown.ht)} · VT ${fmt(shown.vt)} · Läsår ${fmt(shown.ht+shown.vt)}`);
+  const choices=ws(h).getByLabel('Visa version');
+  const options=await choices.count()?await choices.locator('option').allInnerTexts():[];
+  expect(options.filter(o=>/Utkast|Aktuell version/u.test(o))).toEqual([]);
+  if(project==='desktop')expect(options.length).toBe(versions.filter(v=>v.status==='published'||v.status==='superseded').length);
+  for(const name of ['Fastställ och publicera','Ändra i ny version','Lägg till lärare i fördelningen','Lägg till specialuppdrag'])await expect(h.getByRole('button',{name,exact:true})).toHaveCount(0);
+  await capture(h,'bemanning-publicerad-version');
+  const reads=network.hm.slice(logged).filter(n=>n.path==='/api/tjanst/plan/lasa');
+  expect(reads.length).toBeGreaterThan(0);expect(reads.every(n=>n.versionId===published.id&&n.status===200)).toBe(true);
+  pass(BEMANNING_PUBLISHED,`rektor har utkastet version ${draft.no} med annan tid; huvudmannens läsning bär versionId för version ${published.no}, vyn anger version ${published.no} skrivskyddat och visar de publicerade summorna, och väljaren saknar utkastet`,
+    {published:published.no,draft:draft.no,teacher:teacher.name,shown,hidden,request:body,reads:reads.length,options});
+  await h.getByRole('button',{name:'Tillbaka till bemanningen'}).click();
 });
 
 test('tangentbord, synligt fokus, fokusåterställning och 44 px på dator',async()=>{
