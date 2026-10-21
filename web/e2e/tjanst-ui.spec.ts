@@ -61,6 +61,31 @@ test.describe('dator',()=>{
   await expect(ws(page).getByRole('region',{name:'Per klass'})).not.toContainText(/\b0 h\b/);
  });
 
+ test('WR-02: 400 tjanst_joint_already visar texten om samläsningen och raden finns kvar',async({page})=>{
+  await open(page);
+  const cell=matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'});
+  await cell.click();
+  await page.getByRole('dialog').getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
+  const confirm=page.getByRole('dialog',{name:'Ta bort tjänsteraden?'});
+  await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:400,code:'tjanst_joint_already'}));
+  await confirm.getByRole('button',{name:'Ta bort tjänsteraden',exact:true}).click();
+  await expect(confirm.getByRole('alert')).toContainText('Raden ingår i en samläsning. Ändra eller lös upp samläsningen först.');
+  // Mockens simulerade fel besvarar anropet innan kommandot loggas; det köade felet ska vara förbrukat.
+  expect(await page.evaluate(()=>window.__tjanst.fail['plan/kommando']?.length??0)).toBe(0);
+  await confirm.getByRole('button',{name:'Behåll raden'}).click();
+  await expect(matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'})).toBeVisible();
+ });
+
+ test('WR-02: blockeraren joint_invalid visas i Fastställ och publicera och knappen är inaktiv',async({page})=>{
+  await open(page,'?hinder=samlasning');
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
+  await expect(panel.getByText('1 punkt behöver åtgärdas innan du kan fastställa.')).toBeVisible();
+  await expect(panel.getByRole('listitem').filter({hasText:'En samläsning uppfyller inte reglerna'})).toHaveText('En samläsning uppfyller inte reglerna: raderna ska finnas i minst två klasser, och lärartid får bara gälla lärare som har en rad i gruppen. Ändra eller lös upp samläsningen.');
+  await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
+  expect((await commands(page)).filter(c=>c.body.action==='publish')).toEqual([]);
+ });
+
  test('AE3 specialuppdrag: mentor med klass och programansvar utan grupp, skilt från undervisning',async({page})=>{
   await open(page);
   await ws(page).getByRole('tab',{name:'Specialuppdrag'}).click();

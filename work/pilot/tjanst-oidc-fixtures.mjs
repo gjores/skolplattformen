@@ -26,16 +26,20 @@ export const TJANST_ACTUAL_PROJECTS = ['desktop', 'desktop-small', 'phone', 'pho
 const PHONE_CASES = ['Min tjänst på telefon', 'Per lärare på telefon utan redigeringskontroller', 'Bemanning på telefon utan redigeringskontroller', '44 px på telefon'];
 /** 05.1-12 (WR-07): huvudmannens Visa fördelningen läser den publicerade versionen med versionId, också när rektor har ett utkast. */
 const BEMANNING_PUBLISHED = 'Bemanning: Visa fördelningen visar publicerad version trots utkast';
+/** 05.1-12 (CR-01, WR-02): Egen tjänst på två skolor och samläsningens regler mot riktig server. */
+const TWO_SCHOOLS = 'Egen tjänst på två skolor: rektor B ger mandatet i Mandat och läraren kvitterar på B (CR-01)';
+const JOINT_RULES = 'samläsning: lärarbyte på samläst rad nekas och ogiltig samläsning stoppar publicering (WR-02)';
+const PHONE_TWO_SCHOOLS = 'Min tjänst med två skolkort på telefon';
 export const TJANST_ACTUAL_CASES = {
   desktop: ['spår', 'GR/IM-klass i Timplaner med behov', 'okopplad klass utan nollor', 'ny version: läraren ser den tidigare', 'äldre version skrivskyddad (D-24)',
     'fördela tom cell', 'person utan konto får rader', 'annan skola och annat läsår nekas', 'specialuppdrag', 'två lärare på samma kurs', 'samläsning räknas en gång',
     'utkastlärare från rektor', 'administratör utan knapp och 403 vid publicering', 'kvittens till tjanst_feedback', 'versionshistorik med aktör och tid',
     'huvudmannens Bemanning utan beslutsknapp och 403 vid publicering', 'personal: utan konto och utkastlärare', 'andelar 60 % + 40 % sparas och 60 % + 50 % nekas med engångskod',
     'rektor B ser bara Andel här 40 %', 'tillstånd: 403', 'två flikar: den andra får 409', 'avbrutet svar återhämtas via status', 'tillstånd: laddning', 'tillstånd: loggfel',
-    'tillstånd: MFA', 'tillstånd: context_changed', BEMANNING_PUBLISHED, 'tangentbord, fokus och 44 px'],
+    'tillstånd: MFA', 'tillstånd: context_changed', BEMANNING_PUBLISHED, 'tangentbord, fokus och 44 px', TWO_SCHOOLS, JOINT_RULES],
   'desktop-small': ['fördela', 'samläsning', 'publicera', 'tangentbord, fokus och 44 px'],
-  phone: [...PHONE_CASES, BEMANNING_PUBLISHED],
-  'phone-small': PHONE_CASES,
+  phone: [...PHONE_CASES, BEMANNING_PUBLISHED, PHONE_TWO_SCHOOLS],
+  'phone-small': [...PHONE_CASES, PHONE_TWO_SCHOOLS],
 };
 
 function keycloakClient(target) {
@@ -57,6 +61,8 @@ function keycloakClient(target) {
  * (förberedd med samma kommandofunktioner som Worker anropar) för telefonprojekten, som bara läser. Med linkGrim=true skapas
  * och kopplas GR-klassen SYNGR8 (åk 8) och IM-klassen SYNIM med rektors GR/IM-kommando (för desktop-small; på desktop görs
  * det i Timplaner i webbläsaren).
+ * 05.1-12: P1 har andelarna 60 % på A och 40 % på B. Med schoolB=true har skola B dessutom en publicerad version 1 med en rad
+ * för P1, skapad med rektor B:s kommandon. Mandatet Egen tjänst för B ges inte här, utan av rektor B i provet (CR-01).
  */
 export async function seedTjanstActual(connection, { published = false, linkGrim = false, schoolB = false } = {}) {
   return connection.begin(async tx => {
@@ -111,8 +117,18 @@ export async function seedTjanstActual(connection, { published = false, linkGrim
       await grim({ action: 'link', commandId: randomUUID(), classId: created.id, planId: bPlan, expectedPlanRevision: 0, columnId: 'ak8', expectedLinkRevision: null, previousPlanId: null });
       schoolBClass = created.id;
     }
-    // Personal: P1 (Egen tjänst), Tor Berg utan konto, Ulla Sund på skola A. Sara Dahl läggs upp av huvudmannen i provet.
-    const p1 = await staffWithDuties(tx, f, { givenName: 'Pia', familyName: 'Ek', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
+    // Personal: P1 (Egen tjänst på A och, i provet, på B), Tor Berg utan konto, Ulla Sund på skola A. Sara Dahl läggs upp av huvudmannen i provet.
+    const p1 = await staffWithDuties(tx, f, { givenName: 'Pia', familyName: 'Ek', duties: [{ unitId: A, percent: 60, startsOn: '2026-07-01' }, { unitId: f.schools.B, percent: 40, startsOn: '2026-07-01' }] });
+    let schoolBPublished = null;
+    if (schoolB) {
+      await f.actor(tx, 'principalB');
+      const send = async q => { const e = await planSend(tx, q); assert.equal(e.contractVersion, 'tjanst_sql_v1'); return e.result; };
+      let r = await send(await planCommand(f.schools.B, Y, 'create_draft', 0, { basedOnVersionId: null }));
+      const first = r.detail.classes.find(c => c.classId === schoolBClass).needs.find(n => n.rowKey === 'matematik');
+      r = await send(await planCommand(f.schools.B, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: first.sourceKey, personId: p1.personId, teacherHt: 1800, teacherVt: 1200, comment: '' }));
+      r = await send(await planCommand(f.schools.B, Y, 'publish', r.detail.revision, {}, { expectedContentHash: r.detail.version.contentHash }));
+      schoolBPublished = { id: r.detail.version.id, versionNo: r.detail.version.versionNo };
+    }
     const t2 = await staffWithDuties(tx, f, { givenName: 'Tor', familyName: 'Berg', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
     const t3 = await staffWithDuties(tx, f, { givenName: 'Ulla', familyName: 'Sund', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
     await grantSelf(tx, f, { unitIds: [A], staffPersonId: p1.personId });
@@ -133,7 +149,7 @@ export async function seedTjanstActual(connection, { published = false, linkGrim
     return { prefix: f.prefix, year: Y, customerId: f.id(1), organizerId: f.id(2), schools: f.schools, actors,
       gy: { classId: gy.classId, planId: gy.planId, offeringId: gy.offeringId, aplKey: gy.aplKey, schoolMinutes: need?.schoolMinutes ?? null },
       grim: { grPlan, imPlan, grOffering, imOffering, looseClassId: loose, classes: grimClasses, schoolBClass },
-      people: { p1: p1.personId, t2: t2.personId, t3: t3.personId }, publishedVersion };
+      people: { p1: p1.personId, t2: t2.personId, t3: t3.personId }, publishedVersion, schoolBPublished };
   });
 }
 

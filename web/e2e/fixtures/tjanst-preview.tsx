@@ -15,6 +15,8 @@ const YEAR=2026,A=tid(3),B=tid(4),KEY=`sha256:${'5a'.repeat(32)}`;
 const P={anna:tid(101),bertil:tid(102),cecilia:tid(103),david:tid(104),greta:tid(105)};
 const C={te:tid(201),ek:tid(202),im:tid(203),na:tid(204),sa:tid(205)};
 const hash=(n:number)=>`sha256:${String(n).padStart(8,'0').repeat(8)}`;
+/** Serverns text för blockeraren joint_invalid (20261021120000, WR-02). */
+const JOINT_INVALID='En samläsning uppfyller inte reglerna: raderna ska finnas i minst två klasser, och lärartid får bara gälla lärare som har en rad i gruppen. Ändra eller lös upp samläsningen.';
 const long=variant==='lang';
 type Content={teachers:TjanstTeacher[];rows:TjanstRow[];specials:TjanstSpecial[];joints:TjanstJoint[]};
 type Unit={unitId:string;schoolName:string;revision:number;classes:TjanstClass[];versions:TjanstVersion[];draft:Content|null;snapshots:Map<string,Content>;blockers:{code:string;message:string}[]};
@@ -40,7 +42,7 @@ function standardUnit():Unit{
  const v1:TjanstVersion={id:tid(601),versionNo:1,status:'published',contentHash:hash(1),basedOnVersionId:null,publishedByName:'Rektor Syntetisk',publishedAt:'2026-06-15T08:00:00.000Z'};
  const v2:TjanstVersion={id:tid(602),versionNo:2,status:'draft',contentHash:hash(2),basedOnVersionId:v1.id,publishedByName:null,publishedAt:null};
  const old:Content={teachers:teachers.slice(0,2),rows:draft.rows.slice(0,2),specials:draft.specials.slice(0,1),joints:[]};
- const unit:Unit={unitId:A,schoolName:long?'Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad':'Syntetiska gymnasiet',revision:7,classes:[te,ek,im,na],versions:[v1,v2],draft,snapshots:new Map([[v1.id,old]]),blockers:params.has('hinder')?[{code:'stale_rows',message:'En tjänsterad bygger på en äldre timplansversion.'}]:[]};
+ const unit:Unit={unitId:A,schoolName:long?'Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad':'Syntetiska gymnasiet',revision:7,classes:[te,ek,im,na],versions:[v1,v2],draft,snapshots:new Map([[v1.id,old]]),blockers:params.get('hinder')==='samlasning'?[{code:'joint_invalid',message:JOINT_INVALID}]:params.has('hinder')?[{code:'stale_rows',message:'En tjänsterad bygger på en äldre timplansversion.'}]:[]};
  if(variant==='tom'){unit.versions=[{...v2,versionNo:1,basedOnVersionId:null}];unit.snapshots=new Map();unit.draft={teachers:[],rows:[],specials:[],joints:[]};}
  if(variant==='utan-uppdrag')unit.draft!.specials=[];
  if(variant==='utan-klasser'){unit.classes=[na];unit.draft={teachers,rows:[],specials:[],joints:[]};}

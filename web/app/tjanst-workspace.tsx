@@ -82,6 +82,8 @@ function readFailure(caught: unknown): ReadFailure {
 }
 const REASONS: Record<string, string> = {
   tjanst_comment_too_long: 'Kommentaren får vara högst 2 000 tecken.', tjanst_joint_too_few: 'Markera minst två rader i minst två olika klasser.',
+  // WR-02: en samläst rad behåller lärare och källa och kan inte tas bort så länge samläsningen finns.
+  tjanst_joint_already: 'Raden ingår i en samläsning. Ändra eller lös upp samläsningen först.',
 };
 type Op = 'write' | 'publish' | 'personal';
 const failed = (error: string, extra: Partial<TjanstFailure> = {}): TjanstFailure => ({ ok: false, error, ...extra });

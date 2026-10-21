@@ -146,6 +146,8 @@ export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_
       'Ingen installation; målets migrationsjournal läses läsande, och bara de migrationer som saknas där (pendingMigrations, rättelsen) installeras i schemakopian av det installerade målet', 'Inga autentiserings-, verksamhets- eller transportattrapper utom två märkta transportfel: ett svar som tappas efter riktig Worker-200 och en fördröjd läsning för laddningstillståndet',
       'SS 12000: provet bekräftar bara intern lagring (heltalsandelar, stabila Person- och klass-ID, åtskilda behovs- och lärarminuter); inget informationsutbyte med en motpart provas',
       'Telefonprojekten läser en version som är förberedd i schemakopian med samma SQL-kommandon som Worker anropar; redigering finns bara på dator (D-15)',
+      'WR-02 (märkt dataändring): lärartid för en lärare utan rad i samläsningen läggs in direkt i schemakopians utkast för att efterlikna data från före rättelsen; publiceringsspärren prövas sedan genom Worker och vyn',
+      'CR-01: på dator ger rektor B Egen tjänst för skola B i Mandat-dialogen; på telefon ges samma mandat med ett direkt POST /api/kund/mandat av rektor B mot riktig server (samma payload som dialogen)',
       'Retries 0, en Playwright-worker'] };
   const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 }); save();
   let snapshot, runtime, failure;

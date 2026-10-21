@@ -93,9 +93,9 @@ test.beforeAll(async({},info)=>{
   db=postgres(endpoint.toString(),{max:1,prepare:false,onnotice:()=>{}});
   const [identity]=await db`select current_database() database,(pg_control_system()).system_identifier::text system_identifier`;
   assert.equal(identity.database,manifest.provenance.database);assert.equal(identity.system_identifier,manifest.provenance.source.system_identifier);
-  seed=await seedTjanstActual(db,{published:PHONE(project),linkGrim:project==='desktop-small',schoolB:project==='desktop'});result.scope={year:seed.year,customerId:seed.customerId,schools:seed.schools};save();
+  seed=await seedTjanstActual(db,{published:PHONE(project),linkGrim:project==='desktop-small',schoolB:project==='desktop'||PHONE(project)});result.scope={year:seed.year,customerId:seed.customerId,schools:seed.schools};save();
   const ownDir=path.join(evidenceDir,'oidc-'+project);mkdirSync(ownDir,{mode:0o700});
-  const roles=PHONE(project)?['hm','principalA','teacherSelf']:project==='desktop-small'?['hm','principalA','admin']:[...TJANST_ACTUAL_ROLES];
+  const roles=PHONE(project)?['hm','principalA','principalB','teacherSelf']:project==='desktop-small'?['hm','principalA','admin']:[...TJANST_ACTUAL_ROLES];
   fixture=await createTjanstOidcFixture({db,provenance:manifest.provenance,baseURL,evidenceDir:ownDir,seed,roles});
 });
 
@@ -538,9 +538,12 @@ test('huvudmannen: Bemanning utan beslutsknapp och 403 vid publicering; Personal
 test('rektor B ser bara Andel här 40 % och rektor AB nekas läsning när skolan tas bort ur mandatet',async({browser},info)=>{
   test.skip(project!=='desktop','Körs på projektet desktop.');
   const b=await signIn(browser,info,'principalB');await openTjanst(b,seed.schools.B);
+  // 05.1-12: skola B har en publicerad version 1 i seeden (CR-01); rektor B ändrar i en ny version.
+  await ws(b).getByRole('button',{name:'Ändra i ny version'}).click();
+  await expect(ws(b).getByText('Utkastet version 2 är skapat. Lärarna ser version 1 tills du publicerar.')).toBeVisible();await settled(b);
   await addTeacher(b,'Sara Dahl');
   await expect(matrix(b).getByRole('columnheader',{name:/Sara Dahl/u})).toContainText('Andel här 40\u00a0%');
-  await ws(b).getByRole('tab',{name:'Per lärare'}).click();
+  await ws(b).getByRole('tab',{name:'Per lärare'}).click();await ws(b).getByLabel('Lärare',{exact:true}).selectOption({label:'Sara Dahl'});
   const view=ws(b).getByRole('region',{name:'Per lärare'});
   await expect(view.locator('dl.tjanst-facts')).toContainText('Andel här40\u00a0%');
   await expect(view).not.toContainText(/\b60\s%/u);await expect(ws(b)).not.toContainText('Syntetisk skola A');await expect(view.getByText(/På andra skolor/u)).toHaveCount(0);
@@ -732,6 +735,101 @@ async function keyboardChecks(p:Page,name:string){
   pass('tangentbord, fokus och 44 px',`piltangenter, Home och End flyttar fokus i matrisen med ett tabbstopp; synlig fokusring; fokus åter till cellen efter dialogen; alla kontroller minst 44 × 44 px`,{start,right,down,home,end,ring});
 }
 
+// ───────────────────────────── 05.1-12: CR-01 och WR-02 på dator ─────────────────────────────
+
+const TWO_SCHOOLS='Egen tjänst på två skolor: rektor B ger mandatet i Mandat och läraren kvitterar på B (CR-01)';
+const JOINT_RULES='samläsning: lärarbyte på samläst rad nekas och ogiltig samläsning stoppar publicering (WR-02)';
+const PHONE_TWO_SCHOOLS='Min tjänst med två skolkort på telefon';
+/** Kopplade self-mandat och avslutade bindningar för P1:s konto (CR-01). */
+async function selfLinks(){
+  const membership=seed.actors.teacherSelf.membershipId,person=seed.people.p1;
+  const [l]=await db`select count(*)::int n,count(distinct l.binding_id)::int bindings from public.tjanst_self_mandates l join public.staff_person_bindings b on b.id=l.binding_id
+    where b.staff_person_id=${person} and b.membership_id=${membership} and b.ended_at is null`;
+  const [e]=await db`select count(*)::int n from public.security_events where action='tjanst_binding_ended' and customer_id=${seed.customerId}
+    and details->>'personId'=${person} and details->>'membershipId'=${membership}`;
+  return{links:l.n as number,bindings:l.bindings as number,bindingEnded:e.n as number};
+}
+const ackRows=async(versionId:string)=>(await db`select count(*)::int n from public.tjanst_feedback where version_id=${versionId} and staff_person_id=${seed.people.p1} and kind='ack'`)[0].n as number;
+
+test('CR-01: rektor B ger Egen tjänst för skola B i Mandat; läraren ser A och B och kvitterar på B',async()=>{
+  test.skip(project!=='desktop','Körs på projektet desktop.');
+  const B=seed.schools.B,bv=seed.schoolBPublished!;expect(bv).toBeTruthy();
+  const before={ack:await ackRows(bv.id),...await selfLinks()};expect(before).toMatchObject({ack:0,links:1,bindings:1,bindingEnded:0});
+  const b=pages.principalB;await b.bringToFront();
+  await nav(b,'Mandat');await expect(b.getByRole('heading',{name:'Mandat',level:1})).toBeVisible();
+  await b.getByRole('button',{name:'Tilldela uppdrag'}).click();
+  const dialog=b.getByRole('dialog',{name:'Tilldela uppdrag'});
+  await dialog.getByLabel('Uppdrag').selectOption('larare');
+  await dialog.getByLabel('Mottagare').selectOption(seed.actors.teacherSelf.membershipId);
+  await dialog.getByLabel('Omfattning').selectOption('self');
+  await dialog.getByLabel('Syntetisk skola B').check();
+  const person=dialog.getByLabel('Person i personalen');await expect(person.locator('option',{hasText:'Pia Ek'})).toHaveCount(1);
+  await person.selectOption(seed.people.p1);
+  await capture(b,'mandat-egen-tjanst-b');
+  const granted=b.waitForResponse(r=>new URL(r.url()).pathname==='/api/kund/mandat'&&r.request().method()==='POST');
+  await dialog.getByRole('button',{name:'Tilldela uppdraget'}).click();
+  const grant=await granted;expect(grant.status()).toBe(201);const sent=grant.request().postDataJSON();
+  expect(sent).toMatchObject({membershipId:seed.actors.teacherSelf.membershipId,function:'larare',scopeKind:'self',unitIds:[B],groups:[],pupilIds:[],caseIds:[],staffPersonId:seed.people.p1});
+  await expect(dialog).toHaveCount(0);await expect(b.getByText(/^Uppdraget har tilldelats /u)).toBeVisible();
+  const t=pages.teacherSelf;await t.bringToFront();const logged=network.teacherSelf.length;await t.reload();
+  await expect(t.getByRole('heading',{name:'Min tjänst',level:1})).toBeVisible();
+  const cards=t.locator('.min-tjanst-card');await expect(cards).toHaveCount(2);
+  await expect(cards.nth(0)).toContainText('Syntetisk skola A');await expect(cards.nth(1)).toContainText('Syntetisk skola B');
+  await expect(cards.nth(1)).toContainText('SYNB8');await expect(cards.nth(1)).toContainText(`version ${bv.versionNo}, publicerad`);
+  const ack=t.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/egen/kommando'&&r.method()==='POST');
+  await cards.nth(1).getByRole('button',{name:'Kvittera att jag har läst'}).click();
+  const ackRequest=await ack;expect(ackRequest.postDataJSON()).toMatchObject({action:'ack',versionId:bv.id});
+  await expect(cards.nth(1).getByText(`Du har kvitterat version ${bv.versionNo}.`)).toBeVisible();
+  await cards.nth(1).scrollIntoViewIfNeeded();await capture(t,'min-tjanst-tva-skolor');
+  const after={ack:await ackRows(bv.id),...await selfLinks()};expect(after).toEqual({ack:1,links:2,bindings:1,bindingEnded:0});
+  const paths=network.teacherSelf.slice(logged).map(n=>n.path).filter(x=>x.startsWith('/api/'));
+  expect(paths.filter(x=>x.startsWith('/api/elever')||x.startsWith('/api/planering'))).toEqual([]);
+  expect(network.teacherSelf.map(n=>n.path).filter(x=>x.startsWith('/api/elever')||x.startsWith('/api/planering'))).toEqual([]);
+  pass(TWO_SCHOOLS,'rektor B ger Egen tjänst för skola B i Mandat mot riktig server; Min tjänst visar A och B i skolnamnsordning; kvittens på B ger en ack-rad (0 → 1); tjanst_self_mandates har två rader för bindningen och ingen tjanst_binding_ended; inga elev- eller planeringsanrop',
+    {before,after,grant:{status:grant.status(),scopeKind:sent.scopeKind,unitIds:sent.unitIds},ack:ackRequest.postDataJSON().action,apiPaths:[...new Set(paths)]});
+});
+
+test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogiltig samläsning stoppar publicering tills den löses upp',async()=>{
+  test.skip(project!=='desktop','Körs på projektet desktop.');
+  const A=seed.schools.A,p=pages.principalA;await p.bringToFront();
+  // Färskt MFA-bevis (det gjordes inaktuellt i fallet tillstånd: MFA).
+  await fixture!.login(p,'principalA',{stepUp:true});await openTjanst(p,A);
+  const draftOf=async()=>(await db`select d.revision::int r,v.id,v.version_no::int no,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft'
+    where d.unit_id=${A} and d.school_year=${seed.year}`)[0] as {r:number;id:string;no:number;h:string};
+  const d=await draftOf();
+  const rowOf=async(id:string)=>(await db`select r.id,r.staff_person_id person,r.source_key,r.teacher_ht_minutes::int ht,r.teacher_vt_minutes::int vt,r.comment,m.group_id
+    from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.id=${id}`)[0];
+  const [first]=await db`select r.id from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.version_id=${d.id} order by r.source_key limit 1`;
+  const row=await rowOf(first.id);expect(row.person).toBe(seed.people.t3);
+  const denied=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(A,seed.year,'save_row',d.r,
+    {rowId:row.id,sourceKind:'class_timplan',sourceKey:row.source_key,personId:seed.people.t2,teacherHt:row.ht,teacherVt:row.vt,comment:row.comment}));
+  expect(denied.status).toBe(400);expect(denied.body?.details?.reason).toBe('tjanst_joint_already');
+  expect(await rowOf(row.id)).toEqual(row);expect((await draftOf()).r).toBe(d.r);
+  const reread=await fixture!.request(p,'principalA','/api/tjanst/plan/lasa',{unitId:A,schoolYear:seed.year});expect(reread.status).toBe(200);
+  expect((reread.body.rows as {id:string;personId:string|null}[]).find(x=>x.id===row.id)?.personId).toBe(seed.people.t3);
+  // Märkt dataändring i schemakopian: lärartid för Tor Berg, som saknar rad i samläsningen, efterliknar data från före rättelsen.
+  await db`insert into public.tjanst_joint_teacher_time(group_id,staff_person_id,ht_minutes,vt_minutes) values(${row.group_id},${seed.people.t2},600,600)`;
+  await p.reload();await settled(p);
+  const panel=ws(p).getByRole('region',{name:'Fastställ och publicera'});if(!await panel.isVisible())await ws(p).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  await expect(panel.getByRole('listitem').filter({hasText:'En samläsning uppfyller inte reglerna'})).toBeVisible();
+  await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
+  await capture(p,'samlasning-ogiltig');
+  const now=await draftOf();
+  const blocked=await fixture!.request(p,'principalA','/api/tjanst/plan/publicera',await createCommand(A,seed.year,'publish',now.r,{},{expectedContentHash:now.h}));
+  expect(blocked.status).toBe(409);expect(blocked.body?.details?.reason).toBe('tjanst_publish_blocked');
+  expect((await versionsOf(A)).find(v=>v.id===d.id)?.status).toBe('draft');
+  // Lös upp samläsningen i vyn; därefter kan rektor publicera.
+  await ws(p).getByRole('tab',{name:'Per kurs/ämne'}).click();await settled(p);
+  await ws(p).getByRole('region',{name:'Per kurs/ämne'}).getByRole('button',{name:'Lös upp samläsningen'}).click();
+  const confirm=p.getByRole('dialog');await confirm.getByRole('button',{name:'Lös upp samläsningen',exact:true}).click();
+  await expect(ws(p).getByText(/^Samläsningen .* är upplöst\. Raderna finns kvar med sin tid\.$/u)).toBeVisible();await settled(p);
+  await ws(p).getByRole('tab',{name:'Matris'}).click();await settled(p);
+  await publish(p,'principalA',d.no);
+  const versions=await versionsOf(A);expect(versions.find(v=>v.id===d.id)?.status).toBe('published');
+  pass(JOINT_RULES,'save_row med annan lärare på en samläst rad ger 400 tjanst_joint_already genom Worker och raden är oförändrad; en ogiltig samläsning (märkt dataändring) visas som punkt i Fastställ och publicera, knappen är inaktiv och direkt publicering ger 409 tjanst_publish_blocked; efter Lös upp samläsningen publicerar rektor',
+    {denied:{status:denied.status,reason:denied.body?.details?.reason},blocked:{status:blocked.status,reason:blocked.body?.details?.reason},published:d.no,versions:versions.map(v=>[v.no,v.status])});
+});
+
 // ───────────────────────────── Liten dator (1024 × 768): fall 1, 4 och 5 ─────────────────────────────
 
 test('liten dator: fördela, samläsning och publicera',async({browser},info)=>{
@@ -834,6 +932,29 @@ test('telefon: Min tjänst, Per lärare och Bemanning utan redigeringskontroller
 test('telefon: huvudmannens Visa fördelningen öppnar den publicerade versionen trots rektors utkast (WR-07)',async({browser},info)=>{
   test.skip(project!=='phone','Körs på projektet phone.');
   await bemanningPublished(browser,info);
+});
+
+test('telefon: Min tjänst med två skolkort när rektor B har gett Egen tjänst för skola B',async({browser},info)=>{
+  test.skip(!PHONE(project),'Körs på telefonprojekten.');
+  const B=seed.schools.B,bv=seed.schoolBPublished!;expect(bv).toBeTruthy();
+  const b=await signIn(browser,info,'principalB');
+  const [{d:today}]=await db`select public.app_today()::text d`;
+  const granted=await fixture!.request(b,'principalB','/api/kund/mandat',{membershipId:seed.actors.teacherSelf.membershipId,function:'larare',scopeKind:'self',unitIds:[B],
+    groups:[],pupilIds:[],caseIds:[],validFrom:today,validTo:null,staffPersonId:seed.people.p1});
+  expect(granted.status,JSON.stringify(granted.body)).toBe(201);
+  const t=pages.teacherSelf;await t.bringToFront();await t.reload();
+  await expect(t.getByRole('heading',{name:'Min tjänst',level:1})).toBeVisible();
+  const cards=t.locator('.min-tjanst-card');await expect(cards).toHaveCount(2);
+  await expect(cards.nth(0)).toContainText('Syntetisk skola A');await expect(cards.nth(1)).toContainText('Syntetisk skola B');
+  await expect(cards.nth(1).locator('ul.tjanst-cards').first()).toContainText('SYNB8');
+  const width=await t.evaluate(()=>document.documentElement.clientWidth);
+  const boxes=await cards.evaluateAll(els=>els.map(e=>{const r=e.getBoundingClientRect();return{left:Math.round(r.left),right:Math.round(r.right),scroll:e.scrollWidth,client:e.clientWidth};}));
+  expect(boxes.every(x=>x.left>=0&&x.right<=width+1&&x.scroll<=x.client+1)).toBe(true);
+  await capture(t,'min-tjanst-tva-skolor');
+  await cards.nth(1).scrollIntoViewIfNeeded();await capture(t,'min-tjanst-skola-b');
+  const apiPaths=[...new Set(network.teacherSelf.map(n=>n.path).filter(x=>x.startsWith('/api/')))];
+  expect(apiPaths.filter(x=>x.startsWith('/api/elever')||x.startsWith('/api/planering'))).toEqual([]);
+  pass(PHONE_TWO_SCHOOLS,'Min tjänst visar korten för skola A och B i skolnamnsordning utan sidledsrullning på sidan eller i korten; inga elev- eller planeringsanrop',{width,boxes,apiPaths});
 });
 
 /** Kommandot som klienten skickar, med payloadhash från kontraktet (för direktanrop). */
