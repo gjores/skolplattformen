@@ -30,7 +30,6 @@
 
 **UI42 färdigt 2026-10-08 — avgränsat PASS:** Full O01–18 på dator och telefon, ROOT42476 känd exit0/rå `c39fa94964b254adaa7f141c1d6dd8b5b091b3e50334653af31233092dffa901`, source `ac41d6c3ed9cdd9977bee6a9207fa30a146ad165`, spec `93c6b4e06eca6563059b9cb5f877a818a44ba9b553e6ee184125969998b0e639` och bevarat bygge `17924ff417899dd5863c394bb4496a5bf22865bd`. 36/36 PASS utan skips/omprov/flaky; 36 normalcleanup/full15 exakt SEARCH/sex avslutsflaggor/egna16 samt foreignverksamhet/DDL0. 20 explicita/49 skyddade/241 produktfiler/båda parsers och fyra historiska C16/extraC04/L36/G38-kedjor matchar; inget nytt appbygge. Terminal audit197363/114cc50c och auditerade identiteter5387/3ebcec87. 16 geometrier minst44×44/contained och16 PNG/14 unika ROOT-granskade; telefonens fokushopplänk över text och O05:s svaga dialogtext redovisas, ingen felfriUI- eller orsaksförklaring. Oberoende full fil-/3/3-målgranskning PASS: `work/pilot/results/phase5-42-seventh-independent-full-file-review-20261008.json` · SHA `281713e9082cb51ecae6d61559df54c1660b5f62cae9cfcf5e81bb8df75867cc`. 87/100 planer,3/8 verifierade faser; nästa [05-43](phases/05-bevarade-utbildnings-och-klassfloden/05-43-PLAN.md) med separat slutC16/release/3012 och konkret användarprov. Alla första fel och recoveries består; fulla PLANERING-/ADMIN-krav/fas5/05-17/formell rektors färdigmarkering och HM-godkännande kvarstår. Ordinarie3012/5dd7baf är inte överförd av detta steg.
 
-
 **Defined:** 2026-09-10
 
 **Milestone:** v1.0 — Säker administration inför en pilot
@@ -208,13 +207,13 @@ Användaren godkände faslistan 2026-10-19. Kraven nedan är fastställda för r
 
 Källa: [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital.md) och [Plan Digital-researchen](research/PLAN-DIGITAL-ERSATTNING-2026-10-07.md). TJANST-04 och TJANST-05 har justerats och TJANST-07 är nytt; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md).
 
-- [ ] **TJANST-01**: Behörig personal kan skapa och ändra tjänsterader per läsår, kurs × klass × lärare × tid per termin, med exakt klass–timplansversion och ämnesrad som källa. Raden bär lärarens interna ID, inte personnummer.
-- [ ] **TJANST-02**: Specialuppdrag, till exempel programansvar, mentor och speciallärare, kan läggas med egen planerad tid och skiljs från undervisningsrader.
-- [ ] **TJANST-03**: Samläsning och blandgrupper är en egen relation mellan rader, inte en särskild radtyp. Varje lärares och klass tid räknas en gång.
-- [ ] **TJANST-04**: Tjänstefördelningen går från utkast till av rektor fastställd och publicerad version. Huvudmannen följer upp bemanning men beslutar inte. Statusbyten loggas, och ändring efter publicering skapar en ny version med spår.
-- [ ] **TJANST-05**: Läraren ser bara sin egen publicerade tjänst via inloggning, utan elevregister eller kollegors underlag, och kan lämna kommentar eller kvittens.
+- [x] **TJANST-01**: Behörig personal kan skapa och ändra tjänsterader per läsår, kurs × klass × lärare × tid per termin, med exakt klass–timplansversion och ämnesrad som källa. Raden bär lärarens interna ID, inte personnummer.
+- [x] **TJANST-02**: Specialuppdrag, till exempel programansvar, mentor och speciallärare, kan läggas med egen planerad tid och skiljs från undervisningsrader.
+- [x] **TJANST-03**: Samläsning och blandgrupper är en egen relation mellan rader, inte en särskild radtyp. Varje lärares och klass tid räknas en gång.
+- [x] **TJANST-04**: Tjänstefördelningen går från utkast till av rektor fastställd och publicerad version. Huvudmannen följer upp bemanning men beslutar inte. Statusbyten loggas, och ändring efter publicering skapar en ny version med spår.
+- [x] **TJANST-05**: Läraren ser bara sin egen publicerade tjänst via inloggning, utan elevregister eller kollegors underlag, och kan lämna kommentar eller kvittens.
 - [ ] **TJANST-06**: Årsrutiner: förläng tjänstefördelningen från föregående läsår, flytta tjänst mellan personer och massregistrera, med förhandsvisning, atomär lagring och bevarade tidigare beslut.
-- [ ] **TJANST-07**: Person, anställning, tjänstgöringsgrad och skoluppdrag är separata uppgifter, skilda från systemmandat. En person kan finnas utan konto, och flera skoluppdrag delar samma planerade kapacitet.
+- [x] **TJANST-07**: Person, anställning, tjänstgöringsgrad och skoluppdrag är separata uppgifter, skilda från systemmandat. En person kan finnas utan konto, och flera skoluppdrag delar samma planerade kapacitet.
 
 ### Klassorganisation (fas 05.3)
 
