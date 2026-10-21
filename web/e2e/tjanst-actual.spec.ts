@@ -653,10 +653,13 @@ async function teacherTime(versionId:string,personId:string){
 }
 
 // 05.1-12 (WR-07). På dator har rektor A publicerat version 2 och skapat utkastet version 3 med ändrad tid (fallet samtidighet ovan).
-// På telefon har rektor A publicerat version 1 (seed) och skapar här utkastet version 2 med annan tid genom Worker, eftersom
-// redigering bara finns på dator (D-15).
+// På telefon har rektor A publicerat version 1 (seed) och skapar utkastet version 2 med annan tid genom Worker, eftersom
+// redigering bara finns på dator (D-15). Telefonfallet körs efter telefonprovet, som loggar in rollerna (serieläge i filordning).
 test('Bemanning: huvudmannens Visa fördelningen öppnar den publicerade versionen trots rektors utkast (WR-07)',async({browser},info)=>{
-  test.skip(project!=='desktop'&&project!=='phone','Körs på projekten desktop och phone.');
+  test.skip(project!=='desktop','Körs på projektet desktop; telefonfallet står efter telefonprovet.');
+  await bemanningPublished(browser,info);
+});
+async function bemanningPublished(browser:Browser,info:TestInfo){
   const A=seed.schools.A,teacher=project==='desktop'?{id:seed.people.t2,name:'Tor Berg'}:{id:seed.people.p1,name:'Pia Ek'};
   if(project==='phone'){
     const p=pages.principalA;
@@ -696,7 +699,7 @@ test('Bemanning: huvudmannens Visa fördelningen öppnar den publicerade version
   pass(BEMANNING_PUBLISHED,`rektor har utkastet version ${draft.no} med annan tid; huvudmannens läsning bär versionId för version ${published.no}, vyn anger version ${published.no} skrivskyddat och visar de publicerade summorna, och väljaren saknar utkastet`,
     {published:published.no,draft:draft.no,teacher:teacher.name,shown,hidden,request:body,reads:reads.length,options});
   await h.getByRole('button',{name:'Tillbaka till bemanningen'}).click();
-});
+}
 
 test('tangentbord, synligt fokus, fokusåterställning och 44 px på dator',async()=>{
   test.skip(project!=='desktop','Körs på projektet desktop.');
@@ -826,6 +829,11 @@ test('telefon: Min tjänst, Per lärare och Bemanning utan redigeringskontroller
     .map(e=>{const r=e.getBoundingClientRect();return{text:(e.getAttribute('aria-label')??e.textContent??'').trim().slice(0,40),w:Math.round(r.width),h:Math.round(r.height)};}).filter(r=>r.w<44||r.h<44));
   expect(small).toEqual([]);
   pass('44 px på telefon','alla knappar och fält i Min tjänst är minst 44 × 44 px');
+});
+
+test('telefon: huvudmannens Visa fördelningen öppnar den publicerade versionen trots rektors utkast (WR-07)',async({browser},info)=>{
+  test.skip(project!=='phone','Körs på projektet phone.');
+  await bemanningPublished(browser,info);
 });
 
 /** Kommandot som klienten skickar, med payloadhash från kontraktet (för direktanrop). */
