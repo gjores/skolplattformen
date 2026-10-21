@@ -20,7 +20,7 @@
 .tjanst-inline-field{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
 .tjanst-switch{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;min-width:0}
 .tjanst-switch [data-slot=tabs-list]{height:auto;flex-wrap:wrap}
-.tjanst-switch [data-slot=tabs-trigger]{min-height:44px;padding:8px 12px;font-size:14px;white-space:nowrap}
+.tjanst-switch [data-slot=tabs-trigger]{min-height:44px;padding:8px 12px;font-size:14px;white-space:nowrap;flex:0 0 auto}
 .tjanst-term{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:500;border:0;margin:0;padding:0;min-width:0}
 .tjanst-term legend{float:left;padding:0;margin-right:8px}
 .tjanst-term button{border:1px solid var(--border);border-radius:8px;background:var(--card);padding:8px 12px;font-weight:500;color:var(--foreground)}
@@ -153,7 +153,7 @@
 .tjanst .personal-filter{margin-top:0;padding-top:0;border-top:0;align-items:end}
 .tjanst .personal-filter .mandate-actions{margin-top:0}
 .tjanst .personal-name{padding:0;min-height:44px;height:auto;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:16px}
-.tjanst-dialog .personal-duty-line{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;border:1px solid var(--border);border-radius:8px;padding:16px;min-width:0}
+.tjanst-dialog .personal-duty-line{display:grid;grid-template-columns:minmax(96px,.7fr) minmax(0,1.3fr) minmax(0,1.3fr);gap:16px;border:1px solid var(--border);border-radius:8px;padding:16px;min-width:0}
 .tjanst-dialog .personal-duty-line legend{font-weight:500;padding:0 4px;overflow-wrap:anywhere}
 .tjanst-dialog .personal-sum{font-weight:500}
 .bemanning-detail{display:flex;flex-direction:column;gap:16px;min-width:0}

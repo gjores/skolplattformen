@@ -152,6 +152,7 @@ export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_
         screenshotHashes: Object.fromEntries(result.screenshots.map(s => [s.file, sha(readFileSync(path.join(evidenceDir, s.file)))])) };
       report.checks.push(...result.checks.map(c => ({ ...c, project, name: project + ': ' + c.name })));
     }
+    for (const t of report.playwrightOutcome?.tests ?? []) if (t.status !== 'passed' && t.expected !== 'skipped') report.notExecuted.push({ project: t.project, test: t.title, status: t.status === 'failed' || t.status === 'timedOut' ? 'misslyckat' : 'ej kört' });
     for (const project of projects) for (const name of TJANST_ACTUAL_CASES[project]) {
       const check = report.checks.find(c => c.project === project && c.case === name);
       if (!check) report.notExecuted.push({ project, case: name, status: 'ej kört' });
@@ -159,7 +160,10 @@ export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_
     report.casesPerProject = Object.fromEntries(projects.map(p => [p, { required: TJANST_ACTUAL_CASES[p].length, passed: report.checks.filter(c => c.project === p && c.ok === true).length }]));
     save();
     assert.equal(report.playwright.code, 0, 'Faktiskt webbläsarfel; se den privata Playwright-loggen');
-    assert.ok(report.playwrightOutcome && report.playwrightOutcome.tests.every(t => t.status === 'passed' && t.retries === 0), 'Alla fall ska vara godkända utan omprov');
+    // Ett fall som inte gäller projektet hoppas över med test.skip (förväntat skipped). Ett fall som inte kördes efter ett fel
+    // (serieläge) har förväntat passed och fäller provet; det redovisas som ej kört.
+    assert.ok(report.playwrightOutcome && report.playwrightOutcome.tests.every(t => t.retries === 0 && (t.status === 'passed' || (t.status === 'skipped' && t.expected === 'skipped'))),
+      'Alla fall ska vara godkända utan omprov');
     for (const project of projects) assert.equal(report.browserEvidence[project]?.result.status, 'PASS', 'Projektet ' + project + ' är inte godkänt');
     assert.deepEqual(report.notExecuted, [], 'Fall saknas i rapporten');
     report.finalFingerprint = await schemaFingerprint(snapshot.db); assert.equal(report.finalFingerprint, report.installedFingerprint);

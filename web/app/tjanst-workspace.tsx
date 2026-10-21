@@ -359,7 +359,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     {data && !readOnly && !editable && !phone && !viewingOld && data.version?.status === 'published' && data.actions.includes('create_draft') && <div className="mandate-actions tjanst-actions">
       <Button disabled={busy} onClick={() => void pageCommand(() => plan('create_draft', { basedOnVersionId: data.version!.id }, d => `Utkastet version ${d.version?.versionNo} är skapat. Lärarna ser version ${(d.version?.versionNo ?? 1) - 1} tills du publicerar.`))}>Ändra i ny version</Button></div>}
     <div className="tjanst-messages">
-      {notice && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
+      {notice && !readError && !pageError && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
       {pageError && !dialog && (pageError.mfa ? <MfaStepUpNotice message={pageError.mfa} returnTo={hereForStepUp()}/> : <div role="alert" className="validation-warning"><p>{pageError.error}</p>
         {pageError.correlationId && <p>Referens: {pageError.correlationId}</p>}{pageError.refresh && <Button variant="outline" onClick={() => { setPageError(null); pageError.refresh?.(); }}>Hämta aktuellt läge</Button>}</div>)}
       {phone && dialog && <output className="admin-notice"><span>Redigeringen är stängd på den här skärmstorleken. Dina uppgifter finns kvar när du öppnar vyn på dator igen.</span></output>}

@@ -117,7 +117,10 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
       && (expected.columnId == null || row.application?.columnId === expected.columnId));
     if (candidates.length !== 1) throw new MissingAnnualTarget('Målet saknar en entydig årsrad för valt läsår. Välj en faktisk årsrad; ingen senaste version har valts.');
     const row = candidates[0];
-    if (expected.kind === 'grundskola' && !row.application)
+    // En fastställd eller ersatt GR-plan utan klassbindning öppnas som planeringsunderlag (texten säger att ingen verifierad
+    // klassbindning finns och inga årstimmar visas som binding), så att rektor kan skapa och koppla den första klassen i
+    // avsnittet Klasser och läsår (05.1-01). Övriga GR-versioner kräver fortfarande en klassbindning (05.1-09, faktiskt prov).
+    if (expected.kind === 'grundskola' && !row.application && !['faststalld', 'ersatt'].includes(matrix.status))
       throw new MissingAnnualTarget('Klassbindning saknas för valt läsår. Årets timmar är okända; ingen gammal matris visas som en ny årsbindning.');
     if (!row.plan || row.plan.revision !== matrix.revision || row.plan.status !== matrix.status
       || row.application && (row.application.schoolYear !== selection.schoolYear || row.application.planId !== matrix.id

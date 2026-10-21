@@ -23,11 +23,17 @@ const LOCK = path.join(root, 'work/pilot/targets/protected/idp/named-timplan-run
 /** Projekten i Playwright-konfigurationen (UI-SPEC Responsive: 1440 × 900, 1024 × 768, 390 × 844 och 320 × 740). */
 export const TJANST_ACTUAL_PROJECTS = ['desktop', 'desktop-small', 'phone', 'phone-small'];
 /** Namngivna fall per projekt. Rapporten kräver ett godkänt fall per namn; saknade redovisas som ej körda. */
+const PHONE_CASES = ['Min tjänst på telefon', 'Per lärare på telefon utan redigeringskontroller', 'Bemanning på telefon utan redigeringskontroller', '44 px på telefon'];
 export const TJANST_ACTUAL_CASES = {
-  desktop: ['spår'],
-  'desktop-small': [],
-  phone: [],
-  'phone-small': [],
+  desktop: ['spår', 'GR/IM-klass i Timplaner med behov', 'okopplad klass utan nollor', 'ny version: läraren ser den tidigare', 'äldre version skrivskyddad (D-24)',
+    'fördela tom cell', 'person utan konto får rader', 'annan skola och annat läsår nekas', 'specialuppdrag', 'två lärare på samma kurs', 'samläsning räknas en gång',
+    'utkastlärare från rektor', 'administratör utan knapp och 403 vid publicering', 'kvittens till tjanst_feedback', 'versionshistorik med aktör och tid',
+    'huvudmannens Bemanning utan beslutsknapp och 403 vid publicering', 'personal: utan konto och utkastlärare', 'andelar 60 % + 40 % sparas och 60 % + 50 % nekas med engångskod',
+    'rektor B ser bara Andel här 40 %', 'tillstånd: 403', 'två flikar: den andra får 409', 'avbrutet svar återhämtas via status', 'tillstånd: laddning', 'tillstånd: loggfel',
+    'tillstånd: MFA', 'tillstånd: context_changed', 'tangentbord, fokus och 44 px'],
+  'desktop-small': ['fördela', 'samläsning', 'publicera', 'tangentbord, fokus och 44 px'],
+  phone: PHONE_CASES,
+  'phone-small': PHONE_CASES,
 };
 
 function keycloakClient(target) {
@@ -46,9 +52,11 @@ function keycloakClient(target) {
  * transaktion i en egen kund: skolor A/B/C, roller, en godkänd Gy25-klass (BF25) på skola A, fastställda GR- och
  * IM-timplaner och läsårskalender för samma läsår (klasserna skapas och kopplas av rektor i provet), en okopplad
  * GR-klass och personal. P1 har mandatet Egen tjänst. Med published=true finns dessutom en publicerad version 1
- * (förberedd med samma kommandofunktioner som Worker anropar) för telefonprojekten, som bara läser.
+ * (förberedd med samma kommandofunktioner som Worker anropar) för telefonprojekten, som bara läser. Med linkGrim=true skapas
+ * och kopplas GR-klassen SYNGR8 (åk 8) och IM-klassen SYNIM med rektors GR/IM-kommando (för desktop-small; på desktop görs
+ * det i Timplaner i webbläsaren).
  */
-export async function seedTjanstActual(connection, { published = false } = {}) {
+export async function seedTjanstActual(connection, { published = false, linkGrim = false, schoolB = false } = {}) {
   return connection.begin(async tx => {
     await tx`set constraints all deferred`;
     const f = await createTjanstFixture(tx);
@@ -61,8 +69,8 @@ export async function seedTjanstActual(connection, { published = false } = {}) {
      (${imOffering},${f.id(2)},${A},'introduktionsprogram','Syntetiskt introduktionsprogram',${'Läsåret ' + Y + '/' + String(Y + 1).slice(2)},null,${Y})`;
     await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis) values(${grPlan},${f.id(2)},${grOffering},${A},1,'Syntetisk GR-timplan'),(${imPlan},${f.id(2)},${imOffering},${A},1,'Syntetisk IM-timplan')`;
     await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values
-     (${grPlan},'matematik',${[100, 90, 80]}::smallint[]),(${grPlan},'engelska',${[60, 60, 60]}::smallint[]),(${grPlan},'biologi',${[70, 70, 70]}::smallint[]),
-     (${imPlan},'im-ma',${[3]}::smallint[]),(${imPlan},'im-sv',${[5]}::smallint[])`;
+     (${grPlan},'matematik',${[100, 90, 80]}::smallint[]),(${grPlan},'engelska',${[60, 60, 60]}::smallint[]),(${grPlan},'biologi',${[70, 100, 70]}::smallint[]),
+     (${imPlan},'im-ma',${[3]}::smallint[]),(${imPlan},'im-sv',${[5]}::smallint[]),(${imPlan},'im-en',${[2]}::smallint[])`;
     await tx`set local session_replication_role=replica`;
     await tx`update public.timplans set status='faststalld',decided_on=${Y + '-06-01'} where id in (${grPlan},${imPlan})`;
     const sy = (await tx`insert into public.school_years(organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,decided_on)
@@ -71,6 +79,36 @@ export async function seedTjanstActual(connection, { published = false } = {}) {
     await tx`set local session_replication_role=origin`;
     // En GR-klass för läsåret utan koppling: behovet är okänt, inte noll.
     await tx`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year) values(${loose},${f.id(1)},${f.id(2)},${A},${grOffering},'SYN9X',${Y})`;
+    let grimClasses = null;
+    if (linkGrim) {
+      await f.actor(tx, 'principalA');
+      const grim = q => tx`select public.phase51_grim_class_command(${tx.json(q)}) value`.then(r => r[0].value);
+      const gr = await grim({ action: 'create', commandId: randomUUID(), planId: grPlan, expectedPlanRevision: 0, name: 'SYNGR8' });
+      const im = await grim({ action: 'create', commandId: randomUUID(), planId: imPlan, expectedPlanRevision: 0, name: 'SYNIM' });
+      const grId = gr.id, imId = im.id;
+      assert.ok(grId && imId, 'GR/IM-klasserna skapades inte: ' + JSON.stringify({ gr, im }));
+      await grim({ action: 'link', commandId: randomUUID(), classId: grId, planId: grPlan, expectedPlanRevision: 0, columnId: 'ak8', expectedLinkRevision: null, previousPlanId: null });
+      await grim({ action: 'link', commandId: randomUUID(), classId: imId, planId: imPlan, expectedPlanRevision: 0, columnId: 'vecka', expectedLinkRevision: null, previousPlanId: null });
+      grimClasses = { gr: grId, im: imId };
+    }
+    // Skola B (för rektor B): fastställd GR-plan och klassen SYNB8 kopplad till åk 8 med rektor B:s GR/IM-kommando.
+    let schoolBClass = null;
+    if (schoolB) {
+      await f.actor(tx, 'hm');
+      const bOffering = randomUUID(), bPlan = randomUUID();
+      await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,start_year) values
+       (${bOffering},${f.id(2)},${f.schools.B},'grundskola','Syntetisk grundskola B 7–9',${'Läsåret ' + Y + '/' + String(Y + 1).slice(2)},${[7, 8, 9]}::smallint[],${Y})`;
+      await tx`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis) values(${bPlan},${f.id(2)},${bOffering},${f.schools.B},1,'Syntetisk GR-timplan B')`;
+      await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${bPlan},'matematik',${[100, 90, 80]}::smallint[])`;
+      await tx`set local session_replication_role=replica`;
+      await tx`update public.timplans set status='faststalld',decided_on=${Y + '-06-01'} where id=${bPlan}`;
+      await tx`set local session_replication_role=origin`;
+      await f.actor(tx, 'principalB');
+      const grim = q => tx`select public.phase51_grim_class_command(${tx.json(q)}) value`.then(r => r[0].value);
+      const created = await grim({ action: 'create', commandId: randomUUID(), planId: bPlan, expectedPlanRevision: 0, name: 'SYNB8' });
+      await grim({ action: 'link', commandId: randomUUID(), classId: created.id, planId: bPlan, expectedPlanRevision: 0, columnId: 'ak8', expectedLinkRevision: null, previousPlanId: null });
+      schoolBClass = created.id;
+    }
     // Personal: P1 (Egen tjänst), Tor Berg utan konto, Ulla Sund på skola A. Sara Dahl läggs upp av huvudmannen i provet.
     const p1 = await staffWithDuties(tx, f, { givenName: 'Pia', familyName: 'Ek', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
     const t2 = await staffWithDuties(tx, f, { givenName: 'Tor', familyName: 'Berg', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
@@ -92,7 +130,7 @@ export async function seedTjanstActual(connection, { published = false } = {}) {
       .map(role => [role, { identityId: f.identity(role), membershipId: f.membership(role), assignmentId: f.roles[role] }]));
     return { prefix: f.prefix, year: Y, customerId: f.id(1), organizerId: f.id(2), schools: f.schools, actors,
       gy: { classId: gy.classId, planId: gy.planId, offeringId: gy.offeringId, aplKey: gy.aplKey, schoolMinutes: need?.schoolMinutes ?? null },
-      grim: { grPlan, imPlan, grOffering, imOffering, looseClassId: loose },
+      grim: { grPlan, imPlan, grOffering, imOffering, looseClassId: loose, classes: grimClasses, schoolBClass },
       people: { p1: p1.personId, t2: t2.personId, t3: t3.personId }, publishedVersion };
   });
 }
