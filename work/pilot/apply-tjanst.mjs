@@ -8,7 +8,7 @@
 // Repetition (rullas alltid tillbaka) respektive installation:
 //   node work/pilot/apply-tjanst.mjs --sql-evidence /private/tmp/tjanst-sql-evidence.json [--apply] [--out /private/tmp/x.json]
 //
-// Utan --apply körs alla migrationer i tjanstMigrations i en transaktion som alltid rullas tillbaka.
+// Utan --apply körs alla migrationer i tjanstMigrations (= tjanstEtapp1Migrations; gapläget kommer i 05.1-13) i en transaktion som alltid rullas tillbaka.
 // --apply upprepar först samma repetition och installerar sedan i en egen transaktion med advisory lock,
 // där samma kontroller körs igen och versionerna journalförs i supabase_migrations.schema_migrations.
 // Inga anslutningsuppgifter, nycklar eller rader skrivs ut; rapporten innehåller bara antal, namn och hashar.
@@ -18,7 +18,7 @@ import { readFileSync, openSync, writeSync, closeSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { tjanstMigrations } from './tjanst-fixtures.mjs';
+import { tjanstEtapp1Migrations as tjanstMigrations } from './tjanst-fixtures.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 export const sha = v => createHash('sha256').update(v).digest('hex');

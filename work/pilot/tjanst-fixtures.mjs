@@ -8,10 +8,14 @@ import { grimMigrations } from './verify-grim-class-timplans.mjs';
 import { vocationalFixture } from './vocational-plan-fixture.mjs';
 import { tjanstPayloadHash } from '../../web/lib/tjanst-contract.ts';
 
-/** Installationsordning för fas 05.1:s migrationer (planerna 06, 08 och 09 lägger till sina sist). */
-export const tjanstMigrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql',
+/** Etapp 1: de sju 05.1-migrationer som är installerade i det skyddade lokala målet sedan 2026-10-21 (05.1-10). */
+export const tjanstEtapp1Migrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql',
   'supabase/migrations/20261020120000_tjanst_plan.sql', 'supabase/migrations/20261020130000_tjanst_assignments_feedback.sql',
   'supabase/migrations/20261020140000_tjanst_person_account.sql', 'supabase/migrations/20261020190000_tjanst_worker_access.sql'];
+/** Gaprättelsen (05.1-11, CR-01 och WR-02): ny framåtmigration, installeras först i 05.1-13. */
+export const tjanstGapMigrations = ['supabase/migrations/20261021120000_tjanst_self_schools_joint_rules.sql'];
+/** Installationsordning för fas 05.1:s migrationer; rättelsen ligger sist, så verifierarna utesluter den ur sin basdatabas. */
+export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 
