@@ -86,7 +86,8 @@ function read(u:Unit,versionId?:string):TjanstPlanRead{
  const latest=current(u),version=versionId?u.versions.find(v=>v.id===versionId)!:latest;
  const content=version===null?{teachers:[],rows:[],specials:[],joints:[]}:version.status==='draft'?u.draft!:u.snapshots.get(version.id)!;
  const isDraft=version?.status==='draft';
- const actions:TjanstPlanAction[]=isDraft?(role==='rektor'?[...EDIT,'discard_draft','publish']:EDIT):!versionId&&version?.status==='published'||version===null?['create_draft']:[];
+ // Som servern (tjanst_plan_projection): publish finns bara för rektor och bara utan hinder.
+ const actions:TjanstPlanAction[]=isDraft?(role==='rektor'?[...EDIT,'discard_draft',...(u.blockers.length?[]:['publish' as const])]:EDIT):!versionId&&version?.status==='published'||version===null?['create_draft']:[];
  return{contractVersion:'tjanst_v1',unitId:u.unitId,schoolName:u.schoolName,schoolYear:YEAR,revision:u.revision,version:version?clone(version):null,versions:clone(u.versions),
   teachers:clone(content.teachers),classes:clone(u.classes),rows:clone(content.rows),specials:clone(content.specials),joints:clone(content.joints),
   actions,blockers:isDraft?clone(u.blockers):[],capabilities:{canEdit:isDraft,canPublish:isDraft&&role==='rektor',canReadHistory:true}};

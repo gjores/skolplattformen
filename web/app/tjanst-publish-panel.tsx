@@ -13,12 +13,17 @@ export const dateText = (instant: string) => new Date(instant).toLocaleDateStrin
 export const timeText = (instant: string) => new Date(instant).toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm', dateStyle: 'short', timeStyle: 'short' });
 export const ackSummary = (feedback: TjanstFeedback) => `Kvitterad av ${feedback.teachers.filter(t => t.acknowledgedAt).length} av ${feedback.teachers.length} lärare`;
 
-type Props = { data: TjanstPlanRead; phone: boolean; busy: boolean; feedback?: TjanstFeedback; onPublish: () => void; onDiscard: () => void };
+type Props = { data: TjanstPlanRead; phone: boolean; busy: boolean; feedback?: TjanstFeedback; onPublish: () => void; onDiscard: () => void;
+  /** Rektor i ett utkast. Servern utelämnar publish så länge det finns hinder; då visas knappen inaktiv (UI-SPEC Skärm 6). */
+  rector?: boolean };
 /** Skärm 6. Beslutsknappen visas bara när serverns actions innehåller publish (D-01); servern prövar ändå anropet. Inget steg för facklig samverkan (D-20). */
-export default function TjanstPublishPanel({ data, phone, busy, feedback, onPublish, onDiscard }: Props) {
+export default function TjanstPublishPanel({ data, phone, busy, feedback, onPublish, onDiscard, rector = false }: Props) {
   const version = data.version, draft = version?.status === 'draft';
-  const canPublish = data.actions.includes('publish') && !phone, canDiscard = data.actions.includes('discard_draft') && !phone;
   const blockers = data.blockers.length;
+  // Beslutsknappen kommer från serverns actions. Med hinder saknas publish i svaret; rektor ser då knappen inaktiv
+  // tillsammans med punkterna. Servern prövar ändå varje anrop (409 tjanst_publish_blocked).
+  const blockedRector = rector && blockers > 0 && data.capabilities.canEdit;
+  const canPublish = (data.actions.includes('publish') || blockedRector) && !phone, canDiscard = data.actions.includes('discard_draft') && !phone;
   const history = [...data.versions].sort((a, b) => b.versionNo - a.versionNo);
   return <section className="tjanst-panel protected-card" aria-label="Fastställ och publicera">
     <h2>Fastställ och publicera</h2>
@@ -32,7 +37,7 @@ export default function TjanstPublishPanel({ data, phone, busy, feedback, onPubl
       {canPublish && <Button disabled={busy || blockers > 0} onClick={onPublish}>Fastställ och publicera…</Button>}
       {canDiscard && <Button variant="outline" disabled={busy} onClick={onDiscard}>Ta bort utkastet…</Button>}
     </div>}
-    {draft && !data.actions.includes('publish') && data.capabilities.canEdit && <p>Rektor fastställer och publicerar fördelningen. Du kan fortsätta förbereda utkastet.</p>}
+    {draft && !data.actions.includes('publish') && !rector && data.capabilities.canEdit && <p>Rektor fastställer och publicerar fördelningen. Du kan fortsätta förbereda utkastet.</p>}
     <Collapsible className="tjanst-collapsible">
       <CollapsibleTrigger render={<Button variant="outline"/>}><History size={16} aria-hidden="true"/>Versionshistorik</CollapsibleTrigger>
       <CollapsibleContent><ul className="tjanst-plain-list">{history.map(v => <li key={v.id}>Version {v.versionNo} · {STATUS_LABEL[v.status]}{v.publishedByName ? ` · ${v.publishedByName}` : ''}{v.publishedAt ? ` · ${timeText(v.publishedAt)}` : ''}</li>)}</ul></CollapsibleContent>

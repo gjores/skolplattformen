@@ -83,6 +83,7 @@ test.describe('dator',()=>{
   await expect(panel.getByText('1 punkt behöver åtgärdas innan du kan fastställa.')).toBeVisible();
   await expect(panel.getByRole('listitem').filter({hasText:'En samläsning uppfyller inte reglerna'})).toHaveText('En samläsning uppfyller inte reglerna: raderna ska finnas i minst två klasser, och lärartid får bara gälla lärare som har en rad i gruppen. Ändra eller lös upp samläsningen.');
   await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
+  await expect(panel.getByText('Rektor fastställer och publicerar fördelningen.',{exact:false})).toHaveCount(0);
   expect((await commands(page)).filter(c=>c.body.action==='publish')).toEqual([]);
  });
 
