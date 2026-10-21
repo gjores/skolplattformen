@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1 etapp 1 levererad lokalt 2026-10-21 (3012 kör d1cd981). Fasverifiering: gaps_found 5/7 (05.1-VERIFICATION.md): TJANST-06 etapp 2 saknas och CR-01 (lärare med Egen tjänst på två skolor tappar första skolan) kräver ny migration; kodgranskning 05.1-REVIEW.md 1 kritiskt, 9 varningar. Nästa: beslut om gap-planering (gsd-plan-phase 05.1 --gaps) före användarprov."
+stopped_at: "Fas 05.1: gap-planer 05.1-11–13 för CR-01, WR-02 och WR-07 klara och plancheck PASS 2026-10-21 (TJANST-06 etapp 2 utanför enligt användarbeslut). Nästa: gsd-execute-phase 05.1 --gaps-only; 05.1-13 stannar vid blockerande kontrollpunkt före --apply och 3012-byte."
 last_updated: "2026-10-21"
 last_activity: 2026-10-21
-last_activity_desc: "05.1-10: migrationerna 20261020100000–190000 installerade med --apply i den skyddade lokala databasen efter användarens svar A; 3012 bytt från 55ea3da till det provade d1cd981-bygget."
+last_activity_desc: "Gap-planering för 05.1: tre planer (ny framåtmigration för Egen tjänst på flera skolor och samläsningens regler, Bemanning visar publicerad version, faktiskt prov, handbok och leverans bakom användarens godkännande); plancheck PASS efter en revidering."
 state_head: 55ea3da
 progress:
   total_phases: 8

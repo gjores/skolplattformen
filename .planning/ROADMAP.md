@@ -327,21 +327,49 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 6. Rektor kan förlänga fördelningen från föregående läsår, flytta uppdrag mellan personer och massregistrera. Allt sker med förhandsvisning, atomär lagring och nya utkast, och tidigare beslut bevaras. (TJANST-06)
 7. Person, anställning, tjänstgöringsgrad och skoluppdrag hålls isär från systemmandat. En lärare på två skolor har en gemensam planerad kapacitet som inte förbrukas dubbelt. Arbetstidsram enligt avtal visas inte här. (TJANST-07)
 
-**Plans**: 11/11 plans executed (etapp 1, installerad lokalt 2026-10-21 och 3012 på d1cd981; mänsklig begriplighetsbedömning och fasverifiering återstår; etapp 2 med TJANST-06:s årsrutiner planeras separat efter leverans och prov av etapp 1). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
+**Plans**: 11/14 plans executed (etapp 1, installerad lokalt 2026-10-21 och 3012 på d1cd981; fasverifiering 2026-10-21 gaps_found 5/7; gap-planerna 05.1-11–13 för CR-01, WR-02 och WR-07 enligt användarbeslut 2026-10-21; mänsklig begriplighetsbedömning återstår; etapp 2 med TJANST-06:s årsrutiner planeras separat). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
 
 Plans:
+**Wave 1**
 
 - [x] 05.1-01-PLAN.md — GR/IM-klasser får skyddad, identifierad klass–timplanskoppling (D-21), våg 1. SQL 43/43 i tillfällig PostgreSQL från migrationerna, UI 18/18; ej installerad
 - [x] 05.1-02-PLAN.md — Kontrakt och modell: typad behovskälla, behov, summor, samläsning, kapacitet, hash (våg 1). 37 tester
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 05.1-03-PLAN.md — SQL: personal, delad kapacitet (D-12), mandatet Egen tjänst och elevspärr (våg 2). Beslut A 2026-10-19; SQL 77/77 i tillfällig PostgreSQL från migrationerna; ej installerad
 - [x] 05.1-04-PLAN.md — Server och API: tjanst-rutter och adapter, engångskod enligt D-23 (våg 2). 17 adapter-/ruttprov mot simulerad DB/session
-- [x] 05.1-04B-PLAN.md — Egen tjänst på servern: scopeKind, self nekas som standard, mandatregler (våg 3)
 - [x] 05.1-05-PLAN.md — Rektors vy Tjänstefördelning: matris, vyer, dialoger, Fastställ och publicera (våg 2). Komponentprov 76/76 mot simulerade API-svar (telefon i Chromium)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 05.1-04B-PLAN.md — Egen tjänst på servern: scopeKind, self nekas som standard, mandatregler (våg 3)
 - [x] 05.1-06-PLAN.md — SQL: fördelning, behov Gy25/GR/IM, versioner, publicering, egen läsning (våg 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [x] 05.1-07-PLAN.md — Min tjänst, Personal, Bemanning, Egen tjänst i Mandat och navigering (våg 4)
 - [x] 05.1-08-PLAN.md — SQL: specialuppdrag, samläsning, kvittens/kommentar och bemanning (våg 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [x] 05.1-09-PLAN.md — Worker-rättigheter, faktiskt Worker/OIDC-prov på dator och telefon, handbok (våg 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [x] 05.1-10-PLAN.md — Leverans: repetition, användarens godkännande, --apply och 3012-byte (våg 6). Svar A; --apply PASS 26/26, alla sju 05.1-versioner journalförda, 3012 kör d1cd981 med godkänd hälsokontroll
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 05.1-11-PLAN.md — Gap: ny framåtmigration för Egen tjänst på flera skolor (CR-01) och samläsningens regler vid radändring och publicering (WR-02), SQL-prov mot schemakopia av installerat mål (våg 7)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 05.1-12-PLAN.md — Gap: Bemanning visar publicerad version (WR-07), faktiskt Worker/OIDC-prov av de tre flödena på dator och telefon (våg 8)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 05.1-13-PLAN.md — Gap: handbok efter det faktiska provet, leverans med repetition, användarens godkännande, --apply och 3012-byte (våg 9)
 
 **UI hint**: yes
 
