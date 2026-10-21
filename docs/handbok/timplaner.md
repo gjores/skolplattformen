@@ -196,6 +196,19 @@ För introduktionsprogram visas **Timmar per vecka**. Årsvalet gör ingen årsk
 
 För grundskolan kan du på telefon välja årskurs i den aktuella matrisen eller visa och rulla hela timplanen. Se [Planering](./planering.md) om planeringsår, registerår, versioner och överblick.
 
+## Koppla GR- och IM-klasser
+
+En klass i grundskolan eller på introduktionsprogram behöver en koppling till en fastställd timplan för läsåret för att dess behov ska synas i [Tjänstefördelning](./tjanstefordelning.md). Rektor och skoladministratör kopplar klasserna. Huvudmannen ser kopplingarna utan redigeringskontroller.
+
+1. Välj **Timplaner**, läsåret och **Grundskola och introduktionsprogram**. Välj skolform under **Skolform**.
+2. Välj **Öppna** på den fastställda timplanen. Saknar planen klassbindning för året öppnas den som planeringsunderlag med texten *Ingen verifierad klassbindning för året.*
+3. Välj **Koppla klass** i avsnittet **Klasser och läsår**.
+4. Finns klassen inte, välj **Skapa klass** och ange klassnamnet. Klassen skapas för läsåret utan elever.
+5. För grundskolan väljer du **Årskurs**. Introduktionsprogrammets klasser kopplas till veckoramen.
+6. Välj **Koppla …**. Beskedet *Klassens koppling till … är sparad* bekräftar.
+
+Att skapa och koppla kräver en färsk engångskod. En ny timplansversion flyttar inte befintliga kopplingar. I Tjänstefördelning delas grundskolans årstimmar lika på HT och VT, och introduktionsprogrammets veckotimmar räknas om med skolans fastställda läsårskalender. En klass utan koppling visas där som *koppling saknas*, aldrig med noll timmar.
+
 ## Ändra undervisningstid
 
 Den öppnade planen visar **Innan du ändrar undervisningstiden**. Öppna **Regler och ansvar** för skolformens vägledning och daterade källänkar. Ändringsdialogen påminner om att granska hela fördelningen. Att en cell sparas innebär inte att planen uppfyller regelverket.
@@ -232,7 +245,7 @@ Om anslutningen bryts under sparning kan beskedet vara osäkert. Läs då in pla
 
 ## Begränsningar
 
-För grundskola och introduktionsprogram kan vyn läsa och ändra befintliga timplansceller. Skapande, förslag, beslut, nya versioner och klasskopplingar är ännu inte tillgängliga för dessa skolformer. Gymnasiets nya skolvisa utkast beskrivs ovan. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
+För grundskola och introduktionsprogram kan vyn läsa och ändra befintliga timplansceller och koppla klasser till fastställda timplaner (se ovan). Skapande, förslag, beslut och nya versioner är ännu inte tillgängliga för dessa skolformer. Gymnasiets nya skolvisa utkast beskrivs ovan. Cellkontrollen är inte en fullständig kontroll av timplanens samlade undervisningsram.
 
 Alla läsningar och ändringar kräver att säkerhetsloggen fungerar. Om den inte kan skrivas lämnas inget innehåll ut och ändringen genomförs inte. Vid utloggning eller ändrat uppdrag rensas plan och osparat innehåll från arbetsytan.
 

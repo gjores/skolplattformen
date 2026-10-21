@@ -71,8 +71,22 @@ Räckvidden avgör vilka objekt mandatet når.
 | Grupp | Angivna undervisnings- eller mentorsgrupper |
 | Elev | Namngivna elever |
 | Ärende | Ett angivet ärende för en angiven elev |
+| Egen tjänst | Lärarens egen publicerade tjänst på angivna skolor, inga grupper och inga elever |
 
 **Lärare** har alltid gruppräckvidd och når elever genom sina undervisnings- eller mentorsgrupper. **Elevhälsa** kan ges skol-, elev- eller ärenderäckvidd, så att insatsen kan avgränsas till just de elever eller ärenden den gäller. **Tidsbegränsad support** ges antingen för en namngiven elev eller för en eller flera grupper på en skola. Övriga verksamhetsfunktioner har skolräckvidd.
+
+## Egen tjänst
+
+**Egen tjänst** är en omfattning för lärare som bara ger tillgång till den egna publicerade tjänsten i [Min tjänst](./min-tjanst.md).
+
+1. Välj *Tilldela uppdrag*, **Uppdrag** Lärare och **Mottagare**.
+2. Välj **Omfattning** *Egen tjänst*. Dialogen förklarar att läraren bara ser sin publicerade tjänst på skolan och inga grupper eller elever.
+3. Markera skolan och välj **Person i personalen**. Listan visar personer i skolans personal. Kopplingen mellan kontot och personen sparas i säkerhetsloggen.
+4. Välj *Tilldela uppdraget*.
+
+Med Egen tjänst öppnas Min tjänst direkt efter inloggningen, och menyn har bara Min tjänst. Servern nekar elevregistret, planeringen och tjänstefördelningen för uppdraget, även vid direktanrop. Har läraren även ett gruppmandat väljer läraren uppdrag i kontextbytet. Med gruppuppdraget gäller elevregistret som förut.
+
+Kortet i Mandat visar omfattningen *Egen tjänst · …*. Provstatus: att läraren landar i Min tjänst och nekas elevregistret och tjänstefördelningen är provat i oktober 2026 mot ett eget skyddat bygge med riktig inloggning och syntetiska lärare. Tilldelningsdialogen för Egen tjänst är provad med simulerade serversvar.
 
 ## Tillgång till elevuppgifter
 
