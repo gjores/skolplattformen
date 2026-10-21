@@ -507,6 +507,8 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 2026-10-21: [prestandatodon för programplaner och timplaner kompletterad med tjänstefördelningen](todos/pending/2026-10-14-snabbare-inlasning-av-programplaner-och-timplaner.md), som användaren upplever som långsammast. Kodfynd: full omläsning vid termin/filter, upprepade kataloguppslag och behovssökningar, sen sidindelning samt möjlig köbildning bakom sessions-/kundlås. Fas 05.1/05; aktuell mätning, rättning och verifiering återstår. Ingen ändring av fasordning eller kravstatus.
+
 - 2026-10-06: [årskursknappar i mobilens timplan](todos/pending/2026-10-06-arskursknappar-i-mobilens-timplan.md). Programplanens knappar är positivt användarbedömda; motsvarande dropdown önskas ersatt. Trolig målvy är gymtimplanen, att kontrollera inför avgränsad rättning. Samordnas med 05-41 utan att ändra läsårs-/versions-/sparregler.
 
 - 2026-10-06: [rektor färdigmarkerar och huvudmannens representant godkänner planarbete](todos/pending/2026-10-06-rektor-fardigmarkerar-och-huvudmannen-godkanner-planarbete.md). Verklig lucka i aktuellt skyddat flöde; komplettera 05-25/26 och samordna med 05-32/33 vid omplanering. Ingen implementation/verifiering påstås.
