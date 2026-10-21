@@ -5,16 +5,16 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1: gap-plan 05.1-11 klar 2026-10-21 (CR-01 och WR-02 i ny migration 20261021120000, SQL PASS 44/44 i schemakopia och tillfällig PostgreSQL, inte installerad). Nästa: 05.1-12 (WR-07 och faktiskt prov); 05.1-13 stannar vid blockerande kontrollpunkt före --apply och 3012-byte."
-last_updated: "2026-10-21"
-last_activity: 2026-10-21
-last_activity_desc: "05.1-11: framåtmigration för Egen tjänst på flera skolor (kopplade self-mandat) och samläsningens regler vid radändring och publicering; provad mot syntetiska data, inte installerad."
+stopped_at: "Fas 05.1: gap-plan 05.1-12 klar 2026-10-22 (WR-07 i vyn; faktiskt prov av WR-07, CR-01 och WR-02 på 7d31489 PASS 46 kontroller i 4 projekt, 0 ej körda; inte installerat). Nästa: 05.1-13, som stannar vid blockerande kontrollpunkt före --apply och 3012-byte."
+last_updated: "2026-10-22"
+last_activity: 2026-10-22
+last_activity_desc: "05.1-12: Bemanning öppnar den publicerade versionen; faktiskt Worker/OIDC-prov av Egen tjänst på två skolor och samläsningens regler på dator och telefon; provat mot syntetiska data, inte installerat."
 state_head: 55ea3da
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 88
+  completed_plans: 89
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_etapp1_local_delivery_health_pass
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 gap-plan 05.1-12 genomförd 2026-10-22 (lokal miljö):** [05.1-12](phases/05.1-tjanstefordelning/05.1-12-SUMMARY.md) WR-07: huvudmannens Visa fördelningen i Bemanning öppnar den publicerade versionen (versionId) också när rektor har ett utkast, och knappen visas bara för skolor med publicerad version. Fastställ och publicera visas inaktiv med punkterna vid hinder, och texten för tjanst_joint_already finns. Det faktiska provet kördes med egen Worker på 3015, riktig OIDC och syntetiska användare mot en schemakopia av det installerade målet. Där installerades bara rättelsen 20261021120000 (pendingMigrations = tjanstGapMigrations). Resultat på kandidaten 7d31489: PASS, 46 kontroller i 4 projekt, 0 ej körda, retries 0 och full städning. CR-01: rektor B ger Egen tjänst för B i Mandat, och läraren kvitterar på B (ack 0 → 1, 2 kopplade mandat). WR-02: lärarbyte ger 400 tjanst_joint_already, en ogiltig samläsning (märkt dataändring) ger 409 tjanst_publish_blocked, och publicering lyckas efter upplösning. Rapport `/private/tmp/tjanst-gap-actual.json`, SHA-256 `51a8e06e…0490`, artefaktmanifest 1 369 filer. Status: provat faktiskt mot syntetiska data, inte installerat. 3012 kör d1cd981. Begripligheten är inte bedömd. Nästa: 05.1-13.
 
 **Fas 05.1 gap-plan 05.1-11 genomförd 2026-10-21 (lokal miljö):** [05.1-11](phases/05.1-tjanstefordelning/05.1-11-SUMMARY.md) Ny framåtmigration `20261021120000_tjanst_self_schools_joint_rules.sql` (SHA-256 `55ef6382…9ccc`). CR-01: tabellen tjanst_self_mandates kopplar varje self-mandat till kontots bindning. Ett nytt mandat för samma par person–konto avslutar inte längre bindningen, och skolorna i Egen tjänst hämtas ur alla giltiga kopplade mandat. Ifyllnaden reparerar äldre data utan att befintliga rader ändras. WR-02: save_row på en samläst rad nekar byte av lärare eller källa (tjanst_joint_already), och blockeraren joint_invalid stoppar publicering. verify-tjanst-gap.mjs gav PASS 44/44 både i schemakopia av det skyddade målet och i tillfällig PostgreSQL. I schemakopian reparerades 1 koppling i det syntetiska före-läget. Rapport `/private/tmp/tjanst-gap-sql.json`, SHA-256 `1afad0ef…23f2`. Regressionen gav plan 102, self 23, personal 77, person-account 7 och GR/IM 43, alla PASS, och inget befintligt fall ändrades. Status: implementerad och provad mot syntetiska data, inte installerad. HTTP/OIDC och webbläsare är inte provade. Nästa: 05.1-12.
 

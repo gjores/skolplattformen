@@ -327,7 +327,7 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 6. Rektor kan förlänga fördelningen från föregående läsår, flytta uppdrag mellan personer och massregistrera. Allt sker med förhandsvisning, atomär lagring och nya utkast, och tidigare beslut bevaras. (TJANST-06)
 7. Person, anställning, tjänstgöringsgrad och skoluppdrag hålls isär från systemmandat. En lärare på två skolor har en gemensam planerad kapacitet som inte förbrukas dubbelt. Arbetstidsram enligt avtal visas inte här. (TJANST-07)
 
-**Plans**: 12/14 plans executed (etapp 1, installerad lokalt 2026-10-21 och 3012 på d1cd981; fasverifiering 2026-10-21 gaps_found 5/7; gap-planerna 05.1-11–13 för CR-01, WR-02 och WR-07 enligt användarbeslut 2026-10-21; mänsklig begriplighetsbedömning återstår; etapp 2 med TJANST-06:s årsrutiner planeras separat). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
+**Plans**: 13/14 plans executed (etapp 1, installerad lokalt 2026-10-21 och 3012 på d1cd981; fasverifiering 2026-10-21 gaps_found 5/7; gap-planerna 05.1-11–13 för CR-01, WR-02 och WR-07 enligt användarbeslut 2026-10-21; mänsklig begriplighetsbedömning återstår; etapp 2 med TJANST-06:s årsrutiner planeras separat). Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
 
 Plans:
 **Wave 1**
@@ -365,7 +365,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 05.1-12-PLAN.md — Gap: Bemanning visar publicerad version (WR-07), faktiskt Worker/OIDC-prov av de tre flödena på dator och telefon (våg 8)
+- [x] 05.1-12-PLAN.md — Gap: Bemanning visar publicerad version (WR-07), faktiskt Worker/OIDC-prov av de tre flödena på dator och telefon (våg 8). Provat faktiskt mot syntetiska data på 7d31489: verify-tjanst-actual PASS 46 kontroller i 4 projekt, 0 ej körda, retries 0, pendingMigrations = rättelsen; inte installerat
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
@@ -603,7 +603,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
-| 05.1. Tjänstefördelning (INSERTED) | 12/14 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A) och 3012 kör d1cd981; provad mot syntetiska data. Gap 05.1-11 (CR-01, WR-02) provad i SQL, inte installerad. Kvar: 05.1-12, 05.1-13, fasverifiering, användarprov och mänsklig begriplighetsbedömning; etapp 2 (TJANST-06) ej planerad | - |
+| 05.1. Tjänstefördelning (INSERTED) | 13/14 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A) och 3012 kör d1cd981; provad mot syntetiska data. Gap 05.1-11 (CR-01, WR-02) provad i SQL och 05.1-12 (WR-07, CR-01, WR-02) provad faktiskt mot syntetiska data, inte installerade. Kvar: 05.1-13, fasverifiering, användarprov och mänsklig begriplighetsbedömning; etapp 2 (TJANST-06) ej planerad | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
