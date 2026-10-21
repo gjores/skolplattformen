@@ -1,4 +1,4 @@
--- 05.1-11 (gap, ny framåtmigration efter de sju installerade 05.1-migrationerna): Egen tjänst på flera skolor (CR-01).
+-- 05.1-11 (gap, ny framåtmigration efter de sju installerade 05.1-migrationerna): Egen tjänst på flera skolor (CR-01, del 1) och samläsningens regler (WR-02, del 2).
 -- Varje person och konto (medlemskap) har fortfarande en aktiv bindning. Ny tabell tjanst_self_mandates kopplar varje
 -- self-mandat uttryckligen till en bindning. Ett nytt self-mandat för samma par person–konto kopplas till den befintliga
 -- bindningen i stället för att avsluta den. Skolorna i Egen tjänst hämtas ur alla giltiga self-mandat som är kopplade
@@ -210,6 +210,70 @@ begin
  -- Audit bär bara referenser; kommentarstexten skrivs aldrig i security_events (T-05.1-30).
  perform public.tjanst_audit('tjanst_self_command','tjanst_version',version,jsonb_build_object('commandId',request_id,'action',action_name,'feedbackId',feedback));
  return envelope;
+end $$;
+
+-- Del 2 (WR-02, D-16, TJANST-03/04): samläsningens regler gäller också vid radändring och publicering.
+-- tjanst_plan_save_row och tjanst_plan_blockers är kopior ur 20261020120000 (senaste definitionerna) med var sin ny regel.
+-- tjanst_plan_publish, projektionen och dispatchern ändras inte; de anropar redan tjanst_plan_blockers.
+-- SS 12000: samläsningen motsvarar en Activity med flera groups och teachers[]; regeln håller ihop gruppens klasser och
+-- lärare med raderna, så att en senare export inte får en Activity med en enda grupp eller lärare utan DutyAssignment.
+create or replace function public.tjanst_plan_save_row(a public.access_assignments,d public.tjanst_distributions,p jsonb) returns uuid
+language plpgsql volatile security definer set search_path=pg_catalog,public as $$
+declare v public.tjanst_versions:=public.tjanst_current_draft(d);need jsonb;person uuid;row_id uuid;link jsonb;
+begin
+ -- WR-02 (D-16): en rad i en samläsning behåller lärare och källa; tid och kommentar får ändras. Prövas innan något skrivs.
+ if p->'rowId'<>'null'::jsonb and exists(select 1 from public.tjanst_joint_members m join public.tjanst_rows r on r.id=m.row_id
+   where r.id=(p->>'rowId')::uuid and r.version_id=v.id
+    and (r.staff_person_id is distinct from (p->>'personId')::uuid or r.source_key is distinct from p->>'sourceKey')) then
+  raise exception 'Row is joint' using errcode='22023',hint='tjanst_joint_already';end if;
+ -- Behovet hämtas på servern i samma transaktion; klienten anger bara källa och lärartid.
+ need:=public.tjanst_need(d.unit_id,d.school_year,p->>'sourceKey');
+ if need is null then raise exception 'Unknown need source' using errcode='22023',hint='tjanst_unknown_source';end if;
+ link:=need->'link';person:=(p->>'personId')::uuid;
+ if person is not null then
+  if not public.tjanst_person_at_school(a,person,d.unit_id,d.school_year) then raise exception 'Person not at school' using errcode='22023',hint='tjanst_person_not_at_school';end if;
+  insert into public.tjanst_version_teachers(version_id,staff_person_id) values(v.id,person) on conflict do nothing;
+ end if;
+ begin
+  if p->'rowId'='null'::jsonb then
+   insert into public.tjanst_rows(version_id,lineage_id,staff_person_id,source_kind,source_key,class_id,school_year,link_revision,timplan_id,series_id,timplan_version,
+    timplan_row_key,link_column,need_label,need_ht_minutes,need_vt_minutes,need_basis,teacher_ht_minutes,teacher_vt_minutes,comment)
+   values(v.id,gen_random_uuid(),person,'class_timplan',need->>'sourceKey',(need->>'classId')::uuid,d.school_year,(link->>'linkRevision')::integer,(link->>'timplanId')::uuid,
+    (link->>'seriesId')::uuid,(link->>'timplanVersion')::integer,need->>'rowKey',link->>'column',left(need->>'label',300),(need->>'needHt')::integer,(need->>'needVt')::integer,
+    need->>'needBasis',(p->>'teacherHt')::integer,(p->>'teacherVt')::integer,p->>'comment') returning id into row_id;
+  else
+   update public.tjanst_rows set staff_person_id=person,source_key=need->>'sourceKey',class_id=(need->>'classId')::uuid,link_revision=(link->>'linkRevision')::integer,
+    timplan_id=(link->>'timplanId')::uuid,series_id=(link->>'seriesId')::uuid,timplan_version=(link->>'timplanVersion')::integer,timplan_row_key=need->>'rowKey',
+    link_column=link->>'column',need_label=left(need->>'label',300),need_ht_minutes=(need->>'needHt')::integer,need_vt_minutes=(need->>'needVt')::integer,
+    need_basis=need->>'needBasis',teacher_ht_minutes=(p->>'teacherHt')::integer,teacher_vt_minutes=(p->>'teacherVt')::integer,comment=p->>'comment'
+   where id=(p->>'rowId')::uuid and version_id=v.id returning id into row_id;
+   if row_id is null then raise exception 'Unknown row' using errcode='22023',hint='tjanst_invalid';end if;
+  end if;
+ exception when unique_violation then raise exception 'Duplicate row' using errcode='22023',hint='tjanst_duplicate_row';end;
+ return v.id;
+end $$;
+
+create or replace function public.tjanst_plan_blockers(a public.access_assignments,v public.tjanst_versions,unit uuid,school_year integer,needs jsonb) returns jsonb
+language plpgsql stable security definer set search_path=pg_catalog,public as $$
+declare result jsonb:='[]';
+begin
+ if v.id is null or v.status<>'draft' then return result;end if;
+ if not exists(select 1 from public.tjanst_rows r where r.version_id=v.id) then
+  result:=result||jsonb_build_array(jsonb_build_object('code','empty_draft','message','Utkastet har inga tjänsterader. Lägg till minst en rad före publicering.'));end if;
+ if exists(select 1 from public.tjanst_rows r where r.version_id=v.id and (public.tjanst_row_json(r,(select x.value||jsonb_build_object('link',c.value->'link')
+   from jsonb_array_elements(needs) c cross join lateral jsonb_array_elements(c.value->'needs') x where x.value->>'sourceKey'=r.source_key limit 1))->>'stale')::boolean) then
+  result:=result||jsonb_build_array(jsonb_build_object('code','stale_rows','message','Underlaget har ändrats för en eller flera rader. Spara raderna på nytt efter granskning.'));end if;
+ if exists(select 1 from (select t.staff_person_id p from public.tjanst_version_teachers t where t.version_id=v.id
+   union select r.staff_person_id from public.tjanst_rows r where r.version_id=v.id and r.staff_person_id is not null) x
+   where not public.tjanst_person_at_school(a,x.p,unit,school_year)) then
+  result:=result||jsonb_build_array(jsonb_build_object('code','person_not_at_school','message','En lärare saknar giltigt skoluppdrag på skolan för läsåret.'));end if;
+ -- WR-02 (D-16): samläsningens regler prövas också vid publicering, även för data från före rättelsen.
+ if exists(select 1 from public.tjanst_joint_groups g where g.version_id=v.id and (
+   (select count(distinct r.class_id) from public.tjanst_joint_members m join public.tjanst_rows r on r.id=m.row_id where m.group_id=g.id)<2
+   or exists(select 1 from public.tjanst_joint_teacher_time t where t.group_id=g.id and not exists(select 1 from public.tjanst_joint_members m
+    join public.tjanst_rows r on r.id=m.row_id where m.group_id=g.id and r.staff_person_id=t.staff_person_id)))) then
+  result:=result||jsonb_build_array(jsonb_build_object('code','joint_invalid','message','En samläsning uppfyller inte reglerna: raderna ska finnas i minst två klasser, och lärartid får bara gälla lärare som har en rad i gruppen. Ändra eller lös upp samläsningen.'));end if;
+ return result;
 end $$;
 
 -- 7. Allt nytt är stängt.
