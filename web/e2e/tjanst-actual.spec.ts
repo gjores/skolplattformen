@@ -795,8 +795,8 @@ test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogil
   // Färskt MFA-bevis (det gjordes inaktuellt i fallet tillstånd: MFA). Inloggningen återvänder direkt till Tjänstefördelning:
   // i utvecklingskörningen låg menyknappen utanför fönstret efter step-up och klicket gav timeout.
   await fixture!.login(p,'principalA',{stepUp:true,returnTo:'/?vy=tjanst'});await openTjanst(p,A,{navigate:false});
-  const draftOf=async()=>(await db`select d.revision::int r,v.id,v.version_no::int no,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft'
-    where d.unit_id=${A} and d.school_year=${seed.year}`)[0] as {r:number;id:string;no:number;h:string};
+  const draftOf=async()=>(await db`select d.revision::int r,v.id,v.version_no::int no from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft'
+    where d.unit_id=${A} and d.school_year=${seed.year}`)[0] as {r:number;id:string;no:number};
   const d=await draftOf();
   const rowOf=async(id:string)=>(await db`select r.id,r.staff_person_id person,r.source_key,r.teacher_ht_minutes::int ht,r.teacher_vt_minutes::int vt,r.comment,m.group_id
     from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.id=${id}`)[0];
@@ -815,8 +815,11 @@ test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogil
   await expect(panel.getByRole('listitem').filter({hasText:'En samläsning uppfyller inte reglerna'})).toBeVisible();
   await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
   await capture(p,'samlasning-ogiltig');
+  // Utkastets content_hash är null i tabellen; klienten skickar läsningens contentHash (tjanst_version_hash), så det gör provet också.
   const now=await draftOf();
-  const blocked=await fixture!.request(p,'principalA','/api/tjanst/plan/publicera',await createCommand(A,seed.year,'publish',now.r,{},{expectedContentHash:now.h}));
+  const view=await fixture!.request(p,'principalA','/api/tjanst/plan/lasa',{unitId:A,schoolYear:seed.year});expect(view.status).toBe(200);
+  expect(view.body.version).toMatchObject({id:now.id,status:'draft'});
+  const blocked=await fixture!.request(p,'principalA','/api/tjanst/plan/publicera',await createCommand(A,seed.year,'publish',now.r,{},{expectedContentHash:view.body.version.contentHash}));
   expect(blocked.status).toBe(409);expect(blocked.body?.details?.reason).toBe('tjanst_publish_blocked');
   expect((await versionsOf(A)).find(v=>v.id===d.id)?.status).toBe('draft');
   // Lös upp samläsningen i vyn; därefter kan rektor publicera.
