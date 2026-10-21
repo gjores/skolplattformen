@@ -11,7 +11,7 @@ import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync
 import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
-import { createTjanstFixture, grantSelf, planCommand, planRead, planSend, seedGrimNeeds, selfRead, selfSend, staffWithDuties,
+import { createTjanstFixture, grantSelf, personalRead, planCommand, planRead, planSend, seedGrimNeeds, selfRead, selfSend, staffWithDuties,
   tjanstEtapp1Migrations, tjanstGapMigrations } from './tjanst-fixtures.mjs';
 import { WORKER_ENTRYPOINTS } from './apply-tjanst.mjs';
 import { parsePlanCommandReply, parsePlanReadReply, parseSelfCommandReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
@@ -26,8 +26,10 @@ const Y = 2026;
 const ROLES = ['anon', 'authenticated', 'service_role', 'skolplattform_worker'];
 const LINK_COLUMNS = ['access_assignment_id', 'binding_id', 'customer_id', 'organizer_id', 'linked_by_assignment_id', 'linked_at'];
 /** Funktioner som migrationen ersätter (create or replace); ägare och rättigheter ska vara oförändrade. */
-const REPLACED = ['phase51_bind_self_person(access_assignments,uuid,uuid,uuid,uuid[])', 'tjanst_self_command(jsonb)',
+const REPLACED = ['phase51_bind_self_person(access_assignments,uuid,uuid,uuid,uuid[])', 'tjanst_plan_blockers(access_assignments,tjanst_versions,uuid,integer,jsonb)',
+  'tjanst_plan_save_row(access_assignments,tjanst_distributions,jsonb)', 'tjanst_self_command(jsonb)',
   'tjanst_self_person(access_assignments)', 'tjanst_self_projection(access_assignments)'];
+const JOINT_INVALID = 'En samläsning uppfyller inte reglerna: raderna ska finnas i minst två klasser, och lärartid får bara gälla lärare som har en rad i gruppen. Ändra eller lös upp samläsningen.';
 const ADDED = ['tjanst_self_mandates_guard()', 'tjanst_self_unit_ids(access_assignments)'];
 const short = s => s.replace(/^public\./u, '').replaceAll('public.', '').replaceAll(', ', ',');
 
@@ -63,6 +65,21 @@ const units = own => [...new Set(own.publications.map(p => p.unitId))].sort();
 const sessionOn = async (t, f, name, assignmentId) => { f.roles[name] = assignmentId; await f.sessionFor(t, name); await f.actor(t, name); };
 const revoke = async (t, f, by, id) => { await f.actor(t, by); await t`select public.phase3_revoke_mandate(${id})`; };
 const needOf = (detail, classId, rowKey) => detail.classes.find(c => c.classId === classId).needs.find(n => n.rowKey === rowKey);
+const selection = (f, extra = {}) => ({ schoolYear: Y, unitId: f.schools.A, classId: null, educationId: null, grade: null, status: null, page: 1, ...extra });
+const card = (pupilId, extra = {}) => ({ pupilId, schoolYear: Y, caseId: null, ...extra });
+/** De nio elevfunktionerna (samma anrop som verify-tjanst-personal.mjs). */
+const PUPIL_CALLS = {
+  'phase4_validate_selection(jsonb)': (t, f) => t`select public.phase4_validate_selection(${t.json(selection(f))}) value`,
+  'phase4_list_pupils(jsonb)': (t, f) => t`select public.phase4_list_pupils(${t.json({ selection: selection(f), search: '', caseId: null })}) value`,
+  'phase4_register_selection()': t => t`select public.phase4_register_selection() value`,
+  'phase3_probe_scope()': t => t`select public.phase3_probe_scope() value`,
+  'phase4_card_row(jsonb)': (t, f) => t`select to_jsonb(r) value from public.phase4_card_row(${t.json(card(f.pupils.inGroup))}) r`,
+  'phase4_pupil_card(jsonb)': (t, f) => t`select public.phase4_pupil_card(${t.json(card(f.pupils.inGroup))}) value`,
+  'phase4_pupil_history(jsonb)': (t, f) => t`select public.phase4_pupil_history(${t.json(card(f.pupils.inGroup, { page: 1 }))}) value`,
+  'phase4_export_pupils(jsonb,boolean)': (t, f) => t`select public.phase4_export_pupils(${t.json({ mode: 'ids', ids: [f.pupils.inGroup], schoolYear: Y, caseId: null, fields: ['id', 'displayName'], protectedIds: [], includePersonalNumber: false })},true) value`,
+  'phase4_reveal_personal_number(jsonb)': (t, f) => t`select public.phase4_reveal_personal_number(${t.json(card(f.pupils.inGroup))}) value`,
+};
+const codes = d => d.blockers.map(b => b.code);
 
 /** GR-behov på en annan skola än A: utbildning, fastställd timplan (status satt i fixturen), kalender och en klass kopplad till ak8. */
 async function seedUnitNeeds(t, f, { unit, principal, name }) {
@@ -131,11 +148,37 @@ async function beforeState(tx, report, f) {
   const m3 = await grantSelf(tx, f, { teacher: 'teacherGroup', by: 'principalA', unitIds: [A], staffPersonId: p3.personId });
   await revoke(tx, f, 'principalA', m3);
   const m4 = await grantSelf(tx, f, { teacher: 'teacherGroup', by: 'principalA', unitIds: [A], staffPersonId: p4.personId });
-  return { p1: p1.personId, p2: p2.personId, p3: p3.personId, p4: p4.personId, g, nb, nc, mandateA, mandateB, m3, m4, vA: vA.id, vB: vB.id };
+  // WR-02: utkast på A med två ogiltiga samläsningar, skapade med de gamla funktionerna (save_joint följer regeln, save_row bryter den).
+  await f.actor(tx, 'principalA');
+  let r = await send(tx, await planCommand(A, Y, 'create_draft', (await read(tx, A)).revision, { basedOnVersionId: vA.id }));
+  const A7 = f.classes.group, B7 = f.classes.other, IM = g.imClass;
+  const addRow = async (classId, rowKey, personId, ht, vt) => {
+    const need = needOf(r.detail, classId, rowKey);
+    r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId, teacherHt: ht, teacherVt: vt, comment: '' }));
+    return r.detail.rows.find(x => x.sourceKey === need.sourceKey && x.personId === personId).id;
+  };
+  const j1a = await addRow(A7, 'matematik', p1.personId, 1350, 1350), j1b = await addRow(B7, 'matematik', p1.personId, 1350, 1350);
+  const j2a = await addRow(B7, 'engelska', p2.personId, 600, 600), j2b = await addRow(IM, 'im-sv', p1.personId, 600, 600);
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: null, name: 'Matematik 7A+7B', rowIds: [j1a, j1b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }] }));
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
+    teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] }));
+  // Gamla save_row: raden j1b flyttas till 7A (gruppen hamnar i en enda klass), och j2a byter lärare (P2 får lärartid utan rad).
+  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: j1b, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, A7, 'biologi').sourceKey, personId: p1.personId, teacherHt: 1350, teacherVt: 1350, comment: '' }));
+  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: j2a, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, B7, 'engelska').sourceKey, personId: p1.personId, teacherHt: 600, teacherVt: 600, comment: '' }));
+  const old = await read(tx, A);
+  const g1 = old.joints.find(j => j.name === 'Matematik 7A+7B').id, g2 = old.joints.find(j => j.name === 'Engelska 7B+IM').id;
+  const classesOf = id => new Set(old.rows.filter(x => x.jointGroupId === id).map(x => x.sourceKey.split(':')[1])).size;
+  assert.equal(classesOf(g1), 1); assert.ok(!old.rows.some(x => x.jointGroupId === g2 && x.personId === p2.personId));
+  assert.ok(old.joints.find(j => j.id === g2).teachers.some(t => t.personId === p2.personId));
+  assert.ok(!codes(old).includes('joint_invalid')); assert.equal(old.capabilities.canPublish, true);
+  check(report, 'före-läget visar WR-02: med de gamla funktionerna har en grupp rader i en enda klass och en annan lärartid för en lärare utan rad, utan blockerare (canPublish true)',
+    { blockers: codes(old), canPublish: old.capabilities.canPublish });
+  const draftA = { j1a, j1b, j2a, j2b, g1, g2 };
+  return { p1: p1.personId, p2: p2.personId, p3: p3.personId, p4: p4.personId, g, nb, nc, mandateA, mandateB, m3, m4, vA: vA.id, vB: vB.id, draftA };
 }
 
 /** Kontroller av tabell, ifyllnad och rättigheter efter installationen. */
-async function installedChecks(db, report, f, s, before) {
+async function installedChecks(db, report, f, s) {
   const columns = (await db`select a.attname from pg_attribute a where a.attrelid='public.tjanst_self_mandates'::regclass and a.attnum>0 and not a.attisdropped order by a.attnum`).map(x => x.attname);
   assert.deepEqual(columns, LINK_COLUMNS);
   const [rls] = await db`select relrowsecurity r,relforcerowsecurity f from pg_class where oid='public.tjanst_self_mandates'::regclass`;
@@ -162,7 +205,10 @@ async function installedChecks(db, report, f, s, before) {
     { selfMandates: selfMandates.length, links: links.length, repaired });
   assert.ok(links.every(l => l.same_account));
   check(report, 'varje kopplingsrads bindning har samma medlemskap, kund och huvudman som mandatet', { links: links.length });
+}
 
+/** Ägare och rättigheter för ersatta funktioner, nya funktioner stängda och Worker-entrypoints (efter fallen, så att beteendefallen prövas först). */
+async function functionChecks(db, report, before) {
   const after = await functionMeta(db);
   const changed = Object.keys(before).filter(k => after[k] && after[k].d !== before[k].d).sort();
   assert.deepEqual(changed, [...REPLACED].sort());
@@ -207,6 +253,157 @@ async function cr01(tx, report, f, s) {
   assert.ok(own.publications.every(p => p.acknowledgedAt));
   assert.notEqual(doneA.receipt.feedbackId, doneB.receipt.feedbackId);
   check(report, 'kvittens på A och på B: en ack-rad per version oavsett session, och samma commandId ger replayed');
+}
+
+/** tjanst_self_mandates är oföränderlig: update, delete och truncate nekas med 42501. */
+async function guards(tx, report, f, s) {
+  await deny(tx, report, 'tjanst_self_mandates: update ger 42501', t => t`update public.tjanst_self_mandates set linked_at=clock_timestamp() where access_assignment_id=${s.mandateA}`, ['42501']);
+  await deny(tx, report, 'tjanst_self_mandates: delete ger 42501', t => t`delete from public.tjanst_self_mandates where access_assignment_id=${s.mandateA}`, ['42501']);
+  await deny(tx, report, 'tjanst_self_mandates: truncate ger 42501', t => t`truncate public.tjanst_self_mandates`, ['42501']);
+}
+
+/** CR-01, nytt flöde för P2: två rektorer, återkallelse, skola utan mandat, tredje konto och elevspärren. */
+async function selfFlow(tx, report, f, s) {
+  const { A, B, C } = f.schools;
+  const row = (classId, personId) => [{ classId, rowKey: 'matematik', personId, ht: 600, vt: 600 }];
+  const vA2 = await publishRows(tx, f, 'principalA', A, row(f.classes.group, s.p2));
+  const vB2 = await publishRows(tx, f, 'principalB', B, row(s.nb.classId, s.p2));
+  const vC = await publishRows(tx, f, 'principalAB', C, row(s.nc.classId, s.p2));
+  const a2 = await grantSelf(tx, f, { teacher: 'teacherSelf2', by: 'principalA', unitIds: [A], staffPersonId: s.p2 });
+  const b2 = await grantSelf(tx, f, { teacher: 'teacherSelf2', by: 'principalB', unitIds: [B], staffPersonId: s.p2 });
+  const bindings = await tx`select id,membership_id,ended_at from public.staff_person_bindings where staff_person_id=${s.p2}`;
+  assert.equal(bindings.length, 1); assert.equal(bindings[0].ended_at, null); assert.equal(bindings[0].membership_id, f.membership('teacherSelf2'));
+  const binding = bindings[0].id;
+  assert.deepEqual((await tx`select access_assignment_id from public.tjanst_self_mandates where binding_id=${binding}`).map(x => x.access_assignment_id).sort(), [a2, b2].sort());
+  const bound = await tx`select details from public.security_events where action='tjanst_person_bound' and object_type='staff_person_binding' and object_id=${binding} order by id`;
+  assert.deepEqual(bound.map(e => e.details), [a2, b2].map(assignmentId => ({ personId: s.p2, membershipId: f.membership('teacherSelf2'), assignmentId })));
+  assert.equal((await tx`select count(*)::int n from public.security_events where action='tjanst_binding_ended' and details->>'personId'=${s.p2}`)[0].n, 0);
+  await f.actor(tx, 'teacherSelf2');
+  const both = await self(tx);
+  assert.deepEqual(units(both), [A, B].sort()); assert.deepEqual(both.publications.map(p => p.versionId).sort(), [vA2.id, vB2.id].sort());
+  check(report, 'nytt flöde: rektor A och rektor B ger P2:s konto Egen tjänst; en aktiv bindning, två kopplingsrader, två tjanst_person_bound och ingen tjanst_binding_ended; P2 ser A och B',
+    { bindings: 1, links: 2, bound: bound.length });
+  assert.ok(!units(both).includes(C));
+  await deny(tx, report, 'skola C har en publicerad rad för P2 men inget mandat: den syns inte och kvittens ger 42501', t => selfSend(t, { commandId: randomUUID(), versionId: vC.id, action: 'ack' }), ['42501']);
+
+  // Bindningens första mandat (A) återkallat, mandat B gäller: ett tredje konto nekas ändå (alla kopplade mandat räknas).
+  await tx.savepoint(async t => {
+    await revoke(t, f, 'principalA', a2);
+    await deny(t, report, 'tredje konto nekas med 42501 när bindningens första mandat är återkallat men ett annat kopplat mandat gäller',
+      u => grantSelf(u, f, { teacher: 'teacherSelf3', by: 'principalA', unitIds: [A], staffPersonId: s.p2 }), ['42501']);
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+
+  await revoke(tx, f, 'principalB', b2);
+  await sessionOn(tx, f, 'teacherSelf2', a2);
+  const onlyA = await self(tx);
+  assert.deepEqual(units(onlyA), [A]);
+  await deny(tx, report, 'rektor B återkallar mandat B: P2 ser bara A, och kvittens på B:s version ger 42501', t => selfSend(t, { commandId: randomUUID(), versionId: vB2.id, action: 'ack' }), ['42501']);
+  await deny(tx, report, 'tredje konto för P2 nekas med 42501 så länge ett kopplat mandat gäller',
+    t => grantSelf(t, f, { teacher: 'teacherSelf3', by: 'principalA', unitIds: [A], staffPersonId: s.p2 }), ['42501']);
+  await revoke(tx, f, 'principalA', a2);
+  await f.assign(tx, 'teacherSelf2', 'principalA', { function: 'larare', scopeKind: 'group', unitIds: [A], groups: [{ id: f.classes.group, kind: 'teaching' }] });
+  await f.actor(tx, 'teacherSelf2');
+  await deny(tx, report, 'båda mandaten återkallade: egen läsning nekas med 42501, också via kontots gruppmandat', t => selfRead(t), ['42501']);
+
+  const a3 = await grantSelf(tx, f, { teacher: 'teacherSelf3', by: 'principalA', unitIds: [A], staffPersonId: s.p2 });
+  const after = await tx`select id,membership_id,ended_at from public.staff_person_bindings where staff_person_id=${s.p2} order by bound_at,id`;
+  assert.equal(after.length, 2); assert.ok(after.find(b => b.id === binding).ended_at);
+  const fresh = after.find(b => b.id !== binding);
+  assert.equal(fresh.ended_at, null); assert.equal(fresh.membership_id, f.membership('teacherSelf3'));
+  assert.equal((await tx`select count(*)::int n from public.security_events where action='tjanst_binding_ended' and object_id=${binding}`)[0].n, 1);
+  assert.deepEqual((await tx`select access_assignment_id from public.tjanst_self_mandates where binding_id=${fresh.id}`).map(x => x.access_assignment_id), [a3]);
+  await f.actor(tx, 'teacherSelf3');
+  assert.deepEqual(units(await self(tx)), [A]);
+  check(report, 'när alla kopplade mandat är återkallade avslutas bindningen med tjanst_binding_ended, och det tredje kontots bindning skapas');
+
+  // Elevspärren och övriga familjer för self-sessionen.
+  for (const [name, call] of Object.entries(PUPIL_CALLS)) await deny(tx, report, `self nekas i ${name} (42501)`, t => call(t, f), ['42501']);
+  await deny(tx, report, 'self når inte personalläsningen (42501)', t => personalRead(t, { unitId: A }), ['42501']);
+  await deny(tx, report, 'self når inte planläsningen (42501)', t => planRead(t, { unitId: A, schoolYear: Y }), ['42501']);
+}
+
+/** WR-02 och regressionsprov av blockerarna. */
+async function jointRules(tx, report, f, s) {
+  const { A, B, C } = f.schools, { j1a, j2a, j2b, g1, g2 } = s.draftA;
+  await f.actor(tx, 'principalA');
+  let d = await read(tx, A);
+  const base = d.rows.find(x => x.id === j2a);
+  const payload = extra => ({ rowId: j2a, sourceKind: 'class_timplan', sourceKey: base.sourceKey, personId: base.personId, teacherHt: base.teacherHt, teacherVt: base.teacherVt, comment: base.comment, ...extra });
+  const state = async () => ({
+    row: (await tx`select to_jsonb(r) v from public.tjanst_rows r where id=${j2a}`)[0].v,
+    members: (await tx`select row_id from public.tjanst_joint_members where group_id=${g2} order by row_id`).map(x => x.row_id),
+    time: await tx`select staff_person_id,ht_minutes,vt_minutes from public.tjanst_joint_teacher_time where group_id=${g2} order by staff_person_id`,
+    revision: (await tx`select revision from public.tjanst_distributions where unit_id=${A} and school_year=${Y}`)[0].revision });
+  const before = await state();
+  await deny(tx, report, 'WR-02: save_row på samläst rad med ändrad personId ger 22023 tjanst_joint_already',
+    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, payload({ personId: s.p2 }))), ['22023'], 'tjanst_joint_already');
+  await deny(tx, report, 'WR-02: save_row på samläst rad med ändrad sourceKey ger 22023 tjanst_joint_already',
+    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, payload({ sourceKey: needOf(d, f.classes.other, 'matematik').sourceKey }))), ['22023'], 'tjanst_joint_already');
+  await deny(tx, report, 'WR-02: save_row på samläst rad med personId null ger 22023 tjanst_joint_already',
+    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, payload({ personId: null }))), ['22023'], 'tjanst_joint_already');
+  assert.deepEqual(await state(), before);
+  check(report, 'WR-02: nekad save_row lämnar raden, gruppen och revisionen oförändrade');
+  let r = await send(tx, await planCommand(A, Y, 'save_row', d.revision, payload({ teacherHt: 700, teacherVt: 500, comment: 'Syntetisk ändring' })));
+  const saved = r.detail.rows.find(x => x.id === j2a);
+  assert.deepEqual([saved.teacherHt, saved.teacherVt, saved.comment, saved.jointGroupId, saved.personId], [700, 500, 'Syntetisk ändring', g2, base.personId]);
+  check(report, 'WR-02: ändrad teacherHt, teacherVt och comment på samläst rad sparas som förut');
+
+  d = r.detail;
+  assert.ok(codes(d).includes('joint_invalid')); assert.equal(d.blockers.find(b => b.code === 'joint_invalid').message, JOINT_INVALID);
+  assert.equal(d.capabilities.canPublish, false); assert.ok(!d.actions.includes('publish'));
+  await deny(tx, report, 'ogiltig samläsning från före rättelsen ger joint_invalid, canPublish false och publish 40001 tjanst_publish_blocked',
+    async t => send(t, await planCommand(A, Y, 'publish', d.revision, {}, { expectedContentHash: d.version.contentHash })), ['40001'], 'tjanst_publish_blocked');
+  const dissolve = async (t, rev, jointId) => send(t, await planCommand(A, Y, 'dissolve_joint', rev, { jointId }));
+  for (const [kept, gone] of [[g1, g2], [g2, g1]]) await tx.savepoint(async t => {
+    const x = await dissolve(t, d.revision, gone);
+    assert.ok(codes(x.detail).includes('joint_invalid'), 'kvar: ' + kept);
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  check(report, 'joint_invalid ges för varje regel för sig: grupp med rader i en enda klass, respektive lärartid för en lärare utan rad i gruppen');
+  await tx.savepoint(async t => {
+    let x = await dissolve(t, d.revision, g1); x = await dissolve(t, x.detail.revision, g2);
+    assert.ok(!codes(x.detail).includes('joint_invalid')); assert.equal(x.detail.capabilities.canPublish, true);
+    x = await send(t, await planCommand(A, Y, 'publish', x.detail.revision, {}, { expectedContentHash: x.detail.version.contentHash }));
+    assert.equal(x.detail.version.status, 'published');
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  check(report, 'efter Lös upp samläsningen (dissolve_joint) försvinner joint_invalid och publiceringen går igenom');
+  r = await dissolve(tx, d.revision, g1);
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: g2, name: 'Engelska 7B+IM', rowIds: [j2a, j2b], teachers: [{ personId: s.p1, ht: 600, vt: 600 }] }));
+  assert.deepEqual(codes(r.detail), []); assert.equal(r.detail.capabilities.canPublish, true);
+  // Regression: en rad utan samläsning kan byta lärare.
+  const plain = r.detail.rows.find(x => x.jointGroupId === null && x.personId === s.p1 && x.sourceKey === needOf(r.detail, f.classes.group, 'engelska').sourceKey);
+  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: plain.id, sourceKind: 'class_timplan', sourceKey: plain.sourceKey, personId: s.p2, teacherHt: plain.teacherHt, teacherVt: plain.teacherVt, comment: '' }));
+  assert.equal(r.detail.rows.find(x => x.id === plain.id).personId, s.p2);
+  check(report, 'regression: save_row på en rad utan samläsning kan byta lärare');
+  r = await send(tx, await planCommand(A, Y, 'publish', r.detail.revision, {}, { expectedContentHash: r.detail.version.contentHash }));
+  assert.equal(r.detail.version.status, 'published'); void j1a;
+  check(report, 'efter rättad save_joint försvinner joint_invalid och publiceringen går igenom');
+
+  // Regression: empty_draft (C), stale_rows och person_not_at_school (B) uppstår som förut.
+  await f.actor(tx, 'principalAB');
+  const empty = await send(tx, await planCommand(C, Y, 'create_draft', (await read(tx, C)).revision, { basedOnVersionId: null }));
+  assert.deepEqual(codes(empty.detail), ['empty_draft']);
+  await f.actor(tx, 'principalB');
+  let b = await read(tx, B);
+  b = (await send(tx, await planCommand(B, Y, 'create_draft', b.revision, { basedOnVersionId: b.version.id }))).detail;
+  assert.deepEqual(codes(b), []);
+  await tx.savepoint(async t => {
+    await t`set local session_replication_role=replica`;
+    await t`update public.class_timplans set revision=revision+1 where class_id=${s.nb.classId} and start_year=${Y}`;
+    await t`set local session_replication_role=origin`;
+    assert.deepEqual(codes(await read(t, B)), ['stale_rows']);
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  await tx.savepoint(async t => {
+    await t`set local session_replication_role=replica`;
+    await t`delete from public.staff_school_duties where staff_person_id=${s.p1} and unit_id=${B}`;
+    await t`set local session_replication_role=origin`;
+    assert.deepEqual(codes(await read(t, B)), ['person_not_at_school']);
+    throw rollback;
+  }).catch(e => { if (e !== rollback) throw e; });
+  check(report, 'regression: empty_draft, stale_rows och person_not_at_school uppstår som förut');
 }
 
 export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
@@ -265,13 +462,16 @@ export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
     const installedRows = await allPublicHashes(db);
     for (const [table, value] of Object.entries(baseline.rows)) assert.deepEqual(installedRows[table], value, table);
     check(report, 'installation i den ägda databasen lämnar alla befintliga rader orörda (person-, klass- och rad-ID oförändrade)', { tables: Object.keys(baseline.rows).length });
-    await installedChecks(db, report, f, s, baseline.functions);
+    await installedChecks(db, report, f, s);
     const installed = await allPublicHashes(db);
-    for (const step of [cr01]) {
+    for (const step of [cr01, guards, selfFlow, jointRules]) {
+      const roles = { ...f.roles };
       try { await db.begin(async tx => { await tx`set local lock_timeout='10s'`; await tx`set local statement_timeout='120s'`; await step(tx, report, f, s); throw rollback; }); }
       catch (e) { if (e !== rollback) throw e; }
+      finally { Object.assign(f.roles, roles); }
     }
     assert.deepEqual(await allPublicHashes(db), installed);
+    await functionChecks(db, report, baseline.functions);
     check(report, 'alla fall rullas tillbaka utan kvarvarande rader');
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, where: e.where, stack: e.stack }; }
   finally {
