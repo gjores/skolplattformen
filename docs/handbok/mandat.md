@@ -84,9 +84,11 @@ Räckvidden avgör vilka objekt mandatet når.
 3. Markera skolan och välj **Person i personalen**. Listan visar personer i skolans personal. Kopplingen mellan kontot och personen sparas i säkerhetsloggen.
 4. Välj *Tilldela uppdraget*.
 
+Uppdraget gäller en skola. Har läraren tjänst på flera skolor ger varje skolas rektor sitt eget uppdrag för sin skola. Läraren behåller då samma koppling till personen, och ett nytt uppdrag på en skola tar inte bort uppdraget på en annan. Återkallar en rektor sitt uppdrag ser läraren inte längre den skolans tjänst, men tjänsten på de andra skolorna finns kvar.
+
 Med Egen tjänst öppnas Min tjänst direkt efter inloggningen, och menyn har bara Min tjänst. Servern nekar elevregistret, planeringen och tjänstefördelningen för uppdraget, även vid direktanrop. Har läraren även ett gruppmandat väljer läraren uppdrag i kontextbytet. Med gruppuppdraget gäller elevregistret som förut.
 
-Kortet i Mandat visar omfattningen *Egen tjänst · …*. Provstatus: att läraren landar i Min tjänst och nekas elevregistret och tjänstefördelningen är provat i oktober 2026 mot ett eget skyddat bygge med riktig inloggning och syntetiska lärare. Tilldelningsdialogen för Egen tjänst är provad med simulerade serversvar.
+Kortet i Mandat visar omfattningen *Egen tjänst · …*. Provstatus: att läraren landar i Min tjänst och nekas elevregistret och tjänstefördelningen är provat i oktober 2026 mot ett eget skyddat bygge med riktig inloggning och syntetiska lärare. Tilldelningsdialogen för Egen tjänst är provad på dator mot riktig server, där rektor B ger Egen tjänst för sin skola till en lärare som redan har Egen tjänst på skola A. Dialogen är inte provad på telefon.
 
 ## Tillgång till elevuppgifter
 

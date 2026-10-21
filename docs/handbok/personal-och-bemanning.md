@@ -46,7 +46,7 @@ Alla ändringar av personaluppgifter kräver en färsk engångskod. Saknas den v
 
 Välj **Bemanning** under PLANERING och välj läsår. Tabellen visar per skola **Status** (publicerad version eller *Ingen publicerad version*), **Undervisning**, **Specialuppdrag**, **Vakant tid**, **Ej fördelad tid** och **Koppling saknas**. Ej fördelad tid räknas bara för klasser med timplan. Klasser utan koppling räknas i kolumnen Koppling saknas, eftersom deras behov är okänt. **Visa tid** väljer hela läsåret, HT eller VT.
 
-**Visa fördelningen** öppnar skolans fördelning skrivskyddad, utan åtgärder och utan beslutsknapp. Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning, och ett försök att publicera som huvudman nekas.
+**Visa fördelningen** öppnar den publicerade version som raden visar, skrivskyddad, utan åtgärder och utan beslutsknapp. Rektors utkast visas inte, inte heller under **Visa version**. En skola utan publicerad version har ingen knapp. Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning, och ett försök att publicera som huvudman nekas.
 
 ## På telefon
 

@@ -71,7 +71,11 @@ En samläsning är en undervisningsgrupp med elever från flera klasser.
 3. Välj **Koppla till samläsning…**, kontrollera namnet och ange lärartiden för gruppen.
 4. Välj **Spara samläsningen**.
 
-Lärartiden räknas en gång för läraren, och båda klasserna visas som täckta. En rad som redan ingår i en samläsning måste lösas upp eller ändras först.
+Lärartiden räknas en gång för läraren, och båda klasserna visas som täckta.
+
+En rad i en samläsning behåller lärare och kurs. Vill du ändra något av dem, ändra eller lös upp samläsningen först. Tid och kommentar på raden ändrar du som vanligt.
+
+En samläsning som inte uppfyller reglerna hindrar **Fastställ och publicera**. Panelen visar punkten, och knappen är inaktiv. Reglerna är att samläsningen har rader i minst två klasser och att lärartid bara gäller lärare som har en rad i gruppen. När du har ändrat eller löst upp samläsningen kan du publicera.
 
 ## Fastställ och publicera
 
