@@ -184,7 +184,8 @@ begin
  foreach seg in array string_to_array(regexp_replace(key,'^(alternative:)?[A-Za-z]+:',''),'+') loop
   parts:=string_to_array(seg,':');nm:=null;
   if array_length(parts,1)=3 then
-   select i.value->>'name' into nm from jsonb_array_elements(coalesce(cat->'subjects','[]'::jsonb)) sub cross join lateral jsonb_array_elements(coalesce(sub.value->'items','[]'::jsonb)) i
+   -- Ämne och nivå som i appens övriga Gy25-vyer ("Svenska som andraspråk – Nivå 1"); bara nivånamnet räcker inte (05.1-09).
+   select (sub.value->>'name')||' – '||(i.value->>'name') into nm from jsonb_array_elements(coalesce(cat->'subjects','[]'::jsonb)) sub cross join lateral jsonb_array_elements(coalesce(sub.value->'items','[]'::jsonb)) i
    where sub.value->>'code'=parts[1] and sub.value->>'version'=parts[2] and i.value->>'code'=parts[3] limit 1;
   end if;
   names:=names||coalesce(nm,seg);

@@ -16,12 +16,16 @@ const hash=s=>createHash('sha256').update(s).digest('hex');
 const docker=args=>execFileSync('docker',args,{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
 async function available(port){const s=netServer();await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(port,'127.0.0.1',resolve);});await new Promise(resolve=>s.close(resolve));}
 async function ready(url,child){for(let n=0;n<120;n++){if(child&&child.exitCode!==null)throw Error('Owned runtime exited before readiness');try{const r=await fetch(url,{signal:AbortSignal.timeout(1000)});if(r.ok)return await r.json();}catch{}await new Promise(resolve=>setTimeout(resolve,250));}throw Error('Owned runtime readiness timed out');}
-export async function createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir}){
+// Worker port defaults to the APL/named-timplan run (3014); tjänstefördelningen (05.1-09) uses its own Worker on 3015.
+// The isolated GoTrue stays on 56331/56332: the product only accepts that auth endpoint for a named_timplan_* schema copy
+// (isLocalMandateTarget), so the two runs share it and are serialized by the fixture lock.
+export async function createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir,port=3014,prefix='named-timplan'}){
+ assert.ok([3014,3015].includes(port),'Only the two owned Worker ports are allowed');const apiPort=56331,authPort=56332;
  assert.ok(path.resolve(evidenceDir).startsWith('/private/tmp/')&&(statSync(evidenceDir).mode&0o077)===0);
  assert.ok(path.resolve(buildRoot).startsWith(path.join(root,'work/pilot/targets/protected/runtime/')));
  const mark=JSON.parse(readFileSync(path.join(buildRoot,'build-mode.json'),'utf8'));assert.equal(mark.mode,'protected');
  const target=await assertTarget('protected',{requireIdp:true});
- const runId=randomUUID(),name='named-timplan-auth-'+runId,baseURL='http://127.0.0.1:3014',apiURL='http://127.0.0.1:56331';
+ const runId=randomUUID(),name=prefix+'-auth-'+runId,baseURL='http://127.0.0.1:'+port,apiURL='http://127.0.0.1:'+apiPort;
  const envPath=path.join(evidenceDir,'auth.env'),varsPath=path.join(buildRoot,'server/.dev.vars'),journalPath=path.join(evidenceDir,'runtime.json');
  assert.equal(existsSync(varsPath),false,'Candidate must not inherit live private vars');
  const journal={runId,name,baseURL,apiURL,buildRoot,database:snapshot.provenance.database,status:'initializing',cleanup:'pending',artifact:artifactManifest(buildRoot)};
@@ -37,7 +41,7 @@ export async function createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir}
   closed=true;journal.cleanup='complete';journal.stoppedAt=new Date().toISOString();save();return journal;
  };
  try{
-  await available(3014);await available(56331);await available(56332);
+  await available(port);await available(apiPort);await available(authPort);
   const source=JSON.parse(docker(['inspect','supabase_auth_skolplattform-pilot-protected']))[0];
   assert.equal(source.Config.Image,'public.ecr.aws/supabase/gotrue:v2.187.0');
   const env=Object.fromEntries(source.Config.Env.map(s=>[s.slice(0,s.indexOf('=')),s.slice(s.indexOf('=')+1)]));
@@ -61,15 +65,15 @@ export async function createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir}
    const vars={APP_MODE:'protected',OIDC_ISSUER:target.idp.issuer,OIDC_CLIENT_ID:target.idp.clientId,OIDC_CLIENT_SECRET:target.idp.clientSecret,OIDC_REDIRECT_URI:baseURL+'/api/auth/callback',OIDC_POST_LOGOUT_REDIRECT_URI:baseURL+'/',SUPABASE_URL:apiURL,SUPABASE_ANON_KEY:target.anonKey,DATABASE_URL:local.workerDbUrl,SESSION_SECRET:randomBytes(48).toString('base64url'),MFA_ACR_VALUES:target.mfa.acrValues,MFA_MAX_AGE_SECONDS:target.mfa.maxAgeSeconds,SESSION_IDLE_SECONDS:900,SESSION_ABSOLUTE_SECONDS:28800};
    writeFileSync(varsPath,Object.entries(vars).map(([k,v])=>k+'='+v).join('\n')+'\n',{mode:0o600,flag:'wx'});journal.privateVarsSha256=hash(readFileSync(varsPath));
   });
-  docker(['run','-d','--name',name,'--label','skolplattform.named-run='+runId,'--network','supabase_network_skolplattform-pilot-protected','--publish','127.0.0.1:56332:9999','--env-file',envPath,source.Image]);container=true;save();
-  await ready('http://127.0.0.1:56332/health');
+  docker(['run','-d','--name',name,'--label','skolplattform.named-run='+runId,'--network','supabase_network_skolplattform-pilot-protected','--publish','127.0.0.1:'+authPort+':9999','--env-file',envPath,source.Image]);container=true;save();
+  await ready('http://127.0.0.1:'+authPort+'/health');
   proxy=createServer((req,res)=>{
    if(req.method!=='POST'||req.url!=='/auth/v1/token?grant_type=id_token'){res.writeHead(404);res.end();return;}
-   const upstream=httpRequest({hostname:'127.0.0.1',port:56332,path:'/token?grant_type=id_token',method:'POST',headers:{...req.headers,host:'127.0.0.1:56332'}},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res);});
+   const upstream=httpRequest({hostname:'127.0.0.1',port:authPort,path:'/token?grant_type=id_token',method:'POST',headers:{...req.headers,host:'127.0.0.1:'+authPort}},r=>{res.writeHead(r.statusCode,r.headers);r.pipe(res);});
    upstream.on('error',()=>{res.writeHead(502);res.end();});req.pipe(upstream);
-  });await new Promise((resolve,reject)=>{proxy.once('error',reject);proxy.listen(56331,'127.0.0.1',resolve);});
+  });await new Promise((resolve,reject)=>{proxy.once('error',reject);proxy.listen(apiPort,'127.0.0.1',resolve);});
   logfd=openSync(path.join(evidenceDir,'worker.log'),'wx',0o600);
-  worker=spawn(process.execPath,['scripts/preview-worker.mjs',path.join(buildRoot,'server/wrangler.json'),'3014'],{cwd:path.join(root,'web'),stdio:['ignore',logfd,logfd],env:{...process.env,WRANGLER_SEND_METRICS:'false'}});
+  worker=spawn(process.execPath,['scripts/preview-worker.mjs',path.join(buildRoot,'server/wrangler.json'),String(port)],{cwd:path.join(root,'web'),stdio:['ignore',logfd,logfd],env:{...process.env,WRANGLER_SEND_METRICS:'false'}});
   const health=await ready(baseURL+'/api/health/db',worker);assert.equal(health.role,'skolplattform_worker');assert.equal(health.runtime,'workerd');
   journal.process=classCohortProcessProof(baseURL,buildRoot);journal.status='ready';save();
   return{baseURL,buildRoot,proof:journal,cleanup};

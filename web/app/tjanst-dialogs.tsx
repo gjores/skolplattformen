@@ -35,11 +35,13 @@ export function Field({ id, label, error, help, children }: { id: string; label:
 export const described = (id: string, error?: string, help?: string) => ({ id, ...(error ? { 'aria-invalid': true as const } : {}),
   ...(error || help ? { 'aria-describedby': [help ? `${id}-help` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') } : {}) });
 
+/** Återkomst efter engångskoden: samma vy (vy, tjvy och termin i adressen). Skola och läsår återställs av planeringsvalet. */
+export const hereForStepUp = () => typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search;
 export function Problems({ failure, summary, checking }: { failure: TjanstFailure | null; summary: boolean; checking: boolean }) {
   return <>
     {checking && <output className="admin-notice">Svaret uteblev. Vi kontrollerar om ändringen sparades.</output>}
     {summary && <p role="alert" className="validation-warning">Formuläret innehåller fel. Rätta de markerade fälten.</p>}
-    {failure?.mfa && <MfaStepUpNotice message={failure.mfa} detail="Dina uppgifter finns kvar i formuläret."/>}
+    {failure?.mfa && <MfaStepUpNotice message={failure.mfa} detail="Efter verifieringen kommer du tillbaka till vyn och gör om ändringen." returnTo={hereForStepUp()}/>}
     {failure && !failure.mfa && <div role="alert" className="validation-warning"><p>{failure.error}</p>{failure.correlationId && <p>Referens: {failure.correlationId}</p>}
       {failure.refresh && <Button type="button" variant="outline" onClick={failure.refresh}>Hämta aktuellt läge</Button>}</div>}
   </>;

@@ -13,9 +13,10 @@ import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJou
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
 import TjanstMatrix, { EMPTY_FILTER, filterGroups, jointOf, needEntries, sortTeachers, subjectOf, type TjanstCellTarget, type TjanstFilter } from './tjanst-matrix';
-import { TjanstAddTeacherDialog, TjanstConfirmDialog, TjanstJointDialog, TjanstNewTeacherDialog, TjanstRowDialog, TjanstSpecialDialog,
+import { hereForStepUp, TjanstAddTeacherDialog, TjanstConfirmDialog, TjanstJointDialog, TjanstNewTeacherDialog, TjanstRowDialog, TjanstSpecialDialog,
   type TjanstFailure, type TjanstOutcome } from './tjanst-dialogs';
 import TjanstPublishPanel, { ackSummary, dateText, STATUS_LABEL, type TjanstFeedback } from './tjanst-publish-panel';
+import MfaStepUpNotice from './mfa-step-up';
 import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 import { TjanstClassView, TjanstCourseView, TjanstSpecialView, TjanstTeacherView } from './tjanst-views';
 import './tjanst.css';
@@ -263,6 +264,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const feedback = feedbackProp ?? data?.feedback;
   const editable = !readOnly && !!data && data.capabilities.canEdit && data.version?.status === 'draft' && !versionId && !phone && !!scope;
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
+  // Utan version svarar servern canEdit false och bara create_draft i actions (huvudmannen får inga actions). Det första
+  // utkastet skapas när rektor eller skoladministratör lägger till den första läraren (05.1-09, faktiskt prov: utan detta
+  // gick det inte att börja en fördelning).
+  const canStart = !readOnly && !!data && data.version === null && !versionId && !phone && !!scope && data.actions.includes('create_draft');
   const shownView: TjanstView = phone && view === 'matris' ? 'larare' : view;
   const teachers = useMemo(() => data ? sortTeachers(data.teachers) : [], [data]);
   const groups = useMemo(() => data ? needEntries(data) : [], [data]);
@@ -279,6 +284,15 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const empty = !!data && data.rows.length === 0 && data.teachers.length === 0 && data.specials.length === 0;
 
   function open(next: Dialog, from: HTMLElement | null) { origin.current = from; setPageError(null); setDialog(next); }
+  /** Kommandon utan dialog (Ändra i ny version, första utkastet) visar sitt fel i vyns felregion, även MFA. */
+  async function pageCommand(run: () => Promise<TjanstOutcome>): Promise<boolean> {
+    const result = await run();
+    if (!result.ok && active.current) setPageError(result);
+    return result.ok;
+  }
+  async function startDistribution(from: HTMLElement) {
+    if (await pageCommand(() => plan('create_draft', { basedOnVersionId: null }, () => 'Utkastet version 1 är skapat.'))) open({ kind: 'addTeacher' }, from);
+  }
   // Fokus återgår till cellen eller knappen som öppnade dialogen, efter omläsningen (innehållet är inert under läsning).
   function close(focus?: HTMLElement | null) { pendingFocus.current = focus ?? origin.current ?? viewHeading.current; setDialog(null); requestAnimationFrame(applyFocus); }
   const rowName = (row: TjanstRow) => {
@@ -343,10 +357,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
     </div>}
     {data && !readOnly && !editable && !phone && !viewingOld && data.version?.status === 'published' && data.actions.includes('create_draft') && <div className="mandate-actions tjanst-actions">
-      <Button disabled={busy} onClick={() => void plan('create_draft', { basedOnVersionId: data.version!.id }, d => `Utkastet version ${d.version?.versionNo} är skapat. Lärarna ser version ${(d.version?.versionNo ?? 1) - 1} tills du publicerar.`)}>Ändra i ny version</Button></div>}
+      <Button disabled={busy} onClick={() => void pageCommand(() => plan('create_draft', { basedOnVersionId: data.version!.id }, d => `Utkastet version ${d.version?.versionNo} är skapat. Lärarna ser version ${(d.version?.versionNo ?? 1) - 1} tills du publicerar.`))}>Ändra i ny version</Button></div>}
     <div className="tjanst-messages">
       {notice && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
-      {pageError && !dialog && <div role="alert" className="validation-warning"><p>{pageError.error}</p></div>}
+      {pageError && !dialog && (pageError.mfa ? <MfaStepUpNotice message={pageError.mfa} returnTo={hereForStepUp()}/> : <div role="alert" className="validation-warning"><p>{pageError.error}</p>
+        {pageError.correlationId && <p>Referens: {pageError.correlationId}</p>}{pageError.refresh && <Button variant="outline" onClick={() => { setPageError(null); pageError.refresh?.(); }}>Hämta aktuellt läge</Button>}</div>)}
       {phone && dialog && <output className="admin-notice"><span>Redigeringen är stängd på den här skärmstorleken. Dina uppgifter finns kvar när du öppnar vyn på dator igen.</span></output>}
       {pendingCheck && !checking && scope && <div className="mandate-actions"><Button variant="outline" onClick={() => { setPageError(null); void recover(); }}>Kontrollera sparstatus</Button></div>}
       {readError && <div role="alert" className="validation-warning"><p>{readError.text}</p>{readError.correlationId && <p>Referens: {readError.correlationId}</p>}
@@ -358,7 +373,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {!linked ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först.</p>
         {onOpenClassLinks && <Button variant="outline" onClick={onOpenClassLinks}>Öppna klasskopplingar</Button>}</div>
       : empty ? <div className="admin-empty tjanst-state"><h2>Ingen tjänstefördelning för läsåret {yearLabel(schoolYear)} ännu</h2><p>Lägg till lärare i fördelningen och fördela kurserna i matrisen. Behovet hämtas från klassernas timplaner.</p>
-        {can('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}>Lägg till lärare i fördelningen</Button>}</div>
+        {can('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}>Lägg till lärare i fördelningen</Button>}
+        {canStart && <Button variant="outline" disabled={busy} onClick={e => void startDistribution(e.currentTarget)}>Lägg till lärare i fördelningen</Button>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
           onCell={(target, from) => open({ kind: 'row', target, chooseTeacher: target.personId === null && target.rowId === null }, from)}

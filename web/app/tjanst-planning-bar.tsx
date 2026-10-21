@@ -17,12 +17,24 @@ export type TjanstPlanningSelection = { unitId: string | null; schoolYear: numbe
 type Props = { contextKey: string; initial: Partial<TjanstPlanningSelection> | null; schoolChoice: boolean;
   onChange: (selection: TjanstPlanningSelection) => void; onSessionLost: () => void; children: (selection: TjanstPlanningSelection) => ReactNode };
 const WAIT = 'Invänta sparandet eller läs sparstatus innan du byter planeringsval.';
+// Valet överlever verifieringen med engångskod (en hel sidladdning) i den här fliken. Bara skolans ID och läsåret
+// sparas, nycklat på epok, kund och uppdrag; inga personuppgifter (05.1-09, faktiskt prov).
+const STORE = 'tjanst-planering:';
+function remembered(contextKey: string): Partial<TjanstPlanningSelection> | null {
+  try {
+    const value = JSON.parse(window.sessionStorage.getItem(STORE + contextKey) ?? 'null') as Partial<TjanstPlanningSelection> | null;
+    return value && (value.unitId === null || typeof value.unitId === 'string') && Number.isInteger(value.schoolYear) ? value : null;
+  } catch { return null; }
+}
+function remember(contextKey: string, selection: TjanstPlanningSelection) {
+  try { window.sessionStorage.setItem(STORE + contextKey, JSON.stringify({ unitId: selection.unitId, schoolYear: selection.schoolYear })); } catch { /* Valet gäller ändå i vyn. */ }
+}
 
 export default function TjanstPlanningArea(props: Props) {
   return <Area key={props.contextKey} {...props}/>;
 }
 
-function Area({ initial, schoolChoice, onChange, onSessionLost, children }: Props) {
+function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, children }: Props) {
   const [setup, setSetup] = useState<PlanningSetup | null>(null), [selection, setSelection] = useState<TjanstPlanningSelection | null>(null);
   const [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [retry, setRetry] = useState(0);
   const navigationBlocked = useHasUnsaved('navigation-block:'), hasUnsaved = useHasUnsaved();
@@ -32,7 +44,7 @@ function Area({ initial, schoolChoice, onChange, onSessionLost, children }: Prop
     const c = new AbortController();
     void api.get('/api/planering/urval', c.signal).then(value => {
       if (c.signal.aborted) return;
-      const loaded = parsePlanningSetup(value), wanted = latest.current.initial;
+      const loaded = parsePlanningSetup(value), wanted = latest.current.initial ?? remembered(contextKey);
       const year = typeof wanted?.schoolYear === 'number' && wanted.schoolYear >= loaded.minimumYear && wanted.schoolYear <= loaded.maximumYear ? wanted.schoolYear : loaded.currentYear;
       const unitId = schoolChoice && typeof wanted?.unitId === 'string' && loaded.units.some(u => u.unitId === wanted.unitId) ? wanted.unitId
         : schoolChoice && loaded.units.length === 1 ? loaded.units[0].unitId : null;
@@ -43,7 +55,8 @@ function Area({ initial, schoolChoice, onChange, onSessionLost, children }: Prop
       setError('Planeringsvalen kunde inte läsas. Försök igen.');
     });
     return () => c.abort();
-  }, [schoolChoice, retry]);
+  }, [schoolChoice, retry, contextKey]);
+  useEffect(() => { if (selection && contextKey) remember(contextKey, selection); }, [selection, contextKey]);
   function change(patch: Partial<TjanstPlanningSelection>) {
     if (!selection) return;
     if (navigationBlocked) { setNotice(WAIT); return; }

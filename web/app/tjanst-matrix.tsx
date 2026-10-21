@@ -19,7 +19,8 @@ export const EMPTY_FILTER: TjanstFilter = { classId: '', subject: '', personId: 
 const familyName = (t: TjanstTeacher) => t.displayName.split(' ').at(-1) ?? t.displayName;
 export const sortTeachers = (teachers: TjanstTeacher[]) => [...teachers].sort((a, b) => familyName(a).localeCompare(familyName(b), 'sv') || a.displayName.localeCompare(b.displayName, 'sv'));
 /** Ämnet härleds ur kursnamnet före nivåsiffran ("Matematik 1c" → "Matematik"). Kontraktet har inget eget ämnesfält (Claudes val). */
-export const subjectOf = (label: string) => /^(.*?)(?:\s+\d.*)?$/u.exec(label)?.[1] || label;
+/** Ämnet i en behovsrad: Gy25 "Ämne – Nivå 1" (05.1-09), annars kursnamnet utan nivåsiffra ("Matematik 1c" → "Matematik"). */
+export const subjectOf = (label: string) => label.includes(' – ') ? label.slice(0, label.indexOf(' – ')) : /^(.*?)(?:\s+\d.*)?$/u.exec(label)?.[1] || label;
 export const jointOf = (row: TjanstRow, joints: TjanstJoint[]) => row.jointGroupId === null ? null : joints.find(j => j.id === row.jointGroupId) ?? null;
 /** Lärarens tid på raden: i en samläsning gruppens tid för läraren, annars radens egen tid. */
 export function rowTime(row: TjanstRow, joints: TjanstJoint[]): { ht: number; vt: number } {
@@ -94,7 +95,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
       <thead><tr>
         <th scope="col" className="tjanst-first">Kurs · klass</th><th scope="col" className="tjanst-num">Behov</th><th scope="col" className="tjanst-num">Fördelat</th><th scope="col" className="tjanst-num">Avvikelse</th>
         {teachers.map(t => <th scope="col" key={t.personId} className="tjanst-teacher"><span className="tjanst-teacher-name">{t.displayName}</span>
-          {t.shareHere !== null && <small>Andel här {t.shareHere} %</small>}{t.draft && <Badge variant="outline" className="tjanst-badge">Ny lärare</Badge>}</th>)}
+          {t.shareHere !== null && <small>Andel här {t.shareHere}{'\u00a0'}%</small>}{t.draft && <Badge variant="outline" className="tjanst-badge">Ny lärare</Badge>}</th>)}
         <th scope="col" className="tjanst-num tjanst-vacant">Vakant</th>
       </tr></thead>
       {groups.map(g => {

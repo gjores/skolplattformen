@@ -51,7 +51,7 @@ export default function TjanstServiceSummary({ name, teaching, specials, sums, s
       <div><dt>Undervisning</dt><dd>{termsText(sums.teaching)}</dd></div>
       <div><dt>Specialuppdrag</dt><dd>{termsText(sums.special)}</dd></div>
       <div><dt>Totalt</dt><dd>{termsText(sums.total)}</dd></div>
-      {shareHere !== undefined && <div><dt>Andel här</dt><dd>{shareHere === null ? 'Inte angiven' : `${shareHere} %`}</dd></div>}
+      {shareHere !== undefined && <div><dt>Andel här</dt><dd>{shareHere === null ? 'Inte angiven' : `${shareHere}\u00a0%`}</dd></div>}
       <div><dt>Schemalagd tid</dt><dd>Underlag saknas<small>Visas när schemat finns i Skolplattformen.</small></dd></div>
     </dl>
     {empty ? <p className="tjanst-empty-text">{name} har ingen undervisning eller något uppdrag i den här versionen.</p> : <>

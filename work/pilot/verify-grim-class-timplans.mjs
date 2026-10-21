@@ -268,8 +268,10 @@ export async function verifyGrimClassTimplans(out, { ephemeral = false } = {}) {
   try {
     report.sources = sources(); persist();
     if (ephemeral) {
-      const { createEphemeralMigratedDb } = await import('./ephemeral-migrated-db.mjs');
-      const e = await createEphemeralMigratedDb({ exclude: grimMigrations.map(p => basename(p)) });
+      const { createEphemeralMigratedDb, migrationFiles } = await import('./ephemeral-migrated-db.mjs');
+      // Kedjan fram till GR/IM-migrationen; senare migrationer (05.1-03 och framåt) bygger på den och installeras inte här.
+      const first = basename(grimMigrations[0]);
+      const e = await createEphemeralMigratedDb({ exclude: migrationFiles().filter(f => f >= first) });
       source = { db: e.db, provenance: e.provenance, close: e.end };
     } else {
       const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
