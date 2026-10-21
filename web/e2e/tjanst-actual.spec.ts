@@ -67,9 +67,9 @@ async function nav(page:Page,name:string){
   if(!await item.count())await page.getByRole('button',{name:'Visa eller dölj navigation'}).click();
   await page.locator('.nav-button:visible',{hasText:name}).first().click();
 }
-/** Öppnar Tjänstefördelning via menyn och väljer skola och läsår i planeringsvalet. */
-async function openTjanst(page:Page,unitId:string){
-  await nav(page,'Tjänstefördelning');
+/** Öppnar Tjänstefördelning via menyn (eller står redan där, navigate false) och väljer skola och läsår i planeringsvalet. */
+async function openTjanst(page:Page,unitId:string,{navigate=true}:{navigate?:boolean}={}){
+  if(navigate)await nav(page,'Tjänstefördelning');
   const school=page.getByLabel('Planeringsskola',{exact:true}),year=page.getByLabel('Planeringsläsår',{exact:true});
   await expect(year).toBeVisible();
   if(await school.isEnabled()&&await school.inputValue()!==unitId)await school.selectOption(unitId);
@@ -792,8 +792,9 @@ test('CR-01: rektor B ger Egen tjänst för skola B i Mandat; läraren ser A och
 test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogiltig samläsning stoppar publicering tills den löses upp',async()=>{
   test.skip(project!=='desktop','Körs på projektet desktop.');
   const A=seed.schools.A,p=pages.principalA;await p.bringToFront();
-  // Färskt MFA-bevis (det gjordes inaktuellt i fallet tillstånd: MFA).
-  await fixture!.login(p,'principalA',{stepUp:true});await openTjanst(p,A);
+  // Färskt MFA-bevis (det gjordes inaktuellt i fallet tillstånd: MFA). Inloggningen återvänder direkt till Tjänstefördelning:
+  // i utvecklingskörningen låg menyknappen utanför fönstret efter step-up och klicket gav timeout.
+  await fixture!.login(p,'principalA',{stepUp:true,returnTo:'/?vy=tjanst'});await openTjanst(p,A,{navigate:false});
   const draftOf=async()=>(await db`select d.revision::int r,v.id,v.version_no::int no,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft'
     where d.unit_id=${A} and d.school_year=${seed.year}`)[0] as {r:number;id:string;no:number;h:string};
   const d=await draftOf();
