@@ -5,10 +5,10 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1: gap-planer 05.1-11–13 för CR-01, WR-02 och WR-07 klara och plancheck PASS 2026-10-21 (TJANST-06 etapp 2 utanför enligt användarbeslut). Nästa: gsd-execute-phase 05.1 --gaps-only; 05.1-13 stannar vid blockerande kontrollpunkt före --apply och 3012-byte."
+stopped_at: "Fas 05.1: gap-plan 05.1-11 klar 2026-10-21 (CR-01 och WR-02 i ny migration 20261021120000, SQL PASS 44/44 i schemakopia och tillfällig PostgreSQL, inte installerad). Nästa: 05.1-12 (WR-07 och faktiskt prov); 05.1-13 stannar vid blockerande kontrollpunkt före --apply och 3012-byte."
 last_updated: "2026-10-21"
 last_activity: 2026-10-21
-last_activity_desc: "Gap-planering för 05.1: tre planer (ny framåtmigration för Egen tjänst på flera skolor och samläsningens regler, Bemanning visar publicerad version, faktiskt prov, handbok och leverans bakom användarens godkännande); plancheck PASS efter en revidering."
+last_activity_desc: "05.1-11: framåtmigration för Egen tjänst på flera skolor (kopplade self-mandat) och samläsningens regler vid radändring och publicering; provad mot syntetiska data, inte installerad."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Fas 05.1 gap-plan 05.1-11 genomförd 2026-10-21 (lokal miljö):** [05.1-11](phases/05.1-tjanstefordelning/05.1-11-SUMMARY.md) Ny framåtmigration `20261021120000_tjanst_self_schools_joint_rules.sql` (SHA-256 `55ef6382…9ccc`). CR-01: tabellen tjanst_self_mandates kopplar varje self-mandat till kontots bindning. Ett nytt mandat för samma par person–konto avslutar inte längre bindningen, och skolorna i Egen tjänst hämtas ur alla giltiga kopplade mandat. Ifyllnaden reparerar äldre data utan att befintliga rader ändras. WR-02: save_row på en samläst rad nekar byte av lärare eller källa (tjanst_joint_already), och blockeraren joint_invalid stoppar publicering. verify-tjanst-gap.mjs gav PASS 44/44 både i schemakopia av det skyddade målet och i tillfällig PostgreSQL. I schemakopian reparerades 1 koppling i det syntetiska före-läget. Rapport `/private/tmp/tjanst-gap-sql.json`, SHA-256 `1afad0ef…23f2`. Regressionen gav plan 102, self 23, personal 77, person-account 7 och GR/IM 43, alla PASS, och inget befintligt fall ändrades. Status: implementerad och provad mot syntetiska data, inte installerad. HTTP/OIDC och webbläsare är inte provade. Nästa: 05.1-12.
 
 **Fas 05.1 fasverifiering 2026-10-21:** [05.1-VERIFICATION.md](phases/05.1-tjanstefordelning/05.1-VERIFICATION.md) status gaps_found, 5/7 framgångskriterier. Luckor: (1) TJANST-06:s årsrutiner (etapp 2) saknas och ingen senare fas tar över kravet; (2) CR-01 i [05.1-REVIEW.md](phases/05.1-tjanstefordelning/05.1-REVIEW.md), återskapat i tillfällig PostgreSQL: en lärare med Egen tjänst på två skolor ser bara skolan i den senaste bindningen; rättning kräver ny framåtmigration. Granskningen gav också nio varningar, bland annat WR-02 (samläsningsregler prövas inte om vid ändring/publicering) och WR-07 (huvudmannens "Visa fördelningen" öppnar utkastet). Kontroller samma dag: webbens enhetstester 820/820, tsc och oxlint utan fel, pilottester 684/685 (enda felet är det tidsberoende 05-40-testet verify-planning-year-search-details, ej rört av 05.1). Fasen är inte markerad klar. Mänskligt användarprov på 3012 återstår.
 
