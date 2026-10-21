@@ -121,6 +121,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const load = useCallback(async () => {
     if (!unitId) return;
     const token = ++generation.current, request = { unitId, schoolYear, ...(versionId ? { versionId } : {}) };
+    // Innehållet är inert under läsningen, och inert tar bort fokus. Har fokus redan återställts till en cell (efter en dialog)
+    // innan läsningen startar, återställs det efter läsningen i stället för att gå förlorat (faktiskt prov 05.1-12).
+    const focused = document.activeElement;
+    if (!pendingFocus.current && focused instanceof HTMLElement && focused.closest('.tjanst-content')) pendingFocus.current = focused;
     setLoading(true);
     try {
       const reply = parsePlanReadReply(await api.post('/api/tjanst/plan/lasa', request), request);
