@@ -5,7 +5,7 @@ current_phase: 05
 current_phase_name: Bevarade utbildnings- och klassflöden
 current_plan: APL-CENTRAL-CONTENT
 status: in_progress
-stopped_at: "Fas 05.1: gap-plan 05.1-13 klar 2026-10-22 (svar A: gaprättelsen 20261021120000 installerad med --apply PASS 31 kontroller; 3012 kör 7d31489 med godkänd hälsokontroll). Nästa: gsd-verify-work för omverifiering av 05.1 och användarprov; TJANST-06 etapp 2 ej planerad."
+stopped_at: "Fas 05.1 omverifierad 2026-10-22: gaps_found 6/7. CR-01, WR-02 och WR-07 stängda (gaprättelsen 20261021120000 installerad, 3012 kör 7d31489); kvar är bara TJANST-06 etapp 2 (ej planerad enligt användarbeslut). Uppdaterad granskning: 0 kritiska, 9 varningar (nya WR-10, WR-11). Nästa: beslut om etapp 2 eller stängning av 05.1 med etapp 1; användarprov på 3012."
 last_updated: "2026-10-22"
 last_activity: 2026-10-22
 last_activity_desc: "05.1-13: handboken beskriver provat beteende; rättelsen för CR-01 och WR-02 installerad lokalt och 3012 bytt till 7d31489 med WR-07; provat mot syntetiska data, mänsklig bedömning återstår."
