@@ -4,13 +4,14 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { classifyTjanstMigrations, TJANST_MIGRATION_REGISTRY as registry, TJANST_PHASE_START } from './tjanst-migration-state.mjs';
 
-const versions = registry.map(m => m.version);
+const versions = registry.map(m => m.version), gapVersions = versions.slice(0, 8);
 const hashes = Object.fromEntries(registry.map(m => [m.file, m.sha256]));
 const classify = (journal, sourceHashes = hashes) => classifyTjanstMigrations({ journal, sourceHashes });
 for (const [name, journal, mode, pending] of [
   ['etapp 1', versions.slice(0, 7), 'etapp1', registry.slice(7).map(m => m.file)],
-  ['installerad gaprättelse', versions, 'etapp1+gap', []],
-  ['tidigare journalposter bevaras utanför fasen', ['20260910000000', ...versions], 'etapp1+gap', []],
+  ['installerad gaprättelse', gapVersions, 'etapp1+gap', registry.slice(8).map(m => m.file)],
+  ['installerat publiceringssuffix', versions, 'registered-suffix:20261023100000', []],
+  ['tidigare journalposter bevaras utanför fasen', ['20260910000000', ...gapVersions], 'etapp1+gap', registry.slice(8).map(m => m.file)],
 ]) test(name, () => {
   const result = classify(journal);
   assert.equal(result.baselineMode, mode);
@@ -22,6 +23,7 @@ for (const [name, journal] of [
   ['tom journal', []],
   ['saknad äldre migration', versions.filter((_, i) => i !== 0)],
   ['saknad mittenmigration', versions.filter((_, i) => i !== 4)],
+  ['publiceringssuffix utan gaprättelse', versions.filter((_, i) => i !== 7)],
   ['ofullständig etapp 1', versions.slice(0, 6)],
   ['gap utan etapp 1', versions.slice(7)],
   ['omordnad journal', [...versions].reverse()],
