@@ -1,6 +1,6 @@
 # Skolplattformen
 
-**Tjänstefördelningens riktning preciserad 2026-10-23:** Användaren vill arbeta med samma tjänstefördelning genom olika steg och få rekommendationer när en rad bemannas. [D-25/D-26](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) ersätter tidigare antaganden om många versions-/underlagsval. Etapp 2:s planer 16–25 ska omarbetas; diskussion om förifyllning pågår. Ingen implementation eller ändrad kravacceptans.
+**Tjänstefördelningens etapp 2 reviderad 2026-10-23:** [D-25–D-27](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) anger en sammanhållen tjänstefördelning med rekommendationer vid raden. Nya läsårsbehov börjar med tomma lärarfält; läraren väljs aktivt och sparade val i påbörjat år bevaras. Plan 16–25 är omarbetad och plancheckad; ingen implementation eller ändrad kravacceptans.
 
 **Tjänstefördelningens etapp 2 planerad 2026-10-23:** [Planpaketet](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLANERING.md) täcker TJANST-06:s årsrutiner och föregångare för publiceringskontroll och omkörbara prov (WR-10/WR-11). Etapp 1:s användarprov är rapporterat klart. Nästa steg är 05.1-14; implementation, nya prov och lokal leverans av etapp 2 återstår. Fasbedömningen gaps_found 6/7 består. SS 12000-mappningen är avsedd kompatibilitet, inte verifierat informationsutbyte. Äldre lägesnoteringar nedan är historik.
 

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1 — precisera sammanhållen planering och revidera etapp 2"
+current_plan: "05.1-14/16 — genomför reviderad etapp 2"
 status: in_progress
-stopped_at: "D-25/D-26: samma tjänstefördelning genom arbetssteg med rekommendationer på raden. Plan 16–25 behöver revideras och plancheckas. Fråga om tomma lärarfält med förslag eller förifyllda lärare är ställd. Etapp 1:s användarprov och gaps_found 6/7 består."
+stopped_at: "D-25–D-27 inarbetade: samma arbetsyta, tomma lärarfält och aktivt val av förslag. Plan 16–25 omarbetad och plancheckad. Genomförande återstår. Etapp 1:s användarprov och gaps_found 6/7 består."
 last_updated: "2026-10-23"
 last_activity: 2026-10-23
-last_activity_desc: "Ny användarstyrning fångad i D-25/D-26; tidigare kopierings-/versionsarbetsgång ska omarbetas, ingen produktändring."
+last_activity_desc: "D-27 inarbetad i etapp 2:s omarbetade planer, UI och verifieringsmål; ingen produktändring."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -26,9 +26,9 @@ milestone_name: milestone
 
 # Project State
 
-**Senaste användarstyrning 2026-10-23:** [05.1-CONTINUOUS-PLANNING-CONTEXT](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) dokumenterar en tjänstefördelning som pågår i steg, med lärarförslag på raden. Plan 16–25 behöver revideras före genomförande; föregående plancheck är historisk. 14/15:s avgränsade rättelser består, men hela våg 10 ska inte startas eftersom även 16 ingår. Nästa diskussionspunkt är tomma lärarfält med förslag eller förifyllda lärare att granska. Ingen verifierad lärarbehörighet, rangordning eller exakt stegindelning påstås beslutad. Äldre noteringar nedan beskriver tidigare läge.
+**Senaste användarstyrning 2026-10-23:** [D-25–D-27](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) är inarbetade i plan 16–25: samma tjänstefördelning per skola/läsår, förklarade lärarförslag vid raden och tomma lärarfält för nya behov. Läraren väljs aktivt; sparade val bevaras när arbetet fortsätter. [Plancheck](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLAN-CHECK.md) passerar för det omarbetade paketet; detta är dokumentgranskning, inte produktverifiering. Nästa genomförande börjar med 14/16 enligt beroendekedjan. 14/15:s avgränsade rättelser består. Förslagsordning och stegbenämningar är utformningsval; verifierad lärarbehörighet ingår inte. Äldre noteringar nedan beskriver tidigare läge.
 
-**Etapp 2 planerad 2026-10-23:** [Genomförandeordning, kravspårning och avgränsningar](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLANERING.md) utgår från D-18 och aktuell kod. Nästa plan är [05.1-14](phases/05.1-tjanstefordelning/05.1-14-PLAN.md). Årsrutinerna ska förlänga till nästa läsår, flytta uppdrag mellan personer och massregistrera efter förhandsvisning, med atomär lagring och bevarade beslut. WR-10/WR-11 hanteras före de nya flödena. Etapp 1:s användarprov är redan rapporterat klart; senare användarprov gäller bara nytillkommet beteende. Planeringen ger inga nya produktbevis: TJANST-06 är ännu inte implementerat och fasens senaste tekniska bedömning är fortsatt **gaps_found, 6/7**. Historiska progressräknare och lokal leverans på 3012 ändras inte.
+**Tidigare etapp 2-planering 2026-10-23, före D-25–D-27:** [Genomförandeordning, kravspårning och avgränsningar](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLANERING.md) utgår från D-18 och aktuell kod. Nästa plan är [05.1-14](phases/05.1-tjanstefordelning/05.1-14-PLAN.md). Årsrutinerna ska förlänga till nästa läsår, flytta uppdrag mellan personer och massregistrera efter förhandsvisning, med atomär lagring och bevarade beslut. WR-10/WR-11 hanteras före de nya flödena. Etapp 1:s användarprov är redan rapporterat klart; senare användarprov gäller bara nytillkommet beteende. Planeringen ger inga nya produktbevis: TJANST-06 är ännu inte implementerat och fasens senaste tekniska bedömning är fortsatt **gaps_found, 6/7**. Historiska progressräknare och lokal leverans på 3012 ändras inte.
 
 **Användarprov rapporterat klart 2026-10-23:** Användaren meddelar ”användarprovet är klart” efter lägesgenomgången av tjänstefördelningens etapp 1. Provet registreras som användarrapporterat klart och ska inte efterfrågas igen som ett väntande helhetsprov. Roller, enheter, enskilda steg och särskilda gränsfall särredovisas inte i svaret; inga nya tekniska provresultat tillskrivs det. TJANST-06 (etapp 2) och granskningspunkterna, däribland WR-10 och WR-11, kvarstår. Fasstatus är fortsatt gaps_found, 6/7. Nästa steg är att hantera granskningspunkterna och planera etapp 2 enligt D-18.
 
