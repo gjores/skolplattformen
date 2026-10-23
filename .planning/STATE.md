@@ -1,14 +1,14 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: 05
-current_phase_name: Bevarade utbildnings- och klassflöden
-current_plan: APL-CENTRAL-CONTENT
+current_phase: "05.1"
+current_phase_name: Tjänstefördelning
+current_plan: "Etapp 2 — planering återstår"
 status: in_progress
-stopped_at: "Fas 05.1 omverifierad 2026-10-22: gaps_found 6/7. CR-01, WR-02 och WR-07 stängda (gaprättelsen 20261021120000 installerad, 3012 kör 7d31489); kvar är bara TJANST-06 etapp 2 (ej planerad enligt användarbeslut). Uppdaterad granskning: 0 kritiska, 9 varningar (nya WR-10, WR-11). Nästa: beslut om etapp 2 eller stängning av 05.1 med etapp 1; användarprov på 3012."
-last_updated: "2026-10-22"
-last_activity: 2026-10-22
-last_activity_desc: "05.1-13: handboken beskriver provat beteende; rättelsen för CR-01 och WR-02 installerad lokalt och 3012 bytt till 7d31489 med WR-07; provat mot syntetiska data, mänsklig bedömning återstår."
+stopped_at: "Användarprovet för 05.1 etapp 1 rapporterat klart 2026-10-23. Fasverifiering 6/7 består; TJANST-06 etapp 2 och granskningspunkterna kvarstår. Nästa: hantera WR-10/WR-11 och planera etapp 2 enligt D-18."
+last_updated: "2026-10-23"
+last_activity: 2026-10-23
+last_activity_desc: "Användaren rapporterar användarprovet klart; registrerat utan antaganden om enskilda roller, enheter eller gränsfall."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Användarprov rapporterat klart 2026-10-23:** Användaren meddelar ”användarprovet är klart” efter lägesgenomgången av tjänstefördelningens etapp 1. Provet registreras som användarrapporterat klart och ska inte efterfrågas igen som ett väntande helhetsprov. Roller, enheter, enskilda steg och särskilda gränsfall särredovisas inte i svaret; inga nya tekniska provresultat tillskrivs det. TJANST-06 (etapp 2) och granskningspunkterna, däribland WR-10 och WR-11, kvarstår. Fasstatus är fortsatt gaps_found, 6/7. Nästa steg är att hantera granskningspunkterna och planera etapp 2 enligt D-18.
 
 **Fas 05.1 gap-plan 05.1-13 genomförd 2026-10-22 (lokal miljö):** [05.1-13](phases/05.1-tjanstefordelning/05.1-13-SUMMARY.md) Handboken (Min tjänst, Mandat, Personal och bemanning, Tjänstefördelning) beskriver det provade beteendet: Egen tjänst per skola med ett kort per skola, samläsningens regler vid ändring och publicering, och att Bemanning visar den publicerade versionen. Användaren svarade A. `apply-tjanst.mjs --stage gap --apply` gav PASS 31 kontroller, `committed=true`: repetitionen upprepades och migrationen `20261021120000` installerades i egen transaktion med advisory lock (96 bevarade tabeller, 90 mandat oförändrade, en ny tabell `tjanst_self_mandates`, två nya och sex ersatta funktioner, inga villkorsändringar, bara tolv entrypoints öppna, installerat schema `01491fe3…8ae7` lika med det faktiska provets). Målet har 0 self-mandat, så 0 kopplingar reparerades. 3012 kör nu 7d31489 från `runtime/tjanst-build-7d31489/web`; hälsokontrollen svarar skolplattform_worker och workerd, och återgången är `runtime/tjanst-build-d1cd981`. CR-01, WR-02 och WR-07 är rättade, provade mot syntetiska data och installerade lokalt; mänsklig bedömning och omverifiering återstår. SS 12000-mappningen är avsedd kompatibilitet; inget informationsutbyte är verifierat.
 
