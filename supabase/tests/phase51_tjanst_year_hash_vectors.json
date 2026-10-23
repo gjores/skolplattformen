@@ -1,0 +1,407 @@
+{
+  "kind": "tjanst-year-canonical-hash-vectors",
+  "version": 1,
+  "note": "Syntetiska vektorer. Samma tjanst_canonical/tjanst_hash som etapp 1. Plan 17 provar SQL; dessa är inte ett bevis på DB-stöd. Hashobjekten exemplifierar beroenden, SQL måste inkludera samtliga verkliga källrevisioner och giltigheter.",
+  "mustDiffer": [
+    [
+      "basis",
+      "source-change-no-plan-revision"
+    ],
+    [
+      "basis",
+      "calendar-change-no-plan-revision"
+    ],
+    [
+      "basis",
+      "unknown-is-not-zero"
+    ],
+    [
+      "basis",
+      "date-before-boundary"
+    ],
+    [
+      "basis",
+      "date-after-boundary"
+    ],
+    [
+      "person",
+      "person-change-no-plan-revision"
+    ],
+    [
+      "duty-inclusive-end",
+      "duty-before-start"
+    ],
+    [
+      "evidence",
+      "evidence-source-change"
+    ],
+    [
+      "evidence",
+      "evidence-reason-change"
+    ]
+  ],
+  "vectors": [
+    {
+      "name": "basis",
+      "input": [
+        "tjanst_year_v1",
+        "basis",
+        {
+          "customerId": "51a20000-0000-4000-8000-000000000001",
+          "actorId": "51a20000-0000-4000-8000-000000000002",
+          "assignmentId": "51a20000-0000-4000-8000-000000000003",
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "baseVersionId": null,
+          "currentRevision": 0,
+          "asOf": "2026-07-01",
+          "need": {
+            "classId": "51a20000-0000-4000-8000-000000000005",
+            "rowKey": "subject:SVEN1000X",
+            "linkRevision": 1,
+            "timplanId": "51a20000-0000-4000-8000-000000000006",
+            "timplanRevision": 2,
+            "calendarRevision": 1,
+            "needHt": null,
+            "needVt": 0
+          }
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s5:basiso9:s7:actorIds36:51a20000-0000-4000-8000-000000000002s4:asOfs10:2026-07-01s12:assignmentIds36:51a20000-0000-4000-8000-000000000003s13:baseVersionIdns15:currentRevisioni0;s10:customerIds36:51a20000-0000-4000-8000-000000000001s4:needo8:s16:calendarRevisioni1;s7:classIds36:51a20000-0000-4000-8000-000000000005s12:linkRevisioni1;s6:needHtns6:needVti0;s6:rowKeys17:subject:SVEN1000Xs9:timplanIds36:51a20000-0000-4000-8000-000000000006s15:timplanRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:4dece4b7e47caaf4cffbaa86c079e569badcad978f2eefdc946d84f1e02054f1"
+    },
+    {
+      "name": "source-change-no-plan-revision",
+      "input": [
+        "tjanst_year_v1",
+        "basis",
+        {
+          "customerId": "51a20000-0000-4000-8000-000000000001",
+          "actorId": "51a20000-0000-4000-8000-000000000002",
+          "assignmentId": "51a20000-0000-4000-8000-000000000003",
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "baseVersionId": null,
+          "currentRevision": 0,
+          "asOf": "2026-07-01",
+          "need": {
+            "classId": "51a20000-0000-4000-8000-000000000005",
+            "rowKey": "subject:SVEN1000X",
+            "linkRevision": 2,
+            "timplanId": "51a20000-0000-4000-8000-000000000006",
+            "timplanRevision": 2,
+            "calendarRevision": 1,
+            "needHt": null,
+            "needVt": 0
+          }
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s5:basiso9:s7:actorIds36:51a20000-0000-4000-8000-000000000002s4:asOfs10:2026-07-01s12:assignmentIds36:51a20000-0000-4000-8000-000000000003s13:baseVersionIdns15:currentRevisioni0;s10:customerIds36:51a20000-0000-4000-8000-000000000001s4:needo8:s16:calendarRevisioni1;s7:classIds36:51a20000-0000-4000-8000-000000000005s12:linkRevisioni2;s6:needHtns6:needVti0;s6:rowKeys17:subject:SVEN1000Xs9:timplanIds36:51a20000-0000-4000-8000-000000000006s15:timplanRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:ea3c7af7e2c6dfc2ec36b9cd6528ea557f0e60812a9dcb013cac2f8f1d8d4120"
+    },
+    {
+      "name": "calendar-change-no-plan-revision",
+      "input": [
+        "tjanst_year_v1",
+        "basis",
+        {
+          "customerId": "51a20000-0000-4000-8000-000000000001",
+          "actorId": "51a20000-0000-4000-8000-000000000002",
+          "assignmentId": "51a20000-0000-4000-8000-000000000003",
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "baseVersionId": null,
+          "currentRevision": 0,
+          "asOf": "2026-07-01",
+          "need": {
+            "classId": "51a20000-0000-4000-8000-000000000005",
+            "rowKey": "subject:SVEN1000X",
+            "linkRevision": 1,
+            "timplanId": "51a20000-0000-4000-8000-000000000006",
+            "timplanRevision": 2,
+            "calendarRevision": 2,
+            "needHt": null,
+            "needVt": 0
+          }
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s5:basiso9:s7:actorIds36:51a20000-0000-4000-8000-000000000002s4:asOfs10:2026-07-01s12:assignmentIds36:51a20000-0000-4000-8000-000000000003s13:baseVersionIdns15:currentRevisioni0;s10:customerIds36:51a20000-0000-4000-8000-000000000001s4:needo8:s16:calendarRevisioni2;s7:classIds36:51a20000-0000-4000-8000-000000000005s12:linkRevisioni1;s6:needHtns6:needVti0;s6:rowKeys17:subject:SVEN1000Xs9:timplanIds36:51a20000-0000-4000-8000-000000000006s15:timplanRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:50a43d8f6ee829a91311337c9654b8b853f06a8ab625abdef4a0ca9537682b47"
+    },
+    {
+      "name": "unknown-is-not-zero",
+      "input": [
+        "tjanst_year_v1",
+        "basis",
+        {
+          "customerId": "51a20000-0000-4000-8000-000000000001",
+          "actorId": "51a20000-0000-4000-8000-000000000002",
+          "assignmentId": "51a20000-0000-4000-8000-000000000003",
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "baseVersionId": null,
+          "currentRevision": 0,
+          "asOf": "2026-07-01",
+          "need": {
+            "classId": "51a20000-0000-4000-8000-000000000005",
+            "rowKey": "subject:SVEN1000X",
+            "linkRevision": 1,
+            "timplanId": "51a20000-0000-4000-8000-000000000006",
+            "timplanRevision": 2,
+            "calendarRevision": 1,
+            "needHt": 0,
+            "needVt": 0
+          }
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s5:basiso9:s7:actorIds36:51a20000-0000-4000-8000-000000000002s4:asOfs10:2026-07-01s12:assignmentIds36:51a20000-0000-4000-8000-000000000003s13:baseVersionIdns15:currentRevisioni0;s10:customerIds36:51a20000-0000-4000-8000-000000000001s4:needo8:s16:calendarRevisioni1;s7:classIds36:51a20000-0000-4000-8000-000000000005s12:linkRevisioni1;s6:needHti0;s6:needVti0;s6:rowKeys17:subject:SVEN1000Xs9:timplanIds36:51a20000-0000-4000-8000-000000000006s15:timplanRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:21f6c56ee74fec2495bc47bc9ff8b4c74ceb249b5cbd38c74476787edcc74f75"
+    },
+    {
+      "name": "date-before-boundary",
+      "input": [
+        "tjanst_year_v1",
+        "basis",
+        {
+          "customerId": "51a20000-0000-4000-8000-000000000001",
+          "actorId": "51a20000-0000-4000-8000-000000000002",
+          "assignmentId": "51a20000-0000-4000-8000-000000000003",
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "baseVersionId": null,
+          "currentRevision": 0,
+          "asOf": "2026-06-30",
+          "need": {
+            "classId": "51a20000-0000-4000-8000-000000000005",
+            "rowKey": "subject:SVEN1000X",
+            "linkRevision": 1,
+            "timplanId": "51a20000-0000-4000-8000-000000000006",
+            "timplanRevision": 2,
+            "calendarRevision": 1,
+            "needHt": null,
+            "needVt": 0
+          }
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s5:basiso9:s7:actorIds36:51a20000-0000-4000-8000-000000000002s4:asOfs10:2026-06-30s12:assignmentIds36:51a20000-0000-4000-8000-000000000003s13:baseVersionIdns15:currentRevisioni0;s10:customerIds36:51a20000-0000-4000-8000-000000000001s4:needo8:s16:calendarRevisioni1;s7:classIds36:51a20000-0000-4000-8000-000000000005s12:linkRevisioni1;s6:needHtns6:needVti0;s6:rowKeys17:subject:SVEN1000Xs9:timplanIds36:51a20000-0000-4000-8000-000000000006s15:timplanRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:45e24c32618ecd2d331798af2f89e3184f854c272739b0b48f1c03eb33d39ca1"
+    },
+    {
+      "name": "date-after-boundary",
+      "input": [
+        "tjanst_year_v1",
+        "basis",
+        {
+          "customerId": "51a20000-0000-4000-8000-000000000001",
+          "actorId": "51a20000-0000-4000-8000-000000000002",
+          "assignmentId": "51a20000-0000-4000-8000-000000000003",
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "baseVersionId": null,
+          "currentRevision": 0,
+          "asOf": "2026-07-02",
+          "need": {
+            "classId": "51a20000-0000-4000-8000-000000000005",
+            "rowKey": "subject:SVEN1000X",
+            "linkRevision": 1,
+            "timplanId": "51a20000-0000-4000-8000-000000000006",
+            "timplanRevision": 2,
+            "calendarRevision": 1,
+            "needHt": null,
+            "needVt": 0
+          }
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s5:basiso9:s7:actorIds36:51a20000-0000-4000-8000-000000000002s4:asOfs10:2026-07-02s12:assignmentIds36:51a20000-0000-4000-8000-000000000003s13:baseVersionIdns15:currentRevisioni0;s10:customerIds36:51a20000-0000-4000-8000-000000000001s4:needo8:s16:calendarRevisioni1;s7:classIds36:51a20000-0000-4000-8000-000000000005s12:linkRevisioni1;s6:needHtns6:needVti0;s6:rowKeys17:subject:SVEN1000Xs9:timplanIds36:51a20000-0000-4000-8000-000000000006s15:timplanRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:a724c7c98b9abc308f164f79a5f04b5da454baceb07cb8d30d0e596349aacdd7"
+    },
+    {
+      "name": "person",
+      "input": [
+        "tjanst_year_v1",
+        "person",
+        {
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "personRevision": 1,
+          "draft": false,
+          "duties": [
+            {
+              "dutyId": "51a20000-0000-4000-8000-000000000008",
+              "percent": 50,
+              "startsOn": "2026-07-01",
+              "endsOn": "2027-06-30"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s6:persono6:s5:draftfs6:dutiesa1:o4:s6:dutyIds36:51a20000-0000-4000-8000-000000000008s6:endsOns10:2027-06-30s7:percenti50;s8:startsOns10:2026-07-01s8:personIds36:51a20000-0000-4000-8000-000000000007s14:personRevisioni1;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:5f1a1d2ffd16d8956a0e80e127c0a29b92f9f5d7a5c2d87df9095136983c2dfa"
+    },
+    {
+      "name": "person-change-no-plan-revision",
+      "input": [
+        "tjanst_year_v1",
+        "person",
+        {
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "personRevision": 2,
+          "draft": false,
+          "duties": [
+            {
+              "dutyId": "51a20000-0000-4000-8000-000000000008",
+              "percent": 50,
+              "startsOn": "2026-07-01",
+              "endsOn": "2027-06-30"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s6:persono6:s5:draftfs6:dutiesa1:o4:s6:dutyIds36:51a20000-0000-4000-8000-000000000008s6:endsOns10:2027-06-30s7:percenti50;s8:startsOns10:2026-07-01s8:personIds36:51a20000-0000-4000-8000-000000000007s14:personRevisioni2;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:3d16ac8bf95afe540098b252316f676198073cffda3c98f4c56667fe5ad4d506"
+    },
+    {
+      "name": "duty-inclusive-end",
+      "input": [
+        "tjanst_year_v1",
+        "person",
+        {
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "personRevision": 1,
+          "draft": false,
+          "duties": [
+            {
+              "dutyId": "51a20000-0000-4000-8000-000000000008",
+              "percent": 50,
+              "startsOn": "2026-07-01",
+              "endsOn": "2026-07-01"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s6:persono6:s5:draftfs6:dutiesa1:o4:s6:dutyIds36:51a20000-0000-4000-8000-000000000008s6:endsOns10:2026-07-01s7:percenti50;s8:startsOns10:2026-07-01s8:personIds36:51a20000-0000-4000-8000-000000000007s14:personRevisioni1;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:646fd75fdfd37587357fc95409b368a5359e5fd46c41b0ba9591b64db41a2c98"
+    },
+    {
+      "name": "duty-before-start",
+      "input": [
+        "tjanst_year_v1",
+        "person",
+        {
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "personRevision": 1,
+          "draft": false,
+          "duties": [
+            {
+              "dutyId": "51a20000-0000-4000-8000-000000000008",
+              "percent": 50,
+              "startsOn": "2025-07-01",
+              "endsOn": "2026-06-30"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s6:persono6:s5:draftfs6:dutiesa1:o4:s6:dutyIds36:51a20000-0000-4000-8000-000000000008s6:endsOns10:2026-06-30s7:percenti50;s8:startsOns10:2025-07-01s8:personIds36:51a20000-0000-4000-8000-000000000007s14:personRevisioni1;s10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:95a2e46c6330a979c45bc070953f70454af1e2fe82547366d99b9e4cc594fb00"
+    },
+    {
+      "name": "evidence",
+      "input": [
+        "tjanst_year_v1",
+        "evidence",
+        {
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "references": [
+            {
+              "reason": "previous_same_class_row",
+              "unitId": "51a20000-0000-4000-8000-000000000004",
+              "schoolYear": 2025,
+              "versionId": "51a20000-0000-4000-8000-000000000009",
+              "rowId": "51a20000-0000-4000-8000-000000000010",
+              "classId": "51a20000-0000-4000-8000-000000000005",
+              "rowKey": "subject:SVEN1000X"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s8:evidenceo2:s8:personIds36:51a20000-0000-4000-8000-000000000007s10:referencesa1:o7:s7:classIds36:51a20000-0000-4000-8000-000000000005s6:reasons23:previous_same_class_rows5:rowIds36:51a20000-0000-4000-8000-000000000010s6:rowKeys17:subject:SVEN1000Xs10:schoolYeari2025;s6:unitIds36:51a20000-0000-4000-8000-000000000004s9:versionIds36:51a20000-0000-4000-8000-000000000009",
+      "sha256": "sha256:86267b71f551014158d367efd62dbd9ae1ef5bf7cc08f66e877cc8e8693f5194"
+    },
+    {
+      "name": "evidence-source-change",
+      "input": [
+        "tjanst_year_v1",
+        "evidence",
+        {
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "references": [
+            {
+              "reason": "previous_same_class_row",
+              "unitId": "51a20000-0000-4000-8000-000000000004",
+              "schoolYear": 2025,
+              "versionId": "51a20000-0000-4000-8000-000000000011",
+              "rowId": "51a20000-0000-4000-8000-000000000010",
+              "classId": "51a20000-0000-4000-8000-000000000005",
+              "rowKey": "subject:SVEN1000X"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s8:evidenceo2:s8:personIds36:51a20000-0000-4000-8000-000000000007s10:referencesa1:o7:s7:classIds36:51a20000-0000-4000-8000-000000000005s6:reasons23:previous_same_class_rows5:rowIds36:51a20000-0000-4000-8000-000000000010s6:rowKeys17:subject:SVEN1000Xs10:schoolYeari2025;s6:unitIds36:51a20000-0000-4000-8000-000000000004s9:versionIds36:51a20000-0000-4000-8000-000000000011",
+      "sha256": "sha256:4803ef39e155fa089330bfc3d11b29de5056bb21106336d911c6f81b07d66750"
+    },
+    {
+      "name": "evidence-reason-change",
+      "input": [
+        "tjanst_year_v1",
+        "evidence",
+        {
+          "personId": "51a20000-0000-4000-8000-000000000007",
+          "references": [
+            {
+              "reason": "previous_same_class",
+              "unitId": "51a20000-0000-4000-8000-000000000004",
+              "schoolYear": 2025,
+              "versionId": "51a20000-0000-4000-8000-000000000009",
+              "rowId": "51a20000-0000-4000-8000-000000000010",
+              "classId": "51a20000-0000-4000-8000-000000000005",
+              "rowKey": "subject:SVEN1000X"
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s8:evidenceo2:s8:personIds36:51a20000-0000-4000-8000-000000000007s10:referencesa1:o7:s7:classIds36:51a20000-0000-4000-8000-000000000005s6:reasons19:previous_same_classs5:rowIds36:51a20000-0000-4000-8000-000000000010s6:rowKeys17:subject:SVEN1000Xs10:schoolYeari2025;s6:unitIds36:51a20000-0000-4000-8000-000000000004s9:versionIds36:51a20000-0000-4000-8000-000000000009",
+      "sha256": "sha256:18127dcb4d108c1e3141c5e2d4e5f8363b7365b98f39595004b6bdd5a7d2ec35"
+    },
+    {
+      "name": "preview-explicit-vacancy",
+      "input": [
+        "tjanst_year_v1",
+        "preview",
+        {
+          "unitId": "51a20000-0000-4000-8000-000000000004",
+          "schoolYear": 2026,
+          "action": "bulk",
+          "items": [
+            {
+              "itemKey": "a",
+              "choice": {
+                "kind": "unassigned",
+                "personId": null
+              }
+            }
+          ]
+        }
+      ],
+      "canonical": "a3:s14:tjanst_year_v1s7:previewo4:s6:actions4:bulks5:itemsa1:o2:s6:choiceo2:s4:kinds10:unassigneds8:personIdns7:itemKeys1:as10:schoolYeari2026;s6:unitIds36:51a20000-0000-4000-8000-000000000004",
+      "sha256": "sha256:2daba33f7ec4688c96a750015199742d546a5e2bb1dfe8c39c12b9c14fef0500"
+    }
+  ]
+}
