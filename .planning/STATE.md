@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-14/16 — genomför reviderad etapp 2"
+current_plan: "05.1-14/16 — våg 10 genomförs"
 status: in_progress
 stopped_at: "D-25–D-27 inarbetade: samma arbetsyta, tomma lärarfält och aktivt val av förslag. Plan 16–25 omarbetad och plancheckad. Genomförande återstår. Etapp 1:s användarprov och gaps_found 6/7 består."
-last_updated: "2026-10-23"
-last_activity: 2026-10-23
-last_activity_desc: "D-27 inarbetad i etapp 2:s omarbetade planer, UI och verifieringsmål; ingen produktändring."
+last_updated: "2026-10-24"
+last_activity: 2026-10-24
+last_activity_desc: "Användaren beställer genomförande av etapp 2; plan 14 och 16 startade parallellt enligt planchecken."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Genomförande startat 2026-10-24:** Användaren säger ”du kan sätta igång det” efter beskedet att etapp 1:s användarprov är klart. Etapp 2 genomförs enligt granskade planer 14–25 och D-25–D-27. Våg 10 börjar med 14 (omkörbara isolerade prov) och 16 (kontrakt/modell för aktiva lärarval). Tidigare kravacceptans och lokal leverans består; nya resultat redovisas först efter kontroller. Installation hanteras vid det konkreta leveranssteget i plan 24–25.
 
 **Senaste användarstyrning 2026-10-23:** [D-25–D-27](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) är inarbetade i plan 16–25: samma tjänstefördelning per skola/läsår, förklarade lärarförslag vid raden och tomma lärarfält för nya behov. Läraren väljs aktivt; sparade val bevaras när arbetet fortsätter. [Plancheck](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLAN-CHECK.md) passerar för det omarbetade paketet; detta är dokumentgranskning, inte produktverifiering. Nästa genomförande börjar med 14/16 enligt beroendekedjan. 14/15:s avgränsade rättelser består. Förslagsordning och stegbenämningar är utformningsval; verifierad lärarbehörighet ingår inte. Äldre noteringar nedan beskriver tidigare läge.
 
