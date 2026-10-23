@@ -57,7 +57,7 @@ export type TjanstYearRowReply = TjanstYearReplyBase & { mode: 'row'; sourceKey:
 export type TjanstYearPreviewItem = { itemKey: string; kind: 'row' | 'special'; id: string | null;
   sourceKey: string | null; classId: string | null; jointGroupId: string | null;
   before: { personId: string | null; ht: number; vt: number } | null;
-  after: { personId: string | null; ht: number; vt: number } };
+  after: { personId: string | null; ht: number; vt: number } | null };
 export const TJANST_YEAR_BLOCKERS = ['stale_basis', 'person_unavailable', 'suggestion_unavailable', 'duplicate_row',
   'unknown_need', 'unknown_class', 'joint_incomplete', 'joint_person_collision', 'batch_too_large', 'wrong_scope'] as const;
 export type TjanstYearBatchReply = TjanstYearReplyBase & { mode: 'batch'; action: 'move' | 'bulk'; previewHash: string;
@@ -128,7 +128,7 @@ function basePayload<A extends keyof TjanstYearBasePayload>(action: A, value: un
   } else if (action === 'save_special') {
     const p = shape(value, ['specialId', 'kind', 'label', 'personId', 'classId', 'ht', 'vt', 'comment']);
     const kind = choice(p.kind, ['mentor', 'programansvar', 'speciallarare', 'annat'] as const), classId = nullableUuid(p.classId), ht = minutes(p.ht), vt = minutes(p.vt); positiveTerms(ht, vt);
-    if (classId !== null && kind !== 'mentor') bad();
+    if ((kind === 'mentor') !== (classId !== null)) bad();
     parsed = { specialId: nullableUuid(p.specialId), kind, label: text(p.label), personId: nullableUuid(p.personId), classId, ht, vt, comment: comment(p.comment) };
   } else if (action === 'save_joint') {
     const p = shape(value, ['jointId', 'name', 'rowIds', 'teachers']);
@@ -208,14 +208,14 @@ function currentRow(value: unknown, schoolYear: number): TjanstRow {
     personId: p.personId, teacherHt: p.teacherHt, teacherVt: p.teacherVt, comment: p.comment,
     needHt: r.needHt === null ? null : minutes(r.needHt), needVt: r.needVt === null ? null : minutes(r.needVt), needBasis: choice(r.needBasis, TJANST_NEED_BASES), stale: gymBoolean(r.stale), jointGroupId: nullableUuid(r.jointGroupId) };
 }
-function suggestion(value: unknown, scope: TjanstYearScope, target: TjanstYearNeed): TjanstYearSuggestion {
+function suggestion(value: unknown, scope: TjanstYearScope, target: TjanstYearNeed, baseVersionId: string | null): TjanstYearSuggestion {
   const s = shape(value, ['suggestionId', 'personId', 'evidenceHash', 'reasons', 'references']), personId = uuid(s.personId);
   const reasons = unique(list(s.reasons, 4, v => choice(v, TJANST_YEAR_REASONS)), v => v);
   const references = unique(list(s.references, TJANST_LIMITS.rows, v => {
     const r = shape(v, ['reason', 'unitId', 'schoolYear', 'versionId', 'rowId', 'personId', 'classId', 'rowKey', 'sourceKey']);
     const reason = choice(r.reason, TJANST_YEAR_REASONS), schoolYear = year(r.schoolYear), src = source(r.sourceKey, schoolYear);
     const sameClass = src.classId === target.classId, sameRow = src.rowKey === target.rowKey;
-    if (r.unitId !== scope.unitId || r.personId !== personId || r.classId !== src.classId || r.rowKey !== src.rowKey
+    if (reason === 'current_same_class' && r.versionId !== baseVersionId || r.unitId !== scope.unitId || r.personId !== personId || r.classId !== src.classId || r.rowKey !== src.rowKey
       || schoolYear !== scope.schoolYear - (reason === 'current_same_class' ? 0 : 1)
       || (reason === 'current_same_class' || reason === 'previous_same_class' || reason === 'previous_same_class_row') && !sameClass
       || (reason === 'previous_same_row' || reason === 'previous_same_class_row') && !sameRow) bad('tjanst_evidence_mismatch');
@@ -242,7 +242,7 @@ export function parseYearReply(value: unknown, expected: TjanstYearRequest): Tja
     if (r.sourceKey !== q.sourceKey || r.rowId !== q.rowId || n.sourceKey !== q.sourceKey || (row?.id ?? null) !== q.rowId
       || row !== null && (row.sourceKey !== q.sourceKey || base.baseVersionId === null)) bad('wrong_scope');
     const recommendationStatus = choice(r.recommendationStatus, ['ready', 'empty', 'unavailable'] as const);
-    const suggestions = unique(list(r.suggestions, TJANST_LIMITS.people, v => suggestion(v, q, n)), s => s.suggestionId);
+    const suggestions = unique(list(r.suggestions, TJANST_LIMITS.people, v => suggestion(v, q, n, base.baseVersionId)), s => s.suggestionId);
     unique(suggestions, s => s.personId);
     if ((recommendationStatus === 'ready') !== (suggestions.length > 0) || suggestions.some(s => !candidates.some(c => c.personId === s.personId))) bad();
     return { ...base, mode: 'row', sourceKey: q.sourceKey, rowId: q.rowId, need: n, currentRow: row, candidates, totalCandidates, recommendationStatus, suggestions };
@@ -251,36 +251,46 @@ export function parseYearReply(value: unknown, expected: TjanstYearRequest): Tja
 function previewState(v: unknown) { const s = shape(v, ['personId', 'ht', 'vt']); return { personId: nullableUuid(s.personId), ht: minutes(s.ht), vt: minutes(s.vt) }; }
 function batchReply(r: Record<string, unknown>, base: TjanstYearReplyBase, request: TjanstYearBatch): TjanstYearBatchReply {
   if (r.action !== request.action || base.baseVersionId !== request.baseVersionId) bad('wrong_scope');
+  const blockers = list(r.blockers, 500, v => { const b = shape(v, ['itemKey', 'groupId', 'code']), itemKey = text(b.itemKey);
+    if (!request.items.some(i => i.itemKey === itemKey)) bad('wrong_scope');
+    return { itemKey, groupId: nullableUuid(b.groupId), code: choice(b.code, TJANST_YEAR_BLOCKERS) }; });
   const items = unique(list(r.items, 100, v => { const i = shape(v, ['itemKey', 'kind', 'id', 'sourceKey', 'classId', 'jointGroupId', 'before', 'after']);
-    const kind = choice(i.kind, ['row', 'special'] as const), classId = nullableUuid(i.classId);
-    if (kind === 'row') { const src = source(i.sourceKey, base.schoolYear); if (src.classId !== classId) bad(); }
-    else if (i.sourceKey !== null || i.jointGroupId !== null) bad();
-    return { itemKey: text(i.itemKey), kind, id: nullableUuid(i.id), sourceKey: i.sourceKey === null ? null : text(i.sourceKey, 240), classId,
-      jointGroupId: nullableUuid(i.jointGroupId), before: i.before === null ? null : previewState(i.before), after: previewState(i.after) }; }), i => i.itemKey);
+    const kind = choice(i.kind, ['row', 'special'] as const), classId = nullableUuid(i.classId), itemKey = text(i.itemKey);
+    const blocked = blockers.some(b => b.itemKey === itemKey);
+    if (kind === 'row') {
+      if (i.sourceKey === null) { if (!blocked || classId !== null) bad(); }
+      else { const src = source(i.sourceKey, base.schoolYear); if (src.classId !== classId) bad(); }
+    } else if (i.sourceKey !== null || i.jointGroupId !== null) bad();
+    if (i.after === null && !blocked) bad();
+    return { itemKey, kind, id: nullableUuid(i.id), sourceKey: i.sourceKey === null ? null : text(i.sourceKey, 240), classId,
+      jointGroupId: nullableUuid(i.jointGroupId), before: i.before === null ? null : previewState(i.before), after: i.after === null ? null : previewState(i.after) }; }), i => i.itemKey);
   const selectedCount = integer(r.selectedCount, 100, 1), writeObjectCount = integer(r.writeObjectCount);
   if (selectedCount !== request.items.length || items.length !== selectedCount || writeObjectCount < selectedCount) bad();
   for (const item of items) {
     const requested = request.items.find(i => i.itemKey === item.itemKey); if (!requested || requested.kind !== item.kind) bad('wrong_scope');
     const selected = 'choice' in requested ? requested.choice : requested.payload.planningContext.choice;
-    if (selected.personId !== item.after.personId) bad('tjanst_choice_mismatch');
-    if ('id' in requested) { if (item.id !== requested.id || item.before?.personId !== requested.fromPersonId) bad('wrong_scope');
-      if (item.before.ht !== item.after.ht || item.before.vt !== item.after.vt) bad('tjanst_time_mismatch'); }
-    else if (item.id !== null || item.before !== null || requested.kind === 'row' && item.sourceKey !== requested.payload.sourceKey
-      || requested.kind === 'special' && item.classId !== requested.payload.classId) bad('wrong_scope');
-    if (!('id' in requested)) {
+    if (item.after !== null && selected.personId !== item.after.personId) bad('tjanst_choice_mismatch');
+    if ('id' in requested) {
+      if (item.id !== requested.id) bad('wrong_scope');
+      if (item.before === null) { if (!blockers.some(b => b.itemKey === item.itemKey) || item.after !== null) bad(); }
+      else {
+        if (item.before.personId !== requested.fromPersonId) bad('wrong_scope');
+        if (item.after !== null && (item.before.ht !== item.after.ht || item.before.vt !== item.after.vt)) bad('tjanst_time_mismatch');
+      }
+    } else {
+      if (item.id !== null || item.before !== null || requested.kind === 'row' && item.sourceKey !== requested.payload.sourceKey
+        || requested.kind === 'special' && item.classId !== requested.payload.classId) bad('wrong_scope');
       const ht = requested.kind === 'row' ? requested.payload.teacherHt : requested.payload.ht;
       const vt = requested.kind === 'row' ? requested.payload.teacherVt : requested.payload.vt;
-      if (item.after.ht !== ht || item.after.vt !== vt) bad('tjanst_time_mismatch');
+      if (item.after !== null && (item.after.ht !== ht || item.after.vt !== vt)) bad('tjanst_time_mismatch');
     }
   }
-  const blockers = list(r.blockers, 500, v => { const b = shape(v, ['itemKey', 'groupId', 'code']), itemKey = text(b.itemKey);
-    if (!items.some(i => i.itemKey === itemKey)) bad('wrong_scope');
-    return { itemKey, groupId: nullableUuid(b.groupId), code: choice(b.code, TJANST_YEAR_BLOCKERS) }; });
   if (writeObjectCount > 100 && !blockers.some(b => b.code === 'batch_too_large')) bad();
+  // Totals describe only moved teachers; the full group's membership/times belong to the server preview hash.
   const jointTotals = unique(list(r.jointTotals, 100, v => { const t = shape(v, ['jointId', 'personId', 'ht', 'vt']);
-    const jointId = uuid(t.jointId); if (!items.some(i => i.jointGroupId === jointId && i.after.personId === t.personId)) bad('wrong_scope');
+    const jointId = uuid(t.jointId); if (!items.some(i => i.jointGroupId === jointId && i.after?.personId === t.personId)) bad('wrong_scope');
     return { jointId, personId: uuid(t.personId), ht: minutes(t.ht), vt: minutes(t.vt) }; }), t => `${t.jointId}:${t.personId}`);
-  if (items.some(i => i.jointGroupId !== null && i.after.personId !== null && !jointTotals.some(t => t.jointId === i.jointGroupId && t.personId === i.after.personId))) bad('tjanst_joint_incomplete');
+  if (items.some(i => i.jointGroupId !== null && i.after?.personId != null && !jointTotals.some(t => t.jointId === i.jointGroupId && t.personId === i.after?.personId))) bad('tjanst_joint_incomplete');
   return { ...base, mode: 'batch', action: request.action, previewHash: hash(r.previewHash), items, selectedCount, writeObjectCount, jointTotals, blockers };
 }
 export function parseYearPlanCommand(value: unknown): TjanstYearCommand {
@@ -336,5 +346,17 @@ export function assertYearRowContext(payload: TjanstYearSaveRow, support: Tjanst
       const found = support.suggestions.find(s => s.suggestionId === selected.suggestionId && s.personId === selected.personId);
       if (support.recommendationStatus !== 'ready' || !found || found.evidenceHash !== selected.expectedEvidenceHash) bad('tjanst_stale_evidence');
     }
+  });
+}
+
+export type TjanstYearReceipt = { commandId: string; action: TjanstYearAction; versionId: string | null;
+  revision: number; contentHash: string; replayed: boolean; changed: boolean };
+/** Usable by plan 18's SQL probes before the HTTP/legacy parser integration in plan 19. */
+export function parseYearPlanReceipt(value: unknown, command: TjanstYearCommand): TjanstYearReceipt {
+  return guarded(() => {
+    const q = parseYearPlanCommand(command), r = shape(value, ['commandId', 'action', 'versionId', 'revision', 'contentHash', 'replayed', 'changed']);
+    if (r.commandId !== q.commandId || r.action !== q.action || r.revision !== q.expectedRevision + 1) bad('tjanst_revision_conflict');
+    const versionId = nullableUuid(r.versionId); if (q.action !== 'discard_draft' && versionId === null) bad();
+    return { commandId: q.commandId, action: q.action, versionId, revision: integer(r.revision), contentHash: hash(r.contentHash), replayed: gymBoolean(r.replayed), changed: gymBoolean(r.changed) };
   });
 }

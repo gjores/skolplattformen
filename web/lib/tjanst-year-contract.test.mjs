@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { TjanstContractError, tjanstCanonicalSerialize, tjanstHashCanonical } from './tjanst-contract.ts';
 import { assertTjanstYearInputSize, parseYearRequest, parseYearReply, parseYearPlanCommand, parseYearChoice,
-  parseYearBatch, createYearPlanCommand, verifyYearPlanCommandHash, assertYearRowContext, yearPlanCommandRef, tjanstYearHash } from './tjanst-year-contract.ts';
+  parseYearBatch, parseYearPlanReceipt, createYearPlanCommand, verifyYearPlanCommandHash, assertYearRowContext, yearPlanCommandRef, tjanstYearHash } from './tjanst-year-contract.ts';
 const id = n => `51a20000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const hash = c => `sha256:${c.repeat(64)}`;
 const unitId = id(1), classId = id(2), personId = id(3), rowKey = 'subject:SVEN1000X';
@@ -137,4 +137,39 @@ test('shared canonical vectors include stale person/source/date/evidence with un
     assert.equal(await tjanstYearHash(vector.input[1], vector.input[2]), vector.sha256, vector.name);
   }
   for (const [before, after] of file.mustDiffer) assert.notEqual(file.vectors.find(v => v.name === before).sha256, file.vectors.find(v => v.name === after).sha256);
+});
+
+test('year receipt validates original contextual command without legacy command parser', () => {
+  const q = command(), receipt = { commandId: q.commandId, action: 'save_row', versionId: id(5), revision: 1, contentHash: hash('d'), replayed: false, changed: true };
+  assert.equal(parseYearPlanReceipt(receipt, q).revision, 1);
+  for (const change of [{ revision: 0 }, { revision: 2 }, { commandId: id(99) }, { action: 'bulk' }, { versionId: null }, { untrusted: true }]) rejects(() => parseYearPlanReceipt({ ...receipt, ...change }, q));
+});
+test('current-class suggestion is tied to current base version; historical source cannot masquerade as current', () => {
+  const s = suggestion({ reasons: ['current_same_class'], references: [evidence({ reason: 'current_same_class', schoolYear: 2026, sourceKey: key() })] });
+  assert.equal(parseYearReply(reply({ baseVersionId: id(5), suggestions: [s] }), request()).suggestions.length, 1);
+  rejects(() => parseYearReply(reply({ suggestions: [s] }), request()));
+  rejects(() => parseYearReply(reply({ baseVersionId: id(99), suggestions: [s] }), request()));
+});
+test('blocked missing batch object uses null states instead of inventing zero-minute assignments', () => {
+  const batch = { action: 'move', baseVersionId: id(5), items: [{ itemKey: 'missing', kind: 'row', id: id(8), fromPersonId: id(9), choice: manual() }] };
+  const q = { unitId, schoolYear: 2026, mode: 'batch', batch };
+  const r = { contractVersion: 'tjanst_year_v1', unitId, schoolYear: 2026, mode: 'batch', currentRevision: 1, baseVersionId: id(5), basisHash: hash('a'), action: 'move', previewHash: hash('d'),
+    items: [{ itemKey: 'missing', kind: 'row', id: id(8), sourceKey: null, classId: null, jointGroupId: null, before: null, after: null }],
+    selectedCount: 1, writeObjectCount: 1, jointTotals: [], blockers: [{ itemKey: 'missing', groupId: null, code: 'wrong_scope' }] };
+  assert.equal(parseYearReply(r, q).items[0].after, null); rejects(() => parseYearReply({ ...r, blockers: [] }, q));
+});
+test('bulk preview must preserve explicit teacher minutes', () => {
+  const batch = { action: 'bulk', baseVersionId: null, items: [{ itemKey: 'new', kind: 'row', payload: rowPayload() }] };
+  const q = { unitId, schoolYear: 2026, mode: 'batch', batch };
+  const r = { contractVersion: 'tjanst_year_v1', unitId, schoolYear: 2026, mode: 'batch', currentRevision: 0, baseVersionId: null, basisHash: hash('a'), action: 'bulk', previewHash: hash('d'),
+    items: [{ itemKey: 'new', kind: 'row', id: null, sourceKey: key(), classId, jointGroupId: null, before: null, after: { personId, ht: 600, vt: 0 } }], selectedCount: 1, writeObjectCount: 1, jointTotals: [], blockers: [] };
+  assert.equal(parseYearReply(r, q).items[0].after.ht, 600);
+  rejects(() => parseYearReply({ ...r, items: [{ ...r.items[0], after: { personId, ht: 599, vt: 0 } }] }, q), 'tjanst_time_mismatch');
+});
+
+test('ordinary mentor save requires explicit real class ID just like bulk; other specials cannot invent groups', () => {
+  const payload = { specialId: null, kind: 'mentor', label: 'Mentor', personId, classId, ht: 60, vt: 0, comment: '', mutationContext: { baseVersionId: null, expectedBasisHash: hash('a') } };
+  assert.equal(parseYearPlanCommand(command({ action: 'save_special', payload })).payload.classId, classId);
+  rejects(() => parseYearPlanCommand(command({ action: 'save_special', payload: { ...payload, classId: null } })));
+  rejects(() => parseYearPlanCommand(command({ action: 'save_special', payload: { ...payload, kind: 'annat' } })));
 });
