@@ -2,7 +2,9 @@
 // 05.1-11 (gap): Egen tjänst på flera skolor (CR-01) och samläsningens regler (WR-02) i migrationen 20261021120000.
 // Före-läget skapas med de gamla (installerade) funktionerna och committas i den ägda databasen. Därefter repeteras
 // migrationen med återrullning, installeras i den ägda databasen och fallen prövas i transaktioner som rullas tillbaka.
-//   node work/pilot/verify-tjanst-gap.mjs --out /private/tmp/tjanst-gap-sql.json              (schemakopia av skyddat lokalt mål, etapp 1 installerad)
+//   node work/pilot/verify-tjanst-gap.mjs --out /private/tmp/tjanst-gap-sql.json              (schemakopia; etapp 1, gap eller uttryckligt registrerat suffix)
+// Historiska före-/reparationsfall körs alltid separat i en egen tillfällig databas.
+// Efterlägets beteenden körs på installerat schema, utan nedgradering eller omtillämpad gapmigration.
 //   node work/pilot/verify-tjanst-gap.mjs --out /private/tmp/tjanst-gap-sql.json --ephemeral  (egen PostgreSQL byggd från migrationerna utom rättelsen)
 // Bara syntetiska data. Inget installerat mål skrivs; målets journal läses bara läsande. Ingen HTTP/OIDC.
 import assert from 'node:assert/strict';
@@ -14,11 +16,15 @@ import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { createTjanstFixture, grantSelf, personalRead, planCommand, planRead, planSend, seedGrimNeeds, selfRead, selfSend, staffWithDuties,
   tjanstEtapp1Migrations, tjanstGapMigrations } from './tjanst-fixtures.mjs';
 import { WORKER_ENTRYPOINTS } from './apply-tjanst.mjs';
+import { targetPendingMigrations, workerGrants } from './verify-tjanst-actual.mjs';
+import { assertTjanstSelfMandatesSchema, TJANST_MIGRATION_REGISTRY, TJANST_BASELINE_LENGTH } from './tjanst-migration-state.mjs';
+import { createEphemeralMigratedDb, migrationFiles } from './ephemeral-migrated-db.mjs';
+import { createNamedTimplanSnapshot, schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { parsePlanCommandReply, parsePlanReadReply, parseSelfCommandReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const [GAP] = tjanstGapMigrations;
-const sourceFiles = [GAP, 'work/pilot/verify-tjanst-gap.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
+const sourceFiles = [...TJANST_MIGRATION_REGISTRY.map(m => m.file), 'work/pilot/tjanst-migration-state.mjs', 'work/pilot/verify-tjanst-actual.mjs', 'work/pilot/named-timplan-snapshot.mjs', 'work/pilot/verify-tjanst-gap.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
 const sources = () => Object.fromEntries(sourceFiles.map(p => [p, createHash('sha256').update(readFileSync(resolve(root, p))).digest('hex')]));
 const sql = p => readFileSync(resolve(root, p), 'utf8');
 const rollback = Error('expected_tjanst_gap_rollback');
@@ -47,7 +53,7 @@ async function fingerprint(db) {
 const functionMeta = async db => Object.fromEntries((await db`select p.oid::regprocedure::text s,md5(pg_get_functiondef(p.oid)) d,coalesce(p.proacl::text,'') acl,p.proowner::regrole::text owner
   from pg_proc p where p.pronamespace='public'::regnamespace and p.prokind='f'`).map(r => [short(r.s), { d: r.d, acl: r.acl, owner: r.owner }]));
 
-function check(report, name, detail) { report.checks.push({ name, ok: true, ...(detail === undefined ? {} : { detail }) }); console.log('PASS: ' + name); }
+function check(report, name, detail) { report.checks.push({ name, ok: true, baseline: report.activeBaseline, ...(detail === undefined ? {} : { detail }) }); console.log('PASS: ' + name); }
 async function deny(tx, report, name, fn, codes, hint) {
   let error;
   try { await tx.savepoint(fn); } catch (e) { error = e; }
@@ -113,7 +119,7 @@ async function publishRows(t, f, principal, unit, rows) {
 }
 
 /** Före-läget med de installerade (gamla) funktionerna. Committas i den ägda databasen. */
-async function beforeState(tx, report, f) {
+async function beforeState(tx, report, f, afterMode = false) {
   const { A, B, C } = f.schools;
   const duty = (unitId, percent) => ({ unitId, percent, startsOn: '2026-07-01' });
   const p1 = await staffWithDuties(tx, f, { familyName: 'Ettan', duties: [duty(A, 60), duty(B, 40)] });
@@ -139,10 +145,17 @@ async function beforeState(tx, report, f) {
   const onA = units(await self(tx));
   const valid = (await tx`select public.phase3_mandate_is_valid(${mandateA}) v`)[0].v;
   const bindings = await tx`select access_assignment_id,ended_at is not null ended from public.staff_person_bindings where staff_person_id=${p1.personId} order by bound_at`;
+  if (afterMode) {
+    assert.deepEqual(onB, [A, B].sort()); assert.deepEqual(onA, [A, B].sort()); assert.equal(valid, true);
+    assert.deepEqual(bindings.map(b => [b.access_assignment_id, b.ended]), [[mandateA, false]]);
+    check(report, 'efterlägets fixtur: två skolmandat behåller samma aktiva personbindning och båda skolorna');
+  } else {
   assert.deepEqual(onB, [B]); assert.deepEqual(onA, [B]); assert.equal(valid, true);
   assert.deepEqual(bindings.map(b => [b.access_assignment_id, b.ended]), [[mandateA, true], [mandateB, false]]);
   check(report, 'före-läget visar CR-01: med de gamla funktionerna saknar publikationslistan skola A både med session på mandat A och på mandat B, fast mandat A gäller',
     { sessionOnB: onB.map(u => u === B ? 'B' : u), sessionOnA: onA.map(u => u === B ? 'B' : u), mandateAValid: valid });
+
+  }
 
   // Ett mandat vars bindning avslutades av ett annat par (samma konto, annan person) ska inte kopplas om.
   const m3 = await grantSelf(tx, f, { teacher: 'teacherGroup', by: 'principalA', unitIds: [A], staffPersonId: p3.personId });
@@ -163,16 +176,33 @@ async function beforeState(tx, report, f) {
   r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
     teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] }));
   // Gamla save_row: raden j1b flyttas till 7A (gruppen hamnar i en enda klass), och j2a byter lärare (P2 får lärartid utan rad).
+  if (afterMode) {
+    // Märkt syntetisk äldre dataskada i egen kopia: funktionerna är fortfarande efterlägets.
+    const key = needOf(r.detail, A7, 'biologi').sourceKey;
+    const [{ need }] = await tx`select public.tjanst_need(${A},${Y},${key}) need`;
+    const link = need.link;
+    await tx`update public.tjanst_rows set source_key=${need.sourceKey},class_id=${need.classId},
+      link_revision=${link.linkRevision},timplan_id=${link.timplanId},series_id=${link.seriesId},timplan_version=${link.timplanVersion},
+      timplan_row_key=${need.rowKey},link_column=${link.column},need_label=${need.label},need_ht_minutes=${need.needHt},
+      need_vt_minutes=${need.needVt},need_basis=${need.needBasis} where id=${j1b}`;
+    await tx`update public.tjanst_rows set staff_person_id=${p1.personId} where id=${j2a}`;
+  } else {
   r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: j1b, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, A7, 'biologi').sourceKey, personId: p1.personId, teacherHt: 1350, teacherVt: 1350, comment: '' }));
   r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: j2a, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, B7, 'engelska').sourceKey, personId: p1.personId, teacherHt: 600, teacherVt: 600, comment: '' }));
+  }
   const old = await read(tx, A);
   const g1 = old.joints.find(j => j.name === 'Matematik 7A+7B').id, g2 = old.joints.find(j => j.name === 'Engelska 7B+IM').id;
   const classesOf = id => new Set(old.rows.filter(x => x.jointGroupId === id).map(x => x.sourceKey.split(':')[1])).size;
   assert.equal(classesOf(g1), 1); assert.ok(!old.rows.some(x => x.jointGroupId === g2 && x.personId === p2.personId));
   assert.ok(old.joints.find(j => j.id === g2).teachers.some(t => t.personId === p2.personId));
+  if (afterMode) {
+    assert.ok(codes(old).includes('joint_invalid')); assert.equal(old.capabilities.canPublish, false);
+    check(report, 'efterlägets fixtur: märkt direkt dataändring återskapar äldre ogiltig samläsning utan att skriva om funktioner');
+  } else {
   assert.ok(!codes(old).includes('joint_invalid')); assert.equal(old.capabilities.canPublish, true);
   check(report, 'före-läget visar WR-02: med de gamla funktionerna har en grupp rader i en enda klass och en annan lärartid för en lärare utan rad, utan blockerare (canPublish true)',
     { blockers: codes(old), canPublish: old.capabilities.canPublish });
+  }
   const draftA = { j1a, j1b, j2a, j2b, g1, g2 };
   return { p1: p1.personId, p2: p2.personId, p3: p3.personId, p4: p4.personId, g, nb, nc, mandateA, mandateB, m3, m4, vA: vA.id, vB: vB.id, draftA };
 }
@@ -406,54 +436,29 @@ async function jointRules(tx, report, f, s) {
   check(report, 'regression: empty_draft, stale_rows och person_not_at_school uppstår som förut');
 }
 
-export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
-  const output = resolve(out);
-  assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'REFUSED: use --out /private/tmp/<name>.json');
-  assert.ok(!existsSync(output), 'REFUSED: output exists; choose a new private path');
-  const fd = openSync(output, 'wx', 0o600);
-  const report = { kind: 'tjanst-gap-owned-database', status: 'FAIL', mode: ephemeral ? 'ephemeral' : 'schema-snapshot', checks: [], startedAt: new Date().toISOString(),
-    migration: GAP,
-    limitations: ['Own database and synthetic fixtures only; no installed target written; the target journal is read read-only',
-      ephemeral ? 'Schema built from repository migrations (all except the gap migration) on a private PostgreSQL instance with minimal Supabase stubs, not from an installed target'
-        : 'Schema-only copy of the protected local target, where stage 1 (seven 05.1 migrations) is installed',
-      'Before-state created with the installed (old) functions; repaired-link count refers to that synthetic before-state',
-      'GR/IM plan status and calendars are set directly in the fixture', 'No HTTP/OIDC/browser claim; installation comes in 05.1-13',
-      'SS 12000: Person/Duty/Activity mapping is intended compatibility, no exchange verified'] };
-  const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
-  let source;
+/** Alla namngivna beteendefall körs med återställda roller och full återrullning. */
+async function behaviorChecks(db, report, f, s) {
+  const installed = await allPublicHashes(db), schema = await fingerprint(db);
+  for (const step of [cr01, guards, selfFlow, jointRules]) {
+    const roles = { ...f.roles };
+    try { await db.begin(async tx => { await tx`set local lock_timeout='10s'`; await tx`set local statement_timeout='120s'`; await step(tx, report, f, s); throw rollback; }); }
+    catch (e) { if (e !== rollback) throw e; }
+    finally { Object.assign(f.roles, roles); }
+  }
+  assert.deepEqual(await allPublicHashes(db), installed); assert.equal(await fingerprint(db), schema);
+  check(report, 'alla fall rullas tillbaka utan kvarvarande rader');
+}
+
+/** Historiska reparationsfall har en uttrycklig etapp 1-bas, aldrig en nedgraderad mål-/schemakopia. */
+async function beforeRepairChecks(report) {
+  const exclude = migrationFiles().filter(f => f.slice(0, 14) > tjanstEtapp1Migrations.at(-1).split('/').at(-1).slice(0, 14));
+  const e = await createEphemeralMigratedDb({ exclude });
+  report.beforeDatabase = e.provenance; report.activeBaseline = 'ephemeral-etapp1-before-repair';
   try {
-    report.sources = sources(); persist();
-    if (ephemeral) {
-      const { createEphemeralMigratedDb } = await import('./ephemeral-migrated-db.mjs');
-      const e = await createEphemeralMigratedDb({ exclude: tjanstGapMigrations.map(p => basename(p)) });
-      source = { db: e.db, provenance: e.provenance, close: e.end };
-    } else {
-      const versions = tjanstEtapp1Migrations.map(p => basename(p).slice(0, 14)), gapVersions = tjanstGapMigrations.map(p => basename(p).slice(0, 14));
-      const { assertTarget } = await import('./verify-target.mjs');
-      const { createRequire } = await import('node:module');
-      const target = await assertTarget('protected');
-      const live = createRequire(new URL('../../web/package.json', import.meta.url))('postgres')(target.dbUrl, { max: 1, prepare: false, onnotice: () => {} });
-      try {
-        await live.begin('read only', async t => {
-          const journal = (await t`select version from supabase_migrations.schema_migrations where version>='20261020000000' order by version`).map(r => r.version);
-          assert.deepEqual(journal, versions, 'Target journal must hold exactly the seven stage 1 versions and not the gap version');
-          assert.ok(gapVersions.every(v => !journal.includes(v)));
-          report.targetJournal = { stage1: journal, gapInstalled: false };
-        });
-      } finally { await live.end({ timeout: 5 }); }
-      const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
-      const s = await createNamedTimplanSnapshot();
-      source = { db: s.db, provenance: s.provenance, close: async () => { report.cleanup = await s.cleanup(); } };
-    }
-    report.database = source.provenance; persist();
-    const db = source.db;
-    assert.equal((await db`select count(*)::int n from pg_proc where proname='tjanst_self_command'`)[0].n, 1, 'Stage 1 must be installed');
-    assert.equal((await db`select to_regclass('public.tjanst_self_mandates') r`)[0].r, null, 'Gap migration already present');
-    check(report, ephemeral ? 'tillfällig databas har etapp 1 men inte rättelsen' : 'målets journal har exakt de sju etapp 1-versionerna, och schemakopian har tjanst_self_command men inte tjanst_self_mandates',
-      report.targetJournal);
-    const f = await db.begin(createTjanstFixture);
-    const s = await db.begin(tx => beforeState(tx, report, f));
-    persist();
+    const db = e.db;
+    await assertTjanstSelfMandatesSchema(db, { installed: false });
+    check(report, 'tillfällig databas har etapp 1 men inte rättelsen');
+    const f = await db.begin(createTjanstFixture), s = await db.begin(tx => beforeState(tx, report, f));
     const baseline = { fingerprint: await fingerprint(db), rows: await allPublicHashes(db), functions: await functionMeta(db) };
     try { await db.begin(async tx => { await tx.unsafe(sql(GAP)); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     assert.equal(await fingerprint(db), baseline.fingerprint); assert.deepEqual(await allPublicHashes(db), baseline.rows);
@@ -462,22 +467,67 @@ export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
     const installedRows = await allPublicHashes(db);
     for (const [table, value] of Object.entries(baseline.rows)) assert.deepEqual(installedRows[table], value, table);
     check(report, 'installation i den ägda databasen lämnar alla befintliga rader orörda (person-, klass- och rad-ID oförändrade)', { tables: Object.keys(baseline.rows).length });
+    await assertTjanstSelfMandatesSchema(db, { installed: true });
     await installedChecks(db, report, f, s);
-    const installed = await allPublicHashes(db);
-    for (const step of [cr01, guards, selfFlow, jointRules]) {
-      const roles = { ...f.roles };
-      try { await db.begin(async tx => { await tx`set local lock_timeout='10s'`; await tx`set local statement_timeout='120s'`; await step(tx, report, f, s); throw rollback; }); }
-      catch (e) { if (e !== rollback) throw e; }
-      finally { Object.assign(f.roles, roles); }
-    }
-    assert.deepEqual(await allPublicHashes(db), installed);
+    await behaviorChecks(db, report, f, s);
     await functionChecks(db, report, baseline.functions);
-    check(report, 'alla fall rullas tillbaka utan kvarvarande rader');
+  } finally { await e.end(); report.beforeCleanup = 'complete'; }
+}
+
+export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
+  const output = resolve(out);
+  assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'REFUSED: use --out /private/tmp/<name>.json');
+  assert.ok(!existsSync(output), 'REFUSED: output exists; choose a new private path');
+  const fd = openSync(output, 'wx', 0o600);
+  const report = { kind: 'tjanst-gap-owned-database', status: 'FAIL', mode: ephemeral ? 'ephemeral' : 'schema-snapshot', checks: [], startedAt: new Date().toISOString(),
+    migration: GAP,
+    limitations: ['Own databases and synthetic fixtures only; no installed target written; target journal/schema read in read-only transactions',
+      'Historical before/repair cases use a separate ephemeral PostgreSQL at stage 1 with minimal Supabase stubs',
+      'Schema-copy after cases use current functions; marked direct fixture mutations represent older invalid joint data without downgrading functions',
+      'GR/IM plan status and calendars are set directly in fixtures; no HTTP/OIDC/browser claim',
+      'SS 12000:2024 / OpenAPI 2.1.0: unchanged internal Person/Duty/Activity mapping; no exchange verified'] };
+  const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
+  let snapshot;
+  try {
+    report.sources = sources(); persist();
+    // Even ephemeral mode refuses changed/unknown repository suffixes.
+    const { classifyTjanstMigrations, TJANST_PHASE_START } = await import('./tjanst-migration-state.mjs');
+    classifyTjanstMigrations({ journal: tjanstEtapp1Migrations.map(p => basename(p).slice(0, 14)), sourceHashes:
+      Object.fromEntries(migrationFiles().filter(f => f.slice(0, 14) >= TJANST_PHASE_START).map(f => {
+        const p = 'supabase/migrations/' + f; return [p, createHash('sha256').update(sql(p)).digest('hex')]; })) });
+    const target = ephemeral ? null : await targetPendingMigrations();
+    report.baselineMode = target?.baselineMode ?? 'ephemeral-etapp1';
+    report.pendingMigrations = target?.pendingMigrations ?? [GAP];
+    report.targetJournal = target?.journal; persist();
+    await beforeRepairChecks(report); persist();
+    if (!ephemeral) {
+      snapshot = await createNamedTimplanSnapshot(); report.database = snapshot.provenance;
+      assert.equal(snapshot.provenance.sourceFingerprint, target.fingerprint, 'Målets schema ändrades mellan journal och kopiering');
+      const db = snapshot.db;
+      report.activeBaseline = 'schema-copy:' + target.baselineMode;
+      report.baselineFingerprint = await schemaFingerprint(db);
+      await assertTjanstSelfMandatesSchema(db, { installed: target.installed.length > TJANST_BASELINE_LENGTH });
+      await db.begin(async tx => { for (const p of target.pendingMigrations) await tx.unsafe(sql(p)); await tx`set constraints all immediate`; });
+      report.installedFingerprint = await schemaFingerprint(db);
+      if (!target.pendingMigrations.length) assert.equal(report.installedFingerprint, report.baselineFingerprint, 'Efterläget får inte skrivas om');
+      await assertTjanstSelfMandatesSchema(db, { installed: true });
+      report.grants = await workerGrants(db);
+      assert.deepEqual(report.grants.workerExecute, [...WORKER_ENTRYPOINTS].sort());
+      assert.deepEqual(report.grants.clientRoleExecute, []); assert.deepEqual(report.grants.tablePrivileges, []); assert.deepEqual(report.grants.publicTablePrivileges, []);
+      check(report, 'schemakopian har väntat self-mandatsschema och ACL; endast verifierat väntande suffix har tillämpats', { baselineMode: target.baselineMode, pendingMigrations: target.pendingMigrations });
+      const f = await db.begin(createTjanstFixture), s = await db.begin(tx => beforeState(tx, report, f, true));
+      await behaviorChecks(db, report, f, s);
+      report.finalFingerprint = await schemaFingerprint(db); assert.equal(report.finalFingerprint, report.installedFingerprint);
+      const after = await targetPendingMigrations(); assert.equal(after.fingerprint, target.fingerprint); assert.deepEqual(after.journal, target.journal);
+      report.targetUnchanged = { schema: true, journal: true, targetConnections: 'read only' };
+      check(report, 'målets schema och journal är oförändrade efter schema-copy-proven');
+    }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, where: e.where, stack: e.stack }; }
   finally {
     try { report.finalSources = sources(); assert.deepEqual(report.finalSources, report.sources); } catch (e) { report.sourceFailure = { message: e.message }; }
-    try { await source?.close(); } catch (e) { report.cleanupFailure = { message: e.message }; }
+    try { if (snapshot) report.cleanup = await snapshot.cleanup(); } catch (e) { report.cleanupFailure = { message: e.message }; }
     if (!report.failure && !report.sourceFailure && !report.cleanupFailure) report.status = 'PASS';
+    delete report.activeBaseline;
     report.finishedAt = new Date().toISOString(); persist();
   }
   console.log(report.status === 'PASS' ? `PASS: ${report.checks.length} gap SQL checks (CR-01, WR-02)` : `FAIL: ${report.failure?.message ?? report.sourceFailure?.message ?? report.cleanupFailure?.message}`);

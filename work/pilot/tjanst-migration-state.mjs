@@ -43,7 +43,7 @@ export async function assertTjanstSelfMandatesSchema(db, { installed }) {
     .map(name => ({ name, type: name === 'linked_at' ? 'timestamp with time zone' : 'uuid', required: true })));
   const [rls] = await db`select relrowsecurity r,relforcerowsecurity f from pg_class where oid='public.tjanst_self_mandates'::regclass`;
   assert.ok(rls.r && rls.f, 'Tvingad RLS krävs');
-  const constraints = await db`select pg_get_constraintdef(oid) definition from pg_constraint where conrelid='public.tjanst_self_mandates'::regclass order by 1`;
+  const constraints = await db`select pg_get_constraintdef(oid) definition from pg_constraint where conrelid='public.tjanst_self_mandates'::regclass and contype<>'n' order by 1`;
   assert.deepEqual(constraints.map(c => c.definition), [
     'FOREIGN KEY (access_assignment_id, customer_id, organizer_id) REFERENCES access_assignments(id, customer_id, organizer_id)',
     'FOREIGN KEY (binding_id) REFERENCES staff_person_bindings(id)',
