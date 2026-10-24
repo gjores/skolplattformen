@@ -3,13 +3,15 @@
 // äger bara sina syntetiska data (en egen kund per projekt), sina slumpade IdP-användare och sina skärmbilder.
 // Inga attrapper av autentisering, Worker eller databas. Två transportfel är uttryckligen märkta i fallen där de används.
 import assert from 'node:assert/strict';
+import {createYearPlanCommand,parseYearRequest,parseYearReply,type TjanstYearRowReply} from '../lib/tjanst-year-contract';
+import {parsePlanCommandReply} from '../lib/tjanst-contract';
 import {readFileSync,writeFileSync,mkdirSync,statSync,realpathSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {test,expect,type Browser,type BrowserContext,type Page,type TestInfo} from '@playwright/test';
 import {assertTarget} from '../../work/pilot/verify-target.mjs';
-import {createTjanstOidcFixture,seedTjanstActual,TJANST_ACTUAL_CASES,TJANST_ACTUAL_ROLES} from '../../work/pilot/tjanst-oidc-fixtures.mjs';
+import {createTjanstOidcFixture,seedTjanstActual,captureTjanstPlanHttp,seedTjanstYearCases,tjanstForeignFingerprint,withTjanstHistoryFailure,TJANST_ACTUAL_CASES,TJANST_ACTUAL_ROLES,TJANST_YEAR_CASES,TJANST_PHONE_YEAR_CASES} from '../../work/pilot/tjanst-oidc-fixtures.mjs';
 const postgres=createRequire(import.meta.url)('postgres');
 type Db=ReturnType<typeof postgres>;
 type Fixture=Awaited<ReturnType<typeof createTjanstOidcFixture>>;
@@ -23,8 +25,9 @@ const PHONE=(p:string)=>p.startsWith('phone');
 test.describe.configure({mode:'serial'});
 
 let db:Db,fixture:Fixture|undefined,seed:Seed,project='',baseURL='';
+let lastPublishCommand:Awaited<ReturnType<typeof createYearPlanCommand>>;
 const contexts:Record<string,BrowserContext>={},pages:Record<string,Page>={},network:Record<string,{method:string;path:string;status:number|null;versionId?:string|null}[]>={};
-const result:{status:string;project:string;checks:Check[];screenshots:{file:string;sha256:string;geometry:unknown}[];errors:unknown[];scope?:unknown}={status:'FAIL',project:'',checks:[],screenshots:[],errors:[]};
+const result:{status:string;project:string;checks:Check[];screenshots:{file:string;sha256:string;geometry:unknown}[];errors:unknown[];scope?:unknown;browser?:{name:string;version:string;viewport:unknown};foreignCanary?:{before:unknown;after?:unknown;unchanged?:boolean}}={status:'FAIL',project:'',checks:[],screenshots:[],errors:[]};
 const save=()=>writeFileSync(path.join(evidenceDir,`browser-${project}.json`),JSON.stringify(result,null,2)+'\n',{mode:0o600});
 function pass(name:string,check:string,details?:unknown){result.checks.push({case:name,name:check?`${name}: ${check}`:name,ok:true,...(details===undefined?{}:{details})});save();}
 
@@ -77,9 +80,8 @@ async function openTjanst(page:Page,unitId:string,{navigate=true}:{navigate?:boo
   await expect(ws(page)).toBeVisible();await settled(page);
 }
 
-// oxlint-disable-next-line no-empty-pattern -- Playwright kräver ett objektmönster; provet använder inga fixturer här.
-test.beforeAll(async({},info)=>{
-  project=info.project.name;result.project=project;
+test.beforeAll(async({browser},info)=>{
+  project=info.project.name;result.project=project;result.browser={name:browser.browserType().name(),version:browser.version(),viewport:info.project.use.viewport};
   assert.ok(manifestPath.startsWith('/private/tmp/')&&evidenceDir.startsWith('/private/tmp/'));
   assert.equal(realpathSync(manifestPath),manifestPath);assert.equal(statSync(manifestPath).mode&0o077,0);assert.equal(statSync(evidenceDir).mode&0o077,0);
   const manifest=JSON.parse(readFileSync(manifestPath,'utf8'));
@@ -93,7 +95,7 @@ test.beforeAll(async({},info)=>{
   db=postgres(endpoint.toString(),{max:1,prepare:false,onnotice:()=>{}});
   const [identity]=await db`select current_database() database,(pg_control_system()).system_identifier::text system_identifier`;
   assert.equal(identity.database,manifest.provenance.database);assert.equal(identity.system_identifier,manifest.provenance.source.system_identifier);
-  seed=await seedTjanstActual(db,{published:PHONE(project),linkGrim:project==='desktop-small',schoolB:project==='desktop'||PHONE(project)});result.scope={year:seed.year,customerId:seed.customerId,schools:seed.schools};save();
+  seed=await seedTjanstActual(db,{published:PHONE(project),linkGrim:project==='desktop-small',schoolB:project==='desktop'||PHONE(project)});result.scope={year:seed.year,customerId:seed.customerId,schools:seed.schools};result.foreignCanary={before:await tjanstForeignFingerprint(db,seed)};save();
   const ownDir=path.join(evidenceDir,'oidc-'+project);mkdirSync(ownDir,{mode:0o700});
   const roles=PHONE(project)?['hm','principalA','principalB','teacherSelf']:project==='desktop-small'?['hm','principalA','admin']:[...TJANST_ACTUAL_ROLES];
   fixture=await createTjanstOidcFixture({db,provenance:manifest.provenance,baseURL,evidenceDir:ownDir,seed,roles});
@@ -102,12 +104,13 @@ test.beforeAll(async({},info)=>{
 test.afterAll(async()=>{
   const cleanup:{status:string;cleanup?:unknown;proof?:unknown;databaseClosed?:boolean}={status:'FAIL'};
   try{
-    for(const ctx of Object.values(contexts))await ctx.close();
+    const after=await tjanstForeignFingerprint(db,seed);expect(after).toEqual(result.foreignCanary!.before);result.foreignCanary={...result.foreignCanary!,after,unchanged:true};
     writeFileSync(path.join(evidenceDir,`network-${project}.json`),JSON.stringify(network,null,1)+'\n',{mode:0o600});
     const required=TJANST_ACTUAL_CASES[project as keyof typeof TJANST_ACTUAL_CASES]??[];
     const missing=required.filter(name=>!result.checks.some(c=>c.case===name));
     result.status=missing.length===0&&result.errors.length===0?'PASS':'FAIL';(result as Record<string,unknown>).missing=missing;save();
   }finally{
+    const closed=await Promise.allSettled(Object.values(contexts).map(ctx=>ctx.close()));const closeErrors=closed.filter(x=>x.status==='rejected');if(closeErrors.length){result.errors.push({cleanup:'browser contexts',failures:closeErrors.map(x=>String(x.reason))});result.status='FAIL';}save();
     try{if(fixture){cleanup.cleanup=await fixture.cleanup();cleanup.proof=fixture.proof();cleanup.status='PASS';}}
     finally{if(db)await db.end();cleanup.databaseClosed=true;writeFileSync(path.join(evidenceDir,`oidc-${project}.json`),JSON.stringify(cleanup,null,2)+'\n',{mode:0o600});}
   }
@@ -128,19 +131,24 @@ async function versionsOf(unitId:string){
 async function addTeacher(page:Page,name:string,option=name){
   const start=ws(page).locator('.tjanst-state').getByRole('button',{name:'Lägg till lärare i fördelningen'});
   if(await start.count())await start.click();else await ws(page).locator('.tjanst-actions').getByRole('button',{name:'Lägg till lärare i fördelningen'}).click();
-  const dialog=page.getByRole('dialog',{name:'Lägg till lärare i fördelningen'});await dialog.getByLabel('Lärare').selectOption({label:option});
+  const dialog=page.getByRole('dialog',{name:'Lägg till lärare i fördelningen'});await dialog.getByRole('button',{name:`Välj ${name}`,exact:true}).click();void option;
   await dialog.getByRole('button',{name:'Lägg till läraren'}).click();
   await expect(ws(page).getByText(`${name} är tillagd i fördelningen.`)).toBeVisible();await settled(page);
 }
 /** Sparar en tjänsterad via matriscellen; tom sträng lämnar det förifyllda värdet. */
 async function saveRow(page:Page,teacher:string,course:string,cls:string,{ht,vt}:{ht?:string;vt?:string}){
   const target=cell(page,teacher,course,cls);await target.click();
-  const dialog=page.getByRole('dialog');
+  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();
   if(ht!==undefined)await dialog.getByLabel('Lärartid HT (timmar)').fill(ht);
   if(vt!==undefined)await dialog.getByLabel('Lärartid VT (timmar)').fill(vt);
   const done=page.waitForResponse(responseOf('/api/tjanst/plan/kommando'));
   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();expect((await done).status()).toBe(200);
   await expect(ws(page).getByText(new RegExp(`^Tjänsteraden är sparad: ${esc(teacher)}, ${esc(course)}, ${esc(cls)}, `,'u'))).toBeVisible();await settled(page);
+}
+/** Ett aktivt personval och vanlig radskrivning; ingen separat skapa-utkast-väg. */
+async function beginRevision(page:Page){
+  const target=matrix(page).getByRole('button',{name:/Ändra\.$/u}).first(),label=(await target.getAttribute('aria-label'))!;const teacher=label.split(', ')[0];
+  await target.click();const d=page.getByRole('dialog');await d.getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();await d.getByRole('button',{name:'Spara tjänsteraden',exact:true}).click();await expect(d).toHaveCount(0);await settled(page);
 }
 /** Öppnar rektors Fastställ-panel och publicerar; med stepUp kontrolleras att servern kräver engångskod och step-up görs via knappen. */
 async function publish(page:Page,role:string,versionNo:number,{stepUp=false}={}){
@@ -197,13 +205,13 @@ test('spår: rektor A tilldelar en Gy25-rad och publicerar med engångskod; P1 s
   test.skip(project!=='desktop','Spåret körs på projektet desktop.');
   const p=await signIn(browser,info,'principalA');
   await openTjanst(p,seed.schools.A);
-  await expect(ws(p).getByRole('heading',{name:`Ingen tjänstefördelning för läsåret ${yy()} ännu`})).toBeVisible();
+  await expect(matrix(p)).toBeVisible();expect(await versionsOf(seed.schools.A)).toEqual([]);
   await addTeacher(p,'Pia Ek');
-  await expect(ws(p).getByText('Utkast',{exact:true})).toBeVisible();
+  await expect(ws(p).getByText('Pågående planering',{exact:true})).toBeVisible();
   const first=matrix(p).getByRole('button',{name:/^Pia Ek, .*, SYNBF1: ingen tid\. Tilldela\.$/u}).first();
   const cellName=(await first.getAttribute('aria-label'))??'';const course=cellName.split(', ')[1];
-  await first.click();const dialog=p.getByRole('dialog');
-  await expect(dialog.getByText('Schemalagd tid')).toBeVisible();await expect(dialog.getByText('Underlag saknas')).toBeVisible();
+  await first.click();const dialog=p.getByRole('dialog');await expect(dialog.getByText('Ingen lärare vald',{exact:true})).toBeVisible();await dialog.getByRole('button',{name:'Välj Pia Ek',exact:true}).click();
+  await expect(dialog.getByText('Schemalagd tid')).toBeVisible();await expect(dialog.getByText('Underlag saknas',{exact:true})).toBeVisible();
   await expect(dialog.getByText(/^Källa: .* version 1, ämnesrad /u)).toBeVisible();
   const ht=await dialog.getByLabel('Lärartid HT (timmar)').inputValue();
   await capture(p,'spar-tjansterad');
@@ -245,11 +253,9 @@ test('GR- och IM-klass kopplas av rektor i Timplaner och syns med behov; okoppla
     where c.unit_id=${seed.schools.A} and l.start_year=${seed.year} and c.name in ('SYNGR8','SYNIM') order by c.name`) as {name:string;column_id:string;timplan_id:string}[];
   expect(links.map(l=>[l.name,l.column_id,l.timplan_id])).toEqual([['SYNGR8','ak8',seed.grim.grPlan],['SYNIM','vecka',seed.grim.imPlan]]);
   await openTjanst(p,seed.schools.A);
-  // Publicerad version 1 är skrivskyddad; Ändra i ny version skapar utkastet version 2 och lärarna ser version 1.
-  await expect(matrix(p).getByRole('button',{name:/Ändra\.$|Tilldela\.$/u})).toHaveCount(0);
-  await ws(p).getByRole('button',{name:'Ändra i ny version'}).click();
-  await expect(ws(p).getByText('Utkastet version 2 är skapat. Lärarna ser version 1 tills du publicerar.')).toBeVisible();await settled(p);
-  await expect(ws(p).getByText(/^Lärarna ser version 1, publicerad \d{4}-\d\d-\d\d\.$/u)).toBeVisible();
+  // Första uttryckliga radändring skapar intern revision 2; lärarnas publicering består.
+  await beginRevision(p);
+  expect((await versionsOf(seed.schools.A)).map(v=>[v.no,v.status])).toEqual([[1,'published'],[2,'draft']]);
   const grGroup=matrix(p).locator('tbody').filter({has:p.getByRole('rowheader',{name:/^SYNGR8 · /u})});
   await expect(grGroup.getByRole('rowheader',{name:/^SYNGR8 · .* version 1/u})).toBeVisible();
   const math=grGroup.getByRole('row').filter({has:p.getByRole('rowheader',{name:/^Matematik/u})});
@@ -279,13 +285,13 @@ test('GR- och IM-klass kopplas av rektor i Timplaner och syns med behov; okoppla
   await expect(t.getByText(`version 1, publicerad`,{exact:false}).first()).toBeVisible();
   await expect(t.getByText(/version 2/u)).toHaveCount(0);
   const versions=await versionsOf(seed.schools.A);expect(versions.map(v=>[v.no,v.status])).toEqual([[1,'published'],[2,'draft']]);
-  pass('ny version: läraren ser den tidigare','Ändra i ny version skapar utkastet version 2; statusraden och P1:s Min tjänst visar version 1',{versions});
+  pass('ny version: läraren ser den tidigare','Första vanliga radändringen skapar intern arbetsrevision 2; P1:s Min tjänst visar fortsatt version 1',{versions});
 });
 
 test('äldre version läsbar skrivskyddat (D-24) och fördela tom cell med omläsning; annan skola och annat läsår nekas',async()=>{
   test.skip(project!=='desktop','Körs på projektet desktop.');
   const p=pages.principalA;
-  const versionSelect=ws(p).getByLabel('Visa version');
+  await ws(p).getByRole('button',{name:'Historik',exact:true}).click();const versionSelect=ws(p).getByLabel('Historisk publicering');
   const v1Label=(await versionSelect.locator('option').allInnerTexts()).find(t=>t.startsWith('Version 1 · publicerad'));expect(v1Label).toBeTruthy();
   await versionSelect.selectOption({label:v1Label!});
   await expect(ws(p).getByText(/^Du läser version 1 skrivskyddat, publicerad \d{4}-\d\d-\d\d av .*\. Lärarna ser den här versionen\.$/u)).toBeVisible();
@@ -293,13 +299,13 @@ test('äldre version läsbar skrivskyddat (D-24) och fördela tom cell med omlä
   await expect(matrix(p).getByRole('button',{name:/Ändra\.$|Tilldela\.$/u})).toHaveCount(0);
   await expect(ws(p).getByRole('button',{name:/Lägg till lärare|Lägg till specialuppdrag|Ändra i ny version/u})).toHaveCount(0);
   await capture(p,'d24-aldre-version');
-  await ws(p).getByLabel('Visa version').selectOption({label:'Aktuell version'});await settled(p);
+  await ws(p).getByRole('button',{name:'Tillbaka till planeringen'}).click();await settled(p);
   await expect(ws(p).getByRole('button',{name:'Lägg till specialuppdrag'})).toBeVisible();
   pass('äldre version skrivskyddad (D-24)','Visa version 1 visar hela versionen utan redigeringskontroller och med texten om att lärarna ser den');
   // AE1: tom cell för Tor Berg (person utan konto), förifylld tid, ändrad VT, sparad och omläst.
   await addTeacher(p,'Tor Berg');
   const target=cell(p,'Tor Berg','Matematik','SYNGR8');await expect(target).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: ingen tid. Tilldela.');
-  await target.click();const dialog=p.getByRole('dialog');
+  await target.click();const dialog=p.getByRole('dialog');await dialog.getByRole('button',{name:'Välj Tor Berg',exact:true}).click();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('45');await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('45');
   await dialog.getByLabel('Lärartid VT (timmar)').fill('40');await expect(dialog.getByText('Avvikelse VT: −5 h')).toBeVisible();
   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
@@ -317,12 +323,13 @@ test('äldre version läsbar skrivskyddat (D-24) och fördela tom cell med omlä
   pass('person utan konto får rader','Tor Berg saknar konto och får en tjänsterad');
   // Direktanrop: annan skola och annat läsår.
   const read=await fixture!.request(p,'principalA','/api/tjanst/plan/lasa',{unitId:seed.schools.B,schoolYear:seed.year});expect(read.status).toBe(403);
-  const otherSchool=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(seed.schools.B,seed.year,'create_draft',0,{basedOnVersionId:null}));
+  const ownCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:seed.schools.A,schoolYear:seed.year,action:'add_teacher',payload:{personId:seed.people.t2}});
+  const otherSchool=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createYearPlanCommand({...ownCapture,commandId:crypto.randomUUID(),unitId:seed.schools.B}));
   expect(otherSchool.status).toBe(403);
   const [current]=await db`select d.revision::int r,v.id from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft' where d.unit_id=${seed.schools.A} and d.school_year=${seed.year}`;
   const [sourceRow]=await db`select source_key from public.tjanst_rows where version_id=${current.id} and staff_person_id=${seed.people.t2}`;
-  const otherYear=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(seed.schools.A,seed.year+1,'save_row',current.r,
-    {rowId:null,sourceKind:'class_timplan',sourceKey:sourceRow.source_key,personId:seed.people.t2,teacherHt:60,teacherVt:60,comment:''}));
+  const rowCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:seed.schools.A,schoolYear:seed.year,action:'save_row',choice:'manual',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:sourceRow.source_key,personId:seed.people.t2,teacherHt:60,teacherVt:60,comment:''}});
+  const otherYear=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createYearPlanCommand({...rowCapture,commandId:crypto.randomUUID(),schoolYear:seed.year+1}));
   expect(otherYear.status).toBeGreaterThanOrEqual(400);
   const [count]=await db`select count(*)::int n from public.tjanst_distributions where school_year=${seed.year+1} and unit_id in (${seed.schools.A},${seed.schools.B})`;expect(count.n).toBe(0);
   pass('annan skola och annat läsår nekas','rektor A: läsning av skola B 403, kommando för skola B 403, rad med källa från läsåret i ett annat läsår nekas och inget skrivs',
@@ -334,8 +341,8 @@ test('specialuppdrag: mentor med klass och programansvar utan grupp, skilt från
   const p=pages.principalA;
   const add=async(kind:string,teacher:string,cls:string|null,ht:string,vt:string)=>{
     await ws(p).getByRole('button',{name:'Lägg till specialuppdrag'}).click();const dialog=p.getByRole('dialog');
-    await dialog.getByLabel('Typ').selectOption(kind);await dialog.getByLabel('Lärare').selectOption({label:teacher});
-    if(cls)await dialog.getByLabel('Klass (valfri)').selectOption({label:cls});
+    await dialog.getByLabel('Typ').selectOption(kind);await dialog.getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();
+    if(cls)await dialog.getByLabel('Klass',{exact:true}).selectOption({label:cls});
     await dialog.getByLabel('Tid HT (timmar)').fill(ht);await dialog.getByLabel('Tid VT (timmar)').fill(vt);
     await dialog.getByRole('button',{name:'Spara specialuppdraget'}).click();
   };
@@ -417,12 +424,13 @@ test('administratör förbereder utan beslutsknapp och nekas publicering; rektor
   await expect(ws(admin).getByRole('button',{name:'Lägg till lärare i fördelningen'})).toBeVisible();
   await ws(admin).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
   const panel=ws(admin).getByRole('region',{name:'Fastställ och publicera'});
-  await expect(panel.getByText('Rektor fastställer och publicerar fördelningen. Du kan fortsätta förbereda utkastet.')).toBeVisible();
+  await expect(panel.getByText('Rektor fastställer och publicerar fördelningen. Du kan fortsätta planera.')).toBeVisible();
   // Servern ger skoladministratören discard_draft (förberedelse) men aldrig publish (D-01).
   await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toHaveCount(0);
   await capture(admin,'administrator-panel');
-  const [d]=await db`select d.revision::int r,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft' where d.unit_id=${seed.schools.A} and d.school_year=${seed.year}`;
-  const denied=await fixture!.request(admin,'admin','/api/tjanst/plan/publicera',await createCommand(seed.schools.A,seed.year,'publish',d.r,{},{expectedContentHash:d.h}));
+  const publishCapture=await captureTjanstPlanHttp(fixture!,pages.principalA,'principalA',{unitId:seed.schools.A,schoolYear:seed.year,action:'publish',payload:{}});
+  lastPublishCommand=await createYearPlanCommand({...publishCapture,commandId:crypto.randomUUID()});
+  const denied=await fixture!.request(admin,'admin','/api/tjanst/plan/publicera',lastPublishCommand);
   expect(denied.status).toBe(403);expect(denied.body.code).toBe('forbidden');
   expect((await versionsOf(seed.schools.A)).map(v=>v.status)).toEqual(['published','draft']);
   pass('administratör utan knapp och 403 vid publicering','skoladministratören ser texten om att rektor fastställer, ingen beslutsknapp, och direktanrop till publicera ger 403 utan att något publiceras',{status:denied.status,code:denied.body.code});
@@ -454,12 +462,13 @@ test('administratör förbereder utan beslutsknapp och nekas publicering; rektor
   await rp.getByRole('button',{name:/^Lärarnas återkoppling \(1\)$/u}).click();
   await expect(rp.getByText(/^Pia Ek · /u).first()).toBeVisible();await expect(rp.getByText(/^Kvitterad \d{4}-\d\d-\d\d \d\d:\d\d$/u).first()).toBeVisible();
   await expect(rp.getByText(text)).toBeVisible();
-  await rp.getByRole('button',{name:'Versionshistorik'}).click();
-  await expect(rp.getByText(/^Version 2 · Fastställd och publicerad · .+ · \d{4}-\d\d-\d\d \d\d:\d\d$/u)).toBeVisible();
+  await ws(p).getByRole('button',{name:'Historik',exact:true}).click();await settled(p);
+  await expect(ws(p).getByText(/^Du läser version 2 skrivskyddat, publicerad \d{4}-\d\d-\d\d av .+\. Lärarna ser den här versionen\.$/u)).toBeVisible();
+  const [history]=await db`select published_at,published_by_identity_id from public.tjanst_versions where id=${v2.id}`;expect(history.published_at).toBeTruthy();expect(history.published_by_identity_id).toBeTruthy();
   await capture(p,'rektor-aterkoppling');
   pass('kvittens till tjanst_feedback','P1 trycker Kvittera att jag har läst och skickar en kommentar; POST /api/tjanst/egen/kommando två gånger, tjanst_feedback 0 → 1 ack och 0 → 1 comment, rektor ser båda i panelen',
     {requests:[ackRequest.postDataJSON().action,commentRequest.postDataJSON().action],before,after});
-  pass('versionshistorik med aktör och tid','panelens historik visar version 2 som fastställd och publicerad med aktör och tid');
+  pass('versionshistorik med aktör och tid','Historik visar publicerad version 2 med datum och aktör; lagrad publiceringstid och aktör finns kvar',{history});await ws(p).getByRole('button',{name:'Tillbaka till planeringen'}).click();await settled(p);
 });
 
 test('huvudmannen: Bemanning utan beslutsknapp och 403 vid publicering; Personal med andelar och engångskod',async({browser},info)=>{
@@ -477,8 +486,7 @@ test('huvudmannen: Bemanning utan beslutsknapp och 403 vid publicering; Personal
   for(const name of ['Fastställ och publicera','Ändra i ny version','Lägg till lärare i fördelningen','Lägg till specialuppdrag'])await expect(h.getByRole('button',{name,exact:true})).toHaveCount(0);
   await expect(matrix(h).getByRole('button',{name:/Ändra\.$|Tilldela\.$/u})).toHaveCount(0);
   await capture(h,'bemanning-visa-fordelningen');
-  const [d]=await db`select d.revision::int r,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='published' where d.unit_id=${seed.schools.A} and d.school_year=${seed.year}`;
-  const denied=await fixture!.request(h,'hm','/api/tjanst/plan/publicera',await createCommand(seed.schools.A,seed.year,'publish',d.r,{},{expectedContentHash:d.h}));
+  const denied=await fixture!.request(h,'hm','/api/tjanst/plan/publicera',lastPublishCommand);
   expect(denied.status).toBe(403);
   pass('huvudmannens Bemanning utan beslutsknapp och 403 vid publicering','Bemanning visar Publicerad version 2, Visa fördelningen är skrivskyddad, och direktanrop till publicera ger 403',{status:denied.status,code:denied.body?.code});
   await h.getByRole('button',{name:'Tillbaka till bemanningen'}).click();
@@ -538,9 +546,7 @@ test('huvudmannen: Bemanning utan beslutsknapp och 403 vid publicering; Personal
 test('rektor B ser bara Andel här 40 % och rektor AB nekas läsning när skolan tas bort ur mandatet',async({browser},info)=>{
   test.skip(project!=='desktop','Körs på projektet desktop.');
   const b=await signIn(browser,info,'principalB');await openTjanst(b,seed.schools.B);
-  // 05.1-12: skola B har en publicerad version 1 i seeden (CR-01); rektor B ändrar i en ny version.
-  await ws(b).getByRole('button',{name:'Ändra i ny version'}).click();
-  await expect(ws(b).getByText('Utkastet version 2 är skapat. Lärarna ser version 1 tills du publicerar.')).toBeVisible();await settled(b);
+  // Första explicita tillägget nedan skapar skola B:s interna arbetsrevision.
   await addTeacher(b,'Sara Dahl');
   await expect(matrix(b).getByRole('columnheader',{name:/Sara Dahl/u})).toContainText('Andel här 40\u00a0%');
   await ws(b).getByRole('tab',{name:'Per lärare'}).click();await ws(b).getByLabel('Lärare',{exact:true}).selectOption({label:'Sara Dahl'});
@@ -569,14 +575,13 @@ test('rektor B ser bara Andel här 40 % och rektor AB nekas läsning när skolan
 test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel, MFA och context_changed',async()=>{
   test.skip(project!=='desktop','Körs på projektet desktop.');
   const p=pages.principalA;
-  await ws(p).getByRole('button',{name:'Ändra i ny version'}).click();
-  await expect(ws(p).getByText('Utkastet version 3 är skapat. Lärarna ser version 2 tills du publicerar.')).toBeVisible();await settled(p);
+  await beginRevision(p);expect((await versionsOf(seed.schools.A)).map(v=>[v.no,v.status])).toEqual([[1,'superseded'],[2,'published'],[3,'draft']]);
   const q=await contexts.principalA.newPage();q.on('pageerror',e=>{result.errors.push({role:'principalA-2',message:e.message});save();});
   await q.goto(p.url());const qYear=q.getByLabel('Planeringsläsår',{exact:true});await expect(qYear).toBeVisible();
   if(await qYear.inputValue()!==String(seed.year))await qYear.selectOption(String(seed.year));await settled(q);
   const name='Tor Berg, Matematik, SYNGR8';
   await cell(p,'Tor Berg','Matematik','SYNGR8').click();await cell(q,'Tor Berg','Matematik','SYNGR8').click();
-  const d1=p.getByRole('dialog'),d2=q.getByRole('dialog');
+  const d1=p.getByRole('dialog'),d2=q.getByRole('dialog');await d1.getByRole('button',{name:'Välj Tor Berg',exact:true}).click();await d2.getByRole('button',{name:'Välj Tor Berg',exact:true}).click();
   await d1.getByLabel('Lärartid VT (timmar)').fill('30');await d2.getByLabel('Lärartid VT (timmar)').fill('20');
   await d1.getByRole('button',{name:'Spara tjänsteraden'}).click();await expect(ws(p).getByText(`Tjänsteraden är sparad: ${name}, HT 45 h · VT 30 h.`)).toBeVisible();
   const conflict=q.waitForResponse(responseOf('/api/tjanst/plan/kommando'));
@@ -593,7 +598,7 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   let workerStatus=0;const [commandsBefore]=await db`select count(*)::int n from public.tjanst_commands where action='save_row' and customer_id=${seed.customerId}`;
   await settled(p);await p.route('**/api/tjanst/plan/kommando',async route=>{const real=await route.fetch();workerStatus=real.status();await route.abort('failed');},{times:1});
   const status=p.waitForResponse(responseOf('/api/tjanst/plan/status'));
-  await cell(p,'Tor Berg','Matematik','SYNGR8').click();await p.getByRole('dialog').getByLabel('Lärartid HT (timmar)').fill('40');
+  await cell(p,'Tor Berg','Matematik','SYNGR8').click();await p.getByRole('dialog').getByRole('button',{name:'Välj Tor Berg',exact:true}).click();await p.getByRole('dialog').getByLabel('Lärartid HT (timmar)').fill('40');
   await p.getByRole('dialog').getByRole('button',{name:'Spara tjänsteraden'}).click();
   expect((await status).status()).toBe(200);
   await expect(ws(p).getByText(`Tjänsteraden är sparad: ${name}, HT 40 h · VT 30 h.`)).toBeVisible();await settled(p);
@@ -666,13 +671,10 @@ async function bemanningPublished(browser:Browser,info:TestInfo){
   const A=seed.schools.A,teacher=project==='desktop'?{id:seed.people.t2,name:'Tor Berg'}:{id:seed.people.p1,name:'Pia Ek'};
   if(project==='phone'){
     const p=pages.principalA;
-    const [d]=await db`select d.revision::int r,v.id from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='published' where d.unit_id=${A} and d.school_year=${seed.year}`;
-    const created=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(A,seed.year,'create_draft',d.r,{basedOnVersionId:d.id}));
-    expect(created.status,JSON.stringify(created.body)).toBe(200);
-    const [row]=await db`select r.id,r.source_kind,r.source_key from public.tjanst_rows r join public.tjanst_versions v on v.id=r.version_id and v.status='draft'
+    const [row]=await db`select r.id,r.source_kind,r.source_key from public.tjanst_rows r join public.tjanst_versions v on v.id=r.version_id and v.status='published'
       join public.tjanst_distributions dd on dd.id=v.distribution_id and dd.unit_id=${A} and dd.school_year=${seed.year} where r.staff_person_id=${seed.people.p1}`;
-    const saved=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(A,seed.year,'save_row',created.body.detail.revision,
-      {rowId:row.id,sourceKind:row.source_kind,sourceKey:row.source_key,personId:seed.people.p1,teacherHt:1200,teacherVt:2400,comment:''}));
+    const captured=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:A,schoolYear:seed.year,action:'save_row',choice:'manual',payload:{rowId:row.id,sourceKind:row.source_kind,sourceKey:row.source_key,personId:seed.people.p1,teacherHt:1200,teacherVt:2400,comment:''}});
+    const saved=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createYearPlanCommand({...captured,commandId:crypto.randomUUID()}));
     expect(saved.status,JSON.stringify(saved.body)).toBe(200);
   }
   const versions=await versionsOf(A),published=versions.find(v=>v.status==='published')!,draft=versions.find(v=>v.status==='draft')!;
@@ -691,7 +693,7 @@ async function bemanningPublished(browser:Browser,info:TestInfo){
   await expect(ws(h).locator('.tjanst-readonly')).toHaveText(new RegExp(`^Du läser version ${published.no} skrivskyddat, publicerad \\d{4}-\\d\\d-\\d\\d av .+\\. Lärarna ser den här versionen\\.$`,'u'));
   if(project==='desktop')await expect(footer(h,'Undervisning',teacher.name)).toHaveText(fmt(shown.ht+shown.vt));
   else await expect(ws(h).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts')).toContainText(`UndervisningHT ${fmt(shown.ht)} · VT ${fmt(shown.vt)} · Läsår ${fmt(shown.ht+shown.vt)}`);
-  const choices=ws(h).getByLabel('Visa version');
+  const choices=ws(h).getByLabel('Historisk publicering');
   const options=await choices.count()?await choices.locator('option').allInnerTexts():[];
   expect(options.filter(o=>/Utkast|Aktuell version/u.test(o))).toEqual([]);
   if(project==='desktop')expect(options.length).toBe(versions.filter(v=>v.status==='published'||v.status==='superseded').length);
@@ -802,8 +804,8 @@ test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogil
     from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.id=${id}`)[0];
   const [first]=await db`select r.id from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.version_id=${d.id} order by r.source_key limit 1`;
   const row=await rowOf(first.id);expect(row.person).toBe(seed.people.t3);
-  const denied=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(A,seed.year,'save_row',d.r,
-    {rowId:row.id,sourceKind:'class_timplan',sourceKey:row.source_key,personId:seed.people.t2,teacherHt:row.ht,teacherVt:row.vt,comment:row.comment}));
+  const changedTeacher=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:A,schoolYear:seed.year,action:'save_row',choice:'manual',payload:{rowId:row.id,sourceKind:'class_timplan',sourceKey:row.source_key,personId:seed.people.t2,teacherHt:row.ht,teacherVt:row.vt,comment:row.comment}});
+  const denied=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createYearPlanCommand({...changedTeacher,commandId:crypto.randomUUID()}));
   expect(denied.status).toBe(400);expect(denied.body?.details?.reason).toBe('tjanst_joint_already');
   expect(await rowOf(row.id)).toEqual(row);expect((await draftOf()).r).toBe(d.r);
   const reread=await fixture!.request(p,'principalA','/api/tjanst/plan/lasa',{unitId:A,schoolYear:seed.year});expect(reread.status).toBe(200);
@@ -819,7 +821,8 @@ test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogil
   const now=await draftOf();
   const view=await fixture!.request(p,'principalA','/api/tjanst/plan/lasa',{unitId:A,schoolYear:seed.year});expect(view.status).toBe(200);
   expect(view.body.version).toMatchObject({id:now.id,status:'draft'});
-  const blocked=await fixture!.request(p,'principalA','/api/tjanst/plan/publicera',await createCommand(A,seed.year,'publish',now.r,{},{expectedContentHash:view.body.version.contentHash}));
+  const blockedCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:A,schoolYear:seed.year,action:'publish',payload:{}});
+  const blocked=await fixture!.request(p,'principalA','/api/tjanst/plan/publicera',await createYearPlanCommand({...blockedCapture,commandId:crypto.randomUUID()}));
   expect(blocked.status).toBe(409);expect(blocked.body?.details?.reason).toBe('tjanst_publish_blocked');
   expect((await versionsOf(A)).find(v=>v.id===d.id)?.status).toBe('draft');
   // Lös upp samläsningen i vyn; därefter kan rektor publicera.
@@ -841,7 +844,7 @@ test('liten dator: fördela, samläsning och publicera',async({browser},info)=>{
   const p=await signIn(browser,info,'principalA');await openTjanst(p,seed.schools.A);
   await addTeacher(p,'Tor Berg');
   await expect(cell(p,'Tor Berg','Matematik','SYNGR8')).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: ingen tid. Tilldela.');
-  await cell(p,'Tor Berg','Matematik','SYNGR8').click();const dialog=p.getByRole('dialog');
+  await cell(p,'Tor Berg','Matematik','SYNGR8').click();const dialog=p.getByRole('dialog');await dialog.getByRole('button',{name:'Välj Tor Berg',exact:true}).click();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('45');await dialog.getByLabel('Lärartid VT (timmar)').fill('40');
   await capture(p,'fordela-dialog');
   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
@@ -870,13 +873,13 @@ test('liten dator: fördela, samläsning och publicera',async({browser},info)=>{
   const admin=await signIn(browser,info,'admin');await openTjanst(admin,seed.schools.A);
   await ws(admin).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
   await expect(ws(admin).getByRole('region',{name:'Fastställ och publicera'}).getByRole('button',{name:/Fastställ och publicera…/u})).toHaveCount(0);
-  const [d]=await db`select d.revision::int r,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft' where d.unit_id=${seed.schools.A} and d.school_year=${seed.year}`;
-  const deniedAdmin=await fixture!.request(admin,'admin','/api/tjanst/plan/publicera',await createCommand(seed.schools.A,seed.year,'publish',d.r,{},{expectedContentHash:d.h}));expect(deniedAdmin.status).toBe(403);
+  const capturedPublish=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:seed.schools.A,schoolYear:seed.year,action:'publish',payload:{}});
+  lastPublishCommand=await createYearPlanCommand({...capturedPublish,commandId:crypto.randomUUID()});
+  const deniedAdmin=await fixture!.request(admin,'admin','/api/tjanst/plan/publicera',lastPublishCommand);expect(deniedAdmin.status).toBe(403);
   await fixture!.expireMfa(p,'principalA');await publish(p,'principalA',1,{stepUp:true});
   await capture(p,'publicerad');
   const h=await signIn(browser,info,'hm');
-  const [pd]=await db`select d.revision::int r,v.content_hash h from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='published' where d.unit_id=${seed.schools.A} and d.school_year=${seed.year}`;
-  const deniedHm=await fixture!.request(h,'hm','/api/tjanst/plan/publicera',await createCommand(seed.schools.A,seed.year,'publish',pd.r,{},{expectedContentHash:pd.h}));expect(deniedHm.status).toBe(403);
+  const deniedHm=await fixture!.request(h,'hm','/api/tjanst/plan/publicera',lastPublishCommand);expect(deniedHm.status).toBe(403);
   await h.getByRole('button',{name:'Bemanning',exact:true}).click();await h.getByLabel('Planeringsläsår',{exact:true}).selectOption(String(seed.year));
   await expect(h.locator('table.bemanning-table').getByRole('row').filter({hasText:'Syntetisk skola A'})).toContainText('Publicerad version 1');
   await expect(h.getByRole('button',{name:/Fastställ|Publicera/u})).toHaveCount(0);
@@ -912,7 +915,7 @@ test('telefon: Min tjänst, Per lärare och Bemanning utan redigeringskontroller
   for(const name of ['Ändra i ny version','Lägg till lärare i fördelningen','Lägg upp ny lärare','Lägg till specialuppdrag'])await expect(p.getByRole('button',{name,exact:true})).toHaveCount(0);
   await expect(p.locator('.tjanst-matrix')).toHaveCount(0);await expect(p.getByRole('checkbox')).toHaveCount(0);
   await ws(p).getByRole('region',{name:'Per lärare'}).scrollIntoViewIfNeeded();await capture(p,'per-larare');
-  await ws(p).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  await ws(p).getByRole('button',{name:'Publiceringsstatus',exact:true}).click();
   await expect(ws(p).getByRole('region',{name:'Fastställ och publicera'}).getByRole('button',{name:/Fastställ och publicera…|Ta bort utkastet/u})).toHaveCount(0);
   await capture(p,'per-larare-panel');
   pass('Per lärare på telefon utan redigeringskontroller','rektor ser Per lärare med texten om dator, utan matris, åtgärdsrad, kryssrutor eller beslutsknappar');
@@ -966,3 +969,188 @@ async function createCommand(unitId:string,schoolYear:number,action:string,expec
   const contract=await import('../lib/tjanst-contract.ts');
   return{commandId:crypto.randomUUID(),unitId,schoolYear,action,expectedRevision,payloadHash:await contract.tjanstPayloadHash(action as never,payload as never),payload,...extra};
 }
+
+// 05.1-22: named year cases run after the original regressions. The seed adds real source objects,
+// never fake support hashes. Every direct positive write captures once explicitly before it is sent.
+type YearCases=Awaited<ReturnType<typeof seedTjanstYearCases>>;
+type Need={sourceKey:string;className:string;label:string;classId:string;rowKey:string};
+const scopeA=()=>({unitId:seed.schools.A,schoolYear:seed.year});
+const rowPayload=(need:Need,personId:string|null,ht=60,vt=60,rowId:string|null=null)=>({rowId,sourceKind:'class_timplan' as const,sourceKey:need.sourceKey,personId,teacherHt:ht,teacherVt:vt,comment:''});
+async function yearRow(page:Page,role:string,need:Need,rowId:string|null=null){
+  const q=parseYearRequest({...scopeA(),mode:'row',sourceKey:need.sourceKey,rowId});
+  const response=await fixture!.request(page,role,'/api/tjanst/plan/forhandsvisa',q);expect(response.status,JSON.stringify(response.body)).toBe(200);
+  const support=parseYearReply(response.body,q);assert.equal(support.mode,'row');return support as TjanstYearRowReply;
+}
+async function currentPlan(page:Page,role='principalA'){
+  const response=await fixture!.request(page,role,'/api/tjanst/plan/lasa',scopeA());expect(response.status,JSON.stringify(response.body)).toBe(200);
+  return (await import('../lib/tjanst-contract')).parsePlanReadReply(response.body,scopeA());
+}
+async function sendCaptured(page:Page,role:string,command:Awaited<ReturnType<typeof createYearPlanCommand>>){
+  const response=await fixture!.request(page,role,command.action==='publish'?'/api/tjanst/plan/publicera':'/api/tjanst/plan/kommando',command);if(response.status===200)parsePlanCommandReply(response.body,command);return response;
+}
+async function openNeed(page:Page,need:Need){
+  await ws(page).getByRole('tab',{name:'Matris',exact:true}).click();await cell(page,'Vakant',need.label,need.className).click();
+  const d=page.getByRole('dialog');await expect(d.getByText('Ingen lärare vald',{exact:true})).toBeVisible();return d;
+}
+async function closeEditor(page:Page){await page.getByRole('dialog').getByRole('button',{name:'Stäng utan att spara',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);}
+async function batchApply(page:Page,personId:string){const d=page.getByRole('dialog');await d.getByLabel('Lärare för markerade behov').selectOption(personId);await expect(d.getByRole('button',{name:'Använd valet på markerade behov'})).toBeEnabled();await d.getByRole('button',{name:'Använd valet på markerade behov'}).click();}
+async function batchSave(page:Page,shot?:string){const d=page.getByRole('dialog');await d.getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(d.getByRole('button',{name:'Spara ändringarna',exact:true})).toBeEnabled();if(shot){await d.getByRole('heading',{name:'Förhandsvisning',exact:true}).evaluate(e=>e.scrollIntoView({block:'start'}));await capture(page,shot);}const reply=page.waitForResponse(responseOf('/api/tjanst/plan/kommando')),request=page.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/kommando');await d.getByRole('button',{name:'Spara ändringarna',exact:true}).click();expect((await reply).status()).toBe(200);const sent=(await request).postDataJSON();await expect(d).toHaveCount(0);await settled(page);return sent;}
+function yearPass(index:number,details?:unknown){pass(TJANST_YEAR_CASES[index-1],'verifierat mot egen Worker/OIDC och SQL',details);}
+const rowFacts=(rows:Awaited<ReturnType<typeof currentPlan>>['rows'])=>rows.map(r=>({sourceKey:r.sourceKey,personId:r.personId,teacherHt:r.teacherHt,teacherVt:r.teacherVt,comment:r.comment}));
+
+test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker',async({browser},info)=>{
+  test.skip(PHONE(project),'Telefonens läsfall körs separat.');
+  const year=await seedTjanstYearCases(db,seed) as YearCases,p=pages.principalA;await openTjanst(p,seed.schools.A);await p.reload();await settled(p);
+  const existing=await currentPlan(p),fullId=year.people.fullYear.personId,partId=year.people.partYear.personId;
+  for(const need of [year.core.gy25,year.core.gr,year.core.im]){const d=await openNeed(p,need);await expect(d.getByRole('button',{name:'Spara tjänsteraden',exact:true})).toBeVisible();await closeEditor(p);}
+  yearPass(1,{sources:[year.core.gy25.sourceKey,year.core.gr.sourceKey,year.core.im.sourceKey]});
+  let d=await openNeed(p,year.core.gy25);await expect(d.getByText(/Planerad för samma klass/).first()).toBeVisible();
+  await d.getByLabel('Sök lärare').fill('Ylva');await d.getByLabel('Sök lärare').press('Enter');await expect(d.getByText('Ingen lärare vald',{exact:true})).toBeVisible();
+  const support=await yearRow(p,'principalA',year.core.gy25);expect(support.suggestions.some(s=>s.personId===fullId&&s.reasons.includes('previous_same_class_row'))).toBe(true);
+  await capture(p,'year-suggestions');yearPass(2,{references:support.suggestions.flatMap(s=>s.references)});
+  await d.getByRole('button',{name:'Välj förslaget: Ylva Helår',exact:true}).click();await d.getByLabel('Lärartid HT (timmar)').fill('2');await d.getByLabel('Lärartid VT (timmar)').fill('3');
+  const sent=p.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/kommando');await d.getByRole('button',{name:'Spara tjänsteraden',exact:true}).click();const command=(await sent).postDataJSON();expect(command.payload.planningContext.choice.kind).toBe('suggestion');await expect(d).toHaveCount(0);await settled(p);
+  let state=await currentPlan(p);expect(state.rows.find(r=>r.sourceKey===year.core.gy25.sourceKey&&r.personId===fullId)).toMatchObject({teacherHt:120,teacherVt:180});yearPass(3,{commandId:command.commandId,action:command.action});
+  for(const row of rowFacts(existing.rows))expect(rowFacts(state.rows)).toContainEqual(row);expect(state.specials.map(({id:_id,...rest})=>rest)).toEqual(existing.specials.map(({id:_id,...rest})=>rest));yearPass(4,{preservedRows:existing.rows.length,preservedSpecials:existing.specials.length});
+  if(project==='desktop'){
+    const sameName=await yearRow(p,'principalA',year.core.gr),unproven=await yearRow(p,'principalA',year.gy25.unprovenNeed);
+    expect(sameName.candidates.filter(c=>c.displayName==='Syntetisk Samma namn').map(c=>c.personId).sort((a,b)=>a.localeCompare(b))).toEqual([year.people.twinA.personId,year.people.twinB.personId].sort((a:string,b:string)=>a.localeCompare(b)));
+    for(const suggestion of sameName.suggestions){expect(suggestion.reasons).not.toContain('previous_same_class');expect(suggestion.reasons).not.toContain('previous_same_class_row');expect(suggestion.references.every(r=>r.classId!==year.core.gr.classId)).toBe(true);}
+    expect(sameName.suggestions.some(s=>s.personId===year.people.twinA.personId&&s.reasons.includes('previous_same_row'))).toBe(true);expect(sameName.suggestions.some(s=>s.personId===year.people.twinB.personId)).toBe(false);
+    expect(unproven.suggestions.some(s=>s.reasons.includes('previous_same_class'))).toBe(true);expect(unproven.suggestions.some(s=>s.reasons.includes('previous_same_class_row')||s.reasons.includes('previous_same_row'))).toBe(false);yearPass(5,{newClass:year.core.gr.classId,oldClass:year.history.priorClassId,unproven:unproven.sourceKey});
+  }
+  d=await openNeed(p,year.core.im);await d.getByLabel('Sök lärare').fill('Yngve');await expect(d.getByText(/Gäller en del av läsåret/)).toBeVisible();await expect(d.getByText(`${seed.year+1}-01-11 – ${seed.year+1}-03-01 · 30 %`)).toBeVisible();await expect(d.getByText('Behörighetsunderlag saknas').first()).toBeVisible();await closeEditor(p);yearPass(6,{personId:partId,startsOn:`${seed.year+1}-01-11`,endsOn:`${seed.year+1}-03-01`});
+  if(project==='desktop')await yearDesktopContextCases(browser,info,p,year);
+  // Full group with two teachers and two classes: setup uses explicit captured ordinary commands.
+  for(const need of year.joint.needs)for(const personId of [fullId,partId]){
+    const captured=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(need,personId,600,600)});const reply=await sendCaptured(p,'principalA',await createYearPlanCommand({...captured,commandId:crypto.randomUUID()}));expect(reply.status,JSON.stringify(reply.body)).toBe(200);
+  }
+  state=await currentPlan(p);const groupRows=state.rows.filter(r=>year.joint.needs.some((n:Need)=>n.sourceKey===r.sourceKey)&&[fullId,partId].includes(r.personId!));expect(groupRows).toHaveLength(4);
+  const jointCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_joint',payload:{jointId:null,name:'Syntetisk årssamläsning',rowIds:groupRows.map(r=>r.id),teachers:[{personId:fullId,ht:600,vt:600},{personId:partId,ht:300,vt:300}]}});
+  expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...jointCapture,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
+  await p.reload();await settled(p);await ws(p).getByRole('button',{name:'Flytta uppdrag',exact:true}).click();d=p.getByRole('dialog');await d.getByLabel('Flytta från lärare').selectOption(fullId);await d.getByLabel('Flytta till lärare').selectOption(year.people.moveTarget.personId);await d.getByRole('button',{name:'Bekräfta mållärare',exact:true}).click();
+  await d.getByRole('checkbox',{name:new RegExp(esc(year.joint.needs[0].className)+' · '+esc(year.joint.needs[0].label))}).check();await d.getByRole('button',{name:'Markera lärarens alla rader i samläsningen'}).click();await batchSave(p,'year-group-preview');
+  state=await currentPlan(p);const group=state.joints.find(j=>j.name==='Syntetisk årssamläsning')!;expect(group.teachers).toEqual(expect.arrayContaining([{personId:partId,ht:300,vt:300},{personId:year.people.moveTarget.personId,ht:600,vt:600}]));expect(group.teachers).toHaveLength(2);expect(state.rows.filter(r=>r.jointGroupId===group.id&&r.personId===partId)).toHaveLength(2);yearPass(13,{joint:group.id,teachers:group.teachers,memberCount:group.rowIds.length});
+  // Actual UI checks 100 needs, assigns only those, then proves the 101st remains blank.
+  const bulkBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;
+  await ws(p).getByRole('button',{name:'Massregistrera',exact:true}).click();d=p.getByRole('dialog');const needs=d.getByRole('group',{name:'Behov att registrera'});
+  for(const need of year.bulk.needs.slice(0,100))await needs.getByRole('checkbox',{name:new RegExp('^'+esc(need.className)+' · '+esc(need.label)+'\\s*Behov')}).check();
+  await batchApply(p,year.people.twinB.personId);const last=year.bulk.needs[100];await needs.getByRole('checkbox',{name:new RegExp('^'+esc(last.className)+' · '+esc(last.label)+'\\s*Behov')}).check();await expect(d.getByRole('region',{name:`${last.className} · ${last.label}`,exact:true})).toContainText('Ingen lärare vald');await expect(d.getByRole('button',{name:'Förhandsvisa',exact:true})).toBeDisabled();
+  await needs.getByRole('checkbox',{name:new RegExp('^'+esc(last.className)+' · '+esc(last.label)+'\\s*Behov')}).uncheck();const batch100=await batchSave(p);const after100=await currentPlan(p);expect(after100.rows.filter(r=>r.personId===year.people.twinB.personId)).toHaveLength(100);
+  await ws(p).getByRole('button',{name:'Massregistrera',exact:true}).click();d=p.getByRole('dialog');await d.getByLabel('Sök behov').fill(last.className);await d.getByRole('group',{name:'Behov att registrera'}).getByRole('checkbox',{name:new RegExp('^'+esc(last.className)+' · '+esc(last.label)+'\\s*Behov')}).check();await expect(d.getByRole('region',{name:`${last.className} · ${last.label}`,exact:true})).toContainText('Ingen lärare vald');await batchApply(p,year.people.twinB.personId);const batch1=await batchSave(p);const after101=await currentPlan(p);expect(after101.rows.filter(r=>r.personId===year.people.twinB.personId)).toHaveLength(101);for(const row of after100.rows)expect(after101.rows).toContainEqual(row);expect([batch100.action,batch1.action]).toEqual(['bulk','bulk']);expect([batch100.payload.items.length,batch1.payload.items.length]).toEqual([100,1]);expect(network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length-bulkBefore).toBe(2);yearPass(14,{firstCount:100,secondCount:1,commandIds:[batch100.commandId,batch1.commandId],requests:2,revisionBefore:after100.revision,revisionAfter:after101.revision});
+  if(project==='desktop')await yearDesktopFinalCases(browser,info,p,year);
+  await yearJournalAndLateCases(p,year,info);await capture(p,'year-final');
+});
+
+async function yearDesktopContextCases(browser:Browser,info:TestInfo,p:Page,year:YearCases){
+  const fullId=year.people.fullYear.personId,partId=year.people.partYear.personId;
+  await withTjanstHistoryFailure(db,async()=>{const d=await openNeed(p,year.core.gr);await expect(d.getByRole('heading',{name:'Förslagen kunde inte hämtas'})).toBeVisible();await expect(d.getByText('Du kan fortfarande söka och välja en lärare manuellt.')).toBeVisible();await d.getByRole('button',{name:'Välj Ylva Helår',exact:true}).click();await d.getByLabel('Lärartid HT (timmar)').fill('1');await d.getByLabel('Lärartid VT (timmar)').fill('1');const response=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await d.getByRole('button',{name:'Spara tjänsteraden'}).click();expect((await response).status()).toBe(200);await expect(d).toHaveCount(0);});yearPass(7,{fault:'only tjanst_year_history; original definition, owner and ACL restored'});
+  // Publish through the real route, then edit normally and compare the teacher's actual publication DTO.
+  await fixture!.login(p,'principalA',{stepUp:true,returnTo:'/?vy=tjanst'});await openTjanst(p,seed.schools.A,{navigate:false});
+  const publication=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'publish',payload:{}});expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...publication,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
+  const t=pages.teacherSelf;const selfBefore=await fixture!.request(t,'teacherSelf','/api/tjanst/egen/lasa',{});expect(selfBefore.status).toBe(200);const published=await currentPlan(p),row=published.rows.find(r=>r.sourceKey===year.core.gy25.sourceKey&&r.personId===fullId)!;
+  const normal=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.gy25,fullId,121,180,row.id)});const saved=await sendCaptured(p,'principalA',await createYearPlanCommand({...normal,commandId:crypto.randomUUID()}));expect(saved.status,JSON.stringify(saved.body)).toBe(200);
+  const current=await currentPlan(p);expect(current.version?.status).toBe('draft');expect(current.version?.basedOnVersionId).toBe(published.version?.id);expect((await fixture!.request(t,'teacherSelf','/api/tjanst/egen/lasa',{})).body).toEqual(selfBefore.body);yearPass(8,{publishedVersion:published.version?.id,currentVersion:current.version?.id});
+  // Capture first, change the person through a different real OIDC session, then send the original command.
+  const personCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.im,partId)}),frozenPerson=await createYearPlanCommand({...personCapture,commandId:crypto.randomUUID()});
+  const h=pages.hm??await signIn(browser,info,'hm');await fixture!.login(h,'hm',{stepUp:true,returnTo:'/?vy=personal'});const persons=await fixture!.request(h,'hm','/api/tjanst/personal/lasa',{});expect(persons.status).toBe(200);const person=persons.body.people.find((x:{id:string})=>x.id===partId);expect(person).toBeTruthy();
+  const principalProof=await fixture!.view(p,'principalA'),hmProof=await fixture!.view(h,'hm');expect(hmProof.identityId).not.toBe(principalProof.identityId);expect(hmProof.sessionId).not.toBe(principalProof.sessionId);
+  const changed=await fixture!.request(h,'hm','/api/tjanst/personal/kommando',{commandId:crypto.randomUUID(),action:'save_duties',expectedRevision:person.revision,payload:{personId:partId,employmentId:year.people.partYear.employmentId,duties:person.employments.find((e:{id:string})=>e.id===year.people.partYear.employmentId).duties.map((d:{id:string;unitId:string;percent:number;startsOn:string;endsOn:string|null})=>({dutyId:d.id,unitId:d.unitId,percent:d.unitId===seed.schools.A&&d.startsOn===`${seed.year+1}-01-11`?25:d.percent,startsOn:d.startsOn,endsOn:d.endsOn}))}});expect(changed.status,JSON.stringify(changed.body)).toBe(200);
+  const beforePerson=await currentPlan(p),stalePerson=await sendCaptured(p,'principalA',frozenPerson);expect(stalePerson.status).toBe(409);expect(stalePerson.body.details.reason).toBe('tjanst_stale_person');const afterPerson=await currentPlan(p);expect(afterPerson.revision).toBe(beforePerson.revision);expect(afterPerson.rows).toEqual(beforePerson.rows);yearPass(9,{commandId:frozenPerson.commandId,reason:stalePerson.body.details.reason,sessions:{principal:principalProof.sessionId,other:hmProof.sessionId},identitiesDistinct:true});
+  const oldGr=afterPerson.rows.find(r=>r.sourceKey===year.core.gr.sourceKey&&r.personId===fullId)!;
+  const coreCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.gr,fullId,60,60,oldGr.id)}),frozenCore=await createYearPlanCommand({...coreCapture,commandId:crypto.randomUUID()});
+  const ab=pages.principalAB??await signIn(browser,info,'principalAB');await fixture!.login(ab,'principalAB',{stepUp:true,returnTo:'/?vy=tjanst'});
+  const abProof=await fixture!.view(ab,'principalAB');expect(abProof.identityId).not.toBe(principalProof.identityId);expect(abProof.sessionId).not.toBe(principalProof.sessionId);
+  const [link]=await db`select l.revision::int revision,l.column_id,t.lifecycle_revision::int plan_revision from public.class_timplans l join public.timplans t on t.id=l.timplan_id where l.class_id=${year.grim.grClassId} and l.start_year=${seed.year}`;
+  const linkReply=await fixture!.request(ab,'principalAB','/api/klasser/grim/koppla',{commandId:crypto.randomUUID(),classId:year.grim.grClassId,planId:year.grim.grPlanId,expectedPlanRevision:link.plan_revision,columnId:'ak9',expectedLinkRevision:link.revision,previousPlanId:year.grim.grPlanId});expect(linkReply.status,JSON.stringify(linkReply.body)).toBe(200);
+  const staleCore=await sendCaptured(p,'principalA',frozenCore);expect(staleCore.status).toBe(409);expect(staleCore.body.details.reason).toBe('tjanst_stale_basis');expect((await currentPlan(p)).revision).toBe(afterPerson.revision);
+  const restored=await fixture!.request(ab,'principalAB','/api/klasser/grim/koppla',{commandId:crypto.randomUUID(),classId:year.grim.grClassId,planId:year.grim.grPlanId,expectedPlanRevision:link.plan_revision,columnId:link.column_id,expectedLinkRevision:linkReply.body.revision,previousPlanId:year.grim.grPlanId});expect(restored.status,JSON.stringify(restored.body)).toBe(200);const recoverCore=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.gr,fullId,oldGr.teacherHt,oldGr.teacherVt,oldGr.id)}),recoveredCore=await createYearPlanCommand({...recoverCore,commandId:crypto.randomUUID()});expect((await sendCaptured(p,'principalA',recoveredCore))).toMatchObject({status:200});yearPass(10,{commandId:frozenCore.commandId,reason:staleCore.body.details.reason,sessions:{principal:principalProof.sessionId,other:abProof.sessionId},identitiesDistinct:true,explicitNewRecoveryCommand:recoveredCore.commandId});
+  const rowNow=(await currentPlan(p)).rows.find(r=>r.sourceKey===year.core.gy25.sourceKey&&r.personId===fullId)!;
+  const support=await yearRow(p,'principalA',year.core.gy25,rowNow.id),suggestion=support.suggestions.find(s=>s.personId===fullId)!;const candidate=support.candidates.find(c=>c.personId===fullId)!;
+  const evidenceCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',payload:rowPayload(year.core.gy25,fullId,121,180,rowNow.id),choice:{kind:'suggestion',personId:fullId,expectedPersonBasisHash:candidate.personBasisHash,suggestionId:suggestion.suggestionId,expectedEvidenceHash:suggestion.evidenceHash}}),frozenEvidence=await createYearPlanCommand({...evidenceCapture,commandId:crypto.randomUUID()});
+  const evidenceProof=await fixture!.view(ab,'principalAB');expect(evidenceProof.identityId).not.toBe(principalProof.identityId);expect(evidenceProof.sessionId).not.toBe(principalProof.sessionId);
+  const old=year.history.rows.find((r:{sourceKey:string})=>r.sourceKey===year.gy25.priorSourceKey)!;
+  const pastCapture=await captureTjanstPlanHttp(fixture!,ab,'principalAB',{...year.priorScope,action:'save_row',choice:'manual',payload:{rowId:old.id,sourceKind:'class_timplan',sourceKey:old.sourceKey,personId:fullId,teacherHt:601,teacherVt:600,comment:'Syntetiskt ändrad tidigare planering'}});expect((await sendCaptured(ab,'principalAB',await createYearPlanCommand({...pastCapture,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
+  const pastPublish=await captureTjanstPlanHttp(fixture!,ab,'principalAB',{...year.priorScope,action:'publish',payload:{}});expect((await sendCaptured(ab,'principalAB',await createYearPlanCommand({...pastPublish,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
+  const beforeEvidence=await currentPlan(p),staleEvidence=await sendCaptured(p,'principalA',frozenEvidence);expect(staleEvidence.status).toBe(409);expect(staleEvidence.body.details.reason).toBe('tjanst_stale_evidence');expect((await currentPlan(p)).rows).toEqual(beforeEvidence.rows);yearPass(11,{commandId:frozenEvidence.commandId,reason:staleEvidence.body.details.reason,sessions:{principal:principalProof.sessionId,other:evidenceProof.sessionId},identitiesDistinct:true});
+  const noContext=await createCommand(seed.schools.A,seed.year,'save_row',beforeEvidence.revision,rowPayload(year.core.im,partId));const rejected=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',noContext);expect(rejected.status).toBe(400);
+  const legacy=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createCommand(seed.schools.A,seed.year,'create_draft',beforeEvidence.revision,{basedOnVersionId:beforeEvidence.version?.id}));expect(legacy.status).toBe(400);expect((await currentPlan(p)).revision).toBe(beforeEvidence.revision);yearPass(12,{contextless:rejected.status,legacyCreate:legacy.status});await p.reload();await settled(p);
+}
+
+async function publishedObjects(){
+  const [snapshot]=await db`with old as(select v.id from public.tjanst_versions v join public.tjanst_distributions d on d.id=v.distribution_id where d.unit_id=${seed.schools.A} and d.school_year=${seed.year} and v.status in ('published','superseded'))
+    select jsonb_build_object(
+      'versions',(select jsonb_agg(to_jsonb(v) order by v.id) from public.tjanst_versions v where v.id in(select id from old)),
+      'rows',(select jsonb_agg(to_jsonb(r) order by r.id) from public.tjanst_rows r where r.version_id in(select id from old)),
+      'specials',(select jsonb_agg(to_jsonb(s) order by s.id) from public.tjanst_special_assignments s where s.version_id in(select id from old)),
+      'teachers',(select jsonb_agg(to_jsonb(t) order by t.version_id,t.staff_person_id) from public.tjanst_version_teachers t where t.version_id in(select id from old)),
+      'joints',(select jsonb_agg(to_jsonb(g) order by g.id) from public.tjanst_joint_groups g where g.version_id in(select id from old)),
+      'members',(select jsonb_agg(to_jsonb(m) order by m.group_id,m.row_id) from public.tjanst_joint_members m join public.tjanst_joint_groups g on g.id=m.group_id where g.version_id in(select id from old)),
+      'times',(select jsonb_agg(to_jsonb(t) order by t.group_id,t.staff_person_id) from public.tjanst_joint_teacher_time t join public.tjanst_joint_groups g on g.id=t.group_id where g.version_id in(select id from old))) value`;
+  return snapshot.value;
+}
+
+async function yearDesktopFinalCases(browser:Browser,info:TestInfo,p:Page,year:YearCases){
+  const before=await currentPlan(p),support=await yearRow(p,'principalA',year.core.im),candidate=support.candidates.find(c=>c.personId===year.people.partYear.personId)!;
+  const batch={action:'bulk' as const,baseVersionId:support.baseVersionId,items:[{itemKey:'audit',kind:'row' as const,payload:{...rowPayload(year.core.im,candidate.personId),planningContext:{baseVersionId:support.baseVersionId,expectedBasisHash:support.basisHash,choice:{kind:'manual' as const,personId:candidate.personId,expectedPersonBasisHash:candidate.personBasisHash}}}}]};
+  await db.unsafe(`create function public.tjanst22_audit_fault() returns trigger language plpgsql as $f$ begin if new.action='tjanst_year_preview_read' and new.outcome='ok' and new.customer_id='${seed.customerId}' then raise exception 'synthetic year audit outage'; end if; return new; end $f$`);
+  await db.unsafe('create trigger tjanst22_audit_fault before insert on public.security_events for each row execute function public.tjanst22_audit_fault()');
+  try{for(const body of [{...scopeA(),mode:'row',sourceKey:year.core.im.sourceKey,rowId:null},{...scopeA(),mode:'batch',batch}]){const response=await fixture!.request(p,'principalA','/api/tjanst/plan/forhandsvisa',body);expect(response.status).toBeGreaterThanOrEqual(500);expect(response.body.code).toBe('audit_unavailable');}}
+  finally{await db.unsafe('drop trigger tjanst22_audit_fault on public.security_events');await db.unsafe('drop function public.tjanst22_audit_fault()');}
+  expect((await currentPlan(p)).revision).toBe(before.revision);yearPass(15,{rowAndBatchAudit:'audit_unavailable',revision:before.revision});
+  const admin=pages.admin??await signIn(browser,info,'admin');await openTjanst(admin,seed.schools.A);const start=network.admin.length;await ws(admin).getByRole('button',{name:'Lägg till lärare i fördelningen',exact:true}).click();const d=admin.getByRole('dialog');await expect(d.getByRole('button',{name:'Välj Yngve Delår',exact:true})).toBeVisible();await expect(d.getByRole('button',{name:'Lägg upp ny lärare',exact:true})).toHaveCount(0);await closeEditor(admin);expect(network.admin.slice(start).some(r=>r.path==='/api/tjanst/personal/lasa')).toBe(false);
+  const h=pages.hm??await signIn(browser,info,'hm'),self=pages.teacherSelf,b=pages.principalB??await signIn(browser,info,'principalB');
+  for(const [page,role] of [[h,'hm'],[self,'teacherSelf'],[b,'principalB']] as const){const denied=await fixture!.request(page,role,'/api/tjanst/plan/forhandsvisa',{...scopeA(),mode:'catalog'});expect(denied.status).toBe(403);}yearPass(18,{catalogueOnly:true,denied:['hm','teacherSelf','principalB']});
+  // The published version, identity and mandate are retained while an expired school share is repaired explicitly.
+  await fixture!.login(h,'hm',{stepUp:true,returnTo:'/?vy=personal'});const staff=await fixture!.request(h,'hm','/api/tjanst/personal/lasa',{});const person=staff.body.people.find((x:{id:string})=>x.id===year.people.fullYear.personId);expect(person).toBeTruthy();
+  const historyBefore=await publishedObjects();
+  const [identityBefore]=await db`select count(*)::int people from public.staff_people where id=${person.id}`;const mandatesBefore=await db`select * from public.access_assignments where customer_id=${seed.customerId} order by id`;
+  const expire=await fixture!.request(h,'hm','/api/tjanst/personal/kommando',{commandId:crypto.randomUUID(),action:'save_duties',expectedRevision:person.revision,payload:{personId:person.id,employmentId:year.people.fullYear.employmentId,duties:person.employments.find((e:{id:string})=>e.id===year.people.fullYear.employmentId).duties.map((d:{id:string;unitId:string;percent:number;startsOn:string;endsOn:string|null})=>({dutyId:d.id,unitId:d.unitId,percent:d.percent,startsOn:d.startsOn,endsOn:d.unitId===seed.schools.A?`${seed.year-1}-12-31`:d.endsOn}))}});expect(expire.status,JSON.stringify(expire.body)).toBe(200);
+  const blocked=await currentPlan(p);expect(blocked.blockers.some(x=>x.code==='person_not_at_school')).toBe(true);
+  const publishCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'publish',payload:{}});const publishDenied=await sendCaptured(p,'principalA',await createYearPlanCommand({...publishCapture,commandId:crypto.randomUUID()}));expect(publishDenied.status).toBe(409);expect(publishDenied.body.details.reason).toBe('tjanst_publish_blocked');
+  const notEmptyCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'remove_teacher',payload:{personId:person.id}}),notEmpty=await sendCaptured(p,'principalA',await createYearPlanCommand({...notEmptyCapture,commandId:crypto.randomUUID()}));expect(notEmpty.status).toBe(400);expect(notEmpty.body.details.reason).toBe('tjanst_teacher_not_empty');
+  await p.reload();await settled(p);await ws(p).getByRole('button',{name:'Flytta uppdrag',exact:true}).click();const move=p.getByRole('dialog');await move.getByLabel('Flytta från lärare').selectOption(person.id);await move.getByLabel('Flytta till lärare').selectOption(year.people.moveTarget.personId);await move.getByRole('button',{name:'Bekräfta mållärare'}).click();const checks=move.getByRole('region',{name:'Uppdrag att flytta'}).getByRole('checkbox');expect(await checks.count()).toBeGreaterThan(0);for(const c of await checks.all())await c.check();await batchSave(p);
+  // UI removal sends the current catalogue basis, even though the removed teacher is absent from candidates.
+  await ws(p).locator('.tjanst-empty-columns summary').click();await ws(p).locator('.tjanst-empty-columns > div').filter({hasText:'Ylva Helår'}).getByRole('button',{name:'Ta bort tom lärarkolumn…'}).click();const removal=p.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/kommando');await p.getByRole('dialog').getByRole('button',{name:'Ta bort kolumnen',exact:true}).click();const removeCommand=(await removal).postDataJSON();await expect(p.getByRole('dialog')).toHaveCount(0);const cleaned=await currentPlan(p);expect(cleaned.teachers.some(t=>t.personId===person.id)).toBe(false);expect(cleaned.blockers.some(x=>x.code==='person_not_at_school')).toBe(false);
+  const historyAfter=await publishedObjects();expect(historyAfter).toEqual(historyBefore);expect((await db`select count(*)::int people from public.staff_people where id=${person.id}`)[0]).toEqual(identityBefore);expect(await db`select * from public.access_assignments where customer_id=${seed.customerId} order by id`).toEqual(mandatesBefore);yearPass(19,{personId:person.id,historyUnchanged:true,personAndMandateUnchanged:true});
+  const replay=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',removeCommand);expect(replay.status,JSON.stringify(replay.body)).toBe(200);expect(replay.body.receipt.replayed).toBe(true);expect((await currentPlan(p)).revision).toBe(cleaned.revision);yearPass(20,{notEmpty:notEmpty.body.details.reason,replayed:replay.body.receipt.replayed,revision:cleaned.revision});
+  const repairedCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'publish',payload:{}});const repaired=await sendCaptured(p,'principalA',await createYearPlanCommand({...repairedCapture,commandId:crypto.randomUUID()}));expect(repaired.status,JSON.stringify(repaired.body)).toBe(200);expect(repaired.body.detail.version.status).toBe('published');await p.reload();await settled(p);
+}
+
+async function yearJournalAndLateCases(p:Page,year:YearCases,info:TestInfo){
+  // Both directions: the real Worker commits, only the response transport is dropped, and status initially fails.
+  const partId=year.people.partYear.personId,targetId=year.people.moveTarget.personId;
+  for(const kind of ['row','bulk'] as const){
+    let workerStatus=0,sentCommandId='';await p.route('**/api/tjanst/plan/kommando',async route=>{sentCommandId=route.request().postDataJSON().commandId;const actual=await route.fetch();workerStatus=actual.status();await route.abort('failed');},{times:1});await p.route('**/api/tjanst/plan/status',route=>route.abort('failed'),{times:1});
+    if(kind==='row'){const d=await openNeed(p,year.core.im);await d.getByRole('button',{name:'Välj Yngve Delår',exact:true}).click();await d.getByLabel('Lärartid HT (timmar)').fill('4');await d.getByLabel('Lärartid VT (timmar)').fill('5');await d.getByRole('button',{name:'Spara tjänsteraden'}).click();}
+    else{await ws(p).getByRole('button',{name:'Massregistrera',exact:true}).click();const d=p.getByRole('dialog');await d.getByRole('group',{name:'Behov att registrera'}).getByRole('checkbox',{name:new RegExp('^'+esc(year.core.im.className)+' · '+esc(year.core.im.label))}).check();await batchApply(p,targetId);await d.getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(d.getByRole('button',{name:'Spara ändringarna'})).toBeEnabled();await d.getByRole('button',{name:'Spara ändringarna'}).click();}
+    const d=p.getByRole('dialog');await expect(d).toContainText('Det gick inte att avgöra om ändringen sparades.');expect(workerStatus).toBe(200);await closeEditor(p);await expect(ws(p).getByRole('button',{name:'Massregistrera',exact:true})).toHaveCount(0);await expect(matrix(p).getByRole('button',{name:/Tilldela\.|Ändra\./})).toHaveCount(0);
+    const [countBefore]=await db`select count(*)::int n from public.tjanst_commands where customer_id=${seed.customerId} and command_id=${sentCommandId}`;expect(countBefore.n).toBe(1);const status=p.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/status');await ws(p).getByRole('button',{name:'Kontrollera sparstatus'}).click();expect((await status).postDataJSON().commandId).toBe(sentCommandId);await expect(ws(p).getByRole('button',{name:'Massregistrera',exact:true})).toBeVisible();const [countAfter]=await db`select count(*)::int n from public.tjanst_commands where customer_id=${seed.customerId} and command_id=${sentCommandId}`;expect(countAfter.n).toBe(1);
+    if(kind==='row'&&project==='desktop')yearPass(16,{commandId:sentCommandId,workerStatus,savedOnce:true});
+  }
+  yearPass(17,{bothDirections:true,statusRefBound:true,personId:partId});
+  // A real response is produced before the older request is held. A newer row's manual input wins.
+  let release:()=>void=()=>{},produced=false;const held=new Promise<void>(r=>{release=r;});
+  await p.route('**/api/tjanst/plan/forhandsvisa',async route=>{const actual=await route.fetch();produced=true;await held;await route.fulfill({response:actual});},{times:1});
+  await cell(p,'Vakant',year.core.gr.label,year.core.gr.className).click();await expect.poll(()=>produced).toBe(true);
+  await cell(p,'Vakant',year.core.gy25.label,year.core.gy25.className).click();let d=p.getByRole('dialog');await d.getByRole('button',{name:'Välj Yngve Delår',exact:true}).click();await d.getByLabel('Lärartid HT (timmar)').fill('7');release();await expect(d.getByText('Vald lärare: Yngve Delår',{exact:true})).toBeVisible();await expect(d.getByLabel('Lärartid HT (timmar)')).toHaveValue('7');await closeEditor(p);
+  await ws(p).getByRole('button',{name:'Massregistrera',exact:true}).click();d=p.getByRole('dialog');await d.getByRole('group',{name:'Behov att registrera'}).getByRole('checkbox',{name:new RegExp('^'+esc(year.core.gy25.className)+' · '+esc(year.core.gy25.label))}).check();await batchApply(p,partId);const row=d.getByRole('region',{name:`${year.core.gy25.className} · ${year.core.gy25.label}`,exact:true});await row.getByLabel('Lärartid HT (timmar)').fill('7');
+  await d.getByRole('button',{name:'Hämta nytt planeringsstöd',exact:true}).click();await expect(d.getByRole('button',{name:'Använd valet på markerade behov'})).toBeEnabled();await expect(row.getByLabel('Lärartid HT (timmar)')).toHaveValue('7');await batchApply(p,partId);
+  const count=network.principalA.filter(r=>r.path==='/api/tjanst/plan/forhandsvisa').length;await p.setViewportSize({width:390,height:844});await expect(p.getByRole('dialog')).toHaveCount(0);await expect(ws(p).getByRole('button',{name:'Massregistrera',exact:true})).toHaveCount(0);expect(network.principalA.filter(r=>r.path==='/api/tjanst/plan/forhandsvisa').length).toBe(count);
+  await p.setViewportSize(info.project.use.viewport!);await expect(row.getByLabel('Lärartid HT (timmar)')).toHaveValue('7');await expect(row).toContainText('Vald lärare: Yngve Delår');await closeEditor(p);yearPass(21,{producedResponseHeld:true,explicitRefreshPreservesInput:true,phoneNoSupportReads:true});
+}
+
+test('år på telefon: publicerad tjänst, läsbar planering och kvittens',async({browser},info)=>{
+  test.skip(!PHONE(project),'Telefonfallen körs i telefonprofilerna.');
+  const year=await seedTjanstYearCases(db,seed) as YearCases,p=pages.principalA,t=pages.teacherSelf;await fixture!.login(p,'principalA',{stepUp:true,returnTo:'/?vy=tjanst'});await openTjanst(p,seed.schools.A,{navigate:false});
+  const selfBefore=await fixture!.request(t,'teacherSelf','/api/tjanst/egen/lasa',{});expect(selfBefore.status).toBe(200);const current=await currentPlan(p),row=current.rows.find(r=>r.personId===seed.people.p1)!;
+  // Explicit HTTP setup represents work on a separate desktop; the phone UI never offers the write.
+  const captured=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:{rowId:row.id,sourceKind:'class_timplan',sourceKey:row.sourceKey,personId:row.personId,teacherHt:row.teacherHt+1,teacherVt:row.teacherVt,comment:row.comment}});expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...captured,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
+  expect((await fixture!.request(t,'teacherSelf','/api/tjanst/egen/lasa',{})).body).toEqual(selfBefore.body);await t.reload();await expect(t.getByText(/version 1, publicerad/).first()).toBeVisible();pass(TJANST_PHONE_YEAR_CASES[0],'Self-DTO och publicerad version består medan vanlig radändring ligger opublicerad');
+  await p.reload();await settled(p);await expect(ws(p).getByRole('button',{name:/Flytta uppdrag|Massregistrera|Lägg till|Ta bort tom|Tilldela|Ändra\./})).toHaveCount(0);await expect(p.locator('.tjanst-matrix')).toHaveCount(0);
+  await ws(p).getByRole('button',{name:'Publiceringsstatus',exact:true}).click();await expect(ws(p).getByRole('region',{name:'Fastställ och publicera'}).getByRole('button',{name:/Fastställ och publicera|Ta bort/})).toHaveCount(0);await ws(p).getByRole('button',{name:'Dölj publiceringsstatus',exact:true}).click();pass(TJANST_PHONE_YEAR_CASES[1],'Vanlig rad, batch, borttagning och publicering saknar skrivkontroller');
+  const partCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.im,year.people.partYear.personId,120,180)});expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...partCapture,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
+  const publishCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'publish',payload:{}});const published=await sendCaptured(p,'principalA',await createYearPlanCommand({...publishCapture,commandId:crypto.randomUUID()}));expect(published.status,JSON.stringify(published.body)).toBe(200);const version=published.body.detail.version;
+  await t.reload();const card=t.locator('.min-tjanst-card').filter({hasText:'Syntetisk skola A'});await expect(card.getByText(`Rektor har publicerat version ${version.versionNo}. Läs igenom och kvittera den nya versionen.`)).toBeVisible();const [beforeAck]=await db`select count(*)::int n from public.tjanst_feedback where version_id=${version.id} and staff_person_id=${seed.people.p1} and kind='ack'`;expect(beforeAck.n).toBe(0);await card.getByRole('button',{name:'Kvittera att jag har läst'}).click();await expect(card.getByText(`Du har kvitterat version ${version.versionNo}.`)).toBeVisible();const [afterAck]=await db`select count(*)::int n from public.tjanst_feedback where version_id=${version.id} and staff_person_id=${seed.people.p1} and kind='ack'`;expect(afterAck.n).toBe(1);await capture(t,'year-phone-self');pass(TJANST_PHONE_YEAR_CASES[2],'Ny riktig publicering läses och kvitteras en gång',{versionId:version.id,versionNo:version.versionNo});
+  await p.reload();await settled(p);await ws(p).getByRole('combobox',{name:'Vy',exact:true}).selectOption('larare');await ws(p).getByLabel('Lärare',{exact:true}).selectOption(year.people.partYear.personId);const view=ws(p).getByRole('region',{name:'Per lärare'});await expect(view).toContainText('Yngve Delår');await expect(view).toContainText('Andel här30');await expect(view).toContainText('5 h');await expect(ws(p).locator('.tjanst-subline')).toContainText(yy());await capture(p,'year-phone-current');pass(TJANST_PHONE_YEAR_CASES[3],'Läsår, publicerat innehåll och lärare med verklig delårsandel läses utan sidledsrullning',{startsOn:`${seed.year+1}-01-11`,endsOn:`${seed.year+1}-03-01`,share:30});void browser;void info;
+});

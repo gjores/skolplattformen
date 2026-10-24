@@ -1,6 +1,6 @@
 import {defineConfig,devices} from '@playwright/test';
 import path from 'node:path';
-// 05.1-09: faktiskt prov av tjänstefördelningen. Startas bara av work/pilot/verify-tjanst-actual.mjs, som äger
+// 05.1-22: faktiskt prov av tjänstefördelningen. Startas bara av work/pilot/verify-tjanst-actual.mjs, som äger
 // kandidaten, Worker på 127.0.0.1:3015, schemakopian och det privata manifestet. Andra mål nekas.
 const baseURL=process.env.PHASE5_BASE_URL;
 const manifest=process.env.TJANST_ACTUAL_MANIFEST;
@@ -16,7 +16,7 @@ export default defineConfig({
   projects:[
     {name:'desktop',use:{...devices['Desktop Chrome'],...common,viewport:{width:1440,height:900}}},
     {name:'desktop-small',use:{...devices['Desktop Chrome'],...common,viewport:{width:1024,height:768}}},
-    {name:'phone',use:{...devices['iPhone 13'],...common}},
-    {name:'phone-small',use:{...devices['iPhone 13'],...common,viewport:{width:320,height:740}}},
+    {name:'phone',use:{...devices['iPhone 13'],...common,browserName:'webkit'}},
+    {name:'phone-small',use:{...devices['iPhone 13'],...common,browserName:'webkit',viewport:{width:320,height:740}}},
   ],
 });
