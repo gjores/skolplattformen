@@ -13,6 +13,7 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   ['supabase/migrations/20261023100000_tjanst_publish_person_scope.sql', '791b116b2959fa8724f2cd0d83d72cb04d517ad574ed57c82135dc1d0e378642'],
   ['supabase/migrations/20261023110000_tjanst_year_preview.sql', '33ccc9a28144148fca80be9885617dc05d1fea37e02dce92b34b47e78fdea2b2'],
   ['supabase/migrations/20261023120000_tjanst_year_commands.sql', '1cab1d80c39b672eda6f4a0c552b4bf8bc4f198c18319a14b03498fe5b4ea95e'],
+  ['supabase/migrations/20261023130000_tjanst_year_worker_access.sql', '926aec137deb721811b8a84e6779b580d8cd005564e47cdaf4cab82908e9932f'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;
 export const TJANST_GAP_LENGTH = 8;
@@ -66,4 +67,35 @@ export async function assertTjanstSelfMandatesSchema(db, { installed }) {
     const [privilege] = await db`select has_table_privilege(${role},'public.tjanst_self_mandates','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') allowed`;
     assert.equal(privilege.allowed, false, role);
   }
+}
+
+/** Derived only from a source-verified installed prefix plus successfully applied files. */
+export const TJANST_WORKER_BASE_ENTRYPOINTS = Object.freeze([
+  'phase51_grim_class_command(jsonb)', 'phase51_grim_class_underlag(jsonb)',
+  'tjanst_personal_command(jsonb)', 'tjanst_personal_read(jsonb)', 'tjanst_personal_status(jsonb)',
+  'tjanst_plan_command(jsonb)', 'tjanst_plan_read(jsonb)', 'tjanst_plan_status(jsonb)',
+  'tjanst_self_command(jsonb)', 'tjanst_self_read(jsonb)', 'tjanst_self_status(jsonb)', 'tjanst_staffing_read(jsonb)',
+]);
+export function expectedTjanstWorkerEntrypoints({ installed, applied = [] }) {
+  assert.ok(Array.isArray(installed) && Array.isArray(applied));
+  assert.ok(installed.length >= TJANST_BASELINE_LENGTH, 'ACL baseline requires installed etapp 1');
+  assert.deepEqual(installed,TJANST_MIGRATION_REGISTRY.slice(0,installed.length).map(m=>m.version),'ACL installed baseline must be an exact registered prefix');
+  const versions = [...installed, ...applied.map(file => {
+    const entry = TJANST_MIGRATION_REGISTRY.find(m => m.file === file);
+    assert.ok(entry, 'Unknown applied migration: '+file); return entry.version;
+  })];
+  assert.ok(versions.length >= TJANST_BASELINE_LENGTH);
+  assert.deepEqual(versions, TJANST_MIGRATION_REGISTRY.slice(0,versions.length).map(m=>m.version), 'ACL expectation requires an exact registered prefix');
+  return [...TJANST_WORKER_BASE_ENTRYPOINTS, ...(versions.includes('20261023130000') ? ['tjanst_year_preview(jsonb)'] : [])].sort();
+}
+export async function assertTjanstYearAcl(db, state) {
+  const expected = expectedTjanstWorkerEntrypoints(state);
+  const grants = await db`select p.oid::regprocedure::text signature,r.role,has_function_privilege(r.role,p.oid,'EXECUTE') allowed
+    from pg_proc p cross join (values ('skolplattform_worker'),('anon'),('authenticated'),('service_role')) r(role)
+    where p.pronamespace='public'::regnamespace and (p.proname like 'tjanst_year_%' or p.proname='tjanst_plan_parse_legacy')`;
+  assert.ok(grants.length);
+  for (const g of grants) assert.equal(g.allowed, g.role==='skolplattform_worker'&&expected.includes(g.signature.replace(/^public\./u,'')), g.role+':'+g.signature);
+  assert.equal((await db`select count(*)::int n from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
+    where p.pronamespace='public'::regnamespace and (p.proname like 'tjanst_year_%' or p.proname='tjanst_plan_parse_legacy') and acl.grantee=0`)[0].n,0);
+  return expected;
 }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
-import { classifyTjanstMigrations, TJANST_MIGRATION_REGISTRY as registry, TJANST_PHASE_START } from './tjanst-migration-state.mjs';
+import { classifyTjanstMigrations, TJANST_MIGRATION_REGISTRY as registry, TJANST_PHASE_START, expectedTjanstWorkerEntrypoints } from './tjanst-migration-state.mjs';
 
 const versions = registry.map(m => m.version), gapVersions = versions.slice(0, 8);
 const hashes = Object.fromEntries(registry.map(m => [m.file, m.sha256]));
@@ -12,7 +12,8 @@ for (const [name, journal, mode, pending] of [
   ['installerad gaprättelse', gapVersions, 'etapp1+gap', registry.slice(8).map(m => m.file)],
   ['installerat publiceringssuffix', versions.slice(0,9), 'registered-suffix:20261023100000', registry.slice(9).map(m => m.file)],
   ['installerat årsförhandsgranskningssuffix', versions.slice(0,10), 'registered-suffix:20261023110000', registry.slice(10).map(m => m.file)],
-  ['installerat årskommandosuffix', versions, 'registered-suffix:20261023120000', []],
+  ['installerat årskommandosuffix', versions.slice(0,11), 'registered-suffix:20261023120000', registry.slice(11).map(m=>m.file)],
+  ['installerat årsbehörighetssuffix', versions, 'registered-suffix:20261023130000', []],
   ['tidigare journalposter bevaras utanför fasen', ['20260910000000', ...gapVersions], 'etapp1+gap', registry.slice(8).map(m => m.file)],
 ]) test(name, () => {
   const result = classify(journal);
@@ -48,4 +49,16 @@ test('repots migrationskällor motsvarar uttrycklig allowlist och låsta hashvä
   const actual = Object.fromEntries(files.map(f => ['supabase/migrations/' + f, createHash('sha256')
     .update(readFileSync(new URL('../../supabase/migrations/' + f, import.meta.url))).digest('hex')]));
   assert.deepEqual(classify(versions, actual).pendingMigrations, []);
+});
+
+for (const length of [7,8,9,10,11,12]) test('ACL för verifierat prefix '+length,()=>{
+  const expected=expectedTjanstWorkerEntrypoints({installed:versions.slice(0,length)});
+  assert.equal(expected.length,length===12?13:12);
+  assert.equal(expected.includes('tjanst_year_preview(jsonb)'),length===12);
+  assert.deepEqual(expectedTjanstWorkerEntrypoints({installed:versions.slice(0,7),applied:registry.slice(7,length).map(m=>m.file)}),expected);
+});
+for(const installed of [[],versions.slice(1),[...versions,'20261024120000'],[...versions].reverse()]) test('ACL nekar felaktigt prefix '+installed.join(','),()=>assert.throws(()=>expectedTjanstWorkerEntrypoints({installed})));
+test('ACL nekar okänd eller omapplicerad fil',()=>{
+  assert.throws(()=>expectedTjanstWorkerEntrypoints({installed:versions,applied:['unknown.sql']}));
+  assert.throws(()=>expectedTjanstWorkerEntrypoints({installed:versions,applied:[registry.at(-1).file]}));
 });
