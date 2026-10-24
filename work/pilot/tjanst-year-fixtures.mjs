@@ -1,7 +1,9 @@
 // Only synthetic identities/data in an owned test database. No live connection is accepted here.
+import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createTjanstFixture, staffWithDuties, seedGrimNeeds, planCommand, planRead, planSend, personalCommand } from './tjanst-fixtures.mjs';
-import { parseYearRequest, parseYearReply } from '../../web/lib/tjanst-year-contract.ts';
+import { parseYearPlanReadReply } from '../../web/lib/tjanst-contract.ts';
+import { parseYearRequest, parseYearReply, createYearPlanCommand, parseYearPlanReceipt } from '../../web/lib/tjanst-year-contract.ts';
 
 export const yearPreview = async (t, q) => {
   const request = parseYearRequest(q), result = (await t`select public.tjanst_year_preview(${t.json(request)}) value`)[0].value;
@@ -66,4 +68,48 @@ export async function seedYearHistory(t, s) {
   await t`set local session_replication_role=origin`;
   await f.actor(t, 'principalA');
   return { classId: klass, distributionId: dist, versionId: version, rowId: row };
+}
+
+
+const freezeTree = value => { if (value && typeof value === 'object') { for (const child of Object.values(value)) freezeTree(child); Object.freeze(value); } return value; };
+/** Explicit positive-test capture. Sending, hashing, retrying and status NEVER call this helper.
+ * A row choice must be stated: 'manual', 'unassigned', or a complete suggestion choice.
+ * Old-schema tests keep planCommand/yearSend and never attempt a new write after parser failure. */
+export async function capturePlanContext(t, request) {
+  const { unitId, schoolYear, action } = request;
+  const payload = structuredClone(request.payload);
+  if (action === 'create_draft') throw Error('create_draft is historical only');
+  let support;
+  if (action === 'save_row') {
+    support = await yearPreview(t, { unitId, schoolYear, mode: 'row', sourceKey: payload.sourceKey, rowId: payload.rowId });
+    const choice = request.choice === 'unassigned' ? yearVacant() : request.choice === 'manual'
+      ? yearManual(support.candidates.find(p => p.personId === payload.personId) ?? (() => { throw Error('Explicit manual choice is unavailable'); })())
+      : request.choice;
+    if (!choice || choice.personId !== payload.personId) throw Error('Explicit matching choice required');
+    payload.planningContext = { baseVersionId: support.baseVersionId, expectedBasisHash: support.basisHash, choice };
+  } else if (action === 'move' || action === 'bulk') {
+    support = await yearPreview(t, { unitId, schoolYear, mode: 'batch', batch: payload });
+    payload.expectedPreviewHash = support.previewHash;
+  } else {
+    support = await yearPreview(t, { unitId, schoolYear, mode: 'catalog' });
+    payload.mutationContext = { baseVersionId: support.baseVersionId, expectedBasisHash: support.basisHash };
+  }
+  const captured = { unitId, schoolYear, action, expectedRevision: support.currentRevision, payload };
+  if (action === 'publish') captured.expectedContentHash = (await planRead(t, { unitId, schoolYear })).version.contentHash;
+  return freezeTree(captured);
+}
+export const yearCommand = captured => createYearPlanCommand({ commandId: randomUUID(), ...captured });
+/** Validates the captured request and actual receipt. No recapture, replay repair or database reads. */
+export async function yearCommandSend(t, command) {
+  const reply = await planSend(t, command);
+  assert.deepEqual(Object.keys(reply).sort(), ['actor','contractVersion','result']);
+  assert.equal(reply.contractVersion,'tjanst_sql_v1');
+  assert.deepEqual(Object.keys(reply.actor).sort(), ['assignmentId','identityId']);
+  for(const id of Object.values(reply.actor)) assert.match(id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u);
+  assert.deepEqual(Object.keys(reply.result).sort(), ['detail','receipt']);
+  const receipt=parseYearPlanReceipt(reply.result.receipt, command);
+  const detail=parseYearPlanReadReply(reply.result.detail, { unitId: command.unitId, schoolYear: command.schoolYear });
+  assert.equal(detail.revision,receipt.revision);
+  if(command.action!=='discard_draft') assert.equal(detail.version?.id,receipt.versionId);
+  return reply;
 }

@@ -11,7 +11,8 @@ for (const [name, journal, mode, pending] of [
   ['etapp 1', versions.slice(0, 7), 'etapp1', registry.slice(7).map(m => m.file)],
   ['installerad gaprättelse', gapVersions, 'etapp1+gap', registry.slice(8).map(m => m.file)],
   ['installerat publiceringssuffix', versions.slice(0,9), 'registered-suffix:20261023100000', registry.slice(9).map(m => m.file)],
-  ['installerat årsförhandsgranskningssuffix', versions, 'registered-suffix:20261023110000', []],
+  ['installerat årsförhandsgranskningssuffix', versions.slice(0,10), 'registered-suffix:20261023110000', registry.slice(10).map(m => m.file)],
+  ['installerat årskommandosuffix', versions, 'registered-suffix:20261023120000', []],
   ['tidigare journalposter bevaras utanför fasen', ['20260910000000', ...gapVersions], 'etapp1+gap', registry.slice(8).map(m => m.file)],
 ]) test(name, () => {
   const result = classify(journal);

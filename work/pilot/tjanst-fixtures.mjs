@@ -6,7 +6,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { grimMigrations } from './verify-grim-class-timplans.mjs';
 import { vocationalFixture } from './vocational-plan-fixture.mjs';
-import { tjanstPayloadHash } from '../../web/lib/tjanst-contract.ts';
+import { tjanstHashCanonical } from '../../web/lib/tjanst-contract.ts';
 
 /** Etapp 1: de sju 05.1-migrationer som är installerade i det skyddade lokala målet sedan 2026-10-21 (05.1-10). */
 export const tjanstEtapp1Migrations = [...grimMigrations, 'supabase/migrations/20261020110000_tjanst_personal_self.sql',
@@ -19,7 +19,8 @@ export const tjanstPublishScopeMigrations = ['supabase/migrations/20261023100000
 /** Auditerat rad-/årsunderlag (05.1-17), ej installerat. */
 export const tjanstYearPreviewMigrations = ['supabase/migrations/20261023110000_tjanst_year_preview.sql'];
 /** Registrerad installationsordning; historiska föreprov utesluter suffixet ur sin basdatabas. */
-export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations];
+export const tjanstYearCommandMigrations = ['supabase/migrations/20261023120000_tjanst_year_commands.sql'];
+export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 
@@ -124,8 +125,9 @@ export const planRead = async (t, q) => (await t`select public.tjanst_plan_read(
 export const planStatus = async (t, q) => (await t`select public.tjanst_plan_status(${t.json(q)}) value`)[0].value;
 export const selfRead = async (t) => (await t`select public.tjanst_self_read(${t.json({})}) value`)[0].value;
 export const planSend = async (t, q) => (await t`select public.tjanst_plan_command(${t.json(q)}) value`)[0].value;
+/** Pure legacy-format builder for historical probes or explicitly captured payloads. Never reads or repairs context. */
 export async function planCommand(unitId, schoolYear, action, expectedRevision, payload, extra = {}) {
-  return { commandId: randomUUID(), unitId, schoolYear, action, expectedRevision, payloadHash: await tjanstPayloadHash(action, payload), payload, ...extra };
+  return { commandId: randomUUID(), unitId, schoolYear, action, expectedRevision, payloadHash: await tjanstHashCanonical(['tjanst_payload_v1', action, payload]), payload, ...extra };
 }
 export const selfSend = async (t, q) => (await t`select public.tjanst_self_command(${t.json(q)}) value`)[0].value;
 export const selfStatus = async (t, q) => (await t`select public.tjanst_self_status(${t.json(q)}) value`)[0].value;
