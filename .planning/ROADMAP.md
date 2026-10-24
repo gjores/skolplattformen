@@ -316,7 +316,7 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 
 ### Phase 05.1: Tjänstefördelning (INSERTED)
 
-**Aktuell riktning 2026-10-23:** [D-25–D-27](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) anger samma tjänstefördelning med förklarade förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad och plancheckad. 14/15:s avgränsade rättelser består. Genomförande och produktverifiering återstår.
+**Aktuell riktning 2026-10-23:** [D-25–D-27](phases/05.1-tjanstefordelning/05.1-CONTINUOUS-PLANNING-CONTEXT.md) anger samma tjänstefördelning med förklarade förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad och plancheckad. 14/15:s avgränsade rättelser består. Genomförande14–21 och avgränsad produktverifiering finns nedan; faktisk provkedja22 pågår.
 
 **Goal**: Rektor kan fördela skolans undervisning och övriga uppdrag på lärare för ett läsår, fastställa och publicera fördelningen, och läraren kan se sin egen publicerade tjänst. Underlaget kommer ur bevarade klass–timplanskopplingar.
 **Depends on**: Phase 5
@@ -331,7 +331,7 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 6. Rektor planerar nästa läsår i samma arbetsyta med målårets behov, tomma lärarfält och förslag från tidigare planering som väljs aktivt. Påbörjat arbete bevaras. Flytt och massregistrering har förhandsvisning och atomär lagring; intern historik och tidigare beslut består. (TJANST-06, D-25–D-27)
 7. Person, anställning, tjänstgöringsgrad och skoluppdrag hålls isär från systemmandat. En lärare på två skolor har en gemensam planerad kapacitet som inte förbrukas dubbelt. Arbetstidsram enligt avtal visas inte här. (TJANST-07)
 
-**Plans**: Etapp 1 och gaprättelserna har 14 genomförda planer (inklusive 04B). Etapp 2 är planerad 2026-10-23 i [genomförandeordningen](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLANERING.md); inga av dess planer är genomförda. Nästa: genomför den reviderade beroendekedjan från 14/16 efter plancheck; 14/15 hanterar kvarvarande rättelser. Senaste tekniska fasbedömning: **gaps_found, 6/7** (2026-10-22). Etapp 1:s användarprov är rapporterat klart 2026-10-23. Lokal 3012 kör enligt senaste leveransnotering 7d31489. Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt med etapp 2-tillägg](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
+**Plans**: Etapp 1 och gaprättelserna har 14 genomförda planer (inklusive 04B). Etapp 2 är planerad 2026-10-23 i [genomförandeordningen](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLANERING.md); 14–21 är genomförda och avgränsat verifierade. Nästa22 provar den sammanhållna arbetsytan med riktig Worker/OIDC i isolerad syntetisk miljö och uppdaterar handboken. Senaste tekniska fasbedömning: **gaps_found, 6/7** (2026-10-22). Etapp 1:s användarprov är rapporterat klart 2026-10-23. Lokal 3012 kör enligt senaste leveransnotering 7d31489. Underlag: [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md), [kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [research](phases/05.1-tjanstefordelning/05.1-RESEARCH.md) och [UI-kontrakt med etapp 2-tillägg](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md).
 
 Plans:
 **Wave 1**
@@ -375,7 +375,7 @@ Plans:
 
 - [x] 05.1-13-PLAN.md — Gap: handbok efter det faktiska provet, leverans med repetition, användarens godkännande, --apply och 3012-byte (våg 9). Svar A; --apply PASS 31 kontroller, 20261021120000 journalförd, 0 self-mandat i målet och 0 reparerade kopplingar, 3012 kör 7d31489 med godkänd hälsokontroll; mänsklig bedömning återstår
 
-**Etapp 2 — genomförande startat 2026-10-24, 7/12 genomförda**
+**Etapp 2 — genomförande startat 2026-10-24, 8/12 genomförda**
 
 **Våg 10**
 
@@ -404,7 +404,7 @@ Plans:
 
 **Våg 16**
 
-- [ ] [05.1-21-PLAN.md](phases/05.1-tjanstefordelning/05.1-21-PLAN.md) — Sammanhållen arbetsyta och lärarval på raden
+- [x] [05.1-21-PLAN.md](phases/05.1-tjanstefordelning/05.1-21-PLAN.md) — Sammanhållen arbetsyta och lärarval på raden
 
 **Våg 17**
 
@@ -647,7 +647,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 ## Progress
 
-**Etapp 2 genomförs 2026-10-24:** Plan14–19 klara: isolerade prov, publiceringshinder, aktiva lärarval, SQL-lässtöd/atomär lagring samt strikt API/status. Plan19 Node68/118, typkontroll, full lint och sex isolerade SQL-regressioner PASS; se respektive SUMMARY. Plan20 öppnar en enda ny Worker-entrypoint. UI, faktisk Worker/OIDC, installation och nytt användarprov återstår. Ingen ny kravacceptans; äldre statusdetaljer i tabellen kompletteras av denna notering.
+**Etapp 2 genomförs 2026-10-24:** Plan14–21 klara. Plan20 verifierar exakt13 öppna Worker-entrypoints;21 ger sammanhållen arbetsyta och aktiva lärarval. Node84, typ/lint, isolerat bygge samt210 relevanta simulerade fall/profilkombinationer verifierade med redovisade avgränsade omprov; fyra Chromiumprofiler visuellt granskade. Nästa22: faktisk Worker/OIDC och handbok. Installation och nytt användarprov återstår. Ingen ny fasacceptans; äldre statusdetaljer kompletteras av respektive SUMMARY.
 
 **Execution Order:** 1 → 2 → 3 → 4 → 5 → 05.1 → 05.2 → 05.3 → 05.4 → 05.5 → 05.6 → 05.7 → 05.8 → 6 → 7 → 8. 05.5, 05.7 och 05.8 beror bara på fas 5 och kan köras parallellt med 05.1–05.4 om användaren vill. Förberedelser för externa anslutningar och drift löper från början; de ändrar inte godkännandegränserna.
 
@@ -658,7 +658,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
-| 05.1. Tjänstefördelning (INSERTED) | 21/26 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A). Gap 05.1-11 (CR-01, WR-02) provad i SQL och 05.1-12 (WR-07, CR-01, WR-02) provad faktiskt mot syntetiska data; 05.1-13 (svar A) installerade rättelsen lokalt 2026-10-22, och 3012 kör 7d31489. Omverifierad 2026-10-22: 6/7. Användarprov rapporterat klart 2026-10-23, utan särredovisning av delsteg/enheter. D-25–D-27 tillkom efter planeringen 2026-10-23: en sammanhållen fördelning med förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad; 14–20 är nu genomförda och avgränsat verifierade. Plan21 bygger sammanhållen arbetsyta; samlad HTTP/UI-verifiering, installation och nytt användarprov återstår | - |
+| 05.1. Tjänstefördelning (INSERTED) | 22/26 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A). Gap 05.1-11 (CR-01, WR-02) provad i SQL och 05.1-12 (WR-07, CR-01, WR-02) provad faktiskt mot syntetiska data; 05.1-13 (svar A) installerade rättelsen lokalt 2026-10-22, och 3012 kör 7d31489. Omverifierad 2026-10-22: 6/7. Användarprov rapporterat klart 2026-10-23, utan särredovisning av delsteg/enheter. D-25–D-27 tillkom efter planeringen 2026-10-23: en sammanhållen fördelning med förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad; 14–21 är nu genomförda och avgränsat verifierade. Sammanhållen arbetsyta provad i simulator och separat bygge; plan22 genomför faktisk HTTP/OIDC-verifiering och handbok, därefter återstår installation och nytt användarprov | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |

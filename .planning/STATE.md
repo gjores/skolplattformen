@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-21 — Sammanhållen arbetsyta och lärarval på raden"
+current_plan: "05.1-22 — Faktiska prov av sammanhållen planering och handbok"
 status: in_progress
-stopped_at: "Plan14–20 implementerade och avgränsat verifierade. Plan21 pågår: sammanhållen arbetsyta, aktiva lärarval och sekundärt batcharbete. Faktisk Worker/OIDC återstår; ingen installation eller ändrad fasacceptans."
+stopped_at: "Plan14–21 implementerade och avgränsat verifierade. Plan22 pågår med riktig Worker/OIDC i isolerad syntetisk miljö och uppdaterad handbok. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-24"
 last_activity: 2026-10-24
-last_activity_desc: "Minimal Worker-rättighet verifierad; sammanhållen arbetsyta och simulerade browserprov påbörjade."
+last_activity_desc: "Sammanhållen arbetsyta verifierad i simulator och separat bygge; faktisk provkedja förbereds."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-21 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-21-SUMMARY.md): en aktuell planering per skola/läsår, tomma nya lärarfält och aktiva val på raden, sekundär historik, explicit flytt/massregistrering samt tomkolumnsborttagning. Gemensam journalspärr och bevarad inmatning vid nytt underlag/storleksbyte. Node84/84, typkontroll, full lint och isolerat skyddat bygge PASS. Simulerad UI:210 relevanta fall/profilkombinationer verifierade via fullmatris204PASS/6locatorfel samt avgränsade godkända omprov;146 avsiktliga profilskips,0retries/flaky. Slutbilder på fyra Chromiumprofiler granskade; telefontexter rättade. Ingen faktisk SQL/OIDC eller installation i detta steg. Nästa22 genomför den riktiga provkedjan och handbok; aktiv3012 orörd.
 
 **Plan 05.1-20 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-20-SUMMARY.md): endast auditerad preview-entrypoint öppnad för Worker, exakt13 öppna och73 stängda fasfunktioner. SQL-behörighet75/75 i två isolerade lägen, preview67, kommandon84 och gap82/83 PASS; classifier35/35. Sessionslås, obligatorisk audit och oförändrade verksamhetsrader verifierade. Fyra schemakopior har oförändrat mål och alla tio prov full cleanup. Nästa21 bygger sammanhållen arbetsyta och provar simulerat API på dator/telefon. Faktisk Worker/OIDC22 och installation återstår; aktiv3012 orörd.
 
