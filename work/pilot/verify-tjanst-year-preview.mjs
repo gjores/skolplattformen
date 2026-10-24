@@ -3,6 +3,8 @@
 // node work/pilot/verify-tjanst-year-preview.mjs --ephemeral --out /private/tmp/tjanst-year-preview.json
 // node work/pilot/verify-tjanst-year-preview.mjs --out /private/tmp/tjanst-year-preview-schema.json
 import assert from 'node:assert/strict';
+import { capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
+let modern=false;
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync, closeSync } from 'node:fs';
 import { basename, dirname, relative, resolve } from 'node:path';
@@ -10,17 +12,17 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { schemaFingerprint } from './named-timplan-snapshot.mjs';
-import { planRead, grantSelf, personalCommand, saveDuties, seedGy25Class } from './tjanst-fixtures.mjs';
+import { planRead, grantSelf, personalCommand, saveDuties, seedGy25Class, tjanstMigrations } from './tjanst-fixtures.mjs';
 import { createTjanstYearFixture, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend } from './tjanst-year-fixtures.mjs';
 import { parseYearReply, tjanstYearHash } from '../../web/lib/tjanst-year-contract.ts';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261023110000_tjanst_year_preview.sql';
 const rollback = Error('expected_year_preview_rollback');
-const sourceFiles = [OWN, 'work/pilot/verify-tjanst-year-preview.mjs', 'work/pilot/tjanst-year-fixtures.mjs', 'work/pilot/tjanst-fixtures.mjs',
+const sourceFiles = [...tjanstMigrations, OWN, 'work/pilot/verify-tjanst-year-preview.mjs', 'work/pilot/tjanst-year-fixtures.mjs', 'work/pilot/tjanst-fixtures.mjs',
   'work/pilot/tjanst-migration-state.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/named-timplan-snapshot.mjs',
   'web/lib/tjanst-year-contract.ts', 'supabase/tests/phase51_tjanst_year_hash_vectors.json'];
 // Pin transitive repository modules, including dynamic literal imports used by the adapters.
-// Runtime binaries/packages and SQL migration files are recorded separately by DB provenance.
+// Runtime binaries/packages are recorded separately by DB provenance; SQL sources are also pinned here.
 const sources = () => {
   const pending = [...sourceFiles], found = new Map();
   while (pending.length) {
@@ -194,14 +196,14 @@ async function cases(db, report) {
       assert.equal((await yearPreview(u,s.request())).recommendationStatus,'empty');
       check(report,'previous year without current publication never uses superseded/unpublished source');
     });
-    await yearSend(t,unitId,schoolYear,'create_draft',{basedOnVersionId:null});
-    let d=await yearSend(t,unitId,schoolYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:key(),personId:people[0].personId,teacherHt:333,teacherVt:444,comment:'Syntetiskt manuellt val'});
+    if(!modern) await yearSend(t,unitId,schoolYear,'create_draft',{basedOnVersionId:null});
+    let d=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:schoolYear,action:'save_row',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:key(),personId:people[0].personId,teacherHt:333,teacherVt:444,comment:'Syntetiskt manuellt val'},choice:'manual'})))).result.detail : await yearSend(t,unitId,schoolYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:key(),personId:people[0].personId,teacherHt:333,teacherVt:444,comment:'Syntetiskt manuellt val'}));
     const row=d.rows[0],started=await yearPreview(t,s.request({rowId:row.id}));
     assert.equal(started.currentRow.personId,people[0].personId);assert.equal(started.currentRow.teacherHt,333);assert.equal(started.currentRow.comment,'Syntetiskt manuellt val');
     assert.equal(started.suggestions[0].references[0].versionId,d.version.id);
     const projection=await yearPreview(t,s.request({sourceKey:key('engelska')}));assert.equal(projection.currentRow,null);assert.equal(projection.rowId,null);
     check(report,'manually started year retains saved teacher/time/comment; other needs remain projections with current-class suggestions');
-    d=await yearSend(t,unitId,schoolYear,'publish',{});const frozen=await businessHashes(t);
+    d=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:schoolYear,action:'publish',payload:{}})))).result.detail : await yearSend(t,unitId,schoolYear,'publish',{}));const frozen=await businessHashes(t);
     const published=await yearPreview(t,s.request({rowId:row.id}));assert.equal(published.baseVersionId,d.version.id);assert.equal(published.currentRow.personId,people[0].personId);
     assert.deepEqual(await businessHashes(t),frozen);
     check(report,'published-only year read uses published base and creates no draft or teacher choice');
@@ -238,11 +240,11 @@ async function batchCases(db,report) {
     const unknown=structuredClone(bulk);unknown.items[0].payload.sourceKey=key('unknown');assert.ok(codes(await yearPreview(t,req(unknown))).includes('unknown_need'));
     const foreignClass=structuredClone(bulk);foreignClass.items[1].payload.classId=randomUUID();assert.ok(codes(await yearPreview(t,req(foreignClass))).includes('unknown_class'));
     check(report,'batch reports stale basis/person, unknown need and foreign mentor class per selected item');
-    await yearSend(t,unitId,schoolYear,'create_draft',{basedOnVersionId:null});
+    if(!modern) await yearSend(t,unitId,schoolYear,'create_draft',{basedOnVersionId:null});
     for (const classId of [f.classes.group,f.classes.other]) for (const personId of [people[0].personId,people[1].personId])
-      await yearSend(t,unitId,schoolYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:key('matematik',classId),personId,teacherHt:100,teacherVt:200,comment:''});
+      await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:schoolYear,action:'save_row',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:key('matematik',classId),personId,teacherHt:100,teacherVt:200,comment:''},choice:'manual'})))).result.detail : await yearSend(t,unitId,schoolYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:key('matematik',classId),personId,teacherHt:100,teacherVt:200,comment:''}));
     let d=await planRead(t,{unitId,schoolYear});
-    d=await yearSend(t,unitId,schoolYear,'save_joint',{jointId:null,name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]});
+    d=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:schoolYear,action:'save_joint',payload:{jointId:null,name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]}})))).result.detail : await yearSend(t,unitId,schoolYear,'save_joint',{jointId:null,name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]}));
     const cat=await yearPreview(t,{unitId,schoolYear,mode:'catalog'}),to=yearManual(cat.candidates.find(p=>p.personId===s.draftPersonId));
     const move={action:'move',baseVersionId:d.version.id,items:d.rows.filter(r=>r.personId===people[0].personId).map((r,i)=>({itemKey:'move'+i,kind:'row',id:r.id,fromPersonId:r.personId,choice:to}))};
     const moved=await yearPreview(t,req(move));assert.deepEqual(codes(moved),[]);assert.equal(moved.selectedCount,2);assert.equal(moved.writeObjectCount,4);
@@ -292,10 +294,10 @@ async function gyCases(db,report) {
   const s=await createTjanstYearFixture(t),{f,unitId,people}=s;
   const gy=await seedGy25Class(t,f),priorYear=gy.year,targetYear=priorYear+1;
   await f.actor(t,'principalA');
-  await yearSend(t,unitId,priorYear,'create_draft',{basedOnVersionId:null});
+  if(!modern) await yearSend(t,unitId,priorYear,'create_draft',{basedOnVersionId:null});
   let d=await planRead(t,{unitId,schoolYear:priorYear});const priorNeed=d.classes.find(c=>c.classId===gy.classId).needs[0];
-  d=await yearSend(t,unitId,priorYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:priorNeed.sourceKey,personId:people[0].personId,teacherHt:120,teacherVt:180,comment:''});
-  const published=await yearSend(t,unitId,priorYear,'publish',{});
+  d=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:priorYear,action:'save_row',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:priorNeed.sourceKey,personId:people[0].personId,teacherHt:120,teacherVt:180,comment:''},choice:'manual'})))).result.detail : await yearSend(t,unitId,priorYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:priorNeed.sourceKey,personId:people[0].personId,teacherHt:120,teacherVt:180,comment:''}));
+  const published=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:priorYear,action:'publish',payload:{}})))).result.detail : await yearSend(t,unitId,priorYear,'publish',{}));
   const [{revision}]=await t`select revision from public.timplans where id=${gy.planId}`;
   await t`select public.phase5_class_command(${t.json({operation:'link',commandId:randomUUID(),classId:gy.classId,schoolYear:targetYear,planId:gy.planId,expectedPlanRevision:revision,columnId:'ar2',expectedLinkRevision:null,previousPlanId:null})})`;
   const target=await planRead(t,{unitId,schoolYear:targetYear}),need=target.classes.find(c=>c.classId===gy.classId).needs[0];
@@ -309,7 +311,7 @@ async function gyCases(db,report) {
  });
 }
 
-async function openDatabase(ephemeral, report) {
+async function openDatabase(ephemeral, report, stage) {
   const { classifyTjanstMigrations, assertTjanstSelfMandatesSchema, TJANST_MIGRATION_REGISTRY, TJANST_PHASE_START } = await import('./tjanst-migration-state.mjs');
   const { createEphemeralMigratedDb, migrationFiles } = await import('./ephemeral-migrated-db.mjs');
   const ownVersion = basename(OWN).slice(0, 14);
@@ -321,8 +323,8 @@ async function openDatabase(ephemeral, report) {
     const e = await createEphemeralMigratedDb({ exclude: migrationFiles().filter(f => f.slice(0, 14) >= ownVersion) });
     try { await assertTjanstSelfMandatesSchema(e.db, { installed: true }); }
     catch (error) { await e.end(); throw error; }
-    report.baselineMode = 'ephemeral-before-year-preview'; report.pendingMigrations = [OWN];
-    return { db: e.db, provenance: e.provenance, pending: [OWN], close: e.end };
+    report.baselineMode = 'ephemeral-before-year-preview'; report.pendingMigrations = stage==='current' ? TJANST_MIGRATION_REGISTRY.filter(m=>m.version>=ownVersion).map(m=>m.file) : [OWN];
+    return { db: e.db, provenance: e.provenance, pending: stage==='current' ? TJANST_MIGRATION_REGISTRY.filter(m=>m.version>=ownVersion).map(m=>m.file) : [OWN], close: e.end };
   }
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const target = await targetPendingMigrations();
@@ -338,11 +340,12 @@ async function openDatabase(ephemeral, report) {
     report.appliedPrerequisites = prior;
     await assertTjanstSelfMandatesSchema(snapshot.db, { installed: true });
     return { db: snapshot.db, provenance: snapshot.provenance, pending: target.pendingMigrations,
-      close: async () => { report.snapshotCleanup = await snapshot.cleanup(); } };
+      close: async () => { report.snapshotCleanup = await snapshot.cleanup();const after=await targetPendingMigrations();assert.equal(after.fingerprint,target.fingerprint);assert.deepEqual(after.journal,target.journal);report.targetUnchanged=true; } };
   } catch (error) { await snapshot.cleanup(); throw error; }
 }
 
-export async function verifyTjanstYearPreview(out, { ephemeral = false } = {}) {
+export async function verifyTjanstYearPreview(out, { ephemeral = false, stage='current' } = {}) {
+  assert.ok(['current','historical'].includes(stage));assert.ok(stage!=='historical'||ephemeral,'Historical stage requires --ephemeral');modern=false;
   const output = resolve(out);
   assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'Use --out /private/tmp/<name>.json');
   assert.ok(!existsSync(output), 'Output exists; choose a new private path');
@@ -354,7 +357,7 @@ export async function verifyTjanstYearPreview(out, { ephemeral = false } = {}) {
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   let source;
   try {
-    report.sources = sources(); persist(); source = await openDatabase(ephemeral, report); report.database = source.provenance;
+    report.sources = sources(); persist(); report.requestedStage=stage; source = await openDatabase(ephemeral, report,stage); report.database = source.provenance;
     const db = source.db, before = await allPublicHashes(db), fingerprint = await schemaFingerprint(db);
     if (source.pending.includes(OWN)) {
       await rolledBack(db, t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8')));
@@ -371,8 +374,18 @@ export async function verifyTjanstYearPreview(out, { ephemeral = false } = {}) {
     assert.equal((await db`select count(*)::int n from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
       where p.pronamespace='public'::regnamespace and p.proname like 'tjanst_year_%' and acl.grantee=0`)[0].n,0);
     check(report, 'all year calculators and entrypoint closed to Worker, clients and PUBLIC');
+    report.migrationCheckCount=report.checks.length;
+    if(stage==='current') {
+      const suffix=source.pending.filter(p=>basename(p).slice(0,14)>basename(OWN).slice(0,14));
+      if(suffix.length) await db.begin(async t=>{for(const file of suffix)await t.unsafe(readFileSync(resolve(ROOT,file),'utf8'));});
+      report.appliedFollowing=suffix;
+    }
+    modern=!!(await db`select to_regprocedure('public.tjanst_year_ensure_draft(public.access_assignments,public.app_sessions,public.tjanst_distributions,uuid)') present`)[0].present;
+    assert.equal(modern,stage==='current','Selected stage must match installed command schema');report.commandStage=stage;
     const installed = await allPublicHashes(db); await cases(db, report); assert.deepEqual(await allPublicHashes(db), installed);
     check(report, 'all synthetic cases roll back without remaining rows');
+    report.historicalCheckCount=stage==='historical'?report.checks.length:report.migrationCheckCount;
+    report.currentCheckCount=stage==='current'?report.checks.length-report.migrationCheckCount:0;
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, where: e.where, stack: e.stack }; }
   finally {
     try { report.finalSources = sources(); assert.deepEqual(report.finalSources, report.sources); } catch (e) { report.sourceFailure = { message: e.message }; }
@@ -385,7 +398,7 @@ export async function verifyTjanstYearPreview(out, { ephemeral = false } = {}) {
   return report;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2), ephemeral = args.includes('--ephemeral'), rest = args.filter(a => a !== '--ephemeral');
-  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral]');
-  await verifyTjanstYearPreview(rest[1], { ephemeral });
+  const args=process.argv.slice(2),ephemeral=args.includes('--ephemeral'),si=args.indexOf('--stage'),stage=si<0?'current':args[si+1],rest=args.filter((a,i)=>a!=='--ephemeral'&&(si<0||i!==si&&i!==si+1));
+  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral] [--stage current|historical]');
+  await verifyTjanstYearPreview(rest[1], { ephemeral,stage });
 }

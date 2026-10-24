@@ -8,9 +8,13 @@
 //   node work/pilot/verify-tjanst-gap.mjs --out /private/tmp/tjanst-gap-sql.json --ephemeral  (egen PostgreSQL byggd från migrationerna utom rättelsen)
 // Bara syntetiska data. Inget installerat mål skrivs; målets journal läses bara läsande. Ingen HTTP/OIDC.
 import assert from 'node:assert/strict';
+import { capturePlanContext, yearCommandSend } from './tjanst-year-fixtures.mjs';
+import { parseYearPlanReadReply } from '../../web/lib/tjanst-contract.ts';
+let modern = false; // Set once for each explicitly selected schema stage; never a parser fallback.
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync } from 'node:fs';
-import { basename, resolve } from 'node:path';
+import { basename, dirname, relative, resolve } from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { createTjanstFixture, grantSelf, personalRead, planCommand, planRead, planSend, seedGrimNeeds, selfRead, selfSend, staffWithDuties,
@@ -24,8 +28,32 @@ import { parsePlanCommandReply, parsePlanReadReply, parseSelfCommandReply, parse
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const [GAP] = tjanstGapMigrations;
-const sourceFiles = [...TJANST_MIGRATION_REGISTRY.map(m => m.file), 'work/pilot/tjanst-migration-state.mjs', 'work/pilot/verify-tjanst-actual.mjs', 'work/pilot/named-timplan-snapshot.mjs', 'work/pilot/verify-tjanst-gap.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
-const sources = () => Object.fromEntries(sourceFiles.map(p => [p, createHash('sha256').update(readFileSync(resolve(root, p))).digest('hex')]));
+const sourceFiles = ['work/pilot/tjanst-year-fixtures.mjs', 'web/lib/tjanst-year-contract.ts', 'web/lib/tjanst-contract.ts', ...TJANST_MIGRATION_REGISTRY.map(m => m.file), 'work/pilot/tjanst-migration-state.mjs', 'work/pilot/verify-tjanst-actual.mjs', 'work/pilot/named-timplan-snapshot.mjs', 'work/pilot/verify-tjanst-gap.mjs', 'work/pilot/tjanst-fixtures.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/ephemeral-supabase-stubs.sql'];
+// Pin transitive imports using the same AST inventory as the year-preview verifier.
+const sources = () => {
+  const pending = [...sourceFiles], found = new Map();
+  while (pending.length) {
+    const path = pending.pop(); if (found.has(path)) continue;
+    const bytes = readFileSync(resolve(root,path)); found.set(path,createHash('sha256').update(bytes).digest('hex'));
+    if (!/\.(?:mjs|ts)$/u.test(path)) continue;
+    const ts = createRequire(resolve(root,'web/package.json'))('typescript');
+    const parsed = ts.createSourceFile(path,bytes.toString('utf8'),ts.ScriptTarget.Latest,true);
+    const imports = [];
+    const visit = node => {
+      const specifier = (ts.isImportDeclaration(node)||ts.isExportDeclaration(node)) ? node.moduleSpecifier
+        : ts.isCallExpression(node)&&node.expression.kind===ts.SyntaxKind.ImportKeyword ? node.arguments[0] : undefined;
+      if (specifier && ts.isStringLiteral(specifier) && specifier.text.startsWith('.')) imports.push(specifier.text);
+      ts.forEachChild(node,visit);
+    };visit(parsed);
+    for (const specifier of imports) {
+      let target = resolve(root,dirname(path),specifier);
+      if (!existsSync(target)) target += '.ts';
+      assert.ok(target.startsWith(root) && existsSync(target),'Unresolved local source '+specifier+' from '+path);
+      pending.push(relative(root,target));
+    }
+  }
+  return Object.fromEntries([...found].sort(([a],[b])=>a.localeCompare(b)));
+};
 const sql = p => readFileSync(resolve(root, p), 'utf8');
 const rollback = Error('expected_tjanst_gap_rollback');
 const Y = 2026;
@@ -63,8 +91,8 @@ async function deny(tx, report, name, fn, codes, hint) {
   check(report, name, { code: error.code, ...(error.hint ? { hint: error.hint } : {}) });
   return error;
 }
-const send = async (t, q) => parsePlanCommandReply((await planSend(t, q)).result, q);
-const read = async (t, unitId) => parsePlanReadReply(await planRead(t, { unitId, schoolYear: Y }), { unitId, schoolYear: Y });
+const send = async (t, q) => modern ? (await yearCommandSend(t,q)).result : parsePlanCommandReply((await planSend(t,q)).result,q);
+const read = async (t, unitId) => (modern ? parseYearPlanReadReply : parsePlanReadReply)(await planRead(t, { unitId, schoolYear: Y }), { unitId, schoolYear: Y });
 const self = async t => parseSelfReadReply(await selfRead(t));
 const command = async (t, q) => { const envelope = await selfSend(t, q); assert.equal(envelope.contractVersion, 'tjanst_sql_v1'); return parseSelfCommandReply(envelope.result, q); };
 const units = own => [...new Set(own.publications.map(p => p.unitId))].sort();
@@ -109,12 +137,13 @@ async function seedUnitNeeds(t, f, { unit, principal, name }) {
 async function publishRows(t, f, principal, unit, rows) {
   await f.actor(t, principal);
   let d = await read(t, unit);
-  if (d.version?.status === 'draft') { await send(t, await planCommand(unit, Y, 'discard_draft', d.revision, {})); d = await read(t, unit); }
-  let r = await send(t, await planCommand(unit, Y, 'create_draft', d.revision, { basedOnVersionId: d.version?.status === 'published' ? d.version.id : null }));
+  if (d.version?.status === 'draft') { await send(t, await planCommand(unit, Y, 'discard_draft', d.revision, modern ? (await capturePlanContext(t, { unitId: unit, schoolYear: Y, action: 'discard_draft', payload: {} })).payload : {})); d = await read(t, unit); }
+  let r = await send(t, await (modern ? planCommand(unit, Y, 'add_teacher', d.revision, (await capturePlanContext(t,{unitId:unit,schoolYear:Y,action:'add_teacher',payload:{personId:rows[0].personId}})).payload) : planCommand(unit, Y, 'create_draft', d.revision, { basedOnVersionId: d.version?.status === 'published' ? d.version.id : null })));
   for (const { classId, rowKey, personId, ht = 1800, vt = 1800 } of rows)
-    r = await send(t, await planCommand(unit, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, classId, rowKey).sourceKey,
+    r = await send(t, await planCommand(unit, Y, 'save_row', r.detail.revision, modern ? (await capturePlanContext(t, { unitId: unit, schoolYear: Y, action: 'save_row', payload: { rowId: null, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, classId, rowKey).sourceKey,
+      personId, teacherHt: ht, teacherVt: vt, comment: '' }, choice: personId === null ? 'unassigned' : 'manual' })).payload : { rowId: null, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, classId, rowKey).sourceKey,
       personId, teacherHt: ht, teacherVt: vt, comment: '' }));
-  r = await send(t, await planCommand(unit, Y, 'publish', r.detail.revision, {}, { expectedContentHash: r.detail.version.contentHash }));
+  r = await send(t, await planCommand(unit, Y, 'publish', r.detail.revision, modern ? (await capturePlanContext(t, { unitId: unit, schoolYear: Y, action: 'publish', payload: {} })).payload : {}, { expectedContentHash: r.detail.version.contentHash }));
   return r.detail.version;
 }
 
@@ -163,17 +192,18 @@ async function beforeState(tx, report, f, afterMode = false) {
   const m4 = await grantSelf(tx, f, { teacher: 'teacherGroup', by: 'principalA', unitIds: [A], staffPersonId: p4.personId });
   // WR-02: utkast på A med två ogiltiga samläsningar, skapade med de gamla funktionerna (save_joint följer regeln, save_row bryter den).
   await f.actor(tx, 'principalA');
-  let r = await send(tx, await planCommand(A, Y, 'create_draft', (await read(tx, A)).revision, { basedOnVersionId: vA.id }));
+  let r = await send(tx, await (modern ? planCommand(A, Y, 'add_teacher', (await read(tx, A)).revision, (await capturePlanContext(tx,{unitId:A,schoolYear:Y,action:'add_teacher',payload:{personId:p1.personId}})).payload) : planCommand(A, Y, 'create_draft', (await read(tx, A)).revision, { basedOnVersionId: vA.id })));
   const A7 = f.classes.group, B7 = f.classes.other, IM = g.imClass;
   const addRow = async (classId, rowKey, personId, ht, vt) => {
     const need = needOf(r.detail, classId, rowKey);
-    r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId, teacherHt: ht, teacherVt: vt, comment: '' }));
+    r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId, teacherHt: ht, teacherVt: vt, comment: '' }, choice: personId === null ? 'unassigned' : 'manual' })).payload : { rowId: null, sourceKind: 'class_timplan', sourceKey: need.sourceKey, personId, teacherHt: ht, teacherVt: vt, comment: '' }));
     return r.detail.rows.find(x => x.sourceKey === need.sourceKey && x.personId === personId).id;
   };
   const j1a = await addRow(A7, 'matematik', p1.personId, 1350, 1350), j1b = await addRow(B7, 'matematik', p1.personId, 1350, 1350);
   const j2a = await addRow(B7, 'engelska', p2.personId, 600, 600), j2b = await addRow(IM, 'im-sv', p1.personId, 600, 600);
-  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: null, name: 'Matematik 7A+7B', rowIds: [j1a, j1b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }] }));
-  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: null, name: 'Matematik 7A+7B', rowIds: [j1a, j1b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }] } })).payload : { jointId: null, name: 'Matematik 7A+7B', rowIds: [j1a, j1b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }] }));
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
+    teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] } })).payload : { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
     teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] }));
   // Gamla save_row: raden j1b flyttas till 7A (gruppen hamnar i en enda klass), och j2a byter lärare (P2 får lärartid utan rad).
   if (afterMode) {
@@ -187,8 +217,8 @@ async function beforeState(tx, report, f, afterMode = false) {
       need_vt_minutes=${need.needVt},need_basis=${need.needBasis} where id=${j1b}`;
     await tx`update public.tjanst_rows set staff_person_id=${p1.personId} where id=${j2a}`;
   } else {
-  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: j1b, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, A7, 'biologi').sourceKey, personId: p1.personId, teacherHt: 1350, teacherVt: 1350, comment: '' }));
-  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: j2a, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, B7, 'engelska').sourceKey, personId: p1.personId, teacherHt: 600, teacherVt: 600, comment: '' }));
+  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: { rowId: j1b, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, A7, 'biologi').sourceKey, personId: p1.personId, teacherHt: 1350, teacherVt: 1350, comment: '' }, choice: 'manual' })).payload : { rowId: j1b, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, A7, 'biologi').sourceKey, personId: p1.personId, teacherHt: 1350, teacherVt: 1350, comment: '' }));
+  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: { rowId: j2a, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, B7, 'engelska').sourceKey, personId: p1.personId, teacherHt: 600, teacherVt: 600, comment: '' }, choice: 'manual' })).payload : { rowId: j2a, sourceKind: 'class_timplan', sourceKey: needOf(r.detail, B7, 'engelska').sourceKey, personId: p1.personId, teacherHt: 600, teacherVt: 600, comment: '' }));
   }
   const old = await read(tx, A);
   const g1 = old.joints.find(j => j.name === 'Matematik 7A+7B').id, g2 = old.joints.find(j => j.name === 'Engelska 7B+IM').id;
@@ -366,15 +396,18 @@ async function jointRules(tx, report, f, s) {
     time: await tx`select staff_person_id,ht_minutes,vt_minutes from public.tjanst_joint_teacher_time where group_id=${g2} order by staff_person_id`,
     revision: (await tx`select revision from public.tjanst_distributions where unit_id=${A} and school_year=${Y}`)[0].revision });
   const before = await state();
+  const frozenCase1 = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: payload({ personId: s.p2 }), choice: 'manual' }) : null;
   await deny(tx, report, 'WR-02: save_row på samläst rad med ändrad personId ger 22023 tjanst_joint_already',
-    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, payload({ personId: s.p2 }))), ['22023'], 'tjanst_joint_already');
-  await deny(tx, report, 'WR-02: save_row på samläst rad med ändrad sourceKey ger 22023 tjanst_joint_already',
-    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, payload({ sourceKey: needOf(d, f.classes.other, 'matematik').sourceKey }))), ['22023'], 'tjanst_joint_already');
+    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, modern ? frozenCase1.payload : payload({ personId: s.p2 }))), ['22023'], 'tjanst_joint_already');
+  const frozenCase2 = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: payload({}), choice: 'manual' }) : null;
+  await deny(tx, report, modern?'WR-02: ändrad sourceKey på befintlig samläst rad nekas med42501':'WR-02: save_row på samläst rad med ändrad sourceKey ger22023 tjanst_joint_already',
+    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, modern ? {...frozenCase2.payload,sourceKey:needOf(d,f.classes.other,'matematik').sourceKey} : payload({ sourceKey: needOf(d, f.classes.other, 'matematik').sourceKey }))), modern ? ['42501'] : ['22023'], modern ? undefined : 'tjanst_joint_already');
+  const frozenCase3 = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: payload({ personId: null }), choice: 'unassigned' }) : null;
   await deny(tx, report, 'WR-02: save_row på samläst rad med personId null ger 22023 tjanst_joint_already',
-    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, payload({ personId: null }))), ['22023'], 'tjanst_joint_already');
+    async t => send(t, await planCommand(A, Y, 'save_row', d.revision, modern ? frozenCase3.payload : payload({ personId: null }))), ['22023'], 'tjanst_joint_already');
   assert.deepEqual(await state(), before);
   check(report, 'WR-02: nekad save_row lämnar raden, gruppen och revisionen oförändrade');
-  let r = await send(tx, await planCommand(A, Y, 'save_row', d.revision, payload({ teacherHt: 700, teacherVt: 500, comment: 'Syntetisk ändring' })));
+  let r = await send(tx, await planCommand(A, Y, 'save_row', d.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: payload({ teacherHt: 700, teacherVt: 500, comment: 'Syntetisk ändring' }), choice: 'manual' })).payload : payload({ teacherHt: 700, teacherVt: 500, comment: 'Syntetisk ändring' })));
   const saved = r.detail.rows.find(x => x.id === j2a);
   assert.deepEqual([saved.teacherHt, saved.teacherVt, saved.comment, saved.jointGroupId, saved.personId], [700, 500, 'Syntetisk ändring', g2, base.personId]);
   check(report, 'WR-02: ändrad teacherHt, teacherVt och comment på samläst rad sparas som förut');
@@ -382,9 +415,10 @@ async function jointRules(tx, report, f, s) {
   d = r.detail;
   assert.ok(codes(d).includes('joint_invalid')); assert.equal(d.blockers.find(b => b.code === 'joint_invalid').message, JOINT_INVALID);
   assert.equal(d.capabilities.canPublish, false); assert.ok(!d.actions.includes('publish'));
+  const frozenCase4 = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'publish', payload: {} }) : null;
   await deny(tx, report, 'ogiltig samläsning från före rättelsen ger joint_invalid, canPublish false och publish 40001 tjanst_publish_blocked',
-    async t => send(t, await planCommand(A, Y, 'publish', d.revision, {}, { expectedContentHash: d.version.contentHash })), ['40001'], 'tjanst_publish_blocked');
-  const dissolve = async (t, rev, jointId) => send(t, await planCommand(A, Y, 'dissolve_joint', rev, { jointId }));
+    async t => send(t, await planCommand(A, Y, 'publish', d.revision, modern ? frozenCase4.payload : {}, { expectedContentHash: d.version.contentHash })), ['40001'], 'tjanst_publish_blocked');
+  const dissolve = async (t, rev, jointId) => send(t, await planCommand(A, Y, 'dissolve_joint', rev, modern ? (await capturePlanContext(t, { unitId: A, schoolYear: Y, action: 'dissolve_joint', payload: { jointId } })).payload : { jointId }));
   for (const [kept, gone] of [[g1, g2], [g2, g1]]) await tx.savepoint(async t => {
     const x = await dissolve(t, d.revision, gone);
     assert.ok(codes(x.detail).includes('joint_invalid'), 'kvar: ' + kept);
@@ -394,30 +428,30 @@ async function jointRules(tx, report, f, s) {
   await tx.savepoint(async t => {
     let x = await dissolve(t, d.revision, g1); x = await dissolve(t, x.detail.revision, g2);
     assert.ok(!codes(x.detail).includes('joint_invalid')); assert.equal(x.detail.capabilities.canPublish, true);
-    x = await send(t, await planCommand(A, Y, 'publish', x.detail.revision, {}, { expectedContentHash: x.detail.version.contentHash }));
+    x = await send(t, await planCommand(A, Y, 'publish', x.detail.revision, modern ? (await capturePlanContext(t, { unitId: A, schoolYear: Y, action: 'publish', payload: {} })).payload : {}, { expectedContentHash: x.detail.version.contentHash }));
     assert.equal(x.detail.version.status, 'published');
     throw rollback;
   }).catch(e => { if (e !== rollback) throw e; });
   check(report, 'efter Lös upp samläsningen (dissolve_joint) försvinner joint_invalid och publiceringen går igenom');
   r = await dissolve(tx, d.revision, g1);
-  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, { jointId: g2, name: 'Engelska 7B+IM', rowIds: [j2a, j2b], teachers: [{ personId: s.p1, ht: 600, vt: 600 }] }));
+  r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: g2, name: 'Engelska 7B+IM', rowIds: [j2a, j2b], teachers: [{ personId: s.p1, ht: 600, vt: 600 }] } })).payload : { jointId: g2, name: 'Engelska 7B+IM', rowIds: [j2a, j2b], teachers: [{ personId: s.p1, ht: 600, vt: 600 }] }));
   assert.deepEqual(codes(r.detail), []); assert.equal(r.detail.capabilities.canPublish, true);
   // Regression: en rad utan samläsning kan byta lärare.
   const plain = r.detail.rows.find(x => x.jointGroupId === null && x.personId === s.p1 && x.sourceKey === needOf(r.detail, f.classes.group, 'engelska').sourceKey);
-  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: plain.id, sourceKind: 'class_timplan', sourceKey: plain.sourceKey, personId: s.p2, teacherHt: plain.teacherHt, teacherVt: plain.teacherVt, comment: '' }));
+  r = await send(tx, await planCommand(A, Y, 'save_row', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_row', payload: { rowId: plain.id, sourceKind: 'class_timplan', sourceKey: plain.sourceKey, personId: s.p2, teacherHt: plain.teacherHt, teacherVt: plain.teacherVt, comment: '' }, choice: 'manual' })).payload : { rowId: plain.id, sourceKind: 'class_timplan', sourceKey: plain.sourceKey, personId: s.p2, teacherHt: plain.teacherHt, teacherVt: plain.teacherVt, comment: '' }));
   assert.equal(r.detail.rows.find(x => x.id === plain.id).personId, s.p2);
   check(report, 'regression: save_row på en rad utan samläsning kan byta lärare');
-  r = await send(tx, await planCommand(A, Y, 'publish', r.detail.revision, {}, { expectedContentHash: r.detail.version.contentHash }));
+  r = await send(tx, await planCommand(A, Y, 'publish', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'publish', payload: {} })).payload : {}, { expectedContentHash: r.detail.version.contentHash }));
   assert.equal(r.detail.version.status, 'published'); void j1a;
   check(report, 'efter rättad save_joint försvinner joint_invalid och publiceringen går igenom');
 
   // Regression: empty_draft (C), stale_rows och person_not_at_school (B) uppstår som förut.
   await f.actor(tx, 'principalAB');
-  const empty = await send(tx, await planCommand(C, Y, 'create_draft', (await read(tx, C)).revision, { basedOnVersionId: null }));
+  const empty = await send(tx, await (modern ? planCommand(C, Y, 'add_teacher', (await read(tx, C)).revision, (await capturePlanContext(tx,{unitId:C,schoolYear:Y,action:'add_teacher',payload:{personId:s.p2}})).payload) : planCommand(C, Y, 'create_draft', (await read(tx, C)).revision, { basedOnVersionId: null })));
   assert.deepEqual(codes(empty.detail), ['empty_draft']);
   await f.actor(tx, 'principalB');
   let b = await read(tx, B);
-  b = (await send(tx, await planCommand(B, Y, 'create_draft', b.revision, { basedOnVersionId: b.version.id }))).detail;
+  b = (await send(tx, await (modern ? planCommand(B, Y, 'add_teacher', b.revision, (await capturePlanContext(tx,{unitId:B,schoolYear:Y,action:'add_teacher',payload:{personId:s.p1}})).payload) : planCommand(B, Y, 'create_draft', b.revision, { basedOnVersionId: b.version.id })))).detail;
   assert.deepEqual(codes(b), []);
   await tx.savepoint(async t => {
     await t`set local session_replication_role=replica`;
@@ -474,7 +508,33 @@ async function beforeRepairChecks(report) {
   } finally { await e.end(); report.beforeCleanup = 'complete'; }
 }
 
-export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
+async function currentDatabase(ephemeral, report) {
+  const { createEphemeralMigratedDb, migrationFiles } = await import('./ephemeral-migrated-db.mjs');
+  const { classifyTjanstMigrations, TJANST_MIGRATION_REGISTRY, TJANST_PHASE_START } = await import('./tjanst-migration-state.mjs');
+  const actualSources=Object.fromEntries(migrationFiles().filter(f=>f.slice(0,14)>=TJANST_PHASE_START).map(f=>{
+    const file='supabase/migrations/'+f;return [file,createHash('sha256').update(readFileSync(resolve(root,file))).digest('hex')];}));
+  classifyTjanstMigrations({journal:TJANST_MIGRATION_REGISTRY.map(m=>m.version),sourceHashes:actualSources});
+  report.currentMigrationSources=actualSources;
+  if(ephemeral){const e=await createEphemeralMigratedDb();report.baselineMode='ephemeral-current';report.pendingMigrations=[];report.builtMigrations=TJANST_MIGRATION_REGISTRY.map(m=>m.file);
+    return {db:e.db,provenance:e.provenance,connect:async()=>e.connect(),close:async()=>{await e.end();report.currentCleanup='complete';}};}
+  const {targetPendingMigrations}=await import('./verify-tjanst-actual.mjs');
+  const {createNamedTimplanSnapshot}=await import('./named-timplan-snapshot.mjs');
+  const target=await targetPendingMigrations(),s=await createNamedTimplanSnapshot();
+  try {
+    assert.equal(s.provenance.sourceFingerprint,target.fingerprint);
+    await s.db.begin(async t=>{for(const file of target.pendingMigrations) await t.unsafe(readFileSync(resolve(root,file),'utf8'));});
+    report.baselineMode=target.baselineMode;report.pendingMigrations=target.pendingMigrations;
+    return {db:s.db,provenance:s.provenance,connect:s.connect,close:async()=>{
+      report.currentCleanup=await s.cleanup();const after=await targetPendingMigrations();
+      assert.equal(after.fingerprint,target.fingerprint);assert.deepEqual(after.journal,target.journal);report.targetUnchanged=true;check(report,'målets schema och journal är oförändrade efter schema-copy-proven');report.currentCheckCount=report.checks.length-report.historicalCheckCount;}};
+  }catch(e){await s.cleanup();throw e;}
+}
+
+
+export async function verifyTjanstGap(out, { ephemeral = false, stage = 'current' } = {}) {
+  assert.ok(['current','historical'].includes(stage));
+  assert.ok(stage!=='historical'||ephemeral,'Historical stage requires --ephemeral');
+  modern=false;
   const output = resolve(out);
   assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'REFUSED: use --out /private/tmp/<name>.json');
   assert.ok(!existsSync(output), 'REFUSED: output exists; choose a new private path');
@@ -487,7 +547,7 @@ export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
       'GR/IM plan status and calendars are set directly in fixtures; no HTTP/OIDC/browser claim',
       'SS 12000:2024 / OpenAPI 2.1.0: unchanged internal Person/Duty/Activity mapping; no exchange verified'] };
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
-  let snapshot;
+  let source;
   try {
     report.sources = sources(); persist();
     // Even ephemeral mode refuses changed/unknown repository suffixes.
@@ -495,37 +555,29 @@ export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
     classifyTjanstMigrations({ journal: tjanstEtapp1Migrations.map(p => basename(p).slice(0, 14)), sourceHashes:
       Object.fromEntries(migrationFiles().filter(f => f.slice(0, 14) >= TJANST_PHASE_START).map(f => {
         const p = 'supabase/migrations/' + f; return [p, createHash('sha256').update(sql(p)).digest('hex')]; })) });
-    const target = ephemeral ? null : await targetPendingMigrations();
-    report.baselineMode = target?.baselineMode ?? 'ephemeral-etapp1';
-    report.pendingMigrations = target?.pendingMigrations ?? [GAP];
-    report.targetJournal = target?.journal; persist();
-    await beforeRepairChecks(report); persist();
-    if (!ephemeral) {
-      snapshot = await createNamedTimplanSnapshot(); report.database = snapshot.provenance;
-      assert.equal(snapshot.provenance.sourceFingerprint, target.fingerprint, 'Målets schema ändrades mellan journal och kopiering');
-      const db = snapshot.db;
-      report.activeBaseline = 'schema-copy:' + target.baselineMode;
-      report.baselineFingerprint = await schemaFingerprint(db);
-      await assertTjanstSelfMandatesSchema(db, { installed: target.installed.length > TJANST_BASELINE_LENGTH });
-      await db.begin(async tx => { for (const p of target.pendingMigrations) await tx.unsafe(sql(p)); await tx`set constraints all immediate`; });
-      report.installedFingerprint = await schemaFingerprint(db);
-      if (!target.pendingMigrations.length) assert.equal(report.installedFingerprint, report.baselineFingerprint, 'Efterläget får inte skrivas om');
-      await assertTjanstSelfMandatesSchema(db, { installed: true });
-      report.grants = await workerGrants(db);
-      assert.deepEqual(report.grants.workerExecute, [...WORKER_ENTRYPOINTS].sort());
-      assert.deepEqual(report.grants.clientRoleExecute, []); assert.deepEqual(report.grants.tablePrivileges, []); assert.deepEqual(report.grants.publicTablePrivileges, []);
-      check(report, 'schemakopian har väntat self-mandatsschema och ACL; endast verifierat väntande suffix har tillämpats', { baselineMode: target.baselineMode, pendingMigrations: target.pendingMigrations });
-      const f = await db.begin(createTjanstFixture), s = await db.begin(tx => beforeState(tx, report, f, true));
-      await behaviorChecks(db, report, f, s);
-      report.finalFingerprint = await schemaFingerprint(db); assert.equal(report.finalFingerprint, report.installedFingerprint);
-      const after = await targetPendingMigrations(); assert.equal(after.fingerprint, target.fingerprint); assert.deepEqual(after.journal, target.journal);
-      report.targetUnchanged = { schema: true, journal: true, targetConnections: 'read only' };
-      check(report, 'målets schema och journal är oförändrade efter schema-copy-proven');
+    report.commandStage=stage;
+    await beforeRepairChecks(report);
+    report.historicalCheckCount=report.checks.length; persist();
+    if(stage==='current') {
+      source=await currentDatabase(ephemeral,report);report.database=source.provenance;
+      const db=source.db;
+      assert.ok((await db`select to_regprocedure('public.tjanst_year_ensure_draft(public.access_assignments,public.app_sessions,public.tjanst_distributions,uuid)') present`)[0].present,'Current stage requires year commands');
+      modern=true;report.activeBaseline='current:'+report.baselineMode;
+      report.installedFingerprint=await schemaFingerprint(db);
+      await assertTjanstSelfMandatesSchema(db,{installed:true});
+      report.grants=await workerGrants(db);
+      assert.deepEqual(report.grants.workerExecute,[...WORKER_ENTRYPOINTS].sort());
+      assert.deepEqual(report.grants.clientRoleExecute,[]);assert.deepEqual(report.grants.tablePrivileges,[]);assert.deepEqual(report.grants.publicTablePrivileges,[]);
+      check(report,'aktuellt schema har väntat self-mandatsschema och ACL; bara väntande suffix tillämpat');
+      const f=await db.begin(createTjanstFixture),s=await db.begin(tx=>beforeState(tx,report,f,true));
+      await behaviorChecks(db,report,f,s);
+      report.finalFingerprint=await schemaFingerprint(db);assert.equal(report.finalFingerprint,report.installedFingerprint);
     }
+    report.currentCheckCount=report.checks.length-report.historicalCheckCount;
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, where: e.where, stack: e.stack }; }
   finally {
     try { report.finalSources = sources(); assert.deepEqual(report.finalSources, report.sources); } catch (e) { report.sourceFailure = { message: e.message }; }
-    try { if (snapshot) report.cleanup = await snapshot.cleanup(); } catch (e) { report.cleanupFailure = { message: e.message }; }
+    try { if (source) await source.close(); } catch (e) { report.cleanupFailure = { message: e.message }; }
     if (!report.failure && !report.sourceFailure && !report.cleanupFailure) report.status = 'PASS';
     delete report.activeBaseline;
     report.finishedAt = new Date().toISOString(); persist();
@@ -535,7 +587,7 @@ export async function verifyTjanstGap(out, { ephemeral = false } = {}) {
   return report;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2), ephemeral = args.includes('--ephemeral'), rest = args.filter(a => a !== '--ephemeral');
-  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral]');
-  await verifyTjanstGap(rest[1], { ephemeral });
+  const args=process.argv.slice(2),ephemeral=args.includes('--ephemeral'),si=args.indexOf('--stage'),stage=si<0?'current':args[si+1],rest=args.filter((a,i)=>a!=='--ephemeral'&&(si<0||i!==si&&i!==si+1));
+  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral] [--stage current|historical]');
+  await verifyTjanstGap(rest[1], { ephemeral, stage });
 }
