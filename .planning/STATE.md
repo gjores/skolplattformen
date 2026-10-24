@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-20 — Minsta Worker-rättighet för planeringsstöd"
+current_plan: "05.1-21 — Sammanhållen arbetsyta och lärarval på raden"
 status: in_progress
-stopped_at: "Plan14–19 implementerade och avgränsat verifierade. Plan20 pågår: en auditerad preview-entrypoint öppnas för Worker. UI och faktisk Worker/OIDC återstår; ingen installation eller ändrad fasacceptans."
+stopped_at: "Plan14–20 implementerade och avgränsat verifierade. Plan21 pågår: sammanhållen arbetsyta, aktiva lärarval och sekundärt batcharbete. Faktisk Worker/OIDC återstår; ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-24"
 last_activity: 2026-10-24
-last_activity_desc: "Strikt API och ref-bunden status verifierade; minimal Worker-rättighet påbörjad."
+last_activity_desc: "Minimal Worker-rättighet verifierad; sammanhållen arbetsyta och simulerade browserprov påbörjade."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-20 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-20-SUMMARY.md): endast auditerad preview-entrypoint öppnad för Worker, exakt13 öppna och73 stängda fasfunktioner. SQL-behörighet75/75 i två isolerade lägen, preview67, kommandon84 och gap82/83 PASS; classifier35/35. Sessionslås, obligatorisk audit och oförändrade verksamhetsrader verifierade. Fyra schemakopior har oförändrat mål och alla tio prov full cleanup. Nästa21 bygger sammanhållen arbetsyta och provar simulerat API på dator/telefon. Faktisk Worker/OIDC22 och installation återstår; aktiv3012 orörd.
 
 **Plan 05.1-19 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-19-SUMMARY.md): skyddad förhandsvisningsrutt, strikt kontextbundna nya skrivningar och återhämtning av äldre kvitton från minimal målreferens. Node 68/68 riktade och 118/118 inklusive modeller, typkontroll och full lint PASS. Explicita historiska SQL-läsadaptrar bevarar tidigare prov: 102/23 historiska samt 60/19/82/46 aktuella och blandade kontrollkedjor PASS. Audit innehåller endast snävt definierade verksamhetsreferenser. HTTP-testernas session/databas är simulerade; faktisk Worker/OIDC återstår22. Mellanläget är inte levererbart ensamt innan UI21. Nästa20 öppnar endast SQL-stödets preview-entrypoint; installerat mål och3012 är orörda.
 
