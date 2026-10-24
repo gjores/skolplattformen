@@ -166,8 +166,8 @@
   .tjanst-status-side{justify-content:flex-start}
   .tjanst-wide,.tjanst [data-slot=table-container]:has(.tjanst-wide){display:none}
   .tjanst-cards{display:grid}
-  .tjanst-view-select{flex-direction:column;align-items:stretch}
-  .tjanst-view-select select{width:100%}
+  .tjanst-view-select,.tjanst-status-side .tjanst-inline-field{flex-direction:column;align-items:stretch;width:100%;min-width:0;white-space:normal}
+  .tjanst-view-select select,.tjanst-status-side .tjanst-inline-field select{width:100%;min-width:0}
   .tjanst .tjanst-picker{grid-template-columns:minmax(0,1fr)}
   .tjanst .tjanst-picker select{width:100%}
   .tjanst-dialog .tjanst-person-time{grid-template-columns:minmax(0,1fr)}

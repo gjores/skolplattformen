@@ -514,6 +514,7 @@ test.describe('Bemanning',()=>{
    await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
   expect(m.bodies.filter(b=>b.path==='/api/tjanst/plan/lasa').map(b=>b.body)).toEqual([{unitId:A,schoolYear:YEAR,versionId:id(605)}]);
   await expect(page.locator('.tjanst-readonly')).toHaveText('Du läser version 2 skrivskyddat, publicerad 2026-09-01 av Rektor Syntetisk. Lärarna ser den här versionen.');
+  await noOverflow(page);
   // De publicerade summorna (50 + 50 h), inte utkastets (20 + 20 h).
   if(phone(info))await expect(page.locator('.tjanst dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 50 h · Läsår 100 h');
   else await expect(page.locator('[data-sum="Undervisning:Anna Andersson"]')).toHaveText('100 h');
