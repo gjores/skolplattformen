@@ -375,7 +375,7 @@ Plans:
 
 - [x] 05.1-13-PLAN.md — Gap: handbok efter det faktiska provet, leverans med repetition, användarens godkännande, --apply och 3012-byte (våg 9). Svar A; --apply PASS 31 kontroller, 20261021120000 journalförd, 0 self-mandat i målet och 0 reparerade kopplingar, 3012 kör 7d31489 med godkänd hälsokontroll; mänsklig bedömning återstår
 
-**Etapp 2 — genomförande startat 2026-10-24, 4/12 genomförda**
+**Etapp 2 — genomförande startat 2026-10-24, 5/12 genomförda**
 
 **Våg 10**
 
@@ -392,7 +392,7 @@ Plans:
 
 **Våg 13**
 
-- [ ] [05.1-18-PLAN.md](phases/05.1-tjanstefordelning/05.1-18-PLAN.md) — Atomär radlagring och intern arbetsrevision
+- [x] [05.1-18-PLAN.md](phases/05.1-tjanstefordelning/05.1-18-PLAN.md) — Atomär radlagring och intern arbetsrevision
 
 **Våg 14**
 
@@ -647,7 +647,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 ## Progress
 
-**Etapp 2 genomförs 2026-10-24:** Plan14–16 klara: omkörbara isolerade prov, gemensamt publiceringshinder och kontrakt/modell för aktiva lärarval. Ny SQL38×2, classifier21, kontrakt/modell66 och avgränsade regressioner PASS; se respektive SUMMARY. Nästa17 bygger SQL-lässtöd. Appintegration, faktisk Worker/OIDC, installation och nytt användarprov återstår. Ingen ny kravacceptans; äldre statusdetaljer i tabellen kompletteras av denna notering.
+**Etapp 2 genomförs 2026-10-24:** Plan14–18 klara: omkörbara isolerade prov, gemensamt publiceringshinder, kontrakt/modell för aktiva lärarval, SQL-lässtöd och atomär lagring. Plan18 SQL 83/83 i två isolerade miljöer, classifier23 och aktuella/historiska regressioner PASS; se respektive SUMMARY. Nästa19 kopplar API/status. Appintegration, faktisk Worker/OIDC, installation och nytt användarprov återstår. Ingen ny kravacceptans; äldre statusdetaljer i tabellen kompletteras av denna notering.
 
 **Execution Order:** 1 → 2 → 3 → 4 → 5 → 05.1 → 05.2 → 05.3 → 05.4 → 05.5 → 05.6 → 05.7 → 05.8 → 6 → 7 → 8. 05.5, 05.7 och 05.8 beror bara på fas 5 och kan köras parallellt med 05.1–05.4 om användaren vill. Förberedelser för externa anslutningar och drift löper från början; de ändrar inte godkännandegränserna.
 
@@ -658,7 +658,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 3. Mandat och skyddade datavägar | 7/7 | Complete    | 2026-09-28 |
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
-| 05.1. Tjänstefördelning (INSERTED) | 18/26 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A). Gap 05.1-11 (CR-01, WR-02) provad i SQL och 05.1-12 (WR-07, CR-01, WR-02) provad faktiskt mot syntetiska data; 05.1-13 (svar A) installerade rättelsen lokalt 2026-10-22, och 3012 kör 7d31489. Omverifierad 2026-10-22: 6/7. Användarprov rapporterat klart 2026-10-23, utan särredovisning av delsteg/enheter. D-25–D-27 tillkom efter planeringen 2026-10-23: en sammanhållen fördelning med förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad; 14–17 är nu genomförda och avgränsat verifierade. Plan18 pågår; samlad HTTP/UI-verifiering, installation och nytt användarprov återstår | - |
+| 05.1. Tjänstefördelning (INSERTED) | 19/26 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A). Gap 05.1-11 (CR-01, WR-02) provad i SQL och 05.1-12 (WR-07, CR-01, WR-02) provad faktiskt mot syntetiska data; 05.1-13 (svar A) installerade rättelsen lokalt 2026-10-22, och 3012 kör 7d31489. Omverifierad 2026-10-22: 6/7. Användarprov rapporterat klart 2026-10-23, utan särredovisning av delsteg/enheter. D-25–D-27 tillkom efter planeringen 2026-10-23: en sammanhållen fördelning med förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad; 14–18 är nu genomförda och avgränsat verifierade. Nästa19 kopplar API/status; samlad HTTP/UI-verifiering, installation och nytt användarprov återstår | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-18 — Atomär radlagring och intern arbetsrevision"
+current_plan: "05.1-19 — API och status för löpande planering"
 status: in_progress
-stopped_at: "Plan14–17 implementerade och avgränsat verifierade. Plan18 pågår: atomär lagring, intern arbetsrevision och explicita batcher. Ingen installation; tidigare fasbedömning 6/7 består."
+stopped_at: "Plan14–18 implementerade och avgränsat verifierade. Nästa19 kopplar API och status till strikt kontextbunden planering. Ingen installation; tidigare fasbedömning 6/7 består."
 last_updated: "2026-10-24"
 last_activity: 2026-10-24
-last_activity_desc: "Årets SQL-lässtöd verifierat i två isolerade miljöer; atomär lagring påbörjad."
+last_activity_desc: "Atomär radlagring verifierad i två isolerade miljöer; API-integrationen är nästa steg."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-18 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-18-SUMMARY.md): kontextbundet sparande, intern arbetsrevision efter publicering, explicit flytt/massarbete och borttagning av helt tom lärarkolumn. SQL 83/83 i både tillfällig databas och schemakopia, 88 källhashar oförändrade; classifier 23/23. Aktuella regressionsprov plan60/self19/gap83/publiceringshinder46/preview66 och separata historiska plan102/self23 PASS. Konkurrerande verkliga SQL-entrypoints, rollback och exakt äldre journalåterhämtning är provade med syntetiska data. Installerat schema och journal oförändrade, full cleanup. API/UI, faktisk Worker/OIDC och handbok återstår; nästa19. Ingen installation eller ny fasacceptans.
 
 **Plan 05.1-17 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-17-SUMMARY.md): auditerad katalog, radstöd och batchförhandsvisning utan verksamhetsskrivning. SQL66/66 i tillfällig databas och SQL66/66 i tom schemakopia av installerat etapp1+gap; klassificerare22/22 PASS. Åttioåtta källor bundna och oförändrade, full cleanup. Katalogens personunderlag och radens behov/person/evidens prövas separat; frivillig historik kan vara otillgänglig utan att blockera manuellt val. Gy25 överår och samläsningens100/101-objektsgräns provade. Alla nya funktioner är stängda för Worker tills20. Nästa18 bygger atomärt sparande; HTTP/UI och installation återstår.
 
