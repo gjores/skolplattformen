@@ -101,7 +101,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [initial] = useState(readLocation);
   const [view, setView] = useState<TjanstView>(initial.view), [term, setTerm] = useState<TjanstTermView>(initial.term);
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
-  const [versionId, setVersionId] = useState(startVersion ?? ''), [readKey, setReadKey] = useState(0);
+  const [versionId, setVersionId] = useState(startVersion ?? ''), [readKey, setReadKey] = useState(0), [readDone, setReadDone] = useState(0);
   const [data, setData] = useState<TjanstPlanRead | null>(null), [loading, setLoading] = useState(!!unitId), [readError, setReadError] = useState<ReadFailure | null>(null);
   const [notice, setNotice] = useState<string | null>(null), [pageError, setPageError] = useState<TjanstFailure | null>(null), [pendingCheck, setPendingCheck] = useState(false), [recovering, setRecovering] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null), [marked, setMarked] = useState<string[]>([]), [markError, setMarkError] = useState<string | null>(null);
@@ -117,10 +117,12 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const scopeKey = `${context.assignmentId}:${unitId}:${schoolYear}`;
   const active = useRef(true), generation = useRef(0), running = useRef(false), origin = useRef<HTMLElement | null>(null), lost = useRef(onSessionLost);
   const originCell = useRef<{ sourceKey: string; personId: string | null } | null>(null), focusCell = useRef<() => HTMLElement | null>(() => null);
-  const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId(), pendingFocus = useRef<HTMLElement | null>(null);
+  const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId(), pendingFocus = useRef<HTMLElement | null>(null), reading = useRef(false);
+  // En läsning som redan har startat men ännu inte renderat inert får inte förbruka fokusmålet: cellen kan ersättas av läsningen
+  // och fokus skulle då gå förlorat (faktiskt prov 05.1-22). Målet ligger kvar tills läsningen är klar.
   const applyFocus = useCallback(() => {
     const target = pendingFocus.current;
-    if (!target) return;
+    if (!target || reading.current) return;
     const resolved = target.isConnected ? target : focusCell.current() ?? viewHeading.current;
     if (!resolved || resolved.closest('[inert]')) return;
     pendingFocus.current = null; resolved.focus();
@@ -140,7 +142,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     // innan läsningen startar, återställs det efter läsningen i stället för att gå förlorat (faktiskt prov 05.1-12).
     const focused = document.activeElement;
     if (!pendingFocus.current && focused instanceof HTMLElement && focused.closest('.tjanst-content')) pendingFocus.current = focused;
-    setLoading(true);
+    reading.current = true; setLoading(true);
     try {
       const reply = parsePlanReadReply(await api.post('/api/tjanst/plan/lasa', request), request);
       if (!active.current || token !== generation.current) return;
@@ -151,12 +153,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       const failure = readFailure(caught);
       if (failure.clear) { setData(null); setDialog(null); setMarked([]); }
       setReadError(failure);
-    } finally { if (active.current && token === generation.current) setLoading(false); }
+    } finally { if (token === generation.current) { reading.current = false; if (active.current) setReadDone(n => n + 1); } if (active.current && token === generation.current) setLoading(false); }
   }, [unitId, schoolYear, versionId]);
   const filterKey = JSON.stringify(filter);
   useEffect(() => { queueMicrotask(() => void load()); }, [load, readKey, term, filterKey]);
   const refresh = useCallback(() => setReadKey(n => n + 1), []);
-  useEffect(() => { if (!loading) requestAnimationFrame(applyFocus); }, [loading, applyFocus]);
+  // readDone räknas upp efter varje avslutad läsning, även när loading true/false slås ihop i samma rendering.
+  useEffect(() => { if (!loading) requestAnimationFrame(applyFocus); }, [loading, readDone, applyFocus]);
 
   // Ett osäkert sparförsök från en tidigare sidvisning kontrolleras med statuskvittot, aldrig med en ny skrivning.
   const recover = useCallback(async () => {
