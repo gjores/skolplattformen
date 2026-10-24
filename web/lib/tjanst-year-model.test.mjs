@@ -142,3 +142,14 @@ test('100-object limit counts union of whole affected groups plus standalone sel
   assert.equal(blocked.writeObjectCount, 120); assert.ok(blocked.blockers.some(b => b.code === 'batch_too_large')); assert.deepEqual(blocked.rows, rows);
   const single = previewYearMove({ unitId, schoolYear: 2026 }, id(5), [items[0]], rows, [], joints); assert.equal(single.writeObjectCount, 60); assert.deepEqual(single.blockers, []);
 });
+
+test('revision stays frozen through support refresh and advances only with an explicit new choice', () => {
+  const old = support({ currentRevision: 4 }), fresh = support({ currentRevision: 5, basisHash: hash('e') });
+  const editor = selectYearTeacher(createYearRowEditor(old), old, { kind: 'manual', personId });
+  assert.equal(editor.expectedRevision, 4);
+  const kept = refreshYearRowEditor({ ...editor, comment: 'Behåll', teacherHt: 123 }, fresh);
+  assert.equal(kept.expectedRevision, 4); assert.equal(kept.expectedBasisHash, old.basisHash);
+  const chosen = selectYearTeacher(kept, fresh, { kind: 'manual', personId });
+  assert.equal(chosen.expectedRevision, 5); assert.equal(chosen.expectedBasisHash, fresh.basisHash);
+  assert.equal(chosen.comment, 'Behåll'); assert.equal(chosen.teacherHt, 123);
+});

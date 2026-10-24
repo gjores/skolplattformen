@@ -28,7 +28,7 @@ export function projectYearRows(classes: TjanstClass[], rows: TjanstRow[], joint
   return result;
 }
 export type TjanstYearRowEditor = TjanstYearScope & { sourceKey: string; rowId: string | null; baseVersionId: string | null;
-  expectedBasisHash: string; personId: string | null; choice: TjanstYearChoice | null; teacherHt: number | null; teacherVt: number | null; comment: string };
+  expectedRevision: number; expectedBasisHash: string; personId: string | null; choice: TjanstYearChoice | null; teacherHt: number | null; teacherVt: number | null; comment: string };
 function checkSupport(value: TjanstYearRowReply): TjanstYearRowReply {
   const parsed = parseYearReply(value, { unitId: value.unitId, schoolYear: value.schoolYear, mode: 'row', sourceKey: value.sourceKey, rowId: value.rowId });
   if (parsed.mode !== 'row') bad(); return parsed;
@@ -37,7 +37,7 @@ function manual(candidate: TjanstYearCandidate): TjanstYearChoice { return { kin
 /** A column is a navigation hint only. It never selects its teacher on a new row. A saved choice is retained. */
 export function createYearRowEditor(support: TjanstYearRowReply, allocated: TjanstTermMinutes = { ht: 0, vt: 0 }, _columnPersonId?: string | null): TjanstYearRowEditor {
   const s = checkSupport(support), row = s.currentRow, person = s.candidates.find(p => p.personId === row?.personId);
-  return { unitId: s.unitId, schoolYear: s.schoolYear, sourceKey: s.sourceKey, rowId: s.rowId, baseVersionId: s.baseVersionId, expectedBasisHash: s.basisHash,
+  return { unitId: s.unitId, schoolYear: s.schoolYear, sourceKey: s.sourceKey, rowId: s.rowId, baseVersionId: s.baseVersionId, expectedRevision: s.currentRevision, expectedBasisHash: s.basisHash,
     personId: row?.personId ?? null, choice: row === null ? null : row.personId === null ? { kind: 'unassigned', personId: null } : person ? manual(person) : null,
     teacherHt: row ? row.teacherHt : prefill(s.need.needHt, allocated.ht), teacherVt: row ? row.teacherVt : prefill(s.need.needVt, allocated.vt), comment: row?.comment ?? '' };
 }
@@ -58,7 +58,7 @@ export function selectYearTeacher(editor: TjanstYearRowEditor, support: TjanstYe
     selected = { kind: 'suggestion', personId: person.personId, expectedPersonBasisHash: person.personBasisHash,
       suggestionId: suggestion.suggestionId, expectedEvidenceHash: suggestion.evidenceHash };
   }
-  return { ...editor, baseVersionId: s.baseVersionId, expectedBasisHash: s.basisHash, choice: selected, personId: selected.personId };
+  return { ...editor, baseVersionId: s.baseVersionId, expectedRevision: s.currentRevision, expectedBasisHash: s.basisHash, choice: selected, personId: selected.personId };
 }
 /** Refreshing support preserves all edits and frozen hashes. Stale support must be reviewed; no silent manual fallback. */
 export function refreshYearRowEditor(editor: TjanstYearRowEditor, support: TjanstYearRowReply): TjanstYearRowEditor {

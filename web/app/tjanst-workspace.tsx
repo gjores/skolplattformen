@@ -2,19 +2,20 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CheckCheck, Plus, UserRoundPlus } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { createPlanCommand, parsePersonalCommand, parsePersonalCommandReply, parsePersonalReadReply, parsePlanCommandReply, parsePlanReadReply,
-  parseStatusReply, personalCommandRef, planCommandRef, TjanstContractError, type TjanstCommandRef, type TjanstJoint, type TjanstPerson,
-  type TjanstPlanFormAction as TjanstPlanAction, type TjanstPlanFormPayload as TjanstPlanPayload, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
+import { createPlanCommand, parsePersonalCommand, parsePersonalCommandReply, parsePlanCommandReply, parsePlanReadReply, parsePlanStatusReply,
+  parseStatusReply, personalCommandRef, planCommandRef, TjanstContractError, type TjanstCommandRef, type TjanstJoint,
+  type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
+import { parseYearReply, parseYearRequest, type TjanstYearRequest, type TjanstYearReply, type TjanstYearCatalogReply, type TjanstYearBasePayload as TjanstPlanPayload } from '@/lib/tjanst-year-contract.ts';
+import TjanstYearDialog, { type TjanstYearBatchDraft } from './tjanst-year-dialog';
 import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJournalError, type TjanstJournal, type TjanstJournalScope } from '@/lib/tjanst-journal.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
 import TjanstMatrix, { EMPTY_FILTER, filterGroups, jointOf, needEntries, sortTeachers, subjectOf, type TjanstCellTarget, type TjanstFilter } from './tjanst-matrix';
 import { hereForStepUp, TjanstAddTeacherDialog, TjanstConfirmDialog, TjanstJointDialog, TjanstNewTeacherDialog, TjanstRowDialog, TjanstSpecialDialog,
-  type TjanstFailure, type TjanstOutcome } from './tjanst-dialogs';
+  Problems, type TjanstPreparedChange, type TjanstFormCache, type TjanstFailure, type TjanstOutcome } from './tjanst-dialogs';
 import TjanstPublishPanel, { ackSummary, dateText, STATUS_LABEL, type TjanstFeedback } from './tjanst-publish-panel';
 import MfaStepUpNotice from './mfa-step-up';
 import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst-service-summary';
@@ -31,13 +32,15 @@ const VIEWS: { id: TjanstView; label: string }[] = [{ id: 'matris', label: 'Matr
   { id: 'special', label: 'Specialuppdrag' }, { id: 'kurs', label: 'Per kurs/ämne' }];
 const TERMS: TjanstTermView[] = ['ar', 'ht', 'vt'];
 const LOCK_CODES = ['context_changed', 'assignment_ended', 'assignment_expired', 'membership_blocked'];
+type TjanstPlanAction = keyof TjanstPlanPayload;
 type Saved = { filter: TjanstFilter; classId: string; personId: string };
 type Dialog =
-  | { kind: 'row'; target: TjanstCellTarget; chooseTeacher: boolean }
+  | { kind: 'row'; target: TjanstCellTarget }
   | { kind: 'special'; special: TjanstSpecial | null }
   | { kind: 'joint'; rowIds: string[]; jointId: string | null }
+  | { kind: 'batch'; mode: 'move' | 'bulk' }
   | { kind: 'addTeacher' } | { kind: 'newTeacher' }
-  | { kind: 'confirm'; confirm: 'deleteRow' | 'deleteSpecial' | 'discard' | 'dissolve' | 'publish'; id: string };
+  | { kind: 'confirm'; confirm: 'removeTeacher' | 'deleteRow' | 'deleteSpecial' | 'discard' | 'dissolve' | 'publish'; id: string };
 type ReadFailure = { text: string; clear: boolean; retry: boolean; correlationId: string | null };
 export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unitId: string | null; schoolYear: number;
   /** Krävs för skrivningar: journalen binds till inloggad identitet och uppdrag (tjanst-journal). */
@@ -87,6 +90,7 @@ const REASONS: Record<string, string> = {
 };
 type Op = 'write' | 'publish' | 'personal';
 const failed = (error: string, extra: Partial<TjanstFailure> = {}): TjanstFailure => ({ ok: false, error, ...extra });
+const phoneViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 800px)').matches;
 const aborted = (caught: unknown) => caught instanceof DOMException && caught.name === 'AbortError';
 
 export default function TjanstWorkspace(props: TjanstWorkspaceProps) {
@@ -99,23 +103,34 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
   const [versionId, setVersionId] = useState(startVersion ?? ''), [readKey, setReadKey] = useState(0);
   const [data, setData] = useState<TjanstPlanRead | null>(null), [loading, setLoading] = useState(!!unitId), [readError, setReadError] = useState<ReadFailure | null>(null);
-  const [notice, setNotice] = useState<string | null>(null), [pageError, setPageError] = useState<TjanstFailure | null>(null), [pendingCheck, setPendingCheck] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null), [pageError, setPageError] = useState<TjanstFailure | null>(null), [pendingCheck, setPendingCheck] = useState(false), [recovering, setRecovering] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null), [marked, setMarked] = useState<string[]>([]), [markError, setMarkError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false), [checking, setChecking] = useState(false), [busy, setBusy] = useState(false);
-  const phone = usePhone();
+  const [dialogData, setDialogData] = useState<TjanstPlanRead | null>(null), [form, setForm] = useState<TjanstFormCache>({}), [formDirty, setFormDirty] = useState(false);
+  const [pendingRowInput, setPendingRowInput] = useState<TjanstFormCache | null>(null);
+  const [support, setSupport] = useState<TjanstYearReply | null>(null), [acceptedCatalog, setAcceptedCatalog] = useState<TjanstYearCatalogReply | null>(null);
+  const [supportBusy, setSupportBusy] = useState(false), [supportError, setSupportError] = useState<TjanstFailure | null>(null), [supportKey, setSupportKey] = useState(0);
+  const [batchDraft, setBatchDraft] = useState<TjanstYearBatchDraft>();
+  const supportGeneration = useRef(0), supportInitialized = useRef(false), recoveryGate = useRef(true), uncertainGate = useRef(false);
+  const onField = useCallback((key: string, value: unknown, dirty = true) => { setForm(old => ({ ...old, [key]: value })); if (dirty) setFormDirty(true); }, []);
+  const phone = usePhone(), phoneRef = useRef(phone); useLayoutEffect(() => { phoneRef.current = phone; }, [phone]);
+  const scopeKey = `${context.assignmentId}:${unitId}:${schoolYear}`;
   const active = useRef(true), generation = useRef(0), running = useRef(false), origin = useRef<HTMLElement | null>(null), lost = useRef(onSessionLost);
+  const originCell = useRef<{ sourceKey: string; personId: string | null } | null>(null), focusCell = useRef<() => HTMLElement | null>(() => null);
   const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId(), pendingFocus = useRef<HTMLElement | null>(null);
   const applyFocus = useCallback(() => {
     const target = pendingFocus.current;
-    if (!target || target.closest('[inert]')) return;
-    pendingFocus.current = null;
-    (target.isConnected ? target : viewHeading.current)?.focus();
+    if (!target) return;
+    const resolved = target.isConnected ? target : focusCell.current() ?? viewHeading.current;
+    if (!resolved || resolved.closest('[inert]')) return;
+    pendingFocus.current = null; resolved.focus();
   }, []);
   useLayoutEffect(() => { lost.current = onSessionLost; });
-  useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
+  useLayoutEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   const scope = useMemo<TjanstJournalScope | null>(() => identityKey ? { identityKey, assignmentId: context.assignmentId } : null, [identityKey, context.assignmentId]);
   useUnsavedChanges('navigation-block:tjanst', busy || checking || pendingCheck);
   useUnsavedChanges('tjanst-marked', marked.length > 0);
+  useUnsavedChanges('tjanst-editor', !!pendingRowInput || !!dialog && (formDirty || !!batchDraft?.dirty));
 
   // Varje läsning hör till en generation. Svar från en äldre generation ignoreras (Beteendekontrakt 10).
   const load = useCallback(async () => {
@@ -145,17 +160,20 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
 
   // Ett osäkert sparförsök från en tidigare sidvisning kontrolleras med statuskvittot, aldrig med en ny skrivning.
   const recover = useCallback(async () => {
-    if (!scope || !unitId) return;
+    if (!scope || !unitId) { recoveryGate.current = false; setRecovering(false); return; }
+    if (running.current) return; recoveryGate.current = true; setRecovering(true);
+    let unresolved = false;
     const template = (family: 'plan' | 'personal'): TjanstCommandRef => ({ family, commandId: crypto.randomUUID(), action: family === 'plan' ? 'save_row' : 'create_draft_teacher',
       target: { unitId, schoolYear: family === 'plan' ? schoolYear : null, versionId: null, personId: null } });
     for (const family of ['plan', 'personal'] as const) {
       let journal: TjanstJournal | null = null;
-      try { journal = await loadTjanstJournal(window.sessionStorage, scope, template(family)); } catch { continue; }
+      try { journal = await loadTjanstJournal(window.sessionStorage, scope, template(family)); } catch { unresolved = true; setPageError(failed('Tidigare sparstatus kunde inte läsas. Kontrollera sparstatus innan du fortsätter.')); continue; }
       if (!journal || !active.current) continue;
       setPendingCheck(true); setChecking(true); setNotice('Svaret uteblev. Vi kontrollerar om ändringen sparades.');
       try {
         const ref = journal.command;
-        const status = parseStatusReply(await api.post(`/api/tjanst/${family}/status`, { command: ref }), ref, value => {
+        const raw = await api.post(`/api/tjanst/${family}/status`, { command: ref });
+        const status = family === 'plan' ? parsePlanStatusReply(raw, ref) : parseStatusReply(raw, ref, value => {
           const receipt = (value as { receipt?: { commandId?: unknown } } | null)?.receipt;
           if (!receipt || typeof receipt.commandId !== 'string') throw new TjanstContractError();
           return value as { receipt: { commandId: string } };
@@ -166,9 +184,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       } catch (caught) {
         if (!active.current) return;
         if (caught instanceof ApiError && caught.status === 401) { lost.current?.(); return; }
-        setNotice(null); setPageError(failed('Det gick inte att avgöra om ändringen sparades. Hämta aktuellt läge innan du försöker igen.'));
+        unresolved = true; setNotice(null); setPageError(failed('Det gick inte att avgöra om ändringen sparades. Hämta aktuellt läge innan du försöker igen.'));
       } finally { if (active.current) setChecking(false); }
     }
+    uncertainGate.current = unresolved; recoveryGate.current = false; if (active.current) { setPendingCheck(unresolved); setRecovering(false); }
   }, [scope, unitId, schoolYear, refresh]);
   useEffect(() => { queueMicrotask(() => void recover()); }, [recover]);
 
@@ -179,12 +198,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     if (code === 'audit_unavailable') return failed('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig. Dina uppgifter finns kvar i formuläret.', { correlationId, code });
     if (LOCK_CODES.includes(caught.code)) return failed('Uppdraget har ändrats. Ladda om arbetsytan.', { correlationId });
     if (caught.status === 403) return failed(op === 'publish' ? 'Bara rektor kan fastställa och publicera tjänstefördelningen.' : 'Ditt aktuella uppdrag tillåter inte ändringen.', { correlationId });
-    if (caught.status === 409) return failed(code === 'tjanst_published_meanwhile'
-      ? `Version ${data?.version?.versionNo ?? ''} har publicerats under tiden. Hämta aktuellt läge och välj Ändra i ny version.`
-      : 'Fördelningen har ändrats av någon annan. Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.', { correlationId, code, refresh: reload });
+    if (caught.status === 409) return failed('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.', { correlationId, code, refresh: reload });
     if (caught.status === 400) return failed(REASONS[code] ?? 'Formuläret innehåller fel. Rätta de markerade fälten.', { correlationId, code });
     return failed('Ändringen kunde inte sparas. Dina uppgifter finns kvar i formuläret.', { correlationId });
-  }, [data, refresh]);
+  }, [refresh]);
 
   /** Journalen sparas före anropet; okänt utfall kontrolleras via status med samma commandId (Beteendekontrakt 6). */
   async function tracked<R extends { receipt: { commandId: string } }>(ref: TjanstCommandRef, path: string, body: unknown, parse: (value: unknown) => R, op: Op): Promise<{ ok: true; reply: R } | TjanstFailure> {
@@ -192,10 +209,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     let journal: TjanstJournal;
     try { journal = await persistTjanstJournal(window.sessionStorage, scope, ref); }
     catch (caught) {
-      if (caught instanceof TjanstJournalError && caught.code === 'pending_journal_exists') { setPendingCheck(true); return failed('Ett tidigare sparförsök behöver kontrolleras först. Välj Kontrollera sparstatus.'); }
+      if (caught instanceof TjanstJournalError && caught.code === 'pending_journal_exists') { uncertainGate.current = true; setPendingCheck(true); return failed('Ett tidigare sparförsök behöver kontrolleras först. Välj Kontrollera sparstatus.'); }
       return failed('Ändringen kunde inte förberedas i den här fliken. Inget har skickats.');
     }
     const forget = async () => { try { await removeTjanstJournal(window.sessionStorage, journal); } catch { /* Journalen kontrolleras vid nästa visning. */ } };
+    if (!active.current || phoneRef.current || phoneViewport()) { await forget(); return failed('Arbetsytan har ändrats. Inget har skickats.'); }
     try {
       const reply = parse(await api.post(path, body));
       await forget();
@@ -210,35 +228,66 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         await forget();
         return status.state === 'completed' ? { ok: true, reply: status.result } : failed('Ändringen sparades inte. Dina uppgifter finns kvar i formuläret.');
       } catch {
-        if (active.current) setPendingCheck(true);
+        uncertainGate.current = true; if (active.current) setPendingCheck(true);
         return failed('Det gick inte att avgöra om ändringen sparades. Hämta aktuellt läge innan du försöker igen.');
       } finally { if (active.current) setChecking(false); }
     }
   }
-  async function plan<A extends TjanstPlanAction>(action: A, payload: TjanstPlanPayload[A], message: (detail: TjanstPlanRead) => string): Promise<TjanstOutcome> {
-    if (!data || !unitId || running.current) return failed('Vänta tills föregående ändring är klar.');
+  const loadPreview = useCallback(async (input: TjanstYearRequest): Promise<TjanstYearReply | TjanstFailure> => {
+    if (!active.current || phoneRef.current || input.unitId !== unitId || input.schoolYear !== schoolYear) return failed('Arbetsytan har ändrats.');
+    try { const request = parseYearRequest(input); const raw = await api.post('/api/tjanst/plan/forhandsvisa', request);
+      if (!active.current || phoneRef.current || phoneViewport()) return failed('Arbetsytan har ändrats.'); return parseYearReply(raw, request);
+    } catch (caught) { if (caught instanceof ApiError && caught.status === 401) lost.current?.();
+      return failed('Planeringsstödet kunde inte hämtas. Försök igen.', { correlationId: caught instanceof ApiError ? caught.correlationId : null }); }
+  }, [unitId, schoolYear]);
+  useEffect(() => {
+    const token = ++supportGeneration.current;
+    if (!dialog || !dialogData || phone || dialog.kind === 'newTeacher' || dialog.kind === 'batch') return;
+    const request: TjanstYearRequest = { unitId: dialogData.unitId, schoolYear: dialogData.schoolYear, ...(dialog.kind === 'row'
+      ? { mode: 'row' as const, sourceKey: dialog.target.sourceKey, rowId: dialog.target.rowId } : { mode: 'catalog' as const }) };
+    let current = true;
+    queueMicrotask(() => { if (current) { setSupportBusy(true); setSupportError(null); } });
+    void loadPreview(request).then(reply => {
+      if (!current || !active.current || token !== supportGeneration.current || phoneRef.current) return;
+      setSupportBusy(false);
+      if ('ok' in reply) { setSupportError(reply); return; }
+      if (reply.baseVersionId !== (dialogData.version?.id ?? null) && !(supportInitialized.current && dialog.kind === 'row' && dialog.target.rowId === null)) { setSupportError(failed('Planeringen har fått en ny arbetsrevision. Dina uppgifter finns kvar. Stäng formuläret och öppna raden i aktuellt läge.', { refresh })); refresh(); return; }
+      if (!supportInitialized.current && reply.currentRevision !== dialogData.revision) { setSupportError(failed('Planeringen har ändrats. Hämta aktuellt läge och öppna formuläret igen.', { refresh })); refresh(); return; }
+      supportInitialized.current = true; setSupport(reply);
+      // Initial context is captured once. Later reads never silently replace the chosen context.
+      if (reply.mode === 'catalog') setAcceptedCatalog(old => old ?? reply);
+    });
+    return () => { current = false; };
+  }, [dialog, dialogData, phone, supportKey, loadPreview, refresh]);
+  async function sendPrepared(prepared: TjanstPreparedChange, message: (detail: TjanstPlanRead) => string = () => 'Ändringarna är sparade.'): Promise<TjanstOutcome> {
+    if (!active.current || !data || !unitId || running.current || recoveryGate.current || uncertainGate.current || pendingCheck || checking || phoneRef.current || readOnly || versionId || !scope || !data.capabilities.canEdit) return failed('Vänta tills föregående ändring är klar och använd aktuell planering på dator.');
+    if (!['move', 'bulk'].includes(prepared.action) && (supportBusy || supportError)) return failed('Hämta och kontrollera planeringsstödet före sparning.');
+    if (prepared.unitId !== unitId || prepared.schoolYear !== schoolYear) return failed('Arbetsytan har ändrats.');
     running.current = true; setBusy(true); setNotice(null); setPageError(null);
     try {
-      const input = { commandId: crypto.randomUUID(), unitId, schoolYear, action, expectedRevision: data.revision, payload,
-        ...(action === 'publish' ? { expectedContentHash: data.version?.contentHash } : {}) };
-      const command = await createPlanCommand(input as never);
-      const result = await tracked(planCommandRef(command), action === 'publish' ? '/api/tjanst/plan/publicera' : '/api/tjanst/plan/kommando', command,
-        value => parsePlanCommandReply(value, command), action === 'publish' ? 'publish' : 'write');
-      if (!result.ok) return result;
+      const command = await createPlanCommand({ ...prepared, commandId: crypto.randomUUID() });
+      if (!active.current || phoneRef.current || phoneViewport()) return failed('Arbetsytan har ändrats. Inget har skickats.');
+      if (!data.actions.includes(command.action)) return failed('Åtgärden är inte längre tillgänglig i aktuellt läge. Hämta aktuellt läge.');
+      const result = await tracked(planCommandRef(command), command.action === 'publish' ? '/api/tjanst/plan/publicera' : '/api/tjanst/plan/kommando', command,
+        value => parsePlanCommandReply(value, command), command.action === 'publish' ? 'publish' : 'write');
+      if (!result.ok) {
+        if (active.current && (result.code?.includes('stale') || ['tjanst_revision_conflict', 'tjanst_published_meanwhile', 'tjanst_content_changed'].includes(result.code ?? '') || result.code === 'tjanst_publish_blocked')) { setSupportKey(n => n + 1); refresh(); }
+        return result;
+      }
       if (!active.current) return { ok: true };
-      setVersionId(''); setNotice(message(result.reply.detail)); refresh();
-      return { ok: true };
+      setVersionId(''); setNotice(message(result.reply.detail)); if (phoneRef.current) close(); refresh(); return { ok: true };
     } catch { return failed('Ändringen kunde inte förberedas i den här fliken. Inget har skickats.'); }
     finally { running.current = false; if (active.current) setBusy(false); }
   }
-  const loadPeople = useCallback(async (): Promise<TjanstPerson[] | TjanstFailure> => {
-    if (!unitId) return failed('Välj skola.');
-    try { return parsePersonalReadReply(await api.post('/api/tjanst/personal/lasa', { unitId }), { unitId }).people; }
-    catch (caught) { return caught instanceof ApiError ? caught.status === 403 ? failed('Ditt aktuella uppdrag tillåter inte att läsa personal för skolan.', { correlationId: caught.correlationId }) : failed('Personalen kunde inte hämtas. Försök igen.', { correlationId: caught.correlationId })
-      : failed('Tjänsten kunde inte nås. Kontrollera anslutningen och försök igen.'); }
-  }, [unitId]);
+  async function plan<A extends TjanstPlanAction>(action: A, payload: TjanstPlanPayload[A], message: (detail: TjanstPlanRead) => string): Promise<TjanstOutcome> {
+    if (!acceptedCatalog || !support || support.mode !== 'catalog' || supportBusy || supportError || acceptedCatalog.basisHash !== support.basisHash || acceptedCatalog.currentRevision !== support.currentRevision) return failed('Underlaget har ändrats. Bekräfta aktuellt underlag innan du sparar.');
+    const prepared = { unitId: acceptedCatalog.unitId, schoolYear: acceptedCatalog.schoolYear, action, expectedRevision: acceptedCatalog.currentRevision,
+      payload: { ...payload, mutationContext: { baseVersionId: acceptedCatalog.baseVersionId, expectedBasisHash: acceptedCatalog.basisHash } },
+      ...(action === 'publish' ? { expectedContentHash: dialogData?.version?.contentHash } : {}) } as TjanstPreparedChange;
+    return sendPrepared(prepared, message);
+  }
   async function newTeacher(draft: { givenName: string; familyName: string; draftNote: string }): Promise<TjanstOutcome> {
-    if (!unitId || running.current) return failed('Vänta tills föregående ändring är klar.');
+    if (!active.current || !data?.capabilities.canEdit || !unitId || running.current || recoveryGate.current || uncertainGate.current || pendingCheck || checking || phoneRef.current || readOnly || versionId || context.function !== 'rektor') return failed('Vänta tills föregående ändring är klar.');
     running.current = true; setBusy(true); setNotice(null);
     try {
       const command = parsePersonalCommand({ commandId: crypto.randomUUID(), action: 'create_draft_teacher', expectedRevision: 0, payload: { unitId, ...draft } });
@@ -269,18 +318,20 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   }
 
   // Rektor och administratör får lärarnas återkoppling i läsningen; huvudmannens läsning har den aldrig (lib/server/tjanst.ts).
-  const feedback = feedbackProp ?? data?.feedback;
-  const editable = !readOnly && !!data && data.capabilities.canEdit && data.version?.status === 'draft' && !versionId && !phone && !!scope;
+  const feedback = !versionId && !readOnly ? feedbackProp ?? data?.feedback : undefined;
+  const editable = !readOnly && !!data && data.capabilities.canEdit && !versionId && !phone && !!scope && !busy && !checking && !pendingCheck && !recovering;
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
-  // Utan version svarar servern canEdit false och bara create_draft i actions (huvudmannen får inga actions). Det första
-  // utkastet skapas när rektor eller skoladministratör lägger till den första läraren (05.1-09, faktiskt prov: utan detta
-  // gick det inte att börja en fördelning).
-  const canStart = !readOnly && !!data && data.version === null && !versionId && !phone && !!scope && data.actions.includes('create_draft');
-  const shownView: TjanstView = phone && view === 'matris' ? 'larare' : view;
+  const shownView: TjanstView = phone && view === 'matris' ? (data?.teachers.length ? 'larare' : 'klass') : view;
   const teachers = useMemo(() => data ? sortTeachers(data.teachers) : [], [data]);
   const groups = useMemo(() => data ? needEntries(data) : [], [data]);
   const filtered = useMemo(() => data ? filterGroups(groups, filter, term, data.joints) : [], [data, groups, filter, term]);
   const columns = filter.personId ? teachers.filter(t => t.personId === filter.personId) : teachers;
+  useLayoutEffect(() => { focusCell.current = () => {
+    const target = originCell.current; if (!target) return null;
+    const row = filtered.flatMap(g => g.cls.link ? g.entries : []).findIndex(e => e.need.sourceKey === target.sourceKey);
+    const column = target.personId === null ? columns.length : columns.findIndex(t => t.personId === target.personId);
+    return row < 0 || column < 0 ? null : document.querySelector<HTMLElement>(`[data-cell="${row}:${column}"]`);
+  }; }, [filtered, columns]);
   const subjects = useMemo(() => [...new Set(groups.flatMap(g => g.entries.map(e => subjectOf(e.need.label))))].sort((a, b) => a.localeCompare(b, 'sv')), [groups]);
   const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues);
   const effectivePerson = personId && data?.teachers.some(t => t.personId === personId) ? personId : teachers[0]?.personId ?? '';
@@ -288,25 +339,22 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const published = data?.versions.find(v => v.status === 'published') ?? null;
   const viewingOld = !!versionId && !!data?.version && data.version.status !== 'draft';
   // Skrivskyddat (Bemanning) listar väljaren bara publicerade och ersatta versioner; inget val leder till utkastet (WR-07).
-  const choices = data ? [...data.versions].filter(v => readOnly ? v.status === 'published' || v.status === 'superseded' : v.status !== 'discarded')
+  const choices = data ? [...data.versions].filter(v => v.status === 'published' || v.status === 'superseded')
     .sort((a, b) => b.versionNo - a.versionNo) : [];
-  const showChoices = !!data && data.capabilities.canReadHistory && (readOnly ? choices.length > 1 : data.versions.length > 1);
+  const showChoices = !!data && data.capabilities.canReadHistory && choices.length > 0;
   const schoolforms = data ? [...new Set(data.classes.flatMap(c => c.link ? [c.link.schoolform === 'gymnasium' ? 'Gy25' : 'GR/IM'] : []))] : [];
   const linked = data?.classes.some(c => c.link) ?? false;
   const empty = !!data && data.rows.length === 0 && data.teachers.length === 0 && data.specials.length === 0;
 
-  function open(next: Dialog, from: HTMLElement | null) { origin.current = from; setPageError(null); setDialog(next); }
-  /** Kommandon utan dialog (Ändra i ny version, första utkastet) visar sitt fel i vyns felregion, även MFA. */
-  async function pageCommand(run: () => Promise<TjanstOutcome>): Promise<boolean> {
-    const result = await run();
-    if (!result.ok && active.current) setPageError(result);
-    return result.ok;
-  }
-  async function startDistribution(from: HTMLElement) {
-    if (await pageCommand(() => plan('create_draft', { basedOnVersionId: null }, () => 'Utkastet version 1 är skapat.'))) open({ kind: 'addTeacher' }, from);
+  function open(next: Dialog, from: HTMLElement | null) {
+    if (!editable || running.current || recoveryGate.current || uncertainGate.current || !data) return;
+    const cell = from?.dataset.cell?.split(':').map(Number), entry = cell ? filtered.flatMap(g => g.cls.link ? g.entries : [])[cell[0]] : null;
+    originCell.current = entry && cell ? { sourceKey: entry.need.sourceKey, personId: columns[cell[1]]?.personId ?? null } : null;
+    supportGeneration.current++; supportInitialized.current = false; origin.current = from; setPageError(null); setDialog(next); setDialogData(structuredClone(data)); setForm(next.kind === 'row' && pendingRowInput ? { ...pendingRowInput, resetChoice: true } : {}); setFormDirty(next.kind === 'row' && !!pendingRowInput); setPendingRowInput(null);
+    setSupportBusy(false); setSupport(null); setAcceptedCatalog(null); setSupportError(null); setBatchDraft(undefined);
   }
   // Fokus återgår till cellen eller knappen som öppnade dialogen, efter omläsningen (innehållet är inert under läsning).
-  function close(focus?: HTMLElement | null) { pendingFocus.current = focus ?? origin.current ?? viewHeading.current; setDialog(null); requestAnimationFrame(applyFocus); }
+  function close(focus?: HTMLElement | null) { pendingFocus.current = focus ?? origin.current ?? viewHeading.current; supportGeneration.current++; setDialog(null); setForm({}); setFormDirty(false); setBatchDraft(undefined); requestAnimationFrame(applyFocus); }
   const rowName = (row: TjanstRow) => {
     const cls = data!.classes.find(c => c.classId === row.classId), need = cls?.needs.find(n => n.sourceKey === row.sourceKey);
     return { teacher: row.personId === null ? 'Vakant' : data!.teachers.find(t => t.personId === row.personId)?.displayName ?? 'Okänd lärare', course: need?.label ?? row.rowKey, cls: cls?.name ?? '' };
@@ -326,26 +374,34 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     <div className="admin-empty tjanst-state"><h2>Välj skola</h2><p>Välj en skola i planeringsvalet. En tjänstefördelning gäller en skola.</p></div>
   </div>;
 
-  const dialogEntry = dialog?.kind === 'row' ? groups.flatMap(g => g.entries).find(e => e.need.sourceKey === dialog.target.sourceKey) ?? null : null;
-  const jointDialog = dialog?.kind === 'joint' ? { joint: dialog.jointId ? data?.joints.find(j => j.id === dialog.jointId) ?? null : null } : null;
+  const dialogEntry = dialog?.kind === 'row' ? (dialogData ? needEntries(dialogData) : []).flatMap(g => g.entries).find(e => e.need.sourceKey === dialog.target.sourceKey) ?? null : null;
+  const jointDialog = dialog?.kind === 'joint' ? { joint: dialog.jointId ? dialogData?.joints.find(j => j.id === dialog.jointId) ?? null : null } : null;
   const confirm = dialog?.kind === 'confirm' ? dialog : null;
-  const base = { checking, open: !phone };
+  const catalogStale = support?.mode === 'catalog' && acceptedCatalog !== null && (acceptedCatalog.basisHash !== support.basisHash || acceptedCatalog.currentRevision !== support.currentRevision);
+  const acceptCatalog = () => { if (support?.mode !== 'catalog' || !data || support.currentRevision !== data.revision || support.baseVersionId !== (data.version?.id ?? null)) { refresh(); return; } setAcceptedCatalog(support); if (dialogData?.revision !== data.revision) setDialogData(structuredClone(data)); };
+  const supportNotice = <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}{supportError && <><Problems failure={supportError} summary={false} checking={false}/><Button type="button" variant="outline" onClick={refresh}>Hämta aktuellt läge</Button><Button type="button" variant="outline" onClick={() => setSupportKey(n => n + 1)}>Hämta planeringsstöd igen</Button></>}
+    {dialog?.kind === 'row' && dialog.target.rowId !== null && dialogData && data && (data.version?.id ?? null) !== (dialogData.version?.id ?? null) && <div role="alert"><p>Den sparade raden hör till en tidigare arbetsrevision. Dina tider och din kommentar kan tas med till en rad som du väljer i aktuellt läge. Välj sedan lärare på nytt.</p>
+      <Button type="button" variant="outline" onClick={() => { const carry: TjanstFormCache = {}; for (const key of ['ht', 'vt', 'comment']) if (key in form) carry[key] = form[key]; setPendingRowInput(carry); close(); }}>Välj aktuell rad</Button></div>}
+    {catalogStale && <div role="alert"><p>Underlaget har ändrats. Dina uppgifter finns kvar. Granska dem före ett nytt sparförsök.</p><Button type="button" variant="outline" onClick={acceptCatalog}>Bekräfta aktuellt underlag</Button></div>}</>;
+  const base = { checking, open: true, disabled: busy || checking || pendingCheck || recovering || supportBusy || !!supportError, form, onField, supportNotice };
   return <div className="admin-workspace protected-admin tjanst" aria-busy={loading}>
     <Heading schoolName={data?.schoolName ?? null} schoolYear={schoolYear} forms={schoolforms} admin={context.function === 'administrator'} readOnly={readOnly}/>
     {data && <div className="tjanst-status protected-card">
       <div className="tjanst-status-main">
-        {data.version ? <><Badge variant="outline" className="tjanst-badge">{STATUS_LABEL[data.version.status]}</Badge><strong>Version {data.version.versionNo}</strong></> : <strong>Ingen version ännu</strong>}
+        <strong>{viewingOld ? 'Historik' : data.version?.status === 'published' ? 'Publicerad' : published ? 'Ändringar ännu inte publicerade' : 'Pågående planering'}</strong>
         {data.version?.status === 'draft' && published?.publishedAt && <span>Lärarna ser version {published.versionNo}, publicerad {dateText(published.publishedAt)}.</span>}
         {data.version?.status === 'published' && !viewingOld && data.version.publishedAt && <span>Lärarna ser version {data.version.versionNo}, publicerad {dateText(data.version.publishedAt)}.</span>}
       </div>
       <div className="tjanst-status-side">
-        {showChoices && <label className="tjanst-inline-field">Visa version<select value={versionId} disabled={loading} onChange={e => setVersionId(e.target.value)}>
-          {!readOnly && <option value="">Aktuell version</option>}{choices.map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>}
+        {showChoices && !versionId && <Button variant="outline" disabled={loading || !!dialog || !!pendingRowInput || busy || pendingCheck} onClick={() => { setPendingRowInput(null); setVersionId(choices[0].id); }}>Historik</Button>}
+        {!!versionId && <><label className="tjanst-inline-field">Historisk publicering<select value={versionId} disabled={loading} onChange={e => setVersionId(e.target.value)}>
+          {choices.map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>
+          {!readOnly && <Button variant="outline" onClick={() => setVersionId('')}>Tillbaka till planeringen</Button>}</>}
         {feedback && <span>{ackSummary(feedback)}</span>}
-        {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
+        {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{phone ? panelOpen ? 'Dölj publiceringsstatus' : 'Publiceringsstatus' : panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
       </div>
       {viewingOld && data.version && <p className="tjanst-readonly">Du läser version {data.version.versionNo} skrivskyddat{data.version.publishedAt ? `, publicerad ${dateText(data.version.publishedAt)} av ${data.version.publishedByName}` : ''}. {published && published.id !== data.version.id ? `Lärarna ser version ${published.versionNo}.` : data.version.status === 'published' ? `Lärarna ser den här versionen.` : ''}</p>}
-      {panelOpen && !readOnly && <TjanstPublishPanel data={data} phone={phone} busy={busy || loading} feedback={feedback} rector={context.function === 'rektor'} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
+      {panelOpen && !readOnly && <TjanstPublishPanel data={data} phone={phone} busy={!editable || loading} feedback={feedback} rector={context.function === 'rektor'} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
         onDiscard={() => open({ kind: 'confirm', confirm: 'discard', id: data.version!.id }, document.activeElement as HTMLElement)}/>}
     </div>}
     {phone ? <><label className="tjanst-inline-field tjanst-view-select">Vy<select value={shownView} onChange={e => chooseView(e.target.value as TjanstView)}>
@@ -364,13 +420,14 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     </div>}
     {data && editable && <div className="mandate-actions tjanst-actions">
       {can('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
-      {can('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, e.currentTarget)}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
+      {can('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, e.currentTarget)}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
       {can('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
+      {data.actions.includes('move') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'move' }, e.currentTarget)}>Flytta uppdrag</Button>}
+      {data.actions.includes('bulk') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'bulk' }, e.currentTarget)}>Massregistrera</Button>}
       <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
     </div>}
-    {data && !readOnly && !editable && !phone && !viewingOld && data.version?.status === 'published' && data.actions.includes('create_draft') && <div className="mandate-actions tjanst-actions">
-      <Button disabled={busy} onClick={() => void pageCommand(() => plan('create_draft', { basedOnVersionId: data.version!.id }, d => `Utkastet version ${d.version?.versionNo} är skapat. Lärarna ser version ${(d.version?.versionNo ?? 1) - 1} tills du publicerar.`))}>Ändra i ny version</Button></div>}
     <div className="tjanst-messages">
+      {pendingRowInput && <output className="admin-notice">Välj en aktuell tjänsterad. Dina tider och din kommentar tas med; välj lärare på nytt.<Button variant="outline" onClick={() => setPendingRowInput(null)}>Släpp den sparade inmatningen</Button></output>}
       {notice && !readError && !pageError && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
       {pageError && !dialog && (pageError.mfa ? <MfaStepUpNotice message={pageError.mfa} returnTo={hereForStepUp()}/> : <div role="alert" className="validation-warning"><p>{pageError.error}</p>
         {pageError.correlationId && <p>Referens: {pageError.correlationId}</p>}{pageError.refresh && <Button variant="outline" onClick={() => { setPageError(null); pageError.refresh?.(); }}>Hämta aktuellt läge</Button>}</div>)}
@@ -382,14 +439,12 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     </div>
     {data && <div className="tjanst-content" inert={loading} aria-labelledby={headingId}>
       <h2 id={headingId} ref={viewHeading} tabIndex={-1} className="sr-only">{VIEWS.find(v => v.id === shownView)!.label}</h2>
-      {!linked ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först.</p>
+      {empty && <p>{phone ? 'Inga uppdrag har ännu fördelats för läsåret. Här kan du läsa aktuellt underlag. Planeringen görs på dator.' : 'Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.'}</p>}
+      {!linked && shownView === 'matris' ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först.</p>
         {onOpenClassLinks && <Button variant="outline" onClick={onOpenClassLinks}>Öppna klasskopplingar</Button>}</div>
-      : empty ? <div className="admin-empty tjanst-state"><h2>Ingen tjänstefördelning för läsåret {yearLabel(schoolYear)} ännu</h2><p>Lägg till lärare i fördelningen och fördela kurserna i matrisen. Behovet hämtas från klassernas timplaner.</p>
-        {can('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}>Lägg till lärare i fördelningen</Button>}
-        {canStart && <Button variant="outline" disabled={busy} onClick={e => void startDistribution(e.currentTarget)}>Lägg till lärare i fördelningen</Button>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
-          onCell={(target, from) => open({ kind: 'row', target, chooseTeacher: target.personId === null && target.rowId === null }, from)}
+          onCell={(target, from) => open({ kind: 'row', target }, from)}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
       : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks}/>
       : shownView === 'larare' ? <TjanstTeacherView data={data} personId={effectivePerson} onTeacher={id => patchSaved({ personId: id })} feedback={feedback}/>
@@ -397,25 +452,37 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       : <TjanstCourseView data={data} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}
           onEditJoint={(joint, from) => open({ kind: 'joint', rowIds: joint.rowIds, jointId: joint.id }, from)} onDissolve={(joint, from) => open({ kind: 'confirm', confirm: 'dissolve', id: joint.id }, from)}/>}
     </div>}
-    {data && dialog?.kind === 'row' && dialogEntry && <TjanstRowDialog {...base} key={`${dialog.target.sourceKey}:${dialog.target.personId}:${dialog.target.rowId}`} data={data} entry={dialogEntry} target={dialog.target} chooseTeacher={dialog.chooseTeacher}
+    {data && data.rows.some(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))) && <section className="protected-card"><h2>Sparade rader som behöver stämmas av</h2><p>Dessa rader finns kvar trots att behovet saknas i aktuellt underlag.</p>
+      {data.rows.filter(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {r.rowKey} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
+        {can('delete_row') && !r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'deleteRow', id: r.id }, e.currentTarget)}>Ta bort tjänsteraden…</Button>}
+        {can('dissolve_joint') && r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'dissolve', id: r.jointGroupId! }, e.currentTarget)}>Lös upp samläsningen…</Button>}</div>)}</section>}
+    {data && can('remove_teacher') && <details className="tjanst-empty-columns"><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
+      {data.teachers.filter(t => !data.rows.some(r => r.personId === t.personId) && !data.specials.some(s => s.personId === t.personId) && !data.joints.some(j => j.teachers.some(p => p.personId === t.personId))).map(t => <div key={t.personId}>{t.displayName} <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'removeTeacher', id: t.personId }, e.currentTarget)}>Ta bort tom lärarkolumn…</Button></div>)}</details>}
+    {!phone && dialog && dialog.kind !== 'batch' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
+      {supportError && <div><Problems failure={supportError} summary={false} checking={false}/><Button variant="outline" onClick={() => setSupportKey(n => n + 1)}>Hämta planeringsstöd igen</Button><Button variant="outline" onClick={() => close()}>Stäng formuläret</Button></div>}
+</>}
+    {!phone && dialogData && dialog?.kind === 'row' && dialogEntry && support?.mode === 'row' && <TjanstRowDialog {...base} key={`${dialog.target.sourceKey}:${dialog.target.rowId}`} data={dialogData} entry={dialogEntry} target={dialog.target} support={support}
       onClose={() => close()} onDelete={row => open({ kind: 'confirm', confirm: 'deleteRow', id: row.id }, origin.current)}
-      onSave={async draft => { const who = draft.personId === null ? 'Vakant' : data.teachers.find(t => t.personId === draft.personId)?.displayName ?? '';
-        const outcome = await plan('save_row', { rowId: dialog.target.rowId, sourceKind: dialogEntry.need.sourceKind, sourceKey: dialogEntry.need.sourceKey, ...draft }, () =>
-          `Tjänsteraden är sparad: ${who}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(draft.teacherHt)} · VT ${formatTime(draft.teacherVt)}.`);
-        return !outcome.ok && outcome.code === 'tjanst_duplicate_row' ? { ...outcome, error: `${who} har redan en rad för ${dialogEntry.need.label} i ${dialogEntry.cls.name}. Ändra den befintliga raden.` } : outcome; }}/>}
-    {data && dialog?.kind === 'special' && <TjanstSpecialDialog {...base} key={dialog.special?.id ?? 'ny'} data={data} special={dialog.special} onClose={() => close()} onDelete={s => open({ kind: 'confirm', confirm: 'deleteSpecial', id: s.id }, origin.current)}
-      onSave={draft => plan('save_special', { specialId: dialog.special?.id ?? null, ...draft }, () =>
-        `Specialuppdraget ${draft.label} är sparat för ${draft.personId === null ? 'Vakant' : data.teachers.find(t => t.personId === draft.personId)?.displayName}.`)}/>}
-    {data && dialog?.kind === 'joint' && jointDialog && <TjanstJointDialog {...base} key={dialog.jointId ?? dialog.rowIds.join()} data={data} joint={jointDialog.joint}
-      rows={dialog.rowIds.map(id => data.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r)} onClose={() => close()}
-      onSave={async draft => { const outcome = await plan('save_joint', { jointId: dialog.jointId, name: draft.name, rowIds: dialog.rowIds, teachers: draft.teachers }, () =>
-        `Samläsningen ${draft.name} är sparad. Lärartiden räknas en gång och klasserna ${[...new Set(dialog.rowIds.map(id => rowName(data.rows.find(r => r.id === id)!).cls))].join(' och ')} visas som täckta.`);
-        if (outcome.ok) setMarked([]); return outcome; }}/>}
-    {data && dialog?.kind === 'addTeacher' && <TjanstAddTeacherDialog {...base} data={data} loadPeople={loadPeople} onClose={() => close()} onNewTeacher={() => setDialog({ kind: 'newTeacher' })}
-      onSave={(person, name) => plan('add_teacher', { personId: person }, () => `${name} är tillagd i fördelningen.`)}/>}
-    {data && dialog?.kind === 'newTeacher' && <TjanstNewTeacherDialog {...base} schoolName={data.schoolName} onClose={() => close()} onSave={newTeacher}/>}
-    {data && confirm && <Confirmation key={`${confirm.confirm}:${confirm.id}`} data={data} dialog={confirm} base={base} rowName={rowName}
-      onClose={(focus) => close(focus)} plan={plan} classHeading={classId => document.querySelector<HTMLElement>(`[data-class-heading="${CSS.escape(classId)}"]`)}/>}
+      onSave={async change => {
+        if (change.action !== 'save_row') return failed('Tjänsteraden kunde inte kontrolleras.');
+        const payload = change.payload, who = payload.personId === null ? 'Vakant' : support.candidates.find(p => p.personId === payload.personId)?.displayName ?? dialogData.teachers.find(t => t.personId === payload.personId)?.displayName ?? 'Läraren';
+        const result = await sendPrepared(change, () => `Tjänsteraden är sparad: ${who}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(payload.teacherHt)} · VT ${formatTime(payload.teacherVt)}.`);
+        return !result.ok && result.code === 'tjanst_duplicate_row' ? { ...result, error: `${who} har redan en rad för ${dialogEntry.need.label} i ${dialogEntry.cls.name}. Ändra den befintliga raden.` } : result;
+      }}/>}
+    {!phone && dialogData && dialog?.kind === 'special' && support?.mode === 'catalog' && <TjanstSpecialDialog {...base} key={dialog.special?.id ?? 'ny'} data={dialogData} special={dialog.special} candidates={support.candidates} onChoice={acceptCatalog}
+      onClose={() => close()} onDelete={s => open({ kind: 'confirm', confirm: 'deleteSpecial', id: s.id }, origin.current)} onSave={draft => plan('save_special', { specialId: dialog.special?.id ?? null, ...draft }, () => `Specialuppdraget ${draft.label} är sparat för ${draft.personId === null ? 'Vakant' : support.candidates.find(p => p.personId === draft.personId)?.displayName ?? dialogData.teachers.find(t => t.personId === draft.personId)?.displayName ?? 'läraren'}.`)}/>}
+    {!phone && dialogData && dialog?.kind === 'joint' && jointDialog && support?.mode === 'catalog' && <TjanstJointDialog {...base} key={dialog.jointId ?? dialog.rowIds.join()} data={dialogData} joint={jointDialog.joint}
+      rows={dialog.rowIds.map(id => dialogData.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r)} onClose={() => close()}
+      onSave={async draft => { const outcome = await plan('save_joint', { jointId: dialog.jointId, name: draft.name, rowIds: dialog.rowIds, teachers: draft.teachers }, () => `Samläsningen ${draft.name} är sparad. Lärartiden räknas en gång och klasserna ${[...new Set(dialog.rowIds.map(id => rowName(dialogData.rows.find(r => r.id === id)!).cls))].join(' och ')} visas som täckta.`); if (outcome.ok) setMarked([]); return outcome; }}/>
+    }
+    {!phone && dialogData && dialog?.kind === 'addTeacher' && support?.mode === 'catalog' && <TjanstAddTeacherDialog {...base} data={dialogData} candidates={support.candidates} onChoice={acceptCatalog} onClose={() => close()}
+      onNewTeacher={context.function === 'rektor' ? () => open({ kind: 'newTeacher' }, origin.current) : undefined} onSave={(person, name) => plan('add_teacher', { personId: person }, () => `${name} är tillagd i fördelningen.`)}/>}
+    {!phone && dialogData && dialog?.kind === 'newTeacher' && <TjanstNewTeacherDialog {...base} schoolName={dialogData.schoolName} onClose={() => close()} onSave={newTeacher}/>}
+    {!phone && dialogData && confirm && support?.mode === 'catalog' && <Confirmation key={`${confirm.confirm}:${confirm.id}`} data={dialogData} dialog={confirm} base={base} rowName={rowName}
+      onClose={focus => close(focus)} plan={plan} classHeading={id => document.querySelector<HTMLElement>(`[data-class-heading="${CSS.escape(id)}"]`)}/>}
+    {!phone && data && dialog?.kind === 'batch' && <TjanstYearDialog mode={dialog.mode} data={data} scopeKey={scopeKey} disabled={busy || checking || pendingCheck || recovering || !data.capabilities.canEdit}
+      checking={checking} loadPreview={loadPreview} onSave={sendPrepared} onClose={() => close()} onRefreshPlan={refresh} initialDraft={batchDraft} onDraftChange={setBatchDraft}/>}
+
   </div>;
 }
 
@@ -435,20 +502,25 @@ function Heading({ schoolName, schoolYear, forms, admin, readOnly }: { schoolNam
 }
 
 type PlanFn = <A extends TjanstPlanAction>(action: A, payload: TjanstPlanPayload[A], message: (detail: TjanstPlanRead) => string) => Promise<TjanstOutcome>;
-function Confirmation({ data, dialog, base, rowName, onClose, plan, classHeading }: { data: TjanstPlanRead; dialog: Extract<Dialog, { kind: 'confirm' }>; base: { checking: boolean; open: boolean };
+function Confirmation({ data, dialog, base, rowName, onClose, plan, classHeading }: { data: TjanstPlanRead; dialog: Extract<Dialog, { kind: 'confirm' }>; base: { checking: boolean; open: boolean; disabled?: boolean; supportNotice?: import('react').ReactNode };
   rowName: (row: TjanstRow) => { teacher: string; course: string; cls: string }; onClose: (focus?: HTMLElement | null) => void; plan: PlanFn; classHeading: (classId: string) => HTMLElement | null }) {
   const version = data.version, published = data.versions.find(v => v.status === 'published'), deleted = useRef(false);
+  if (dialog.confirm === 'removeTeacher') {
+    const teacher = data.teachers.find(t => t.personId === dialog.id); if (!teacher) return null;
+    return <TjanstConfirmDialog {...base} onClose={() => onClose()} title={`Ta bort kolumnen för ${teacher.displayName}?`} text="Bara den tomma kolumnen tas bort ur fördelningen. Personen finns kvar i Personal. Publicerad historik ändras inte." keepLabel="Behåll kolumnen" confirmLabel="Ta bort kolumnen"
+      onConfirm={() => plan('remove_teacher', { personId: teacher.personId }, () => `Den tomma kolumnen för ${teacher.displayName} är borttagen.`)}/>;
+  }
   if (dialog.confirm === 'deleteRow') {
     const row = data.rows.find(r => r.id === dialog.id); if (!row) return null; const n = rowName(row);
     // Efter borttagen rad går fokus till klassrubriken; avbryt återför fokus till cellen.
-    return <TjanstConfirmDialog {...base} onClose={() => onClose(deleted.current ? classHeading(row.classId) : undefined)} title="Ta bort tjänsteraden?" text={`${n.teacher}, ${n.course}, ${n.cls} tas bort ur utkastet. Publicerade versioner ändras inte.`}
+    return <TjanstConfirmDialog {...base} onClose={() => onClose(deleted.current ? classHeading(row.classId) : undefined)} title="Ta bort tjänsteraden?" text={`${n.teacher}, ${n.course}, ${n.cls} tas bort ur planeringen. Publicerade versioner ändras inte.`}
       keepLabel="Behåll raden" confirmLabel="Ta bort tjänsteraden" destructive onConfirm={async () => { const o = await plan('delete_row', { rowId: row.id }, () => `Tjänsteraden är borttagen: ${n.teacher}, ${n.course}, ${n.cls}.`);
         deleted.current = o.ok; return o; }}/>;
   }
   if (dialog.confirm === 'deleteSpecial') {
     const s = data.specials.find(x => x.id === dialog.id); if (!s) return null;
     const who = s.personId === null ? 'Vakant' : data.teachers.find(t => t.personId === s.personId)?.displayName ?? '';
-    return <TjanstConfirmDialog {...base} onClose={() => onClose()} title="Ta bort specialuppdraget?" text={`${s.label} för ${who} tas bort ur utkastet. Publicerade versioner ändras inte.`}
+    return <TjanstConfirmDialog {...base} onClose={() => onClose()} title="Ta bort specialuppdraget?" text={`${s.label} för ${who} tas bort ur planeringen. Publicerade versioner ändras inte.`}
       keepLabel="Behåll uppdraget" confirmLabel="Ta bort specialuppdraget" destructive onConfirm={() => plan('delete_special', { specialId: s.id }, () => `Specialuppdraget ${s.label} för ${who} är borttaget.`)}/>;
   }
   if (dialog.confirm === 'dissolve') {
@@ -457,7 +529,7 @@ function Confirmation({ data, dialog, base, rowName, onClose, plan, classHeading
       keepLabel="Behåll samläsningen" confirmLabel="Lös upp samläsningen" onConfirm={() => plan('dissolve_joint', { jointId: j.id }, () => `Samläsningen ${j.name} är upplöst. Raderna finns kvar med sin tid.`)}/>;
   }
   if (dialog.confirm === 'discard') return <TjanstConfirmDialog {...base} onClose={() => onClose()} title={`Ta bort utkastet version ${version?.versionNo}?`}
-    text={published ? `Alla ändringar i utkastet tas bort. Lärarna ser fortfarande version ${published.versionNo}.` : 'Alla ändringar i utkastet tas bort. Fördelningen för läsåret tas bort helt.'}
+    text={published ? `Ändringarna som ännu inte publicerats tas bort. Lärarna ser fortfarande version ${published.versionNo}.` : 'Ändringarna som ännu inte publicerats tas bort. Behoven finns kvar och kan planeras på nytt.'}
     keepLabel="Behåll utkastet" confirmLabel="Ta bort utkastet" destructive onConfirm={() => plan('discard_draft', {}, () => `Utkastet version ${version?.versionNo} är borttaget.`)}/>;
   return <TjanstConfirmDialog {...base} onClose={() => onClose()} title={`Fastställ och publicera version ${version?.versionNo}?`}
     text={`Lärarna på ${data.schoolName} ser version ${version?.versionNo} i Min tjänst. Den tidigare publicerade versionen ersätts men finns kvar i versionshistoriken. Beslutet loggas med ditt namn och tiden.`}

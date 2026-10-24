@@ -173,3 +173,34 @@
   .tjanst-dialog .tjanst-person-time{grid-template-columns:minmax(0,1fr)}
 }
 @media(max-width:700px){.tjanst .mandate-actions>*{width:100%}}
+
+/* Årsarbetsytan: aktiva personval och sekundära batchverktyg. */
+.tjanst-dialog { max-height: 90dvh; overflow-y: auto; }
+.tjanst-teacher-picker { display: grid; gap: .75rem; min-width: 0; }
+.tjanst-teacher-picker legend { font-weight: 650; padding-bottom: .5rem; }
+.tjanst-teacher-picker h3 { margin: .5rem 0; }
+.tjanst-teacher-results { max-height: 240px; overflow-y: auto; display: grid; gap: .75rem; }
+.tjanst-teacher-choice { padding: .75rem; border: 1px solid var(--border); border-radius: .5rem; display: grid; gap: .35rem; }
+.tjanst-teacher-choice p { margin: 0; }
+.tjanst-teacher-choice small { display: block; }
+.tjanst-teacher-choice button { justify-self: start; min-height: 44px; }
+.tjanst-selected-teacher { font-weight: 600; }
+.tjanst-empty-columns { margin-top: 1rem; padding: 1rem; }
+.tjanst-empty-columns summary { min-height: 44px; cursor: pointer; }
+.tjanst-year-dialog { width: min(1100px, 94vw); max-width: 94vw; max-height: 90dvh; overflow-y: auto; }
+.tjanst-year-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.tjanst-year-needs { max-height: 220px; overflow-y: auto; }
+.tjanst-year-check { min-height: 44px; display: flex; align-items: center; gap: .6rem; padding: .4rem; }
+.tjanst-year-check span { flex: 1; }
+.tjanst-year-check small { display: block; }
+.tjanst-year-item { border: 1px solid var(--border); border-radius: .5rem; padding: .75rem; }
+.tjanst-year-selected { display: grid; gap: .75rem; max-height: 380px; overflow-y: auto; }
+.tjanst-year-table-scroll { overflow-x: auto; }
+.tjanst-year-table-scroll table { width: 100%; border-collapse: collapse; }
+.tjanst-year-table-scroll th, .tjanst-year-table-scroll td { padding: .65rem; text-align: left; border-bottom: 1px solid var(--border); }
+.tjanst-year-table-scroll small { display: block; }
+@media (max-width: 1000px) { .tjanst-year-columns { grid-template-columns: minmax(0, 1fr); } }
+.tjanst-year-check input[type="checkbox"] { flex: 0 0 auto; width: 20px; min-width: 20px; height: 20px; min-height: 20px; }
+.tjanst-year-check span { min-width: 0; }
+.tjanst-teacher-picker section[aria-label="Planeringsförslag"] { max-height: 300px; overflow-y: auto; }
+.tjanst-year-dialog .tjanst-plain-list small { display: block; }
