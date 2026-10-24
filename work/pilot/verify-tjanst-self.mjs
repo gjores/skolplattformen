@@ -14,9 +14,9 @@ import { basename, dirname, relative, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
-import { createTjanstFixture, grantSelf, planCommand, planRead, planSend, seedGrimNeeds, selfRead, selfRef, selfSend, selfStatus, staffWithDuties, staffingRead,
+import { createTjanstFixture, grantSelf, planCommand, planRead, planRef, planSend, seedGrimNeeds, selfRead, selfRef, selfSend, selfStatus, staffWithDuties, staffingRead,
   tjanstMigrations } from './tjanst-fixtures.mjs';
-import { parsePlanCommandReply, parsePlanReadReply, parseSelfCommandReply, parseSelfReadReply, parseStaffingReadReply } from '../../web/lib/tjanst-contract.ts';
+import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfCommandReply, parseSelfReadReply, parseStaffingReadReply } from '../../web/lib/tjanst-contract.ts';
 import { schoolSums } from '../../web/lib/tjanst-model.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -79,8 +79,16 @@ async function deny(tx, report, name, fn, codes, hint) {
   if (hint !== undefined) assert.equal(error.hint, hint, name + ': hint');
   check(report, name, { code: error.code, ...(error.hint ? { hint: error.hint } : {}) });
 }
-const send = async (t, q) => modern ? (await yearCommandSend(t,q)).result : parsePlanCommandReply((await planSend(t,q)).result,q);
-const read = async (t, unitId, schoolYear) => (modern ? parseYearPlanReadReply : parsePlanReadReply)(await planRead(t, { unitId, schoolYear }), { unitId, schoolYear });
+async function send(t, q) {
+  if (modern) return (await yearCommandSend(t, q)).result;
+  // Explicit historical reply decoding; the old request is never accepted by the current command parser.
+  const envelope = await planSend(t, q);
+  assert.equal(envelope.contractVersion, 'tjanst_sql_v1');
+  const result = parsePlanJournalReply(envelope.result, planRef(q));
+  assert.equal(result.receipt.revision, q.expectedRevision + 1);
+  return result;
+}
+const read = async (t, unitId, schoolYear) => (modern ? parseYearPlanReadReply : parsePlanLegacyReadReply)(await planRead(t, { unitId, schoolYear }), { unitId, schoolYear });
 const self = async t => parseSelfReadReply(await selfRead(t));
 const command = async (t, q) => { const envelope = await selfSend(t, q); assert.equal(envelope.contractVersion, 'tjanst_sql_v1'); return parseSelfCommandReply(envelope.result, q); };
 
@@ -182,7 +190,7 @@ async function matrix(tx, report, f) {
   const staffing = parseStaffingReadReply(await staffingRead(tx, { schoolYear: Y }), { schoolYear: Y });
   const a = staffing.units.find(u => u.unitId === A), b = staffing.units.find(u => u.unitId === f.schools.B);
   await f.actor(tx, 'principalA');
-  const publishedRead = parsePlanReadReply(await planRead(tx, { unitId: A, schoolYear: Y, versionId: published.id }), { unitId: A, schoolYear: Y, versionId: published.id });
+  const publishedRead = (modern ? parseYearPlanReadReply : parsePlanLegacyReadReply)(await planRead(tx, { unitId: A, schoolYear: Y, versionId: published.id }), { unitId: A, schoolYear: Y, versionId: published.id });
   assert.deepEqual(a.sums, schoolSums(publishedRead.classes, publishedRead.rows, publishedRead.specials, publishedRead.joints));
   assert.equal(a.published.versionId, published.id); assert.equal(b.published, null); assert.equal(b.sums, null);
   assert.deepEqual(staffing.vacancies.map(v => [v.kind, v.label]), [['special', 'Vakant uppdrag']]);

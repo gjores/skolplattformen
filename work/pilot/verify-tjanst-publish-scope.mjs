@@ -13,9 +13,9 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { schemaFingerprint } from './named-timplan-snapshot.mjs';
-import { createTjanstFixture, staffWithDuties, seedGrimNeeds, planCommand, planRead, planSend,
+import { createTjanstFixture, staffWithDuties, seedGrimNeeds, planCommand, planRead, planRef, planSend,
   personalCommand, saveDuties, grantSelf, selfRead, tjanstMigrations } from './tjanst-fixtures.mjs';
-import { parsePlanCommandReply, parsePlanReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
+import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261023100000_tjanst_publish_person_scope.sql';
@@ -47,8 +47,16 @@ const sources = () => {
   }
   return Object.fromEntries([...found].sort(([a],[b])=>a.localeCompare(b)));
 };
-const read = async (t, unitId) => (modern ? parseYearPlanReadReply : parsePlanReadReply)(await planRead(t, { unitId, schoolYear: Y }), { unitId, schoolYear: Y });
-const send = async (t, q) => modern ? (await yearCommandSend(t,q)).result : parsePlanCommandReply((await planSend(t,q)).result,q);
+const read = async (t, unitId) => (modern ? parseYearPlanReadReply : parsePlanLegacyReadReply)(await planRead(t, { unitId, schoolYear: Y }), { unitId, schoolYear: Y });
+async function send(t, q) {
+  if (modern) return (await yearCommandSend(t, q)).result;
+  // Explicit historical reply decoding; the old request is never accepted by the current command parser.
+  const envelope = await planSend(t, q);
+  assert.equal(envelope.contractVersion, 'tjanst_sql_v1');
+  const result = parsePlanJournalReply(envelope.result, planRef(q));
+  assert.equal(result.receipt.revision, q.expectedRevision + 1);
+  return result;
+}
 const codes = d => d.blockers.map(b => b.code);
 const check = (r, name, detail) => { r.checks.push({ name, ok: true, ...(detail === undefined ? {} : { detail }) }); console.log('PASS: ' + name); };
 async function denied(t, r, name, fn, code, hint) {

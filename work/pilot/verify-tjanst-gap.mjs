@@ -17,14 +17,14 @@ import { basename, dirname, relative, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
-import { createTjanstFixture, grantSelf, personalRead, planCommand, planRead, planSend, seedGrimNeeds, selfRead, selfSend, staffWithDuties,
+import { createTjanstFixture, grantSelf, personalRead, planCommand, planRead, planRef, planSend, seedGrimNeeds, selfRead, selfSend, staffWithDuties,
   tjanstEtapp1Migrations, tjanstGapMigrations } from './tjanst-fixtures.mjs';
 import { WORKER_ENTRYPOINTS } from './apply-tjanst.mjs';
 import { targetPendingMigrations, workerGrants } from './verify-tjanst-actual.mjs';
 import { assertTjanstSelfMandatesSchema, TJANST_MIGRATION_REGISTRY, TJANST_BASELINE_LENGTH } from './tjanst-migration-state.mjs';
 import { createEphemeralMigratedDb, migrationFiles } from './ephemeral-migrated-db.mjs';
 import { createNamedTimplanSnapshot, schemaFingerprint } from './named-timplan-snapshot.mjs';
-import { parsePlanCommandReply, parsePlanReadReply, parseSelfCommandReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
+import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfCommandReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const [GAP] = tjanstGapMigrations;
@@ -91,8 +91,16 @@ async function deny(tx, report, name, fn, codes, hint) {
   check(report, name, { code: error.code, ...(error.hint ? { hint: error.hint } : {}) });
   return error;
 }
-const send = async (t, q) => modern ? (await yearCommandSend(t,q)).result : parsePlanCommandReply((await planSend(t,q)).result,q);
-const read = async (t, unitId) => (modern ? parseYearPlanReadReply : parsePlanReadReply)(await planRead(t, { unitId, schoolYear: Y }), { unitId, schoolYear: Y });
+async function send(t, q) {
+  if (modern) return (await yearCommandSend(t, q)).result;
+  // Explicit historical reply decoding; the old request is never accepted by the current command parser.
+  const envelope = await planSend(t, q);
+  assert.equal(envelope.contractVersion, 'tjanst_sql_v1');
+  const result = parsePlanJournalReply(envelope.result, planRef(q));
+  assert.equal(result.receipt.revision, q.expectedRevision + 1);
+  return result;
+}
+const read = async (t, unitId) => (modern ? parseYearPlanReadReply : parsePlanLegacyReadReply)(await planRead(t, { unitId, schoolYear: Y }), { unitId, schoolYear: Y });
 const self = async t => parseSelfReadReply(await selfRead(t));
 const command = async (t, q) => { const envelope = await selfSend(t, q); assert.equal(envelope.contractVersion, 'tjanst_sql_v1'); return parseSelfCommandReply(envelope.result, q); };
 const units = own => [...new Set(own.publications.map(p => p.unitId))].sort();

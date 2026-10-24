@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { createTjanstFixture, grantSelf, planCommand, planRead, planRef, planSend, planStatus, seedGrimNeeds, seedGy25Class, selfRead, staffWithDuties,
   staffingRead, tjanstMigrations } from './tjanst-fixtures.mjs';
-import { parsePlanCommandReply, parsePlanReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
+import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
 import { coverage, coverageLabel, schoolSums, teacherSums, tjanstNeed } from '../../web/lib/tjanst-model.ts';
 import { summarize } from '../../web/lib/lasar-model.ts';
 
@@ -86,8 +86,16 @@ async function deny(tx, report, name, fn, codes, hint) {
   return error;
 }
 /** Kommandosvaret tolkas med kontraktets parser mot exakt begäran (samma som servern i 05.1-04). */
-async function send(t, q) { if (modern) return (await yearCommandSend(t,q)).result; const envelope = await planSend(t, q); assert.equal(envelope.contractVersion, 'tjanst_sql_v1'); return parsePlanCommandReply(envelope.result, q); }
-const read = async (t, unitId, schoolYear, versionId) => { const q = { unitId, schoolYear, ...(versionId ? { versionId } : {}) }; return (modern ? parseYearPlanReadReply : parsePlanReadReply)(await planRead(t, q), q); };
+async function send(t, q) {
+  if (modern) return (await yearCommandSend(t, q)).result;
+  // Explicit historical reply decoding; the old request is never accepted by the current command parser.
+  const envelope = await planSend(t, q);
+  assert.equal(envelope.contractVersion, 'tjanst_sql_v1');
+  const result = parsePlanJournalReply(envelope.result, planRef(q));
+  assert.equal(result.receipt.revision, q.expectedRevision + 1);
+  return result;
+}
+const read = async (t, unitId, schoolYear, versionId) => { const q = { unitId, schoolYear, ...(versionId ? { versionId } : {}) }; return (modern ? parseYearPlanReadReply : parsePlanLegacyReadReply)(await planRead(t, q), q); };
 
 async function matrix(tx, report, f) {
   const A = f.schools.A, B = f.schools.B;
