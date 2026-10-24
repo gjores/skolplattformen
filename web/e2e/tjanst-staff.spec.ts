@@ -46,7 +46,7 @@ function planRead(unitId:string,role:Role,variant='standard',versionId?:string){
    classes:[cls],rows:[{...row,id:shown===draft?id(306):row.id,...time}],specials:[],joints:[],actions:[],blockers:[],capabilities:{canEdit:false,canPublish:false,canReadHistory:true}};
  }
  return{contractVersion:'tjanst_v1',unitId,schoolName:SCHOOL_A,schoolYear:YEAR,revision:3,version:v1,versions:[v1],teachers:[{personId:P.anna,displayName:'Anna Andersson',draft:false,shareHere:60}],
-  classes:[cls],rows:[row],specials:[],joints:[],actions:role==='rektor'?['create_draft']:[],blockers:[],capabilities:{canEdit:false,canPublish:false,canReadHistory:true}};
+  classes:[cls],rows:[row],specials:[],joints:[],actions:role==='rektor'?['add_teacher','remove_teacher','save_row','delete_row','save_special','delete_special','save_joint','dissolve_joint','move','bulk']:[],blockers:[],capabilities:{canEdit:role==='rektor',canPublish:false,canReadHistory:true}};
 }
 type Duty={id:string;unitId:string;schoolName:string;percent:number;startsOn:string;endsOn:string|null};
 type Person={id:string;givenName:string;familyName:string;externalId:string|null;externalIdSource:string|null;status:'active'|'draft';proposedForUnitId:string|null;draftNote:string|null;revision:number;
@@ -517,7 +517,7 @@ test.describe('Bemanning',()=>{
   // De publicerade summorna (50 + 50 h), inte utkastets (20 + 20 h).
   if(phone(info))await expect(page.locator('.tjanst dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 50 h · Läsår 100 h');
   else await expect(page.locator('[data-sum="Undervisning:Anna Andersson"]')).toHaveText('100 h');
-  const select=page.locator('.tjanst').getByLabel('Visa version');
+  const select=page.locator('.tjanst').getByLabel('Historisk publicering');
   await expect(select).toHaveValue(id(605));
   expect(await select.locator('option').allInnerTexts()).toEqual(['Version 2 · publicerad 2026-09-01','Version 1 · publicerad 2026-06-15']);
   await select.selectOption(id(604));

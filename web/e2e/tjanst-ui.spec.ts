@@ -26,8 +26,9 @@ test.describe('dator',()=>{
   const errors=await open(page);
   const cell=matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'});
   await cell.click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');
-  await expect(dialog.getByText('Schemalagd tid')).toBeVisible();await expect(dialog.getByText('Underlag saknas')).toBeVisible();
+  await expect(dialog.getByText('Schemalagd tid')).toBeVisible();await expect(dialog.getByText('Underlag saknas',{exact:true})).toBeVisible();
   await expect(dialog.getByText('Källa: Teknikprogrammet version 2, ämnesrad Matematik 1c')).toBeVisible();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('50');await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('50');
   await dialog.getByLabel('Lärartid VT (timmar)').fill('40');
@@ -103,8 +104,8 @@ test.describe('dator',()=>{
   await dialog.getByRole('button',{name:'Spara specialuppdraget'}).click();
   await expect(dialog.getByText('Formuläret innehåller fel. Rätta de markerade fälten.')).toBeVisible();
   await expect(dialog.getByLabel('Typ')).toHaveAttribute('aria-invalid','true');await expect(dialog.getByText('Välj typ av uppdrag.')).toBeVisible();
-  await dialog.getByLabel('Typ').selectOption('mentor');await dialog.getByLabel('Lärare').selectOption({label:'Cecilia Dahl'});
-  await dialog.getByLabel('Klass (valfri)').selectOption({label:'EK26'});await dialog.getByLabel('Tid HT (timmar)').fill('10');
+  await dialog.getByLabel('Typ').selectOption('mentor');await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
+  await dialog.getByLabel('Klass',{exact:true}).selectOption({label:'EK26'});await dialog.getByLabel('Tid HT (timmar)').fill('10');
   await dialog.getByRole('button',{name:'Spara specialuppdraget'}).click();
   await expect(ws(page).getByText('Specialuppdraget Mentor är sparat för Cecilia Dahl.')).toBeVisible();
   const sent=(await commands(page)).find(c=>c.body.action==='save_special')!;
@@ -154,7 +155,7 @@ test.describe('dator',()=>{
   await expect(ws(page).getByText('Kvitterad av 1 av 2 lärare')).toBeVisible();
   await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
   const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
-  await expect(panel.getByText('1. Utkast')).toHaveAttribute('aria-current','step');
+  await expect(panel).toContainText('Ändringarna är ännu inte publicerade.');
   await panel.getByRole('button',{name:'Lärarnas återkoppling (1)'}).click();
   await expect(panel.getByText('Jag vill gärna ha mentorstiden kvar på VT.')).toBeVisible();await expect(panel.getByText('Inte kvitterad')).toBeVisible();
   await panel.getByRole('button',{name:'Fastställ och publicera…'}).click();
@@ -170,14 +171,18 @@ test.describe('dator',()=>{
   const published=(await commands(page)).filter(c=>c.path.endsWith('/plan/publicera'));
   expect(published).toHaveLength(2);expect(published[1].body).toMatchObject({action:'publish',expectedContentHash:expect.stringMatching(/^sha256:/)});
   expect((await commands(page)).filter(c=>c.path.endsWith('/plan/kommando')&&c.body.action==='publish')).toHaveLength(0);
-  await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-19.')).toBeVisible();
+  await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-24.')).toBeVisible();
+  await expect(matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'})).toBeVisible();
+  await ws(page).getByRole('button',{name:'Historik',exact:true}).click();
+  await expect(ws(page).getByLabel('Historisk publicering')).toHaveValue(published[1].body.payload.mutationContext.baseVersionId);
   await expect(matrix(page).getByRole('button',{name:/Ändra\.$|Tilldela\.$/})).toHaveCount(0);
-  await panel.getByRole('button',{name:'Versionshistorik'}).click();
-  await expect(panel.getByText(/^Version 2 · Fastställd och publicerad · Rektor Syntetisk · 2026-10-19 \d\d:\d\d$/)).toBeVisible();
-  await expect(panel.getByText(/^Version 1 · Ersatt av senare version · Rektor Syntetisk/)).toBeVisible();
-  await ws(page).getByRole('button',{name:'Ändra i ny version'}).click();
-  await expect(ws(page).getByText('Utkastet version 3 är skapat. Lärarna ser version 2 tills du publicerar.')).toBeVisible();
-  await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-19.')).toBeVisible();
+  await ws(page).getByRole('button',{name:'Tillbaka till planeringen'}).click();
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(ws(page).getByText('Ändringar ännu inte publicerade',{exact:true})).toBeVisible();
+  await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-24.')).toBeVisible();
+  expect((await commands(page)).filter(c=>c.body.action==='create_draft')).toHaveLength(0);
   void dialog;dialog=page.getByRole('dialog');await expect(dialog).toHaveCount(0);
  });
 
@@ -187,7 +192,7 @@ test.describe('dator',()=>{
   await expect(ws(page).getByRole('button',{name:'Lägg till lärare i fördelningen'})).toBeVisible();
   await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
   const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
-  await expect(panel.getByText('Rektor fastställer och publicerar fördelningen. Du kan fortsätta förbereda utkastet.')).toBeVisible();
+  await expect(panel.getByText('Rektor fastställer och publicerar fördelningen. Du kan fortsätta planera.')).toBeVisible();
   await expect(panel.getByRole('button',{name:/Fastställ och publicera…|Ta bort utkastet/})).toHaveCount(0);
  });
 
@@ -200,18 +205,19 @@ test.describe('dator',()=>{
   await dialog.getByRole('button',{name:'Fastställ och publicera'}).click();
   await expect(dialog.getByRole('alert')).toContainText('Bara rektor kan fastställa och publicera tjänstefördelningen.');await expect(dialog.getByRole('alert')).toContainText('Referens: syntetisk-ref-1');
   await dialog.getByRole('button',{name:'Fastställ och publicera'}).click();
-  await expect(dialog.getByRole('alert')).toContainText('Version 2 har publicerats under tiden. Hämta aktuellt läge och välj Ändra i ny version.');
+  await expect(dialog.getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.');
   await expect(ws(page).getByText(/är fastställd och publicerad/)).toHaveCount(0);
-  await dialog.getByRole('button',{name:'Behåll utkastet'}).click();await expect(ws(page).getByText('Utkast',{exact:true})).toBeVisible();
+  await dialog.getByRole('button',{name:'Behåll utkastet'}).click();await expect(ws(page).getByText('Ändringar ännu inte publicerade',{exact:true})).toBeVisible();
  });
 
  test('AE8 409 sparar inget och inmatningen står kvar',async({page})=>{
   await open(page);
   await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:409,code:'tjanst_revision_conflict'}));
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');await dialog.getByLabel('Lärartid VT (timmar)').fill('40');await dialog.getByLabel('Kommentar (valfri)').fill('Syntetisk kommentar');
   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
-  await expect(dialog.getByRole('alert')).toContainText('Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.');
+  await expect(dialog.getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.');
   await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('40');await expect(dialog.getByLabel('Kommentar (valfri)')).toHaveValue('Syntetisk kommentar');
   await dialog.getByRole('button',{name:'Hämta aktuellt läge'}).click();
   await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('40');
@@ -224,6 +230,7 @@ test.describe('dator',()=>{
   await open(page);
   await page.evaluate(()=>window.__tjanst.failNext('plan/kommando','lost'));
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Spara tjänsteraden'}).click();
   await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 50 h · VT 50 h.')).toBeVisible();
   const sent=(await commands(page)).filter(c=>c.body.action==='save_row');expect(sent).toHaveLength(1);
@@ -236,6 +243,7 @@ test.describe('dator',()=>{
   await open(page);
   await page.evaluate(()=>{window.__tjanst.failNext('plan/kommando','network');window.__tjanst.failNext('plan/status','network');});
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
   await expect(dialog.getByRole('alert')).toContainText('Det gick inte att avgöra om ändringen sparades. Hämta aktuellt läge innan du försöker igen.');
   const journal=await page.evaluate(()=>Object.entries(sessionStorage).filter(([k])=>k.startsWith('tjanst:')).map(([,v])=>v));
@@ -253,7 +261,7 @@ test.describe('dator',()=>{
  test('lägg till lärare och lägg upp ny lärare',async({page})=>{
   await open(page);
   await ws(page).getByRole('button',{name:'Lägg till lärare i fördelningen'}).click();
-  let dialog=page.getByRole('dialog');await dialog.getByLabel('Lärare').selectOption({label:'David Ek'});
+  let dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Välj David Ek',exact:true}).click();
   await dialog.getByRole('button',{name:'Lägg till läraren'}).click();
   await expect(ws(page).getByText('David Ek är tillagd i fördelningen.')).toBeVisible();
   await expect(matrix(page).getByRole('columnheader',{name:/David Ek/})).toContainText('Andel här 50 %');
@@ -268,7 +276,8 @@ test.describe('dator',()=>{
 
  test('D-24 äldre publicerad version visas skrivskyddad i sin helhet',async({page})=>{
   await open(page);
-  await ws(page).getByLabel('Visa version').selectOption({label:'Version 1 · publicerad 2026-06-15'});
+  await ws(page).getByRole('button',{name:'Historik',exact:true}).click();
+  await ws(page).getByLabel('Historisk publicering').selectOption({label:'Version 1 · publicerad 2026-06-15'});
   await expect(ws(page).getByText('Du läser version 1 skrivskyddat, publicerad 2026-06-15 av Rektor Syntetisk. Lärarna ser den här versionen.')).toBeVisible();
   const read=await page.evaluate(()=>window.__tjanst.reads.filter(r=>r.path.endsWith('/plan/lasa')).at(-1));expect(read!.body.versionId).toBe('51a50000-0000-4000-8000-000000000601');
   await expect(matrix(page).getByRole('button',{name:/Ändra\.$|Tilldela\.$/})).toHaveCount(0);
@@ -280,7 +289,7 @@ test.describe('dator',()=>{
   await expect(ws(page).getByRole('button',{name:/Ändra uppdraget/})).toHaveCount(0);
   await ws(page).getByRole('tab',{name:'Per lärare'}).click();
   await expect(ws(page).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 0 h · Läsår 50 h');
-  await ws(page).getByLabel('Visa version').selectOption({label:'Aktuell version'});
+  await ws(page).getByRole('button',{name:'Tillbaka till planeringen'}).click();
   await expect(ws(page).getByText(/Du läser version 1/)).toHaveCount(0);await expect(ws(page).getByRole('button',{name:'Lägg till specialuppdrag'})).toBeVisible();
  });
 
@@ -313,9 +322,9 @@ test.describe('dator',()=>{
 
  test('UI Matris, empty: fördelning utan rader, skola utan kopplade klasser och Alla behöriga skolor',async({page})=>{
   await open(page,'?data=tom');
-  await expect(ws(page).getByRole('heading',{name:'Ingen tjänstefördelning för läsåret 26/27 ännu'})).toBeVisible();
-  await expect(ws(page).getByText('Lägg till lärare i fördelningen och fördela kurserna i matrisen. Behovet hämtas från klassernas timplaner.')).toBeVisible();
-  await expect(ws(page).locator('.tjanst-state').getByRole('button',{name:'Lägg till lärare i fördelningen'})).toBeVisible();
+  await expect(ws(page).getByText('Pågående planering',{exact:true})).toBeVisible();
+  await expect(ws(page).getByText('Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.')).toBeVisible();
+  await expect(matrix(page).getByRole('button',{name:'Vakant, Matematik 1c, TE26A: ingen tid. Tilldela.'})).toBeVisible();
   await open(page,'?data=utan-klasser');
   await expect(ws(page).getByText('Ingen klass på skolan har en timplan för läsåret 26/27. Koppla klasserna till timplaner först.')).toBeVisible();
   await expect(ws(page).locator('.tjanst-state').getByRole('button',{name:'Öppna klasskopplingar'})).toBeVisible();
@@ -453,7 +462,7 @@ test.describe('dator',()=>{
   await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
   const dialog=page.getByRole('dialog');await dialog.getByLabel('Namn').fill('Syntetisk samläsning');
   await dialog.getByRole('button',{name:'Spara samläsningen'}).click();
-  await expect(dialog.getByRole('alert')).toContainText('Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.');
+  await expect(dialog.getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.');
   await expect(dialog.getByLabel('Namn')).toHaveValue('Syntetisk samläsning');
  });
 
@@ -461,6 +470,7 @@ test.describe('dator',()=>{
   await open(page);
   await page.evaluate(()=>window.__tjanst.holdNext('plan/kommando'));
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
   await expect(dialog.getByRole('button',{name:'Sparar…'})).toBeDisabled();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toBeDisabled();await expect(dialog.getByRole('button',{name:'Stäng utan att spara'})).toBeDisabled();
@@ -473,6 +483,7 @@ test.describe('dator',()=>{
  test('UI Dialoger, error: fältfel, 400, loggfel och MFA har egna texter och inmatningen bevaras',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog'),ht=dialog.getByLabel('Lärartid HT (timmar)');
   await ht.fill('abc');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
   await expect(dialog.getByRole('alert').first()).toHaveText('Formuläret innehåller fel. Rätta de markerade fälten.');
@@ -495,6 +506,7 @@ test.describe('dator',()=>{
  test('UI Dialoger, partial: valfria fält får vara tomma och tid krävs för minst en termin',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');
   await dialog.getByLabel('Lärartid HT (timmar)').fill('0');await dialog.getByLabel('Lärartid VT (timmar)').fill('');
   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
@@ -505,7 +517,7 @@ test.describe('dator',()=>{
   await ws(page).getByRole('button',{name:'Lägg till specialuppdrag'}).click();
   const special=page.getByRole('dialog');await special.getByLabel('Typ').selectOption('programansvar');
   await expect(special.getByLabel('Klass (valfri)')).toHaveCount(0);
-  await special.getByLabel('Lärare').selectOption({label:'Vakant'});await special.getByLabel('Tid VT (timmar)').fill('5');
+  await special.getByRole('button',{name:'Välj Vakant',exact:true}).click();await special.getByLabel('Tid VT (timmar)').fill('5');
   await special.getByRole('button',{name:'Spara specialuppdraget'}).click();
   await expect(ws(page).getByText('Specialuppdraget Programansvar är sparat för Vakant.')).toBeVisible();
   expect((await commands(page)).at(-1)!.body.payload).toMatchObject({kind:'programansvar',personId:null,classId:null,comment:''});
@@ -515,19 +527,18 @@ test.describe('dator',()=>{
   await open(page,'?hinder=1&aterkoppling=1');
   await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
   const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
-  await expect(panel.getByRole('list',{name:'Fördelningens steg'})).toContainText('1. Utkast2. Fastställd och publicerad');
+  await expect(panel).toContainText('Ändringarna är ännu inte publicerade.');
   await expect(panel.getByText('1 punkt behöver åtgärdas innan du kan fastställa.')).toBeVisible();await expect(panel.getByText('En tjänsterad bygger på en äldre timplansversion.')).toBeVisible();
   await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
-  await expect(panel.getByRole('button',{name:'Ta bort utkastet…'})).toBeEnabled();
-  await panel.getByRole('button',{name:'Versionshistorik'}).click();
-  await expect(panel.getByText('Version 2 · Utkast')).toBeVisible();await expect(panel.getByText(/^Version 1 · Fastställd och publicerad · Rektor Syntetisk · 2026-06-15 \d\d:\d\d$/)).toBeVisible();
+  await expect(panel.getByRole('button',{name:'Ta bort opublicerade ändringar…'})).toBeEnabled();
+  await expect(ws(page).getByRole('button',{name:'Historik',exact:true})).toBeVisible();
   await panel.getByRole('button',{name:'Lärarnas återkoppling (1)'}).click();
   await expect(panel.getByText('Version 1 · Kvitterad av 1 av 2 lärare')).toBeVisible();await expect(panel.getByText(/Anna Andersson · 2026-06-16/)).toBeVisible();
   await expect(panel).not.toContainText(/facklig/i);
-  await panel.getByRole('button',{name:'Ta bort utkastet…'}).click();
-  const dialog=page.getByRole('dialog');await expect(dialog.getByText('Alla ändringar i utkastet tas bort. Lärarna ser fortfarande version 1.')).toBeVisible();
+  await panel.getByRole('button',{name:'Ta bort opublicerade ändringar…'}).click();
+  const dialog=page.getByRole('dialog');await expect(dialog.getByText('Ändringarna som ännu inte publicerats tas bort. Lärarna ser fortfarande version 1.')).toBeVisible();
   await dialog.getByRole('button',{name:'Ta bort utkastet'}).click();
-  await expect(ws(page).getByText('Utkastet version 2 är borttaget.')).toBeVisible();await expect(ws(page).getByText('Fastställd och publicerad',{exact:true}).first()).toBeVisible();
+  await expect(ws(page).getByText('Utkastet version 2 är borttaget.')).toBeVisible();await expect(ws(page).getByText('Publicerad',{exact:true}).first()).toBeVisible();
  });
 
  test('UI Fastställ-panelen, error: 403, 409, MFA och okänt utfall; klar först efter kvitto',async({page})=>{
@@ -537,7 +548,7 @@ test.describe('dator',()=>{
   const dialog=page.getByRole('dialog'),go=dialog.getByRole('button',{name:'Fastställ och publicera'});
   await page.evaluate(()=>{window.__tjanst.failNext('plan/publicera',{status:403,code:'forbidden'});window.__tjanst.failNext('plan/publicera',{status:409,code:'tjanst_content_changed'});});
   await go.click();await expect(dialog.getByRole('alert')).toContainText('Bara rektor kan fastställa och publicera tjänstefördelningen.');
-  await go.click();await expect(dialog.getByRole('alert')).toContainText('Fördelningen har ändrats av någon annan. Din ändring har inte sparats.');
+  await go.click();await expect(dialog.getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.');
   await go.click();await expect(dialog.getByRole('alert')).toContainText('Att fastställa och publicera kräver verifiering med engångskod.');
   await expect(ws(page).getByText(/är fastställd och publicerad/)).toHaveCount(0);
   await page.evaluate(()=>{window.__tjanst.mfaVerified=true;window.__tjanst.failNext('plan/publicera','lost');window.__tjanst.holdNext('plan/status');});
@@ -572,6 +583,7 @@ test.describe('dator',()=>{
  test('redigeringsläge stängs när fönstret krymper och osparad inmatning skyddas',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await page.getByRole('dialog').getByLabel('Lärartid VT (timmar)').fill('12');
   const size=page.viewportSize()!;await page.setViewportSize({width:390,height:844});
   await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('.tjanst-matrix')).toHaveCount(0);
@@ -590,6 +602,7 @@ test.describe('dator',()=>{
   expect(await ws(page).locator('.tjanst-mark').evaluateAll(n=>n.every(x=>x.getBoundingClientRect().height>=44&&x.getBoundingClientRect().width>=44))).toBe(true);
   await ws(page).getByRole('tab',{name:'Matris'}).click();
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   expect(await page.getByRole('dialog').locator('button,input,select,textarea').evaluateAll(n=>n.every(x=>x.getBoundingClientRect().height>=44))).toBe(true);
  });
 
@@ -657,9 +670,9 @@ test.describe('telefon',()=>{
    await expect(ws(page).locator('.tjanst-mark')).toHaveCount(0);
    await noOverflow(page);
   }
-  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Publiceringsstatus',exact:true}).click();
   const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
-  await expect(panel.getByRole('button',{name:'Versionshistorik'})).toBeVisible();await expect(panel.getByRole('button',{name:/Fastställ och publicera…|Ta bort utkastet/})).toHaveCount(0);
+  await expect(ws(page).getByRole('button',{name:'Historik',exact:true})).toBeVisible();await expect(panel.getByRole('button',{name:/Fastställ och publicera…|Ta bort utkastet/})).toHaveCount(0);
   await ws(page).getByLabel('Vy').selectOption({label:'Per lärare'});
   await expect(ws(page).getByRole('region',{name:'Per lärare'}).locator('.tjanst-cards').first()).toBeVisible();
   await noOverflow(page);
@@ -680,7 +693,7 @@ test.describe('telefon',()=>{
 
  test('pekytor: minst 44 px på telefon',async({page})=>{
   await open(page);
-  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Publiceringsstatus',exact:true}).click();
   const small=await ws(page).locator('button:visible,select:visible').evaluateAll(n=>n.map(x=>{const r=x.getBoundingClientRect();return {name:x.getAttribute('aria-label')??x.textContent,h:r.height,w:r.width};}).filter(x=>x.h<44||x.w<44));
   expect(small).toEqual([]);
  });
