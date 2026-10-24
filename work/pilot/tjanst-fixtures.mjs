@@ -16,8 +16,10 @@ export const tjanstEtapp1Migrations = [...grimMigrations, 'supabase/migrations/2
 export const tjanstGapMigrations = ['supabase/migrations/20261021120000_tjanst_self_schools_joint_rules.sql'];
 /** Gemensam personprövning vid publicering (05.1-15, WR-10): ny framåtmigration, inte installerad i målet. */
 export const tjanstPublishScopeMigrations = ['supabase/migrations/20261023100000_tjanst_publish_person_scope.sql'];
+/** Auditerat rad-/årsunderlag (05.1-17), ej installerat. */
+export const tjanstYearPreviewMigrations = ['supabase/migrations/20261023110000_tjanst_year_preview.sql'];
 /** Registrerad installationsordning; historiska föreprov utesluter suffixet ur sin basdatabas. */
-export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations];
+export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 
