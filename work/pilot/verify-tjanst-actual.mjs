@@ -19,7 +19,7 @@ import path from 'node:path';
 import { createNamedTimplanSnapshot, schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { createNamedTimplanRuntime } from './named-timplan-runtime.mjs';
 import { recoverTjanstOidcFixture, TJANST_ACTUAL_BASE, TJANST_ACTUAL_CASES, TJANST_ACTUAL_PROJECTS } from './tjanst-oidc-fixtures.mjs';
-import { classifyTjanstMigrations, assertTjanstSelfMandatesSchema, TJANST_PHASE_START, TJANST_BASELINE_LENGTH } from './tjanst-migration-state.mjs';
+import { expectedTjanstWorkerEntrypoints, classifyTjanstMigrations, assertTjanstSelfMandatesSchema, TJANST_PHASE_START, TJANST_BASELINE_LENGTH } from './tjanst-migration-state.mjs';
 import { assertTarget } from './verify-target.mjs';
 import { artifactManifest } from './verify-programplan-copy-api.mjs';
 import { productSources, sha } from './apply-apl-plan.mjs';
@@ -165,7 +165,7 @@ export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_
     else assert.equal(report.installedFingerprint, report.baselineFingerprint, 'Efterläget får inte skrivas om');
     await assertTjanstSelfMandatesSchema(snapshot.db, { installed: true });
     report.grants = await workerGrants(snapshot.db); save();
-    assert.deepEqual(report.grants.workerExecute, [...WORKER_ENTRYPOINTS].sort(), 'Worker ska ha exakt tolv öppna entrypoints');
+    assert.deepEqual(report.grants.workerExecute, expectedTjanstWorkerEntrypoints({installed:target.installed,applied:report.pendingMigrations}), 'Worker ska ha exakt versionsbunden mängd öppna entrypoints');
     assert.deepEqual(report.grants.clientRoleExecute, [], 'Inga funktioner får vara öppna för public, anon, authenticated eller service_role');
     assert.deepEqual(report.grants.tablePrivileges, [], 'Inga tabellrättigheter för Worker eller klientroller');
     assert.deepEqual(report.grants.publicTablePrivileges, [], 'Inga tabellrättigheter för public');

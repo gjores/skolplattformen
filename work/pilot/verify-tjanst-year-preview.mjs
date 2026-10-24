@@ -3,6 +3,7 @@
 // node work/pilot/verify-tjanst-year-preview.mjs --ephemeral --out /private/tmp/tjanst-year-preview.json
 // node work/pilot/verify-tjanst-year-preview.mjs --out /private/tmp/tjanst-year-preview-schema.json
 import assert from 'node:assert/strict';
+import { assertTjanstYearAcl, TJANST_MIGRATION_REGISTRY } from './tjanst-migration-state.mjs';
 import { capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
 let modern=false;
 import { createHash, randomUUID } from 'node:crypto';
@@ -324,7 +325,7 @@ async function openDatabase(ephemeral, report, stage) {
     try { await assertTjanstSelfMandatesSchema(e.db, { installed: true }); }
     catch (error) { await e.end(); throw error; }
     report.baselineMode = 'ephemeral-before-year-preview'; report.pendingMigrations = stage==='current' ? TJANST_MIGRATION_REGISTRY.filter(m=>m.version>=ownVersion).map(m=>m.file) : [OWN];
-    return { db: e.db, provenance: e.provenance, pending: stage==='current' ? TJANST_MIGRATION_REGISTRY.filter(m=>m.version>=ownVersion).map(m=>m.file) : [OWN], close: e.end };
+    return { installed: prefix, db: e.db, provenance: e.provenance, pending: stage==='current' ? TJANST_MIGRATION_REGISTRY.filter(m=>m.version>=ownVersion).map(m=>m.file) : [OWN], close: e.end };
   }
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const target = await targetPendingMigrations();
@@ -339,7 +340,7 @@ async function openDatabase(ephemeral, report, stage) {
     if (prior.length) await snapshot.db.begin(async t => { for (const p of prior) await t.unsafe(readFileSync(resolve(ROOT, p), 'utf8')); });
     report.appliedPrerequisites = prior;
     await assertTjanstSelfMandatesSchema(snapshot.db, { installed: true });
-    return { db: snapshot.db, provenance: snapshot.provenance, pending: target.pendingMigrations,
+    return { installed: [...target.installed,...prior.map(p=>basename(p).slice(0,14))], db: snapshot.db, provenance: snapshot.provenance, pending: target.pendingMigrations,
       close: async () => { report.snapshotCleanup = await snapshot.cleanup();const after=await targetPendingMigrations();assert.equal(after.fingerprint,target.fingerprint);assert.deepEqual(after.journal,target.journal);report.targetUnchanged=true; } };
   } catch (error) { await snapshot.cleanup(); throw error; }
 }
@@ -358,28 +359,26 @@ export async function verifyTjanstYearPreview(out, { ephemeral = false, stage='c
   let source;
   try {
     report.sources = sources(); persist(); report.requestedStage=stage; source = await openDatabase(ephemeral, report,stage); report.database = source.provenance;
+    const aclState={installed:source.installed,applied:[]};
     const db = source.db, before = await allPublicHashes(db), fingerprint = await schemaFingerprint(db);
     if (source.pending.includes(OWN)) {
       await rolledBack(db, t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8')));
       assert.equal(await schemaFingerprint(db), fingerprint); assert.deepEqual(await allPublicHashes(db), before);
       check(report, 'migration rollback preserves schema, ACL and every business row');
-      await db.begin(t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8')));
+      await db.begin(t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8'))); aclState.applied.push(OWN);
       assert.deepEqual(await allPublicHashes(db), before);
       check(report, 'migration creates no business rows and preserves existing rows');
     } else check(report, 'registered installed suffix is not reapplied');
-    const grants = await db`select p.oid::regprocedure::text signature,has_function_privilege(r.role,p.oid,'EXECUTE') allowed
-      from pg_proc p cross join (values ('skolplattform_worker'),('anon'),('authenticated'),('service_role')) r(role)
-      where p.pronamespace='public'::regnamespace and p.proname like 'tjanst_year_%'`;
-    assert.ok(grants.length && grants.every(g => !g.allowed));
-    assert.equal((await db`select count(*)::int n from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
-      where p.pronamespace='public'::regnamespace and p.proname like 'tjanst_year_%' and acl.grantee=0`)[0].n,0);
-    check(report, 'all year calculators and entrypoint closed to Worker, clients and PUBLIC');
+    report.beforeFollowingEntrypoints=await assertTjanstYearAcl(db,aclState);
+    check(report, 'year ACL matches verified prefix; helpers, clients and PUBLIC closed');
     report.migrationCheckCount=report.checks.length;
     if(stage==='current') {
       const suffix=source.pending.filter(p=>basename(p).slice(0,14)>basename(OWN).slice(0,14));
       if(suffix.length) await db.begin(async t=>{for(const file of suffix)await t.unsafe(readFileSync(resolve(ROOT,file),'utf8'));});
-      report.appliedFollowing=suffix;
+      report.appliedFollowing=suffix;aclState.applied.push(...suffix);
     }
+    report.expectedEntrypoints=await assertTjanstYearAcl(db,aclState);
+    check(report,'final year ACL matches verified prefix plus applied suffix');
     modern=!!(await db`select to_regprocedure('public.tjanst_year_ensure_draft(public.access_assignments,public.app_sessions,public.tjanst_distributions,uuid)') present`)[0].present;
     assert.equal(modern,stage==='current','Selected stage must match installed command schema');report.commandStage=stage;
     const installed = await allPublicHashes(db); await cases(db, report); assert.deepEqual(await allPublicHashes(db), installed);

@@ -3,6 +3,7 @@
 // node work/pilot/verify-tjanst-year-commands.mjs --ephemeral --out /private/tmp/tjanst-year-preview.json
 // node work/pilot/verify-tjanst-year-commands.mjs --out /private/tmp/tjanst-year-preview-schema.json
 import assert from 'node:assert/strict';
+import { assertTjanstYearAcl, TJANST_MIGRATION_REGISTRY } from './tjanst-migration-state.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync, closeSync } from 'node:fs';
 import { basename, dirname, relative, resolve } from 'node:path';
@@ -16,7 +17,7 @@ import { parseYearReply, tjanstYearHash } from '../../web/lib/tjanst-year-contra
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261023120000_tjanst_year_commands.sql';
 const rollback = Error('expected_year_preview_rollback');
-const sourceFiles = [OWN, 'work/pilot/verify-tjanst-year-commands.mjs', 'work/pilot/tjanst-year-fixtures.mjs', 'work/pilot/tjanst-fixtures.mjs',
+const sourceFiles = [...TJANST_MIGRATION_REGISTRY.map(m=>m.file), OWN, 'work/pilot/verify-tjanst-year-commands.mjs', 'work/pilot/tjanst-year-fixtures.mjs', 'work/pilot/tjanst-fixtures.mjs',
   'work/pilot/tjanst-migration-state.mjs', 'work/pilot/ephemeral-migrated-db.mjs', 'work/pilot/named-timplan-snapshot.mjs',
   'web/lib/tjanst-year-contract.ts', 'supabase/tests/phase51_tjanst_year_hash_vectors.json'];
 // Pin transitive repository modules, including dynamic literal imports used by the adapters.
@@ -412,7 +413,7 @@ async function raceCases(source,report) {
  } finally {await one.end();await two.end();}
 }
 
-async function openDatabase(ephemeral, report) {
+async function openDatabase(ephemeral, report, stage) {
   const { classifyTjanstMigrations, assertTjanstSelfMandatesSchema, TJANST_MIGRATION_REGISTRY, TJANST_PHASE_START } = await import('./tjanst-migration-state.mjs');
   const { createEphemeralMigratedDb, migrationFiles } = await import('./ephemeral-migrated-db.mjs');
   const ownVersion = basename(OWN).slice(0, 14);
@@ -424,8 +425,8 @@ async function openDatabase(ephemeral, report) {
     const e = await createEphemeralMigratedDb({ exclude: migrationFiles().filter(f => f.slice(0, 14) >= ownVersion) });
     try { await assertTjanstSelfMandatesSchema(e.db, { installed: true }); }
     catch (error) { await e.end(); throw error; }
-    report.baselineMode = 'ephemeral-before-year-commands'; report.pendingMigrations = [OWN];
-    return { db: e.db, connect:e.connect, provenance: e.provenance, pending: [OWN], close: e.end };
+    report.baselineMode = 'ephemeral-before-year-commands'; report.pendingMigrations = stage==='current' ? TJANST_MIGRATION_REGISTRY.filter(m=>m.version>=ownVersion).map(m=>m.file) : [OWN];
+    return { installed: prefix, db: e.db, connect:e.connect, provenance: e.provenance, pending: report.pendingMigrations, close: e.end };
   }
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const target = await targetPendingMigrations();
@@ -440,12 +441,13 @@ async function openDatabase(ephemeral, report) {
     if (prior.length) await snapshot.db.begin(async t => { for (const p of prior) await t.unsafe(readFileSync(resolve(ROOT, p), 'utf8')); });
     report.appliedPrerequisites = prior;
     await assertTjanstSelfMandatesSchema(snapshot.db, { installed: true });
-    return { db: snapshot.db, connect:snapshot.connect, provenance: snapshot.provenance, pending: target.pendingMigrations,
-      close: async () => { report.snapshotCleanup = await snapshot.cleanup(); } };
+    return { installed: [...target.installed,...prior.map(p=>basename(p).slice(0,14))], db: snapshot.db, connect:snapshot.connect, provenance: snapshot.provenance, pending: target.pendingMigrations,
+      close: async () => { report.snapshotCleanup = await snapshot.cleanup();const after=await targetPendingMigrations();assert.equal(after.fingerprint,target.fingerprint);assert.deepEqual(after.journal,target.journal);report.targetUnchanged=true; } };
   } catch (error) { await snapshot.cleanup(); throw error; }
 }
 
-export async function verifyTjanstYearCommands(out, { ephemeral = false } = {}) {
+export async function verifyTjanstYearCommands(out, { ephemeral = false, stage='current' } = {}) {
+  assert.ok(['current','historical'].includes(stage));assert.ok(stage!=='historical'||ephemeral,'Historical stage requires --ephemeral');
   const output = resolve(out);
   assert.ok((output.startsWith('/private/tmp/') || output.startsWith('/tmp/')) && output.endsWith('.json'), 'Use --out /private/tmp/<name>.json');
   assert.ok(!existsSync(output), 'Output exists; choose a new private path');
@@ -457,24 +459,28 @@ export async function verifyTjanstYearCommands(out, { ephemeral = false } = {}) 
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   let source;
   try {
-    report.sources = sources(); persist(); source = await openDatabase(ephemeral, report); report.database = source.provenance;
+    report.sources = sources(); persist(); report.requestedStage=stage; source = await openDatabase(ephemeral, report,stage); report.database = source.provenance;
+    const aclState={installed:source.installed,applied:[]};
     const db = source.db, before = await allPublicHashes(db), fingerprint = await schemaFingerprint(db);
     if (source.pending.includes(OWN)) {
       await legacyReplayBeforeMigration(db,report);
       await rolledBack(db, t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8')));
       assert.equal(await schemaFingerprint(db), fingerprint); assert.deepEqual(await allPublicHashes(db), before);
       check(report, 'migration rollback preserves schema, ACL and every business row');
-      await db.begin(t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8')));
+      await db.begin(t => t.unsafe(readFileSync(resolve(ROOT, OWN), 'utf8'))); aclState.applied.push(OWN);
       assert.deepEqual(await allPublicHashes(db), before);
       check(report, 'migration creates no business rows and preserves existing rows');
     } else check(report, 'registered installed suffix is not reapplied');
-    const grants = await db`select p.oid::regprocedure::text signature,has_function_privilege(r.role,p.oid,'EXECUTE') allowed
-      from pg_proc p cross join (values ('skolplattform_worker'),('anon'),('authenticated'),('service_role')) r(role)
-      where p.pronamespace='public'::regnamespace and p.proname like 'tjanst_year_%'`;
-    assert.ok(grants.length && grants.every(g => !g.allowed));
-    assert.equal((await db`select count(*)::int n from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
-      where p.pronamespace='public'::regnamespace and p.proname like 'tjanst_year_%' and acl.grantee=0`)[0].n,0);
-    check(report, 'all year calculators and entrypoint closed to Worker, clients and PUBLIC');
+    report.beforeFollowingEntrypoints=await assertTjanstYearAcl(db,aclState);
+    check(report, 'year ACL matches verified prefix; helpers, clients and PUBLIC closed');
+    report.migrationCheckCount=report.checks.length;
+    if(stage==='current') {
+      const suffix=source.pending.filter(p=>basename(p).slice(0,14)>basename(OWN).slice(0,14));
+      if(suffix.length) await db.begin(async t=>{for(const file of suffix)await t.unsafe(readFileSync(resolve(ROOT,file),'utf8'));});
+      report.appliedFollowing=suffix;aclState.applied.push(...suffix);
+    }
+    report.expectedEntrypoints=await assertTjanstYearAcl(db,aclState);
+    check(report,'final year ACL matches verified prefix plus applied suffix');
     const installed = await allPublicHashes(db); await cases(db, report); await limitsAndRemoval(db,report); await groupBoundaryCases(db,report); assert.deepEqual(await allPublicHashes(db), installed);
     check(report, 'all transactional synthetic cases roll back without remaining rows');
     await raceCases(source,report);
@@ -491,7 +497,7 @@ export async function verifyTjanstYearCommands(out, { ephemeral = false } = {}) 
   return report;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const args = process.argv.slice(2), ephemeral = args.includes('--ephemeral'), rest = args.filter(a => a !== '--ephemeral');
-  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral]');
-  await verifyTjanstYearCommands(rest[1], { ephemeral });
+  const args=process.argv.slice(2),ephemeral=args.includes('--ephemeral'),si=args.indexOf('--stage'),stage=si<0?'current':args[si+1],rest=args.filter((a,i)=>a!=='--ephemeral'&&(si<0||i!==si&&i!==si+1));
+  assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral] [--stage current|historical]');
+  await verifyTjanstYearCommands(rest[1], { ephemeral,stage });
 }

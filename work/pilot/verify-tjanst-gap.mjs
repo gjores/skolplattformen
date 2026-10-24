@@ -21,7 +21,7 @@ import { createTjanstFixture, grantSelf, personalRead, planCommand, planRead, pl
   tjanstEtapp1Migrations, tjanstGapMigrations } from './tjanst-fixtures.mjs';
 import { WORKER_ENTRYPOINTS } from './apply-tjanst.mjs';
 import { targetPendingMigrations, workerGrants } from './verify-tjanst-actual.mjs';
-import { assertTjanstSelfMandatesSchema, TJANST_MIGRATION_REGISTRY, TJANST_BASELINE_LENGTH } from './tjanst-migration-state.mjs';
+import { expectedTjanstWorkerEntrypoints, assertTjanstSelfMandatesSchema, TJANST_MIGRATION_REGISTRY, TJANST_BASELINE_LENGTH } from './tjanst-migration-state.mjs';
 import { createEphemeralMigratedDb, migrationFiles } from './ephemeral-migrated-db.mjs';
 import { createNamedTimplanSnapshot, schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfCommandReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
@@ -524,7 +524,7 @@ async function currentDatabase(ephemeral, report) {
   classifyTjanstMigrations({journal:TJANST_MIGRATION_REGISTRY.map(m=>m.version),sourceHashes:actualSources});
   report.currentMigrationSources=actualSources;
   if(ephemeral){const e=await createEphemeralMigratedDb();report.baselineMode='ephemeral-current';report.pendingMigrations=[];report.builtMigrations=TJANST_MIGRATION_REGISTRY.map(m=>m.file);
-    return {db:e.db,provenance:e.provenance,connect:async()=>e.connect(),close:async()=>{await e.end();report.currentCleanup='complete';}};}
+    return {aclState:{installed:TJANST_MIGRATION_REGISTRY.map(m=>m.version)},db:e.db,provenance:e.provenance,connect:async()=>e.connect(),close:async()=>{await e.end();report.currentCleanup='complete';}};}
   const {targetPendingMigrations}=await import('./verify-tjanst-actual.mjs');
   const {createNamedTimplanSnapshot}=await import('./named-timplan-snapshot.mjs');
   const target=await targetPendingMigrations(),s=await createNamedTimplanSnapshot();
@@ -532,7 +532,7 @@ async function currentDatabase(ephemeral, report) {
     assert.equal(s.provenance.sourceFingerprint,target.fingerprint);
     await s.db.begin(async t=>{for(const file of target.pendingMigrations) await t.unsafe(readFileSync(resolve(root,file),'utf8'));});
     report.baselineMode=target.baselineMode;report.pendingMigrations=target.pendingMigrations;
-    return {db:s.db,provenance:s.provenance,connect:s.connect,close:async()=>{
+    return {aclState:{installed:target.installed,applied:target.pendingMigrations},db:s.db,provenance:s.provenance,connect:s.connect,close:async()=>{
       report.currentCleanup=await s.cleanup();const after=await targetPendingMigrations();
       assert.equal(after.fingerprint,target.fingerprint);assert.deepEqual(after.journal,target.journal);report.targetUnchanged=true;check(report,'målets schema och journal är oförändrade efter schema-copy-proven');report.currentCheckCount=report.checks.length-report.historicalCheckCount;}};
   }catch(e){await s.cleanup();throw e;}
@@ -574,7 +574,7 @@ export async function verifyTjanstGap(out, { ephemeral = false, stage = 'current
       report.installedFingerprint=await schemaFingerprint(db);
       await assertTjanstSelfMandatesSchema(db,{installed:true});
       report.grants=await workerGrants(db);
-      assert.deepEqual(report.grants.workerExecute,[...WORKER_ENTRYPOINTS].sort());
+      assert.deepEqual(report.grants.workerExecute,expectedTjanstWorkerEntrypoints(source.aclState));
       assert.deepEqual(report.grants.clientRoleExecute,[]);assert.deepEqual(report.grants.tablePrivileges,[]);assert.deepEqual(report.grants.publicTablePrivileges,[]);
       check(report,'aktuellt schema har väntat self-mandatsschema och ACL; bara väntande suffix tillämpat');
       const f=await db.begin(createTjanstFixture),s=await db.begin(tx=>beforeState(tx,report,f,true));
