@@ -11,7 +11,13 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { assertTarget } from './verify-target.mjs';
 import { verifyClassCohortCallbackProof } from './phase5-class-cohort-oidc-fixtures.mjs';
-import { createTjanstFixture, grantSelf, planCommand, planSend, seedGy25Class, staffWithDuties } from './tjanst-fixtures.mjs';
+import { createTjanstFixture, grantSelf, planRead, seedGy25Class, staffWithDuties } from './tjanst-fixtures.mjs';
+
+import { capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
+import { parseYearRequest, parseYearReply } from '../../web/lib/tjanst-year-contract.ts';
+import { verifyProgramplanCatalog, resolveProgramplanBasis } from '../../web/lib/programplan-catalog.ts';
+import { programplanTermRows, validateProgramplanTermDistribution } from '../../web/lib/programplan-terms.ts';
+import { parseYearPlanReadReply } from '../../web/lib/tjanst-contract.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const OTP = createRequire(path.join(root, 'web/package.json'))('otpauth');
@@ -22,6 +28,8 @@ export const TJANST_ACTUAL_ROLES = ['hm', 'principalA', 'principalB', 'principal
 const LOCK = path.join(root, 'work/pilot/targets/protected/idp/named-timplan-run.lock');
 /** Projekten i Playwright-konfigurationen (UI-SPEC Responsive: 1440 × 900, 1024 × 768, 390 × 844 och 320 × 740). */
 export const TJANST_ACTUAL_PROJECTS = ['desktop', 'desktop-small', 'phone', 'phone-small'];
+export const TJANST_ACTUAL_LOGIN_ROLES = Object.freeze({desktop:['hm','principalA','principalB','principalAB','admin','teacherSelf'],
+  'desktop-small':['hm','principalA','admin'],phone:['hm','principalA','principalB','teacherSelf'],'phone-small':['hm','principalA','principalB','teacherSelf']});
 /** Namngivna fall per projekt. Rapporten kräver ett godkänt fall per namn; saknade redovisas som ej körda. */
 const PHONE_CASES = ['Min tjänst på telefon', 'Per lärare på telefon utan redigeringskontroller', 'Bemanning på telefon utan redigeringskontroller', '44 px på telefon'];
 /** 05.1-12 (WR-07): huvudmannens Visa fördelningen läser den publicerade versionen med versionId, också när rektor har ett utkast. */
@@ -41,6 +49,94 @@ export const TJANST_ACTUAL_CASES = {
   phone: [...PHONE_CASES, BEMANNING_PUBLISHED, PHONE_TWO_SCHOOLS],
   'phone-small': [...PHONE_CASES, PHONE_TWO_SCHOOLS],
 };
+
+/** Stable required cases: 45 original regressions plus 38 year cases across four projects. */
+export const TJANST_YEAR_CASES = Object.freeze([
+  'YEAR-01 verkliga Gy25-GR-IM-behov och tomma nya lärarfält',
+  'YEAR-02 historik föreslår utan att tilldela',
+  'YEAR-03 aktivt val och direkt Spara tjänsteraden',
+  'YEAR-04 manuellt påbörjad plan bevaras',
+  'YEAR-05 namntvilling, ny klass och obelagd nivå binds till rätt ID',
+  'YEAR-06 delår, giltighetsdatum och okänd behörighet',
+  'YEAR-07 valfri historik fallerar men manuellt val fungerar',
+  'YEAR-08 vanlig ändring efter publicering bevarar self-vyn',
+  'YEAR-09 ändrad personandel via annan session nekar fryst rad',
+  'YEAR-10 ändrad klasskälla via annan session nekar fryst rad',
+  'YEAR-11 ny historisk publicering via annan session nekar fryst förslagsval',
+  'YEAR-12 kontextlös payload nekas utan delresultat',
+  'YEAR-13 explicit helgruppsflytt bevarar andra lärares tid',
+  'YEAR-14 massarbete 100 plus 1 i påbörjad plan',
+  'YEAR-15 loggfel stoppar radstöd och batchpreview',
+  'YEAR-16 tappat normalt svar återhämtas med samma kommando',
+  'YEAR-17 vanligt kommando och batch delar journalspärr',
+  'YEAR-18 administratörens lärarval och nekade roller/skolor',
+  'YEAR-19 WR10 repareras genom explicit flytt och tomkolumnsborttagning',
+  'YEAR-20 tomkolumnsborttagning nekar kvarvarande uppdrag och replay är ofarligt',
+  'YEAR-21 sena svar, uppdaterat stöd och storleksbyte bevarar aktiva inmatningar',
+]);
+export const TJANST_PHONE_YEAR_CASES = Object.freeze([
+  'PHONE-YEAR-01 publicerad tjänst består under pågående ändring',
+  'PHONE-YEAR-02 nya rad-, batch- och tomkolumnsåtgärder saknas',
+  'PHONE-YEAR-03 aktuell publicering kan läsas och kvitteras',
+  'PHONE-YEAR-04 år, delår och innehåll läsbara utan sidledsrullning',
+]);
+TJANST_ACTUAL_CASES.desktop.push(...TJANST_YEAR_CASES);
+TJANST_ACTUAL_CASES['desktop-small'].push(...[1,2,3,4,6,13,14,17,21].map(n => TJANST_YEAR_CASES[n-1]));
+TJANST_ACTUAL_CASES.phone.push(...TJANST_PHONE_YEAR_CASES);
+TJANST_ACTUAL_CASES['phone-small'].push(...TJANST_PHONE_YEAR_CASES);
+for (const cases of Object.values(TJANST_ACTUAL_CASES)) Object.freeze(cases);
+Object.freeze(TJANST_ACTUAL_CASES);
+
+const freezeTree = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freezeTree); Object.freeze(value); } return value; };
+/** Explicit capture only. The caller then builds ONCE; request/status/retry never invoke this helper. */
+export async function captureTjanstPlanHttp(fixture, page, role, request) {
+  const {unitId,schoolYear,action} = request, payload = structuredClone(request.payload);
+  assert.notEqual(action,'create_draft','create_draft is historical only');
+  const read = async input => {
+    const query = parseYearRequest(input), reply = await fixture.request(page,role,'/api/tjanst/plan/forhandsvisa',query);
+    assert.equal(reply.status,200,'Explicit HTTP planning support failed: '+JSON.stringify(reply.body));
+    return parseYearReply(reply.body,query);
+  };
+  let support;
+  if (action === 'save_row') {
+    support = await read({unitId,schoolYear,mode:'row',sourceKey:payload.sourceKey,rowId:payload.rowId});
+    const candidate = support.candidates.find(p => p.personId === payload.personId);
+    const choice = request.choice === 'unassigned' ? {kind:'unassigned',personId:null}
+      : request.choice === 'manual' ? (assert.ok(candidate,'Explicit manual person is unavailable'),
+        {kind:'manual',personId:candidate.personId,expectedPersonBasisHash:candidate.personBasisHash}) : structuredClone(request.choice);
+    assert.ok(choice && choice.personId === payload.personId,'Explicit matching choice required');
+    if (choice.kind === 'suggestion') assert.ok(support.suggestions.some(s => s.suggestionId === choice.suggestionId
+      && s.personId === choice.personId && s.evidenceHash === choice.expectedEvidenceHash),'Explicit suggestion is unavailable');
+    payload.planningContext = {baseVersionId:support.baseVersionId,expectedBasisHash:support.basisHash,choice};
+  } else if (action === 'move' || action === 'bulk') {
+    const {expectedPreviewHash: _oldHash, ...batch} = payload;
+    assert.equal(batch.action,action);
+    support = await read({unitId,schoolYear,mode:'batch',batch});
+    assert.deepEqual(support.blockers,[],'Positive capture requires an unblocked explicit batch');
+    payload.expectedPreviewHash = support.previewHash;
+  } else {
+    support = await read({unitId,schoolYear,mode:'catalog'});
+    payload.mutationContext = {baseVersionId:support.baseVersionId,expectedBasisHash:support.basisHash};
+  }
+  const captured = {unitId,schoolYear,action,expectedRevision:support.currentRevision,payload};
+  if (action === 'publish') {
+    const reply = await fixture.request(page,role,'/api/tjanst/plan/lasa',{unitId,schoolYear});
+    assert.equal(reply.status,200);
+    const current = parseYearPlanReadReply(reply.body,{unitId,schoolYear});
+    assert.equal(current.revision,support.currentRevision,'Capture conflict: revision changed');
+    assert.equal(current.version?.id,support.baseVersionId,'Capture conflict: version changed');
+    assert.equal(current.version?.status,'draft','Publish capture requires the current draft');
+    captured.expectedContentHash = current.version.contentHash;
+  }
+  return freezeTree(captured);
+}
+
+async function ownedDatabase(db) {
+  const [{name}] = await db`select current_database() name`;
+  assert.match(name,/^named_timplan_[a-f0-9]{32}$/u,'Only the owned schema-only actual-test database is accepted');
+  return name;
+}
+const fixtureContexts = new WeakMap();
 
 function keycloakClient(target) {
   return async (route, method = 'GET', body) => {
@@ -65,7 +161,8 @@ function keycloakClient(target) {
  * för P1, skapad med rektor B:s kommandon. Mandatet Egen tjänst för B ges inte här, utan av rektor B i provet (CR-01).
  */
 export async function seedTjanstActual(connection, { published = false, linkGrim = false, schoolB = false } = {}) {
-  return connection.begin(async tx => {
+  await ownedDatabase(connection);
+  const seeded = await connection.begin(async tx => {
     await tx`set constraints all deferred`;
     const f = await createTjanstFixture(tx);
     const gy = await seedGy25Class(tx, f, 'SYNBF1');
@@ -122,11 +219,11 @@ export async function seedTjanstActual(connection, { published = false, linkGrim
     let schoolBPublished = null;
     if (schoolB) {
       await f.actor(tx, 'principalB');
-      const send = async q => { const e = await planSend(tx, q); assert.equal(e.contractVersion, 'tjanst_sql_v1'); return e.result; };
-      let r = await send(await planCommand(f.schools.B, Y, 'create_draft', 0, { basedOnVersionId: null }));
-      const first = r.detail.classes.find(c => c.classId === schoolBClass).needs.find(n => n.rowKey === 'matematik');
-      r = await send(await planCommand(f.schools.B, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: first.sourceKey, personId: p1.personId, teacherHt: 1800, teacherVt: 1200, comment: '' }));
-      r = await send(await planCommand(f.schools.B, Y, 'publish', r.detail.revision, {}, { expectedContentHash: r.detail.version.contentHash }));
+      const current = await planRead(tx,{unitId:f.schools.B,schoolYear:Y});
+      const first = current.classes.find(c => c.classId === schoolBClass).needs.find(n => n.rowKey === 'matematik');
+      await yearCommandSend(tx,await yearCommand(await capturePlanContext(tx,{unitId:f.schools.B,schoolYear:Y,action:'save_row',choice:'manual',
+        payload:{rowId:null,sourceKind:'class_timplan',sourceKey:first.sourceKey,personId:p1.personId,teacherHt:1800,teacherVt:1200,comment:''}})));
+      const r = (await yearCommandSend(tx,await yearCommand(await capturePlanContext(tx,{unitId:f.schools.B,schoolYear:Y,action:'publish',payload:{}})))).result;
       schoolBPublished = { id: r.detail.version.id, versionNo: r.detail.version.versionNo };
     }
     const t2 = await staffWithDuties(tx, f, { givenName: 'Tor', familyName: 'Berg', duties: [{ unitId: A, percent: 100, startsOn: '2026-07-01' }] });
@@ -136,21 +233,198 @@ export async function seedTjanstActual(connection, { published = false, linkGrim
     let publishedVersion = null;
     if (published) {
       await f.actor(tx, 'principalA');
-      const send = async q => { const e = await planSend(tx, q); assert.equal(e.contractVersion, 'tjanst_sql_v1'); return e.result; };
-      let r = await send(await planCommand(A, Y, 'create_draft', 0, { basedOnVersionId: null }));
-      const read = r.detail, klass = read.classes.find(c => c.classId === gy.classId), first = klass.needs.find(n => n.rowKey === gy.aplKey);
-      r = await send(await planCommand(A, Y, 'save_row', r.detail.revision, { rowId: null, sourceKind: 'class_timplan', sourceKey: first.sourceKey, personId: p1.personId, teacherHt: 3000, teacherVt: 2400, comment: '' }));
-      r = await send(await planCommand(A, Y, 'publish', r.detail.revision, {}, { expectedContentHash: r.detail.version.contentHash }));
+      const current = await planRead(tx,{unitId:A,schoolYear:Y});
+      const first = current.classes.find(c => c.classId === gy.classId).needs.find(n => n.rowKey === gy.aplKey);
+      await yearCommandSend(tx,await yearCommand(await capturePlanContext(tx,{unitId:A,schoolYear:Y,action:'save_row',choice:'manual',
+        payload:{rowId:null,sourceKind:'class_timplan',sourceKey:first.sourceKey,personId:p1.personId,teacherHt:3000,teacherVt:2400,comment:''}})));
+      const r = (await yearCommandSend(tx,await yearCommand(await capturePlanContext(tx,{unitId:A,schoolYear:Y,action:'publish',payload:{}})))).result;
       publishedVersion = { id: r.detail.version.id, versionNo: r.detail.version.versionNo };
     }
+    const foreignCanary = await seedForeignCanary(tx,f,Y);
     await tx`set constraints all immediate`;
     const actors = Object.fromEntries(['hm', 'principalA', 'principalB', 'principalAB', 'admin', 'teacherSelf', 'teacherGroup']
       .map(role => [role, { identityId: f.identity(role), membershipId: f.membership(role), assignmentId: f.roles[role] }]));
-    return { prefix: f.prefix, year: Y, customerId: f.id(1), organizerId: f.id(2), schools: f.schools, actors,
+    const result = { foreignCanary, prefix: f.prefix, year: Y, customerId: f.id(1), organizerId: f.id(2), schools: f.schools, actors,
       gy: { classId: gy.classId, planId: gy.planId, offeringId: gy.offeringId, aplKey: gy.aplKey, schoolMinutes: need?.schoolMinutes ?? null },
       grim: { grPlan, imPlan, grOffering, imOffering, looseClassId: loose, classes: grimClasses, schoolBClass },
       people: { p1: p1.personId, t2: t2.personId, t3: t3.personId }, publishedVersion, schoolBPublished };
+    fixtureContexts.set(result,f);
+    return result;
   });
+  return seeded;
+}
+
+/** A deliberately separate historical snapshot in the owned DB. No live/cohort helper is called.
+ * The source is catalog-validated; historical decision rows are setup, never claimed as an actual decision flow. */
+async function seedHistoricalGy25(t,f,seed) {
+  const catalog = JSON.parse(readFileSync(path.join(root,'web/lib/programplan-catalog.generated.json'),'utf8'));
+  const [{source_programplan_id:templateId}] = await t`select source_programplan_id from public.timplans where id=${seed.gy.planId}`;
+  const [template] = await t`select basis_reference,term_distribution from public.point_plans where id=${templateId}`;
+  const basis = {...template.basis_reference,startedOn:`${seed.year-1}-08-17`};
+  const program = catalog.programs.find(p => p.code===basis.programRef.code&&p.version===basis.programRef.version);
+  assert.ok(program);
+  const verified = await verifyProgramplanCatalog(catalog);
+  assert.equal(resolveProgramplanBasis(verified,basis).status,'resolved');
+  const rowKey='foundation:IDRO:1:IDRO1000X';
+  const distribution = template.term_distribution.map(r=>r.rowKey===rowKey?{...r,points:[25,25,25,25,0,0]}:r);
+  assert.ok(distribution.some(r=>r.rowKey===rowKey));
+  validateProgramplanTermDistribution(programplanTermRows(program,basis),distribution);
+  const offeringId=randomUUID(),programId=randomUUID(),planId=randomUUID(),seriesId=randomUUID();
+  await f.actor(t,'hm');
+  await t`set local session_replication_role=replica`;
+  await t`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year)
+    values(${offeringId},${seed.organizerId},${seed.schools.A},'gymnasium','Syntetisk historisk BF25',${`Syntetisk kull ${seed.year-1}`},'BF25',${basis.orientationCode},${seed.year-1})`;
+  await t`insert into public.offering_units(offering_id,unit_id,organizer_id) values(${offeringId},${seed.schools.A},${seed.organizerId})`;
+  await t`insert into public.point_plans select (jsonb_populate_record(null::public.point_plans,to_jsonb(p)||jsonb_build_object(
+    'id',${programId}::uuid,'offering_id',${offeringId}::uuid,'basis_reference',${t.json(basis)},'term_distribution',${t.json(distribution)},
+    'decided_on',${`${seed.year-1}-06-01`}::date))).* from public.point_plans p where p.id=${templateId}`;
+  const [{source}] = await t`select public.phase5_gym_timplan_source(${programId}) source`;
+  await t`select public.phase5_gym_timplan_require_source(${t.json(source)})`;
+  assert.deepEqual((await t`select public.phase5_plan_decision_source_blockers(${t.json(source)}) blockers`)[0].blockers,[]);
+  await t`insert into public.timplan_series(id,organizer_id,offering_id,unit_id,name,normalized_name)
+    values(${seriesId},${seed.organizerId},${offeringId},${seed.schools.A},'Syntetisk historik','syntetisk historik')`;
+  await t`insert into public.timplans select (jsonb_populate_record(null::public.timplans,to_jsonb(p)||jsonb_build_object(
+    'id',${planId}::uuid,'offering_id',${offeringId}::uuid,'source_programplan_id',${programId}::uuid,'series_id',${seriesId}::uuid,
+    'gym_basis',${t.json(source)},'decided_on',${`${seed.year-1}-06-01`}::date))).* from public.timplans p where p.id=${seed.gy.planId}`;
+  await t`insert into public.timplan_cells select (jsonb_populate_record(null::public.timplan_cells,to_jsonb(c)||jsonb_build_object('timplan_id',${planId}::uuid))).*
+    from public.timplan_cells c where c.timplan_id=${seed.gy.planId}`;
+  await t`update public.timplan_cells set hours=${[25,25,25,25,0,0]}::smallint[],allocated=array[true,true,true,true,false,false] where timplan_id=${planId} and row_id=${rowKey}`;
+  await t`insert into public.timplan_time_models(plan_id,model,origin) values(${planId},'school_terms_annual_apl_v2','new')`;
+  await t`insert into public.timplan_time_cells_v2(plan_id,row_key,school_minutes,annual_apl_minutes)
+    select ${planId},row_key,case when row_key=${rowKey} then '[1500,1500,1500,1500,null,null]'::jsonb else school_minutes end,
+      case when row_key=${rowKey} then '[0,0,null]'::jsonb else annual_apl_minutes end
+    from public.timplan_time_cells_v2 where plan_id=${seed.gy.planId}`;
+  await t`set local session_replication_role=origin`;
+  await f.actor(t,'principalA');
+  const [{revision}] = await t`select revision from public.timplans where id=${planId}`;
+  const command = async q => (await t`select public.phase5_class_command(${t.json(q)}) value`)[0].value;
+  const klass=await command({operation:'create',commandId:randomUUID(),planId,expectedPlanRevision:revision,name:'SYNHBF',startYear:seed.year-1});
+  for(const [schoolYear,columnId] of [[seed.year-1,'ar1'],[seed.year,'ar2']]) await command({operation:'link',commandId:randomUUID(),classId:klass.id,schoolYear,planId,
+    expectedPlanRevision:revision,columnId,expectedLinkRevision:null,previousPlanId:null});
+  return {scope:{unitId:seed.schools.A,schoolYear:seed.year},priorScope:{unitId:seed.schools.A,schoolYear:seed.year-1},classId:klass.id,planId,offeringId,programId,
+    rowKey,sourceKey:`class_timplan:${klass.id}:${seed.year}:${rowKey}`,priorSourceKey:`class_timplan:${klass.id}:${seed.year-1}:${rowKey}`,
+    unprovenRowKey:'foundation:ENGE:1:ENGE2000X',unprovenSourceKey:`class_timplan:${klass.id}:${seed.year}:foundation:ENGE:1:ENGE2000X`,
+    setup:'synthetic frozen historical program/timplan; catalog and term distribution validated; class links use real SQL commands'};
+}
+
+/** Call once after the old project regressions. Adds needs/history, never writes the current plan. */
+export async function seedTjanstYearCases(connection,seed) {
+  await ownedDatabase(connection);
+  assert.ok(fixtureContexts.has(seed),'Year scenarios require this process-owned seed');
+  assert.equal(seed.yearCases,undefined,'Year scenarios already seeded');
+  const f=fixtureContexts.get(seed),A=seed.schools.A,Y=seed.year;
+  const result=await connection.begin(async t=>{
+    await t`set constraints all deferred`;
+    const scope={unitId:A,schoolYear:Y},priorScope={unitId:A,schoolYear:Y-1};
+    const people={};
+    for(const [key,givenName,familyName,percent,startsOn,endsOn] of [
+      ['fullYear','Ylva','Helår',70,`${Y-1}-07-01`,null],
+      ['partYear','Yngve','Delår',30,`${Y+1}-01-11`,`${Y+1}-03-01`],
+      ['twinA','Syntetisk','Samma namn',60,`${Y-1}-07-01`,null],
+      ['twinB','Syntetisk','Samma namn',20,`${Y}-07-01`,null],
+      ['moveTarget','Yasmine','Mottagare',100,`${Y-1}-07-01`,null],
+    ]) people[key]=await staffWithDuties(t,f,{givenName,familyName,startsOn:`${Y-1}-07-01`,duties:[{unitId:A,percent,startsOn,endsOn}]});
+    await f.actor(t,'principalA');
+    const grim=async q=>(await t`select public.phase51_grim_class_command(${t.json(q)}) value`)[0].value;
+    const classes=[];
+    for(let n=1;n<=35;n++) {
+      const name='SYNY'+String(n).padStart(2,'0');
+      const c=await grim({action:'create',commandId:randomUUID(),planId:seed.grim.grPlan,expectedPlanRevision:0,name});
+      await grim({action:'link',commandId:randomUUID(),classId:c.id,planId:seed.grim.grPlan,expectedPlanRevision:0,columnId:'ak8',expectedLinkRevision:null,previousPlanId:null});
+      classes.push({id:c.id,name});
+    }
+    const im=await grim({action:'create',commandId:randomUUID(),planId:seed.grim.imPlan,expectedPlanRevision:0,name:'SYNYIM'});
+    await grim({action:'link',commandId:randomUUID(),classId:im.id,planId:seed.grim.imPlan,expectedPlanRevision:0,columnId:'vecka',expectedLinkRevision:null,previousPlanId:null});
+    const gy25=await seedHistoricalGy25(t,f,seed);
+    // A distinct GR class shares its display name across years, never its identity.
+    await f.actor(t,'hm');
+    const priorOffering=randomUUID(),priorPlan=randomUUID();
+    await t`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,grades,start_year)
+      values(${priorOffering},${seed.organizerId},${A},'grundskola','Syntetisk tidigare GR',${`Syntetiskt ${Y-1}`},${[7,8,9]}::smallint[],${Y-1})`;
+    await t`insert into public.timplans(id,organizer_id,offering_id,unit_id,version,basis) values(${priorPlan},${seed.organizerId},${priorOffering},${A},1,'Syntetisk tidigare GR')`;
+    await t`insert into public.timplan_cells(timplan_id,row_id,hours) values(${priorPlan},'matematik',${[100,90,80]}::smallint[])`;
+    await t`set local session_replication_role=replica`;
+    await t`update public.timplans set status='faststalld',decided_on=${`${Y-1}-06-01`} where id=${priorPlan}`;
+    await t`set local session_replication_role=origin`;
+    await f.actor(t,'principalA');
+    const oldClass=await grim({action:'create',commandId:randomUUID(),planId:priorPlan,expectedPlanRevision:0,name:classes[0].name});
+    await grim({action:'link',commandId:randomUUID(),classId:oldClass.id,planId:priorPlan,expectedPlanRevision:0,columnId:'ak8',expectedLinkRevision:null,previousPlanId:null});
+    const priorRows=[{sourceKey:`class_timplan:${oldClass.id}:${Y-1}:matematik`,personId:people.twinA.personId},
+      {sourceKey:gy25.priorSourceKey,personId:people.fullYear.personId},
+      {sourceKey:`class_timplan:${gy25.classId}:${Y-1}:foundation:ENGE:1:ENGE1000X`,personId:people.fullYear.personId}];
+    for(const row of priorRows) await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{...priorScope,action:'save_row',choice:'manual',
+      payload:{rowId:null,sourceKind:'class_timplan',...row,teacherHt:600,teacherVt:600,comment:'Syntetisk tidigare planering'}})));
+    const published=(await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{...priorScope,action:'publish',payload:{}})))).result.detail;
+    const current=await planRead(t,scope),allNeeds=current.classes.flatMap(c=>c.needs.map(n=>({...n,classId:c.classId,className:c.className??c.name})));
+    const targetNeeds=classes.flatMap(c=>allNeeds.filter(n=>n.classId===c.id)).sort((a,b)=>a.sourceKey.localeCompare(b.sourceKey)).slice(0,101);
+    assert.equal(targetNeeds.length,101);assert.equal(new Set(targetNeeds.map(n=>n.sourceKey)).size,101);
+    const need=(classId,rowKey)=>{const n=allNeeds.find(n=>n.classId===classId&&n.rowKey===rowKey);assert.ok(n,'Real year need is missing');return {...scope,...n,rowId:null};};
+    const result={scope,priorScope,people,classes,
+      core:{...scope,gr:need(classes[0].id,'matematik'),im:need(im.id,'im-ma'),gy25:need(gy25.classId,gy25.rowKey)},
+      grim:{...scope,grPlanId:seed.grim.grPlan,imPlanId:seed.grim.imPlan,grClassId:classes[0].id,imClassId:im.id,priorClassId:oldClass.id,priorPlanId:priorPlan},
+      gy25:{...gy25,need:need(gy25.classId,gy25.rowKey),unprovenNeed:need(gy25.classId,gy25.unprovenRowKey)},
+      bulk:{...scope,needs:targetNeeds,sourceKeys:targetNeeds.map(n=>n.sourceKey)},
+      joint:{...scope,needs:[need(classes[1].id,'engelska'),need(im.id,'im-en')],movingPersonId:people.fullYear.personId,retainedPersonId:people.partYear.personId,targetPersonId:people.moveTarget.personId},
+      history:{...priorScope,versionId:published.version.id,rows:published.rows,priorClassId:oldClass.id,newClassId:classes[0].id},
+      foreignCanary:seed.foreignCanary};
+    await t`set constraints all immediate`;
+    return result;
+  });
+  seed.yearCases=result;
+  return result;
+}
+
+/** Scoped foreign business fingerprint, with real person/employment/duty and version/special rows. */
+export async function tjanstForeignFingerprint(db,seed) {
+  await ownedDatabase(db);
+  const c=seed.foreignCanary;assert.ok(c);
+  const [data]=await db`select jsonb_build_object(
+    'customer',(select to_jsonb(x) from public.customers x where id=${c.customerId}),
+    'organizer',(select to_jsonb(x) from public.organizers x where id=${c.organizerId}),
+    'school',(select to_jsonb(x) from public.school_units x where id=${c.schoolId}),
+    'people',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.staff_people x where customer_id=${c.customerId}),
+    'employments',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.staff_employments x where customer_id=${c.customerId}),
+    'duties',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.staff_school_duties x where customer_id=${c.customerId}),
+    'distributions',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.tjanst_distributions x where customer_id=${c.customerId}),
+    'versions',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.tjanst_versions x where distribution_id in(select id from public.tjanst_distributions where customer_id=${c.customerId})),
+    'teachers',(select coalesce(jsonb_agg(to_jsonb(x) order by version_id,staff_person_id),'[]') from public.tjanst_version_teachers x where version_id=${c.versionId}),
+    'rows',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.tjanst_rows x where version_id=${c.versionId}),
+    'specials',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.tjanst_special_assignments x where version_id=${c.versionId}),
+    'mandates',(select coalesce(jsonb_agg(to_jsonb(x) order by id),'[]') from public.access_assignments x where customer_id=${c.customerId})
+  ) value`;
+  assert.ok(data.value.people.length&&data.value.versions.length&&data.value.specials.length,'Foreign canary must contain actual business rows');
+  return {sha256:hash(JSON.stringify(data.value)),customerId:c.customerId,counts:Object.fromEntries(Object.entries(data.value).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.length]))};
+}
+
+async function seedForeignCanary(t,f,Y) {
+  const foreignF={actor:(tx)=>f.actor(tx,'foreignHm')};
+  const person=await staffWithDuties(t,foreignF,{givenName:'Syntetisk',familyName:'Främmande',startsOn:`${Y-1}-07-01`,duties:[{unitId:f.schools.foreign,percent:50,startsOn:`${Y-1}-07-01`}]});
+  const distributionId=randomUUID(),versionId=randomUUID();
+  await t`set local session_replication_role=replica`;
+  await t`insert into public.tjanst_distributions(id,customer_id,organizer_id,unit_id,school_year) values(${distributionId},${f.id(3)},${f.id(4)},${f.schools.foreign},${Y})`;
+  await t`insert into public.tjanst_versions(id,distribution_id,version_no,status,created_by_identity_id,created_by_assignment_id)
+    values(${versionId},${distributionId},1,'draft',${f.identity('foreignHm')},${f.roles.foreignHm})`;
+  await t`insert into public.tjanst_version_teachers(version_id,staff_person_id) values(${versionId},${person.personId})`;
+  await t`insert into public.tjanst_special_assignments(version_id,lineage_id,kind,label,staff_person_id,ht_minutes,vt_minutes)
+    values(${versionId},${randomUUID()},'annat','Syntetiskt främmande uppdrag',${person.personId},60,120)`;
+  await t`update public.tjanst_versions set status='published',published_at=clock_timestamp(),published_by_identity_id=${f.identity('foreignHm')},
+    published_by_assignment_id=${f.roles.foreignHm},content_hash=public.tjanst_version_hash(id) where id=${versionId}`;
+  await t`set local session_replication_role=origin`;
+  return {customerId:f.id(3),organizerId:f.id(4),schoolId:f.schools.foreign,personId:person.personId,distributionId,versionId,setup:'synthetic foreign frozen canary'};
+}
+
+/** The only degraded source: optional history, in this owned test DB only. Core/actor/audit remain intact. */
+export async function withTjanstHistoryFailure(db, callback) {
+  await ownedDatabase(db);
+  const inspect=async()=> (await db`select pg_get_functiondef(p.oid) definition,p.proacl::text acl,p.proowner::text owner
+    from pg_proc p where p.oid='public.tjanst_year_history(uuid,integer)'::regprocedure`)[0];
+  const before=await inspect();assert.ok(before);
+  try {
+    await db.unsafe(`create or replace function public.tjanst_year_history(unit uuid,year integer) returns jsonb
+      language plpgsql stable security definer set search_path=pg_catalog,public as $fault$
+      begin raise exception 'Synthetic optional history failure' using errcode='P5101';end $fault$`);
+    return await callback();
+  } finally { await db.unsafe(before.definition);assert.deepEqual(await inspect(),before,'History source definition/owner/ACL restored'); }
 }
 
 /** Får bara anropas när den ägande webbläsarprocessen har avslutats. Läser eller skriver aldrig verksamhetsdata. */
