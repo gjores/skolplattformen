@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { selfCommandRef, planCommandRef } from './tjanst-contract.ts';
+import { selfCommandRef, planCommandRef, parseCommandRef } from './tjanst-contract.ts';
 import { loadTjanstJournal, persistTjanstJournal, recoverTjanstJournal, removeTjanstJournal, tjanstJournalIdentityKey, tjanstJournalKey } from './tjanst-journal.ts';
 
 const uid = n => `51a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -11,7 +11,9 @@ const storage = () => {
 const scope = async () => ({ identityKey: await tjanstJournalIdentityKey('https://idp.example.invalid/realm', 'synthetic-subject'), assignmentId: uid(3) });
 const comment = (n = 40) => selfCommandRef({ commandId: uid(n), versionId: uid(70), action: 'comment', body: 'Syntetisk kommentar om Åsa i 8B' });
 const save = (n = 41) => planCommandRef({ commandId: uid(n), unitId: uid(1), schoolYear: 2026, action: 'save_row', expectedRevision: 3, payloadHash: `sha256:${'a'.repeat(64)}`,
-  payload: { rowId: null, sourceKind: 'class_timplan', sourceKey: `class_timplan:${uid(10)}:2026:programmeSpecific:BYGG:1:BYGG1000X`, personId: uid(20), teacherHt: 3000, teacherVt: 3000, comment: 'Lärarnamn Syntetisk' } });
+  payload: { rowId: null, sourceKind: 'class_timplan', sourceKey: `class_timplan:${uid(10)}:2026:programmeSpecific:BYGG:1:BYGG1000X`, personId: uid(20), teacherHt: 3000, teacherVt: 3000, comment: 'Lärarnamn Syntetisk',
+    planningContext: { baseVersionId: uid(50), expectedBasisHash: `sha256:${'b'.repeat(64)}`,
+      choice: { kind: 'manual', personId: uid(20), expectedPersonBasisHash: `sha256:${'c'.repeat(64)}` } } } });
 
 test('Journalen sparar bara commandId, operation och mål (ingen kommentarstext, inga namn)', async () => {
   const s = storage(), sc = await scope();
@@ -54,4 +56,28 @@ test('ogiltig lagring och ändrad post nekas', async () => {
   await assert.rejects(loadTjanstJournal(s, sc, save()), e => e.code === 'invalid_journal_command');
   const broken = { getItem: () => { throw new Error('blocked'); }, setItem: () => {}, removeItem: () => {} };
   await assert.rejects(persistTjanstJournal(broken, sc, save()), e => e.code === 'journal_storage_unavailable');
+});
+
+
+test('old save/create and new row/move/bulk/removal share the exact plan target lock after reload', async () => {
+  const s = storage(), sc = await scope(), current = save();
+  const refs = ['create_draft', 'save_row', 'move', 'bulk', 'remove_teacher'].map((action, n) => parseCommandRef({ ...current, action, commandId: uid(80 + n) }));
+  const expectedKey = await tjanstJournalKey(sc, current);
+  for (const older of refs) {
+    const journal = await persistTjanstJournal(s, sc, older);
+    assert.equal(await tjanstJournalKey(sc, older), expectedKey);
+    assert.equal((await loadTjanstJournal(s, sc, current)).command.action, older.action);
+    await assert.rejects(persistTjanstJournal(s, sc, current), e => e.code === 'pending_journal_exists');
+    await removeTjanstJournal(s, journal);
+  }
+});
+
+test('non-null plan person/version cannot bypass target lock and context is never journalled', async () => {
+  const s = storage(), sc = await scope(), current = save();
+  await persistTjanstJournal(s, sc, current);
+  for (const target of [{ ...current.target, personId: uid(20) }, { ...current.target, versionId: uid(50) }]) {
+    await assert.rejects(persistTjanstJournal(s, sc, { ...current, commandId: uid(99), target }), e => e.code === 'invalid_journal_command');
+  }
+  const encoded = [...s.values.values()].join('');
+  for (const field of ['planningContext', 'expectedBasisHash', 'expectedPersonBasisHash', 'payloadHash', 'suggestionId']) assert.ok(!encoded.includes(field));
 });

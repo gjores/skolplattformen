@@ -6,7 +6,7 @@ import TjanstWorkspace from '../../app/tjanst-workspace';
 import type {ActiveContext} from '../../app/context-switch';
 import type {TjanstFeedback} from '../../app/tjanst-publish-panel';
 import {UnsavedChangesProvider,useHasUnsaved} from '../../lib/unsaved-changes';
-import type {TjanstClass,TjanstJoint,TjanstPerson,TjanstPlanAction,TjanstPlanRead,TjanstRow,TjanstSpecial,TjanstTeacher,TjanstVersion} from '../../lib/tjanst-contract';
+import type {TjanstClass,TjanstJoint,TjanstPerson,TjanstPlanReceiptAction as TjanstPlanAction,TjanstPlanRead,TjanstRow,TjanstSpecial,TjanstTeacher,TjanstVersion} from '../../lib/tjanst-contract';
 import '../../app/globals.css';
 
 export const tid=(n:number)=>`51a50000-0000-4000-8000-${String(n).padStart(12,'0')}`;

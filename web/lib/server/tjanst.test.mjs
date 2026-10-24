@@ -69,7 +69,8 @@ const planRead = (extra = {}) => ({ contractVersion: 'tjanst_v1', unitId: unit, 
   rows: [row()], specials: [], joints: [], actions: ['save_row', 'publish'], blockers: [], capabilities: { canEdit: true, canPublish: true, canReadHistory: true }, ...extra });
 const organizerView = () => planRead({ actions: [], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } });
 const saveRow = () => createPlanCommand({ commandId: uid(40), unitId: unit, schoolYear: year, action: 'save_row', expectedRevision: 3,
-  payload: { rowId: null, sourceKind: 'class_timplan', sourceKey, personId: person, teacherHt: 3000, teacherVt: 2400, comment: '' } });
+  payload: { rowId: null, sourceKind: 'class_timplan', sourceKey, personId: person, teacherHt: 3000, teacherVt: 2400, comment: '', planningContext: { baseVersionId: uid(50), expectedBasisHash: hash('a'),
+    choice: { kind: 'manual', personId: person, expectedPersonBasisHash: hash('b') } } } });
 const planReceipt = (extra = {}) => ({ commandId: uid(40), action: 'save_row', versionId: uid(50), revision: 4, contentHash: hash('c'), replayed: false, changed: true, ...extra });
 
 function reset(fn = 'rektor') {
@@ -144,7 +145,7 @@ test('40001 med tjanst_revision_conflict ger 409 med reason och utan SQL-detalje
 
 test('kommando med action publish ger 400 utan SQL-anrop', async () => {
   reset('rektor'); state.mfa = true;
-  const publish = await createPlanCommand({ commandId: uid(40), unitId: unit, schoolYear: year, action: 'publish', expectedRevision: 3, expectedContentHash: hash('c'), payload: {} });
+  const publish = await createPlanCommand({ commandId: uid(40), unitId: unit, schoolYear: year, action: 'publish', expectedRevision: 3, expectedContentHash: hash('c'), payload: { mutationContext: { baseVersionId: uid(50), expectedBasisHash: hash('a') } } });
   const response = await post('plan/kommando', publish);
   assert.equal(response.status, 400);
   assert.equal(state.calls.length, 0);
@@ -196,9 +197,9 @@ Object.assign(routes, {
 const { personalCommandRef, selfCommandRef } = await import('../tjanst-contract.ts');
 
 const published = version({ status: 'published', publishedByName: 'Syntetisk Rektor', publishedAt: '2026-08-20T08:00:00.000Z' });
-const publishCommand = () => createPlanCommand({ commandId: uid(41), unitId: unit, schoolYear: year, action: 'publish', expectedRevision: 4, expectedContentHash: hash('c'), payload: {} });
+const publishCommand = () => createPlanCommand({ commandId: uid(41), unitId: unit, schoolYear: year, action: 'publish', expectedRevision: 4, expectedContentHash: hash('c'), payload: { mutationContext: { baseVersionId: uid(50), expectedBasisHash: hash('a') } } });
 const publishReply = () => wrap({ receipt: planReceipt({ commandId: uid(41), action: 'publish', revision: 5 }),
-  detail: planRead({ revision: 5, version: published, versions: [published], actions: ['create_draft'], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } }) });
+  detail: planRead({ revision: 5, version: published, versions: [published], actions: ['save_row', 'bulk'], capabilities: { canEdit: true, canPublish: false, canReadHistory: true } }) });
 
 const draftPerson = { id: uid(21), givenName: 'Syntetisk', familyName: 'Utkast', externalId: null, externalIdSource: null, status: 'draft', proposedForUnitId: unit,
   draftNote: '', revision: 1, employments: [], duties: [] };
@@ -381,8 +382,8 @@ test('security_events-detaljer för comment innehåller ingen kommentarstext', a
   assert.ok(!JSON.stringify(state.events).includes('Hemlig'));
 });
 
-test('alla elva tjanst-rutter finns', async () => {
+test('alla tolv tjanst-rutter finns', async () => {
   const { readdir } = await import('node:fs/promises');
   const files = (await readdir(new URL('../../app/api/tjanst/', import.meta.url), { recursive: true })).filter(f => f.endsWith('route.ts'));
-  assert.equal(files.length, 11);
+  assert.equal(files.length, 12);
 });

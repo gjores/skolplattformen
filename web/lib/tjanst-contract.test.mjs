@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { TjanstContractError, createPlanCommand, parseCommandRef, parsePersonalCommand, parsePersonalCommandReply, parsePersonalReadReply,
-  parsePlanCommand, parsePlanCommandReply, parsePlanReadReply, parseYearPlanReadReply, parseSelfCommand, parseSelfCommandReply, parseSelfReadReply,
+  parsePlanCommand, parsePlanCommandReply, parsePlanReadReply, parseYearPlanReadReply, parsePlanStatusReply, parsePlanJournalReply, parseSelfCommand, parseSelfCommandReply, parseSelfReadReply,
   parseStaffingReadReply, parseStatusReply, parseTjanstSourceKey, planCommandRef, selfCommandRef, tjanstCanonicalSerialize,
   tjanstHashCanonical, tjanstPayloadHash, tjanstSourceKey, verifyPlanCommandHash } from './tjanst-contract.ts';
 
@@ -12,7 +12,9 @@ const hash = c => `sha256:${c.repeat(64)}`;
 const unit = uid(1), year = 2026, classId = uid(10), person = uid(20), rowKey = 'programmeSpecific:BYGG:1:BYGG1000X';
 const key = `class_timplan:${classId}:${year}:${rowKey}`;
 const rejects = (fn, reason) => assert.throws(fn, e => e instanceof TjanstContractError && (reason === undefined || e.reason === reason));
-const saveRow = (extra = {}) => ({ rowId: null, sourceKind: 'class_timplan', sourceKey: key, personId: person, teacherHt: 3000, teacherVt: 3000, comment: '', ...extra });
+const mutationContext = { baseVersionId: uid(50), expectedBasisHash: hash('a') };
+const planningContext = { ...mutationContext, choice: { kind: 'manual', personId: person, expectedPersonBasisHash: hash('b') } };
+const saveRow = (extra = {}) => ({ planningContext, rowId: null, sourceKind: 'class_timplan', sourceKey: key, personId: person, teacherHt: 3000, teacherVt: 3000, comment: '', ...extra });
 const command = (action, payload, extra = {}) => ({ commandId: uid(40), unitId: unit, schoolYear: year, action, expectedRevision: 3, payloadHash: hash('a'), payload, ...extra });
 const version = (extra = {}) => ({ id: uid(50), versionNo: 1, status: 'draft', contentHash: hash('c'), basedOnVersionId: null, publishedByName: null, publishedAt: null, ...extra });
 const row = (id, extra = {}) => ({ id: uid(id), lineageId: uid(id + 100), sourceKind: 'class_timplan', sourceKey: key, classId, rowKey, personId: person,
@@ -23,14 +25,14 @@ const read = (extra = {}) => ({ contractVersion: 'tjanst_v1', unitId: unit, scho
     needs: [{ sourceKind: 'class_timplan', sourceKey: key, rowKey, label: 'Bygg och anläggning 1', needHt: 3000, needVt: 3000, needBasis: 'terms' }] }],
   rows: [row(30)], specials: [], joints: [], actions: ['save_row', 'publish'], blockers: [], capabilities: { canEdit: true, canPublish: true, canReadHistory: true }, ...extra });
 
-test('explicit year detail decoder accepts continuous actions without weakening legacy ingress', () => {
+test('normal and explicit year detail decoders accept only continuous actions', () => {
   const expected = { unitId: unit, schoolYear: year };
   const current = read({ actions: ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special', 'save_joint',
     'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk'] });
   assert.deepEqual(parseYearPlanReadReply(current, expected).actions, current.actions);
-  rejects(() => parsePlanReadReply(current, expected));
+  assert.deepEqual(parsePlanReadReply(current, expected).actions, current.actions);
   const legacy = read({ actions: ['create_draft'], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } });
-  assert.deepEqual(parsePlanReadReply(legacy, expected).actions, ['create_draft']);
+  rejects(() => parsePlanReadReply(legacy, expected));
   rejects(() => parseYearPlanReadReply(legacy, expected));
   for (const actions of [['unknown'], ['save_row', 'save_row'], ['bulk', 'create_draft']]) rejects(() => parseYearPlanReadReply(read({ actions }), expected));
 });
@@ -40,7 +42,7 @@ test('year detail permits editing current published or unstarted plans but canno
   const published = version({ status: 'published', publishedByName: 'Rektor', publishedAt: '2026-09-01T10:00:00.000Z' });
   const current = read({ version: published, versions: [published], actions: ['save_row', 'move', 'bulk', 'remove_teacher'], capabilities: caps });
   assert.equal(parseYearPlanReadReply(current, expected).capabilities.canEdit, true);
-  rejects(() => parsePlanReadReply(current, expected));
+  assert.deepEqual(parsePlanReadReply(current, expected).actions, current.actions);
   const unstarted = read({ version: null, versions: [], teachers: [], rows: [], actions: ['save_row', 'bulk'], capabilities: caps });
   assert.equal(parseYearPlanReadReply(unstarted, expected).version, null);
   for (const value of [current, unstarted]) {
@@ -94,8 +96,8 @@ test('year null version has no saved content or contradictory current version in
     { versions: [version()] }, { versions: [version({ status: 'published', publishedByName: 'Rektor', publishedAt: '2026-09-01T10:00:00.000Z' })] }]) {
     rejects(() => parseYearPlanReadReply({ ...empty, ...patch }, expected));
   }
-  // This opt-in decoder does not reinterpret old receipts through the new state rules.
-  assert.equal(parsePlanReadReply({ ...empty, teachers: read().teachers }, expected).teachers.length, 1);
+  // Both fresh-read entrypoints use the same strict null-version rule.
+  rejects(() => parsePlanReadReply({ ...empty, teachers: read().teachers }, expected));
 });
 
 test('sourceKey byggs kanoniskt och prövas tillbaka; annan källtyp eller form nekas', () => {
@@ -120,18 +122,18 @@ test('parsePlanCommand(save_row) godtar exakt nycklarna och nekar okänd nyckel,
 });
 
 test('publish kräver expectedContentHash; andra åtgärder får inte bära det', () => {
-  assert.equal(parsePlanCommand(command('publish', {}, { expectedContentHash: hash('b') })).expectedContentHash, hash('b'));
+  assert.equal(parsePlanCommand(command('publish', { mutationContext }, { expectedContentHash: hash('b') })).expectedContentHash, hash('b'));
   rejects(() => parsePlanCommand(command('publish', {})));
   rejects(() => parsePlanCommand(command('save_row', saveRow(), { expectedContentHash: hash('b') })));
   rejects(() => parsePlanCommand(command('rename_plan', {})));
 });
 
 test('specialuppdrag: klass bara för mentor; samläsning kräver minst två unika rader', () => {
-  const special = { specialId: null, kind: 'mentor', label: 'Mentor BA26A', personId: person, classId, ht: 1200, vt: 1200, comment: '' };
+  const special = { mutationContext, specialId: null, kind: 'mentor', label: 'Mentor BA26A', personId: person, classId, ht: 1200, vt: 1200, comment: '' };
   assert.equal(parsePlanCommand(command('save_special', special)).payload.classId, classId);
   rejects(() => parsePlanCommand(command('save_special', { ...special, kind: 'programansvar' })));
   assert.equal(parsePlanCommand(command('save_special', { ...special, kind: 'programansvar', classId: null })).payload.classId, null);
-  const joint = { jointId: null, name: 'Samläsning', rowIds: [uid(31), uid(32)], teachers: [{ personId: person, ht: 1800, vt: 1800 }] };
+  const joint = { mutationContext, jointId: null, name: 'Samläsning', rowIds: [uid(31), uid(32)], teachers: [{ personId: person, ht: 1800, vt: 1800 }] };
   assert.deepEqual(parsePlanCommand(command('save_joint', joint)).payload.rowIds, [uid(31), uid(32)]);
   rejects(() => parsePlanCommand(command('save_joint', { ...joint, rowIds: [uid(31)] })), 'tjanst_joint_too_few');
   rejects(() => parsePlanCommand(command('save_joint', { ...joint, rowIds: [uid(31), uid(31)] })), 'tjanst_duplicate_row');
@@ -298,4 +300,53 @@ test('återkoppling i rektors läsning: valfri, bara för publicerad version och
   rejects(() => parsePlanReadReply(read({ feedback }), { unitId: unit, schoolYear: year }));
   rejects(() => parsePlanReadReply({ ...reply, feedback: { ...feedback, extra: 1 } }, { unitId: unit, schoolYear: year }));
   rejects(() => parsePlanReadReply({ ...reply, feedback: { ...feedback, comments: [{ ...feedback.comments[0], body: 'x'.repeat(2001) }] } }, { unitId: unit, schoolYear: year }));
+});
+
+test('old create_draft and save_row receipts recover from minimal references without enabling their old writes', () => {
+  const target = { unitId: unit, schoolYear: year, versionId: null, personId: null };
+  for (const action of ['create_draft', 'save_row']) {
+    const ref = { family: 'plan', commandId: uid(40), action, target };
+    const result = { receipt: { commandId: uid(40), action, versionId: uid(50), revision: 4, contentHash: hash('c'), replayed: true, changed: true }, detail: read() };
+    assert.equal(parsePlanStatusReply({ state: 'completed', result }, ref).result.receipt.action, action);
+    assert.equal(parsePlanJournalReply(result, ref).detail.revision, 4);
+    const oldPayload = action === 'create_draft' ? { basedOnVersionId: null } : (({ planningContext: _planningContext, ...old }) => old)(saveRow());
+    rejects(() => parsePlanCommand(command(action, oldPayload)));
+  }
+});
+
+test('legacy published snapshot is status-only and hybrid legacy actions/capabilities fail closed', () => {
+  const ref = { family: 'plan', commandId: uid(40), action: 'publish', target: { unitId: unit, schoolYear: year, versionId: null, personId: null } };
+  const v = version({ status: 'published', publishedByName: 'Rektor', publishedAt: '2026-09-01T10:00:00.000Z' });
+  const detail = read({ version: v, versions: [v], actions: ['create_draft'], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } });
+  const receipt = { commandId: ref.commandId, action: ref.action, versionId: v.id, revision: 4, contentHash: hash('c'), replayed: false, changed: true };
+  assert.equal(parsePlanJournalReply({ receipt, detail }, ref).detail.actions[0], 'create_draft');
+  rejects(() => parsePlanReadReply(detail, { unitId: unit, schoolYear: year }));
+  for (const patch of [{ actions: ['create_draft', 'save_row'] }, { actions: ['create_draft', 'bulk'] }, { actions: ['create_draft', 'publish'] },
+    { capabilities: { ...detail.capabilities, canEdit: true } }, { capabilities: { ...detail.capabilities, canPublish: true } },
+    { version: version(), versions: [version()] }]) rejects(() => parsePlanJournalReply({ receipt, detail: { ...detail, ...patch } }, ref));
+});
+
+test('public journal decoder binds action/id/school/year/null target, receipt revision and matching detail version/hash', () => {
+  const ref = { family: 'plan', commandId: uid(40), action: 'save_row', target: { unitId: unit, schoolYear: year, versionId: null, personId: null } };
+  const result = { receipt: { commandId: uid(40), action: 'save_row', versionId: uid(50), revision: 4, contentHash: hash('c'), replayed: true, changed: true }, detail: read() };
+  for (const patch of [{ commandId: uid(99) }, { action: 'bulk' }, { family: 'self' },
+    ...[{ unitId: uid(99) }, { schoolYear: 2027 }, { versionId: uid(50) }, { personId: person }].map(target => ({ target: { ...ref.target, ...target } }))]) {
+    rejects(() => parsePlanStatusReply({ state: 'completed', result }, { ...ref, ...patch }));
+  }
+  for (const receipt of [{ ...result.receipt, versionId: null }, { ...result.receipt, revision: 5 }, { ...result.receipt, contentHash: hash('d') },
+    { ...result.receipt, revision: 0 }, { ...result.receipt, versionId: uid(90) }, { ...result.receipt, personId: person }]) {
+    rejects(() => parsePlanJournalReply({ ...result, receipt }, ref));
+  }
+  assert.equal(parsePlanJournalReply({ ...result, detail: read({ revision: 5 }) }, ref).detail.revision, 5);
+  assert.deepEqual(parsePlanStatusReply({ state: 'not_found', result: null }, ref), { state: 'not_found', result: null });
+  rejects(() => parsePlanStatusReply({ state: 'not_found', result }, ref));
+});
+
+test('new command reply binds first internal revision to frozen base version', () => {
+  const q = parsePlanCommand(command('save_row', saveRow()));
+  const next = version({ id: uid(51), basedOnVersionId: uid(50), versionNo: 2 });
+  const reply = { receipt: { commandId: uid(40), action: 'save_row', versionId: next.id, revision: 4, contentHash: hash('c'), replayed: false, changed: true },
+    detail: read({ version: next, versions: [next] }) };
+  assert.equal(parsePlanCommandReply(reply, q).detail.version.id, next.id);
+  rejects(() => parsePlanCommandReply({ ...reply, detail: { ...reply.detail, version: { ...next, basedOnVersionId: uid(90) } } }, q), 'tjanst_stale_basis');
 });

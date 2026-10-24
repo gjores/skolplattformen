@@ -3,7 +3,7 @@ export type AuditJson = null | boolean | number | string | AuditJson[] | { [key:
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const FUNCTIONS = new Set(['kundadmin','granskare','huvudman','rektor','administrator','larare','elevhalsa','elevhalsoansvarig','it','support']);
 const CODES = new Set(['no_session','session_expired','session_revoked','no_context','membership_blocked','customer_closed','mfa_required','forbidden','assignment_expired','assignment_ended','assignment_upcoming','invitation_invalid','conflict','context_changed','registry_unavailable','db_unreachable','csrf','idp_registration_failed','login_state_invalid','not_found','bad_request','internal_error','audit_unavailable','programplan_locked','programplan_in_use','programplan_unit_packages_in_use','programplan_block_packages_in_use','programplan_start_passed','gym_timplan_source_not_ready','gym_timplan_archived','timplan_name_conflict','class_name_year_conflict','class_cohort_start_locked','class_plan_not_ready','class_plan_limit','plan_decision_conflict','plan_decision_blocked','programplan_submitted']);
-const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/elever','/api/timplaner','/api/programplaner','/api/klasser','/api/planbeslut','/api/skolor','/api/other']);
+const ROUTES = new Set(['/api/auth','/api/context','/api/session','/api/inbjudan','/api/kund','/api/logg','/api/prov','/api/elever','/api/timplaner','/api/programplaner','/api/klasser','/api/planbeslut','/api/skolor','/api/tjanst','/api/other']);
 // Event names and field names describe operations, never the values involved.
 export const PUPIL_REGISTER_ACTIONS = [
   'pupil_list_read', 'pupil_read', 'pupil_history_read', 'pupil_conflict_read',
@@ -42,6 +42,7 @@ export function sanitizeAuditDetails(input: Record<string, unknown> | undefined)
     else if (key === 'code' && typeof value === 'string' && (CODES.has(value) || /^\d{8}$/.test(value))) clean[key] = value;
     else if (key === 'accessFunction' && typeof value === 'string' && FUNCTIONS.has(value)) clean[key] = value;
     else if (key === 'status' && (value === 'active' || value === 'blocked')) clean[key] = value;
+    else if (key === 'mode' && typeof value === 'string' && ['catalog', 'row', 'batch'].includes(value)) clean[key] = value;
     else if (key === 'format' && value === 'csv') clean[key] = value;
     else if (key === 'readForm' && typeof value === 'string' && ['list','pupil','case','history','conflict','personal-number','export-preview','export'].includes(value)) clean[key] = value;
     else if (key === 'schoolYear' && typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 9998) clean[key] = value;

@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { createPlanCommand, parsePersonalCommand, parsePersonalCommandReply, parsePersonalReadReply, parsePlanCommandReply, parsePlanReadReply,
   parseStatusReply, personalCommandRef, planCommandRef, TjanstContractError, type TjanstCommandRef, type TjanstJoint, type TjanstPerson,
-  type TjanstPlanAction, type TjanstPlanPayload, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
+  type TjanstPlanFormAction as TjanstPlanAction, type TjanstPlanFormPayload as TjanstPlanPayload, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
 import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJournalError, type TjanstJournal, type TjanstJournalScope } from '@/lib/tjanst-journal.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';

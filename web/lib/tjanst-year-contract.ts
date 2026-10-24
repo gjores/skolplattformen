@@ -117,7 +117,10 @@ export function parseYearPlanningContext(value: unknown, personId: string | null
     const selected = parseYearChoice(c.choice); if (selected.personId !== personId) bad('tjanst_choice_mismatch');
     return { ...parseYearMutationContext({ baseVersionId: c.baseVersionId, expectedBasisHash: c.expectedBasisHash }), choice: selected }; });
 }
-function comment(value: unknown): string { if (value === '') return ''; return text(value, TJANST_LIMITS.comment); }
+function comment(value: unknown): string {
+  if (typeof value === 'string' && Array.from(value).length > TJANST_LIMITS.comment) bad('tjanst_comment_too_long');
+  if (value === '') return ''; return text(value, TJANST_LIMITS.comment);
+}
 function positiveTerms(ht: number, vt: number): void { if (ht === 0 && vt === 0) bad(); }
 /** Private payload validation, deliberately independent of the legacy command parser. */
 function basePayload<A extends keyof TjanstYearBasePayload>(action: A, value: unknown): TjanstYearBasePayload[A] {

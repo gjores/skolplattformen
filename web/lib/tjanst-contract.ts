@@ -1,6 +1,7 @@
 import { gymArray, gymBoolean, gymInteger, gymObject, gymShape, gymUuid } from './gym-timplan.ts';
 import { isValidDate } from './pupil-register-model.ts';
-import type { TjanstYearAction } from './tjanst-year-contract.ts';
+import { parseYearPlanCommand, verifyYearPlanCommandHash, parseYearPlanReceipt,
+  type TjanstYearAction, type TjanstYearBasePayload, type TjanstYearPayload, type TjanstYearCommand } from './tjanst-year-contract.ts';
 
 /**
  * Tjänstefördelningens kontrakt (fas 05.1, etapp 1). Planerad lärartid per HT/VT i hela minuter, aldrig arbetstid
@@ -15,8 +16,11 @@ export const TJANST_LIMITS = { minutes: 200000, percent: 100, comment: 2000, nam
 export const TJANST_SOURCE_KINDS = ['class_timplan'] as const;
 export const TJANST_NEED_BASES = ['terms', 'even_split', 'weekly_calendar'] as const;
 export const TJANST_SPECIAL_KINDS = ['mentor', 'programansvar', 'speciallarare', 'annat'] as const;
-export const TJANST_PLAN_ACTIONS = ['create_draft', 'add_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special',
+export const TJANST_PLAN_ACTIONS = ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special',
+  'save_joint', 'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk'] as const satisfies readonly TjanstYearAction[];
+const LEGACY_PLAN_ACTIONS = ['create_draft', 'add_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special',
   'save_joint', 'dissolve_joint', 'discard_draft', 'publish'] as const;
+export const TJANST_PLAN_RECEIPT_ACTIONS = [...TJANST_PLAN_ACTIONS, 'create_draft'] as const;
 export const TJANST_PERSONAL_ACTIONS = ['create_person', 'update_person', 'create_draft_teacher', 'save_employment', 'save_duties'] as const;
 export const TJANST_SELF_ACTIONS = ['ack', 'comment'] as const;
 export const TJANST_FAMILIES = ['personal', 'plan', 'self'] as const;
@@ -24,7 +28,8 @@ export const TJANST_FAMILIES = ['personal', 'plan', 'self'] as const;
 export type TjanstSourceKind = typeof TJANST_SOURCE_KINDS[number];
 export type TjanstNeedBasis = typeof TJANST_NEED_BASES[number];
 export type TjanstSpecialKind = typeof TJANST_SPECIAL_KINDS[number];
-export type TjanstPlanAction = typeof TJANST_PLAN_ACTIONS[number];
+export type TjanstPlanAction = TjanstYearAction;
+export type TjanstPlanReceiptAction = typeof TJANST_PLAN_RECEIPT_ACTIONS[number];
 export type TjanstPersonalAction = typeof TJANST_PERSONAL_ACTIONS[number];
 export type TjanstSelfAction = typeof TJANST_SELF_ACTIONS[number];
 export type TjanstFamily = typeof TJANST_FAMILIES[number];
@@ -63,29 +68,20 @@ export type TjanstPlanReadRequest = { unitId: string; schoolYear: number; versio
 export type TjanstPlanRead = { contractVersion: typeof TJANST_CONTRACT_VERSION; unitId: string; schoolName: string; schoolYear: number;
   /** Distribution revision; every plan command expects it and the receipt returns it + 1. */
   revision: number; version: TjanstVersion | null; versions: TjanstVersion[]; teachers: TjanstTeacher[]; classes: TjanstClass[];
-  rows: TjanstRow[]; specials: TjanstSpecial[]; joints: TjanstJoint[]; actions: TjanstPlanAction[]; blockers: TjanstBlocker[];
+  rows: TjanstRow[]; specials: TjanstSpecial[]; joints: TjanstJoint[]; actions: TjanstPlanReceiptAction[]; blockers: TjanstBlocker[];
   capabilities: TjanstPlanCapabilities; feedback?: TjanstFeedback };
 /** Explicit continuous-planning decoder; legacy ingress stays separate until API integration. */
 export type TjanstYearPlanRead = Omit<TjanstPlanRead, 'actions'> & { actions: TjanstYearAction[] };
 
-export type TjanstPlanPayload = {
-  create_draft: { basedOnVersionId: string | null };
-  add_teacher: { personId: string };
-  save_row: { rowId: string | null; sourceKind: TjanstSourceKind; sourceKey: string; personId: string | null; teacherHt: number; teacherVt: number; comment: string };
-  delete_row: { rowId: string };
-  save_special: { specialId: string | null; kind: TjanstSpecialKind; label: string; personId: string | null; classId: string | null; ht: number; vt: number; comment: string };
-  delete_special: { specialId: string };
-  save_joint: { jointId: string | null; name: string; rowIds: string[]; teachers: TjanstJointTeacher[] };
-  dissolve_joint: { jointId: string };
-  discard_draft: Record<string, never>;
-  publish: Record<string, never>;
-};
-type PlanCommandOf<A extends TjanstPlanAction> = { commandId: string; unitId: string; schoolYear: number; action: A; expectedRevision: number;
-  payloadHash: string; payload: TjanstPlanPayload[A] } & (A extends 'publish' ? { expectedContentHash: string } : unknown);
-export type TjanstPlanCommand = { [A in TjanstPlanAction]: PlanCommandOf<A> }[TjanstPlanAction];
-export type TjanstPlanReceipt = { commandId: string; action: TjanstPlanAction; versionId: string | null; revision: number; contentHash: string;
+/** Form drafts are not commands. No writer accepts them without frozen context. Removed after UI migration. */
+export type TjanstPlanFormPayload = TjanstYearBasePayload & Pick<TjanstYearPayload, 'move' | 'bulk'> & { create_draft: { basedOnVersionId: string | null } };
+export type TjanstPlanFormAction = keyof TjanstPlanFormPayload;
+export type TjanstPlanPayload = TjanstYearPayload;
+export type TjanstPlanCommand = TjanstYearCommand;
+export type TjanstPlanReceipt = { commandId: string; action: TjanstPlanReceiptAction; versionId: string | null; revision: number; contentHash: string;
   replayed: boolean; changed: boolean };
-export type TjanstPlanCommandReply = { receipt: TjanstPlanReceipt; detail: TjanstPlanRead };
+export type TjanstPlanCommandReply = { receipt: TjanstPlanReceipt & { action: TjanstPlanAction }; detail: TjanstYearPlanRead };
+export type TjanstPlanJournalReply = { receipt: TjanstPlanReceipt; detail: TjanstPlanRead };
 
 export type TjanstDuty = { id: string; unitId: string; schoolName: string; percent: number; startsOn: string; endsOn: string | null };
 export type TjanstEmployment = { id: string; percent: number; startsOn: string; endsOn: string | null; duties: TjanstDuty[] };
@@ -138,7 +134,7 @@ export type TjanstStaffingRead = { contractVersion: typeof TJANST_CONTRACT_VERSI
 
 /** Minimal reference for an uncertain write: never comment text, names or payload. */
 export type TjanstCommandTarget = { unitId: string | null; schoolYear: number | null; versionId: string | null; personId: string | null };
-export type TjanstCommandRef = { family: TjanstFamily; commandId: string; action: TjanstPlanAction | TjanstPersonalAction | TjanstSelfAction; target: TjanstCommandTarget };
+export type TjanstCommandRef = { family: TjanstFamily; commandId: string; action: TjanstPlanReceiptAction | TjanstPersonalAction | TjanstSelfAction; target: TjanstCommandTarget };
 export type TjanstStatusRequest = { command: TjanstCommandRef };
 export type TjanstStatusReply<T> = { state: 'not_found'; result: null } | { state: 'completed'; result: T };
 
@@ -248,7 +244,7 @@ export async function tjanstHashCanonical(value: unknown): Promise<string> {
   return `sha256:${Array.from(new Uint8Array(digest), n => n.toString(16).padStart(2, '0')).join('')}`;
 }
 /** payloadHash binds action and exact payload; the server recomputes it (tjanst_payload_hash). */
-export function tjanstPayloadHash(action: TjanstPlanAction, payload: unknown): Promise<string> {
+export function tjanstPayloadHash(action: TjanstPlanReceiptAction, payload: unknown): Promise<string> {
   return tjanstHashCanonical(['tjanst_payload_v1', action, payload as TjanstCanonicalValue]);
 }
 
@@ -256,67 +252,22 @@ function parseTeacherTime(value: unknown): TjanstJointTeacher {
   const t = shape(value, ['personId', 'ht', 'vt']), ht = minutes(t.ht), vt = minutes(t.vt); terms(ht, vt);
   return { personId: uuid(t.personId), ht, vt };
 }
-function parseSaveRow(value: unknown): TjanstPlanPayload['save_row'] {
-  const p = shape(value, ['rowId', 'sourceKind', 'sourceKey', 'personId', 'teacherHt', 'teacherVt', 'comment']);
-  const source = parseTjanstSourceKey(p.sourceKind, p.sourceKey), teacherHt = minutes(p.teacherHt), teacherVt = minutes(p.teacherVt);
-  terms(teacherHt, teacherVt);
-  return { rowId: nullableUuid(p.rowId), sourceKind: source.sourceKind, sourceKey: p.sourceKey as string, personId: nullableUuid(p.personId),
-    teacherHt, teacherVt, comment: text(p.comment, TJANST_LIMITS.comment, true, 'tjanst_comment_too_long') };
-}
-function parseSaveSpecial(value: unknown): TjanstPlanPayload['save_special'] {
-  const p = shape(value, ['specialId', 'kind', 'label', 'personId', 'classId', 'ht', 'vt', 'comment']);
-  const kind = choice(p.kind, TJANST_SPECIAL_KINDS), classId = nullableUuid(p.classId), ht = minutes(p.ht), vt = minutes(p.vt);
-  if (classId !== null && kind !== 'mentor') bad(); terms(ht, vt);
-  return { specialId: nullableUuid(p.specialId), kind, label: name(p.label), personId: nullableUuid(p.personId), classId, ht, vt,
-    comment: text(p.comment, TJANST_LIMITS.comment, true, 'tjanst_comment_too_long') };
-}
-function parseSaveJoint(value: unknown): TjanstPlanPayload['save_joint'] {
-  const p = shape(value, ['jointId', 'name', 'rowIds', 'teachers']);
-  const rowIds = unique(list(p.rowIds, TJANST_LIMITS.jointRows, uuid), v => v, 'tjanst_duplicate_row');
-  if (rowIds.length < 2) bad('tjanst_joint_too_few');
-  const teachers = unique(list(p.teachers, TJANST_LIMITS.teachers, parseTeacherTime), t => t.personId, 'tjanst_duplicate_row');
-  return { jointId: nullableUuid(p.jointId), name: name(p.name), rowIds, teachers };
-}
 const empty = (value: unknown): Record<string, never> => { shape(value, []); return {}; };
-const planPayloads: { [A in TjanstPlanAction]: (value: unknown) => TjanstPlanPayload[A] } = {
-  create_draft: v => ({ basedOnVersionId: nullableUuid(shape(v, ['basedOnVersionId']).basedOnVersionId) }),
-  add_teacher: v => ({ personId: uuid(shape(v, ['personId']).personId) }),
-  save_row: parseSaveRow,
-  delete_row: v => ({ rowId: uuid(shape(v, ['rowId']).rowId) }),
-  save_special: parseSaveSpecial,
-  delete_special: v => ({ specialId: uuid(shape(v, ['specialId']).specialId) }),
-  save_joint: parseSaveJoint,
-  dissolve_joint: v => ({ jointId: uuid(shape(v, ['jointId']).jointId) }),
-  discard_draft: empty,
-  publish: empty,
-};
 export function parsePlanReadRequest(value: unknown): TjanstPlanReadRequest {
   return guarded(() => {
     const r = optionalShape(value, ['unitId', 'schoolYear'], ['versionId']);
     return { unitId: uuid(r.unitId), schoolYear: schoolYear(r.schoolYear), ...(has(r, 'versionId') ? { versionId: uuid(r.versionId) } : {}) };
   });
 }
-/** Strict shape only; the caller awaits tjanstPayloadHash to compare payloadHash before sending. */
-export function parsePlanCommand(value: unknown): TjanstPlanCommand {
-  return guarded(() => {
-    const action = choice(gymObject(value).action, TJANST_PLAN_ACTIONS);
-    const r = shape(value, ['commandId', 'unitId', 'schoolYear', 'action', 'expectedRevision', 'payloadHash', 'payload',
-      ...(action === 'publish' ? ['expectedContentHash'] : [])]);
-    return { commandId: uuid(r.commandId), unitId: uuid(r.unitId), schoolYear: schoolYear(r.schoolYear), action,
-      expectedRevision: revision(r.expectedRevision), payloadHash: hash(r.payloadHash), payload: planPayloads[action](r.payload),
-      ...(action === 'publish' ? { expectedContentHash: hash(r.expectedContentHash) } : {}) } as TjanstPlanCommand;
-  });
+/** The only new-write decoder: legacy contextless commands are never accepted. */
+export function parsePlanCommand(value: unknown): TjanstPlanCommand { return parseYearPlanCommand(value); }
+/** Runtime ingress is unknown so form drafts remain distinct from strict commands during UI migration. */
+export async function createPlanCommand(input: unknown): Promise<TjanstPlanCommand> {
+  const value = guarded(() => gymObject(input));
+  const parsed = parsePlanCommand({ ...value, payloadHash: `sha256:${'0'.repeat(64)}` });
+  return { ...parsed, payloadHash: await tjanstPayloadHash(parsed.action, parsed.payload) };
 }
-/** Builds a command with the canonical payloadHash; payload is parsed first so the hash covers exactly what is sent. */
-export async function createPlanCommand<A extends TjanstPlanAction>(input: Omit<PlanCommandOf<A>, 'payloadHash'>): Promise<TjanstPlanCommand> {
-  const payload = guarded(() => planPayloads[input.action](input.payload));
-  return parsePlanCommand({ ...input, payload, payloadHash: await tjanstPayloadHash(input.action, payload) });
-}
-export async function verifyPlanCommandHash(command: TjanstPlanCommand): Promise<TjanstPlanCommand> {
-  const parsed = parsePlanCommand(command);
-  if (await tjanstPayloadHash(parsed.action, parsed.payload) !== parsed.payloadHash) bad('tjanst_payload_hash');
-  return parsed;
-}
+export async function verifyPlanCommandHash(command: unknown): Promise<TjanstPlanCommand> { return verifyYearPlanCommandHash(command); }
 
 function parseVersion(value: unknown): TjanstVersion {
   const v = shape(value, ['id', 'versionNo', 'status', 'contentHash', 'basedOnVersionId', 'publishedByName', 'publishedAt']);
@@ -384,13 +335,31 @@ function parseFeedback(value: unknown): TjanstFeedback {
     return { id: uuid(c.id), personId: uuid(c.personId), name: name(c.name), at: instant(c.at), body: text(c.body, TJANST_LIMITS.comment, false, 'tjanst_comment_too_long') }; }), c => c.id);
   return { versionNo: gymInteger(f.versionNo, 2147483647, 1), teachers, comments };
 }
-export function parsePlanReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstPlanRead {
-  return parsePlanReadProjection(value, expected, TJANST_PLAN_ACTIONS, false);
+export function parsePlanReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstYearPlanRead {
+  return parseYearPlanReadReply(value, expected);
 }
 /** No legacy fallback: current projections expose only contextual commands; explicit history is read-only. */
 export function parseYearPlanReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstYearPlanRead {
-  return parsePlanReadProjection(value, expected, ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special',
-    'delete_special', 'save_joint', 'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk'] satisfies TjanstYearAction[], true);
+  return parsePlanReadProjection(value, expected, TJANST_PLAN_ACTIONS, true);
+}
+/** Explicit old stored format for journal snapshots and historical SQL probes; never fresh product reads. */
+export function parsePlanLegacyReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstPlanRead {
+  return guarded(() => {
+    const request = parsePlanReadRequest(expected), detail = parsePlanReadProjection(value, request, LEGACY_PLAN_ACTIONS, false);
+    const { version, actions: allowed, capabilities: caps } = detail;
+    if (request.versionId !== undefined) {
+      if (version === null || !['published', 'superseded'].includes(version.status) || allowed.length || caps.canEdit || caps.canPublish) bad();
+    } else if (version?.status === 'draft') {
+      if (allowed.includes('create_draft') || !caps.canEdit && allowed.length || caps.canPublish && !caps.canEdit
+        || allowed.includes('publish') !== caps.canPublish) bad();
+    } else {
+      if (version !== null && version.status !== 'published' || caps.canEdit || caps.canPublish
+        || allowed.some(action => action !== 'create_draft')) bad();
+    }
+    if (version === null && (detail.teachers.length || detail.rows.length || detail.specials.length || detail.joints.length
+      || detail.versions.some(v => v.status === 'draft' || v.status === 'published'))) bad();
+    return detail;
+  });
 }
 function parsePlanReadProjection<A extends string>(value: unknown, expected: TjanstPlanReadRequest,
   allowedActions: readonly A[], continuous: boolean): Omit<TjanstPlanRead, 'actions'> & { actions: A[] } {
@@ -439,19 +408,51 @@ function parsePlanReadProjection<A extends string>(value: unknown, expected: Tja
       ...(feedback ? { feedback } : {}) };
   });
 }
+function checkPlanReceiptDetail(receipt: TjanstPlanReceipt, detail: TjanstPlanRead): void {
+  if (detail.revision < receipt.revision) bad('tjanst_revision_conflict');
+  if (receipt.action !== 'discard_draft' && receipt.versionId === null) bad();
+  if (detail.revision === receipt.revision && receipt.action !== 'discard_draft'
+    && (detail.version?.id !== receipt.versionId || detail.version.contentHash !== receipt.contentHash)) bad();
+  if (receipt.action === 'publish' && detail.revision === receipt.revision && detail.version?.status !== 'published') bad();
+}
 export function parsePlanCommandReply(value: unknown, command: TjanstPlanCommand): TjanstPlanCommandReply {
   return guarded(() => {
     const q = parsePlanCommand(command), r = shape(value, ['receipt', 'detail']);
-    const t = shape(r.receipt, ['commandId', 'action', 'versionId', 'revision', 'contentHash', 'replayed', 'changed']);
-    const receipt = { commandId: uuid(t.commandId), action: choice(t.action, TJANST_PLAN_ACTIONS), versionId: nullableUuid(t.versionId),
-      revision: revision(t.revision), contentHash: hash(t.contentHash), replayed: bool(t.replayed), changed: bool(t.changed) };
-    if (receipt.commandId !== q.commandId || receipt.action !== q.action || receipt.revision !== q.expectedRevision + 1) bad('tjanst_revision_conflict');
+    const receipt = parseYearPlanReceipt(r.receipt, q);
     const detail = parsePlanReadReply(r.detail, { unitId: q.unitId, schoolYear: q.schoolYear });
-    if (detail.revision < receipt.revision) bad('tjanst_revision_conflict');
-    if (detail.revision === receipt.revision && q.action !== 'discard_draft' && detail.version?.id !== receipt.versionId) bad();
-    if (q.action === 'publish' && (detail.version?.status === 'draft' || detail.revision === receipt.revision && detail.version?.status !== 'published')) bad();
+    checkPlanReceiptDetail(receipt, detail);
+    if (detail.revision === receipt.revision && q.action !== 'discard_draft') {
+      const base = q.action === 'save_row' ? q.payload.planningContext.baseVersionId
+        : q.action === 'move' || q.action === 'bulk' ? q.payload.baseVersionId : q.payload.mutationContext.baseVersionId;
+      if (q.action === 'publish' ? detail.version?.id !== base
+        : detail.version?.status !== 'draft' || (base === null ? detail.version.basedOnVersionId !== null
+          : detail.version.id !== base && detail.version.basedOnVersionId !== base)) bad('tjanst_stale_basis');
+    }
     return { receipt, detail };
   });
+}
+/** Only status/journal recovery may read old actions. Choice is structural, never a parse-error fallback. */
+export function parsePlanJournalReply(value: unknown, reference: TjanstCommandRef): TjanstPlanJournalReply {
+  return guarded(() => {
+    const ref = parseCommandRef(reference); if (ref.family !== 'plan') bad();
+    const r = shape(value, ['receipt', 'detail']), t = shape(r.receipt, ['commandId', 'action', 'versionId', 'revision', 'contentHash', 'replayed', 'changed']);
+    const receipt = { commandId: uuid(t.commandId), action: choice(t.action, TJANST_PLAN_RECEIPT_ACTIONS), versionId: nullableUuid(t.versionId),
+      revision: gymInteger(t.revision, 2147483647, 1), contentHash: hash(t.contentHash), replayed: bool(t.replayed), changed: bool(t.changed) };
+    if (receipt.commandId !== ref.commandId || receipt.action !== ref.action) bad('tjanst_command_conflict');
+    const expected = { unitId: ref.target.unitId!, schoolYear: ref.target.schoolYear! };
+    const rawActions = gymObject(r.detail).actions;
+    const legacy = Array.isArray(rawActions) && rawActions.includes('create_draft');
+    const detail = legacy ? parsePlanLegacyReadReply(r.detail, expected) : parsePlanReadReply(r.detail, expected);
+    if (legacy && (detail.actions.length !== 1 || detail.capabilities.canEdit || detail.capabilities.canPublish
+      || detail.version !== null && detail.version.status !== 'published')) bad();
+    checkPlanReceiptDetail(receipt, detail);
+    return { receipt, detail };
+  });
+}
+/** Public ref-bound recovery parser: no original payload or command reconstruction is needed. */
+export function parsePlanStatusReply(value: unknown, reference: TjanstCommandRef): TjanstStatusReply<TjanstPlanJournalReply> {
+  const ref = parseCommandRef(reference); if (ref.family !== 'plan') bad();
+  return parseStatusReply(value, ref, result => parsePlanJournalReply(result, ref));
 }
 
 function parseDuty(value: unknown): TjanstDuty {
@@ -620,7 +621,7 @@ export function parseStaffingReadReply(value: unknown, expected: { schoolYear: n
   });
 }
 
-const familyActions: Record<TjanstFamily, readonly string[]> = { personal: TJANST_PERSONAL_ACTIONS, plan: TJANST_PLAN_ACTIONS, self: TJANST_SELF_ACTIONS };
+const familyActions: Record<TjanstFamily, readonly string[]> = { personal: TJANST_PERSONAL_ACTIONS, plan: TJANST_PLAN_RECEIPT_ACTIONS, self: TJANST_SELF_ACTIONS };
 export function parseCommandRef(value: unknown): TjanstCommandRef {
   return guarded(() => {
     const r = shape(value, ['family', 'commandId', 'action', 'target']), family = choice(r.family, TJANST_FAMILIES);
@@ -628,7 +629,7 @@ export function parseCommandRef(value: unknown): TjanstCommandRef {
     const t = shape(r.target, ['unitId', 'schoolYear', 'versionId', 'personId']);
     const target = { unitId: nullableUuid(t.unitId), schoolYear: t.schoolYear === null ? null : schoolYear(t.schoolYear),
       versionId: nullableUuid(t.versionId), personId: nullableUuid(t.personId) };
-    if (family === 'plan' && (target.unitId === null || target.schoolYear === null) || family === 'self' && (target.versionId === null || target.personId !== null)) bad();
+    if (family === 'plan' && (target.unitId === null || target.schoolYear === null || target.versionId !== null || target.personId !== null) || family === 'self' && (target.versionId === null || target.personId !== null)) bad();
     return { family, commandId: uuid(r.commandId), action, target };
   });
 }

@@ -24,7 +24,7 @@ const command = (extra = {}) => ({ commandId: id(10), unitId, schoolYear: 2026, 
 const rejects = (fn, reason) => assert.throws(fn, e => e instanceof TjanstContractError && (!reason || e.reason === reason));
 
 test('row request defaults only absent rowId to null, rejects fake IDs, version selection and foreign year', () => {
-  const { rowId, ...q } = request(); assert.equal(parseYearRequest(q).rowId, null);
+  const { rowId: _rowId, ...q } = request(); assert.equal(parseYearRequest(q).rowId, null);
   for (const extra of [{ rowId: 0 }, { sourceVersionId: id(9) }, { sourceKey: key(2027) }, { mode: 'extend' }, { autoSelect: true }]) rejects(() => parseYearRequest(request(extra)));
 });
 test('row response distinguishes projected null row from actual row and unknown minutes from zero', () => {
@@ -94,7 +94,7 @@ test('all editing actions require mutation context and publish/discard require a
   rejects(() => parseYearPlanCommand(command({ action: 'discard_draft', payload: { mutationContext: { baseVersionId: null, expectedBasisHash: hash('a') } } })));
 });
 test('payload hash binds explicit choices and evidence within same plan journal target', async () => {
-  const { payloadHash, ...input } = command(); const q = await createYearPlanCommand(input);
+  const { payloadHash: _payloadHash, ...input } = command(); const q = await createYearPlanCommand(input);
   assert.equal((await verifyYearPlanCommandHash(q)).payloadHash, q.payloadHash);
   assert.deepEqual(yearPlanCommandRef(q).target, { unitId, schoolYear: 2026, versionId: null, personId: null }); assert.equal(yearPlanCommandRef(q).family, 'plan');
   await assert.rejects(() => verifyYearPlanCommandHash({ ...q, payload: rowPayload({ kind: 'unassigned', personId: null }) }), /underlag/);
@@ -110,7 +110,7 @@ test('explicit remove_teacher binds exact person and catalogue context without i
     { personId, mutationContext, clearAssignments: true }, { personId, mutationContext, planningContext: rowPayload().planningContext }]) {
     rejects(() => parseYearPlanCommand({ ...raw, payload }));
   }
-  const { payloadHash, ...input } = raw, q = await createYearPlanCommand(input);
+  const { payloadHash: _payloadHash, ...input } = raw, q = await createYearPlanCommand(input);
   assert.equal((await verifyYearPlanCommandHash(q)).action, 'remove_teacher');
   for (const payload of [{ ...q.payload, personId: id(90) }, { ...q.payload, mutationContext: { ...mutationContext, expectedBasisHash: hash('b') } },
     { ...q.payload, mutationContext: { ...mutationContext, baseVersionId: id(90) } }]) {

@@ -1,12 +1,13 @@
 import {
-  TJANST_PERSONAL_ACTIONS, TJANST_PLAN_ACTIONS, TJANST_SELF_ACTIONS, TjanstContractError, parsePersonalCommand, parsePersonalCommandReply,
+  TJANST_PERSONAL_ACTIONS, TJANST_SELF_ACTIONS, TjanstContractError, parsePersonalCommand, parsePersonalCommandReply,
   parsePersonalReadReply, parsePersonalReadRequest, parsePlanCommand, parsePlanCommandReply, parsePlanReadReply, parsePlanReadRequest,
   parseSelfCommand, parseSelfCommandReply, parseSelfReadReply, parseSelfReadRequest, parseStaffingReadReply, parseStaffingReadRequest,
-  parseStatusReply, parseStatusRequest, verifyPlanCommandHash,
+  parseStatusReply, parseStatusRequest, parsePlanStatusReply, verifyPlanCommandHash,
   type TjanstCommandRef, type TjanstFamily, type TjanstPersonalAction, type TjanstPersonalCommand, type TjanstPersonalRead,
-  type TjanstPersonalReadRequest, type TjanstPlanAction, type TjanstPlanCommand, type TjanstPlanRead, type TjanstPlanReadRequest,
+  type TjanstPersonalReadRequest, type TjanstPlanReceiptAction, type TjanstPlanCommand, type TjanstPlanRead, type TjanstPlanReadRequest,
   type TjanstSelfCommand, type TjanstStatusRequest,
 } from '../tjanst-contract.ts';
+import { parseYearRequest, parseYearReply, type TjanstYearRequest } from '../tjanst-year-contract.ts';
 import { gymBoolean, gymInteger, gymShape, gymUuid } from '../gym-timplan.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type SessionContext, type Tx } from './db.ts';
@@ -29,9 +30,10 @@ function invalid(): never { throw new AuditUnavailable(); }
 
 // Felvokabulär enligt 05.1-02 §Gemensamt gränssnitt. Bara vitlistade hints når klienten.
 const conflictReasons = new Set(['tjanst_revision_conflict', 'tjanst_command_conflict', 'tjanst_published_meanwhile', 'tjanst_content_changed',
-  'tjanst_publish_blocked']);
+  'tjanst_publish_blocked', 'tjanst_stale_basis', 'tjanst_stale_person', 'tjanst_stale_evidence']);
 const inputReasons = new Set(['tjanst_invalid', 'tjanst_payload_hash', 'tjanst_duplicate_row', 'tjanst_joint_too_few', 'tjanst_joint_already',
-  'tjanst_comment_too_long', 'tjanst_capacity_exceeded', 'tjanst_employment_overlap', 'tjanst_person_not_at_school', 'tjanst_unknown_source']);
+  'tjanst_comment_too_long', 'tjanst_capacity_exceeded', 'tjanst_employment_overlap', 'tjanst_person_not_at_school', 'tjanst_unknown_source', 'tjanst_context_required', 'tjanst_choice_mismatch',
+  'tjanst_input_too_large', 'tjanst_teacher_not_empty', 'tjanst_teacher_not_found']);
 const unreachable = new Set(['08001', '08003', '08006', '57P01', '57P02', '57P03', 'ECONNREFUSED', 'CONNECTION_CLOSED', 'CONNECT_TIMEOUT']);
 function sqlState(error: unknown): { code?: unknown; hint?: unknown } { return error && typeof error === 'object' ? error as { code?: unknown; hint?: unknown } : {}; }
 
@@ -111,13 +113,13 @@ export async function parsePlanPublishRequest(value: unknown): Promise<TjanstPla
 export const parsePlanStatusRequest = (value: unknown) => family(parseStatusRequest(value), 'plan');
 export const parsePersonalStatusRequest = (value: unknown) => family(parseStatusRequest(value), 'personal');
 export const parseSelfStatusRequest = (value: unknown) => family(parseStatusRequest(value), 'self');
-export { parsePersonalCommand, parsePersonalReadRequest, parsePlanReadRequest, parseSelfCommand, parseSelfReadRequest, parseStaffingReadRequest };
+export { parseYearRequest, parsePersonalCommand, parsePersonalReadRequest, parsePlanReadRequest, parseSelfCommand, parseSelfReadRequest, parseStaffingReadRequest };
 
 // Tidiga rollspärrar (D-01): inget SQL-anrop när rollen aldrig kan få utföra åtgärden.
 function role(authority: TjanstAuthority, allowed: string[]): void {
   if (!allowed.includes(authority.accessFunction ?? '')) throw new Deny('forbidden', 403);
 }
-function planAuthority(action: TjanstPlanAction, authority: TjanstAuthority): void {
+function planAuthority(action: TjanstPlanReceiptAction, authority: TjanstAuthority): void {
   role(authority, action === 'publish' ? ['rektor'] : ['rektor', 'administrator']);
 }
 function personalAuthority(action: TjanstPersonalAction, authority: TjanstAuthority): void {
@@ -125,7 +127,7 @@ function personalAuthority(action: TjanstPersonalAction, authority: TjanstAuthor
 }
 
 /** Läsningens actions och capabilities ska stämma med sessionens roll: bara rektor publicerar, huvudmannen bara läser. */
-function planReadActor(body: TjanstPlanRead, authority: TjanstAuthority): TjanstPlanRead {
+function planReadActor<T extends TjanstPlanRead>(body: T, authority: TjanstAuthority): T {
   const fn = authority.accessFunction;
   if (fn !== 'rektor' && fn !== 'administrator' && fn !== 'huvudman') invalid();
   if (fn !== 'rektor' && (body.capabilities.canPublish || body.actions.includes('publish'))) invalid();
@@ -159,6 +161,18 @@ export async function planRead(tx: Tx, input: TjanstPlanReadRequest, authority: 
   } catch { throw new AuditUnavailable(); }
 }
 
+/** Audited read support; core/auth/audit failures never become optional recommendation fallback. */
+export async function planPreview(tx: Tx, input: TjanstYearRequest, authority: TjanstAuthority) {
+  role(authority, ['rektor', 'administrator']);
+  const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.tjanst_year_preview(${json(tx, input)}) as result`));
+  try {
+    const body = parseYearReply(raw, input);
+    return { body, event: { action: 'tjanst_year_preview_read', objectType: 'tjanst_distribution', objectId: body.baseVersionId,
+      details: { unitId: input.unitId, schoolYear: input.schoolYear, mode: input.mode,
+        count: body.mode === 'batch' ? body.selectedCount : body.totalCandidates } } };
+  } catch { throw new AuditUnavailable(); }
+}
+
 async function planWrite(tx: Tx, input: TjanstPlanCommand, authority: TjanstAuthority, action: string) {
   planAuthority(input.action, authority);
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.tjanst_plan_command(${json(tx, input)}) as result`));
@@ -179,19 +193,6 @@ export function planPublish(tx: Tx, input: TjanstPlanCommand, authority: TjanstA
   return planWrite(tx, input, authority, 'tjanst_plan_published');
 }
 
-// Statuskvitton kontrolleras mot den minimala referensen, eftersom statusbegäran inte bär hela kommandot.
-const hashPattern = /^sha256:[0-9a-f]{64}$/u;
-function planStatusResult(value: unknown, ref: TjanstCommandRef, authority: TjanstAuthority) {
-  const r = gymShape(value, ['receipt', 'detail']);
-  const t = gymShape(r.receipt, ['commandId', 'action', 'versionId', 'revision', 'contentHash', 'replayed', 'changed']);
-  if (gymUuid(t.commandId) !== ref.commandId || t.action !== ref.action || !(TJANST_PLAN_ACTIONS as readonly unknown[]).includes(t.action)
-    || typeof t.contentHash !== 'string' || !hashPattern.test(t.contentHash)) invalid();
-  const receipt = { commandId: ref.commandId, action: ref.action as TjanstPlanAction, versionId: t.versionId === null ? null : gymUuid(t.versionId),
-    revision: gymInteger(t.revision, 2147483647, 1), contentHash: t.contentHash, replayed: gymBoolean(t.replayed), changed: gymBoolean(t.changed) };
-  const detail = planReadActor(parsePlanReadReply(r.detail, { unitId: ref.target.unitId!, schoolYear: ref.target.schoolYear! }), authority);
-  if (detail.revision < receipt.revision) invalid();
-  return { receipt, detail };
-}
 function personalStatusResult(value: unknown, ref: TjanstCommandRef, authority: TjanstAuthority) {
   const r = gymShape(value, ['receipt', 'detail']), t = gymShape(r.receipt, ['commandId', 'action', 'personId', 'revision', 'replayed']);
   const personId = gymUuid(t.personId);
@@ -216,10 +217,11 @@ function selfStatusResult(value: unknown, ref: TjanstCommandRef) {
 export async function planStatus(tx: Tx, input: TjanstStatusRequest, authority: TjanstAuthority) {
   // Status är en uppslagning av sessionens eget kommando, också när inget kvitto finns ännu.
   if (input.command.family !== 'plan') throw new Deny('bad_request', 400);
-  planAuthority(input.command.action as TjanstPlanAction, authority);
+  planAuthority(input.command.action as TjanstPlanReceiptAction, authority);
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.tjanst_plan_status(${json(tx, input)}) as result`));
   try {
-    const body = parseStatusReply(envelope(raw, authority), input.command, value => planStatusResult(value, input.command, authority));
+    const body = parsePlanStatusReply(envelope(raw, authority), input.command);
+    if (body.state === 'completed') planReadActor(body.result.detail, authority);
     return { body, event: { action: 'tjanst_plan_status_read', objectType: 'tjanst_version', objectId: body.result?.receipt.versionId ?? null,
       details: { unitId: input.command.target.unitId, schoolYear: input.command.target.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
