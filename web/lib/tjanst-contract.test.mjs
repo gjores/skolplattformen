@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { TjanstContractError, createPlanCommand, parseCommandRef, parsePersonalCommand, parsePersonalCommandReply, parsePersonalReadReply,
-  parsePlanCommand, parsePlanCommandReply, parsePlanReadReply, parseSelfCommand, parseSelfCommandReply, parseSelfReadReply,
+  parsePlanCommand, parsePlanCommandReply, parsePlanReadReply, parseYearPlanReadReply, parseSelfCommand, parseSelfCommandReply, parseSelfReadReply,
   parseStaffingReadReply, parseStatusReply, parseTjanstSourceKey, planCommandRef, selfCommandRef, tjanstCanonicalSerialize,
   tjanstHashCanonical, tjanstPayloadHash, tjanstSourceKey, verifyPlanCommandHash } from './tjanst-contract.ts';
 
@@ -22,6 +22,51 @@ const read = (extra = {}) => ({ contractVersion: 'tjanst_v1', unitId: unit, scho
   classes: [{ classId, name: 'BA26A', link: { linkRevision: 0, timplanId: uid(11), seriesId: uid(12), seriesName: 'Bygg 2026', timplanVersion: 1, column: 'ar1', schoolform: 'gymnasium' },
     needs: [{ sourceKind: 'class_timplan', sourceKey: key, rowKey, label: 'Bygg och anläggning 1', needHt: 3000, needVt: 3000, needBasis: 'terms' }] }],
   rows: [row(30)], specials: [], joints: [], actions: ['save_row', 'publish'], blockers: [], capabilities: { canEdit: true, canPublish: true, canReadHistory: true }, ...extra });
+
+test('explicit year detail decoder accepts continuous actions without weakening legacy ingress', () => {
+  const expected = { unitId: unit, schoolYear: year };
+  const current = read({ actions: ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special', 'save_joint',
+    'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk'] });
+  assert.deepEqual(parseYearPlanReadReply(current, expected).actions, current.actions);
+  rejects(() => parsePlanReadReply(current, expected));
+  const legacy = read({ actions: ['create_draft'], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } });
+  assert.deepEqual(parsePlanReadReply(legacy, expected).actions, ['create_draft']);
+  rejects(() => parseYearPlanReadReply(legacy, expected));
+  for (const actions of [['unknown'], ['save_row', 'save_row'], ['bulk', 'create_draft']]) rejects(() => parseYearPlanReadReply(read({ actions }), expected));
+});
+
+test('year detail permits editing current published or unstarted plans but cannot publish them or edit history', () => {
+  const expected = { unitId: unit, schoolYear: year }, caps = { canEdit: true, canPublish: false, canReadHistory: true };
+  const published = version({ status: 'published', publishedByName: 'Rektor', publishedAt: '2026-09-01T10:00:00.000Z' });
+  const current = read({ version: published, versions: [published], actions: ['save_row', 'move', 'bulk', 'remove_teacher'], capabilities: caps });
+  assert.equal(parseYearPlanReadReply(current, expected).capabilities.canEdit, true);
+  rejects(() => parsePlanReadReply(current, expected));
+  const unstarted = read({ version: null, versions: [], teachers: [], rows: [], actions: ['save_row', 'bulk'], capabilities: caps });
+  assert.equal(parseYearPlanReadReply(unstarted, expected).version, null);
+  for (const value of [current, unstarted]) {
+    rejects(() => parseYearPlanReadReply({ ...value, actions: [...value.actions, 'publish'], capabilities: { ...caps, canPublish: true } }, expected));
+    rejects(() => parseYearPlanReadReply({ ...value, actions: ['discard_draft'] }, expected));
+    rejects(() => parseYearPlanReadReply({ ...value, capabilities: { ...caps, canEdit: false } }, expected));
+  }
+  rejects(() => parseYearPlanReadReply(current, { ...expected, versionId: published.id }));
+  const history = { ...current, actions: [], capabilities: { ...caps, canEdit: false } };
+  assert.equal(parseYearPlanReadReply(history, { ...expected, versionId: published.id }).actions.length, 0);
+  rejects(() => parseYearPlanReadReply(history, { ...expected, versionId: uid(90) }), 'wrong_scope');
+  for (const status of ['superseded', 'discarded']) rejects(() => parseYearPlanReadReply({ ...current, version: { ...published, status } }, expected));
+  rejects(() => parseYearPlanReadReply(read({ actions: ['save_row'] }), expected));
+  rejects(() => parseYearPlanReadReply(read({ capabilities: caps }), expected));
+});
+
+test('year detail reuses strict full data validation instead of trimming actions or projection fields', () => {
+  const expected = { unitId: unit, schoolYear: year };
+  for (const value of [read({ extra: true }), read({ unitId: uid(90) }), read({ schoolYear: 2027 }),
+    read({ rows: [row(30, { personId: uid(90) })] }), read({ rows: [row(30, { jointGroupId: uid(90) })] }),
+    read({ rows: [row(30), row(31)] }), read({ capabilities: { canEdit: true, canPublish: true, canReadHistory: true, canCreateDraft: true } })]) {
+    rejects(() => parseYearPlanReadReply(value, expected));
+  }
+  const unlinked = read(); unlinked.classes[0].link = null;
+  rejects(() => parseYearPlanReadReply(unlinked, expected));
+});
 
 test('sourceKey byggs kanoniskt och prövas tillbaka; annan källtyp eller form nekas', () => {
   assert.equal(tjanstSourceKey({ classId, schoolYear: year, timplanRowKey: rowKey }), key);

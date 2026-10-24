@@ -1,5 +1,6 @@
 import { gymArray, gymBoolean, gymInteger, gymObject, gymShape, gymUuid } from './gym-timplan.ts';
 import { isValidDate } from './pupil-register-model.ts';
+import type { TjanstYearAction } from './tjanst-year-contract.ts';
 
 /**
  * Tjänstefördelningens kontrakt (fas 05.1, etapp 1). Planerad lärartid per HT/VT i hela minuter, aldrig arbetstid
@@ -64,6 +65,8 @@ export type TjanstPlanRead = { contractVersion: typeof TJANST_CONTRACT_VERSION; 
   revision: number; version: TjanstVersion | null; versions: TjanstVersion[]; teachers: TjanstTeacher[]; classes: TjanstClass[];
   rows: TjanstRow[]; specials: TjanstSpecial[]; joints: TjanstJoint[]; actions: TjanstPlanAction[]; blockers: TjanstBlocker[];
   capabilities: TjanstPlanCapabilities; feedback?: TjanstFeedback };
+/** Explicit continuous-planning decoder; legacy ingress stays separate until API integration. */
+export type TjanstYearPlanRead = Omit<TjanstPlanRead, 'actions'> & { actions: TjanstYearAction[] };
 
 export type TjanstPlanPayload = {
   create_draft: { basedOnVersionId: string | null };
@@ -382,6 +385,15 @@ function parseFeedback(value: unknown): TjanstFeedback {
   return { versionNo: gymInteger(f.versionNo, 2147483647, 1), teachers, comments };
 }
 export function parsePlanReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstPlanRead {
+  return parsePlanReadProjection(value, expected, TJANST_PLAN_ACTIONS, false);
+}
+/** No legacy fallback: current projections expose only contextual commands; explicit history is read-only. */
+export function parseYearPlanReadReply(value: unknown, expected: TjanstPlanReadRequest): TjanstYearPlanRead {
+  return parsePlanReadProjection(value, expected, ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special',
+    'delete_special', 'save_joint', 'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk'] satisfies TjanstYearAction[], true);
+}
+function parsePlanReadProjection<A extends string>(value: unknown, expected: TjanstPlanReadRequest,
+  allowedActions: readonly A[], continuous: boolean): Omit<TjanstPlanRead, 'actions'> & { actions: A[] } {
   return guarded(() => {
     const request = parsePlanReadRequest(expected);
     const r = optionalShape(value, ['contractVersion', 'unitId', 'schoolName', 'schoolYear', 'revision', 'version', 'versions', 'teachers', 'classes',
@@ -407,11 +419,19 @@ export function parsePlanReadReply(value: unknown, expected: TjanstPlanReadReque
     if (rows.some(row => row.jointGroupId !== null && !joints.find(j => j.id === row.jointGroupId)!.rowIds.includes(row.id))) bad();
     const caps = shape(r.capabilities, ['canEdit', 'canPublish', 'canReadHistory']);
     const capabilities = { canEdit: bool(caps.canEdit), canPublish: bool(caps.canPublish), canReadHistory: bool(caps.canReadHistory) };
-    if ((capabilities.canEdit || capabilities.canPublish) && version?.status !== 'draft' && version !== null) bad();
+    const parsedActions = actions(r.actions, allowedActions);
+    if (continuous) {
+      const historical = request.versionId !== undefined || version !== null && !['draft', 'published'].includes(version.status);
+      if (historical && (capabilities.canEdit || capabilities.canPublish || parsedActions.length)) bad();
+      if (!capabilities.canEdit && (capabilities.canPublish || parsedActions.length)) bad();
+      if (capabilities.canPublish && version?.status !== 'draft') bad();
+      if (parsedActions.includes('publish' as A) !== capabilities.canPublish) bad();
+      if (parsedActions.includes('discard_draft' as A) && version?.status !== 'draft') bad();
+    } else if ((capabilities.canEdit || capabilities.canPublish) && version?.status !== 'draft' && version !== null) bad();
     const feedback = has(r, 'feedback') ? parseFeedback(r.feedback) : undefined;
     if (feedback && !versions.some(v => v.status === 'published' && v.versionNo === feedback.versionNo)) bad();
     return { contractVersion: contract(r.contractVersion), unitId, schoolName: name(r.schoolName), schoolYear: year, revision: revision(r.revision),
-      version, versions, teachers, classes, rows, specials, joints, actions: actions(r.actions, TJANST_PLAN_ACTIONS), blockers: blockers(r.blockers), capabilities,
+      version, versions, teachers, classes, rows, specials, joints, actions: parsedActions, blockers: blockers(r.blockers), capabilities,
       ...(feedback ? { feedback } : {}) };
   });
 }

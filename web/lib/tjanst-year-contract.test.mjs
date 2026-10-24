@@ -100,6 +100,31 @@ test('payload hash binds explicit choices and evidence within same plan journal 
   await assert.rejects(() => verifyYearPlanCommandHash({ ...q, payload: rowPayload({ kind: 'unassigned', personId: null }) }), /underlag/);
   assert.notEqual((await createYearPlanCommand({ ...input, payload: rowPayload(selectedSuggestion()) })).payloadHash, q.payloadHash);
 });
+test('explicit remove_teacher binds exact person and catalogue context without implicit clearing flags', async () => {
+  const mutationContext = { baseVersionId: id(5), expectedBasisHash: hash('a') };
+  const raw = command({ action: 'remove_teacher', payload: { personId, mutationContext } });
+  assert.deepEqual(parseYearPlanCommand(raw).payload, { personId, mutationContext });
+  rejects(() => parseYearPlanCommand({ ...raw, payload: { personId } }), 'tjanst_context_required');
+  for (const payload of [{ personId: null, mutationContext }, { personId: 'invalid', mutationContext }, { mutationContext },
+    { personId, mutationContext: { baseVersionId: id(5) } }, { personId, mutationContext: { ...mutationContext, choice: manual() } },
+    { personId, mutationContext, clearAssignments: true }, { personId, mutationContext, planningContext: rowPayload().planningContext }]) {
+    rejects(() => parseYearPlanCommand({ ...raw, payload }));
+  }
+  const { payloadHash, ...input } = raw, q = await createYearPlanCommand(input);
+  assert.equal((await verifyYearPlanCommandHash(q)).action, 'remove_teacher');
+  for (const payload of [{ ...q.payload, personId: id(90) }, { ...q.payload, mutationContext: { ...mutationContext, expectedBasisHash: hash('b') } },
+    { ...q.payload, mutationContext: { ...mutationContext, baseVersionId: id(90) } }]) {
+    await assert.rejects(() => verifyYearPlanCommandHash({ ...q, payload }), e => e.reason === 'tjanst_payload_hash');
+  }
+  await assert.rejects(() => verifyYearPlanCommandHash({ ...q, action: 'add_teacher' }), e => e.reason === 'tjanst_payload_hash');
+  assert.deepEqual(yearPlanCommandRef(q), { family: 'plan', commandId: q.commandId, action: 'remove_teacher',
+    target: { unitId, schoolYear: 2026, versionId: null, personId: null } });
+  const receipt = { commandId: q.commandId, action: q.action, versionId: id(5), revision: 1, contentHash: hash('d'), replayed: false, changed: true };
+  assert.equal(parseYearPlanReceipt(receipt, q).action, 'remove_teacher');
+  for (const change of [{ action: 'add_teacher' }, { revision: 0 }, { versionId: null }, { commandId: id(90) }, { personId }]) {
+    rejects(() => parseYearPlanReceipt({ ...receipt, ...change }, q));
+  }
+});
 test('batch allows only move/bulk with explicit choices, distinct item keys and at most 100 objects', () => {
   const move = { action: 'move', baseVersionId: id(5), items: [{ itemKey: 'a', kind: 'row', id: id(8), fromPersonId: id(9), choice: manual() }] };
   assert.equal(parseYearBatch(move, 2026).items.length, 1);

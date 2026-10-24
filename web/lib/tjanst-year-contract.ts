@@ -22,6 +22,7 @@ export type TjanstYearPlanningContext = TjanstYearMutationContext & { choice: Tj
 export type TjanstYearBasePayload = {
   save_row: { rowId: string | null; sourceKind: 'class_timplan'; sourceKey: string; personId: string | null; teacherHt: number; teacherVt: number; comment: string };
   add_teacher: { personId: string };
+  remove_teacher: { personId: string };
   delete_row: { rowId: string };
   save_special: { specialId: string | null; kind: TjanstSpecialKind; label: string; personId: string | null; classId: string | null; ht: number; vt: number; comment: string };
   delete_special: { specialId: string };
@@ -65,7 +66,7 @@ export type TjanstYearBatchReply = TjanstYearReplyBase & { mode: 'batch'; action
   jointTotals: { jointId: string; personId: string; ht: number; vt: number }[];
   blockers: { itemKey: string; groupId: string | null; code: typeof TJANST_YEAR_BLOCKERS[number] }[] };
 export type TjanstYearReply = TjanstYearCatalogReply | TjanstYearRowReply | TjanstYearBatchReply;
-export const TJANST_YEAR_EDIT_ACTIONS = ['add_teacher', 'delete_row', 'save_special', 'delete_special', 'save_joint', 'dissolve_joint', 'discard_draft', 'publish'] as const;
+export const TJANST_YEAR_EDIT_ACTIONS = ['add_teacher', 'remove_teacher', 'delete_row', 'save_special', 'delete_special', 'save_joint', 'dissolve_joint', 'discard_draft', 'publish'] as const;
 type EditAction = typeof TJANST_YEAR_EDIT_ACTIONS[number];
 export type TjanstYearPayload = { save_row: TjanstYearSaveRow } & {
   [A in EditAction]: (A extends 'publish' | 'discard_draft' ? object : TjanstYearBasePayload[A]) & { mutationContext: TjanstYearMutationContext }
@@ -135,7 +136,7 @@ function basePayload<A extends keyof TjanstYearBasePayload>(action: A, value: un
     const rowIds = unique(list(p.rowIds, TJANST_LIMITS.jointRows, uuid), v => v); if (rowIds.length < 2) bad('tjanst_joint_too_few');
     const teachers = unique(list(p.teachers, TJANST_LIMITS.teachers, v => { const t = shape(v, ['personId', 'ht', 'vt']), ht = minutes(t.ht), vt = minutes(t.vt); positiveTerms(ht, vt); return { personId: uuid(t.personId), ht, vt }; }), t => t.personId);
     parsed = { jointId: nullableUuid(p.jointId), name: text(p.name), rowIds, teachers };
-  } else if (action === 'add_teacher') parsed = { personId: uuid(shape(value, ['personId']).personId) };
+  } else if (action === 'add_teacher' || action === 'remove_teacher') parsed = { personId: uuid(shape(value, ['personId']).personId) };
   else if (action === 'delete_row') parsed = { rowId: uuid(shape(value, ['rowId']).rowId) };
   else if (action === 'delete_special') parsed = { specialId: uuid(shape(value, ['specialId']).specialId) };
   else if (action === 'dissolve_joint') parsed = { jointId: uuid(shape(value, ['jointId']).jointId) };
