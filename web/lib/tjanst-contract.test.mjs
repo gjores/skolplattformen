@@ -68,6 +68,36 @@ test('year detail reuses strict full data validation instead of trimming actions
   rejects(() => parseYearPlanReadReply(unlinked, expected));
 });
 
+test('year current and explicit history reads accept only their respective version states', () => {
+  const expected = { unitId: unit, schoolYear: year };
+  const readonly = { actions: [], capabilities: { canEdit: false, canPublish: false, canReadHistory: true } };
+  for (const status of ['draft', 'published', 'superseded', 'discarded']) {
+    const v = version({ status, ...(status === 'published' || status === 'superseded'
+      ? { publishedByName: 'Rektor', publishedAt: '2026-09-01T10:00:00.000Z' } : {}) });
+    const value = read({ ...readonly, version: v, versions: [v] });
+    if (status === 'draft' || status === 'published') assert.equal(parseYearPlanReadReply(value, expected).version.status, status);
+    else rejects(() => parseYearPlanReadReply(value, expected));
+    if (status === 'published' || status === 'superseded') assert.equal(parseYearPlanReadReply(value, { ...expected, versionId: v.id }).version.status, status);
+    else rejects(() => parseYearPlanReadReply(value, { ...expected, versionId: v.id }));
+  }
+});
+
+test('year null version has no saved content or contradictory current version in its version list', () => {
+  const expected = { unitId: unit, schoolYear: year };
+  const empty = read({ version: null, versions: [], teachers: [], rows: [], actions: ['save_row'],
+    capabilities: { canEdit: true, canPublish: false, canReadHistory: true } });
+  assert.equal(parseYearPlanReadReply(empty, expected).classes.length, 1);
+  const special = { id: uid(70), lineageId: uid(71), kind: 'annat', label: 'Uppdrag', personId: null, classId: null, ht: 60, vt: 0, comment: '' };
+  for (const patch of [{ teachers: read().teachers }, { rows: [row(30, { personId: null })] }, { specials: [special] },
+    { rows: [row(30, { personId: null, jointGroupId: uid(72) }), row(31, { personId: null, jointGroupId: uid(72) })],
+      joints: [{ id: uid(72), lineageId: uid(73), name: 'Grupp', rowIds: [uid(30), uid(31)], teachers: [] }] },
+    { versions: [version()] }, { versions: [version({ status: 'published', publishedByName: 'Rektor', publishedAt: '2026-09-01T10:00:00.000Z' })] }]) {
+    rejects(() => parseYearPlanReadReply({ ...empty, ...patch }, expected));
+  }
+  // This opt-in decoder does not reinterpret old receipts through the new state rules.
+  assert.equal(parsePlanReadReply({ ...empty, teachers: read().teachers }, expected).teachers.length, 1);
+});
+
 test('sourceKey byggs kanoniskt och prövas tillbaka; annan källtyp eller form nekas', () => {
   assert.equal(tjanstSourceKey({ classId, schoolYear: year, timplanRowKey: rowKey }), key);
   assert.deepEqual(parseTjanstSourceKey('class_timplan', key), { sourceKind: 'class_timplan', classId, schoolYear: year, rowKey });

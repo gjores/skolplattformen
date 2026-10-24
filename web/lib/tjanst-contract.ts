@@ -421,7 +421,11 @@ function parsePlanReadProjection<A extends string>(value: unknown, expected: Tja
     const capabilities = { canEdit: bool(caps.canEdit), canPublish: bool(caps.canPublish), canReadHistory: bool(caps.canReadHistory) };
     const parsedActions = actions(r.actions, allowedActions);
     if (continuous) {
-      const historical = request.versionId !== undefined || version !== null && !['draft', 'published'].includes(version.status);
+      const historical = request.versionId !== undefined;
+      if (historical ? version === null || !['published', 'superseded'].includes(version.status)
+        : version !== null && !['draft', 'published'].includes(version.status)) bad();
+      if (version === null && (teachers.length || rows.length || specials.length || joints.length
+        || versions.some(v => v.status === 'draft' || v.status === 'published'))) bad();
       if (historical && (capabilities.canEdit || capabilities.canPublish || parsedActions.length)) bad();
       if (!capabilities.canEdit && (capabilities.canPublish || parsedActions.length)) bad();
       if (capabilities.canPublish && version?.status !== 'draft') bad();
