@@ -246,7 +246,7 @@ export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_
     assert.ok(report.playwrightOutcome && report.playwrightOutcome.tests.every(t => t.retries === 0 && (t.status === 'passed' || (t.status === 'skipped' && t.expected === 'skipped'))),
       'Alla fall ska vara godkända utan omprov');
     report.foreignCanary={};report.browsers={};
-    const viewports={desktop:{width:1440,height:900},'desktop-small':{width:1024,height:768},phone:{width:390,height:844},'phone-small':{width:320,height:740}};
+    const viewports={desktop:{width:1440,height:900},'desktop-small':{width:1024,height:768},phone:{width:390,height:664},'phone-small':{width:320,height:740}};
     for (const project of projects) {
       const result=report.browserEvidence[project]?.result;
       assert.equal(result?.status,'PASS','Projektet '+project+' är inte godkänt');

@@ -226,7 +226,8 @@ test('spår: rektor A tilldelar en Gy25-rad och publicerar med engångskod; P1 s
   await publish(p,'principalA',1,{stepUp:true});
   await capture(p,'spar-publicerad');
   const versions=await versionsOf(seed.schools.A);expect(versions.map(v=>[v.no,v.status])).toEqual([[1,'published']]);
-  pass('spår','rektor A tilldelar en Gy25-rad i matrisen och publicerar efter riktig step-up',{cell:cellName,prefilledHt:ht,versions});
+  // Ett namngivet fall per spår (05.1-22 kräver unika fall); rektorsdelen redovisas i samma kontroll som lärardelen.
+  const principalPart={cell:cellName,prefilledHt:ht,versions};
   const t=await signIn(browser,info,'teacherSelf');
   await expect(t.getByRole('heading',{name:'Min tjänst',level:1})).toBeVisible();
   const card=t.locator('.min-tjanst-card').first();
@@ -239,8 +240,8 @@ test('spår: rektor A tilldelar en Gy25-rad och publicerar med engångskod; P1 s
   const direct=await fixture!.request(t,'teacherSelf','/api/elever/lista',{selection:{schoolYear:seed.year,unitId:seed.schools.A,classId:null,educationId:null,grade:null,status:null,page:1},search:''});
   expect(direct.status).toBe(403);
   const plan=await fixture!.request(t,'teacherSelf','/api/tjanst/plan/lasa',{unitId:seed.schools.A,schoolYear:seed.year});expect(plan.status).toBe(403);
-  pass('spår','P1 landar i Min tjänst och ser raden; nätverksloggen saknar /api/elever och /api/planering; direktanrop mot /api/elever/lista ger 403',
-    {apiPaths:[...new Set(paths)],direct:direct.status,planRead:plan.status});
+  pass('spår','rektor A tilldelar en Gy25-rad i matrisen och publicerar efter riktig step-up; P1 landar i Min tjänst och ser raden; nätverksloggen saknar /api/elever och /api/planering; direktanrop mot /api/elever/lista ger 403',
+    {principal:principalPart,apiPaths:[...new Set(paths)],direct:direct.status,planRead:plan.status});
 });
 
 test('GR- och IM-klass kopplas av rektor i Timplaner och syns med behov; okopplad klass utan nollor; ny version',async()=>{
@@ -329,7 +330,8 @@ test('äldre version läsbar skrivskyddat (D-24) och fördela tom cell med omlä
   const [current]=await db`select d.revision::int r,v.id from public.tjanst_distributions d join public.tjanst_versions v on v.distribution_id=d.id and v.status='draft' where d.unit_id=${seed.schools.A} and d.school_year=${seed.year}`;
   const [sourceRow]=await db`select source_key from public.tjanst_rows where version_id=${current.id} and staff_person_id=${seed.people.t2}`;
   const rowCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:seed.schools.A,schoolYear:seed.year,action:'save_row',choice:'manual',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:sourceRow.source_key,personId:seed.people.t2,teacherHt:60,teacherVt:60,comment:''}});
-  const otherYear=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',await createYearPlanCommand({...rowCapture,commandId:crypto.randomUUID(),schoolYear:seed.year+1}));
+  // Klientkontraktet nekar redan källa från annat läsår; serverns nekande provas med ett giltigt kommando vars läsår ändras efteråt i kroppen.
+  const otherYear=await fixture!.request(p,'principalA','/api/tjanst/plan/kommando',{...await createYearPlanCommand({...rowCapture,commandId:crypto.randomUUID()}),schoolYear:seed.year+1});
   expect(otherYear.status).toBeGreaterThanOrEqual(400);
   const [count]=await db`select count(*)::int n from public.tjanst_distributions where school_year=${seed.year+1} and unit_id in (${seed.schools.A},${seed.schools.B})`;expect(count.n).toBe(0);
   pass('annan skola och annat läsår nekas','rektor A: läsning av skola B 403, kommando för skola B 403, rad med källa från läsåret i ett annat läsår nekas och inget skrivs',
@@ -586,14 +588,15 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   await d1.getByRole('button',{name:'Spara tjänsteraden'}).click();await expect(ws(p).getByText(`Tjänsteraden är sparad: ${name}, HT 45 h · VT 30 h.`)).toBeVisible();
   const conflict=q.waitForResponse(responseOf('/api/tjanst/plan/kommando'));
   await d2.getByRole('button',{name:'Spara tjänsteraden'}).click();expect((await conflict).status()).toBe(409);
-  await expect(d2.getByRole('alert')).toContainText('Din ändring har inte sparats. Hämta aktuellt läge och gör om ändringen.');
+  // 05.1-21: 409 visar aktualitetsbeskedet för underlaget (tidigare texten om att ändringen inte sparats).
+  await expect(d2.locator('.validation-warning[role=alert]')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.');
   await expect(d2.getByLabel('Lärartid VT (timmar)')).toHaveValue('20');
   await capture(q,'samtidighet-409');
   const [row]=await db`select r.teacher_vt_minutes::int vt from public.tjanst_rows r join public.tjanst_versions v on v.id=r.version_id join public.tjanst_distributions dd on dd.id=v.distribution_id and dd.unit_id=${seed.schools.A} and dd.school_year=${seed.year}
     where v.status='draft' and r.staff_person_id=${seed.people.t2} and r.source_key like ${'class_timplan:%:matematik'}`;
   expect(row.vt).toBe(1800);
   await d2.getByRole('button',{name:'Stäng utan att spara'}).click();await q.close();
-  pass('två flikar: den andra får 409','flik 1 sparar VT 30 h, flik 2 får 409-texten med inmatningen kvar och inget skrivs över (VT 1 800 min)',{row});
+  pass('två flikar: den andra får 409','flik 1 sparar VT 30 h, flik 2 får 409 med beskedet att underlaget har ändrats, inmatningen kvar och inget skrivs över (VT 1 800 min)',{row});
   // Avbrutet svar (märkt transportfel): Worker svarar 200, men svaret tappas innan klienten får det.
   let workerStatus=0;const [commandsBefore]=await db`select count(*)::int n from public.tjanst_commands where action='save_row' and customer_id=${seed.customerId}`;
   await settled(p);await p.route('**/api/tjanst/plan/kommando',async route=>{const real=await route.fetch();workerStatus=real.status();await route.abort('failed');},{times:1});
@@ -1061,7 +1064,7 @@ async function yearDesktopContextCases(browser:Browser,info:TestInfo,p:Page,year
   const coreCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.gr,fullId,60,60,oldGr.id)}),frozenCore=await createYearPlanCommand({...coreCapture,commandId:crypto.randomUUID()});
   const ab=pages.principalAB??await signIn(browser,info,'principalAB');await fixture!.login(ab,'principalAB',{stepUp:true,returnTo:'/?vy=tjanst'});
   const abProof=await fixture!.view(ab,'principalAB');expect(abProof.identityId).not.toBe(principalProof.identityId);expect(abProof.sessionId).not.toBe(principalProof.sessionId);
-  const [link]=await db`select l.revision::int revision,l.column_id,t.lifecycle_revision::int plan_revision from public.class_timplans l join public.timplans t on t.id=l.timplan_id where l.class_id=${year.grim.grClassId} and l.start_year=${seed.year}`;
+  const [link]=await db`select l.revision::int revision,l.column_id,t.revision::int plan_revision from public.class_timplans l join public.timplans t on t.id=l.timplan_id where l.class_id=${year.grim.grClassId} and l.start_year=${seed.year}`;
   const linkReply=await fixture!.request(ab,'principalAB','/api/klasser/grim/koppla',{commandId:crypto.randomUUID(),classId:year.grim.grClassId,planId:year.grim.grPlanId,expectedPlanRevision:link.plan_revision,columnId:'ak9',expectedLinkRevision:link.revision,previousPlanId:year.grim.grPlanId});expect(linkReply.status,JSON.stringify(linkReply.body)).toBe(200);
   const staleCore=await sendCaptured(p,'principalA',frozenCore);expect(staleCore.status).toBe(409);expect(staleCore.body.details.reason).toBe('tjanst_stale_basis');expect((await currentPlan(p)).revision).toBe(afterPerson.revision);
   const restored=await fixture!.request(ab,'principalAB','/api/klasser/grim/koppla',{commandId:crypto.randomUUID(),classId:year.grim.grClassId,planId:year.grim.grPlanId,expectedPlanRevision:link.plan_revision,columnId:link.column_id,expectedLinkRevision:linkReply.body.revision,previousPlanId:year.grim.grPlanId});expect(restored.status,JSON.stringify(restored.body)).toBe(200);const recoverCore=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.core.gr,fullId,oldGr.teacherHt,oldGr.teacherVt,oldGr.id)}),recoveredCore=await createYearPlanCommand({...recoverCore,commandId:crypto.randomUUID()});expect((await sendCaptured(p,'principalA',recoveredCore))).toMatchObject({status:200});yearPass(10,{commandId:frozenCore.commandId,reason:staleCore.body.details.reason,sessions:{principal:principalProof.sessionId,other:abProof.sessionId},identitiesDistinct:true,explicitNewRecoveryCommand:recoveredCore.commandId});
@@ -1098,7 +1101,9 @@ async function yearDesktopFinalCases(browser:Browser,info:TestInfo,p:Page,year:Y
   try{for(const body of [{...scopeA(),mode:'row',sourceKey:year.core.im.sourceKey,rowId:null},{...scopeA(),mode:'batch',batch}]){const response=await fixture!.request(p,'principalA','/api/tjanst/plan/forhandsvisa',body);expect(response.status).toBeGreaterThanOrEqual(500);expect(response.body.code).toBe('audit_unavailable');}}
   finally{await db.unsafe('drop trigger tjanst22_audit_fault on public.security_events');await db.unsafe('drop function public.tjanst22_audit_fault()');}
   expect((await currentPlan(p)).revision).toBe(before.revision);yearPass(15,{rowAndBatchAudit:'audit_unavailable',revision:before.revision});
-  const admin=pages.admin??await signIn(browser,info,'admin');await openTjanst(admin,seed.schools.A);const start=network.admin.length;await ws(admin).getByRole('button',{name:'Lägg till lärare i fördelningen',exact:true}).click();const d=admin.getByRole('dialog');await expect(d.getByRole('button',{name:'Välj Yngve Delår',exact:true})).toBeVisible();await expect(d.getByRole('button',{name:'Lägg upp ny lärare',exact:true})).toHaveCount(0);await closeEditor(admin);expect(network.admin.slice(start).some(r=>r.path==='/api/tjanst/personal/lasa')).toBe(false);
+  // Administratörens sida är öppen sedan ett tidigare fall; läs om så att arbetsytan visar rektors senaste publicering.
+  // Dialogen visar bara skolans personer utan kolumn; Yngve Delår har redan en kolumn efter tidigare årsfall.
+  const admin=pages.admin??await signIn(browser,info,'admin');await admin.reload();await openTjanst(admin,seed.schools.A,{navigate:false});const start=network.admin.length;await ws(admin).getByRole('button',{name:'Lägg till lärare i fördelningen',exact:true}).click();const d=admin.getByRole('dialog');await expect(d.getByRole('button',{name:/^Välj /u}).first()).toBeVisible();await expect(d.getByRole('button',{name:'Lägg upp ny lärare',exact:true})).toHaveCount(0);await closeEditor(admin);expect(network.admin.slice(start).some(r=>r.path==='/api/tjanst/personal/lasa')).toBe(false);
   const h=pages.hm??await signIn(browser,info,'hm'),self=pages.teacherSelf,b=pages.principalB??await signIn(browser,info,'principalB');
   for(const [page,role] of [[h,'hm'],[self,'teacherSelf'],[b,'principalB']] as const){const denied=await fixture!.request(page,role,'/api/tjanst/plan/forhandsvisa',{...scopeA(),mode:'catalog'});expect(denied.status).toBe(403);}yearPass(18,{catalogueOnly:true,denied:['hm','teacherSelf','principalB']});
   // The published version, identity and mandate are retained while an expired school share is repaired explicitly.
