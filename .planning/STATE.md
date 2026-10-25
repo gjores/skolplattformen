@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-22 — Faktiska prov av sammanhållen planering och handbok"
+current_plan: "05.1-23 — Förbered konkret lokal leverans"
 status: in_progress
-stopped_at: "Plan14–21 implementerade och avgränsat verifierade. Plan22 pågår med riktig Worker/OIDC i isolerad syntetisk miljö och uppdaterad handbok. Ingen installation eller ändrad fasacceptans."
-last_updated: "2026-10-24"
-last_activity: 2026-10-24
-last_activity_desc: "Sammanhållen arbetsyta verifierad i simulator och separat bygge; faktisk provkedja förbereds."
+stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Nästa är 23 (leveransförberedelse). Ingen installation eller ändrad fasacceptans."
+last_updated: "2026-10-25"
+last_activity: 2026-10-25
+last_activity_desc: "Faktiskt prov av sammanhållen planering 83/83 PASS; två UI-fel rättade i 21; handbok uppdaterad."
 state_head: 55ea3da
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 90
+  completed_plans: 91
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_gap_local_delivery_health_pass
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-22 genomförd 2026-10-25:** [Resultat](phases/05.1-tjanstefordelning/05.1-22-SUMMARY.md): faktiskt Worker/OIDC/PostgreSQL-prov på ren kandidat 1eb5467 gav PASS 83/83 (dator 51, liten dator 13, telefon 10, liten telefon 9). Telefonerna kördes i WebKit. Provet hade 0 omprov, 44 verifierade callbacks, full städning, oförändrade främmande data och oförändrat mål (schema och journal). SQL mot schemakopia: publiceringsomfång 46, årsunderlag 67, årskommandon 84 och årsbehörighet 75, alla PASS. Provet hittade två UI-fel som rättades i 21: väljaren Historisk publicering gav sidledsrullning på telefon, och fokus försvann efter första sparningen. Handboken är uppdaterad och docs:build PASS. Ingen installation, och aktiv 3012 är orörd. Nästa steg är 23. Mänskligt prov av nytt beteende återstår.
 
 **Plan 05.1-21 genomförd 2026-10-24:** [Resultat](phases/05.1-tjanstefordelning/05.1-21-SUMMARY.md): en aktuell planering per skola/läsår, tomma nya lärarfält och aktiva val på raden, sekundär historik, explicit flytt/massregistrering samt tomkolumnsborttagning. Gemensam journalspärr och bevarad inmatning vid nytt underlag/storleksbyte. Node84/84, typkontroll, full lint och isolerat skyddat bygge PASS. Simulerad UI:210 relevanta fall/profilkombinationer verifierade via fullmatris204PASS/6locatorfel samt avgränsade godkända omprov;146 avsiktliga profilskips,0retries/flaky. Slutbilder på fyra Chromiumprofiler granskade; telefontexter rättade. Ingen faktisk SQL/OIDC eller installation i detta steg. Nästa22 genomför den riktiga provkedjan och handbok; aktiv3012 orörd.
 
