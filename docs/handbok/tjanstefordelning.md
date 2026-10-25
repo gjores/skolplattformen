@@ -25,7 +25,7 @@ Du behöver ett aktuellt uppdrag för skolan för att läsa eller ändra fördel
 
 När du öppnar nästa läsår visas det årets klass–timplanskopplingar och behov. Nya lärarfält är tomma. Sparade val, tider och kommentarer finns kvar när du fortsätter en påbörjad planering; inget ersätts automatiskt med föregående års fördelning.
 
-Behovet hämtas bara för klasser som är kopplade till en timplan för läsåret. Gymnasiets klasser kopplas i timplanens avsnitt om klasser. Grundskolans och introduktionsprogrammets klasser kopplas i Timplaner, se [Koppla GR- och IM-klasser](./timplaner.md#koppla-gr--och-im-klasser). Har ingen klass på skolan en timplan för läsåret visas *Ingen klass på skolan har en timplan för läsåret …* med knappen **Öppna klasskopplingar**.
+Behovet hämtas bara för klasser som är kopplade till en timplan för läsåret. En gymnasieklass behöver en koppling för **varje** läsår, även i årskurs 2 och 3. Gymnasiets klasser kopplas under timplanens **Klasser och läsår**, där du väljer **Läsår för klassens timplan**, se [Koppla en eller flera klasser till ett läsår](./timplaner.md#koppla-en-eller-flera-klasser-till-ett-läsår). Grundskolans och introduktionsprogrammets klasser kopplas i Timplaner, se [Koppla GR- och IM-klasser](./timplaner.md#koppla-gr--och-im-klasser). Saknar en klass koppling för läsåret visas knapparna **Klasskopplingar för gymnasiet** och **Klasskopplingar för GR och IM**. Välj den som gäller klassen. Läsåret följer med.
 
 ## Matris och vyer
 
@@ -103,15 +103,17 @@ Välj **Lägg till specialuppdrag** och ange **Typ** (Mentor, Programansvar, Spe
 En samläsning är en undervisningsgrupp med elever från flera klasser.
 
 1. Öppna **Per kurs/ämne**.
-2. Markera minst två rader i minst två olika klasser. Raderna får gälla olika kurser eller ämnen.
+2. Markera minst två rader i minst två olika klasser. Raderna får gälla olika kurser eller ämnen, men de ska ha **samma lärare** (eller alla vara vakanta).
 3. Välj **Koppla till samläsning…**, kontrollera namnet och ange lärartiden för gruppen.
 4. Välj **Spara samläsningen**.
 
 Lärartiden räknas en gång för läraren, och båda klasserna visas som täckta.
 
+En samläsning har en lärare för alla klasser. Har de markerade raderna olika lärare, eller både en lärare och vakant, visar dialogen det och **Spara samläsningen** är inaktiv. Byt lärare på raderna eller använd **Flytta uppdrag** först. Två lärare i samma grupp (flerlärarskap) hanteras inte som samläsning.
+
 En vanlig radändring i en samläsning behåller lärare och kurs. Använd **Flytta uppdrag** för en granskad flytt till en annan lärare. Vill du ändra kurs eller gruppens sammansättning, ändra eller lös upp samläsningen först. Tid och kommentar på raden ändrar du som vanligt.
 
-En samläsning som inte uppfyller reglerna hindrar **Fastställ och publicera**. Panelen visar punkten, och knappen är inaktiv. Reglerna är att samläsningen har rader i minst två klasser och att lärartid bara gäller lärare som har en rad i gruppen. När du har ändrat eller löst upp samläsningen kan du publicera.
+En samläsning som inte uppfyller reglerna hindrar **Fastställ och publicera**. Panelen visar punkten, och knappen är inaktiv. Reglerna är att samläsningen har rader i minst två klasser, att alla rader har samma lärare och att lärartid bara gäller den läraren. En äldre samläsning med flera lärare märks **Samläsning · olika lärare** i matrisen. Appen rättar den inte automatiskt. När du har flyttat uppdragen till samma lärare eller löst upp samläsningen kan du publicera.
 
 ## Fastställ och publicera
 

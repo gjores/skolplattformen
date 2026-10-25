@@ -64,7 +64,7 @@ export const TJANST_YEAR_CASES = Object.freeze([
   'YEAR-10 ändrad klasskälla via annan session nekar fryst rad',
   'YEAR-11 ny historisk publicering via annan session nekar fryst förslagsval',
   'YEAR-12 kontextlös payload nekas utan delresultat',
-  'YEAR-13 explicit helgruppsflytt bevarar andra lärares tid',
+  'YEAR-13 explicit helgruppsflytt flyttar samläsningen och bevarar andra lärares rader',
   'YEAR-14 massarbete 100 plus 1 i påbörjad plan',
   'YEAR-15 loggfel stoppar radstöd och batchpreview',
   'YEAR-16 tappat normalt svar återhämtas med samma kommando',
@@ -73,6 +73,7 @@ export const TJANST_YEAR_CASES = Object.freeze([
   'YEAR-19 WR10 repareras genom explicit flytt och tomkolumnsborttagning',
   'YEAR-20 tomkolumnsborttagning nekar kvarvarande uppdrag och replay är ofarligt',
   'YEAR-21 sena svar, uppdaterat stöd och storleksbyte bevarar aktiva inmatningar',
+  'YEAR-22 samläsning med olika lärare nekas och äldre blandad grupp blockerar publicering',
 ]);
 export const TJANST_PHONE_YEAR_CASES = Object.freeze([
   'PHONE-YEAR-01 publicerad tjänst består under pågående ändring',

@@ -365,6 +365,10 @@ test('55000 ger AuditUnavailable; svar med annan aktör än sessionen ger AuditU
   reset2('larare'); state.sqlError = { code: '22023', hint: 'tjanst_comment_too_long', message: 'private' };
   const long = await post('egen/kommando', comment);
   assert.equal(long.status, 400); assert.equal((await long.json()).details.reason, 'tjanst_comment_too_long');
+  // D-28 (05.1-26): samläsning med olika lärare når klienten som egen orsak.
+  reset2('larare'); state.sqlError = { code: '22023', hint: 'tjanst_joint_teacher_mismatch', message: 'private' };
+  const mixed = await post('egen/kommando', comment);
+  assert.equal(mixed.status, 400); assert.equal((await mixed.json()).details.reason, 'tjanst_joint_teacher_mismatch');
 });
 
 test('security_events-detaljer för comment innehåller ingen kommentarstext', async () => {

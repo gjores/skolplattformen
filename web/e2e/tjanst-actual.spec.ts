@@ -1029,11 +1029,44 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     const captured=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(need,personId,600,600)});const reply=await sendCaptured(p,'principalA',await createYearPlanCommand({...captured,commandId:crypto.randomUUID()}));expect(reply.status,JSON.stringify(reply.body)).toBe(200);
   }
   state=await currentPlan(p);const groupRows=state.rows.filter(r=>year.joint.needs.some((n:Need)=>n.sourceKey===r.sourceKey)&&[fullId,partId].includes(r.personId!));expect(groupRows).toHaveLength(4);
-  const jointCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_joint',payload:{jointId:null,name:'Syntetisk årssamläsning',rowIds:groupRows.map(r=>r.id),teachers:[{personId:fullId,ht:600,vt:600},{personId:partId,ht:300,vt:300}]}});
+  // D-28 (05.1-26): samläsningen har en lärare. Gruppen omfattar fullId:s två rader; partId:s rader på samma behov ligger utanför.
+  const partRowsBefore=state.rows.filter(r=>year.joint.needs.some((n:Need)=>n.sourceKey===r.sourceKey)&&r.personId===partId);expect(partRowsBefore).toHaveLength(2);
+  const jointCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_joint',payload:{jointId:null,name:'Syntetisk årssamläsning',rowIds:groupRows.filter(r=>r.personId===fullId).map(r=>r.id),teachers:[{personId:fullId,ht:600,vt:600}]}});
   expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...jointCapture,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
   await p.reload();await settled(p);await ws(p).getByRole('button',{name:'Flytta uppdrag',exact:true}).click();d=p.getByRole('dialog');await d.getByLabel('Flytta från lärare').selectOption(fullId);await d.getByLabel('Flytta till lärare').selectOption(year.people.moveTarget.personId);await d.getByRole('button',{name:'Bekräfta mållärare',exact:true}).click();
   await d.getByRole('checkbox',{name:new RegExp(esc(year.joint.needs[0].className)+' · '+esc(year.joint.needs[0].label))}).check();await d.getByRole('button',{name:'Markera lärarens alla rader i samläsningen'}).click();await batchSave(p,'year-group-preview');
-  state=await currentPlan(p);const group=state.joints.find(j=>j.name==='Syntetisk årssamläsning')!;expect(group.teachers).toEqual(expect.arrayContaining([{personId:partId,ht:300,vt:300},{personId:year.people.moveTarget.personId,ht:600,vt:600}]));expect(group.teachers).toHaveLength(2);expect(state.rows.filter(r=>r.jointGroupId===group.id&&r.personId===partId)).toHaveLength(2);yearPass(13,{joint:group.id,teachers:group.teachers,memberCount:group.rowIds.length});
+  state=await currentPlan(p);const group=state.joints.find(j=>j.name==='Syntetisk årssamläsning')!;expect(group.teachers).toEqual([{personId:year.people.moveTarget.personId,ht:600,vt:600}]);
+  expect(state.rows.filter(r=>r.jointGroupId===group.id).map(r=>r.personId)).toEqual([year.people.moveTarget.personId,year.people.moveTarget.personId]);
+  expect(state.rows.filter(r=>r.personId===partId&&year.joint.needs.some((n:Need)=>n.sourceKey===r.sourceKey))).toEqual(partRowsBefore);
+  yearPass(13,{joint:group.id,teachers:group.teachers,memberCount:group.rowIds.length,otherTeacherRowsUnchanged:partRowsBefore.length});
+  if(project==='desktop'){
+    // YEAR-22 (D-28): blandad samläsning nekas genom riktig Worker, och dialogen spärrar innan något skickas.
+    const extraCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.joint.needs[1],fullId,600,600)});
+    expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...extraCapture,commandId:crypto.randomUUID()}))).status).toBe(200);
+    let mixState=await currentPlan(p);const partRow=mixState.rows.find(r=>r.personId===partId&&r.sourceKey===year.joint.needs[0].sourceKey&&r.jointGroupId===null)!,fullRow=mixState.rows.find(r=>r.personId===fullId&&r.sourceKey===year.joint.needs[1].sourceKey&&r.jointGroupId===null)!;
+    const mixedCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_joint',payload:{jointId:null,name:'Syntetisk blandgrupp',rowIds:[partRow.id,fullRow.id],teachers:[{personId:partId,ht:600,vt:600}]}});
+    const mixed=await sendCaptured(p,'principalA',await createYearPlanCommand({...mixedCapture,commandId:crypto.randomUUID()}));
+    expect(mixed.status).toBe(400);expect(mixed.body.details.reason).toBe('tjanst_joint_teacher_mismatch');expect((await currentPlan(p)).revision).toBe(mixState.revision);
+    await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Per kurs/ämne'}).click();const course=ws(p).getByRole('region',{name:'Per kurs/ämne'});
+    for(const [need,name] of [[year.joint.needs[0],'Yngve Delår'],[year.joint.needs[1],'Ylva Helår']] as const)
+      await course.getByRole('checkbox',{name:new RegExp('^Markera '+esc(need.label)+' '+esc(need.className)+', '+esc(name)+'$')}).check();
+    await course.getByRole('button',{name:'Koppla till samläsning…'}).click();const md=p.getByRole('dialog');
+    await expect(md.getByRole('alert')).toContainText('En samläsning ska ha samma lärare för alla klasser.');await expect(md.getByRole('button',{name:'Spara samläsningen'})).toBeDisabled();
+    await capture(p,'year-joint-mixed-denied');await md.getByRole('button',{name:'Stäng utan att spara'}).click();
+    // Märkt syntetisk före-data i ägd databas: äldre blandad grupp (lärartid för ytterligare en lärare). Återställs efteråt.
+    await db`insert into public.tjanst_joint_teacher_time(group_id,staff_person_id,ht_minutes,vt_minutes) values(${group.id},${partId},300,300)`;
+    mixState=await currentPlan(p);expect(mixState.blockers.map(b=>b.code)).toContain('joint_mixed_teachers');
+    const blockedCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'publish',payload:{}});
+    const blocked=await sendCaptured(p,'principalA',await createYearPlanCommand({...blockedCapture,commandId:crypto.randomUUID()}));
+    expect(blocked.status).toBe(409);expect(blocked.body.details.reason).toBe('tjanst_publish_blocked');
+    await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();await expect(matrix(p).getByText('Samläsning · olika lärare').first()).toBeVisible();
+    await db`delete from public.tjanst_joint_teacher_time where group_id=${group.id} and staff_person_id=${partId}`;
+    expect((await currentPlan(p)).blockers.map(b=>b.code)).not.toContain('joint_mixed_teachers');
+    const removeExtra=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'delete_row',payload:{rowId:fullRow.id}});
+    expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...removeExtra,commandId:crypto.randomUUID()}))).status).toBe(200);
+    await p.reload();await settled(p);
+    yearPass(22,{denied:mixed.body.details.reason,dialogBlocked:true,legacyBlocker:'joint_mixed_teachers',publish:blocked.body.details.reason});
+  }
   // Actual UI checks 100 needs, assigns only those, then proves the 101st remains blank.
   const bulkBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;
   await ws(p).getByRole('button',{name:'Massregistrera',exact:true}).click();d=p.getByRole('dialog');const needs=d.getByRole('group',{name:'Behov att registrera'});

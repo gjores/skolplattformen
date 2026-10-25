@@ -33,7 +33,7 @@ const conflictReasons = new Set(['tjanst_revision_conflict', 'tjanst_command_con
   'tjanst_publish_blocked', 'tjanst_stale_basis', 'tjanst_stale_person', 'tjanst_stale_evidence']);
 const inputReasons = new Set(['tjanst_invalid', 'tjanst_payload_hash', 'tjanst_duplicate_row', 'tjanst_joint_too_few', 'tjanst_joint_already',
   'tjanst_comment_too_long', 'tjanst_capacity_exceeded', 'tjanst_employment_overlap', 'tjanst_person_not_at_school', 'tjanst_unknown_source', 'tjanst_context_required', 'tjanst_choice_mismatch',
-  'tjanst_input_too_large', 'tjanst_teacher_not_empty', 'tjanst_teacher_not_found']);
+  'tjanst_input_too_large', 'tjanst_teacher_not_empty', 'tjanst_teacher_not_found', 'tjanst_joint_teacher_mismatch']);
 const unreachable = new Set(['08001', '08003', '08006', '57P01', '57P02', '57P03', 'ECONNREFUSED', 'CONNECTION_CLOSED', 'CONNECT_TIMEOUT']);
 function sqlState(error: unknown): { code?: unknown; hint?: unknown } { return error && typeof error === 'object' ? error as { code?: unknown; hint?: unknown } : {}; }
 
