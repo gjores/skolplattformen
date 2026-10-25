@@ -32,7 +32,9 @@ Välj **Fördela på skolor**. Ange **Andel (%)** och giltighet för varje skola
 
 Andelarna får tillsammans inte överstiga tjänstgöringsgraden. Blir summan för hög visas *Andelarna blir … %, men tjänstgöringsgraden är … %. Minska någon andel.* Servern nekar då sparningen med samma text, och inget ändras. Exempel: med 100 % sparas 60 % på skola A och 40 % på skola B, men 60 % och 50 % nekas.
 
-Rektor ser bara andelen på sin egen skola, som **Andel här** i Tjänstefördelning. Rektor ser inte andelar eller summor från andra skolor.
+Rektor ser bara andelen på sin egen skola, som **Andel här** i Tjänstefördelning. Rektor ser inte andelar eller summor från andra skolor. Lärarvalet visar skoluppdragets giltighetsdatum; ett uppdrag som gäller en del av läsåret innebär inte tillgänglighet under hela året. Andelen är inte ett besked om ämnesbehörighet eller ledig undervisningstid.
+
+När skoluppgifter ändras kan ett påbörjat lärarval behöva göras om före sparning. Upphör skoluppdraget kan det hindra publicering av en fördelning där personen fortfarande finns med. Rektor flyttar eller ändrar kvarvarande uppdrag och tar uttryckligen bort en helt tom lärarkolumn. Personen, anställningarna och andelarna finns kvar i Personal; kolumnåtgärden raderar dem inte.
 
 ### Ny lärare från en skola
 
@@ -46,7 +48,7 @@ Alla ändringar av personaluppgifter kräver en färsk engångskod. Saknas den v
 
 Välj **Bemanning** under PLANERING och välj läsår. Tabellen visar per skola **Status** (publicerad version eller *Ingen publicerad version*), **Undervisning**, **Specialuppdrag**, **Vakant tid**, **Ej fördelad tid** och **Koppling saknas**. Ej fördelad tid räknas bara för klasser med timplan. Klasser utan koppling räknas i kolumnen Koppling saknas, eftersom deras behov är okänt. **Visa tid** väljer hela läsåret, HT eller VT.
 
-**Visa fördelningen** öppnar den publicerade version som raden visar, skrivskyddad, utan åtgärder och utan beslutsknapp. Rektors utkast visas inte, inte heller under **Visa version**. En skola utan publicerad version har ingen knapp. Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning, och ett försök att publicera som huvudman nekas.
+**Visa fördelningen** öppnar den publicerade version som raden visar, skrivskyddad, utan åtgärder och utan beslutsknapp. Rektors pågående ändringar visas inte. Den tidigare publiceringen ligger kvar tills rektor publicerar på nytt. En skola utan publicerad version har ingen knapp. Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning, och ett försök att publicera som huvudman nekas.
 
 ## På telefon
 
@@ -57,5 +59,5 @@ Personal och Bemanning visas som kort på telefon. Lägga till, ändra och förd
 - **Ingen schemalagd tid.** Bemanningen bygger på fördelad tid, inte på ett schema.
 - **Ingen kapacitetskontroll mot timmar.** Andelarna prövas mot tjänstgöringsgraden, men lärarens timmar jämförs inte med andel eller grad.
 - **Ingen arbetstidsram eller tjänstebedömning.** Inga avtal, arbetstidsregler eller bedömningar enligt förordningen om lärares tjänster ingår.
-- **Inga årsrutiner ännu.** Förlänga, flytta och massregistrera kommer i etapp 2.
+- **Ingen automatisk fördelning mellan läsår.** Rektor arbetar med nästa läsårs behov och aktiva lärarval i Tjänstefördelning. Flytt och massregistrering kräver granskad förhandsvisning.
 - **Ingen överföring till eller från andra system.** Personal och andelar hämtas inte från ett personalsystem och skickas inte till till exempel tjänstebedömningsappen.
