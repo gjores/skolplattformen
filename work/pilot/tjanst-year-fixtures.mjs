@@ -75,6 +75,14 @@ const freezeTree = value => { if (value && typeof value === 'object') { for (con
 /** Explicit positive-test capture. Sending, hashing, retrying and status NEVER call this helper.
  * A row choice must be stated: 'manual', 'unassigned', or a complete suggestion choice.
  * Old-schema tests keep planCommand/yearSend and never attempt a new write after parser failure. */
+/** Märkt syntetisk före-data (05.1-26/D-28): en samläsning med flera lärare kan inte längre skapas via kommando, men kan finnas
+ * kvar i utkast från före D-28. Skrivs direkt och bara i ägd provtransaktion, för att pröva hur sådana grupper hanteras. */
+export async function seedLegacyMixedJoint(t, versionId, { name, rowIds, teachers }) {
+  const [{ id }] = await t`insert into public.tjanst_joint_groups(version_id,lineage_id,name) values(${versionId},gen_random_uuid(),${name}) returning id`;
+  for (const rowId of rowIds) await t`insert into public.tjanst_joint_members(group_id,row_id) values(${id},${rowId})`;
+  for (const x of teachers) await t`insert into public.tjanst_joint_teacher_time(group_id,staff_person_id,ht_minutes,vt_minutes) values(${id},${x.personId},${x.ht},${x.vt})`;
+  return id;
+}
 export async function capturePlanContext(t, request) {
   const { unitId, schoolYear, action } = request;
   const payload = structuredClone(request.payload);

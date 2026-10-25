@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { planRead, planSend, planCommand, planStatus, planRef, grantSelf, personalCommand, saveDuties, seedGy25Class } from './tjanst-fixtures.mjs';
-import { createTjanstYearFixture, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend, capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
+import { createTjanstYearFixture, seedLegacyMixedJoint, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend, capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
 import { parseYearReply, tjanstYearHash } from '../../web/lib/tjanst-year-contract.ts';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261023120000_tjanst_year_commands.sql';
@@ -252,7 +252,8 @@ async function groupBoundaryCases(db,report) {
  await rolledBack(db,async t=>{
   const s=await createTjanstYearFixture(t),{f,unitId,schoolYear,people}=s,p=people[0].personId,p2=people[1].personId;let d;
   for(const personId of [p,p2])for(const classId of [f.classes.group,f.classes.other])d=await send(t,await captureCommand(t,s,'save_row',row(s,personId,{sourceKey:s.key('matematik',classId)}),'manual'));
-  d=await send(t,await captureCommand(t,s,'save_joint',{jointId:null,name:'Tvålärare',rowIds:d.rows.map(r=>r.id),teachers:[{personId:p,ht:100,vt:200},{personId:p2,ht:300,vt:400}]}));
+  // D-28: tvålärargrupper skapas inte längre via kommando; äldre sådana prövas som märkt syntetisk före-data.
+  await seedLegacyMixedJoint(t,d.version.id,{name:'Tvålärare',rowIds:d.rows.map(r=>r.id),teachers:[{personId:p,ht:100,vt:200},{personId:p2,ht:300,vt:400}]});d=await read(t,s);
   const cat=await yearPreview(t,{unitId,schoolYear,mode:'catalog'}),choice=yearManual(cat.candidates.find(x=>x.personId===s.draftPersonId));
   const batch={action:'move',baseVersionId:d.version.id,items:d.rows.filter(x=>x.personId===p).map((x,i)=>({itemKey:'r'+i,kind:'row',id:x.id,fromPersonId:p,choice}))};
   const captured=await captureCommand(t,s,'move',batch),full=await fullVersion(t,d.version.id);

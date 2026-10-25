@@ -14,7 +14,7 @@ import { createRequire } from 'node:module';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { planRead, grantSelf, personalCommand, saveDuties, seedGy25Class, tjanstMigrations } from './tjanst-fixtures.mjs';
-import { createTjanstYearFixture, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend } from './tjanst-year-fixtures.mjs';
+import { createTjanstYearFixture, seedLegacyMixedJoint, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend } from './tjanst-year-fixtures.mjs';
 import { parseYearReply, tjanstYearHash } from '../../web/lib/tjanst-year-contract.ts';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261023110000_tjanst_year_preview.sql';
@@ -245,7 +245,9 @@ async function batchCases(db,report) {
     for (const classId of [f.classes.group,f.classes.other]) for (const personId of [people[0].personId,people[1].personId])
       await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:schoolYear,action:'save_row',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:key('matematik',classId),personId,teacherHt:100,teacherVt:200,comment:''},choice:'manual'})))).result.detail : await yearSend(t,unitId,schoolYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:key('matematik',classId),personId,teacherHt:100,teacherVt:200,comment:''}));
     let d=await planRead(t,{unitId,schoolYear});
-    d=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:schoolYear,action:'save_joint',payload:{jointId:null,name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]}})))).result.detail : await yearSend(t,unitId,schoolYear,'save_joint',{jointId:null,name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]}));
+    // D-28: tvålärargrupper skapas inte längre via kommando; äldre sådana prövas som märkt syntetisk före-data i ägd transaktion.
+    if(modern){await seedLegacyMixedJoint(t,d.version.id,{name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]});d=await planRead(t,{unitId,schoolYear});}
+    else d=(await yearSend(t,unitId,schoolYear,'save_joint',{jointId:null,name:'Syntetisk helgrupp',rowIds:d.rows.map(r=>r.id),teachers:[{personId:people[0].personId,ht:300,vt:400},{personId:people[1].personId,ht:500,vt:600}]}));
     const cat=await yearPreview(t,{unitId,schoolYear,mode:'catalog'}),to=yearManual(cat.candidates.find(p=>p.personId===s.draftPersonId));
     const move={action:'move',baseVersionId:d.version.id,items:d.rows.filter(r=>r.personId===people[0].personId).map((r,i)=>({itemKey:'move'+i,kind:'row',id:r.id,fromPersonId:r.personId,choice:to}))};
     const moved=await yearPreview(t,req(move));assert.deepEqual(codes(moved),[]);assert.equal(moved.selectedCount,2);assert.equal(moved.writeObjectCount,4);

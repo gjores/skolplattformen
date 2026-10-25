@@ -25,6 +25,8 @@ import { expectedTjanstWorkerEntrypoints, assertTjanstSelfMandatesSchema, TJANST
 import { createEphemeralMigratedDb, migrationFiles } from './ephemeral-migrated-db.mjs';
 import { createNamedTimplanSnapshot, schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfCommandReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
+import { seedLegacyMixedJoint } from './tjanst-year-fixtures.mjs';
+const d28Installed = async t => (await t`select position('tjanst_joint_teacher_mismatch' in pg_get_functiondef('public.tjanst_plan_save_joint(public.tjanst_distributions,jsonb)'::regprocedure))>0 v`)[0].v;
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const [GAP] = tjanstGapMigrations;
@@ -210,9 +212,13 @@ async function beforeState(tx, report, f, afterMode = false) {
   const j1a = await addRow(A7, 'matematik', p1.personId, 1350, 1350), j1b = await addRow(B7, 'matematik', p1.personId, 1350, 1350);
   const j2a = await addRow(B7, 'engelska', p2.personId, 600, 600), j2b = await addRow(IM, 'im-sv', p1.personId, 600, 600);
   r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: null, name: 'Matematik 7A+7B', rowIds: [j1a, j1b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }] } })).payload : { jointId: null, name: 'Matematik 7A+7B', rowIds: [j1a, j1b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }] }));
+  // D-28 (05.1-26): en grupp med två lärare kan inte längre skapas via kommando; WR-02-förläget skapas då som märkt syntetisk före-data.
+  if (await d28Installed(tx)) { await seedLegacyMixedJoint(tx, r.detail.version.id, { name: 'Engelska 7B+IM', rowIds: [j2a, j2b], teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] }); r = { ...r, detail: await read(tx, A) }; }
+  else {
   r = await send(tx, await planCommand(A, Y, 'save_joint', r.detail.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
     teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] } })).payload : { jointId: null, name: 'Engelska 7B+IM', rowIds: [j2a, j2b],
     teachers: [{ personId: p1.personId, ht: 600, vt: 600 }, { personId: p2.personId, ht: 600, vt: 600 }] }));
+  }
   // Gamla save_row: raden j1b flyttas till 7A (gruppen hamnar i en enda klass), och j2a byter lärare (P2 får lärartid utan rad).
   if (afterMode) {
     // Märkt syntetisk äldre dataskada i egen kopia: funktionerna är fortfarande efterlägets.

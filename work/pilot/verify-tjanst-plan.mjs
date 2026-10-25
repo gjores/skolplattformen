@@ -19,6 +19,7 @@ import { createTjanstFixture, grantSelf, planCommand, planRead, planRef, planSen
 import { parsePlanJournalReply, parsePlanLegacyReadReply, parseSelfReadReply } from '../../web/lib/tjanst-contract.ts';
 import { coverage, coverageLabel, schoolSums, teacherSums, tjanstNeed } from '../../web/lib/tjanst-model.ts';
 import { summarize } from '../../web/lib/lasar-model.ts';
+const d28Installed = async t => (await t`select position('tjanst_joint_teacher_mismatch' in pg_get_functiondef('public.tjanst_plan_save_joint(public.tjanst_distributions,jsonb)'::regprocedure))>0 v`)[0].v;
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261020120000_tjanst_plan.sql';
@@ -395,6 +396,11 @@ async function jointMatrix(tx, report, f) {
   await deny(tx, report, 'lärartid för en lärare utanför radernas lärare nekas', async t => send(t, await planCommand(A, Y, 'save_joint', d.revision, modern ? frozenCase12.payload : { jointId: null, name: 'Fel lärare', rowIds: [m1, m7b], teachers: [{ personId: f.id(99), ht: 60, vt: 0 }] })), ['22023'], 'tjanst_invalid');
   const frozenCase13 = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'delete_row', payload: { rowId: r1 } }) : null;
   await deny(tx, report, 'en rad i en samläsning kan inte tas bort innan gruppen löses upp', async t => send(t, await planCommand(A, Y, 'delete_row', d.revision, modern ? frozenCase13.payload : { rowId: r1 })), ['22023'], 'tjanst_joint_already');
+  if (await d28Installed(tx)) {
+    // D-28 (05.1-26), uttryckligt ändrad förväntan: blandgrupp med olika lärare (tidigare godkänd) nekas nu utan delresultat.
+    const frozenMixed = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: null, name: 'Blandgrupp', rowIds: [m1, m7b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }, { personId: p2.personId, ht: 600, vt: 600 }] } }) : null;
+    await deny(tx, report, 'blandgrupp med olika lärare nekas enligt D-28 (tidigare godkänd)', async t => send(t, await planCommand(A, Y, 'save_joint', d.revision, frozenMixed.payload)), ['22023'], 'tjanst_joint_teacher_mismatch');
+  } else {
   await tx.savepoint(async t => {
     const mixed = await send(t, await planCommand(A, Y, 'save_joint', d.revision, modern ? (await capturePlanContext(t, { unitId: A, schoolYear: Y, action: 'save_joint', payload: { jointId: null, name: 'Blandgrupp', rowIds: [m1, m7b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }, { personId: p2.personId, ht: 600, vt: 600 }] } })).payload : { jointId: null, name: 'Blandgrupp', rowIds: [m1, m7b], teachers: [{ personId: p1.personId, ht: 1350, vt: 1350 }, { personId: p2.personId, ht: 600, vt: 600 }] }));
     assert.equal(mixed.detail.joints.length, 2);
@@ -404,6 +410,7 @@ async function jointMatrix(tx, report, f) {
     throw rollback;
   }).catch(e => { if (e !== rollback) throw e; });
   check(report, 'blandgrupp mellan två kurser i två klasser godkänns; upplösning behåller radernas egen tid');
+  }
   // Specialuppdrag: programansvar utan grupp och mentor med klass.
   const frozenCase14 = modern ? await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'save_special', payload: { specialId: null, kind: 'programansvar', label: 'Programansvar', personId: p1.personId, classId: f.classes.group, ht: 600, vt: 600, comment: '' } }) : null;
   await deny(tx, report, 'specialuppdrag annat än mentor med klass nekas', async t => send(t, await planCommand(A, Y, 'save_special', d.revision, modern ? frozenCase14.payload : { specialId: null, kind: 'programansvar', label: 'Programansvar', personId: p1.personId, classId: f.classes.group, ht: 600, vt: 600, comment: '' })), ['22023'], 'tjanst_invalid');
