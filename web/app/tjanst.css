@@ -12,6 +12,8 @@
 .tjanst select,.tjanst-dialog select,.tjanst-dialog input,.tjanst-dialog textarea{min-height:44px;font-size:16px;border:1px solid var(--muted-foreground);border-radius:var(--radius);padding:8px 10px;background:var(--card);color:var(--foreground);max-width:100%}
 .tjanst-badge{height:auto;min-height:28px;padding:4px 8px;gap:8px;font-size:14px;font-weight:500;white-space:normal;color:var(--foreground);border-color:var(--muted-foreground);background:var(--card)}
 .tjanst-badge>svg{width:16px!important;height:16px!important}
+.tjanst-nowrap{white-space:nowrap}
+.tjanst-badge-warning{background:#fff8e9;border-color:#b45309}
 .tjanst .tjanst-status{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 24px}
 .tjanst-status-main,.tjanst-status-side{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-width:0}
 .tjanst-status-side{justify-content:flex-end}

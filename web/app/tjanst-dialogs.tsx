@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial, type TjanstSpecialKind } from '@/lib/tjanst-contract.ts';
 import type { TjanstYearCandidate, TjanstYearChoice, TjanstYearCommand, TjanstYearRowReply } from '@/lib/tjanst-year-contract.ts';
 import { createYearRowEditor, selectYearTeacher, yearRowSavePayload, type TjanstYearRowEditor } from '@/lib/tjanst-year-model.ts';
+import { mixedTeachers } from '@/lib/tjanst-model.ts';
 import TjanstTeacherPicker from './tjanst-teacher-picker';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import MfaStepUpNotice from './mfa-step-up';
@@ -202,7 +203,10 @@ export function TjanstJointDialog(props: JointProps) {
   const parsed = people.map(p => ({ personId: p, ht: parseHours(times[p]?.ht ?? ''), vt: parseHours(times[p]?.vt ?? '') }));
   const group = parsed.reduce((sum, t) => ({ ht: sum.ht + ('minutes' in t.ht ? t.ht.minutes : 0), vt: sum.vt + ('minutes' in t.vt ? t.vt.minutes : 0) }), { ht: 0, vt: 0 });
   const classes = [...new Set(rows.map(r => r.classId))];
+  // D-28: samma lärare på alla rader, eller bara vakanta rader.
+  const mixed = mixedTeachers(rows);
   function submit() {
+    if (mixed) return;
     const next: Record<string, string> = {};
     if (!name.trim()) next.name = 'Ange benämning.';
     for (const t of parsed) {
@@ -222,6 +226,7 @@ export function TjanstJointDialog(props: JointProps) {
     <form className="protected-form tjanst-form" onSubmit={event => { event.preventDefault(); submit(); }}>
       <fieldset disabled={busy || disabled}>
         <Field id={`${id}-name`} label="Namn" error={errors.name}><input {...described(`${id}-name`, errors.name)} maxLength={200} value={name} onChange={e => setName(e.target.value)}/></Field>
+        {mixed && <div role="alert" className="validation-warning"><p>En samläsning ska ha samma lärare för alla klasser. De markerade raderna har olika lärare. Byt lärare på raderna eller använd Flytta uppdrag först. Två lärare i samma grupp hanteras inte som samläsning.</p></div>}
         {people.length === 0 && <p>Raderna saknar lärare. Gruppen sparas utan lärartid.</p>}
         {people.map(p => <fieldset key={p} className="tjanst-person-time"><legend>Lärartid för gruppen · {teacherName(data, p)}</legend>
           <Field id={`${id}-${p}-ht`} label="HT (timmar)" error={errors[`${p}-ht`]}><input {...described(`${id}-${p}-ht`, errors[`${p}-ht`])} inputMode="decimal" value={times[p]?.ht ?? ''} onChange={e => setTimes(t => ({ ...t, [p]: { ...t[p], ht: e.target.value } }))}/></Field>
@@ -234,7 +239,7 @@ export function TjanstJointDialog(props: JointProps) {
         return <li key={c}>{data.classes.find(x => x.classId === c)?.name}: {coverageText(group.ht + group.vt, need)}</li>;
       })}</ul></section>
       <div className="mandate-actions">
-        <Button type="submit" disabled={busy || disabled}>{busy ? 'Sparar…' : 'Spara samläsningen'}</Button>
+        <Button type="submit" disabled={busy || disabled || mixed}>{busy ? 'Sparar…' : 'Spara samläsningen'}</Button>
         <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Stäng utan att spara</Button>
       </div>
     </form>

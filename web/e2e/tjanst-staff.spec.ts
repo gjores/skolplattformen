@@ -505,6 +505,9 @@ test.describe('Bemanning',()=>{
   // Skola B saknar publicerad version: raden visar texten men har ingen knapp.
   const rowB=phone(info)?page.locator('.bemanning ul.tjanst-cards li').filter({hasText:SCHOOL_B}):page.locator('table.bemanning-table').getByRole('row').filter({hasText:SCHOOL_B});
   await expect(rowB).toContainText('Ingen publicerad version');
+  // 05.1-26: publiceringsdatumet bryts inte vid bindestrecket.
+  const rowA=phone(info)?page.locator('.bemanning ul.tjanst-cards li').filter({hasText:SCHOOL_A}):page.locator('table.bemanning-table').getByRole('row').filter({hasText:SCHOOL_A});
+  await expect(rowA.locator('.tjanst-nowrap')).toHaveText(/^\d{4}-\d\d-\d\d$/u);await expect(rowA.locator('.tjanst-nowrap')).toHaveCSS('white-space','nowrap');
   await expect(page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_B}`})).toHaveCount(0);
   await page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_A}`}).locator('visible=true').click();
   await expect(heading(page,'Tjänstefördelning')).toBeVisible();

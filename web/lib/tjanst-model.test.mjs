@@ -136,3 +136,16 @@ test('60 + 40 ger dutyPercent 60/40 utan avrundning och hela minuter visas med d
   assert.equal(formatHours(h(45)), '45 h');
   assert.deepEqual([60, 40].map(p => p), [60, 40]);
 });
+
+test('D-28: mixedTeachers och jointHasMixedTeachers', async () => {
+  const { mixedTeachers, jointHasMixedTeachers } = await import('./tjanst-model.ts');
+  const r = (id, personId, jointGroupId = 'g') => ({ id, personId, jointGroupId });
+  assert.equal(mixedTeachers([r('1', 'a'), r('2', 'a')]), false);
+  assert.equal(mixedTeachers([r('1', null), r('2', null)]), false);
+  assert.equal(mixedTeachers([r('1', 'a'), r('2', 'b')]), true);
+  assert.equal(mixedTeachers([r('1', 'a'), r('2', null)]), true);
+  const joint = { id: 'g', teachers: [{ personId: 'a', ht: 1, vt: 1 }] };
+  assert.equal(jointHasMixedTeachers(joint, [r('1', 'a'), r('2', 'a'), r('3', 'b', 'other')]), false);
+  assert.equal(jointHasMixedTeachers(joint, [r('1', 'a'), r('2', 'b')]), true);
+  assert.equal(jointHasMixedTeachers({ ...joint, teachers: [...joint.teachers, { personId: 'b', ht: 1, vt: 1 }] }, [r('1', 'a'), r('2', 'a')]), true);
+});

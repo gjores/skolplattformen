@@ -87,14 +87,14 @@ function Workspace({ context, epoch, schoolYear, onSessionLost }: BemanningWorks
           <TableHead scope="col" className="tjanst-num">Koppling saknas</TableHead><TableHead scope="col"><span className="sr-only">Åtgärd</span></TableHead></TableRow></TableHeader>
         <TableBody>{units.map(u => <TableRow key={u.unitId}>
           <TableHead scope="row" className="tjanst-text">{u.schoolName}</TableHead>
-          <TableCell>{u.published ? `Publicerad version ${u.published.versionNo}, ${dateText(u.published.publishedAt)}` : 'Ingen publicerad version'}</TableCell>
+          <TableCell>{u.published ? <>Publicerad version {u.published.versionNo}, <span className="tjanst-nowrap">{dateText(u.published.publishedAt)}</span></> : 'Ingen publicerad version'}</TableCell>
           <TableCell className="tjanst-num">{time(u.sums?.teaching)}</TableCell><TableCell className="tjanst-num">{time(u.sums?.special)}</TableCell>
           <TableCell className="tjanst-num">{time(u.sums?.vacant)}</TableCell><TableCell className="tjanst-num">{time(u.sums?.unallocated)}</TableCell>
           <TableCell className="tjanst-num">{u.sums ? u.sums.unlinkedClasses === 1 ? '1 klass' : `${u.sums.unlinkedClasses} klasser` : '–'}</TableCell>
           <TableCell>{u.published && <Button variant="outline" data-staffing-open={u.unitId} aria-label={`Visa fördelningen för ${u.schoolName}`} onClick={() => { opener.current = u.unitId; setOpen(u); }}>Visa fördelningen</Button>}</TableCell>
         </TableRow>)}</TableBody></Table>
       <ul className="tjanst-cards">{units.map(u => <li key={u.unitId} className="protected-card">
-        <strong>{u.schoolName}</strong><span>{u.published ? `Publicerad version ${u.published.versionNo}, ${dateText(u.published.publishedAt)}` : 'Ingen publicerad version'}</span>
+        <strong>{u.schoolName}</strong><span>{u.published ? <>Publicerad version {u.published.versionNo}, <span className="tjanst-nowrap">{dateText(u.published.publishedAt)}</span></> : 'Ingen publicerad version'}</span>
         {u.sums && <><span>Undervisning {time(u.sums.teaching)} · Specialuppdrag {time(u.sums.special)}</span><span>Vakant tid {time(u.sums.vacant)} · Ej fördelad tid {time(u.sums.unallocated)}</span>
           <span>Koppling saknas: {u.sums.unlinkedClasses === 1 ? '1 klass' : `${u.sums.unlinkedClasses} klasser`}</span></>}
         {u.published && <Button variant="outline" data-staffing-open={u.unitId} aria-label={`Visa fördelningen för ${u.schoolName}`} onClick={() => { opener.current = u.unitId; setOpen(u); }}>Visa fördelningen</Button>}

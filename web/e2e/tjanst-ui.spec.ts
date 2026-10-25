@@ -53,8 +53,12 @@ test.describe('dator',()=>{
   const group=matrix(page).locator('tbody').filter({has:page.getByRole('rowheader',{name:'NA26B · koppling saknas'})});
   await expect(group).toContainText('Klassen har ingen timplan för läsåret 26/27. Behovet är okänt, inte noll.');
   await expect(group).not.toContainText(/\b0 h\b/);
-  await group.getByRole('button',{name:'Öppna klasskopplingar'}).click();
+  // 05.1-26: skolformen för en okopplad klass framgår inte; användaren väljer gymnasiet eller GR/IM uttryckligen.
+  await group.getByRole('button',{name:'Klasskopplingar för gymnasiet'}).click();
   expect(await page.evaluate(()=>window.__tjanst.openedLinks)).toBe(1);
+  expect(await page.evaluate(()=>window.__tjanst.openedLinkForms)).toEqual(['gymnasium']);
+  await group.getByRole('button',{name:'Klasskopplingar för GR och IM'}).click();
+  expect(await page.evaluate(()=>window.__tjanst.openedLinkForms)).toEqual(['gymnasium','grundskola']);
   // Skolans behov räknar bara kopplade klasser: 300 + 200 + 144 h.
   await expect(matrix(page).locator('tfoot tr').first().locator('td').first()).toHaveText('644 h');
   await ws(page).getByRole('tab',{name:'Per klass'}).click();await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'NA26B'});
@@ -75,6 +79,38 @@ test.describe('dator',()=>{
   expect(await page.evaluate(()=>window.__tjanst.fail['plan/kommando']?.length??0)).toBe(0);
   await confirm.getByRole('button',{name:'Behåll raden'}).click();
   await expect(matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'})).toBeVisible();
+ });
+
+ test('D-28: samläsning med olika lärare spärras i dialogen och skickar inget',async({page})=>{
+  await open(page);
+  await ws(page).getByRole('tab',{name:'Per kurs/ämne'}).click();
+  const course=ws(page).getByRole('region',{name:'Per kurs/ämne'});
+  await course.getByRole('checkbox',{name:'Markera Engelska 5 TE26A, Bertil Berg'}).check();
+  await course.getByRole('checkbox',{name:'Markera Matematik 1b EK26, Anna Andersson'}).check();
+  await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
+  const dialog=page.getByRole('dialog');
+  await expect(dialog.getByRole('alert')).toContainText('En samläsning ska ha samma lärare för alla klasser. De markerade raderna har olika lärare.');
+  await expect(dialog.getByRole('button',{name:'Spara samläsningen'})).toBeDisabled();
+  expect((await commands(page)).filter(c=>c.body.action==='save_joint')).toEqual([]);
+ });
+
+ test('D-28: äldre samläsning med flera lärare märks i matrisen',async({page})=>{
+  await open(page,'?data=samlasning');
+  const svenska=matrix(page).locator('tbody').filter({has:page.getByRole('rowheader',{name:/^TE26A ·/})}).getByRole('row').filter({has:page.getByRole('rowheader',{name:/^Svenska 1/})});
+  await expect(svenska.getByText('Samläsning · olika lärare')).toBeVisible();
+ });
+
+ test('fokus återgår till cellen när omläsningen efter sparning är fördröjd (09f5214)',async({page})=>{
+  await open(page);
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
+  await page.evaluate(()=>window.__tjanst.holdNext('plan/lasa'));
+  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await expect(ws(page)).toHaveAttribute('aria-busy','true');
+  await page.waitForTimeout(150);
+  await page.evaluate(()=>window.__tjanst.release());
+  await expect(ws(page)).toHaveAttribute('aria-busy','false');
+  await expect(matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: 100 h. Ändra.'})).toBeFocused();
  });
 
  test('WR-02: blockeraren joint_invalid visas i Fastställ och publicera och knappen är inaktiv',async({page})=>{
@@ -326,8 +362,8 @@ test.describe('dator',()=>{
   await expect(ws(page).getByText('Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.')).toBeVisible();
   await expect(matrix(page).getByRole('button',{name:'Vakant, Matematik 1c, TE26A: ingen tid. Tilldela.'})).toBeVisible();
   await open(page,'?data=utan-klasser');
-  await expect(ws(page).getByText('Ingen klass på skolan har en timplan för läsåret 26/27. Koppla klasserna till timplaner först.')).toBeVisible();
-  await expect(ws(page).locator('.tjanst-state').getByRole('button',{name:'Öppna klasskopplingar'})).toBeVisible();
+  await expect(ws(page).getByText('Ingen klass på skolan har en timplan för läsåret 26/27. Koppla klasserna till timplaner först. En gymnasieklass behöver en koppling för varje läsår, även i årskurs 2 och 3.')).toBeVisible();
+  for(const name of ['Klasskopplingar för gymnasiet','Klasskopplingar för GR och IM'])await expect(ws(page).locator('.tjanst-state').getByRole('button',{name})).toBeVisible();
   await page.goto(url+'?skola=alla');
   await expect(ws(page).getByText('Välj en skola i planeringsvalet. En tjänstefördelning gäller en skola.')).toBeVisible();
   expect(await page.evaluate(()=>window.__tjanst.reads.length)).toBe(0);

@@ -5,7 +5,7 @@ import { Link2, Plus, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { TjanstClass, TjanstJoint, TjanstNeed, TjanstPlanRead, TjanstRow, TjanstTeacher } from '@/lib/tjanst-contract.ts';
-import { coverage, teacherSums, type TjanstCoverage } from '@/lib/tjanst-model.ts';
+import { coverage, jointHasMixedTeachers, teacherSums, type TjanstCoverage } from '@/lib/tjanst-model.ts';
 import { formatDeviation, formatTime, needValue, TERM_LABEL, termValue, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 
 /** En behovsrad (kurs × klass) med sina tjänsterader och täckningen enligt tjanst-model (samläsning räknas en gång). */
@@ -21,6 +21,14 @@ export const sortTeachers = (teachers: TjanstTeacher[]) => [...teachers].sort((a
 /** Ämnet härleds ur kursnamnet före nivåsiffran ("Matematik 1c" → "Matematik"). Kontraktet har inget eget ämnesfält (Claudes val). */
 /** Ämnet i en behovsrad: Gy25 "Ämne – Nivå 1" (05.1-09), annars kursnamnet utan nivåsiffra ("Matematik 1c" → "Matematik"). */
 export const subjectOf = (label: string) => label.includes(' – ') ? label.slice(0, label.indexOf(' – ')) : /^(.*?)(?:\s+\d.*)?$/u.exec(label)?.[1] || label;
+/** Klasskoppling per skolform. Skolformen för en okopplad klass framgår inte av fördelningen; användaren väljer uttryckligen. */
+export type TjanstOpenClassLinks = (schoolform: 'gymnasium' | 'grundskola') => void;
+export function TjanstClassLinkButtons({ onOpen }: { onOpen: TjanstOpenClassLinks }) {
+  return <div className="mandate-actions tjanst-class-link-actions">
+    <Button variant="outline" onClick={() => onOpen('gymnasium')}>Klasskopplingar för gymnasiet</Button>
+    <Button variant="outline" onClick={() => onOpen('grundskola')}>Klasskopplingar för GR och IM</Button>
+  </div>;
+}
 export const jointOf = (row: TjanstRow, joints: TjanstJoint[]) => row.jointGroupId === null ? null : joints.find(j => j.id === row.jointGroupId) ?? null;
 /** Lärarens tid på raden: i en samläsning gruppens tid för läraren, annars radens egen tid. */
 export function rowTime(row: TjanstRow, joints: TjanstJoint[]): { ht: number; vt: number } {
@@ -60,7 +68,7 @@ export function coverageText(covered: number, need: number | null): string {
 }
 
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
-  onCell: (target: TjanstCellTarget, origin: HTMLElement) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: () => void };
+  onCell: (target: TjanstCellTarget, origin: HTMLElement) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks };
 
 export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks }: Props) {
   const [active, setActive] = useState({ r: 0, c: 0 });
@@ -102,7 +110,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
         if (!g.cls.link) return <tbody key={g.cls.classId}>
           <tr className="tjanst-class-row"><th scope="rowgroup" colSpan={totalColumns} aria-label={`${g.cls.name} · koppling saknas`}><div className="tjanst-class-heading"><span>{g.cls.name} · koppling saknas</span></div></th></tr>
           <tr className="tjanst-missing"><td colSpan={totalColumns}><div className="tjanst-missing-body"><span>Klassen har ingen timplan för läsåret {yearLabel(data.schoolYear)}. Behovet är okänt, inte noll.</span>
-            {onOpenClassLinks && <Button variant="outline" onClick={onOpenClassLinks}>Öppna klasskopplingar</Button>}</div></td></tr>
+            {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div></td></tr>
         </tbody>;
         return <tbody key={g.cls.classId}>
           <tr className="tjanst-class-row"><th scope="rowgroup" colSpan={totalColumns} tabIndex={-1} data-class-heading={g.cls.classId} aria-label={`${g.cls.name} · ${g.cls.link.seriesName} version ${g.cls.link.timplanVersion}`}><div className="tjanst-class-heading"><span>{g.cls.name} · {g.cls.link.seriesName} version {g.cls.link.timplanVersion}</span><span>{classCoverage(g.entries, term, data.joints)}</span></div></th></tr>
@@ -123,7 +131,9 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
             };
             return <tr key={e.need.sourceKey}>
               <th scope="row" className="tjanst-first"><span className="tjanst-course">{e.need.label}</span><small>{code} · ämnesrad {e.need.label}</small>
-                {joined && <Badge variant="outline" className="tjanst-badge"><Link2 size={16} aria-hidden="true"/>Samläsning</Badge>}</th>
+                {joined && (e.rows.some(x => { const j = jointOf(x, data.joints); return !!j && jointHasMixedTeachers(j, data.rows); })
+                  ? <Badge variant="outline" className="tjanst-badge tjanst-badge-warning"><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</Badge>
+                  : <Badge variant="outline" className="tjanst-badge"><Link2 size={16} aria-hidden="true"/>Samläsning</Badge>)}</th>
               <td className="tjanst-num">{need === null ? 'Okänt' : time(need)}</td><td className="tjanst-num">{time(termValue(e.cov.covered, term))}</td>
               <td className={dev ? 'tjanst-num tjanst-deviation' : 'tjanst-num'}>{dev ? <span><TriangleAlert size={16} aria-hidden="true"/>{formatDeviation(dev)}</span> : null}</td>
               {teachers.map((t, c) => cell(c, t.personId))}{cell(teachers.length, null)}

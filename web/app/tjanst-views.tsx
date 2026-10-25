@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
 import { teacherSums } from '@/lib/tjanst-model.ts';
-import { classCoverage, entryDeviation, jointOf, rowTime, sortTeachers, subjectOf, type TjanstClassGroup } from './tjanst-matrix';
+import { classCoverage, entryDeviation, jointOf, rowTime, sortTeachers, subjectOf, TjanstClassLinkButtons, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
 import type { TjanstFeedback } from './tjanst-publish-panel';
 import { timeText } from './tjanst-publish-panel';
 import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_KIND_LABEL, termValue, yearLabel, type TjanstSummaryRow, type TjanstTermView } from './tjanst-service-summary';
@@ -20,7 +20,7 @@ const jointClasses = (data: TjanstPlanRead, joint: TjanstJoint, except: string) 
 
 /** Skärm 2. Kurser med alla lärare och täckning; okopplad klass visar bara texten om saknad koppling (D-04). */
 export function TjanstClassView({ data, groups, classId, term, onClass, onOpenClassLinks }: { data: TjanstPlanRead; groups: TjanstClassGroup[]; classId: string; term: TjanstTermView;
-  onClass: (classId: string) => void; onOpenClassLinks?: () => void }) {
+  onClass: (classId: string) => void; onOpenClassLinks?: TjanstOpenClassLinks }) {
   const id = useId(), group = groups.find(g => g.cls.classId === classId) ?? null;
   const teachersOf = (rows: TjanstRow[]) => rows.map(r => { const j = jointOf(r, data.joints), t = rowTime(r, data.joints);
     return { id: r.id, text: `${personName(data, r.personId)} · HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`, joint: j ? `Samläsning med ${jointClasses(data, j, r.classId).join(', ')}` : null }; });
@@ -29,7 +29,7 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
       <option value="" disabled>Välj klass</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
     {!group ? <p className="tjanst-empty-text">Välj en klass för att se hur kurserna är fördelade.</p> : !group.cls.link ? <div className="tjanst-missing-card">
       <h2>{group.cls.name} · koppling saknas</h2><p>Klassen har ingen timplan för läsåret {yearLabel(data.schoolYear)}. Behovet är okänt, inte noll.</p>
-      {onOpenClassLinks && <Button variant="outline" onClick={onOpenClassLinks}>Öppna klasskopplingar</Button>}</div> : <>
+      {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div> : <>
       <dl className="mandate-facts tjanst-facts">
         <div><dt>Timplan</dt><dd>{group.cls.link.seriesName} · version {group.cls.link.timplanVersion}</dd></div>
         <div><dt>Behov</dt><dd>{(() => { const n = group.entries.reduce<number | null>((sum, e) => { const v = needValue(e.need.needHt, e.need.needVt, term); return v === null ? sum : (sum ?? 0) + v; }, null); return n === null ? 'Okänt' : formatTime(n); })()}</dd></div>

@@ -79,6 +79,11 @@ function jointMap(joints: TjanstJoint[]): Map<string, TjanstJoint> {
   return map;
 }
 /** Samläst tid räknas en gång per grupp och lärare; kopplade raders egen tid ingår inte medan raden är kopplad. */
+/** D-28: en samläsning har samma lärare för alla rader, eller bara vakanta rader. Äldre blandade grupper visas, men skapas inte. */
+export function mixedTeachers(rows: TjanstRow[]): boolean { return new Set(rows.map(r => r.personId ?? 'vakant')).size > 1; }
+export function jointHasMixedTeachers(joint: TjanstJoint, rows: TjanstRow[]): boolean {
+  return joint.teachers.length > 1 || mixedTeachers(rows.filter(r => r.jointGroupId === joint.id));
+}
 export function teacherSums(personId: string, rows: TjanstRow[], specials: TjanstSpecial[], joints: TjanstJoint[]): TjanstTeacherSums {
   const joined = jointMap(joints);
   let teaching = zero(), special = zero();

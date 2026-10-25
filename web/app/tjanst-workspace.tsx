@@ -13,7 +13,7 @@ import TjanstYearDialog, { type TjanstYearBatchDraft } from './tjanst-year-dialo
 import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJournalError, type TjanstJournal, type TjanstJournalScope } from '@/lib/tjanst-journal.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
-import TjanstMatrix, { EMPTY_FILTER, filterGroups, jointOf, needEntries, sortTeachers, subjectOf, type TjanstCellTarget, type TjanstFilter } from './tjanst-matrix';
+import TjanstMatrix, { EMPTY_FILTER, filterGroups, jointOf, needEntries, sortTeachers, subjectOf, TjanstClassLinkButtons, type TjanstCellTarget, type TjanstFilter, type TjanstOpenClassLinks } from './tjanst-matrix';
 import { hereForStepUp, TjanstAddTeacherDialog, TjanstConfirmDialog, TjanstJointDialog, TjanstNewTeacherDialog, TjanstRowDialog, TjanstSpecialDialog,
   Problems, type TjanstPreparedChange, type TjanstFormCache, type TjanstFailure, type TjanstOutcome } from './tjanst-dialogs';
 import TjanstPublishPanel, { ackSummary, dateText, STATUS_LABEL, type TjanstFeedback } from './tjanst-publish-panel';
@@ -44,7 +44,7 @@ type Dialog =
 type ReadFailure = { text: string; clear: boolean; retry: boolean; correlationId: string | null };
 export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unitId: string | null; schoolYear: number;
   /** Krävs för skrivningar: journalen binds till inloggad identitet och uppdrag (tjanst-journal). */
-  identityKey?: string | null; feedback?: TjanstFeedback; onOpenClassLinks?: () => void; onSessionLost?: () => void;
+  identityKey?: string | null; feedback?: TjanstFeedback; onOpenClassLinks?: TjanstOpenClassLinks; onSessionLost?: () => void;
   /** Huvudmannens Visa fördelningen (Bemanning): skrivskyddad, utan åtgärdsrad, panel och beslutsknapp (D-01). */
   readOnly?: boolean;
   /** Versionen som läses först. Bemanning skickar skolans publicerade version, så att huvudmannen aldrig ser rektors utkast (WR-07). */
@@ -87,6 +87,7 @@ const REASONS: Record<string, string> = {
   tjanst_comment_too_long: 'Kommentaren får vara högst 2 000 tecken.', tjanst_joint_too_few: 'Markera minst två rader i minst två olika klasser.',
   // WR-02: en samläst rad behåller lärare och källa och kan inte tas bort så länge samläsningen finns.
   tjanst_joint_already: 'Raden ingår i en samläsning. Ändra eller lös upp samläsningen först.',
+  tjanst_joint_teacher_mismatch: 'En samläsning ska ha samma lärare för alla klasser. Byt lärare på raderna eller använd Flytta uppdrag först.',
 };
 type Op = 'write' | 'publish' | 'personal';
 const failed = (error: string, extra: Partial<TjanstFailure> = {}): TjanstFailure => ({ ok: false, error, ...extra });
@@ -122,7 +123,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   // och fokus skulle då gå förlorat (faktiskt prov 05.1-22). Målet ligger kvar tills läsningen är klar.
   const applyFocus = useCallback(() => {
     const target = pendingFocus.current;
-    if (!target || reading.current) return;
+    // Under ett pågående kommando ritas cellerna utan knappar (inte redigerbara); vänta så att rätt cell kan hittas igen.
+    if (!target || reading.current || running.current) return;
     const resolved = target.isConnected ? target : focusCell.current() ?? viewHeading.current;
     if (!resolved || resolved.closest('[inert]')) return;
     pendingFocus.current = null; resolved.focus();
@@ -159,7 +161,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   useEffect(() => { queueMicrotask(() => void load()); }, [load, readKey, term, filterKey]);
   const refresh = useCallback(() => setReadKey(n => n + 1), []);
   // readDone räknas upp efter varje avslutad läsning, även när loading true/false slås ihop i samma rendering.
-  useEffect(() => { if (!loading) requestAnimationFrame(applyFocus); }, [loading, readDone, applyFocus]);
+  useEffect(() => { if (!loading && !busy) requestAnimationFrame(applyFocus); }, [loading, readDone, busy, applyFocus]);
 
   // Ett osäkert sparförsök från en tidigare sidvisning kontrolleras med statuskvittot, aldrig med en ny skrivning.
   const recover = useCallback(async () => {
@@ -443,8 +445,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     {data && <div className="tjanst-content" inert={loading} aria-labelledby={headingId}>
       <h2 id={headingId} ref={viewHeading} tabIndex={-1} className="sr-only">{VIEWS.find(v => v.id === shownView)!.label}</h2>
       {empty && <p>{phone ? 'Inga uppdrag har ännu fördelats för läsåret. Här kan du läsa aktuellt underlag. Planeringen görs på dator.' : 'Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.'}</p>}
-      {!linked && shownView === 'matris' ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först.</p>
-        {onOpenClassLinks && <Button variant="outline" onClick={onOpenClassLinks}>Öppna klasskopplingar</Button>}</div>
+      {!linked && shownView === 'matris' ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först. En gymnasieklass behöver en koppling för varje läsår, även i årskurs 2 och 3.</p>
+        {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
           onCell={(target, from) => open({ kind: 'row', target }, from)}

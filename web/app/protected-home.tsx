@@ -731,10 +731,10 @@ function ProtectedShell() {
       ...(viewRef.current === 'tjanst' ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
-  function goToClassLinks(selection: TjanstPlanningSelection) {
+  function goToClassLinks(selection: TjanstPlanningSelection, schoolform: 'gymnasium' | 'grundskola') {
     if (!canNavigate()) return;
     const prior = planningFor('timplaner');
-    const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...prior.planning, schoolform: 'grundskola', unitId: selection.unitId, schoolYear: selection.schoolYear,
+    const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...prior.planning, schoolform, unitId: selection.unitId, schoolYear: selection.schoolYear,
       page: 1, selectionRevision: null } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
@@ -839,7 +839,7 @@ function ProtectedShell() {
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
-                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenClassLinks={() => goToClassLinks(selection)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'personal' && session.context!.function === 'huvudman' && <PersonalWorkspace context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               today={session.today} onSessionLost={clearSession}/>}
             {view === 'bemanning' && session.context!.function === 'huvudman' && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice={false}

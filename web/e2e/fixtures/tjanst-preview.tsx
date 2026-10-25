@@ -124,13 +124,13 @@ function read(u:Unit,versionId?:string):TjanstPlanRead{
 
 type Failure={status:number;code:string}|'lost'|'network';
 type Logged={path:string;body:any};
-type Control={commands:Logged[];reads:Logged[];fail:Record<string,Failure[]>;held:Record<string,number>;release:()=>void;mfaVerified:boolean;openedLinks:number;
+type Control={commands:Logged[];reads:Logged[];fail:Record<string,Failure[]>;held:Record<string,number>;release:()=>void;mfaVerified:boolean;openedLinks:number;openedLinkForms:string[];
  failNext:(route:string,failure:Failure)=>void;holdNext:(route:string)=>void;holdProduced:(route:string)=>void;produced:{id:number;route:string;body:unknown}[];releaseProduced:(id?:number)=>void;
  bump:(kind:'core'|'person'|'evidence',unitId?:string,year?:number,personId?:string)=>void;suggestionsUnavailable:(value:boolean,unitId?:string,year?:number)=>void;
  snapshotOf:(unitId?:string,year?:number)=>unknown;activeScope:{unitId:string|null;schoolYear:number;assignmentId:string;epoch:number}};
 declare global{interface Window{__tjanst:Control}}
 let releases:(()=>void)[]=[];const producedHolds:Record<string,number>={},producedReleases=new Map<number,()=>void>(),unavailable=new Set<string>();let sequence=0;
-const control:Control={commands:[],reads:[],fail:{},held:{},mfaVerified:false,openedLinks:0,produced:[],activeScope:{unitId:A,schoolYear:YEAR,assignmentId:tid(950),epoch:1},
+const control:Control={commands:[],reads:[],fail:{},held:{},mfaVerified:false,openedLinks:0,openedLinkForms:[],produced:[],activeScope:{unitId:A,schoolYear:YEAR,assignmentId:tid(950),epoch:1},
  release:()=>{const r=releases;releases=[];r.forEach(f=>f());},failNext:(route,failure)=>{(control.fail[route]??=[]).push(failure);},holdNext:route=>{control.held[route]=(control.held[route]??0)+1;},
  holdProduced:route=>{producedHolds[route]=(producedHolds[route]??0)+1;},releaseProduced:id=>{for(const [key,release]of producedReleases)if(id===undefined||id===key){producedReleases.delete(key);release();}},
  bump:(kind,unitId=control.activeScope.unitId??A,year=control.activeScope.schoolYear,personId=P.anna)=>{const u=units.get(scopeKey(unitId,year))!;if(kind==='person')people.find(p=>p.id===personId)!.revision++;else if(kind==='core')u.coreGeneration++;else u.evidenceGeneration++;},
@@ -260,6 +260,8 @@ async function apply(original:Unit,raw:unknown):Promise<Reply>{
   if(d.rows.some(r=>rowIds.includes(r.id)&&r.jointGroupId!==null&&r.jointGroupId!==jointId))fail('tjanst_joint_already');
   if(new Set(d.rows.filter(r=>rowIds.includes(r.id)).map(r=>r.classId)).size<2)fail('tjanst_joint_invalid');
   if(p.teachers.some((t:any)=>!d.rows.some(r=>rowIds.includes(r.id)&&r.personId===t.personId)))fail('tjanst_joint_invalid');
+  // D-28: samma lärare på alla rader, eller bara vakanta rader.
+  if(new Set(d.rows.filter(r=>rowIds.includes(r.id)).map(r=>r.personId??'vakant')).size>1)fail('tjanst_joint_teacher_mismatch');
   d.rows.forEach(r=>{if(r.jointGroupId===jointId)r.jointGroupId=null;if(rowIds.includes(r.id))r.jointGroupId=jointId;});
   const j=d.joints.find(j=>j.id===jointId),value={name:p.name,rowIds,teachers:p.teachers};if(j)Object.assign(j,value);else d.joints.push({id:jointId,lineageId:crypto.randomUUID(),...value});
  }else if(q.action==='dissolve_joint'){d.rows.forEach(r=>{if(r.jointGroupId===id(p.jointId))r.jointGroupId=null;});d.joints=d.joints.filter(j=>j.id!==id(p.jointId));}
@@ -320,7 +322,7 @@ function Harness(){
  const blocked=useHasUnsaved('navigation-block:'),unsaved=useHasUnsaved();useLayoutEffect(()=>{control.activeScope={unitId:unit,schoolYear:year,assignmentId:assignment,epoch};},[unit,year,assignment,epoch]);
  return <main id="workspace" lang="sv" style={{padding:'16px',maxWidth:'1800px',margin:'0 auto'}}>
   <div style={{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'16px'}}><button type="button" onClick={()=>setUnit(unit===B?A:B)}>Byt skola</button><button type="button" onClick={()=>setYear(year===2026?2027:2026)}>Byt läsår</button><button type="button" onClick={()=>{setKnownEpoch(epoch+1);setEpoch(epoch+1);setAssignment(assignment===tid(950)?tid(954):tid(950));}}>Byt uppdrag</button><button type="button" disabled={blocked}>Lämna arbetsytan</button><output data-unsaved={String(unsaved)}>{unsaved?'Osparat finns':''}</output></div>
-  <TjanstWorkspace context={context(unit,assignment)} epoch={epoch} unitId={unit} schoolYear={year} identityKey={KEY} feedback={feedback} onOpenClassLinks={()=>{control.openedLinks++;}} onSessionLost={()=>undefined}/>
+  <TjanstWorkspace context={context(unit,assignment)} epoch={epoch} unitId={unit} schoolYear={year} identityKey={KEY} feedback={feedback} onOpenClassLinks={form=>{control.openedLinks++;control.openedLinkForms.push(form);}} onSessionLost={()=>undefined}/>
  </main>;
 }
 createRoot(document.getElementById('root')!).render(<UnsavedChangesProvider><Harness/></UnsavedChangesProvider>);
