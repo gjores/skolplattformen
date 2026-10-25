@@ -268,3 +268,153 @@ test('gaplägets repetition gör aldrig commit: utan --apply en transaktion som 
   assert.deepEqual({ commits: db.state.commits, rollbacks: db.state.rollbacks, schema: db.state.schema, journal: db.state.journal }, { commits: 0, rollbacks: 1, schema: 'base', journal: 0 });
   assert.equal(report.committed, false); assert.equal(report.afterRehearsal.fingerprint, report.before.fingerprint);
 });
+
+// ---------- year: exact release evidence and isolated rehearsal ----------
+import { YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
+  assertYearTransition,requireYearEvidence,runOwnedYearRehearsal,runYearApply } from './apply-tjanst.mjs';
+import { randomUUID } from 'node:crypto';
+let auditSeq=0; // säkerhetsloggens id är heltal
+
+test('year CLI: explicit apply is distinct, visual evidence mandatory, legacy gap remains eight migrations',()=>{
+  assert.equal(parseArgs(['--stage','year','--sql-evidence','/private/tmp/y.json']).mode,'rehearsal');
+  assert.equal(parseArgs(['--stage','year','--sql-evidence','/private/tmp/y.json','--apply']).mode,'apply');
+  assert.throws(()=>parseArgs(['--stage','year','--collect-evidence','/private/tmp/y.json','--reports','/private/tmp/s.json','--actual','/private/tmp/a.json']),/visual-review/u);
+  assert.equal(parseArgs(['--stage','year','--collect-evidence','/private/tmp/y.json','--reports','/private/tmp/s.json','--actual','/private/tmp/a.json','--visual-review','/private/tmp/v.json']).visualReview,'/private/tmp/v.json');
+  assert.throws(()=>parseArgs(['--stage','gap','--sql-evidence','/private/tmp/y.json','--visual-review','/private/tmp/v.json']));
+  assert.equal(STAGES.gap.actualMigrations.length,8);assert.deepEqual(STAGES.year.migrations,YEAR_MIGRATIONS);assert.equal(YEAR_MIGRATIONS.length,4);
+});
+function yearStructures(){
+  const signatures=[...new Set([...WORKER_ENTRYPOINTS,...YEAR_REPLACED_FUNCTIONS])];
+  while(signatures.length<70)signatures.push('tjanst_existing_'+signatures.length+'()');
+  const before={tables:[{relname:'access_assignments',relkind:'r'}],columns:[{relname:'access_assignments',attname:'id'}],constraints:[],indexes:[],triggers:[],policies:[],
+    functions:signatures.map(s=>f(s,'old',WORKER_ENTRYPOINTS.includes(s)?'{postgres=X/postgres,skolplattform_worker=X/postgres}':'{postgres=X/postgres}'))};
+  const after=structuredClone(before);
+  after.functions=after.functions.map(v=>({...v,definition:YEAR_REPLACED_FUNCTIONS.includes(v.signature)?'new':v.definition}));
+  after.functions.push(...YEAR_NEW_FUNCTIONS.map(s=>f(s,'new',s==='tjanst_year_preview(jsonb)'?'{postgres=X/postgres,skolplattform_worker=X/postgres}':'{postgres=X/postgres}')));
+  return {before,after};
+}
+test('year structure permits exactly sixteen new, seven changed functions and no other objects',()=>{
+  const {before,after}=yearStructures();assert.equal(assertYearTransition(before,after).addedFunctions.length,16);
+  const changes=[...['tables','columns','constraints','indexes','triggers','policies'].map(key=>a=>a[key].push({unexpected:true})),
+    a=>{a.functions[0].owner='11';},a=>{a.functions[0].acl='{anon=X/postgres}';},a=>{a.functions[0].definition='unlisted';},
+    a=>a.functions.pop(),a=>a.functions.push(f('tjanst_unlisted()')),a=>{a.functions.at(-1).acl='{postgres=X/postgres,skolplattform_worker=X/postgres}';},
+    a=>{a.functions.at(-1).owner='11';},a=>{a.functions.find(v=>v.signature===YEAR_REPLACED_FUNCTIONS[0]).definition='old';},
+    a=>{a.functions.find(v=>v.signature==='tjanst_year_preview(jsonb)').acl='{postgres=X/postgres}';}];
+  for(const [i,change]of changes.entries()){const next=structuredClone(after);change(next);assert.throws(()=>assertYearTransition(before,next),undefined,'change '+i);}
+  assert.throws(()=>assertYearTransition(before,after,{functionCount:85}));
+  const rows={relations:[],functions:after.functions.flatMap(v=>['anon','authenticated','service_role','skolplattform_worker'].map(role=>({signature:v.signature,role,allowed:role==='skolplattform_worker'&&YEAR_ENTRYPOINTS.includes(v.signature),public_execute:false})))};
+  assert.equal(assertPrivate(rows,YEAR_ENTRYPOINTS).privateFunctions,73);
+  rows.functions.find(v=>v.signature==='tjanst_year_hash(text,jsonb)'&&v.role==='skolplattform_worker').allowed=true;
+  assert.throws(()=>assertPrivate(rows,YEAR_ENTRYPOINTS));
+});
+function yearEvidence(){
+  const H=sha('fixture'),revision='a'.repeat(40),projects=['desktop','desktop-small','phone','phone-small'],dimensions=[[1440,900],[1024,768],[390,664],[320,740]];
+  const actualMigrations=Object.fromEntries(STAGES.year.actualMigrations.map(p=>[p,sha(p)])),migrations=Object.fromEntries(YEAR_MIGRATIONS.map(p=>[p,sha(p)]));
+  const products={'web/app/a.ts':H},verification={'work/pilot/v.mjs':H};
+  const requiredCases=Object.fromEntries(projects.map((p,i)=>[p,Array.from({length:[51,13,10,9][i]},(_,n)=>p+'-case-'+n)]));
+  const artifact={fileCount:1,files:[{path:'worker.js',bytes:4,sha256:H}],sha256:H};
+  const a={kind:'tjanst-actual-api-browser',stage:'year',suiteVersion:'tjanst-year-actual-v1',status:'PASS',fullSuite:true,
+    sourceRevision:revision,build:{mode:'protected',revision},candidate:{revision,mark:{revision}},
+    sources:products,finalSources:products,verificationSources:verification,finalVerificationSources:verification,migrationSources:actualMigrations,finalMigrationSources:actualMigrations,
+    pendingMigrations:YEAR_MIGRATIONS,snapshot:{dataCopied:false,sourceFingerprint:H},baselineFingerprint:H,targetFingerprint:H,finalTargetFingerprint:H,targetUnchanged:true,
+    targetJournal:{read:'read only',installed:STAGES.year.prior.map(p=>p.split('/').at(-1).slice(0,14)),unknown:[],missing:YEAR_MIGRATIONS.map(p=>p.split('/').at(-1).slice(0,14)),
+      fingerprint:{sha256:H,count:100,columns:['version','name','statements']},installedSources:STAGES.year.prior.map(p=>({version:p.split('/').at(-1).slice(0,14),name:p.split('/').at(-1).slice(15,-4),statementCount:1,sha256:actualMigrations[p]}))},
+    installedFingerprint:H,finalFingerprint:H,grants:{workerExecute:[...YEAR_ENTRYPOINTS].sort(),workerExecuteCount:13,functionCount:86,closedFunctions:73,clientRoleExecute:[],tablePrivileges:[],publicTablePrivileges:[]},
+    oidcCleanup:{cleanup:'complete',expectedFixtures:4,fixtures:[],verifiedCallbacks:0},runtimeCleanup:{cleanup:'complete'},snapshotCleanup:{cleanup:'complete'},buildCopyRemoved:true,originalArtifactPreserved:true,
+    originalArtifact:artifact,finalOriginalArtifact:artifact,finalArtifact:artifact,runtime:{artifact},projects,requiredCases,playwright:{code:0},
+    playwrightOutcome:{stats:{unexpected:0,flaky:0},tests:projects.map(project=>({project,retries:0,status:'passed',expected:'passed'}))},notExecuted:[],checks:[],browserEvidence:{},browsers:{},foreignCanary:{},oidcEvidence:{},casesPerProject:{}};
+  a.finalTargetJournal=structuredClone(a.targetJournal);a.finalGrants=structuredClone(a.grants);
+  const files={},visual={kind:'tjanst-year-visual-review',status:'PASS',candidateRevision:revision,screenshots:[]};
+  for(const [i,p]of projects.entries()){
+    const browser={name:p.startsWith('phone')?'webkit':'chromium',version:'1',viewport:{width:dimensions[i][0],height:dimensions[i][1]}};
+    const canary={before:{sha256:H,customerId:randomUUID(),counts:{people:1,employments:1,duties:1,versions:1,specials:1}},unchanged:true};canary.after=structuredClone(canary.before);
+    const checks=requiredCases[p].map(name=>({case:name,ok:true}));a.checks.push(...checks.map(c=>({...c,project:p})));
+    const screenshot={file:p+'.png',sha256:sha('pixels')};files['/private/tmp/year/'+p+'.png']=Buffer.from('pixels');
+    visual.screenshots.push({path:'/private/tmp/year/'+p+'.png',sha256:screenshot.sha256,review:'approved'});
+    const result={status:'PASS',project:p,checks,errors:[],browser,foreignCanary:canary,screenshots:[screenshot]};
+    const path='/private/tmp/year/browser-'+p+'.json';files[path]=result;a.browserEvidence[p]={path,result,screenshotHashes:{[screenshot.file]:screenshot.sha256}};
+    a.browsers[p]=browser;a.foreignCanary[p]=canary;a.casesPerProject[p]={required:checks.length,passed:checks.length};
+    const roles=p==='desktop'?['hm','principalA','principalB','principalAB','admin','teacherSelf']:p==='desktop-small'?['hm','principalA','admin']:['hm','principalA','principalB','teacherSelf'];
+    const auth=roles.map(role=>{const id=randomUUID();return{id,role,status:'verified',stepUp:false,proof:{proofKind:'browser-return-and-server-audit',attemptId:id,callbackId:randomUUID(),auditId:String(++auditSeq),sessionId:randomUUID(),httpStatus:302}};});
+    const oidcPath='/private/tmp/year/oidc-'+p+'.json',oidc={status:'PASS',databaseClosed:true,cleanup:{cleanup:'complete',verifiedCallbacks:auth.length},proof:{cleanup:'complete',auth}};
+    files[oidcPath]=oidc;a.oidcEvidence[p]={path:oidcPath,requiredRoles:roles,result:oidc};
+    a.oidcCleanup.fixtures.push({project:p,cleanup:'complete',verifiedCallbacks:auth.length});a.oidcCleanup.verifiedCallbacks+=auth.length;
+  }
+  const sql=Object.fromEntries(YEAR_SQL_KINDS.map((kind,i)=>{const path='/private/tmp/year/sql-'+i+'.json';files[path]={kind,status:'PASS',mode:'schema-snapshot',requestedStage:'current',checks:[{ok:true}],database:{dataCopied:false,sourceFingerprint:H},cleanup:'complete',snapshotCleanup:{cleanup:'complete'},targetUnchanged:true,sources:{...actualMigrations,...verification},finalSources:{...actualMigrations,...verification},pendingMigrations:YEAR_MIGRATIONS};return[kind,{path}];}));
+  const context={baselineFingerprint:H,journalFingerprint:H,migrations,actualMigrations,products,verification,requiredCases,artifact,
+    sourceHash:p=>({...actualMigrations,...products,...verification})[p],commitHash:(_revision,p)=>({...actualMigrations,...products,...verification})[p]};
+  return {a,files,visual,sql,context};
+}
+function yearManifest(e){
+  const bytes=p=>Buffer.isBuffer(e.files[p])?e.files[p]:Buffer.from(JSON.stringify(e.files[p]));
+  for(const ref of [...Object.values(e.a.browserEvidence),...Object.values(e.a.oidcEvidence),...Object.values(e.sql)])ref.sha256=sha(bytes(ref.path));
+  e.files['/private/tmp/year/actual.json']=e.a;const actual={path:'/private/tmp/year/actual.json',sha256:sha(bytes('/private/tmp/year/actual.json'))};
+  e.visual.actualReportSha256=actual.sha256;e.files['/private/tmp/year/visual.json']=e.visual;
+  const manifest={kind:'tjanst-sql-evidence',schemaVersion:2,stage:'year',migrations:e.context.migrations,actualMigrations:e.context.actualMigrations,baselineFingerprint:e.context.baselineFingerprint,
+    sql:e.sql,actual,visualReview:{path:'/private/tmp/year/visual.json',sha256:sha(bytes('/private/tmp/year/visual.json'))}};
+  return {manifest,read:bytes};
+}
+test('year exact evidence accepts all four SQL reports, 83 actual cases, callbacks, images and artifact',()=>{
+  const e=yearEvidence(),m=yearManifest(e);const r=requireYearEvidence(m.manifest,m.read,e.context);assert.equal(r.actual.checks,83);assert.equal(Object.keys(r.sql).length,4);assert.equal(r.callbacks.length,4);
+});
+test('year rejects mismatched revisions, stale source/SQL/artifact, missing or duplicate cases, retries and unsafe cleanup/ACL',()=>{
+  const changes=[
+    e=>{e.a.sourceRevision='b'.repeat(40);},e=>{e.a.build.revision='b'.repeat(40);},e=>{e.a.candidate.mark.revision='b'.repeat(40);},
+    e=>{e.context.sourceHash=()=>sha('changed');},e=>{e.context.commitHash=()=>sha('other commit');},e=>{e.a.finalVerificationSources={};},
+    e=>{e.context.artifact={...e.context.artifact,sha256:sha('other build')};},e=>{e.a.finalOriginalArtifact={};},e=>{e.a.originalArtifactPreserved=false;},
+    e=>{e.a.fullSuite=false;},e=>{e.a.projects=e.a.projects.slice(0,3);},e=>{e.a.checks.pop();},e=>{e.a.browserEvidence.desktop.result.checks[1].case=e.a.browserEvidence.desktop.result.checks[0].case;},
+    e=>{e.a.requiredCases={};},e=>{e.a.playwrightOutcome.tests[0].retries=1;},e=>{e.a.playwrightOutcome.tests[0].status='skipped';},
+    e=>{e.a.grants.workerExecute.pop();},e=>{e.a.grants.functionCount=85;},e=>{e.a.grants.tablePrivileges=['tjanst_rows:authenticated'];},
+    e=>{e.a.runtimeCleanup.cleanup='failed';},e=>{e.a.buildCopyRemoved=false;},e=>{e.a.targetUnchanged=false;},e=>{e.a.finalTargetJournal.fingerprint.sha256=sha('changed');},
+    e=>{e.a.targetJournal.installedSources[0].sha256=sha('changed');},e=>{e.context.journalFingerprint=sha('changed');},
+    e=>{e.a.foreignCanary.phone.before.counts.people=0;e.a.foreignCanary.phone.after.counts.people=0;},e=>{e.a.browsers.phone.name='chromium';},
+    e=>{e.a.oidcEvidence.desktop.result.proof.auth[0].status='started';},e=>{e.a.oidcEvidence.desktop.result.proof.auth[0].stepUp=true;},
+    e=>{e.a.oidcEvidence.desktop.result.proof.auth[1].proof.auditId=e.a.oidcEvidence.desktop.result.proof.auth[0].proof.auditId;},
+    e=>{e.a.oidcCleanup.fixtures[0].verifiedCallbacks--;},e=>{e.visual.screenshots.pop();},e=>{e.visual.screenshots[0].review='pending';},
+    e=>{e.files['/private/tmp/year/desktop.png']=Buffer.from('different pixels');},
+    e=>{e.files[e.sql[YEAR_SQL_KINDS[0]].path].requestedStage='historical';},e=>{e.files[e.sql[YEAR_SQL_KINDS[1]].path].snapshotCleanup.cleanup='failed';},
+    e=>{e.files[e.sql[YEAR_SQL_KINDS[2]].path].sources={};},e=>{delete e.sql[YEAR_SQL_KINDS[3]];},
+  ];
+  for(const [i,change]of changes.entries()){const e=yearEvidence();change(e);const m=yearManifest(e);assert.throws(()=>requireYearEvidence(m.manifest,m.read,e.context),undefined,'tamper '+i);}
+  const e=yearEvidence(),m=yearManifest(e);m.manifest.actual.sha256=sha('wrong');assert.throws(()=>requireYearEvidence(m.manifest,m.read,e.context));
+});
+function ownedHarness(){
+  const db=fakeDb(),report={},events=[],target={fingerprint:'base',rows:{people:{count:5,hash:'unchanged'}},journal:['old']};
+  const args={report,readTarget:async()=>{events.push('read-only-target');return structuredClone(target);},
+    createSnapshot:async()=>{events.push('own-copy');return{db,provenance:{dataCopied:false,sourceFingerprint:'base',database:'named_timplan_'+'a'.repeat(32)},cleanup:async()=>{events.push('cleanup');return{cleanup:'complete'};}};},
+    seed:async()=>{events.push('synthetic-seed');db.state.journal=8;return{synthetic:true};},
+    preserve:async()=>({published:{count:1,hash:'pub'},mandates:{count:2,hash:'mandates'},rows:{people:{count:1,hash:'person'}},journalHash:String(db.state.journal)}),
+    structure:async()=>({schema:db.state.schema}),migrate:async()=>{db.state.schema='year';},checkInstalled:async()=>({afterFingerprint:'year'})};
+  return {db,report,args,events,target};
+}
+test('year rehearsal seeds its owned copy, rolls back DDL and journal, cleans up, never gets a writable target',async()=>{
+  const h=ownedHarness();await runOwnedYearRehearsal(h.args);assert.equal(h.report.committed,false);assert.equal(h.report.targetUnchanged,true);
+  assert.equal(h.db.state.schema,'base');assert.equal(h.db.state.journal,8);assert.equal(h.db.state.commits,1);assert.equal(h.db.state.rollbacks,1);
+  assert.deepEqual(h.events,['read-only-target','own-copy','synthetic-seed','cleanup','read-only-target']);assert.equal(h.report.preservation.rollback,true);
+});
+test('year cleanup and target recheck still happen after failure; empty copy, leaks and target drift fail',async()=>{
+  for(const fail of ['migrate','preserve','empty','drift']){
+    const h=ownedHarness();
+    if(fail==='migrate')h.args.migrate=async()=>{h.db.state.schema='half';throw Error('injected');};
+    if(fail==='preserve')h.args.preserve=async()=>({published:{count:1},mandates:{count:1},rows:{},journalHash:h.db.state.schema});
+    if(fail==='empty')h.args.preserve=async()=>({published:{count:0},mandates:{count:0},rows:{}});
+    if(fail==='drift')h.args.migrate=async()=>{h.db.state.schema='year';h.target.rows.people.hash='changed';};
+    await assert.rejects(runOwnedYearRehearsal(h.args));assert.ok(h.events.includes('cleanup'));assert.equal(h.events.at(-1),'read-only-target');assert.equal(h.db.state.schema,'base');
+  }
+});
+test('year apply opens a writable target only when explicitly requested and after rehearsal/evidence gates',async()=>{
+  let connects=0,validations=0;const db=fakeDb();
+  const report={targetUnchanged:true,preservation:{rollback:true},cleanup:{cleanup:'complete'},targetBefore:{columns:{},rows:{},invalidPublishedJoints:{groups:0}}};
+  const args={report,revalidate:async()=>{validations++;},connect:async()=>{connects++;db.end=async()=>{};return db;},install:async()=>{db.state.schema='year';return{afterFingerprint:'year'};},
+    readAfter:async()=>{throw Error('test must provide the expected installed journal');}};
+  await runYearApply({...args,mode:'rehearsal'});assert.equal(connects,0);assert.equal(validations,0);
+  await assert.rejects(runYearApply({...args,mode:'apply',report:{...report,cleanup:{cleanup:'failed'}}}));assert.equal(connects,0);
+  await assert.rejects(runYearApply({...args,mode:'apply',revalidate:async()=>{throw Error('artifact changed');}}),/artifact changed/u);assert.equal(connects,0);
+  // Inject real frozen source hashes for the exact twelve journal entries, without a database or target access.
+  const {currentMigrationSources}=await import('./apply-tjanst.mjs');
+  args.readAfter=async()=>({...report.targetBefore,fingerprint:'year',journal:STAGES.year.actualMigrations.map(p=>({version:p.split('/').at(-1).slice(0,14),sha256:currentMigrationSources([p])[p]}))});
+  await runYearApply({...args,mode:'apply'});assert.equal(connects,1);assert.equal(db.state.commits,1);assert.equal(report.committed,true);
+  const bad=fakeDb();bad.end=async()=>{};
+  await assert.rejects(runYearApply({...args,mode:'apply',connect:async()=>bad,install:async()=>{bad.state.schema='half';throw Error('rollback');}}),/rollback/u);
+  assert.equal(bad.state.commits,0);assert.equal(bad.state.schema,'base');
+});
