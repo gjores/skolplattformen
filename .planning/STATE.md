@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-24 — Beslut om konkret lokal installation"
+current_plan: "Användarprov etapp 2 (05.1-ETAPP-2-USER-TRIAL)"
 status: in_progress
-stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23: year-repetition PASS och RELEASE klar. Nästa är 24 (installationsbeslut). Ingen installation eller ändrad fasacceptans."
+stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-25"
 last_activity: 2026-10-25
 last_activity_desc: "Faktiskt prov av sammanhållen planering 83/83 PASS; två UI-fel rättade i 21; handbok uppdaterad."
@@ -14,17 +14,19 @@ progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 92
+  completed_plans: 94
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
-worker_status: tjanst_gap_local_delivery_health_pass
-worker_build_revision: 7d3148980e08314e717ced8e7d8ff9c48cf87458
+worker_status: tjanst_year_local_delivery_health_pass
+worker_build_revision: 1eb54671c36e42a5a460de00edef5a5213181dae
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-24/25 genomförda 2026-10-25 (lokal miljö):** Användaren svarade "Installera" för exakt kandidat 1eb5467 och suffixet 20261023100000–130000 ([24](phases/05.1-tjanstefordelning/05.1-24-SUMMARY.md)). [25](phases/05.1-tjanstefordelning/05.1-25-SUMMARY.md): `apply-tjanst --stage year --apply` gav PASS, committed=true. 97 tabeller, 92 mandat och publicering bevarades, 16 funktioner tillkom och 7 ersattes, 13 öppna ingångar, schemat b0e242f4 och IN-07 0. 3012 kör 1eb5467 från runtime/tjanst-build-1eb5467 med godkänd hälsokontroll. Återgång till 7d31489 väntas neka planskrivningar. Efterlägesprov mot det installerade schemat: 83/83 PASS. Nästa steg är användarprov enligt [provguiden](phases/05.1-tjanstefordelning/05.1-ETAPP-2-USER-TRIAL.md) med handboksreferenser. Inget mänskligt godkännande ännu.
 
 **Plan 05.1-23 genomförd 2026-10-25:** [Resultat](phases/05.1-tjanstefordelning/05.1-23-SUMMARY.md) och [leveransunderlag](phases/05.1-tjanstefordelning/05.1-ETAPP-2-RELEASE.md): `apply-tjanst.mjs --stage year` binder kandidat 1eb5467, det faktiska provet 83/83, nya SQL-rapporter (46/67/84/75 på frysta källor) och bildattest. Insamling och repetition gav PASS i egen schemakopia med återrullning, committed=false och oförändrat mål. IN-07 hittade 0. Den äldre appen 7d31489 väntas neka planskrivningar mot det nya schemat. Ingen installation. Nästa steg är 24, som kräver användarens uttryckliga ja.
 
