@@ -61,6 +61,10 @@ En smal, fäst lista över alla lärare (namn + summa), sorterbar och filtrerbar
 
 Vyn **Lärare × klass** med kurser i cellen passar för att granska ett ämneslag. Som en lins är den billig att lägga till.
 
+### Tillägg 2026-10-26: smart, förklarad lärarrekommendation
+
+Användaren vill att kandidatpanelen väger flera skäl: behörighet (05.4), har haft kursen eller ämnet tidigare, har klassen i andra ämnen, mentorskap, undervisar redan kursen i en annan klass (samläsning), och andel och giltighet. Varje skäl visas med källa, okänt skiljs från negativt, och inget tilldelas automatiskt. Se todo [smart-lararrekommendation-per-tjansterad](../todos/pending/2026-10-26-smart-lararrekommendation-per-tjansterad.md). Det gör fördelningsläget (2) och "fortsätt fjolårets tjänst" (3) betydligt starkare.
+
 ## Rekommendation
 
 1. **Nu (liten plan):** relevanta kolumner som standard, fästa lärare, kompakta kolumner och sparade linser i matrisen.
