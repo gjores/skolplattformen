@@ -1114,6 +1114,36 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     await ws(p).getByLabel('Lins',{exact:true}).selectOption('alla');await matrix(p).getByRole('button',{name:`Lossa ${other.displayName}`,exact:true}).click();await expect(heads).toHaveCount(relevant.size);
     await ws(p).getByRole('button',{name:'Rensa filter'}).first().click();
     yearPass(24,{subject,relevant:relevant.size,total,pinnedAfterReload:true,lens:'ofordelat'});
+    // YEAR-25 (05.1-30): Fördela. Förslagsval och manuellt val sparas direkt (D-29) genom riktig Worker; inaktuellt underlag nekas och läses om.
+    await ws(p).getByRole('tab',{name:'Fördela'}).click();
+    const view25=ws(p).getByRole('region',{name:'Fördela'}),queue25=view25.getByRole('list',{name:'Ofördelade behov'}),cands=view25.getByRole('list',{name:'Lärare att välja'});
+    const labels25=await queue25.getByRole('button').allTextContents();expect(labels25.length).toBeGreaterThanOrEqual(2);
+    const before25=await currentPlan(p);let suggestedLabel='';
+    for(const label of labels25){await queue25.getByRole('button',{name:label,exact:true}).click();await expect(view25.getByRole('heading',{name:label,exact:true})).toBeVisible();
+      await expect(view25.getByText(/^(Förslag utifrån tidigare planering|Inga tidigare planeringsförslag|Förslagen kunde inte hämtas)$/u)).toBeVisible();
+      if(await cands.getByText(/^Förslag: /u).count()){suggestedLabel=label;break;}}
+    expect(suggestedLabel).not.toBe('');
+    // Märkt extern ändring i egen kund: en annan rad sparas, så panelens underlag blir inaktuellt. Raden tas bort i slutet.
+    const ext25=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:rowPayload(year.bulk.needs[100],fullId,60,60)});
+    expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...ext25,commandId:crypto.randomUUID()}))).status).toBe(200);
+    const suggestedItem=cands.getByRole('listitem').filter({hasText:/Förslag: /u}).first();
+    await suggestedItem.getByRole('button').click();await expect(view25.getByRole('alert')).toContainText('Underlaget har ändrats');
+    await expect(cands.getByText(/^Förslag: /u).first()).toBeVisible();
+    const kommando=(page:Page)=>page.waitForRequest(r=>r.method()==='POST'&&new URL(r.url()).pathname==='/api/tjanst/plan/kommando');
+    let req25=kommando(p),res25=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));
+    await cands.getByRole('listitem').filter({hasText:/Förslag: /u}).first().getByRole('button').click();
+    const suggestionBody=(await req25).postDataJSON();expect((await res25).status()).toBe(200);expect(suggestionBody.payload.planningContext.choice.kind).toBe('suggestion');
+    await expect(view25.getByRole('heading',{name:suggestedLabel,exact:true})).toHaveCount(0);await expect(view25.getByRole('heading',{level:3})).toBeFocused();
+    const manualItem=cands.getByRole('listitem').filter({hasNotText:/Förslag: /u}).first();await expect(manualItem).toBeVisible();
+    const manualName=(await manualItem.getByRole('button').textContent())!.replace(/^Välj /u,'');
+    await view25.getByLabel('Sök lärare').fill(manualName);req25=kommando(p);res25=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));
+    await cands.getByRole('listitem').filter({hasNotText:/Förslag: /u}).filter({hasText:manualName}).first().getByRole('button').click();
+    const manualBody=(await req25).postDataJSON();expect((await res25).status()).toBe(200);expect(manualBody.payload.planningContext.choice.kind).toBe('manual');
+    const after25=await currentPlan(p),created25=after25.rows.filter(r=>!before25.rows.some(b=>b.id===r.id));expect(created25.length).toBe(3);
+    for(const row of created25){const del=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'delete_row',payload:{rowId:row.id}});
+      expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...del,commandId:crypto.randomUUID()}))).status).toBe(200);}
+    await capture(p,'year-allocation');await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();
+    yearPass(25,{suggestion:suggestionBody.payload.planningContext.choice.kind,manual:manualBody.payload.planningContext.choice.kind,staleRejectedThenRetried:true,cleanedRows:created25.length});
   }
   // Actual UI checks 100 needs, assigns only those, then proves the 101st remains blank.
   const bulkBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;

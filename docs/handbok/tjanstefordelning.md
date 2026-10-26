@@ -64,6 +64,25 @@ Behöver du en lärare som inte syns, välj cellen i kolumnen **Vakant** och sö
 
 Fästa lärare, kompakta kolumner och sparade linser sparas bara i den här webbläsaren, för ditt konto, skolan och läsåret. De följer inte med till en annan dator och syns inte för andra. Om webbläsaren inte sparar uppgifterna visas matrisen som standard.
 
+## Fördela: bemanna behov i följd
+
+Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov efter varandra.
+
+- **Kön** till vänster visar ofördelade behov: känt behov som inte är täckt för vald tid, eller en vakant rad. Okänt behov ingår inte. Du kan söka och gruppera per klass eller per ämne. Filtren och linsen ovanför gäller också här.
+- **Panelen** till höger visar det valda behovet:
+  - behov enligt timplanen och det som redan är fördelat
+  - förslag utifrån tidigare planering, med skäl och källa
+  - sökning bland alla lärare
+  - lärartid HT och VT, förifylld med det som återstår. Du kan ändra tiden innan du väljer.
+- För varje lärare visas egen andel på skolan, *Behörighetsunderlag saknas* och lärarens undervisning **nu** och **efter valet** (HT, VT och läsår). Summorna visar fördelad tid, inte ledig tid.
+- **Välj** sparar raden direkt, och kön går vidare till nästa behov. Ingen lärare är förvald. Ett behov som är delvis fördelat ligger kvar i kön tills det är täckt. Om behovet har en vakant rad ersätts den av valet.
+- **Tangentbord:** <kbd>↑</kbd> och <kbd>↓</kbd> byter behov, <kbd>1</kbd>–<kbd>9</kbd> väljer läraren med den siffran, <kbd>V</kbd> väljer Vakant, <kbd>N</kbd> hoppar över och <kbd>/</kbd> går till sökningen.
+- **Samma kurs i andra klasser** visas som information. **Visa alla klasser med kursen** öppnar Per kurs/ämne, där du kan koppla en samläsning.
+- Om någon annan har ändrat fördelningen under tiden visas *Underlaget har ändrats*. Dina tider finns kvar. Panelen hämtar aktuellt underlag, och sedan väljer du igen.
+- Vill du ändra en sparad rad gör du det i matrisen. Fördela har ingen egen ångra-funktion.
+
+På telefon visar Fördela en lista över ofördelade behov, utan val.
+
 ## Tjänsterad: lärartid och avvikelse
 
 Välj en cell i matrisen. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
@@ -163,7 +182,7 @@ Efter publiceringen kan lärare med Egen tjänst kvittera att de har läst tjän
 
 ## På telefon
 
-På telefon kan rektor och skoladministratör läsa fördelningen i vyerna Per lärare, Per klass, Specialuppdrag och Per kurs/ämne. Matris, redigering, flytt och massregistrering finns bara på dator. Linsväljaren finns i Per kurs/ämne. Fästa lärare och sparade linser finns bara på dator. **Publiceringsstatus** öppnar en läspanel utan publicerings- eller borttagningsknappar. Läraren läser och kvitterar sin publicerade tjänst i Min tjänst. Om fönstret blir smalare under pågående inmatning bevaras formuläret för återgång till datorläget; byt inte skola, läsår eller uppdrag för att fortsätta samma inmatning.
+På telefon kan rektor och skoladministratör läsa fördelningen i vyerna Per lärare, Per klass, Specialuppdrag och Per kurs/ämne. Matris, redigering, flytt och massregistrering finns bara på dator. Linsväljaren finns i Per kurs/ämne och Fördela. Fästa lärare och sparade linser finns bara på dator. Fördela visar på telefon bara en lista över ofördelade behov. **Publiceringsstatus** öppnar en läspanel utan publicerings- eller borttagningsknappar. Läraren läser och kvitterar sin publicerade tjänst i Min tjänst. Om fönstret blir smalare under pågående inmatning bevaras formuläret för återgång till datorläget; byt inte skola, läsår eller uppdrag för att fortsätta samma inmatning.
 
 ## Begränsningar
 
