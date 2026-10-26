@@ -276,7 +276,7 @@ test('GR- och IM-klass kopplas av rektor i Timplaner och syns med behov; okoppla
     {links,weeks:weeks.w,imHt:fmt(3*12*weeks.w.htSchoolDays),imVt:fmt(3*12*weeks.w.vtSchoolDays)});
   const loose=matrix(p).locator('tbody').filter({has:p.getByRole('rowheader',{name:'SYN9X · koppling saknas'})});
   await expect(loose).toContainText(`Klassen har ingen timplan för läsåret ${yy()}. Behovet är okänt, inte noll.`);
-  await expect(loose).not.toContainText(/\b0 h\b/u);await expect(loose.getByRole('button',{name:'Öppna klasskopplingar'})).toBeVisible();
+  await expect(loose).not.toContainText(/\b0 h\b/u);for(const name of ['Klasskopplingar för gymnasiet','Klasskopplingar för GR och IM'])await expect(loose.getByRole('button',{name})).toBeVisible();
   const sums=await db`select public.tjanst_needs(${seed.schools.A}::uuid,${seed.year}::int) n`;
   const looseNeeds=(sums[0].n as {classId:string;link:unknown;needs:unknown[]}[]).find(c=>c.classId===seed.grim.looseClassId);
   expect(looseNeeds).toMatchObject({link:null,needs:[]});
