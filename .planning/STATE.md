@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-29 — Matrislinser för många lärare (planerad)"
+current_plan: "05.1-29 genomförd — byte av 3012 väntar på ja; därefter 05.1-30"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-26"
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-29 genomförd 2026-10-26:** [Resultat](phases/05.1-tjanstefordelning/05.1-29-SUMMARY.md). Matrislinser: relevanta lärarkolumner, fästa lärare, kompakta kolumner, linserna Alla behov, Ofördelat och Samläsningar samt sparade linser i webbläsaren. Ingen SQL. Enhetstester 875/875, simulerat UI 234 PASS och faktiskt prov på 258ba2e PASS 86/86 (YEAR-24). Fokus efter sparning är stabiliserat. 3012 kör fortfarande 2da6f1e; byte kräver användarens ja. Därefter 05.1-30.
 
 **Planering 2026-10-26 (många lärare):** Användaren valde att bygga linser först och sedan fördelningsläget, och att fästa lärare och linser sparas i webbläsaren. Planerna är [05.1-29](phases/05.1-tjanstefordelning/05.1-29-PLAN.md) (relevanta kolumner, fästa lärare, kompakta kolumner och linser, utan SQL) och [05.1-30](phases/05.1-tjanstefordelning/05.1-30-PLAN.md) (vyn Fördela med kö och kandidatpanel, med befintliga förslagsskäl). Före 30 ska användaren bekräfta om ett direktval med siffra eller *Välj* räknas som aktivt val (D-25–D-27). Inget är byggt.
 
