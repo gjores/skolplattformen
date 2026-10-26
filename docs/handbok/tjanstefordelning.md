@@ -50,6 +50,20 @@ Filtren **Klass**, **Ämne** och **Lärare** samt **Visa bara avvikelser och sak
 
 Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Per kurs/ämne**. Kurserna jämförs med kurskod eller ämnesrad, inte bara namn. Därifrån kan du markera rader för en samläsning. **Rensa filter** visar alla kurser igen. Märket **Samläsning** på en rad, och *Samläsning med …* i **Per klass**, öppnar den aktuella samläsningen i **Per kurs/ämne**.
 
+### Lärarkolumner och linser
+
+Med många lärare visar matrisen som standard bara **relevanta lärare**: de som har tid på raderna som syns. Lärare utan undervisning, till exempel en nyss tillagd lärare eller en lärare med bara specialuppdrag, visas när inget filter är valt. Väljer du ämnet Engelska syns alltså bara engelsklärarna. Raden ovanför matrisen visar *Visar 5 av 40 lärare*.
+
+- **Visa alla lärare (40)** visar alla kolumner. **Visa relevanta lärare** går tillbaka.
+- **Fäst lärare:** en fäst lärare visas alltid. Du fäster med nålen i lärarens kolumnrubrik, eller med **Fäst lärare**, där du kan söka.
+- **Kompakta kolumner** visar initialer och lärarens totala tid. Hela namnet visas när du pekar på eller går till kolumnen.
+- **Lins:** **Alla behov**, **Ofördelat** (känt behov som inte är täckt för vald tid, eller en vakant rad) och **Samläsningar**. Linsen gäller tillsammans med övriga filter. Okänt behov räknas inte som ofördelat.
+- **Sparade linser:** spara aktuell lins, filter och kolumnval under ett namn. Med **Använd** visas linsen igen, och med **Ta bort lins** tas den bort.
+
+Behöver du en lärare som inte syns, välj cellen i kolumnen **Vakant** och sök läraren i dialogen, eller välj **Visa alla lärare**.
+
+Fästa lärare, kompakta kolumner och sparade linser sparas bara i den här webbläsaren, för ditt konto, skolan och läsåret. De följer inte med till en annan dator och syns inte för andra. Om webbläsaren inte sparar uppgifterna visas matrisen som standard.
+
 ## Tjänsterad: lärartid och avvikelse
 
 Välj en cell i matrisen. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
@@ -149,7 +163,7 @@ Efter publiceringen kan lärare med Egen tjänst kvittera att de har läst tjän
 
 ## På telefon
 
-På telefon kan rektor och skoladministratör läsa fördelningen i vyerna Per lärare, Per klass, Specialuppdrag och Per kurs/ämne. Matris, redigering, flytt och massregistrering finns bara på dator. **Publiceringsstatus** öppnar en läspanel utan publicerings- eller borttagningsknappar. Läraren läser och kvitterar sin publicerade tjänst i Min tjänst. Om fönstret blir smalare under pågående inmatning bevaras formuläret för återgång till datorläget; byt inte skola, läsår eller uppdrag för att fortsätta samma inmatning.
+På telefon kan rektor och skoladministratör läsa fördelningen i vyerna Per lärare, Per klass, Specialuppdrag och Per kurs/ämne. Matris, redigering, flytt och massregistrering finns bara på dator. Linsväljaren finns i Per kurs/ämne. Fästa lärare och sparade linser finns bara på dator. **Publiceringsstatus** öppnar en läspanel utan publicerings- eller borttagningsknappar. Läraren läser och kvitterar sin publicerade tjänst i Min tjänst. Om fönstret blir smalare under pågående inmatning bevaras formuläret för återgång till datorläget; byt inte skola, läsår eller uppdrag för att fortsätta samma inmatning.
 
 ## Begränsningar
 

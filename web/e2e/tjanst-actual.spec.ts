@@ -1093,6 +1093,27 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...remove23,commandId:crypto.randomUUID()}))).status).toBe(200);
     await p.reload();await settled(p);
     yearPass(23,{course:courseCodeOf(n1.rowKey),aplWithClass:bf.name,aplMinutes:bf.aplMinutes,withoutApl:hbf.name,joint:'Syntetisk årssamläsning'});
+    // YEAR-24 (05.1-29): relevanta kolumner följer ämnesfiltret, Visa alla, fäst lärare kvar efter omladdning och linsen Ofördelat.
+    await ws(p).getByRole('tab',{name:'Matris'}).click();
+    const plan24=await currentPlan(p),total=plan24.teachers.length,needs24=plan24.classes.flatMap(c=>c.needs);
+    const subj=(l:string)=>l.includes(' – ')?l.slice(0,l.indexOf(' – ')):/^(.*?)(?:\s+\d.*)?$/u.exec(l)?.[1]||l,subject=subj(year.joint.needs[0].label);
+    const subjectRows=plan24.rows.filter(r=>{const n=needs24.find(x=>x.sourceKey===r.sourceKey);return !!n&&subj(n.label)===subject;});
+    const relevant=new Set([...subjectRows.flatMap(r=>r.personId?[r.personId]:[]),...plan24.joints.filter(j=>subjectRows.some(r=>r.jointGroupId===j.id)).flatMap(j=>j.teachers.map(t=>t.personId))]);
+    const other=plan24.teachers.find(t=>!relevant.has(t.personId))!;expect(relevant.size).toBeGreaterThan(0);expect(other).toBeTruthy();
+    const heads=matrix(p).locator('thead th.tjanst-teacher');
+    await ws(p).getByLabel('Ämne').selectOption(subject);
+    await expect(heads).toHaveCount(relevant.size);await expect(ws(p).getByText(`Visar ${relevant.size} av ${total} lärare`)).toBeVisible();
+    await ws(p).getByRole('button',{name:`Visa alla lärare (${total})`}).click();await expect(heads).toHaveCount(total);
+    await ws(p).getByRole('button',{name:'Visa relevanta lärare'}).click();await expect(heads).toHaveCount(relevant.size);
+    await ws(p).getByText('Fäst lärare',{exact:true}).click();await ws(p).getByLabel('Sök lärare').fill(other.displayName);
+    await ws(p).getByRole('checkbox',{name:other.displayName,exact:true}).check();await expect(heads).toHaveCount(relevant.size+1);
+    await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();await ws(p).getByLabel('Ämne').selectOption(subject);
+    await expect(heads).toHaveCount(relevant.size+1);await expect(heads.filter({hasText:other.displayName})).toHaveCount(1);
+    await ws(p).getByLabel('Lins',{exact:true}).selectOption('ofordelat');await expect(ws(p).getByLabel('Lins',{exact:true})).toHaveValue('ofordelat');
+    await capture(p,'year-lens-unallocated');
+    await ws(p).getByLabel('Lins',{exact:true}).selectOption('alla');await matrix(p).getByRole('button',{name:`Lossa ${other.displayName}`,exact:true}).click();await expect(heads).toHaveCount(relevant.size);
+    await ws(p).getByRole('button',{name:'Rensa filter'}).first().click();
+    yearPass(24,{subject,relevant:relevant.size,total,pinnedAfterReload:true,lens:'ofordelat'});
   }
   // Actual UI checks 100 needs, assigns only those, then proves the 101st remains blank.
   const bulkBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;
