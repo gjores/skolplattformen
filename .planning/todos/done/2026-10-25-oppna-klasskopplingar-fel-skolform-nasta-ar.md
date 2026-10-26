@@ -25,3 +25,7 @@ Användaren lyckades inte tjänstefördela en klass ett år längre fram. Tjäns
 - Bevara explicita klass–timplanskopplingar och kopiering till nästa elevkull. Handbok (*Tjänstefördelning › Öppna fördelningen*, *Timplaner*). Pröva på dator och telefon.
 
 Registrerad som backlogg enligt användarens önskemål. Ingen ändring är gjord.
+
+## Löst 2026-10-26
+
+Åtgärdat i [05.1-26](../../phases/05.1-tjanstefordelning/05.1-26-SUMMARY.md) och provat med simulerat UI och faktiskt prov på kandidat 6b1a906. Ännu inte installerat på 3012.

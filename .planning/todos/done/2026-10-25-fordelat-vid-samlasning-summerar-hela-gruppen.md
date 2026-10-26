@@ -34,3 +34,7 @@ Läraren har alltså lagt ut precis behovet, men raden ser överfördelad ut med
 - Pröva på dator och telefon, och låt användaren bedöma vyn igen.
 
 Registrerad som backlogg enligt användarens önskemål under pågående användarprov. Ingen rättning eller verifiering är gjord med denna notering.
+
+## Löst 2026-10-26
+
+Åtgärdat i [05.1-26](../../phases/05.1-tjanstefordelning/05.1-26-SUMMARY.md) och provat med simulerat UI och faktiskt prov på kandidat 6b1a906. Ännu inte installerat på 3012.
