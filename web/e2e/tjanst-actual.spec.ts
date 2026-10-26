@@ -978,6 +978,7 @@ async function createCommand(unitId:string,schoolYear:number,action:string,expec
 type YearCases=Awaited<ReturnType<typeof seedTjanstYearCases>>;
 type Need={sourceKey:string;className:string;label:string;classId:string;rowKey:string};
 const scopeA=()=>({unitId:seed.schools.A,schoolYear:seed.year});
+const courseCodeOf=(rowKey:string)=>rowKey.replace(/^.*:/u,'');
 const rowPayload=(need:Need,personId:string|null,ht=60,vt=60,rowId:string|null=null)=>({rowId,sourceKind:'class_timplan' as const,sourceKey:need.sourceKey,personId,teacherHt:ht,teacherVt:vt,comment:''});
 async function yearRow(page:Page,role:string,need:Need,rowId:string|null=null){
   const q=parseYearRequest({...scopeA(),mode:'row',sourceKey:need.sourceKey,rowId});
@@ -1066,6 +1067,32 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...removeExtra,commandId:crypto.randomUUID()}))).status).toBe(200);
     await p.reload();await settled(p);
     yearPass(22,{denied:mixed.body.details.reason,dialogBlocked:true,legacyBlocker:'joint_mixed_teachers',publish:blocked.body.details.reason});
+    // YEAR-23 (05.1-27): kursklick, samläsningsmärke och APL-varning genom riktig Worker och läsning.
+    let plan23=await currentPlan(p);const bf=plan23.classes.find(c=>c.classId===seed.gy.classId)!,hbf=plan23.classes.find(c=>c.classId===year.gy25.classId)!;
+    expect(bf.aplMinutes).toBeGreaterThan(0);expect(hbf.aplMinutes).toBe(0);
+    const n1=bf.needs.find(n=>n.rowKey===year.gy25.rowKey)!,n2=hbf.needs.find(n=>n.rowKey===year.gy25.rowKey)!;expect(n1&&n2).toBeTruthy();
+    const extra23=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_row',choice:'manual',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:n1.sourceKey,personId:fullId,teacherHt:60,teacherVt:60,comment:''}});
+    expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...extra23,commandId:crypto.randomUUID()}))).status).toBe(200);
+    plan23=await currentPlan(p);const r1=plan23.rows.find(r=>r.sourceKey===n1.sourceKey&&r.personId===fullId)!,r2=plan23.rows.find(r=>r.sourceKey===n2.sourceKey&&r.personId===fullId&&r.jointGroupId===null)!;expect(r1&&r2).toBeTruthy();
+    await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();
+    const bfGroup=matrix(p).locator('tbody').filter({has:p.getByRole('rowheader',{name:new RegExp('^'+esc(bf.name)+' ·')})});
+    await bfGroup.getByRole('button',{name:n1.label,exact:true}).first().click();
+    await expect(ws(p).getByRole('tab',{name:'Per kurs/ämne'})).toHaveAttribute('aria-selected','true');
+    await expect(ws(p).getByText(`Visar alla klasser med kursen ${n1.label}.`,{exact:false})).toBeVisible();
+    const course23=ws(p).getByRole('region',{name:'Per kurs/ämne'});
+    for(const [need,cls] of [[n1,bf.name],[n2,hbf.name]] as const) await course23.getByRole('checkbox',{name:new RegExp('^Markera '+esc(need.label)+' '+esc(cls)+', Ylva Helår$')}).check();
+    await course23.getByRole('button',{name:'Koppla till samläsning…'}).click();const d23=p.getByRole('dialog');
+    await expect(d23.locator('.tjanst-warning')).toContainText(`${bf.name} har APL under läsåret, ${hbf.name} har ingen APL. Samläsningen kan inte schemaläggas tillsammans under APL-perioderna.`);
+    await expect(d23.getByRole('button',{name:'Spara samläsningen'})).toBeEnabled();await capture(p,'year-joint-apl-warning');
+    await d23.getByRole('button',{name:'Stäng utan att spara'}).click();
+    await ws(p).getByRole('button',{name:'Rensa filter'}).first().click();await ws(p).getByRole('tab',{name:'Matris'}).click();
+    const jointNeed=year.joint.needs[0],jointGroup=matrix(p).locator('tbody').filter({has:p.getByRole('rowheader',{name:new RegExp('^'+esc(jointNeed.className)+' ·')})});
+    await jointGroup.getByRole('row').filter({has:p.getByRole('rowheader',{name:new RegExp('^'+esc(jointNeed.label))})}).getByRole('button',{name:'Samläsning',exact:true}).click();
+    await expect(ws(p).getByRole('region',{name:'Samläsning: Syntetisk årssamläsning'})).toBeFocused();
+    const remove23=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'delete_row',payload:{rowId:r1.id}});
+    expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...remove23,commandId:crypto.randomUUID()}))).status).toBe(200);
+    await p.reload();await settled(p);
+    yearPass(23,{course:courseCodeOf(n1.rowKey),aplWithClass:bf.name,aplMinutes:bf.aplMinutes,withoutApl:hbf.name,joint:'Syntetisk årssamläsning'});
   }
   // Actual UI checks 100 needs, assigns only those, then proves the 101st remains blank.
   const bulkBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;

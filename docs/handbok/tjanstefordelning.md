@@ -48,6 +48,8 @@ En klass utan koppling visas som *KLASS · koppling saknas* och texten *Behovet 
 
 Filtren **Klass**, **Ämne** och **Lärare** samt **Visa bara avvikelser och saknade kopplingar** begränsar matrisen. Skola och läsår står inte i adressen.
 
+Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Per kurs/ämne**. Kurserna jämförs med kurskod eller ämnesrad, inte bara namn. Därifrån kan du markera rader för en samläsning. **Rensa filter** visar alla kurser igen. Märket **Samläsning** på en rad, och *Samläsning med …* i **Per klass**, öppnar den aktuella samläsningen i **Per kurs/ämne**.
+
 ## Tjänsterad: lärartid och avvikelse
 
 Välj en cell i matrisen. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
@@ -110,6 +112,8 @@ En samläsning är en undervisningsgrupp med elever från flera klasser.
 Lärartiden räknas en gång för läraren, och båda klasserna visas som täckta.
 
 En samläsning har en lärare för alla klasser. Har de markerade raderna olika lärare, eller både en lärare och vakant, visar dialogen det och **Spara samläsningen** är inaktiv. Byt lärare på raderna eller använd **Flytta uppdrag** först. Två lärare i samma grupp (flerlärarskap) hanteras inte som samläsning.
+
+Dialogen och samläsningens avsnitt i **Per kurs/ämne** varnar när timplanstiden skiljer sig mellan klasserna per termin, och när en klass har APL under läsåret men en annan inte har det. Då kan gruppen inte schemaläggas tillsammans under APL-perioderna. Om APL inte går att avgöra för en klass står det att APL är okänd. Varningarna är stöd för beslutet och hindrar inte att du sparar.
 
 En vanlig radändring i en samläsning behåller lärare och kurs. Använd **Flytta uppdrag** för en granskad flytt till en annan lärare. Vill du ändra kurs eller gruppens sammansättning, ändra eller lös upp samläsningen först. Tid och kommentar på raden ändrar du som vanligt.
 
