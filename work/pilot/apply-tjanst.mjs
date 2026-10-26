@@ -11,7 +11,8 @@
 // Repetition (rullas alltid tillbaka) respektive installation:
 //   node work/pilot/apply-tjanst.mjs --stage etapp1|gap --sql-evidence /private/tmp/tjanst-sql-evidence.json [--apply] [--out /private/tmp/x.json]
 //
-// Year: utan --apply körs DDL bara i en egen schema-only kopia med syntetiska bevaranderader.
+// 05.1-28: --stage trial (05.1-26/27, D-28 och APL per klass) använder samma strikta väg som year, med egna listor i RELEASES.
+// Year/trial: utan --apply körs DDL bara i en egen schema-only kopia med syntetiska bevaranderader.
 // Year --apply är en färdig installationsväg för separat konkret installationsbeslut; kör den aldrig som förberedelse.
 // Historiska etapp1/gap: utan --apply körs stegets migrationer i en transaktion som alltid rullas tillbaka.
 // --apply upprepar först samma repetition och installerar sedan i en egen transaktion med advisory lock,
@@ -96,7 +97,32 @@ export const STAGES = {
 STAGES.year = { migrations: YEAR_MIGRATIONS, prior: [...tjanstEtapp1Migrations, ...tjanstGapMigrations],
   actualMigrations: [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...YEAR_MIGRATIONS], newTables: [],
   replacedFunctions: YEAR_REPLACED_FUNCTIONS, constraintChanges: { removed: [], added: [] }, sqlKinds: YEAR_SQL_KINDS, functionTotal: true, selfLinks: true };
-const stageOf = name => { assert.ok(Object.hasOwn(STAGES, name ?? ''), '--stage etapp1|gap krävs (eller year för isolerad repetition)'); return STAGES[name]; };
+/** 05.1-28: rättelserna från användarprovet (05.1-26 D-28 och 05.1-27 APL per klass), installerade efter year. */
+export const TRIAL_MIGRATIONS = [
+  'supabase/migrations/20261026100000_tjanst_joint_single_teacher.sql',
+  'supabase/migrations/20261026110000_tjanst_class_apl.sql',
+];
+export const TRIAL_NEW_FUNCTIONS = ['tjanst_class_apl_minutes(jsonb)'];
+export const TRIAL_REPLACED_FUNCTIONS = ['tjanst_plan_save_joint(tjanst_distributions,jsonb)',
+  'tjanst_plan_blockers(access_assignments,tjanst_versions,uuid,integer,jsonb)', 'tjanst_plan_projection(access_assignments,uuid,integer,uuid)'];
+export const TRIAL_SQL_KINDS = ['tjanst-joint-teacher', 'tjanst-class-apl', ...YEAR_SQL_KINDS];
+STAGES.trial = { migrations: TRIAL_MIGRATIONS, prior: STAGES.year.actualMigrations, actualMigrations: [...STAGES.year.actualMigrations, ...TRIAL_MIGRATIONS],
+  newTables: [], replacedFunctions: TRIAL_REPLACED_FUNCTIONS, constraintChanges: { removed: [], added: [] }, sqlKinds: TRIAL_SQL_KINDS, functionTotal: true, selfLinks: true };
+/**
+ * Strikta leveranssteg efter etapp 2 (year, trial): samma grindar, egna objektlistor och antal.
+ * opened: nya funktioner som öppnas för Worker; uncheckedStage: SQL-sviter utan requestedStage.
+ */
+export const RELEASES = {
+  year: { stage: 'year', migrations: YEAR_MIGRATIONS, newFunctions: YEAR_NEW_FUNCTIONS, replacedFunctions: YEAR_REPLACED_FUNCTIONS,
+    opened: ['tjanst_year_preview(jsonb)'], functionCount: 86, privateFunctions: 73, sqlKinds: YEAR_SQL_KINDS,
+    uncheckedStage: ['tjanst-year-access'], caseCounts: [51, 13, 10, 9], checks: 83, journalCount: 12 },
+  trial: { stage: 'trial', migrations: TRIAL_MIGRATIONS, newFunctions: TRIAL_NEW_FUNCTIONS, replacedFunctions: TRIAL_REPLACED_FUNCTIONS,
+    opened: [], functionCount: 87, privateFunctions: 74, sqlKinds: TRIAL_SQL_KINDS,
+    uncheckedStage: ['tjanst-year-access', 'tjanst-joint-teacher', 'tjanst-class-apl'], caseCounts: [53, 13, 10, 9], checks: 85, journalCount: 14 },
+};
+for (const r of Object.values(RELEASES)) Object.assign(r, { prior: STAGES[r.stage].prior, actualMigrations: STAGES[r.stage].actualMigrations });
+const releaseOf = stage => { assert.ok(Object.hasOwn(RELEASES, stage)); return RELEASES[stage]; };
+const stageOf = name => { assert.ok(Object.hasOwn(STAGES, name ?? ''), '--stage etapp1|gap krävs (eller year|trial för isolerad repetition)'); return STAGES[name]; };
 const ROLES = ['anon', 'authenticated', 'service_role', 'skolplattform_worker'];
 const fn = s => s.replace(/^public\./u, '').replaceAll(', ', ',').replaceAll('public.', '');
 const isNewFunction = s => /^(tjanst|phase51)_/u.test(fn(s));
@@ -113,14 +139,15 @@ export function parseArgs(argv) {
     const v = argv[++i]; assert.ok(v && !v.startsWith('--'), a + ' saknar värde'); o[a] = v;
   }
   const stage = o['--stage']; stageOf(stage);
-  assert.ok(!o['--visual-review'] || (stage === 'year' && o['--collect-evidence']), '--visual-review hör bara till year --collect-evidence');
+  const release = Object.hasOwn(RELEASES, stage);
+  assert.ok(!o['--visual-review'] || (release && o['--collect-evidence']), '--visual-review hör bara till year|trial --collect-evidence');
   if (o['--collect-evidence']) {
     assert.ok(!o['--apply'] && !o['--sql-evidence'] && !o['--out'], '--collect-evidence kan inte kombineras med --apply, --sql-evidence eller --out');
-    if (stage === 'year') assert.ok(o['--visual-review'], 'year kräver --visual-review');
+    if (release) assert.ok(o['--visual-review'], stage + ' kräver --visual-review');
     assert.ok(o['--reports'] && o['--actual'], '--collect-evidence kräver --reports och --actual');
     return { mode: 'collect', stage, out: privatePath('--collect-evidence', o['--collect-evidence']),
       reports: o['--reports'].split(',').map(p => privatePath('--reports', p)), actual: privatePath('--actual', o['--actual']),
-      ...(stage === 'year' ? { visualReview: privatePath('--visual-review', o['--visual-review']) } : {}) };
+      ...(release ? { visualReview: privatePath('--visual-review', o['--visual-review']) } : {}) };
   }
   assert.ok(!o['--reports'] && !o['--actual'], '--reports och --actual hör bara till --collect-evidence');
   assert.ok(o['--sql-evidence'], '--sql-evidence /private/tmp/<namn>.json krävs');
@@ -139,7 +166,7 @@ export function currentMigrationSources(list = tjanstEtapp1Migrations, read = p 
  * migrations: källorna som installeras; actualMigrations: hela källmängden det faktiska provet ska ha installerat i sin schemakopia.
  */
 export function requireEvidence(manifest, read, { stage, migrations, actualMigrations = migrations, baselineFingerprint }) {
-  assert.notEqual(stage,'year','year kräver requireYearEvidence');
+  assert.ok(!Object.hasOwn(RELEASES,stage),stage+' kräver requireYearEvidence');
   const s = stageOf(stage);
   assert.equal(manifest.kind, 'tjanst-sql-evidence'); assert.equal(manifest.schemaVersion, 1);
   if (stage !== 'etapp1' || manifest.stage !== undefined) assert.equal(manifest.stage, stage, 'Bevisfilen gäller ett annat steg');
@@ -181,10 +208,11 @@ export function requireEvidence(manifest, read, { stage, migrations, actualMigra
 }
 
 // ---------- year: strict, independent release gates ----------
-export function assertYearTransition(before, after, { functionCount = 86 } = {}) {
+export function assertYearTransition(before, after, { functionCount = 86, stage = 'year' } = {}) {
+  const r = releaseOf(stage);
   for (const key of ['tables','columns','constraints','indexes','triggers','policies'])
     assert.deepEqual(after[key], before[key], 'year ändrar inte ' + key);
-  assert.equal(functionCount, 86);
+  assert.equal(functionCount, r.functionCount);
   const old = new Map(before.functions.map(f => [fn(f.signature), f]));
   const next = new Map(after.functions.map(f => [fn(f.signature), f]));
   assert.equal(old.size,before.functions.length); assert.equal(next.size,after.functions.length);
@@ -195,18 +223,18 @@ export function assertYearTransition(before, after, { functionCount = 86 } = {})
     assert.deepEqual(bm,am,'Befintlig funktionsmetadata/ACL ändrad: '+signature);
     if(a!==b) changed.push(signature);
   }
-  assert.deepEqual(sorted(changed),sorted(YEAR_REPLACED_FUNCTIONS));
+  assert.deepEqual(sorted(changed),sorted(r.replacedFunctions));
   const added=[...next.keys()].filter(k=>!old.has(k));
-  assert.deepEqual(sorted(added),sorted(YEAR_NEW_FUNCTIONS));
-  assert.equal(after.functions.filter(f=>isNewFunction(f.signature)).length,86);
-  // Exact owners/ACL for all sixteen new functions, including the one newly opened RPC.
+  assert.deepEqual(sorted(added),sorted(r.newFunctions));
+  assert.equal(after.functions.filter(f=>isNewFunction(f.signature)).length,r.functionCount);
+  // Exact owners/ACL for every new function, including newly opened RPCs.
   const anchor=before.functions.find(f=>fn(f.signature)==='tjanst_plan_command(jsonb)');
   assert.ok(anchor && anchor.acl);
   const ownerGrant=anchor.acl.slice(1,-1).split(',').find(g=>!g.startsWith('skolplattform_worker='));
   assert.match(ownerGrant,/^[a-z_][a-z_0-9]*=X\/[a-z_][a-z_0-9]*$/u);
   const grantor=ownerGrant.split('/')[1];
   for(const name of added){const f=next.get(name);assert.equal(f.owner,anchor.owner,name);
-    assert.equal(f.acl,'{'+ownerGrant+(name==='tjanst_year_preview(jsonb)'?',skolplattform_worker=X/'+grantor:'')+'}',name+' ACL');}
+    assert.equal(f.acl,'{'+ownerGrant+(r.opened.includes(name)?',skolplattform_worker=X/'+grantor:'')+'}',name+' ACL');}
   return {addedTables:[],addedRelations:[],addedFunctions:sorted(added),replacedFunctions:sorted(changed),constraintChanges:{removed:[],added:[]}};
 }
 const hashPattern=/^[a-f0-9]{64}$/u;
@@ -215,10 +243,10 @@ const fileEvidence=(ref,read)=>{assert.ok(ref && hashPattern.test(ref.sha256));p
   const bytes=read(ref.path);assert.equal(sha(bytes),ref.sha256,'Ändrad bevisfil: '+ref.path);return JSON.parse(bytes);};
 /** Dependencies are injected for meaningful tamper tests; CLI supplies fresh inventories, Git bytes and artifact bytes. */
 export function requireYearEvidence(manifest, read, context) {
-  const {baselineFingerprint,journalFingerprint,migrations,actualMigrations,products,verification,requiredCases,sourceHash,commitHash,artifact}=context;
-  assert.equal(manifest.kind,'tjanst-sql-evidence');assert.equal(manifest.schemaVersion,2);assert.equal(manifest.stage,'year');
+  const {baselineFingerprint,journalFingerprint,migrations,actualMigrations,products,verification,requiredCases,sourceHash,commitHash,artifact,stage='year'}=context,rel=releaseOf(stage);
+  assert.equal(manifest.kind,'tjanst-sql-evidence');assert.equal(manifest.schemaVersion,2);assert.equal(manifest.stage,stage);
   assert.deepEqual(manifest.migrations,migrations);assert.deepEqual(manifest.actualMigrations,actualMigrations);assert.equal(manifest.baselineFingerprint,baselineFingerprint);
-  assert.deepEqual(sorted(Object.keys(manifest.sql??{})),sorted(YEAR_SQL_KINDS));
+  assert.deepEqual(sorted(Object.keys(manifest.sql??{})),sorted(rel.sqlKinds));
   const a=fileEvidence(manifest.actual,read), revision=a.candidate?.revision;
   assert.equal(a.kind,'tjanst-actual-api-browser');assert.equal(a.stage,'year');assert.equal(a.suiteVersion,'tjanst-year-actual-v1');assert.equal(a.status,'PASS');assert.equal(a.fullSuite,true);
   assert.match(revision??'',/^[a-f0-9]{40}$/u);assert.equal(a.sourceRevision,revision);assert.equal(a.build?.revision,revision);assert.equal(a.candidate.mark?.revision,revision);assert.equal(a.build.mode,'protected');
@@ -227,14 +255,14 @@ export function requireYearEvidence(manifest, read, context) {
   assert.deepEqual(a.sources,products);assert.deepEqual(a.finalSources,products);verifySources(products,'Produkt');
   assert.deepEqual(a.verificationSources,verification);assert.deepEqual(a.finalVerificationSources,verification);verifySources(verification,'Verifierare');
   assert.deepEqual(a.migrationSources,actualMigrations);assert.deepEqual(a.finalMigrationSources,actualMigrations);verifySources(actualMigrations,'Migration');
-  assert.deepEqual(a.pendingMigrations,YEAR_MIGRATIONS);
+  assert.deepEqual(a.pendingMigrations,rel.migrations);
   assert.equal(a.snapshot?.dataCopied,false);assert.equal(a.snapshot.sourceFingerprint,baselineFingerprint);assert.equal(a.baselineFingerprint,baselineFingerprint);
   assert.equal(a.targetFingerprint,baselineFingerprint);assert.equal(a.finalTargetFingerprint,baselineFingerprint);assert.equal(a.targetUnchanged,true);assert.deepEqual(a.finalTargetJournal,a.targetJournal);
   assert.match(a.targetJournal.fingerprint?.sha256??'',hashPattern);assert.equal(a.targetJournal.fingerprint.sha256,journalFingerprint);assert.ok(a.targetJournal.fingerprint.count>=8);assert.deepEqual(a.targetJournal.fingerprint.columns,['version','name','statements']);
-  assert.deepEqual(a.targetJournal.installedSources,STAGES.year.prior.map(file=>({version:file.split('/').at(-1).slice(0,14),name:file.split('/').at(-1).slice(15,-4),statementCount:1,sha256:actualMigrations[file]})));
-  assert.deepEqual(a.targetJournal.installed,versionsOf(STAGES.year.prior));assert.deepEqual(a.targetJournal.unknown,[]);assert.deepEqual(a.targetJournal.missing,versionsOf(YEAR_MIGRATIONS));assert.equal(a.targetJournal.read,'read only');
+  assert.deepEqual(a.targetJournal.installedSources,rel.prior.map(file=>({version:file.split('/').at(-1).slice(0,14),name:file.split('/').at(-1).slice(15,-4),statementCount:1,sha256:actualMigrations[file]})));
+  assert.deepEqual(a.targetJournal.installed,versionsOf(rel.prior));assert.deepEqual(a.targetJournal.unknown,[]);assert.deepEqual(a.targetJournal.missing,versionsOf(rel.migrations));assert.equal(a.targetJournal.read,'read only');
   assert.match(a.installedFingerprint,hashPattern);assert.equal(a.finalFingerprint,a.installedFingerprint);
-  assert.deepEqual(a.grants.workerExecute,sorted(YEAR_ENTRYPOINTS));assert.equal(a.grants.workerExecuteCount,13);assert.equal(a.grants.functionCount,86);assert.equal(a.grants.closedFunctions,73);
+  assert.deepEqual(a.grants.workerExecute,sorted(YEAR_ENTRYPOINTS));assert.equal(a.grants.workerExecuteCount,13);assert.equal(a.grants.functionCount,rel.functionCount);assert.equal(a.grants.closedFunctions,rel.privateFunctions);
   for(const k of ['clientRoleExecute','tablePrivileges','publicTablePrivileges'])assert.deepEqual(a.grants[k],[]);
   assert.deepEqual(a.finalGrants,a.grants);
   for(const k of ['oidcCleanup','runtimeCleanup','snapshotCleanup'])assert.equal(a[k]?.cleanup,'complete',k);
@@ -243,11 +271,11 @@ export function requireYearEvidence(manifest, read, context) {
   assert.deepEqual(a.originalArtifact,artifact);assert.deepEqual(a.finalOriginalArtifact,artifact);assert.deepEqual(a.finalArtifact,artifact);assert.deepEqual(a.runtime?.artifact,artifact);
   const projects=['desktop','desktop-small','phone','phone-small'];
   assert.deepEqual(a.projects,projects);assert.deepEqual(Object.keys(requiredCases),projects);assert.deepEqual(a.requiredCases,requiredCases);
-  assert.deepEqual(projects.map(p=>requiredCases[p].length),[51,13,10,9]);
+  assert.deepEqual(projects.map(p=>requiredCases[p].length),rel.caseCounts);
   assert.equal(a.playwright?.code,0);assert.equal(a.playwrightOutcome?.stats?.unexpected,0);assert.equal(a.playwrightOutcome?.stats?.flaky,0);
   const tests=a.playwrightOutcome.tests;assert.ok(tests.length>0);
   assert.ok(tests.every(t=>projects.includes(t.project)&&t.retries===0&&(t.status==='passed'&&t.expected==='passed'||t.status==='skipped'&&t.expected==='skipped')));
-  assert.deepEqual(a.notExecuted,[]);assert.equal(a.checks.length,83);assert.ok(a.checks.every(c=>c.ok===true));
+  assert.deepEqual(a.notExecuted,[]);assert.equal(a.checks.length,rel.checks);assert.ok(a.checks.every(c=>c.ok===true));
   assert.equal(a.oidcCleanup.expectedFixtures,4);assert.equal(a.oidcCleanup.fixtures.length,4);
   const screenshots=[],callbacks=[];const dimensions=[[1440,900],[1024,768],[390,664],[320,740]];
   for(const [i,p]of projects.entries()){
@@ -278,19 +306,19 @@ export function requireYearEvidence(manifest, read, context) {
   const visual=fileEvidence(manifest.visualReview,read);assert.equal(visual.kind,'tjanst-year-visual-review');assert.equal(visual.status,'PASS');assert.equal(visual.actualReportSha256,manifest.actual.sha256);assert.equal(visual.candidateRevision,revision);
   assert.deepEqual([...visual.screenshots].sort((a,b)=>a.path.localeCompare(b.path)),screenshots.sort((a,b)=>a.path.localeCompare(b.path)));
   const sql={};
-  for(const kind of YEAR_SQL_KINDS){const ref=manifest.sql[kind],r=fileEvidence(ref,read);assert.equal(r.kind,kind);assert.equal(r.status,'PASS');assert.equal(r.mode,'schema-snapshot');
+  for(const kind of rel.sqlKinds){const ref=manifest.sql[kind],r=fileEvidence(ref,read);assert.equal(r.kind,kind);assert.equal(r.status,'PASS');assert.equal(r.mode,'schema-snapshot');
     assert.ok(r.checks.length>0&&r.checks.every(c=>c.ok===true));assert.equal(r.database?.dataCopied,false);assert.equal(r.database.sourceFingerprint,baselineFingerprint);
     assert.equal(r.cleanup,'complete');assert.equal(r.snapshotCleanup?.cleanup,'complete');assert.equal(r.targetUnchanged,true);assert.deepEqual(r.finalSources,r.sources);verifySources(r.sources,kind);
     for(const[p,h]of Object.entries(actualMigrations))assert.equal(r.sources[p],h,kind+': saknad migrationskälla');
-    assert.deepEqual(r.pendingMigrations,YEAR_MIGRATIONS);if(kind!=='tjanst-year-access')assert.equal(r.requestedStage,'current');
+    assert.deepEqual(r.pendingMigrations,rel.migrations);if(!rel.uncheckedStage.includes(kind))assert.equal(r.requestedStage,'current');
     sql[kind]={...ref,checks:r.checks.length};}
-  return {sql,actual:{...manifest.actual,revision,checks:83,artifact,installedFingerprint:a.installedFingerprint,functionCount:86},visualReview:manifest.visualReview,callbacks};
+  return {sql,actual:{...manifest.actual,revision,checks:rel.checks,artifact,installedFingerprint:a.installedFingerprint,functionCount:rel.functionCount},visualReview:manifest.visualReview,callbacks};
 }
 
 // ---------- strukturkontroll (ren funktion) ----------
 /** Jämför schemaFingerprint(…, true) före och efter. Returnerar listorna över tillkomna och ersatta objekt; kastar vid avvikelse. */
 export function assertTransition(before, after, { stage, functionCount }) {
-  if (stage === 'year') return assertYearTransition(before, after, { functionCount });
+  if (Object.hasOwn(RELEASES, stage)) return assertYearTransition(before, after, { functionCount, stage });
   const st = stageOf(stage), json = x => JSON.stringify(x), newRel = new Set(st.newTables);
   const oldRel = new Set(before.tables.map(t => t.relname));
   // Relationer: alla befintliga identiska; nya tabeller exakt; övriga nya relationer (index, sekvenser) hör till nya tabeller.
@@ -387,10 +415,11 @@ async function newObjectPrivileges(tx) {
 
 function yearMigrationInventory(){
   const files=readdirSync(resolve(root,'supabase/migrations')).filter(f=>/^\d{14}_.*\.sql$/u.test(f)&&f.slice(0,14)>='20261020000000').sort().map(f=>'supabase/migrations/'+f);
-  assert.deepEqual(files,STAGES.year.actualMigrations,'Okänd eller saknad årsmigration');return currentMigrationSources(files);
+  assert.deepEqual(files,TJANST_MIGRATION_REGISTRY.map(m=>m.file),'Okänd eller saknad registrerad migration');return currentMigrationSources(files);
 }
 /** No mutation method receives the target connection: only read-only inventory opens it. */
-export async function readYearTarget({installed=false}={}) {
+export async function readYearTarget({installed=false,stage='year'}={}) {
+  const rel=releaseOf(stage);
   const {assertTarget}=await import('./verify-target.mjs');
   const {schemaFingerprint}=await import('./named-timplan-snapshot.mjs');
   const {catalogColumns,projectionHashes}=await import('./verify-class-cohort.mjs');
@@ -400,9 +429,10 @@ export async function readYearTarget({installed=false}={}) {
     const rows=await tx`select version,name,statements from supabase_migrations.schema_migrations order by version`;
     const actualMigrations=yearMigrationInventory();
     const state=classifyTjanstMigrations({journal:rows.map(r=>r.version),sourceHashes:actualMigrations});
-    const expected=installed?STAGES.year.actualMigrations:STAGES.year.prior;
-    assert.deepEqual(state.installed,versionsOf(expected),'year kräver exakt registrerat före-/efterläge');
-    assert.deepEqual(state.pendingMigrations,installed?[]:YEAR_MIGRATIONS);
+    const expected=installed?rel.actualMigrations:rel.prior;
+    assert.deepEqual(state.installed,versionsOf(expected),stage+' kräver exakt registrerat före-/efterläge');
+    assert.deepEqual(state.pendingMigrations,TJANST_MIGRATION_REGISTRY.slice(expected.length).map(m=>m.file));
+    if(!installed)assert.deepEqual(state.pendingMigrations.slice(0,rel.migrations.length),rel.migrations);
     const journal=rows.filter(r=>r.version>='20261020000000').map(r=>{
       const file=expected.find(p=>p.split('/').at(-1).startsWith(r.version+'_'));
       assert.equal(r.name,file.split('/').at(-1).slice(15,-4));assert.deepEqual(r.statements,[readFileSync(resolve(root,file),'utf8')],'Installerad journal skiljer sig från fryst källa');
@@ -426,13 +456,16 @@ async function invalidPublishedJoints(tx){
         select 1 from public.tjanst_joint_members m join public.tjanst_rows r on r.id=m.row_id where m.group_id=g.id and r.staff_person_id=t.staff_person_id)))`;
   return r;
 }
-async function seedYearRehearsal(tx){
+async function seedYearRehearsal(tx,rel=RELEASES.year){
   const {createTjanstYearFixture}=await import('./tjanst-year-fixtures.mjs');
   const {planRead,planSend,planCommand,grantSelf}=await import('./tjanst-fixtures.mjs');
   const s=await createTjanstYearFixture(tx),{f,unitId,schoolYear}=s,p=s.people[0].personId;
   await grantSelf(tx,f,{staffPersonId:p,unitIds:[unitId]});await f.actor(tx,'principalA');
-  // Deliberate historical builder: the owned copy is still exactly the installed pre-year schema.
-  const send=async(action,payload)=>{const current=await planRead(tx,{unitId,schoolYear});
+  // trial: the owned copy already has the year suffix, so only context-bound commands are accepted.
+  const {capturePlanContext,yearCommand,yearCommandSend}=await import('./tjanst-year-fixtures.mjs');
+  const sendCurrent=async(action,payload,choice)=>(await yearCommandSend(tx,await yearCommand(await capturePlanContext(tx,{unitId,schoolYear,action,payload,...(choice?{choice}:{})})))).result.detail;
+  // Deliberate historical builder for year: the owned copy is still exactly the installed pre-year schema.
+  const send=rel.stage!=='year'?(action,payload)=>action==='create_draft'?null:sendCurrent(action,payload,action==='save_row'?'manual':undefined):async(action,payload)=>{const current=await planRead(tx,{unitId,schoolYear});
     return (await planSend(tx,await planCommand(unitId,schoolYear,action,current.revision,payload,
       action==='publish'?{expectedContentHash:current.version.contentHash}:{}))).result.detail;};
   await send('create_draft',{basedOnVersionId:null});
@@ -443,7 +476,7 @@ async function seedYearRehearsal(tx){
   d=await send('publish',{});assert.equal(d.version.status,'published');assert.equal(d.rows.length,2);assert.equal(d.specials.length,1);assert.equal(d.joints.length,1);
   // The clone's journal is new synthetic state derived from the reviewed sources. No journal rows are copied from the target.
   assert.equal((await tx`select count(*)::int n from supabase_migrations.schema_migrations`)[0].n,0);
-  for(const p of STAGES.year.prior)await tx`insert into supabase_migrations.schema_migrations(version,name,statements)
+  for(const p of rel.prior)await tx`insert into supabase_migrations.schema_migrations(version,name,statements)
     values(${p.split('/').at(-1).slice(0,14)},${p.split('/').at(-1).slice(15,-4)},${[readFileSync(resolve(root,p),'utf8')]})`;
   return {synthetic:true,publishedVersions:1,publishedRows:2,publishedSpecials:1,publishedGroups:1,selfMandates:1};
 }
@@ -485,7 +518,7 @@ export async function runOwnedYearRehearsal({readTarget,createSnapshot,seed,pres
   return report;
 }
 /** The only year path that can obtain a writable target. Called only for an explicit --apply after the owned rehearsal. */
-export async function runYearApply({mode,report,revalidate,connect,install,readAfter}){
+export async function runYearApply({mode,report,revalidate,connect,install,readAfter,stage='year'}){
   if(mode!=='apply'){assert.equal(mode,'rehearsal');return;}
   assert.equal(report.targetUnchanged,true);assert.equal(report.preservation?.rollback,true);assert.equal(report.cleanup?.cleanup,'complete');
   await revalidate();let db;
@@ -494,9 +527,9 @@ export async function runYearApply({mode,report,revalidate,connect,install,readA
   report.targetAfterInstall=await readAfter();
   assert.equal(report.targetAfterInstall.fingerprint,report.installed.afterFingerprint);
   for(const key of ['columns','rows','invalidPublishedJoints'])assert.deepEqual(report.targetAfterInstall[key],report.targetBefore[key],'Efterinstallation ändrade '+key);
-  assert.deepEqual(report.targetAfterInstall.journal,STAGES.year.actualMigrations.map(p=>({version:p.split('/').at(-1).slice(0,14),sha256:currentMigrationSources([p])[p]})));
+  assert.deepEqual(report.targetAfterInstall.journal,releaseOf(stage).actualMigrations.map(p=>({version:p.split('/').at(-1).slice(0,14),sha256:currentMigrationSources([p])[p]})));
 }
-async function installYearTransaction(tx,expected,evidence,revalidate){
+async function installYearTransaction(tx,expected,evidence,revalidate,rel=RELEASES.year){
   const {schemaFingerprint}=await import('./named-timplan-snapshot.mjs');
   // READ COMMITTED plus table locks: snapshots used for the comparisons are taken after waiting for prior writers.
   await tx`set local lock_timeout='5s'`;await tx`set local statement_timeout='180s'`;
@@ -509,22 +542,23 @@ async function installYearTransaction(tx,expected,evidence,revalidate){
   assert.deepEqual(before.columns,expected.columns);assert.deepEqual(before.rows,expected.rows);
   assert.equal(before.journalHash,expected.journalFingerprint,'Journalen ändrades efter repetition');
   await revalidate();
-  const sources=currentMigrationSources(YEAR_MIGRATIONS);
-  for(const p of YEAR_MIGRATIONS){const sql=readFileSync(resolve(root,p),'utf8');assert.equal(sha(sql),TJANST_MIGRATION_REGISTRY.find(m=>m.file===p).sha256);await tx.unsafe(sql);}
+  const sources=currentMigrationSources(rel.migrations);
+  for(const p of rel.migrations){const sql=readFileSync(resolve(root,p),'utf8');assert.equal(sha(sql),TJANST_MIGRATION_REGISTRY.find(m=>m.file===p).sha256);await tx.unsafe(sql);}
   await tx`set constraints all immediate`;
   assert.deepEqual(await preservedYearState(tx),before,'Befintliga rader/mandat/andelar/publicering/journal ändrades');
-  const objects=assertYearTransition(beforeSchema,await schemaFingerprint(tx,true));
-  const privacy=assertPrivate(await newObjectPrivileges(tx),YEAR_ENTRYPOINTS);assert.equal(privacy.privateFunctions,73);
+  const objects=assertYearTransition(beforeSchema,await schemaFingerprint(tx,true),{functionCount:rel.functionCount,stage:rel.stage});
+  const privacy=assertPrivate(await newObjectPrivileges(tx),YEAR_ENTRYPOINTS);assert.equal(privacy.privateFunctions,rel.privateFunctions);
   const afterFingerprint=await schemaFingerprint(tx);assert.equal(afterFingerprint,evidence.actual.installedFingerprint);
-  for(const p of YEAR_MIGRATIONS){const source=readFileSync(resolve(root,p),'utf8');assert.equal(sha(source),sources[p]);
+  for(const p of rel.migrations){const source=readFileSync(resolve(root,p),'utf8');assert.equal(sha(source),sources[p]);
     await tx`insert into supabase_migrations.schema_migrations(version,name,statements) values(${p.split('/').at(-1).slice(0,14)},${p.split('/').at(-1).slice(15,-4)},${[source]})`;}
   const journal=await tx`select version,name,statements from supabase_migrations.schema_migrations where version>=${'20261020000000'} order by version`;
-  assert.equal(journal.length,12);
-  for(const [i,p]of STAGES.year.actualMigrations.entries())assert.deepEqual(journal[i],{version:p.split('/').at(-1).slice(0,14),name:p.split('/').at(-1).slice(15,-4),statements:[readFileSync(resolve(root,p),'utf8')]});
+  assert.equal(journal.length,rel.journalCount);
+  for(const [i,p]of rel.actualMigrations.entries())assert.deepEqual(journal[i],{version:p.split('/').at(-1).slice(0,14),name:p.split('/').at(-1).slice(15,-4),statements:[readFileSync(resolve(root,p),'utf8')]});
   const after=await preservedYearState(tx);for(const key of ['columns','rows','mandates','published'])assert.deepEqual(after[key],before[key]);
   return {afterFingerprint,...objects,privacy,preservedTables:Object.keys(before.rows).length,mandates:before.mandates,published:before.published};
 }
 async function mainYear(opts){
+  const rel=releaseOf(opts.stage);
   assert.ok(['collect','rehearsal','apply'].includes(opts.mode));
   const {productSources}=await import('./apply-apl-plan.mjs');
   const {verificationSources}=await import('./verify-tjanst-actual.mjs');
@@ -532,17 +566,18 @@ async function mainYear(opts){
   const {artifactManifest}=await import('./verify-programplan-copy-api.mjs');
   const {createNamedTimplanSnapshot,schemaFingerprint}=await import('./named-timplan-snapshot.mjs');
   const read=p=>{assert.ok(resolve(p).startsWith('/private/tmp/'));return readFileSync(p);};
-  const migrations=currentMigrationSources(YEAR_MIGRATIONS),actualMigrations=yearMigrationInventory();
-  assert.deepEqual(Object.keys(actualMigrations),TJANST_MIGRATION_REGISTRY.map(m=>m.file));
-  for(const m of TJANST_MIGRATION_REGISTRY)assert.equal(actualMigrations[m.file],m.sha256);
-  const target=await readYearTarget(),report={kind:'tjanst-installation',schemaVersion:2,stage:'year',mode:opts.mode,status:'FAIL',startedAt:new Date().toISOString(),migrations,committed:false};
+  const migrations=currentMigrationSources(rel.migrations),actualMigrations=currentMigrationSources(rel.actualMigrations),registered=yearMigrationInventory();
+  assert.deepEqual(Object.keys(registered),TJANST_MIGRATION_REGISTRY.map(m=>m.file));
+  for(const m of TJANST_MIGRATION_REGISTRY)assert.equal(registered[m.file],m.sha256);
+  const readTarget=(o={})=>readYearTarget({...o,stage:rel.stage});
+  const target=await readTarget(),report={kind:'tjanst-installation',schemaVersion:2,stage:rel.stage,mode:opts.mode,status:'FAIL',startedAt:new Date().toISOString(),migrations,committed:false};
   let failure;
   try{
     let manifest;
     if(opts.mode==='collect'){
       const entries=opts.reports.map(path=>{const bytes=read(path);return [JSON.parse(bytes).kind,{path,sha256:sha(bytes)}];});
       assert.equal(new Set(entries.map(([k])=>k)).size,entries.length,'Dubbla SQL-rapporter');
-      manifest={kind:'tjanst-sql-evidence',schemaVersion:2,stage:'year',createdAt:new Date().toISOString(),migrations,actualMigrations,baselineFingerprint:target.fingerprint,
+      manifest={kind:'tjanst-sql-evidence',schemaVersion:2,stage:rel.stage,createdAt:new Date().toISOString(),migrations,actualMigrations,baselineFingerprint:target.fingerprint,
         sql:Object.fromEntries(entries),actual:{path:opts.actual,sha256:sha(read(opts.actual))},visualReview:{path:opts.visualReview,sha256:sha(read(opts.visualReview))}};
     }else manifest=JSON.parse(read(opts.evidencePath));
     const actual=fileEvidence(manifest.actual,read),candidate='/private/tmp/tjanst-candidate';
@@ -551,19 +586,19 @@ async function mainYear(opts){
     assert.equal(git(['status','--porcelain','--untracked-files=no'],candidate),'','Kandidaten är inte ren');
     assert.equal(actual.candidate.build,join(candidate,'web/dist-protected'));
     const context={baselineFingerprint:target.fingerprint,journalFingerprint:target.journalFingerprint,migrations,actualMigrations,products:productSources(),verification:verificationSources(),requiredCases:TJANST_ACTUAL_CASES,
-      sourceHash:p=>sha(readFileSync(resolve(root,p))),commitHash:(rev,p)=>sha(execFileSync('git',['show',rev+':'+p],{cwd:root,maxBuffer:128*1024*1024})),artifact:artifactManifest(actual.candidate.build)};
+      sourceHash:p=>sha(readFileSync(resolve(root,p))),commitHash:(rev,p)=>sha(execFileSync('git',['show',rev+':'+p],{cwd:root,maxBuffer:128*1024*1024})),artifact:artifactManifest(actual.candidate.build),stage:rel.stage};
     report.evidence=requireYearEvidence(manifest,read,context);
     if(opts.mode==='collect'){const fd=openSync(opts.out,'wx',0o600);try{writeSync(fd,JSON.stringify(manifest,null,2)+'\n');}finally{closeSync(fd);}
       report.evidencePath=opts.out;report.evidenceSha256=sha(read(opts.out));
     }else{
       report.sqlEvidence={path:opts.evidencePath,sha256:sha(read(opts.evidencePath))};
-      await runOwnedYearRehearsal({readTarget:readYearTarget,createSnapshot:createNamedTimplanSnapshot,seed:seedYearRehearsal,preserve:preservedYearState,
+      await runOwnedYearRehearsal({readTarget,createSnapshot:createNamedTimplanSnapshot,seed:tx=>seedYearRehearsal(tx,rel),preserve:preservedYearState,
         structure:q=>schemaFingerprint(q,true),migrate:async tx=>{
           await tx`set local lock_timeout='5s'`;await tx`set local statement_timeout='180s'`;
-          for(const p of YEAR_MIGRATIONS){const sql=readFileSync(resolve(root,p),'utf8');assert.equal(sha(sql),TJANST_MIGRATION_REGISTRY.find(m=>m.file===p).sha256);await tx.unsafe(sql);}await tx`set constraints all immediate`;
+          for(const p of rel.migrations){const sql=readFileSync(resolve(root,p),'utf8');assert.equal(sha(sql),TJANST_MIGRATION_REGISTRY.find(m=>m.file===p).sha256);await tx.unsafe(sql);}await tx`set constraints all immediate`;
         },checkInstalled:async(tx,before)=>{
-          const after=await schemaFingerprint(tx,true),objects=assertYearTransition(before,after);
-          const privacy=assertPrivate(await newObjectPrivileges(tx),YEAR_ENTRYPOINTS);assert.equal(privacy.privateFunctions,73);
+          const after=await schemaFingerprint(tx,true),objects=assertYearTransition(before,after,{functionCount:rel.functionCount,stage:rel.stage});
+          const privacy=assertPrivate(await newObjectPrivileges(tx),YEAR_ENTRYPOINTS);assert.equal(privacy.privateFunctions,rel.privateFunctions);
           const fingerprint=await schemaFingerprint(tx);assert.equal(fingerprint,report.evidence.actual.installedFingerprint);
           return {afterFingerprint:fingerprint,...objects,privacy};
         },report});
@@ -571,22 +606,22 @@ async function mainYear(opts){
       // No source or original artifact drift during repetition, including all evidence file hashes.
       const revalidate=async()=>requireYearEvidence(manifest,read,{...context,products:productSources(),verification:verificationSources(),artifact:artifactManifest(actual.candidate.build)});
       await revalidate();
-      await runYearApply({mode:opts.mode,report,revalidate:async()=>{await revalidate();assert.deepEqual(await readYearTarget(),target);},
+      await runYearApply({mode:opts.mode,report,stage:rel.stage,revalidate:async()=>{await revalidate();assert.deepEqual(await readTarget(),target);},
         connect:async()=>{const {assertTarget}=await import('./verify-target.mjs');const t=await assertTarget('protected');return createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(t.dbUrl,{max:1,prepare:false,onnotice:()=>{}});},
-        install:tx=>installYearTransaction(tx,target,report.evidence,revalidate),readAfter:()=>readYearTarget({installed:true})});
+        install:tx=>installYearTransaction(tx,target,report.evidence,revalidate,rel),readAfter:()=>readTarget({installed:true})});
     }
     report.status='PASS';
   }catch(e){failure=e;report.error=e.message;}
   report.finishedAt=new Date().toISOString();
   const out=opts.mode==='collect'?opts.out.replace(/\.json$/u,'-collect-report.json'):opts.out;
   const fd=openSync(out,'wx',0o600);try{writeSync(fd,JSON.stringify(report,null,2)+'\n');}finally{closeSync(fd);}
-  console.log(report.status+': year '+opts.mode+'; committed='+report.committed+'; privat rapport '+out);
+  console.log(report.status+': '+rel.stage+' '+opts.mode+'; committed='+report.committed+'; privat rapport '+out);
   return failure?1:0;
 }
 
 async function main(argv) {
   const opts = parseArgs(argv);
-  if (opts.stage === 'year') return mainYear(opts);
+  if (Object.hasOwn(RELEASES, opts.stage)) return mainYear(opts);
   const st = stageOf(opts.stage), stageMigrations = st.migrations, stageVersions = versionsOf(stageMigrations);
   const priorVersions = versionsOf(st.prior);
   const { assertTarget } = await import('./verify-target.mjs');

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "Leverans av 05.1-26/27 (D-28 och samläsningsstöd)"
+current_plan: "05.1-28 genomförd — användarprov av rättelserna på 3012"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
-last_updated: "2026-10-25"
-last_activity: 2026-10-25
-last_activity_desc: "Faktiskt prov av sammanhållen planering 83/83 PASS; två UI-fel rättade i 21; handbok uppdaterad."
+last_updated: "2026-10-26"
+last_activity: 2026-10-26
+last_activity_desc: "05.1-28: D-28 och APL per klass installerade efter användarens ja; 3012 kör 2da6f1e."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -17,14 +17,16 @@ progress:
   completed_plans: 94
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
-worker_status: tjanst_year_local_delivery_health_pass
-worker_build_revision: 1eb54671c36e42a5a460de00edef5a5213181dae
+worker_status: tjanst_trial_local_delivery_health_pass
+worker_build_revision: 2da6f1e5226b80827af075e1b6e84b4ff1e9d888
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-28 genomförd 2026-10-26 (lokal miljö):** [Resultat](phases/05.1-tjanstefordelning/05.1-28-SUMMARY.md). Användaren sa ”ta fram leveransunderlaget och installera sedan”. `apply-tjanst --stage trial`: bevis (faktiskt 85/85, sex SQL-rapporter i schemakopia, 65 granskade bilder), repetition och `--apply` gav PASS, committed=true. Migrationerna 20261026100000 (D-28) och 20261026110000 (APL) är installerade. 97 tabeller, 92 mandat och publicering bevarades, och schemat `0e883551` är lika med provets. 3012 kör 2da6f1e med godkänd hälsokontroll. Målet har en äldre publicerad samläsning med flera lärare; historiken ändras inte. Nästa steg är användarprov av samläsningsrättelserna. Inget mänskligt godkännande ännu.
 
 **Plan 05.1-27 genomförd 2026-10-26:** [Resultat](phases/05.1-tjanstefordelning/05.1-27-SUMMARY.md). Samläsningsstöd: märket öppnar samläsningen, kursklick visar likadana kurser, varningar för olika timplanstid och APL-skillnad, och tidsfälten döljs vid D-28. Migrationen 20261026110000 lägger till APL per klass i läsningen och är inte installerad. Faktiskt prov på 2da6f1e: 85/85 PASS. SQL i schemakopia: 11/16/78/73/66/44/60/83/19 PASS. Tre todo-punkter är lösta. Nästa steg är samlad leverans av 26+27 med installationsbeslut. 3012 kör fortfarande 1eb5467.
 

@@ -270,7 +270,7 @@ test('gaplägets repetition gör aldrig commit: utan --apply en transaktion som 
 });
 
 // ---------- year: exact release evidence and isolated rehearsal ----------
-import { YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
+import { RELEASES,TRIAL_MIGRATIONS,TRIAL_NEW_FUNCTIONS,TRIAL_REPLACED_FUNCTIONS,TRIAL_SQL_KINDS,YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
   assertYearTransition,requireYearEvidence,runOwnedYearRehearsal,runYearApply } from './apply-tjanst.mjs';
 import { randomUUID } from 'node:crypto';
 let auditSeq=0; // säkerhetsloggens id är heltal
@@ -307,19 +307,20 @@ test('year structure permits exactly sixteen new, seven changed functions and no
   rows.functions.find(v=>v.signature==='tjanst_year_hash(text,jsonb)'&&v.role==='skolplattform_worker').allowed=true;
   assert.throws(()=>assertPrivate(rows,YEAR_ENTRYPOINTS));
 });
-function yearEvidence(){
+function yearEvidence(stage='year'){
+  const rel=RELEASES[stage];
   const H=sha('fixture'),revision='a'.repeat(40),projects=['desktop','desktop-small','phone','phone-small'],dimensions=[[1440,900],[1024,768],[390,664],[320,740]];
-  const actualMigrations=Object.fromEntries(STAGES.year.actualMigrations.map(p=>[p,sha(p)])),migrations=Object.fromEntries(YEAR_MIGRATIONS.map(p=>[p,sha(p)]));
+  const actualMigrations=Object.fromEntries(rel.actualMigrations.map(p=>[p,sha(p)])),migrations=Object.fromEntries(rel.migrations.map(p=>[p,sha(p)]));
   const products={'web/app/a.ts':H},verification={'work/pilot/v.mjs':H};
-  const requiredCases=Object.fromEntries(projects.map((p,i)=>[p,Array.from({length:[51,13,10,9][i]},(_,n)=>p+'-case-'+n)]));
+  const requiredCases=Object.fromEntries(projects.map((p,i)=>[p,Array.from({length:rel.caseCounts[i]},(_,n)=>p+'-case-'+n)]));
   const artifact={fileCount:1,files:[{path:'worker.js',bytes:4,sha256:H}],sha256:H};
   const a={kind:'tjanst-actual-api-browser',stage:'year',suiteVersion:'tjanst-year-actual-v1',status:'PASS',fullSuite:true,
     sourceRevision:revision,build:{mode:'protected',revision},candidate:{revision,mark:{revision}},
     sources:products,finalSources:products,verificationSources:verification,finalVerificationSources:verification,migrationSources:actualMigrations,finalMigrationSources:actualMigrations,
-    pendingMigrations:YEAR_MIGRATIONS,snapshot:{dataCopied:false,sourceFingerprint:H},baselineFingerprint:H,targetFingerprint:H,finalTargetFingerprint:H,targetUnchanged:true,
-    targetJournal:{read:'read only',installed:STAGES.year.prior.map(p=>p.split('/').at(-1).slice(0,14)),unknown:[],missing:YEAR_MIGRATIONS.map(p=>p.split('/').at(-1).slice(0,14)),
-      fingerprint:{sha256:H,count:100,columns:['version','name','statements']},installedSources:STAGES.year.prior.map(p=>({version:p.split('/').at(-1).slice(0,14),name:p.split('/').at(-1).slice(15,-4),statementCount:1,sha256:actualMigrations[p]}))},
-    installedFingerprint:H,finalFingerprint:H,grants:{workerExecute:[...YEAR_ENTRYPOINTS].sort(),workerExecuteCount:13,functionCount:86,closedFunctions:73,clientRoleExecute:[],tablePrivileges:[],publicTablePrivileges:[]},
+    pendingMigrations:rel.migrations,snapshot:{dataCopied:false,sourceFingerprint:H},baselineFingerprint:H,targetFingerprint:H,finalTargetFingerprint:H,targetUnchanged:true,
+    targetJournal:{read:'read only',installed:rel.prior.map(p=>p.split('/').at(-1).slice(0,14)),unknown:[],missing:rel.migrations.map(p=>p.split('/').at(-1).slice(0,14)),
+      fingerprint:{sha256:H,count:100,columns:['version','name','statements']},installedSources:rel.prior.map(p=>({version:p.split('/').at(-1).slice(0,14),name:p.split('/').at(-1).slice(15,-4),statementCount:1,sha256:actualMigrations[p]}))},
+    installedFingerprint:H,finalFingerprint:H,grants:{workerExecute:[...YEAR_ENTRYPOINTS].sort(),workerExecuteCount:13,functionCount:rel.functionCount,closedFunctions:rel.privateFunctions,clientRoleExecute:[],tablePrivileges:[],publicTablePrivileges:[]},
     oidcCleanup:{cleanup:'complete',expectedFixtures:4,fixtures:[],verifiedCallbacks:0},runtimeCleanup:{cleanup:'complete'},snapshotCleanup:{cleanup:'complete'},buildCopyRemoved:true,originalArtifactPreserved:true,
     originalArtifact:artifact,finalOriginalArtifact:artifact,finalArtifact:artifact,runtime:{artifact},projects,requiredCases,playwright:{code:0},
     playwrightOutcome:{stats:{unexpected:0,flaky:0},tests:projects.map(project=>({project,retries:0,status:'passed',expected:'passed'}))},notExecuted:[],checks:[],browserEvidence:{},browsers:{},foreignCanary:{},oidcEvidence:{},casesPerProject:{}};
@@ -340,8 +341,8 @@ function yearEvidence(){
     files[oidcPath]=oidc;a.oidcEvidence[p]={path:oidcPath,requiredRoles:roles,result:oidc};
     a.oidcCleanup.fixtures.push({project:p,cleanup:'complete',verifiedCallbacks:auth.length});a.oidcCleanup.verifiedCallbacks+=auth.length;
   }
-  const sql=Object.fromEntries(YEAR_SQL_KINDS.map((kind,i)=>{const path='/private/tmp/year/sql-'+i+'.json';files[path]={kind,status:'PASS',mode:'schema-snapshot',requestedStage:'current',checks:[{ok:true}],database:{dataCopied:false,sourceFingerprint:H},cleanup:'complete',snapshotCleanup:{cleanup:'complete'},targetUnchanged:true,sources:{...actualMigrations,...verification},finalSources:{...actualMigrations,...verification},pendingMigrations:YEAR_MIGRATIONS};return[kind,{path}];}));
-  const context={baselineFingerprint:H,journalFingerprint:H,migrations,actualMigrations,products,verification,requiredCases,artifact,
+  const sql=Object.fromEntries(rel.sqlKinds.map((kind,i)=>{const path='/private/tmp/year/sql-'+i+'.json';files[path]={kind,status:'PASS',mode:'schema-snapshot',...(rel.uncheckedStage.includes(kind)?{}:{requestedStage:'current'}),checks:[{ok:true}],database:{dataCopied:false,sourceFingerprint:H},cleanup:'complete',snapshotCleanup:{cleanup:'complete'},targetUnchanged:true,sources:{...actualMigrations,...verification},finalSources:{...actualMigrations,...verification},pendingMigrations:rel.migrations};return[kind,{path}];}));
+  const context={baselineFingerprint:H,journalFingerprint:H,migrations,actualMigrations,products,verification,requiredCases,artifact,stage,
     sourceHash:p=>({...actualMigrations,...products,...verification})[p],commitHash:(_revision,p)=>({...actualMigrations,...products,...verification})[p]};
   return {a,files,visual,sql,context};
 }
@@ -350,7 +351,7 @@ function yearManifest(e){
   for(const ref of [...Object.values(e.a.browserEvidence),...Object.values(e.a.oidcEvidence),...Object.values(e.sql)])ref.sha256=sha(bytes(ref.path));
   e.files['/private/tmp/year/actual.json']=e.a;const actual={path:'/private/tmp/year/actual.json',sha256:sha(bytes('/private/tmp/year/actual.json'))};
   e.visual.actualReportSha256=actual.sha256;e.files['/private/tmp/year/visual.json']=e.visual;
-  const manifest={kind:'tjanst-sql-evidence',schemaVersion:2,stage:'year',migrations:e.context.migrations,actualMigrations:e.context.actualMigrations,baselineFingerprint:e.context.baselineFingerprint,
+  const manifest={kind:'tjanst-sql-evidence',schemaVersion:2,stage:e.context.stage,migrations:e.context.migrations,actualMigrations:e.context.actualMigrations,baselineFingerprint:e.context.baselineFingerprint,
     sql:e.sql,actual,visualReview:{path:'/private/tmp/year/visual.json',sha256:sha(bytes('/private/tmp/year/visual.json'))}};
   return {manifest,read:bytes};
 }
@@ -417,4 +418,31 @@ test('year apply opens a writable target only when explicitly requested and afte
   const bad=fakeDb();bad.end=async()=>{};
   await assert.rejects(runYearApply({...args,mode:'apply',connect:async()=>bad,install:async()=>{bad.state.schema='half';throw Error('rollback');}}),/rollback/u);
   assert.equal(bad.state.commits,0);assert.equal(bad.state.schema,'base');
+});
+
+// ---------- trial (05.1-28): användarprovets rättelser efter year ----------
+test('trial: två migrationer efter year, egen bevisfil och visuell granskning krävs',()=>{
+  assert.deepEqual(STAGES.trial.prior,STAGES.year.actualMigrations);assert.deepEqual(STAGES.trial.migrations,TRIAL_MIGRATIONS);assert.equal(STAGES.trial.actualMigrations.length,14);
+  assert.equal(parseArgs(['--stage','trial','--sql-evidence','/private/tmp/t.json','--apply']).mode,'apply');
+  assert.throws(()=>parseArgs(['--stage','trial','--collect-evidence','/private/tmp/t.json','--reports','/private/tmp/s.json','--actual','/private/tmp/a.json']),/visual-review/u);
+  assert.equal(RELEASES.trial.journalCount,14);assert.deepEqual(RELEASES.trial.opened,[]);
+});
+test('trial struktur: exakt en ny stängd funktion och tre ersatta, inga nya ingångar',()=>{
+  const signatures=[...new Set([...WORKER_ENTRYPOINTS,'tjanst_year_preview(jsonb)',...TRIAL_REPLACED_FUNCTIONS])];
+  while(signatures.length<86)signatures.push('tjanst_existing_'+signatures.length+'()');
+  const before={tables:[],columns:[],constraints:[],indexes:[],triggers:[],policies:[],
+    functions:signatures.map(s=>f(s,'old',YEAR_ENTRYPOINTS.includes(s)?'{postgres=X/postgres,skolplattform_worker=X/postgres}':'{postgres=X/postgres}'))};
+  const after=structuredClone(before);after.functions=after.functions.map(v=>({...v,definition:TRIAL_REPLACED_FUNCTIONS.includes(v.signature)?'new':v.definition}));
+  after.functions.push(f(TRIAL_NEW_FUNCTIONS[0],'new','{postgres=X/postgres}'));
+  const o={functionCount:87,stage:'trial'};assert.deepEqual(assertYearTransition(before,after,o).addedFunctions,TRIAL_NEW_FUNCTIONS);
+  for(const change of [a=>{a.functions.at(-1).acl='{postgres=X/postgres,skolplattform_worker=X/postgres}';},a=>{a.functions.find(v=>v.signature===TRIAL_REPLACED_FUNCTIONS[2]).definition='old';},
+    a=>a.functions.push(f('tjanst_unlisted()')),a=>a.constraints.push({unexpected:true})]){const next=structuredClone(after);change(next);assert.throws(()=>assertYearTransition(before,next,o));}
+  assert.throws(()=>assertYearTransition(before,after,{functionCount:86,stage:'trial'}));assert.throws(()=>assertYearTransition(before,after));
+});
+test('trial bevis: 85 fall, sex SQL-rapporter, pending = två migrationer; year-bevis godtas inte',()=>{
+  const e=yearEvidence('trial'),m=yearManifest(e);const r=requireYearEvidence(m.manifest,m.read,e.context);
+  assert.equal(r.actual.checks,85);assert.equal(r.actual.functionCount,87);assert.deepEqual(Object.keys(r.sql).sort(),[...TRIAL_SQL_KINDS].sort());
+  for(const change of [e=>{e.a.pendingMigrations=YEAR_MIGRATIONS;},e=>{e.a.grants.closedFunctions=73;},e=>{delete e.sql['tjanst-class-apl'];},
+    e=>{e.a.checks.pop();},e=>{e.context.stage='year';}]){const x=yearEvidence('trial');change(x);const y=yearManifest(x);assert.throws(()=>requireYearEvidence(y.manifest,y.read,x.context));}
+  const y=yearEvidence('year'),ym=yearManifest(y);assert.throws(()=>requireYearEvidence(ym.manifest,ym.read,{...y.context,stage:'trial'}));
 });
