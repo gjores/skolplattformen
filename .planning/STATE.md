@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-28 genomförd — användarprov av rättelserna på 3012"
+current_plan: "Användarprov av 05.1-26–28 klart — planera återstående återkoppling"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-26"
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Användarprov rapporterat klart 2026-10-26:** Användaren meddelar ”användarprovet är klart” efter installationen i 05.1-28 (3012 kör 2da6f1e). Provet av samläsningsrättelserna (D-28, märke, kursklick, varningar för tid och APL) och 05.1-26:s rättelser registreras som användarrapporterat klart och ska inte efterfrågas igen. Inga nya tekniska provresultat tillskrivs provet. Återstående återkoppling i todo: valbara kurser som undervisningsgrupper, flerlärarskap, matris för många lärare och lärarrekommendation per rad.
 
 **Plan 05.1-28 genomförd 2026-10-26 (lokal miljö):** [Resultat](phases/05.1-tjanstefordelning/05.1-28-SUMMARY.md). Användaren sa ”ta fram leveransunderlaget och installera sedan”. `apply-tjanst --stage trial`: bevis (faktiskt 85/85, sex SQL-rapporter i schemakopia, 65 granskade bilder), repetition och `--apply` gav PASS, committed=true. Migrationerna 20261026100000 (D-28) och 20261026110000 (APL) är installerade. 97 tabeller, 92 mandat och publicering bevarades, och schemat `0e883551` är lika med provets. 3012 kör 2da6f1e med godkänd hälsokontroll. Målet har en äldre publicerad samläsning med flera lärare; historiken ändras inte. Nästa steg är användarprov av samläsningsrättelserna. Inget mänskligt godkännande ännu.
 
